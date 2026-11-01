@@ -5,7 +5,7 @@ Written 2026-11-01, at the end of a design session. This file carries everything
 ## Start here
 
 ```bash
-git clone -b handoff git@github.com:SiddharthMuramkar/finance-agent.git
+git clone -b handoff https://github.com/SiddharthMuramkar/finance-agent.git
 cd finance-agent
 ```
 
