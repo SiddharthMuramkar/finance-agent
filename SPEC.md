@@ -259,7 +259,7 @@ Web (Next.js, App Router):
 ## 14. Repo layout
 
 ```
-finance-tutor/
+finance-agent/
 ├── SPEC.md
 ├── backend/              Vercel project 1 (root: backend/)
 │   ├── agent/            no web code in here
@@ -294,7 +294,7 @@ finance-tutor/
 3. Do not buy credits. Do not turn on auto-reload.
 4. Create a Neon project: a `dev` branch for local work, the default branch for production.
 5. Get an Octen API key and a LangSmith API key.
-6. Create the GitHub repo `finance-tutor` and add this file.
+6. Create the GitHub repo `finance-agent` and add this file.
 
 ## 17. Milestones (build and learn together)
 
@@ -388,3 +388,4 @@ Each milestone: build it, learn it, pass every "Done when" check, then stop for 
 | 2026-11-01 | The only proactive job is the weekly report | The right size for v1 |
 | 2026-11-01 | Full-text search before vectors | Add complexity only after the evals show a need |
 | 2026-11-01 | Octen for web search | Already in my budget |
+| 2026-11-01 | GitHub repo is finance-agent, not finance-tutor | The repo already existed, empty, with the triage labels set up |
