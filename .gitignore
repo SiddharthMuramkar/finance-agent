@@ -1,0 +1,14 @@
+# Secrets: API keys and database URLs stay on this machine
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+.next/
+.vercel/
+.venv/
+__pycache__/
+
+# Scratch output from web tools
+.firecrawl/
