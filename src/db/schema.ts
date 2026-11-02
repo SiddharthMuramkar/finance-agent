@@ -57,16 +57,39 @@ export const topicProgress = pgTable("topic_progress", {
 });
 
 /** Learner Memory: every Check result, kept even if the Check is later removed from the Course Map. */
-export const checkResults = pgTable("check_results", {
-  id: serial("id").primaryKey(),
-  topicId: text("topic_id").notNull(),
-  checkId: text("check_id").notNull(),
-  passed: boolean("passed").notNull(),
-  evidence: text("evidence"),
-  /** The model that taught the Check, when a Tutor turn recorded it. */
-  model: text("model"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const checkResults = pgTable(
+  "check_results",
+  {
+    id: serial("id").primaryKey(),
+    topicId: text("topic_id").notNull(),
+    checkId: text("check_id").notNull(),
+    passed: boolean("passed").notNull(),
+    /** The Tutor's reasons for a conversation Check verdict. */
+    evidence: text("evidence"),
+    /** The model that taught the Check, when a Tutor turn recorded it. */
+    model: text("model"),
+    /** The tool call that wrote this result; a repeated call has no second effect. */
+    toolCallId: text("tool_call_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("check_results_tool_call").on(t.toolCallId)],
+);
+
+/** Learner Memory: misconceptions the Tutor noticed, per Topic (and Check, when one was current). */
+export const misconceptions = pgTable(
+  "misconceptions",
+  {
+    id: serial("id").primaryKey(),
+    topicId: text("topic_id").notNull(),
+    checkId: text("check_id"),
+    description: text("description").notNull(),
+    /** The model that noticed it. */
+    model: text("model").notNull(),
+    toolCallId: text("tool_call_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("misconceptions_tool_call").on(t.toolCallId)],
+);
 
 /**
  * What the model cost. One "step" row per Tool Runner loop step and one "turn" row per Tutor turn

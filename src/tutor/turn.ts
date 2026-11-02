@@ -4,12 +4,12 @@ import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { asc, desc, eq, max } from "drizzle-orm";
 import { z } from "zod";
 import { loadCourseMap, type CourseMap } from "@/course/map";
-import { TEACHING_STEPS } from "@/course/navigator";
+import { navigate, TEACHING_STEPS } from "@/course/navigator";
 import { messages, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { ensureTopicStarted, saveFinishedStep, summaryText } from "@/learner/memory";
+import { ensureTopicStarted, learnerSummary, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { replaceBrokenWidgets, replyWidgetProblems } from "@/widgets/check";
-import { stepContext } from "./context";
+import { noVerdictContext, stepContext } from "./context";
 import { saveTurnUsage, loadTurnUsages, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 
@@ -136,10 +136,43 @@ async function append(db: Db, sessionId: number, seq: number, message: Message, 
 
 type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
-/** The code behind each tool, by name. */
-function toolCode(db: Db, map: CourseMap, now: () => Date): Record<string, ToolCode> {
+/** The code behind each tool, by name. Tools that write are keyed by their tool call ID. */
+function toolCode(db: Db, map: CourseMap, now: () => Date, model: string): Record<string, ToolCode> {
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
+  const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
+  const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
   return {
+    record_misconception: {
+      parse: (input) => misconceptionInput.parse(input),
+      run: async ({ description, topic_id }, context) => {
+        const place = navigate(map, await loadProgress(db));
+        const topicId = topic_id ?? place?.topic.id;
+        if (!topicId) throw new Error("No current Topic; give topic_id.");
+        if (!context) throw new Error("Missing tool call ID.");
+        const checkId = place && topicId === place.topic.id ? (place.check?.id ?? null) : null;
+        const saved = await saveMisconception(db, map, { topicId, checkId, description, model, toolCallId: context.toolUse.id }, now());
+        if (!saved.ok) throw new Error(saved.reason);
+        return `Recorded by code: misconception noted for Topic ${topicId}.`;
+      },
+    },
+    record_check_verdict: {
+      parse: (input) => verdictInput.parse(input),
+      run: async ({ check_id, verdict, reasons }, context) => {
+        const passed = verdict === "pass";
+        const saved = await saveCheckResult(
+          db,
+          map,
+          { checkId: check_id, passed, evidence: reasons, model, toolCallId: context?.toolUse.id },
+          now(),
+        );
+        if (!saved.ok) throw new Error(saved.reason);
+        const place = await ensureTopicStarted(db, map, now());
+        const recorded = passed
+          ? `Recorded by code: pass for Check ${check_id}.`
+          : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
+        return `${recorded}\n\n${stepContext(place)}`;
+      },
+    },
     finish_teaching_step: {
       parse: (input) => finishInput.parse(input),
       run: async ({ step }) => {
@@ -178,19 +211,52 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
   };
 }
 
+/** Every Course Navigator context contains this; other tool results (such as a saved misconception) do not. */
+const CONTEXT_MARK = "Course Navigator:";
+
 /** The last Course Navigator context the Tutor saw: a context message (which may open with a summary) or a finish_teaching_step result. */
 function lastContextSent(msgs: Message[]): string | undefined {
   for (let i = msgs.length - 1; i >= 0; i--) {
     const { role, content } = msgs[i];
     if (role === "system" && typeof content === "string") return content;
     if (role === "user" && Array.isArray(content)) {
-      const result = content.findLast((b) => b.type === "tool_result" && !b.is_error && typeof b.content === "string");
+      const result = content.findLast(
+        (b) => b.type === "tool_result" && !b.is_error && typeof b.content === "string" && b.content.includes(CONTEXT_MARK),
+      );
       if (result && result.type === "tool_result") return result.content as string;
       const opening = content.find((b) => b.type === "text" && b.text.startsWith(OPENING_PREFIX));
       if (opening && opening.type === "text") return opening.text;
     }
   }
   return undefined;
+}
+
+/**
+ * Whether the last turn ended with the Tutor at this Check (its last context was this Check's)
+ * without a verdict for it being recorded.
+ */
+function endedAtCheckWithoutVerdict(msgs: Message[], checkId: string, checkContext: string): boolean {
+  if (!lastContextSent(msgs)?.endsWith(checkContext)) return false;
+  const learner = msgs.findLastIndex(
+    ({ role, content }) =>
+      role === "user" &&
+      (typeof content === "string" ? !content.startsWith(WIDGET_CHECK_PREFIX) : content.some((b) => b.type === "text")),
+  );
+  const turn = msgs.slice(Math.max(learner, 0));
+  const verdictCalls = new Set(
+    turn.flatMap(({ role, content }) =>
+      role === "assistant" && Array.isArray(content)
+        ? content.flatMap((b) =>
+            b.type === "tool_use" && b.name === "record_check_verdict" && (b.input as { check_id?: unknown }).check_id === checkId ? [b.id] : [],
+          )
+        : [],
+    ),
+  );
+  const recorded = turn.some(
+    ({ role, content }) =>
+      role === "user" && Array.isArray(content) && content.some((b) => b.type === "tool_result" && !b.is_error && verdictCalls.has(b.tool_use_id)),
+  );
+  return !recorded;
 }
 
 /** Opens the Session's first message: the Learner's summary and the Course Navigator's context. */
@@ -214,12 +280,18 @@ export async function* runTutorTurn(
   const map = deps.map ?? loadCourseMap();
   const now = deps.now ?? (() => new Date());
   const place = await ensureTopicStarted(db, map, now());
-  const context = stepContext(place);
 
+  const previous = await currentSession(db);
   let session = await sessionForAction(db, now());
   const msgs: Message[] = [];
   if (session) msgs.push(...(await history(db, session.id)));
-  else session = await startSession(db, now());
+  // The last turn may have been in the previous Session.
+  const lastTurn = session ? msgs : previous ? await history(db, previous.id) : [];
+  const context =
+    place?.step === "check" && place.check && endedAtCheckWithoutVerdict(lastTurn, place.check.id, stepContext(place))
+      ? noVerdictContext({ ...place, check: place.check })
+      : stepContext(place);
+  if (!session) session = await startSession(db, now());
   const sessionId = session.id;
   const add = async (message: Message) => {
     await append(db, sessionId, msgs.length, message, now());
@@ -233,7 +305,7 @@ export async function* runTutorTurn(
   if (msgs.length === 0) {
     // The API rejects a system message as the first message, so a Session's opening context is
     // the first block of the Learner's first message.
-    const opening = `${OPENING_PREFIX}\n${summaryText(place)}\n\n${context}`;
+    const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${context}`;
     await add({ role: "user", content: [{ type: "text", text: opening }, { type: "text", text: learnerText }] });
   } else {
     // The API accepts a system message only right after a user message (live 400 otherwise),
@@ -249,7 +321,7 @@ export async function* runTutorTurn(
   // Runs Tool Runner over `messages`, streaming text and saving each loop step. Returns the replies' text.
   async function* loop(messages: Message[]): AsyncGenerator<TurnEvent, string> {
     let saved = messages.length;
-    const runner = client.beta.messages.toolRunner(requestFor(activeSession, messages, toolCode(db, map, now)));
+    const runner = client.beta.messages.toolRunner(requestFor(activeSession, messages, toolCode(db, map, now, activeSession.model)));
     // Saves anything the runner added to history that isn't stored yet (tool results).
     const syncRunnerHistory = async () => {
       const all = runner.params.messages;

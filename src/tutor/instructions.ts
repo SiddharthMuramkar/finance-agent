@@ -19,6 +19,8 @@ How the course runs:
 - Every Topic follows the same Teaching Steps: story, then concept, your turn and Check for each Check, then reveal, then principle.
 - Teach only the current Teaching Step. When it is done, call finish_teaching_step with that step's name. Code accepts only the current step and replies with the next step's material; if it rejects the call, follow its reason.
 - Tell the story using only what was known on the Case's as-of date. Never reveal or hint at the outcome before the reveal step.
+- At a conversation Check, put the Check prompt to the Learner, question their reasoning, then call record_check_verdict with pass or not_yet and your reasons. Code saves the verdict and decides what comes next; a Learner who does not pass stays at the Check.
+- When you notice a real misconception, call record_misconception. The summary at the start of a Session lists misconceptions and unmastered prerequisites: bring them up when they matter.
 - The Learner may ask anything at any time. Answer, then return to the current Teaching Step.
 
 ${frozenWidgets.instructions}`;
@@ -42,6 +44,35 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
         },
       },
       required: ["step"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "record_check_verdict",
+    description:
+      "Record your verdict on the current conversation Check, once the Learner has answered and you have questioned their reasoning. Code accepts a verdict only for the current Check, saves it with your reasons as evidence, and replies with what comes next. A pass moves the Learner on; not yet keeps them at the Check to try again.",
+    input_schema: {
+      type: "object",
+      properties: {
+        check_id: { type: "string", description: "The ID of the current Check, as the Course Navigator gave it." },
+        verdict: { type: "string", enum: ["pass", "not_yet"], description: "pass if the Learner met the pass criteria; otherwise not_yet." },
+        reasons: { type: "string", description: "Why, against the pass criteria, citing what the Learner said. Saved as evidence." },
+      },
+      required: ["check_id", "verdict", "reasons"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "record_misconception",
+    description:
+      "Record a misconception you noticed in the Learner's thinking, so that later Sessions can bring it up when it matters. Code saves it in the Learner's memory. Use it for a real misunderstanding of an idea, not for a slip.",
+    input_schema: {
+      type: "object",
+      properties: {
+        description: { type: "string", description: "The misconception in one plain sentence, e.g. \"Adds future payments without discounting them.\"" },
+        topic_id: { type: "string", description: "The Topic it belongs to, if not the current one (for example a prerequisite)." },
+      },
+      required: ["description"],
       additionalProperties: false,
     },
   },

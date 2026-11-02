@@ -1,12 +1,15 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { eq } from "drizzle-orm";
+import { parse, stringify } from "yaml";
 import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { messages, settings } from "@/db/schema";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { OPENING_PREFIX, type Line, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
-import { loadCourseMap } from "@/course/map";
-import { recordCheckResultForTest, workspaceSummary } from "@/learner/memory";
+import { loadCourseMap, parseCourseMap } from "@/course/map";
+import { loadCheckResults, saveCheckResult, workspaceSummary } from "@/learner/memory";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
@@ -54,7 +57,7 @@ describe("Tutor Turn", () => {
       expect(request.model).toBe("claude-sonnet-5-5");
       expect(request.output_config).toEqual({ effort: "medium" });
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
-      expect(request.tools).toEqual([{ name: "finish_teaching_step" }]);
+      expect(request.tools).toEqual([{ name: "finish_teaching_step" }, { name: "record_check_verdict" }, { name: "record_misconception" }]);
       expect(request.thinking).toEqual({ type: "adaptive" });
       expect(request.cache_control).toEqual({ type: "ephemeral" });
     }
@@ -181,8 +184,8 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Here is what happened." }] },
       ]);
       await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
-      // Until the Check tickets land, a test-only path records the Check result.
-      expect(await recordCheckResultForTest(db, map, pv.checks[0].id, true)).toEqual({ ok: true });
+      // A Check result saved outside a turn (as a quiz will be).
+      expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true })).toEqual({ ok: true, repeated: false });
       const summary = await workspaceSummary(db, map);
       expect(summary).toContain("Teaching Step: reveal");
       expect(summary).toContain("The reveal has been shown.");
@@ -207,7 +210,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Here is what happened." }] },
       ]);
       await collect(runTutorTurn({ db, client, map }, { continue: true }));
-      await recordCheckResultForTest(db, map, pv.checks[0].id, true);
+      await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true });
 
       await collect(runTutorTurn({ db, client, map }, "What happened next?"));
       const sent = requests.at(-1)!.messages;
@@ -216,9 +219,195 @@ describe("Tutor Turn", () => {
       expect(sent.at(-2)).toMatchObject({ role: "user", content: "What happened next?" });
     });
 
-    it("rejects a test Check result for a Check that is not current", async () => {
+    describe("conversation Check", () => {
+      const checkId = pv.checks[0].id;
+      const toCheck = () => ["story", "concept", "your_turn"].map((s) => ({ content: [finish(s)] }));
+      const verdict = (input: Record<string, unknown>, id = "toolu_verdict") => ({
+        type: "tool_use",
+        id,
+        name: "record_check_verdict",
+        input,
+      });
+      const toolResults = (request: { messages: { content?: unknown }[] }) =>
+        request.messages.flatMap((m) =>
+          Array.isArray(m.content)
+            ? (m.content as { type: string; content?: unknown; is_error?: boolean }[]).filter((b) => b.type === "tool_result")
+            : [],
+        );
+
+      it("a conversation Check's prompt and pass criteria go to the Tutor only when that Check is current", async () => {
+        const second = { id: "pv-second", kind: "conversation", prompt: "SECOND PROMPT", passCriteria: "SECOND CRITERIA" };
+        const yaml = readFileSync(join(process.cwd(), "course/topics/present-value.yaml"), "utf8");
+        const twoChecks = parseCourseMap([
+          { name: "pv.yaml", text: stringify({ ...parse(yaml), checks: [...parse(yaml).checks, second] }) },
+        ]).map!;
+        const first = twoChecks.topic("present-value")!.checks[0];
+        if (first.kind !== "conversation") throw new Error("expected a conversation Check");
+        const db = await testDb();
+        const { client, requests } = scriptedClient([
+          ...toCheck(),
+          { content: [verdict({ check_id: first.id, verdict: "pass", reasons: "Discounted the payments." })] },
+          { content: [{ type: "text", text: "On to the next part." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map: twoChecks }, { continue: true }));
+
+        // What the Tutor had seen at each request: context messages and tool results.
+        const seen = requests.map((r) => [...systemTexts(r), ...toolResults(r).map((b) => String(b.content))].join("\n"));
+        const atCheck = 3; // after story, concept and your turn were finished
+        for (const [i, text] of seen.entries()) {
+          expect(text.includes(first.prompt.trim()), `request ${i}`).toBe(i >= atCheck);
+          expect(text.includes(first.passCriteria.trim()), `request ${i}`).toBe(i >= atCheck);
+          expect(text).not.toContain("SECOND PROMPT");
+          expect(text).not.toContain("SECOND CRITERIA");
+        }
+      });
+
+      it("a pass verdict with reasons moves the Learner past the Check", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([
+          ...toCheck(),
+          { content: [{ type: "text", text: "Why can both figures describe one prize?" }] },
+          { content: [verdict({ check_id: checkId, verdict: "pass", reasons: "Discounted each payment and named the rate." })] },
+          { content: [{ type: "text", text: "Well reasoned." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Later payments are worth less today."));
+
+        expect(requests[0].tools).toContainEqual({ name: "record_check_verdict" });
+        expect(String(toolResults(requests.at(-1)!).at(-1)!.content)).toContain("Teaching Step: reveal");
+        expect(await workspaceSummary(db, map)).toContain("Teaching Step: reveal");
+      });
+
+      it("code rejects a verdict for any other Check with a tool error, and saves nothing", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([
+          verdict({ check_id: checkId, verdict: "pass", reasons: "Too early." }, "toolu_early"),
+          ...toCheck(),
+          { content: [verdict({ check_id: "some-other-check", verdict: "pass", reasons: "Wrong Check." }, "toolu_other")] },
+          { content: [{ type: "text", text: "Let us take the Check." }] },
+        ].map((r) => ("content" in r ? r : { content: [r] })));
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+
+        const results = toolResults(requests.at(-1)!);
+        expect(results[0]).toMatchObject({ is_error: true, content: 'Error: No Check is being taken; the current Teaching Step is "story".' });
+        expect(results.at(-1)).toMatchObject({
+          is_error: true,
+          content: `Error: Check "some-other-check" is not the current Check; the current Check is "${checkId}".`,
+        });
+        expect(await loadCheckResults(db)).toEqual([]);
+        expect(await workspaceSummary(db, map)).toContain("Teaching Step: check");
+      });
+
+      it("a Learner who doesn't pass stays at the Check, and evidence and the teaching model are saved", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([
+          ...toCheck(),
+          { content: [verdict({ check_id: checkId, verdict: "not_yet", reasons: "Added the payments without discounting." })] },
+          { content: [{ type: "text", text: "Not yet. Try again." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+
+        expect(String(toolResults(requests.at(-1)!).at(-1)!.content)).toContain("not yet");
+        expect(await workspaceSummary(db, map)).toContain("Teaching Step: check");
+        expect(await loadCheckResults(db)).toEqual([
+          expect.objectContaining({
+            checkId,
+            topicId: "present-value",
+            passed: false,
+            evidence: "Added the payments without discounting.",
+            model: "claude-sonnet-5-5",
+          }),
+        ]);
+      });
+
+      it("if a turn ends at a Check with no verdict, the Learner stays there and the next context message says none was recorded", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([
+          ...toCheck(),
+          { content: [{ type: "text", text: "Why can both figures describe one prize?" }] },
+          { content: [{ type: "text", text: "Say more about the rate." }] },
+          { content: [verdict({ check_id: checkId, verdict: "not_yet", reasons: "No rate named." })] },
+          { content: [{ type: "text", text: "Not yet." }] },
+          { content: [{ type: "text", text: "Go on." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Because of interest."));
+
+        const second = requests[4].messages;
+        expect(second.at(-2)).toMatchObject({ role: "user", content: "Because of interest." });
+        expect(second.at(-1)).toMatchObject({ role: "system" });
+        expect(String(second.at(-1)!.content)).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
+        expect(String(second.at(-1)!.content)).toContain("Teaching Step: check");
+        expect(await workspaceSummary(db, map)).toContain("Teaching Step: check");
+
+        // The next turn recorded a verdict (not yet), so the turn after gets no such note.
+        await collect(runTutorTurn({ db, client, map }, "Interest compounds."));
+        await collect(runTutorTurn({ db, client, map }, "Let me try again."));
+        const fourth = requests.at(-1)!.messages;
+        expect(fourth.at(-1)).toMatchObject({ role: "user", content: "Let me try again." });
+      });
+
+      it("a new Session after a turn that ended at a Check with no verdict opens by saying none was recorded", async () => {
+        const db = await testDb();
+        const time = clock();
+        const { client, requests } = scriptedClient([
+          ...toCheck(),
+          { content: [{ type: "text", text: "Why can both figures describe one prize?" }] },
+          { content: [{ type: "text", text: "Welcome back." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        time.advance(7 * HOUR);
+        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        expect(await listSessions(db)).toHaveLength(2);
+        expect(systemTexts(requests.at(-1)!)[0]).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
+      });
+
+      it("the Tutor records a misconception through a tool, and a new Session's first message brings it up in code's summary", async () => {
+        const db = await testDb();
+        const time = clock();
+        const note = (id: string) => ({
+          type: "tool_use",
+          id,
+          name: "record_misconception",
+          input: { description: "Treats the advertised total as the prize's value today." },
+        });
+        const { client, requests } = scriptedClient([
+          ...toCheck(),
+          { content: [note("toolu_m1"), verdict({ check_id: checkId, verdict: "not_yet", reasons: "Compared undiscounted totals." })] },
+          { content: [note("toolu_m1")] },
+          { content: [{ type: "text", text: "Not yet." }] },
+          { content: [{ type: "text", text: "Welcome back." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        expect(String(toolResults(requests[4]).at(-2)!.content)).toContain("Recorded by code: misconception noted");
+
+        time.advance(7 * HOUR);
+        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        const opening = systemTexts(requests.at(-1)!)[0];
+        expect(opening.startsWith(OPENING_PREFIX)).toBe(true);
+        // Saved once despite the repeated tool call ID.
+        expect(opening.match(/Treats the advertised total as the prize's value today\./g)).toHaveLength(1);
+        expect(opening).toContain("Misconceptions noted:\n- Present value: Treats the advertised total");
+        expect(opening).toContain("Last verdict at this Check: not yet. Compared undiscounted totals.");
+      });
+
+      it("a repeated verdict under the same tool call ID has no second effect", async () => {
+        const db = await testDb();
+        const same = verdict({ check_id: checkId, verdict: "not_yet", reasons: "Not discounted." }, "toolu_same");
+        const { client } = scriptedClient([
+          ...toCheck(),
+          { content: [same] },
+          { content: [same] },
+          { content: [{ type: "text", text: "Try again." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        expect(await loadCheckResults(db)).toHaveLength(1);
+      });
+    });
+
+    it("rejects a Check result for a Check that is not current", async () => {
       const db = await testDb();
-      expect(await recordCheckResultForTest(db, map, pv.checks[0].id, true)).toEqual({
+      expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true })).toEqual({
         ok: false,
         reason: 'No Check is being taken; the current Teaching Step is "story".',
       });
