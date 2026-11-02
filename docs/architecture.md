@@ -101,6 +101,33 @@ secrets and spends no credits.
 **Measured.** The longest real turn so far took 11.9 seconds, about 4% of the 300-second limit
 (plain conversation, no tools yet).
 
+## Course Map outline (`course/outline.yaml`, `src/course/outline.ts`, `docs/course-map.md`)
+
+**What it does.** One file lists every Topic the course will ever have, in default-path order: 95
+Topics today (Foundation, Follow, Judge, Analyse). Each entry has an ID, title, Stage, prerequisites
+and one or more candidate Cases, each with its as-of date, the known outcome, source URLs and a
+`verified` flag (false means the facts must be checked before the Topic is written). A Topic's place on
+the path is its position in the file. A validator rejects duplicate IDs, missing prerequisites,
+prerequisite loops, a Topic placed before its prerequisite, and a Case with no source.
+Present value sits right after basic maths and just before the three financial statements.
+
+Only written Topics (files in `course/topics/`) are taught. A written file must match an outline
+entry and takes its Stage, place and prerequisites from it (the file no longer repeats them); a
+prerequisite that is not written yet is left out of the teachable map, so the Learner is never
+blocked by a Topic that does not exist. The Course Map page shows the unwritten Topics under
+"Coming", with no jump button. `docs/course-map.md` is the owner's readable view, generated from the
+outline by `npm run course:doc`; `npm run course:check` (part of `npm run check`) fails if it is stale.
+
+**Scenario.** The owner reads `docs/course-map.md`, wants Argentina earlier, and asks for the change.
+The outline entry moves, the document is regenerated, and the check fails until it is committed.
+When someone writes `bond-pricing.yaml`, the Topic appears in the teachable path at its outline
+place and disappears from "Coming".
+
+**Trade-off.** Separating the plan from the written Topics keeps the whole course reviewable and
+reorderable before any Topic text exists, at the price of a second file to keep in step. The
+generated document is checked rather than hand-edited, so it cannot drift. Cases marked unverified are
+research candidates, not yet teachable facts.
+
 ## Course Map (`course/topics/*.yaml`, `src/course/map.ts`)
 
 **What it does.** The course is a folder of plain text files, one per Topic. Each file holds the

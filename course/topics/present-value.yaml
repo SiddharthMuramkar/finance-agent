@@ -2,9 +2,7 @@
 # Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
 id: present-value
 title: Present value
-stage: foundation
-path: 20
-prerequisites: []
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
 
 cases:
   - id: mega-millions-2018
