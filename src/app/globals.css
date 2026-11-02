@@ -15,7 +15,7 @@ body {
 
 /* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight, no colour. */
 .md {
-  @apply leading-relaxed;
+  @apply leading-relaxed break-words;
 }
 .md > * + * {
   @apply mt-3;
@@ -58,7 +58,7 @@ body {
   @apply bg-transparent p-0;
 }
 .md table {
-  @apply w-full border-collapse text-sm;
+  @apply block w-full max-w-full overflow-x-auto border-collapse text-sm;
 }
 .md th,
 .md td {

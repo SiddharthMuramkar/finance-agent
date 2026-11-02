@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
+import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
 import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
 
 // The OpenUI component library the Tutor writes widgets with. Charts take only
@@ -17,7 +18,7 @@ import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-d
 // ("caseId/datasetId") fetched through the server's as-of rule; no component
 // accepts a series of numbers typed by the model.
 
-const UNITS = ["percent", "years", "usd"] as const;
+const UNITS = ["percent", "years", "usd", "inr"] as const;
 type Unit = (typeof UNITS)[number];
 
 export { formatUsd };
@@ -25,6 +26,7 @@ export { formatUsd };
 function formatUnit(value: number, unit: Unit) {
   if (unit === "percent") return `${value}%`;
   if (unit === "years") return `${value} years`;
+  if (unit === "inr") return formatMoney(value, "inr");
   return formatUsd(value);
 }
 
@@ -160,12 +162,58 @@ const HistoryChart = defineComponent({
   component: HistoryChartView,
 });
 
+const calculatorProps = z.object({
+  calculator: z.string().describe(`One of: ${CALCULATOR_IDS.join(", ")}`),
+  inputs: z.record(z.string(), z.number()).describe("The calculator's inputs by name, e.g. {principal: $amount, ratePercent: $rate, years: 20}; use $variables bound to Sliders for what the Learner may change"),
+  currency: z.enum(["usd", "inr"]).optional(),
+});
+
+function CalculatorView({ props }: ComponentRenderProps<z.infer<typeof calculatorProps>>) {
+  const inputs = props.inputs ?? {};
+  // While a widget streams in, or a slider's $variable is not set yet, inputs can be missing or not numbers.
+  if (Object.values(inputs).some((v) => typeof v !== "number" || !Number.isFinite(v))) {
+    return <p className="py-6 text-sm text-stone-500 dark:text-stone-400">Working it out…</p>;
+  }
+  const result = calculate(props.calculator, inputs, props.currency);
+  if (!result.ok) {
+    return (
+      <p role="status" className="py-2 text-sm text-stone-600 dark:text-stone-400">
+        This calculator could not run: {result.error}
+      </p>
+    );
+  }
+  return (
+    <div className="py-2" data-testid="calculator">
+      <p data-kind="assumption" className="rounded-md border-l-4 border-teal-600 bg-teal-50/50 p-2 text-sm dark:border-teal-400 dark:bg-teal-950/20">
+        <AssumptionTag />
+        {result.title}
+      </p>
+      <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
+        {result.results.map((r) => (
+          <div key={r.label} className="contents">
+            <dt className="text-stone-600 dark:text-stone-400">{r.label}</dt>
+            <dd className="text-right font-medium tabular-nums">{r.text}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+const Calculator = defineComponent({
+  name: "Calculator",
+  description:
+    "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models, DCF), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names.",
+  props: calculatorProps,
+  component: CalculatorView,
+});
+
 const Widget = defineComponent({
   name: "Widget",
   description: "The widget's frame: a short title above its controls and charts, in order.",
   props: z.object({
     title: z.string(),
-    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref])),
+    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref])),
   }),
   component: ({ props, renderNode }) => (
     <section className="rounded-lg border border-stone-300 p-4 dark:border-stone-700">
@@ -175,7 +223,7 @@ const Widget = defineComponent({
   ),
 });
 
-export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart], root: "Widget" });
+export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator], root: "Widget" });
 
 /** Options for the widget instructions frozen into the Tutor's instructions. */
 export const WIDGET_PROMPT_OPTIONS = {
@@ -191,10 +239,17 @@ rate = Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")
 chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")`,
     `root = Widget("Long-term interest rates around the draw", [history])
 history = HistoryChart("mega-millions-2018/treasury-30-year")`,
+    `root = Widget("What a home loan costs", [amount, rate, calc])
+$amount = 5000000
+$rate = 8.5
+amount = Slider("principal", "Loan amount", 500000, 20000000, 100000, $amount, "inr")
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+calc = Calculator("emi", {principal: $amount, ratePercent: $rate, years: 20})`,
   ],
   additionalRules: [
     "Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.",
     "Widgets are optional. Add one only when playing with numbers helps the current Teaching Step, and at most one per reply.",
+    "Use Calculator for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",
     "Charts never take data series. Give a chart the inputs to its formula, or a Case Data reference from the list code sent you; never type historical figures you were not given.",
     "If no Case Data covers what the Learner wants to see, draw no chart for it and say plainly that the data is not available.",
     "Starting numbers you put in a Slider or chart must come from the Case material code sent you.",

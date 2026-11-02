@@ -83,8 +83,8 @@ export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
             <fieldset>
               <legend className="mb-1 text-sm">{q.prompt}</legend>
               {q.choices.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 py-0.5 text-sm">
-                  <input type="radio" name={`${quiz.attemptId}-${q.id}`} checked={picked[q.id] === c.id} onChange={() => setPicked({ ...picked, [q.id]: c.id })} />
+                <label key={c.id} className="flex min-h-11 items-center gap-3 py-1 text-sm">
+                  <input type="radio" className="size-5 shrink-0" name={`${quiz.attemptId}-${q.id}`} checked={picked[q.id] === c.id} onChange={() => setPicked({ ...picked, [q.id]: c.id })} />
                   {c.text}
                 </label>
               ))}

@@ -85,6 +85,8 @@ describe("Tutor Turn", () => {
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
+        { name: "calculate" },
+        { name: "code_execution" },
       ]);
       expect(request.thinking).toEqual({ type: "adaptive" });
       expect(request.cache_control).toEqual({ type: "ephemeral" });
@@ -1125,6 +1127,18 @@ describe("surviving cut-offs and failures", () => {
     const events = await collect(runTutorTurn({ db, client, map }, "Hello again"));
     expect(events[0]).toEqual({ type: "session", reason: "updated" });
     expect(await listSessions(db)).toHaveLength(2);
+  });
+
+  it("the calculate tool runs the tested formula and answers with formatted numbers; bad input is an error result the Tutor can read", async () => {
+    const db = await testDb();
+    const emi = { type: "tool_use", id: "toolu_emi", name: "calculate", input: { calculator: "emi", inputs: { principal: 5_000_000, ratePercent: 8.5, years: 20 } } };
+    const bad = { type: "tool_use", id: "toolu_bad", name: "calculate", input: { calculator: "emi", inputs: { principal: 5_000_000 } } };
+    const { client, requests } = scriptedClient([{ content: [emi] }, { content: [bad] }, { content: [text("Done.")] }]);
+    await collect(runTutorTurn({ db, client, map }, "What is the EMI on 50 lakh?"));
+    expect(JSON.stringify(resultsIn(requests[1])[0])).toContain("₹43,391.16");
+    const failed = resultsIn(requests[2]).find((r) => (r as { tool_use_id: string }).tool_use_id === "toolu_bad");
+    expect(failed).toMatchObject({ is_error: true });
+    expect(JSON.stringify(failed)).toContain("ratePercent");
   });
 
   it("a misconception given a topic_id that isn't on the Course Map is saved under the current Topic, not lost", async () => {
