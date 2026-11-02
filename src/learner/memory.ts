@@ -1,6 +1,6 @@
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
-import { finishStep, navigate, recordCheckResult, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
+import { finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Jump, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
 import { checkResults, learnerState, misconceptions, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 
@@ -42,6 +42,36 @@ async function saveProgress(db: Db, progress: Progress, now: Date) {
       .values({ topicId, ...values, startedAt: now })
       .onConflictDoUpdate({ target: topicProgress.topicId, set: values });
   }
+}
+
+/** Saves a new current Topic; marks the entry for the next turn when the Learner's Topic actually changes. */
+async function saveCurrentTopic(db: Db, map: CourseMap, before: Progress, after: Progress, now: Date) {
+  const changed = navigate(map, before)?.topic.id !== navigate(map, after)?.topic.id;
+  const set = { currentTopicId: after.currentTopicId, updatedAt: now, ...(changed ? { enteredByJump: true } : {}) };
+  await db.insert(learnerState).values({ id: 1, ...set }).onConflictDoUpdate({ target: learnerState.id, set });
+}
+
+/**
+ * The Learner chose a Topic on the Course Map page (after any prompt about unmet prerequisites).
+ * Only the current Topic changes; every Topic keeps its progress.
+ */
+export async function saveJump(db: Db, map: CourseMap, topicId: string, now = new Date()): Promise<Jump> {
+  const progress = await loadProgress(db);
+  const jump = jumpTo(map, progress, topicId);
+  if (jump.ok) await saveCurrentTopic(db, map, progress, jump.progress, now);
+  return jump;
+}
+
+/** The Learner goes back to the default path; the Topic they leave keeps its progress. */
+export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new Date()): Promise<void> {
+  const progress = await loadProgress(db);
+  await saveCurrentTopic(db, map, progress, returnToDefaultPath(progress), now);
+}
+
+/** Whether the Learner entered a Topic by a jump since the last turn; clears the mark, so only one turn sees it. */
+export async function takeJumpEntry(db: Db): Promise<boolean> {
+  const [row] = await db.update(learnerState).set({ enteredByJump: false }).where(and(eq(learnerState.id, 1), eq(learnerState.enteredByJump, true))).returning();
+  return Boolean(row);
 }
 
 /** Saves the start of the current Topic the first time the Learner reaches it. */

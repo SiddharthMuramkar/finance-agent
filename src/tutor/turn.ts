@@ -3,12 +3,12 @@ import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { and, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { sessions, toolCalls } from "@/db/schema";
+import { sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { ensureTopicStarted, learnerSummary, loadProgress } from "@/learner/memory";
+import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
 import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
-import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
+import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { describeFailure, type FailureKind } from "./failures";
 import { type ToolDefinition } from "./instructions";
 import {
@@ -245,6 +245,10 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
     // Saved before the Topic starts, so a retry after a failure in between still knows.
     if (navigate(map, await loadProgress(db))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
+    // A Topic entered by a jump (or by going back to the default path) has not been taught in this conversation either.
+    // The mark is taken once and kept on the turn, so a retry still knows.
+    if (await takeJumpEntry(db)) await updateTurn(db, turn.id, { freshStep: true, enteredByJump: true });
+    const jumped = (await db.select({ j: turns.enteredByJump }).from(turns).where(eq(turns.id, turn.id)))[0]?.j ?? false;
     const place = await ensureTopicStarted(db, map, now());
     const previous = await currentSession(db);
     const found = await sessionForAction(db, now(), turn);
@@ -253,10 +257,11 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const lastTurn = continuing ? await history(db, continuing.id) : previous ? await history(db, previous.id) : [];
     const caseData = await caseDataFor(db, map, place);
     const plainContext = stepContext(place, caseData);
-    const context =
+    const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData)
         : plainContext;
+    const context = jumped ? `${JUMP_NOTE}\n${stepped}` : stepped;
     session = continuing ?? (await startSession(db, now()));
     if ("reason" in found && found.reason !== "first") yield { type: "session", reason: found.reason };
     log = await openLog(db, session.id, now);

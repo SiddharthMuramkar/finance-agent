@@ -12,3 +12,58 @@
 body {
   @apply bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100;
 }
+
+/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight, no colour. */
+.md {
+  @apply leading-relaxed;
+}
+.md > * + * {
+  @apply mt-3;
+}
+.md h1 {
+  @apply text-lg font-semibold;
+}
+.md h2 {
+  @apply text-base font-semibold;
+}
+.md h3,
+.md h4 {
+  @apply font-semibold;
+}
+.md strong {
+  @apply font-semibold;
+}
+.md ul {
+  @apply list-disc pl-6;
+}
+.md ol {
+  @apply list-decimal pl-6;
+}
+.md li + li {
+  @apply mt-1;
+}
+.md a {
+  @apply underline;
+}
+.md blockquote {
+  @apply border-l-2 border-stone-300 pl-3 text-stone-600 dark:border-stone-700 dark:text-stone-400;
+}
+.md code {
+  @apply rounded bg-stone-200 px-1 text-[0.9em] dark:bg-stone-800;
+}
+.md pre {
+  @apply overflow-x-auto rounded bg-stone-200 p-3 text-sm dark:bg-stone-800;
+}
+.md pre code {
+  @apply bg-transparent p-0;
+}
+.md table {
+  @apply w-full border-collapse text-sm;
+}
+.md th,
+.md td {
+  @apply border border-stone-300 px-2 py-1 text-left dark:border-stone-700;
+}
+.md hr {
+  @apply border-stone-300 dark:border-stone-700;
+}

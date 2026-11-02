@@ -141,3 +141,62 @@ export function recordCheckResult(map: CourseMap, progress: Progress, checkId: s
     progress: save(progress, topic, { ...record, passedChecks, step: more ? "concept" : "reveal", revealShown: !more || record.revealShown }),
   };
 }
+
+export type Jump = { ok: true; progress: Progress; unmetPrerequisites: string[] } | { ok: false; reason: string };
+
+/**
+ * The Learner chooses a Topic on the Course Map page. It becomes the current Topic; the unmet
+ * prerequisites are returned so the Learner can be warned first. Other Topics keep their progress.
+ */
+export function jumpTo(map: CourseMap, progress: Progress, topicId: string): Jump {
+  const topic = map.topic(topicId);
+  if (!topic) return { ok: false, reason: `Topic "${topicId}" is not on the Course Map.` };
+  if (isPassed(progress, topicId)) return { ok: false, reason: `Topic "${topicId}" is already passed.` };
+  return {
+    ok: true,
+    progress: { ...progress, currentTopicId: topicId },
+    unmetPrerequisites: topic.prerequisites.filter((p) => !isPassed(progress, p)),
+  };
+}
+
+/** The Learner goes back to the default path. The Topic they leave keeps its progress. */
+export function returnToDefaultPath(progress: Progress): Progress {
+  return { ...progress, currentTopicId: null };
+}
+
+export type TopicOverview = {
+  id: string;
+  title: string;
+  stage: Topic["stage"];
+  status: TopicStatus;
+  /** The Teaching Step a started Topic is at. */
+  step: TeachingStep | null;
+  /** Each Check in the Topic's current order; `here` marks the Learner's place. */
+  checks: { id: string; passed: boolean; here: boolean }[];
+  unmetPrerequisites: string[];
+  /** The Learner's current Topic. */
+  current: boolean;
+  /** The Topic the default path leads to (where going back would land). */
+  onDefaultPath: boolean;
+};
+
+/** Every Topic on the Course Map in default-path order, with its status, Checks and the Learner's place. For the Course Map page. */
+export function courseOverview(map: CourseMap, progress: Progress): TopicOverview[] {
+  const place = navigate(map, progress);
+  const defaultTopic = currentTopic(map, returnToDefaultPath(progress));
+  return map.topics.map((topic) => {
+    const record = progress.topics[topic.id];
+    const here = place?.topic.id === topic.id ? place : null;
+    return {
+      id: topic.id,
+      title: topic.title,
+      stage: topic.stage,
+      status: record ? record.status : "not_started",
+      step: here && record ? here.step : record && record.status !== "passed" ? placeIn(topic, record).step : null,
+      checks: topic.checks.map((c) => ({ id: c.id, passed: record?.passedChecks.includes(c.id) ?? false, here: here?.check?.id === c.id })),
+      unmetPrerequisites: topic.prerequisites.filter((p) => !isPassed(progress, p)),
+      current: here !== null,
+      onDefaultPath: defaultTopic?.id === topic.id,
+    };
+  });
+}

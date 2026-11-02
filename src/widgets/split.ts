@@ -57,3 +57,22 @@ function mergeProse(segments: Segment[]): Segment[] {
     return out;
   }, []);
 }
+
+/**
+ * The text the Markdown renderer gets: prose unchanged, and every widget as a closed
+ * ```openui-lang fence, so a renderer that turns those fences into widgets (or markers)
+ * sees exactly what `splitReply` sees, including while a reply is still streaming.
+ */
+export function markdownSource(text: string, { streaming = false } = {}): string {
+  return splitReply(text, { streaming })
+    .map((s) => (s.type === "prose" ? s.text : `${OPEN}${s.code}${CLOSE}`))
+    .join("");
+}
+
+/** Which of a reply's widgets a rendered ```openui-lang fence holds: its number among the reply's widgets, and whether it is complete. */
+export function findWidget(segments: Segment[], code: string): { index: number; complete: boolean } | undefined {
+  const widgets = segments.filter((s): s is Extract<Segment, { type: "widget" }> => s.type === "widget");
+  const wanted = code.replace(/\n$/, "");
+  const index = widgets.findIndex((w) => w.code === wanted);
+  return index === -1 ? undefined : { index, complete: widgets[index].complete };
+}

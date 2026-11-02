@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseCourseMap, type CourseMap } from "./map";
-import { finishStep, navigate, recordCheckResult, type Progress, type TopicProgress } from "./navigator";
+import { courseOverview, finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Progress, type TopicProgress } from "./navigator";
 
 function topicFile(id: string, path: number, checks: { id: string; required?: boolean }[], prerequisites: string[] = []) {
   const text = [
@@ -140,6 +140,99 @@ describe("Course Navigator", () => {
     expect(navigate(twoChecks, { currentTopicId: null, topics: { pv: passed, statements: passed, compounding: passed } })).toBeNull();
   });
 
+  describe("jumps", () => {
+    it("reports a chosen Topic's unmet prerequisites so the Learner can be warned, then makes it the current Topic", () => {
+      const jump = jumpTo(twoChecks, empty, "statements");
+      expect(jump).toMatchObject({ ok: true, unmetPrerequisites: ["pv"] });
+      if (!jump.ok) return;
+      expect(jump.progress.currentTopicId).toBe("statements");
+      expect(navigate(twoChecks, jump.progress)).toMatchObject({ topic: { id: "statements" }, step: "story", status: "not_started" });
+    });
+
+    it("reports no unmet prerequisites for a Topic whose prerequisites are passed", () => {
+      expect(jumpTo(twoChecks, empty, "pv")).toMatchObject({ ok: true, unmetPrerequisites: [] });
+    });
+
+    it("rejects a Topic that is not on the Course Map, or one already passed", () => {
+      expect(jumpTo(twoChecks, empty, "nowhere")).toEqual({ ok: false, reason: 'Topic "nowhere" is not on the Course Map.' });
+      const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+      expect(jumpTo(twoChecks, done, "compounding")).toEqual({ ok: false, reason: 'Topic "compounding" is already passed.' });
+    });
+
+    it("keeps other part-finished Topics' progress, so jumping back resumes where the Learner left off", () => {
+      const halfwayCompounding = play(twoChecks, empty, ["story", "concept"]);
+      const jump = jumpTo(twoChecks, halfwayCompounding, "pv");
+      if (!jump.ok) throw new Error(jump.reason);
+      const inPv = play(twoChecks, jump.progress, ["story"]);
+      expect(inPv.topics.compounding).toEqual(halfwayCompounding.topics.compounding);
+      const back = jumpTo(twoChecks, inPv, "compounding");
+      if (!back.ok) throw new Error(back.reason);
+      expect(navigate(twoChecks, back.progress)).toMatchObject({ topic: { id: "compounding" }, step: "your_turn", status: "in_progress" });
+      expect(back.progress.topics.pv).toMatchObject({ step: "concept", status: "in_progress" });
+    });
+
+    it("going back returns to the default path, leaving the chosen Topic's progress as it was", () => {
+      const jump = jumpTo(twoChecks, empty, "statements");
+      if (!jump.ok) throw new Error(jump.reason);
+      const started = play(twoChecks, jump.progress, ["story"]);
+      const back = returnToDefaultPath(started);
+      expect(back.currentTopicId).toBeNull();
+      expect(back.topics.statements).toEqual(started.topics.statements);
+      expect(navigate(twoChecks, back)?.topic.id).toBe("compounding");
+    });
+
+    it("passing the chosen Topic returns the Learner to the default path", () => {
+      const jump = jumpTo(twoChecks, empty, "pv");
+      if (!jump.ok) throw new Error(jump.reason);
+      const passed = play(twoChecks, jump.progress, ["story", "concept", "your_turn", { pass: "pv-1" }, "concept", "your_turn", { pass: "pv-2" }, "reveal", "principle"]);
+      expect(passed.currentTopicId).toBeNull();
+      expect(navigate(twoChecks, passed)).toMatchObject({ topic: { id: "compounding" }, status: "not_started" });
+    });
+
+    it("an off-map question changes nothing: the place is computed from progress alone", () => {
+      const progress = play(twoChecks, empty, ["story"]);
+      expect(navigate(twoChecks, progress)).toEqual(navigate(twoChecks, structuredClone(progress)));
+    });
+  });
+
+  describe("course overview", () => {
+    it("lists every Topic in default-path order with its status, Checks marked passed, and the Learner's place", () => {
+      const progress = play(twoChecks, { currentTopicId: "pv", topics: {} }, ["story", "concept", "your_turn", { pass: "pv-1" }]);
+      const view = courseOverview(twoChecks, progress);
+      expect(view.map((t) => [t.id, t.status, t.current])).toEqual([
+        ["compounding", "not_started", false],
+        ["pv", "in_progress", true],
+        ["statements", "not_started", false],
+      ]);
+      expect(view[1].checks).toEqual([
+        { id: "pv-1", passed: true, here: false },
+        { id: "pv-2", passed: false, here: true },
+      ]);
+      expect(view[1].step).toBe("concept");
+      expect(view[2].unmetPrerequisites).toEqual(["pv"]);
+      expect(view[0].onDefaultPath).toBe(true);
+    });
+
+    it("marks a passed Topic as passed and the next default-path Topic as the place once the chosen Topic is passed", () => {
+      const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+      const view = courseOverview(twoChecks, done);
+      expect(view.map((t) => [t.id, t.status, t.current])).toEqual([
+        ["compounding", "passed", false],
+        ["pv", "not_started", true],
+        ["statements", "not_started", false],
+      ]);
+      expect(view[0].checks).toEqual([{ id: "co-1", passed: true, here: false }]);
+    });
+
+    it("shows the default-path Topic apart from a chosen one, so the Learner can see where going back leads", () => {
+      const jump = jumpTo(twoChecks, empty, "statements");
+      if (!jump.ok) throw new Error(jump.reason);
+      const view = courseOverview(twoChecks, jump.progress);
+      expect(view.find((t) => t.current)?.id).toBe("statements");
+      expect(view.find((t) => t.onDefaultPath)?.id).toBe("compounding");
+    });
+  });
+
   describe("Course Map edits", () => {
     const halfway = play(twoChecks, { currentTopicId: "pv", topics: {} }, ["story", "concept", "your_turn", { pass: "pv-1" }]);
 
@@ -180,6 +273,57 @@ describe("Course Navigator", () => {
       expect(after.topics.compounding).toMatchObject({ status: "passed", step: "principle" });
       expect(navigate(required, after)).toMatchObject({ topic: { id: "pv" }, status: "not_started", dueChecks: [] });
       expect(finishStep(required, { ...after, currentTopicId: "compounding" }, "principle")).toMatchObject({ ok: false });
+    });
+
+    it("after a reorder of Checks, keeps every pass and changes only what comes next", () => {
+      const reordered = courseMap(topicFile("pv", 20, [{ id: "pv-2" }, { id: "pv-1" }]), topicFile("compounding", 10, [{ id: "co-1" }]));
+      expect(navigate(reordered, halfway)).toMatchObject({ topic: { id: "pv" }, step: "concept", check: { id: "pv-2" } });
+      const atFirstAgain = { ...halfway, topics: { pv: { ...halfway.topics.pv, passedChecks: [] } } };
+      expect(navigate(reordered, atFirstAgain)).toMatchObject({ check: { id: "pv-2" } });
+    });
+
+    it("after a reorder of Topics on the default path, keeps a started Topic current and only changes which new Topic comes next", () => {
+      const started = play(twoChecks, empty, ["story"]);
+      const reordered = courseMap(
+        topicFile("pv", 5, [{ id: "pv-1" }, { id: "pv-2" }]),
+        topicFile("statements", 30, [{ id: "st-1" }], ["pv"]),
+        topicFile("compounding", 10, [{ id: "co-1" }]),
+      );
+      expect(navigate(reordered, started)).toMatchObject({ topic: { id: "compounding" }, step: "concept" });
+      expect(navigate(reordered, empty)?.topic.id).toBe("pv");
+      const done = play(reordered, started, ["concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+      expect(navigate(reordered, done)?.topic.id).toBe("pv");
+    });
+
+    it("forgets a chosen Topic that was removed from the Course Map and returns to the default path, keeping its records", () => {
+      const jump = jumpTo(twoChecks, empty, "statements");
+      if (!jump.ok) throw new Error(jump.reason);
+      const started = play(twoChecks, jump.progress, ["story"]);
+      const removed = courseMap(topicFile("pv", 20, [{ id: "pv-1" }, { id: "pv-2" }]), topicFile("compounding", 10, [{ id: "co-1" }]));
+      expect(navigate(removed, started)?.topic.id).toBe("compounding");
+      expect(courseOverview(removed, started).map((t) => t.id)).toEqual(["compounding", "pv"]);
+      expect(started.topics.statements).toBeDefined();
+    });
+
+    it("an inserted Topic shows on the overview as not started without disturbing the place", () => {
+      const inserted = courseMap(
+        topicFile("pv", 20, [{ id: "pv-1" }, { id: "pv-2" }]),
+        topicFile("statements", 30, [{ id: "st-1" }], ["pv"]),
+        topicFile("compounding", 10, [{ id: "co-1" }]),
+        topicFile("inflation", 15, [{ id: "in-1" }]),
+      );
+      expect(navigate(inserted, halfway)).toMatchObject({ topic: { id: "pv" }, check: { id: "pv-2" } });
+      expect(courseOverview(inserted, halfway).map((t) => [t.id, t.status])).toEqual([
+        ["compounding", "not_started"],
+        ["inflation", "not_started"],
+        ["pv", "in_progress"],
+        ["statements", "not_started"],
+      ]);
+    });
+
+    it("an added prerequisite shows as unmet when jumping to a Topic not yet started, and does not block the jump", () => {
+      const edited = courseMap(topicFile("pv", 20, [{ id: "pv-1" }, { id: "pv-2" }]), topicFile("compounding", 10, [{ id: "co-1" }], ["pv"]));
+      expect(jumpTo(edited, empty, "compounding")).toMatchObject({ ok: true, unmetPrerequisites: ["pv"] });
     });
 
     it("keeps a started Topic current when a new prerequisite is added, reporting it as unmet", () => {

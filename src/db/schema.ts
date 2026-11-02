@@ -44,6 +44,12 @@ export const messages = pgTable(
 export const learnerState = pgTable("learner_state", {
   id: integer("id").primaryKey(),
   currentTopicId: text("current_topic_id"),
+  /**
+   * True when the Learner entered a Topic by choosing it on the Course Map page or by going back
+   * to the default path, and no turn has started since. The next turn tells the Tutor and treats
+   * the step as fresh (the pacing rule), because nothing of it has been taught in this conversation.
+   */
+  enteredByJump: boolean("entered_by_jump").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -206,6 +212,8 @@ export const turns = pgTable(
      * first name, from when only a Topic start set it.)
      */
     freshStep: boolean("started_topic").notNull().default(false),
+    /** True when this turn is the first since the Learner chose a Topic on the Course Map page or went back to the default path. */
+    enteredByJump: boolean("entered_by_jump").notNull().default(false),
     /** What the Learner sent (their message, or "Continue."), so a retry can send it again if it was never stored. */
     input: text("input"),
     /** When the current run of the turn started; a resume starts a new run. */

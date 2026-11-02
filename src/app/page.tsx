@@ -28,8 +28,14 @@ export default async function WorkspacePage() {
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col p-4 sm:p-6">
       <header className="mb-6 flex items-baseline justify-between gap-4">
         <h1 className="text-lg font-semibold">Study Workspace</h1>
-        <nav className="flex gap-4">
+        <nav className="flex flex-wrap gap-x-4 gap-y-1">
           <ThemeToggle initial={jar.get("theme")?.value === "dark" ? "dark" : "light"} />
+          <Link href="/course" className="text-sm text-stone-500 hover:underline dark:text-stone-400">
+            Course Map
+          </Link>
+          <Link href="/progress" className="text-sm text-stone-500 hover:underline dark:text-stone-400">
+            Progress
+          </Link>
           <Link href="/sessions" className="text-sm text-stone-500 hover:underline dark:text-stone-400">
             Past Sessions
           </Link>

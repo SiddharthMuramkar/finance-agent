@@ -5,6 +5,10 @@ import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
 
 const AFTER_REVEAL = TEACHING_STEPS.indexOf("reveal");
 
+/** Prefixed to the context in the first turn after the Learner chose a Topic on the Course Map page or went back to the default path. */
+export const JUMP_NOTE =
+  "The Learner chose this Topic on the Course Map (or went back to the default path), so this is where they are now. Pick up at the Teaching Step below and teach it afresh; nothing of it has been taught in this conversation yet.";
+
 /**
  * The Teaching Step context code sends the Tutor as an appended message. The
  * Case's outcome is included only from the reveal on, so hindsight is withheld

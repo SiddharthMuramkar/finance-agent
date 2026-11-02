@@ -18,6 +18,7 @@ import { splitReply, type Segment } from "@/widgets/split";
 import type { TurnUsage } from "@/tutor/usage";
 import type { OpenQuiz } from "@/learner/quiz";
 import { QuizPanel } from "./quiz-panel";
+import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
 import { UnderTheHood } from "./under-the-hood";
 import { WidgetView } from "./widget-view";
 
@@ -49,36 +50,33 @@ function layout(messages: Message[], running: boolean) {
 type Layout = ReturnType<typeof layout> & { shown?: string; show(key: string): void; usages: Map<string, TurnUsage> };
 const LayoutContext = createContext<Layout | null>(null);
 
-/** A reply's prose, with a small marker where each widget belongs. On a phone the widget sits in the conversation. */
-const ReplyText: TextMessagePartComponent = ({ text }) => {
+/** Where a widget belongs in the prose: a small marker that shows it in the right pane. On a phone the widget sits in the conversation. */
+function WidgetMarker({ messageId, index, code, complete }: Parameters<WidgetSlot>[0]) {
   const ctx = useContext(LayoutContext)!;
-  const id = useAuiState((s) => s.message.id);
-  const segments = ctx.segments.get(id) ?? [{ type: "prose", text }];
+  const ref = ctx.segments.get(messageId)?.filter((s) => s.type === "widget")[index];
   return (
-    <div className="whitespace-pre-wrap leading-relaxed">
-      {segments.map((s, i) =>
-        s.type === "prose" ? (
-          <span key={i}>{s.text}</span>
-        ) : (
-          <span key={i} className="my-2 block">
-            <button
-              onClick={() => ctx.show(s.key!)}
-              data-testid="widget-marker"
-              className={`hidden rounded border px-2 py-0.5 text-xs lg:inline-block ${
-                ctx.shown === s.key ? "border-teal-700 text-teal-800 dark:border-teal-400 dark:text-teal-300" : "border-stone-300 text-stone-500 dark:border-stone-700"
-              }`}
-            >
-              Widget {s.number} {s.complete ? "→" : "(drawing…)"}
-            </button>
-            <span className="block lg:hidden">
-              <WidgetView code={s.code} complete={s.complete} />
-            </span>
-          </span>
-        ),
+    <span className="my-2 block">
+      {ref?.key && (
+        <button
+          onClick={() => ctx.show(ref.key!)}
+          data-testid="widget-marker"
+          className={`hidden rounded border px-2 py-0.5 text-xs lg:inline-block ${
+            ctx.shown === ref.key ? "border-teal-700 text-teal-800 dark:border-teal-400 dark:text-teal-300" : "border-stone-300 text-stone-500 dark:border-stone-700"
+          }`}
+        >
+          Widget {ref.number} {complete ? "→" : "(drawing…)"}
+        </button>
       )}
-    </div>
+      <span className="block lg:hidden">
+        <WidgetView code={code} complete={complete} />
+      </span>
+    </span>
   );
-};
+}
+const widgetMarker: WidgetSlot = (widget) => <WidgetMarker {...widget} />;
+
+/** A reply's prose as formatted Markdown, with a marker where each widget belongs. */
+const ReplyText: TextMessagePartComponent = () => <ReplyMarkdown slot={widgetMarker} />;
 
 function UserMessage() {
   return (

@@ -16,7 +16,7 @@ import { type Line, listSessions, loadCurrentSession, loadSession } from "./tran
 import { latestTurn, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
-import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, learnerSummary } from "@/learner/memory";
+import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, saveJump, saveReturnToDefaultPath, learnerSummary } from "@/learner/memory";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
@@ -290,6 +290,98 @@ describe("Tutor Turn", () => {
       expect(sent.at(-1)).toMatchObject({ role: "system" });
       expect(String(sent.at(-1)!.content)).toContain("Teaching Step: reveal");
       expect(sent.at(-2)).toMatchObject({ role: "user", content: "What happened next?" });
+    });
+
+    describe("jumps", () => {
+      // The real present value Topic plus a later Topic that requires it.
+      const twoTopics = (() => {
+        const files = [
+          ...map.topics.map((t) => ({ name: `${t.id}.yaml`, text: stringify(t) })),
+          {
+            name: "bonds.yaml",
+            text: stringify({
+              ...pv,
+              id: "bonds",
+              title: "Bond prices",
+              path: 30,
+              prerequisites: ["present-value"],
+              cases: pv.cases.map((c) => ({ ...c, id: "bonds-case" })),
+              checks: [{ id: "bonds-check", kind: "conversation", prompt: "Why do prices fall?", passCriteria: "Discounting." }],
+              questions: undefined,
+            }),
+          },
+        ];
+        const { map: m, errors } = parseCourseMap(files);
+        if (!m) throw new Error(errors.join("\n"));
+        return m;
+      })();
+      const toolResults = (request: { messages: { content?: unknown }[] }) =>
+        request.messages.flatMap((m) =>
+          Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
+        );
+
+      it("a jump warns of unmet prerequisites, then the next turn teaches the chosen Topic and tells the Tutor the Learner chose it", async () => {
+        const db = await testDb();
+        await ensureTopicStarted(db, twoTopics);
+        expect(await saveJump(db, twoTopics, "bonds")).toMatchObject({ ok: true, unmetPrerequisites: ["present-value"] });
+        const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Bonds, then." }] }]);
+        await collect(runTutorTurn({ db, client, map: twoTopics }, { continue: true }));
+        const [context] = systemTexts(requests[0]);
+        expect(context).toContain("Topic: Bond prices");
+        expect(context).toContain("Prerequisites not yet passed: present-value.");
+        expect(context).toContain("The Learner chose this Topic on the Course Map");
+        expect(await learnerSummary(db, twoTopics)).toContain("Bond prices");
+      });
+
+      it("a step entered by a jump into a part-finished Topic cannot be finished in that turn", async () => {
+        const db = await testDb();
+        await ensureTopicStarted(db, twoTopics);
+        await saveFinishedStep(db, twoTopics, "story"); // present value is at its concept step
+        await saveJump(db, twoTopics, "bonds");
+        await ensureTopicStarted(db, twoTopics); // an earlier turn began bonds
+        await saveJump(db, twoTopics, "present-value"); // back into present value, at its concept step
+        const { client, requests } = scriptedClient([
+          { content: [finish("concept")] },
+          { content: [{ type: "text", text: "The concept, again." }] },
+          { content: [finish("concept", "toolu_concept_later")] },
+          { content: [{ type: "text", text: "Your turn." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map: twoTopics }, { continue: true }));
+        expect(toolResults(requests[1])[0]).toMatchObject({ is_error: true });
+        expect(String(toolResults(requests[1])[0].content)).toContain("began during this turn");
+        expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: concept");
+
+        // The next turn has taught it, so the step can now finish; the jump note is not repeated.
+        await collect(runTutorTurn({ db, client, map: twoTopics }, "Understood."));
+        expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: your turn");
+        expect(systemTexts(requests[2]).filter((t) => t.includes("chose this Topic"))).toHaveLength(1);
+      });
+
+      it("going back to the default path is also a fresh entry, and the Topic left keeps its progress", async () => {
+        const db = await testDb();
+        await ensureTopicStarted(db, twoTopics);
+        await saveFinishedStep(db, twoTopics, "story");
+        await saveJump(db, twoTopics, "bonds");
+        await ensureTopicStarted(db, twoTopics);
+        await saveFinishedStep(db, twoTopics, "story"); // bonds at concept
+        await saveReturnToDefaultPath(db, twoTopics);
+        const { client, requests } = scriptedClient([{ content: [finish("concept")] }, { content: [{ type: "text", text: "Back to present value." }] }]);
+        await collect(runTutorTurn({ db, client, map: twoTopics }, { continue: true }));
+        expect(toolResults(requests[1])[0]).toMatchObject({ is_error: true });
+        expect(String(systemTexts(requests[0]).at(-1))).toContain("Topic: Present value");
+        await saveJump(db, twoTopics, "bonds");
+        expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: concept");
+      });
+
+      it("an off-map question changes nothing: no tool call, same place", async () => {
+        const db = await testDb();
+        await ensureTopicStarted(db, twoTopics);
+        await saveFinishedStep(db, twoTopics, "story");
+        const before = await learnerSummary(db, twoTopics);
+        const { client } = scriptedClient([{ content: [{ type: "text", text: "Inflation is a general rise in prices." }] }]);
+        await collect(runTutorTurn({ db, client, map: twoTopics }, "Off topic: what is inflation?"));
+        expect(await learnerSummary(db, twoTopics)).toBe(before);
+      });
     });
 
     describe("Case Data", () => {
