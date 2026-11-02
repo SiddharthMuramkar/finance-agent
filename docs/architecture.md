@@ -7,8 +7,9 @@ scenario, and the trade-off we accepted. Newest layers are added at the bottom.
 
 One turn, start to finish. The Learner types a message in the **app**, past the **passcode**
 gate. The **Tutor Turn** asks the **Course Navigator** and **Learner Memory** where the Learner
-stands, tells Claude, and streams the reply back. If the reply holds a **widget**, the browser
-draws it and the Learner plays with it at no cost. Everything is saved in the **database**, and
+stands, tells Claude (with the **Case Data** the as-of rule allows), and streams the reply back.
+If the reply holds a **widget**, the browser draws it, fetching any sourced data through the same
+rule, and the Learner plays with it at no cost. Everything is saved in the **database**, and
 the **usage** layer records what the turn cost, which the "under the hood" panel shows under
 the reply.
 
@@ -45,7 +46,7 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 
 ## Database (Neon Postgres through Drizzle)
 
-**What it does.** Neon is the only store. Nine tables so far:
+**What it does.** Neon is the only store. Eleven tables so far:
 - `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
   a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
@@ -53,6 +54,7 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
 - `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`: Learner Memory (below).
 - `usage`: what each turn and each step of it cost (below).
+- `case_datasets`, `case_data_points`: Case Data, checked historical datasets with their sources (below).
 
 The app uses Neon's pooled connection (`DATABASE_URL`). Schema changes are migration files in
 `drizzle/`, applied with `npm run db:migrate`, which uses the direct connection
@@ -186,12 +188,13 @@ those components (`npm run widgets:freeze`), checked in, and frozen into each Se
 rest of the Tutor's instructions, so they never change under a running conversation.
 
 **Numbers come from code, not the model.** A chart never accepts a list of numbers. It takes
-the inputs to a tested formula (the present value code in `src/finance/`, built on formula.js and
-checked against textbook worked examples) and, optionally, a reference to a sourced Case figure,
-such as the $877.8 million cash option. That figure comes from `/api/case-data/<case>`, which
-applies the hindsight rule on the server: before a Topic's reveal, nothing dated after the Case's
-as-of date is returned. Slider values are labelled "your assumption"; sourced figures carry their
-source and date.
+either the inputs to a tested formula (the present value code in `src/finance/`, built on
+formula.js and checked against textbook worked examples) or a reference to a Case Data dataset,
+written `caseId/datasetId`, which the browser fetches from `/api/case-data/<case>` under the as-of
+rule (see Case Data below). `AnnuityChart` draws the formula and can show a sourced figure beside
+it; `HistoryChart` draws one dataset as a line over its dates. Everything the Learner sets carries
+a teal "Your assumption" tag; everything drawn from Case Data sits in its own amber box with a
+"Sourced" tag and a link to its source, so the two never blend.
 
 **Layout.** The conversation runs on assistant-ui's external-store runtime: our code owns the
 messages and streaming, assistant-ui draws them. As a reply streams in, code splits it into prose
@@ -359,3 +362,46 @@ the Course Map keeps them reviewable and testable, at the price of Claude (or th
 and sourcing each one. The Tutor learns about a result late (on the next message, not the moment
 of submission), which keeps the quiz free of model calls. Imported open question banks, spaced
 review and a Question Bank in the database come in later tickets.
+
+## Case Data (`src/case-data/`, `/api/case-data/[caseId]`, `npm run case-data:import`)
+
+**What it does.** Case Data is the checked historical data a Case is taught with: a few headline
+figures and, where useful, a series over time. Each dataset lives in Neon (`case_datasets` for its
+label, unit, source, source link and how it was checked; `case_data_points` for its dated values).
+The app only reads it. Datasets are written from the laptop: a JSON file, kept outside the public
+repo, goes through `npm run case-data:import -- <file>`, which checks every field (a source link is
+required, dates can't repeat), refuses datasets whose Case is not on the Course Map, and replaces a
+dataset's points when it is imported again.
+
+**The as-of rule.** Every Case has an as-of date. Until the Learner's reveal has been shown, the
+server returns only points dated on or before it, and leaves out any dataset that has no point that
+early (its name alone could give the ending away). After the reveal, everything comes back. The
+same filtered data goes to the Tutor: each Course Navigator message lists the datasets it may show,
+with their references, sources and values (long series summed up by their first and last points),
+plus the instruction that these are its only historical figures and that it must say plainly when
+the Learner asks for data that isn't there. When a Case has no data, the message says so.
+
+**First datasets (present value Case, checked 2 November 2026).**
+- Advertised jackpot $1.537 billion, 23 Oct 2018: Mega Millions official release of 24 Oct 2018
+  (megamillions.com), matching AP and CNN.
+- Cash option $877.8 million, 23 Oct 2018: CNBC of 24 Oct 2018, matching CBC; the official release
+  rounds it to $878 million.
+- The winner's choice, a one-time cash payment of $877,784,124, 4 Mar 2019: the South Carolina
+  Education Lottery Commission's statement as reported by Reuters, matching NBC, ABC and the New
+  York Times. Withheld until the reveal.
+- 30-year US Treasury par yield, daily, 2 Jul 2018 to 4 Mar 2019 (166 days): the Treasury's Daily
+  Treasury Par Yield Curve Rates downloads (public domain), spot-checked against its table view.
+  Before the reveal only the 80 days up to 24 Oct 2018 come back.
+
+**Scenario.** At the story step the Learner asks for the S&P 500 in October 2018. That isn't in Case
+Data, so the Tutor says it can't chart it and offers the Treasury yield instead (live run, 2 Nov
+2026). It draws `HistoryChart("mega-millions-2018/treasury-30-year")`: the chart stops at 24 October
+and says later data is withheld until the reveal. Asked which option the winner took, the Tutor
+declines until the reveal; the winner's dataset isn't even listed to it. After the reveal, the
+same chart shows the yields through March 2019, and the winner's cash payment becomes available.
+
+**Trade-off.** Keeping Case Data in the database, not in the Course Map files, keeps it private
+and lets it grow to long series, but a fresh database has no Case Data until someone runs the
+import from the laptop, and the import files must be kept safe outside the repo. The Tutor still
+knows famous endings from its own training; code withholds the data, and the instructions and
+hindsight test questions cover the rest.

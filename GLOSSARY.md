@@ -28,6 +28,10 @@ _Avoid_: Phase, stage
 A real past episode that a Topic is taught through, with an outcome that is already known.
 _Avoid_: Example, scenario
 
+**Case Data**:
+Checked historical datasets a Case is taught with, each with its source, kept in the private database. Until the reveal, nothing dated after the Case's as-of date is shown.
+_Avoid_: Market data, figures
+
 **Session**:
 One continuous conversation between the Learner and the Tutor. Returning after a long break starts a new one.
 _Avoid_: Login, thread, chat
