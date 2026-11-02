@@ -1,11 +1,16 @@
 import { z } from "zod";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
-import { submitQuiz } from "@/learner/quiz";
+import { openQuiz, submitQuiz } from "@/learner/quiz";
 
 export const runtime = "nodejs";
 
 const body = z.object({ attemptId: z.number().int(), answers: z.record(z.string(), z.string()) });
+
+/** The quiz to show now (or null), as the workspace page shows it. Reads only; no model call. Lets a script drive the quiz over HTTP. */
+export async function GET() {
+  return Response.json({ quiz: await openQuiz(getDb(), loadCourseMap()) }, { headers: { "Cache-Control": "no-store" } });
+}
 
 /** Marks a quiz attempt on the server. No model call: code marks, saves the result and returns the key with the marking. */
 export async function POST(request: Request) {

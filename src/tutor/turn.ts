@@ -396,7 +396,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     [session] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId!));
     log = await openLog(db, session.id, now);
     turnSeq = turn.turnSeq!;
-    code = toolCode(db, map, now, session.model, effects);
+    code = toolCode(db, map, now, session.model, effects, turn.id);
     yield { type: "replay", text: turnText(log.rows, turnSeq) };
     yield* repairToolCalls();
   } else {
@@ -415,7 +415,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     session = continuing ?? (await startSession(db, now()));
     if ("reason" in found && found.reason !== "first") yield { type: "session", reason: found.reason };
     log = await openLog(db, session.id, now);
-    code = toolCode(db, map, now, session.model, effects);
+    code = toolCode(db, map, now, session.model, effects, turn.id);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
 

@@ -1,5 +1,5 @@
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
 import type { CourseMap } from "@/course/map";
@@ -13,7 +13,7 @@ import type { ToolDefinition } from "./instructions";
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
 /** What a tool told the Tutor, and whether it was a rejection (sent back as a tool error). */
-type Outcome = { ok: boolean; text: string };
+type Outcome = { ok: boolean; text: string; /** The call moved the Learner onto a new Teaching Step. */ began?: boolean };
 
 /** Shared with the Tutor Turn so it can tell the Learner when a progress write failed. */
 export type ToolEffects = { saveFailed: boolean };
@@ -21,6 +21,10 @@ export type ToolEffects = { saveFailed: boolean };
 /** The tool result when a write failed: the Tutor is told plainly that nothing was saved. */
 export const NOTHING_RECORDED =
   "Nothing was recorded: the Learner's progress could not be saved because of a database error. Tell the Learner plainly that this was not saved, do not say it was, and do not move on as if it had been.";
+
+/** Sent back when the Tutor tries to finish a step it only just reached in the same turn. */
+export const PACING_REJECTION =
+  "Cannot finish this step: it began during this turn. Teach it in your reply now, then stop and wait for the Learner to answer; you can finish it in your next turn.";
 
 /** What the Learner sees when a progress write failed. */
 export const SAVE_FAILED_MESSAGE = "Your progress could not be saved just now. The Tutor has been told nothing was recorded.";
@@ -44,7 +48,7 @@ export async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
  * second effect. If the write fails, the transaction rolls back (the Course Navigator
  * does not advance) and the Tutor is told nothing was recorded.
  */
-export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string, effects: ToolEffects): Record<string, ToolCode> {
+export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string, effects: ToolEffects, turnId: number): Record<string, ToolCode> {
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
@@ -58,7 +62,7 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
         const [done] = await tx.select().from(toolCalls).where(eq(toolCalls.toolCallId, toolCallId));
         if (done) return { ok: !done.isError, text: done.result };
         const result = await effect(tx);
-        await tx.insert(toolCalls).values({ toolCallId, name, result: result.text, isError: !result.ok, createdAt: now() });
+        await tx.insert(toolCalls).values({ toolCallId, name, result: result.text, isError: !result.ok, turnId, beganStep: result.began ?? false, createdAt: now() });
         return result;
       });
     } catch (error) {
@@ -98,16 +102,19 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
           const recorded = passed
             ? `Recorded by code: pass for Check ${check_id}.`
             : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
-          return { ok: true, text: `${recorded}\n\n${await navigatorContext(tx, map, place)}` };
+          return { ok: true, began: passed, text: `${recorded}\n\n${await navigatorContext(tx, map, place)}` };
         }),
     },
     finish_teaching_step: {
       parse: (input) => finishInput.parse(input),
       run: ({ step }, context) =>
         once(context?.toolUse.id, "finish_teaching_step", async (tx) => {
+          // Pacing rule: a step that began in this turn has not yet been taught in a reply the Learner answered.
+          const [began] = await tx.select().from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.beganStep, true)));
+          if (began) return { ok: false, text: PACING_REJECTION };
           const move = await saveFinishedStep(tx, map, step, now());
           if (!move.ok) return { ok: false, text: move.reason };
-          return { ok: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now())) };
+          return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now())) };
         }),
     },
   };

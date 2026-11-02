@@ -50,6 +50,13 @@
       "when": 1793605755256,
       "tag": "0006_turns_and_tool_calls",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793607236845,
+      "tag": "0007_pacing_rule",
+      "breakpoints": true
     }
   ]
 }

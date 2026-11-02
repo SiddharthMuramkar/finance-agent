@@ -216,5 +216,9 @@ export const toolCalls = pgTable("tool_calls", {
   name: text("name").notNull(),
   result: text("result").notNull(),
   isError: boolean("is_error").notNull(),
+  /** The turn that ran it. */
+  turnId: integer("turn_id"),
+  /** True when the call moved the Learner onto a new Teaching Step, so the pacing rule can see it. */
+  beganStep: boolean("began_step").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
