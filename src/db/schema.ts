@@ -438,3 +438,17 @@ export const pastedTexts = pgTable(
   },
   (t) => [uniqueIndex("pasted_texts_turn").on(t.turnId), index("pasted_texts_session").on(t.sessionId)],
 );
+
+/**
+ * One row per wrong passcode, kept for a day, so the login can refuse an address (and, past a cap,
+ * everyone) that keeps guessing. Holds the caller's address and the time only, never the guess.
+ */
+export const loginFailures = pgTable(
+  "login_failures",
+  {
+    id: serial("id").primaryKey(),
+    ip: text("ip").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("login_failures_at").on(t.at)],
+);

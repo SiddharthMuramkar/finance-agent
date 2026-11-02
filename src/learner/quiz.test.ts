@@ -17,11 +17,7 @@ const question = (n: number) => `
     source: Source ${n}`;
 
 /** One Topic: a quiz Check (4 questions, 2 per attempt, 2 correct to pass), then a conversation Check. */
-function testMap(): CourseMap {
-  const { map, errors } = parseCourseMap([
-    {
-      name: "t.yaml",
-      text: `
+const TOPIC = `
 id: t
 title: T
 stage: foundation
@@ -39,9 +35,10 @@ checks:
     kind: conversation
     prompt: Explain.
     passCriteria: Explains.
-`,
-    },
-  ]);
+`;
+
+function testMap(): CourseMap {
+  const { map, errors } = parseCourseMap([{ name: "t.yaml", text: TOPIC }]);
   if (!map) throw new Error(errors.join("\n"));
   return map;
 }
@@ -55,6 +52,24 @@ async function atQuiz() {
 }
 
 describe("quiz Check flow", () => {
+  it("an open attempt holding a question that is no longer on the Course Map is shown with questions that are, instead of failing", async () => {
+    const { db, map } = await atQuiz();
+    const first = (await openQuiz(db, map))!;
+    expect(first.questions.map((q) => q.id)).toEqual(["q1", "q2"]);
+
+    // The Topic file is edited: q1 is removed while the Learner's attempt is still open.
+    const edited = parseCourseMap([{ name: "t.yaml", text: TOPIC.replace(question(1), "").replace("[q1, q2, q3, q4]", "[q2, q3, q4]") }]).map!;
+    expect(edited.question("q1")).toBeUndefined();
+
+    const reopened = (await openQuiz(db, edited))!;
+    expect(reopened.attemptId).toBe(first.attemptId);
+    expect(reopened.questions.length).toBeGreaterThan(0);
+    for (const q of reopened.questions) expect(edited.question(q.id)).toBeDefined();
+
+    const answers = Object.fromEntries(reopened.questions.map((q) => [q.id, "a"]));
+    expect(await submitQuiz(db, edited, reopened.attemptId, answers)).toMatchObject({ ok: true, passed: true });
+  });
+
   it("shows no quiz until the Course Navigator reaches the quiz Check step", async () => {
     const db = await testDb();
     const map = testMap();
@@ -264,9 +279,20 @@ checks:
     expect(note.text).toMatch(/answer key .*not been checked/i);
   });
 
-  it("does not show or mark a question that has left the bank: the attempt cannot open, so nothing is lost", async () => {
+  it("does not show or mark a question that has left the bank: with too few questions left to pass, no quiz is shown and nothing is lost", async () => {
     const { db, map } = await atBankQuiz();
     await db.delete(questionBank);
-    await expect(openQuiz(db, map)).rejects.toThrow(/bank:eab:Q-1/);
+    expect(await openQuiz(db, map)).toBeNull();
+    expect(await loadCheckResults(db)).toEqual([]);
+  });
+
+  it("an open attempt whose bank question has left the bank is reopened with questions that can still be shown", async () => {
+    const { db, map } = await atBankQuiz();
+    const first = (await openQuiz(db, map))!;
+    expect(first.questions.map((q) => q.id)).toEqual(["q1", "bank:eab:Q-1"]);
+    await db.delete(questionBank).where(eq(questionBank.id, "bank:eab:Q-1"));
+    const reopened = (await openQuiz(db, map))!;
+    expect(reopened.attemptId).toBe(first.attemptId);
+    expect(reopened.questions.map((q) => q.id)).toEqual(["q1", "bank:eab:Q-2"]);
   });
 });

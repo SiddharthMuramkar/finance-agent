@@ -98,6 +98,23 @@ describe("Library search", () => {
     expect(after.results.map((r) => r.ref)).toContain("ch2");
   });
 
+  it("before the reveal hides a timeless passage that mentions the as-of year itself, since a year alone can't place an event before the as-of date", async () => {
+    const db = await libraryDb();
+    await importLibrary(db, {
+      ...book,
+      passages: [
+        ...book.passages,
+        { ref: "ch4", heading: "That December", url: "https://example.org/book/4", text: "In December 2018 the jackpot winner took the cash option over the annuity." },
+      ],
+    });
+
+    const before = await searchLibrary({ db, map }, "jackpot cash option annuity");
+
+    expect(before.asOf).toBe("2018-10-24");
+    expect(before.results.map((r) => r.ref)).not.toContain("ch4");
+    expect(before.results.map((r) => r.ref)).toContain("ch1");
+  });
+
   it("after the reveal returns dated passages from after the as-of date too", async () => {
     const db = await libraryDb();
     await passRevealOf(db);

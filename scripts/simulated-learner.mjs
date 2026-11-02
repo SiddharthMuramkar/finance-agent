@@ -23,6 +23,7 @@ import { neon } from "@neondatabase/serverless";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parse } from "yaml";
 import { join } from "node:path";
+import { archiveTopic, withIdleHours } from "../src/dev/simulated-learner.ts";
 
 const args = parseArgs(process.argv.slice(2));
 const base = (args.base ?? "").replace(/\/$/, "");
@@ -182,18 +183,9 @@ async function readTurnRecord() {
 /** Archives the topic's progress by renaming rows, so a fresh run starts at the story. Deletes nothing. */
 async function resetTopic() {
   const tag = `archived-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}`;
-  const results = await query("update check_results set topic_id = $2 where topic_id = $1 returning id", [topicId, `${tag}:${topicId}`]);
   const checkIds = (parse(readFileSync(join("course", "topics", `${topicId}.yaml`), "utf8")).checks ?? []).map((c) => c.id);
-  const attempts = await query("update quiz_attempts set check_id = $1 || check_id where check_id = any($2) returning id", [`${tag}:`, checkIds]);
-  const notes = await query("update misconceptions set topic_id = $2 where topic_id = $1 returning id", [topicId, `${tag}:${topicId}`]);
-  // The Topic's own row is renamed too, so the app starts the Topic afresh (and the first step cannot be skipped).
-  await query("update topic_progress set topic_id = $2 where topic_id = $1", [topicId, `${tag}:${topicId}`]);
-  await query("update learner_state set current_topic_id = null, updated_at = now() where id = 1");
-  say(`Reset: archived ${results.length} Check result(s), ${attempts.length} quiz attempt(s), ${notes.length} misconception(s) under "${tag}"; the Topic will start afresh at the story.`);
-}
-
-async function setIdleHours(value) {
-  await query("update settings set value = $1 where key = 'session_idle_hours'", [value]);
+  const done = await archiveTopic(query, topicId, checkIds, tag);
+  say(`Reset: archived ${done.results} Check result(s), ${done.attempts} quiz attempt(s), ${done.notes} misconception(s) under "${tag}"; the Topic will start afresh at the story.`);
 }
 
 // ---------------------------------------------------------------- the simulated Learner
@@ -291,18 +283,9 @@ try {
     const newSession = !newSessionDone && state.step === newSessionAt && n > 1;
     const idleOverride = forceNewSession || newSession;
     const sessionsBefore = state.sessions;
-    let previousIdle;
-    if (idleOverride) {
-      [{ value: previousIdle }] = await query("select value from settings where key = 'session_idle_hours'");
-      await setIdleHours("0");
-    }
     const wallStart = performance.now();
-    let result;
-    try {
-      result = await runTurn(body);
-    } finally {
-      if (idleOverride) await setIdleHours(previousIdle);
-    }
+    // The setting goes back after the turn, and also on Ctrl-C or a kill in the middle of it.
+    const result = idleOverride ? await withIdleHours(query, "0", () => runTurn(body)) : await runTurn(body);
     const wallMs = Math.round(performance.now() - wallStart);
     const record = await readTurnRecord();
     state = await readState();

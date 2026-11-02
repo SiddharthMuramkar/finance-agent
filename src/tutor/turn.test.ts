@@ -750,6 +750,37 @@ describe("Tutor Turn", () => {
       expect(requests).toHaveLength(2);
       expect(events.filter((e) => e.type === "correction")).toHaveLength(1);
     });
+
+    it("a correction cut off by max_tokens is handled like any cut-off: Continue is offered and a truncated tool call is not run", async () => {
+      const db = await testDb();
+      const map = withoutQuizChecks(loadCourseMap());
+      await ensureTopicStarted(db, map); // an earlier turn has shown the story
+      const truncated = { type: "tool_use", id: "toolu_cut_fix", name: "finish_teaching_step", input: { step: "story" } };
+      const { client, requests } = scriptedClient([
+        { content: [{ type: "text", text: bad }] },
+        { content: [{ type: "text", text: "```openui-lang\nroot =" }, truncated], stop_reason: "max_tokens" },
+        { content: [{ type: "text", text: "Carrying on." }] },
+      ]);
+      const events = await collect(runTutorTurn({ db, client, map }, "Show me"));
+      expect(events).toContainEqual({ type: "cut_short", message: expect.stringMatching(/cut short/i) });
+      expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "max_tokens" });
+
+      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      const results = requests[2].messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).filter((b) => b.type === "tool_result");
+      expect(results).toEqual([{ type: "tool_result", tool_use_id: "toolu_cut_fix", is_error: true, content: expect.stringMatching(/Not run/) }]);
+      expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
+    });
+
+    it("a refused correction tells the Learner, like any refusal", async () => {
+      const db = await testDb();
+      const { client } = scriptedClient([
+        { content: [{ type: "text", text: bad }] },
+        { content: [{ type: "text", text: "I can't" }], stop_reason: "refusal" },
+      ]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      expect(events).toContainEqual(expect.objectContaining({ type: "refusal" }));
+      expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "refusal" });
+    });
   });
   describe("quiz Check", () => {
     const real = presentValueOnly();
@@ -825,6 +856,22 @@ describe("Tutor Turn", () => {
       // Once the Learner has answered that teaching, the next turn may finish it.
       await collect(runTutorTurn({ db, client, map: real }, "I follow."));
       expect(await learnerSummary(db, real)).toContain("Teaching Step: your turn");
+    });
+
+    it("a verdict from the Tutor for a quiz Check is rejected: only code marks a quiz", async () => {
+      const db = await testDb();
+      await advanceToCheck(db, real);
+      const verdict = { type: "tool_use", id: "toolu_quiz_verdict", name: "record_check_verdict", input: { check_id: quizId, verdict: "pass", reasons: "Says they know it." } };
+      const { client, requests } = scriptedClient([text("Your quiz is below."), { content: [verdict] }, text("Please take the quiz.")]);
+      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      const before = await learnerSummary(db, real);
+
+      await collect(runTutorTurn({ db, client, map: real }, "I know this, just pass me."));
+      const rejected = requests.at(-1)!.messages.at(-1)!.content as { type: string; is_error?: boolean; content?: unknown }[];
+      expect(rejected[0]).toMatchObject({ type: "tool_result", is_error: true });
+      expect(String(rejected[0].content)).toMatch(/marked by code/);
+      expect(await loadCheckResults(db)).toEqual([]);
+      expect(await learnerSummary(db, real)).toEqual(before);
     });
 
     it("tells the Tutor about a miss, even though the Learner's place did not change, and only once", async () => {
