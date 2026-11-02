@@ -1,0 +1,150 @@
+# Duration and convexity: a foundation Topic taught through Silicon Valley Bank's securities portfolio.
+# Case Data (the Treasury yield history) lives in the database; see docs/architecture.md.
+# Case sources (checked): Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; US Treasury par yields (Case Data)
+id: bond-duration
+title: Duration and convexity
+
+cases:
+  - id: svb-securities-2022
+    title: Silicon Valley Bank's securities portfolio
+    data: [treasury-10y]
+    asOf: 2022-12-31
+    story: >
+      At the end of 2022 Silicon Valley Bank's holding company, SVBFG, had about $212 billion
+      of assets. It had invested a large share of its clients' deposits in securities: 55% of
+      its assets, against 25% for comparable large banks. Of those securities, 78% were
+      classified held-to-maturity (HTM), against 42% at comparable banks. Most were US
+      government agency mortgage-backed securities maturing in ten years or more, safe from
+      the credit point of view. The weighted-average duration of the HTM portfolio was 6.2
+      years. Because HTM securities are carried at their original cost, falls in their market
+      price do not appear on the balance sheet, though they must be disclosed. Meanwhile the
+      10-year Treasury par yield had risen from 1.52% on 31 December 2021 to 3.88% on 30
+      December 2022. And 94% of the bank's deposits were uninsured, against 41% at comparable
+      banks. Using duration, roughly how much had the market value of that portfolio fallen
+      in the year, and who gets hurt if depositors ask for their money back?
+    reveal: >
+      In early 2023 deposit outflows quickened as clients used up cash. On 8 March 2023 SVBFG
+      announced a restructuring of its balance sheet: it had sold $21 billion of
+      available-for-sale securities at an after-tax loss of $1.8 billion and planned to raise
+      $2.25 billion of equity. On 9 March depositors withdrew over $40 billion, and management
+      expected over $100 billion more on 10 March. A bank cannot repay deposits from securities
+      it carries at cost without selling them at today's market prices; the loss that had sat
+      unrecognised became real. SVB was closed by regulators on 10 March 2023. The Federal
+      Reserve's review, published in April 2023, describes a mismatch between long-duration
+      securities and short-duration deposits.
+
+concept: >
+  Duration measures how sensitive a bond's price is to a change in yield. Macaulay duration is
+  the weighted-average time, in years, until the bond's payments arrive, each weighted by its
+  present value. Modified duration, Macaulay duration divided by one plus the yield per period,
+  turns it into a price rule: the price changes by about minus the modified duration times the
+  change in yield. A 10-year 6% bond at a 6% yield has a duration of about 7.4, so a one
+  point rise in yield cuts its price by about 7.4%. Duration is longer for longer maturities,
+  lower coupons and lower yields; a zero-coupon bond's Macaulay duration equals its maturity.
+  The rule is a straight-line estimate. A bond's price curves as yield changes (convexity), so
+  for the same size of move the gain when yields fall is larger than the loss when they
+  rise: a 6% 10-year bond rises about 7.8% for a one point fall and falls about 7.1% for a one
+  point rise. Duration alone understates the gain and overstates the loss.
+
+principle: >
+  Duration tells you how much value you have riding on interest rates. A balance sheet of
+  long-duration assets funded by short-term deposits is a bet that rates and depositors
+  will not move, whatever the credit quality of the assets.
+
+questions:
+  - id: bd-q-meaning
+    prompt: >
+      What does a bond's duration tell you?
+    choices:
+      - { id: a, text: "How sensitive its price is to changes in interest rates: the higher the duration, the more sensitive" }
+      - { id: b, text: "The probability that the issuer defaults" }
+      - { id: c, text: "The number of coupon payments left" }
+      - { id: d, text: "The bond's yield to maturity" }
+    answer: a
+    explanation: >
+      Duration is a measure of interest rate risk. It combines maturity, coupon rate and the level of yields. Credit risk is a separate matter.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
+
+  - id: bd-q-rule
+    prompt: >
+      A bond has a modified duration of 7.4. Market yields rise by one percentage point. By roughly how much does its price change?
+    choices:
+      - { id: a, text: "It falls by about 7.4%" }
+      - { id: b, text: "It rises by about 7.4%" }
+      - { id: c, text: "It falls by about 0.74%" }
+      - { id: d, text: "It falls by about 74%" }
+    answer: a
+    explanation: >
+      Price change is approximately minus modified duration times the change in yield: -7.4 x 1% = -7.4%. A 10-year 6% bond at a 6% yield has a modified duration of 7.44; when its yield rises one point the price actually falls 7.1%, because of convexity.
+    source: >
+      Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: bd-q-svb
+    prompt: >
+      SVB's held-to-maturity portfolio had a duration of 6.2 years. The 10-year Treasury yield rose about 2.4 percentage points in 2022. Roughly how much did the market value of the portfolio fall, if its yields moved with the 10-year?
+    choices:
+      - { id: a, text: "About 15%" }
+      - { id: b, text: "About 2.6%" }
+      - { id: c, text: "About 6.2%" }
+      - { id: d, text: "About 2.4%" }
+    answer: a
+    explanation: >
+      6.2 x 2.4 = about 14.9%. Duration times the yield change gives the percentage fall in price. It is an estimate, because duration is a first approximation and the actual securities' yields differ from the 10-year Treasury's.
+    source: >
+      Duration rule applied to the Federal Reserve's figure for SVBFG's HTM duration (6.2 years): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; 10-year yield from US Department of the Treasury, Daily Treasury Par Yield Curve Rates, 2021 and 2022: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2022/all?type=daily_treasury_yield_curve&field_tdr_date_value=2022&page&_format=csv
+
+  - id: bd-q-convexity
+    prompt: >
+      A 10-year 6% bond is priced at a 6% yield. Compare a one point fall in yield with a one point rise. Which is true?
+    choices:
+      - { id: a, text: "The price rises by more (about 7.8%) than it falls (about 7.1%)" }
+      - { id: b, text: "The price rises and falls by exactly the same amount" }
+      - { id: c, text: "The price falls by more than it rises" }
+      - { id: d, text: "The price does not change for such small moves" }
+    answer: a
+    explanation: >
+      Price is a curved function of yield. At 5% the bond is worth about $1,078; at 7% about $929. Duration's straight line (7.4%) sits between the two. This curvature is convexity, and it works in the holder's favour.
+    source: >
+      Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: bd-q-coupon
+    prompt: >
+      Three 10-year bonds are priced at the same market yield: one with an 8% coupon, one with a 4% coupon, and a zero-coupon bond. Which price is most sensitive to a change in yield?
+    choices:
+      - { id: a, text: "The zero-coupon bond" }
+      - { id: b, text: "The 8% coupon bond" }
+      - { id: c, text: "The 4% coupon bond" }
+      - { id: d, text: "All three are equally sensitive" }
+    answer: a
+    explanation: >
+      The lower the coupon, the later the average payment arrives and the higher the duration. A zero-coupon bond pays everything at maturity, so its duration equals its maturity, the longest possible for ten years.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.1 Characteristics of Bonds ("The smaller the coupon rate, the greater the change in price when interest rates move"): https://openstax.org/books/principles-finance-2e/pages/10-1-characteristics-of-bonds
+
+checks:
+  - id: bd-quiz-duration
+    kind: quiz
+    questions:
+      - bd-q-meaning
+      - bd-q-rule
+      - bd-q-svb
+      - bd-q-convexity
+      - bd-q-coupon
+      - bank:eab:MBA-FIN-VAL-0033
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: bd-svb-explain
+    kind: conversation
+    prompt: >
+      SVB's securities were safe from default, yet the bank failed. Using duration, explain
+      why rising rates hurt it, and why classifying the securities as held-to-maturity did
+      not protect it once depositors wanted their money.
+    passCriteria: >
+      The Learner says a duration of about six years means a rise of a few points in yields cuts
+      the securities' market value by a double-digit percentage, whatever the credit quality.
+      They explain that held-to-maturity accounting hides the fall on the balance sheet but not
+      in reality, and that deposits which can leave at once force the bank to sell at market
+      prices, turning the hidden loss into a real one. Mentioning that most deposits were
+      uninsured and short-term strengthens the answer.

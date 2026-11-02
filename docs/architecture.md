@@ -149,6 +149,21 @@ fails with: `Topic "duration" requires "bond-pricing", which is not on the Cours
 **Trade-off.** Plain files are quick to edit and review, and changes go live on deploy. The price
 is that a course edit needs a deploy, not a click in an admin page.
 
+**Foundation batch 4 (bonds, India's government securities, exchange rates, trade).** Eight
+Topics use this layer: bond pricing (the 1994 bond sell-off), yield measures (Orange County's
+leveraged pool), the yield curve (the 1994 flattening), duration and convexity (Silicon Valley
+Bank's securities), credit spreads (Long-Term Capital Management), India's G-secs (the 1992
+securities scam), exchange rates (the 1991 rupee devaluation) and trade (India's import squeeze).
+Each Case keeps to what was known on its as-of date, and each file names its sources in a comment.
+The yield history in the bond Cases is the US Treasury's own daily par yield file (not FRED, whose
+data may not be stored); the Treasury's monthly averages match the FRED figures the Cases quote.
+**Scenario.** A Learner in the 1994 curve Case sees the yield lines only up to 3 February 1994;
+after the reveal the lines run to December and show the 2-year and 10-year yields meeting.
+Quiz Checks mix our own questions with Question Bank ones, and each bank question used here was
+checked by hand or against a named source before it was marked verified.
+**Trade-off.** Eight Topics written in one go share one house style, which makes the course
+consistent but means a wrong habit (for example, a thin explanation) is repeated eight times.
+
 ## Course Navigator (`src/course/navigator.ts`)
 
 **What it does.** The module that decides what comes next. It takes the Course Map and the

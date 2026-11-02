@@ -1,0 +1,147 @@
+# Credit spreads, ratings and default: a foundation Topic taught through Long-Term Capital Management.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure
+id: bond-credit-spreads
+title: Credit spreads, ratings and default
+
+cases:
+  - id: ltcm-1998-spreads
+    title: LTCM's spread trades
+    data: [debt-per-dollar-of-capital, annual-return, august-1998-loss, rescue-capital]
+    asOf: 1998-08-01
+    story: >
+      Long-Term Capital Management (LTCM) was a hedge fund founded in February 1994 by John
+      Meriwether, a former vice chairman of Salomon Brothers, and run by a team of market
+      experts that included two Nobel laureates. It used mathematical models to find small
+      price differences between similar securities, such as two bonds that should yield the
+      same but did not, and bet that the gap, or spread, would narrow. It called this
+      "market-neutral": it expected to profit whether prices went up or down. Its returns had
+      been 20% in 1994, 43% in 1995, 41% in 1996 and 17% in 1997. Each trade earned only a
+      sliver on every dollar, so the fund borrowed heavily to make the profit worth having:
+      at the end of 1997, after returning capital to its investors without cutting its
+      positions, it held about $30 of debt for every $1 of capital. It traded government
+      bonds, mortgage-backed securities and equities, and used swaps, forwards and options.
+      Financial trouble that had started in Southeast Asia in 1997 was still working through
+      markets. Suppose the spreads LTCM was betting on narrowing, instead widen. How much does
+      the fund have to lose before its capital is gone?
+    reveal: >
+      In August 1998 Russia suddenly devalued its currency and stopped payments on its debt.
+      Investors rushed to safer and more liquid investments, and the spreads LTCM had bet on
+      narrowing widened in almost every case. The fund lost 44% of its value in August alone.
+      On 2 September it told investors of its August losses, and on 18 September its officials
+      called the president of the Federal Reserve Bank of New York. On 23 September 1998
+      fourteen banks and brokerage firms put up $3.625 billion to take 90% of the fund. The
+      Fed arranged the meeting but lent nothing. The fund's partners and other investors lost
+      heavily, the fund sold off its positions, and the last of the group's $3.6 billion was
+      returned by the end of 1999.
+
+concept: >
+  A credit spread is the extra yield a bond pays over a safe bond of the same maturity, usually
+  a government bond: a corporate bond yielding 7.9% against a 6.4% Treasury has a spread of 1.5
+  percentage points (150 basis points). The spread pays the lender for the chance the borrower
+  defaults (fails to make a required payment), for the loss if it does, and for holding a bond
+  that may be hard to sell. Rating agencies such as Moody's, S&P and Fitch grade that
+  chance: bonds rated BBB (Baa at Moody's) or higher are investment grade, and those below are
+  high-yield, or junk, bonds with wider spreads. In a scare, investors move to safe, liquid
+  assets and spreads widen, which lowers the price of risky bonds. A trade that bets spreads
+  will narrow can be right in the long run and still lose money first, and borrowing makes a
+  small fall in asset value a large fall in the owner's capital.
+
+principle: >
+  A spread is the price of risk, and it can widen when everyone wants safety at once. A bet
+  that is right on average can still break you if you borrow so much that you cannot wait.
+
+questions:
+  - id: cs-q-definition
+    prompt: >
+      What is a credit spread?
+    choices:
+      - { id: a, text: "The extra yield a risky bond pays over a safe government bond of the same maturity" }
+      - { id: b, text: "The difference between a bond's coupon and its face value" }
+      - { id: c, text: "The gap between the price a dealer buys and sells at" }
+      - { id: d, text: "The difference between the 2-year and 10-year yields on a government bond" }
+    answer: a
+    explanation: >
+      Investors demand higher yield for credit risk, liquidity risk and the chance of default. The spread is that extra yield, measured against a comparable government bond. Choice d is the slope of the yield curve.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: cs-q-calculate
+    prompt: >
+      A 10-year corporate bond yields 7.9%. A 10-year government bond yields 6.4%. What is the credit spread?
+    choices:
+      - { id: a, text: "150 basis points" }
+      - { id: b, text: "15 basis points" }
+      - { id: c, text: "1,430 basis points" }
+      - { id: d, text: "1.5 basis points" }
+    answer: a
+    explanation: >
+      7.9% - 6.4% = 1.5 percentage points, which is 150 basis points.
+    source: >
+      Arithmetic on the definition in OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: cs-q-grade
+    prompt: >
+      On the scales of S&P and Fitch, what is the lowest rating that still counts as investment grade?
+    choices:
+      - { id: a, text: "BBB (Baa at Moody's)" }
+      - { id: b, text: "BB (Ba at Moody's)" }
+      - { id: c, text: "A (A at Moody's)" }
+      - { id: d, text: "AAA (Aaa at Moody's)" }
+    answer: a
+    explanation: >
+      Any bond rated BBB or Baa or higher is investment grade. Bonds rated lower are high-yield, or junk, bonds.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: cs-q-widen
+    prompt: >
+      In a financial scare, investors rush to the safest, most liquid bonds. What usually happens to the spread on a riskier corporate bond?
+    choices:
+      - { id: a, text: "It widens, and the corporate bond's price falls" }
+      - { id: b, text: "It narrows, and the price rises" }
+      - { id: c, text: "It does not change, because the coupon is fixed" }
+    answer: a
+    explanation: >
+      Lenders demand more yield for credit and liquidity risk, so the risky bond's yield rises relative to the government bond's, and its price falls. In August 1998 the spreads LTCM expected to narrow diverged in almost every case.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management (Fleming and Liu): https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+  - id: cs-q-leverage
+    prompt: >
+      A fund holds $31 of assets for every $1 of its own capital, the rest borrowed. By what percentage must its assets fall in value to wipe out its capital?
+    choices:
+      - { id: a, text: "About 3.2%" }
+      - { id: b, text: "About 30%" }
+      - { id: c, text: "About 50%" }
+      - { id: d, text: "100%" }
+    answer: a
+    explanation: >
+      A fall of $1 on $31 of assets, 1/31 = 3.2%, leaves nothing for the owners after repaying the loans. LTCM held about $30 of debt per $1 of capital at the end of 1997.
+    source: >
+      Arithmetic on the figure of $30 of debt for every $1 of capital in Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+checks:
+  - id: cs-quiz-spreads
+    kind: quiz
+    questions:
+      - cs-q-definition
+      - cs-q-calculate
+      - cs-q-grade
+      - cs-q-widen
+      - cs-q-leverage
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cs-ltcm-explain
+    kind: conversation
+    prompt: >
+      LTCM's trades bet that credit spreads would narrow, and in the long run the idea was
+      sound. Explain why the fund still lost almost everything in 1998, and what the leverage
+      had to do with it.
+    passCriteria: >
+      The Learner says spreads widened in the scare after Russia's default, as investors moved
+      to safe, liquid assets, so trades betting on narrowing lost at the same time. They explain
+      that at about $30 of debt per $1 of capital a loss of a few percent on the assets
+      exhausted the capital, so the fund could not wait for spreads to return to normal. They
+      may add that a correct bet is no use if it cannot be held.

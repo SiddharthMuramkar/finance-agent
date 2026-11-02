@@ -20,10 +20,11 @@ cases:
       falling yields wonder what happens if the Fed starts to raise rates. Nobody outside the room knows
       the decision.
     reveal: >
-      On 4 February 1994 the FOMC raised the funds rate target by 25 basis points to 3.25 per cent, and the
-      markets were surprised. The 10-year Treasury yield rose 14
+      On 4 February 1994 the FOMC tightened policy. Its statement spoke only of "a slight increase in the
+      degree of pressure on reserve positions", and the federal funds rate moved from about 3.00 to 3.25 per
+      cent. The markets were surprised. The 10-year Treasury yield rose 14
       basis points on the day and about 200 basis points over the next nine months. Using monthly averages
-      from the St. Louis Fed's FRED database, the 10-year yield went from 5.75 per cent in January 1994 to
+      from the Federal Reserve's H.15 release, the 10-year yield went from 5.75 per cent in January 1994 to
       a peak of 7.96 per cent in November (a rise of 221 basis points). The funds rate averaged 3.05 per
       cent in January and 5.45 per cent in December. The 2-year yield rose even more, from 4.14 to 7.59 per
       cent, so the gap between the 10-year and 2-year yields shrank from 1.61 to 0.22 percentage points: the
@@ -109,7 +110,8 @@ checks:
   - id: eco-cb-surprise-reasoning
     kind: conversation
     prompt: >
-      The Fed raised its target by only 25 basis points in February 1994, yet the 10-year Treasury yield rose
+      The Fed's first move in February 1994 lifted the federal funds rate by only about 25 basis points, yet the
+      10-year Treasury yield rose
       by about 200 basis points over the next nine months. Explain why a small first step led to such a large
       move in long rates, and what the Fed could have done differently.
     passCriteria: >

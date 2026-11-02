@@ -1,0 +1,142 @@
+# Yield curve and term structure: a foundation Topic taught through the 1994 flattening of the Treasury curve.
+# Case Data (the Treasury yield history) lives in the database; see docs/architecture.md.
+# Case sources (checked): US Treasury Daily Par Yield Curve Rates 1993-94 (Case Data); FRED FEDFUNDS monthly average as recorded in notes/case-verification.md
+id: bond-yield-curve
+title: Yield curve and term structure
+
+cases:
+  - id: curve-flattening-1994
+    title: The 1994 curve flattening
+    data: [treasury-3m, treasury-2y, treasury-10y]
+    asOf: 1994-02-03
+    story: >
+      On 3 February 1994 the US Treasury's par yields were 3.20% on 3-month bills, 4.28% on
+      2-year notes and 5.81% on 10-year notes. Lined up by maturity, the yields climbed
+      steeply: investors were paid 2.6 percentage points more to lend for ten years than for
+      three months. The Federal Reserve's overnight rate had averaged about 3.05% in January.
+      In January the 10-year monthly average yield had been 1.61 percentage points above the
+      2-year average. Suppose the Fed began to raise the short-term rate it controls. What
+      would you expect to happen to the shape of the
+      curve over the following year, and why might the long end not move as much as the
+      short end?
+    reveal: >
+      On 4 February 1994 the Fed began raising the overnight (federal funds) rate, from about
+      3.00% to 3.25%, the first of a series (the overnight rate averaged 5.45% in December 1994). Short yields
+      followed it up: the 2-year monthly average went from 4.14% in January to 7.59% in
+      December, a rise of 3.45 points, and the 3-month yield from 3.04% to 5.76%. The
+      10-year average rose less, from 5.75% to 7.81%, so the gap between the 10-year and
+      2-year yields shrank from 1.61 points to 0.22. By the end of 1994 the curve was almost
+      flat: on 30 December the Treasury par yields were 5.68% for 3 months, 7.69% for 2 years,
+      7.84% for 10 years and 7.89% for 30 years.
+
+concept: >
+  The yield curve plots the yields of bonds of the same issuer and credit quality against
+  their maturity; the relationship is also called the term structure of interest rates. The
+  usual shape slopes upward: longer lending is paid more. A flat curve means short and long
+  yields are close, and an inverted curve means long yields are below short ones. The short end
+  follows the central bank's policy rate closely. A long yield is roughly an average of the
+  short rates the market expects over the bond's life, plus extra pay for the risk of holding a
+  long bond. So when a central bank raises rates, short yields rise most, long yields rise
+  less, and the curve flattens; when investors expect rates to be cut, long yields fall
+  below short ones and the curve can invert. An inverted curve has often come before a
+  slowdown, though it is a signal, not a certainty.
+
+principle: >
+  The curve is a picture of what the market expects short rates to do. Read its slope as
+  a forecast the market is making, then ask what would make the forecast wrong.
+
+questions:
+  - id: yc-q-shape
+    prompt: >
+      Long-term yields are below short-term yields. What is this shape of the yield curve called?
+    choices:
+      - { id: a, text: "Inverted" }
+      - { id: b, text: "Normal (upward sloping)" }
+      - { id: c, text: "Flat" }
+      - { id: d, text: "Steep" }
+    answer: a
+    explanation: >
+      A curve that slopes downward, with long-term rates lower than short-term rates, is called inverted. It is considered unusual.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+
+  - id: yc-q-spread
+    prompt: >
+      On 3 February 1994 the 2-year Treasury yield was 4.28% and the 10-year yield 5.81%. How far above the 2-year yield was the 10-year yield?
+    choices:
+      - { id: a, text: "1.53 percentage points (153 basis points)" }
+      - { id: b, text: "1.53 basis points" }
+      - { id: c, text: "10.09 percentage points" }
+      - { id: d, text: "26.8 percentage points" }
+    answer: a
+    explanation: >
+      5.81 - 4.28 = 1.53 percentage points, which is 153 basis points. A basis point is one hundredth of a percentage point.
+    source: >
+      US Department of the Treasury, Daily Treasury Par Yield Curve Rates, 3 February 1994: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
+
+  - id: yc-q-flattening
+    prompt: >
+      A central bank starts raising its policy rate repeatedly. Short-term yields rise by 3 percentage points, long-term yields by 2. What happens to the shape of the curve?
+    choices:
+      - { id: a, text: "It flattens: the gap between long and short yields narrows" }
+      - { id: b, text: "It steepens: the gap widens" }
+      - { id: c, text: "It does not change shape" }
+    answer: a
+    explanation: >
+      The short end moves with the policy rate. The long yield, which averages expected future short rates with other factors, rises by less, so the gap shrinks. This is what happened in 1994: the 10-year minus 2-year gap went from 1.61 to 0.22 percentage points.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+
+  - id: yc-q-inversion
+    prompt: >
+      Why is an inverted yield curve often read as a warning of an economic slowdown?
+    choices:
+      - { id: a, text: "Investors expect the central bank to cut rates later, as it usually does when the economy weakens, so long yields fall below short ones" }
+      - { id: b, text: "Long-term borrowing is always more expensive in a recession" }
+      - { id: c, text: "Governments stop issuing short-term bills when a recession is near" }
+      - { id: d, text: "An inverted curve causes banks to stop lending" }
+    answer: a
+    explanation: >
+      Central banks often lower rates to stimulate a stagnant economy. If investors expect that, long yields, which average expected future short rates, fall below today's short rates. It is a signal, not a cause.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+
+  - id: yc-q-short-end
+    prompt: >
+      Which part of the yield curve tracks the central bank's policy rate most closely?
+    choices:
+      - { id: a, text: "The short end, such as 3-month and 2-year yields" }
+      - { id: b, text: "The long end, such as 30-year yields" }
+      - { id: c, text: "Only the middle of the curve" }
+      - { id: d, text: "No part of it: central banks do not affect yields" }
+    answer: a
+    explanation: >
+      Short-term yields are set largely by what the central bank is doing and is expected to do in the next few years. Long yields depend on expectations over many years. In 1994 the 3-month yield rose from 3.04% to 5.76%, the 10-year from 5.75% to 7.81%.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
+
+checks:
+  - id: yc-quiz-curve-shapes
+    kind: quiz
+    questions:
+      - yc-q-shape
+      - yc-q-spread
+      - yc-q-flattening
+      - yc-q-inversion
+      - yc-q-short-end
+      - bank:eab:MBA-ECON-0044
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: yc-flattening-explain
+    kind: conversation
+    prompt: >
+      In 1994 the Fed raised short-term rates and the Treasury curve flattened. Explain why
+      the 2-year yield rose more than the 10-year yield, and what an inverted curve would have
+      told you instead.
+    passCriteria: >
+      The Learner says short yields follow the central bank's rate, while long yields reflect
+      the average of rates expected over many years, so a series of rises lifted the short end
+      most and narrowed the gap. They add that an inverted curve would show the market expecting
+      short rates to fall later, often as the economy weakens, and that it is a signal, not a
+      certainty.

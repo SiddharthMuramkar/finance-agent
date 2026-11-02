@@ -18,13 +18,14 @@ cases:
       writer might say "rates up 8 percent". As of this date nobody knows whether the Fed will
       move, by how much, or how the market for long-term bonds will react.
     reveal: >
-      On 4 February 1994 the Fed raised the federal funds rate by 25 basis points, from 3% to
-      3.25%. The 25 basis point rise in the overnight rate triggered an immediate 40 basis point
-      rise in the 30-year Treasury rate, as leveraged bondholders were forced to sell quickly to
-      limit mounting losses. By early May 1994 the Fed had raised the funds rate by 75 basis
-      points in total, and bond rates had jumped 140 basis points, nearly 1.5 percentage points
-      (Fortune, October 1994). The same 25 was a quarter of a percentage point of the rate, 8.3%
-      of its old level, and less than the market's own move in long-term rates that day.
+      On 4 February 1994 the Fed tightened: the federal funds rate rose by 25 basis points, from 3%
+      to 3.25%. Its statement spoke only of "a slight increase in the degree of pressure on
+      reserve positions". The long end moved far more over the following weeks, as leveraged
+      bondholders sold to limit their losses: the US Treasury's 10-year par yield went from 5.81%
+      on 3 February to 5.94% on 4 February, 6.15% by 28 February and 7.49% by 9 May, a rise of
+      about 168 basis points, while the Fed's total increase by early May was 75 basis points.
+      The same 25 was a quarter of a percentage point of the rate and 8.3% of its old level, and
+      the long-rate rise that followed was several times larger than the step that set it off.
 
 concept: >
   A percentage point is the plain difference between two percentages: going from 3% to 3.25%
