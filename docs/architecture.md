@@ -41,8 +41,17 @@ passcode with `PASSCODE` and, if it matches, sets a cookie signed with `SESSION_
 **Scenario.** Someone finds the URL and posts to `/api/turn`. The proxy answers 401 before any
 Claude call happens, so no credits are spent.
 
+**Guessing is limited** (`src/auth/login-guard.ts`, table `login_failures`). Each wrong passcode
+is saved as the caller's address and the time (never the guess). After five wrong guesses from one
+address in 15 minutes, that address is refused, even with the right passcode, until the window
+passes. After fifty wrong guesses from all addresses together in an hour, every login is refused
+for the rest of that hour, so guessing from many machines doesn't get round it. The page then says
+"Too many wrong passcodes". Rows older than a day are removed as new ones arrive.
+
 **Trade-off.** One shared passcode is simple and enough for one private Learner. It is not a
-user account system. Changing `SESSION_SECRET` signs every device out.
+user account system. Changing `SESSION_SECRET` signs every device out. The overall cap means
+someone guessing hard can keep you out for up to an hour too (a device that is already signed in
+keeps working); that is the price of not letting them guess without limit.
 
 ## Database (Neon Postgres through Drizzle)
 
@@ -59,6 +68,7 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 - `library_sources`, `library_passages`: the Library, real sources cut into searchable passages (below).
 - `turns`, `tool_calls`: each turn's saved status (running, cut off, finished, failed), which is also
   the one-turn lock, and the saved result of every tool call, keyed by its tool call ID (below).
+- `login_failures`: wrong passcodes by address and time, for the login's guessing limit (Passcode gate, above).
 
 The app uses Neon's pooled connection (`DATABASE_URL`), over WebSockets rather than HTTP, because
 only WebSockets allow the transactions the Tutor's tools need (see "Surviving cut-offs and failures"). Schema changes are migration files in
@@ -264,7 +274,9 @@ text, with controls back at their starting values.
 parser. If one cannot be drawn, code sends the Tutor one correction request listing the problems,
 and the corrected widget replaces the broken one on screen. History keeps both, unchanged. If the
 correction is broken too, the browser shows a plain "This widget could not be drawn" note and the
-lesson carries on. A widget that crashes while drawing is caught the same way.
+lesson carries on. A widget that crashes while drawing is caught the same way. A correction reply
+that is cut off by the length limit or declined is handled like any other reply: the Learner gets
+Continue or the refusal message, and a tool call it was cut off in is never run.
 
 **Scenario.** The Tutor tells the Mega Millions story and adds a discount-rate slider beside a chart
 of the 30 payments. The Learner drags the rate from 3% to 7%: the bars and the present value
@@ -401,6 +413,13 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
 - **Retries differ.** Each attempt is a row in `quiz_attempts`. Attempts walk round the Check's
   pool, so the second attempt starts on questions the first did not show whenever the pool is
   bigger than one attempt. If there are no other questions, the same ones return.
+- **Removed questions don't lock the Learner out.** If a question is taken off the Course Map (or
+  leaves the Question Bank) while an attempt is open and unanswered, the attempt is given a fresh
+  selection from the questions that are still there. If fewer are left than the pass rule needs,
+  no quiz is shown and the error is logged, rather than the page failing. The workspace also loads
+  the quiz on its own, so a quiz that fails to load leaves the rest of the page working.
+- **Only code marks a quiz.** The Tutor's verdict tool refuses a quiz Check ("it is marked by code
+  from the Learner's answers"), so a Learner who asks to be passed still has to submit the quiz.
 - **The Tutor hears afterwards.** The Learner's result is not sent to the Tutor at once, because
   the Tutor is not called. On its next call, code puts a note in the history: "Quiz result by code,
   Check ..., attempt 1: 1 of 3 correct (needs 2). Not passed ...", naming each missed question,
@@ -570,7 +589,10 @@ writes a transcript, a per-turn table and a cost summary to a folder you give it
 because transcripts hold source-derived text). `--reset` archives the Topic's saved progress first (rows
 are renamed, nothing is deleted) so a run starts at the story. By default it forces one new Session in the
 middle of the Topic, by setting `session_idle_hours` to 0 for a single turn, to prove that closing the app
-and returning resumes at the right place.
+and returning resumes at the right place. The saved value is put back after that turn, and also if you
+press Ctrl-C or the script is killed during it: otherwise the live app would be left opening a new Session
+on every message. `--reset` clears the Learner's current Topic only when it is the Topic being reset, so a
+Topic you chose on the Course Map page is kept.
 
 **Scenario.** After a deploy, run it against the production URL: fourteen turns later you have a
 transcript of a whole Topic, the cost per turn, the longest turn, and proof that a new Session carried on
@@ -583,6 +605,8 @@ good. It reads the database directly for cost and step, so it must use the same 
 
 **How it is tested.** The pacing rule and the paragraph break are tested at the Tutor Turn seam with the
 scripted client. The runner itself is a script, checked by running it end to end (evidence folder for #11).
+Its two database writes, the temporary idle setting and `--reset`, live in `src/dev/simulated-learner.ts`
+and are tested against the in-memory database, including a Ctrl-C in the middle of a turn.
 
 ## Course Map page and jumps (`/course`, `/progress`, `/api/jump`, `src/course/navigator.ts`)
 
@@ -702,8 +726,11 @@ list rises). Voyage is optional: without a `VOYAGE_API_KEY`, or when Voyage does
 
 **The as-of rule here.** While the Learner's current Topic has a Case before its reveal, search
 leaves out dated passages published after the Case's as-of date, and also timeless passages that
-mention a later year (a 2026 textbook can describe 2020 or 2022). After the reveal, everything is
-searchable again.
+mention the as-of year or a later one (a 2026 textbook can describe 2020 or 2022). The as-of year
+itself counts, because a passage only gives a year, not a day: for a Case as of 16 October 1987, a
+lecture saying "in 1987 the Dow fell 22.6 percent" is about 19 October, three days later, and would
+give the ending away. The cost is that a passage about something earlier that same year is hidden
+too until the reveal. After the reveal, everything is searchable again.
 
 **Library scripts (laptop only).** Source text never enters the public repo. For OpenStax:
 `git clone` the book's repository into a scratch folder, run `scripts/library/openstax.py` to pull
@@ -738,7 +765,7 @@ refuses any source whose id, title or link names Buffett or Berkshire, Zitron, t
 Archive, Investopedia, YouTube, the IMF, FRED or St. Louis Fed, SEBI, or the RBI; a test also checks
 that every source in `sources.json` passes. Third, **dates**: the S-1 and the blog are dated, so
 while a Case is before its reveal their later posts and the S-1 are hidden; the Yale and Fed texts
-are timeless, so they are hidden only when they mention a year after the Case.
+are timeless, so they are hidden only when they mention the Case's year or a later one.
 
 **RBI is left out, on purpose.** The RBI's disclaimer says "caching and links to, and the framing of
 this Web Site or any of the contents are prohibited" without written permission, which is what

@@ -396,6 +396,19 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   const complete = last?.role === "assistant" && unansweredToolCalls(log.messages).length === 0;
   const reply = complete ? "" : yield* loop();
 
+  // A finished widget that would not render gets one correction turn. History stays add-only.
+  const broken = stopReason === "refusal" || stopReason === "max_tokens" ? [] : replyWidgetProblems(reply);
+  if (broken.length) {
+    const problems = broken.flatMap((b) => b.problems.map((p) => `- Widget ${b.index + 1}: ${p}`));
+    await log.append({
+      role: "user",
+      content: `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn.\n${problems.join("\n")}\nReply with only the corrected openui-lang block, written in full. Write no prose.`,
+    });
+    yield { type: "correction" };
+    yield* loop();
+  }
+
+  // Runs after the last loop, the correction loop included, so a cut-off or refused correction is handled the same way.
   if (stopReason === "refusal") {
     // Loop steps before the declined one are stored, and so are their tool calls' effects.
     const saves = await db
@@ -410,18 +423,6 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       await log.append({ role: "user", content: truncated.map((use) => ({ type: "tool_result" as const, tool_use_id: use.id, content: NOT_RUN, is_error: true })) });
     }
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
-  } else {
-    // A finished widget that would not render gets one correction turn. History stays add-only.
-    const broken = replyWidgetProblems(reply);
-    if (broken.length) {
-      const problems = broken.flatMap((b) => b.problems.map((p) => `- Widget ${b.index + 1}: ${p}`));
-      await log.append({
-        role: "user",
-        content: `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn.\n${problems.join("\n")}\nReply with only the corrected openui-lang block, written in full. Write no prose.`,
-      });
-      yield { type: "correction" };
-      yield* loop();
-    }
   }
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
   return { type: "done", stopReason, usage };

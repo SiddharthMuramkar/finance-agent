@@ -58,15 +58,16 @@ export async function keywordRanking(db: Executor): Promise<KeywordRanking> {
 
 /**
  * The as-of rule for the Library: a dated source's passages pass only when published on or before
- * the as-of date (one with no date never passes); a timeless source's pass unless they mention a
- * year after the as-of year, because reference text written later can still tell the ending.
+ * the as-of date (one with no date never passes); a timeless source's pass only when every year they
+ * mention is before the as-of year, because reference text written later can still tell the ending,
+ * and a bare year can't say whether an event in the as-of year came before or after the as-of date.
  */
 function allowed(asOf: string | null, source?: string): SQL {
   const scope = source ? sql` and p.source_id in (${matchingSources(source)})` : sql``;
   if (!asOf) return sql`true${scope}`;
   const year = Number(asOf.slice(0, 4));
   return sql`((p.published_on <= ${asOf}::date
-    or (p.source_id in (select id from library_sources where kind = 'timeless') and coalesce(p.latest_year, 0) <= ${year}))${scope})`;
+    or (p.source_id in (select id from library_sources where kind = 'timeless') and coalesce(p.latest_year, 0) < ${year}))${scope})`;
 }
 
 /** Ids of the sources whose id, title or credit contain `text`, ignoring case (% and _ are plain characters). */

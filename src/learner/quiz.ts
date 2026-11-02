@@ -31,7 +31,21 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promis
       .onConflictDoNothing();
     attempt = (await open())!;
   }
-  return { attemptId: attempt.id, checkId: check.id, attemptNo: attempt.attemptNo, questions: publicQuestions(await questionLookup(db, map, attempt.questionIds), attempt.questionIds) };
+  let questionIds = attempt.questionIds;
+  let lookup = await questionLookup(db, map, questionIds);
+  if (questionIds.some((id) => !lookup.question(id))) {
+    // A question was removed from the Course Map (or the bank) while this attempt was open. The attempt has
+    // no answers yet, so it is given a fresh selection from the questions that can still be shown.
+    lookup = await questionLookup(db, map, check.questions);
+    const usable = check.questions.filter((id) => lookup.question(id));
+    if (usable.length < check.passRule.correct) {
+      console.error(`Quiz Check "${check.id}": only ${usable.length} of its questions can be found, fewer than the ${check.passRule.correct} needed to pass, so no quiz is shown.`);
+      return null;
+    }
+    questionIds = selectQuestions({ ...check, questions: usable }, attempt.attemptNo);
+    await db.update(quizAttempts).set({ questionIds }).where(eq(quizAttempts.id, attempt.id));
+  }
+  return { attemptId: attempt.id, checkId: check.id, attemptNo: attempt.attemptNo, questions: publicQuestions(lookup, questionIds) };
 }
 
 export type QuizResult =

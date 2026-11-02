@@ -20,7 +20,11 @@ export default async function WorkspacePage() {
     learnerSummary(db, map),
     loadCurrentSession(db),
     cookies(),
-    openQuiz(db, map),
+    // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
+    openQuiz(db, map).catch((error) => {
+      console.error("The open quiz could not be loaded", error);
+      return null;
+    }),
     latestTurn(db),
     reviewState(db, map),
   ]);

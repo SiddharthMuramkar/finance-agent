@@ -142,6 +142,9 @@ export function toolCode(
       parse: (input) => verdictInput.parse(input),
       run: ({ check_id, verdict, reasons }, context) =>
         once(context?.toolUse.id, "record_check_verdict", async (tx) => {
+          // A quiz Check is marked only by code, from the Learner's submitted answers; never by a Tutor verdict.
+          if (map.check(check_id)?.kind === "quiz")
+            return { ok: false, text: `Check ${check_id} is a quiz, so it is marked by code from the Learner's answers. Nothing was recorded; ask the Learner to submit the quiz.` };
           // Pacing rule, for the Check that is being taken; any other verdict gets the Course Navigator's own reason below.
           const at = navigate(map, await loadProgress(tx));
           if (at?.step === "check" && at.check?.id === check_id && (await stepBeganThisTurn(tx))) return { ok: false, text: VERDICT_PACING_REJECTION };

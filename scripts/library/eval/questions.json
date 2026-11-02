@@ -669,6 +669,15 @@
         "quantitative easing",
         "2008"
       ]
+    },
+    {
+      "q": "the October 1987 stock market crash and portfolio insurance",
+      "asOf": "1987-10-16",
+      "outcome": [
+        "Black Monday",
+        "October 19",
+        "22.6"
+      ]
     }
   ]
 }
