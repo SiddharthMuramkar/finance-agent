@@ -1,0 +1,295 @@
+# Judge Topic: Damodaran's Uber inputs of December 2014 taken back to the company's first public filing and its later results.
+# The post's text is in the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+# Case Data (Uber's S-1 and later 8-K figures) lives in the database; see docs/architecture.md.
+id: jud-narrative-numbers
+title: "Judge: stories into inputs (Uber 2014 versus outcome)"
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: jud-nn-uber-2014-post
+    title: The inputs behind Damodaran's Uber valuation exercise
+    asOf: 2014-12-02
+    piece:
+      author: Aswath Damodaran
+      title: "Up, Up and Away! A Crowd Valuation of Uber!"
+      published: 2014-12-02
+      url: https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 2 December 2014 Aswath Damodaran, a valuation professor at NYU Stern, published a post
+      that let readers build their own valuation of Uber, then a private company. Before the
+      readers choose anything, he sets out where Uber stands, and the Learner's job in this Topic
+      is to judge those starting numbers, not the valuation. Three kinds of number appear. From the
+      company's website: it operates in 51 countries and about 230 cities. From a leak: a Business
+      Insider article reported that Uber projected gross receipts of $10 billion for 2015, up three
+      times from 2014, which had itself more than tripled from 2013; Damodaran adds that the company
+      originally kept 20% of gross receipts as revenue and that he does not know whether the share
+      has slipped. And his own assumption, which he says he makes reluctantly because the source is a
+      leaked document: gross receipts of $3.5 billion for 2014, with the 20% slice unchanged, giving
+      revenue of $700 million for the year. He says he does not know whether Uber is profitable. The
+      Learner reads the post and sorts its numbers by where they come from, then redoes its arithmetic.
+    reveal: >
+      Judged against what Uber later filed, the post's starting numbers were a mixed record, and
+      that is the point of judging them. The arithmetic ties: $3.5 billion times 20% is $700
+      million. The first public filing (the S-1 of 11 April 2019) gave Uber's 2014 revenue as $495
+      million, below the post's $700 million. But that figure is not like for like: the filing says
+      its 2014 and 2015 columns are unaudited, are kept under the accounting rules then in force
+      (not recast for the new revenue standard adopted in 2017) and leave out the China business
+      that was sold in 2016. The filing gives no Gross Bookings for 2014, so the $3.5 billion and
+      the 20% slice cannot be checked directly. For 2015 the filing's revenue of $1,995 million is
+      almost exactly 20% of the leaked $10 billion, which is consistent with the leak but is an
+      inference, since the filing gives no 2015 bookings. The post's wider claim, that gaps between
+      values are gaps between stories, is a different kind of claim: filings can test its inputs
+      but cannot declare a story right.
+
+  - id: jud-nn-uber-s1-2019
+    title: Uber's first public filing, April 2019
+    asOf: 2019-04-11
+    data:
+      - uber-revenue
+      - uber-gross-bookings
+      - uber-core-adjusted-net-revenue
+      - uber-loss-from-operations
+      - uber-net-income
+      - uber-adjusted-ebitda
+      - uber-revenue-later
+      - uber-operating-result-later
+    story: >
+      On 11 April 2019 Uber made public its registration statement (Form S-1) for a share listing;
+      the price and number of shares were left blank. It carries the company's audited
+      accounts for 2016 to 2018, so it is where a 2014 claim can be taken back to a filing. Three things about
+      reading it. First, the measures differ. Revenue is the accounting figure. Gross Bookings is
+      the total value of rides, deliveries and freight including taxes, tolls and fees, before
+      Driver and restaurant earnings and Driver incentives. Core Platform Adjusted Net Revenue is
+      Gross Bookings less Driver earnings, Driver incentives and Driver referrals, and the filing
+      defines Take Rate as that figure divided by Core Platform Gross Bookings. Second, the profit
+      lines differ: loss from operations, net income (loss) and Adjusted EBITDA, a measure the
+      company defines itself, are three different numbers for each year. Third, the periods differ:
+      the filing's 2016 to 2018 columns are audited and recast for the 2017 revenue standard,
+      while 2014 and 2015 are unaudited, as originally reported, and exclude the China business
+      that was sold in 2016. The Case Data holds the filing's figures by year; the Tutor gives no
+      figure of its own.
+    reveal: >
+      Uber priced its shares at $45 on 9 May 2019, near the bottom of its $44 to $50 range, at a
+      value of about $82.4 billion counting options and restricted stock, and raised $8.1 billion
+      (New York Times; Reuters). It had been valued at $76 billion in its last private round in
+      August 2018. On the first day the shares closed at $41.57, about 7.6% below the offer price.
+      Reuters described the 2018 result as a loss of about $3 billion from operations, which is the
+      filing's operating loss of $3,033 million; the $1.8 billion sometimes quoted is the Adjusted
+      EBITDA loss, and net income for 2018 was a profit of $997 million because of $4,993 million of
+      other income. For 2019 Uber reported revenue of $14,147 million and a loss from operations of
+      $8,596 million (8-K of 6 February 2020). Its earnings releases for 2024 and 2025 show revenue of $43,978
+      million and $52,017 million and income from operations of $2,799 million and $5,565 million.
+      The listing price and the later results can be set beside the 2014 post's range of reader
+      values, $799 million to $90.5 billion, but they do not decide which reader's story was
+      right: a price is the market's judgement in one week, and the filings test the inputs one at
+      a time.
+
+concept: >
+  Judging a writer's claim means taking it back to the primary document and doing four things.
+  First, sort each number by origin: reported by the company, leaked or second-hand, or the
+  writer's own assumption. Only a figure that a filing gives on the same measure for the same
+  period can confirm or refute it. Second, restate the claim as a calculation and redo it:
+  revenue is gross receipts times the share the company keeps, a ratio is one number divided by
+  another, and a growth claim is a quotient of two years. Third, match the measure and the
+  period. Revenue, Gross Bookings and adjusted net revenue are different bases, so revenue
+  divided by bookings is not the filing's Take Rate. Loss from operations, net income and
+  Adjusted EBITDA are three different profit lines, so a loss quoted without its measure is
+  ambiguous. A figure originally reported, a figure recast for a new accounting rule and a
+  figure that leaves out a business later sold are not comparable without adjustment. Fourth,
+  say what the evidence cannot settle. A filing can test a writer's inputs one at a time; a
+  later listing price or a later profit shows how a market judged the whole story at one date, not
+  which input was wrong.
+
+principle: >
+  A claim is judged by recomputing its numbers from the primary document on the same measure and
+  period, and by checking that its conclusion goes no further than that evidence allows. A gap
+  between a writer's number and a filing's is a reason to ask whether the two measure the same
+  thing, before it is a reason to call the writer wrong.
+
+questions:
+  - id: jn-q-recompute-slice
+    prompt: >
+      A writer states: "A ride company with $8 billion of gross receipts that keeps 25% of each fare
+      has revenue of $3 billion." Redo the calculation. What do you find?
+    choices:
+      - { id: a, text: "The claim is right: revenue is $3 billion" }
+      - { id: b, text: "The claim is wrong: revenue is $2 billion" }
+      - { id: c, text: "The claim is wrong: revenue is $32 billion" }
+      - { id: d, text: "The claim is wrong: revenue is $0.5 billion" }
+    answer: b
+    explanation: >
+      Revenue is gross receipts times the share kept: 8 x 0.25 = 2.0, so $2 billion. $3 billion
+      does not follow from the writer's own inputs, so this is an arithmetic slip that shows up as
+      soon as the claim is restated as a calculation.
+    source: >
+      Arithmetic on the gross receipts times slice chain used in Damodaran, "Up, Up and Away! A
+      Crowd Valuation of Uber!", Musings on Markets, 2 December 2014 ($3.5 billion x 20% = $700
+      million).
+
+  - id: jn-q-take-rate
+    prompt: >
+      A filing defines Take Rate as adjusted net revenue divided by gross bookings. A company's
+      figures for a year are: gross bookings $80 billion, revenue $18 billion, adjusted net revenue
+      $16 billion. A blogger writes "the take rate was 22.5%". What does the filing's definition
+      give, and what did the blogger do?
+    choices:
+      - { id: a, text: "20%; the blogger divided revenue, not adjusted net revenue, by gross bookings" }
+      - { id: b, text: "22.5%; the blogger is right because revenue is the main figure" }
+      - { id: c, text: "88.9%; the blogger should have divided adjusted net revenue by revenue" }
+      - { id: d, text: "20%; the blogger divided by the wrong year's gross bookings" }
+    answer: a
+    explanation: >
+      By the filing's definition, 16 / 80 = 20%. The blogger's 22.5% is 18 / 80, revenue over
+      gross bookings: a real ratio, but not the defined Take Rate. When a figure carries a name
+      the filing defines, use the filing's definition before comparing.
+    source: >
+      Uber Technologies, Form S-1 (11 April 2019), definitions of Gross Bookings, Core Platform
+      Adjusted Net Revenue and Take Rate, https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
+
+  - id: jn-q-loss-labels
+    prompt: >
+      A company reports, for one year: loss from operations $5.0 billion; Adjusted EBITDA loss $3.0
+      billion; and net income of +$1.0 billion, because it booked a one-off $6.0 billion gain on
+      selling a business in other income. A summary says "the company lost $3.0 billion that year."
+      What is wrong with the summary?
+    choices:
+      - { id: a, text: "It gives the Adjusted EBITDA loss as though it were the company's loss; the operating loss was $5.0 billion and net income was positive" }
+      - { id: b, text: "Nothing: loss from operations, Adjusted EBITDA and net income are the same measure" }
+      - { id: c, text: "It should have said the company lost $5.0 billion after tax" }
+      - { id: d, text: "It should have said the company made a $1.0 billion operating profit" }
+    answer: a
+    explanation: >
+      The three lines are different measures. Adjusted EBITDA is a company-defined figure that
+      adds back items such as depreciation, interest and stock-based pay; the operating loss
+      ($5.0 billion) comes before other income; net income is positive here only because of the
+      one-off gain (-5.0 + 6.0 = +1.0, ignoring tax). A loss quoted without its measure can point
+      to any of them.
+    source: >
+      Uber Technologies, Form S-1 (11 April 2019), reconciliation of net income (loss) to Adjusted
+      EBITDA, https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
+
+  - id: jn-q-period-basis
+    prompt: >
+      A writer assumed revenue of $900 million for year 0. The company's first filing shows $650
+      million for year 0, with a note: "reported under the accounting rules then in force, not
+      recast, unaudited, and excluding a business sold later." What is the fair judgement?
+    choices:
+      - { id: a, text: "The writer was wrong by $250 million, and the note changes nothing" }
+      - { id: b, text: "The two may not be like for like; rebuild the writer's number on the filing's basis, or state the difference, before calling it a miss" }
+      - { id: c, text: "The filing is always right, so the writer was wrong" }
+      - { id: d, text: "Footnotes about accounting rules can be ignored when comparing a year" }
+    answer: b
+    explanation: >
+      A figure reported under older rules, unaudited and leaving out a business that was later
+      sold is a different basis from a writer's estimate of the whole company. The gap of $250
+      million may be partly or wholly basis. Compare like with like first, then judge.
+    source: >
+      Uber Technologies, Form S-1 (11 April 2019), selected financial data footnote 1 on Topic 606
+      and note on discontinued operations, https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
+
+  - id: jn-q-leaked-input
+    prompt: >
+      A post says: "A leaked internal document projects $12 billion of gross receipts for next year;
+      for this year I will assume $4 billion." Judging this post later against an audited filing,
+      how should you treat these two numbers?
+    choices:
+      - { id: a, text: "Both are audited facts" }
+      - { id: b, text: "The $12 billion is a fact because it came from the company's own document" }
+      - { id: c, text: "The $12 billion is second-hand and a projection; the $4 billion is the writer's own assumption; neither is a fact until a filing gives the same measure for the same period" }
+      - { id: d, text: "Both are guidance the company has published" }
+    answer: c
+    explanation: >
+      A leaked projection is unaudited and may not be the company's final plan; an assumption is the
+      writer's. Judge them against a filing only if the filing reports the same measure (gross
+      receipts or bookings, revenue) for the same year, and say which one you used.
+    source: >
+      Damodaran, "Up, Up and Away! A Crowd Valuation of Uber!", Musings on Markets, 2 December
+      2014, on using second-hand information from a leaked document.
+
+  - id: jn-q-price-vs-inputs
+    prompt: >
+      A writer valued a private company in year 1. Four years later it lists on a stock exchange at
+      a value that differs a lot from the writer's. Which conclusion does that evidence support?
+    choices:
+      - { id: a, text: "The writer's assumptions about market share and margins were wrong, because the values differ" }
+      - { id: b, text: "The values differ; whether any of the writer's inputs were off has to be tested by comparing each input with the filings" }
+      - { id: c, text: "The listing value is the correct value, so the writer's value was wrong" }
+      - { id: d, text: "Nothing can be learned from comparing a valuation with a later listing" }
+    answer: b
+    explanation: >
+      A listing value is a market price on one date, reached after four more years of events. A
+      gap between it and the writer's value says the stories differed. Which input differed can be
+      tested only by taking each one (market, growth, share, revenue per sale, reinvestment, risk)
+      back to the filings.
+    source: >
+      Damodaran, "Up, Up and Away! A Crowd Valuation of Uber!", Musings on Markets, 2 December
+      2014, on gaps in value as gaps in narrative.
+
+checks:
+  - id: jn-quiz-recompute-labels
+    kind: quiz
+    questions:
+      - jn-q-recompute-slice
+      - jn-q-take-rate
+      - jn-q-loss-labels
+      - jn-q-period-basis
+      - jn-q-leaked-input
+      - jn-q-price-vs-inputs
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: jn-judge-post-inputs
+    kind: conversation
+    prompt: >
+      Read the starting numbers in Damodaran's 2 December 2014 post. Sort each number he uses to
+      describe Uber's position into three piles: stated by the company, leaked, and assumed by him.
+      Redo his arithmetic for 2014 revenue from his own figures, and test his statement that the
+      leaked 2015 figure is "three times" 2014. Then say which of these numbers a later audited
+      filing could check, and what measure, definition and period you would need it on.
+    passCriteria: >
+      The Learner puts the 51 countries and about 230 cities in the company's own statements (its
+      website); the $10 billion of 2015 gross receipts, "up three times" from 2014 and 2014 having
+      more than tripled from 2013, in the leaked pile (a Business Insider article); and the $3.5
+      billion of 2014 gross receipts and the continued 20% slice in his own assumptions (the 20%
+      originally kept by the company, with him saying he does not know whether it has slipped). They
+      redo the arithmetic: $3.5 billion times 20% is $700 million, which ties; $10 billion divided
+      by $3.5 billion is about 2.9, so "three times" is a fair rounding, not a slip. They say a
+      filing could check 2014 and 2015 revenue and, only if it reports them, gross receipts or
+      bookings, and that they would need the same definition (gross receipts against revenue), the
+      same calendar year and the same scope. They do not bring in anything that happened after 2
+      December 2014.
+
+  - id: jn-judge-against-filing
+    kind: conversation
+    prompt: >
+      Use the Case Data from Uber's first public filing (11 April 2019). (1) Recompute 2018 revenue
+      divided by Gross Bookings, then Core Platform Adjusted Net Revenue divided by Gross Bookings,
+      and say which the filing means by Take Rate and why the two differ. (2) Compare the 2014
+      revenue of about $700 million that the post's inputs imply with the filing's 2014 revenue, and
+      say whether the comparison is like for like. (3) Suppose a summary of the filing says "Uber
+      lost $1.8 billion in 2018". Which measure gives that figure, and what do the operating loss
+      and net income show? (4) Name one thing the filing cannot tell you about whether the 2014
+      story was right.
+    passCriteria: >
+      (1) The Learner takes revenue and Gross Bookings from the Case Data: 11,270 / 49,799 is about
+      22.6%; Core Platform Adjusted Net Revenue 10,025 / 49,799 is about 20.1%. They say the
+      filing's Take Rate is adjusted net revenue (Gross Bookings less Driver earnings, incentives
+      and referrals) over Core Platform Gross Bookings, which the filing states as 20% for 2018, so
+      revenue over bookings is a different ratio and not the filing's Take Rate. (2) The filing's
+      2014 revenue is 495, against 700 implied by the post ($3.5 billion x 20%), a gap of 205 or
+      about 41% of the filing's figure; but the comparison is not like for like because the
+      filing's 2014 column is unaudited, kept under the accounting rules then in force (not
+      recast for the 2017 revenue standard) and excludes the China business sold in 2016. They also
+      say the filing gives no 2014 Gross Bookings, so the $3.5 billion and the 20% slice cannot be
+      checked directly; if they note that 2015 revenue of 1,995 is about 20% of the leaked $10
+      billion, they call it consistent, not confirmed, since there is no 2015 bookings figure. (3)
+      The $1.8 billion is the 2018 Adjusted EBITDA of -1,847, a company-defined non-GAAP measure;
+      the loss from operations was -3,033 and net income attributable to Uber was +997, helped by
+      other income of 4,993 (gains on a divestiture and on investments), so "lost $1.8 billion"
+      uses a measure without naming it and a net-income reader would find a profit. (4) They say
+      something like: the filing tests inputs one at a time but cannot say whether the market-size,
+      share or risk story was right, or what the company would be worth; it covers 2016 to 2018
+      only on an audited basis. They do not use any fact dated after 11 April 2019, make a
+      forecast, or give a buy, sell or hold view.

@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 81 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 89 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -718,7 +718,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 82. Judge: where does junk start?
 
-- ID: `jud-rating-boundary` · Coming
+- ID: `jud-rating-boundary` · Written
 - Needs first: Follow: Damodaran, sovereign ratings and default risk (Jun 2025), Credit spreads, ratings and default
 - Case: **Damodaran's Baa2 claim** (as of 2025-06-02)
   - Outcome: D7 calls Baa2 and below speculative; the line is between Baa3 and Ba1.
@@ -726,7 +726,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 83. Judge: the no-growth assumption in ROE versus earnings yield
 
-- ID: `jud-assumptions` · Coming
+- ID: `jud-assumptions` · Written
 - Needs first: Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)
 - Case: **Damodaran's ROE post** (as of 2025-02-18) **to verify**
   - Outcome: Recompute with changed growth and R&D treatment.
@@ -735,7 +735,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 84. Judge: stories into inputs (Uber 2014 versus outcome)
 
-- ID: `jud-narrative-numbers` · Coming
+- ID: `jud-narrative-numbers` · Written
 - Needs first: Follow: Damodaran, crowd valuation of Uber (Dec 2014)
 - Case: **Uber 2014 and 2019** (as of 2014-12-02)
   - Outcome: IPO $45, $82.4bn fully diluted, 2018 revenue $11.3bn and loss $1.8bn.
@@ -743,7 +743,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 85. Judge: Twitter's 2013 IPO valuation versus what happened
 
-- ID: `jud-ipo-forecast` · Coming
+- ID: `jud-ipo-forecast` · Written
 - Needs first: Follow: Damodaran, Twitter IPO valuation (Oct 2013), Reading filings: S-1, 10-K, Indian annual report and Ind AS
 - Case: **Twitter's IPO** (as of 2013-10-05) **to verify**
   - Outcome: Below the IPO price by 2016.
@@ -752,7 +752,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 86. Judge: Zitron's predictions versus later events
 
-- ID: `jud-predicted-outcomes` · Coming
+- ID: `jud-predicted-outcomes` · Written
 - Needs first: Follow: Zitron, AI Is A Money Trap (Aug 2025), Follow: Zitron, The Subprime AI Crisis (Sep 2024), Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)
 - Case: **Cursor** (as of 2025-08-06)
   - Outcome: SpaceX bought Anysphere for $60bn all-stock (16 Jun 2026; completed 14 Aug 2026).
@@ -760,7 +760,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 87. Judge: units and periods (430% versus 340%, basis points, SOFR)
 
-- ID: `jud-units-periods` · Coming
+- ID: `jud-units-periods` · Written
 - Needs first: Revenue recognition, run rates, gross vs net, Yield to maturity, coupon and current yield, Percent, percentage points and basis points
 - Case: **Zitron's slips on units** (as of 2026-10-13) **to verify**
   - Outcome: Checkable slips: 430% versus 340% (annual versus quarter), a basis point as 0.001, SOFR glossed as borrowing from the Fed.
@@ -769,7 +769,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 88. Judge: claim versus filing
 
-- ID: `jud-filing-vs-claim` · Coming
+- ID: `jud-filing-vs-claim` · Written
 - Needs first: Reading filings: S-1, 10-K, Indian annual report and Ind AS, The income statement, Judge: units and periods (430% versus 340%, basis points, SOFR)
 - Case: **The Anthropic S-1 against two readings** (as of 2026-10-28) **to verify**
   - Outcome: S-1 Q2 operating income $974m and cash $112.4bn confirmed; the H1 loss and commitments figures not re-verified.
@@ -778,7 +778,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 89. Judge: junk or BB+?
 
-- ID: `jud-rating-conflict` · Coming
+- ID: `jud-rating-conflict` · Written
 - Needs first: Corporate credit analysis, Judge: where does junk start?
 - Case: **Anthropic's rating** (as of 2026-06-01) **to verify**
   - Outcome: KBRA gave BB+ in Jun 2026 (highest speculative grade) per the FT; Zitron's B to CCC+ unchecked.
