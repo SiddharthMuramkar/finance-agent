@@ -512,6 +512,10 @@ each step. The rule lives in code, not in the prompt, because a prompt-only rule
 A turn also puts text written after a tool call on a new paragraph, since a reply can now hold
 the end of one step and the start of the next.
 
+The fresh-step flag is also set by a jump: the first turn after the Learner chose a Topic on the
+Course Map page, or went back to the default path, cannot finish the step it lands on, because
+nothing of that step has been taught in this conversation (see "Course Map page and jumps").
+
 ## Simulated Learner (`scripts/simulated-learner.mjs`)
 
 **What it does.** A script that plays the Learner over HTTP against any running copy of the app: it
@@ -535,3 +539,69 @@ good. It reads the database directly for cost and step, so it must use the same 
 
 **How it is tested.** The pacing rule and the paragraph break are tested at the Tutor Turn seam with the
 scripted client. The runner itself is a script, checked by running it end to end (evidence folder for #11).
+
+## Course Map page and jumps (`/course`, `/progress`, `/api/jump`, `src/course/navigator.ts`)
+
+**What it does.** Two ordinary pages, read from saved progress only (no model call, no randomness),
+so they look the same on every visit. The **Course Map** page (`/course`) shows every Topic as a stop
+in default-path order, its Checks marked along the way (a tick for a pass, a frame round the Check
+the Learner is at), the Topic's status and step, any prerequisites not yet passed, and a "You are
+here" label. The **progress** page (`/progress`) is a table: each Topic's Stage, status (not started,
+in progress or passed) and how many Checks are passed. Both come from one pure Course Navigator
+function, `courseOverview`, so what the page shows and what the Tutor is told can never disagree.
+
+Each Topic not yet passed has a "Study this Topic" button. If the Topic has prerequisites the
+Learner hasn't passed, the button first asks: "Bond prices builds on Present value, which you have
+not passed yet. You can fill the gap first, or go ahead anyway." Going ahead calls `/api/jump`,
+which saves only the current Topic (`learner_state.current_topic_id`). Every other Topic keeps its
+step and passes untouched. A "Back to the default path" button clears the choice. Passing the chosen
+Topic also returns the Learner to the default path (that rule was already in the Navigator).
+Asking an off-map question changes nothing: the place is always computed from saved progress, and
+only tools and jumps write it. A jump is refused while a turn is running, so the Tutor's tools
+never act on a Topic that changed under them.
+
+A jump sets `learner_state.entered_by_jump`. The next turn takes that mark (once), copies it to the
+turn row, and: (1) puts a short note before the context ("The Learner chose this Topic on the Course
+Map ... teach it afresh"), and (2) sets the turn's fresh-step flag, so the pacing rule stops the Tutor
+from finishing the landing step before teaching it. A retry of that turn still knows, because the
+mark is kept on the turn row.
+
+**Course Map edits.** Tested in the Navigator: an inserted Check becomes the place if it comes
+first without a pass; an inserted Topic appears as not started without moving the Learner; a removed
+Check or Topic keeps its records and is ignored (a chosen Topic that was removed sends the Learner
+back to the default path); a reorder of Checks or Topics keeps every pass and changes only what comes
+next; an added prerequisite never moves the Learner out of a started Topic and is shown as unmet, also
+in the jump prompt.
+
+**Scenario.** The Learner is halfway through Present value (at Check 2's concept) and is curious about
+bonds. On the Course Map they press "Study this Topic" on Bond prices, see the prerequisite prompt,
+and go ahead. The workspace's next turn tells the Tutor about the jump; the Tutor tells the Bond
+prices story. Two days later they press "Back to the default path": Present value is still at Check
+2's concept, and the Tutor re-teaches that concept before moving on.
+
+**Trade-off.** The warning is a prompt, not a block: the Learner may study out of order, at the cost
+of meeting ideas before their foundations (the Tutor sees the unmet prerequisites in its context). A
+passed Topic can't be chosen again as a jump; looking back is what old Sessions are for, and spaced
+review will bring back its questions. Today the real Course Map has one Topic, so the page has one
+stop; it grows as Topics are added.
+
+## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
+
+**What it does.** The Tutor writes Markdown (bold, lists, headings, tables). Before, the workspace
+and old Session pages showed the raw symbols (`**bold**`, `- item`, `## Heading`). Now replies go
+through assistant-ui's Markdown package (`@assistant-ui/react-markdown` 0.14.24, which pairs with
+`@assistant-ui/react` 0.15.32). Widget blocks (```openui-lang fences) are not shown as code: the
+renderer hands each one to our own slot, so the widget's marker (workspace, laptop), or the widget
+itself (phone, and old Sessions), sits exactly where the Tutor put it. Before rendering, the reply is
+rebuilt by the same splitter the widget pane uses (`markdownSource`), so a fence still streaming in
+never flashes up as code. Old Sessions now use the same assistant-ui thread, read-only, with no
+composer and no model call.
+
+**Scenario.** The Tutor replies "**Late bars:** each payment is divided by (1+r)^n" followed by a
+three-item list and an annuity chart. The Learner sees bold text, a bulleted list, and a "Widget 2 →"
+marker between the list and the next paragraph; the chart is in the right pane.
+
+**Trade-off.** One more package (small, by the same authors as assistant-ui, MIT). The text is no
+longer animated word by word as it streams (`smooth` off): the animation would put the shown text
+behind the real text, and widget markers are matched against the real text. Learner messages stay
+plain text on purpose.
