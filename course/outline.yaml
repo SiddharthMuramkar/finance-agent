@@ -1149,7 +1149,7 @@ topics:
           - https://www.bloomberg.com/news/articles/2026-08-14/spacex-completes-its-60-billion-cursor-acquisition
         verified: true
   - id: jud-units-periods
-    title: "Judge: units and periods (430% versus 340%, basis points, SOFR)"
+    title: "Judge: units, periods and labels"
     stage: judge
     prerequisites: [fs-revenue-runrate, bond-yield, num-percent-bps]
     cases:

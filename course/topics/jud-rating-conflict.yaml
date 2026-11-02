@@ -1,0 +1,290 @@
+# Judge Topic: two writers disagree about Anthropic's credit rating; the Learner takes each statement back to the rating scale, the filing and the agency evidence.
+# Case 1 is Zitron's "Credit Crunch" (6 Oct 2026), which the Learner pastes; it is never stored. Case 2 is Damodaran's post of 28 Oct 2026, read from the Library in short passages with credit.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Sources (checked 2 Nov 2026):
+#   Zitron, "Credit Crunch", Where's Your Ed At, published 2026-10-06: https://www.wheresyoured.at/credit-crunch/ (section heading "B- To CCC+", body "between a B (highly speculative) and a CCC+ (substantial credit risk)", conditional on negative EBITDA and no government or hyperscaler guarantee; it also calls BB+ "the highest-rated level of junk").
+#   Damodaran, "The Anthropic Prospectus Arrives: My (but not the) IPO valuation!", Musings on Markets, Wednesday 28 Oct 2026: https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html ("with a bond rating of BB+" and "the current bond rating of BB+ for the company"; no agency, date or link given).
+#   Anthropic S-1 filed 26 Oct 2026: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm (statement of operations; quarterly operating income table; credit facility terms; no rating agency rating named for Anthropic).
+#   Financial Times, "Anthropic assigned highest junk credit rating in June", 16 Oct 2026: https://www.ft.com/content/5a310aee-f555-4266-874c-b1b4db20186d (read in full; also summarised at https://aiweekly.co/alerts/anthropic-landed-bb-kbra-rating-in-june-ahead-of-35b-apollo-deal). KBRA's own release was not found.
+#   Fitch Ratings, rating definitions: https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating
+#   Blackstone expectation of 30 Oct 2026 (FT, read second-hand): https://enterpriseai.economictimes.indiatimes.com/news/industry/anthropic-may-not-secure-investment-grade-rating-after-ipo-blackstone-tells-investors/135373431 and https://en.fnnews.com/news/202610310323310117
+id: jud-rating-conflict
+title: "Judge: junk or BB+?"
+
+cases:
+  - id: jud-rc-zitron-junk-range
+    title: A writer puts a rating range on companies with negative earnings
+    asOf: 2026-10-06
+    piece:
+      author: Ed Zitron
+      title: "Credit Crunch"
+      published: 2026-10-06
+      url: https://www.wheresyoured.at/credit-crunch/
+      from: paste
+    story: >
+      On 6 October 2026 Ed Zitron, who writes the newsletter Where's Your Ed At, published "Credit
+      Crunch" on how much debt the large AI labs would need to raise and at what credit grade.
+      Anthropic's own public filing had not yet appeared. One section, under a heading that reads
+      "B- To CCC+", argues that a lab running at the negative margin of OpenAI's 2025 results,
+      which he reports as negative 160% and calls EBITDA, would "immediately slam the door shut"
+      on an investment-grade rating and would "likely" be rated "between a B (highly speculative)
+      and a CCC+ (substantial credit risk)", outside government or hyperscaler guarantees. Later in
+      the same piece he describes BB+ as the highest-rated level of junk. The Learner pastes the
+      section and judges it as an argument, not as a forecast. Fitch and KBRA use the same ladder
+      of symbols, best first: AAA, AA+, AA, AA-, A+, A, A-, BBB+, BBB, BBB-, BB+, BB, BB-, B+, B, B-,
+      CCC+, CCC, CCC-, CC, C, D. Fitch counts AAA to BBB as investment grade and BB to D as
+      speculative grade; its words for B are "highly speculative" and for CCC "substantial credit
+      risk". The Learner places his range on the ladder, checks the section against itself, and
+      separates what the section says from what it assumes: which company's numbers the premise
+      uses, whose ratings are meant, and what the word "likely" does and does not claim.
+    reveal: >
+      Anthropic filed its S-1 on 26 October 2026, twenty days after the piece. It reports revenue of
+      $4,585 million and an operating loss of $8,060 million for 2025, which is a margin of about
+      negative 176%. For the first quarter of 2026 it reports revenue of $4,731 million and an
+      operating loss of $1,667 million (negative 35%); for the second quarter, revenue of $11,555
+      million and operating income of $974 million (positive 8%). Those are operating margins,
+      which are not EBITDA, but they show that the negative 160% Zitron took from OpenAI sat close
+      to Anthropic's 2025 full-year figure and far from its two most recent quarters. Inside the
+      section, the heading's range (B- to CCC+) is one notch narrower at the top than the body's
+      (B to CCC+), a small inconsistency; his remark that BB+ is the highest level of junk is
+      correct on the ladder. How the range compared with an actual rating is in the next Case.
+
+  - id: jud-rc-damodaran-bb-plus
+    title: A valuation post cites a BB+ rating with no source
+    asOf: 2026-10-28
+    piece:
+      author: Aswath Damodaran
+      title: "The Anthropic Prospectus Arrives: My (but not the) IPO valuation!"
+      published: 2026-10-28
+      url: https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 28 October 2026, two days after Anthropic filed its S-1, Aswath Damodaran, a valuation
+      professor at NYU Stern, published his valuation of the company. Twice he refers to a credit
+      rating: in a summary of risks, "with a bond rating of BB+", and in his discussion of
+      financing risk, "the current bond rating of BB+ for the company". The post names no rating
+      agency, no date and no instrument, and gives no link for the rating. Three weeks earlier
+      Zitron had argued that labs like this would be rated between B and CCC+. The Learner reads the
+      two passages in the Library, then searches the S-1, also in the Library, for any rating of
+      the company. The S-1 gives no agency's rating of Anthropic, but its credit facility says that
+      fees vary with "credit ratings" and that guarantees and security will be released once the
+      company has an Investment Grade Rating from at least two out of three of Moody's, S&P and
+      Fitch. The Learner puts BB+ on the ladder, lists what the sentence leaves unsaid (which
+      agency, which date, whether a company or a particular bond), says what evidence would settle
+      each, and decides whether the two writers actually contradict one another. The Tutor supplies
+      no rating of its own.
+    reveal: >
+      The Financial Times reported on 16 October 2026, from documents it saw, that the small
+      agency KBRA gave Anthropic an issuer rating of BB+ in June 2026, "the highest speculative-grade
+      score" and one notch below investment grade, and that the action had not been reported before.
+      About $4.4 billion of junior debt in a $35 billion financing in June also carried a BB+ rating
+      with a stable outlook and was sold at a yield of about 8.5%; the rest of that financing was
+      secured by a guarantee from Broadcom and paid 5.75%. KBRA built a "risk score" because
+      Anthropic did not give it free cash flow or EBITDA, so the analysts estimated those. The FT
+      added that KBRA is smaller than Moody's, S&P and Fitch, which "will ultimately determine"
+      the company's status after the IPO. Set against the post: the grade matches the one rating
+      found; "bond rating" is not far off, since one tranche of debt was rated BB+, though the FT
+      calls the June action an issuer rating; "current" rests on a June action, with no later
+      agency action found; and the post cites no source, which the S-1 cannot supply. Set against
+      Zitron's range: BB+ lies four notches above B and six above CCC+, and his "door shut on
+      investment grade" held for this rating, since BB+ is speculative. But his claim was about
+      "ratings agencies" and a lab without guarantees, while the June ratings came from one smaller
+      agency and the BB+ debt sat in a financing whose senior part was guaranteed by Broadcom, so
+      one agency's rating neither confirms nor refutes his range. On 30 October the FT reported,
+      according to second-hand copies, that Blackstone told investors Anthropic was expected to
+      receive a "high" junk rating from major agencies after its IPO, and one of those copies says
+      Standard and Poor's, Moody's and Fitch had not officially rated it. KBRA's own release was not
+      found, the FT article is paywalled and the Blackstone report was read only second-hand.
+      Judgement: the two statements are about different things (a rating that exists, a rating the
+      writer expects), so they are not a clean contradiction; the checkable slips are thin sourcing
+      and a loose label, not a wrong grade.
+
+concept: >
+  A credit rating is a position on an ordered ladder of notches, one letter class per agency
+  definition and a plus or minus inside most classes. One line across the ladder separates
+  investment grade (BBB- and above on the Fitch and KBRA scales) from speculative grade (BB+ and
+  below, colloquially junk), and BB+ is the first notch below the line. Distance on the ladder is
+  counted in notches. Two statements about "the rating" can only be set against each other once they
+  refer to the same borrower, the same instrument (an issuer rating covers the company in general,
+  assuming a claim like senior unsecured debt; a rating of a particular bond depends on that bond's
+  seniority and structure), the same agency and the same date, and, for a conditional claim, once the
+  condition (for instance negative earnings, no outside guarantee) is the one that actually held. A
+  claim of the form "likely to be rated X" is about agencies' future action; judging it later means
+  asking whether the condition held and which agencies acted.
+
+principle: >
+  Before calling two claims a conflict, match them on borrower, instrument, agency, date and
+  condition, and trace each to its own source. Say what is shown wrong, what is shown right, and what
+  could not be checked; a claim with no source is not thereby false, only unconfirmed.
+
+questions:
+  - id: jrc-q-notches-line
+    prompt: >
+      On the Fitch and KBRA ladder (AAA, AA+, AA, AA-, A+, A, A-, BBB+, BBB, BBB-, BB+, BB, BB-, B+,
+      B, B-, CCC+, CCC and so on), BBB- is the last investment-grade notch. How many notches below
+      BBB- is B?
+    choices:
+      - { id: a, text: "Three" }
+      - { id: b, text: "Four" }
+      - { id: c, text: "Five" }
+      - { id: d, text: "Six" }
+    answer: c
+    explanation: >
+      Counting down from BBB-: BB+ (1), BB (2), BB- (3), B+ (4), B (5). Each plus or minus is a notch of
+      its own, so counting by letter class alone gives the wrong answer.
+    source: >
+      Fitch Ratings, rating definitions (scale from AAA to D with plus and minus modifiers): https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; counting is arithmetic on that list.
+
+  - id: jrc-q-notches-apart
+    prompt: >
+      Using the same ladder, how many notches apart are BB+ and CCC+?
+    choices:
+      - { id: a, text: "Four" }
+      - { id: b, text: "Five" }
+      - { id: c, text: "Six" }
+      - { id: d, text: "Seven" }
+    answer: c
+    explanation: >
+      From BB+ down: BB (1), BB- (2), B+ (3), B (4), B- (5), CCC+ (6). Six notches.
+    source: >
+      Fitch Ratings, rating definitions: https://www.fitchratings.com/products/rating-definitions ; KBRA, long-term credit rating scale: https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating ; counting is arithmetic on that list.
+
+  - id: jrc-q-first-junk
+    prompt: >
+      On the Fitch scale, which is the highest notch that counts as speculative grade?
+    choices:
+      - { id: a, text: "BBB-" }
+      - { id: b, text: "BB+" }
+      - { id: c, text: "BB" }
+      - { id: d, text: "B+" }
+    answer: b
+    explanation: >
+      Fitch counts AAA to BBB as investment grade and BB to D as speculative grade. BBB- is inside the
+      BBB class, so it is still investment grade, and BB+ is the first notch of speculative grade.
+    source: >
+      Fitch Ratings, rating definitions: https://www.fitchratings.com/products/rating-definitions
+
+  - id: jrc-q-own-consistency
+    prompt: >
+      A writer's section heading says a company would be rated "between B+ and CCC+", while the text
+      under it says "between a B and a CCC+". What is the difference, counting on the ladder (B+, B,
+      B-, CCC+)?
+    choices:
+      - { id: a, text: "None: B+ and B are the same grade" }
+      - { id: b, text: "The text's range starts one notch lower and is one notch wider" }
+      - { id: c, text: "The text's range starts two notches lower" }
+      - { id: d, text: "The text's range is narrower than the heading's" }
+    answer: b
+    explanation: >
+      B is one notch below B+, and the bottom of both ranges is CCC+, so the text's range starts one
+      notch lower and covers one notch more. A careful judge notes the inconsistency and says which of
+      the two statements they are testing.
+    source: >
+      Fitch Ratings, rating definitions (plus and minus modifiers as separate notches): https://www.fitchratings.com/products/rating-definitions ; the writer and sentences are hypothetical.
+
+  - id: jrc-q-issuer-vs-bond
+    prompt: >
+      An agency's report gives a company an issuer rating of X. A writer says "the company's bond
+      rating is X". What should a careful reader check before accepting this?
+    choices:
+      - { id: a, text: "Nothing: an issuer rating and every bond rating are always identical" }
+      - { id: b, text: "Whether the agency rated that bond, and whether a bond's rating, which depends on its seniority, matches the company's" }
+      - { id: c, text: "Whether the rating is positive or negative" }
+      - { id: d, text: "Only whether the agency is American" }
+    answer: b
+    explanation: >
+      KBRA states that issuer-level ratings assume a loss severity consistent with a senior unsecured
+      claim, while for an obligation the expected loss depends on the seniority of the claim. So a
+      bond can be rated differently from its issuer, and the label "bond rating" needs its own check.
+    source: >
+      KBRA, Understanding long-term credit ratings (issuers and obligations on the same scale; issuer-level ratings assume senior unsecured loss severity): https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating
+
+  - id: jrc-q-date
+    prompt: >
+      A report says an agency assigned a company a rating in March. In late July a writer calls it
+      "the current rating". With nothing else known, what is the careful statement?
+    choices:
+      - { id: a, text: "It is the rating as of June; whether it still stands in July depends on later agency actions, which need checking" }
+      - { id: b, text: "Ratings never change, so it is current" }
+      - { id: c, text: "It must have been withdrawn, since it is four months old" }
+      - { id: d, text: "The month does not matter for a rating" }
+    answer: a
+    explanation: >
+      An assignment date fixes when the agency held that view. Agencies can affirm, change or withdraw a
+      rating later, so "current" needs a check of the agency's latest action.
+    source: >
+      Method of matching a figure to its date, as in KBRA's practice of publishing rating actions with dates, for example https://www.kbra.com/publications/hNNWSXkz/kbra-releases-surveillance-report-for-pinnacle-bancorp-inc ; the company and months in the question are hypothetical.
+
+  - id: jrc-q-conditional
+    prompt: >
+      A writer says: "If a firm's cash flow stays deeply negative and no outside party guarantees its
+      debt, agencies will likely rate it B or lower." Later an agency publishes a rating for a firm.
+      Which is the most careful reading of how to test the claim?
+    choices:
+      - { id: a, text: "The claim is tested by whichever rating appears first" }
+      - { id: b, text: "The claim cannot be tested by any rating" }
+      - { id: c, text: "First check whether that firm met the condition, and whether the agencies the writer meant are the ones that acted; a rating from another agency or under another condition leaves the claim untested" }
+      - { id: d, text: "A conditional claim cannot be judged at all" }
+    answer: c
+    explanation: >
+      A conditional claim is tested only when its condition held and the actors it names have acted. A
+      rating under a different condition, or from a different agency, leaves it untested.
+      The judge reports what it does show and what remains open.
+    source: >
+      Method of judging a conditional claim; the scenario is hypothetical and uses no outside data.
+
+  - id: jrc-q-margin
+    prompt: >
+      A firm has revenue of $2,000 million and an operating loss of $3,200 million. What is its
+      operating margin?
+    choices:
+      - { id: a, text: "Negative 160%" }
+      - { id: b, text: "Negative 62.5%" }
+      - { id: c, text: "Negative 60%" }
+      - { id: d, text: "Positive 160%" }
+    answer: a
+    explanation: >
+      Operating margin is operating income divided by revenue: -3,200 / 2,000 = -1.6, or negative 160%.
+      Dividing the other way (2,000 / 3,200) gives 62.5%, which is revenue as a share of the loss.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), profitability ratios: https://openstax.org/books/principles-finance ; figures hypothetical.
+
+checks:
+  - id: jrc-quiz-ladder
+    kind: quiz
+    questions:
+      - jrc-q-notches-line
+      - jrc-q-notches-apart
+      - jrc-q-first-junk
+      - jrc-q-own-consistency
+      - jrc-q-issuer-vs-bond
+      - jrc-q-date
+      - jrc-q-conditional
+      - jrc-q-margin
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: jrc-judge-two-statements
+    kind: conversation
+    prompt: >
+      One writer says labs like this would likely be rated between B and CCC+ if their earnings stay
+      negative and nobody guarantees their debt. Another says the company has a bond rating of BB+.
+      Judge whether these two statements contradict each other. Put each on the rating ladder, go
+      back to what each writer and the filing actually say, and tell me what you can confirm, what
+      slips you find and of what kind, and what you could not check.
+    passCriteria: >
+      The Learner puts the statements on the ladder with correct notch counts (BB+ is one notch below
+      the last investment-grade notch; B is four notches and CCC+ six notches below BB+) and notes
+      that both statements are on the speculative side of the line. They go back to the sources and
+      supply no figure of their own: the first writer's section is conditional (negative margin, no
+      guarantee), borrows its margin from another company's results, and has a heading and body that
+      differ by a notch; the second writer's sentence names no agency, no date and no instrument, and
+      the filing names no agency's rating of the company, only credit facility terms tied to
+      investment-grade ratings from two of three named agencies. They name the kinds of slip or gap
+      (inconsistency inside a source, premise borrowed from another company, missing source and
+      scope, a possible issuer-versus-bond label), say the statements are not a clean contradiction
+      until borrower, instrument, agency, date and condition are matched, and say which evidence
+      would settle each (the agency's own rating release and its date). They separate what is shown,
+      what is only unconfirmed, and what they could not check. No forecast and no buy, sell or hold
+      view.
