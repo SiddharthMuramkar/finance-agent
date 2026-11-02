@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 1 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 9 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -226,7 +226,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 26. Bond basics and pricing
 
-- ID: `bond-pricing` · Coming
+- ID: `bond-pricing` · Written
 - Needs first: Time value and present value, Inflation, nominal vs real rates
 - Case: **The 1994 bond sell-off** (as of 1994-01-31)
   - Outcome: 10-year yield (monthly average) 5.75% in Jan 1994 to 7.96% in Nov 1994, up 221 bp; use a price calculation as the exercise.
@@ -234,7 +234,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 27. Yield to maturity, coupon and current yield
 
-- ID: `bond-yield` · Coming
+- ID: `bond-yield` · Written
 - Needs first: Bond basics and pricing
 - Case: **Orange County's leveraged pool** (as of 1994-06-30)
   - Outcome: A $20.6bn leveraged portfolio lost about $1.5bn (not $1.7bn); Chapter 9 petition on 6 Dec 1994.
@@ -242,7 +242,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 28. Yield curve and term structure
 
-- ID: `bond-yield-curve` · Coming
+- ID: `bond-yield-curve` · Written
 - Needs first: Yield to maturity, coupon and current yield
 - Case: **The 1994 curve flattening** (as of 1994-02-03)
   - Outcome: Two-year yield 4.14% (Jan) to 7.59% (Dec 1994); the 10s-2s gap shrank from 1.61 to 0.22 percentage points.
@@ -250,7 +250,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 29. Duration and convexity
 
-- ID: `bond-duration` · Coming
+- ID: `bond-duration` · Written
 - Needs first: Yield to maturity, coupon and current yield
 - Case: **Silicon Valley Bank's securities portfolio** (as of 2022-12-31)
   - Outcome: Unrealised losses grew as rates rose; the bank failed on 10 Mar 2023.
@@ -258,7 +258,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 30. Credit spreads, ratings and default
 
-- ID: `bond-credit-spreads` · Coming
+- ID: `bond-credit-spreads` · Written
 - Needs first: Yield to maturity, coupon and current yield, Leases, commitments and debt-like items
 - Case: **LTCM's spread trades** (as of 1998-08-01)
   - Outcome: Spread-convergence trades lost as spreads widened; private rescue by 14 firms on 23 Sep 1998.
@@ -266,7 +266,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 31. India: G-secs, T-bills, SDLs and the corporate bond market
 
-- ID: `in-gsec` · Coming
+- ID: `in-gsec` · Written
 - Needs first: Yield curve and term structure, India: RBI, repo rate, liquidity and inflation targeting
 - Case: **The securities scam's SGL fraud** (as of 1992-04-01) **to verify**
   - Outcome: Rs 500 crore missing from SBI's account at the RBI's public debt office exposed the scam in April 1992.
@@ -275,7 +275,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 32. Exchange rates and parity
 
-- ID: `fx-basics` · Coming
+- ID: `fx-basics` · Written
 - Needs first: Inflation, nominal vs real rates
 - Case: **The 1991 rupee devaluation** (as of 1991-06-30)
   - Outcome: Two steps on 1 and 3 Jul 1991 (about 9% and 11%), about 18% cumulative in dollar terms (RBI); the IMF's 19% is the same event under other arithmetic.
@@ -283,7 +283,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 33. Trade and globalisation
 
-- ID: `eco-trade` · Coming
+- ID: `eco-trade` · Written
 - Needs first: Supply, demand and prices, Exchange rates and parity
 - Case: **India's import controls in 1991-92** (as of 1991-07-31) **to verify**
   - Outcome: Import controls tightened in 1991 and relaxed in Mar 1992; domestic demand fell about 2.5% in 1991/92.
