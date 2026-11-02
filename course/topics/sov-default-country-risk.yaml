@@ -1,0 +1,157 @@
+# Sovereign default and country risk: a foundation Topic taught through Argentina in December 2001.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Heaphy, "Argentina: National Bank Holidays, 2001", Journal of Financial Crises 7(2) (Yale): https://elischolar.library.yale.edu/journal-of-financial-crises/vol7/iss2/3 ; US State Department, 2006 Investment Climate Statement, Argentina: https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm ; The New York Times, 24 Dec 2001; The Washington Post, 24 Dec 2001; WSJ review of Makoff, Default (2024): https://wsj.com/world/americas/default-review-when-a-nation-goes-bust-046db2c7
+id: sov-default-country-risk
+title: Sovereign default and country risk
+
+cases:
+  - id: argentina-default-2001
+    title: Argentina on 1 December 2001
+    asOf: 2001-12-01
+    story: >
+      Since 1991 Argentina has run a currency board: by law the central bank guarantees one peso for
+      one US dollar. The arrangement ended the hyperinflation of the 1980s and for most of the 1990s
+      brought stability, investment and growth. But the fixed rate has made Argentine exports dear, the
+      country has been borrowing heavily abroad to cover its deficits, and it has been in recession
+      since late 1998. The IMF has lent Argentina about US$14 billion and promised another US$8 billion
+      in August 2001. More than two-thirds of Argentine bank deposits are in dollars. All through
+      2001 depositors, doubting that the peso can stay at par with the dollar, have pulled money out of banks; by November
+      peso deposits were down by more than a third and dollar deposits by a tenth. On 28 November the
+      run on the banks accelerated, and today, 1 December, the authorities have limited withdrawals
+      from current accounts to 250 pesos or dollars a week per account holder. The government owes
+      lenders abroad and at home a very large sum in dollars, which it can pay only by borrowing
+      again or by squeezing spending. A company that cannot pay can be put into bankruptcy and its assets
+      sold; no court can do that to a country. What are Argentina's choices, and what would each
+      cost the government, bondholders and ordinary depositors?
+    reveal: >
+      The choices ran out within weeks. On 6 December 2001 the IMF said it would not release the next
+      US$1.24 billion of its loan. Riots followed, at least 29 people died, and President Fernando de la Rua
+      resigned on 20 December. On Sunday 23 December the new caretaker president, Adolfo Rodriguez Saa, told Congress that
+      Argentina would suspend payments on its foreign debt; lawmakers cheered. It was the largest sovereign
+      default to that date. Estimates of the debt in default differ by what is counted: US$88 billion (US
+      State Department), about US$100 billion (Wall Street Journal), US$132 billion (New York Times) and US$141
+      billion (Yale Journal of Financial Crises). On 6 January 2002 Congress ended convertibility, and
+      the peso went first to a dual and then to a floating rate. Dollar deposits were converted to pesos at 1.4 pesos per dollar by
+      government order, though courts later ordered banks to pay out dollars at the market rate. In February 2005, after
+      years of talks with creditors, holders of 76% of the defaulted principal accepted an offer worth
+      roughly 30 cents on the dollar. The economy grew 8.7% in 2003 and 9.0% in 2004. The episode
+      showed what a sovereign borrower can do that a company cannot: choose to stop paying; and what it cannot
+      do: borrow again cheaply for years afterwards.
+
+concept: >
+  A sovereign government can default on its debt, and unlike a company it cannot be liquidated: creditors
+  cannot seize its territory, and there is no bankruptcy court with power over it, so repayment depends on
+  its ability and its willingness to pay. Default risk is measured in the market by the default spread:
+  the yield on the government's bonds minus the yield on a default-free bond in the same currency
+  (for dollar bonds, the US Treasury). Rating agencies grade sovereign credit from AAA down to default.
+  Sovereign risk differs by the currency of the debt. A government that owes money in its own currency
+  can print it, but at the price of inflation and a falling currency; one that owes in a foreign
+  currency, as Argentina did, cannot, so its borrowing is limited by the reserves it can find and by
+  creditors' trust. A fixed exchange rate and large foreign-currency debt together are especially
+  fragile. When a country defaults the usual outcome is a restructuring in which creditors take a haircut:
+  they swap old bonds for new ones worth less than the face value of the old. Country risk also reaches beyond
+  government bonds: companies in a risky country face higher borrowing costs, controls on moving
+  money out, and a higher return demanded by equity investors (a country risk premium, estimated for example
+  from the sovereign default spread). Convertibility and transfer risk, the chance that a government will
+  not let you swap local currency for dollars or send money abroad, is a separate part of country risk.
+
+principle: >
+  A government's promise to pay is only as good as its ability and its willingness to pay. Country risk shows
+  up first in what lenders charge and in what they let you take out.
+
+questions:
+  - id: sd-q-spread
+    prompt: >
+      A government's 10-year dollar bond yields 9.5%, while the US Treasury 10-year yield is 4.5%. What is the bond's default spread?
+    choices:
+      - { id: a, text: "5.0 percentage points (500 basis points)" }
+      - { id: b, text: "14.0 percentage points" }
+      - { id: c, text: "0.5 percentage points" }
+      - { id: d, text: "4.5 percentage points" }
+    answer: a
+    explanation: >
+      The default spread is the yield on the country's bond minus the yield on a default-free bond in the same currency: 9.5% - 4.5% = 5.0 percentage points.
+    source: >
+      Damodaran, Country Risk (Measuring Country Risk Premiums, country bond default spreads): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+
+  - id: sd-q-implied-prob
+    prompt: >
+      A one-year bond issued by a government pays 12% if repaid; a default-free one-year bond pays 4%. If investors want only to be compensated for expected loss, and a defaulted bond pays nothing, what annual probability of default does this imply (closest)?
+    choices:
+      - { id: a, text: "About 7%" }
+      - { id: b, text: "About 8%" }
+      - { id: c, text: "About 12%" }
+      - { id: d, text: "About 4%" }
+    answer: a
+    explanation: >
+      For the same expected payoff, (1 - p) x 1.12 = 1.04, so p = 1 - 1.04/1.12 = 7.1%. Equivalently, the 8-point gap divided by the 12% promised payoff (1.12) gives the same 7.1%.
+    source: >
+      Yale ECON 251 (Financial Theory), Lecture 16, Chapter 2 (the gap between a risky borrower's rates and the safe rate is the default probability): https://oyc.yale.edu/economics/econ-251/lecture-16
+
+  - id: sd-q-haircut
+    prompt: >
+      After a default, creditors are offered new bonds worth 40 cents for each dollar of face value of the old bonds. An investor holds old bonds with a face value of $50,000. What is the value of the new bonds, and what is the investor's loss relative to face value?
+    choices:
+      - { id: a, text: "$20,000, a loss of 60%" }
+      - { id: b, text: "$20,000, a loss of 40%" }
+      - { id: c, text: "$30,000, a loss of 60%" }
+      - { id: d, text: "$40,000, a loss of 20%" }
+    answer: a
+    explanation: >
+      0.40 x 50,000 = $20,000 of new bonds; the investor gives up $30,000 of face value, 60%. The 60% is the haircut.
+    source: >
+      US State Department, 2006 Investment Climate Statement, Argentina (restructuring offer measured in cents per dollar of face value of old debt): https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm
+
+  - id: sd-q-board
+    prompt: >
+      A country operates a currency board that guarantees one unit of its currency equals one US dollar. What is the main risk to holders of the currency if the country's finances weaken?
+    choices:
+      - { id: a, text: "That the guarantee is abandoned and the currency falls below one dollar" }
+      - { id: b, text: "That the currency rises above one dollar" }
+      - { id: c, text: "That the central bank prints too little currency to keep the rate" }
+      - { id: d, text: "There is no risk, because the rate is guaranteed by law" }
+    answer: a
+    explanation: >
+      A guarantee holds only while the authorities can and will honour it. If markets doubt it, holders sell or convert into dollars, which drains the reserves that back the promise.
+    source: >
+      Heaphy, "Argentina: National Bank Holidays, 2001", Journal of Financial Crises 7(2) (Yale): https://elischolar.library.yale.edu/journal-of-financial-crises/vol7/iss2/3
+
+  - id: sd-q-spread-widens
+    prompt: >
+      The yield spread of a country's dollar bonds over US Treasuries widens sharply. What does it most directly signal?
+    choices:
+      - { id: a, text: "Investors see a higher chance of default or restructuring" }
+      - { id: b, text: "Investors see a lower chance of default" }
+      - { id: c, text: "US Treasury yields have fallen to zero" }
+      - { id: d, text: "The country's currency has been fixed to the dollar" }
+    answer: a
+    explanation: >
+      Investors demand a bigger premium over the safe rate when they fear losing part of their money. A wider default spread is the market's price of that fear.
+    source: >
+      Damodaran, Country Risk (country bond default spreads): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
+
+checks:
+  - id: sd-quiz-default
+    kind: quiz
+    questions:
+      - sd-q-spread
+      - sd-q-implied-prob
+      - sd-q-haircut
+      - sd-q-board
+      - sd-q-spread-widens
+      - bank:eab:MBA-INTL-0005
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: sd-default-choices
+    kind: conversation
+    prompt: >
+      A government has borrowed heavily in dollars, fixed its exchange rate to the dollar and faces a
+      bank run. Explain how default on sovereign debt differs from a company's default, and what each
+      way out (cut spending, drop the peg, ask for more outside money, default) would cost.
+    passCriteria: >
+      The Learner says that a sovereign cannot be liquidated and its creditors cannot seize its assets,
+      so repayment depends on ability and willingness to pay. They name costs for each option: spending
+      cuts and tax rises hurt growth and the budget; abandoning the peg makes dollar debts and dollar deposits dearer in local
+      currency; more outside money comes with conditions and may not arrive; default costs creditors a haircut
+      and shuts the country out of borrowing for years.

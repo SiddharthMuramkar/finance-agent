@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 33 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 41 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -292,7 +292,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 34. Balance of payments and capital flows
 
-- ID: `fx-bop` · Coming
+- ID: `fx-bop` · Written
 - Needs first: Exchange rates and parity, GDP, growth and business cycles
 - Case: **India's 1990-91 trade deficit** (as of 1991-03-31)
   - Outcome: Trade deficit of $9,437m, up 26.5%; the outcome was an IMF programme.
@@ -300,7 +300,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 35. India's economy and the 1991 reforms
 
-- ID: `in-economy` · Coming
+- ID: `in-economy` · Written
 - Needs first: GDP, growth and business cycles, Balance of payments and capital flows
 - Case: **The 1991 reform chronology** (as of 1991-07-01)
   - Outcome: Rupee devalued 1-3 Jul 1991; Narasimham report Nov 1991; NSE started trading Jun 1994.
@@ -308,7 +308,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 36. Exchange-rate regimes and currency crises
 
-- ID: `fx-regimes-crises` · Coming
+- ID: `fx-regimes-crises` · Written
 - Needs first: Balance of payments and capital flows, Central banks and monetary policy
 - Case: **The rupee in the 2013 taper tantrum** (as of 2013-08-31)
   - Outcome: Package of 4 Sep 2013; the rupee stabilised afterwards.
@@ -319,7 +319,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 37. Sovereign default and country risk
 
-- ID: `sov-default-country-risk` · Coming
+- ID: `sov-default-country-risk` · Written
 - Needs first: Credit spreads, ratings and default, Exchange-rate regimes and currency crises
 - Case: **Argentina's default** (as of 2001-12-01)
   - Outcome: Default declared 23 Dec 2001, convertibility ended 6 Jan 2002; debt size $88bn to $141bn by source; 2005 swap accepted at about 30 cents on the dollar.
@@ -327,7 +327,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 38. Equity markets, exchanges, SEBI, NSE and BSE
 
-- ID: `eq-markets` · Coming
+- ID: `eq-markets` · Written
 - Needs first: The balance sheet
 - Case: **The 1992 scam and SEBI's powers** (as of 1992-04-30)
   - Outcome: The scam led to the Securities Laws (Amendment) Act 1995 widening SEBI's powers.
@@ -335,7 +335,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 39. Market history and long-run returns
 
-- ID: `eq-history` · Coming
+- ID: `eq-history` · Written
 - Needs first: Statistics: mean, variance, correlation, regression, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **The Sensex boom and bust** (as of 1992-03-30)
   - Outcome: Apr 1991 to Apr 1992: 1,194 to 4,467 (+274%); 28 Apr 1992 fell 570 points (12.7%); down 56% by Apr 1993.
@@ -343,7 +343,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 40. Risk, diversification and portfolio theory
 
-- ID: `risk-portfolio` · Coming
+- ID: `risk-portfolio` · Written
 - Needs first: Statistics: mean, variance, correlation, regression, Market history and long-run returns
 - Case: **The 1987 crash and portfolio insurance** (as of 1987-10-16)
   - Outcome: About $80bn was portfolio-insured; insurers sold just under $2bn of $21bn of NYSE sales on the day.
@@ -351,7 +351,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 41. CAPM, beta and factor models
 
-- ID: `risk-capm` · Coming
+- ID: `risk-capm` · Written
 - Needs first: Risk, diversification and portfolio theory
 - Case: **Amazon's cost of equity in Damodaran's valuation** (as of 2000-02-01) **to verify**
   - Outcome: Stock at $84 in Feb 2000; split-adjusted close $0.78 on 29 Dec 2000, down more than 80%.

@@ -977,3 +977,25 @@ RBI's September 2013 repo level is derived from two RBI releases. The inflation 
 January 2014, not 31 December 2013, because the RBI overview it relies on was published on 28
 January 2014. No Case Data was added: the Cases teach from the story's figures, and FRED series may
 not be stored.
+
+## Foundation Topics, batch 5 (`course/topics/`, issue #35)
+
+**What it does.** Eight more Topics join the Course Map as Written: balance of payments (India's
+external accounts, year to March 1991), India's economy and the 1991 reforms (as of 1 July 1991),
+exchange-rate regimes and crises (Thailand's baht, 1 July 1997), sovereign default and country risk
+(Argentina, 1 December 2001), equity markets and SEBI (April 1992), market history and long-run returns
+(the Sensex at the end of March 1992), risk and diversification (portfolio insurance, 16 October 1987) and
+CAPM (Amazon's cost of equity, February 2000). Each file holds the story as known on its date, a reveal held
+back until the Tutor reaches that step, the concept, the principle, a quiz Check with a pass rule and a
+conversation Check. Three Topics also use checked Question Bank items. Seven Case Data datasets (India's
+balance of payments, Sensex year-end closes, Amazon's quarterly price range) are imported from a file
+outside the repo; points dated after a Case's date appear only at the reveal.
+
+**Concrete scenario.** The Learner reaches CAPM: the Tutor tells how Damodaran chose a beta of 1.60 over a
+regression beta of 2.29 in February 2000, and Amazon's later price range of $14.88 to $91.50 stays hidden
+until the Learner has passed the Checks.
+
+**Trade-off.** Facts come from RBI, IMF, SEBI, BSE, SEC and Federal Reserve documents re-read for this batch, but
+some figures are secondary (Time, ADST, press) and the Thai baht's low is given as a range of sources. The
+rupee 2013 Case was left to in-rbi-policy and the India half of the CAPM Case was dropped because no
+India beta dated before 2000 was found.

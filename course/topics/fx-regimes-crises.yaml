@@ -1,0 +1,169 @@
+# Exchange-rate regimes and currency crises: a foundation Topic taught through Thailand's baht in 1997.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): IMF press release 97/37, 20 Aug 1997: https://www.imf.org/external/np/sec/pr/1997/pr9737.htm ; ADST, "Thai-tanic": https://adst.org/2016/12/thai-tanic-responding-asian-financial-crisis-1997 ; Bank of Thailand, lessons from the Asian Financial Crisis: https://www.bot.or.th/en/our-roles/special-measures/Tom-Yum-Kung-lesson.html ; Bank of Thailand, exchange rate series notes (basket peg Nov 1984 to Jun 1997).
+id: fx-regimes-crises
+title: Exchange-rate regimes and currency crises
+
+cases:
+  - id: thai-baht-1997
+    title: Thailand's baht on 1 July 1997
+    asOf: 1997-07-01
+    story: >
+      Since November 1984 Thailand has held the baht against a fixed basket of currencies. In practice
+      the baht has traded at about 25 to the US dollar for a decade.
+      The peg made Thailand a safe place for foreign lenders, and money poured in: Thai banks and companies
+      borrowed abroad, much of it in dollars and much of it short-term, and lent it on for property and
+      industry. By 1996, according to the IMF, the current account deficit had reached 8% of GDP, external
+      debt was about 50% of GDP and some 40% of it was short-term. Exports have slowed sharply since mid-1996,
+      the property market is in difficulty and the stock market has fallen. Finance companies, which lent
+      heavily to property, are in trouble: on 27 June the government closed 16 of them. Through the first
+      half of 1997 speculators have sold baht in a series of increasingly serious attacks, and the central
+      bank, the Bank of Thailand, has been buying baht to hold the rate. Outsiders can see the peg and the
+      pressure on it, but not how much the central bank has committed to defending it. If you ran a bank
+      lending in Thailand, or a company with dollar debts, what would you want to know before
+      deciding whether the peg will hold?
+    reveal: >
+      On 2 July 1997 the Bank of Thailand gave up the peg and let the baht float, in a managed float. The baht
+      plunged by 15 to 20% (ADST), and by about 20% against the dollar during July (IMF). The Bank of Thailand
+      says it had spent about US$24 billion of its reserves, two-thirds of the US$38.7 billion it held in 1996, defending the rate,
+      leaving about US$2.85 billion. Thailand asked the IMF for help; on 11 August 1997 an IMF-convened meeting in Tokyo gathered
+      pledges from Japan (US$4 billion), several Asian neighbours and the World Bank and Asian Development Bank, totalling
+      US$12.7 billion beside the IMF's own money, and on 20 August the IMF approved a stand-by credit of SDR 2.9
+      billion (about US$3.9 billion). The programme required a tighter budget (VAT up from 7% to 10%), a floating baht, and
+      the closure and restructuring of weak finance companies (58 had been closed by early August, 16 of them
+      before the float). Within about six months the baht had fallen from about 25 to a low near 56 per dollar, and the crisis
+      spread to Indonesia, Korea and other Asian economies. Borrowers with dollar debts and baht
+      incomes saw their debts more than double in baht terms, and banks and companies failed.
+
+concept: >
+  An exchange-rate regime is the rule a country follows for its currency. At one end, a floating rate
+  is set by the foreign exchange market. At the other, a hard peg fixes the rate and a currency board
+  or a shared currency removes the central bank's discretion. In between lie soft pegs, where the
+  central bank fixes or targets the rate but can move it, and managed floats, where the market
+  sets the rate but the central bank steps in to smooth large moves. Every peg has to be defended: if the
+  market wants to sell the currency at the pegged price, the central bank must buy it with its
+  foreign exchange reserves, or raise interest rates to make the currency more attractive. Reserves are
+  finite. A currency crisis starts when investors doubt that the central bank can or will
+  hold the rate: a large current account deficit, short-term foreign debt bigger than reserves,
+  a weak banking system, and a central bank that cannot raise rates without damaging the economy all
+  make a peg fragile, and the doubt makes itself true because selling accelerates. When the peg
+  breaks, the currency can fall far and fast. Anyone who borrowed in dollars but earns in the local
+  currency now owes far more in local terms, so banks and companies can fail even if their
+  business was sound. A floating rate avoids a one-way bet against a defended peg, but it can swing
+  widely, and a country with a lot of foreign-currency debt remains exposed.
+
+principle: >
+  A fixed exchange rate is a promise that lasts only as long as the central bank's reserves and the
+  economy's tolerance for high interest rates. The weaker the promise, the more a crisis feeds on itself.
+
+questions:
+  - id: fr-q-hard-peg
+    prompt: >
+      What distinguishes a hard peg from a soft peg or a floating rate?
+    choices:
+      - { id: a, text: "The central bank sets a fixed, unchanging value for the exchange rate" }
+      - { id: b, text: "The central bank never intervenes in the foreign exchange market" }
+      - { id: c, text: "The exchange rate is set by the market most of the time, with occasional intervention" }
+      - { id: d, text: "The country uses another country's currency as its own" }
+    answer: a
+    explanation: >
+      With a hard peg the central bank sets a fixed value and has to defend it. The third description is a soft peg or managed float, and the last is a merged currency.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.4 Exchange Rate Policies: https://openstax.org/books/principles-economics-3e/pages/29-4-exchange-rate-policies
+
+  - id: fr-q-defend
+    prompt: >
+      A central bank has pegged its currency at a rate above what the market would set, so that more of the currency is offered for sale than demanded at the pegged rate. To hold the peg, what must it do?
+    choices:
+      - { id: a, text: "Buy its own currency, paying with foreign exchange reserves" }
+      - { id: b, text: "Sell more of its own currency to the market" }
+      - { id: c, text: "Nothing; the peg holds itself" }
+      - { id: d, text: "Cut interest rates to make the currency more attractive" }
+    answer: a
+    explanation: >
+      The excess supply of the currency has to be bought by someone. The central bank does it with reserves, which are limited, or it raises interest rates to raise demand for the currency.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.4 Exchange Rate Policies, Figure 29.12(b): https://openstax.org/books/principles-economics-3e/pages/29-4-exchange-rate-policies
+
+  - id: fr-q-fragile
+    prompt: >
+      Which combination makes a pegged exchange rate most vulnerable to a currency crisis?
+    choices:
+      - { id: a, text: "A large current account deficit financed by short-term foreign borrowing, with small reserves" }
+      - { id: b, text: "A current account surplus, large reserves and little foreign debt" }
+      - { id: c, text: "A balanced budget and a floating rate" }
+      - { id: d, text: "Long-term direct investment and ample reserves" }
+    answer: a
+    explanation: >
+      A big deficit means the country needs continuing inflows; short-term borrowing can leave quickly; small reserves mean the central bank cannot hold the rate for long. The other combinations are strong.
+    source: >
+      IMF press release 97/37, 20 August 1997 (background on the vulnerabilities of an external position: current account deficit, short-term external debt, financial-system weakness): https://www.imf.org/external/np/sec/pr/1997/pr9737.htm
+
+  - id: fr-q-dollar-debt
+    prompt: >
+      A company earns revenue in local currency and owes $1 million. The local currency then loses half its value against the dollar. What happens to the local-currency value of its debt?
+    choices:
+      - { id: a, text: "It doubles" }
+      - { id: b, text: "It halves" }
+      - { id: c, text: "It is unchanged" }
+      - { id: d, text: "It falls by a quarter" }
+    answer: a
+    explanation: >
+      The debt is fixed at $1 million. If each dollar now costs twice as much local currency, the debt costs twice as much to repay. Revenues in local currency have not risen, so the debt burden doubles.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.4 Exchange Rate Policies (large exchange-rate movements can drive companies into bankruptcy or trigger a banking collapse): https://openstax.org/books/principles-economics-3e/pages/29-4-exchange-rate-policies
+
+  - id: fr-q-managed-float
+    prompt: >
+      A central bank describes its regime as a managed float. What does that mean?
+    choices:
+      - { id: a, text: "The market sets the baht's value, and the central bank steps in only when it judges it necessary" }
+      - { id: b, text: "The baht is fixed to a basket of currencies" }
+      - { id: c, text: "The baht is pegged to the US dollar" }
+      - { id: d, text: "The central bank sets the exchange rate every day" }
+    answer: a
+    explanation: >
+      In a managed float the value is determined by demand and supply in the foreign exchange market, with intervention only when needed to prevent excessive volatility.
+    source: >
+      Bank of Thailand, Rates of Exchange of Commercial Banks in Bangkok Metropolis, series notes (exchange-rate regimes in Thailand): https://app.bot.or.th/BTWS_STAT/statistics/DownloadFile.aspx?file=FM_FX_001_S2_ENG.PDF
+
+  - id: fr-q-rates
+    prompt: >
+      A central bank facing selling pressure on a pegged currency raises its policy interest rate sharply. What is the main benefit, and the main cost?
+    choices:
+      - { id: a, text: "Benefit: the currency becomes more attractive to hold. Cost: borrowers and banks, and the economy, suffer from higher interest rates" }
+      - { id: b, text: "Benefit: reserves rise without limit. Cost: none" }
+      - { id: c, text: "Benefit: imports become cheaper. Cost: exports collapse at once" }
+      - { id: d, text: "Benefit: the peg is no longer needed. Cost: the central bank loses its reserves" }
+    answer: a
+    explanation: >
+      Higher rates raise the return on holding the currency and can ease the selling. They also raise borrowing costs, squeeze companies and banks, and slow the economy, which is why a central bank may not be able to keep them up.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.4 Exchange Rate Policies (the interest-rate route to defending a currency): https://openstax.org/books/principles-economics-3e/pages/29-4-exchange-rate-policies
+
+checks:
+  - id: fr-quiz-regimes
+    kind: quiz
+    questions:
+      - fr-q-hard-peg
+      - fr-q-defend
+      - fr-q-fragile
+      - fr-q-dollar-debt
+      - fr-q-managed-float
+      - fr-q-rates
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fr-peg-defence
+    kind: conversation
+    prompt: >
+      A country has pegged its currency for years, runs a large current account deficit financed by
+      short-term dollar borrowing, and has weak banks. Explain how the peg is defended, why the
+      defence might fail, and who would be hurt most if the peg broke.
+    passCriteria: >
+      The Learner explains that the central bank defends a peg by buying its currency with foreign
+      exchange reserves or by raising interest rates, and that both are limited (reserves run out; high
+      rates hurt banks and the economy). They say a large deficit and short-term foreign debt make
+      investors doubt the peg so selling accelerates, and that borrowers with foreign-currency debt
+      and local-currency income are hurt most because their debts rise in local terms when the
+      currency falls.

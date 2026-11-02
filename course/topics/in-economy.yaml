@@ -1,0 +1,158 @@
+# India's economy and the 1991 reforms: a foundation Topic taught through the weeks of the 1991 crisis.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): RBI, The Reserve Bank of India 1981-1997, ch. 12: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf ; RBI chronology 1991-2000: https://rbi.org.in/history/Brief_Chro1991to2000.html ; BSE, SENSEX@40 white paper (June 1991 change of government, July 1991 budget): https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
+id: in-economy
+title: India's economy and the 1991 reforms
+
+cases:
+  - id: india-reforms-1991
+    title: The weeks around 1 July 1991
+    asOf: 1991-07-01
+    story: >
+      It is 1 July 1991. A new government took office in June, with P.V. Narasimha Rao as Prime Minister
+      and Manmohan Singh as Finance Minister. India has run a closed, planned economy for forty years.
+      Most industries need a government licence to set up or expand, and a long list of imports needs
+      an import licence. The public sector owns the large industries, the rupee's value is fixed by the
+      Reserve Bank, and foreign investment is tightly limited. Growth has been steady but slow, and the
+      accounts are strained: a high fiscal deficit financed by borrowing, and a foreign exchange crisis
+      that has been building since the oil shock of August 1990. In April the government sold 20 tonnes
+      of confiscated gold to the Union Bank of Switzerland for about US$200 million, with the right to
+      buy it back. The Reserve Bank has demanded a cash deposit of 200% of the value of most imports
+      and, in May, added a 25% surcharge on interest on bank credit for imports. Commercial lenders have
+      stopped, and non-resident Indians are withdrawing their foreign currency deposits. The
+      Sensex stood at 999 on 2 January 1991. The new government has to choose how fast and how far to
+      move: patch the foreign exchange gap and wait, or change how the economy is run. What would you do
+      first, and what would you leave to later?
+    reveal: >
+      On 1 July and again on 3 July 1991 the Reserve Bank adjusted the rupee downward in two steps, a
+      cumulative fall of about 18% in dollar terms. In July the government also announced a liberalised
+      industrial policy and an investment policy that opened sectors to foreign investment, and a new trade
+      policy that began replacing import licences with tradable import entitlements (Exim scrips). On 24 July
+      the Union Budget ended industrial licensing for most industries, raised the limit on foreign equity to 51% in priority
+      industries and announced the sale of stakes in public enterprises; the Sensex was up 4.68% on budget day. In
+      the RBI's account, industrial licensing was abolished for all but 18 industries, import licensing was virtually
+      abolished and import duties were sharply reduced over the following period. On 31 October 1991
+      the IMF approved a stand-by arrangement of SDR 1,656 million (about US$2.2 billion) tied to those reforms. The Narasimham Committee on the
+      financial system reported in November 1991, recommending a phased cut in the SLR and CRR and new
+      accounting and capital adequacy norms. A dual exchange rate system (LERMS) started in March 1992, a unified
+      market rate in 1993, and the rupee became convertible on the current account in August 1994. SEBI formulated
+      insider-trading regulations in 1992, and the National Stock Exchange began operating in 1994 with screen-based
+      trading. The RBI's own history stresses that the crisis gave policymakers the chance to push through liberalisation that
+      the administration had been pressing for since the late 1980s.
+
+concept: >
+  India's 1991 reforms combined two different kinds of measure. Stabilisation measures treat the
+  immediate emergency in the balance of payments: devaluation, tighter import controls, borrowing from
+  the IMF, and a smaller fiscal deficit. Structural reforms change how the economy works over the
+  medium term: ending industrial and import licensing, cutting tariffs, opening to foreign
+  investment, reducing the public sector's reserved areas, and reforming banks and capital markets.
+  The licence system had kept prices of protected goods above world prices, favoured licence holders, and
+  rationed foreign exchange by permission rather than by price. A devaluation makes imports dearer in rupees and
+  exports cheaper in dollars. An exchange rate set by the central bank is replaced step by step by one set by
+  the market; a dual rate (part of export earnings sold at the official rate, the rest at the market rate)
+  is a transition. The banking reforms of the early 1990s aimed at lowering the share of deposits that banks
+  had to keep in government bonds (the statutory liquidity ratio, SLR) and with the central bank (the cash reserve
+  ratio, CRR), and at introducing proper accounting for bad loans. A crisis can speed reform because the
+  cost of not changing becomes plain. Equally, reforms need sequencing, credible institutions and
+  protection for the poorest, and they take years to show up in growth.
+
+principle: >
+  A crisis forces two jobs at once: stop the bleeding, and change the system that caused it. Keep
+  the emergency measures and the structural reforms apart in your mind, because they work on
+  different time scales.
+
+questions:
+  - id: ie-q-depreciation
+    prompt: >
+      The exchange rate moves from Rs 20 to Rs 25 per US dollar. By what percentage has the rupee lost value in dollar terms?
+    choices:
+      - { id: a, text: "20%" }
+      - { id: b, text: "25%" }
+      - { id: c, text: "5%" }
+      - { id: d, text: "80%" }
+    answer: a
+    explanation: >
+      One rupee was worth $1/20 = $0.05 and is now worth $1/25 = $0.04. The fall is 0.01 / 0.05 = 20%. The dollar has become 25% dearer in rupees, but the rupee has lost 20% of its dollar value.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.1 How the Foreign Exchange Market Works: https://openstax.org/books/principles-economics-3e/pages/29-1-how-the-foreign-exchange-market-works
+
+  - id: ie-q-two-kinds
+    prompt: >
+      Which of these is a structural reform rather than a short-term stabilisation measure?
+    choices:
+      - { id: a, text: "Abolishing industrial licensing for most industries" }
+      - { id: b, text: "Asking the IMF for an emergency loan" }
+      - { id: c, text: "Raising the cash deposit importers must make" }
+      - { id: d, text: "Selling gold with an option to buy it back" }
+    answer: a
+    explanation: >
+      Ending licensing changes how firms are allowed to set up and compete for years to come. The others are emergency steps to finance or compress imports in the short run.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12 (short-term measures versus medium-term structural adjustment): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: ie-q-cash-margin
+    prompt: >
+      The central bank requires importers to deposit a cash margin of 50% of the value of an import before the bank will open a letter of credit. An importer wants to import goods worth Rs 100. How much cash must it deposit, and what is the likely effect on imports?
+    choices:
+      - { id: a, text: "Rs 50 up front; it ties up the importer's funds and discourages imports" }
+      - { id: b, text: "Rs 100 up front; it encourages imports" }
+      - { id: c, text: "Rs 50 up front; it makes imports cheaper" }
+      - { id: d, text: "Nothing up front; the margin is paid by the exporter" }
+    answer: a
+    explanation: >
+      A 50% margin means a deposit of Rs 50 on Rs 100 of imports. The money is locked up until the import is paid for, which raises the cost of importing and holds imports back.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12 (cash margin on imports as an import compression measure): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: ie-q-dual-rate
+    prompt: >
+      Under a dual exchange rate system an exporter must sell 50% of its dollar earnings at the official rate of Rs 20 per dollar and may sell the rest at the market rate of Rs 30 per dollar. How many rupees does it receive for $100 of export earnings?
+    choices:
+      - { id: a, text: "Rs 2,500" }
+      - { id: b, text: "Rs 2,000" }
+      - { id: c, text: "Rs 3,000" }
+      - { id: d, text: "Rs 1,250" }
+    answer: a
+    explanation: >
+      50 x 20 = 1,000 at the official rate, plus 50 x 30 = 1,500 at the market rate, so Rs 2,500. The blended rate is Rs 25 per dollar.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12 (description of the dual exchange rate scheme and exporters' surrender of proceeds): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: ie-q-licence-quota
+    prompt: >
+      A government limits imports of a good to a fixed quantity by issuing import licences. What is the usual effect on the domestic price compared with the world price?
+    choices:
+      - { id: a, text: "The domestic price is higher, and the holders of the licences gain" }
+      - { id: b, text: "The domestic price is lower, because supply is controlled" }
+      - { id: c, text: "The domestic price equals the world price" }
+      - { id: d, text: "The domestic price is higher, and consumers gain" }
+    answer: a
+    explanation: >
+      Limiting the quantity of imports raises the domestic price above the world price. Consumers lose; domestic producers and those who hold the licences, who can import at the world price and sell at the higher domestic price, gain.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
+
+checks:
+  - id: ie-quiz-reforms
+    kind: quiz
+    questions:
+      - ie-q-depreciation
+      - ie-q-two-kinds
+      - ie-q-cash-margin
+      - ie-q-dual-rate
+      - ie-q-licence-quota
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ie-reform-sequence
+    kind: conversation
+    prompt: >
+      You advise a new government in a foreign exchange crisis, with a licence-based economy and almost
+      no reserves. Separate what you would do in the first weeks from what you would change over the
+      next few years, and explain why the two kinds of measure are different.
+    passCriteria: >
+      The Learner separates short-term stabilisation measures (devaluing the currency, import
+      restrictions, emergency IMF and other borrowing, a smaller fiscal deficit) from structural
+      reforms (ending licensing, cutting tariffs, opening to foreign investment, reforming banks and
+      capital markets). They explain that stabilisation relieves the immediate balance-of-payments
+      pressure, while structural reforms change incentives and productive capacity over years.

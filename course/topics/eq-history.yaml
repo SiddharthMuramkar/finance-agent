@@ -1,0 +1,145 @@
+# Market history and long-run returns: a foundation Topic taught through the Sensex boom of 1991-92.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): BSE, SENSEX@40 white paper: https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf ; Forbes India, Economic Milestone: Stock Market Scam (1992): https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1 ; Rediff, The Sensex story from 1K to 18K: https://www.rediff.com/business/special/spec1/20071009.htm ; OpenStax, Principles of Finance 2e, 12.4.
+id: eq-history
+title: Market history and long-run returns
+
+cases:
+  - id: sensex-boom-1992
+    title: The Sensex at the end of March 1992
+    data: [sensex-year-end, sensex-march-1992-close]
+    asOf: 1992-03-31
+    story: >
+      It is 31 March 1992. The BSE Sensex, India's best-known share index, was set at 100 in 1979. It closed
+      1989 at 779 and 1990 at 1,048, a rise of about 35% in 1990. On 2 January 1991 it stood at 999. After the
+      reforms of mid-1991 and the July budget it rose 82% in the calendar year to 1,909 at the end of 1991. On 15
+      January 1992 it crossed 2,000 and on 29 February, after the next budget, it closed at 3,018, up 9.4% in
+      a day. In March alone it rose 42% and today it closed at 4,285, more than four times its level of fifteen
+      months ago. You are asked what the market might do from here.
+      Before you answer, work out what yearly return the last fifteen months represent, and compare it with
+      what you would reasonably expect shares to earn over many years. What would you want to know to tell a lasting
+      re-rating from a bubble?
+    reveal: >
+      The Sensex reached its high close of 4,467 in April 1992 (Forbes India puts the rise from April 1991 at 274%, from 1,194 to 4,467). On
+      28 April it fell 12.77% in a day, as the securities scam came to light; it fell 5% over April and 23% in May.
+      It ended 1992 at 2,615, about 41% below the April high, though still 37% up over the calendar year. It then rose 28% in 1993 to 3,346
+      and 17% in 1994 to 3,927 before falling 21% in 1995 to 3,110. BSE's white paper counts positive returns in 75% of
+      the last 40 calendar years: a long upward trend with violent years inside it. Zoom out to a longer record. In the US, over 1981-2020, large
+      company stocks returned an average of 12.64% a year against 8.21% for ten-year Treasury bonds and 3.94% for
+      bills, with annual standard deviations of 16.06%, 9.92% and 3.39%; inflation averaged 2.93%. Higher
+      average returns came with bigger swings. A rise of 274% in a year is not a normal return; and what falls
+      faster than it rose is the lesson: after a fall of 41%, the index needed a rise of about 71% just to get back to its high.
+
+concept: >
+  A return is the gain on an investment as a percentage of what was invested, with dividends included. Returns
+  over several years are compared by converting them to a yearly rate. The arithmetic average adds the yearly
+  returns and divides; the geometric average (compound annual growth rate) takes the nth root of the total growth
+  factor and is the one that matches what an investor actually earned. A fall hurts more than an equal rise
+  helps: after a 50% fall you need a 100% rise to be back where you started. Returns are quoted in nominal terms, or
+  in real terms after inflation, where the real return is (1 + nominal) / (1 + inflation) - 1. Long records of
+  markets show three things: shares have on average earned more than bonds and cash over long periods, which is
+  the reward for risk (the equity risk premium); the average hides wide swings from year to year, measured by the standard deviation; and
+  booms and busts recur, with prices sometimes running far ahead of earnings. Markets that have just risen sharply
+  tell you little about future returns; the starting price and what is paid for earnings matter more. A single
+  extreme year, up or down, is a poor guide to the normal range, so history needs many years and an honest eye on the
+  worst of them.
+
+principle: >
+  The long-run record rewards patience but punishes buying after a spectacular run. Judge a return by its yearly
+  rate, its risk and where it started.
+
+questions:
+  - id: eh-q-cagr
+    prompt: >
+      An index rises from 500 to 2,000 over two years. What is its compound annual growth rate?
+    choices:
+      - { id: a, text: "100% a year" }
+      - { id: b, text: "150% a year" }
+      - { id: c, text: "300% a year" }
+      - { id: d, text: "75% a year" }
+    answer: a
+    explanation: >
+      The index grows by a factor of 4 in two years, so each year's factor is the square root of 4, which is 2: a 100% rise a year. Dividing the total rise of 300% by two years (150%) is the arithmetic shortcut and overstates the compounded rate.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (geometric mean for growth rates): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
+
+  - id: eh-q-up-down
+    prompt: >
+      A portfolio of Rs 100 gains 50% in one year and loses 50% the next. What is it worth at the end?
+    choices:
+      - { id: a, text: "Rs 75" }
+      - { id: b, text: "Rs 100" }
+      - { id: c, text: "Rs 150" }
+      - { id: d, text: "Rs 50" }
+    answer: a
+    explanation: >
+      100 x 1.5 = 150, and 150 x 0.5 = 75. The arithmetic average of +50% and -50% is zero, but the investor has lost 25%: the geometric average is about -13.4% a year.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (arithmetic and geometric mean): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
+
+  - id: eh-q-recover
+    prompt: >
+      A share price falls by 40%. What percentage rise is needed to return to the original price?
+    choices:
+      - { id: a, text: "About 67%" }
+      - { id: b, text: "40%" }
+      - { id: c, text: "60%" }
+      - { id: d, text: "100%" }
+    answer: a
+    explanation: >
+      Starting at 100, a fall of 40% leaves 60. To get back to 100 the price must rise by 40 / 60 = 66.7%.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (working with growth factors): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
+
+  - id: eh-q-real
+    prompt: >
+      An investment earns 15% in a year when inflation is 10%. What is the real return (closest)?
+    choices:
+      - { id: a, text: "4.5%" }
+      - { id: b, text: "5.0%" }
+      - { id: c, text: "25%" }
+      - { id: d, text: "1.5%" }
+    answer: a
+    explanation: >
+      Real return = 1.15 / 1.10 - 1 = 4.5%. Subtracting (15 - 10 = 5%) is a rough approximation that overstates it when inflation is high.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 7.4 Applications of TVM in Finance (nominal versus real interest rates): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
+
+  - id: eh-q-risk-return
+    prompt: >
+      In the long US record, how did large-company stocks compare with Treasury bills?
+    choices:
+      - { id: a, text: "Higher average return and a higher standard deviation" }
+      - { id: b, text: "Higher average return and a lower standard deviation" }
+      - { id: c, text: "Lower average return and a higher standard deviation" }
+      - { id: d, text: "The same average return and standard deviation" }
+    answer: a
+    explanation: >
+      Over 1981-2020 stocks averaged 12.64% with a standard deviation of 16.06%, against 3.94% and 3.39% for bills. More return came with more risk.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 12.4 Historical Picture of Returns to Stocks: https://openstax.org/books/principles-finance-2e/pages/12-4-historical-picture-of-returns-to-stocks
+
+checks:
+  - id: eh-quiz-returns
+    kind: quiz
+    questions:
+      - eh-q-cagr
+      - eh-q-up-down
+      - eh-q-recover
+      - eh-q-real
+      - eh-q-risk-return
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eh-judge-boom
+    kind: conversation
+    prompt: >
+      An index has more than quadrupled in fifteen months. Work out roughly what yearly return that is,
+      say how it compares with what shares earn over many years, and list what you would check before
+      deciding whether to buy.
+    passCriteria: >
+      The Learner works out that a rise of more than four times in fifteen months is a yearly rate of
+      well over 100% (about 220%), far above the long-run average return of shares (low to mid teens a
+      year in nominal terms), and says that such a run cannot be a normal rate. They name checks such as
+      earnings and valuation, where the money is coming from (borrowing, leverage), how broad the
+      buying is, and the risk of a large fall, and note that a fall needs a bigger rise to recover.
