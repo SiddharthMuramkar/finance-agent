@@ -14,6 +14,18 @@
 //   --max-turns <n>         stop after this many turns (default 30)
 //   --learner-model <id>    model that plays the Learner (default claude-haiku-5-5)
 //   --topic <id>            Topic to walk (default present-value)
+//   --jump                  make that Topic current first, through POST /api/jump (after --reset), as the Course
+//                           Map page does; without it the Topic must already be the Learner's current one
+//   --paste-url <url>       a writer's piece the Learner pastes (one outside the Library, such as Zitron's). It is
+//                           fetched when the run starts and held only in memory: never written to a file. The
+//                           Learner pastes it when the Tutor asks for a paste (or at the first turn that starts at
+//                           --paste-at), at most once per Session, through the workspace paste path
+//                           (POST /api/turn {paste}); a new Session has not seen earlier pastes.
+//   --paste-match <regex>   which paragraphs of the piece to paste, in page order (case-insensitive; default: all)
+//   --paste-words <n>       stop adding paragraphs at about this many words (default 400)
+//   --paste-at <step>       the step at which to paste if the Tutor has not asked first (default your_turn)
+//   Any run of 8 or more words from the paste is replaced in the transcript and turns.json by a marker, so the
+//   output folder never holds the writer's text.
 //
 // It needs PASSCODE, DATABASE_URL and ANTHROPIC_API_KEY in the environment. The Tutor's cost is whatever the app
 // recorded in its usage table, so run it against the same database the app uses.
@@ -41,6 +53,10 @@ const topicId = args.topic ?? "present-value";
 const learnerModel = args["learner-model"] ?? "claude-haiku-5-5";
 const maxTurns = Number(args["max-turns"] ?? 30);
 const newSessionAt = args["new-session-at"] ?? "your_turn";
+const pasteUrl = typeof args["paste-url"] === "string" ? args["paste-url"] : null;
+const pasteMatch = new RegExp(typeof args["paste-match"] === "string" ? args["paste-match"] : ".", "i");
+const pasteWords = Number(args["paste-words"] ?? 400);
+const pasteAt = args["paste-at"] ?? "your_turn";
 mkdirSync(out, { recursive: true });
 
 const ORDER = ["story", "concept", "your_turn", "check", "reveal", "principle"];
@@ -196,6 +212,72 @@ async function setIdleHours(value) {
   await query("update settings set value = $1 where key = 'session_idle_hours'", [value]);
 }
 
+// ---------------------------------------------------------------- pasting a writer's piece (memory only)
+
+const decodeEntities = (text) =>
+  text
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+/** Fetches the piece and keeps the matching paragraphs, up to about `pasteWords` words. Nothing is saved. */
+async function fetchExcerpt(url) {
+  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (simulated Learner)" } });
+  if (!res.ok) throw new Error(`Fetching the piece to paste answered HTTP ${res.status}`);
+  const html = await res.text();
+  const paragraphs = [...html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)]
+    .map((m) => decodeEntities(m[1].replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim())
+    .filter((p) => p.split(" ").length >= 12);
+  const chosen = [];
+  let words = 0;
+  for (const p of paragraphs) {
+    if (!pasteMatch.test(p) || words >= pasteWords) continue;
+    chosen.push(p);
+    words += p.split(" ").length;
+  }
+  if (!chosen.length) throw new Error("No paragraph of the piece matched --paste-match.");
+  return { text: chosen.join("\n\n"), paragraphs: chosen.length, words };
+}
+
+const normalise = (word) => word.toLowerCase().replace(/[^\p{L}\p{N}$%.]/gu, "").replace(/\.$/, "");
+let pasteShingles = null;
+const SHINGLE = 8;
+
+function rememberPaste(text) {
+  const words = text.split(/\s+/).map(normalise).filter(Boolean);
+  pasteShingles = new Set();
+  for (let i = 0; i + SHINGLE <= words.length; i++) pasteShingles.add(words.slice(i, i + SHINGLE).join(" "));
+}
+
+/** Replaces every run of 8 or more words copied from the paste with a marker, so no output file holds it. */
+function redact(text) {
+  if (!pasteShingles || !text) return text;
+  const tokens = [...text.matchAll(/\S+/g)].map((m) => ({ start: m.index, end: m.index + m[0].length, word: normalise(m[0]) }));
+  const kept = tokens.filter((t) => t.word);
+  const covered = new Set();
+  for (let i = 0; i + SHINGLE <= kept.length; i++) {
+    if (pasteShingles.has(kept.slice(i, i + SHINGLE).map((t) => t.word).join(" "))) for (let j = i; j < i + SHINGLE; j++) covered.add(kept[j]);
+  }
+  if (!covered.size) return text;
+  let result = "";
+  let cursor = 0;
+  for (let i = 0; i < kept.length; i++) {
+    if (!covered.has(kept[i])) continue;
+    let j = i;
+    while (j + 1 < kept.length && covered.has(kept[j + 1])) j++;
+    result += `${text.slice(cursor, kept[i].start)}[${j - i + 1} words quoted from the pasted passage, redacted]`;
+    cursor = kept[j].end;
+    i = j;
+  }
+  redactions++;
+  return result + text.slice(cursor);
+}
+let redactions = 0;
+
 // ---------------------------------------------------------------- the simulated Learner
 
 const PERSONA = `You are simulating an adult Learner using a private finance tutoring app for the first time. You are bright and curious but new to finance. You type short messages, one to four sentences, in plain language.
@@ -231,10 +313,15 @@ function noteAction(text) {
   else convo.push({ role: "assistant", content: text });
 }
 
+const topicFile = parse(readFileSync(join("course", "topics", `${topicId}.yaml`), "utf8"));
+const QUIZ_LEARNER = topicId === "present-value"
+  ? "You are an adult Learner who has just been taught present value (PV = amount / (1 + r)^n, and a stream of payments is the sum of each payment's present value)."
+  : `You are an adult Learner who has just been taught this: ${String(topicFile.concept ?? "").trim()}`;
+
 async function takeQuiz(quiz) {
   const questions = quiz.questions.map((q) => `${q.id}: ${q.prompt}\n${q.choices.map((c) => `  ${c.id}) ${c.text}`).join("\n")}`).join("\n\n");
   const raw = await learn(
-    "You are an adult Learner who has just been taught present value (PV = amount / (1 + r)^n, and a stream of payments is the sum of each payment's present value). Answer the quiz as best you can. Reply with only a JSON object mapping each question ID to the ID of the choice you pick.",
+    `${QUIZ_LEARNER} Answer the quiz as best you can. Reply with only a JSON object mapping each question ID to the ID of the choice you pick.`,
     [{ role: "user", content: questions }],
   );
   const picked = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
@@ -248,12 +335,24 @@ async function takeQuiz(quiz) {
 
 const transcript = [];
 const turns = [];
+let paste = null;
+let pastedInSessions = -1;
 const startedAt = new Date();
 
 try {
   await login();
   say(`Logged in to ${base} as the passcode holder.`);
+  if (pasteUrl) {
+    paste = await fetchExcerpt(pasteUrl);
+    rememberPaste(paste.text);
+    say(`Fetched ${pasteUrl} into memory: ${paste.paragraphs} paragraph(s), ${paste.words} words to paste (not saved).`);
+  }
   if (args.reset) await resetTopic();
+  if (args.jump) {
+    const res = await fetch(`${base}/api/jump`, { method: "POST", headers: headers(), body: JSON.stringify({ topicId }) });
+    if (!res.ok) throw new Error(`POST /api/jump answered HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    say(`Jumped to ${topicId}.`);
+  }
 
   let state = await readState();
   say(`Start: step "${state.step}", status "${state.status}", ${state.sessions} Session(s) already.`);
@@ -286,6 +385,14 @@ try {
 
     const body = n === 1 || afterQuiz || !lastTutorText ? { continue: true } : { message: await learnerReply(lastTutorText) };
     if (body.continue && n > 1) noteAction("(I pressed Continue.)");
+    // Paste the piece when the Tutor asks for it (or at --paste-at), at most once per Session: a paste belongs to
+    // the Session it was sent in, so after a new Session the Tutor has not seen it and may ask again.
+    const askedToPaste = /\bpast(e|ing)\b/i.test(lastTutorText) || (pastedInSessions < 0 && stepBefore === pasteAt);
+    if (paste && body.message && askedToPaste && pastedInSessions < state.sessions) {
+      body.paste = paste.text;
+      pastedInSessions = state.sessions;
+      noteAction(`(I also pasted this passage from the piece:)\n${paste.text}`);
+    }
     afterQuiz = false;
 
     const newSession = !newSessionDone && state.step === newSessionAt && n > 1;
@@ -306,6 +413,7 @@ try {
     const wallMs = Math.round(performance.now() - wallStart);
     const record = await readTurnRecord();
     state = await readState();
+    if (body.paste) pastedInSessions = state.sessions; // the Session the paste landed in, even a new one
     const sessionEvent = result.events.find((e) => e.type === "session");
     if (newSession) newSessionDone = true;
     forceNewSession = false;
@@ -313,7 +421,8 @@ try {
 
     const turn = {
       n,
-      learner: body.continue ? "(pressed Continue)" : body.message,
+      learner: body.continue ? "(pressed Continue)" : redact(body.message),
+      pasted: body.paste ? { words: paste.words, paragraphs: paste.paragraphs } : null,
       stepBefore,
       stepAfter: state.step,
       status: state.status,
@@ -328,7 +437,7 @@ try {
       ...record,
     };
     turns.push(turn);
-    transcript.push(`### Turn ${n}  (step ${stepBefore} -> ${state.step}${turn.newSession ? ", NEW SESSION" : ""}, ${Math.round(wallMs / 1000)} s, $${(record.costUsd ?? 0).toFixed(4)})\n**Learner:** ${turn.learner}\n\n**Tutor:** ${result.text.trim() || "(no text)"}\n\nTools: ${record.tools?.join(", ") || "none"}`);
+    transcript.push(`### Turn ${n}  (step ${stepBefore} -> ${state.step}${turn.newSession ? ", NEW SESSION" : ""}, ${Math.round(wallMs / 1000)} s, $${(record.costUsd ?? 0).toFixed(4)})\n**Learner:** ${turn.learner}${turn.pasted ? `\n\n(Pasted ${turn.pasted.paragraphs} paragraph(s), ${turn.pasted.words} words, from ${pasteUrl}; text not kept.)` : ""}\n\n**Tutor:** ${redact(result.text.trim()) || "(no text)"}\n\nTools: ${record.tools?.join(", ") || "none"}`);
     say(`Turn ${n}: ${stepBefore} -> ${state.step}${turn.newSession ? " [new Session]" : ""}; ${Math.round(wallMs / 1000)} s; $${(record.costUsd ?? 0).toFixed(4)}; ${record.loopSteps ?? "?"} loop step(s); tools: ${record.tools?.join(",") || "none"}`);
     if (record.status !== "finished") {
       say(`Turn ${n} did not finish: status "${record.status}"${record.error ? `, ${record.error}` : ""}. Stopping.`);
@@ -356,6 +465,8 @@ try {
     meanTurnMs: turns.length ? Math.round(turns.reduce((s, t) => s + t.wallMs, 0) / turns.length) : 0,
     newSessionTurns: turns.filter((t) => t.newSession).map((t) => t.n),
     pacingBreaches: jumps.map((t) => t.n),
+    pasteTurns: turns.filter((t) => t.pasted).map((t) => t.n),
+    redactedTexts: redactions,
   };
   writeFileSync(join(out, "turns.json"), JSON.stringify({ summary, turns }, null, 2));
   writeFileSync(join(out, "transcript.md"), `# Simulated Learner run, ${base}\n\n${transcript.join("\n\n---\n\n")}\n`);

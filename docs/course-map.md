@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 57 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 58 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -831,7 +831,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 95. Analyse: the writers' opposing readings of the Anthropic S-1
 
-- ID: `ana-anthropic-s1` · Coming
+- ID: `ana-anthropic-s1` · Written
 - Needs first: Analyse: trace who pays whom, Analyse: commitments as debt, Analyse: decide between writers, facts versus framing, Analyse: transfer to India (G-sec, bank, rupee), Judge: junk or BB+?
 - Case: **The S-1 filed 26 October 2026** (as of 2026-10-28) **to verify**
   - Outcome: Zitron's 'Exit Liquidity' and Damodaran's 'The Anthropic Prospectus Arrives' both appeared on 28 Oct 2026. Judge the readings; do not forecast.
