@@ -3,13 +3,16 @@ import { BackToPathButton, JumpButton } from "./jump-button";
 
 const STATUS: Record<TopicOverview["status"], string> = { not_started: "Not started", in_progress: "In progress", passed: "Passed" };
 const STEP: Record<string, string> = { story: "story", concept: "concept", your_turn: "your turn", check: "Check", reveal: "reveal", principle: "principle" };
+/** A Topic planned in the outline but not written yet. */
+export type ComingTopic = { id: string; title: string; stage: TopicOverview["stage"] };
+
 const STAGE: Record<TopicOverview["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 
 /**
  * The Course Map page: every Topic as a stop on the default path, its Checks marked along the
  * way, and the Learner's place. Built from saved progress only, so it looks the same on every visit.
  */
-export function CourseMapView({ topics }: { topics: TopicOverview[] }) {
+export function CourseMapView({ topics, coming = [] }: { topics: TopicOverview[]; coming?: ComingTopic[] }) {
   const title = (id: string) => topics.find((t) => t.id === id)?.title ?? id;
   const current = topics.find((t) => t.current);
   const defaultTopic = topics.find((t) => t.onDefaultPath);
@@ -70,6 +73,18 @@ export function CourseMapView({ topics }: { topics: TopicOverview[] }) {
           </li>
         ))}
       </ol>
+      {coming.length > 0 && (
+        <details className="mt-4 text-sm">
+          <summary className="cursor-pointer font-medium">Coming ({coming.length} more Topics, in path order)</summary>
+          <ol className="mt-3 space-y-1.5 text-stone-500 dark:text-stone-400">
+            {coming.map((t) => (
+              <li key={t.id} data-coming={t.id}>
+                {t.title} <span className="text-xs">· {STAGE[t.stage]} · coming</span>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
     </div>
   );
 }

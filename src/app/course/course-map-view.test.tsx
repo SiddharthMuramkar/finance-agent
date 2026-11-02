@@ -62,3 +62,18 @@ describe("the progress view", () => {
     expect(html).toContain("1 of 2");
   });
 });
+
+describe("Topics not written yet", () => {
+  it("shows them as coming, not as stops the Learner can jump to", () => {
+    const coming = [
+      { id: "bond-pricing", title: "Bond basics and pricing", stage: "foundation" as const },
+      { id: "fol-erp", title: "Follow: The Price of Risk", stage: "follow" as const },
+    ];
+    const html = renderToStaticMarkup(<CourseMapView topics={topics} coming={coming} />);
+    expect(html).toContain("Coming");
+    expect(html).toContain("Bond basics and pricing");
+    expect(html).not.toMatch(/data-jump="bond-pricing"/);
+    expect([...html.matchAll(/data-coming="([^"]+)"/g)].map((m) => m[1])).toEqual(["bond-pricing", "fol-erp"]);
+  });
+});
+

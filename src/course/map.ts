@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
+import { parseOutline, STAGES, type Outline, type OutlineTopic } from "./outline.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
 // can run it directly with Node's type stripping.
@@ -51,15 +52,19 @@ const caseSchema = z.object({
   reveal: z.string().min(1),
 });
 
-export const STAGES = ["foundation", "follow", "judge", "analyse"] as const;
+export { STAGES };
 
+/**
+ * A Topic file. Stage, place and prerequisites belong in `course/outline.yaml`. A file sets them
+ * itself only when a map is checked without an outline (as the tests do).
+ */
 const topicSchema = z.object({
   id,
   title: z.string().min(1),
-  stage: z.enum(STAGES),
+  stage: z.enum(STAGES).optional(),
   /** Place on the default path; lower comes first. */
-  path: z.number().int(),
-  prerequisites: z.array(id).default([]),
+  path: z.number().int().optional(),
+  prerequisites: z.array(id).optional(),
   cases: z.array(caseSchema).min(1),
   concept: z.string().min(1),
   principle: z.string().min(1),
@@ -68,7 +73,12 @@ const topicSchema = z.object({
   checks: z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
 });
 
-export type Topic = z.infer<typeof topicSchema>;
+export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prerequisites"> & {
+  stage: (typeof STAGES)[number];
+  /** Place on the default path; lower comes first. */
+  path: number;
+  prerequisites: string[];
+};
 export type Check = Topic["checks"][number];
 export type QuizCheck = Extract<Check, { kind: "quiz" }>;
 export type QuizQuestion = Topic["questions"][number];
@@ -79,27 +89,40 @@ export type CourseMap = {
   check(id: string): (Check & { topicId: string }) | undefined;
   /** A quiz question by ID, from whichever Topic holds it. */
   question(id: string): QuizQuestion | undefined;
+  /** Topics in the outline that are not written yet, in default-path order. Not teachable, shown as coming. */
+  coming: OutlineTopic[];
 };
 
 export type TopicFile = { name: string; text: string };
 
-/** Parses and validates Topic files. Returns every problem found, not just the first. */
-export function parseCourseMap(files: TopicFile[]): { map?: CourseMap; errors: string[] } {
+/**
+ * Parses and validates Topic files. Returns every problem found, not just the first.
+ * With an `outline`, each file must match an outline entry, which supplies its Stage, place and
+ * prerequisites (the written ones only); outline Topics with no file come back as `coming`.
+ */
+export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: CourseMap; errors: string[] } {
   const errors: string[] = [];
   const topics: Topic[] = [];
   for (const file of files) {
     try {
       const result = topicSchema.safeParse(parse(file.text));
-      if (result.success) topics.push(result.data);
-      else
-        errors.push(
-          ...result.error.issues.map((i) => `${file.name}: ${i.path.join(".") || "(file)"}: ${i.message}`),
-        );
+      if (!result.success) {
+        errors.push(...result.error.issues.map((i) => `${file.name}: ${i.path.join(".") || "(file)"}: ${i.message}`));
+        continue;
+      }
+      const resolved = resolveTopic(result.data, outline);
+      if (typeof resolved === "string") errors.push(`${file.name}: ${resolved}`);
+      else topics.push(resolved);
     } catch (e) {
       errors.push(`${file.name}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
   if (errors.length) return { errors };
+  if (outline) {
+    // Only written Topics can be passed, so a prerequisite that is still Coming is left out of the teachable map.
+    const written = new Set(topics.map((t) => t.id));
+    for (const t of topics) t.prerequisites = t.prerequisites.filter((p) => written.has(p));
+  }
 
   const seen = new Set<string>();
   for (const t of topics) {
@@ -126,8 +149,28 @@ export function parseCourseMap(files: TopicFile[]): { map?: CourseMap; errors: s
   const questions = new Map(topics.flatMap((t) => t.questions.map((q) => [q.id, q] as const)));
   return {
     errors,
-    map: { topics: sorted, topic: (k) => byId.get(k), check: (k) => checks.get(k), question: (k) => questions.get(k) },
+    map: {
+      topics: sorted,
+      topic: (k) => byId.get(k),
+      check: (k) => checks.get(k),
+      question: (k) => questions.get(k),
+      coming: outline ? outline.topics.filter((t) => !byId.has(t.id)) : [],
+    },
   };
+}
+
+/** Fills in Stage, place and prerequisites. Returns a problem message when the file and outline disagree. */
+function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | undefined): Topic | string {
+  if (!outline) {
+    if (file.stage === undefined || file.path === undefined) return "stage and path are required";
+    return { ...file, stage: file.stage, path: file.path, prerequisites: file.prerequisites ?? [] };
+  }
+  const planned = outline.topics.find((t) => t.id === file.id);
+  if (!planned) return `Topic "${file.id}" is not in the outline`;
+  if (file.stage !== undefined || file.path !== undefined || file.prerequisites !== undefined) {
+    return `stage, path and prerequisites belong in the outline, not in the Topic file`;
+  }
+  return { ...file, stage: planned.stage, path: planned.path, prerequisites: planned.prerequisites };
 }
 
 function quizProblems(t: Topic): string[] {
@@ -178,12 +221,19 @@ export function readTopicFiles(): TopicFile[] {
     .map((name) => ({ name, text: readFileSync(join(process.cwd(), "course", "topics", name), "utf8") }));
 }
 
+/** Reads the outline of every planned Topic. */
+export function readOutlineText(): string {
+  return readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8");
+}
+
 let cached: CourseMap | undefined;
 
-/** Loads the real Course Map from `course/topics`, throwing if it is invalid. */
+/** Loads the real Course Map from `course/topics` and `course/outline.yaml`, throwing if either is invalid. */
 export function loadCourseMap(): CourseMap {
   if (cached) return cached;
-  const { map, errors } = parseCourseMap(readTopicFiles());
+  const planned = parseOutline(readOutlineText());
+  if (!planned.outline) throw new Error(`Invalid Course Map outline:\n${planned.errors.join("\n")}`);
+  const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
   if (!map) throw new Error(`Invalid Course Map:\n${errors.join("\n")}`);
   cached = map;
   return map;

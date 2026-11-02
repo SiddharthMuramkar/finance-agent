@@ -1,0 +1,1272 @@
+# The Course Map outline: every planned Topic, in default-path order (a Topic's place is its position here).
+# Written Topics live in course/topics/<id>.yaml and take their Stage, place and prerequisites from this file.
+# A Topic whose file does not exist yet is Coming. `verified: false` means the Case's facts must be checked before the Topic is written.
+# docs/course-map.md is generated from this file (npm run course:doc); npm run course:check fails if it is stale.
+topics:
+  - id: num-percent-bps
+    title: "Percent, percentage points and basis points"
+    stage: foundation
+    prerequisites: []
+    cases:
+      - title: "The Fed raises its target rate by 25 basis points"
+        asOf: 1994-02-03
+        outcome: "The 25 bp rise in the overnight rate triggered an immediate 40 bp rise in the 30-year rate; by early May, 75 bp of hikes and 140 bp on long bonds. The funds rate averaged 3.05% in Jan 1994 and 5.45% in Dec 1994."
+        sources:
+          - https://fortune.com/article/the-great-bond-massacre-fortune-1994
+          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS2,GS10,TB3MS,FEDFUNDS&cosd=1993-12-01&coed=1995-01-01
+          - https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html
+        verified: true
+  - id: num-compounding
+    title: "Growth, compounding and logs"
+    stage: foundation
+    prerequisites: [num-percent-bps]
+    cases:
+      - title: "The Sensex from base 100 (1979) to 1992"
+        asOf: 1992-03-31
+        outcome: "Base 100 on 1 Apr 1979; 1,001 on 25 Jul 1990; 4,091 on 30 Mar 1992; 4,467 in Apr 1992, about 34% a year compound (own arithmetic). Then 1,980 by Apr 1993."
+        sources:
+          - https://en.wikipedia.org/wiki/BSE_SENSEX
+          - https://www.rediff.com/business/special/spec1/20071009.htm?print=true
+          - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
+        verified: true
+        note: "Secondary sources; fetch the BSE history before writing."
+  - id: num-probability
+    title: "Probability and expected value"
+    stage: foundation
+    prerequisites: [num-percent-bps]
+    cases:
+      - title: "Long-Term Capital Management, before the loss"
+        asOf: 1998-08-01
+        outcome: "About $30 of debt per $1 of capital at end-1997; lost half its capital by end Aug 1998; 14 firms put in $3.6bn for control on 23 Sep 1998. Teach leverage and loss, not the risk-model inputs (unverified)."
+        sources:
+          - https://www.federalreservehistory.org/essays/ltcm-near-failure
+          - https://www.federalreserve.gov/boarddocs/testimony/1998/19981001.htm
+          - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
+        verified: true
+  - id: present-value
+    title: "Time value and present value"
+    stage: foundation
+    prerequisites: [num-compounding]
+    cases:
+      - title: "The $1.537 billion Mega Millions jackpot"
+        asOf: 2018-10-24
+        outcome: "The winner took the $877,784,124 cash option on 4 Mar 2019, roughly the present value of the 30-payment annuity. Written Topic."
+        sources:
+          - https://www.megamillions.com/
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve
+        verified: true
+      - title: "Webvan's first-day value"
+        asOf: 1999-11-05
+        outcome: "IPO at $15 raised $375m; first-day close $24.875, market value $7.9bn (not $11bn). Chapter 11 filed 9 Jul 2001; shares half a cent on 10 Jul 2001."
+        sources:
+          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
+          - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+          - https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html
+        verified: true
+  - id: fs-income
+    title: "The income statement"
+    stage: foundation
+    prerequisites: [num-percent-bps]
+    cases:
+      - title: "WeWork's S-1"
+        asOf: 2019-08-14
+        outcome: "H1 2019 revenue $1.54bn, net loss over $900m. IPO withdrawn Sep 2019; Chapter 11 on 6 Nov 2023."
+        sources:
+          - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+          - https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
+          - https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall
+        verified: true
+  - id: fs-balance
+    title: "The balance sheet"
+    stage: foundation
+    prerequisites: [fs-income]
+    cases:
+      - title: "Satyam's balance sheet"
+        asOf: 2008-09-30
+        outcome: "Reported cash inflated by Rs 5,040 crore; the chairman's confession on 7 Jan 2009 admitted it."
+        sources:
+          - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+          - https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+        verified: true
+  - id: fs-cashflow
+    title: "The cash flow statement"
+    stage: foundation
+    prerequisites: [fs-balance]
+    cases:
+      - title: "Webvan's cash burn"
+        asOf: 2001-03-31
+        outcome: "Burned about $480m by Mar 2001 (Time); lost more than $800m since Dec 1996; shut down Jul 2001. The draft's 'raised $1.2bn' is unconfirmed."
+        sources:
+          - https://time.com/archive/6904080/webvans-last-desperate-hope
+          - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+          - https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html
+        verified: true
+  - id: fs-links
+    title: "How the three statements link (accrual accounting)"
+    stage: foundation
+    prerequisites: [fs-cashflow]
+    cases:
+      - title: "Satyam's forged invoices and bank statements"
+        asOf: 2008-12-31
+        outcome: "Over 6,000 fake invoices and forged bank statements ran through all three statements; the SEC settled an action in 2011 with a $10m penalty."
+        sources:
+          - https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+          - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1441894262377.pdf
+        verified: true
+  - id: fs-ratios
+    title: "Ratios, return on equity and DuPont"
+    stage: foundation
+    prerequisites: [fs-links]
+    cases:
+      - title: "Coffee Day Enterprises at its IPO"
+        asOf: 2015-10-07
+        outcome: "Net loss widened from Rs 21 crore (FY13) to Rs 87 crore (FY15); IPO at 21 to 21.5 times EV/EBITDA; founder died Jul 2019 under lender pressure."
+        sources:
+          - https://www.business-standard.com/article/markets/coffee-day-makes-tamest-debut-in-three-years-115110201108_1.html
+          - https://www.businesstoday.in/markets/stocks/story/coffee-day-enterprises-fixes-rs-316-328-price-band-for-ipo-57513-2015-10-07
+          - https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
+        verified: false
+        note: "Press level only; the DuPont inputs need the prospectus from SEBI/BSE."
+  - id: fs-revenue-runrate
+    title: "Revenue recognition, run rates, gross vs net"
+    stage: foundation
+    prerequisites: [fs-links]
+    cases:
+      - title: "WeWork's run-rate boast"
+        asOf: 2019-08-14
+        outcome: "The S-1 said run-rate revenue reached $3bn in six months; first-half revenue was $1.54bn with a $905m loss."
+        sources:
+          - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+          - https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
+        verified: true
+  - id: fs-capex-dep
+    title: "Capex, depreciation, amortisation and EBITDA"
+    stage: foundation
+    prerequisites: [fs-links]
+    cases:
+      - title: "Webvan's warehouse and fleet build-out"
+        asOf: 1999-11-05
+        outcome: "Planned 26 distribution centres, ran seven markets; $143 spent per $100 of food sold; closed Jul 2001."
+        sources:
+          - https://www.sfgate.com/food/article/rise-fall-bay-area-startup-webvan-19829522.php
+          - https://time.com/archive/6904080/webvans-last-desperate-hope
+          - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+        verified: false
+        note: "Press scale facts only; asset-level 10-K figures not fetched."
+  - id: fs-leases-debt
+    title: "Leases, commitments and debt-like items"
+    stage: foundation
+    prerequisites: [fs-links, present-value]
+    cases:
+      - title: "WeWork's lease obligations"
+        asOf: 2019-06-30
+        outcome: "Long-term lease obligations of about $17bn in the S-1; $19bn liabilities in the Nov 2023 filing; leases rejected in restructuring."
+        sources:
+          - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+          - https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall
+          - https://straitstimes.com/business/wework-cleared-to-exit-bankruptcy-shedding-adam-neumann-legacy
+        verified: true
+  - id: fs-filings
+    title: "Reading filings: S-1, 10-K, Indian annual report and Ind AS"
+    stage: foundation
+    prerequisites: [fs-ratios]
+    cases:
+      - title: "WeWork's governance clause"
+        asOf: 2019-08-14
+        outcome: "The S-1 gave the CEO profits interests at a $90bn cap; the IPO was pulled."
+        sources:
+          - https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann
+          - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+        verified: true
+      - title: "Coffee Day's IPO prospectus (an Indian DRHP)"
+        asOf: 2015-10-07
+        outcome: "Filed with SEBI for Rs 1,150 crore, band Rs 316-328, priced Rs 328 on 21 Oct 2015, subscribed 1.81 times; listed below issue price."
+        sources:
+          - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
+          - https://timesofindia.indiatimes.com/business/india-business/cold-debut-for-ccd-stock-plunges-18/articleshow/49637562.cms
+        verified: false
+        note: "Fetch the prospectus from SEBI before writing."
+  - id: fs-earnings-quality
+    title: "Earnings quality and accounting fraud"
+    stage: foundation
+    prerequisites: [fs-ratios, fs-capex-dep]
+    cases:
+      - title: "Satyam, the day before the confession"
+        asOf: 2009-01-06
+        outcome: "Raju's letter of 7 Jan 2009 admitted inflated profits and cash; SEC order followed."
+        sources:
+          - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+          - https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+        verified: true
+  - id: fs-tax
+    title: "Corporate tax and after-tax cash flows"
+    stage: foundation
+    prerequisites: [fs-links]
+    cases:
+      - title: "India cuts corporate tax to 22%"
+        asOf: 2019-09-19
+        outcome: "Announced 20 Sep 2019: base rate 30% to 22% (effective 34.94% to 25.17%), 15% for new manufacturers; Rs 1.45 lakh crore revenue foregone; the Sensex had its biggest single-day gain in a decade."
+        sources:
+          - https://www.dnaindia.com/business/report-finance-minister-nirmala-sitharaman-announces-corporate-tax-cut-to-spur-growth-2791283
+          - https://cio.economictimes.indiatimes.com/news/government-policy/sitharamans-tax-cut-move-why-it-matters-so-much-for-india-inc-economy-and-modi-govt/71229310
+        verified: true
+        note: "Added in this outline to cover tax, a gap in the first draft."
+  - id: num-statistics
+    title: "Statistics: mean, variance, correlation, regression"
+    stage: foundation
+    prerequisites: [num-probability]
+    cases:
+      - title: "The 1987 crash"
+        asOf: 1987-10-16
+        outcome: "On 19 Oct 1987 the S&P 500 fell about 20% and S&P futures 29%; a tail event far outside normal-distribution odds."
+        sources:
+          - https://www.federalreserve.gov/pubs/feds/2007/200713/
+          - https://time.com/archive/6711376/the-culprits-behind-the-crash
+        verified: true
+  - id: eco-supply-demand
+    title: "Supply, demand and prices"
+    stage: foundation
+    prerequisites: [num-percent-bps]
+    cases:
+      - title: "Indian onion price shocks"
+        asOf: 2019-09-01
+        outcome: "An RBI working paper (Aug 2024) says tomato, onion and potato prices drive volatility of Indian food inflation."
+        sources:
+          - https://rbidocs.rbi.org.in/rdocs/Publications/PDFs/08WPS031020249D7A858AE5674ACF934C3EB9865794A2.PDF
+        verified: false
+        note: "No dated price move extracted yet; pick one from the paper before writing."
+  - id: eco-micro-competition
+    title: "Competition, market structure and pricing power"
+    stage: foundation
+    prerequisites: [eco-supply-demand]
+    cases:
+      - title: "Reliance Jio's free launch"
+        asOf: 2016-09-01
+        outcome: "Announced 1 Sep 2016: free voice and cheap data. Airtel and Idea shares fell up to 9% that day; a price war followed in a market with over $50bn of telecom debt."
+        sources:
+          - https://bbc.com/news/business-37273073
+          - https://timesofindia.indiatimes.com/business/india-business/idea-airtel-shares-tank-on-rel-jios-lower-tariff-offers/articleshow/53958653.cms
+          - https://www.theguardian.com/world/2016/sep/05/reliance-jio-launches-cheap-4g-services-in-india
+        verified: true
+        note: "Added to cover the economics of firms; later consolidation not yet sourced."
+  - id: eco-money-banking
+    title: "Money, banks and credit creation"
+    stage: foundation
+    prerequisites: [fs-balance, eco-supply-demand]
+    cases:
+      - title: "The 1992 securities scam"
+        asOf: 1992-02-01
+        outcome: "Ready-forward deals and fake bank receipts moved bank money into shares. Fraud size disputed: about Rs 1,000 crore siphoned (Forbes India) to over Rs 4,000 crore (Mint). Mehta arrested 9 Nov 1992."
+        sources:
+          - https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
+          - https://www.moneycontrol.com/news/business/markets/harshad-mehta-scam-10-key-points-of-the-scam-that-jolted-india-in-1992-5939931.html
+          - https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1
+          - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
+        verified: true
+  - id: eco-central-banks
+    title: "Central banks and monetary policy"
+    stage: foundation
+    prerequisites: [eco-money-banking]
+    cases:
+      - title: "The 1994 Fed tightening"
+        asOf: 1994-02-03
+        outcome: "Little prior guidance; markets surprised, bond funds saw outflows; funds rate rose to 5.45% by Dec 1994."
+        sources:
+          - https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html
+          - https://www.federalreserve.gov/monetarypolicy/files/fomc19940706bluebook19940630.pdf
+          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS2,GS10,TB3MS,FEDFUNDS&cosd=1993-12-01&coed=1995-01-01
+        verified: true
+  - id: eco-inflation-real
+    title: "Inflation, nominal vs real rates"
+    stage: foundation
+    prerequisites: [eco-central-banks, num-compounding]
+    cases:
+      - title: "India's near double-digit inflation"
+        asOf: 2013-12-31
+        outcome: "CPI inflation near 10% in Dec 2013, 8.0% excluding food and fuel; the RBI tightened under Rajan."
+        sources:
+          - https://rbi.org.in/Scripts/PublicationsView.aspx?id=15709
+          - https://bis.org/review/r160905b.htm
+        verified: true
+  - id: eco-gdp-cycles
+    title: "GDP, growth and business cycles"
+    stage: foundation
+    prerequisites: [eco-supply-demand]
+    cases:
+      - title: "India before the 1991 crisis"
+        asOf: 1990-06-30
+        outcome: "Growth of 7.6% a year for the three years to 1990-91, fiscally fuelled; external payments crisis in July 1991."
+        sources:
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter11_04122018.pdf
+        verified: true
+  - id: eco-fiscal-debt
+    title: "Fiscal policy and government debt"
+    stage: foundation
+    prerequisites: [eco-gdp-cycles]
+    cases:
+      - title: "The UK mini-budget and gilt crisis"
+        asOf: 2022-09-23
+        outcome: "Pound fell to $1.03; the Bank of England bought up to 65bn pounds of gilts from 28 Sep 2022 to stop pension-fund LDI selling. A credibility and leverage Case."
+        sources:
+          - https://theguardian.com/business/2022/sep/28/bank-of-england-in-65bn-scramble-to-avert-financial-crisis
+          - https://www.cnbc.com/2022/09/29/pension-fund-panic-led-to-bank-of-englands-emergency-intervention.html
+        verified: true
+      - title: "India's fiscal expansion before 1991"
+        asOf: 1991-03-31
+        outcome: "Fiscal expansion in 1990-91 ended in the July 1991 payments crisis and IMF support."
+        sources:
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter11_04122018.pdf
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+        verified: true
+  - id: num-econometrics
+    title: "Reading empirical claims: causation, data and spreadsheet errors"
+    stage: foundation
+    prerequisites: [num-statistics, eco-fiscal-debt]
+    cases:
+      - title: "Reinhart and Rogoff's 90% debt threshold"
+        asOf: 2010-05-01
+        outcome: "Published 2010; in Apr 2013 Herndon, Ash and Pollin found an omitted-rows spreadsheet error, selective exclusions and odd weighting; growth above 90% debt was about 2.2%, not -0.1%. Reinhart and Rogoff admitted the slip."
+        sources:
+          - https://www.cnbc.com/2013/04/17/reinhartrogoff-error-sparks-austerity-debate.html
+          - https://www.theatlantic.com/business/archive/2013/04/forget-excel-this-was-reinhart-and-rogoffs-biggest-mistake/275088/
+          - https://www.bloomberg.com/news/articles/2013-04-17/7-data-disasters-more-embarrassing-than-reinhart-and-rogoff-s
+        verified: true
+        note: "Added to cover econometrics beyond basics."
+  - id: in-rbi-policy
+    title: "India: RBI, repo rate, liquidity and inflation targeting"
+    stage: foundation
+    prerequisites: [eco-central-banks, eco-inflation-real]
+    cases:
+      - title: "The RBI's package of 4 September 2013"
+        asOf: 2013-09-03
+        outcome: "The FCNR(B) swap window drew in dollars; the rupee stabilised and forward cover became cheap."
+        sources:
+          - https://bis.org/review/r160905b.htm
+          - https://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1294FSR1213.pdf
+        verified: true
+  - id: bond-pricing
+    title: "Bond basics and pricing"
+    stage: foundation
+    prerequisites: [present-value, eco-inflation-real]
+    cases:
+      - title: "The 1994 bond sell-off"
+        asOf: 1994-01-31
+        outcome: "10-year yield (monthly average) 5.75% in Jan 1994 to 7.96% in Nov 1994, up 221 bp; use a price calculation as the exercise."
+        sources:
+          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10&cosd=1993-10-01&coed=1995-02-01
+          - https://www.federalreserve.gov/monetarypolicy/files/fomc19940706bluebook19940630.pdf
+          - https://fortune.com/article/the-great-bond-massacre-fortune-1994
+        verified: true
+  - id: bond-yield
+    title: "Yield to maturity, coupon and current yield"
+    stage: foundation
+    prerequisites: [bond-pricing]
+    cases:
+      - title: "Orange County's leveraged pool"
+        asOf: 1994-06-30
+        outcome: "A $20.6bn leveraged portfolio lost about $1.5bn (not $1.7bn); Chapter 9 petition on 6 Dec 1994."
+        sources:
+          - https://sec.gov/files/litigation/admin/3436761.txt
+          - https://sec.gov/files/litigation/litreleases/lr15160.txt
+        verified: true
+  - id: bond-yield-curve
+    title: "Yield curve and term structure"
+    stage: foundation
+    prerequisites: [bond-yield]
+    cases:
+      - title: "The 1994 curve flattening"
+        asOf: 1994-02-03
+        outcome: "Two-year yield 4.14% (Jan) to 7.59% (Dec 1994); the 10s-2s gap shrank from 1.61 to 0.22 percentage points."
+        sources:
+          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS2,GS10,TB3MS,FEDFUNDS&cosd=1993-12-01&coed=1995-01-01
+          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10&cosd=1993-10-01&coed=1995-02-01
+        verified: true
+  - id: bond-duration
+    title: "Duration and convexity"
+    stage: foundation
+    prerequisites: [bond-yield]
+    cases:
+      - title: "Silicon Valley Bank's securities portfolio"
+        asOf: 2022-12-31
+        outcome: "Unrealised losses grew as rates rose; the bank failed on 10 Mar 2023."
+        sources:
+          - https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf
+          - https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm
+        verified: true
+  - id: bond-credit-spreads
+    title: "Credit spreads, ratings and default"
+    stage: foundation
+    prerequisites: [bond-yield, fs-leases-debt]
+    cases:
+      - title: "LTCM's spread trades"
+        asOf: 1998-08-01
+        outcome: "Spread-convergence trades lost as spreads widened; private rescue by 14 firms on 23 Sep 1998."
+        sources:
+          - https://www.federalreservehistory.org/essays/ltcm-near-failure
+          - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
+        verified: true
+  - id: in-gsec
+    title: "India: G-secs, T-bills, SDLs and the corporate bond market"
+    stage: foundation
+    prerequisites: [bond-yield-curve, in-rbi-policy]
+    cases:
+      - title: "The securities scam's SGL fraud"
+        asOf: 1992-04-01
+        outcome: "Rs 500 crore missing from SBI's account at the RBI's public debt office exposed the scam in April 1992."
+        sources:
+          - https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
+          - https://www.moneycontrol.com/news/business/markets/harshad-mehta-scam-10-key-points-of-the-scam-that-jolted-india-in-1992-5939931.html
+        verified: false
+        note: "Draft source only; confirm the SGL detail in the Janakiraman report."
+  - id: fx-basics
+    title: "Exchange rates and parity"
+    stage: foundation
+    prerequisites: [eco-inflation-real]
+    cases:
+      - title: "The 1991 rupee devaluation"
+        asOf: 1991-06-30
+        outcome: "Two steps on 1 and 3 Jul 1991 (about 9% and 11%), about 18% cumulative in dollar terms (RBI); the IMF's 19% is the same event under other arithmetic."
+        sources:
+          - https://rbi.org.in/scriptS/chro_1991.aspx
+          - https://rbi.org.in/history/Brief_Chro1991to2000.html
+          - https://livemint.com/Money/08f2pqhy1c2Yh2OYTItwDL/Indias-tryst-with-currency-devaluation.html
+          - http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+        verified: true
+  - id: eco-trade
+    title: "Trade and globalisation"
+    stage: foundation
+    prerequisites: [eco-supply-demand, fx-basics]
+    cases:
+      - title: "India's import controls in 1991-92"
+        asOf: 1991-07-31
+        outcome: "Import controls tightened in 1991 and relaxed in Mar 1992; domestic demand fell about 2.5% in 1991/92."
+        sources:
+          - http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+        verified: false
+        note: "Secondary summary of the IMF text; re-open the chapter before writing."
+  - id: fx-bop
+    title: "Balance of payments and capital flows"
+    stage: foundation
+    prerequisites: [fx-basics, eco-gdp-cycles]
+    cases:
+      - title: "India's 1990-91 trade deficit"
+        asOf: 1991-03-31
+        outcome: "Trade deficit of $9,437m, up 26.5%; the outcome was an IMF programme."
+        sources:
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+        verified: true
+  - id: in-economy
+    title: "India's economy and the 1991 reforms"
+    stage: foundation
+    prerequisites: [eco-gdp-cycles, fx-bop]
+    cases:
+      - title: "The 1991 reform chronology"
+        asOf: 1991-07-01
+        outcome: "Rupee devalued 1-3 Jul 1991; Narasimham report Nov 1991; NSE started trading Jun 1994."
+        sources:
+          - https://rbi.org.in/scriptS/chro_1991.aspx
+          - https://rbi.org.in/history/Brief_Chro1991to2000.html
+        verified: true
+  - id: fx-regimes-crises
+    title: "Exchange-rate regimes and currency crises"
+    stage: foundation
+    prerequisites: [fx-bop, eco-central-banks]
+    cases:
+      - title: "The rupee in the 2013 taper tantrum"
+        asOf: 2013-08-31
+        outcome: "Package of 4 Sep 2013; the rupee stabilised afterwards."
+        sources:
+          - https://bis.org/review/r160905b.htm
+          - https://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1294FSR1213.pdf
+        verified: true
+      - title: "The 1997 Asian crisis"
+        asOf: 1997-07-01
+        outcome: "Thailand floated the baht on 2 Jul 1997; baht about 25 to 56 per dollar by year-end; IMF package for Thailand over $17bn on 11 Aug 1997."
+        sources:
+          - https://adst.org/2016/12/thai-tanic-responding-asian-financial-crisis-1997
+          - https://goldmansachs.com/our-firm/history/moments/1997-asia-financial-crisis
+          - https://en.wikipedia.org/wiki/1997_Asian_financial_crisis
+        verified: true
+  - id: sov-default-country-risk
+    title: "Sovereign default and country risk"
+    stage: foundation
+    prerequisites: [bond-credit-spreads, fx-regimes-crises]
+    cases:
+      - title: "Argentina's default"
+        asOf: 2001-12-01
+        outcome: "Default declared 23 Dec 2001, convertibility ended 6 Jan 2002; debt size $88bn to $141bn by source; 2005 swap accepted at about 30 cents on the dollar."
+        sources:
+          - https://elischolar.library.yale.edu/journal-of-financial-crises/vol7/iss2/3
+          - https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm
+          - https://wsj.com/world/americas/default-review-when-a-nation-goes-bust-046db2c7
+          - https://www.elibrary.imf.org/display/book/9781589063808/ch001.xml
+        verified: true
+  - id: eq-markets
+    title: "Equity markets, exchanges, SEBI, NSE and BSE"
+    stage: foundation
+    prerequisites: [fs-balance]
+    cases:
+      - title: "The 1992 scam and SEBI's powers"
+        asOf: 1992-04-30
+        outcome: "The scam led to the Securities Laws (Amendment) Act 1995 widening SEBI's powers."
+        sources:
+          - https://www.moneycontrol.com/news/business/markets/harshad-mehta-scam-10-key-points-of-the-scam-that-jolted-india-in-1992-5939931.html
+          - https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
+        verified: true
+  - id: eq-history
+    title: "Market history and long-run returns"
+    stage: foundation
+    prerequisites: [num-statistics, eq-markets]
+    cases:
+      - title: "The Sensex boom and bust"
+        asOf: 1992-03-30
+        outcome: "Apr 1991 to Apr 1992: 1,194 to 4,467 (+274%); 28 Apr 1992 fell 570 points (12.7%); down 56% by Apr 1993."
+        sources:
+          - https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1
+          - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
+          - https://www.rediff.com/business/special/spec1/20071009.htm?print=true
+        verified: true
+  - id: risk-portfolio
+    title: "Risk, diversification and portfolio theory"
+    stage: foundation
+    prerequisites: [num-statistics, eq-history]
+    cases:
+      - title: "The 1987 crash and portfolio insurance"
+        asOf: 1987-10-16
+        outcome: "About $80bn was portfolio-insured; insurers sold just under $2bn of $21bn of NYSE sales on the day."
+        sources:
+          - https://www.federalreserve.gov/pubs/feds/2007/200713/
+          - https://time.com/archive/6711376/the-culprits-behind-the-crash
+          - https://www.nber.org/system/files/chapters/c10958/c10958.pdf
+        verified: true
+  - id: risk-capm
+    title: "CAPM, beta and factor models"
+    stage: foundation
+    prerequisites: [risk-portfolio]
+    cases:
+      - title: "Amazon's cost of equity in Damodaran's valuation"
+        asOf: 2000-02-01
+        outcome: "Stock at $84 in Feb 2000; split-adjusted close $0.78 on 29 Dec 2000, down more than 80%."
+        sources:
+          - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+          - https://www.statmuse.com/money/ask/amzn-stock-price-dec-2000
+          - https://pages.stern.nyu.edu/~adamodar/pc/datasets/waccIndia.xls?outputType=chromeless
+        verified: false
+        note: "Use the paper's cost-of-equity inputs; pair Indian beta files (damoindia, damobeta) for the India half."
+  - id: mkt-efficiency
+    title: "Market efficiency"
+    stage: foundation
+    prerequisites: [risk-capm]
+    cases:
+      - title: "Blodget versus Grantham on the dot-com valuations"
+        asOf: 2000-01-01
+        outcome: "The Nasdaq bust followed in 2000-02."
+        sources:
+          - https://pages.stern.nyu.edu/~adamodar/pdfiles/ovhds/dam2ed/ValIntro.pdf
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html
+        verified: false
+        note: "Outcome figures (Nasdaq peak and trough) still to be sourced."
+  - id: mkt-behavioural
+    title: "Behavioural finance and bubbles"
+    stage: foundation
+    prerequisites: [mkt-efficiency]
+    cases:
+      - title: "Webvan and WeWork at the top"
+        asOf: 1999-11-05
+        outcome: "Webvan $7.9bn on day one, bankrupt 20 months later; WeWork $47bn in Jan 2019, IPO valuation cut to $20bn in Sep 2019."
+        sources:
+          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
+          - https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/
+          - https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion
+        verified: true
+  - id: cf-capital-budgeting
+    title: "NPV, IRR and capital budgeting"
+    stage: foundation
+    prerequisites: [present-value, fs-cashflow]
+    cases:
+      - title: "Webvan's 26-centre build plan"
+        asOf: 1999-11-05
+        outcome: "A plan for 26 automated distribution centres at the peak; ran seven markets and closed in Jul 2001."
+        sources:
+          - https://www.sfgate.com/food/article/rise-fall-bay-area-startup-webvan-19829522.php
+          - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+        verified: true
+        note: "Reuses Webvan; the Eurotunnel replacement (see cf-wacc) is the alternative."
+  - id: cf-wacc
+    title: "Cost of capital and WACC"
+    stage: foundation
+    prerequisites: [risk-capm, bond-credit-spreads, cf-capital-budgeting]
+    cases:
+      - title: "Eurotunnel's financing cost"
+        asOf: 2006-09-01
+        outcome: "Debt of 6.2bn pounds, about 330m a year of interest; creditors approved a rescue by one vote on 27 Nov 2006; debt cut to 2.84bn pounds on 15 Jan 2007."
+        sources:
+          - https://www.nytimes.com/2007/01/15/business/worldbusiness/15iht-tunnel.4211789.html
+          - http://www.bbc.co.uk/2/hi/business/6262345.stm
+          - https://www.theguardian.com/business/2006/nov/28/transportintheuk.travel1
+          - https://www.theguardian.com/business/2007/may/26/travel.travelnews
+        verified: true
+        note: "Replaces the Tube Investments exercise, which had no outcome."
+  - id: cf-capital-structure
+    title: "Capital structure and Modigliani-Miller"
+    stage: foundation
+    prerequisites: [cf-wacc]
+    cases:
+      - title: "The Coffee Day group's debt"
+        asOf: 2019-03-31
+        outcome: "Founder's letter of 27 Jul 2019 cited lender and private-equity pressure; about 76% of founders' holdings pledged; shares fell by the 20% limit."
+        sources:
+          - https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html
+          - https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
+        verified: false
+        note: "Debt amounts not fetched."
+  - id: cf-payout
+    title: "Dividends and buybacks"
+    stage: foundation
+    prerequisites: [cf-capital-structure]
+    cases:
+      - title: "A buyback forced on a levered group"
+        asOf: 2019-07-27
+        outcome: "The Coffee Day founder's letter cites a private-equity partner forcing a buyback."
+        sources:
+          - https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html
+        verified: false
+        note: "A policy Case with payout data is still missing; find one before writing."
+  - id: credit-analysis
+    title: "Corporate credit analysis"
+    stage: foundation
+    prerequisites: [bond-credit-spreads, fs-ratios, fs-leases-debt]
+    cases:
+      - title: "IL&FS before its defaults"
+        asOf: 2018-06-30
+        outcome: "169 group companies, high leverage; defaults in Aug-Sep 2018; board superseded in Oct 2018."
+        sources:
+          - https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3
+        verified: false
+        note: "Primary figures on group debt to fetch."
+  - id: val-dcf
+    title: "DCF valuation"
+    stage: foundation
+    prerequisites: [cf-wacc, fs-cashflow, fs-capex-dep]
+    cases:
+      - title: "Damodaran values Amazon.com"
+        asOf: 2000-02-01
+        outcome: "Stock at $84; Damodaran's base-case value about $35 per share; split-adjusted close $0.78 on 29 Dec 2000, down about 81%."
+        sources:
+          - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+          - https://www.statmuse.com/money/ask/amzn-stock-price-dec-2000
+        verified: true
+        note: "Confirm that $35.08 is the base case before use."
+  - id: val-multiples
+    title: "Relative valuation and multiples"
+    stage: foundation
+    prerequisites: [val-dcf, fs-ratios]
+    cases:
+      - title: "WeWork at $47bn versus IWG"
+        asOf: 2019-08-14
+        outcome: "26 times 2018 revenue; valuation cut to about $20bn and the IPO pulled in Sep 2019."
+        sources:
+          - https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
+          - https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion
+        verified: true
+  - id: val-young
+    title: "Valuing young, loss-making companies"
+    stage: foundation
+    prerequisites: [val-dcf, val-multiples, fs-revenue-runrate]
+    cases:
+      - title: "Uber, Damodaran versus venture capital"
+        asOf: 2014-12-02
+        outcome: "Damodaran about $6bn against $17-18bn privately; Uber IPO priced $45 on 9 May 2019, $82.4bn fully diluted, closed down 7.6%."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
+          - https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html
+          - https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday
+        verified: true
+        note: "The $6bn versus $17-18bn figures not re-checked."
+      - title: "Webvan at its IPO"
+        asOf: 1999-11-05
+        outcome: "Day-one value $7.9bn; bankrupt in Jul 2001."
+        sources:
+          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
+          - https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html
+        verified: true
+  - id: val-banks
+    title: "Valuing banks and financial firms"
+    stage: foundation
+    prerequisites: [val-dcf, eco-money-banking]
+    cases:
+      - title: "Yes Bank before the moratorium"
+        asOf: 2020-02-28
+        outcome: "RBI moratorium from 5 Mar 2020, withdrawals capped at Rs 50,000; SBI to take up to 49% at Rs 10 a share."
+        sources:
+          - https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477
+          - https://www.businesstoday.in/latest/economy-politics/story/yes-bank-revival-plan-gets-cabinet-go-ahead-moratorium-to-end-soon-251981-2020-03-13
+          - https://www.businesstoday.in/industry/banks/story/yes-bank-rescue-plan-notified-moratorium-to-be-lifted-on-march-18-252087-2020-03-14
+        verified: true
+  - id: val-distress
+    title: "Valuing distressed firms"
+    stage: foundation
+    prerequisites: [val-dcf, credit-analysis]
+    cases:
+      - title: "Coffee Day Enterprises in July 2019"
+        asOf: 2019-07-29
+        outcome: "Market cap Rs 4,068 crore on 29 Jul 2019, Rs 2,604 crore on 31 Jul 2019."
+        sources:
+          - https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
+          - https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html
+        verified: true
+  - id: val-implied-erp
+    title: "Implied equity risk premium and market-level valuation"
+    stage: foundation
+    prerequisites: [val-dcf, mkt-efficiency, bond-yield]
+    cases:
+      - title: "The implied equity risk premium at end-2007"
+        asOf: 2007-12-31
+        outcome: "S&P 500 1,468.36; implied ERP 4.37% on 1 Jan 2008; 6.43% a year later at 903.25."
+        sources:
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html
+        verified: true
+  - id: val-india
+    title: "Valuing Indian companies, currency and country risk"
+    stage: foundation
+    prerequisites: [val-dcf, sov-default-country-risk, in-gsec]
+    cases:
+      - title: "Coffee Day's IPO"
+        asOf: 2015-10-21
+        outcome: "Priced Rs 328; listed Rs 317 on NSE; closed Rs 270.45, down 17.6%."
+        sources:
+          - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
+          - https://www.hindustantimes.com/business/coffee-day-shares-open-below-issue-price-down-4-5/story-Gk0pIIaOJE0MRfS7uqcmfN.html
+          - https://www.bloomberg.com/news/articles/2015-11-02/starbucks-india-rival-coffee-day-falls-in-mumbai-trading-debut
+        verified: true
+      - title: "Paytm's IPO"
+        asOf: 2021-11-17
+        outcome: "Priced Rs 2,150; closed day one Rs 1,564 (-27%)."
+        sources:
+          - https://archive.siasat.com/news/paytm-shares-partly-pare-losses-after-disappointing-debut-2231426/
+        verified: false
+        note: "Not re-checked in the verification pass."
+  - id: cf-venture
+    title: "Venture finance and private rounds"
+    stage: foundation
+    prerequisites: [val-young, cf-capital-structure]
+    cases:
+      - title: "WeWork's $47bn private round"
+        asOf: 2019-01-01
+        outcome: "SoftBank-led round at $47bn; IPO valuation cut to $20bn in Sep 2019."
+        sources:
+          - https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/
+          - https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion
+        verified: true
+  - id: mkt-ipo-float
+    title: "IPOs, book building and float"
+    stage: foundation
+    prerequisites: [cf-venture, eq-markets]
+    cases:
+      - title: "Coffee Day's IPO"
+        asOf: 2015-10-21
+        outcome: "Band Rs 316-328, priced Rs 328, listed below the issue price, 17.02% of post-issue capital."
+        sources:
+          - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
+          - https://www.bloomberg.com/news/articles/2015-11-02/starbucks-india-rival-coffee-day-falls-in-mumbai-trading-debut
+          - https://timesofindia.indiatimes.com/business/india-business/cold-debut-for-ccd-stock-plunges-18/articleshow/49637562.cms
+        verified: true
+      - title: "Paytm's IPO"
+        asOf: 2021-11-17
+        outcome: "Listed below issue price and closed down 27% on day one."
+        sources:
+          - https://archive.siasat.com/news/paytm-shares-partly-pare-losses-after-disappointing-debut-2231426/
+        verified: false
+        note: "Not re-checked."
+  - id: der-forwards
+    title: "Forwards and futures"
+    stage: foundation
+    prerequisites: [bond-pricing, fx-basics, eq-markets]
+    cases:
+      - title: "Metallgesellschaft's stack-and-roll hedge"
+        asOf: 1993-12-31
+        outcome: "Long-dated fixed-price delivery hedged with short-dated futures; losses $1.3bn to $1.5bn; rescued for $1.9bn to $2.2bn in 1994; CFTC fine $2.25m in 1995."
+        sources:
+          - https://sk.sagepub.com/ency/edvol/encyclopedia-of-white-collar-and-corporate-crime-2e/chpt/metallgesellschaft
+          - https://www.nytimes.com/1995/07/28/business/metallgesellschaft-to-pay-fine-to-us.html
+        verified: true
+      - title: "The 1987 futures discount"
+        asOf: 1987-10-19
+        outcome: "S&P 500 futures fell 29% against 20% for the cash index, opening a discount."
+        sources:
+          - https://www.federalreserve.gov/pubs/feds/2007/200713/
+        verified: true
+  - id: der-options
+    title: "Options and payoffs"
+    stage: foundation
+    prerequisites: [der-forwards, num-probability]
+    cases:
+      - title: "1987 portfolio insurance as a replicated put"
+        asOf: 1987-10-16
+        outcome: "Dynamic hedging sold into the fall; the crash on 19 Oct 1987."
+        sources:
+          - https://www.federalreserve.gov/pubs/feds/2007/200713/
+          - https://time.com/archive/6711376/the-culprits-behind-the-crash
+        verified: true
+  - id: der-option-pricing
+    title: "Binomial and Black-Scholes"
+    stage: foundation
+    prerequisites: [der-options, num-statistics]
+    cases:
+      - title: "LTCM and the option-pricing pioneers"
+        asOf: 1998-08-01
+        outcome: "Scholes and Merton were partners; Nobel 1997; LTCM lost $4.6bn in under four months."
+        sources:
+          - https://www.federalreservehistory.org/essays/ltcm-near-failure
+          - https://www.federalreserve.gov/boarddocs/testimony/1998/19981001.htm
+        verified: true
+  - id: der-rates-fx
+    title: "Interest-rate and currency derivatives, swaps"
+    stage: foundation
+    prerequisites: [der-forwards, bond-duration]
+    cases:
+      - title: "The RBI's FCNR(B) swap window"
+        asOf: 2013-09-03
+        outcome: "Banks swapped dollar deposits with the RBI at a fixed rate; the rupee steadied and cover was cheap."
+        sources:
+          - https://bis.org/review/r160905b.htm
+          - https://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1294FSR1213.pdf
+        verified: true
+  - id: der-hedging
+    title: "Hedging and risk management"
+    stage: foundation
+    prerequisites: [der-option-pricing, der-rates-fx, cf-capital-structure]
+    cases:
+      - title: "Orange County and Metallgesellschaft"
+        asOf: 1994-06-30
+        outcome: "Leveraged rate bets lost $1.5bn at Orange County; Metallgesellschaft's hedge lost $1.3-1.5bn."
+        sources:
+          - https://sec.gov/files/litigation/admin/3436761.txt
+          - https://sk.sagepub.com/ency/edvol/encyclopedia-of-white-collar-and-corporate-crime-2e/chpt/metallgesellschaft
+          - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
+        verified: true
+  - id: bank-regulation
+    title: "Bank regulation, capital and liquidity"
+    stage: foundation
+    prerequisites: [eco-money-banking, fs-ratios]
+    cases:
+      - title: "SVB's supervisory warnings"
+        asOf: 2022-03-31
+        outcome: "31 unaddressed supervisory warnings, three times the peer average; closure on 10 Mar 2023."
+        sources:
+          - https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm
+          - https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf
+        verified: true
+  - id: crisis-bank-runs
+    title: "Bank runs and interest-rate risk in banks"
+    stage: foundation
+    prerequisites: [bank-regulation, bond-duration]
+    cases:
+      - title: "The run on SVB"
+        asOf: 2023-03-08
+        outcome: "Restructuring announced 8 Mar 2023, closed 10 Mar 2023."
+        sources:
+          - https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf
+          - https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm
+        verified: true
+  - id: struct-securitisation
+    title: "Securitisation, MBS and CDOs"
+    stage: foundation
+    prerequisites: [bond-credit-spreads, bank-regulation]
+    cases:
+      - title: "US housing finance"
+        asOf: 2006-12-31
+        outcome: "The FCIC reported its findings in Jan 2011; mortgage securities and CDOs sat at the centre of the crisis."
+        sources:
+          - https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
+        verified: false
+        note: "No figures extracted yet."
+  - id: private-credit
+    title: "Shadow banks, private credit and SPVs"
+    stage: foundation
+    prerequisites: [struct-securitisation, credit-analysis]
+    cases:
+      - title: "IL&FS and mutual-fund redemptions"
+        asOf: 2018-08-31
+        outcome: "Defaults in Aug-Sep 2018 hit mutual funds holding its paper."
+        sources:
+          - https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3
+        verified: false
+        note: "Fund exposure figures to fetch."
+  - id: funds-passive
+    title: "Mutual funds, ETFs and passive investing (incl. India AIFs)"
+    stage: foundation
+    prerequisites: [risk-portfolio, mkt-efficiency]
+    cases:
+      - title: "IL&FS paper in mutual funds"
+        asOf: 2018-09-30
+        outcome: "Paper held by mutual funds forced redemptions in 2018."
+        sources:
+          - https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1471519155273.pdf
+        verified: false
+        note: "Pick an AIF Case from NISM material; the SEBI AIF regulations are the source of rules, not a Case."
+  - id: ins-risk-transfer
+    title: "Insurance and risk transfer"
+    stage: foundation
+    prerequisites: [fs-balance, num-probability]
+    cases:
+      - title: "AIG's credit default swaps"
+        asOf: 2008-09-15
+        outcome: "On 16 Sep 2008 the Fed authorised up to $85bn for 79.9% of AIG; total commitment $182.3bn; taxpayers made a $22.7bn profit."
+        sources:
+          - https://www.newyorkfed.org/aboutthefed/aig
+          - https://elischolar.library.yale.edu/journal-of-financial-crises/vol3/iss1/8
+        verified: true
+        note: "Added to cover insurance, a gap in the first draft."
+  - id: real-assets
+    title: "Real estate and commodities"
+    stage: foundation
+    prerequisites: [present-value, eq-markets]
+    cases:
+      - title: "India's gold import curbs"
+        asOf: 2013-06-30
+        outcome: "Record current account deficit of $88.2bn (4.8% of GDP) in 2012-13; gold duty raised to 10%; gold and silver imports $55.79bn to $33.46bn."
+        sources:
+          - https://www.businesstoday.in/latest/economy-politics/story/gold-imports-drop-fy-2013-2014-import-duty-to-stay-govt-137501-2014-07-25
+          - https://www.thehindubusinessline.com/economy/gold-silver-imports-decline-40-to-335-bn-in-2013-14/article20751941.ece
+        verified: true
+      - title: "The US housing boom and bust"
+        asOf: 2006-12-31
+        outcome: "FCIC report Jan 2011."
+        sources:
+          - https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
+        verified: false
+  - id: hist-macro-regimes
+    title: "Inflation regimes and stagflation"
+    stage: foundation
+    prerequisites: [eco-inflation-real, eco-fiscal-debt]
+    cases:
+      - title: "Volcker's disinflation"
+        asOf: 1979-10-06
+        outcome: "Funds rate near 20% in 1981; 10-year yield above 15% in Sep 1981; recession Jul 1981 to Nov 1982; unemployment nearly 11%."
+        sources:
+          - https://www.federalreservehistory.org/essays/anti-inflation-measures
+          - https://www.federalreservehistory.org/essays/recession-of-1981-82
+        verified: true
+  - id: gov-ethics
+    title: "Governance, ethics and fraud"
+    stage: foundation
+    prerequisites: [fs-earnings-quality, eq-markets]
+    cases:
+      - title: "Satyam and Maytas"
+        asOf: 2008-12-16
+        outcome: "Satyam tried to buy promoter-linked Maytas; fraud revealed 7 Jan 2009."
+        sources:
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1441894262377.pdf
+          - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+        verified: true
+  - id: crisis-leverage
+    title: "Leverage, liquidity spirals and systemic risk"
+    stage: foundation
+    prerequisites: [struct-securitisation, der-hedging, crisis-bank-runs]
+    cases:
+      - title: "LTCM and 2008"
+        asOf: 1998-09-01
+        outcome: "LTCM rescue of 23 Sep 1998; FCIC report on 2008."
+        sources:
+          - https://www.federalreservehistory.org/essays/ltcm-near-failure
+          - https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
+        verified: true
+  - id: fol-uber-2014
+    title: "Follow: Damodaran, crowd valuation of Uber (Dec 2014)"
+    stage: follow
+    prerequisites: [val-young]
+    cases:
+      - title: "Damodaran's Uber post"
+        asOf: 2014-12-02
+        outcome: "Uber IPO priced $45 on 9 May 2019 at $82.4bn fully diluted, closed down 7.6%."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
+          - https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html
+        verified: true
+  - id: fol-twitter-ipo
+    title: "Follow: Damodaran, Twitter IPO valuation (Oct 2013)"
+    stage: follow
+    prerequisites: [val-young, mkt-ipo-float]
+    cases:
+      - title: "Damodaran's Twitter post"
+        asOf: 2013-10-05
+        outcome: "Twitter traded below its IPO price by 2016 and below $6 in 2019."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2022/04/
+        verified: false
+        note: "Direct URL of the 2013 post not fetched."
+  - id: fol-tesla-2020
+    title: "Follow: Damodaran, Tesla valuation (Feb 2020)"
+    stage: follow
+    prerequisites: [val-young]
+    cases:
+      - title: "Damodaran's do-it-yourself Tesla valuation"
+        asOf: 2020-02-06
+        outcome: "Value $427 per share against a close of $581."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html
+        verified: true
+  - id: fol-roe
+    title: "Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)"
+    stage: follow
+    prerequisites: [val-multiples, fs-ratios]
+    cases:
+      - title: "Damodaran on ROE and earnings yield"
+        asOf: 2025-02-18
+        outcome: "The post has an Indian-market thread; test its claims in the Judge Topic."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
+        verified: false
+        note: "Outcome is the Learner's judgement of the post."
+  - id: fol-sov-ratings
+    title: "Follow: Damodaran, sovereign ratings and default risk (Jun 2025)"
+    stage: follow
+    prerequisites: [sov-default-country-risk]
+    cases:
+      - title: "Damodaran on sovereign ratings"
+        asOf: 2025-06-02
+        outcome: "Moody's cut the US from Aaa to Aa1 on 16 May 2025, having held Aaa since 1919."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html
+          - https://www.reuters.com/markets/us/moodys-downgrades-us-aa1-rating-2025-05-16/
+          - https://www.cnbc.com/2025/05/16/moodys-downgrades-united-states-credit-rating-on-increase-in-government-debt.html
+        verified: true
+  - id: fol-subprime-ai
+    title: "Follow: Zitron, The Subprime AI Crisis (Sep 2024)"
+    stage: follow
+    prerequisites: [bond-credit-spreads, fs-revenue-runrate]
+    cases:
+      - title: "Zitron's Subprime AI Crisis"
+        asOf: 2024-09-16
+        outcome: "Judge the piece's claims against later filings."
+        sources:
+          - https://www.wheresyoured.at/subprimeai/
+        verified: false
+        note: "Outcome section to write from later sources."
+  - id: fol-systemic-risk
+    title: "Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)"
+    stage: follow
+    prerequisites: [fs-leases-debt, fs-cashflow]
+    cases:
+      - title: "Zitron's OpenAI systemic-risk piece"
+        asOf: 2025-04-14
+        outcome: "Judge the piece's claims against later filings."
+        sources:
+          - https://www.wheresyoured.at/openai-is-a-systemic-risk-to-the-tech-industry-2/
+        verified: false
+        note: "Outcome section to write from later sources."
+  - id: fol-money-trap
+    title: "Follow: Zitron, AI Is A Money Trap (Aug 2025)"
+    stage: follow
+    prerequisites: [fs-revenue-runrate, cf-venture]
+    cases:
+      - title: "Zitron's AI Is A Money Trap"
+        asOf: 2025-08-06
+        outcome: "It says Cursor must die or be acquired; SpaceX announced the $60bn all-stock purchase on 16 Jun 2026 and completed it 14 Aug 2026."
+        sources:
+          - https://www.wheresyoured.at/ai-is-a-money-trap/
+          - https://www.reuters.com/legal/transactional/spacex-buy-anysphere-60-billion-2026-06-16/
+          - https://www.bloomberg.com/news/articles/2026-08-14/spacex-completes-its-60-billion-cursor-acquisition
+        verified: true
+  - id: fol-erp
+    title: "Follow: Damodaran, The Price of Risk (Aug 2023)"
+    stage: follow
+    prerequisites: [val-implied-erp]
+    cases:
+      - title: "Damodaran on equity risk premiums"
+        asOf: 2023-08-05
+        outcome: "Compare the 2023 implied premium with later data."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2023/08/the-price-of-risk-with-equity-risk.html
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html
+        verified: false
+        note: "Outcome to source."
+  - id: jud-rating-boundary
+    title: "Judge: where does junk start?"
+    stage: judge
+    prerequisites: [fol-sov-ratings, bond-credit-spreads]
+    cases:
+      - title: "Damodaran's Baa2 claim"
+        asOf: 2025-06-02
+        outcome: "D7 calls Baa2 and below speculative; the line is between Baa3 and Ba1."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html
+          - https://bis.org/bcbs/qis/qisrating.htm
+          - https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
+        verified: true
+  - id: jud-assumptions
+    title: "Judge: the no-growth assumption in ROE versus earnings yield"
+    stage: judge
+    prerequisites: [fol-roe]
+    cases:
+      - title: "Damodaran's ROE post"
+        asOf: 2025-02-18
+        outcome: "Recompute with changed growth and R&D treatment."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
+        verified: false
+        note: "Recompute to be built when written."
+  - id: jud-narrative-numbers
+    title: "Judge: stories into inputs (Uber 2014 versus outcome)"
+    stage: judge
+    prerequisites: [fol-uber-2014]
+    cases:
+      - title: "Uber 2014 and 2019"
+        asOf: 2014-12-02
+        outcome: "IPO $45, $82.4bn fully diluted, 2018 revenue $11.3bn and loss $1.8bn."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
+          - https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html
+          - https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday
+        verified: true
+  - id: jud-ipo-forecast
+    title: "Judge: Twitter's 2013 IPO valuation versus what happened"
+    stage: judge
+    prerequisites: [fol-twitter-ipo, fs-filings]
+    cases:
+      - title: "Twitter's IPO"
+        asOf: 2013-10-05
+        outcome: "Below the IPO price by 2016."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2022/04/
+        verified: false
+        note: "Recompute from Twitter filings."
+  - id: jud-predicted-outcomes
+    title: "Judge: Zitron's predictions versus later events"
+    stage: judge
+    prerequisites: [fol-money-trap, fol-subprime-ai, fol-systemic-risk]
+    cases:
+      - title: "Cursor"
+        asOf: 2025-08-06
+        outcome: "SpaceX bought Anysphere for $60bn all-stock (16 Jun 2026; completed 14 Aug 2026)."
+        sources:
+          - https://www.wheresyoured.at/ai-is-a-money-trap/
+          - https://www.reuters.com/legal/transactional/spacex-buy-anysphere-60-billion-2026-06-16/
+          - https://www.bloomberg.com/news/articles/2026-08-14/spacex-completes-its-60-billion-cursor-acquisition
+        verified: true
+  - id: jud-units-periods
+    title: "Judge: units and periods (430% versus 340%, basis points, SOFR)"
+    stage: judge
+    prerequisites: [fs-revenue-runrate, bond-yield, num-percent-bps]
+    cases:
+      - title: "Zitron's slips on units"
+        asOf: 2026-10-13
+        outcome: "Checkable slips: 430% versus 340% (annual versus quarter), a basis point as 0.001, SOFR glossed as borrowing from the Fed."
+        sources:
+          - https://www.wheresyoured.at/annualized-enron-rate/
+          - https://www.wheresyoured.at/credit-crunch/
+          - https://www.wheresyoured.at/dead-money/
+          - https://www.newyorkfed.org/markets/reference-rates/sofr
+        verified: false
+        note: "S-1 figures to re-fetch."
+  - id: jud-filing-vs-claim
+    title: "Judge: claim versus filing"
+    stage: judge
+    prerequisites: [fs-filings, fs-income, jud-units-periods]
+    cases:
+      - title: "The Anthropic S-1 against two readings"
+        asOf: 2026-10-28
+        outcome: "S-1 Q2 operating income $974m and cash $112.4bn confirmed; the H1 loss and commitments figures not re-verified."
+        sources:
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+          - https://www.wheresyoured.at/exit-liquidity/
+          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
+        verified: false
+        note: "Fetch the S-1 figures before writing."
+  - id: jud-rating-conflict
+    title: "Judge: junk or BB+?"
+    stage: judge
+    prerequisites: [credit-analysis, jud-rating-boundary]
+    cases:
+      - title: "Anthropic's rating"
+        asOf: 2026-06-01
+        outcome: "KBRA gave BB+ in Jun 2026 (highest speculative grade) per the FT; Zitron's B to CCC+ unchecked."
+        sources:
+          - https://www.ft.com/content/5a310aee-f555-4266-874c-b1b4db20186d
+          - https://aiweekly.co/alerts/anthropic-landed-bb-kbra-rating-in-june-ahead-of-35b-apollo-deal
+          - https://www.wheresyoured.at/credit-crunch/
+        verified: false
+        note: "BB+ side verified only."
+  - id: ana-build-valuation
+    title: "Analyse: build a valuation as of a past date"
+    stage: analyse
+    prerequisites: [val-multiples, val-young, val-distress]
+    cases:
+      - title: "A lesser-known company's valuation"
+        asOf: 1999-11-05
+        outcome: "Choose Webvan (Nov 1999), Coffee Day (Oct 2015) or Yes Bank (Feb 2020); each has a known outcome."
+        sources:
+          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
+          - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
+          - https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477
+        verified: true
+  - id: ana-who-pays-whom
+    title: "Analyse: trace who pays whom"
+    stage: analyse
+    prerequisites: [fs-leases-debt, struct-securitisation, private-credit]
+    cases:
+      - title: "WeWork's leases and SoftBank"
+        asOf: 2019-08-14
+        outcome: "WeWork owed about $17bn in leases while SoftBank funded the losses; bankrupt in Nov 2023."
+        sources:
+          - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+          - https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall
+        verified: true
+  - id: ana-commitments-debt
+    title: "Analyse: commitments as debt"
+    stage: analyse
+    prerequisites: [fs-leases-debt, val-dcf, jud-filing-vs-claim]
+    cases:
+      - title: "Purchase commitments in the Anthropic S-1"
+        asOf: 2026-10-26
+        outcome: "$430bn undiscounted versus its present value; the scope gap against 'over $600bn' is unreconciled."
+        sources:
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
+          - https://www.wheresyoured.at/exit-liquidity/
+        verified: false
+        note: "Commitments figure came back blank in the scrape; re-fetch."
+  - id: ana-india-transfer
+    title: "Analyse: transfer to India (G-sec, bank, rupee)"
+    stage: analyse
+    prerequisites: [val-india, val-banks, in-gsec, fx-regimes-crises]
+    cases:
+      - title: "Yes Bank, the rupee in 2013 and country risk"
+        asOf: 2020-02-28
+        outcome: "Yes Bank moratorium 5 Mar 2020; rupee package 4 Sep 2013."
+        sources:
+          - https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477
+          - https://bis.org/review/r160905b.htm
+          - https://aswathdamodaran.blogspot.com/2026/07/country-risk-drivers-measures-and.html
+        verified: true
+  - id: ana-decide-between
+    title: "Analyse: decide between writers, facts versus framing"
+    stage: analyse
+    prerequisites: [jud-predicted-outcomes, jud-units-periods, jud-filing-vs-claim]
+    cases:
+      - title: "Blodget versus Grantham"
+        asOf: 2000-01-01
+        outcome: "The dot-com bust settled which framing was right."
+        sources:
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html
+        verified: false
+        note: "Outcome data to source."
+  - id: ana-anthropic-s1
+    title: "Analyse: the writers' opposing readings of the Anthropic S-1"
+    stage: analyse
+    prerequisites: [ana-who-pays-whom, ana-commitments-debt, ana-decide-between, ana-india-transfer, jud-rating-conflict]
+    cases:
+      - title: "The S-1 filed 26 October 2026"
+        asOf: 2026-10-28
+        outcome: "Zitron's 'Exit Liquidity' and Damodaran's 'The Anthropic Prospectus Arrives' both appeared on 28 Oct 2026. Judge the readings; do not forecast."
+        sources:
+          - https://www.anthropic.com/news/s1-sec
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+          - https://www.wheresyoured.at/exit-liquidity/
+          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
+        verified: false
+        note: "Arithmetic beyond cash and operating income not verified."

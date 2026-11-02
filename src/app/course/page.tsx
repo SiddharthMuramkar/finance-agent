@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 /** The Course Map: Topics as stops, Checks along the way, and the Learner's place. */
 export default async function CourseMapPage() {
-  const topics = courseOverview(loadCourseMap(), await loadProgress(getDb()));
+  const map = loadCourseMap();
+  const topics = courseOverview(map, await loadProgress(getDb()));
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-6">
       <header className="mb-6 flex items-baseline justify-between gap-4">
@@ -24,7 +25,7 @@ export default async function CourseMapPage() {
           </Link>
         </nav>
       </header>
-      <CourseMapView topics={topics} />
+      <CourseMapView topics={topics} coming={map.coming} />
     </main>
   );
 }
