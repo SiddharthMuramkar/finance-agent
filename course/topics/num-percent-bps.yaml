@@ -71,7 +71,7 @@ questions:
 
   - id: pb-q-bond-140
     prompt: >
-      Long-term bond rates jumped 140 basis points. How many percentage points is that?
+      A bond yield rises by 140 basis points. How many percentage points is that?
     choices:
       - { id: a, text: "14 percentage points" }
       - { id: b, text: "1.4 percentage points" }
@@ -81,7 +81,7 @@ questions:
     explanation: >
       Divide basis points by 100: 140 / 100 = 1.4 percentage points.
     source: >
-      Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point . Fortune (October 1994) describes the same move as "140 basis points, or nearly 1.5 percentage points": https://fortune.com/article/the-great-bond-massacre-fortune-1994
+      Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
   - id: pb-q-unemployment
     prompt: >
