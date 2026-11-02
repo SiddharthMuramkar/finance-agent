@@ -1,6 +1,11 @@
-# Analyse: build a valuation as of a past date, taught through Amazon.com in February 2000.
-# The Learner chooses the inputs, values the firm, and only then sees Damodaran's inputs and what happened.
-# Case sources (checked): Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, pages 31-34: inputs and output; valuation done February 2000); Amazon.com Form 10-K405 for 2000 (net sales, operating loss and quarterly share prices).
+# Analyse: build a valuation as of a past date, taught through two Cases: Amazon.com in February 2000
+# and, as a lesser-known company, Webvan at its share offering on 4 November 1999.
+# The Learner chooses the inputs, values the firm, and only then sees the other inputs and what happened.
+# No Case Data: every figure is stated in the stories; see docs/architecture.md.
+# Case sources (checked):
+#  - Amazon: Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, pages 31-34: inputs and output; valuation done February 2000); Amazon.com Form 10-K405 for 2000 (net sales, operating loss and quarterly share prices).
+#  - Webvan story (checked 2 Nov 2026): Webvan Group Form 424B1 prospectus dated 4 November 1999 (SEC accession 0000891618-99-004914, filed 5 Nov 1999): offer, shares, options, cash, loans, plan, capacity, the company's $300m / 12% / 4% claims, Forrester and sales figures. 10-year Treasury 5.95% on 4 Nov 1999: Federal Reserve H.15 release of 8 Nov 1999. 35% marginal rate: top federal corporate rate for 1999 (IRS Publication 542 table, Tax Policy Center).
+#  - Webvan reveal: the prospectus (Goldman Sachs projections, Goldman affiliates' $100.0m of Series D-2); New York Times 6 Nov 1999 (first-day close $24.875, $7.9bn); Form 10-K405 for 1999 (0000891618-00-001877); Form 10-K for 2000 (0001012870-01-001485: results, HomeGrocer merger on 5 Sep 2000, share prices); Form 10-Q for Q1 2001 (0001012870-01-500862); closure on 9 Jul 2001: Los Angeles Times 10 Jul 2001, CNET, BBC; Form 8-K of 27 Jul 2001 (0001021408-01-504054): Chapter 11 petition filed 13 Jul 2001, not 9 Jul.
 id: ana-build-valuation
 title: "Analyse: build a valuation as of a past date"
 
@@ -44,28 +49,93 @@ cases:
       examined. The price falling does not prove either valuation right: a value and a price are
       compared as questions.
 
+  - id: webvan-1999-analyse
+    title: Build your own value for Webvan at its public offering
+    asOf: 1999-11-04
+    story: >
+      It is the evening of Thursday 4 November 1999. Webvan Group, which delivers groceries ordered on
+      the internet, has priced its first sale of shares to the public: 25 million new shares at $15.00,
+      with an option for the underwriters to buy up to 3.75 million more. You will build your own
+      discounted cash flow valuation from what its prospectus, dated today, says. Webvan launched on 2
+      June 1999 with one automated distribution centre, in Oakland, designed for 8,000 orders a day. It
+      runs five days a week at under 20% of designed capacity. Net sales were about $3.8 million in the
+      three months to September, with an average order of about $71 since the launch. The net loss was
+      $35.1 million in the first half of 1999, and Webvan expects a net loss of $64 million to $65
+      million for the third quarter alone, including about $41.1 million of compensation expense (a
+      bonus and stock-based compensation). The company says a centre at designed capacity, seven days a
+      week with an average order of $103, would sell about $300 million a year and earn an operating
+      margin of 12%, against 4% for a traditional supermarket. It adds that the success of its system at
+      high volumes "has yet to be proven" and that no centre is expected to reach designed capacity for
+      several years. It plans a second centre in Atlanta in the second quarter of 2000, then two in 2000
+      and seven in 2001 under a July 1999 agreement with the engineering firm Bechtel to build up to 26
+      more over three years, at an estimated $25 million to $35 million each, with no firm commitment to
+      build them all. Forrester Research expects online grocery sales in the US to grow from $235
+      million in 1998 to $10.8 billion in 2003, about 2% of the grocery market. After the offering there
+      will be 321.8 million shares, and options on 67.5 million shares (average exercise price $3.88)
+      are outstanding. Cash was $21.8 million at 30 June 1999; counting the $275.0 million raised from
+      investors in July and August and about $350.5 million from this offering after fees, it is $647.2
+      million, plus $22.2 million of marketable securities. Loans and leases were about $18 million. The
+      10-year Treasury yield is 5.95% and the marginal tax rate is 35%. Choose your own path for ten
+      years: how many centres open and when, how full each one gets and how fast, the average order,
+      where the operating margin settles, the discount rate, and the stable growth rate after year 10.
+      Work out free cash flow each year, a terminal value and a value per share, allowing for the cash,
+      debt and options. Write your inputs down before you compute anything. How does your value compare
+      with $15, and which input moves it most? What would you have to believe for $15 to be a fair
+      price? (You are valuing the firm as of November 1999 only. Do not try to say what happens next.)
+    reveal: >
+      The prospectus carried one outside view: Goldman Sachs, the lead underwriter, had told prospective
+      investors on a conference call that it projected revenue of $11.9 million and a net loss of $73.8
+      million for 1999, $120.0 million and $154.3 million for 2000, and $518.2 million and $302 million
+      for 2001, not counting stock compensation. Affiliates of Goldman had also bought $100.0 million of
+      the July preferred stock. On 5 November the shares closed at $24.875, 65% above the offer price,
+      valuing Webvan at $7.9 billion. The underwriters took their option in full, so Webvan sold 28.75
+      million shares, raising $431.3 million, or $402.6 million after costs, against the $350.5 million
+      expected. In 1999 net sales were $13.3 million and the net loss $144.6 million; at the end of the
+      year Oakland was at less than 25% of designed capacity and the average order for the year was
+      $77.65. In 2000 Webvan added centres in Atlanta and Chicago and on 5 September merged with
+      HomeGrocer. Net sales were $178.5 million ($55.6 million of it from HomeGrocer) and the net loss
+      $453.3 million. The average order was $104 for the year, so the order size the plan needed was
+      reached. But the annual report said no facility operated at or near designed capacity and none had
+      become profitable on a cash-flow basis, both of which the prospectus had said it could not assure.
+      Capital spending was $259.8 million and operations used $263.1 million of cash, and its auditors
+      expressed substantial doubt about its ability to continue. The shares traded between $2.28 and
+      $0.28 in the fourth quarter of 2000. On 9 July 2001, with the shares at 6 cents, Webvan ceased
+      operations in all seven of its markets, let go about 2,000 employees and said it would file for
+      Chapter 11 protection, which it did on 13 July. Compare your inputs with the company's and the
+      underwriter's, input by input: the order size was reached, but the fill rate and the margin the
+      plan needed were not. Your value, the company's claims, the underwriter's projections and the
+      price were four estimates of one firm, and the later failure does not by itself show which was
+      right on 4 November 1999: a value and a price are compared as questions.
+
 concept: >
   Building a valuation as of a past date means fixing the date, using only what was known then,
   and writing every input down before computing. For a young company, set out four things: the
-  revenue path (growth fading year by year to a stable rate), the operating margin path (from
-  today's margin towards what mature firms in the business earn), the reinvestment needed (new
-  revenue divided by sales-to-capital gives new capital spending), and the discount rate (the
-  cost of capital, which can fall as the firm matures and its beta moves towards 1). Free cash
-  flow to the firm each year = operating income x (1 - tax rate) - reinvestment. Tax is zero while
-  there are losses to carry forward. Terminal value = free cash flow in year 11 / (cost of capital
-  - stable growth), and stable growth should not exceed the risk-free rate, or the firm would
-  outgrow the economy for ever. Operating value + cash - debt = value of equity; subtract the
-  value of employee options before dividing by the shares. The `dcf` calculator takes one flat
-  discount rate, so use it for a quick version of the valuation and say that a rate that falls
-  over time will raise the value a little. Then compare the result with the price as a question
-  and with a second analyst's inputs, input by input, rather than only the final numbers. Run
-  sensitivity tests on the margin, the growth rate and the cost of capital, and say which one
-  moves the value most. The valuation is practised on a past date only: do not forecast, and do
+  revenue path (growth fading year by year to a stable rate; or, when growth comes from opening
+  units such as distribution centres, built from the units: how many open each year, how full
+  each one gets and how fast, and what a full one sells), the operating margin path (from
+  today's margin towards what mature firms in the business earn; a company's own claim about its
+  mature margin is an input to test against that, not a fact), the reinvestment needed (new
+  revenue divided by sales-to-capital gives new capital spending; for units, what each costs to
+  build), and the discount rate (the cost of capital, which can fall as the firm matures and its
+  beta moves towards 1). Free cash flow to the firm each year = operating income x (1 - tax
+  rate) - reinvestment. Tax is zero while there are losses to carry forward. Terminal value =
+  free cash flow in year 11 / (cost of capital - stable growth), and stable growth should not
+  exceed the risk-free rate, or the firm would outgrow the economy for ever. Operating value +
+  cash - debt = value of equity; if the firm is selling new shares as of the valuation date,
+  count the cash it raises and the new shares. Subtract the value of employee options before
+  dividing by the shares: an option is worth at least the amount by which the value per share
+  exceeds its exercise price, so many low-priced options take a large part of the value. The
+  `dcf` calculator takes one flat discount rate, so use it for a quick version of the valuation
+  and say that a rate that falls over time will raise the value a little. Then compare the result
+  with the price as a question and with a second analyst's inputs, input by input, rather than
+  only the final numbers. Run sensitivity tests on the margin, the growth rate (or, for units,
+  how full they get) and the cost of capital, and say which one moves the value most. The valuation is practised on a past date only: do not forecast, and do
   not turn a value into a buy, sell or hold call.
 
 principle: >
-  Write the inputs down before computing, test the ones that drive the value, and compare your
-  value with the price and with other analysts' inputs as questions, never as verdicts.
+  Write the inputs down before computing, test the ones that drive the value (including any claim
+  the company makes about its own margin or capacity), and compare your value with the price and
+  with other analysts' inputs as questions, never as verdicts.
 
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
@@ -165,5 +235,29 @@ checks:
       flow to value per share through a terminal value, cash, debt and the options. They name
       the input that drives the value (usually the long-run margin, the discount rate or
       terminal growth) and test it with a different value. They treat the gap with the price as a
+      question, not proof that the price is wrong, and make no forecast of the share price and no
+      buy, sell or hold call.
+  - id: abv-build-webvan
+    kind: conversation
+    prompt: >
+      Using the Webvan figures from 4 November 1999, state the inputs of your own valuation (how
+      many distribution centres open and when, how full each one gets and how fast, the average
+      order, the operating margin you reach, the discount rate and stable growth), show how you get
+      from them to a value per share (use the dcf calculator for a quick version, and count the
+      cash from the offering, the debt and the options), and say which input moves your value most.
+      Then compare your value with the $15 offer price and say what you would have to believe for
+      $15 to be a fair price.
+    passCriteria: >
+      The Learner writes their inputs down before giving a result: the number and timing of
+      centres (no faster than the plan in the story unless they say why), how full each centre gets
+      and how fast, starting from under 20% and not from full capacity, the average order and what
+      a full centre sells, an operating margin that they set against both the company's 12% and a
+      supermarket's 4%, the cost of building each centre ($25 million to $35 million) as
+      reinvestment, a discount rate above the Treasury yield and a stable growth rate no higher
+      than the Treasury yield. They get from free cash flow to value per share through a terminal
+      value, the cash (counting the offering), the loans and the options (which cover about a fifth
+      as many shares as are outstanding, so leaving them out is a clear error). They name the input
+      that drives the value (usually how full the centres get, the long-run margin or the discount
+      rate) and test it with a different value. They treat the gap with the $15 offer price as a
       question, not proof that the price is wrong, and make no forecast of the share price and no
       buy, sell or hold call.
