@@ -143,7 +143,9 @@ latest Session from SQL and shows a Continue button. A new Session starts on the
 (Continue or a message) if the last message is more than six hours old. The six hours is the
 `session_idle_hours` setting in SQL, so it can be changed without a deploy. A new Session also
 starts if the instructions or tools changed since the last one was frozen. A new Session opens
-with the summary and context as its first message. Old Sessions stay readable at `/sessions`.
+with the summary and context as the first block of its first message. (Claude's API rejects a
+"system" message in first place, which a live run showed; later context messages can be "system"
+messages.) Old Sessions stay readable at `/sessions`.
 
 **Scenario.** The Learner returns after a weekend. The page shows the summary at no cost. They
 click Continue; the old Session is past six hours, so a new one starts, its first message tells
@@ -151,6 +153,65 @@ the Tutor where the Learner stands, and teaching picks up at the same Teaching S
 
 **Trade-off.** Context goes in as appended messages rather than edits to the instructions, which
 keeps Claude's thinking valid but repeats some text in long Sessions.
+
+## Widgets (OpenUI: `src/widgets/`, `src/app/conversation.tsx`, `src/app/widget-view.tsx`)
+
+**What it does.** The Tutor can put an interactive widget beside the conversation by writing a
+short block in OpenUI's small UI language inside its reply. The browser draws it with OpenUI's
+open-source renderer (no paid Thesys service) from our own three components: `Widget` (the
+frame), `Slider` (one of the Learner's assumptions) and `AnnuityChart` (yearly payments and what
+each is worth today). The instructions that teach the Tutor this language are generated once from
+those components (`npm run widgets:freeze`), checked in, and frozen into each Session with the
+rest of the Tutor's instructions, so they never change under a running conversation.
+
+**Numbers come from code, not the model.** A chart never accepts a list of numbers. It takes
+the inputs to a tested formula (the present value code in `src/finance/`, built on formula.js and
+checked against textbook worked examples) and, optionally, a reference to a sourced Case figure,
+such as the $877.8 million cash option. That figure comes from `/api/case-data/<case>`, which
+applies the hindsight rule on the server: before a Topic's reveal, nothing dated after the Case's
+as-of date is returned. Slider values are labelled "your assumption"; sourced figures carry their
+source and date.
+
+**Layout.** The conversation runs on assistant-ui's external-store runtime: our code owns the
+messages and streaming, assistant-ui draws them. As a reply streams in, code splits it into prose
+and widget blocks. The prose stays on the left with a small "Widget 1" marker where the widget
+belongs; the right pane shows the latest widget (or the one whose marker was clicked). On a phone
+the widget sits in the conversation instead. Old Sessions rebuild their widgets from the stored
+text, with controls back at their starting values.
+
+**When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
+parser. If one cannot be drawn, code sends the Tutor one correction request listing the problems,
+and the corrected widget replaces the broken one on screen. History keeps both, unchanged. If the
+correction is broken too, the browser shows a plain "This widget could not be drawn" note and the
+lesson carries on. A widget that crashes while drawing is caught the same way.
+
+**Scenario.** The Tutor tells the Mega Millions story and adds a discount-rate slider beside a chart
+of the 30 payments. The Learner drags the rate from 3% to 7%: the bars and the present value
+($930 million to $535 million) redraw instantly in the browser, and no request goes to Claude.
+The cash option bar beside it comes from the sourced figure, not from anything the Tutor typed.
+
+**Trade-off.** Widgets inside the prose (OpenUI's inline mode) keep one simple reply format and
+stream naturally, but the model can write invalid code, which is why the server check and one
+correction turn exist. Whether native citations combine with inline mode is still untested (the
+citations ticket decides). The fallback, if OpenUI ever has to go, is one plain tool per widget.
+
+**Measured (go or no-go, real headless Chrome).** All eight criteria held: streaming through Tool
+Runner and assistant-ui, slider redraw with zero model calls, formulas from tested code, a chart
+drawing from a referenced dataset, the left and right split while streaming, invalid output
+contained, dark and light modes, and no 400 errors from the frozen instructions (after moving the
+Session's opening context out of a first-place "system" message). The live Tutor wrote only valid
+widgets, so the broken-widget path was exercised with scripted replies in the browser and with
+tests on the server. These runs were against the app on a laptop with the real API and database;
+the production check waits on a deploy. OpenUI stays.
+
+## Dark and light modes (`src/app/theme-toggle.tsx`)
+
+**What it does.** A toggle in the header switches dark and light mode and remembers the choice in
+a cookie for a year. The server reads the cookie, so the page is drawn in the right mode from the
+first paint, with no flash.
+
+**Trade-off.** The choice is per browser, not per Learner account (there is only one Learner), and
+it ignores the computer's own dark-mode setting until the Learner first toggles.
 
 ## Checks before merging (CI)
 
