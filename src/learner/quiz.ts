@@ -2,6 +2,7 @@ import { and, asc, count, eq, isNotNull, isNull } from "drizzle-orm";
 import type { CourseMap, QuizCheck } from "@/course/map";
 import { markAttempt, publicQuestions, selectQuestions, type Marking, type PublicQuestion } from "@/course/quiz";
 import { navigate } from "@/course/navigator";
+import { questionLookup } from "@/bank/lookup";
 import { quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult } from "./memory";
@@ -30,7 +31,7 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promis
       .onConflictDoNothing();
     attempt = (await open())!;
   }
-  return { attemptId: attempt.id, checkId: check.id, attemptNo: attempt.attemptNo, questions: publicQuestions(map, attempt.questionIds) };
+  return { attemptId: attempt.id, checkId: check.id, attemptNo: attempt.attemptNo, questions: publicQuestions(await questionLookup(db, map, attempt.questionIds), attempt.questionIds) };
 }
 
 export type QuizResult =
@@ -51,7 +52,7 @@ export async function submitQuiz(db: Db, map: CourseMap, attemptId: number, answ
   const check = attempt && map.check(attempt.checkId);
   if (!attempt || !check || check.kind !== "quiz") return { ok: false, reason: "No such quiz attempt." };
   const given = attempt.submittedAt && attempt.answers ? attempt.answers : answers;
-  const marking = markAttempt(map, check as QuizCheck, attempt.questionIds, given);
+  const marking = markAttempt(await questionLookup(db, map, attempt.questionIds), check as QuizCheck, attempt.questionIds, given);
   if (!attempt.submittedAt) {
     // The Check result, the Learner's place and the marked attempt are saved together or not at all.
     try {
@@ -85,9 +86,10 @@ export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: s
     .where(and(isNotNull(quizAttempts.submittedAt), isNull(quizAttempts.reportedAt)))
     .orderBy(asc(quizAttempts.id));
   if (!rows.length) return null;
+  const lookup = await questionLookup(db, map, rows.flatMap((r) => r.questionIds));
   const notes = rows.map((row) => {
     const check = map.check(row.checkId) as (QuizCheck & { topicId: string }) | undefined;
-    const marking = check && markAttempt(map, check, row.questionIds, row.answers ?? {});
+    const marking = check && markAttempt(lookup, check, row.questionIds, row.answers ?? {});
     if (!marking) return `Quiz result by code, Check ${row.checkId}, attempt ${row.attemptNo + 1}: the Check is no longer on the Course Map.`;
     const head = `Quiz result by code, Check ${row.checkId}, attempt ${row.attemptNo + 1}: ${marking.correctCount} of ${marking.shown} correct (needs ${marking.needed}).`;
     const verdict = marking.passed
@@ -99,7 +101,10 @@ export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: s
         const text = (id: string | null) => q.choices.find((c) => c.id === id)?.text;
         return `${q.prompt} The Learner chose ${q.chosen ? `"${text(q.chosen)}"` : "no answer"}; the right answer is "${text(q.answer)}".`;
       });
-    return [head, verdict, ...(missed.length ? ["Missed:", ...missed.map((m) => `- ${m}`)] : [])].join("\n");
+    const unchecked = marking.questions.some((q) => !q.verified)
+      ? ["Some of these questions come from the Question Bank, whose answer key has not been checked by a person yet: if the Learner disputes a bank answer, work it out with them rather than defending the key."]
+      : [];
+    return [head, verdict, ...(missed.length ? ["Missed:", ...missed.map((m) => `- ${m}`)] : []), ...unchecked].join("\n");
   });
   return { text: notes.join("\n\n"), attemptIds: rows.map((r) => r.id), passed: rows.some((r) => r.passed === true) };
 }

@@ -112,6 +112,32 @@ ${lines}`;
       expect(errors).toEqual(['Check "quiz" uses question "ghost", which Topic "a" does not have']);
     });
 
+    it("accepts Question Bank IDs in a quiz Check beside the Topic's own questions, without needing them in the file", () => {
+      const checks = `checks:
+  - id: qc
+    kind: quiz
+    questions: [q1, "bank:eab:MBA-FIN-CF-0002", "bank:unipd:IMP-UNIPD-AFA-0004"]
+    passRule: { correct: 2 }`;
+      const { map, errors } = parseCourseMap([topic("a", questions, checks)]);
+      expect(errors).toEqual([]);
+      expect(map?.question("bank:eab:MBA-FIN-CF-0002")).toBeUndefined();
+    });
+
+    it("still rejects a bank ID listed twice, and a pass rule the list cannot meet", () => {
+      const twice = `checks:
+  - id: qc
+    kind: quiz
+    questions: ["bank:x:1", "bank:x:1"]
+    passRule: { correct: 1 }`;
+      expect(parseCourseMap([topic("a", "", twice)]).errors.join()).toMatch(/lists a question twice/);
+      const short = `checks:
+  - id: qc
+    kind: quiz
+    questions: ["bank:x:1"]
+    passRule: { correct: 2 }`;
+      expect(parseCourseMap([topic("a", "", short)]).errors.join()).toMatch(/shows 2 questions per attempt but lists only 1/);
+    });
+
     it("rejects an answer that is not one of the choices", () => {
       const { errors } = parseCourseMap([topic("a", questions.replace("answer: a\n    explanation: Money", "answer: z\n    explanation: Money"), quiz("    questions: [q1]\n    passRule: { correct: 1 }"))]);
       expect(errors).toEqual(['Question "q1" has answer "z", which is not one of its choices']);

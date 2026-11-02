@@ -374,3 +374,42 @@ export const modelComparisonAnswers = pgTable(
   },
   (t) => [uniqueIndex("model_comparison_answer_unique").on(t.runId, t.questionId, t.model)],
 );
+
+/**
+ * The Question Bank: imported human-written questions, kept only in the private database (never in
+ * the repo). The ID is permanent and starts with `bank:` so a quiz Check can list it beside the
+ * Topic file's own question IDs. `choice` questions are marked by code; `numeric` ones (FinQA) are
+ * stored for the Judge Stage and cannot yet be used in a quiz Check. `verified` stays false until a
+ * person has checked the key.
+ */
+export const questionBank = pgTable(
+  "question_bank",
+  {
+    id: text("id").primaryKey(),
+    /** Which import it came from: `unipd`, `eab` or `finqa`. */
+    source: text("source").notNull(),
+    /** The bank or course inside the source, for example "MBA core - Corporate Finance". */
+    bankTitle: text("bank_title").notNull(),
+    topic: text("topic").notNull(),
+    kind: text("kind").notNull().$type<"choice" | "numeric">(),
+    prompt: text("prompt").notNull(),
+    /** Passage and table a question is asked about (FinQA); null when the prompt stands alone. */
+    context: text("context"),
+    /** Choices for a `choice` question; null for `numeric`. */
+    choices: jsonb("choices").$type<{ id: string; text: string }[]>(),
+    /** The right choice ID, or the expected number as written in the source. */
+    answer: text("answer").notNull(),
+    explanation: text("explanation").notNull(),
+    licence: text("licence").notNull(),
+    /** The credit line to show with the question. */
+    credit: text("credit").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    /** What the source itself says about the review of this item (for example "self-checked", "draft"). */
+    upstreamReview: text("upstream_review").notNull(),
+    verified: boolean("verified").notNull().default(false),
+    /** Who or what checked the key, and when; set together with `verified`. */
+    verifiedNote: text("verified_note"),
+    importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("question_bank_source_idx").on(t.source, t.bankTitle)],
+);
