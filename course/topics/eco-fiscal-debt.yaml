@@ -1,0 +1,116 @@
+# Fiscal policy and government debt: a foundation Topic taught through the UK mini-budget and gilt crisis of 2022.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+id: eco-fiscal-debt
+title: Fiscal policy and government debt
+
+cases:
+  - id: uk-mini-budget-2022
+    title: The UK mini-budget and gilt crisis
+    asOf: 2022-09-23
+    story: >
+      On Friday 23 September 2022 the UK Chancellor, Kwasi Kwarteng, announces a "mini-budget": a package of
+      about 45 billion pounds of tax cuts, the biggest in 50 years, with no matching spending cuts or tax
+      rises. The Treasury declines to publish a forecast from the independent Office for Budget
+      Responsibility. Inflation is already high, and the day before, the Bank of England raised its policy
+      rate for the seventh time in a row, to the highest level in 14 years. So fiscal policy is loosening
+      while monetary policy tightens. The government pays for its spending by selling bonds called gilts;
+      buyers include UK pension funds. Many defined-benefit pension schemes use "liability-driven investment"
+      (LDI): a roughly 1.5 trillion pound market in which funds borrow against their gilts and hold long
+      gilts as collateral to match their long-term promises to pensioners. As the trading day on 23 September
+      begins, nobody knows how investors will price the extra borrowing.
+    reveal: >
+      Markets rejected the plan. On Monday 26 September the pound fell nearly 5 per cent at one point to
+      $1.0327, its lowest since Britain went decimal in 1971. Gilt prices fell sharply, so yields rose. Some
+      long-dated bonds held in pension funds lost around half their value in days, and the funds received
+      margin calls, demands for more collateral. To raise cash they had to sell gilts, which pushed prices
+      down further and set off a spiral. On Wednesday 28 September the Bank of England, acting through its
+      Financial Policy Committee, announced temporary purchases of long-dated gilts, up to 65 billion pounds
+      over 13 working days, up to 5 billion pounds a day until 14 October, and postponed its planned gilt
+      sales; the Treasury agreed to cover any losses. It was a financial-stability measure and not a cut in
+      interest rates. Economists at ING also noted that the mini-budget had added about 62 billion pounds of
+      gilt issuance in that fiscal year. The case shows that a government's ability to borrow rests on
+      credibility, and that leverage in the holders of its bonds can turn a bond sell-off into a crisis.
+
+concept: >
+  Fiscal policy is the government's use of taxes and spending. The budget deficit is how much the
+  government borrows in one year; the national debt is the total borrowed over time. The debt-to-GDP ratio
+  compares the debt to the size of the economy: it can fall even when the government still runs a deficit,
+  if GDP grows faster than the debt. Automatic stabilisers such as unemployment benefits and progressive
+  taxes cushion the cycle without new laws, while discretionary stimulus needs a decision. Government
+  borrowing can crowd out private investment when the economy is near full capacity, because it competes for
+  the same savings and raises interest rates. Investors will hold a government's bonds only at a yield that
+  compensates for the risk, so a plan they distrust raises the cost of borrowing at once. If major holders
+  are leveraged, falling bond prices force them to sell, which makes the fall worse.
+
+principle: >
+  A government's room to borrow is a matter of confidence as well as arithmetic. Look at the deficit, the
+  debt ratio, and who holds the bonds and how they have financed them.
+
+questions:
+  - id: fd-q-deficit-debt
+    prompt: >
+      What is the difference between a government's budget deficit and its national debt?
+    choices:
+      - { id: a, text: "The deficit is what the government borrows in one year; the debt is the total borrowed over time" }
+      - { id: b, text: "The deficit is the total borrowed over time; the debt is what it borrows in one year" }
+      - { id: c, text: "They are the same thing measured in different currencies" }
+    answer: a
+    explanation: >
+      A deficit is a flow in one year, while the debt is the stock built up by past deficits (less surpluses).
+    source: >
+      OpenStax, Principles of Macroeconomics 3e (CC BY 4.0), 17.3 Federal Deficits and the National Debt: https://openstax.org/books/principles-macroeconomics-3e/pages/17-3-federal-deficits-and-the-national-debt
+
+  - id: fd-q-ratio
+    prompt: >
+      A country's government debt is Rs 800 lakh crore and its GDP is Rs 1,000 lakh crore. If next year the
+      debt is unchanged and GDP rises to Rs 1,100 lakh crore, what is the debt-to-GDP ratio?
+    choices:
+      - { id: a, text: "80%" }
+      - { id: b, text: "About 73%" }
+      - { id: c, text: "About 88%" }
+      - { id: d, text: "110%" }
+    answer: b
+    explanation: >
+      Start: 800 / 1,000 = 80 per cent. After: 800 / 1,100 = 72.7 per cent, about 73. The ratio falls
+      because GDP grew while the debt did not.
+    source: >
+      OpenStax, Principles of Macroeconomics 3e (CC BY 4.0), 17.3 Federal Deficits and the National Debt: https://openstax.org/books/principles-macroeconomics-3e/pages/17-3-federal-deficits-and-the-national-debt
+
+  - id: fd-q-ratio-with-deficit
+    prompt: >
+      A government runs a deficit of Rs 40 lakh crore on a debt of Rs 800 lakh crore, with GDP of Rs 1,000 lakh
+      crore. Next year GDP is Rs 1,100 lakh crore. What happens to the debt-to-GDP ratio?
+    choices:
+      - { id: a, text: "It rises, because the debt grew" }
+      - { id: b, text: "It falls from 80% to about 76%, because GDP grew faster than the debt" }
+      - { id: c, text: "It stays at 80%" }
+    answer: b
+    explanation: >
+      New debt = 800 + 40 = 840. The ratio is 840 / 1,100 = 76.4 per cent, down from 80. A country can run a
+      deficit and still see its ratio fall if its economy grows faster than its debt.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY 4.0), Answer Key Chapter 30: https://openstax.org/books/principles-economics-3e/pages/chapter-30
+
+checks:
+  - id: eco-fiscal-quiz-debt
+    kind: quiz
+    questions:
+      - bank:eab:MBA-ECON-0047
+      - bank:eab:MBA-ECON-0048
+      - fd-q-deficit-debt
+      - fd-q-ratio
+      - fd-q-ratio-with-deficit
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-fiscal-gilt-reasoning
+    kind: conversation
+    prompt: >
+      Explain how a tax-cut announcement by the UK government in September 2022 ended up requiring the Bank of
+      England to buy 65 billion pounds of gilts to protect pension funds.
+    passCriteria: >
+      The Learner links the unfunded tax cuts (and no independent forecast) to investors demanding higher
+      yields on gilts, so bond prices fell. They explain that leveraged pension funds (liability-driven
+      investment) faced margin calls and had to sell gilts, pushing prices down further in a spiral, and that
+      the Bank stepped in to restore orderly markets. They note that it was a financial-stability action
+      rather than a rate cut, and that confidence in fiscal credibility matters for borrowing costs.

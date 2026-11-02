@@ -846,3 +846,28 @@ exists to catch that before the Learner does. Unverified keys are used anyway, w
 warning, because waiting for a person to check 400 questions would leave the bank idle; checked
 questions can be chosen for the Checks that matter most. FinQA is stored but not used yet:
 marking a typed number needs an input and a tolerance rule, which is a separate piece of work.
+
+## Foundation Topics, batch 3 (`course/topics/`, issue #33)
+
+**What it does.** Eight more Topics join the Course Map as Written: competition and pricing power
+(Reliance Jio's free launch, 2016), money and credit creation (the 1992 securities scam), central
+banks (the Fed's 1994 tightening), inflation and real rates (India's near double-digit inflation,
+as of 27 January 2014), GDP and cycles (India before the 1991 crisis), fiscal policy and debt (the
+UK mini-budget, 2022), reading empirical claims (Reinhart and Rogoff's 90% debt threshold) and the
+RBI (the package of 4 September 2013). Each file holds the Case story as known on its as-of date, a
+reveal held back until the Tutor reaches that step, the concept, the principle, a quiz Check with a
+pass rule and a conversation Check. Quiz Checks draw first on checked Question Bank items (16 of the
+`bank:eab:...` questions, marked verified), and the Topic file holds only the few questions the bank
+could not supply, each with its source.
+
+**Concrete scenario.** The Learner reaches Competition: the Tutor tells the Jio story up to the
+afternoon of 1 September 2016 and asks what the entrant is doing to price. Share-price falls, the
+dollar amounts wiped off Airtel and Idea and the price war appear only after the Learner has passed
+the Checks and the reveal step is shown.
+
+**Trade-off.** Facts come from the sources named in `course/outline.yaml` and were re-read for this
+batch, so some are secondary (press) where no regulator document gives the same figure, and the
+RBI's September 2013 repo level is derived from two RBI releases. The inflation Case is dated 27
+January 2014, not 31 December 2013, because the RBI overview it relies on was published on 28
+January 2014. No Case Data was added: the Cases teach from the story's figures, and FRED series may
+not be stored.
