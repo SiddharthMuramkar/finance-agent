@@ -15,3 +15,7 @@ __pycache__/
 
 # Personal Claude Code settings
 .claude/settings.local.json
+
+# Build and type caches
+*.tsbuildinfo
+next-env.d.ts
