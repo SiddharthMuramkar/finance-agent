@@ -26,7 +26,12 @@ export function stepContext(place: Place | null): string {
   if (check && step === "check") {
     if (check.kind === "conversation") {
       lines.push("", `Check prompt: ${check.prompt.trim()}`, `Pass criteria: ${check.passCriteria.trim()}`);
-    } else lines.push("", `Check: quiz ${check.id}, marked by code.`);
+    } else {
+      lines.push(
+        "",
+        `Check: quiz ${check.id}. Code shows the questions in a panel beside the conversation and marks the answers; the Learner answers there. Do not write quiz questions, hint at answers or mark anything yourself. Code will send you the result with the Learner's next message.`,
+      );
+    }
   }
   if (step === "principle") lines.push("", `Principle: ${topic.principle.trim()}`);
   lines.push(
@@ -35,7 +40,7 @@ export function stepContext(place: Place | null): string {
       ? `When this Teaching Step is done, call finish_teaching_step with step "${step}".`
       : check?.kind === "conversation"
         ? `Put the Check prompt to the Learner and question their reasoning. When you can judge it against the pass criteria, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
-        : "Code records the Check result; you cannot finish this step yourself. Never tell the Learner they passed unless code says a pass was recorded.",
+        : "Code records the quiz result; you cannot finish this step yourself. Never tell the Learner they passed unless code says a pass was recorded. If the Learner asks, point them to the quiz panel.",
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");

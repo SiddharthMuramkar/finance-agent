@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { workspaceSummary } from "@/learner/memory";
+import { openQuiz } from "@/learner/quiz";
 import { loadCurrentSession } from "@/tutor/turn";
 import { Conversation } from "./conversation";
 import { ThemeToggle } from "./theme-toggle";
@@ -12,7 +13,8 @@ export const dynamic = "force-dynamic";
 
 export default async function WorkspacePage() {
   const db = getDb();
-  const [summary, initial, jar] = await Promise.all([workspaceSummary(db, loadCourseMap()), loadCurrentSession(db), cookies()]);
+  const map = loadCourseMap();
+  const [summary, initial, jar, quiz] = await Promise.all([workspaceSummary(db, map), loadCurrentSession(db), cookies(), openQuiz(db, map)]);
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col p-4 sm:p-6">
       <header className="mb-6 flex items-baseline justify-between gap-4">
@@ -24,7 +26,7 @@ export default async function WorkspacePage() {
           </Link>
         </nav>
       </header>
-      <Conversation initial={initial} summary={summary} />
+      <Conversation initial={initial} summary={summary} quiz={quiz} />
     </main>
   );
 }

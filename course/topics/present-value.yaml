@@ -50,7 +50,104 @@ principle: >
   Compare cash flows only after moving them to the same date, and ask which interest rate
   makes two offers equal.
 
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: pv-q-today-vs-later
+    prompt: >
+      You are offered $1,000 today or $1,000 in five years. If you can earn a positive interest rate, which is worth more to you today?
+    choices:
+      - { id: a, text: "The $1,000 offered today" }
+      - { id: b, text: "The $1,000 offered in five years" }
+      - { id: c, text: "They are worth the same today" }
+    answer: a
+    explanation: >
+      Money you hold today can be invested and grow, so a future amount is worth less today. Discounting expresses exactly that.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-one-year
+    prompt: >
+      What is the present value of $1,100 received in one year, discounted at 10% a year?
+    choices:
+      - { id: a, text: "$1,000" }
+      - { id: b, text: "$990" }
+      - { id: c, text: "$1,010" }
+      - { id: d, text: "$1,100" }
+    answer: a
+    explanation: >
+      PV = 1,100 / (1 + 0.10)^1 = 1,000.
+    source: >
+      Investopedia, Present Value: https://www.investopedia.com/terms/p/presentvalue.asp
+
+  - id: pv-q-two-years
+    prompt: >
+      What is the present value of $1,210 received in two years, discounted at 10% a year?
+    choices:
+      - { id: a, text: "$1,100" }
+      - { id: b, text: "$1,000" }
+      - { id: c, text: "$1,210" }
+      - { id: d, text: "$990" }
+    answer: b
+    explanation: >
+      PV = 1,210 / (1 + 0.10)^2 = 1,210 / 1.21 = 1,000. Dividing by 1.10 only once ($1,100) discounts for one year instead of two.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-rate-rises
+    prompt: >
+      A payment is due in ten years. If the discount rate rises, what happens to its present value?
+    choices:
+      - { id: a, text: "It rises" }
+      - { id: b, text: "It falls" }
+      - { id: c, text: "It does not change" }
+      - { id: d, text: "It depends only on the size of the payment" }
+    answer: b
+    explanation: >
+      The rate sits in the denominator, (1 + r)^n. A higher r makes the denominator bigger and the present value smaller.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-annuity-total
+    prompt: >
+      A prize is advertised as the total of 30 yearly payments, the first paid today and the others over the next 29 years. At a positive discount rate, how does its present value compare with the advertised total?
+    choices:
+      - { id: a, text: "It is more than the total" }
+      - { id: b, text: "It equals the total" }
+      - { id: c, text: "It is less than the total" }
+    answer: c
+    explanation: >
+      Every payment after the first is discounted, so each is worth less than its face amount today. The present value of the stream is the sum of the discounted payments, which is below the plain sum.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-five-percent
+    prompt: >
+      What is the present value of $5,000 received in two years, discounted at 5% a year?
+    choices:
+      - { id: a, text: "$4,500" }
+      - { id: b, text: "$4,762" }
+      - { id: c, text: "$4,535" }
+      - { id: d, text: "$5,500" }
+    answer: c
+    explanation: >
+      PV = 5,000 / (1.05)^2 = 5,000 / 1.1025 = 4,535.15. $4,762 discounts for one year only.
+    source: >
+      Investopedia, Present Value: https://www.investopedia.com/terms/p/presentvalue.asp
+
+
 checks:
+  - id: pv-quiz-discounting
+    kind: quiz
+    questions:
+      - pv-q-today-vs-later
+      - pv-q-one-year
+      - pv-q-two-years
+      - pv-q-rate-rises
+      - pv-q-annuity-total
+      - pv-q-five-percent
+    perAttempt: 3
+    passRule:
+      correct: 2
   - id: pv-jackpot-choice
     kind: conversation
     prompt: >

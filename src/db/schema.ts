@@ -123,3 +123,26 @@ export const usageRows = pgTable(
   },
   (t) => [uniqueIndex("usage_turn_kind_step").on(t.sessionId, t.turnSeq, t.kind, t.step)],
 );
+
+/**
+ * Learner Memory: one row per quiz attempt. `questionIds` are the questions code chose to show;
+ * the answers and marking are filled in when the Learner submits. `reportedAt` is set once the
+ * result has been added to the Tutor's history, so each result reaches the Tutor exactly once.
+ */
+export const quizAttempts = pgTable(
+  "quiz_attempts",
+  {
+    id: serial("id").primaryKey(),
+    checkId: text("check_id").notNull(),
+    /** 0 for the first attempt at the Check. */
+    attemptNo: integer("attempt_no").notNull(),
+    questionIds: jsonb("question_ids").notNull().$type<string[]>(),
+    answers: jsonb("answers").$type<Record<string, string>>(),
+    correctCount: integer("correct_count"),
+    passed: boolean("passed"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    reportedAt: timestamp("reported_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("quiz_attempts_check_no").on(t.checkId, t.attemptNo)],
+);

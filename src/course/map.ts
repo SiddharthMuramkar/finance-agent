@@ -17,12 +17,27 @@ const conversationCheck = z.object({
   passCriteria: z.string().min(1),
 });
 
+/** A Claude-written quiz question. The key (`answer`, `explanation`) stays on the server until the Learner has answered. */
+const quizQuestion = z.object({
+  id,
+  prompt: z.string().min(1),
+  choices: z.array(z.object({ id, text: z.string().min(1) })).min(2),
+  /** The ID of the right choice. */
+  answer: id,
+  /** Shown only after the Learner has answered. */
+  explanation: z.string().min(1),
+  /** Where the answer was checked: a citation or URL. */
+  source: z.string().min(1),
+});
+
 const quizCheck = z.object({
   id,
   kind: z.literal("quiz"),
   required: z.boolean().default(false),
-  /** Question Bank IDs. */
+  /** IDs of questions in the Topic's `questions` list. */
   questions: z.array(z.string().min(1)).min(1),
+  /** How many questions one attempt shows; defaults to the pass rule's `correct`. */
+  perAttempt: z.number().int().min(1).optional(),
   passRule: z.object({ correct: z.number().int().min(1) }),
 });
 
@@ -61,16 +76,22 @@ const topicSchema = z.object({
   cases: z.array(caseSchema).min(1),
   concept: z.string().min(1),
   principle: z.string().min(1),
+  /** Claude-written quiz questions that this Topic's quiz Checks draw on. */
+  questions: z.array(quizQuestion).default([]),
   checks: z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
 });
 
 export type Topic = z.infer<typeof topicSchema>;
 export type Check = Topic["checks"][number];
+export type QuizCheck = Extract<Check, { kind: "quiz" }>;
+export type QuizQuestion = Topic["questions"][number];
 export type CourseMap = {
   /** Topics in default-path order. */
   topics: Topic[];
   topic(id: string): Topic | undefined;
   check(id: string): (Check & { topicId: string }) | undefined;
+  /** A quiz question by ID, from whichever Topic holds it. */
+  question(id: string): QuizQuestion | undefined;
 };
 
 export type TopicFile = { name: string; text: string };
@@ -95,7 +116,7 @@ export function parseCourseMap(files: TopicFile[]): { map?: CourseMap; errors: s
 
   const seen = new Set<string>();
   for (const t of topics) {
-    for (const key of [t.id, ...t.cases.map((c) => c.id), ...t.checks.map((c) => c.id)]) {
+    for (const key of [t.id, ...t.cases.map((c) => c.id), ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)]) {
       if (seen.has(key)) errors.push(`Duplicate ID "${key}"`);
       seen.add(key);
     }
@@ -104,6 +125,7 @@ export function parseCourseMap(files: TopicFile[]): { map?: CourseMap; errors: s
   const byId = new Map(topics.map((t) => [t.id, t]));
   for (const t of topics) {
     if (t.checks.length === 0) errors.push(`Topic "${t.id}" has no Checks`);
+    errors.push(...quizProblems(t));
     for (const p of t.prerequisites) {
       if (!byId.has(p)) errors.push(`Topic "${t.id}" requires "${p}", which is not on the Course Map`);
     }
@@ -114,10 +136,30 @@ export function parseCourseMap(files: TopicFile[]): { map?: CourseMap; errors: s
 
   const sorted = [...topics].sort((a, b) => a.path - b.path || a.id.localeCompare(b.id));
   const checks = new Map(topics.flatMap((t) => t.checks.map((c) => [c.id, { ...c, topicId: t.id }] as const)));
+  const questions = new Map(topics.flatMap((t) => t.questions.map((q) => [q.id, q] as const)));
   return {
     errors,
-    map: { topics: sorted, topic: (k) => byId.get(k), check: (k) => checks.get(k) },
+    map: { topics: sorted, topic: (k) => byId.get(k), check: (k) => checks.get(k), question: (k) => questions.get(k) },
   };
+}
+
+function quizProblems(t: Topic): string[] {
+  const problems: string[] = [];
+  for (const q of t.questions) {
+    const choiceIds = q.choices.map((c) => c.id);
+    if (new Set(choiceIds).size !== choiceIds.length) problems.push(`Question "${q.id}" repeats a choice ID`);
+    if (!choiceIds.includes(q.answer)) problems.push(`Question "${q.id}" has answer "${q.answer}", which is not one of its choices`);
+  }
+  const known = new Set(t.questions.map((q) => q.id));
+  for (const c of t.checks) {
+    if (c.kind !== "quiz") continue;
+    for (const q of c.questions) if (!known.has(q)) problems.push(`Check "${c.id}" uses question "${q}", which Topic "${t.id}" does not have`);
+    if (new Set(c.questions).size !== c.questions.length) problems.push(`Check "${c.id}" lists a question twice`);
+    const shown = c.perAttempt ?? c.passRule.correct;
+    if (shown > c.questions.length) problems.push(`Check "${c.id}" shows ${shown} questions per attempt but lists only ${c.questions.length}`);
+    if (c.passRule.correct > shown) problems.push(`Check "${c.id}" needs ${c.passRule.correct} correct but shows only ${shown} per attempt`);
+  }
+  return problems;
 }
 
 /** Depth-first search for a cycle through prerequisites. */

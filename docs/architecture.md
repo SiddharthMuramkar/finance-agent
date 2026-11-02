@@ -45,13 +45,13 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 
 ## Database (Neon Postgres through Drizzle)
 
-**What it does.** Neon is the only store. Eight tables so far:
+**What it does.** Neon is the only store. Nine tables so far:
 - `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
   a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
   effort frozen when it started, plus a fingerprint of the instructions and tools.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
-- `learner_state`, `topic_progress`, `check_results`, `misconceptions`: Learner Memory (below).
+- `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`: Learner Memory (below).
 - `usage`: what each turn and each step of it cost (below).
 
 The app uses Neon's pooled connection (`DATABASE_URL`). Schema changes are migration files in
@@ -94,11 +94,12 @@ secrets and spends no credits.
 **What it does.** The course is a folder of plain text files, one per Topic. Each file holds the
 Topic's Stage, its prerequisites, its place on the default path, its Case (a story told as of a
 past date, plus the reveal of what happened), the concept, the principle and an ordered list of
-Checks. Topics, Cases and Checks have permanent IDs. The first Topic is present value, taught
+Checks, and any Claude-written quiz questions. Topics, Cases, Checks and questions have permanent IDs. The first Topic is present value, taught
 through the 2018 $1.537 billion Mega Millions jackpot and its $877.8 million cash option.
 
 A validator checks the files: every prerequisite must exist, prerequisites must not loop, IDs
-must be unique, and every Topic needs at least one Check. It runs as part of `npm run check`,
+must be unique, every Topic needs at least one Check, and a quiz Check may use only questions its
+Topic holds, with an answer that is one of the choices and a pass rule it can actually meet. It runs as part of `npm run check`,
 so CI fails on a bad edit.
 
 **Scenario.** Someone adds a Topic that requires `bond-pricing`, which doesn't exist yet. CI
@@ -313,3 +314,48 @@ A plain SQL table and a summary written in code (no memory framework such as mem
 everything visible and testable, at the cost of writing each kind of memory by hand. The summary
 lists at most eight misconceptions and never marks one as fixed yet, so an old confusion can
 linger in it until a later ticket adds that.
+
+## Quiz Check marked by code (`src/course/quiz.ts`, `src/learner/quiz.ts`, `src/app/quiz-panel.tsx`, `/api/quiz`)
+
+**What it does.** A quiz Check is a short set of multiple-choice questions that code shows, marks
+and records. The Tutor never writes or marks them, and marking makes no model call, so it is
+instant and costs no tokens. The present value Topic now has one of each kind: a quiz Check
+(`pv-quiz-discounting`) and the conversation Check about the jackpot.
+
+- **Questions live in the Course Map.** Each is Claude-written, with its choices, the right
+  answer, an explanation and a cited source (the CFA Institute's time-value-of-money reading and
+  Investopedia). Every answer was checked against that source's formula, and a test recomputes the
+  numeric ones with our own Finance Calculations, so a wrong key fails `npm run check`.
+- **The pass rule is in the Course Map too.** The present value quiz holds six questions, shows
+  three per attempt and needs two right.
+- **The key stays on the server.** When the Learner reaches the quiz Check, the page shows only
+  the prompts and choices. The right answers and explanations leave the server only in the reply
+  to a submitted attempt. A test asserts the page's quiz data contains neither.
+- **Marking.** The browser posts its answers to `/api/quiz`; code marks them, saves a pass or a
+  miss through Learner Memory (the same door a conversation verdict uses, with no reasons) and
+  returns the marking. A pass moves the Learner on. A miss keeps them at the Check. Sending the
+  same attempt twice changes nothing. Only the current Check's results are accepted.
+- **Retries differ.** Each attempt is a row in `quiz_attempts`. Attempts walk round the Check's
+  pool, so the second attempt starts on questions the first did not show whenever the pool is
+  bigger than one attempt. If there are no other questions, the same ones return.
+- **The Tutor hears afterwards.** The Learner's result is not sent to the Tutor at once, because
+  the Tutor is not called. On its next call, code puts a note in the history: "Quiz result by code,
+  Check ..., attempt 1: 1 of 3 correct (needs 2). Not passed ...", naming each missed question,
+  what the Learner chose and the right answer. It goes in the same system message as the
+  Course Navigator's context, directly after the Learner's message (the one place the API accepts
+  a system message), or at the top of the opening message of a new Session. A note is sent once.
+
+**Scenario.** The Learner finishes the concept and "your turn" and the page shows the quiz. They
+get "$1,210 in two years at 10%" wrong, picking $1,100, and get two right. That is two of three,
+so it passes at once, and the screen explains the miss ("dividing by 1.10 only once discounts for
+one year"). They press Continue and the Tutor opens with a short, informed word about the
+one-year versus two-year slip, then moves on. Had they got only one right, they would have stayed
+at the Check, seen a different set of three questions, and the Tutor would have been told about
+the miss on its next turn.
+
+**Trade-off.** Multiple choice is fast, cheap and can't be argued with, but it tests recall and
+recognition, not reasoning; that is what the conversation Check is for. Writing the questions in
+the Course Map keeps them reviewable and testable, at the price of Claude (or the owner) writing
+and sourcing each one. The Tutor learns about a result late (on the next message, not the moment
+of submission), which keeps the quiz free of model calls. Imported open question banks, spaced
+review and a Question Bank in the database come in later tickets.

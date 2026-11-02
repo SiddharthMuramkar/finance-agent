@@ -8,7 +8,8 @@ import { scriptedClient } from "@/test/scripted-client";
 import { messages, settings } from "@/db/schema";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { OPENING_PREFIX, type Line, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
-import { loadCourseMap, parseCourseMap } from "@/course/map";
+import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
+import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { loadCheckResults, saveCheckResult, workspaceSummary } from "@/learner/memory";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
@@ -16,6 +17,17 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
   for await (const e of events) out.push(e);
   return out;
+}
+
+/** The real Course Map with the quiz Checks removed from every Topic. */
+function withoutQuizChecks(real: CourseMap): CourseMap {
+  const files = real.topics.map((t) => ({
+    name: `${t.id}.yaml`,
+    text: stringify({ ...t, checks: t.checks.filter((c) => c.kind !== "quiz"), questions: undefined }),
+  }));
+  const { map, errors } = parseCourseMap(files);
+  if (!map) throw new Error(errors.join("\n"));
+  return map;
 }
 
 /** Lines without the usage panel data, which has its own tests. */
@@ -110,7 +122,8 @@ describe("Tutor Turn", () => {
   });
 
   describe("led by the Course Navigator", () => {
-    const map = loadCourseMap();
+    // These tests follow the conversation Check alone; the quiz Check has its own tests below.
+    const map = withoutQuizChecks(loadCourseMap());
     const pv = map.topic("present-value")!;
     const finish = (step: string, id = `toolu_${step}`) => ({
       type: "tool_use",
@@ -239,7 +252,10 @@ describe("Tutor Turn", () => {
         const second = { id: "pv-second", kind: "conversation", prompt: "SECOND PROMPT", passCriteria: "SECOND CRITERIA" };
         const yaml = readFileSync(join(process.cwd(), "course/topics/present-value.yaml"), "utf8");
         const twoChecks = parseCourseMap([
-          { name: "pv.yaml", text: stringify({ ...parse(yaml), checks: [...parse(yaml).checks, second] }) },
+          {
+            name: "pv.yaml",
+            text: stringify({ ...parse(yaml), questions: undefined, checks: [...parse(yaml).checks.filter((c: { kind: string }) => c.kind === "conversation"), second] }),
+          },
         ]).map!;
         const first = twoChecks.topic("present-value")!.checks[0];
         if (first.kind !== "conversation") throw new Error("expected a conversation Check");
@@ -496,6 +512,91 @@ describe("Tutor Turn", () => {
       const events = await collect(runTutorTurn({ db, client }, "Show me"));
       expect(requests).toHaveLength(2);
       expect(events.filter((e) => e.type === "correction")).toHaveLength(1);
+    });
+  });
+  describe("quiz Check", () => {
+    const real = loadCourseMap();
+    const quizId = "pv-quiz-discounting";
+    const finish = (step: string) => ({ content: [{ type: "tool_use", id: `toolu_${step}`, name: "finish_teaching_step", input: { step } }] });
+    const toQuiz = () => ["story", "concept", "your_turn"].map(finish);
+    const text = (t: string) => ({ content: [{ type: "text", text: t }] });
+    const contextTexts = (request: { messages: { role: string; content?: unknown }[] }) =>
+      request.messages.flatMap((m) => {
+        if (m.role === "system") return [String(m.content)];
+        if (m.role === "user" && Array.isArray(m.content))
+          return m.content.filter((b) => b.type === "text" && b.text.startsWith(OPENING_PREFIX)).map((b) => b.text as string);
+        return [];
+      });
+
+    it("tells the Tutor the quiz is shown and marked by code, without any question text or key", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([...toQuiz(), text("Your quiz is below.")]);
+      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      const context = requests.at(-1)!.messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).map((b) => JSON.stringify(b)).join("\n");
+      expect(context).toContain(`Check: quiz ${quizId}`);
+      expect(context).toContain("Do not write quiz questions");
+      for (const q of real.topic("present-value")!.questions) {
+        expect(context).not.toContain(q.prompt.trim());
+        expect(context).not.toContain(q.explanation.trim());
+      }
+    });
+
+    it("marking makes no model call, and the result reaches the Tutor right after the Learner's next message", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([...toQuiz(), text("Your quiz is below."), text("Good. Now the next idea.")]);
+      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      const callsBefore = requests.length;
+
+      const quiz = (await openQuiz(db, real))!;
+      const answers = Object.fromEntries(quiz.questions.map((q) => [q.id, real.question(q.id)!.answer]));
+      const result = await submitQuiz(db, real, quiz.attemptId, answers);
+      expect(result).toMatchObject({ ok: true, passed: true });
+      expect(requests).toHaveLength(callsBefore);
+
+      await collect(runTutorTurn({ db, client, map: real }, "Done."));
+      const sent = requests.at(-1)!.messages;
+      expect(sent.at(-2)).toMatchObject({ role: "user", content: "Done." });
+      expect(sent.at(-1)).toMatchObject({ role: "system" });
+      const note = String(sent.at(-1)!.content);
+      expect(note).toContain(`Quiz result by code, Check ${quizId}, attempt 1: 3 of 3 correct (needs 2).`);
+      expect(note).toContain("Passed: code recorded the pass.");
+      expect(note).toContain("Course Navigator:");
+      expect(note).toContain("Teaching Step: concept");
+    });
+
+    it("tells the Tutor about a miss, even though the Learner's place did not change, and only once", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([...toQuiz(), text("Quiz below."), text("Let us look at it."), text("Fine.")]);
+      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      const quiz = (await openQuiz(db, real))!;
+      const first = quiz.questions[0];
+      const wrong = first.choices.find((c) => c.id !== real.question(first.id)!.answer)!;
+      await submitQuiz(db, real, quiz.attemptId, { [first.id]: wrong.id });
+
+      await collect(runTutorTurn({ db, client, map: real }, "I missed some."));
+      const note = String(requests.at(-1)!.messages.at(-1)!.content);
+      expect(note).toContain("0 of 3 correct (needs 2).");
+      expect(note).toContain("Not passed");
+      expect(note).toContain(`The Learner chose "${wrong.text}"`);
+      expect(note).not.toContain("No verdict was recorded");
+
+      await collect(runTutorTurn({ db, client, map: real }, "And now?"));
+      expect(requests.at(-1)!.messages.filter((m) => m.role === "system")).toHaveLength(1);
+      expect(contextTexts(requests.at(-1)!).filter((t) => t.includes("Quiz result by code"))).toHaveLength(1);
+    });
+
+    it("carries a result into the opening message of a new Session", async () => {
+      const db = await testDb();
+      let t = Date.parse("2026-11-02T09:00:00Z");
+      const now = () => new Date(t);
+      const { client, requests } = scriptedClient([...toQuiz(), text("Quiz below."), text("Welcome back.")]);
+      await collect(runTutorTurn({ db, client, map: real, now }, { continue: true }));
+      const quiz = (await openQuiz(db, real, now()))!;
+      await submitQuiz(db, real, quiz.attemptId, {}, now());
+      t += 7 * 3600_000;
+      await collect(runTutorTurn({ db, client, map: real, now }, { continue: true }));
+      expect(requests.at(-1)!.messages[0].role).toBe("user");
+      expect(contextTexts(requests.at(-1)!)[0]).toContain("Quiz result by code");
     });
   });
 });

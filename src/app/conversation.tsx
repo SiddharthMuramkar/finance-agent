@@ -16,6 +16,8 @@ import { createContext, useContext, useMemo, useState } from "react";
 import { replaceBrokenWidgets } from "@/widgets/check";
 import { splitReply, type Segment } from "@/widgets/split";
 import type { TurnUsage } from "@/tutor/usage";
+import type { OpenQuiz } from "@/learner/quiz";
+import { QuizPanel } from "./quiz-panel";
 import { UnderTheHood } from "./under-the-hood";
 import { WidgetView } from "./widget-view";
 
@@ -108,7 +110,7 @@ const convertMessage = (m: Message): ThreadMessageLike => ({ id: m.id, role: m.r
  * Replies stream in through assistant-ui's external-store runtime; widget
  * blocks are pulled out of the prose as they arrive.
  */
-export function Conversation({ initial, summary }: { initial: Line[]; summary: string }) {
+export function Conversation({ initial, summary, quiz }: { initial: Line[]; summary: string; quiz: OpenQuiz | null }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
@@ -191,6 +193,7 @@ export function Conversation({ initial, summary }: { initial: Line[]; summary: s
                 Continue
               </button>
             </section>
+            <QuizPanel quiz={quiz} />
             <ThreadPrimitive.Root className="flex flex-1 flex-col">
               <ThreadPrimitive.Viewport className="flex flex-1 flex-col gap-4">
                 <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />

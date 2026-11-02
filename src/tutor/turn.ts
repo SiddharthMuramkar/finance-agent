@@ -7,6 +7,7 @@ import { loadCourseMap, type CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS } from "@/course/navigator";
 import { messages, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import { ensureTopicStarted, learnerSummary, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { replaceBrokenWidgets, replyWidgetProblems } from "@/widgets/check";
 import { noVerdictContext, stepContext } from "./context";
@@ -288,7 +289,7 @@ export async function* runTutorTurn(
   // The last turn may have been in the previous Session.
   const lastTurn = session ? msgs : previous ? await history(db, previous.id) : [];
   const context =
-    place?.step === "check" && place.check && endedAtCheckWithoutVerdict(lastTurn, place.check.id, stepContext(place))
+    place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, stepContext(place))
       ? noVerdictContext({ ...place, check: place.check })
       : stepContext(place);
   if (!session) session = await startSession(db, now());
@@ -302,18 +303,22 @@ export async function* runTutorTurn(
   const turnStart = performance.now();
   const steps: StepUsage[] = [];
   const learnerText = typeof input === "string" ? input : CONTINUE_TEXT;
+  // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
+  const quiz = await pendingQuizNote(db, map);
   if (msgs.length === 0) {
     // The API rejects a system message as the first message, so a Session's opening context is
     // the first block of the Learner's first message.
-    const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${context}`;
+    const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${quiz ? `${quiz.text}\n\n` : ""}${context}`;
     await add({ role: "user", content: [{ type: "text", text: opening }, { type: "text", text: learnerText }] });
   } else {
     // The API accepts a system message only right after a user message (live 400 otherwise),
     // so changed context follows the Learner's message.
-    const contextChanged = !lastContextSent(msgs)?.endsWith(context);
+    // A quiz result goes in the same system message as the context, which then always follows it.
+    const contextChanged = quiz !== null || !lastContextSent(msgs)?.endsWith(context);
     await add({ role: "user", content: learnerText });
-    if (contextChanged) await add({ role: "system", content: context });
+    if (contextChanged) await add({ role: "system", content: quiz ? `${quiz.text}\n\n${context}` : context });
   }
+  if (quiz) await markQuizReported(db, quiz.attemptIds, now());
 
   let stopReason: string | null = null;
   const activeSession = session;
