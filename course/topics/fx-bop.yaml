@@ -1,0 +1,180 @@
+# Balance of payments and capital flows: a foundation Topic taught through India's external accounts of 1989-91.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): RBI, The Reserve Bank of India 1981-1997, ch. 12 "Management and Resolution of the 1991 Crisis": http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+id: fx-bop
+title: Balance of payments and capital flows
+
+cases:
+  - id: india-bop-1990-91
+    title: India's external accounts at the end of 1990-91
+    data: [india-trade-balance, india-current-account, india-capital-account]
+    asOf: 1991-03-31
+    story: >
+      It is 31 March 1991, the last day of India's financial year. The full-year figures for
+      1990-91 will not be published for months, but the strain is already visible. In the year
+      before, 1989-90, India bought goods worth US$24,411 million from abroad (imports) and sold
+      US$16,955 million (exports): a trade deficit of US$7,456 million. Net earnings on services,
+      interest and remittances (the "invisibles") were a small surplus of US$615 million, so the
+      current account deficit was US$6,841 million. That gap was covered by money coming in on
+      the capital account, US$6,977 million: US$2,403 million of deposits by non-resident Indians,
+      US$1,856 million of aid and other external assistance, US$1,777 million of commercial
+      borrowing abroad, US$410 million of foreign investment and about US$531 million of other items.
+      Since then the picture has darkened. When Iraq invaded Kuwait in August 1990 the price of oil
+      jumped; India's monthly oil import bill more than doubled within six months, Indian workers had to be
+      flown home from Kuwait and their remittances stopped, and exports to Iraq and Kuwait ceased.
+      The Reserve Bank of India says foreign exchange reserves fell from US$3.1 billion at the end
+      of August 1990 to US$896 million on 16 January 1991, and by the end of December 1990 they
+      covered only about three weeks of imports. India has borrowed emergency funds from the IMF
+      and the Reserve Bank has demanded a cash deposit of 50% of the value of most imports
+      (raised sharply in March 1991). Lenders have become cautious about new loans. What do you
+      expect the year's accounts to show, and what is the weakest link in how the deficit is paid for?
+    reveal: >
+      The year's numbers, as the RBI later reported them, were worse than 1989-90 on almost every
+      line. Exports rose to US$18,477 million but imports rose faster to US$27,914 million, so the
+      trade deficit widened to US$9,437 million, up 26.5%. The invisibles turned negative
+      (minus US$242 million), and the current account deficit reached US$9,680 million, 3.0% of GDP.
+      Money coming in on the capital account was US$7,188 million, not enough: non-resident Indian
+      deposits had fallen from US$2,403 million to US$1,536 million, and the shortfall (an overall
+      deficit of US$2,492 million) was met by running reserves down and by drawing US$1,214 million
+      from the IMF. In the following months foreign currency deposits drained faster and lenders
+      stayed away. The government pledged gold and borrowed from the IMF and ultimately devalued the rupee; on 31 October 1991
+      the IMF approved a stand-by arrangement of SDR 1,656 million (about US$2.2 billion). The adjustment was painful:
+      in 1991-92 imports were cut to US$21,064 million, the trade deficit shrank to US$2,798 million and the
+      current account deficit to US$1,178 million (0.3% of GDP). Reserves rose from US$5,834 million
+      at the end of March 1991 to US$9,220 million a year later. The RBI traces the crisis to the oil shock and lost remittances, but also to
+      how the deficit was financed: short-term borrowing and non-resident deposits left India
+      exposed when the money stopped coming.
+
+concept: >
+  The balance of payments is the record of a country's transactions with the rest of the world over a
+  period. Its main parts are the current account (trade in goods, trade in services, income on
+  investments, and transfers such as workers' remittances) and the capital and financial account
+  (foreign investment, loans, deposits and other flows of financial assets). Because every payment
+  must be matched by a receipt, a deficit on the current account has to be paid for by a net inflow
+  on the capital account, or by drawing down the central bank's reserves, or by borrowing from the IMF:
+  current account plus capital account plus the change in reserves and IMF credit nets to zero. A
+  country with a current account deficit is therefore a net borrower from the rest of the world.
+  What matters is how the gap is financed. Foreign direct investment and long-term aid stay put;
+  short-term loans and deposits that holders can withdraw quickly do not. A deficit is judged against
+  GDP (the current account deficit as a share of GDP) and reserves are judged by import cover, the
+  number of months of imports they could pay for. When capital stops flowing in, a country has
+  four choices: let reserves fall, borrow from the IMF, compress imports and let the exchange rate
+  fall, or default; adjusting is painful because the economy must shift resources from
+  home-market goods to exports and import substitutes.
+
+principle: >
+  A current account deficit is a bill that someone has to lend you money to pay. Ask how it is
+  financed and how quickly that money can leave.
+
+questions:
+  - id: bop-q-identity
+    prompt: >
+      A country runs a current account deficit of $9 billion in a year. Net capital inflows on the
+      capital account are $6 billion. Ignoring other items, what must happen to cover the gap?
+    choices:
+      - { id: a, text: "Its reserves fall (or it borrows from the IMF) by $3 billion" }
+      - { id: b, text: "Its reserves rise by $3 billion" }
+      - { id: c, text: "Its reserves fall by $15 billion" }
+      - { id: d, text: "Nothing; the accounts balance on their own" }
+    answer: a
+    explanation: >
+      The current account, the capital account and the change in reserves and IMF credit net to zero.
+      A $9 billion deficit with only $6 billion of capital inflow leaves $3 billion to be met from reserves or IMF credit.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.2 (overall balance = current account + capital account; monetary movements offset it): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: bop-q-overall
+    prompt: >
+      In a year a country's current account balance is -$6.0 billion and its capital account balance is +$7.0 billion. What is the overall balance, and what happens to reserves?
+    choices:
+      - { id: a, text: "Overall balance +$1.0 billion; reserves rise" }
+      - { id: b, text: "Overall balance -$1.0 billion; reserves fall" }
+      - { id: c, text: "Overall balance -$13.0 billion; reserves fall" }
+      - { id: d, text: "Overall balance zero; reserves are unchanged" }
+    answer: a
+    explanation: >
+      Overall balance = current account + capital account = -6.0 + 7.0 = +1.0. A surplus is added to reserves (the change in reserves has the opposite sign in the accounting table).
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.2: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: bop-q-remittances
+    prompt: >
+      Which part of the balance of payments records money sent home by workers employed abroad?
+    choices:
+      - { id: a, text: "The current account (as a transfer, within net invisibles)" }
+      - { id: b, text: "The capital account only" }
+      - { id: c, text: "The merchandise trade balance" }
+      - { id: d, text: "Reserves" }
+    answer: a
+    explanation: >
+      Remittances are transfers, which belong to the current account's invisibles. They are not imports or exports of goods, and they are not a financing flow in the capital account.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12, discussion of invisibles and private transfers under Table 12.2: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: bop-q-share-gdp
+    prompt: >
+      A country has a current account deficit of $6 billion and a GDP of $240 billion. What is the deficit as a share of GDP?
+    choices:
+      - { id: a, text: "2.5%" }
+      - { id: b, text: "4.0%" }
+      - { id: c, text: "25%" }
+      - { id: d, text: "0.4%" }
+    answer: a
+    explanation: >
+      6 / 240 = 0.025, or 2.5% of GDP. Table 12.3 of the RBI chapter reports the current account deficit in just this way.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.3 (CAD/GDP): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: bop-q-import-cover
+    prompt: >
+      A country's foreign exchange reserves are $12 billion and its imports are $48 billion a year. How many months of imports do the reserves cover?
+    choices:
+      - { id: a, text: "3 months" }
+      - { id: b, text: "4 months" }
+      - { id: c, text: "12 months" }
+      - { id: d, text: "0.25 months" }
+    answer: a
+    explanation: >
+      Imports are $48 billion / 12 = $4 billion a month, so $12 billion of reserves is 12 / 4 = 3 months of import cover.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.3 (import cover of reserves in months): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+  - id: bop-q-stable
+    prompt: >
+      Two countries have the same current account deficit. Country A finances it with long-term foreign direct investment; Country B with deposits that holders can withdraw at short notice. Which is more exposed if investors lose confidence?
+    choices:
+      - { id: a, text: "Country B, because the money can leave quickly" }
+      - { id: b, text: "Country A, because direct investment can be withdrawn overnight" }
+      - { id: c, text: "Both equally, because the deficit is the same size" }
+      - { id: d, text: "Neither, because the deficit is financed" }
+    answer: a
+    explanation: >
+      How a deficit is financed matters as much as its size. Money that can be withdrawn at short notice can reverse quickly and leave reserves to cover the gap; long-term investment in plant and equipment cannot leave at once.
+    source: >
+      RBI, The Reserve Bank of India 1981-1997, ch. 12, discussion of the capital account, NRI deposits and short-term debt: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+
+checks:
+  - id: bop-quiz-accounts
+    kind: quiz
+    questions:
+      - bop-q-identity
+      - bop-q-overall
+      - bop-q-remittances
+      - bop-q-share-gdp
+      - bop-q-import-cover
+      - bop-q-stable
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: bop-india-financing
+    kind: conversation
+    prompt: >
+      Using India's 1989-90 figures, explain how the current account deficit was paid for, which
+      parts of that financing you would worry about if lenders became cautious, and what India could
+      do if the money stopped coming in.
+    passCriteria: >
+      The Learner says the current account deficit was matched by net capital inflows (NRI deposits,
+      external assistance, commercial borrowing, foreign investment). They identify NRI deposits and
+      commercial borrowing, which can be withdrawn or not renewed, as the fragile parts, and say that
+      when inflows stop a country must draw down reserves, borrow from the IMF, cut imports or let
+      the currency fall.

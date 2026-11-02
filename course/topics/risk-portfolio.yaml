@@ -1,0 +1,153 @@
+# Risk, diversification and portfolio theory: a foundation Topic taught through portfolio insurance in October 1987.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Federal Reserve Board, FEDS 2007-13, "The Federal Reserve's response to the 1987 stock market crash": https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf ; Time, "The Culprits Behind the Crash" (Nov 1987): https://time.com/archive/6711376/the-culprits-behind-the-crash ; OpenStax, Principles of Finance 2e, 15.2.
+id: risk-portfolio
+title: Risk, diversification and portfolio theory
+
+cases:
+  - id: crash-1987-portfolio-insurance
+    title: Portfolio insurance on Friday 16 October 1987
+    asOf: 1987-10-16
+    story: >
+      It is the close of trading on Friday 16 October 1987. US shares have risen strongly all year. This
+      week they have turned: on Wednesday a report that Congress would remove tax benefits for financing
+      takeovers, and a trade deficit figure well above expectations, pushed the dollar down and interest
+      rates up. The S&P 500 is down more than 9% for the week, one of its largest weekly falls in two decades.
+      Many large investors, such as pension funds, hold diversified portfolios of hundreds of shares and
+      think themselves protected. Some have also bought "portfolio insurance", a computerised service
+      invented by finance professors in California. Time says the covered assets had grown to about $45 billion by
+      1986 and kept growing with the market. It works like this: the fund keeps its shares, and as the market falls the
+      insurer sells stock-index futures, the more the lower prices go, so that the fund's loss is limited as if it had
+      bought a put option. It promises to cap losses without the fund having to sell its shares itself. It
+      depends on being able to sell futures at close to the last price, and on few others doing the same at
+      the same time. The models say that more selling is due. Monday is coming. If your fund holds
+      500 shares and portfolio insurance, what risks has diversification removed, and what risks remain?
+    reveal: >
+      On Monday 19 October the Dow Jones Industrial Average, the S&P 500 and the Wilshire 5000 fell between 18 and 23% in
+      one day, and the S&P 500 futures contract fell 29%, according to the Federal Reserve's account. The ten largest
+      sellers made up half of non-market-maker futures volume, and many were providers of portfolio insurance. Time
+      reports that when the market dived the insurers all sold futures at once; Wells Fargo alone sold $1.6 billion of futures on the day.
+      The futures fell faster than the stocks, so the insurers' orders pushed prices down, which triggered
+      more selling by the models. Insurers argued they accounted for only about 20% of the day's volume, and the presidential task force
+      headed by Nicholas Brady blamed them as a main cause of the severity. The estimated $80 billion of insured assets
+      shrank by about two-thirds afterwards. Insurance also failed to be total: the US WEST pension fund, deeply
+      insured, saw its stock holdings fall from $3.3 billion to $3.0 billion. Diversification across 500 shares did not
+      protect anyone from the market-wide drop, because the shares fell together; it protects against the trouble of a
+      single company, not the fall of the whole market. Strategies that all sell into a falling market make the
+      fall worse.
+
+concept: >
+  An investment's return is uncertain; its risk is commonly measured by the standard deviation of its returns,
+  the typical distance from the average. A portfolio's expected return is the weighted average of its holdings'
+  expected returns. Its risk is not the weighted average of the risks: it also depends on how the holdings
+  move together, measured by the correlation coefficient, from +1 (perfectly together) to -1 (exactly opposite).
+  For two assets with weights w1 and w2, standard deviations s1 and s2 and correlation r, the variance is
+  w1^2 s1^2 + w2^2 s2^2 + 2 w1 w2 r s1 s2. Whenever r is below 1, the portfolio's standard deviation is below the
+  weighted average of the two: this is diversification. Adding more assets removes firm-specific (unsystematic)
+  risk, such as a lawsuit or a failed product, but not systematic (market) risk, which hits everything
+  at once: interest rates, recessions, panics. Correlation is not fixed; in a crash, assets that normally move
+  independently can fall together. A hedging strategy that works for one investor can fail when many use it at the same
+  time, because their trades move the market they depend on. This is the point of portfolio theory, begun by
+  Harry Markowitz: choose combinations of assets that offer the best return for the risk, and understand which risks
+  can be diversified away and which must be paid for or insured separately.
+
+principle: >
+  Diversify away the risks that are specific to a company, and plan for the risks that hit everything at once.
+  A protection that depends on everyone being able to sell is not protection in a panic.
+
+questions:
+  - id: rp-q-expected
+    prompt: >
+      A portfolio has 40% in asset A (expected return 10%) and 60% in asset B (expected return 5%). What is the portfolio's expected return?
+    choices:
+      - { id: a, text: "7%" }
+      - { id: b, text: "7.5%" }
+      - { id: c, text: "15%" }
+      - { id: d, text: "5%" }
+    answer: a
+    explanation: >
+      The expected return is the weighted average: 0.40 x 10% + 0.60 x 5% = 4% + 3% = 7%.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Summary): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+
+  - id: rp-q-firm-specific
+    prompt: >
+      Which risk does holding a well-diversified portfolio of many shares largely remove?
+    choices:
+      - { id: a, text: "Firm-specific (unsystematic) risk, such as a company's lawsuit" }
+      - { id: b, text: "Systematic (market) risk, such as a broad market fall" }
+      - { id: c, text: "Both equally" }
+      - { id: d, text: "Neither; diversification does not change risk" }
+    answer: a
+    explanation: >
+      Events that affect one company are offset by others in a large portfolio. Systematic risk, the risk of holding the market, never goes away through diversification.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+
+  - id: rp-q-correlation
+    prompt: >
+      You can add one of three assets, each with the same standard deviation as your current holding, to a portfolio. Their correlations with your holding are +0.9, +0.3 and -0.2. Which gives the greatest reduction in portfolio risk?
+    choices:
+      - { id: a, text: "The asset with correlation -0.2" }
+      - { id: b, text: "The asset with correlation +0.3" }
+      - { id: c, text: "The asset with correlation +0.9" }
+      - { id: d, text: "All three give the same reduction" }
+    answer: a
+    explanation: >
+      The lower the correlation, the more one asset's losses are offset by another's gains and the more the portfolio's risk falls. The airline example in OpenStax shows that adding a similar stock removes little risk, while adding a dissimilar one removes much more.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Diversification): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+
+  - id: rp-q-market-fall
+    prompt: >
+      The whole stock market falls sharply in a day. Why does a portfolio of 500 shares still fall?
+    choices:
+      - { id: a, text: "Systematic risk affects all shares and cannot be diversified away" }
+      - { id: b, text: "The portfolio was not diversified enough, and 600 shares would have avoided the fall" }
+      - { id: c, text: "Diversification increases risk in a crash" }
+      - { id: d, text: "Only firm-specific risk exists" }
+    answer: a
+    explanation: >
+      Events that affect the entire market, such as changes in interest rates or a panic, move all shares together. More shares reduce firm-specific risk but never remove market risk.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.2 Risk and Return to Multiple Assets (Portfolio Size and Risk): https://openstax.org/books/principles-finance-2e/pages/15-2-risk-and-return-to-multiple-assets
+
+  - id: rp-q-insurance
+    prompt: >
+      Portfolio insurance of the 1980s kept the investor's shares and sold stock-index futures as prices fell. Whose protection did this resemble?
+    choices:
+      - { id: a, text: "Buying a put option on the portfolio" }
+      - { id: b, text: "Buying more shares as prices fall" }
+      - { id: c, text: "Holding cash only" }
+      - { id: d, text: "Buying a government bond" }
+    answer: a
+    explanation: >
+      The strategy was designed to replicate the payoff of a put: as the market falls, an increasing share of the exposure is hedged. Unlike a bought put, it depends on being able to trade at the expected prices.
+    source: >
+      Federal Reserve Board, FEDS 2007-13, The Federal Reserve's response to the 1987 stock market crash (portfolio insurance described as similar to buying a put): https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf
+
+checks:
+  - id: rp-quiz-diversification
+    kind: quiz
+    questions:
+      - rp-q-expected
+      - rp-q-firm-specific
+      - rp-q-correlation
+      - rp-q-market-fall
+      - rp-q-insurance
+      - bank:eab:MBA-FIN-VAL-0045
+      - bank:eab:MBA-STAT-0030
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: rp-diversify-limits
+    kind: conversation
+    prompt: >
+      A pension fund holds 500 shares and has also bought portfolio insurance. Explain what risk its
+      diversification has removed, what risk remains, and what could go wrong with portfolio
+      insurance if many funds use it at once.
+    passCriteria: >
+      The Learner says diversification removes firm-specific risk but not systematic (market-wide) risk.
+      They explain that portfolio insurance sells futures or shares as the market falls to limit losses,
+      and that if many funds do this at once their selling pushes prices down further, so the protection
+      may not work as modelled and may deepen the fall.
