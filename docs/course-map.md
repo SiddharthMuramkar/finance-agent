@@ -2,14 +2,14 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 1 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 9 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
 
 ### 1. Percent, percentage points and basis points
 
-- ID: `num-percent-bps` · Coming
+- ID: `num-percent-bps` · Written
 - Needs first: nothing
 - Case: **The Fed raises its target rate by 25 basis points** (as of 1994-02-03)
   - Outcome: The 25 bp rise in the overnight rate triggered an immediate 40 bp rise in the 30-year rate; by early May, 75 bp of hikes and 140 bp on long bonds. The funds rate averaged 3.05% in Jan 1994 and 5.45% in Dec 1994.
@@ -17,7 +17,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 2. Growth, compounding and logs
 
-- ID: `num-compounding` · Coming
+- ID: `num-compounding` · Written
 - Needs first: Percent, percentage points and basis points
 - Case: **The Sensex from base 100 (1979) to 1992** (as of 1992-03-31)
   - Outcome: Base 100 on 1 Apr 1979; 1,001 on 25 Jul 1990; 4,091 on 30 Mar 1992; 4,467 in Apr 1992, about 34% a year compound (own arithmetic). Then 1,980 by Apr 1993.
@@ -26,7 +26,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 3. Probability and expected value
 
-- ID: `num-probability` · Coming
+- ID: `num-probability` · Written
 - Needs first: Percent, percentage points and basis points
 - Case: **Long-Term Capital Management, before the loss** (as of 1998-08-01)
   - Outcome: About $30 of debt per $1 of capital at end-1997; lost half its capital by end Aug 1998; 14 firms put in $3.6bn for control on 23 Sep 1998. Teach leverage and loss, not the risk-model inputs (unverified).
@@ -45,7 +45,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 5. The income statement
 
-- ID: `fs-income` · Coming
+- ID: `fs-income` · Written
 - Needs first: Percent, percentage points and basis points
 - Case: **WeWork's S-1** (as of 2019-08-14)
   - Outcome: H1 2019 revenue $1.54bn, net loss over $900m. IPO withdrawn Sep 2019; Chapter 11 on 6 Nov 2023.
@@ -53,7 +53,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 6. The balance sheet
 
-- ID: `fs-balance` · Coming
+- ID: `fs-balance` · Written
 - Needs first: The income statement
 - Case: **Satyam's balance sheet** (as of 2008-09-30)
   - Outcome: Reported cash inflated by Rs 5,040 crore; the chairman's confession on 7 Jan 2009 admitted it.
@@ -61,7 +61,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 7. The cash flow statement
 
-- ID: `fs-cashflow` · Coming
+- ID: `fs-cashflow` · Written
 - Needs first: The balance sheet
 - Case: **Webvan's cash burn** (as of 2001-03-31)
   - Outcome: Burned about $480m by Mar 2001 (Time); lost more than $800m since Dec 1996; shut down Jul 2001. The draft's 'raised $1.2bn' is unconfirmed.
@@ -69,7 +69,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 8. How the three statements link (accrual accounting)
 
-- ID: `fs-links` · Coming
+- ID: `fs-links` · Written
 - Needs first: The cash flow statement
 - Case: **Satyam's forged invoices and bank statements** (as of 2008-12-31)
   - Outcome: Over 6,000 fake invoices and forged bank statements ran through all three statements; the SEC settled an action in 2011 with a $10m penalty.
@@ -77,7 +77,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 9. Ratios, return on equity and DuPont
 
-- ID: `fs-ratios` · Coming
+- ID: `fs-ratios` · Written
 - Needs first: How the three statements link (accrual accounting)
 - Case: **Coffee Day Enterprises at its IPO** (as of 2015-10-07) **to verify**
   - Outcome: Net loss widened from Rs 21 crore (FY13) to Rs 87 crore (FY15); IPO at 21 to 21.5 times EV/EBITDA; founder died Jul 2019 under lender pressure.

@@ -15,6 +15,7 @@ import { OPENING_PREFIX } from "./context";
 import { type Line, listSessions, loadCurrentSession, loadSession } from "./transcript";
 import { latestTurn, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
+import { presentValueOnly } from "@/test/present-value-map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, saveJump, saveReturnToDefaultPath, learnerSummary } from "@/learner/memory";
 import frozenWidgets from "@/widgets/frozen.generated.json";
@@ -25,15 +26,9 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   return out;
 }
 
-/** The real Course Map with the quiz Checks removed from every Topic. */
+/** The real present value Topic alone, with its quiz Check removed (see src/test/present-value-map.ts). */
 function withoutQuizChecks(real: CourseMap): CourseMap {
-  const files = real.topics.map((t) => ({
-    name: `${t.id}.yaml`,
-    text: stringify({ ...t, checks: t.checks.filter((c) => c.kind !== "quiz"), questions: undefined }),
-  }));
-  const { map, errors } = parseCourseMap(files);
-  if (!map) throw new Error(errors.join("\n"));
-  return map;
+  return presentValueOnly({ real, withoutQuiz: true });
 }
 
 /** Moves the Learner to the Check step by saving progress directly, as earlier turns would have (one step per turn). */
@@ -757,7 +752,7 @@ describe("Tutor Turn", () => {
     });
   });
   describe("quiz Check", () => {
-    const real = loadCourseMap();
+    const real = presentValueOnly();
     const quizId = "pv-quiz-discounting";
     const finish = (step: string) => ({ content: [{ type: "tool_use", id: `toolu_${step}`, name: "finish_teaching_step", input: { step } }] });
     const text = (t: string) => ({ content: [{ type: "text", text: t }] });

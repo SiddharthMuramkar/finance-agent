@@ -846,3 +846,33 @@ exists to catch that before the Learner does. Unverified keys are used anyway, w
 warning, because waiting for a person to check 400 questions would leave the bank idle; checked
 questions can be chosen for the Checks that matter most. FinQA is stored but not used yet:
 marking a typed number needs an input and a tolerance rule, which is a separate piece of work.
+
+## Foundation Topics, batch 1 (`course/topics/`, issue #31)
+
+**What it does.** Eight more Topics join the Course Map as written lessons: percent, percentage
+points and basis points; growth, compounding and logs; probability and expected value; the
+income statement; the balance sheet; the cash flow statement; how the three statements link;
+and ratios, return on equity and DuPont. Each is a YAML file with one Case, a short concept and
+principle, quiz questions, a quiz Check (3 questions per attempt, 2 right to pass) and a
+conversation Check. Stage, place and prerequisites still come from `course/outline.yaml`.
+
+**Scenario.** A Learner on the income statement Topic is told only what was public on 14 August
+2019: WeWork's prospectus shows half-year revenue of 1.54 billion dollars and a loss of more than
+900 million. They work out a net margin of about minus 58 per cent. Only after the quiz and the
+conversation Check does the Tutor reveal that the share sale was withdrawn on 30 September 2019.
+The figures the Learner can chart (for example Webvan's operating cash use of 263.1 million
+dollars in 2000) come from Case Data, imported from the laptop; the outcome figures are dated
+after the as-of date, so the as-of rule hides them until the reveal.
+
+**Sources and checks.** Every Case fact was read from a source on 2 November 2026 (Fortune, the
+Federal Reserve's history of LTCM, CNBC, Webvan's 10-K, the Satyam chairman's letter filed with
+the SEC, Business Today) and the quiz questions cite OpenStax, the CFA Institute, the SEC's
+investor site or the IFRS Foundation. Five Question Bank questions are used (three on probability,
+one on non-cash transactions, one on prepaid expenses). Their keys were recomputed or checked
+against a source and marked verified, with the note stored beside each question.
+
+**Trade-off.** The coffee-chain Case rests on an analyst's reading of the prospectus, because the
+prospectus itself could not be fetched; its total assets are missing, so the DuPont lesson uses a
+lower bound for leverage instead of the full three-way split. A better Case source (the
+prospectus) would let the Topic show the whole split. The Case Data import script now also reads
+the outline, which it had not done, so it works with the outline-driven Topic files.
