@@ -1,0 +1,165 @@
+# Corporate credit analysis: a foundation Topic taught through IL&FS before its defaults.
+# Case sources (checked): ICRA rationale and CARE press release hosted by IL&FS (Sep 2018, FY2017 figures used for the story); Reuters 4 Oct 2018; PIB, Ministry of Finance, 1 Oct 2018.
+id: credit-analysis
+title: Corporate credit analysis
+
+cases:
+  - id: ilfs-credit-2018
+    title: IL&FS, rated AAA
+    asOf: 2018-08-15
+    story: >
+      Infrastructure Leasing and Financial Services (IL&FS) is one of India's best-known
+      infrastructure financiers. It builds and finances roads, power plants, ports and other projects
+      through a very large group of subsidiaries and holds them from a parent registered as a
+      core investment company, a type of holding company regulated by the Reserve Bank of India,
+      which limits its outside debt to 2.5 times its adjusted net worth. Its borrowing is raised from
+      banks and the bond market, including commercial paper and debentures. ICRA and CARE had rated
+      its debt AAA, the highest grade, for years. For the year to March 2017 the parent alone
+      reported total income of Rs 1,787 crore, profit after tax of Rs 383 crore, net worth of Rs
+      4,998 crore, borrowings of 2.60 times its net worth, and a regulatory leverage ratio of 2.23.
+      For the whole group, the consolidated figures for the same year showed total income of Rs
+      17,157 crore, profit after tax of only Rs 142 crore and a leverage ratio of 8.62. One of
+      its subsidiaries, IL&FS Transportation Networks, had missed a debt payment in June 2018. You are asked to
+      lend money for one year to the parent. What would you want to know before agreeing, and which
+      of these figures would make you hesitate despite the AAA rating?
+    reveal: >
+      On 16 August 2018 a group company defaulted on a payment to the Small Industries Development
+      Bank of India. ICRA and CARE moved the rating down in mid-August, first by one notch, and then,
+      within a month, to default grade: ICRA cut it to BB on 8 September and CARE did the same on 9
+      September. On 1 October 2018 the government moved to replace the board, saying the group had 169
+      companies and about Rs 91,000 crore of debt against assets above Rs 1,15,000 crore. It said the
+      consolidated accounts showed over Rs 20,000 crore of intangible assets, that about half of
+      revenue was receivables stuck in litigation and arbitration, and that cash from operations was
+      negative by Rs 7,020 crore in 2017-18. The FY2018 consolidated figures that rating agencies later
+      quoted showed a loss of Rs 1,887 crore and a leverage ratio of 10.99. Reuters noted that all three agencies
+      had rated it AAA and moved to default within a month. A rating is an opinion on the chance of default at one date, not a
+      substitute for reading the cash flows and the funding.
+
+concept: >
+  Credit analysis asks whether a borrower will pay interest and principal in full and on time, and
+  how much is lost if it does not. Analysts look at: cash flow (can operating cash flow cover
+  interest and repayments?), leverage (debt to EBITDA, debt to equity), coverage (EBIT divided by
+  interest), liquidity (cash and undrawn lines against debt due soon), the quality of assets
+  and earnings (profit that is stuck in receivables is not cash), the structure (debts of
+  subsidiaries, guarantees, the difference between parent-only and consolidated figures), and
+  the match between how assets and liabilities are funded: long-term infrastructure funded with
+  short-term borrowing must be refinanced repeatedly. Ratings from agencies are summaries of
+  these judgements: BBB- and above on the S&P scale (or the equivalent) is investment grade.
+  A rating is slow to change, relies on the company's own information, and is not a guarantee.
+  The lender's yield should compensate for the probability of default and the loss given default.
+
+principle: >
+  Do not lend on the rating alone. Read cash flow, the whole group's debt and the funding
+  mismatch, and ask what must go right for the loan to be repaid.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: ca-q-cover
+    prompt: >
+      A company has operating profit (EBIT) of 120 and interest expense of 40. What is its interest cover?
+    choices:
+      - { id: a, text: "3.0 times" }
+      - { id: b, text: "0.33 times" }
+      - { id: c, text: "80 times" }
+      - { id: d, text: "160 times" }
+    answer: a
+    explanation: >
+      Interest cover = EBIT / interest = 120 / 40 = 3.0. The higher the cover, the further profit can fall before interest cannot be paid.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default ; the ratio is by definition.
+
+  - id: ca-q-net-debt
+    prompt: >
+      A company has debt of 500, cash of 100 and EBITDA of 200. What is its net debt to EBITDA?
+    choices:
+      - { id: a, text: "2.0 times" }
+      - { id: b, text: "2.5 times" }
+      - { id: c, text: "3.0 times" }
+      - { id: d, text: "0.5 times" }
+    answer: a
+    explanation: >
+      Net debt = 500 - 100 = 400. Net debt / EBITDA = 400 / 200 = 2.0 times, the number of years of EBITDA it would take to repay the net debt.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default ; the ratio is by definition.
+
+  - id: ca-q-consolidated
+    prompt: >
+      A holding company's own accounts show modest debt, but its subsidiaries have borrowed heavily and the parent has guaranteed some of it. Which figures best show the group's total leverage?
+    choices:
+      - { id: a, text: "Consolidated accounts, with the guarantees" }
+      - { id: b, text: "The parent's own accounts alone" }
+      - { id: c, text: "Only the credit rating" }
+      - { id: d, text: "The dividend yield" }
+    answer: a
+    explanation: >
+      Consolidated figures add the subsidiaries' debts. Parent-only figures can look safe while the group is highly leveraged, and guarantees can bring a subsidiary's debt back to the parent.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: ca-q-cash-vs-profit
+    prompt: >
+      A firm reports healthy profits, but about half of its revenue is receivables that customers have not paid for years. Why should a lender worry?
+    choices:
+      - { id: a, text: "Profit that is not collected is not cash available to pay interest and principal" }
+      - { id: b, text: "Receivables are always collected in full" }
+      - { id: c, text: "Profit is irrelevant to lenders" }
+      - { id: d, text: "Receivables lower the tax bill" }
+    answer: a
+    explanation: >
+      Lenders are repaid in cash. Cash flow from operations, not accounting profit, is what pays debt, so receivables that are stuck are a warning sign.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: ca-q-mismatch
+    prompt: >
+      A lender funds 20-year road projects with debt that must be repaid or refinanced every 90 days. What is the main risk?
+    choices:
+      - { id: a, text: "If lenders refuse to roll over the debt, it cannot be repaid from the project's slow cash flows" }
+      - { id: b, text: "The interest rate must be fixed for twenty years" }
+      - { id: c, text: "Roads cannot be financed with debt" }
+      - { id: d, text: "The tax rate rises" }
+    answer: a
+    explanation: >
+      Assets that earn cash slowly, funded by short-term debt, depend on continued refinancing. A lenders' strike can cause a default even if the projects are sound.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+  - id: ca-q-rating
+    prompt: >
+      Which statement about a credit rating is correct?
+    choices:
+      - { id: a, text: "It is an opinion on the likelihood of default, based largely on information the company provides, and it can change" }
+      - { id: b, text: "It guarantees repayment" }
+      - { id: c, text: "It measures the company's share price" }
+      - { id: d, text: "It is set by the government" }
+    answer: a
+    explanation: >
+      Agencies rate the chance of default from the borrower's information and their methods. Ratings can lag events and are not guarantees.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default
+
+checks:
+  - id: ca-quiz-credit
+    kind: quiz
+    questions:
+      - ca-q-cover
+      - ca-q-net-debt
+      - ca-q-consolidated
+      - ca-q-cash-vs-profit
+      - ca-q-mismatch
+      - ca-q-rating
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ca-lend-explain
+    kind: conversation
+    prompt: >
+      You are asked to lend for one year to a holding company whose debt carries the top credit
+      rating. List the information and ratios you would examine before lending, and explain why you
+      would not rely on the rating alone.
+    passCriteria: >
+      The Learner names at least four items among: cash flow from operations against interest and
+      repayments, leverage (debt to EBITDA or equity), interest cover, liquidity and debts due soon,
+      parent-only against consolidated debt and guarantees, quality of receivables and assets, and
+      the match between short-term funding and long-term assets. They say the rating is an opinion
+      that can lag events, depends on company information and is not a guarantee.

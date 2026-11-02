@@ -1,0 +1,133 @@
+# Cost of capital and WACC: a foundation Topic taught through Eurotunnel's financing cost.
+# Case sources (checked): New York Times / Bloomberg 17 Jan 2006 (2005 revenue); The Guardian 28 Nov 2006; BBC News 15 Jan 2007.
+id: cf-wacc
+title: Cost of capital and WACC
+
+cases:
+  - id: eurotunnel-wacc-2006
+    title: Eurotunnel's financing cost
+    asOf: 2006-09-01
+    story: >
+      Eurotunnel owns and runs the twin rail tunnels under the English Channel, which opened in
+      1994 after a build that cost far more than planned. The company paid for the tunnels mostly
+      with borrowed money. By September 2006 it owed about 6.2 billion pounds and paid about 330
+      million pounds a year in interest. Its revenue in 2005 was 541 million pounds, up from 538
+      million in 2004, as more lorries, coaches and cars used its shuttle trains. The company was
+      negotiating with its creditors to cut its debt and avoid bankruptcy. Every provider of
+      money to a firm expects a return: lenders get interest, which is tax-deductible, and
+      shareholders expect dividends or share-price gains. The weighted average cost of capital
+      (WACC) is the return the firm's assets must earn to satisfy all of them. Without any other
+      figures, how large is the interest bill compared with revenue? What does that tell you about
+      the return the tunnel's operations would have to earn, and who is bearing the risk?
+    reveal: >
+      Creditors approved a rescue plan in Paris on 27 November 2006 by a single vote, 28 of 53
+      creditors. The plan cut the debt from 6.2 billion to 2.84 billion pounds, which the Paris
+      commercial court backed on 15 January 2007. Shareholders were left with 13% of the new
+      company, and bank lenders received a mixture of cash and a hybrid note of 1.3 billion pounds
+      convertible into 87% of it. The cost of capital had been set by the borrowing, not by the
+      tunnel's earnings: lenders ended up owning most of the equity, because the business could not
+      earn the return that the debt required.
+
+concept: >
+  The weighted average cost of capital is the average return that a firm's capital providers
+  require, weighted by the market value of each source: WACC = (E/V) x Re + (D/V) x Rd x (1 - T),
+  where E is the market value of equity, D of debt, V = D + E, Re the cost of equity, Rd the pre-tax
+  cost of debt and T the tax rate. Debt is cheaper than equity because lenders are paid first and
+  because interest is tax-deductible, which is why the after-tax cost of debt is Rd x (1 - T).
+  The cost of equity can be estimated with the CAPM: Re = risk-free rate + beta x equity risk
+  premium. Use market values for the weights, not book values, because they show what investors
+  actually have at stake. WACC is the right discount rate for a project only if the project has the
+  same risk as the firm's business; a riskier venture needs a higher rate. A firm whose assets
+  earn less than its WACC is destroying value, and a firm borrowing so much that interest takes a
+  large share of revenue leaves little for anyone else: the cost of capital then rises for both
+  lenders and shareholders.
+
+principle: >
+  Every pound of capital has a price. A project or business is worth funding only if it earns
+  more than the average price of the money used, adjusted for its own risk.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: wc-q-calc
+    prompt: >
+      A firm has equity worth $600 million at market value and debt worth $400 million. The cost of equity is 12%, the pre-tax cost of debt 6% and the tax rate 25%. What is its WACC?
+    choices:
+      - { id: a, text: "9.0%" }
+      - { id: b, text: "9.6%" }
+      - { id: c, text: "8.4%" }
+      - { id: d, text: "10.2%" }
+    answer: a
+    explanation: >
+      WACC = 0.6 x 12% + 0.4 x 6% x (1 - 0.25) = 7.2% + 1.8% = 9.0%. Ignoring the tax shield would give 9.6%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.3 Calculating the Weighted Average Cost of Capital: https://openstax.org/books/principles-finance-2e/pages/17-3-calculating-the-weighted-average-cost-of-capital
+
+  - id: wc-q-capm
+    prompt: >
+      The risk-free rate is 4%, the equity risk premium is 5% and a stock's beta is 1.5. What cost of equity does the CAPM give?
+    choices:
+      - { id: a, text: "11.5%" }
+      - { id: b, text: "7.5%" }
+      - { id: c, text: "9.0%" }
+      - { id: d, text: "13.0%" }
+    answer: a
+    explanation: >
+      Re = 4% + 1.5 x 5% = 11.5%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
+
+  - id: wc-q-tax-shield
+    prompt: >
+      A firm pays 8% interest on its debt and its tax rate is 25%. What is its after-tax cost of debt?
+    choices:
+      - { id: a, text: "6%" }
+      - { id: b, text: "8%" }
+      - { id: c, text: "10.7%" }
+      - { id: d, text: "2%" }
+    answer: a
+    explanation: >
+      Interest is deductible, so the tax bill falls by 25% of the interest. The cost after tax is 8% x (1 - 0.25) = 6%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
+
+  - id: wc-q-market-weights
+    prompt: >
+      Why should WACC use the market values of debt and equity as weights, rather than the figures on the balance sheet?
+    choices:
+      - { id: a, text: "Market values show what investors currently have at stake and could earn elsewhere" }
+      - { id: b, text: "Market values never change" }
+      - { id: c, text: "Book values are not audited" }
+      - { id: d, text: "Tax law requires it" }
+    answer: a
+    explanation: >
+      The required returns apply to the money investors have at risk today, which is the market value of their claims, not the historical amount recorded in the accounts.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.3 Calculating the Weighted Average Cost of Capital: https://openstax.org/books/principles-finance-2e/pages/17-3-calculating-the-weighted-average-cost-of-capital
+
+checks:
+  - id: wc-quiz-wacc
+    kind: quiz
+    questions:
+      - wc-q-calc
+      - wc-q-capm
+      - wc-q-tax-shield
+      - wc-q-market-weights
+      - bank:eab:MBA-FIN-CF-0030
+      - bank:eab:MBA-FIN-CF-0031
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: wc-tunnel-explain
+    kind: conversation
+    prompt: >
+      Eurotunnel's interest bill was about 330 million pounds a year on revenue of 541 million
+      pounds. Explain what the weighted average cost of capital is, why such a heavy debt load
+      makes it hard for a business to earn it, and how cutting the debt would change who bears the
+      risk.
+    passCriteria: >
+      The Learner defines WACC as the weighted average of what lenders and shareholders require
+      (debt after tax, equity by market value) and the return the assets must earn to satisfy
+      them. They say interest of about 61% of revenue leaves little to cover operating costs and
+      reward shareholders, so the assets cannot earn the required return, and that cutting debt
+      moves risk to lenders who take equity, or to the remaining shareholders, instead of leaving
+      it as a fixed claim.

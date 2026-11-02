@@ -1,0 +1,155 @@
+# DCF valuation: a foundation Topic taught through Aswath Damodaran's February 2000 valuation of Amazon.com.
+# Case Data (the share price and Amazon's 2000 price range) lives in the database; see docs/architecture.md.
+# Case sources (checked): Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, valuation done February 2000), tables on cash flows and cost of capital; Amazon.com Form 10-K405 for 2000.
+id: val-dcf
+title: DCF valuation
+
+cases:
+  - id: amazon-dcf-2000
+    title: Damodaran values Amazon.com
+    data: [amazon-share-price-feb-2000, amazon-quarterly-high-2000, amazon-quarterly-low-2000]
+    asOf: 2000-02-01
+    story: >
+      In February 2000 the online retailer Amazon.com traded at $84 a share. Aswath Damodaran, a
+      professor at New York University's Stern School of Business, valued it with a discounted cash
+      flow model. Its revenue for the twelve months to September 1999 was $1,117 million, with an
+      operating loss of $410 million (a margin of -36.71%). He assumed revenue would grow 150% in
+      the first year, then 100%, 75%, 50% and 30%, slowing to 6% in year 10 and in perpetuity, and
+      that the operating margin would improve to 9.95% in year 10 and 10% after that. After tax
+      and the spending on new capacity, he forecast free cash flow to the firm (in $ million) of
+      -931, -1,024, -989, -758, -408, -163, 177, 625, 1,174 and 1,788 in years 1 to 10. He
+      discounted them at a cost of capital of 12.84% in years 1 to 3, 12.83% in year 4, 12.81% in year 5, then 12.13%, 11.62%, 11.08%, 10.49% and 9.61% in years 6 to 10,
+      and valued the cash flows after year 10 as a perpetuity growing at 6%. The firm had
+      $26 million of cash and $349 million of debt, and employee options outstanding that he valued
+      at $2,892 million. Using these inputs, what is Amazon worth, and how much of it comes from
+      the years after year 10? How would you decide whether $84 is high or low?
+    reveal: >
+      Damodaran's terminal value was $52,148 million (1,881 / (9.61% - 6%)), and the present value
+      of all the cash flows was $15,170 million for the operations. Adding cash and subtracting
+      debt gave equity of $14,847 million. After deducting the value of the options ($2,892
+      million), the value of the common stock was $11,955 million, or $35.08 a share on 340.79
+      million shares, against a price of $84. The price did not fall at once: in the first
+      quarter of 2000 the shares traded as high as $91.50. They then fell through the year, with a
+      low of $14.88 in the fourth quarter. A DCF value is an estimate that depends on its
+      assumptions, and a market price can stay far above or below it for months. The model also
+      shows how much of the value lay in a terminal value that rests on distant growth and margin
+      assumptions: here more than the whole value came from years after year 10, since the early
+      cash flows were negative.
+
+concept: >
+  Discounted cash flow (DCF) valuation says that a business is worth the present value of the
+  cash it will produce. For the whole firm, forecast free cash flow to the firm (FCFF): operating
+  profit after tax, plus depreciation, less capital spending and the increase in working capital.
+  Discount each year's FCFF at the cost of capital (WACC), and add a terminal value for the years
+  beyond the forecast: TV = FCFF in the next year / (WACC - g), where g is a stable growth rate that
+  cannot exceed the long-run growth of the economy. The sum is the value of operating assets. Add
+  cash and subtract debt to get equity value, and subtract the value of employee options before
+  dividing by the number of shares. Discount free cash flow to equity at the cost of equity
+  instead if you value equity directly. For a young company the early cash flows are negative, so
+  most of the value is in the terminal value, and the result is very sensitive to the growth, margin
+  and discount-rate assumptions. Test them and say how value changes when they do.
+
+principle: >
+  A DCF is a set of explicit assumptions turned into a number. The number is only as good as the
+  assumptions, so state them, see which ones drive the value, and compare the result with the price
+  as a question rather than a verdict.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: dcf-q-pv
+    prompt: >
+      A project is expected to produce free cash flows of $110 in year 1 and $121 in year 2. What is their combined present value at a 10% discount rate?
+    choices:
+      - { id: a, text: "$200" }
+      - { id: b, text: "$231" }
+      - { id: c, text: "$210" }
+      - { id: d, text: "$190.91" }
+    answer: a
+    explanation: >
+      110 / 1.10 = 100 and 121 / 1.10^2 = 100, so the total is $200.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: dcf-q-terminal
+    prompt: >
+      After the explicit forecast, free cash flow in year 11 is expected to be $50 and to grow at 3% a year forever. The discount rate is 10%. What is the terminal value at the end of year 10?
+    choices:
+      - { id: a, text: "$714" }
+      - { id: b, text: "$500" }
+      - { id: c, text: "$1,667" }
+      - { id: d, text: "$385" }
+    answer: a
+    explanation: >
+      TV = FCFF(11) / (r - g) = 50 / (0.10 - 0.03) = 714.3. It is then discounted back to today with the year-10 discount factor.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), Ch. 11 Summary (growing-perpetuity valuation, the same formula): https://openstax.org/books/principles-finance-2e/pages/11-summary
+
+  - id: dcf-q-bridge
+    prompt: >
+      A DCF gives the value of a firm's operations as 1,000. It has debt of 300 and cash of 50. What is the value of its equity?
+    choices:
+      - { id: a, text: "750" }
+      - { id: b, text: "1,250" }
+      - { id: c, text: "650" }
+      - { id: d, text: "1,000" }
+    answer: a
+    explanation: >
+      Equity = operating value + cash - debt = 1,000 + 50 - 300 = 750.
+    source: >
+      CFA Institute, refresher readings on equity valuation: https://www.cfainstitute.org/insights/professional-learning/refresher-readings ; the bridge is by definition.
+
+  - id: dcf-q-rate-up
+    prompt: >
+      If all the inputs of a DCF stay the same but the discount rate rises, what happens to the estimated value?
+    choices:
+      - { id: a, text: "It falls, and distant cash flows and the terminal value fall most" }
+      - { id: b, text: "It rises" }
+      - { id: c, text: "It does not change" }
+      - { id: d, text: "Only the first year's cash flow changes" }
+    answer: a
+    explanation: >
+      A higher rate shrinks every present value, and the cash flows furthest away shrink most.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: dcf-q-young
+    prompt: >
+      Why does most of the value of a young, fast-growing company with negative cash flows usually come from its terminal value?
+    choices:
+      - { id: a, text: "The early cash flows are small or negative, so the value depends on what the business earns once it matures" }
+      - { id: b, text: "Terminal values are always accurate" }
+      - { id: c, text: "Young companies have no discount rate" }
+      - { id: d, text: "Taxes are zero after year 10" }
+    answer: a
+    explanation: >
+      When early free cash flows are negative, the positive value comes from later years and the perpetuity beyond the forecast, so the assumptions about margins, growth and the discount rate dominate.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+checks:
+  - id: dcf-quiz-method
+    kind: quiz
+    questions:
+      - dcf-q-pv
+      - dcf-q-terminal
+      - dcf-q-bridge
+      - dcf-q-rate-up
+      - dcf-q-young
+      - bank:eab:MBA-FIN-VAL-0004
+      - bank:eab:MBA-FIN-VAL-0006
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: dcf-amazon-explain
+    kind: conversation
+    prompt: >
+      Using the inputs given for Amazon, set out the steps of a discounted cash flow valuation from
+      free cash flow to a value per share. Say which two assumptions you think matter most and what
+      you would do to test them before comparing the result with the $84 price.
+    passCriteria: >
+      The Learner gives the steps: discount each year's free cash flow to the firm at the cost of
+      capital, add a terminal value using stable growth, add cash and subtract debt, subtract the
+      value of options, and divide by shares. They name key assumptions (long-run operating margin,
+      growth rate, terminal growth or cost of capital) and propose sensitivity tests with different
+      values. They treat the gap with the price as a question to explain, not as proof that the
+      price is wrong.

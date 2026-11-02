@@ -1,0 +1,149 @@
+# Behavioural finance and bubbles: a foundation Topic taught through Webvan's flotation.
+# Case Data (the share price and valuation figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): New York Times 6 Nov 1999; Wired/Reuters 4 Nov 1999; Wall Street Journal 23 Jul 1999; Reuters 6 Sep 2019; Bloomberg 6 Sep 2019.
+id: mkt-behavioural
+title: Behavioural finance and bubbles
+
+cases:
+  - id: webvan-ipo-bubble-1999
+    title: Webvan's first day as a public company
+    data: [webvan-ipo-price, webvan-first-day-close]
+    asOf: 1999-11-04
+    story: >
+      Webvan, an online grocer based in Foster City, California, was about to sell shares to the
+      public. It had begun delivering groceries in the San Francisco Bay Area only that June. In
+      July 1999 investors had paid $275 million for 6.48% of the company, a price that valued it
+      at more than $4 billion less than two months after its first delivery. The share sale had
+      been postponed a month earlier, at the request of the Securities and Exchange Commission,
+      because the company had given select investors financial information in a conference call
+      that was not in its public documents. Webvan was expected to lose about $65 million in 1999
+      and had warned of operating losses for the foreseeable future. On the morning of Thursday 4
+      November 1999 the lead underwriter, Goldman Sachs, raised the expected price range from $11
+      to $13 to $13 to $15 a share because demand was strong, for 25 million shares. The offer
+      priced that evening at $15, raising $375 million, and trading was due to begin the next day.
+      What would you pay for a share on the first morning? What does your answer assume about the
+      other buyers?
+    reveal: >
+      On 5 November the shares traded as high as $34 and closed at $24.875, 65% above the offer
+      price, valuing Webvan at $7.9 billion. The company went on to lose $453.3 million in 2000 and
+      filed for bankruptcy on 9 July 2001. The pattern came back twenty years later. WeWork was
+      valued at $47 billion in a private round in January 2019. Bankers had talked of $65 billion
+      for its share sale, and by 6 September 2019 it was reported to be considering a valuation as
+      low as $10 billion. The sale was withdrawn at the end of September. In both cases the price
+      rested on growth stories and on what the next buyer would pay, with little in the accounts to
+      support it.
+
+concept: >
+  Behavioural finance studies how predictable human habits move prices. Overconfidence makes
+  people too sure of their forecasts and too narrow in their ranges. Herding means copying what
+  others do because others are doing it. Anchoring ties estimates to an arbitrary number such as
+  an offer price or last year's figure. Extrapolation expects recent winners to keep winning. The
+  disposition effect is selling winners early and holding losers to avoid realising a loss.
+  Because arbitrage is limited, such habits can push a price far from the value of the cash flows
+  and keep it there. A bubble is a period when prices rise far beyond what the expected cash
+  flows can justify and are held up mainly by the expectation of further rises. The first-day
+  return of a new issue is the closing price divided by the offer price, minus one. A large
+  first-day jump tells you about demand, not about whether the business is worth the new price.
+
+principle: >
+  When a price is justified mainly by what the next buyer will pay, ask what cash flows would be
+  needed to earn a fair return at that price, and who is left to buy when the story is tested.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: bf-q-herding
+    prompt: >
+      Investors buy a stock mainly because many others are buying it, and not because of their own analysis. What is this behaviour called?
+    choices:
+      - { id: a, text: "Herding" }
+      - { id: b, text: "Diversification" }
+      - { id: c, text: "Arbitrage" }
+      - { id: d, text: "Hedging" }
+    answer: a
+    explanation: >
+      Herding is copying the actions of the crowd. It can push prices well above or below the value of the underlying cash flows.
+    source: >
+      Tversky and Kahneman, 'Judgment under Uncertainty: Heuristics and Biases', Science 185 (1974): https://doi.org/10.1126/science.185.4157.1124
+
+  - id: bf-q-first-day
+    prompt: >
+      A new share issue is priced at $20 and closes its first day of trading at $28. What is the first-day return?
+    choices:
+      - { id: a, text: "40%" }
+      - { id: b, text: "28.6%" }
+      - { id: c, text: "8%" }
+      - { id: d, text: "140%" }
+    answer: a
+    explanation: >
+      The first-day return is 28 / 20 - 1 = 0.40, or 40%. Dividing the gain by the closing price (8 / 28 = 28.6%) measures it from the wrong base.
+    source: >
+      Jay R. Ritter, IPO data and underpricing, University of Florida: https://site.warrington.ufl.edu/ritter/ipo-data/ ; the arithmetic is own.
+
+  - id: bf-q-extrapolation
+    prompt: >
+      A stock rose 60% last year while its earnings forecasts did not change. Many investors buy it expecting another 60%. Which bias best describes this?
+    choices:
+      - { id: a, text: "Extrapolating recent returns" }
+      - { id: b, text: "Loss aversion" }
+      - { id: c, text: "Home bias" }
+      - { id: d, text: "Mean-variance optimisation" }
+    answer: a
+    explanation: >
+      Extrapolation assumes recent performance will continue, even though nothing about the business has changed. Prices that rise only because they have risen are a feature of bubbles.
+    source: >
+      Tversky and Kahneman, 'Judgment under Uncertainty: Heuristics and Biases', Science 185 (1974): https://doi.org/10.1126/science.185.4157.1124
+
+  - id: bf-q-disposition
+    prompt: >
+      An investor quickly sells shares that have gained in value but keeps shares that have lost value, hoping to 'get back to even'. What is this pattern called?
+    choices:
+      - { id: a, text: "The disposition effect" }
+      - { id: b, text: "The efficient-markets effect" }
+      - { id: c, text: "Dollar-cost averaging" }
+      - { id: d, text: "Rebalancing" }
+    answer: a
+    explanation: >
+      People dislike realising a loss more than they enjoy an equal gain (loss aversion), so they tend to sell winners too soon and hold losers too long.
+    source: >
+      Odean, 'Are Investors Reluctant to Realize Their Losses?', Journal of Finance 53 (1998): https://doi.org/10.1111/0022-1082.00072 ; Kahneman and Tversky, 'Prospect Theory', Econometrica 47 (1979): https://doi.org/10.2307/1914185
+
+  - id: bf-q-bubble-test
+    prompt: >
+      Which description best fits a bubble?
+    choices:
+      - { id: a, text: "Prices far above what expected cash flows justify, kept up by the expectation of further rises" }
+      - { id: b, text: "Any period in which prices rise for a year" }
+      - { id: c, text: "A market in which trading volume is low" }
+      - { id: d, text: "Prices that match the present value of expected cash flows" }
+    answer: a
+    explanation: >
+      A rise alone is not a bubble: it may be justified by better prospects. The mark of a bubble is a price that needs the next buyer to pay even more in order to earn a fair return.
+    source: >
+      Forbes, 'Henry Blodget Debates Jeremy Grantham', 12 June 2000 (copy on Damodaran's site): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html
+
+checks:
+  - id: bf-quiz-biases
+    kind: quiz
+    questions:
+      - bf-q-herding
+      - bf-q-first-day
+      - bf-q-extrapolation
+      - bf-q-disposition
+      - bf-q-bubble-test
+      - bank:eab:MBA-OB-0019
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: bf-bubble-explain
+    kind: conversation
+    prompt: >
+      A company that has just begun trading is valued at several billion dollars on its first
+      morning although its revenue is tiny. Using what you know about the Webvan share sale,
+      explain which behavioural biases could help explain such a price, and what you would check
+      before deciding whether it is a bubble.
+    passCriteria: >
+      The Learner names at least two biases (for example herding, overconfidence, extrapolation of
+      recent gains, anchoring on the offer price) and links them to the price. They say a high
+      price alone does not prove a bubble and propose checks: the cash flows needed to earn a fair
+      return at that price, the company's revenue and cash use, how much of the price depends on
+      what later buyers will pay, and the limits that stop others from betting against it.
