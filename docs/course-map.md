@@ -758,7 +758,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
   - Outcome: SpaceX bought Anysphere for $60bn all-stock (16 Jun 2026; completed 14 Aug 2026).
   - Sources: https://www.wheresyoured.at/ai-is-a-money-trap/ https://www.reuters.com/legal/transactional/spacex-buy-anysphere-60-billion-2026-06-16/ https://www.bloomberg.com/news/articles/2026-08-14/spacex-completes-its-60-billion-cursor-acquisition
 
-### 87. Judge: units, periods and labels
+### 87. Judge: units and periods (430% versus 340%, basis points, SOFR)
 
 - ID: `jud-units-periods` · Written
 - Needs first: Revenue recognition, run rates, gross vs net, Yield to maturity, coupon and current yield, Percent, percentage points and basis points
@@ -770,7 +770,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 ### 88. Judge: claim versus filing
 
 - ID: `jud-filing-vs-claim` · Written
-- Needs first: Reading filings: S-1, 10-K, Indian annual report and Ind AS, The income statement, Judge: units, periods and labels
+- Needs first: Reading filings: S-1, 10-K, Indian annual report and Ind AS, The income statement, Judge: units and periods (430% versus 340%, basis points, SOFR)
 - Case: **The Anthropic S-1 against two readings** (as of 2026-10-28) **to verify**
   - Outcome: S-1 Q2 operating income $974m and cash $112.4bn confirmed; the H1 loss and commitments figures not re-verified.
   - Note: Fetch the S-1 figures before writing.
@@ -823,7 +823,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 ### 94. Analyse: decide between writers, facts versus framing
 
 - ID: `ana-decide-between` · Coming
-- Needs first: Judge: Zitron's predictions versus later events, Judge: units, periods and labels, Judge: claim versus filing
+- Needs first: Judge: Zitron's predictions versus later events, Judge: units and periods (430% versus 340%, basis points, SOFR), Judge: claim versus filing
 - Case: **Blodget versus Grantham** (as of 2000-01-01) **to verify**
   - Outcome: The dot-com bust settled which framing was right.
   - Note: Outcome data to source.
