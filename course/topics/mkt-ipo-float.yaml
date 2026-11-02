@@ -1,0 +1,172 @@
+# IPOs, book building and float: a foundation Topic taught through Coffee Day's 2015 issue.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Coffee Day Enterprises prospectus dated 19 Oct 2015 (SEBI-hosted): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf ; Reuters in Business Standard, Coffee Day prices IPO at upper end of range (21 Oct 2015): https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html ; Hindustan Times, Bloomberg and Times of India (2 Nov 2015); SEC staff outline on underwriter short sales (2000): https://sec.gov/divisions/corpfin/guidance/ci111400ex_regs-k_sss.htm ; Ritter and Welch, A Review of IPO Activity, Pricing, and Allocations (2002).
+id: mkt-ipo-float
+title: IPOs, book building and float
+
+cases:
+  - id: coffee-day-ipo-structure-2015
+    title: How Coffee Day sold its shares to the public
+    data:
+      - shares-offered
+      - post-issue-shares
+      - issue-price
+      - issue-share-of-company
+      - promoter-group-before-issue
+      - promoter-group-after-issue
+      - money-raised
+      - repayment-of-loans-share
+    asOf: 2015-10-21
+    story: >
+      Coffee Day Enterprises, the company behind Cafe Coffee Day, has never had its shares
+      traded in public. In October 2015 it sells them for the first time in an initial public
+      offering (IPO), run by book building: it announced a price band of Rs 316 to 328 a share,
+      investors bid within the band, and the final price is set once the bids are in. Anchor
+      investors (large institutions) bid on 13 October, a day before the public, and the public
+      bidding ran from 14 to 16 October. On 21 October the company priced the issue at Rs 328, the
+      top of the band. It is selling 35,060,975 new shares, worth Rs 1,150 crore, which is 17.02
+      percent of the 206,001,719 shares it will have afterwards. Of the issue, 457,316 shares (Rs
+      15 crore) are set aside for employees, and the rest, the net issue, is split by rule: 50
+      percent for qualified institutional buyers (QIBs, such as mutual funds and insurers), of
+      which 60 percent was allotted to the anchors, not less than 15 percent for non-institutional
+      bidders and not less than 35 percent for retail individuals. The promoter group, V. G.
+      Siddhartha and his family companies, owned 63.34 percent before the issue and will own
+      52.56 percent after. Of the net proceeds of Rs 1,082 crore, Rs 633 crore will repay loans.
+      Under SEBI's rules the promoters' 20 percent is locked in for three years, and most other
+      pre-issue shares for a year; the shares will be listed on the BSE and the NSE. You are asked
+      who holds what once trading starts, which shares can be sold, and how the price of Rs 328
+      relates to what the open market will pay.
+    reveal: >
+      The shares began trading on 2 November 2015. They opened at Rs 313 on the BSE and Rs 317 on
+      the NSE, below the Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6
+      percent. At the NSE close the company was worth about Rs 5,571 crore, against Rs 6,757 crore
+      at the issue price. The only shares that could be sold in the days that followed were the
+      17.02 percent sold in the issue (and the few exempt from lock-in), and the buyers who had
+      been allotted them at Rs 328 had a loss on the first day. Most of the company, including
+      the promoters' 52.56 percent, was locked in and could not come to the market. The issue
+      price had been set by book building before trading began; the first day of trading showed
+      what the open market, with its small float, would pay for the same shares.
+
+concept: >
+  An initial public offering (IPO) is the first sale of a company's shares to the public. In
+  book building, the company and its bankers publish a price band, invite bids from investors
+  within the band and set the issue price after seeing how many shares are demanded at each
+  price. Rules often split the shares among investor groups: institutions, non-institutional
+  bidders and retail investors, and anchor investors may be allotted shares ahead of the public.
+  The issue can be new shares (the company gets the money), existing shares sold by owners (the
+  owners get it), or both. The float is the part of the company that can actually trade freely.
+  An IPO of 17 percent of the company gives a float of at most 17 percent of the shares even if
+  the other 83 percent exist. Lock-ins stop insiders and pre-IPO investors from selling for a
+  period, so their shares do not reach the market immediately. Underwriters often over-sell by up
+  to 15 percent (the greenshoe): if the price falls they buy shares in the market to cover and
+  support the price; if it rises they use the option to buy from the company. On average IPOs are
+  priced below their first-day closing price, which is called underpricing, and the discount is
+  larger when there is more uncertainty about the company's value; a few close below the issue
+  price.
+
+principle: >
+  An IPO sets a price in a thin market: only the float trades, locked-in holders wait behind it,
+  and book building collects demand before the price is final. Check how much will trade, who
+  can sell when, and what the company will do with the money.
+
+questions:
+  - id: ip-q-float
+    prompt: >
+      A company will have 200 million shares after its IPO, and the IPO sells 30 million new shares to the public. What share of the company is being sold in the IPO?
+    choices:
+      - { id: a, text: "15 percent" }
+      - { id: b, text: "30 percent" }
+      - { id: c, text: "13 percent" }
+      - { id: d, text: "85 percent" }
+    answer: a
+    explanation: >
+      30 million / 200 million (shares after the issue) = 15 percent. The coffee-chain prospectus states the share the same way: the issue as a percentage of post-issue paid-up capital.
+    source: >
+      Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), cover page: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+  - id: ip-q-proceeds
+    prompt: >
+      A company sells 30 million new shares at Rs 250 each in an IPO. How much does it raise, before costs?
+    choices:
+      - { id: a, text: "Rs 75 crore" }
+      - { id: b, text: "Rs 750 crore" }
+      - { id: c, text: "Rs 7,500 crore" }
+      - { id: d, text: "Rs 83 crore" }
+    answer: b
+    explanation: >
+      30 million x Rs 250 = Rs 7,500 million. One crore is 10 million, so that is Rs 750 crore.
+    source: >
+      Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015): 35,060,975 shares at Rs 328 aggregating to Rs 11,500 million, shown as Rs 1,150 crore: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+  - id: ip-q-retail
+    prompt: >
+      A net issue of 10 crore shares must by rule offer not less than 35 percent to retail individual bidders. What is the smallest number of shares reserved for them?
+    choices:
+      - { id: a, text: "3.5 crore shares" }
+      - { id: b, text: "1.5 crore shares" }
+      - { id: c, text: "5 crore shares" }
+      - { id: d, text: "35 crore shares" }
+    answer: a
+    explanation: >
+      35 percent of 10 crore = 3.5 crore shares. The same prospectus reserved 50 percent for institutions and not less than 15 percent for non-institutional bidders.
+    source: >
+      Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), the Issue under SEBI ICDR Regulation 26(1): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+  - id: ip-q-book-building
+    prompt: >
+      In an IPO run by book building, how is the final issue price decided?
+    choices:
+      - { id: a, text: "Investors bid within a published price band, and the price is set after the bids show demand at each price" }
+      - { id: b, text: "The regulator sets one fixed price before any investor is asked" }
+      - { id: c, text: "The lowest bid sets the price for everyone" }
+      - { id: d, text: "The price is set by the first day of trading" }
+    answer: a
+    explanation: >
+      Book building collects bids from investors within a band and finds the price where demand covers the shares on offer. The first day of trading comes after the price is set.
+    source: >
+      Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), cover page: the Issue is made "through the Book Building Process" within a price band: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+  - id: ip-q-lock-in
+    prompt: >
+      Why are the shares of promoters and pre-IPO investors usually locked in for a period after an IPO?
+    choices:
+      - { id: a, text: "So large holders cannot sell all at once into a new, thin market, and so insiders stay committed to the company" }
+      - { id: b, text: "Because they are not allowed to own shares after the IPO" }
+      - { id: c, text: "To guarantee the share price will rise" }
+      - { id: d, text: "Because the exchange cannot trade more than 17 percent of a company" }
+    answer: a
+    explanation: >
+      With a small float, a large sale would hit the price hard. A lock-in keeps those shares off the market for a set time. It does not guarantee any price.
+    source: >
+      Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), lock-in requirements for promoters and pre-issue capital: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+checks:
+  - id: ip-quiz-ipo
+    kind: quiz
+    questions:
+      - ip-q-float
+      - ip-q-proceeds
+      - ip-q-retail
+      - ip-q-book-building
+      - ip-q-lock-in
+      - bank:eab:MBA-FIN-VAL-0040
+      - bank:eab:MBA-FIN-VAL-0042
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ip-float-and-price
+    kind: conversation
+    prompt: >
+      A company is about to list after an IPO that sells 17 percent of its shares through book
+      building at the top of its price band. The owners keep 53 percent, locked in. Explain how
+      the price was found, what the float is here, and why the price on the first day of trading
+      might differ from the issue price.
+    passCriteria: >
+      The Learner explains that in book building investors bid within a band and the price is set
+      after the bids show demand. They say the float is the part of the company that can trade
+      freely, here about 17 percent, because the owners' shares are locked in. They explain that
+      the first-day price comes from the balance of buyers and sellers in a thin market: demand
+      above the offer pushes the price above the issue price (underpricing), demand below pushes
+      it below, and a price at the top of the band means bidders were willing to pay more but
+      does not guarantee the market will follow. They may mention lock-in expiry, greenshoe
+      stabilisation or uncertainty about value.

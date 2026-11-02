@@ -1,0 +1,171 @@
+# Relative valuation and multiples: a foundation Topic taught through WeWork's $47 billion against IWG.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Forbes, WeWork Files IPO Plan (14 Aug 2019): https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/ ; Toronto Star, WeWork is valued 10 times greater than this profitable public rival (20 Aug 2019); CNBC and Reuters (8 Jan 2019); Forbes and Bloomberg (30 Sep 2019); Reuters (23 Oct 2019).
+id: val-multiples
+title: Relative valuation and multiples
+
+cases:
+  - id: wework-iwg-multiples-2019
+    title: WeWork at $47 billion against IWG
+    data:
+      - wework-valuation
+      - wework-revenue-2018
+      - wework-net-loss-2018
+      - wework-h1-2019-revenue
+      - wework-h1-2019-net-loss
+      - boston-properties-revenue-multiple
+      - iwg-market-value
+      - iwg-h1-2019-revenue
+      - iwg-revenue-2018
+    asOf: 2019-08-20
+    story: >
+      On 14 August 2019 WeWork's parent, The We Company, made its IPO prospectus (Form S-1)
+      public. WeWork leases office buildings and rents desks and rooms in them on short
+      contracts. Its last private funding round, in January 2019, had valued it at $47 billion.
+      The prospectus showed revenue of about $1.8 billion in 2018 against a loss of $1.9
+      billion, and for the first half of 2019 revenue of $1.54 billion against a net loss of
+      $905 million. Forbes worked out that the $47 billion was 26 times 2018 revenue, and set
+      it beside Boston Properties, one of the biggest US office landlords, valued at around 12
+      times revenue. Six days later a newspaper report pointed to a closer rival: IWG, the
+      parent of Regus, which has run serviced offices since 1989 and is listed in London. At
+      30 June 2019 WeWork had 604,000 workstations and IWG 602,535. In the first half of 2019
+      IWG made an operating profit of 50.6 million pounds on revenue of $1.59 billion, and its
+      stock market value was $4.45 billion (that figure counts the shares only, not IWG's
+      debt). It is 20 August 2019. You are asked how much WeWork's shares might be worth if
+      investors priced them the way they price its rivals, and what would have to be true for
+      a much higher price to hold.
+    reveal: >
+      The market did not pay the multiple. By late September advisers were telling WeWork it
+      would probably fetch about a quarter of $47 billion, and reports put the IPO valuation as
+      low as $10 billion. Adam Neumann stepped down as chief executive on 24 September 2019 and
+      on 30 September the company filed to withdraw its IPO. On 22 October 2019 SoftBank agreed
+      a rescue that valued WeWork at less than $8 billion, a cut of more than 80 percent from
+      January. Set beside its first-half 2019 revenue doubled (about $3.1 billion), that is
+      about 2.6 times revenue: still above the roughly 1.4 times at which IWG's shares stood in
+      August, but a long way below 15 times (the January valuation over the same revenue) or 26
+      times (over 2018 revenue). The multiple had borrowed a growth story that investors were no
+      longer willing to pay for.
+
+concept: >
+  Relative valuation prices a company by what the market pays for similar ones. You pick a
+  measure (revenue, earnings, book value), compute the ratio of value to that measure for
+  comparable companies, and apply the ratio to the company you are valuing. Equity multiples
+  such as price-to-earnings (P/E) divide the value of the shares by a measure that belongs to
+  the shareholders. Enterprise value multiples such as EV/revenue divide enterprise value
+  (market value of equity + debt - cash) by a measure of the whole business, so the way a
+  company is funded does not distort the comparison. A multiple is not a free-standing fact:
+  it is shaped by growth, risk and profitability. For example, the justified forward P/E is
+  payout ratio / (cost of equity - growth), so a company with higher sustainable growth or
+  lower risk deserves a higher multiple. Check which period's revenue is used (last year's, or
+  the latest half-year doubled), and pick comparables with similar growth, margins and risk, or
+  adjust for the difference. The weakness of the method is that multiples carry the market's
+  mood: if the comparables are priced too high or too low, so is your answer.
+
+principle: >
+  A multiple is a price tag, not a value. Before you apply one, ask what the comparable's
+  growth, margins and risk had to be to earn it, and whether the company you are valuing really
+  looks like that.
+
+questions:
+  - id: vm-q-apply
+    prompt: >
+      Listed companies in a business trade at 2.0 times revenue. A private company in the same business, with similar growth, margins and risk, has revenue of $150 million. What equity value does the relative method suggest?
+    choices:
+      - { id: a, text: "$75 million" }
+      - { id: b, text: "$150 million" }
+      - { id: c, text: "$300 million" }
+      - { id: d, text: "$600 million" }
+    answer: c
+    explanation: >
+      Value = multiple x measure = 2.0 x $150 million = $300 million. The method only works if the comparables really resemble the company being valued.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation: https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
+
+  - id: vm-q-annualised
+    prompt: >
+      A company is valued at $6,000 million. Its revenue last year was $300 million, and in the first half of this year it was $200 million. What is the value as a multiple of last year's revenue, and as a multiple of this year's first-half revenue doubled?
+    choices:
+      - { id: a, text: "20 times, and 15 times" }
+      - { id: b, text: "20 times, and 30 times" }
+      - { id: c, text: "15 times, and 20 times" }
+      - { id: d, text: "20 times, and 10 times" }
+    answer: a
+    explanation: >
+      6,000 / 300 = 20 times last year's revenue. First-half revenue doubled is $400 million, and 6,000 / 400 = 15 times. For a fast-growing company the multiple looks smaller on the newer revenue, so always say which revenue a multiple uses.
+    source: >
+      Damodaran, Relative Valuation (Investment Valuation, chapter on multiples; Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/multiples.pdf
+
+  - id: vm-q-mood
+    prompt: >
+      An analyst values a company at 15 times earnings, the average for its listed peers, and the arithmetic is right. Which risk remains?
+    choices:
+      - { id: a, text: "The peers may themselves be priced too high or too low, so the answer inherits the market's mood" }
+      - { id: b, text: "The multiple ignores the peers' earnings altogether" }
+      - { id: c, text: "Relative valuation cannot be used on companies with listed peers" }
+      - { id: d, text: "The answer must equal the discounted cash flow value" }
+    answer: a
+    explanation: >
+      A multiple is borrowed from other prices. If the market over-values the comparables, a relative valuation passes the over-valuation on. A DCF value need not equal it.
+    source: >
+      Damodaran, Relative Valuation (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/multiples.pdf
+
+  - id: vm-q-ev-funding
+    prompt: >
+      Two companies sell the same goods in the same quantities. One is funded only with equity, the other with a great deal of debt. Which multiple compares them most fairly?
+    choices:
+      - { id: a, text: "EV/revenue, because enterprise value counts debt as well as equity, so the funding mix does not distort it" }
+      - { id: b, text: "Price/revenue, because the share price already ignores debt" }
+      - { id: c, text: "Neither; companies with different funding cannot be compared" }
+      - { id: d, text: "Price/earnings, because debt does not affect earnings" }
+    answer: a
+    explanation: >
+      More debt leaves less value for the shareholders, which lowers a price-based multiple even when the business is identical. Enterprise value adds the debt back (and takes off cash), so EV multiples compare the businesses themselves.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation (equity multiples and enterprise value multiples): https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
+
+  - id: vm-q-comparable
+    prompt: >
+      You must value a young, fast-growing, loss-making software company by a revenue multiple. Which is the best comparable?
+    choices:
+      - { id: a, text: "A listed software company with a similar growth rate and margin outlook" }
+      - { id: b, text: "A profitable utility with the same revenue" }
+      - { id: c, text: "The largest company in the stock index" }
+      - { id: d, text: "A company in the same city" }
+    answer: a
+    explanation: >
+      The multiple reflects growth, margins and risk. A comparable with a similar profile has earned a multiple for similar reasons; a utility or an index giant has not.
+    source: >
+      Damodaran, Relative Valuation (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/multiples.pdf
+
+checks:
+  - id: vm-quiz-multiples
+    kind: quiz
+    questions:
+      - vm-q-apply
+      - vm-q-annualised
+      - vm-q-mood
+      - vm-q-ev-funding
+      - vm-q-comparable
+      - bank:eab:MBA-FIN-VAL-0009
+      - bank:eab:MBA-FIN-VAL-0013
+      - bank:eab:MBA-FIN-VAL-0011
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: vm-wework-explain
+    kind: conversation
+    prompt: >
+      WeWork's private valuation of $47 billion was 26 times its 2018 revenue, while IWG's
+      shares were worth about 1.4 times its revenue. Without saying who is right, explain what
+      a multiple like 26 times assumes about a company, what you would want to be true of
+      WeWork before you accepted it, and how you would use IWG as a comparable.
+    passCriteria: >
+      The Learner explains that a revenue multiple is the market's price for each dollar of
+      revenue and is only justified by what that revenue becomes: high growth, high margins
+      eventually, low risk. They say that to accept 26 times they would need evidence that
+      WeWork's revenue would grow much faster, or become much more profitable, than IWG's, and
+      that WeWork's losses and lease commitments are not a risk the multiple ignores. They use
+      IWG as a comparable with caveats (similar business, but profitable and slower growing;
+      its market value excludes debt, so an enterprise value multiple would be fairer), and
+      note that comparing against last year's revenue or the first half doubled gives different
+      multiples.

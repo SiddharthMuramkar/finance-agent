@@ -977,3 +977,26 @@ RBI's September 2013 repo level is derived from two RBI releases. The inflation 
 January 2014, not 31 December 2013, because the RBI overview it relies on was published on 28
 January 2014. No Case Data was added: the Cases teach from the story's figures, and FRED series may
 not be stored.
+
+## Foundation Topics, batch 7 (`course/topics/`, issue #37)
+
+**What it does.** Eight more Topics join the Course Map as Written, all on valuation and raising
+money: multiples (WeWork's $47 billion against IWG, as of 20 August 2019), young loss-making
+companies (Uber, Damodaran against venture capital, December 2014), banks (Yes Bank in February
+2020), distressed firms (Coffee Day Enterprises, 29 July 2019), the implied equity risk premium
+(the S&P 500 at the end of 2007), valuing Indian companies (Coffee Day's 2015 issue in rupees and in
+dollars), venture rounds (WeWork's January 2019 round) and IPOs and float (Coffee Day's 2015
+issue). Each has a Case told only with what was known on its date, a reveal held back until the
+Tutor reaches that step, a quiz Check with a pass rule and a conversation Check. Their sourced
+figures sit in Case Data (71 datasets in `case-data/foundation-b37.json`, outside the repo), and
+nine checked Question Bank items feed the quizzes.
+
+**Concrete scenario.** The Learner reaches Distressed firms. The Tutor tells the Coffee Day story
+up to the evening of 29 July 2019: share value, loans and the pledged promoter shares. The sharp
+fall in the shares and the later debt figures stay out of the lesson and out of the chart labels
+until the reveal step.
+
+**Trade-off.** Dataset labels and credits are shown before the reveal, so they were written
+neutrally and the detail that hints at the outcome sits in a note the Tutor never sees. Two Topics
+share Coffee Day and two share WeWork, with different facts each, which costs some repetition but
+keeps each Case self-contained. Some figures are press reports where no filing gives the same number.

@@ -1,0 +1,169 @@
+# Valuing banks and financial firms: a foundation Topic taught through Yes Bank in February 2020.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): NDTV Profit / BQ Research (4 Nov 2019); Times of India / PTI (Dec 2019 to Mar 2020); NDTV Profit (13 Feb 2020); Times of India / ANI (13 Feb 2020); RBI press release 2019-2020/2025 (5 Mar 2020): https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477 ; Business Today (13 Mar 2020); BBC and CNN (March 2020).
+id: val-banks
+title: Valuing banks and financial firms
+
+cases:
+  - id: yes-bank-valuation-2020
+    title: Yes Bank in February 2020
+    data:
+      - gross-npa-ratio
+      - net-npa-ratio
+      - fresh-bad-loans-q2
+      - net-loss-q2
+      - share-price-close
+      - market-value-december-2019
+    asOf: 2020-02-28
+    story: >
+      Yes Bank is a private bank that calls itself India's fourth largest. In 2018 the Reserve
+      Bank of India (RBI) told its founder and chief executive, Rana Kapoor, to leave by 31
+      January 2019, and his successor, Ravneet Gill, disclosed large stressed loans that had not
+      been reported earlier. For the quarter to 30 September 2019 the bank reported that its
+      gross non-performing assets (NPAs, loans on which payments have stopped) had risen to
+      7.39 percent of loans from 5.01 percent in the previous quarter, and net NPAs to 4.35
+      percent from 2.91 percent. Fresh bad loans were Rs 5,945 crore in that quarter, and it
+      reported a net loss of Rs 600 crore. Deposits had fallen 7 percent from the quarter
+      before. Since then the bank has been trying to raise fresh equity, said to be as much as 2
+      billion dollars. In December 2019 eight investors said they were interested, but nothing
+      was completed. On 13 February 2020 the bank said it would not publish its December
+      quarter results on time, only by 14 March at the latest, because the capital raising had
+      its full attention; it had received non-binding expressions of interest from four
+      investors, including JC Flowers. The share price was Rs 66.50 on 7 November 2019 and about
+      Rs 37 to 38 at the end of February 2020, down about 80 percent in twelve months. On 12
+      December 2019 the bank's stock market value was Rs 11,566 crore at Rs 45.35 a share, which
+      means about 255 crore shares. No book value per share has been published since September,
+      and the sound part of the loan book cannot be told from outside. It is 28 February 2020.
+      You are asked how to value the shares of a bank like this, and what the price is saying.
+    reveal: >
+      On 5 March 2020 the RBI superseded the board of Yes Bank for 30 days, citing a serious
+      deterioration in the bank's financial position and its inability to raise capital to cover
+      potential loan losses. It imposed a moratorium until 3 April: depositors could withdraw at
+      most Rs 50,000. The shares closed at Rs 16.20 on 6 March, down 56 percent in a day, after
+      falling as much as 85 percent during it. The draft rescue plan of 6 March had the State
+      Bank of India (SBI) buy up to 49 percent of the bank at Rs 10 a share, and on 12 March SBI
+      said it would put in Rs 7,250 crore for 725 crore shares at that price. The Cabinet approved
+      the plan on 13 March, and the moratorium ended at 6 p.m. on 18 March 2020. Shareholders kept
+      their shares but at a fraction of the price a few weeks before, and the rescue was priced
+      by what the shares of a bank with unreliable loan books were worth, not by the old
+      balance sheet.
+
+concept: >
+  For most companies, debt is a way to fund assets and value is the value of the whole business.
+  For a bank, debt (deposits and borrowings) is the raw material it lends on, so there is no
+  sensible "enterprise value" and analysts value the equity directly: discounted cash flow to
+  equity, or equity multiples such as price-to-earnings and price-to-book. Price-to-book divides
+  the share price by book value of equity per share; it should be higher for a bank that earns a
+  higher return on equity than its cost of equity, grows faster, or is less risky. Banks are very
+  highly leveraged: with equity of only a small share of assets, a loss of a few percent of
+  assets takes a large share of equity. Regulators therefore watch capital ratios. Book value is
+  only as good as the loans behind it: if borrowers are not repaying, the NPA ratio shows how
+  much of the loan book is in trouble, and a price well below book value says the market doubts
+  the reported equity or the earnings. A bank also depends on trust: depositors can leave faster
+  than loans can be collected.
+
+principle: >
+  A bank is valued through its equity, and its equity is a thin layer over a large balance sheet.
+  Judge the quality of the loans before you trust book value, and watch for loss of confidence
+  that can move faster than any valuation model.
+
+questions:
+  - id: vb-q-debt-raw
+    prompt: >
+      Why do analysts usually value a bank's equity directly instead of valuing the whole business and subtracting debt?
+    choices:
+      - { id: a, text: "Deposits and borrowings are the bank's raw material, not a source of capital, so enterprise value is hard to define" }
+      - { id: b, text: "Banks have no debt" }
+      - { id: c, text: "Banks pay no tax, so tax-adjusted cash flows are meaningless" }
+      - { id: d, text: "Equity multiples cannot be used for banks" }
+    answer: a
+    explanation: >
+      A bank lends money it has borrowed or taken as deposits, much as a manufacturer buys steel. Debt is therefore part of operations, and equity value, equity multiples and cash flow to equity are the natural tools.
+    source: >
+      Damodaran, Valuing Financial Service Firms (Library), "Debt: raw material or source of capital": https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
+
+  - id: vb-q-pb
+    prompt: >
+      A bank has book equity of Rs 10,000 crore and a stock market value of Rs 15,000 crore. What is its price-to-book ratio?
+    choices:
+      - { id: a, text: "0.67" }
+      - { id: b, text: "1.0" }
+      - { id: c, text: "1.5" }
+      - { id: d, text: "5,000" }
+    answer: c
+    explanation: >
+      Price-to-book = market value of equity / book value of equity = 15,000 / 10,000 = 1.5. A ratio above 1 means the market values the bank at more than the book equity.
+    source: >
+      Damodaran, Valuing Financial Service Firms (Library), price-to-book value ratios: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
+
+  - id: vb-q-leverage
+    prompt: >
+      A bank has assets of Rs 100,000 crore, funded by Rs 8,000 crore of equity and the rest deposits and borrowings. If bad loans cost it 5 percent of assets, what share of its equity is lost?
+    choices:
+      - { id: a, text: "5 percent" }
+      - { id: b, text: "8 percent" }
+      - { id: c, text: "62.5 percent" }
+      - { id: d, text: "12.5 percent" }
+    answer: c
+    explanation: >
+      The loss is 5 percent of Rs 100,000 crore = Rs 5,000 crore. Against equity of Rs 8,000 crore that is 5,000 / 8,000 = 62.5 percent. High leverage turns a small loss on assets into a large loss of equity.
+    source: >
+      Damodaran, Valuing Financial Service Firms (Library), on regulatory capital and equity as a cushion: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
+
+  - id: vb-q-roe-pb
+    prompt: >
+      Two banks have the same growth and the same cost of equity. Bank A earns a return on equity of 18 percent and Bank B earns 10 percent. Which should have the higher price-to-book ratio?
+    choices:
+      - { id: a, text: "Bank A, because it earns more on each rupee of book equity" }
+      - { id: b, text: "Bank B, because it has more room to improve" }
+      - { id: c, text: "Both the same, because growth and cost of equity are equal" }
+      - { id: d, text: "Neither; price-to-book does not depend on return on equity" }
+    answer: a
+    explanation: >
+      Price-to-book rises with the return on equity relative to the cost of equity. A bank that earns well above its cost of equity creates value on each rupee of equity, so each rupee of book equity is worth more than a rupee.
+    source: >
+      Damodaran, Valuing Financial Service Firms (Library): price-to-book is determined by growth, payout, cost of equity and return on equity: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
+
+  - id: vb-q-half-book
+    prompt: >
+      A bank's shares trade at half of reported book value. Which reading is most sensible?
+    choices:
+      - { id: a, text: "The shares are certainly cheap and should be bought" }
+      - { id: b, text: "The market may doubt that book value reflects the losses on the bank's loans, or doubt its future earnings" }
+      - { id: c, text: "The bank must be paying a very large dividend" }
+      - { id: d, text: "Price-to-book tells nothing about a bank" }
+    answer: b
+    explanation: >
+      A price well below book value is a warning as often as a bargain. Book equity counts loans at what the bank says they are worth. If the market expects large unreported losses, or low returns on equity, it will pay less than book.
+    source: >
+      Damodaran, Valuing Financial Service Firms (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
+
+checks:
+  - id: vb-quiz-banks
+    kind: quiz
+    questions:
+      - vb-q-debt-raw
+      - vb-q-pb
+      - vb-q-leverage
+      - vb-q-roe-pb
+      - vb-q-half-book
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: vb-bank-value
+    kind: conversation
+    prompt: >
+      A bank's shares have fallen about 80 percent in a year. Its gross NPA ratio has risen from
+      5.01 to 7.39 percent of loans in a quarter, it has not published its latest results, and it
+      is trying to raise new equity. Explain how you would think about what its shares are worth,
+      and why book value per share and the NPA ratio matter more here than a revenue multiple or
+      an enterprise value.
+    passCriteria: >
+      The Learner explains that a bank's debt is its raw material, so value is that of the equity
+      (price-to-book, price-to-earnings, or cash flow to equity), not enterprise value. They say
+      book value is only reliable if the loans behind it are, that a rising NPA ratio and
+      unpublished results raise doubt about reported equity and earnings, and that a bank's thin
+      equity (high leverage) means losses on loans can erase much of it. They mention that
+      fresh capital would dilute existing shareholders, or that the bank's survival depends on
+      depositor and investor confidence, and that a price far below book value is a signal about
+      those doubts, not simply a bargain.
