@@ -40,6 +40,59 @@ export function corruptionReasons(text: string): string[] {
   return reasons;
 }
 
+/** What a lost ligature glyph usually stood for: the capital in "CreaAon" replaced "ti". */
+const LIGATURE_LETTERS = ["ti", "tt", "ft", "fi", "fl", "ff", "ffi", "ffl"];
+
+/** The clean lowercase words of some text: the source's own spelling, used to check a repair. */
+export function wordsOf(text: string): Set<string> {
+  return new Set((text.match(/\b[A-Za-z][a-z]*\b/g) ?? []).map((w) => w.toLowerCase()));
+}
+
+/** Fills each interior capital of `word` with the letters a ligature stood for, until the result is a known word. */
+function mend(word: string, vocabulary: Set<string>): string | null {
+  // Each capital tries eight spellings, so a long run-together token would take forever: only a word with up to three capitals is a lost-ligature candidate.
+  if ((word.match(/[A-Z]/g) ?? []).length > 3) return null;
+  const at = [...word].findIndex((c, i) => i > 0 && /[A-Z]/.test(c) && /[a-z]/.test(word[i - 1]));
+  if (at < 0) return vocabulary.has(word.toLowerCase()) ? word : null;
+  for (const letters of LIGATURE_LETTERS) {
+    const done = mend(word.slice(0, at) + letters + word.slice(at + 1), vocabulary);
+    if (done) return done;
+  }
+  return null;
+}
+
+/** "firmStatus" or "ofDecember" read from a table or a PDF: a lowercase known word run into a capitalised one (of three letters or more), split back apart. Names such as LatinWorks or MetLife start with a capital and are left alone. */
+function glued(word: string, vocabulary: Set<string>): string | null {
+  const at = [...word].findIndex((c, i) => i >= 2 && /[A-Z]/.test(c) && /[a-z]/.test(word[i - 1]));
+  if (at < 0 || word.length - at < 3) return null;
+  const [head, tail] = [word.slice(0, at), word.slice(at)];
+  return /^[a-z][a-z]+$/.test(head) && /^[A-Z][a-z]+$/.test(tail) && vocabulary.has(head.toLowerCase()) && vocabulary.has(tail.toLowerCase()) ? `${head} ${tail}` : null;
+}
+
+/**
+ * Repairs the way PDF extraction loses ligatures ("CreaAon" for "Creation") when, and only when,
+ * the repaired word already appears clean elsewhere in the same source (`vocabulary`). A broken
+ * word with no known clean spelling is left as it is, so the corruption check still flags it.
+ */
+export function repairBrokenLigatures(text: string, vocabulary: Set<string>): { text: string; fixed: number } {
+  let fixed = 0;
+  const out = text.replace(/\b[A-Za-z]*[a-z][A-Z][A-Za-z]*\b/g, (word) => {
+    const mended = mend(word, vocabulary) ?? glued(word, vocabulary);
+    if (!mended || mended === word) return word;
+    fixed++;
+    return word[0] === word[0].toUpperCase() ? mended[0].toUpperCase() + mended.slice(1) : mended;
+  });
+  return { text: out, fixed };
+}
+
+/** One PDF page as extracted: its text and how many pictures it holds. */
+export type PdfPage = { number: number; text: string; images: number };
+
+/** Pages with a picture but hardly any words, as a chart or scanned slide leaves: only vision can read them. */
+export function pagesNeedingVision(pages: PdfPage[], { maxWords = 40 }: { maxWords?: number } = {}): PdfPage[] {
+  return pages.filter((p) => p.images > 0 && p.text.split(/\s+/).filter(Boolean).length <= maxWords);
+}
+
 const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
 
 /** Packs pieces in order into groups of at most `max` words; a piece is never split here. */
@@ -81,16 +134,21 @@ export function cutPassages(doc: SourceDocument, { maxWords = 300 }: { maxWords?
   return passages;
 }
 
-/** Cuts every document and keeps corrupted passages out, listing them with their reasons. */
+/** Cuts every document, repairs broken ligatures where the source itself shows the clean word, and keeps still-corrupted passages out, listing them with their reasons. */
 export function prepareDocuments(docs: SourceDocument[], options?: { maxWords?: number }) {
   const passages: PreparedPassage[] = [];
   const rejected: { ref: string; heading: string; reasons: string[] }[] = [];
+  let repaired = 0;
+  const vocabulary = wordsOf(docs.flatMap((d) => d.sections.flatMap((s) => s.paragraphs.map(cleanText))).join(" "));
   for (const doc of docs) {
-    for (const p of cutPassages(doc, options)) {
+    for (const cut of cutPassages(doc, options)) {
+      const mended = repairBrokenLigatures(cut.text, vocabulary);
+      repaired += mended.fixed;
+      const p = { ...cut, text: mended.text };
       const reasons = corruptionReasons(p.text);
       if (reasons.length) rejected.push({ ref: p.ref, heading: p.heading, reasons });
       else passages.push(p);
     }
   }
-  return { passages, rejected };
+  return { passages, rejected, repaired };
 }

@@ -288,6 +288,8 @@ export const librarySources = pgTable("library_sources", {
   url: text("url").notNull(),
   /** When the copy in the Library was taken from the source. */
   fetchedOn: date("fetched_on", { mode: "string" }).notNull(),
+  /** Set for a source stored whole but quoted only briefly (Damodaran's blog): the most words the Tutor may quote at once. */
+  quoteWords: integer("quote_words"),
 });
 
 /**

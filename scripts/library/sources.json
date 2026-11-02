@@ -10,5 +10,87 @@
     "fetchedOn": "2026-11-02",
     "publishedOn": "2026-06-24",
     "fetch": "git clone --depth 1 https://github.com/openstax/osbooks-principles-finance <scratch>/osbooks-principles-finance && python3 -I scripts/library/openstax.py <scratch>/osbooks-principles-finance principles-finance-2e <scratch>/principles-finance-2e.documents.json"
+  },
+  {
+    "id": "damodaran-blog",
+    "title": "Musings on Markets (Aswath Damodaran's blog)",
+    "kind": "dated",
+    "licence": "All rights reserved; stored whole for private search, quoted in short passages with credit",
+    "licenceUrl": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/guide.html",
+    "credit": "Aswath Damodaran, Musings on Markets (aswathdamodaran.blogspot.com), quoted briefly with credit",
+    "url": "https://aswathdamodaran.blogspot.com/",
+    "fetchedOn": "2026-11-02",
+    "quoteWords": 60,
+    "fetch": "python3 -I scripts/library/sources.py damodaran-blog <scratch> <scratch>/damodaran-blog.documents.json (Blogger JSON feed, 100 posts a call; post dates come from the feed)"
+  },
+  {
+    "id": "damodaran-papers",
+    "title": "Aswath Damodaran's papers (NYU Stern)",
+    "kind": "dated",
+    "licence": "Open site: free use for study with credit, no commercial resale",
+    "licenceUrl": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/guide.html",
+    "credit": "Aswath Damodaran, NYU Stern (pages.stern.nyu.edu/~adamodar), used with acknowledgement",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/papers.html",
+    "fetchedOn": "2026-11-02",
+    "fetch": "python3 -I scripts/library/sources.py damodaran-papers <scratch> <scratch>/damodaran-papers.documents.json ; then optionally node --env-file=.env scripts/library/vision.mjs <scratch>/damodaran-papers.vision-candidates.json and run the first command again"
+  },
+  {
+    "id": "yale-econ-251",
+    "title": "Yale ECON 251: Financial Theory (lecture transcripts)",
+    "kind": "timeless",
+    "licence": "CC BY-NC-SA 3.0 US (third-party content excluded)",
+    "licenceUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/",
+    "credit": "John Geanakoplos, ECON 251 Financial Theory (Open Yale Courses, 2009), CC BY-NC-SA 3.0",
+    "url": "https://oyc.yale.edu/economics/econ-251",
+    "fetchedOn": "2026-11-02",
+    "publishedOn": "2009-05-01",
+    "fetch": "python3 -I scripts/library/sources.py yale-econ-251 <scratch> <scratch>/yale-econ-251.documents.json"
+  },
+  {
+    "id": "yale-econ-252",
+    "title": "Yale ECON 252: Financial Markets (lecture transcripts)",
+    "kind": "timeless",
+    "licence": "CC BY-NC-SA 3.0 US (third-party content excluded)",
+    "licenceUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/",
+    "credit": "Robert Shiller, ECON 252 Financial Markets (Open Yale Courses, 2011), CC BY-NC-SA 3.0",
+    "url": "https://oyc.yale.edu/economics/econ-252",
+    "fetchedOn": "2026-11-02",
+    "publishedOn": "2011-05-01",
+    "fetch": "python3 -I scripts/library/sources.py yale-econ-252 <scratch> <scratch>/yale-econ-252.documents.json"
+  },
+  {
+    "id": "fed-explained",
+    "title": "The Fed Explained (Federal Reserve Board)",
+    "kind": "timeless",
+    "licence": "US federal publication, public domain unless marked",
+    "licenceUrl": "https://www.federalreserve.gov/disclaimer.htm",
+    "credit": "Board of Governors of the Federal Reserve System, The Fed Explained: What the Central Bank Does, 11th edition (2021)",
+    "url": "https://www.federalreserve.gov/aboutthefed/the-fed-explained.htm",
+    "fetchedOn": "2026-11-02",
+    "publishedOn": "2021-08-01",
+    "fetch": "python3 -I scripts/library/sources.py fed-explained <scratch> <scratch>/fed-explained.documents.json ; then optionally vision.mjs as for damodaran-papers"
+  },
+  {
+    "id": "nyfed-explainers",
+    "title": "New York Fed explainer pages",
+    "kind": "timeless",
+    "licence": "New York Fed Terms of Use: copy, store and distribute with the source notice",
+    "licenceUrl": "https://www.newyorkfed.org/privacy/termsofuse",
+    "credit": "Federal Reserve Bank of New York (newyorkfed.org), used under its Terms of Use",
+    "url": "https://www.newyorkfed.org/markets",
+    "fetchedOn": "2026-11-02",
+    "fetch": "for each page in NYFED_PAGES of scripts/library/sources.py, save its main content as Markdown (firecrawl scrape on https://www.newyorkfed.org/<page> with --only-main-content) to <scratch>/nyfed/<page with / as ->.md ; then python3 -I scripts/library/sources.py nyfed <scratch> <scratch>/nyfed.documents.json (the Fedpoints series is retired)"
+  },
+  {
+    "id": "sec-anthropic-s1",
+    "title": "Anthropic PBC, Form S-1 (filed 26 October 2026)",
+    "kind": "dated",
+    "licence": "Public SEC filing",
+    "licenceUrl": "https://www.sec.gov/os/accessing-edgar-data",
+    "credit": "Anthropic, PBC, Form S-1 registration statement, accession 0001628280-26-067168, filed 2026-10-26 (SEC EDGAR)",
+    "url": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm",
+    "fetchedOn": "2026-11-02",
+    "publishedOn": "2026-10-26",
+    "fetch": "python3 -I scripts/library/sources.py sec-anthropic-s1 <scratch> <scratch>/sec-anthropic-s1.documents.json (EDGAR submissions API confirms the accession and filing date; User-Agent declared)"
   }
 ]

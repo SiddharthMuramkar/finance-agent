@@ -24,23 +24,39 @@ if (args.includes("--voyage")) {
 }
 const mode = `${ranking}${embed ? " + Voyage vectors (combined)" : " keyword only"}`;
 const doc = (ref) => ref.split("#")[0];
+// A passage answers a question when it is one of the `expect`ed documents (bare IDs belong to the set's own source),
+// or comes from one of the question's `sources` and, if `expectText` is given, contains one of those phrases.
+const judged = (question, r) => (question.alsoExpect ?? []).includes(`${r.sourceId}/${doc(r.ref)}`);
+const answers = (question, r) =>
+  (question.expect ?? []).some((e) => e === `${r.sourceId}/${doc(r.ref)}` || (e === doc(r.ref) && r.sourceId === set.source)) ||
+  ((question.sources ?? []).includes(r.sourceId) && (question.expectText ?? [""]).some((t) => r.text.toLowerCase().includes(t.toLowerCase())));
 
 let hits5 = 0;
+let judgedHits5 = 0;
 let hits1 = 0;
 let rr = 0;
 const misses = [];
-for (const { q, expect } of set.questions) {
+const groupOf = (qu) => qu.sources?.[0] ?? (qu.expect?.[0]?.includes("/") ? qu.expect[0].split("/")[0] : "openstax-principles-finance-2e");
+const byGroup = {};
+for (const question of set.questions) {
+  const { q } = question;
   const results = await searchPassages(db, { query: q, asOf: null, ranking, embedding: embed ? await embed(q) : undefined, limit: 5 });
-  const rank = results.findIndex((r) => expect.includes(doc(r.ref))) + 1;
+  const rank = results.findIndex((r) => answers(question, r)) + 1;
+  const g = (byGroup[groupOf(question)] ??= { hit: 0, n: 0 });
+  g.n++;
+  if (rank) g.hit++;
+  if (rank || results.some((r) => judged(question, r))) judgedHits5++;
   if (rank) {
     hits5++;
     rr += 1 / rank;
     if (rank === 1) hits1++;
-  } else misses.push(`  MISS ${q}\n       expected ${expect.join(", ")}; got ${results.map((r) => `${doc(r.ref)} (${r.heading.slice(0, 50)})`).join(" | ") || "nothing"}`);
+  } else misses.push(`  MISS ${q}\n       expected ${[...(question.expect ?? []), ...(question.sources ?? [])].join(", ")}; got ${results.map((r) => `${r.sourceId}/${doc(r.ref)} (${r.heading.slice(0, 50)})`).join(" | ") || "nothing"}`);
 }
 const n = set.questions.length;
 console.log(`Library search score (${mode}), ${n} questions`);
 console.log(`  hits@5 ${hits5}/${n} (${Math.round((100 * hits5) / n)}%), hits@1 ${hits1}/${n}, mean reciprocal rank ${(rr / n).toFixed(2)}`);
+console.log(`  judged hits@5 (also counting other-source passages read and judged to answer, see alsoExpect) ${judgedHits5}/${n} (${Math.round((100 * judgedHits5) / n)}%)`);
+console.log(`  by source: ${Object.entries(byGroup).map(([k, v]) => `${k} ${v.hit}/${v.n}`).join(", ")}`);
 if (misses.length) console.log(misses.join("\n"));
 
 console.log("\nHindsight probes (as-of rule on):");

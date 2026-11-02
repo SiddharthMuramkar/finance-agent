@@ -704,14 +704,64 @@ Voyage embeddings once a key is set. Source details (licence, credit, how to fet
 CC BY-NC-SA 4.0): 130 chapter sections, 1,043 passages, about 191,000 words, 6 MB in the database.
 None was flagged as corrupted (it comes from clean XML, not PDF). It is marked timeless.
 
+**The rest of the Library (#21).** Seven more sources, each handled by what its terms allow
+(extractors in `scripts/library/sources.py`, one command per source in `scripts/library/sources.json`):
+
+| Source | Passages | Kind | Handling |
+|---|---|---|---|
+| Damodaran's blog, *Musings on Markets* (685 posts, 2008 to Oct 2026) | 6,513 | dated by post | stored whole for search; the Tutor is told it may quote **at most 60 words** at a time, with credit |
+| Damodaran's papers (45 PDFs from his site) | 4,058 | dated by file date | used with acknowledgement, no resale; 2 chart pages read by vision |
+| Yale ECON 251 (Geanakoplos, 2009) and ECON 252 (Shiller, 2011) transcripts | 1,278 and 965 | timeless | CC BY-NC-SA 3.0, credited |
+| The Fed Explained (Federal Reserve Board, 11th ed.) | 236 | timeless | public domain, credited |
+| New York Fed explainer pages (14) | 52 | timeless | its Terms of Use allow storing with attribution |
+| Anthropic's Form S-1, filed 26 Oct 2026 (accession 0001628280-26-067168) | 1,385 | dated 2026-10-26 | public filing, fetched with EDGAR's API and a declared User-Agent; every section heading carries its page number |
+
+Three rules are enforced in code, not left to the instructions. First, **quote limits**:
+`library_sources.quote_words` (migration 0015) is set for the blog, and the search result text then
+says "Quote at most 60 words from ..." beside those passages. Second, **sources kept out**: loading
+refuses any source whose id, title or link names Buffett or Berkshire, Zitron, the CNBC Buffett
+Archive, Investopedia, YouTube, the IMF, FRED or St. Louis Fed, SEBI, or the RBI; a test also checks
+that every source in `sources.json` passes. Third, **dates**: the S-1 and the blog are dated, so
+while a Case is before its reveal their later posts and the S-1 are hidden; the Yale and Fed texts
+are timeless, so they are hidden only when they mention a year after the Case.
+
+**RBI is left out, on purpose.** The RBI's disclaimer says "caching and links to, and the framing of
+this Web Site or any of the contents are prohibited" without written permission, which is what
+storing its primers in the Library would be. The owner can write to the RBI for permission; until
+then the loader refuses it. The New York Fed's old Fedpoints series has been retired from its site,
+so its current explainer pages stand in.
+
+**Corrupted text, found and repaired.** PDF text breaks in known ways. The loader detects them
+(lost ligatures such as "CreaAon" for "Creation", letters spaced apart, PDF character codes,
+replacement characters) and now also repairs what it safely can: a broken word is mended only when
+the repaired spelling already appears clean elsewhere in the same source ("CreaAon" becomes
+"Creation" if "creation" appears), and a lowercase word glued to the next ("firmStatus",
+"ofDecember") is split. Names such as LatinWorks or MetLife are left alone, and a passage still
+broken after that is kept out and listed. On the real data: 22 repairs in Damodaran's papers, all
+table-glue; 2 pages of *The Fed Explained* (title and contents pages, letters spaced apart) and 4
+Yale passages of lecture mathematics (written like "barBalpha") were kept out. The S-1 arrives as
+typeset pages rather than text, so its extractor rebuilds lines and paragraphs from the page layout.
+
+**Charts.** `scripts/library/vision.mjs` finds PDF pages that hold a picture and hardly any words,
+renders them and has Claude Haiku transcribe what is visible (title, axes, values), then the
+extractor adds that text to the page. In the papers 12 pages qualified; 2 held a table and a
+flowchart worth keeping, and 10 were decoration. Cost about $0.06.
+
 **How good is it?** `npm run library:score` runs 42 test questions written in a Learner's words
 (`scripts/library/eval/questions.json`) through the app's own search and counts how often a passage
-from the right section is in the top five. Keyword-only BM25 (today's setup): 40 of 42 (95%), the
-right section first for 32 of 42, mean reciprocal rank 0.84. Plain Postgres full-text ranking, for
-comparison: 34 of 42 (81%). The two misses are wording gaps ("a payment that goes on forever" for
+from the right section is in the top five. With OpenStax alone, keyword-only BM25 scored 40 of 42
+(95%), mean reciprocal rank 0.84, and plain Postgres full-text ranking 34 of 42 (81%). After #21 the
+set has 73 questions (31 new ones for the new sources) and the whole Library: BM25 scores 64 of 73
+(88%) strictly, the right section first for 46, mean reciprocal rank 0.73; counting other-source
+passages that were read and judged to answer the question too, 71 of 73 (97%). Full-text ranking:
+43 of 73 (59%). New sources alone: 28 of 31. The original 42 fall from 40 to 36 because richer
+sources now compete: Damodaran's papers answer "what does beta measure" and Yale answers "why is a
+dollar today worth more", which is arguably better, but the book's section is no longer first.
+The two real misses stay wording gaps ("a payment that goes on forever"). The two misses are wording gaps ("a payment that goes on forever" for
 perpetuities) that the Voyage half should close. Four hindsight probes, run as of 24 Oct 2018 (the
 present value Case), return no passage mentioning a later year or the Case's ending. Any change to
-search should be judged against the same questions.
+search should be judged against the same questions. Four more probes, as of 2018, 2014, 2007 and
+2008, check the new dated sources: none return a later post, the S-1 or an ending.
 
 **Scenario.** The Learner asks what a textbook says about valuing a perpetuity. The Tutor calls
 `search_library`, gets section 8.1 of *Principles of Finance 2e* with its credit line, quotes "An
@@ -723,6 +773,9 @@ query for both rankings and the as-of rule applied inside the search itself, at 
 Neon's newer `lakebase_text` extension (tests run on plain Postgres full-text ranking instead,
 because the in-memory test database doesn't have it). Hiding timeless passages that mention later
 years costs about one passage in nine during a 2018 Case, a price paid for not giving endings away.
+More sources also mean more competition for the same question, so the textbook is no longer always
+first (see the score above); the Library takes about 90 MB of the Free plan's 1 GB before
+embeddings (about 65 MB more with Voyage vectors).
 Voyage is a new outside service: until its key is added, search works on keywords alone.
 
 ## Finance Calculations, Indian formats and hosted code execution (`src/finance/`, the `calculate` tool, the Calculator widget)

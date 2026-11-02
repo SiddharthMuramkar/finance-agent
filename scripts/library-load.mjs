@@ -3,7 +3,7 @@
 // The source's licence and credit come from scripts/library/sources.json; the documents file comes
 // from that source's extractor (see its "fetch" line) and stays OUTSIDE the repo, because Library
 // text lives only in the private database. The script cleans and cuts the text into passages, keeps
-// corrupted passages out (and lists them), and replaces the source's passages in the database;
+// corrupted passages out (and lists them, after repairing the broken ligatures it can), and replaces the source's passages in the database;
 // unchanged passages keep their embeddings. Then it refreshes the BM25 statistics.
 // Node strips the TypeScript types from the imported modules directly; no build step needed.
 import { readFileSync } from "node:fs";
@@ -28,7 +28,8 @@ if (!entry) {
 const { publishedOn, ...source } = entry;
 delete source.fetch;
 const documents = JSON.parse(readFileSync(file, "utf8")).map((d) => ({ ...d, publishedOn: d.publishedOn ?? publishedOn ?? null }));
-const { passages, rejected } = prepareDocuments(documents);
+const { passages, rejected, repaired } = prepareDocuments(documents);
+if (repaired) console.log(`Repaired ${repaired} broken words (lost ligatures such as CreaAon, or words glued by a table) from the source's own clean spellings.`);
 for (const r of rejected) console.log(`Left out (corrupted: ${r.reasons.join(", ")}): ${r.ref} ${r.heading}`);
 
 const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
