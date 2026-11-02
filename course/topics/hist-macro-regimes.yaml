@@ -1,0 +1,166 @@
+# Inflation regimes and stagflation: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: hist-macro-regimes
+title: Inflation regimes and stagflation
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: volcker-disinflation-1979
+    title: The Saturday meeting of 6 October 1979
+    data:
+      - fed-funds-monthly
+      - treasury-10y-monthly
+    asOf: 1979-10-06
+    story: >
+      By the autumn of 1979 the United States had lived with rising prices for years. The Federal
+      Reserve's own history records that prices in January 1979 were 7.7 per cent higher than a year
+      earlier (the personal consumption expenditure index), and that by July inflation was running at an
+      annual pace of about 9 per cent. President Carter had nominated Paul Volcker, until then president
+      of the New York Fed, to be chairman of the Federal Reserve, and he had just started in the job.
+      Until then the Fed had conducted policy by setting growth targets for the money supply and keeping
+      the federal funds rate (the rate banks charge each other for overnight loans) inside a narrow
+      range believed to fit those targets. On the evening of Saturday 6 October 1979, at a rare press conference, Volcker announced
+      the result of an unscheduled meeting of the Federal Open Market Committee held earlier that day.
+      The committee would now concentrate on managing the volume of bank reserves in the system, instead
+      of trying to manage the day-to-day level of the federal funds rate. As of that evening, nobody
+      knew how high the funds rate would have to go, how long it would stay there, or what it would
+      do to jobs.
+    reveal: >
+      The funds rate, which had averaged 13.77 per cent in October 1979, climbed: 17.19 per cent in
+      March 1980, then 19.10 per cent in June 1981, the highest monthly average in the data shown (the Fed
+      History essay says it reached a record of about 20 per cent in late 1980). The 10-year Treasury
+      yield rose from 10.30 per cent in October 1979 to 15.32 per cent in September 1981, the highest
+      in the data shown. Inflation first rose further, peaking at 11.6 per cent in March 1980 (Fed History).
+      The economy fell into recession again, from July 1981 to November 1982, and unemployment
+      reached 10.8 per cent in late 1982. By October 1982 inflation had fallen to about 5 per cent.
+      The funds rate was back down to 12.37 per cent in December 1981 and 9.20 per cent in November 1982.
+      The regime changed, but at a visible price: the Fed showed it would accept a deep recession
+      to bring inflation down, which is why the episode is the standard example of a disinflation
+      bought with high real interest rates. A nominal rate means little until the inflation rate is put next to it.
+
+concept: >
+  An inflation regime is a stretch of years in which prices rise at a roughly steady pace and
+  everyone's plans (wages, loans, bond yields) adjust to it. Stagflation is inflation that comes
+  together with weak growth and high unemployment, which is awkward because the usual remedy for one
+  makes the other worse. Central banks judge their stance by the real interest rate, the nominal rate
+  less inflation (approximately, real rate = nominal rate - inflation). A nominal rate of 10 per cent
+  is easy money when inflation is 14 per cent and tight money when inflation is 3 per cent. Borrowers
+  with fixed-rate loans gain when inflation runs above what was expected, and savers and lenders lose.
+  A central bank can control a quantity (bank reserves) or a price (the short-term interest rate), but
+  not both: if it fixes the quantity, the rate moves with demand for credit.
+
+principle: >
+  Judge a monetary stance by the real rate, not the nominal one, and expect bringing inflation down to
+  cost output and jobs for a while; the central bank's credibility is what makes the cost worth paying.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: hmr-q-real-rate
+    prompt: >
+      A one-year loan carries a nominal interest rate of 8% while inflation runs at 12% a year. What is the
+      real interest rate, approximately?
+    choices:
+      - { id: a, text: "About +4%" }
+      - { id: b, text: "About -4%" }
+      - { id: c, text: "About 20%" }
+      - { id: d, text: "8%" }
+    answer: b
+    explanation: >
+      Real rate is approximately the nominal rate minus inflation: 8% - 12% = -4%. The lender is repaid in money that buys about 4% less.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+  - id: hmr-q-tight-or-easy
+    prompt: >
+      Central bank A holds its policy rate at 12% while inflation is 4%. Central bank B holds its policy rate at 12% while inflation is 15%. Which stance is tighter in real terms?
+    choices:
+      - { id: a, text: "A, with a real rate of about +8%" }
+      - { id: b, text: "B, with a real rate of about +3%" }
+      - { id: c, text: "Both are equally tight, since the nominal rates are equal" }
+      - { id: d, text: "A, with a real rate of about -8%" }
+    answer: a
+    explanation: >
+      A's real rate is about 12% - 4% = +8%. B's is about 12% - 15% = -3%, which is easy money despite the high nominal rate. Equal nominal rates can mean very different stances.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+  - id: hmr-q-fixed-borrower
+    prompt: >
+      A household borrows at a fixed 9% a year. Inflation then turns out to be 12% a year for the life of the loan, higher than anyone expected. Who benefits?
+    choices:
+      - { id: a, text: "The lender, who is repaid more than expected" }
+      - { id: b, text: "The borrower, who repays in money worth less than expected" }
+      - { id: c, text: "Neither, because the nominal rate was fixed" }
+    answer: b
+    explanation: >
+      The real rate paid is about 9% - 12% = -3%. The borrower repays with money that buys less than when it was borrowed, so value moves from lender to borrower.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+  - id: hmr-q-before-oct-1979
+    prompt: >
+      Before October 1979 the Federal Reserve conducted policy mainly by doing which of the following?
+    choices:
+      - { id: a, text: "Setting growth targets for the money supply and keeping the federal funds rate within a narrow range" }
+      - { id: b, text: "Fixing the dollar's price in gold" }
+      - { id: c, text: "Setting limits on the price of every good" }
+      - { id: d, text: "Letting the federal funds rate move freely with no target at all" }
+    answer: a
+    explanation: >
+      The Fed's history of the episode says it targeted money-supply growth while keeping the funds rate in a narrow range believed consistent with those targets. The October 1979 change moved the focus to bank reserves.
+    source: >
+      Federal Reserve History, Volcker's Announcement of Anti-Inflation Measures: https://www.federalreservehistory.org/essays/anti-inflation-measures
+
+  - id: hmr-q-reserves-rate
+    prompt: >
+      Suppose a central bank holds the volume of bank reserves fixed instead of defending a target for the overnight interest rate. Demand for borrowing from banks then rises sharply. What happens to the overnight rate?
+    choices:
+      - { id: a, text: "It falls, because banks have more business" }
+      - { id: b, text: "It rises, because the same reserves are shared among more demand for them" }
+      - { id: c, text: "It stays the same, because the central bank did not move" }
+    answer: b
+    explanation: >
+      With the quantity of reserves fixed, the price clears the market: more demand for reserves means a higher overnight rate. That is why a switch from targeting the rate to targeting reserves lets the rate move much more.
+    source: >
+      Federal Reserve History, Volcker's Announcement of Anti-Inflation Measures: https://www.federalreservehistory.org/essays/anti-inflation-measures
+
+  - id: hmr-q-stagflation
+    prompt: >
+      An economy has inflation of 9% and a rising unemployment rate. A central bank wants to lower inflation by raising interest rates. What is the difficulty?
+    choices:
+      - { id: a, text: "Higher rates tend to slow demand and so can push unemployment up further in the short run" }
+      - { id: b, text: "Higher rates always raise inflation at once" }
+      - { id: c, text: "Higher rates have no effect on borrowing" }
+    answer: a
+    explanation: >
+      Raising rates cuts borrowing and spending, which lowers price pressure but also output and jobs for a time. With inflation and unemployment both high, the remedy for one worsens the other: that is the stagflation dilemma.
+    source: >
+      Federal Reserve History, Recession of 1981-82 (tight monetary policy used against mounting inflation led to a downturn): https://www.federalreservehistory.org/essays/recession-of-1981-82
+
+checks:
+  - id: hmr-quiz-real-rates
+    kind: quiz
+    questions:
+      - hmr-q-real-rate
+      - hmr-q-tight-or-easy
+      - hmr-q-fixed-borrower
+      - hmr-q-before-oct-1979
+      - hmr-q-reserves-rate
+      - hmr-q-stagflation
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: hmr-central-bank-choice
+    kind: conversation
+    prompt: >
+      Imagine a central bank facing inflation of about 9% a year with a policy rate of 10%. It says it will
+      stop defending any particular level of the policy rate and will control bank reserves instead. Explain
+      what the real rate is here, why this change lets the policy rate move much more than before, who gains and
+      who loses if rates rise and inflation falls, and what the central bank is trading off.
+    passCriteria: >
+      The Learner says the real rate is about +1% (10% minus 9%), so policy is not tight even though the
+      nominal rate looks high. They explain that with reserves held fixed, the price of reserves is set by
+      demand, so the rate can move sharply. They say that lenders, savers and holders of newly issued
+      bonds gain from higher real rates while borrowers (and those facing job losses in a slowdown)
+      lose, and that the central bank is trading short-term output and jobs for lower inflation and
+      credibility. Any mention of stagflation (inflation and weak growth together) is a plus.

@@ -1,0 +1,192 @@
+# Leverage, liquidity spirals and systemic risk: a foundation Topic taught through the books of Long-Term Capital Management.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked 2 Nov 2026): Report of the President's Working Group on Financial Markets, "Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management" (April 1999), https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; Federal Reserve History, Near Failure of Long-Term Capital Management, https://www.federalreservehistory.org/essays/ltcm-near-failure ; Federal Reserve Bank of Philadelphia, Working Paper 11-30/R, "Collateral Damage: Sizing and Assessing the Subprime CDO Crisis" (May 2012); Federal Reserve Board, Report Pursuant to Section 129 of the Emergency Economic Stabilization Act of 2008: Loan to Facilitate the Acquisition of Bear Stearns by JPMorgan Chase (Feb 2009), https://fcic-static.law.stanford.edu/cdn_media/fcic-docs/2009-12-28%20FRB%20Report%20on%20Acquisition%20of%20Bear%20Stearns%20by%20JPMorgan.pdf .
+id: crisis-leverage
+title: Leverage, liquidity spirals and systemic risk
+
+cases:
+  - id: ltcm-leverage-spiral-1998
+    title: The lenders to a heavily borrowed fund
+    data: [ltcm-capital-returned, ltcm-capital-start-1998, ltcm-assets-end-august]
+    asOf: 1998-09-01
+    story: >
+      Long-Term Capital Management (LTCM) is a hedge fund in Greenwich, Connecticut, founded in
+      1994, that looks for small price differences between similar securities and bets that they
+      will close. Each trade earns little, so the fund borrows to make the profit worth having.
+      It borrows mostly by repurchase agreements (repo): it sells a bond to a bank with a promise
+      to buy it back, which is a loan secured by the bond, and the bank lends less than the bond
+      is worth, so the fund must put up the difference from its own capital. Its derivatives
+      contracts work the same way, with collateral exchanged as prices move. At the end of 1997
+      the fund returned about $2.7 billion to its investors, which cut its capital by about
+      36 per cent, to $4.8 billion, without cutting its positions. The fund's own books, seen in
+      full only by the fund and, each in its own slice, by its lenders, show more than
+      $125 billion of assets on 31 August 1998 against that starting capital of $4.8 billion.
+      The fund has roughly 75 repo counterparties and about 50 counterparties for its
+      over-the-counter derivatives, and many of them hold similar trades of their own. In
+      August 1998 Russia devalued its currency and stopped payments on part of its debt, and
+      investors across the world have been moving money from riskier and harder-to-sell
+      securities into safe, easily sold ones such as US Treasury bonds. As of 1 September 1998,
+      suppose you are a lender to this fund: what would you want to know about its borrowing,
+      and what could go wrong for lenders as a group if the fund had to sell?
+    reveal: >
+      In August 1998 alone the fund lost $1.8 billion, bringing its loss of capital for the year
+      to over 50 per cent, and its capital fell to $2.3 billion. On 2 September it told its
+      investors and began seeking new capital. It found that selling was hard even though it was
+      not trying to sell everything at once: the Working Group wrote that "LTCM itself experienced
+      substantial difficulty in reducing the LTCM Fund's risk positions", while firms across the
+      market were pulling back from risk. On 18 September its officials called the president of the Federal Reserve Bank of New York, and
+      on 23 September 1998 fourteen banks and brokerage firms put up $3.625 billion for
+      90 per cent of the fund. The Fed arranged the meeting but lent nothing. Its worry,
+      according to the Fed's own history, was that if LTCM's many counterparties all tried to
+      leave their positions at once, a "fire sale" of assets could harm the wider economy.
+      The same chain ran on a far larger scale ten years later. The Federal Reserve Bank of
+      Philadelphia counted 727 subprime-linked collateralised debt obligations issued between
+      1999 and 2007, $641 billion in all, and estimated write-downs of $420 billion, 65 per cent
+      of the amount issued. And in March 2008 the Fed lent to help JPMorgan Chase buy Bear Stearns; its report
+      to Congress said that Bear's large presence in the repo and other markets, and the
+      potential for contagion to similar firms, raised significant concern that financial
+      markets would be seriously disrupted if it could not meet its obligations. In both
+      cases borrowed money, short-term collateralised funding and the same trades held by many
+      firms turned a loss in one place into a squeeze everywhere.
+
+concept: >
+  Leverage is the use of borrowed money. The balance-sheet leverage ratio is total assets
+  divided by the owner's capital (equity): a fund with $100 of assets and $5 of capital has a
+  ratio of 20 to 1. Leverage multiplies both gains and losses on the capital: a fall in the
+  value of assets of 1 / ratio (5 per cent here) wipes out all the capital. Much leveraged
+  borrowing is secured by the assets themselves, through repo or through collateral posted on
+  derivatives. The lender lends less than the asset is worth; the gap is the haircut, and the
+  borrower's capital covers it. When asset prices fall, or lenders get nervous and raise the
+  haircut, the borrower must post more collateral or repay part of the loan, and the usual way
+  to find the cash is to sell assets. If many borrowers hold the same assets and sell together,
+  prices fall further, which cuts collateral values and triggers more calls for cash and more
+  sales: a liquidity spiral, often called a fire sale. Systemic risk is the risk that trouble
+  at one firm, or in one market, passes through such links to many others. It grows with
+  leverage, with short-term funding that must be renewed, with many firms holding the same
+  positions, and with counterparties who are tied to the same firm.
+
+principle: >
+  Leverage turns a small fall in price into a large fall in capital, and when lenders want
+  their cash back, selling the assets pushes prices down for everyone holding them. Judge risk
+  by what happens when everyone needs liquidity at once, not by how a position behaves on
+  an average day.
+
+# Claude-written quiz questions with hypothetical numbers; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: cl-q-leverage-ratio
+    prompt: >
+      A fund has $200 million of assets and $8 million of its own capital; the rest is borrowed. What is its balance-sheet leverage ratio?
+    choices:
+      - { id: a, text: "8 to 1" }
+      - { id: b, text: "25 to 1" }
+      - { id: c, text: "24 to 1" }
+      - { id: d, text: "200 to 1" }
+    answer: b
+    explanation: >
+      The ratio is total assets divided by capital: 200 / 8 = 25, or 25 to 1. The fund has $192 million of borrowing, so 24 to 1 is its debt per dollar of capital, not the ratio of assets to capital.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), which states the balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+
+  - id: cl-q-wipeout
+    prompt: >
+      A fund has assets of $100 and capital of $4, the rest borrowed. By how much must the value of its assets fall to wipe out all its capital?
+    choices:
+      - { id: a, text: "4 per cent" }
+      - { id: b, text: "25 per cent" }
+      - { id: c, text: "96 per cent" }
+      - { id: d, text: "100 per cent" }
+    answer: a
+    explanation: >
+      Debts of $96 stay the same when asset values change. Assets of $96 just cover the debt, so a fall of $4 on $100, or 4 per cent, leaves nothing for the owner.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+
+  - id: cl-q-gain-and-loss
+    prompt: >
+      A fund holds assets 10 times the size of its capital. Its assets rise 3 per cent in a year, and borrowing costs are ignored. What is the change in the fund's capital?
+    choices:
+      - { id: a, text: "A rise of 3 per cent" }
+      - { id: b, text: "A rise of 30 per cent" }
+      - { id: c, text: "A rise of 10 per cent" }
+      - { id: d, text: "A rise of 0.3 per cent" }
+    answer: b
+    explanation: >
+      With $10 of assets per $1 of capital, a 3 per cent gain is $0.30 on $1 of capital, or 30 per cent. The same leverage turns a 3 per cent fall into a 30 per cent loss of capital, which is why leverage cuts both ways.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999): https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+
+  - id: cl-q-haircut
+    prompt: >
+      A fund borrows against a bond worth $100 and the lender allows a haircut of 10 per cent, so it lends $90. Later the lender raises the haircut to 20 per cent on the same bond, still worth $100. How much more cash must the fund find, or how much bond must it sell?
+    choices:
+      - { id: a, text: "$10" }
+      - { id: b, text: "$20" }
+      - { id: c, text: "$0, because the bond price has not changed" }
+      - { id: d, text: "$90" }
+    answer: a
+    explanation: >
+      The loan allowed falls from $90 to $80, so the fund must repay $10 or hand over more collateral even though the bond's price has not moved. A higher haircut means the borrower needs more of its own capital for the same assets, and the usual way to raise it is to sell.
+    source: >
+      President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), on repo and reverse repo as the funding of the fund's positions: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
+
+  - id: cl-q-spiral
+    prompt: >
+      Many leveraged funds hold the same asset. Lenders ask for more collateral, and the funds all sell the asset to raise cash. What is the most likely effect on the asset's price, and on the other funds?
+    choices:
+      - { id: a, text: "The price falls, which cuts the other funds' collateral values and can force them to sell as well" }
+      - { id: b, text: "The price rises, because selling shows the asset is valuable" }
+      - { id: c, text: "The price does not change, because each fund's sale is small" }
+      - { id: d, text: "The price falls, but only the sellers are affected" }
+    answer: a
+    explanation: >
+      A sale by many holders at once meets few buyers, so the price falls. Every holder's collateral is then worth less, which brings fresh demands for cash. This feedback is a liquidity spiral or fire sale; sellers are not the only ones hurt because any holder, and any lender holding the asset as collateral, sees the lower price.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management, on the fear of a "rapid and widespread sale of assets, a fire sale, which could potentially impair the economy": https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+  - id: cl-q-systemic
+    prompt: >
+      Which description best fits systemic risk?
+    choices:
+      - { id: a, text: "The risk that one firm's investment loses money" }
+      - { id: b, text: "The risk that trouble at one firm or in one market spreads through links such as lending, shared positions and common funding to many other firms" }
+      - { id: c, text: "The risk that interest rates change in a given year" }
+      - { id: d, text: "The risk that a firm's accounts are filed late" }
+    answer: b
+    explanation: >
+      Systemic risk is about contagion. One firm's loss is a firm-level risk; it becomes systemic when counterparties, shared positions or short-term funding spread the shock so that others are forced to sell or stop lending.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management, on the concern that LTCM's extensive list of counterparties exiting at the same time could impair the economy: https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+checks:
+  - id: cl-quiz-leverage
+    kind: quiz
+    questions:
+      - cl-q-leverage-ratio
+      - cl-q-wipeout
+      - cl-q-gain-and-loss
+      - cl-q-haircut
+      - cl-q-spiral
+      - cl-q-systemic
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cl-lender-view
+    kind: conversation
+    prompt: >
+      Suppose a fund holds assets 25 times its capital, funds most of them with short-term
+      repo loans, and shares many of its trades with other funds. A shock makes lenders more
+      nervous and prices of its assets drop a little. Explain how the fund's leverage and its
+      lenders' demands could turn that small drop into forced selling, why that selling could
+      matter to firms that never dealt with the fund, and what a lender should ask before
+      lending to a fund like this.
+    passCriteria: >
+      The Learner explains that at about 25 to 1 a fall of roughly 4 per cent in asset values
+      would remove all the capital, so even a small drop is a large loss on capital. They
+      explain that repo and collateral calls (or higher haircuts) require cash when prices
+      fall, and that selling to raise it pushes prices down further, hitting the fund again
+      (a liquidity spiral). They explain that because other firms hold the same assets or lend
+      against them, the fall in price reaches them as lower collateral values and losses, so
+      the risk is systemic, not only the fund's own. They name sensible lender questions, such
+      as the fund's total leverage across all lenders, how large its positions are compared
+      with the market, how many others hold the same trades, and what collateral terms can
+      change. They do not claim to know whether or when a fund like this would fail.

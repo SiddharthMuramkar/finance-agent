@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 33 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 40 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -575,7 +575,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 66. Shadow banks, private credit and SPVs
 
-- ID: `private-credit` · Coming
+- ID: `private-credit` · Written
 - Needs first: Securitisation, MBS and CDOs, Corporate credit analysis
 - Case: **IL&FS and mutual-fund redemptions** (as of 2018-08-31) **to verify**
   - Outcome: Defaults in Aug-Sep 2018 hit mutual funds holding its paper.
@@ -584,7 +584,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 67. Mutual funds, ETFs and passive investing (incl. India AIFs)
 
-- ID: `funds-passive` · Coming
+- ID: `funds-passive` · Written
 - Needs first: Risk, diversification and portfolio theory, Market efficiency
 - Case: **IL&FS paper in mutual funds** (as of 2018-09-30) **to verify**
   - Outcome: Paper held by mutual funds forced redemptions in 2018.
@@ -593,7 +593,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 68. Insurance and risk transfer
 
-- ID: `ins-risk-transfer` · Coming
+- ID: `ins-risk-transfer` · Written
 - Needs first: The balance sheet, Probability and expected value
 - Case: **AIG's credit default swaps** (as of 2008-09-15)
   - Outcome: On 16 Sep 2008 the Fed authorised up to $85bn for 79.9% of AIG; total commitment $182.3bn; taxpayers made a $22.7bn profit.
@@ -602,7 +602,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 69. Real estate and commodities
 
-- ID: `real-assets` · Coming
+- ID: `real-assets` · Written
 - Needs first: Time value and present value, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **India's gold import curbs** (as of 2013-06-30)
   - Outcome: Record current account deficit of $88.2bn (4.8% of GDP) in 2012-13; gold duty raised to 10%; gold and silver imports $55.79bn to $33.46bn.
@@ -613,7 +613,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 70. Inflation regimes and stagflation
 
-- ID: `hist-macro-regimes` · Coming
+- ID: `hist-macro-regimes` · Written
 - Needs first: Inflation, nominal vs real rates, Fiscal policy and government debt
 - Case: **Volcker's disinflation** (as of 1979-10-06)
   - Outcome: Funds rate near 20% in 1981; 10-year yield above 15% in Sep 1981; recession Jul 1981 to Nov 1982; unemployment nearly 11%.
@@ -621,7 +621,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 71. Governance, ethics and fraud
 
-- ID: `gov-ethics` · Coming
+- ID: `gov-ethics` · Written
 - Needs first: Earnings quality and accounting fraud, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **Satyam and Maytas** (as of 2008-12-16)
   - Outcome: Satyam tried to buy promoter-linked Maytas; fraud revealed 7 Jan 2009.
@@ -629,7 +629,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 72. Leverage, liquidity spirals and systemic risk
 
-- ID: `crisis-leverage` · Coming
+- ID: `crisis-leverage` · Written
 - Needs first: Securitisation, MBS and CDOs, Hedging and risk management, Bank runs and interest-rate risk in banks
 - Case: **LTCM and 2008** (as of 1998-09-01)
   - Outcome: LTCM rescue of 23 Sep 1998; FCIC report on 2008.

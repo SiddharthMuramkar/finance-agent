@@ -1,0 +1,170 @@
+# Shadow banks, private credit and SPVs: a foundation Topic taught through IL&FS and the mutual funds that held its debt.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked 2 Nov 2026): The Hindu BusinessLine, 12 Sep 2018, "Investors jittery over Rs 2,800-crore mutual fund investments in IL&FS"; Times of India, 9 Oct 2018 (AMFI data); PIB (Ministry of Finance) release 1 Oct 2018, ID 1548093.
+id: private-credit
+title: Shadow banks, private credit and SPVs
+
+cases:
+  - id: ilfs-mf-redemptions-2018
+    title: IL&FS and the mutual funds that held its debt
+    data: [ilfs-mf-holdings, ilfs-mf-top-six, mf-industry-aum]
+    asOf: 2018-09-12
+    story: >
+      IL&FS (Infrastructure Leasing & Financial Services), set up in 1987, is a non-bank
+      financial company that finances roads, power plants and other infrastructure. It works
+      through a web of group companies, 169 of them in 2017-18, many built around one project.
+      It does not take deposits from the public. It borrows from the market, in part by selling
+      commercial paper (short-term IOUs) and debentures to institutions, and lends or invests
+      for many years. From August 2018 some of its group companies began missing payments, and
+      credit rating agencies cut ratings on its debt. On 12 September 2018 a business newspaper
+      reports that 33 debt and hybrid schemes run by 12 mutual fund houses have put about
+      Rs 2,800 crore into IL&FS group debt, and that six fund houses account for Rs 2,405 crore
+      of it, 86 per cent. One fund house has marked down IL&FS commercial paper, which cut the
+      net asset value of its schemes by about 1.86 per cent when it was declared. A commercial
+      paper that matured on 10 September was paid in full. Mutual fund industry assets were
+      Rs 25.2 lakh crore at the end of August. An industry analyst says the money in IL&FS is
+      very small next to those assets, so the impact should be limited, and recalls that earlier
+      downgrades of Amtek Auto, Jindal Steel & Power and Ballarpur Industries had hurt some
+      funds. As of 12 September 2018: is Rs 2,800 crore in a Rs 25.2 lakh crore industry
+      something to worry about, and what would you want to know before deciding?
+    reveal: >
+      The worry spread far beyond the Rs 2,800 crore, which is only about 0.11 per cent of
+      industry assets. In September 2018 mutual fund industry assets fell 12.5 per cent, to
+      Rs 22 lakh crore from Rs 25.2 lakh crore, and the industry saw a net outflow of
+      Rs 2.3 lakh crore. Liquid funds lost Rs 2.1 lakh crore and income funds Rs 30,504 crore.
+      Not all of it was fear: companies pay advance tax and GST in mid-September, banks withdrew
+      money and one large redemption came from SBI. But top fund officials also said the
+      IL&FS default, which hit the debt market and spilled into shares, led to redemptions
+      from both income and liquid funds. On 1 October the government asked
+      the National Company Law Tribunal to replace IL&FS's board. Its release said the group
+      had assets of more than Rs 1,15,000 crore but was struggling to service about
+      Rs 91,000 crore of debt, and that the defaults had caused "redemption pressure on the
+      mutual funds", forcing "quality papers being sold at steep discounts to meet the
+      redemption demand", and a sell-off in shares of non-bank lenders. A default that held
+      about a tenth of one per cent of industry assets became a market-wide liquidity squeeze
+      because investors could not tell which paper was good, and because funds that promise
+      daily redemption were holding paper that no one wanted to buy.
+
+concept: >
+  A shadow bank is a lender that does what a bank does, credit, maturity and liquidity
+  transformation, without being a bank: it has no deposit insurance and no access to the
+  central bank as lender of last resort (the New York Fed's definition). Indian non-bank
+  financial companies, and the private credit funds that lend directly to companies outside
+  public bond markets, are examples. They fund themselves with market borrowing, such as
+  commercial paper bought by mutual funds, and lend for years. If the lenders will not renew,
+  a sound long-term loan can still go unpaid: this is rollover risk. A special purpose vehicle
+  (SPV) is a separate legal entity set up to hold one project or one pool of assets, so that
+  its lenders can claim only on those assets and the parent is shielded from that project's
+  failure. The cost is opacity: with hundreds of such entities, it is hard for an outsider to
+  see how much debt the whole group carries, or who stands behind whom. Open-ended mutual
+  funds add a second link in the chain: they promise investors daily redemption at net asset
+  value (NAV), but may hold paper that trades rarely. When the paper's value is in doubt, the
+  first investors to leave get a price based on a hopeful NAV and those who stay carry what
+  is left.
+
+principle: >
+  Size the contagion, not just the exposure. A small direct holding can matter if the
+  holders of the debt promise liquidity they may not be able to deliver, and if no one can
+  tell good paper from bad. Ask who funds the borrower, how fast those funders can leave,
+  and whether the holders can sell without moving the price.
+
+questions:
+  - id: pc-q-definition
+    prompt: >
+      Which description fits a shadow bank best?
+    choices:
+      - { id: a, text: "A lender that transforms credit, maturity and liquidity like a bank, but has no access to the central bank's lender-of-last-resort facility or to government deposit insurance" }
+      - { id: b, text: "A bank that keeps part of its assets off its books to avoid regulators" }
+      - { id: c, text: "Any lender whose loans are illegal" }
+      - { id: d, text: "Any lender that is listed on a stock exchange" }
+    answer: a
+    explanation: >
+      The New York Fed's definition is a financial intermediary that conducts maturity, credit and liquidity transformation without access to central bank liquidity or public credit guarantees. The word "shadow" says it sits outside the safety net, not that it is hidden or illegal.
+    source: >
+      Pozsar, Adrian, Ashcraft and Boesky, Shadow Banking, Federal Reserve Bank of New York Staff Report 458 (2010): https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr458.pdf
+
+  - id: pc-q-rollover
+    prompt: >
+      A non-bank lender builds a ten-year road loan and funds it by selling 90-day commercial paper, replacing each batch as it falls due. The road is sound. What is the main risk in this structure?
+    choices:
+      - { id: a, text: "Rollover risk: if investors stop buying new paper, it cannot repay the old paper, even though the road is sound" }
+      - { id: b, text: "Currency risk, because commercial paper is always issued in foreign currency" }
+      - { id: c, text: "None, because short-term funding is always cheaper and so always safer" }
+      - { id: d, text: "Inflation risk, because the paper is repaid in 90 days" }
+    answer: a
+    explanation: >
+      Long assets funded by short liabilities depend on lenders renewing. The loan can be good and the lender still fail if the market will not refinance it, which is how a run on a non-bank starts. Lower cost today does not remove the risk.
+    source: >
+      Pozsar, Adrian, Ashcraft and Boesky, Shadow Banking, Federal Reserve Bank of New York Staff Report 458 (2010): https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr458.pdf
+
+  - id: pc-q-nav
+    prompt: >
+      A fund has net assets of Rs 1,000 crore. It holds Rs 50 crore of one issuer's paper. The paper is marked down by 40 per cent and nothing else changes. By how much does the fund's NAV fall?
+    choices:
+      - { id: a, text: "0.4 per cent" }
+      - { id: b, text: "2 per cent" }
+      - { id: c, text: "4 per cent" }
+      - { id: d, text: "40 per cent" }
+    answer: b
+    explanation: >
+      The markdown is 0.40 x 50 = Rs 20 crore. As a share of Rs 1,000 crore of net assets, that is 20 / 1,000 = 2 per cent. The 40 per cent applies only to the part of the portfolio held in that paper.
+    source: >
+      Arithmetic from the stated figures; NAV is the value of a fund's assets minus liabilities (Investor.gov, SEC): https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24
+
+  - id: pc-q-remaining-share
+    prompt: >
+      A fund holds Rs 90 crore of easy-to-sell government securities and Rs 10 crore of one troubled issuer's paper that no one will buy. Investors redeem Rs 20 crore, and the fund pays them by selling government securities (assume the paper is still valued at Rs 10 crore). What share of the remaining portfolio is the troubled paper?
+    choices:
+      - { id: a, text: "10 per cent, as before" }
+      - { id: b, text: "12.5 per cent" }
+      - { id: c, text: "20 per cent" }
+      - { id: d, text: "8 per cent" }
+    answer: b
+    explanation: >
+      After paying out Rs 20 crore, the fund has Rs 70 crore of government securities and the same Rs 10 crore of troubled paper: Rs 80 crore in all, and 10 / 80 = 12.5 per cent. Each wave of redemptions paid from the liquid assets leaves the remaining investors holding a larger share of what cannot be sold.
+    source: >
+      Arithmetic from the stated figures.
+
+  - id: pc-q-spv
+    prompt: >
+      A group puts each of its projects into a separate SPV with its own lenders. What is the main advantage, and what is the main cost for an outsider?
+    choices:
+      - { id: a, text: "Each SPV's lenders can claim only on that project's assets, which shields the parent; the cost is that it is hard to see the group's total debt" }
+      - { id: b, text: "SPV lenders can claim on every asset of the group; the cost is higher tax" }
+      - { id: c, text: "SPVs cannot borrow, so the group's debt falls; the cost is slower construction" }
+      - { id: d, text: "SPVs guarantee that all projects are repaid; the cost is a lower credit rating" }
+    answer: a
+    explanation: >
+      An SPV is a separate legal entity, so its creditors are limited to its own assets and cash flows unless the parent has guaranteed the debt. With many SPVs the group's total borrowing, and who has guaranteed whom, is hard for outsiders to add up.
+    source: >
+      BIS Irving Fisher Committee paper on SPVs (isolation of risk from the sponsor, ring-fenced assets, consolidation gaps): https://bis.org/ifc/events/ifc_8thconf/ifc_8thconf_21pap.pdf ; BIS glossary, "special purpose entity": https://data.bis.org/help/glossary?selection=292&scope=Statistics&c=a&base=term&item=special+purpose+entity+%28SPE%29
+
+checks:
+  - id: pc-quiz-shadow-banks
+    kind: quiz
+    questions:
+      - pc-q-definition
+      - pc-q-rollover
+      - pc-q-nav
+      - pc-q-remaining-share
+      - pc-q-spv
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: pc-contagion-channels
+    kind: conversation
+    prompt: >
+      Suppose a non-bank lender that sells commercial paper to mutual funds misses a payment.
+      Its paper makes up only a tiny share of the funds' assets. Explain how a default this
+      small could still spread through the funds and the lender's other creditors, and name
+      what you would check to judge the danger before it spreads.
+    passCriteria: >
+      The Learner explains at least two channels: investors in open-ended funds may redeem
+      early because they cannot tell which funds hold the paper and fear being last out; funds
+      meeting redemptions sell their most liquid assets first, leaving remaining investors with
+      more unsellable paper; and other lenders stop renewing short-term funding to similar
+      lenders (rollover risk). They name things to check, such as how much of the lender's
+      funding is short term compared with its assets, who holds its paper and how fast they can
+      redeem, how liquid the funds' other holdings are, and how many linked entities (SPVs)
+      stand behind the borrowing. A good answer says the size of the direct exposure understates
+      the risk. They must not claim that a tiny exposure means no danger.

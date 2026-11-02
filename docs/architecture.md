@@ -995,3 +995,26 @@ RBI's September 2013 repo level is derived from two RBI releases. The inflation 
 January 2014, not 31 December 2013, because the RBI overview it relies on was published on 28
 January 2014. No Case Data was added: the Cases teach from the story's figures, and FRED series may
 not be stored.
+
+## Foundation Topics, batch 9 of 9 (`course/topics/`, issue #39)
+
+Seven more Topic files finish the foundation set: Shadow banks and private credit (IL&FS and the
+mutual funds that held its debt), Mutual funds, ETFs and passive investing (the Buffett bet of an
+index fund against hedge funds), Insurance and risk transfer (AIG's credit default swaps), Real
+estate and commodities (the US house-price index to the end of 2006), Inflation regimes (the Fed's
+meeting of 6 October 1979), Governance and fraud (Satyam's Maytas deal) and Leverage and liquidity
+spirals (LTCM's books in September 1998). Each has a Case, a quiz Check with a pass rule and a
+conversation Check. Fourteen sourced datasets back five of the Cases and are loaded with `npm run
+case-data:import`; no Question Bank item is used.
+
+**Concrete scenario.** The Learner reaches Insurance: the Tutor tells the AIG story as of Friday
+12 September 2008 and the chart shows collateral called and posted up to that day. The 15 and 16
+September points (the rating cuts, the jump in calls to $32.0 billion) are held back and appear
+only with the reveal.
+
+**Trade-off.** Dates are chosen so the story holds only what was published by then, which moved
+some as-of dates (IL&FS to 12 September 2018, when the exposure was reported). The funds Topic
+replaced the outline's IL&FS Case with the Buffett bet, a cleaner passive-versus-active example,
+and the India gold Case was dropped because two sources disagree on the figure. FHFA house prices
+are the 2026 version of a series that is revised, and the reveal says so. Statements in the
+reveal that rest on press reports (the Satyam board minutes) say so too.

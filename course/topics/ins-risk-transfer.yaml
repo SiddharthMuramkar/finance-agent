@@ -1,0 +1,184 @@
+# Insurance and risk transfer: a foundation Topic taught through AIG's credit default swaps.
+# Case Data (AIG's collateral calls and postings, from the FCIC timeline) lives in the database; see docs/architecture.md.
+# Case sources (checked 2 Nov 2026): McDonald and Paulson, AIG in Hindsight, Chicago Fed WP 2014-07 (Tables 3 and 5, pp. 17-23): https://www.chicagofed.org/-/media/publications/working-papers/2014/wp2014-07-pdf.pdf ; Federal Reserve Bank of New York, Actions Related to AIG: https://www.newyorkfed.org/aboutthefed/aig ; US Treasury press release tg1805, 14 Dec 2012: https://home.treasury.gov/news/press-releases/tg1805
+id: ins-risk-transfer
+title: Insurance and risk transfer
+
+cases:
+  - id: aig-cds-collateral-2008
+    title: AIG and the credit protection it sold
+    data: [aig-cds-collateral-called, aig-cds-collateral-posted]
+    asOf: 2008-09-12
+    story: >
+      American International Group (AIG) is one of the world's largest insurers, with about
+      $1 trillion of assets at the end of 2007. Most of what it does is ordinary insurance: its
+      insurance subsidiaries, regulated by state insurance authorities, collect premiums from
+      very many policyholders and pay claims out of reserves. A separate unit, AIG Financial
+      Products, also sold credit default swaps (CDS), which are a promise to pay if a bond or
+      loan loses value or defaults, in return for a regular fee. At the end of 2007 the swaps
+      it had written had a notional value of $527 billion: $230 billion on corporate loans,
+      $149 billion on prime residential mortgages, $70 billion on corporate debt and pools of
+      loans, and $78 billion on multi-sector collateralised debt obligations (CDOs), which are
+      pools of slices of mortgage and other bonds. AIG lost $11.5 billion on its swaps in 2007,
+      98 per cent of it on the multi-sector CDOs, and $13 billion across its first two quarters
+      of 2008. Many of the contracts required AIG to hand over collateral (cash or securities
+      held as security) when the market value of the protection it had sold moved against it
+      by more than an agreed threshold, and some thresholds depended on AIG's own credit
+      rating: one major bank's was 4 per cent "as long as AIGFP is rated in the AA/Aa
+      category". AIG's rating was AA- at S&P and Fitch and Aa3 at Moody's. On Friday
+      12 September 2008, AIG's records show that its counterparties had called for $23.4
+      billion of collateral on the swaps on multi-sector CDOs, up from $15.8 billion on
+      30 June, and that AIG had posted $18.9 billion, up from $13.2 billion. As of that
+      Friday: is selling credit protection on mortgage securities the same business as insuring
+      houses against fire, and what could go wrong?
+    reveal: >
+      On Monday 15 September 2008, all three rating agencies cut AIG, to A- at S&P, A2 at
+      Moody's and A at Fitch. Collateral calls on the multi-sector swaps jumped by $8.6 billion
+      in a day, to $32.0 billion, and the gap between the calls and what AIG had posted
+      peaked at $12.4 billion. AIG could not find the cash. On 16 September the Federal
+      Reserve Board authorised the New York Fed to lend AIG up to $85 billion, in return for a
+      79.9 per cent equity interest held for the US Treasury. The support was later reshaped and
+      enlarged; the US government's total commitment came to $182.3 billion. AIG lost $99.3
+      billion in 2008. By December 2012 the Treasury and the Federal Reserve had recovered the
+      whole $182.3 billion with an additional $22.7 billion, so taxpayers ended with a profit,
+      though the rescue itself remains controversial. What failed was not the pooling of fire or
+      car claims in AIG's insurance subsidiaries. It was a promise to cover one big correlated
+      risk, house prices, with little set aside against it and with cash demands that grew
+      when AIG's own rating fell.
+
+concept: >
+  Insurance transfers risk from the person who faces it to a pool. A buyer pays a premium; if
+  the insured event happens the insurer pays. The pool works when the exposures are many,
+  small and roughly independent: by the law of large numbers the average loss per policy
+  becomes predictable, so the insurer can price at the expected loss, probability times
+  size of loss, plus costs and profit (an actuarially fair premium equals the average benefit
+  paid), and hold reserves against bad years. Two information problems spoil it. Adverse
+  selection: the people who most expect to claim buy the most cover, so a premium based on the
+  average attracts above-average risks. Moral hazard: once insured, people take less care;
+  deductibles and co-payments make the insured share some of the loss. A credit default swap
+  looks like insurance but differs. Its losses can arrive together, because mortgage borrowers
+  and the securities built from them tend to go wrong at the same time, so pooling does not
+  protect. The seller may not be regulated and reserved like an insurer. And its contracts can
+  demand collateral as market values move, with terms tied to the seller's own credit rating,
+  so the cash needed can rise just when the seller is weakest.
+
+principle: >
+  Insurance protects only when risks are many and independent and the insurer has reserved
+  for them. If losses are correlated, or if the promise carries collateral calls tied to the
+  seller's own credit, a risk transfer can concentrate danger in the one seller. Ask what the
+  seller has set aside, and what cash its contracts can demand.
+
+questions:
+  - id: ins-q-fair-premium
+    prompt: >
+      A policy pays Rs 10,00,000 if a particular event happens, which has a 1 in 200 chance each year. Ignoring costs and profit, what is the actuarially fair annual premium?
+    choices:
+      - { id: a, text: "Rs 2,000" }
+      - { id: b, text: "Rs 5,000" }
+      - { id: c, text: "Rs 10,000" }
+      - { id: d, text: "Rs 50,000" }
+    answer: b
+    explanation: >
+      An actuarially fair premium equals the average benefit paid: probability times payout = (1 / 200) x Rs 10,00,000 = Rs 5,000. A real insurer charges more to cover costs, profit and the uncertainty of the pool.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), 16.2 Insurance and Imperfect Information (an actuarially fair policy charges the average amount of benefits): https://openstax.org/books/principles-economics/pages/16-2-insurance-and-imperfect-information
+
+  - id: ins-q-pooling
+    prompt: >
+      Why does an insurer with 100,000 independent policies face less risk per policy than one with 100 policies?
+    choices:
+      - { id: a, text: "With more independent policies, the average loss per policy settles closer to its expected value (the law of large numbers)" }
+      - { id: b, text: "Because with more policies every policy is certain to produce a claim" }
+      - { id: c, text: "Because a larger pool lowers each customer's chance of a claim" }
+      - { id: d, text: "Because a larger pool removes the need for reserves" }
+    answer: a
+    explanation: >
+      The chance of loss on each policy is unchanged. What shrinks is the uncertainty of the average: as the number of independent trials grows, the average outcome gets closer to the expected value. Reserves are still needed for bad years.
+    source: >
+      OpenStax, Statistics (CC BY), 4.2 Mean or Expected Value and Standard Deviation (law of large numbers): https://openstax.org/books/statistics/pages/4-2-mean-or-expected-value-and-standard-deviation
+
+  - id: ins-q-correlated
+    prompt: >
+      Insurer X covers 10,000 homes in different towns against fire: each has a 1% chance of a Rs 1,00,000 loss in a year, and fires are independent. Insurer Y covers 10,000 homes in one town against flood: with a 1% chance the whole town floods and each home loses Rs 1,00,000. Both have the same expected claims. What is the difference in the worst case?
+    choices:
+      - { id: a, text: "None: the same expected claims mean the same risk" }
+      - { id: b, text: "Y could face claims of Rs 100 crore in one year; X's claims would almost never be far above its expected Rs 1 crore" }
+      - { id: c, text: "X could face claims of Rs 100 crore; Y's would never be far above Rs 1 crore" }
+      - { id: d, text: "Both face a worst case of Rs 1 crore" }
+    answer: b
+    explanation: >
+      Expected claims are 1% x Rs 100 crore = Rs 1 crore for both. For X, about 100 homes burn in a typical year and the number is very predictable. For Y the outcome is all or nothing: 99% of the time nothing, 1% of the time Rs 100 crore (10,000 x Rs 1,00,000). Correlation defeats pooling.
+    source: >
+      Arithmetic from the stated figures; the pooling argument rests on independent trials, OpenStax, Statistics (CC BY), 4.2: https://openstax.org/books/statistics/pages/4-2-mean-or-expected-value-and-standard-deviation
+
+  - id: ins-q-moral-hazard
+    prompt: >
+      Why do many insurance policies include a deductible, an amount the policyholder pays first?
+    choices:
+      - { id: a, text: "It reduces moral hazard, because the insured bears part of every loss and so keeps a reason to take care" }
+      - { id: b, text: "It guarantees that the insurer makes a profit on every claim" }
+      - { id: c, text: "It removes adverse selection completely" }
+      - { id: d, text: "It lets the insurer avoid pooling risks" }
+    answer: a
+    explanation: >
+      Moral hazard is the tendency of insured people to take less care. A deductible, co-payment or coinsurance makes them share the cost. It does not remove adverse selection, which is about who chooses to buy cover.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), Chapter 16 Key Concepts and Summary: https://openstax.org/books/principles-economics/pages/16-key-concepts-and-summary
+
+  - id: ins-q-adverse-selection
+    prompt: >
+      A life insurer pays Rs 1,00,000 on a death in the year. In a group, 20% have a 1 in 50 chance of dying and 80% have a 1 in 200 chance. The insurer cannot tell them apart and charges the group average, Rs 800. The low-risk people see that a fair price for them is Rs 500 and many drop out. What happens?
+    choices:
+      - { id: a, text: "The remaining pool is riskier, so Rs 800 no longer covers expected claims (adverse selection)" }
+      - { id: b, text: "The insurer's expected claims fall, so it makes more profit" }
+      - { id: c, text: "Nothing changes, because the average risk is the same" }
+      - { id: d, text: "The high-risk group also drops out" }
+    answer: a
+    explanation: >
+      Average risk: 0.2 x 1/50 + 0.8 x 1/200 = 0.008, so Rs 800 on a Rs 1,00,000 payout. Fair prices are Rs 2,000 for the high-risk group and Rs 500 for the low-risk group. When low-risk people leave, the pool tilts to the high-risk group, whose expected claims are Rs 2,000, well above Rs 800.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), Chapter 16 Problems (the life insurance example) and 16.2: https://openstax.org/books/principles-economics/pages/16-problems
+
+  - id: ins-q-collateral
+    prompt: >
+      A protection seller's contracts say: post collateral when the market value of the protection you sold has moved against you by more than a threshold, and the threshold is lowered if your credit rating falls. What happens to the seller's cash needs if its rating is cut?
+    choices:
+      - { id: a, text: "They can jump at once, because more of the market-value loss must now be covered with collateral, even though no claim has been settled" }
+      - { id: b, text: "They fall, because a lower rating means lower risk" }
+      - { id: c, text: "They are unchanged until the underlying bonds actually default" }
+      - { id: d, text: "They only rise for the buyer of the protection" }
+    answer: a
+    explanation: >
+      Collateral covers the mark-to-market loss before any final settlement. A lower threshold means the seller must post collateral on a bigger share of that loss, so a downgrade raises cash needs immediately. Rating-linked terms make the cash needs rise exactly when the seller's credit is weakening.
+    source: >
+      McDonald and Paulson, AIG in Hindsight, Chicago Fed WP 2014-07 (collateral thresholds and rating triggers): https://www.chicagofed.org/-/media/publications/working-papers/2014/wp2014-07-pdf.pdf
+
+checks:
+  - id: ins-quiz-risk-transfer
+    kind: quiz
+    questions:
+      - ins-q-fair-premium
+      - ins-q-pooling
+      - ins-q-correlated
+      - ins-q-moral-hazard
+      - ins-q-adverse-selection
+      - ins-q-collateral
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ins-protection-sellers
+    kind: conversation
+    prompt: >
+      A company sells protection against a big loss: one kind covers a million separate car
+      accidents, another covers the default of a large pool of mortgage-backed securities. Explain
+      why the first is easier to insure safely than the second, and name two things you would
+      check about the seller's promise before relying on it.
+    passCriteria: >
+      The Learner explains that car accidents are many, small and roughly independent, so
+      pooling makes the average loss predictable (law of large numbers) and the premium can be
+      set near the expected loss, while mortgage-backed securities can default together, so the
+      losses are correlated and pooling does not protect. They name checks such as: whether the
+      seller has reserves or capital sized to the worst case, not the average; whether the
+      contracts require collateral that grows as market values or the seller's own rating fall;
+      the seller's concentration in one type of risk; and who regulates it. A strong answer
+      ties the idea to the fact that cash needs can rise when the seller is weakest.
