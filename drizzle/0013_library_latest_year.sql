@@ -1,0 +1,1 @@
+ALTER TABLE "library_passages" ADD COLUMN "latest_year" integer;

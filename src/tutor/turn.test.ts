@@ -80,7 +80,12 @@ describe("Tutor Turn", () => {
       expect(request.model).toBe("claude-sonnet-5-5");
       expect(request.output_config).toEqual({ effort: "medium" });
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
-      expect(request.tools).toEqual([{ name: "finish_teaching_step" }, { name: "record_check_verdict" }, { name: "record_misconception" }]);
+      expect(request.tools).toEqual([
+        { name: "finish_teaching_step" },
+        { name: "record_check_verdict" },
+        { name: "search_library" },
+        { name: "record_misconception" },
+      ]);
       expect(request.thinking).toEqual({ type: "adaptive" });
       expect(request.cache_control).toEqual({ type: "ephemeral" });
     }

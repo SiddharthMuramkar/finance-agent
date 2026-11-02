@@ -7,6 +7,7 @@ import { sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
 import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
+import type { QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { describeFailure, type FailureKind } from "./failures";
@@ -138,6 +139,8 @@ export type TurnDeps = {
   now?: () => Date;
   /** How long this run may take before it cuts itself off; defaults to TIME_BUDGET_MS. */
   timeBudgetMs?: number;
+  /** Voyage query embeddings for Library search; without them search uses keyword results only. */
+  embedQuery?: QueryEmbedder;
 };
 
 /** Thrown when a run reaches its time budget. */
@@ -235,7 +238,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   }
   if (resumed) {
     ({ session, log, turnSeq } = resumed);
-    code = toolCode(db, map, now, session.model, effects, turn.id);
+    code = toolCode(db, map, now, session.model, effects, turn.id, deps.embedQuery);
     yield { type: "replay", text: turnText(log.rows, turnSeq) };
     yield* repairToolCalls();
   } else {
@@ -265,7 +268,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     session = continuing ?? (await startSession(db, now()));
     if ("reason" in found && found.reason !== "first") yield { type: "session", reason: found.reason };
     log = await openLog(db, session.id, now);
-    code = toolCode(db, map, now, session.model, effects, turn.id);
+    code = toolCode(db, map, now, session.model, effects, turn.id, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
 
