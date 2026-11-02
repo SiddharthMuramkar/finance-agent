@@ -1,31 +1,40 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Line = { role: "user" | "assistant"; text: string };
 
-/** The conversation with the Tutor. Replies appear as they stream. */
-export function Conversation({ initial }: { initial: Line[] }) {
+/**
+ * The conversation with the Tutor, under a plain-text summary of where the
+ * Learner stands and one button to continue. Replies appear as they stream.
+ */
+export function Conversation({ initial, summary }: { initial: Line[]; summary: string }) {
+  const router = useRouter();
   const [lines, setLines] = useState<Line[]>(initial);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function send(e: React.FormEvent) {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
     const message = draft.trim();
     if (!message || busy) return;
     setDraft("");
+    void send({ message }, message);
+  }
+
+  async function send(body: { message: string } | { continue: true }, shown: string) {
     setError(null);
     setBusy(true);
-    setLines((l) => [...l, { role: "user", text: message }, { role: "assistant", text: "" }]);
+    setLines((l) => [...l, { role: "user", text: shown }, { role: "assistant", text: "" }]);
     const appendText = (text: string) =>
       setLines((l) => [...l.slice(0, -1), { role: "assistant", text: l[l.length - 1].text + text }]);
     try {
       const res = await fetch("/api/turn", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(body),
       });
       if (!res.ok || !res.body) throw new Error(`The Tutor could not answer (${res.status}).`);
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
@@ -47,12 +56,23 @@ export function Conversation({ initial }: { initial: Line[] }) {
       setError(err instanceof Error ? err.message : "The turn failed.");
     } finally {
       setBusy(false);
+      // Re-reads the summary, since the Tutor may have finished a Teaching Step.
+      router.refresh();
     }
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col p-6">
-      <h1 className="mb-6 text-lg font-semibold">Study Workspace</h1>
+    <>
+      <section aria-label="Where you stand" className="mb-6 rounded-lg border border-stone-300 p-4 dark:border-stone-700">
+        <p className="whitespace-pre-line text-sm leading-relaxed">{summary}</p>
+        <button
+          onClick={() => void send({ continue: true }, "Continue.")}
+          disabled={busy}
+          className="mt-3 rounded bg-stone-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900"
+        >
+          Continue
+        </button>
+      </section>
       <ol className="flex flex-1 flex-col gap-4">
         {lines.map((line, i) => (
           <li key={i} className={line.role === "user" ? "self-end max-w-[85%]" : "max-w-[85%]"}>
@@ -69,7 +89,7 @@ export function Conversation({ initial }: { initial: Line[] }) {
         ))}
       </ol>
       {error && <p className="my-3 text-sm text-red-700 dark:text-red-400">{error}</p>}
-      <form onSubmit={send} className="sticky bottom-0 mt-6 flex gap-2 bg-inherit py-3">
+      <form onSubmit={submit} className="sticky bottom-0 mt-6 flex gap-2 bg-inherit py-3">
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -84,6 +104,6 @@ export function Conversation({ initial }: { initial: Line[] }) {
           Send
         </button>
       </form>
-    </main>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { getDb } from "@/db/client";
 import { anthropicTutorClient } from "@/tutor/anthropic";
-import { runTutorTurn } from "@/tutor/turn";
+import { runTutorTurn, type TurnInput } from "@/tutor/turn";
 
 export const runtime = "nodejs";
 // Vercel Hobby's ceiling for one function, streaming included.
@@ -8,17 +8,18 @@ export const maxDuration = 300;
 
 /** Runs one Tutor turn and streams its events as newline-delimited JSON. */
 export async function POST(request: Request) {
-  const { message } = (await request.json()) as { message?: string };
-  if (!message?.trim()) return Response.json({ error: "Empty message" }, { status: 400 });
+  const body = (await request.json()) as { message?: string; continue?: boolean };
+  const input: TurnInput | undefined = body.continue ? { continue: true } : body.message?.trim() || undefined;
+  if (!input) return Response.json({ error: "Empty message" }, { status: 400 });
 
   const client = anthropicTutorClient();
   const started = Date.now();
   const encoder = new TextEncoder();
-  const body = new ReadableStream({
+  const stream = new ReadableStream({
     async start(controller) {
       const send = (event: object) => controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
       try {
-        for await (const event of runTutorTurn({ db: getDb(), client }, message.trim())) {
+        for await (const event of runTutorTurn({ db: getDb(), client }, input)) {
           send(event.type === "done" ? { ...event, elapsedMs: Date.now() - started } : event);
         }
       } catch (error) {
@@ -29,5 +30,5 @@ export async function POST(request: Request) {
       }
     },
   });
-  return new Response(body, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store" } });
+  return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store" } });
 }

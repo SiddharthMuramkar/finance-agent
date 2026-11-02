@@ -4,7 +4,9 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { settings } from "@/db/schema";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
-import { loadCurrentSession, runTutorTurn, type TurnEvent } from "./turn";
+import { listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
+import { loadCourseMap } from "@/course/map";
+import { recordCheckResultForTest, workspaceSummary } from "@/learner/memory";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -48,7 +50,7 @@ describe("Tutor Turn", () => {
       expect(request.model).toBe("claude-sonnet-5-5");
       expect(request.output_config).toEqual({ effort: "medium" });
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
-      expect(request.tools).toEqual([]);
+      expect(request.tools).toEqual([{ name: "finish_teaching_step" }]);
       expect(request.thinking).toEqual({ type: "adaptive" });
       expect(request.cache_control).toEqual({ type: "ephemeral" });
     }
@@ -70,16 +72,145 @@ describe("Tutor Turn", () => {
     await collect(runTutorTurn({ db, client }, "Why is that?"));
     await collect(runTutorTurn({ db, client }, "Got it"));
 
-    expect(requests[1].messages).toEqual([
+    // The first message is code's context message: where the Learner stands and the Teaching Step.
+    expect(requests[1].messages[0].role).toBe("system");
+    expect(requests[1].messages.slice(1)).toEqual([
       { role: "user", content: "Why discount?" },
       { role: "assistant", content: firstReply },
       { role: "user", content: "Why is that?" },
     ]);
     // Each request starts with exactly what the previous one sent and received.
-    expect(requests[2].messages.slice(0, 3)).toEqual(requests[1].messages);
-    expect(requests[2].messages[3]).toEqual({
+    expect(requests[2].messages.slice(0, 4)).toEqual(requests[1].messages);
+    expect(requests[2].messages[4]).toEqual({
       role: "assistant",
       content: [{ type: "redacted_thinking", data: "opaque==" }, { type: "text", text: "Because of interest." }],
+    });
+  });
+
+  describe("led by the Course Navigator", () => {
+    const map = loadCourseMap();
+    const pv = map.topic("present-value")!;
+    const finish = (step: string, id = `toolu_${step}`) => ({
+      type: "tool_use",
+      id,
+      name: "finish_teaching_step",
+      input: { step },
+    });
+    const HOUR = 3600_000;
+    const clock = (start = Date.parse("2026-11-02T09:00:00Z")) => {
+      let t = start;
+      return { now: () => new Date(t), advance: (ms: number) => (t += ms) };
+    };
+    const systemTexts = (request: { messages: { role: string; content?: unknown }[] }) =>
+      request.messages.filter((m) => m.role === "system").map((m) => String(m.content));
+
+    it("opening the workspace makes no model call and shows a plain-text summary", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([]);
+      const summary = await workspaceSummary(db, map);
+      expect(summary).toContain("Present value");
+      expect(summary).toContain("Teaching Step: story");
+      expect(requests).toHaveLength(0);
+      void client;
+    });
+
+    it("tells the Tutor the Topic and Teaching Step in an appended message, withholding the reveal", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
+      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      const [context] = systemTexts(requests[0]);
+      expect(context).toContain("Present value");
+      expect(context).toContain("Teaching Step: story");
+      expect(context).toContain(pv.cases[0].story.trim());
+      expect(context).not.toContain(pv.cases[0].reveal.trim());
+    });
+
+    it("the Tutor reports a finished Teaching Step through a tool, and code accepts only the next legal one", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([
+        { content: [finish("reveal")] },
+        { content: [finish("story")] },
+        { content: [{ type: "text", text: "Now the concept." }] },
+      ]);
+      await collect(runTutorTurn({ db, client, map }, "Go on"));
+
+      const results = requests[2].messages.flatMap((m) =>
+        Array.isArray(m.content) ? (m.content as { type: string }[]).filter((b) => b.type === "tool_result") : [],
+      );
+      expect(results[0]).toMatchObject({
+        is_error: true,
+        content: 'Error: Cannot finish "reveal": the current Teaching Step is "story".',
+      });
+      expect(results[1]).not.toHaveProperty("is_error");
+      expect(String((results[1] as unknown as { content: unknown }).content)).toContain("Teaching Step: concept");
+      expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+    });
+
+    it("saves the current Topic, Teaching Step and reveal, and they survive a new Session", async () => {
+      const db = await testDb();
+      const time = clock();
+      const steps = ["story", "concept", "your_turn"];
+      const { client, requests } = scriptedClient([
+        ...steps.map((s) => ({ content: [finish(s)] })),
+        { content: [{ type: "text", text: "Your Check." }] },
+        { content: [{ type: "text", text: "Here is what happened." }] },
+      ]);
+      await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+      // Until the Check tickets land, a test-only path records the Check result.
+      expect(await recordCheckResultForTest(db, map, pv.checks[0].id, true)).toEqual({ ok: true });
+      const summary = await workspaceSummary(db, map);
+      expect(summary).toContain("Teaching Step: reveal");
+      expect(summary).toContain("The reveal has been shown.");
+
+      time.advance(7 * HOUR);
+      await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+      const sessions = await listSessions(db);
+      expect(sessions).toHaveLength(2);
+      const fresh = requests.at(-1)!;
+      expect(fresh.messages[0].role).toBe("system");
+      expect(systemTexts(fresh)[0]).toContain("Teaching Step: reveal");
+      expect(systemTexts(fresh)[0]).toContain(pv.cases[0].reveal.trim());
+    });
+
+    it("rejects a test Check result for a Check that is not current", async () => {
+      const db = await testDb();
+      expect(await recordCheckResultForTest(db, map, pv.checks[0].id, true)).toEqual({
+        ok: false,
+        reason: 'No Check is being taken; the current Teaching Step is "story".',
+      });
+    });
+
+    it("starts a new Session after six idle hours, as a changeable default, and old Sessions stay readable", async () => {
+      const db = await testDb();
+      const time = clock();
+      const { client } = scriptedClient(
+        Array.from({ length: 4 }, (_, i) => ({ content: [{ type: "text", text: `Reply ${i}` }] })),
+      );
+      await collect(runTutorTurn({ db, client, map, now: time.now }, "First"));
+      time.advance(5 * HOUR);
+      await collect(runTutorTurn({ db, client, map, now: time.now }, "Second"));
+      expect(await listSessions(db)).toHaveLength(1);
+
+      time.advance(6 * HOUR + 1000);
+      await collect(runTutorTurn({ db, client, map, now: time.now }, "Third"));
+      expect(await listSessions(db)).toHaveLength(2);
+
+      await db.insert(settings).values({ key: "session_idle_hours", value: "1" }).onConflictDoUpdate({
+        target: settings.key,
+        set: { value: "1" },
+      });
+      time.advance(2 * HOUR);
+      await collect(runTutorTurn({ db, client, map, now: time.now }, "Fourth"));
+      const all = await listSessions(db);
+      expect(all).toHaveLength(3);
+
+      const oldest = all.at(-1)!;
+      expect(await loadSession(db, oldest.id)).toEqual([
+        { role: "user", text: "First" },
+        { role: "assistant", text: "Reply 0" },
+        { role: "user", text: "Second" },
+        { role: "assistant", text: "Reply 1" },
+      ]);
     });
   });
 });

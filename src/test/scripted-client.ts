@@ -4,8 +4,11 @@ type Block = Record<string, unknown> & { type: string };
 export type ScriptedReply = { content: Block[]; stop_reason?: string };
 
 /**
- * Stands in for the Anthropic client at the Tutor Turn seam. Each turn takes
- * the next scripted reply, streams its text as deltas and records the request.
+ * Stands in for the Anthropic client at the Tutor Turn seam. Each loop step
+ * takes the next scripted reply, streams its text as deltas and records the
+ * request. Like the real Tool Runner, a reply with tool_use blocks runs those
+ * tools, appends the reply and the tool results to `params.messages`, and
+ * loops; a thrown error becomes an `is_error` tool result.
  */
 export function scriptedClient(replies: ScriptedReply[]) {
   const requests: TutorRequest[] = [];
@@ -13,31 +16,42 @@ export function scriptedClient(replies: ScriptedReply[]) {
     beta: {
       messages: {
         toolRunner(params) {
-          requests.push(structuredClone(params));
-          const reply = replies.shift();
-          if (!reply) throw new Error("scripted client ran out of replies");
-          const final = {
-            id: `msg_${requests.length}`,
-            type: "message",
-            role: "assistant",
-            model: params.model,
-            content: reply.content,
-            stop_reason: reply.stop_reason ?? "end_turn",
-          };
-          const stream = {
-            async *[Symbol.asyncIterator]() {
-              for (const [index, block] of reply.content.entries()) {
-                if (block.type === "text") {
-                  yield { type: "content_block_delta", index, delta: { type: "text_delta", text: block.text } };
-                }
-              }
-            },
-            finalMessage: async () => final,
-          };
           return {
             params,
             async *[Symbol.asyncIterator]() {
-              yield stream;
+              for (;;) {
+                requests.push(structuredClone({ ...params, tools: params.tools.map(({ name }) => ({ name })) }) as never);
+                const reply = replies.shift();
+                if (!reply) throw new Error("scripted client ran out of replies");
+                const uses = reply.content.filter((b) => b.type === "tool_use");
+                const final = {
+                  content: reply.content,
+                  stop_reason: reply.stop_reason ?? (uses.length ? "tool_use" : "end_turn"),
+                };
+                yield {
+                  async *[Symbol.asyncIterator]() {
+                    for (const [index, block] of reply.content.entries()) {
+                      if (block.type === "text") {
+                        yield { type: "content_block_delta", index, delta: { type: "text_delta", text: block.text } };
+                      }
+                    }
+                  },
+                  finalMessage: async () => final,
+                } as never;
+                if (!uses.length) return;
+                const results = [];
+                for (const use of uses) {
+                  const tool = params.tools.find((t) => "name" in t && t.name === use.name)!;
+                  try {
+                    const content = await tool.run(tool.parse(use.input), { toolUse: use, toolUseBlock: use } as never);
+                    results.push({ type: "tool_result", tool_use_id: use.id, content });
+                  } catch (e) {
+                    results.push({ type: "tool_result", tool_use_id: use.id, content: `Error: ${(e as Error).message}`, is_error: true });
+                  }
+                }
+                params.messages.push({ role: "assistant", content: reply.content as never });
+                params.messages.push({ role: "user", content: results as never });
+              }
             },
           } as never;
         },

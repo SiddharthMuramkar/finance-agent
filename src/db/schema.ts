@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** Settings stored in SQL, such as the Tutor's model and effort. */
 export const settings = pgTable("settings", {
@@ -35,3 +35,35 @@ export const messages = pgTable(
   },
   (t) => [uniqueIndex("messages_session_seq").on(t.sessionId, t.seq)],
 );
+
+/**
+ * Learner Memory: the Learner's place. One row (id 1) holding the current Topic;
+ * null means "follow the default path".
+ */
+export const learnerState = pgTable("learner_state", {
+  id: integer("id").primaryKey(),
+  currentTopicId: text("current_topic_id"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Learner Memory: one row per Topic the Learner has started. */
+export const topicProgress = pgTable("topic_progress", {
+  topicId: text("topic_id").primaryKey(),
+  step: text("step").notNull(),
+  revealShown: boolean("reveal_shown").notNull().default(false),
+  status: text("status").notNull().$type<"in_progress" | "passed">(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Learner Memory: every Check result, kept even if the Check is later removed from the Course Map. */
+export const checkResults = pgTable("check_results", {
+  id: serial("id").primaryKey(),
+  topicId: text("topic_id").notNull(),
+  checkId: text("check_id").notNull(),
+  passed: boolean("passed").notNull(),
+  evidence: text("evidence"),
+  /** The model that taught the Check, when a Tutor turn recorded it. */
+  model: text("model"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

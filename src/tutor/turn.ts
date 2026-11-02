@@ -1,13 +1,18 @@
 import { createHash } from "node:crypto";
 import type { BetaContentBlock, BetaMessageParam, BetaRawMessageStreamEvent } from "@anthropic-ai/sdk/resources/beta/messages";
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, max } from "drizzle-orm";
+import { z } from "zod";
+import { loadCourseMap, type CourseMap } from "@/course/map";
+import { TEACHING_STEPS } from "@/course/navigator";
 import { messages, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { ensureTopicStarted, saveFinishedStep, summaryText } from "@/learner/memory";
+import { stepContext } from "./context";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
-export const DEFAULT_SETTINGS = { model: "claude-sonnet-5-5", effort: "medium" as Effort };
+export const DEFAULT_SETTINGS = { model: "claude-sonnet-5-5", effort: "medium", session_idle_hours: "6" };
 /** Room for adaptive thinking as well as the visible reply. */
 const MAX_TOKENS = 16000;
 
@@ -51,7 +56,7 @@ export async function readSettings(db: Db) {
     .onConflictDoNothing();
   const rows = await db.select().from(settings);
   const get = (key: string) => rows.find((r) => r.key === key)?.value;
-  return { model: get("model")!, effort: get("effort") as Effort };
+  return { model: get("model")!, effort: get("effort") as Effort, idleHours: Number(get("session_idle_hours")) };
 }
 
 export function fingerprint(instructions: string, tools: unknown[]) {
@@ -63,8 +68,26 @@ async function currentSession(db: Db): Promise<Session | undefined> {
   return row;
 }
 
+/**
+ * The Session the next action continues: the latest one, unless it has been
+ * idle longer than the `session_idle_hours` setting (default 6) or was frozen
+ * from different instructions or tools. Otherwise a new Session starts.
+ */
+async function sessionForAction(db: Db, now: Date): Promise<Session | undefined> {
+  const session = await currentSession(db);
+  if (!session) return undefined;
+  if (session.fingerprint !== fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)) return undefined;
+  const [{ last }] = await db
+    .select({ last: max(messages.createdAt) })
+    .from(messages)
+    .where(eq(messages.sessionId, session.id));
+  const { idleHours } = await readSettings(db);
+  const lastActive = last ?? session.createdAt;
+  return now.getTime() - lastActive.getTime() > idleHours * 3600_000 ? undefined : session;
+}
+
 /** Freezes the current instructions, tools, model and effort into a new Session. */
-async function startSession(db: Db): Promise<Session> {
+async function startSession(db: Db, now: Date): Promise<Session> {
   const { model, effort } = await readSettings(db);
   const tools: ToolDefinition[] = TUTOR_TOOLS;
   const [row] = await db
@@ -75,6 +98,7 @@ async function startSession(db: Db): Promise<Session> {
       model,
       effort,
       fingerprint: fingerprint(TUTOR_INSTRUCTIONS, tools),
+      createdAt: now,
     })
     .returning();
   return row;
@@ -89,27 +113,46 @@ async function history(db: Db, sessionId: number): Promise<Message[]> {
   return rows as Message[];
 }
 
-async function append(db: Db, sessionId: number, seq: number, message: Message) {
-  await db.insert(messages).values({ sessionId, seq, role: message.role, content: message.content });
+async function append(db: Db, sessionId: number, seq: number, message: Message, now: Date) {
+  await db.insert(messages).values({ sessionId, seq, role: message.role, content: message.content, createdAt: now });
+}
+
+type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
+
+/** The code behind each tool, by name. */
+function toolCode(db: Db, map: CourseMap, now: () => Date): Record<string, ToolCode> {
+  const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
+  return {
+    finish_teaching_step: {
+      parse: (input) => finishInput.parse(input),
+      run: async ({ step }) => {
+        const move = await saveFinishedStep(db, map, step, now());
+        if (!move.ok) throw new Error(move.reason);
+        return stepContext(await ensureTopicStarted(db, map, now()));
+      },
+    },
+  };
 }
 
 /**
  * Pairs each saved tool definition with the code that runs it. Definitions are
  * replayed exactly as saved; only the run function comes from the current build.
  */
-function bindTools(definitions: ToolDefinition[]): BetaRunnableTool[] {
+function bindTools(definitions: ToolDefinition[], code: Record<string, ToolCode>): BetaRunnableTool[] {
   return definitions.map((d) => {
-    throw new Error(`No implementation for saved tool ${d.name}`);
+    const impl = code[d.name];
+    if (!impl) throw new Error(`No implementation for saved tool ${d.name}`);
+    return { ...d, ...impl } as unknown as BetaRunnableTool;
   });
 }
 
 /** Builds the request only from what the Session saved, never from current code or settings. */
-function requestFor(session: Session, msgs: Message[]): TutorRequest {
+function requestFor(session: Session, msgs: Message[], code: Record<string, ToolCode>): TutorRequest {
   return {
     model: session.model,
     max_tokens: MAX_TOKENS,
     system: [{ type: "text", text: session.instructions }],
-    tools: bindTools(session.tools as ToolDefinition[]),
+    tools: bindTools(session.tools as ToolDefinition[], code),
     thinking: { type: "adaptive" },
     output_config: { effort: session.effort as Effort },
     cache_control: { type: "ephemeral" },
@@ -118,29 +161,61 @@ function requestFor(session: Session, msgs: Message[]): TutorRequest {
   };
 }
 
+/** The last Course Navigator context the Tutor saw: a context message (which may open with a summary) or a finish_teaching_step result. */
+function lastContextSent(msgs: Message[]): string | undefined {
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const { role, content } = msgs[i];
+    if (role === "system" && typeof content === "string") return content;
+    if (role === "user" && Array.isArray(content)) {
+      const result = content.findLast((b) => b.type === "tool_result" && !b.is_error && typeof b.content === "string");
+      if (result && result.type === "tool_result") return result.content as string;
+    }
+  }
+  return undefined;
+}
+
+export type TurnInput = string | { continue: true };
+/** What the Learner's "Continue" button sends. */
+export const CONTINUE_TEXT = "Continue.";
+
 /**
  * Runs one Tutor turn: saves the Learner's message, streams the reply through
  * Tool Runner and saves each loop step's messages unchanged as they finish.
+ * Before the message, code appends the Course Navigator's context whenever it
+ * changed; a new Session opens with the Learner's summary and that context.
  */
 export async function* runTutorTurn(
-  deps: { db: Db; client: TutorClient },
-  learnerText: string,
+  deps: { db: Db; client: TutorClient; map?: CourseMap; now?: () => Date },
+  input: TurnInput,
 ): AsyncGenerator<TurnEvent> {
   const { db, client } = deps;
-  const session = (await currentSession(db)) ?? (await startSession(db));
-  const msgs = await history(db, session.id);
-  const learner: Message = { role: "user", content: learnerText };
-  await append(db, session.id, msgs.length, learner);
-  msgs.push(learner);
+  const map = deps.map ?? loadCourseMap();
+  const now = deps.now ?? (() => new Date());
+  const place = await ensureTopicStarted(db, map, now());
+  const context = stepContext(place);
+
+  let session = await sessionForAction(db, now());
+  const msgs: Message[] = [];
+  if (session) msgs.push(...(await history(db, session.id)));
+  else session = await startSession(db, now());
+  const sessionId = session.id;
+  const add = async (message: Message) => {
+    await append(db, sessionId, msgs.length, message, now());
+    msgs.push(message);
+  };
+
+  if (msgs.length === 0) await add({ role: "system", content: `Where the Learner stands:\n${summaryText(place)}\n\n${context}` });
+  else if (!lastContextSent(msgs)?.endsWith(context)) await add({ role: "system", content: context });
+  await add({ role: "user", content: typeof input === "string" ? input : CONTINUE_TEXT });
 
   let saved = msgs.length;
   let stopReason: string | null = null;
-  const runner = client.beta.messages.toolRunner(requestFor(session, msgs));
+  const runner = client.beta.messages.toolRunner(requestFor(session, msgs, toolCode(db, map, now)));
 
   // Saves anything the runner added to history that isn't stored yet (tool results).
   const syncRunnerHistory = async () => {
     const all = runner.params.messages;
-    for (; saved < all.length; saved++) await append(db, session.id, saved, all[saved]);
+    for (; saved < all.length; saved++) await append(db, sessionId, saved, all[saved], now());
   };
 
   for await (const stream of runner) {
@@ -151,18 +226,29 @@ export async function* runTutorTurn(
       }
     }
     const final = await stream.finalMessage();
-    await append(db, session.id, saved++, { role: "assistant", content: final.content });
+    await append(db, sessionId, saved++, { role: "assistant", content: final.content }, now());
     stopReason = final.stop_reason;
   }
   await syncRunnerHistory();
   yield { type: "done", stopReason };
 }
 
-/** The current Session as plain text lines, for showing after a reload. No model call. */
-export async function loadCurrentSession(db: Db): Promise<{ role: "user" | "assistant"; text: string }[]> {
+export type Line = { role: "user" | "assistant"; text: string };
+
+/** The latest Session as plain text lines, for showing after a reload. No model call. */
+export async function loadCurrentSession(db: Db): Promise<Line[]> {
   const session = await currentSession(db);
-  if (!session) return [];
-  const msgs = await history(db, session.id);
+  return session ? loadSession(db, session.id) : [];
+}
+
+/** Every Session, newest first, for reading old ones. */
+export async function listSessions(db: Db): Promise<{ id: number; createdAt: Date }[]> {
+  return db.select({ id: sessions.id, createdAt: sessions.createdAt }).from(sessions).orderBy(desc(sessions.id));
+}
+
+/** One Session's conversation as plain text lines. No model call. */
+export async function loadSession(db: Db, sessionId: number): Promise<Line[]> {
+  const msgs = await history(db, sessionId);
   return msgs.flatMap((m) => {
     const text = textOf(m.content);
     return text && m.role !== "system" ? [{ role: m.role, text }] : [];
