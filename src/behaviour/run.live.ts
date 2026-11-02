@@ -41,6 +41,8 @@ const BUDGET = Number(process.env.BEHAVIOUR_BUDGET_USD ?? "3.5");
 const CONCURRENCY = Number(process.env.BEHAVIOUR_CONCURRENCY ?? "4");
 const CASE_DATA = process.env.CASE_DATA_FILE ?? join(homedir(), ".claude/projects/-Users-siddharth-Desktop-finance-agent/case-data/mega-millions-2018.json");
 
+const QUESTIONS_TOPIC = "present-value";
+
 const map = loadCourseMap();
 const tutorClient = anthropicTutorClient();
 const anthropic = new Anthropic();
@@ -56,7 +58,13 @@ async function ask(
 ): Promise<{ replies: string[]; cost: number; stepNote: string; usages: TurnUsage[] }> {
   const db = await testDb();
   if (existsSync(CASE_DATA)) await importCaseData(db, JSON.parse(readFileSync(CASE_DATA, "utf8")));
-  await prepare?.(db);
+  // The 48 questions are written for the present value Topic (the Mega Millions Case), which is no
+  // longer first on the default path, so they pin it; a targeted test pins its own Topic in `prepare`.
+  if (prepare) await prepare(db);
+  else {
+    await saveJump(db, map, QUESTIONS_TOPIC);
+    await takeJumpEntry(db);
+  }
   const place = await placeLearner(db, map, q.at);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "${place.step}" (before the reveal; the Learner has not seen the outcome).`;
   const replies: string[] = [];
