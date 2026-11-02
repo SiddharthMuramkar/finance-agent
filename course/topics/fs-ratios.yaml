@@ -7,7 +7,7 @@ title: Ratios, return on equity and DuPont
 cases:
   - id: coffee-day-2015
     title: Coffee Day Enterprises at its IPO
-    data: [fy15-revenue, fy15-net-result, net-worth-jun15, total-debt-jun15, ipo-and-listing-price]
+    data: [fy15-revenue, fy15-net-result, net-worth-jun15, total-debt-jun15, total-assets, cash-and-bank, ipo-and-listing-price]
     asOf: 2015-10-13
     story: >
       Coffee Day Enterprises runs Cafe Coffee Day, an Indian coffee chain, and owns other
