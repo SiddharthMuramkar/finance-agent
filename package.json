@@ -16,6 +16,7 @@
     "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate",
     "case-data:import": "node --env-file=.env scripts/import-case-data.mjs",
     "behaviour": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.behaviour.config.ts",
+    "compare:models": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.comparison.config.ts",
     "widgets:freeze": "FREEZE=1 vitest run src/widgets/widgets.test.ts"
   },
   "dependencies": {

@@ -17,8 +17,7 @@ import { join } from "node:path";
 import { it } from "vitest";
 import { importCaseData } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
-import { navigate } from "@/course/navigator";
-import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
+import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
@@ -40,25 +39,10 @@ const tutorClient = anthropicTutorClient();
 const anthropic = new Anthropic();
 let spent = 0;
 
-/** Puts a fresh Learner at the Teaching Step the question needs, by saving progress directly. */
-async function placeLearner(db: Awaited<ReturnType<typeof testDb>>, at: BehaviourQuestion["at"]) {
-  await ensureTopicStarted(db, map);
-  const target = at === "story" ? "story" : at === "your_turn" ? "your_turn" : "check";
-  for (let i = 0; i < 12; i++) {
-    const place = navigate(map, await loadProgress(db));
-    if (!place) throw new Error("no place");
-    const onConversationCheck = place.step === "check" && place.check?.kind === "conversation";
-    if (place.step === target && (target !== "check" || onConversationCheck)) return place;
-    if (place.step === "check" && place.check) await saveCheckResult(db, map, { checkId: place.check.id, passed: true });
-    else await saveFinishedStep(db, map, place.step);
-  }
-  throw new Error(`could not place the Learner at ${at}`);
-}
-
 async function ask(q: BehaviourQuestion): Promise<{ replies: string[]; cost: number; stepNote: string }> {
   const db = await testDb();
   if (existsSync(CASE_DATA)) await importCaseData(db, JSON.parse(readFileSync(CASE_DATA, "utf8")));
-  const place = await placeLearner(db, q.at);
+  const place = await placeLearner(db, map, q.at);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "${place.step}" (before the reveal; the Learner has not seen the outcome).`;
   const replies: string[] = [];
   let cost = 0;
