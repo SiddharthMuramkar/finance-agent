@@ -3,6 +3,7 @@ import { importLibrary, type LibraryFile } from "@/library/ingest";
 import { scriptedClient } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
+import { HIDDEN_SOURCE_TITLE } from "./citations";
 import { loadCurrentSession } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 
@@ -102,6 +103,32 @@ describe("Tutor replies cite Library passages", () => {
     const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
 
     expect(streamed(events)).toBe(`Prose[1](/passages/2?blocks=1-2)\n\n${widget}\n\nAfter.\n\nSources:\n\n1. [PV](/passages/2)\n`);
+  });
+
+  it("never shows the heading of a cited passage the as-of rule hides now, live or after a reload", async () => {
+    const db = await testDb();
+    await importLibrary(db, book);
+    // After the present value Case's as-of date (24 October 2018); found by a search made before the Learner reached the Case.
+    await importLibrary(db, {
+      source: { ...book.source, id: "a-blog", title: "A blog", kind: "dated", credit: "A. Writer, A blog" },
+      passages: [{ ref: "later", heading: "The winner's choice", url: "https://example.org/blog/later", publishedOn: "2019-03-05", text: "The winner took the cash option." }],
+    });
+    const { client } = scriptedClient([
+      {
+        content: [
+          { type: "text", text: "Timeless", citations: [cite("/passages/1", "Present value", 1, 2, "x")] },
+          { type: "text", text: " and later", citations: [cite("/passages/2", "The winner's choice", 1, 2, "y")] },
+        ],
+      },
+    ]);
+
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+
+    const expected =
+      "Timeless[1](/passages/1?blocks=1-2) and later[2](/passages/2?blocks=1-2)" +
+      `\n\nSources:\n\n1. [Present value](/passages/1)\n2. [${HIDDEN_SOURCE_TITLE}](/passages/2)\n`;
+    expect(streamed(events)).toBe(expected);
+    expect((await loadCurrentSession(db, presentValueOnly())).at(-1)?.text).toBe(expected);
   });
 
   it("leaves a reply with no citations, or citations of something other than a Library passage, unchanged", async () => {

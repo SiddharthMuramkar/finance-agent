@@ -16,7 +16,13 @@ export const JUMP_NOTE =
  * Case's outcome is included only from the reveal on, so hindsight is withheld
  * by code as well as by instructions.
  */
-export function stepContext(place: Place | null, caseData: CaseData[] = [], pastes: PasteSummary = { count: 0, words: 0 }): string {
+export function stepContext(
+  place: Place | null,
+  caseData: CaseData[] = [],
+  pastes: PasteSummary = { count: 0, words: 0 },
+  /** The current quiz Check's questions cannot be found, so no quiz is shown (see `quizUnavailable`). */
+  quizUnavailable = false,
+): string {
   if (!place) return "Course Navigator: every Topic on the Course Map is passed. Answer the Learner's questions.";
   const { topic, step, check } = place;
   const revealed = TEACHING_STEPS.indexOf(step) >= AFTER_REVEAL;
@@ -37,6 +43,12 @@ export function stepContext(place: Place | null, caseData: CaseData[] = [], past
   if (check && step === "check") {
     if (check.kind === "conversation") {
       lines.push("", `Check prompt: ${check.prompt.trim()}`, `Pass criteria: ${check.passCriteria.trim()}`);
+    } else if (quizUnavailable) {
+      lines.push(
+        "",
+        `Check: quiz ${check.id}, but the quiz for this Check cannot be shown: too few of its questions can be found, so the Learner sees no quiz panel. Check the Learner in conversation instead: ask them to explain the Concept below in their own words and apply it to a small example of your own, and question their reasoning. Do not mention a quiz panel.`,
+        `Concept: ${topic.concept.trim()}`,
+      );
     } else {
       lines.push(
         "",
@@ -49,7 +61,9 @@ export function stepContext(place: Place | null, caseData: CaseData[] = [], past
     "",
     step !== "check"
       ? `When this Teaching Step is done, call finish_teaching_step with step "${step}".`
-      : check?.kind === "conversation"
+      : check && quizUnavailable
+        ? `When you can judge whether the Learner understands the Concept, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
+        : check?.kind === "conversation"
         ? `Put the Check prompt to the Learner and question their reasoning. When you can judge it against the pass criteria, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
         : "Code records the quiz result; you cannot finish this step yourself. Never tell the Learner they passed unless code says a pass was recorded. If the Learner asks, point them to the quiz panel.",
   );

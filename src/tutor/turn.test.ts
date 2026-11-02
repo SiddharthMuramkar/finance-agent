@@ -888,6 +888,24 @@ describe("Tutor Turn", () => {
       expect(await learnerSummary(db, real)).toEqual(before);
     });
 
+    it("a quiz whose questions can no longer be found is taken as a conversation Check: the Tutor is told, and its verdict is recorded", async () => {
+      // The quiz names bank questions this database does not hold, so fewer than the 2 needed can be shown.
+      const t = real.topic("present-value")!;
+      const yaml = stringify({ ...t, checks: t.checks.map((c) => (c.id === quizId ? { ...c, questions: ["bank:none:Q-1", "bank:none:Q-2", "bank:none:Q-3"] } : c)) });
+      const { map, errors } = parseCourseMap([{ name: "present-value.yaml", text: yaml }]);
+      if (!map) throw new Error(errors.join("\n"));
+      const db = await testDb();
+      await advanceToCheck(db, map);
+      expect(await openQuiz(db, map)).toBeNull();
+      const verdict = { type: "tool_use", id: "toolu_quiz_verdict", name: "record_check_verdict", input: { check_id: quizId, verdict: "pass", reasons: "Explained discounting." } };
+      const { client, requests } = scriptedClient([text("Tell me how discounting works."), { content: [verdict] }, text("Well explained.")]);
+      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      expect(contextTexts(requests[0]).join("\n")).toMatch(/quiz for this Check cannot be shown/);
+
+      await collect(runTutorTurn({ db, client, map }, "Money later is worth less, because it could earn interest meanwhile."));
+      expect(await loadCheckResults(db)).toMatchObject([{ checkId: quizId, passed: true }]);
+    });
+
     it("tells the Tutor about a miss, even though the Learner's place did not change, and only once", async () => {
       const db = await testDb();
       await advanceToCheck(db, real);

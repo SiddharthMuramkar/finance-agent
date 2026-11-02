@@ -39,6 +39,7 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promis
     lookup = await questionLookup(db, map, check.questions);
     const usable = check.questions.filter((id) => lookup.question(id));
     if (usable.length < check.passRule.correct) {
+      // The Tutor is told and takes it as a conversation Check instead (see `quizUnavailable`).
       console.error(`Quiz Check "${check.id}": only ${usable.length} of its questions can be found, fewer than the ${check.passRule.correct} needed to pass, so no quiz is shown.`);
       return null;
     }
@@ -46,6 +47,16 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promis
     await db.update(quizAttempts).set({ questionIds }).where(eq(quizAttempts.id, attempt.id));
   }
   return { attemptId: attempt.id, checkId: check.id, attemptNo: attempt.attemptNo, questions: publicQuestions(lookup, questionIds) };
+}
+
+/**
+ * Whether this quiz Check cannot be shown: fewer of its questions can be found (on the Course Map or in the
+ * Question Bank) than its pass rule needs. Then no quiz panel appears, and the Tutor checks the Learner in
+ * conversation and records a verdict, so the Learner is never stuck at a Check nobody can mark.
+ */
+export async function quizUnavailable(db: Db, map: CourseMap, check: QuizCheck): Promise<boolean> {
+  const lookup = await questionLookup(db, map, check.questions);
+  return check.questions.filter((id) => lookup.question(id)).length < check.passRule.correct;
 }
 
 export type QuizResult =
@@ -103,10 +114,13 @@ export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: s
   const lookup = await questionLookup(db, map, rows.flatMap((r) => r.questionIds));
   const notes = rows.map((row) => {
     const check = map.check(row.checkId) as (QuizCheck & { topicId: string }) | undefined;
-    const marking = check && markAttempt(lookup, check, row.questionIds, row.answers ?? {});
-    if (!marking) return `Quiz result by code, Check ${row.checkId}, attempt ${row.attemptNo + 1}: the Check is no longer on the Course Map.`;
-    const head = `Quiz result by code, Check ${row.checkId}, attempt ${row.attemptNo + 1}: ${marking.correctCount} of ${marking.shown} correct (needs ${marking.needed}).`;
-    const verdict = marking.passed
+    if (!check) return `Quiz result by code, Check ${row.checkId}, attempt ${row.attemptNo + 1}: the Check is no longer on the Course Map.`;
+    // The score and verdict are the ones saved at submission. Only questions that can still be found are re-marked
+    // for the missed list, so a question removed since (from the Course Map or the bank) cannot block every later turn.
+    const marking = markAttempt(lookup, check, row.questionIds.filter((id) => lookup.question(id)), row.answers ?? {});
+    const passed = row.passed ?? marking.passed;
+    const head = `Quiz result by code, Check ${row.checkId}, attempt ${row.attemptNo + 1}: ${row.correctCount ?? marking.correctCount} of ${row.questionIds.length} correct (needs ${check.passRule.correct}).`;
+    const verdict = passed
       ? "Passed: code recorded the pass."
       : "Not passed: the Learner stays at this Check and gets different questions on a retry where there are any.";
     const missed = marking.questions

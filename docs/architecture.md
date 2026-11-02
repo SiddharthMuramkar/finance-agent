@@ -44,14 +44,22 @@ Claude call happens, so no credits are spent.
 **Guessing is limited** (`src/auth/login-guard.ts`, table `login_failures`). Each wrong passcode
 is saved as the caller's address and the time (never the guess). After five wrong guesses from one
 address in 15 minutes, that address is refused, even with the right passcode, until the window
-passes. After fifty wrong guesses from all addresses together in an hour, every login is refused
-for the rest of that hour, so guessing from many machines doesn't get round it. The page then says
+passes. After fifty wrong guesses from all addresses together in an hour, logins are slowed rather
+than stopped: every address gets one try per 15 minutes, so guessing from many machines is cut to a
+trickle while the owner, on a new phone, can still sign in with one correct try. The page then says
 "Too many wrong passcodes". Rows older than a day are removed as new ones arrive.
 
+Each try is claimed before the passcode is compared: its row is saved first, then counted with the
+others, and removed again if the try is refused or the passcode was right. So guesses sent all at
+once (say 1,000 parallel requests from one address) each see the ones before them, and at most five
+are compared, not all of them.
+
 **Trade-off.** One shared passcode is simple and enough for one private Learner. It is not a
-user account system. Changing `SESSION_SECRET` signs every device out. The overall cap means
-someone guessing hard can keep you out for up to an hour too (a device that is already signed in
-keeps working); that is the price of not letting them guess without limit.
+user account system. Changing `SESSION_SECRET` signs every device out. The overall cap no longer
+locks everyone out, because a determined guesser could keep that lock on forever with fifty guesses an
+hour. Instead it slows every address to one try per 15 minutes: an attacker with many addresses still
+gets one guess per address in each window, and the owner who mistypes on a new device waits 15 minutes.
+If you ever need to clear the limit at once, delete the rows of `login_failures` in Neon.
 
 ## Database (Neon Postgres through Drizzle)
 
@@ -416,10 +424,16 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
 - **Removed questions don't lock the Learner out.** If a question is taken off the Course Map (or
   leaves the Question Bank) while an attempt is open and unanswered, the attempt is given a fresh
   selection from the questions that are still there. If fewer are left than the pass rule needs,
-  no quiz is shown and the error is logged, rather than the page failing. The workspace also loads
+  no quiz is shown and the error is logged, rather than the page failing. The Tutor is then told
+  that the quiz cannot be shown and checks the Learner in conversation instead, on the Topic's
+  Concept, and its verdict is recorded as for a conversation Check, so the Learner is never stuck at
+  a Check nobody can mark. A result already submitted still reaches the Tutor after one of its
+  questions is removed: the note uses the score saved at submission and names only the missed
+  questions that can still be found, so a removed question can't make every later turn fail. The workspace also loads
   the quiz on its own, so a quiz that fails to load leaves the rest of the page working.
 - **Only code marks a quiz.** The Tutor's verdict tool refuses a quiz Check ("it is marked by code
-  from the Learner's answers"), so a Learner who asks to be passed still has to submit the quiz.
+  from the Learner's answers"), so a Learner who asks to be passed still has to submit the quiz. The
+  one exception is a quiz that cannot be shown (above).
 - **The Tutor hears afterwards.** The Learner's result is not sent to the Tutor at once, because
   the Tutor is not called. On its next call, code puts a note in the history: "Quiz result by code,
   Check ..., attempt 1: 1 of 3 correct (needs 2). Not passed ...", naming each missed question,
@@ -868,7 +882,11 @@ Live run, 2 Nov 2026: 3 citations, 2 sources, 2 widgets drawn without a correcti
 passage view respects the same limit: for a source with one (Damodaran's blog, 60 words) it shows
 only the cited sentences, cut to 60 words, says it was shortened and points to the original. A
 passage the as-of rule hides from search is hidden in the passage view too: during the 1994 Fed
-Case, a 2026 Damodaran post shows "hidden until the reveal" instead of its text. Live run with
+Case, a 2026 Damodaran post shows "hidden until the reveal" instead of its text. Its heading is
+withheld from the Sources list as well. A reply can cite a passage found by a search made earlier in
+the Session, before the Learner reached the Case; the Sources list then shows "Library passage
+(hidden until the reveal)" instead of a heading like "How Lehman's 2008 failure froze credit", live
+and after a reload, and shows the real heading again once the reveal is shown. Live run with
 Damodaran's blog, 2 Nov 2026: 5 citations to 3 posts, each passage view at most 60 words, $0.034.
 
 **Citations and widgets together.** The spec chose OpenUI's inline mode (widgets written in the
