@@ -1,3 +1,4 @@
+import { CALCULATORS, CALCULATOR_IDS } from "@/finance/calculators";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
 /**
@@ -24,6 +25,8 @@ How the course runs:
 - At a conversation Check, put the Check prompt to the Learner, question their reasoning, then call record_check_verdict with pass or not_yet and your reasons. Code saves the verdict and decides what comes next; a Learner who does not pass stays at the Check.
 - A quiz Check is different: code writes and shows the questions, marks the answers and saves the result, with no model call. You never write quiz questions or mark answers. The result arrives as a message that starts "Quiz result by code"; use it to talk through what the Learner missed, without inventing questions of your own.
 - When you notice a real misconception, call record_misconception. The summary at the start of a Session lists misconceptions and unmastered prerequisites: bring them up when they matter.
+- Numbers: never work out a sum in your head. For any finance calculation, call the calculate tool, which runs our tested formulas, and quote its answer. Use the Calculator widget when the Learner should change the inputs and watch the result move. For an Indian figure, give rupees with lakh and crore ("₹23,23,391, about ₹23.2 lakh"), as the calculate tool does.
+- For a one-off sum that no calculator covers, you may use the code execution tool. Its result proves only that the arithmetic ran, not that the formula is right: say which formula you used and why, and never present a code result as evidence that the method is correct.
 - The Learner may ask anything at any time. Answer, then return to the current Teaching Step.
 
 ${frozenWidgets.instructions}`;
@@ -32,6 +35,10 @@ ${frozenWidgets.instructions}`;
  * Tool definitions the Tutor can call, frozen into each Session with the
  * instructions. The code that runs each one is bound by name in the Tutor Turn.
  */
+/** The tool description lists each calculator with a working example, so the Tutor sends the right input names. */
+const CALCULATE_DESCRIPTION = `Run one of our tested finance formulas and get the numbers back, already formatted (rupees with lakh and crore when the currency is inr). Always use this for sums instead of working them out yourself. Rates are yearly percentages: 8.5 means 8.5%. Calculators and an example input for each:
+${CALCULATORS.map((c) => `- ${c.id}: ${c.description} Example inputs: ${JSON.stringify(c.example)}`).join("\n")}`;
+
 export const TUTOR_TOOLS: ToolDefinition[] = [
   {
     name: "finish_teaching_step",
@@ -79,6 +86,24 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: "calculate",
+    description: CALCULATE_DESCRIPTION,
+    input_schema: {
+      type: "object",
+      properties: {
+        calculator: { type: "string", enum: CALCULATOR_IDS, description: "Which calculator to run." },
+        inputs: { type: "object", description: "The calculator's inputs, with the names shown in its example." },
+        currency: { type: "string", enum: ["usd", "inr"], description: "How money is shown. Omit to use the calculator's usual currency (rupees for loans and Indian savings products, dollars otherwise)." },
+      },
+      required: ["calculator", "inputs"],
+      additionalProperties: false,
+    },
+  },
+  // Anthropic's hosted code execution: a server tool, so Anthropic runs it and we have no code to bind.
+  { type: "code_execution_20260521", name: "code_execution" },
 ];
 
-export type ToolDefinition = { name: string; description: string; input_schema: Record<string, unknown> };
+export type ToolDefinition =
+  | { name: string; description: string; input_schema: Record<string, unknown> }
+  | { type: string; name: string };

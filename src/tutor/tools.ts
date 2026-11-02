@@ -3,6 +3,7 @@ import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
+import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
 import { toolCalls, turns } from "@/db/schema";
@@ -47,7 +48,7 @@ export async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
 }
 
 /**
- * The code behind each tool, by name. Every tool writes, so each runs through `once`:
+ * The code behind each tool, by name. Every tool except the pure `calculate` writes, so each runs through `once`:
  * the effect and the saved result share one transaction keyed by the tool call ID, so a
  * repeated call, or a call re-run after a cut-off, returns the saved result and has no
  * second effect. If the write fails, the transaction rolls back (the Course Navigator
@@ -91,7 +92,18 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
     return outcome.text;
   }
 
+  const calculateInput = z.object({ calculator: z.string(), inputs: z.unknown(), currency: z.enum(["usd", "inr"]).optional() });
+
   return {
+    // Pure: it writes nothing, so it does not go through `once`; the same inputs always give the same answer.
+    calculate: {
+      parse: (input) => calculateInput.parse(input),
+      run: async ({ calculator, inputs, currency }) => {
+        const result = calculate(calculator, inputs, currency);
+        if (!result.ok) throw new Error(result.error);
+        return `${result.title}\n${result.results.map((r) => `${r.label}: ${r.text}`).join("\n")}\n(Computed by code from the tested formula "${result.id}".)`;
+      },
+    },
     record_misconception: {
       parse: (input) => misconceptionInput.parse(input),
       run: ({ description, topic_id }, context) =>
@@ -144,6 +156,8 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
  */
 export function bindTools(definitions: ToolDefinition[], code: Record<string, ToolCode>): BetaRunnableTool[] {
   return definitions.map((d) => {
+    // A server tool (hosted code execution) has a `type` and nothing for us to run.
+    if ("type" in d) return d as unknown as BetaRunnableTool;
     const impl = code[d.name];
     if (!impl) throw new Error(`No implementation for saved tool ${d.name}`);
     return { ...d, ...impl } as unknown as BetaRunnableTool;

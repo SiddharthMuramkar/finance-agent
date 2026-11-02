@@ -636,3 +636,45 @@ so no change to the quiz code was needed and it can be re-run safely. The cost i
 appear a moment after the pass rather than at it. Whole-day scheduling suits "open the app once a
 day" study but cannot do same-day repeats of a missed question. Only questions still on the Course
 Map are offered, so deleting a question quietly retires its card.
+
+## Finance Calculations, Indian formats and hosted code execution (`src/finance/`, the `calculate` tool, the Calculator widget)
+
+**What it does.** Every number the Tutor shows for a calculation comes from tested code, not from
+the model's head. `src/finance/` holds plain formulas: lump sums and annuities, perpetuities,
+effective and real rates, net present value and IRR, loan EMIs and repayment schedules, SIP, PPF,
+fixed and recurring deposits, bond price, yield to maturity and duration, dividend discount models,
+discounted cash flow and CAGR. Where the `formula.js` library has the function (FV, PV, PMT, NPV,
+IRR, RATE, EFFECT, NOMINAL) it does the arithmetic, wrapped so callers see ordinary numbers and
+plain errors; the rest is a few lines of arithmetic. All of them are listed in one registry
+(`calculators.ts`). Two things read that same registry: the Tutor's `calculate` tool, and the
+`Calculator` widget, so a widget and a tool can never disagree. `indian-format.ts` writes rupees
+the Indian way: `₹12,34,567` (grouped 3 then 2), and in words from one lakh up (`₹2.35 lakh`,
+`₹1.5 crore`, and `₹1 crore` rather than `₹100 lakh`). Loans and Indian savings products show
+rupees by default; everything else shows dollars unless the Tutor says otherwise.
+
+**A concrete scenario.** The Learner asks what a 50 lakh home loan at 8.5% over 20 years costs.
+The Tutor calls `calculate` with the `emi` calculator and gets back "Monthly instalment: ₹43,391.16;
+Total interest: ₹54,13,878.80 (₹54.14 lakh)". It quotes those, then shows a Calculator widget with
+a loan amount slider and a rate slider. Moving the rate to 10.5% redraws the instalment as
+₹49,918.99 in the browser with no model call (checked in a real browser). For a sum no calculator
+covers, the Tutor may use Anthropic's hosted code execution (a server tool: Anthropic runs the
+code in its own sandbox and the result comes back inside the same reply). The Tutor's instructions
+say that such a result proves only that the arithmetic ran, not that the formula is right.
+
+**How it is tested.** Every formula has a test whose expected value comes from outside the code:
+a published worked example (the standard bond-pricing example, Microsoft's IRR example, the 1.01^120
+interest table, bank EMI tables, PPF calculators) or a figure worked out by hand and shown in the
+test name. Cases ported from the MIT-licensed Python project of 77 finance calculators
+(`sarveshtalele/personal-finance-mcp`) are marked "ported" with the check made beside each. Its own
+tests mostly say only "greater than zero", so several were turned into exact figures; its two-stage
+dividend and DCF cases had no values and were replaced by hand-worked ones. Nothing from that
+project is copied as code. Rupee and lakh/crore formatting has its own tests, including the
+rounding edge where 99.999 lakh must read as a crore.
+
+**Trade-offs.** Adding the two tools changes the Tutor's tool list and instructions, so the next
+action after deploy starts a new Session (the existing Session is not edited). The Calculator
+widget takes its inputs by name, so the Tutor has to use the names in the `calculate` tool's
+description; a wrong name shows a plain "could not run" message in place of a number. A server-side
+render shows "Working it out…" until the browser sets the slider values. Hosted code execution
+costs extra tokens for the code and its output and is optional: the Tutor is told to prefer
+`calculate`. Yearly rates are percentages everywhere (5 means 5%), a deliberate house convention.
