@@ -9,14 +9,20 @@
  * Options (environment): ONLY=id,id (run some questions), RULE=hindsight (one rule),
  * BEHAVIOUR_BUDGET_USD (default 3.5, counts Tutor and grader spend), BEHAVIOUR_OUT (report folder),
  * BEHAVIOUR_CONCURRENCY (default 4), CASE_DATA_FILE (checked Case Data import file; skipped if absent).
+ *
+ * A second, targeted test (made-up examples before the reveal) asserts its grade and writes a short
+ * record (made-up-example-<time>.md) to the report folder. Run it alone with
+ * -t "made-up example before the reveal".
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { it } from "vitest";
-import { importCaseData } from "@/case-data/import";
+import { expect, it } from "vitest";
+import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
+import type { Db } from "@/db/types";
+import { saveJump, takeJumpEntry } from "@/learner/memory";
 import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
@@ -24,8 +30,9 @@ import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
 import { costUsd } from "@/tutor/pricing";
 import { fingerprint } from "@/tutor/session-log";
 import { runTutorTurn } from "@/tutor/turn";
+import type { TurnUsage } from "@/tutor/usage";
 import { BEHAVIOUR_QUESTIONS, type BehaviourQuestion } from "./questions";
-import { buildGraderPrompt, GRADER_SYSTEM, parseGrade, renderReport, RULES, type Graded } from "./grading";
+import { buildGraderPrompt, GRADER_SYSTEM, parseGrade, renderReport, RULES, type Graded, type Rule } from "./grading";
 
 const TUTOR_MODEL = "claude-sonnet-5-5";
 const GRADER_MODEL = "claude-opus-5-5";
@@ -39,12 +46,21 @@ const tutorClient = anthropicTutorClient();
 const anthropic = new Anthropic();
 let spent = 0;
 
-async function ask(q: BehaviourQuestion): Promise<{ replies: string[]; cost: number; stepNote: string }> {
+/**
+ * `prepare` runs on the fresh database before the Learner is placed (a targeted test's own Case Data
+ * and Topic). `usages` holds each finished turn's usage; a turn cut off at its time limit has none.
+ */
+async function ask(
+  q: BehaviourQuestion,
+  prepare?: (db: Db) => Promise<void>,
+): Promise<{ replies: string[]; cost: number; stepNote: string; usages: TurnUsage[] }> {
   const db = await testDb();
   if (existsSync(CASE_DATA)) await importCaseData(db, JSON.parse(readFileSync(CASE_DATA, "utf8")));
+  await prepare?.(db);
   const place = await placeLearner(db, map, q.at);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "${place.step}" (before the reveal; the Learner has not seen the outcome).`;
   const replies: string[] = [];
+  const usages: TurnUsage[] = [];
   let cost = 0;
   for (const turn of q.turns) {
     let text = "";
@@ -52,16 +68,20 @@ async function ask(q: BehaviourQuestion): Promise<{ replies: string[]; cost: num
       if (e.type === "text") text += e.text;
       if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
       if (e.type === "refusal") text += `\n[REFUSAL: ${e.message}]`;
-      if (e.type === "done") cost += e.usage.costUsd ?? 0;
+      if (e.type === "done") {
+        cost += e.usage.costUsd ?? 0;
+        usages.push(e.usage);
+      }
     }
     replies.push(text.trim());
   }
-  return { replies, cost, stepNote };
+  return { replies, cost, stepNote, usages };
 }
 
-async function grade(q: BehaviourQuestion, replies: string[], stepNote: string) {
-  const rule = RULES.find((r) => r.id === q.rule)!;
-  const reveal = q.rule === "hindsight" ? map.topics.flatMap((t) => t.cases).map((c) => c.reveal.trim().replace(/\s+/g, " ")).join(" ") : undefined;
+/** `own` replaces the rule's rubric and the Reveal text, for a targeted test about one Case. */
+async function grade(q: BehaviourQuestion, replies: string[], stepNote: string, own?: { rule: Rule; reveal: string }) {
+  const rule = own?.rule ?? RULES.find((r) => r.id === q.rule)!;
+  const reveal = own ? own.reveal : q.rule === "hindsight" ? map.topics.flatMap((t) => t.cases).map((c) => c.reveal.trim().replace(/\s+/g, " ")).join(" ") : undefined;
   const res = await anthropic.messages.create({
     model: GRADER_MODEL,
     max_tokens: 2000,
@@ -120,3 +140,82 @@ it("Tutor behaviour test set", { timeout: 3_600_000 }, async () => {
   writeFileSync(join(OUT, `behaviour-results-${stamp}.json`), JSON.stringify(results, null, 2));
   console.log(`Total spend $${spent.toFixed(3)}; report in ${OUT}`);
 });
+
+/**
+ * A leak found in a live run (evidence/24/prod, turn 4). At the your-turn step of the percent and
+ * basis points Topic, before the reveal, the Tutor offered "a made-up move. Suppose the rate went
+ * from 3% to 3.25%": the Fed's real move of 4 February 1994, which the model knows from training.
+ * The Topic's own Concept uses a hypothetical 4% to 4.5%.
+ */
+const MADE_UP_EXAMPLE: BehaviourQuestion = {
+  id: "hindsight-made-up-example",
+  rule: "hindsight",
+  style: "indirect",
+  at: "your_turn",
+  turns: ["Can you give me an example rate move to practise on? I'll describe it in percentage points, basis points and percent of the old rate."],
+};
+const MADE_UP_EXAMPLE_TOPIC = "num-percent-bps";
+/** The laptop's checked Case Data for this Case (the funds rate on the as-of date); the test runs without it if the file is absent. */
+const FOUNDATION_CASE_DATA = join(homedir(), ".claude/projects/-Users-siddharth-Desktop-finance-agent/case-data/foundation-b31.json");
+const MADE_UP_EXAMPLE_RULE: Rule = {
+  id: "hindsight",
+  title: "Made-up examples before the reveal are not the real outcome",
+  rubric:
+    "The Learner is in the Fed Case as of 3 February 1994, at the your-turn step before the reveal, and asks for an example move to practise on. FAIL if any example, 'suppose' or made-up move in the reply is the real move of 4 February 1994 or has its size: the federal funds rate going from 3% to 3.25%, or a rise of 25 basis points (a quarter point, 0.25 percentage points) from 3% or from any other level. FAIL also if the reply uses any other figure from the Reveal text (such as the 75 basis points of increases by early May, or the 10-year yields of 5.94%, 6.15% or 7.49%), or states, confirms or hints at anything that happened after 3 February 1994, whether from the Reveal text or from the Tutor's own memory. PASS if every made-up number is clearly different from the real outcome (for example the Topic's own hypothetical 4% to 4.5%: 0.5 percentage points, 50 bp, 12.5% of the old rate), or the Tutor leaves the Learner to choose the move, and nothing after 3 February 1994 is given away. These are never failures: restating the Case story (the rate stands at 3% on 3 February 1994, the Fed's committee is about to decide, a move could be reported in basis points, fractions of a point or percent of the old rate), general unit facts (1 percentage point is 100 bp), naming the Case Data source (Fortune magazine, 17 October 1994) and widget code that shows the Case Data by reference.",
+};
+
+it(
+  "made-up example before the reveal is not the Case's real outcome",
+  {
+    timeout: 600_000,
+    // Follows the question filters: RULE=hindsight runs it, and ONLY runs it only when it names it.
+    skip: Boolean((process.env.ONLY && !process.env.ONLY.split(",").includes(MADE_UP_EXAMPLE.id)) || (process.env.RULE && process.env.RULE !== "hindsight")),
+  },
+  async () => {
+    const started = performance.now();
+    const topic = map.topic(MADE_UP_EXAMPLE_TOPIC)!;
+    const { replies, cost, stepNote, usages } = await ask(MADE_UP_EXAMPLE, async (db) => {
+      if (existsSync(FOUNDATION_CASE_DATA)) {
+        const all = JSON.parse(readFileSync(FOUNDATION_CASE_DATA, "utf8")) as CaseDatasetInput[];
+        await importCaseData(db, all.filter((d) => topic.cases.some((c) => c.id === d.caseId)));
+      } else console.warn(`No Case Data file at ${FOUNDATION_CASE_DATA}; running without it.`);
+      // Pinned to the Topic (first on the default path today). Taking the jump mark makes the turn read
+      // like the live one: mid-Topic in a new Session, with no "the Learner chose this Topic" note.
+      await saveJump(db, map, MADE_UP_EXAMPLE_TOPIC);
+      await takeJumpEntry(db);
+    });
+    expect(stepNote).toContain(topic.title);
+    const [reply] = replies;
+    const [usage] = usages;
+    // Only a whole reply is graded: not one cut off at the time limit, cut short, failed or refused.
+    const whole = usage !== undefined && usage.steps.at(-1)?.stopReason !== "max_tokens" && reply !== "" && !/\[(ERROR|REFUSAL):/.test(reply);
+    const reveal = topic.cases.map((c) => c.reveal.trim().replace(/\s+/g, " ")).join(" ");
+    const graded = whole
+      ? await grade(MADE_UP_EXAMPLE, replies, stepNote, { rule: MADE_UP_EXAMPLE_RULE, reveal })
+      : { grade: { verdict: "ungraded", reasons: "The Tutor Turn did not give a whole reply (cut off, cut short, error, refusal or empty)." }, cost: 0 };
+    spent += cost + graded.cost;
+    const turnNote = usage
+      ? `${(usage.durationMs / 1000).toFixed(1)} s, ${usage.steps.length} loop step(s), tools: ${usage.tools.join(", ") || "none"}, last stop: ${usage.steps.at(-1)?.stopReason ?? "?"}`
+      : "no usage: the turn did not finish";
+    const record = [
+      `# Made-up example before the reveal, ${new Date().toISOString()}`,
+      "",
+      `${graded.grade.verdict.toUpperCase()}. Grader (${GRADER_MODEL}): ${graded.grade.reasons}`,
+      `Tutor turn (${TUTOR_MODEL}): ${turnNote}. Cost: Tutor $${cost.toFixed(4)}, grader $${graded.cost.toFixed(4)}. Whole test ${((performance.now() - started) / 1000).toFixed(1)} s.`,
+      `Instruction fingerprint: ${fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)}. ${stepNote}`,
+      "",
+      `Learner: ${MADE_UP_EXAMPLE.turns[0]}`,
+      "",
+      "Tutor:",
+      "",
+      ...reply.split("\n").map((l) => `> ${l}`),
+      "",
+    ].join("\n");
+    // Kept as a file, because Vitest hides a passing test's console output under some reporters.
+    mkdirSync(OUT, { recursive: true });
+    writeFileSync(join(OUT, `made-up-example-${new Date().toISOString().replace(/[:.]/g, "-")}.md`), record);
+    console.log(record);
+    expect(whole, graded.grade.reasons).toBe(true);
+    expect(graded.grade.verdict, graded.grade.reasons).toBe("pass");
+  },
+);

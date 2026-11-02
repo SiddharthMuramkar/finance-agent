@@ -179,6 +179,20 @@ describe("Tutor Turn", () => {
       expect(context).not.toContain(pv.cases[0].reveal.trim());
     });
 
+    it("tells the Tutor that made-up numbers before the reveal must not match the real outcome, and sends the Concept to take them from at the your-turn step", async () => {
+      expect(TUTOR_INSTRUCTIONS).toContain("a made-up number must never match the Case's real outcome or anything else you know happened after the as-of date");
+      expect(TUTOR_INSTRUCTIONS).toContain("Take hypothetical numbers from the Concept or Check prompt in the Course Navigator message");
+      // The step where a live run leaked the outcome: code sends the Topic's Concept, never the reveal.
+      const db = await testDb();
+      for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step);
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Suppose a rate went from 4% to 4.5%." }] }]);
+      await collect(runTutorTurn({ db, client, map }, "Give me a move to practise on."));
+      const [context] = systemTexts(requests[0]);
+      expect(context).toContain("Teaching Step: your_turn");
+      expect(context).toContain(`Concept: ${pv.concept.trim()}`);
+      expect(context).not.toContain(pv.cases[0].reveal.trim());
+    });
+
     it("the Tutor reports a finished Teaching Step through a tool, and code accepts only the next legal one", async () => {
       const db = await testDb();
     await ensureTopicStarted(db, map); // an earlier turn has shown the story
