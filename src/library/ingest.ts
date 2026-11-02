@@ -18,7 +18,21 @@ export const librarySourceInput = z.object({
   credit: z.string().min(1),
   url: z.url(),
   fetchedOn: z.iso.date(),
+  /** When set, the Tutor may quote at most this many words at a time from the source (a blog stored whole for search). */
+  quoteWords: z.number().int().positive().optional(),
 });
+
+/**
+ * Sources the spec keeps out of the Library, matched on a source's id, title and link: Buffett's
+ * letters and essays, Zitron's articles, the CNBC Buffett Archive, Investopedia, YouTube
+ * transcripts, and material from bodies that have not allowed storing (IMF, FRED, St. Louis Fed,
+ * SEBI; the RBI, whose disclaimer prohibits caching, until it allows it).
+ */
+const BLOCKED = /buffett|berkshire|zitron|wheresyoured|cnbc|investopedia|youtube|youtu\.be|\brbi\b|rbi\.org\.in|imf\.org|\bimf\b|fred\.stlouisfed|stlouisfed|\bfred\b|sebi/i;
+
+export function isBlockedSource(source: { id: string; title: string; url: string }): boolean {
+  return BLOCKED.test(`${source.id} ${source.title} ${source.url}`);
+}
 
 /** One passage, already cleaned and cut. Licence and credit default to the source's. */
 export const libraryPassageInput = z.object({
@@ -33,6 +47,7 @@ export const libraryPassageInput = z.object({
 
 export const libraryFile = z
   .object({ source: librarySourceInput, passages: z.array(libraryPassageInput).min(1) })
+  .refine((f) => !isBlockedSource(f.source), { message: "this source is not allowed in the Library (the spec keeps it out)" })
   .refine((f) => f.source.kind === "timeless" || f.passages.every((p) => p.publishedOn), {
     message: "every passage of a dated source needs publishedOn, or the as-of rule cannot place it",
   })
@@ -65,11 +80,11 @@ const BATCH = 200;
 export async function importLibrary(db: Executor, input: LibraryFile): Promise<{ passages: number; removed: number }> {
   const { source: s, passages } = libraryFile.parse(input);
   await db.execute(sql`
-    insert into library_sources (id, title, kind, licence, licence_url, credit, url, fetched_on)
-    values (${s.id}, ${s.title}, ${s.kind}, ${s.licence}, ${s.licenceUrl}, ${s.credit}, ${s.url}, ${s.fetchedOn})
+    insert into library_sources (id, title, kind, licence, licence_url, credit, url, fetched_on, quote_words)
+    values (${s.id}, ${s.title}, ${s.kind}, ${s.licence}, ${s.licenceUrl}, ${s.credit}, ${s.url}, ${s.fetchedOn}, ${s.quoteWords ?? null})
     on conflict (id) do update set
       title = excluded.title, kind = excluded.kind, licence = excluded.licence, licence_url = excluded.licence_url,
-      credit = excluded.credit, url = excluded.url, fetched_on = excluded.fetched_on`);
+      credit = excluded.credit, url = excluded.url, fetched_on = excluded.fetched_on, quote_words = excluded.quote_words`);
   for (let i = 0; i < passages.length; i += BATCH) {
     const rows = passages
       .slice(i, i + BATCH)

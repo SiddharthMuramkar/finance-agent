@@ -68,6 +68,8 @@ export function searchResultText(search: LibrarySearch): string {
     const date = r.publishedOn ? `, published ${r.publishedOn}` : "";
     lines.push("", `[${i + 1}] ${r.heading}`, `Source: ${r.credit} (${r.licence}${date}). ${r.url}`, r.text);
   });
+  const limited = new Map(search.results.filter((r) => r.quoteWords).map((r) => [r.sourceTitle, r.quoteWords]));
+  for (const [title, words] of limited) lines.push("", `Quote at most ${words} words from "${title}" at a time, with credit; put the rest in your own words.`);
   lines.push("", "When you quote or draw on a passage, name its source in plain text, keep quotes short, and never present it as your own words.");
   return lines.join("\n");
 }

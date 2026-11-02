@@ -24,6 +24,8 @@ export type LibraryHit = {
   text: string;
   licence: string;
   credit: string;
+  /** The most words the Tutor may quote at once from this source, or null for no limit beyond "keep quotes short". */
+  quoteWords: number | null;
 };
 
 /** How keyword matches are ranked: BM25 through lakebase_text on Neon, or Postgres full-text search (ts_rank_cd). */
@@ -110,7 +112,7 @@ export async function searchPassages(db: Executor, q: PassageQuery): Promise<Lib
     db,
     sql`
       select p.id, p.source_id as "sourceId", s.title as "sourceTitle", s.kind, p.ref, p.heading, p.url,
-        to_char(p.published_on, 'YYYY-MM-DD') as "publishedOn", p.text, p.licence, p.credit
+        to_char(p.published_on, 'YYYY-MM-DD') as "publishedOn", p.text, p.licence, p.credit, s.quote_words as "quoteWords"
       from (${fused}) f
       join library_passages p on p.id = f.id
       join library_sources s on s.id = p.source_id

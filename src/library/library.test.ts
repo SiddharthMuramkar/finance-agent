@@ -4,7 +4,7 @@ import type { Db } from "@/db/types";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { importLibrary, passagesToEmbed, saveEmbeddings, type LibraryFile } from "./ingest";
-import { NO_VOYAGE_KEY, searchLibrary, VOYAGE_DOWN } from "./library";
+import { NO_VOYAGE_KEY, searchLibrary, searchResultText, VOYAGE_DOWN } from "./library";
 
 const map = parseCourseMap([
   {
@@ -168,5 +168,45 @@ describe("Library search", () => {
       publishedOn: "2022-01-01",
       url: "https://example.org/book/1",
     });
+  });
+});
+
+describe("sources kept out of the Library", () => {
+  const as = (source: Partial<LibraryFile["source"]>): LibraryFile => ({ ...blog, source: { ...blog.source, ...source } });
+
+  it.each([
+    ["Buffett's letters", { id: "buffett-letters", title: "Berkshire shareholder letters", url: "https://www.berkshirehathaway.com/letters/letters.html" }],
+    ["Zitron's articles", { id: "wheres-your-ed-at", title: "Where's Your Ed At", url: "https://www.wheresyoured.at/" }],
+    ["the CNBC Buffett Archive", { id: "cnbc-archive", title: "CNBC Warren Buffett Archive", url: "https://buffett.cnbc.com/" }],
+    ["Investopedia", { id: "investopedia", title: "Investopedia", url: "https://www.investopedia.com/terms/b/bond.asp" }],
+    ["YouTube transcripts", { id: "lectures", title: "A lecture", url: "https://www.youtube.com/watch?v=abc" }],
+    ["RBI primers, until RBI allows storing", { id: "rbi-primer", title: "RBI primer", url: "https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711" }],
+  ])("refuses %s", async (_name, source) => {
+    await expect(importLibrary(await testDb(), as(source))).rejects.toThrow(/not allowed in the Library/);
+  });
+
+  it("every source the load script knows is allowed", async () => {
+    const { readFileSync } = await import("node:fs");
+    const sources = JSON.parse(readFileSync("scripts/library/sources.json", "utf8")) as { id: string; kind: string }[];
+    const { isBlockedSource } = await import("./ingest");
+
+    expect(sources.length).toBeGreaterThan(1);
+    expect(sources.filter((s) => isBlockedSource(s as never))).toEqual([]);
+  });
+});
+
+describe("short quotes only", () => {
+  it("tells the Tutor how many words it may quote from a source with a quote limit, and says nothing for one without", async () => {
+    const db = await testDb();
+    await importLibrary(db, { ...blog, source: { ...blog.source, quoteWords: 40 } });
+    await importLibrary(db, book);
+
+    const found = await searchLibrary({ db, map }, "jackpot annuity instalments");
+    const text = searchResultText(found);
+
+    expect(found.results.find((r) => r.ref === "before")?.quoteWords).toBe(40);
+    expect(found.results.find((r) => r.ref === "ch1")?.quoteWords).toBeNull();
+    expect(text).toMatch(/Quote at most 40 words from "A blog"/);
+    expect(text.match(/Quote at most/g)).toHaveLength(1);
   });
 });
