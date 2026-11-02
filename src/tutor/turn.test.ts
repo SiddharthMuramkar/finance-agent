@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { parse, stringify } from "yaml";
 import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
+import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
 import { messages, settings } from "@/db/schema";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
@@ -230,6 +231,70 @@ describe("Tutor Turn", () => {
       expect(sent.at(-1)).toMatchObject({ role: "system" });
       expect(String(sent.at(-1)!.content)).toContain("Teaching Step: reveal");
       expect(sent.at(-2)).toMatchObject({ role: "user", content: "What happened next?" });
+    });
+
+    describe("Case Data", () => {
+      const caseId = pv.cases[0].id;
+      const dataset = (id: string, points: [string, number][], unit = "USD") => ({
+        caseId,
+        id,
+        label: `Label ${id}`,
+        unit,
+        source: `Source of ${id}`,
+        sourceUrl: "https://example.org/source",
+        checkedOn: "2026-11-02",
+        checkNote: "Compared with the source.",
+        points: points.map(([date, value]) => ({ date, value })),
+      });
+      const seed = (db: Awaited<ReturnType<typeof testDb>>) =>
+        importCaseData(db, [
+          dataset("cash-option", [["2018-10-23", 877_800_000]]),
+          dataset("long-yield", [["2018-07-02", 2.99], ["2018-10-24", 3.33], ["2019-03-04", 3.05]], "percent"),
+          dataset("winner-choice", [["2019-03-04", 877_784_124]]),
+        ]);
+
+      it("tells the Tutor which Case Data it can show by reference, with sources, and nothing dated after the as-of date before the reveal", async () => {
+        const db = await testDb();
+        await seed(db);
+        const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        const [context] = systemTexts(requests[0]);
+        expect(context).toContain(`"${caseId}/cash-option"`);
+        expect(context).toContain("Source of cash-option");
+        expect(context).toContain("877800000");
+        expect(context).toContain(`"${caseId}/long-yield"`);
+        expect(context).toContain("2018-10-24");
+        expect(context).not.toContain("2019-03-04");
+        expect(context).not.toContain("winner-choice");
+        expect(context).toMatch(/if the Learner asks for data that is not listed, say plainly that it is not available/i);
+      });
+
+      it("from the reveal on, the Tutor's context lists the full datasets", async () => {
+        const db = await testDb();
+        await seed(db);
+        const steps = ["story", "concept", "your_turn"];
+        const { client, requests } = scriptedClient([
+          ...steps.map((s) => ({ content: [finish(s)] })),
+          { content: [{ type: "text", text: "Your Check." }] },
+          { content: [{ type: "text", text: "Here is what happened." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true });
+        await collect(runTutorTurn({ db, client, map }, "What happened next?"));
+        const context = String(requests.at(-1)!.messages.at(-1)!.content);
+        expect(context).toContain("Teaching Step: reveal");
+        expect(context).toContain(`"${caseId}/winner-choice"`);
+        expect(context).toContain("2019-03-04");
+      });
+
+      it("when a Case has no Case Data, the context says so and tells the Tutor to say data is missing", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
+        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        const [context] = systemTexts(requests[0]);
+        expect(context).toMatch(/Case Data: none is available for this Case/);
+        expect(context).toMatch(/say plainly that it is not available/i);
+      });
     });
 
     describe("conversation Check", () => {

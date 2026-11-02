@@ -14,6 +14,7 @@
     "check": "npm run typecheck && npm run lint && npm run course:check && npm run test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate",
+    "case-data:import": "node --env-file=.env scripts/import-case-data.mjs",
     "widgets:freeze": "FREEZE=1 vitest run src/widgets/widgets.test.ts"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, numeric, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, date, doublePrecision, integer, jsonb, numeric, pgTable, primaryKey, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** Settings stored in SQL, such as the Tutor's model and effort. */
 export const settings = pgTable("settings", {
@@ -145,4 +145,37 @@ export const quizAttempts = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("quiz_attempts_check_no").on(t.checkId, t.attemptNo)],
+);
+
+/**
+ * Case Data: one checked historical dataset of a Case, with its source. Imported from the laptop
+ * (`npm run case-data:import`); the app only reads it, through the as-of rule.
+ */
+export const caseDatasets = pgTable(
+  "case_datasets",
+  {
+    caseId: text("case_id").notNull(),
+    datasetId: text("dataset_id").notNull(),
+    label: text("label").notNull(),
+    unit: text("unit").notNull(),
+    /** The credit line shown beside the data. */
+    source: text("source").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    /** When and how the figures were checked against the source. */
+    checkedOn: date("checked_on", { mode: "string" }).notNull(),
+    checkNote: text("check_note").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.caseId, t.datasetId] })],
+);
+
+/** Case Data: the dated values of a dataset. The as-of rule filters on `date`. */
+export const caseDataPoints = pgTable(
+  "case_data_points",
+  {
+    caseId: text("case_id").notNull(),
+    datasetId: text("dataset_id").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
+    value: doublePrecision("value").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.caseId, t.datasetId, t.date] })],
 );

@@ -34,3 +34,22 @@ describe("checking a finished widget on the server", () => {
     expect(widgetProblems("this is not openui-lang").length).toBeGreaterThan(0);
   });
 });
+
+describe("chart components take data only by reference or formula", () => {
+  type Prop = { type?: string; items?: Prop & { anyOf?: unknown[] } };
+  const defs = (frozen.schema as unknown as { $defs: Record<string, { properties: Record<string, Prop> }> }).$defs;
+
+  it("no component accepts a list of numbers, so the Tutor cannot type a series", () => {
+    for (const [name, def] of Object.entries(defs)) {
+      for (const [prop, schema] of Object.entries(def.properties)) {
+        const numbers = schema.type === "array" && (schema.items?.type === "number" || schema.items?.type === undefined && !schema.items?.anyOf);
+        expect(numbers, `${name}.${prop}`).toBe(false);
+      }
+    }
+  });
+
+  it("the history chart takes a Case Data reference, and the annuity chart formula inputs", () => {
+    expect(defs.HistoryChart.properties.dataset).toEqual({ type: "string" });
+    expect(Object.keys(defs.AnnuityChart.properties)).toEqual(["total", "payments", "growthPercent", "ratePercent", "compareTo"]);
+  });
+});

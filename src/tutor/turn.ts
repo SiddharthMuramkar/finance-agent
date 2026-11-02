@@ -3,8 +3,9 @@ import type { BetaContentBlock, BetaMessageParam, BetaRawMessageStreamEvent } fr
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
 import { asc, desc, eq, max } from "drizzle-orm";
 import { z } from "zod";
+import { loadCaseData } from "@/case-data/case-data";
 import { loadCourseMap, type CourseMap } from "@/course/map";
-import { navigate, TEACHING_STEPS } from "@/course/navigator";
+import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
 import { messages, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
@@ -135,6 +136,18 @@ async function append(db: Db, sessionId: number, seq: number, message: Message, 
   await db.insert(messages).values({ sessionId, seq, role: message.role, content: message.content, createdAt: now });
 }
 
+/** The Course Navigator's context for a place, with the Case Data the as-of rule allows right now. */
+async function navigatorContext(db: Db, map: CourseMap, place: Place | null): Promise<string> {
+  return stepContext(place, await caseDataFor(db, map, place));
+}
+
+async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
+  if (!place) return [];
+  const progress = await loadProgress(db);
+  const all = await Promise.all(place.topic.cases.map((c) => loadCaseData(db, map, progress, c.id)));
+  return all.filter((d) => d !== undefined);
+}
+
 type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
 /** The code behind each tool, by name. Tools that write are keyed by their tool call ID. */
@@ -171,7 +184,7 @@ function toolCode(db: Db, map: CourseMap, now: () => Date, model: string): Recor
         const recorded = passed
           ? `Recorded by code: pass for Check ${check_id}.`
           : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
-        return `${recorded}\n\n${stepContext(place)}`;
+        return `${recorded}\n\n${await navigatorContext(db, map, place)}`;
       },
     },
     finish_teaching_step: {
@@ -179,7 +192,7 @@ function toolCode(db: Db, map: CourseMap, now: () => Date, model: string): Recor
       run: async ({ step }) => {
         const move = await saveFinishedStep(db, map, step, now());
         if (!move.ok) throw new Error(move.reason);
-        return stepContext(await ensureTopicStarted(db, map, now()));
+        return navigatorContext(db, map, await ensureTopicStarted(db, map, now()));
       },
     },
   };
@@ -288,10 +301,12 @@ export async function* runTutorTurn(
   if (session) msgs.push(...(await history(db, session.id)));
   // The last turn may have been in the previous Session.
   const lastTurn = session ? msgs : previous ? await history(db, previous.id) : [];
+  const caseData = await caseDataFor(db, map, place);
+  const plainContext = stepContext(place, caseData);
   const context =
-    place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, stepContext(place))
-      ? noVerdictContext({ ...place, check: place.check })
-      : stepContext(place);
+    place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
+      ? noVerdictContext({ ...place, check: place.check }, caseData)
+      : plainContext;
   if (!session) session = await startSession(db, now());
   const sessionId = session.id;
   const add = async (message: Message) => {

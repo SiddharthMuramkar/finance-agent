@@ -9,23 +9,18 @@ import {
 } from "@openuidev/react-lang";
 import { useEffect, useState } from "react";
 import { z } from "zod/v4";
-import type { CaseFigure } from "@/course/case-data";
-import { annuitySchedule } from "@/finance/present-value";
+import type { CaseData, CaseDataset } from "@/case-data/case-data";
+import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
 
 // The OpenUI component library the Tutor writes widgets with. Charts take only
-// inputs to a tested Finance Calculations formula, or a Case Data reference;
-// no component accepts a series of numbers typed by the model.
+// inputs to a tested Finance Calculations formula, or a Case Data reference
+// ("caseId/datasetId") fetched through the server's as-of rule; no component
+// accepts a series of numbers typed by the model.
 
 const UNITS = ["percent", "years", "usd"] as const;
 type Unit = (typeof UNITS)[number];
 
-/** Short money format: $1.54 billion, $877.8 million. */
-export function formatUsd(value: number): string {
-  const abs = Math.abs(value);
-  if (abs >= 1e9) return `$${(value / 1e9).toFixed(abs >= 1e10 ? 1 : 3)} billion`;
-  if (abs >= 1e6) return `$${(value / 1e6).toFixed(1)} million`;
-  return `$${Math.round(value).toLocaleString("en-US")}`;
-}
+export { formatUsd };
 
 function formatUnit(value: number, unit: Unit) {
   if (unit === "percent") return `${value}%`;
@@ -50,7 +45,8 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
     <label className="block py-2">
       <span className="flex items-baseline justify-between text-sm">
         <span>
-          {props.label} <span className="text-xs text-stone-500 dark:text-stone-400">(your assumption)</span>
+          <AssumptionTag />
+          {props.label}
         </span>
         <output className="font-medium tabular-nums">{formatUnit(value, props.unit)}</output>
       </span>
@@ -76,29 +72,41 @@ const Slider = defineComponent({
   component: SliderView,
 });
 
-const figureCache = new Map<string, Promise<CaseFigure[]>>();
+type Loaded = { data: CaseData; dataset: CaseDataset } | null | undefined;
 
-/** Fetches a Case's sourced figures through the server's hindsight rule. */
-function useCaseFigure(reference: string | undefined): CaseFigure | null | undefined {
-  const [figure, setFigure] = useState<CaseFigure | null | undefined>(undefined);
+/**
+ * Fetches one Case Data dataset, written "caseId/datasetId", through the server's as-of rule.
+ * Undefined while loading; null when there is no such dataset (or it is withheld until the reveal).
+ * Fetched on each mount, so a widget drawn after the reveal gets the full data.
+ */
+function useCaseDataset(reference: string | undefined): Loaded {
+  const [loaded, setLoaded] = useState<Loaded>(undefined);
   useEffect(() => {
     if (!reference) return;
-    const [caseId, figureId] = reference.split("/");
-    let request = figureCache.get(caseId);
-    if (!request) {
-      request = fetch(`/api/case-data/${encodeURIComponent(caseId)}`).then((r) => (r.ok ? r.json() : []));
-      figureCache.set(caseId, request);
-    }
+    const [caseId, datasetId] = reference.split("/");
     let live = true;
-    request.then(
-      (figures) => live && setFigure(figures.find((f) => f.id === figureId) ?? null),
-      () => live && setFigure(null),
-    );
+    fetch(`/api/case-data/${encodeURIComponent(caseId)}`)
+      .then((r) => (r.ok ? (r.json() as Promise<CaseData>) : null))
+      .then(
+        (data) => {
+          const dataset = data?.datasets.find((d) => d.id === datasetId);
+          if (live) setLoaded(data && dataset ? { data, dataset } : null);
+        },
+        () => live && setLoaded(null),
+      );
     return () => {
       live = false;
     };
   }, [reference]);
-  return reference ? figure : null;
+  return reference ? loaded : null;
+}
+
+function Missing({ reference }: { reference: string }) {
+  return (
+    <p className="py-2 text-sm text-stone-500 dark:text-stone-400">
+      No sourced data is available for {reference}. It may not exist, or it is withheld until the reveal.
+    </p>
+  );
 }
 
 const chartProps = z.object({
@@ -110,110 +118,46 @@ const chartProps = z.object({
 });
 
 function AnnuityChartView({ props }: ComponentRenderProps<z.infer<typeof chartProps>>) {
-  const figure = useCaseFigure(props.compareTo);
+  const loaded = useCaseDataset(props.compareTo);
   // While a widget streams in, or a slider's $variable is not set yet, inputs can be missing.
   const inputs = [props.total, props.payments, props.growthPercent, props.ratePercent];
   if (!inputs.every((v) => typeof v === "number" && Number.isFinite(v))) {
     return <p className="py-6 text-sm text-stone-500 dark:text-stone-400">Drawing the chart…</p>;
   }
-  const payments = Math.max(1, Math.min(60, Math.round(props.payments)));
-  const { rows, presentValue } = annuitySchedule({ ...props, payments });
-  const maxPayment = Math.max(...rows.map((r) => r.payment));
-  const w = 600;
-  const h = 180;
-  const bar = w / rows.length;
-  const y = (v: number) => h - (v / maxPayment) * (h - 10);
   return (
-    <figure className="py-2">
-      <svg
-        viewBox={`0 0 ${w} ${h}`}
-        role="img"
-        aria-label="Annuity payments and their present value"
-        className="w-full"
-      >
-        {rows.map((r) => (
-          <g key={r.year}>
-            <rect
-              x={r.year * bar + 1}
-              y={y(r.payment)}
-              width={bar - 2}
-              height={h - y(r.payment)}
-              className="fill-stone-300 dark:fill-stone-700"
-            />
-            <rect
-              data-testid="pv-bar"
-              x={r.year * bar + 1}
-              y={y(r.presentValue)}
-              width={bar - 2}
-              height={h - y(r.presentValue)}
-              className="fill-teal-700 transition-all duration-150 dark:fill-teal-400"
-            />
-          </g>
-        ))}
-      </svg>
-      <figcaption className="mt-2 space-y-1 text-sm">
-        <p className="flex flex-wrap gap-x-4 text-xs text-stone-500 dark:text-stone-400">
-          <span>
-            <span className="mr-1 inline-block size-2 bg-stone-300 dark:bg-stone-700" />
-            Payment in its year
-          </span>
-          <span>
-            <span className="mr-1 inline-block size-2 bg-teal-700 dark:bg-teal-400" />
-            Worth today at {props.ratePercent}%
-          </span>
-        </p>
-        <p>
-          Sum of payments: <span className="tabular-nums">{formatUsd(props.total)}</span>
-        </p>
-        <p>
-          Present value at {props.ratePercent}% (your assumption):{" "}
-          <strong data-testid="pv-total" className="tabular-nums">
-            {formatUsd(presentValue)}
-          </strong>
-        </p>
-        {figure && (
-          <>
-            <p>
-              {figure.label}: <strong className="tabular-nums">{formatUsd(figure.value)}</strong>{" "}
-              <span className="text-xs text-stone-500 dark:text-stone-400">
-                (sourced: {figure.source}, {figure.date})
-              </span>
-            </p>
-            {/* Today's value of the payments beside the sourced figure, on one scale. */}
-            <svg viewBox="0 0 600 44" role="img" aria-label={`Present value compared with ${figure.label}`} className="w-full">
-              {[
-                { v: presentValue, y: 2, cls: "fill-teal-700 dark:fill-teal-400", testId: "pv-compare-bar" },
-                { v: figure.value, y: 24, cls: "fill-amber-600 dark:fill-amber-400", testId: "sourced-bar" },
-              ].map((b) => (
-                <rect
-                  key={b.testId}
-                  data-testid={b.testId}
-                  x={0}
-                  y={b.y}
-                  height={18}
-                  width={(600 * b.v) / Math.max(props.total, figure.value)}
-                  className={`${b.cls} transition-all duration-150`}
-                />
-              ))}
-            </svg>
-          </>
-        )}
-        {figure === null && props.compareTo && (
-          <p className="text-xs text-stone-500 dark:text-stone-400">
-            No sourced figure is available for this comparison.
-          </p>
-        )}
-      </figcaption>
-    </figure>
+    <>
+      <AnnuityFigure inputs={props} sourced={loaded?.dataset} />
+      {loaded === null && props.compareTo && <Missing reference={props.compareTo} />}
+    </>
   );
 }
 
 const AnnuityChart = defineComponent({
   name: "AnnuityChart",
   description:
-    'Bars for each yearly payment of an annuity that grows at a fixed rate (first payment now) and what each is worth today, computed by the tested present value formula from these inputs. `compareTo` optionally draws a sourced Case Data figure as a bar beside the present value, written "caseId/figureId".',
+    'Bars for each yearly payment of an annuity that grows at a fixed rate (first payment now) and what each is worth today, computed by the tested present value formula from these inputs. `compareTo` optionally shows a sourced Case Data figure (the latest point of a dataset) beside the present value, as a reference "caseId/datasetId".',
   props: chartProps,
   component: AnnuityChartView,
+});
+
+const historyProps = z.object({
+  dataset: z.string().describe('A Case Data reference, "caseId/datasetId", from the list code sent you'),
+});
+
+function HistoryChartView({ props }: ComponentRenderProps<z.infer<typeof historyProps>>) {
+  const loaded = useCaseDataset(props.dataset);
+  if (!props.dataset) return null;
+  if (loaded === undefined) return <p className="py-6 text-sm text-stone-500 dark:text-stone-400">Fetching sourced data…</p>;
+  if (loaded === null) return <Missing reference={props.dataset} />;
+  return <HistoryFigure dataset={loaded.dataset} revealed={loaded.data.revealed} asOf={loaded.data.asOf} />;
+}
+
+const HistoryChart = defineComponent({
+  name: "HistoryChart",
+  description:
+    "A line chart of one checked Case Data dataset over its dates, with its source. It takes only the dataset's reference; the values come from the server, which withholds anything dated after the Case's as-of date until the reveal.",
+  props: historyProps,
+  component: HistoryChartView,
 });
 
 const Widget = defineComponent({
@@ -221,7 +165,7 @@ const Widget = defineComponent({
   description: "The widget's frame: a short title above its controls and charts, in order.",
   props: z.object({
     title: z.string(),
-    children: z.array(z.union([Slider.ref, AnnuityChart.ref])),
+    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref])),
   }),
   component: ({ props, renderNode }) => (
     <section className="rounded-lg border border-stone-300 p-4 dark:border-stone-700">
@@ -231,7 +175,7 @@ const Widget = defineComponent({
   ),
 });
 
-export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart], root: "Widget" });
+export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart], root: "Widget" });
 
 /** Options for the widget instructions frozen into the Tutor's instructions. */
 export const WIDGET_PROMPT_OPTIONS = {
@@ -245,11 +189,14 @@ export const WIDGET_PROMPT_OPTIONS = {
 $rate = 3
 rate = Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")
 chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")`,
+    `root = Widget("Long-term interest rates around the draw", [history])
+history = HistoryChart("mega-millions-2018/treasury-30-year")`,
   ],
   additionalRules: [
     "Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.",
     "Widgets are optional. Add one only when playing with numbers helps the current Teaching Step, and at most one per reply.",
-    "Charts never take data series. Give a chart the inputs to its formula, or a Case Data reference; never type historical figures you were not given.",
+    "Charts never take data series. Give a chart the inputs to its formula, or a Case Data reference from the list code sent you; never type historical figures you were not given.",
+    "If no Case Data covers what the Learner wants to see, draw no chart for it and say plainly that the data is not available.",
     "Starting numbers you put in a Slider or chart must come from the Case material code sent you.",
     "Before the reveal step, never put a Case's outcome in a widget.",
     "After the widget, keep teaching in plain prose: the Learner sees the widget beside the conversation.",
