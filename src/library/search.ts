@@ -40,6 +40,8 @@ export type PassageQuery = {
   /** Defaults to whatever the database has (see keywordRanking). */
   ranking?: KeywordRanking;
   limit?: number;
+  /** Scope to the sources whose id, title or credit contain this text (a writer's name, "Yale", "S-1"). */
+  source?: string;
 };
 
 /** How many candidates each ranking contributes before they are combined. */
@@ -59,11 +61,27 @@ export async function keywordRanking(db: Executor): Promise<KeywordRanking> {
  * the as-of date (one with no date never passes); a timeless source's pass unless they mention a
  * year after the as-of year, because reference text written later can still tell the ending.
  */
-function allowed(asOf: string | null): SQL {
-  if (!asOf) return sql`true`;
+function allowed(asOf: string | null, source?: string): SQL {
+  const scope = source ? sql` and p.source_id in (${matchingSources(source)})` : sql``;
+  if (!asOf) return sql`true${scope}`;
   const year = Number(asOf.slice(0, 4));
-  return sql`(p.published_on <= ${asOf}::date
-    or (p.source_id in (select id from library_sources where kind = 'timeless') and coalesce(p.latest_year, 0) <= ${year}))`;
+  return sql`((p.published_on <= ${asOf}::date
+    or (p.source_id in (select id from library_sources where kind = 'timeless') and coalesce(p.latest_year, 0) <= ${year}))${scope})`;
+}
+
+/** Ids of the sources whose id, title or credit contain `text`, ignoring case (% and _ are plain characters). */
+function matchingSources(text: string): SQL {
+  const like = `%${text.trim().replace(/[\\%_]/g, "\\$&")}%`;
+  return sql`select id from library_sources where id ilike ${like} or title ilike ${like} or credit ilike ${like}`;
+}
+
+/** The sources whose id, title or credit contain `text`, for telling the Tutor what it can scope a search to. */
+export async function sourcesMatching(db: Executor, text: string): Promise<{ id: string; title: string }[]> {
+  return rowsOf(db, sql`select id, title from library_sources where id in (${matchingSources(text)}) order by id`);
+}
+
+export async function allSources(db: Executor): Promise<{ id: string; title: string }[]> {
+  return rowsOf(db, sql`select id, title from library_sources order by id`);
 }
 
 function keywordRanks(q: PassageQuery, ranking: KeywordRanking): SQL {
@@ -72,7 +90,7 @@ function keywordRanks(q: PassageQuery, ranking: KeywordRanking): SQL {
       select id, row_number() over (order by score, id) as r from (
         select p.id, p.search <@> to_bm25query(to_tsvector('english', ${q.query}), ${BM25_INDEX}::regclass) as score
         from library_passages p
-        where ${allowed(q.asOf)}
+        where ${allowed(q.asOf, q.source)}
         order by score limit ${POOL}
       ) k where score < 0`;
   }
@@ -81,7 +99,7 @@ function keywordRanks(q: PassageQuery, ranking: KeywordRanking): SQL {
     select id, row_number() over (order by score desc, id) as r from (
       select p.id, ts_rank_cd(p.search, q) as score
       from library_passages p, (select nullif(replace(plainto_tsquery('english', ${q.query})::text, ' & ', ' | '), '')::tsquery as q) query
-      where p.search @@ q and ${allowed(q.asOf)}
+      where p.search @@ q and ${allowed(q.asOf, q.source)}
       order by score desc limit ${POOL}
     ) k`;
 }
@@ -92,7 +110,7 @@ function vectorRanks(q: PassageQuery & { embedding: number[] }): SQL {
     select id, row_number() over (order by distance, id) as r from (
       select p.id, p.embedding <=> ${target} as distance
       from library_passages p
-      where p.embedding is not null and ${allowed(q.asOf)}
+      where p.embedding is not null and ${allowed(q.asOf, q.source)}
       order by distance limit ${POOL}
     ) v`;
 }

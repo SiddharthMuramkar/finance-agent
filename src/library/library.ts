@@ -2,7 +2,7 @@ import type { CourseMap } from "@/course/map";
 import { navigate, type Progress } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { searchPassages, type LibraryHit } from "./search";
+import { allSources, searchPassages, sourcesMatching, type LibraryHit } from "./search";
 
 /** Turns the Learner's search into its Voyage embedding; absent when no Voyage key is set. */
 export type QueryEmbedder = (query: string) => Promise<number[]>;
@@ -15,6 +15,10 @@ export type LibrarySearch = {
   asOf: string | null;
   /** `combined` is keyword and vector results fused; `keyword` is the fallback without Voyage. */
   mode: "combined" | "keyword";
+  /** The source or writer the search was scoped to, if any. */
+  source: string | null;
+  /** When `source` matched nothing: the sources the Library does hold, so the Tutor can name one. */
+  knownSources: string[] | null;
   /** Why the search fell back to keyword results only, for the Tutor. */
   fallback: string | null;
   results: LibraryHit[];
@@ -36,10 +40,16 @@ export function libraryAsOf(map: CourseMap, progress: Progress): string | null {
 
 /**
  * Searches the Library for the Tutor: combined keyword and vector search under the as-of rule.
- * If Voyage is missing or fails, it falls back to keyword results and says so.
+ * If Voyage is missing or fails, it falls back to keyword results and says so. `source` scopes the
+ * search to the sources whose id, title or credit contain that text, such as a writer's name.
  */
-export async function searchLibrary(deps: LibraryDeps, query: string, limit = 5): Promise<LibrarySearch> {
+export async function searchLibrary(deps: LibraryDeps, query: string, { source, limit = 5 }: { source?: string; limit?: number } = {}): Promise<LibrarySearch> {
   const asOf = libraryAsOf(deps.map, await loadProgress(deps.db));
+  const scope = source?.trim() || undefined;
+  if (scope && !(await sourcesMatching(deps.db, scope)).length) {
+    const known = (await allSources(deps.db)).map((s) => s.title);
+    return { query, asOf, mode: "keyword", source: scope, knownSources: known, fallback: null, results: [] };
+  }
   let embedding: number[] | undefined;
   let fallback: string | null = null;
   if (!deps.embedQuery) fallback = NO_VOYAGE_KEY;
@@ -51,13 +61,15 @@ export async function searchLibrary(deps: LibraryDeps, query: string, limit = 5)
       fallback = VOYAGE_DOWN;
     }
   }
-  const results = await searchPassages(deps.db, { query, asOf, embedding, limit });
-  return { query, asOf, mode: embedding ? "combined" : "keyword", fallback, results };
+  const results = await searchPassages(deps.db, { query, asOf, embedding, limit, source: scope });
+  return { query, asOf, mode: embedding ? "combined" : "keyword", source: scope ?? null, knownSources: null, fallback, results };
 }
 
 /** What the Tutor's search_library tool returns: each passage with its heading, credit line, licence, date and link. */
 export function searchResultText(search: LibrarySearch): string {
-  const lines = [`Library search for "${search.query}": ${search.mode === "combined" ? "keyword and vector results combined." : "keyword results only."}`];
+  if (search.knownSources) return `No Library source matches "${search.source}". The Library holds: ${search.knownSources.join("; ")}. Use a name that appears in one of these, or leave the source filter out.`;
+  const scope = search.source ? ` within sources matching "${search.source}"` : "";
+  const lines = [`Library search for "${search.query}"${scope}: ${search.mode === "combined" ? "keyword and vector results combined." : "keyword results only."}`];
   if (search.fallback) lines.push(search.fallback);
   if (search.asOf) lines.push(`The Case is before its reveal, so dated passages published after ${search.asOf}, and reference passages that mention a later year, are hidden. Do not use what is shown to hint at the Case's outcome.`);
   if (!search.results.length) {

@@ -1,5 +1,5 @@
 {
-  "about": "Library search test questions (#20, extended in #21). Each question is in a Learner's own words. A question scores when a passage that answers it is in the top 5. Original OpenStax questions list `expect` as bare OpenStax module IDs; the questions added for the other sources list `expect` as `<source id>/<document ref>` and/or `sources` plus `expectText` (a passage from one of those sources that contains one of the phrases, for sources cut as a single long document such as the S-1). `hindsight` probes run with a Case's as-of date and report any passage that mentions a later year or the Case's outcome. `alsoExpect` lists passages from other sources that were read and judged to answer the question too (a note on what the strict `expect` misses when richer sources compete); the score prints both the strict and the judged count.",
+  "about": "Library search test questions (#20, extended in #21). Each question is in a Learner's own words. A question scores when a passage that answers it is in the top 5. Original OpenStax questions list `expect` as bare OpenStax module IDs; the questions added for the other sources list `expect` as `<source id>/<document ref>` and/or `sources` plus `expectText` (a passage from one of those sources that contains one of the phrases, for sources cut as a single long document such as the S-1). `hindsight` probes run with a Case's as-of date and report any passage that mentions a later year or the Case's outcome. `alsoExpect` lists passages from other sources that were read and judged to answer the question too (a note on what the strict `expect` misses when richer sources compete); the score prints both the strict and the judged count. Author-named questions (#21 follow-up) are asked as a Learner words them, with the writer's name in the query; `scoped` gives the query the Tutor should send instead (no name) and the `source` filter to pair with it. The score prints both: the name left in the query, and the scoped search.",
   "source": "openstax-principles-finance-2e",
   "questions": [
     {
@@ -551,6 +551,66 @@
       "expectText": [
         "Class N common stock"
       ]
+    },
+    {
+      "q": "Aswath Damodaran valuing Anthropic IPO",
+      "expect": [
+        "damodaran-blog/post-8277076762148404506"
+      ],
+      "scoped": {
+        "q": "valuing Anthropic IPO",
+        "source": "Damodaran"
+      }
+    },
+    {
+      "q": "Aswath Damodaran value of control and minority discounts",
+      "expect": [
+        "damodaran-papers/paper-controlvalue"
+      ],
+      "scoped": {
+        "q": "value of control and minority discounts",
+        "source": "Damodaran"
+      }
+    },
+    {
+      "q": "Aswath Damodaran equity risk premium estimation",
+      "sources": [
+        "damodaran-papers",
+        "damodaran-blog"
+      ],
+      "expectText": [
+        "equity risk premium"
+      ],
+      "scoped": {
+        "q": "equity risk premium estimation",
+        "source": "Damodaran"
+      }
+    },
+    {
+      "q": "Robert Shiller on bubbles and irrational exuberance",
+      "sources": [
+        "yale-econ-252"
+      ],
+      "expectText": [
+        "bubble"
+      ],
+      "scoped": {
+        "q": "bubbles and irrational exuberance",
+        "source": "Shiller"
+      }
+    },
+    {
+      "q": "John Geanakoplos leverage cycle and collateral",
+      "sources": [
+        "yale-econ-251"
+      ],
+      "expectText": [
+        "collateral"
+      ],
+      "scoped": {
+        "q": "leverage cycle and collateral",
+        "source": "Geanakoplos"
+      }
     }
   ],
   "hindsight": [

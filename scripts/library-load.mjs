@@ -28,7 +28,8 @@ if (!entry) {
 const { publishedOn, ...source } = entry;
 delete source.fetch;
 const documents = JSON.parse(readFileSync(file, "utf8")).map((d) => ({ ...d, publishedOn: d.publishedOn ?? publishedOn ?? null }));
-const { passages, rejected, repaired } = prepareDocuments(documents);
+const { passages, rejected, repaired, frontMatter } = prepareDocuments(documents);
+if (frontMatter.length) console.log(`Left out ${frontMatter.length} title pages (front matter: names, titles and dates with no sentence), which would outrank the writing when a question names the author.`);
 if (repaired) console.log(`Repaired ${repaired} broken words (lost ligatures such as CreaAon, or words glued by a table) from the source's own clean spellings.`);
 for (const r of rejected) console.log(`Left out (corrupted: ${r.reasons.join(", ")}): ${r.ref} ${r.heading}`);
 

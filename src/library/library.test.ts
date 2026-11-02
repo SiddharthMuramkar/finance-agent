@@ -171,6 +171,42 @@ describe("Library search", () => {
   });
 });
 
+describe("scoping a search to one source or writer", () => {
+  it("returns only passages from sources whose id, title or credit match, whatever the query's other words", async () => {
+    const db = await libraryDb();
+
+    const found = await searchLibrary({ db, map }, "jackpot annuity", { source: "a. writer" });
+
+    expect(found.results.map((r) => r.sourceId)).toEqual(["a-blog"]);
+    expect(found.source).toBe("a. writer");
+  });
+
+  it("matches a source by its title too, and treats % and _ as plain characters", async () => {
+    const db = await libraryDb();
+
+    expect((await searchLibrary({ db, map }, "annuity", { source: "textbook" })).results.map((r) => r.ref)).toEqual(["ch1"]);
+    expect((await searchLibrary({ db, map }, "annuity", { source: "%" })).results).toEqual([]);
+  });
+
+  it("still applies the as-of rule inside the scope", async () => {
+    const db = await libraryDb();
+
+    const found = await searchLibrary({ db, map }, "jackpot winner cash option", { source: "blog" });
+
+    expect(found.results.map((r) => r.ref)).toEqual(["before"]);
+  });
+
+  it("tells the Tutor which sources exist when none matches the name", async () => {
+    const found = await searchLibrary({ db: await libraryDb(), map }, "annuity", { source: "Nobody" });
+    const text = searchResultText(found);
+
+    expect(found.results).toEqual([]);
+    expect(text).toContain('No Library source matches "Nobody"');
+    expect(text).toContain("A blog");
+    expect(text).toContain("A textbook");
+  });
+});
+
 describe("sources kept out of the Library", () => {
   const as = (source: Partial<LibraryFile["source"]>): LibraryFile => ({ ...blog, source: { ...blog.source, ...source } });
 

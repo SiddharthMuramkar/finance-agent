@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanText, corruptionReasons, cutPassages, pagesNeedingVision, prepareDocuments, repairBrokenLigatures, type SourceDocument } from "./prepare";
+import { cleanText, corruptionReasons, cutPassages, isFrontMatter, pagesNeedingVision, prepareDocuments, repairBrokenLigatures, type SourceDocument } from "./prepare";
 
 const words = (n: number, word = "rate") => Array.from({ length: n }, () => word).join(" ") + ".";
 
@@ -144,5 +144,52 @@ describe("pages that need vision", () => {
     ];
 
     expect(pagesNeedingVision(pages).map((p) => p.number)).toEqual([2, 3]);
+  });
+});
+
+describe("front matter", () => {
+  it("is a title page: names, a title and a date with no running prose", () => {
+    expect(isFrontMatter("The Value of Synergy Aswath Damodaran Stern School of Business October 2005")).toBe(true);
+    expect(isFrontMatter("Financial Theory")).toBe(true);
+    expect(isFrontMatter("Into the Abyss: What if nothing is risk free? July 2010 Aswath Damodaran Stern School of Business adamodar@stern.nyu.edu")).toBe(true);
+    expect(isFrontMatter("As filed with the Securities and | Exchange | Commission on October 26, 2026.")).toBe(true);
+  });
+
+  it("is not a short passage that says something, or a long one", () => {
+    expect(isFrontMatter("Discounting each future payment at the cost of capital gives its present value today.")).toBe(false);
+    expect(isFrontMatter(`The Value of Synergy Aswath Damodaran ${"word ".repeat(80)}`)).toBe(false);
+  });
+
+  it("prepareDocuments keeps a document's title page out of the passages and reports it", () => {
+    const doc: SourceDocument = {
+      ref: "paper-synergy",
+      title: "The Value of Synergy",
+      url: "https://example.org/synergy.pdf",
+      publishedOn: "2005-10-01",
+      sections: [
+        { heading: "page 1", paragraphs: ["The Value of Synergy Aswath Damodaran Stern School of Business October 2005"] },
+        { heading: "page 2", paragraphs: ["Synergy is the additional value from combining two firms, and it must come from higher growth or lower costs."] },
+      ],
+    };
+
+    const { passages, frontMatter } = prepareDocuments([doc]);
+
+    expect(passages.map((p) => p.text)).toEqual(["Synergy is the additional value from combining two firms, and it must come from higher growth or lower costs."]);
+    expect(frontMatter.map((f) => f.ref)).toEqual(["paper-synergy#1"]);
+  });
+
+  it("only a document's first passage can be front matter", () => {
+    const doc: SourceDocument = {
+      ref: "post",
+      title: "A post",
+      url: "https://example.org/post",
+      publishedOn: "2020-01-01",
+      sections: [
+        { heading: "a", paragraphs: [words(40)] },
+        { heading: "b", paragraphs: ["Data Update 7 January 2017"] },
+      ],
+    };
+
+    expect(prepareDocuments([doc]).passages).toHaveLength(2);
   });
 });

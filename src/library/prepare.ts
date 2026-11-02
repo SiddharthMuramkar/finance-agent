@@ -134,21 +134,38 @@ export function cutPassages(doc: SourceDocument, { maxWords = 300 }: { maxWords?
   return passages;
 }
 
-/** Cuts every document, repairs broken ligatures where the source itself shows the clean word, and keeps still-corrupted passages out, listing them with their reasons. */
+/** A sentence of running prose: seven or more words ending in a full stop, question mark or exclamation mark. */
+const PROSE = /\b\w+(?:\s+\S+){6,}[a-z)"”']\s*[.!?][)"”']*(\s|$)/;
+
+/**
+ * Front matter: a title page or running header, a short passage of names, a title and a date with
+ * no sentence in it. Search ranks these first when a question names the author, ahead of the
+ * writing itself, so they stay out of the Library.
+ */
+export function isFrontMatter(text: string): boolean {
+  return wordCount(text) < 60 && (!PROSE.test(text) || AUTHOR_LINE.test(text));
+}
+
+/** An e-mail address or school line, which a title page has even when the title itself is a question. */
+const AUTHOR_LINE = /\b[\w.-]+@[\w-]+\.[\w.]+|\bSchool of (Business|Management|Economics)\b/i;
+
+/** Cuts every document, repairs broken ligatures where the source itself shows the clean word, and keeps still-corrupted passages out, listing them with their reasons, and leaves out each document's title page (front matter). */
 export function prepareDocuments(docs: SourceDocument[], options?: { maxWords?: number }) {
   const passages: PreparedPassage[] = [];
   const rejected: { ref: string; heading: string; reasons: string[] }[] = [];
+  const frontMatter: { ref: string; heading: string }[] = [];
   let repaired = 0;
   const vocabulary = wordsOf(docs.flatMap((d) => d.sections.flatMap((s) => s.paragraphs.map(cleanText))).join(" "));
   for (const doc of docs) {
-    for (const cut of cutPassages(doc, options)) {
+    for (const [i, cut] of cutPassages(doc, options).entries()) {
       const mended = repairBrokenLigatures(cut.text, vocabulary);
       repaired += mended.fixed;
       const p = { ...cut, text: mended.text };
       const reasons = corruptionReasons(p.text);
-      if (reasons.length) rejected.push({ ref: p.ref, heading: p.heading, reasons });
+      if (i === 0 && isFrontMatter(p.text)) frontMatter.push({ ref: p.ref, heading: p.heading });
+      else if (reasons.length) rejected.push({ ref: p.ref, heading: p.heading, reasons });
       else passages.push(p);
     }
   }
-  return { passages, rejected, repaired };
+  return { passages, rejected, repaired, frontMatter };
 }
