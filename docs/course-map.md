@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 90 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 95 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -769,7 +769,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 90. Analyse: build a valuation as of a past date
 
-- ID: `ana-build-valuation` · Coming
+- ID: `ana-build-valuation` · Written
 - Needs first: Relative valuation and multiples, Valuing young, loss-making companies, Valuing distressed firms
 - Case: **A lesser-known company's valuation** (as of 1999-11-05)
   - Outcome: Choose Webvan (Nov 1999), Coffee Day (Oct 2015) or Yes Bank (Feb 2020); each has a known outcome.
@@ -777,7 +777,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 91. Analyse: trace who pays whom
 
-- ID: `ana-who-pays-whom` · Coming
+- ID: `ana-who-pays-whom` · Written
 - Needs first: Leases, commitments and debt-like items, Securitisation, MBS and CDOs, Shadow banks, private credit and SPVs
 - Case: **WeWork's leases and SoftBank** (as of 2019-08-14)
   - Outcome: WeWork owed about $17bn in leases while SoftBank funded the losses; bankrupt in Nov 2023.
@@ -785,7 +785,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 92. Analyse: commitments as debt
 
-- ID: `ana-commitments-debt` · Coming
+- ID: `ana-commitments-debt` · Written
 - Needs first: Leases, commitments and debt-like items, DCF valuation, Judge: claim versus filing
 - Case: **Purchase commitments in the Anthropic S-1** (as of 2026-10-26) **to verify**
   - Outcome: $430bn undiscounted versus its present value; the scope gap against 'over $600bn' is unreconciled.
@@ -794,7 +794,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 93. Analyse: transfer to India (G-sec, bank, rupee)
 
-- ID: `ana-india-transfer` · Coming
+- ID: `ana-india-transfer` · Written
 - Needs first: Valuing Indian companies, currency and country risk, Valuing banks and financial firms, India: G-secs, T-bills, SDLs and the corporate bond market, Exchange-rate regimes and currency crises
 - Case: **Yes Bank, the rupee in 2013 and country risk** (as of 2020-02-28)
   - Outcome: Yes Bank moratorium 5 Mar 2020; rupee package 4 Sep 2013.
@@ -802,7 +802,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 94. Analyse: decide between writers, facts versus framing
 
-- ID: `ana-decide-between` · Coming
+- ID: `ana-decide-between` · Written
 - Needs first: Judge: Zitron's predictions versus later events, Judge: units and periods (430% versus 340%, basis points, SOFR), Judge: claim versus filing
 - Case: **Blodget versus Grantham** (as of 2000-01-01) **to verify**
   - Outcome: The dot-com bust settled which framing was right.
