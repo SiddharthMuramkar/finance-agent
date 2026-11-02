@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 17 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 25 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -157,7 +157,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 18. Competition, market structure and pricing power
 
-- ID: `eco-micro-competition` · Coming
+- ID: `eco-micro-competition` · Written
 - Needs first: Supply, demand and prices
 - Case: **Reliance Jio's free launch** (as of 2016-09-01)
   - Outcome: Announced 1 Sep 2016: free voice and cheap data. Airtel and Idea shares fell up to 9% that day; a price war followed in a market with over $50bn of telecom debt.
@@ -166,7 +166,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 19. Money, banks and credit creation
 
-- ID: `eco-money-banking` · Coming
+- ID: `eco-money-banking` · Written
 - Needs first: The balance sheet, Supply, demand and prices
 - Case: **The 1992 securities scam** (as of 1992-02-01)
   - Outcome: Ready-forward deals and fake bank receipts moved bank money into shares. Fraud size disputed: about Rs 1,000 crore siphoned (Forbes India) to over Rs 4,000 crore (Mint). Mehta arrested 9 Nov 1992.
@@ -174,7 +174,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 20. Central banks and monetary policy
 
-- ID: `eco-central-banks` · Coming
+- ID: `eco-central-banks` · Written
 - Needs first: Money, banks and credit creation
 - Case: **The 1994 Fed tightening** (as of 1994-02-03)
   - Outcome: Little prior guidance; markets surprised, bond funds saw outflows; funds rate rose to 5.45% by Dec 1994.
@@ -182,7 +182,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 21. Inflation, nominal vs real rates
 
-- ID: `eco-inflation-real` · Coming
+- ID: `eco-inflation-real` · Written
 - Needs first: Central banks and monetary policy, Growth, compounding and logs
 - Case: **India's near double-digit inflation** (as of 2013-12-31)
   - Outcome: CPI inflation near 10% in Dec 2013, 8.0% excluding food and fuel; the RBI tightened under Rajan.
@@ -190,7 +190,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 22. GDP, growth and business cycles
 
-- ID: `eco-gdp-cycles` · Coming
+- ID: `eco-gdp-cycles` · Written
 - Needs first: Supply, demand and prices
 - Case: **India before the 1991 crisis** (as of 1990-06-30)
   - Outcome: Growth of 7.6% a year for the three years to 1990-91, fiscally fuelled; external payments crisis in July 1991.
@@ -198,7 +198,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 23. Fiscal policy and government debt
 
-- ID: `eco-fiscal-debt` · Coming
+- ID: `eco-fiscal-debt` · Written
 - Needs first: GDP, growth and business cycles
 - Case: **The UK mini-budget and gilt crisis** (as of 2022-09-23)
   - Outcome: Pound fell to $1.03; the Bank of England bought up to 65bn pounds of gilts from 28 Sep 2022 to stop pension-fund LDI selling. A credibility and leverage Case.
@@ -209,7 +209,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 24. Reading empirical claims: causation, data and spreadsheet errors
 
-- ID: `num-econometrics` · Coming
+- ID: `num-econometrics` · Written
 - Needs first: Statistics: mean, variance, correlation, regression, Fiscal policy and government debt
 - Case: **Reinhart and Rogoff's 90% debt threshold** (as of 2010-05-01)
   - Outcome: Published 2010; in Apr 2013 Herndon, Ash and Pollin found an omitted-rows spreadsheet error, selective exclusions and odd weighting; growth above 90% debt was about 2.2%, not -0.1%. Reinhart and Rogoff admitted the slip.
@@ -218,7 +218,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 25. India: RBI, repo rate, liquidity and inflation targeting
 
-- ID: `in-rbi-policy` · Coming
+- ID: `in-rbi-policy` · Written
 - Needs first: Central banks and monetary policy, Inflation, nominal vs real rates
 - Case: **The RBI's package of 4 September 2013** (as of 2013-09-03)
   - Outcome: The FCNR(B) swap window drew in dollars; the rupee stabilised and forward cover became cheap.

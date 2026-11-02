@@ -1,0 +1,120 @@
+# Central banks and monetary policy: a foundation Topic taught through the Federal Reserve's 1994 tightening.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+id: eco-central-banks
+title: Central banks and monetary policy
+
+cases:
+  - id: fed-tightening-1994
+    title: The 1994 Fed tightening
+    asOf: 1994-02-03
+    story: >
+      It is 3 February 1994, the first day of a two-day meeting of the US Federal Open Market Committee
+      (FOMC). The Federal Reserve has held its federal funds rate, the rate at which banks lend reserves
+      to each other overnight, at about 3 per cent for some time, and the 10-year Treasury yield stood near
+      5.75 per cent in January. The economy has been recovering and the Fed's chairman, Alan Greenspan, told
+      Congress's Joint Economic Committee on Monday that monetary policy "must not overstay accommodation"
+      and that the foundations of the expansion were looking increasingly well entrenched. In 1994 the Fed
+      does not publish a statement after its meetings, does not announce changes in its target for the
+      funds rate, and releases its minutes only after the following meeting. Investors must guess what the
+      committee does from the movements of money-market rates. Bond investors who have enjoyed years of
+      falling yields wonder what happens if the Fed starts to raise rates. Nobody outside the room knows
+      the decision.
+    reveal: >
+      On 4 February 1994 the FOMC raised the funds rate target by 25 basis points to 3.25 per cent, and the
+      markets were surprised. The 10-year Treasury yield rose 14
+      basis points on the day and about 200 basis points over the next nine months. Using monthly averages
+      from the St. Louis Fed's FRED database, the 10-year yield went from 5.75 per cent in January 1994 to
+      a peak of 7.96 per cent in November (a rise of 221 basis points). The funds rate averaged 3.05 per
+      cent in January and 5.45 per cent in December. The 2-year yield rose even more, from 4.14 to 7.59 per
+      cent, so the gap between the 10-year and 2-year yields shrank from 1.61 to 0.22 percentage points: the
+      yield curve flattened. Stock prices stabilised fairly quickly after an initial fall. A Federal Reserve
+      study contrasts this with 2004: by then the Fed issued a statement after each meeting and signalled
+      that it would remove accommodation "at a measured pace", and the 10-year yield actually fell 8 basis
+      points on the day of the first increase.
+
+concept: >
+  A central bank sets the price of the safest, shortest loans in the economy, called the policy rate, and
+  steers other rates from it. Its tools are the policy rate itself, open market operations (buying or
+  selling government securities to add or drain bank reserves), reserve requirements and, increasingly,
+  communication about what it will do next. A higher policy rate raises borrowing costs, slows spending
+  and investment and, with a lag of a year or two, eases inflation; a lower rate does the opposite. The
+  effect works partly through expectations: long-term rates reflect the expected path of the short-term
+  rate, so a surprise can move them far more than the first step itself, and a central bank whose targets
+  are believed needs a smaller slowdown to bring inflation down. When interest rates rise, the price of
+  an existing bond falls, and longer bonds fall more.
+
+principle: >
+  Markets react to the path of policy they expect, not only to today's decision. When a central bank
+  surprises, long rates and bond prices reprice the whole expected path at once; a central bank that
+  explains itself lets that adjustment happen gradually.
+
+questions:
+  - id: cb-q-guidance
+    prompt: >
+      The Federal Reserve's study compared its 1994 and 2004 tightenings. What best explains why bond yields
+      rose far more in 1994 than in 2004?
+    choices:
+      - { id: a, text: "In 1994 the Fed gave little prior guidance and the tightening was not anticipated; by 2004 it issued statements and signalled a measured pace" }
+      - { id: b, text: "In 1994 the Fed raised rates by much more than in 2004 on the first day" }
+      - { id: c, text: "In 2004 the Fed did not raise rates at all" }
+    answer: a
+    explanation: >
+      In 1994 the committee did not communicate actively, statements were not issued after meetings and the
+      tightening was a surprise; the 10-year yield rose about 200 basis points over nine months. By 2004 the
+      Fed published statements with forward guidance, and the 10-year yield fell 8 basis points on the day of
+      the first increase.
+    source: >
+      Federal Reserve Board, FEDS Notes, "The Effects of FOMC Communications before Policy Tightening in 1994 and 2004", 24 September 2015: https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html
+
+  - id: cb-q-bond-price
+    prompt: >
+      Market interest rates rise sharply. What happens to the price of an existing bond with a fixed coupon?
+    choices:
+      - { id: a, text: "It rises" }
+      - { id: b, text: "It falls" }
+      - { id: c, text: "It does not change" }
+    answer: b
+    explanation: >
+      A bond's price is the present value of its fixed payments. When the discount rate rises, that present
+      value falls, so existing bonds lose value.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+  - id: cb-q-basis-points
+    prompt: >
+      The 10-year Treasury yield moved from 5.75% to 7.96%. How many basis points is that?
+    choices:
+      - { id: a, text: "2.21 basis points" }
+      - { id: b, text: "221 basis points" }
+      - { id: c, text: "22 basis points" }
+      - { id: d, text: "2,210 basis points" }
+    answer: b
+    explanation: >
+      7.96 - 5.75 = 2.21 percentage points, and one percentage point is 100 basis points, so 221 basis points.
+    source: >
+      FRED, Federal Reserve Bank of St. Louis, 10-Year Treasury Constant Maturity Rate, monthly averages, January and November 1994: https://fred.stlouisfed.org/series/GS10
+
+checks:
+  - id: eco-cb-quiz-policy
+    kind: quiz
+    questions:
+      - bank:eab:MBA-ECON-0042
+      - bank:eab:MBA-ECON-0045
+      - cb-q-guidance
+      - cb-q-bond-price
+      - cb-q-basis-points
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-cb-surprise-reasoning
+    kind: conversation
+    prompt: >
+      The Fed raised its target by only 25 basis points in February 1994, yet the 10-year Treasury yield rose
+      by about 200 basis points over the next nine months. Explain why a small first step led to such a large
+      move in long rates, and what the Fed could have done differently.
+    passCriteria: >
+      The Learner explains that the move was a surprise with no prior guidance, so markets re-estimated the
+      whole future path of short rates, expecting further increases, which pushed long yields up and bond
+      prices down. They note that the Fed did in fact continue to raise the funds rate through the year. They
+      suggest clearer communication or signalled, gradual tightening, as in 2004, to let markets adjust
+      smoothly.
