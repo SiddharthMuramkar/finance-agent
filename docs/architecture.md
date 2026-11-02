@@ -811,6 +811,50 @@ first (see the score above); the Library takes about 90 MB of the Free plan's 1 
 embeddings (about 65 MB more with Voyage vectors).
 Voyage is a new outside service: until its key is added, search works on keywords alone.
 
+## Citations and the passage view (`src/tutor/citations.ts`, `src/library/passage.ts`, `/passages/[id]`)
+
+**What it does.** When the Tutor draws on the Library, each claim links to the exact sentences it
+rests on. `search_library` now hands Claude each passage as a `search_result` block with Claude's
+built-in citations switched on. The passage is cut into one block per sentence, after a first block
+with its credit line, licence, date, link and any quote limit, so a citation names the sentences
+it used. Claude then returns its reply split into text pieces, and a piece that rests on a passage
+carries a citation naming the passage (`/passages/<id>`) and the sentences. Code turns those into
+what the Learner sees: a small raised number after the claim, and a "Sources" list at the end of
+the reply. Clicking a number opens the passage view in a new tab: the stored passage, the cited
+sentences highlighted, the credit, licence and a link to the original. The stored reply is never
+changed; the numbers are worked out the same way while the reply streams and when it is read back,
+so the workspace, a reload and old Sessions all show the same thing.
+
+**Scenario.** The Learner asks how a higher discount rate changes present value. The Tutor searches
+the Library, quotes OpenStax's NPV chapter ("If a higher discount rate is used, the present value of
+future cash flows falls...")¹ and draws a slider widget in the same reply. The ¹ opens
+`/passages/799?blocks=3-4`, which shows section 16.2 with that one sentence highlighted and the
+credit "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax), CC BY-NC-SA 4.0".
+Live run, 2 Nov 2026: 3 citations, 2 sources, 2 widgets drawn without a correction turn, $0.089.
+
+**The source's terms still hold.** The Tutor still names the source in plain text when it quotes
+(its instructions are unchanged), and still gets each source's quote limit with the passage. The
+passage view respects the same limit: for a source with one (Damodaran's blog, 60 words) it shows
+only the cited sentences, cut to 60 words, says it was shortened and points to the original. A
+passage the as-of rule hides from search is hidden in the passage view too: during the 1994 Fed
+Case, a 2026 Damodaran post shows "hidden until the reveal" instead of its text. Live run with
+Damodaran's blog, 2 Nov 2026: 5 citations to 3 posts, each passage view at most 60 words, $0.034.
+
+**Citations and widgets together.** The spec chose OpenUI's inline mode (widgets written in the
+reply's text) before knowing whether citations would combine with it. They do: the citation split
+only cuts the text into pieces, which code joins back unchanged, so a widget block still arrives
+whole. Code never puts a number inside or right after a widget block, where it would break the
+widget's code. So the owner's fallback (source cards built from the stored credit, with widgets
+left as they are) was not needed, and widgets were not moved to tool calls.
+
+**Trade-off.** Built-in citations mean Claude, not code, decides which sentences back a claim, and
+it can only cite whole sentences, so a citation sometimes highlights a little more than the words
+it used. Searches cost slightly more tokens, because each sentence is its own block. In exchange the
+Learner can check every sourced claim against the passage in one click, and the link comes from the
+API rather than from the model typing a reference it might get wrong. A tool result with search
+results can hold nothing else, so the search notes (as-of rule, fallback) travel in the first
+result's credit block.
+
 ## Finance Calculations, Indian formats and hosted code execution (`src/finance/`, the `calculate` tool, the Calculator widget)
 
 **What it does.** Every number the Tutor shows for a calculation comes from tested code, not from

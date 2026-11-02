@@ -31,7 +31,8 @@ function WidgetFence({ code }: SyntaxHighlighterProps) {
  * is shown small and raised; it and the reply's source list open the passage view in a new tab, so the
  * conversation stays where it is.
  */
-function ReplyLink({ href, children, node: _node, ...rest }: ComponentProps<"a"> & { node?: unknown }) {
+function ReplyLink({ href, children, node, ...rest }: ComponentProps<"a"> & { node?: unknown }) {
+  void node; // react-markdown's syntax-tree node, which must not reach the DOM
   if (!href?.startsWith("/passages/")) return <a href={href} {...rest}>{children}</a>;
   const link = (
     <a href={href} target="_blank" rel="noopener" className="cite" {...rest}>

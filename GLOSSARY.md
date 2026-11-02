@@ -44,6 +44,14 @@ _Avoid_: Level, tier
 The private collection of source material the Tutor searches for quotes and context.
 _Avoid_: Knowledge base, corpus
 
+**Citation**:
+A link from a claim in a Tutor reply to the exact sentences of the Library passage it rests on, made by Claude's built-in citations. Shown as a small number after the claim, with the reply's sources listed at its end.
+_Avoid_: Footnote, reference
+
+**Passage view**:
+The page a Citation opens: the stored Library passage with the cited sentences marked, its credit line, licence and a link to the original, under the as-of rule and the source's quote limit.
+_Avoid_: Source page, document viewer
+
 **Check**:
 A marked point in a Topic where the Tutor tests the Learner's understanding, through conversation or a quiz. The last Check passed is the Learner's place on the Course Map.
 _Avoid_: Checkpoint, test, exam
