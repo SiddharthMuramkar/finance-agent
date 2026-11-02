@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 72 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 81 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -639,7 +639,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 73. Follow: Damodaran, crowd valuation of Uber (Dec 2014)
 
-- ID: `fol-uber-2014` · Coming
+- ID: `fol-uber-2014` · Written
 - Needs first: Valuing young, loss-making companies
 - Case: **Damodaran's Uber post** (as of 2014-12-02)
   - Outcome: Uber IPO priced $45 on 9 May 2019 at $82.4bn fully diluted, closed down 7.6%.
@@ -647,7 +647,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 74. Follow: Damodaran, Twitter IPO valuation (Oct 2013)
 
-- ID: `fol-twitter-ipo` · Coming
+- ID: `fol-twitter-ipo` · Written
 - Needs first: Valuing young, loss-making companies, IPOs, book building and float
 - Case: **Damodaran's Twitter post** (as of 2013-10-05) **to verify**
   - Outcome: Twitter traded below its IPO price by 2016 and below $6 in 2019.
@@ -656,7 +656,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 75. Follow: Damodaran, Tesla valuation (Feb 2020)
 
-- ID: `fol-tesla-2020` · Coming
+- ID: `fol-tesla-2020` · Written
 - Needs first: Valuing young, loss-making companies
 - Case: **Damodaran's do-it-yourself Tesla valuation** (as of 2020-02-06)
   - Outcome: Value $427 per share against a close of $581.
@@ -664,7 +664,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 76. Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)
 
-- ID: `fol-roe` · Coming
+- ID: `fol-roe` · Written
 - Needs first: Relative valuation and multiples, Ratios, return on equity and DuPont
 - Case: **Damodaran on ROE and earnings yield** (as of 2025-02-18) **to verify**
   - Outcome: The post has an Indian-market thread; test its claims in the Judge Topic.
@@ -673,7 +673,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 77. Follow: Damodaran, sovereign ratings and default risk (Jun 2025)
 
-- ID: `fol-sov-ratings` · Coming
+- ID: `fol-sov-ratings` · Written
 - Needs first: Sovereign default and country risk
 - Case: **Damodaran on sovereign ratings** (as of 2025-06-02)
   - Outcome: Moody's cut the US from Aaa to Aa1 on 16 May 2025, having held Aaa since 1919.
@@ -681,7 +681,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 78. Follow: Zitron, The Subprime AI Crisis (Sep 2024)
 
-- ID: `fol-subprime-ai` · Coming
+- ID: `fol-subprime-ai` · Written
 - Needs first: Credit spreads, ratings and default, Revenue recognition, run rates, gross vs net
 - Case: **Zitron's Subprime AI Crisis** (as of 2024-09-16) **to verify**
   - Outcome: Judge the piece's claims against later filings.
@@ -690,7 +690,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 79. Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)
 
-- ID: `fol-systemic-risk` · Coming
+- ID: `fol-systemic-risk` · Written
 - Needs first: Leases, commitments and debt-like items, The cash flow statement
 - Case: **Zitron's OpenAI systemic-risk piece** (as of 2025-04-14) **to verify**
   - Outcome: Judge the piece's claims against later filings.
@@ -699,7 +699,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 80. Follow: Zitron, AI Is A Money Trap (Aug 2025)
 
-- ID: `fol-money-trap` · Coming
+- ID: `fol-money-trap` · Written
 - Needs first: Revenue recognition, run rates, gross vs net, Venture finance and private rounds
 - Case: **Zitron's AI Is A Money Trap** (as of 2025-08-06)
   - Outcome: It says Cursor must die or be acquired; SpaceX announced the $60bn all-stock purchase on 16 Jun 2026 and completed it 14 Aug 2026.
@@ -707,7 +707,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 81. Follow: Damodaran, The Price of Risk (Aug 2023)
 
-- ID: `fol-erp` · Coming
+- ID: `fol-erp` · Written
 - Needs first: Implied equity risk premium and market-level valuation
 - Case: **Damodaran on equity risk premiums** (as of 2023-08-05) **to verify**
   - Outcome: Compare the 2023 implied premium with later data.

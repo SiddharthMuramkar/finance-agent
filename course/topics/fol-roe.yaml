@@ -1,0 +1,198 @@
+# Follow Topic: Damodaran's "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!" (18 Feb 2025),
+# a dated piece taught as a Case. The post's text is in the Library (Damodaran's blog); the Tutor quotes it
+# only in short passages with credit.
+id: fol-roe
+title: "Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)"
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-roe-back-to-basics
+    title: Damodaran goes back to basics on return on equity
+    asOf: 2025-02-18
+    piece:
+      author: Aswath Damodaran
+      title: "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!"
+      published: 2025-02-18
+      url: https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 18 February 2025 Aswath Damodaran, a valuation professor at NYU Stern, published a blog post
+      that he said began as a detour from his annual data updates. Readers had reacted to his update
+      on the profitability of businesses, where he set each sector's accounting return on equity
+      against its cost of equity to measure excess returns. Separately, he had commented on a
+      LinkedIn post that applied his implied equity risk premium method to the Indian market and had
+      stalled on an assumption that, in an efficient market, return on equity must equal the cost
+      of equity. He found the replies showed deep confusion about what return on equity measures and
+      what an efficient market is, so he went back to basics with a stripped-down example: two
+      entrepreneurs each put $60 million into a new business, one expected to earn $15 million a
+      year for ever and the other $3 million a year for ever, both with the same business risk and a
+      10% cost of equity. He then lists ways the accounting return on equity can mislead, and why
+      the earnings to price ratio is a different number. The Learner reads the post in full,
+      without stopping, and then explains each step of its argument.
+    reveal: >
+      Damodaran came back to the same ground in a post on 6 October 2025, written about US stocks.
+      He reported that the earnings yield (earnings divided by price) was 4% in September 2025,
+      0.16 percentage points below the ten-year Treasury bond rate, a gap that some analysts treat as
+      a signal that stocks are overpriced. His reply was the post's lesson applied: comparing the
+      earnings yield to the bond rate treats shares as if they were bonds and ignores growth and the
+      reinvestment growth needs, and he noted that the gap had a spotty record as a timing tool
+      (Damodaran, Musings on Markets, 6 October 2025). What the February post settled is a
+      definition, not a forecast: return on equity divides profit by the book value of equity and
+      measures the quality of a business; the earnings yield divides profit by the market value of
+      equity and is a pricing ratio. In the toy example the two companies earn 25% and 5% on book
+      but the same 10% on price, so no price-based ratio could have told the good business from the
+      bad one. Whether either ratio says anything useful about a whole market remained an argument
+      about growth, which the post set aside on purpose.
+
+concept: >
+  Return on equity is an accounting measure of business quality: net income divided by the book
+  value of equity, which is mostly what was paid in. The earnings yield is a pricing measure: net
+  income divided by the market value of equity. The two are different numbers. A good business
+  (return on equity above its cost of equity) earns an excess return and trades above book value;
+  a poor one earns less than its cost of equity and trades below book. If a market prices both
+  fairly, an investor in either earns the cost of equity on what they pay. So a good company is
+  not automatically a good investment, and a low price to book ratio does not by itself mean a
+  bargain. With no growth and a forever life, the fair earnings yield equals the cost of equity;
+  once growth enters, it no longer does. Return on equity is also the weaker half of an excess
+  return calculation, because accounting can skew it: expensed research spending, aging assets and
+  inflation, and negative book equity all distort it.
+
+principle: >
+  Before comparing two ratios, check what each is measured on: book value (what was invested) or
+  market value (what it is priced at). Then ask what the comparison leaves out, such as growth,
+  reinvestment and accounting treatment, before treating the gap as a signal.
+
+questions:
+  - id: fr-q-roe-excess
+    prompt: >
+      A company has book equity of Rs 400 crore and earns net income of Rs 60 crore. Its cost of
+      equity is 12%. What are its return on equity and its excess return?
+    choices:
+      - { id: a, text: "ROE 15%, excess return 3 percentage points" }
+      - { id: b, text: "ROE 12%, excess return 0" }
+      - { id: c, text: "ROE 6.7%, excess return -5.3 percentage points" }
+      - { id: d, text: "ROE 15%, excess return 15 percentage points" }
+    answer: a
+    explanation: >
+      ROE = 60 / 400 = 15%. The excess return is ROE minus the cost of equity, 15% - 12% = 3
+      percentage points. The business earns more than the 12% investors could expect from other
+      investments of the same risk.
+    source: >
+      Arithmetic on the definitions in Damodaran, "Return on Equity, Earnings Yield and Market
+      Efficiency: Back to Basics!", Musings on Markets, 18 February 2025.
+  - id: fr-q-fair-value
+    prompt: >
+      A company expects net income of Rs 60 crore every year for ever, with no growth and a cost of
+      equity of 12%. Its book equity is Rs 400 crore. If the market prices it fairly, what is the
+      value of its equity and its price to book ratio?
+    choices:
+      - { id: a, text: "Rs 500 crore, price to book 1.25" }
+      - { id: b, text: "Rs 400 crore, price to book 1.00" }
+      - { id: c, text: "Rs 720 crore, price to book 1.80" }
+      - { id: d, text: "Rs 60 crore, price to book 0.15" }
+    answer: a
+    explanation: >
+      With constant income for ever and no growth, net income equals cash flow, so value = 60 /
+      0.12 = Rs 500 crore. Price to book is 500 / 400 = 1.25. A business earning more than its
+      cost of equity is worth more than the capital put in.
+    source: >
+      Perpetuity value = income / required return, as applied in Damodaran, "Return on Equity,
+      Earnings Yield and Market Efficiency: Back to Basics!", 18 February 2025.
+  - id: fr-q-yield
+    prompt: >
+      A company has book equity of Rs 800 crore and a market value of equity of Rs 1,600 crore. Its
+      net income is Rs 120 crore. What is its earnings yield?
+    choices:
+      - { id: a, text: "15%" }
+      - { id: b, text: "7.5%" }
+      - { id: c, text: "10%" }
+      - { id: d, text: "2%" }
+    answer: b
+    explanation: >
+      The earnings yield divides net income by the market value of equity: 120 / 1,600 = 7.5%. The
+      15% (120 / 800) is the return on equity, which divides by book value. People who use the two
+      names for one number are mixing book and market value.
+    source: >
+      Definitions in Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to
+      Basics!", 18 February 2025 (earnings to price ratio, return on equity).
+  - id: fr-q-research
+    prompt: >
+      A business invests Rs 200 crore up front. Half goes into research and development, which the
+      accountants expense in the first year, and the other half is recorded as equity capital of
+      Rs 100 crore. From the second year the business earns Rs 50 crore of net income a year, and its
+      book equity stays at Rs 100 crore. What return on equity does it report from the second year,
+      and how does that compare with what it earns on the full Rs 200 crore invested?
+    choices:
+      - { id: a, text: "Reports 25%, equal to its return on the full Rs 200 crore" }
+      - { id: b, text: "Reports 50%, twice its 25% return on the full Rs 200 crore" }
+      - { id: c, text: "Reports 50%, equal to its return on the full Rs 200 crore" }
+      - { id: d, text: "Reports 100%, four times its return on the full Rs 200 crore" }
+    answer: b
+    explanation: >
+      Reported ROE = 50 / 100 = 50%. The return on all the money invested is 50 / 200 = 25%. Expensing
+      the research leaves it out of book equity, so the accounting return overstates what the
+      owners earn on what they put in.
+    source: >
+      Arithmetic on the accounting-inconsistency example in Damodaran, "Return on Equity, Earnings
+      Yield and Market Efficiency: Back to Basics!", 18 February 2025.
+  - id: fr-q-mark-to-market
+    prompt: >
+      A company earns Rs 30 crore a year for ever, with a cost of equity of 10% and book equity of
+      Rs 500 crore. An accountant restates its assets to their market value, so book equity becomes
+      the value of the business. What is its return on equity afterwards?
+    choices:
+      - { id: a, text: "6%" }
+      - { id: b, text: "10%" }
+      - { id: c, text: "30%" }
+      - { id: d, text: "5%" }
+    answer: b
+    explanation: >
+      Market value = 30 / 0.10 = Rs 300 crore. Restated book equity is Rs 300 crore, so ROE = 30 /
+      300 = 10%, the cost of equity. The earlier 6% (30 / 500) is gone. If every firm is marked to
+      market, every firm's return on equity equals its cost of equity, which stops it separating good
+      businesses from bad ones.
+    source: >
+      Arithmetic on the fair value accounting example in Damodaran, "Return on Equity, Earnings
+      Yield and Market Efficiency: Back to Basics!", 18 February 2025.
+
+checks:
+  - id: fr-quiz-roe-yield
+    kind: quiz
+    questions:
+      - fr-q-roe-excess
+      - fr-q-fair-value
+      - fr-q-yield
+      - fr-q-research
+      - fr-q-mark-to-market
+      - bank:eab:MBA-ACC-FA-0007
+      - bank:eab:MBA-FIN-VAL-0039
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fr-follow-argument
+    kind: conversation
+    prompt: >
+      You have read Damodaran's "Return on Equity, Earnings Yield and Market Efficiency: Back to
+      Basics!" as it stood on 18 February 2025. Explain, in your own words and in order, each step of
+      his argument: why he went back to basics, how he sets up the two businesses and what return on
+      equity and excess return say about them, what happens when they are priced, and the questions
+      he then uses the example to answer. Then say which of his points you find strongest and which
+      you would want more evidence for.
+    passCriteria: >
+      The Learner explains why he wrote it (a reaction to readers confusing return on equity with
+      the cost of equity in an efficient market, including a thread about the Indian market) and sets
+      out the example: two businesses with the same investment and risk but different net income,
+      return on equity of 25% and 5% against a 10% cost of equity, so excess returns of +15 and -5
+      points. They explain that return on equity is an accounting measure of business quality, and
+      that the narrative behind each number (barriers to entry for A; competition or regulation
+      for B) should be made explicit. They explain the pricing step: values of $150 million and $30
+      million, price to book of 2.5 and 0.5, and that the earnings yield (earnings divided by market
+      value) is a different ratio that equals the cost of equity here because there is no growth.
+      They cover the questions he extends to: a good company versus a good investment (depends on
+      price versus fair value), why return on equity is the weaker half of excess return (R&D
+      expensing, aging assets and inflation, fair value accounting making every return equal the
+      cost of equity), what growth does to reading both ratios, and why bad businesses struggle to
+      fix or exit. They state his closing point about how these basics are taught. Where they judge
+      a point, they give a reason and separate what the post shows from what it leaves out. They do
+      not claim to know what the author wrote or what happened after 18 February 2025.
