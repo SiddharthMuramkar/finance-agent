@@ -1,5 +1,5 @@
 # NPV, IRR and capital budgeting: a foundation Topic taught through Webvan's distribution-centre plan.
-# Case sources (checked): Webvan Group Form 10-K405 for 1999, filed 30 March 2000 (SEC accession 0000891618-00-001877).
+# Case sources (checked): Webvan Group Form 10-K405 for 1999, filed 30 March 2000 (SEC accession 0000891618-00-001877); Webvan Form 8-K filed 27 July 2001 (SEC accession 0001021408-01-504054) for the bankruptcy filing date.
 id: cf-capital-budgeting
 title: NPV, IRR and capital budgeting
 
@@ -29,8 +29,9 @@ cases:
       Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8 million
       on equipment and buildings that year against a plan of $300 million to $350 million, and cut
       its 2001 spending plan to $10 million to $15 million. Net loss in 2000 was $453.3 million.
-      It filed for bankruptcy on 9 July 2001. The investment case rested on a centre reaching high
-      volumes and an average order far above the one it had. Its own payback claim was an EBITDA
+      On 9 July 2001 it shut down and said it would file for bankruptcy protection, and it filed
+      on 13 July. The investment case rested on a centre reaching high volumes and an average
+      order far above the one it had. Its own payback claim was an EBITDA
       figure, before tax, upkeep and head-office costs, and said nothing about the time value of
       money: recovering the cost after three years is worth less than the cost when the discount
       rate is 15%.

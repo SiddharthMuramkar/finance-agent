@@ -1,5 +1,6 @@
 # Capex, depreciation, amortisation and EBITDA: a foundation Topic taught through Webvan.
 # Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+# Case sources (checked): Webvan final prospectus (424B1) dated 4 Nov 1999 (SEC accession 0000891618-99-004914) for the first-half 1999 loss of $35.1 million; Webvan Form 8-K filed 27 Jul 2001 (SEC accession 0001021408-01-504054) for the bankruptcy filing date.
 id: fs-capex-dep
 title: Capex, depreciation, amortisation and EBITDA
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
@@ -13,7 +14,7 @@ cases:
       the first time in early November 1999. The offering was priced at $15 a share; the base deal
       of 25 million shares raised $375 million, and trading was due to begin on 5 November. The
       company then delivered only in the San Francisco Bay Area. In the six months to 30 June 1999
-      it had revenue of $395,000 and a loss of more than $33 million. It planned to expand into
+      it had revenue of $395,000 and a net loss of $35.1 million. It planned to expand into
       many new markets, and in July 1999 it had agreed with the engineering firm Bechtel to build
       up to 26 more automated distribution centres over three years, at about $1 billion in all,
       though with no specific capital commitment. Its Oakland centre alone covered 336,000 square
@@ -27,8 +28,9 @@ cases:
       $144.6 million in 1999 to $453.3 million in 2000, when auditors voiced "substantial doubt"
       about its ability to continue. In early 2001 its operating costs alone (marketing,
       development, administration) came to $143 for every $100 of sales, on top of $72 of food
-      cost, on the Chicago Tribune's reading of its quarterly report. On 9 July 2001 it filed for bankruptcy and shut down, with the shares at
-      6 cents. The heavy spending on warehouses and trucks had been committed ahead of the
+      cost, on the Chicago Tribune's reading of its quarterly report. On 9 July 2001, with the
+      shares at 6 cents, it shut down and said it would file for bankruptcy protection; it filed
+      on 13 July. The heavy spending on warehouses and trucks had been committed ahead of the
       customers who would pay for it.
 
 concept: >

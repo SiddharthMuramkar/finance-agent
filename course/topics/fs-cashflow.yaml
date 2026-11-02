@@ -1,5 +1,6 @@
 # The cash flow statement: a foundation Topic taught through a short Case.
 # Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Webvan Form 10-K for 2000 (SEC accession 0001012870-01-001485); Webvan Form 8-K filed 27 Jul 2001 (SEC accession 0001021408-01-504054) for the bankruptcy filing date.
 id: fs-cashflow
 title: The cash flow statement
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
@@ -20,8 +21,9 @@ cases:
       how long that cash will last and what the three sections of the statement say about the
       business.
     reveal: >
-      Webvan filed for Chapter 11 bankruptcy protection on 9 July 2001 and shut down all seven
-      of its markets, which served about 750,000 customers. Its accumulated deficit had reached
+      On 9 July 2001 Webvan shut down all seven of its markets, which served about 750,000
+      customers, and said it would file for bankruptcy protection; it filed for Chapter 11 on 13
+      July. Its accumulated deficit had reached
       829.7 million dollars by 31 March 2001. (A TIME report put its cash burn at 480 million
       dollars; that is a press estimate, not a filing figure.) The cash flow statement had already shown it: the business used
       cash in operations (263.1 million dollars in 2000, up from 58.8 million in 1999), spent
