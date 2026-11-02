@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { usageRows } from "@/db/schema";
-import { loadCurrentSession, runTutorTurn, type TurnEvent } from "./turn";
+import { loadCurrentSession } from "./transcript";
+import { runTutorTurn, type TurnEvent } from "./turn";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];

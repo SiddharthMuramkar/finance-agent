@@ -34,10 +34,10 @@ async function expireStaleRuns(db: Db, now: Date) {
     .where(and(eq(turns.status, "running"), lt(turns.startedAt, new Date(now.getTime() - STALE_RUN_MS))));
 }
 
-/** Takes the lock for a new turn; undefined if another turn is running. */
-export async function startTurn(db: Db, now: Date): Promise<Turn | undefined> {
+/** Takes the lock for a new turn, saving what the Learner sent; undefined if another turn is running. */
+export async function startTurn(db: Db, now: Date, input: string): Promise<Turn | undefined> {
   await expireStaleRuns(db, now);
-  const [row] = await db.insert(turns).values({ status: "running", startedAt: now }).onConflictDoNothing().returning();
+  const [row] = await db.insert(turns).values({ status: "running", startedAt: now, input }).onConflictDoNothing().returning();
   return row;
 }
 

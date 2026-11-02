@@ -7,7 +7,10 @@ export const runtime = "nodejs";
 
 const body = z.object({ attemptId: z.number().int(), answers: z.record(z.string(), z.string()) });
 
-/** The quiz to show now (or null), as the workspace page shows it. Reads only; no model call. Lets a script drive the quiz over HTTP. */
+/**
+ * The quiz to show now (or null), as the workspace page shows it. No model call. Like the page, it
+ * saves the attempt (its chosen questions) the first time the quiz is opened. Lets a script drive the quiz over HTTP.
+ */
 export async function GET() {
   return Response.json({ quiz: await openQuiz(getDb(), loadCourseMap()) }, { headers: { "Cache-Control": "no-store" } });
 }
@@ -17,5 +20,6 @@ export async function POST(request: Request) {
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Send an attempt ID and the answers." }, { status: 400 });
   const result = await submitQuiz(getDb(), loadCourseMap(), parsed.data.attemptId, parsed.data.answers);
-  return result.ok ? Response.json(result) : Response.json({ error: result.reason }, { status: 409 });
+  if (result.ok) return Response.json(result);
+  return Response.json({ error: result.reason }, { status: result.saveFailed ? 503 : 409 });
 }

@@ -69,7 +69,7 @@ messages from Neon and shows them again, without calling Claude.
 **Trade-off.** Storing raw message content as JSON keeps it byte-for-byte replayable, which
 Claude's thinking rules need, but makes it less convenient to query than neat columns.
 
-## Tutor Turn (`src/tutor/turn.ts`)
+## Tutor Turn (`src/tutor/turn.ts`, `session-log.ts`, `transcript.ts`, `context.ts`)
 
 **What it does.** Runs one exchange with Claude. It saves the Learner's message, builds the
 request only from what the Session saved (never from today's code or settings), and runs it
@@ -86,6 +86,13 @@ Session picks up Haiku.
 **Trade-off.** Add-only history means context that changes (for example, the current teaching
 step) must be sent as a new message rather than by editing the instructions. That is a little
 more code, but editing would break Claude's thinking on this model.
+
+**Where the code lives.** `turn.ts` runs the turn itself: the lock, the loop with cut-off,
+compaction, refusal and widget correction. `session-log.ts` holds the stored settings, the choice
+of which Session the next action continues, and the add-only message log. `context.ts` builds the
+Course Navigator's context and works out which context the Tutor last saw. `transcript.ts` turns a
+Session into plain lines for the screen (after a reload, on old Session pages, in a replay). Each
+changes for its own reason, so a change to how Sessions are shown no longer touches the turn loop.
 
 **How it is tested.** Tests call the Tutor Turn with a scripted stand-in for the Anthropic
 client and a throwaway in-memory Postgres (PGlite) with the real migrations, so CI needs no
@@ -125,8 +132,11 @@ only after the last Check is passed, and a Topic is passed only when its princip
 The Learner's place is worked out from recorded passes: the first Check, in the Topic's current
 order, without a pass. That keeps Course Map edits safe: an inserted Check becomes the place, a
 removed Check's records are ignored, and a Check added to an already passed Topic is due only if
-marked `required`. A newly added prerequisite never moves the Learner out of a started Topic; it
-is only reported as unmet.
+marked `required`. A due Check is taken, not just listed: once the Learner is not in the middle of
+a Topic, the Navigator takes them back to the passed Topic for that Check's concept, your-turn and
+Check steps before any new Topic starts. The Topic stays passed throughout (it still counts as a met
+prerequisite), and once the due Check is passed the default path carries on. A newly added
+prerequisite never moves the Learner out of a started Topic; it is only reported as unmet.
 
 **Scenario.** Mid-story, the Tutor calls `finish_teaching_step` with `reveal`, trying to skip
 ahead. The Navigator answers "Cannot finish \"reveal\": the current Teaching Step is \"story\"",
@@ -340,7 +350,10 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
 - **Marking.** The browser posts its answers to `/api/quiz`; code marks them, saves a pass or a
   miss through Learner Memory (the same door a conversation verdict uses, with no reasons) and
   returns the marking. A pass moves the Learner on. A miss keeps them at the Check. Sending the
-  same attempt twice changes nothing. Only the current Check's results are accepted.
+  same attempt twice changes nothing. Only the current Check's results are accepted. The result,
+  the Learner's new place and the marked attempt are saved in one transaction: if any write fails,
+  none of them is saved, the Learner sees "Your answers could not be saved just now, so nothing was
+  recorded", and can submit the same attempt again.
 - **Retries differ.** Each attempt is a row in `quiz_attempts`. Attempts walk round the Check's
   pool, so the second attempt starts on questions the first did not show whenever the pool is
   bigger than one attempt. If there are no other questions, the same ones return.
@@ -430,11 +443,17 @@ hindsight test questions cover the rest.
 - **Stop reasons and failures.** A reply that hits `max_tokens` is kept as sent and the Learner gets
   a Continue button; a tool call cut off inside it is never run, and is answered "not run". A
   `refusal` is discarded, because Claude's docs say to treat a declined reply as incomplete and
-  discard it, so it cannot stay in history. The Learner sees a plain message, their place doesn't
-  change, and the next message starts a new Session from SQL rather than editing history. An API
+  discard it, so it cannot stay in history. Only the declined loop step is discarded: steps before
+  it in the same turn, and what their tool calls recorded, are already saved and stay, on screen as
+  well as in SQL. The Learner sees a plain message that says which: "Nothing was changed" when no
+  earlier step recorded anything, or that what was already written and recorded is kept. The next
+  message starts a new Session from SQL rather than editing history. An API
   error says why in plain words (credits run out or spend limit, rate limit, Claude busy, no
   connection), keeps everything saved, and offers Retry, which resumes the same turn rather than
-  sending the Learner's message again (this fixes the repeated Learner messages seen in #6).
+  sending the Learner's message again (this fixes the repeated Learner messages seen in #6). What
+  the Learner sent is saved on the turn row (`turns.input`) when the turn starts, so a turn that
+  fails before their message reaches the Session (a database error while picking the Session, say)
+  is run again from that saved message on Retry; the message is not lost.
 - **A failed progress write.** If saving a verdict or step fails, the transaction rolls back, so
   the Course Navigator doesn't advance. Claude's tool result says plainly that nothing was recorded,
   and the Learner sees an error.
@@ -475,7 +494,11 @@ Check, all in one reply. Now code refuses. When a tool call moves the Learner on
 began a step (`turn_id`, `began_step`). A later `finish_teaching_step` in the same turn is rejected
 as a tool error: "it began during this turn. Teach it in your reply now, then stop and wait for the
 Learner to answer". The same applies to the very first step: a Topic that this turn started (its
-`turns.started_topic` flag) cannot have its story finished in that turn. So every step is taught in a
+`turns.started_topic` flag, called `freshStep` in code) cannot have its story finished in that turn.
+The same flag is set when a quiz pass, marked by code between turns, moved the Learner onto the next
+Check's concept (or the reveal): that step has not been taught yet either. Recording a Check verdict
+follows the rule as well: a `record_check_verdict` for the current Check is rejected in the turn
+that reached the Check step, because the Learner has not had the chance to answer the Check prompt. So every step is taught in a
 reply the Learner sees and answers before it can be finished. The Tutor's instructions state the rule too, so it normally never trips it. A resumed turn
 keeps its turn ID, so a cut-off cannot be used to skip the wait.
 

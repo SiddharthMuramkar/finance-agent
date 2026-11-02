@@ -1,5 +1,7 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
+import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
+import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
 
 const AFTER_REVEAL = TEACHING_STEPS.indexOf("reveal");
 
@@ -79,4 +81,55 @@ function caseDataLines(data: CaseData | undefined): string[] {
  */
 export function noVerdictContext(place: Place & { check: NonNullable<Place["check"]> }, caseData: CaseData[] = []): string {
   return `No verdict was recorded for Check ${place.check.id} in the last turn, so the Learner is still at this Check.\n${stepContext(place, caseData)}`;
+}
+
+/** Opens the Session's first message: the Learner's summary and the Course Navigator's context. */
+export const OPENING_PREFIX = "Where the Learner stands:";
+
+/** Every Course Navigator context contains this; other tool results (such as a saved misconception) do not. */
+export const CONTEXT_MARK = "Course Navigator:";
+
+/** The last Course Navigator context the Tutor saw: a context message (which may open with a summary) or a finish_teaching_step result. */
+export function lastContextSent(msgs: BetaMessageParam[]): string | undefined {
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const { role, content } = msgs[i];
+    if (role === "system" && typeof content === "string") return content;
+    if (role === "user" && Array.isArray(content)) {
+      const result = content.findLast(
+        (b) => b.type === "tool_result" && !b.is_error && typeof b.content === "string" && b.content.includes(CONTEXT_MARK),
+      );
+      if (result && result.type === "tool_result") return result.content as string;
+      const opening = content.find((b) => b.type === "text" && b.text.startsWith(OPENING_PREFIX));
+      if (opening && opening.type === "text") return opening.text;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Whether the last turn ended with the Tutor at this Check (its last context was this Check's)
+ * without a verdict for it being recorded.
+ */
+export function endedAtCheckWithoutVerdict(msgs: BetaMessageParam[], checkId: string, checkContext: string): boolean {
+  if (!lastContextSent(msgs)?.endsWith(checkContext)) return false;
+  const learner = msgs.findLastIndex(
+    ({ role, content }) =>
+      role === "user" &&
+      (typeof content === "string" ? !content.startsWith(WIDGET_CHECK_PREFIX) : content.some((b) => b.type === "text")),
+  );
+  const turn = msgs.slice(Math.max(learner, 0));
+  const verdictCalls = new Set(
+    turn.flatMap(({ role, content }) =>
+      role === "assistant" && Array.isArray(content)
+        ? content.flatMap((b) =>
+            b.type === "tool_use" && b.name === "record_check_verdict" && (b.input as { check_id?: unknown }).check_id === checkId ? [b.id] : [],
+          )
+        : [],
+    ),
+  );
+  const recorded = turn.some(
+    ({ role, content }) =>
+      role === "user" && Array.isArray(content) && content.some((b) => b.type === "tool_result" && !b.is_error && verdictCalls.has(b.tool_use_id)),
+  );
+  return !recorded;
 }

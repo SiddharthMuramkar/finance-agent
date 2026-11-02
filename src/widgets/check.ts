@@ -2,6 +2,9 @@ import { createParser, type LibraryJSONSchema } from "@openuidev/lang-core";
 import frozen from "./frozen.generated.json";
 import { splitReply } from "./split";
 
+/** Opens the message code sends when a finished widget fails the check. */
+export const WIDGET_CHECK_PREFIX = "Widget check by code:";
+
 const parser = createParser(frozen.schema as unknown as LibraryJSONSchema, "Widget");
 
 /** Problems that stop a finished widget from rendering properly; empty when it is fine. */

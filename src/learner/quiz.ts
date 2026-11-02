@@ -33,7 +33,13 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promis
   return { attemptId: attempt.id, checkId: check.id, attemptNo: attempt.attemptNo, questions: publicQuestions(map, attempt.questionIds) };
 }
 
-export type QuizResult = ({ ok: true } & Marking & { attemptNo: number; checkId: string }) | { ok: false; reason: string };
+export type QuizResult =
+  | ({ ok: true } & Marking & { attemptNo: number; checkId: string })
+  /** `saveFailed`: a database error; nothing was saved and the Learner can submit again. */
+  | { ok: false; reason: string; saveFailed?: true };
+
+/** What the Learner sees when the quiz result could not be saved. */
+export const QUIZ_SAVE_FAILED = "Your answers could not be saved just now, so nothing was recorded. Please submit again.";
 
 /**
  * Marks an attempt on the server and saves the Check result through Learner Memory, which
@@ -47,12 +53,23 @@ export async function submitQuiz(db: Db, map: CourseMap, attemptId: number, answ
   const given = attempt.submittedAt && attempt.answers ? attempt.answers : answers;
   const marking = markAttempt(map, check as QuizCheck, attempt.questionIds, given);
   if (!attempt.submittedAt) {
-    const saved = await saveCheckResult(db, map, { checkId: check.id, passed: marking.passed, toolCallId: `quiz-attempt-${attempt.id}` }, now);
-    if (!saved.ok) return saved;
-    await db
-      .update(quizAttempts)
-      .set({ answers: given, correctCount: marking.correctCount, passed: marking.passed, submittedAt: now })
-      .where(eq(quizAttempts.id, attempt.id));
+    // The Check result, the Learner's place and the marked attempt are saved together or not at all.
+    try {
+      const saved = await db.transaction(async (transaction) => {
+        const tx = transaction as unknown as Db;
+        const result = await saveCheckResult(tx, map, { checkId: check.id, passed: marking.passed, toolCallId: `quiz-attempt-${attempt.id}` }, now);
+        if (!result.ok) return result;
+        await tx
+          .update(quizAttempts)
+          .set({ answers: given, correctCount: marking.correctCount, passed: marking.passed, submittedAt: now })
+          .where(eq(quizAttempts.id, attempt.id));
+        return result;
+      });
+      if (!saved.ok) return saved;
+    } catch (error) {
+      console.error("Quiz result could not save", error);
+      return { ok: false, reason: QUIZ_SAVE_FAILED, saveFailed: true };
+    }
   }
   return { ok: true, checkId: check.id, attemptNo: attempt.attemptNo, ...marking };
 }
@@ -61,7 +78,7 @@ export async function submitQuiz(db: Db, map: CourseMap, attemptId: number, answ
  * The note that tells the Tutor about quiz results it has not heard yet, or null. Code adds it
  * to the Tutor's history on the next call, then calls `markQuizReported`.
  */
-export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: string; attemptIds: number[] } | null> {
+export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: string; attemptIds: number[]; /** Any of them passed, so the Learner moved on. */ passed: boolean } | null> {
   const rows = await db
     .select()
     .from(quizAttempts)
@@ -84,7 +101,7 @@ export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: s
       });
     return [head, verdict, ...(missed.length ? ["Missed:", ...missed.map((m) => `- ${m}`)] : [])].join("\n");
   });
-  return { text: notes.join("\n\n"), attemptIds: rows.map((r) => r.id) };
+  return { text: notes.join("\n\n"), attemptIds: rows.map((r) => r.id), passed: rows.some((r) => r.passed === true) };
 }
 
 /** Marks results as told to the Tutor, so each one reaches it once. */

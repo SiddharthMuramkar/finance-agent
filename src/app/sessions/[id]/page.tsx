@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/db/client";
-import { loadSession } from "@/tutor/turn";
+import { loadSession } from "@/tutor/transcript";
 import { OldReply } from "../../old-reply";
 import { UnderTheHood } from "../../under-the-hood";
 

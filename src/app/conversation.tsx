@@ -205,7 +205,8 @@ export function Conversation({ initial, summary, quiz, pending }: { initial: Lin
               }
             } else if (event.type === "session" && NOTICES[event.reason]) setNotice(NOTICES[event.reason]);
             else if (event.type === "refusal") {
-              updateReply(() => "");
+              // Only the declined loop step is dropped; what earlier steps saved stays, as a reload shows it.
+              updateReply(() => event.text ?? "");
               setNotice(event.message);
             } else if (event.type === "cut_short") setCutShort(true);
             else if (event.type === "save_failed") setError(event.message);

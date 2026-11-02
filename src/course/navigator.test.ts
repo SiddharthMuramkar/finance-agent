@@ -165,7 +165,21 @@ describe("Course Navigator", () => {
       expect(navigate(optional, done)?.dueChecks).toEqual([]);
       expect(navigate(required, done)?.dueChecks.map((c) => c.id)).toEqual(["co-2"]);
       // The Topic stays passed, so it still counts as a met prerequisite.
-      expect(navigate(required, done)?.topic.id).toBe("pv");
+      expect(navigate(required, done)).toMatchObject({ topic: { id: "compounding" }, status: "passed" });
+      expect(navigate(optional, done)?.topic.id).toBe("pv");
+    });
+
+    it("takes the Learner through a due Check before a new Topic, then returns to the default path with the Topic still passed", () => {
+      const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+      const required = courseMap(topicFile("compounding", 10, [{ id: "co-1" }, { id: "co-2", required: true }]), topicFile("pv", 20, [{ id: "pv-1" }]));
+      expect(navigate(required, done)).toMatchObject({ topic: { id: "compounding" }, step: "concept", check: { id: "co-2" } });
+      expect(finishStep(required, done, "reveal")).toMatchObject({ ok: false });
+      const atCheck = play(required, done, ["concept", "your_turn"]);
+      expect(navigate(required, atCheck)).toMatchObject({ step: "check", check: { id: "co-2" }, unmetPrerequisites: [] });
+      const after = play(required, atCheck, [{ fail: "co-2" }, { pass: "co-2" }]);
+      expect(after.topics.compounding).toMatchObject({ status: "passed", step: "principle" });
+      expect(navigate(required, after)).toMatchObject({ topic: { id: "pv" }, status: "not_started", dueChecks: [] });
+      expect(finishStep(required, { ...after, currentTopicId: "compounding" }, "principle")).toMatchObject({ ok: false });
     });
 
     it("keeps a started Topic current when a new prerequisite is added, reporting it as unmet", () => {

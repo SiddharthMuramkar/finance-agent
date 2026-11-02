@@ -1,4 +1,5 @@
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
+import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
@@ -26,6 +27,10 @@ export const NOTHING_RECORDED =
 export const PACING_REJECTION =
   "Cannot finish this step: it began during this turn. Teach it in your reply now, then stop and wait for the Learner to answer; you can finish it in your next turn.";
 
+/** Sent back when the Tutor records a verdict at a Check step it only just reached, before the Learner could answer the prompt. */
+export const VERDICT_PACING_REJECTION =
+  "Cannot record a verdict: this Check step began during this turn, so the Learner has not answered the Check prompt yet. Put the prompt in your reply now, then stop and wait for the Learner's answer; record the verdict in a later turn.";
+
 /** What the Learner sees when a progress write failed. */
 export const SAVE_FAILED_MESSAGE = "Your progress could not be saved just now. The Tutor has been told nothing was recorded.";
 
@@ -52,6 +57,18 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
+
+  /**
+   * Pacing rule: whether the Learner's current step began during this turn, so it has not yet been
+   * taught in a reply the Learner answered. A step begins in a turn when a tool call in it moved the
+   * Learner on, or when it began before the turn without being taught (the turn started the Topic,
+   * or a quiz pass marked by code moved the Learner on).
+   */
+  async function stepBeganThisTurn(tx: Db): Promise<boolean> {
+    const [began] = await tx.select().from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.beganStep, true)));
+    const [thisTurn] = await tx.select().from(turns).where(eq(turns.id, turnId));
+    return Boolean(began || thisTurn?.freshStep);
+  }
 
   async function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
     if (!toolCallId) throw new Error("Missing tool call ID.");
@@ -95,6 +112,9 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
       parse: (input) => verdictInput.parse(input),
       run: ({ check_id, verdict, reasons }, context) =>
         once(context?.toolUse.id, "record_check_verdict", async (tx) => {
+          // Pacing rule, for the Check that is being taken; any other verdict gets the Course Navigator's own reason below.
+          const at = navigate(map, await loadProgress(tx));
+          if (at?.step === "check" && at.check?.id === check_id && (await stepBeganThisTurn(tx))) return { ok: false, text: VERDICT_PACING_REJECTION };
           const passed = verdict === "pass";
           const saved = await saveCheckResult(tx, map, { checkId: check_id, passed, evidence: reasons, model, toolCallId: context!.toolUse.id }, now());
           if (!saved.ok) return { ok: false, text: saved.reason };
@@ -109,10 +129,7 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
       parse: (input) => finishInput.parse(input),
       run: ({ step }, context) =>
         once(context?.toolUse.id, "finish_teaching_step", async (tx) => {
-          // Pacing rule: a step that began in this turn has not yet been taught in a reply the Learner answered.
-          const [began] = await tx.select().from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.beganStep, true)));
-          const [thisTurn] = await tx.select().from(turns).where(eq(turns.id, turnId));
-          if (began || thisTurn?.startedTopic) return { ok: false, text: PACING_REJECTION };
+          if (await stepBeganThisTurn(tx)) return { ok: false, text: PACING_REJECTION };
           const move = await saveFinishedStep(tx, map, step, now());
           if (!move.ok) return { ok: false, text: move.reason };
           return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now())) };
@@ -133,7 +150,14 @@ export function bindTools(definitions: ToolDefinition[], code: Record<string, To
   });
 }
 
-type ToolUse = { type: "tool_use"; id: string; name: string; input: unknown };
+export type ToolUse = { type: "tool_use"; id: string; name: string; input: unknown };
+
+/** Tool calls in the last stored reply that have no stored result yet. */
+export function unansweredToolCalls(msgs: BetaMessageParam[]): ToolUse[] {
+  const last = msgs.at(-1);
+  if (last?.role !== "assistant" || !Array.isArray(last.content)) return [];
+  return last.content.filter((b): b is ToolUse => b.type === "tool_use");
+}
 
 /**
  * Runs saved tool calls that have no saved result (the turn was cut off between running a

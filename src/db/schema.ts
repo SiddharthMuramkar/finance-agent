@@ -199,8 +199,15 @@ export const turns = pgTable(
     stopReason: text("stop_reason"),
     /** What went wrong, for a failed turn. */
     error: text("error"),
-    /** True when the Learner's Topic was started by this turn, so its first step has not been shown yet. */
-    startedTopic: boolean("started_topic").notNull().default(false),
+    /**
+     * True when the Learner's current step began before this turn's reply without being taught:
+     * this turn started the Topic, or a quiz pass marked by code since the last turn moved the
+     * Learner on. The pacing rule then keeps that step open for this turn. (The column keeps its
+     * first name, from when only a Topic start set it.)
+     */
+    freshStep: boolean("started_topic").notNull().default(false),
+    /** What the Learner sent (their message, or "Continue."), so a retry can send it again if it was never stored. */
+    input: text("input"),
     /** When the current run of the turn started; a resume starts a new run. */
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),

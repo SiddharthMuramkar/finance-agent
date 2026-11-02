@@ -2,9 +2,10 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
-import { workspaceSummary } from "@/learner/memory";
+import { learnerSummary } from "@/learner/memory";
 import { openQuiz } from "@/learner/quiz";
-import { latestTurn, loadCurrentSession } from "@/tutor/turn";
+import { loadCurrentSession } from "@/tutor/transcript";
+import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "./conversation";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -15,7 +16,7 @@ export default async function WorkspacePage() {
   const db = getDb();
   const map = loadCourseMap();
   const [summary, initial, jar, quiz, turn] = await Promise.all([
-    workspaceSummary(db, map),
+    learnerSummary(db, map),
     loadCurrentSession(db),
     cookies(),
     openQuiz(db, map),

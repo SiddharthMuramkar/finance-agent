@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getDb } from "@/db/client";
-import { listSessions } from "@/tutor/turn";
+import { listSessions } from "@/tutor/transcript";
 
 export const dynamic = "force-dynamic";
 

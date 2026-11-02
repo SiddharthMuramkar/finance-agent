@@ -146,6 +146,7 @@ function unmasteredPrerequisites(map: CourseMap, progress: Progress, topicId: st
  * A short plain-text account of where the Learner stands, built by code from
  * SQL: Topic and Teaching Step, unmastered prerequisites, misconceptions noted
  * in those Topics, and the last verdict at the current Check. No model call.
+ * The workspace shows it on opening, and a new Session opens with it.
  */
 export async function learnerSummary(db: Db, map: CourseMap): Promise<string> {
   const progress = await loadProgress(db);
@@ -181,7 +182,3 @@ export async function learnerSummary(db: Db, map: CourseMap): Promise<string> {
   return lines.join("\n");
 }
 
-/** The summary the workspace shows on opening. Reads SQL only; no model call. */
-export async function workspaceSummary(db: Db, map: CourseMap): Promise<string> {
-  return learnerSummary(db, map);
-}

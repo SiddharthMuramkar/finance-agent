@@ -92,28 +92,6 @@ export function sumSteps(model: string, steps: StepUsage[], durationMs: number):
   };
 }
 
-/** Saves a finished turn: one row per step, then one for the turn. */
-export async function saveTurnUsage(db: Db, sessionId: number, turnSeq: number, usage: TurnUsage, now: Date) {
-  const base = { sessionId, turnSeq, model: usage.model, createdAt: now };
-  await db.insert(usageRows).values([
-    ...usage.steps.map(({ step, ...s }) => ({ ...base, kind: "step" as const, step, ...s })),
-    {
-      ...base,
-      kind: "turn" as const,
-      step: null,
-      inputTokens: usage.inputTokens,
-      outputTokens: usage.outputTokens,
-      cacheReadTokens: usage.cacheReadTokens,
-      cacheWriteTokens: usage.cacheWriteTokens,
-      thinkingTokens: usage.thinkingTokens,
-      tools: usage.tools,
-      stopReason: null,
-      durationMs: usage.durationMs,
-      costUsd: usage.costUsd,
-    },
-  ]);
-}
-
 /** Saves one loop step as soon as it finishes, so a turn cut off later keeps what it has spent. */
 export async function saveStepUsage(db: Db, sessionId: number, turnSeq: number, model: string, step: StepUsage, now: Date) {
   const { step: n, ...s } = step;

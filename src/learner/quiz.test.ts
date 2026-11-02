@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { quizAttempts } from "@/db/schema";
@@ -68,6 +68,22 @@ describe("quiz Check flow", () => {
     const text = JSON.stringify(quiz);
     for (const secret of ["answer", "explanation", "Because", "Source"]) expect(text).not.toContain(secret);
     expect((await openQuiz(db, map))?.attemptId).toBe(quiz?.attemptId);
+  });
+
+  it("if saving the Learner's place fails, nothing of the result is saved, the Learner gets a plain message, and can submit again", async () => {
+    const { db, map } = await atQuiz();
+    const quiz = (await openQuiz(db, map))!;
+    await db.execute(sql`CREATE FUNCTION refuse_write() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'disk full'; END $$ LANGUAGE plpgsql`);
+    await db.execute(sql`CREATE TRIGGER refuse_progress BEFORE UPDATE ON topic_progress FOR EACH ROW EXECUTE FUNCTION refuse_write()`);
+    const failed = await submitQuiz(db, map, quiz.attemptId, { q1: "a", q2: "a" });
+    expect(failed).toEqual({ ok: false, reason: expect.stringMatching(/nothing was recorded/i), saveFailed: true });
+    expect(await loadCheckResults(db)).toHaveLength(0);
+    expect((await loadProgress(db)).topics.t.step).toBe("check");
+    expect((await openQuiz(db, map))?.attemptId).toBe(quiz.attemptId);
+
+    await db.execute(sql`DROP TRIGGER refuse_progress ON topic_progress`);
+    expect(await submitQuiz(db, map, quiz.attemptId, { q1: "a", q2: "a" })).toMatchObject({ ok: true, passed: true });
+    expect((await loadProgress(db)).topics.t.step).toBe("concept");
   });
 
   it("marks on submit, reveals the key then, saves a pass and moves the Learner on", async () => {

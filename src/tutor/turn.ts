@@ -1,25 +1,43 @@
-import { createHash } from "node:crypto";
-import type { BetaContentBlock, BetaMessageParam, BetaRawMessageStreamEvent } from "@anthropic-ai/sdk/resources/beta/messages";
+import type { BetaContentBlock, BetaRawMessageStreamEvent } from "@anthropic-ai/sdk/resources/beta/messages";
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
-import { asc, desc, eq, max } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
-import { messages, sessions, settings } from "@/db/schema";
-import type { Db } from "@/db/types";
-import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import { navigate } from "@/course/navigator";
+import { sessions, toolCalls } from "@/db/schema";
+import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress } from "@/learner/memory";
-import { replaceBrokenWidgets, replyWidgetProblems } from "@/widgets/check";
-import { noVerdictContext, stepContext } from "./context";
+import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
+import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { describeFailure, type FailureKind } from "./failures";
-import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
-import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, type ToolCode, type ToolEffects } from "./tools";
-import { BUSY_MESSAGE, resumeTurn, startTurn, turnBefore, updateTurn, type Turn } from "./turn-status";
+import { type ToolDefinition } from "./instructions";
+import {
+  currentSession,
+  history,
+  isCompaction,
+  openLog,
+  readSettings,
+  sessionForAction,
+  startSession,
+  type Effort,
+  type Log,
+  type Message,
+  type NewSessionReason,
+  type Session,
+} from "./session-log";
+import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
+import { PARAGRAPH, textOf, turnText } from "./transcript";
+import { BUSY_MESSAGE, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
+
+/**
+ * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
+ * one-turn lock, picks the Session (session-log.ts), sends changed context (context.ts), and
+ * runs the Tool Runner loop with cut-off, compaction, refusal and widget-correction handling.
+ */
 
 export { latestTurn, BUSY_MESSAGE } from "./turn-status";
 
-export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
-export const DEFAULT_SETTINGS = { model: "claude-sonnet-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000" };
 /** Room for adaptive thinking as well as the visible reply. */
 const MAX_TOKENS = 16000;
 /** On-demand compaction (beta); also needed on every request that carries a compaction block. */
@@ -27,7 +45,6 @@ const COMPACTION_BETA = "compact-2026-09-04";
 /** The turn stops itself this long after it starts, inside Vercel's 300 seconds, so it can save and tell the browser. */
 export const TIME_BUDGET_MS = 270_000;
 
-type Message = BetaMessageParam;
 
 /** The request the Tutor Turn builds; a subset of the SDK's Tool Runner params. */
 export type TutorRequest = {
@@ -59,12 +76,6 @@ export type TutorClient = {
   };
 };
 
-/** Why a turn opened a new Session: the last one went idle, the build's instructions or tools changed, or the last reply was declined. */
-export type NewSessionReason = "idle" | "updated" | "refused";
-
-/** What separates the text of one loop step from the next within a reply. */
-const PARAGRAPH = "\n\n";
-
 export type TurnEvent =
   | { type: "text"; text: string }
   /** The reply's widget failed the server check; the text that follows is its one correction. */
@@ -80,133 +91,24 @@ export type TurnEvent =
   | { type: "cut_off" }
   /** The reply hit max_tokens: it is kept as sent, and the Learner can continue. */
   | { type: "cut_short"; message: string }
-  /** The model declined; the partial reply is discarded and the Learner's place is unchanged. */
-  | { type: "refusal"; message: string }
+  /**
+   * The model declined; the declined loop step is discarded. `text` is the reply saved by earlier
+   * loop steps of the turn, which is kept and replaces what the browser showed.
+   */
+  | { type: "refusal"; message: string; text: string }
   /** A tool could not save the Learner's progress. */
   | { type: "save_failed"; message: string }
   /** The API call failed; everything already saved is kept and the Learner can retry. */
   | { type: "error"; kind: FailureKind; message: string };
 
-/** Opens the message code sends when a finished widget fails the check. */
-export const WIDGET_CHECK_PREFIX = "Widget check by code:";
 export const CUT_SHORT_MESSAGE = "The reply was cut short because it reached its length limit. Press Continue to carry on.";
 export const REFUSAL_MESSAGE =
   "The Tutor declined to answer that message. Nothing was changed, and your place in the course is the same. Your next message starts a fresh Session from your saved progress.";
+/** The refusal message when tool calls earlier in the same turn had already saved progress. */
+export const REFUSAL_AFTER_SAVES_MESSAGE =
+  "The Tutor declined to go on with that reply. What it had already written and recorded earlier in this reply is kept, so your place in the course may have moved on; only the declined part was discarded. Your next message starts a fresh Session from your saved progress.";
 /** The tool result for a tool call in a reply that hit max_tokens: its input may be cut off, so it never runs. */
 const NOT_RUN = "Not run: your reply reached max_tokens before this tool call was complete. Nothing was recorded.";
-
-type Session = typeof sessions.$inferSelect;
-
-/** Model and effort as stored settings, written with defaults the first time. */
-export async function readSettings(db: Db) {
-  await db
-    .insert(settings)
-    .values(Object.entries(DEFAULT_SETTINGS).map(([key, value]) => ({ key, value })))
-    .onConflictDoNothing();
-  const rows = await db.select().from(settings);
-  const get = (key: string) => rows.find((r) => r.key === key)?.value;
-  return {
-    model: get("model")!,
-    effort: get("effort") as Effort,
-    idleHours: Number(get("session_idle_hours")),
-    compactAtTokens: Number(get("compact_at_tokens")),
-  };
-}
-
-export function fingerprint(instructions: string, tools: unknown[]) {
-  return createHash("sha256").update(JSON.stringify({ instructions, tools })).digest("hex");
-}
-
-async function currentSession(db: Db): Promise<Session | undefined> {
-  const [row] = await db.select().from(sessions).orderBy(desc(sessions.id)).limit(1);
-  return row;
-}
-
-/**
- * The Session the next action continues: the latest one, unless it was frozen
- * from different instructions or tools, its last reply was declined, or it has
- * been idle longer than the `session_idle_hours` setting (default 6). Then the
- * reason a new Session starts is returned instead.
- */
-async function sessionForAction(db: Db, now: Date, turn: Turn): Promise<{ session: Session } | { reason: NewSessionReason | "first" }> {
-  const session = await currentSession(db);
-  if (!session) return { reason: "first" };
-  if (session.fingerprint !== fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)) return { reason: "updated" };
-  // An earlier build opened Sessions with a system message, which the API rejects; start afresh.
-  const [first] = await db
-    .select({ role: messages.role })
-    .from(messages)
-    .where(eq(messages.sessionId, session.id))
-    .orderBy(asc(messages.seq))
-    .limit(1);
-  if (first?.role === "system") return { reason: "updated" };
-  // A declined reply is discarded, not kept in history, so the conversation continues in a new Session from SQL.
-  const before = await turnBefore(db, turn.id);
-  if (before?.sessionId === session.id && before.stopReason === "refusal") return { reason: "refused" };
-  const [{ last }] = await db
-    .select({ last: max(messages.createdAt) })
-    .from(messages)
-    .where(eq(messages.sessionId, session.id));
-  const { idleHours } = await readSettings(db);
-  const lastActive = last ?? session.createdAt;
-  return now.getTime() - lastActive.getTime() > idleHours * 3600_000 ? { reason: "idle" } : { session };
-}
-
-/** Freezes the current instructions, tools, model and effort into a new Session. */
-async function startSession(db: Db, now: Date): Promise<Session> {
-  const { model, effort } = await readSettings(db);
-  const tools: ToolDefinition[] = TUTOR_TOOLS;
-  const [row] = await db
-    .insert(sessions)
-    .values({
-      instructions: TUTOR_INSTRUCTIONS,
-      tools,
-      model,
-      effort,
-      fingerprint: fingerprint(TUTOR_INSTRUCTIONS, tools),
-      createdAt: now,
-    })
-    .returning();
-  return row;
-}
-
-const isCompaction = (content: unknown) => Array.isArray(content) && content.some((b) => b?.type === "compaction");
-
-type Row = { seq: number } & Message;
-
-/**
- * A Session's stored history. Every row stays stored (add-only); what is sent to the model
- * starts at the latest compaction block, which stands in for everything before it.
- */
-async function openLog(db: Db, sessionId: number, now: () => Date) {
-  const rows = (await db
-    .select({ seq: messages.seq, role: messages.role, content: messages.content })
-    .from(messages)
-    .where(eq(messages.sessionId, sessionId))
-    .orderBy(asc(messages.seq))) as Row[];
-  const sent: Message[] = rows.slice(Math.max(rows.findLastIndex((r) => isCompaction(r.content)), 0)).map((r) => ({ role: r.role, content: r.content }) as Message);
-  let nextSeq = rows.length ? rows[rows.length - 1].seq + 1 : 0;
-  return {
-    rows,
-    /** What the next request sends. */
-    messages: sent,
-    get nextSeq() {
-      return nextSeq;
-    },
-    async append(message: Message) {
-      const seq = nextSeq++;
-      await db.insert(messages).values({ sessionId, seq, role: message.role, content: message.content, createdAt: now() });
-      rows.push({ seq, ...message });
-      sent.push(message);
-    },
-  };
-}
-type Log = Awaited<ReturnType<typeof openLog>>;
-
-/** History as sent to the model, for a Session that isn't being written to. */
-async function history(db: Db, sessionId: number): Promise<Message[]> {
-  return (await openLog(db, sessionId, () => new Date())).messages;
-}
 
 /** Builds the request only from what the Session saved, never from current code or settings. */
 function requestFor(session: Session, msgs: Message[], code: Record<string, ToolCode>): TutorRequest {
@@ -223,66 +125,6 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
     stream: true,
   };
 }
-
-/** Every Course Navigator context contains this; other tool results (such as a saved misconception) do not. */
-const CONTEXT_MARK = "Course Navigator:";
-
-/** The last Course Navigator context the Tutor saw: a context message (which may open with a summary) or a finish_teaching_step result. */
-function lastContextSent(msgs: Message[]): string | undefined {
-  for (let i = msgs.length - 1; i >= 0; i--) {
-    const { role, content } = msgs[i];
-    if (role === "system" && typeof content === "string") return content;
-    if (role === "user" && Array.isArray(content)) {
-      const result = content.findLast(
-        (b) => b.type === "tool_result" && !b.is_error && typeof b.content === "string" && b.content.includes(CONTEXT_MARK),
-      );
-      if (result && result.type === "tool_result") return result.content as string;
-      const opening = content.find((b) => b.type === "text" && b.text.startsWith(OPENING_PREFIX));
-      if (opening && opening.type === "text") return opening.text;
-    }
-  }
-  return undefined;
-}
-
-/**
- * Whether the last turn ended with the Tutor at this Check (its last context was this Check's)
- * without a verdict for it being recorded.
- */
-function endedAtCheckWithoutVerdict(msgs: Message[], checkId: string, checkContext: string): boolean {
-  if (!lastContextSent(msgs)?.endsWith(checkContext)) return false;
-  const learner = msgs.findLastIndex(
-    ({ role, content }) =>
-      role === "user" &&
-      (typeof content === "string" ? !content.startsWith(WIDGET_CHECK_PREFIX) : content.some((b) => b.type === "text")),
-  );
-  const turn = msgs.slice(Math.max(learner, 0));
-  const verdictCalls = new Set(
-    turn.flatMap(({ role, content }) =>
-      role === "assistant" && Array.isArray(content)
-        ? content.flatMap((b) =>
-            b.type === "tool_use" && b.name === "record_check_verdict" && (b.input as { check_id?: unknown }).check_id === checkId ? [b.id] : [],
-          )
-        : [],
-    ),
-  );
-  const recorded = turn.some(
-    ({ role, content }) =>
-      role === "user" && Array.isArray(content) && content.some((b) => b.type === "tool_result" && !b.is_error && verdictCalls.has(b.tool_use_id)),
-  );
-  return !recorded;
-}
-
-type ToolUse = { type: "tool_use"; id: string; name: string; input: unknown };
-
-/** Tool calls in the last stored reply that have no stored result yet. */
-function unansweredToolCalls(msgs: Message[]): ToolUse[] {
-  const last = msgs.at(-1);
-  if (last?.role !== "assistant" || !Array.isArray(last.content)) return [];
-  return last.content.filter((b): b is ToolUse => b.type === "tool_use");
-}
-
-/** Opens the Session's first message: the Learner's summary and the Course Navigator's context. */
-export const OPENING_PREFIX = "Where the Learner stands:";
 
 /** A new message, the Continue button, or a resume of the last turn after a cut-off or failure (Retry). */
 export type TurnInput = string | { continue: true } | { resume: true };
@@ -328,7 +170,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   const now = deps.now ?? (() => new Date());
   const deadline = performance.now() + (deps.timeBudgetMs ?? TIME_BUDGET_MS);
   const resuming = typeof input === "object" && "resume" in input;
-  const claim = resuming ? await resumeTurn(db, now()) : { turn: await startTurn(db, now()), alreadyFinished: false };
+  const claim = resuming ? await resumeTurn(db, now()) : { turn: await startTurn(db, now(), typeof input === "string" ? input : CONTINUE_TEXT), alreadyFinished: false };
   if (!claim.turn) {
     yield { type: "busy", message: BUSY_MESSAGE };
     return;
@@ -372,20 +214,6 @@ async function* finishedTurnReplay(db: Db, turn: Turn): AsyncGenerator<TurnEvent
   yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0) };
 }
 
-/** The reply text a turn has saved so far, with any widget correction swapped in, as the browser shows it. */
-function turnText(rows: Row[], turnSeq: number): string {
-  let text = "";
-  let correcting = false;
-  for (const r of rows.filter((r) => r.seq > turnSeq)) {
-    if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) correcting = true;
-    if (r.role !== "assistant") continue;
-    const added = textOf(r.content);
-    text = correcting ? replaceBrokenWidgets(text, added) : text && added ? text + PARAGRAPH + added : text + added;
-    correcting = false;
-  }
-  return text;
-}
-
 async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, deadline: number): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
   const { db, client } = deps;
   const map = deps.map ?? loadCourseMap();
@@ -397,18 +225,27 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   let log: Log;
   let turnSeq: number;
   let code: Record<string, ToolCode>;
-  if (typeof input === "object" && "resume" in input) {
-    [session] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId!));
-    log = await openLog(db, session.id, now);
-    turnSeq = turn.turnSeq!;
+  // A resume carries on from the last saved loop step, but only once the Learner's message is stored.
+  let resumed: { session: Session; log: Log; turnSeq: number } | undefined;
+  if (typeof input === "object" && "resume" in input && turn.sessionId !== null && turn.turnSeq !== null) {
+    const [saved] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
+    const savedLog = saved && (await openLog(db, saved.id, now));
+    const turnSeq = turn.turnSeq;
+    if (savedLog?.rows.some((r) => r.seq === turnSeq)) resumed = { session: saved, log: savedLog, turnSeq };
+  }
+  if (resumed) {
+    ({ session, log, turnSeq } = resumed);
     code = toolCode(db, map, now, session.model, effects, turn.id);
     yield { type: "replay", text: turnText(log.rows, turnSeq) };
     yield* repairToolCalls();
   } else {
-    const freshTopic = navigate(map, await loadProgress(db))?.status === "not_started";
-    const place = await ensureTopicStarted(db, map, now());
+    // A new message, or a retry of a turn that failed before the Learner's message was stored:
+    // that turn is run again from the message saved on it.
+    const learnerText = typeof input === "string" ? input : "continue" in input ? CONTINUE_TEXT : (turn.input ?? CONTINUE_TEXT);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
-    if (freshTopic) await updateTurn(db, turn.id, { startedTopic: true });
+    // Saved before the Topic starts, so a retry after a failure in between still knows.
+    if (navigate(map, await loadProgress(db))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
+    const place = await ensureTopicStarted(db, map, now());
     const previous = await currentSession(db);
     const found = await sessionForAction(db, now(), turn);
     const continuing = "session" in found ? found.session : undefined;
@@ -429,9 +266,10 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
 
     turnSeq = log.nextSeq;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
-    const learnerText = typeof input === "string" ? input : CONTINUE_TEXT;
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = await pendingQuizNote(db, map);
+    // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
+    if (quiz?.passed) await updateTurn(db, turn.id, { freshStep: true });
     if (log.messages.length === 0) {
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
@@ -541,7 +379,12 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   const reply = complete ? "" : yield* loop();
 
   if (stopReason === "refusal") {
-    yield { type: "refusal", message: REFUSAL_MESSAGE };
+    // Loop steps before the declined one are stored, and so are their tool calls' effects.
+    const saves = await db
+      .select({ id: toolCalls.toolCallId })
+      .from(toolCalls)
+      .where(and(eq(toolCalls.turnId, turn.id), eq(toolCalls.isError, false)));
+    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: turnText(log.rows, turnSeq) };
   } else if (stopReason === "max_tokens") {
     // Kept as sent; a tool call it was cut off in is never run, and is answered so the history stays valid.
     const truncated = unansweredToolCalls(log.messages);
@@ -572,60 +415,4 @@ function contextTokens(usage: ApiUsage | undefined): number {
   return (usage.input_tokens ?? 0) + (usage.cache_read_input_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0) + (usage.output_tokens ?? 0);
 }
 
-export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage };
 
-/** The latest Session as plain text lines, for showing after a reload. No model call. */
-export async function loadCurrentSession(db: Db): Promise<Line[]> {
-  const session = await currentSession(db);
-  return session ? loadSession(db, session.id) : [];
-}
-
-/** Every Session, newest first, for reading old ones. */
-export async function listSessions(db: Db): Promise<{ id: number; createdAt: Date }[]> {
-  return db.select({ id: sessions.id, createdAt: sessions.createdAt }).from(sessions).orderBy(desc(sessions.id));
-}
-
-/**
- * One Session's conversation as plain text lines. No model call. A widget
- * correction is shown in place of the broken widget it replaced.
- */
-export async function loadSession(db: Db, sessionId: number): Promise<Line[]> {
-  const lines: (Line & { turnSeq?: number })[] = [];
-  let correcting = false;
-  let turnSeq = 0;
-  const rows = await db
-    .select({ seq: messages.seq, role: messages.role, content: messages.content })
-    .from(messages)
-    .where(eq(messages.sessionId, sessionId))
-    .orderBy(asc(messages.seq));
-  for (const m of rows as (Message & { seq: number })[]) {
-    const text = textOf(m.content);
-    if (!text || m.role === "system") continue;
-    if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
-      correcting = true;
-      continue;
-    }
-    const target = correcting && m.role === "assistant" ? lines.findLast((l) => l.role === "assistant") : undefined;
-    correcting = false;
-    if (target) target.text = replaceBrokenWidgets(target.text, text);
-    else {
-      if (m.role === "user") turnSeq = m.seq;
-      lines.push({ role: m.role, text, turnSeq });
-    }
-  }
-  // The panel hangs off the last reply of each turn.
-  for (const [seq, usage] of await loadTurnUsages(db, sessionId)) {
-    const last = lines.findLast((l) => l.role === "assistant" && l.turnSeq === seq);
-    if (last) last.usage = usage;
-  }
-  return lines.map((l) => ({ role: l.role, text: l.text, ...(l.usage && { usage: l.usage }) }));
-}
-
-function textOf(content: unknown): string {
-  if (typeof content === "string") return content;
-  if (!Array.isArray(content)) return "";
-  return content
-    .filter((b): b is { type: "text"; text: string } => b?.type === "text" && !b.text.startsWith(OPENING_PREFIX))
-    .map((b) => b.text)
-    .join("");
-}

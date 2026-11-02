@@ -11,10 +11,12 @@ import { APIError } from "@anthropic-ai/sdk";
 import { sql } from "drizzle-orm";
 import { describeFailure } from "./failures";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
-import { OPENING_PREFIX, type Line, latestTurn, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
+import { OPENING_PREFIX } from "./context";
+import { type Line, listSessions, loadCurrentSession, loadSession } from "./transcript";
+import { latestTurn, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
-import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, workspaceSummary } from "@/learner/memory";
+import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, learnerSummary } from "@/learner/memory";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
@@ -157,7 +159,7 @@ describe("Tutor Turn", () => {
     it("opening the workspace makes no model call and shows a plain-text summary", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([]);
-      const summary = await workspaceSummary(db, map);
+      const summary = await learnerSummary(db, map);
       expect(summary).toContain("Present value");
       expect(summary).toContain("Teaching Step: story");
       expect(requests).toHaveLength(0);
@@ -194,7 +196,7 @@ describe("Tutor Turn", () => {
       });
       expect(results[1]).not.toHaveProperty("is_error");
       expect(String((results[1] as unknown as { content: unknown }).content)).toContain("Teaching Step: concept");
-      expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+      expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
     });
 
     it("rejects finishing a Teaching Step that began during the same turn, so each step is taught in a reply the Learner answers", async () => {
@@ -214,11 +216,11 @@ describe("Tutor Turn", () => {
       expect(results[0]).not.toHaveProperty("is_error");
       expect(results[1]).toMatchObject({ is_error: true });
       expect(String(results[1].content)).toContain("began during this turn");
-      expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+      expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
 
       // After the Learner replies, a new turn may finish the step.
       await collect(runTutorTurn({ db, client, map }, "Understood."));
-      expect(await workspaceSummary(db, map)).toContain("Teaching Step: your turn");
+      expect(await learnerSummary(db, map)).toContain("Teaching Step: your turn");
     });
 
     it("starts text written after a tool call on a new paragraph, so the streamed reply does not run two steps' sentences together", async () => {
@@ -240,7 +242,7 @@ describe("Tutor Turn", () => {
         Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
       );
       expect(result).toMatchObject({ is_error: true });
-      expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
+      expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
     });
 
     it("tells the Tutor the pacing rule in its instructions", () => {
@@ -258,7 +260,7 @@ describe("Tutor Turn", () => {
       await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
       // A Check result saved outside a turn (as a quiz will be).
       expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true })).toEqual({ ok: true, repeated: false });
-      const summary = await workspaceSummary(db, map);
+      const summary = await learnerSummary(db, map);
       expect(summary).toContain("Teaching Step: reveal");
       expect(summary).toContain("The reveal has been shown.");
 
@@ -411,7 +413,23 @@ describe("Tutor Turn", () => {
 
         expect(requests[0].tools).toContainEqual({ name: "record_check_verdict" });
         expect(String(toolResults(requests.at(-1)!).at(-1)!.content)).toContain("Teaching Step: reveal");
-        expect(await workspaceSummary(db, map)).toContain("Teaching Step: reveal");
+        expect(await learnerSummary(db, map)).toContain("Teaching Step: reveal");
+      });
+
+      it("rejects a verdict in the turn that reached the Check step, so the Learner answers the prompt before a pass can be recorded", async () => {
+        const db = await testDb();
+        for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step);
+        const { client, requests } = scriptedClient([
+          { content: [finish("your_turn")] },
+          { content: [verdict({ check_id: checkId, verdict: "pass", reasons: "Too soon." })] },
+          { content: [{ type: "text", text: "Here is the Check." }] },
+        ]);
+        await collect(runTutorTurn({ db, client, map }, "My working is done."));
+        const result = toolResults(requests.at(-1)!).at(-1)!;
+        expect(result).toMatchObject({ is_error: true });
+        expect(String(result.content)).toContain("has not answered the Check prompt");
+        expect(await loadCheckResults(db)).toHaveLength(0);
+        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
       });
 
       it("code rejects a verdict for any other Check with a tool error, and saves nothing", async () => {
@@ -436,7 +454,7 @@ describe("Tutor Turn", () => {
           content: `Error: Check "some-other-check" is not the current Check; the current Check is "${checkId}".`,
         });
         expect(await loadCheckResults(db)).toEqual([]);
-        expect(await workspaceSummary(db, map)).toContain("Teaching Step: check");
+        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
       });
 
       it("a Learner who doesn't pass stays at the Check, and evidence and the teaching model are saved", async () => {
@@ -449,7 +467,7 @@ describe("Tutor Turn", () => {
         await collect(runTutorTurn({ db, client, map }, { continue: true }));
 
         expect(String(toolResults(requests.at(-1)!).at(-1)!.content)).toContain("not yet");
-        expect(await workspaceSummary(db, map)).toContain("Teaching Step: check");
+        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
         expect(await loadCheckResults(db)).toEqual([
           expect.objectContaining({
             checkId,
@@ -479,7 +497,7 @@ describe("Tutor Turn", () => {
         expect(second.at(-1)).toMatchObject({ role: "system" });
         expect(String(second.at(-1)!.content)).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
         expect(String(second.at(-1)!.content)).toContain("Teaching Step: check");
-        expect(await workspaceSummary(db, map)).toContain("Teaching Step: check");
+        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
 
         // The next turn recorded a verdict (not yet), so the turn after gets no such note.
         await collect(runTutorTurn({ db, client, map }, "Interest compounds."));
@@ -690,6 +708,31 @@ describe("Tutor Turn", () => {
       expect(note).toContain("Teaching Step: concept");
     });
 
+    it("a step reached by a quiz pass cannot be finished in the turn that first teaches it", async () => {
+      const db = await testDb();
+      await advanceToCheck(db, real);
+      const { client, requests } = scriptedClient([
+        text("Your quiz is below."),
+        finish("concept"),
+        text("Here is the next idea."),
+        { content: [{ type: "tool_use", id: "toolu_concept_later", name: "finish_teaching_step", input: { step: "concept" } }] },
+        text("Your turn."),
+      ]);
+      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      const quiz = (await openQuiz(db, real))!;
+      await submitQuiz(db, real, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, real.question(q.id)!.answer])));
+
+      await collect(runTutorTurn({ db, client, map: real }, "Done."));
+      const rejected = requests.at(-1)!.messages.at(-1)!.content as { type: string; is_error?: boolean; content?: unknown }[];
+      expect(rejected[0]).toMatchObject({ type: "tool_result", is_error: true });
+      expect(String(rejected[0].content)).toContain("began during this turn");
+      expect(await learnerSummary(db, real)).toContain("Teaching Step: concept");
+
+      // Once the Learner has answered that teaching, the next turn may finish it.
+      await collect(runTutorTurn({ db, client, map: real }, "I follow."));
+      expect(await learnerSummary(db, real)).toContain("Teaching Step: your turn");
+    });
+
     it("tells the Tutor about a miss, even though the Learner's place did not change, and only once", async () => {
       const db = await testDb();
       await advanceToCheck(db, real);
@@ -772,7 +815,7 @@ describe("surviving cut-offs and failures", () => {
     const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
     expect(events.at(-1)).toEqual({ type: "cut_off" });
     expect(await latestTurn(db)).toMatchObject({ status: "cut_off" });
-    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
 
     const resume = scriptedClient([{ content: [text("Now the concept.")] }]);
     const resumed = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
@@ -783,7 +826,7 @@ describe("surviving cut-offs and failures", () => {
     expect(results).toHaveLength(1);
     expect(results[0]).not.toHaveProperty("is_error");
     expect(String(results[0].content)).toContain("Teaching Step: concept");
-    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
     expect(await latestTurn(db)).toMatchObject({ status: "finished" });
     // The Learner's message is stored once, and the unsaved step's text never was.
     expect(noUsage(await loadCurrentSession(db))).toEqual([
@@ -853,7 +896,7 @@ describe("surviving cut-offs and failures", () => {
     expect(sent.findIndex((m) => m.role === "user" && m.content === "Hello?")).toBeGreaterThan(
       sent.findIndex((m) => JSON.stringify(m.content).includes('"tool_result"')),
     );
-    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
   });
 
   it("a turn left running by a killed function no longer blocks the next send", async () => {
@@ -873,7 +916,7 @@ describe("surviving cut-offs and failures", () => {
     const events = await collect(runTutorTurn({ db, client, map }, { continue: true }));
     expect(events).toContainEqual({ type: "cut_short", message: expect.stringMatching(/cut short/i) });
     expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "max_tokens" });
-    expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
 
     await collect(runTutorTurn({ db, client, map }, { continue: true }));
     const sent = requests[1].messages;
@@ -890,8 +933,8 @@ describe("surviving cut-offs and failures", () => {
     ]);
     await collect(runTutorTurn({ db, client, map }, "Hi"));
     const events = await collect(runTutorTurn({ db, client, map }, "Something declined"));
-    expect(events).toContainEqual({ type: "refusal", message: expect.stringMatching(/declined/i) });
-    expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
+    expect(events).toContainEqual({ type: "refusal", message: expect.stringMatching(/Nothing was changed/), text: "" });
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
     // The partial reply is never stored.
     expect(noUsage(await loadCurrentSession(db)).map((l) => l.text)).not.toContain("I can help with tha");
 
@@ -900,6 +943,39 @@ describe("surviving cut-offs and failures", () => {
     expect(await listSessions(db)).toHaveLength(2);
     expect(requests.at(-1)!.messages).toHaveLength(1);
     expect(String(JSON.stringify(requests.at(-1)!.messages))).not.toContain("Something declined");
+  });
+
+  it("refusal after earlier loop steps saved progress: the Learner is told it was kept, and the saved reply text stays on screen", async () => {
+    const db = await testDb();
+    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    const { client } = scriptedClient([
+      { content: [text("Story done."), finish("story")] },
+      { content: [text("I can help with tha")], stop_reason: "refusal" },
+    ]);
+    const events = await collect(runTutorTurn({ db, client, map }, "Go on"));
+    const refusal = events.find((e) => e.type === "refusal");
+    expect(refusal).toEqual({ type: "refusal", message: expect.stringMatching(/kept/), text: "Story done." });
+    expect(refusal && "message" in refusal ? refusal.message : "").not.toContain("Nothing was changed");
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+  });
+
+  it("a turn that fails before the Learner's message is stored can be retried, and the retry sends that message", async () => {
+    const db = await testDb();
+    await db.execute(sql`CREATE FUNCTION refuse_start() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'connection lost'; END $$ LANGUAGE plpgsql`);
+    await db.execute(sql`CREATE TRIGGER refuse_start BEFORE INSERT ON topic_progress FOR EACH ROW EXECUTE FUNCTION refuse_start()`);
+    const { client, requests } = scriptedClient([{ content: [text("Picture October 2018.")] }]);
+    const failed = await collect(runTutorTurn({ db, client, map }, "Why discount?"));
+    expect(failed.at(-1)).toMatchObject({ type: "error" });
+    expect(await latestTurn(db)).toMatchObject({ status: "failed", sessionId: null });
+    await db.execute(sql`DROP TRIGGER refuse_start ON topic_progress`);
+
+    const retried = await collect(runTutorTurn({ db, client, map }, { resume: true }));
+    expect(retried.at(-1)).toMatchObject({ type: "done" });
+    expect(JSON.stringify(requests.at(-1)!.messages[0].content)).toContain("Why discount?");
+    expect(noUsage(await loadCurrentSession(db))).toEqual([
+      { role: "user", text: "Why discount?" },
+      { role: "assistant", text: "Picture October 2018." },
+    ]);
   });
 
   it("an API error or exhausted credits shows the reason and a retry, keeps everything saved, and Retry doesn't repeat the Learner's message", async () => {
@@ -940,7 +1016,7 @@ describe("surviving cut-offs and failures", () => {
     expect(events).toContainEqual({ type: "save_failed", message: expect.stringMatching(/could not be saved/i) });
     expect(resultsIn(requests[1])[0]).toMatchObject({ is_error: true, content: expect.stringMatching(/Nothing was recorded/) });
     await db.execute(sql`DROP TRIGGER refuse_progress ON topic_progress`);
-    expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
   });
 
   it("a changed fingerprint of instructions and tools starts a new Session from SQL, and the workspace is told", async () => {
@@ -1005,6 +1081,6 @@ describe("surviving cut-offs and failures", () => {
     const results = resultsIn(requests.at(-1)!);
     expect(results.map((r) => r.is_error ?? false)).toEqual([false, false]);
     expect(results[1].content).toEqual(results[0].content);
-    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
   });
 });

@@ -48,15 +48,24 @@ function isPassed(progress: Progress, topicId: string) {
   return progress.topics[topicId]?.status === "passed";
 }
 
-/** The current Topic: the chosen one if still open, otherwise the first unpassed Topic on the default path. */
+/** Required Checks added to a passed Topic since it was passed. */
+function dueIn(topic: Topic, record: TopicProgress | undefined): Check[] {
+  return record?.status === "passed" ? topic.checks.filter((c) => c.required && !record.passedChecks.includes(c.id)) : [];
+}
+
+/**
+ * The current Topic: the chosen one if still open. Otherwise a passed Topic with a due Check, so
+ * the Learner takes it before starting anything new; otherwise the first unpassed Topic on the default path.
+ */
 function currentTopic(map: CourseMap, progress: Progress): Topic | undefined {
   const chosen = progress.currentTopicId ? map.topic(progress.currentTopicId) : undefined;
   if (chosen && !isPassed(progress, chosen.id)) return chosen;
-  return map.topics.find((t) => !isPassed(progress, t.id));
+  return map.topics.find((t) => dueIn(t, progress.topics[t.id]).length) ?? map.topics.find((t) => !isPassed(progress, t.id));
 }
 
-/** The first Check in the Topic's current order with no pass. */
+/** The first Check in the Topic's current order with no pass; in a passed Topic, the first due Check. */
 function firstUnpassed(topic: Topic, record: TopicProgress): Check | undefined {
+  if (record.status === "passed") return dueIn(topic, record)[0];
   return topic.checks.find((c) => !record.passedChecks.includes(c.id));
 }
 
@@ -64,7 +73,9 @@ function placeIn(topic: Topic, record: TopicProgress | undefined) {
   const r = record ?? FRESH;
   const check = firstUnpassed(topic, r);
   let step = r.step;
-  if (PER_CHECK.includes(step) && !check) step = "reveal";
+  // A passed Topic is reopened only for a due Check: its concept, your-turn and Check steps, nothing else.
+  if (r.status === "passed" && check && !PER_CHECK.includes(step)) step = "concept";
+  if (PER_CHECK.includes(step) && !check) step = r.status === "passed" ? "principle" : "reveal";
   return { record: r, step, check: PER_CHECK.includes(step) ? (check ?? null) : null };
 }
 
@@ -86,9 +97,7 @@ export function navigate(map: CourseMap, progress: Progress): Place | null {
     next: nextStep(step),
     unmetPrerequisites: topic.prerequisites.filter((p) => !isPassed(progress, p)),
     revealShown: (record?.revealShown ?? false) || step === "reveal",
-    dueChecks: map.topics.flatMap((t) =>
-      isPassed(progress, t.id) ? t.checks.filter((c) => c.required && !progress.topics[t.id].passedChecks.includes(c.id)) : [],
-    ),
+    dueChecks: map.topics.flatMap((t) => dueIn(t, progress.topics[t.id])),
   };
 }
 
@@ -103,9 +112,10 @@ function save(progress: Progress, topic: Topic, record: TopicProgress): Progress
 export function finishStep(map: CourseMap, progress: Progress, reported: TeachingStep): Move {
   const topic = currentTopic(map, progress);
   if (!topic) return { ok: false, reason: "Every Topic on the Course Map is passed." };
-  const { record, step } = placeIn(topic, progress.topics[topic.id]);
+  const { record, step, check } = placeIn(topic, progress.topics[topic.id]);
   if (reported !== step) return { ok: false, reason: `Cannot finish "${reported}": the current Teaching Step is "${step}".` };
   if (step === "check") return { ok: false, reason: "Only a saved Check result moves past a Check step." };
+  if (record.status === "passed" && !check) return { ok: false, reason: "This Topic is passed; there is no step to finish." };
   if (step === "principle") return { ok: true, progress: save(progress, topic, { ...record, status: "passed" }) };
   const following = nextStep(step) as TeachingStep;
   return { ok: true, progress: save(progress, topic, { ...record, step: following, revealShown: record.revealShown || following === "reveal" }) };
@@ -120,6 +130,11 @@ export function recordCheckResult(map: CourseMap, progress: Progress, checkId: s
   if (check.id !== checkId) return { ok: false, reason: `Check "${checkId}" is not the current Check; the current Check is "${check.id}".` };
   if (!passed) return { ok: true, progress };
   const passedChecks = [...record.passedChecks, checkId];
+  if (record.status === "passed") {
+    // A due Check in a passed Topic: once none is left, the Topic is as it was (passed), and the path goes on.
+    const more = dueIn(topic, { ...record, passedChecks }).length > 0;
+    return { ok: true, progress: save(progress, topic, { ...record, passedChecks, step: more ? "concept" : "principle" }) };
+  }
   const more = topic.checks.some((c) => !passedChecks.includes(c.id));
   return {
     ok: true,
