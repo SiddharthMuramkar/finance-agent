@@ -11,6 +11,7 @@ import type { QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { describeFailure, type FailureKind } from "./failures";
+import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
 import {
   currentSession,
@@ -128,7 +129,9 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 }
 
 /** A new message, the Continue button, or a resume of the last turn after a cut-off or failure (Retry). */
-export type TurnInput = string | { continue: true } | { resume: true };
+export type TurnInput = string | { continue: true } | { resume: true } | PastedInput;
+/** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
+export type PastedInput = { message: string; paste: string };
 /** What the Learner's "Continue" button sends. */
 export const CONTINUE_TEXT = "Continue.";
 
@@ -173,12 +176,14 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   const now = deps.now ?? (() => new Date());
   const deadline = performance.now() + (deps.timeBudgetMs ?? TIME_BUDGET_MS);
   const resuming = typeof input === "object" && "resume" in input;
-  const claim = resuming ? await resumeTurn(db, now()) : { turn: await startTurn(db, now(), typeof input === "string" ? input : CONTINUE_TEXT), alreadyFinished: false };
+  const claim = resuming ? await resumeTurn(db, now()) : { turn: await startTurn(db, now(), learnerTextOf(input)), alreadyFinished: false };
   if (!claim.turn) {
     yield { type: "busy", message: BUSY_MESSAGE };
     return;
   }
   const turn = claim.turn;
+  // Saved with the turn before anything else, so a retry still has it.
+  if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now());
   if (claim.alreadyFinished) {
     // It finished after the browser lost the stream: show the saved reply.
     yield* finishedTurnReplay(db, turn);
@@ -244,7 +249,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   } else {
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
     // that turn is run again from the message saved on it.
-    const learnerText = typeof input === "string" ? input : "continue" in input ? CONTINUE_TEXT : (turn.input ?? CONTINUE_TEXT);
+    const learnerText = typeof input === "object" && "resume" in input ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
     // Saved before the Topic starts, so a retry after a failure in between still knows.
     if (navigate(map, await loadProgress(db))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
@@ -258,14 +263,18 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const continuing = "session" in found ? found.session : undefined;
     // The last turn may have been in the previous Session.
     const lastTurn = continuing ? await history(db, continuing.id) : previous ? await history(db, previous.id) : [];
+    session = continuing ?? (await startSession(db, now()));
+    // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
+    const paste = await pasteForTurn(db, turn.id, session.id);
+    const pastes = await pasteSummary(db, session.id);
     const caseData = await caseDataFor(db, map, place);
-    const plainContext = stepContext(place, caseData);
+    const plainContext = stepContext(place, caseData, pastes);
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
-        ? noVerdictContext({ ...place, check: place.check }, caseData)
+        ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
         : plainContext;
     const context = jumped ? `${JUMP_NOTE}\n${stepped}` : stepped;
-    session = continuing ?? (await startSession(db, now()));
+    const learnerBlocks = [{ type: "text" as const, text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     if ("reason" in found && found.reason !== "first") yield { type: "session", reason: found.reason };
     log = await openLog(db, session.id, now);
     code = toolCode(db, map, now, session.model, effects, turn.id, deps.embedQuery);
@@ -282,13 +291,14 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
       const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${quiz ? `${quiz.text}\n\n` : ""}${context}`;
-      await log.append({ role: "user", content: [{ type: "text", text: opening }, { type: "text", text: learnerText }] });
+      await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {
       // The API accepts a system message only right after a user message (live 400 otherwise),
       // so changed context follows the Learner's message.
       // A quiz result goes in the same system message as the context, which then always follows it.
       const contextChanged = quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
-      await log.append({ role: "user", content: learnerText });
+      // Pasted text goes in the Learner's own message, as a marked block after what they typed.
+      await log.append({ role: "user", content: paste ? learnerBlocks : learnerText });
       if (contextChanged) await log.append({ role: "system", content: quiz ? `${quiz.text}\n\n${context}` : context });
     }
     if (quiz) await markQuizReported(db, quiz.attemptIds, now());
@@ -415,6 +425,12 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   }
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
   return { type: "done", stopReason, usage };
+}
+
+/** What the Learner sent, as saved on the turn: their message, or "Continue.". */
+function learnerTextOf(input: Exclude<TurnInput, { resume: true }>): string {
+  if (typeof input === "string") return input;
+  return "paste" in input ? input.message : CONTINUE_TEXT;
 }
 
 /** How big the conversation was on the last request, which the next request repeats and adds to. */

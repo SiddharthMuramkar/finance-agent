@@ -3,6 +3,7 @@ import { messages, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { OPENING_PREFIX } from "./context";
+import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentSession, type Message, type Row } from "./session-log";
 import { loadTurnUsages, type TurnUsage } from "./usage";
 
@@ -79,6 +80,6 @@ export function textOf(content: unknown): string {
   if (!Array.isArray(content)) return "";
   return content
     .filter((b): b is { type: "text"; text: string } => b?.type === "text" && !b.text.startsWith(OPENING_PREFIX))
-    .map((b) => b.text)
+    .map((b) => (b.text.startsWith(PASTE_PREFIX) ? `${PARAGRAPH}${pasteLabel(b.text)}` : b.text))
     .join("");
 }

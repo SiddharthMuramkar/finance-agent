@@ -112,7 +112,7 @@ const convertMessage = (m: Message): ThreadMessageLike => ({ id: m.id, role: m.r
  */
 /** The latest turn's saved status, as the page found it. */
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
-type Body = { message: string } | { continue: true } | { resume: true };
+type Body = { message: string; paste?: string } | { continue: true } | { resume: true };
 
 const NOTICES: Record<string, string> = {
   updated: "The Tutor was updated, so this is a new Session, started from your saved progress.",
@@ -311,7 +311,8 @@ export function Conversation({ initial, summary, quiz, pending, review }: { init
                   )}
                 </div>
               )}
-              <ComposerPrimitive.Root className="sticky bottom-0 mt-6 flex gap-2 bg-stone-50 py-3 dark:bg-stone-950">
+              <PastePanel disabled={running} onSend={(message, paste) => void send({ message, paste }, `${message}\n\n${pastePreview(paste)}`)} />
+              <ComposerPrimitive.Root className="sticky bottom-0 mt-2 flex gap-2 bg-stone-50 py-3 dark:bg-stone-950">
                 <ComposerPrimitive.Input
                   placeholder="Ask the Tutor"
                   aria-label="Message"
@@ -336,5 +337,56 @@ export function Conversation({ initial, summary, quiz, pending, review }: { init
         </div>
       </LayoutContext.Provider>
     </AssistantRuntimeProvider>
+  );
+}
+
+/** How a paste shows in the thread: a short label, as the saved transcript shows it. */
+function pastePreview(paste: string): string {
+  const words = paste.split(/\s+/).filter(Boolean);
+  return `(Pasted passage, ${words.length} words: "${words.slice(0, 6).join(" ")} …")`;
+}
+
+/**
+ * Pasting the part of a piece being studied (for example a Zitron article read on his own site).
+ * The text is saved privately with this Session and given to the Tutor with the message; it is
+ * never added to the Library.
+ */
+function PastePanel({ disabled, onSend }: { disabled: boolean; onSend: (message: string, paste: string) => void }) {
+  const [paste, setPaste] = useState("");
+  const [note, setNote] = useState("");
+  const [open, setOpen] = useState(false);
+  return (
+    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="mt-6 rounded border border-stone-300 p-3 text-sm dark:border-stone-700" data-testid="paste-panel">
+      <summary className="cursor-pointer select-none">Paste a passage</summary>
+      <p className="mt-2 text-xs text-stone-600 dark:text-stone-400">
+        Paste the part of the piece you are studying. It is kept privately with this Session and is never added to the Library. The Tutor works only from what you paste.
+      </p>
+      <textarea
+        value={paste}
+        onChange={(e) => setPaste(e.target.value)}
+        aria-label="Passage to paste"
+        rows={6}
+        className="mt-2 w-full rounded border border-stone-300 bg-white px-3 py-2 dark:border-stone-700 dark:bg-stone-900"
+      />
+      <input
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        aria-label="Message with the passage"
+        placeholder="Optional: what you want to ask about it"
+        className="mt-2 w-full rounded border border-stone-300 bg-white px-3 py-2 dark:border-stone-700 dark:bg-stone-900"
+      />
+      <button
+        disabled={disabled || !paste.trim()}
+        onClick={() => {
+          onSend(note.trim() || "Here is the passage we are studying.", paste.trim());
+          setPaste("");
+          setNote("");
+          setOpen(false);
+        }}
+        className="mt-2 min-h-11 rounded bg-stone-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900"
+      >
+        Send passage
+      </button>
+    </details>
   );
 }

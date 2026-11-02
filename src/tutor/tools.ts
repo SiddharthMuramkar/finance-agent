@@ -11,6 +11,7 @@ import type { Db } from "@/db/types";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { searchLibrary, searchResultText, type QueryEmbedder } from "@/library/library";
 import { stepContext } from "./context";
+import { pasteSummary } from "./pasted";
 import type { ToolDefinition } from "./instructions";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
@@ -37,8 +38,9 @@ export const VERDICT_PACING_REJECTION =
 export const SAVE_FAILED_MESSAGE = "Your progress could not be saved just now. The Tutor has been told nothing was recorded.";
 
 /** The Course Navigator's context for a place, with the Case Data the as-of rule allows right now. */
-export async function navigatorContext(db: Db, map: CourseMap, place: Place | null): Promise<string> {
-  return stepContext(place, await caseDataFor(db, map, place));
+export async function navigatorContext(db: Db, map: CourseMap, place: Place | null, turnId?: number): Promise<string> {
+  const sessionId = turnId === undefined ? null : (await db.select({ s: turns.sessionId }).from(turns).where(eq(turns.id, turnId)))[0]?.s;
+  return stepContext(place, await caseDataFor(db, map, place), await pasteSummary(db, sessionId));
 }
 
 export async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
@@ -150,7 +152,7 @@ export function toolCode(
           const recorded = passed
             ? `Recorded by code: pass for Check ${check_id}.`
             : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
-          return { ok: true, began: passed, text: `${recorded}\n\n${await navigatorContext(tx, map, place)}` };
+          return { ok: true, began: passed, text: `${recorded}\n\n${await navigatorContext(tx, map, place, turnId)}` };
         }),
     },
     finish_teaching_step: {
@@ -160,7 +162,7 @@ export function toolCode(
           if (await stepBeganThisTurn(tx)) return { ok: false, text: PACING_REJECTION };
           const move = await saveFinishedStep(tx, map, step, now());
           if (!move.ok) return { ok: false, text: move.reason };
-          return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now())) };
+          return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now()), turnId) };
         }),
     },
   };

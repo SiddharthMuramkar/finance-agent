@@ -42,6 +42,25 @@ const quizCheck = z.object({
   passRule: z.object({ correct: z.number().int().min(1) }),
 });
 
+/**
+ * A dated piece by a writer (an essay or blog post) that a Follow, Judge or Analyse Case studies:
+ * the story is the piece as published, and the reveal is what happened afterwards. `from` says
+ * where the Tutor gets its text: the Library (searched with `librarySource` as the source filter,
+ * quoted only in short passages with credit) or the Learner's paste, which is never stored in the
+ * Library or the repo.
+ */
+const pieceSchema = z.object({
+  author: z.string().min(1),
+  title: z.string().min(1),
+  published: z.iso.date(),
+  url: z.url(),
+  from: z.enum(["library", "paste"]),
+  /** The search_library source filter that finds the piece, e.g. "Damodaran". Library pieces only. */
+  librarySource: z.string().min(1).optional(),
+});
+
+export type Piece = z.infer<typeof pieceSchema>;
+
 const caseSchema = z.object({
   id,
   title: z.string().min(1),
@@ -52,6 +71,8 @@ const caseSchema = z.object({
   story: z.string().min(1),
   /** Withheld from the Tutor until the reveal Teaching Step. */
   reveal: z.string().min(1),
+  /** The dated piece this Case studies, if it is a writer's piece. */
+  piece: pieceSchema.optional(),
 });
 
 export { STAGES };
@@ -112,6 +133,11 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
         errors.push(...result.error.issues.map((i) => `${file.name}: ${i.path.join(".") || "(file)"}: ${i.message}`));
         continue;
       }
+      const pieceErrors = result.data.cases.flatMap(pieceProblems);
+      if (pieceErrors.length) {
+        errors.push(...pieceErrors.map((e) => `${file.name}: ${e}`));
+        continue;
+      }
       const resolved = resolveTopic(result.data, outline);
       if (typeof resolved === "string") errors.push(`${file.name}: ${resolved}`);
       else topics.push(resolved);
@@ -159,6 +185,16 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
       coming: outline ? outline.topics.filter((t) => !byId.has(t.id)) : [],
     },
   };
+}
+
+function pieceProblems(c: z.infer<typeof caseSchema>): string[] {
+  const p = c.piece;
+  if (!p) return [];
+  const problems: string[] = [];
+  if (p.published > c.asOf) problems.push(`Case "${c.id}" studies a piece published ${p.published}, after its as-of date ${c.asOf}`);
+  if (p.from === "library" && !p.librarySource) problems.push(`Case "${c.id}" reads its piece from the Library, so it needs librarySource`);
+  if (p.from === "paste" && p.librarySource) problems.push(`Case "${c.id}" has a pasted piece, which is never in the Library, so it cannot name a librarySource`);
+  return problems;
 }
 
 /** Fills in Stage, place and prerequisites. Returns a problem message when the file and outline disagree. */

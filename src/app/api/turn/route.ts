@@ -1,6 +1,7 @@
 import { getDb } from "@/db/client";
 import { voyageQueryEmbedder } from "@/library/voyage";
 import { anthropicTutorClient } from "@/tutor/anthropic";
+import { MAX_PASTE_WORDS, PASTE_MESSAGE, wordCount } from "@/tutor/pasted";
 import { runTutorTurn, type TurnInput } from "@/tutor/turn";
 
 export const runtime = "nodejs";
@@ -13,8 +14,11 @@ export const maxDuration = 300;
  * newline-delimited JSON. A send while another turn runs gets a 409.
  */
 export async function POST(request: Request) {
-  const body = (await request.json()) as { message?: string; continue?: boolean; resume?: boolean };
-  const input: TurnInput | undefined = body.resume ? { resume: true } : body.continue ? { continue: true } : body.message?.trim() || undefined;
+  const body = (await request.json()) as { message?: string; paste?: string; continue?: boolean; resume?: boolean };
+  const paste = body.paste?.trim();
+  if (paste && wordCount(paste) > MAX_PASTE_WORDS) return Response.json({ error: `A paste can hold at most ${MAX_PASTE_WORDS} words; paste the part being studied.` }, { status: 400 });
+  const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);
+  const input: TurnInput | undefined = body.resume ? { resume: true } : body.continue ? { continue: true } : message && paste ? { message, paste } : message;
   if (!input) return Response.json({ error: "Empty message" }, { status: 400 });
 
   const started = Date.now();
