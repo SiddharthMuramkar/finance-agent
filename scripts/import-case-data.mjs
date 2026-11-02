@@ -8,14 +8,17 @@ import { readFileSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { importCaseData } from "../src/case-data/import.ts";
-import { parseCourseMap, readTopicFiles } from "../src/course/map.ts";
+import { parseCourseMap, readOutlineText, readTopicFiles } from "../src/course/map.ts";
+import { parseOutline } from "../src/course/outline.ts";
 
 const files = process.argv.slice(2);
 if (!files.length) {
   console.error("Give one or more Case Data JSON files.");
   process.exit(1);
 }
-const { map, errors } = parseCourseMap(readTopicFiles());
+const planned = parseOutline(readOutlineText());
+if (!planned.outline) throw new Error(`Course Map outline is invalid:\n${planned.errors.join("\n")}`);
+const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
 if (!map) throw new Error(`Course Map is invalid:\n${errors.join("\n")}`);
 const caseIds = new Set(map.topics.flatMap((t) => t.cases.map((c) => c.id)));
 

@@ -1,0 +1,129 @@
+# Probability and expected value: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: num-probability
+title: Probability and expected value
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: ltcm-1998
+    title: Long-Term Capital Management, before the loss
+    data: [debt-per-dollar-of-capital, august-1998-loss, rescue-capital]
+    asOf: 1998-08-01
+    story: >
+      Long-Term Capital Management (LTCM) is a hedge fund founded in February
+      1994 by John Meriwether, a former vice chairman of the bond firm Salomon Brothers. It
+      looks for small, temporary price differences between similar securities and bets that they
+      will close. Each trade earns little, so to earn high returns on its capital the fund
+      borrows heavily. At the end of 1997 it returned some capital to its investors without
+      shrinking its positions, so it now holds about 30 dollars of debt for every dollar of its
+      own capital. As of 1 August
+      1998 the question for an analyst is what the fund's pile of small, likely gains is worth
+      once you also count the unlikely, large loss, and what 30 to 1 borrowing does to that loss.
+    reveal: >
+      LTCM lost 44 per cent of its value in August 1998 alone,. In September, with the fund close to collapse,
+      fourteen banks and brokerage firms put in 3.625 billion dollars for 90 per cent of its
+      ownership, an arrangement the Federal Reserve facilitated (it lent none of its own money). The original partners and investors were left with 10 per
+      cent. The fund's trades had positive expected value; with 30 dollars of debt per dollar
+      of capital, a fall in the value of its assets of only about 3 per cent was enough to wipe
+      out all of its capital, so it could not wait for the average to arrive.
+
+concept: >
+  A probability is a number from 0 to 1 for how likely an event is. The probability that an
+  event does not happen is 1 minus the probability that it does. For independent events, the
+  probability that all happen is the product of their probabilities, and the probability that
+  at least one happens is 1 - (1 - p)^n. The expected value of an uncertain outcome is the sum
+  of each outcome times its probability. Expected value is a long-run average, not a forecast:
+  it says nothing about the spread of outcomes, and a loss that wipes you out cannot be averaged
+  away. Borrowing makes this worse. With D of debt per 1 of capital, assets are 1 + D, so a fall
+  of 1 / (1 + D) in the value of assets destroys the capital.
+
+principle: >
+  A positive expected value is not the same as safe. Ask what the worst plausible outcome
+  does to the survivor, and how much borrowing sits underneath it, before trusting an average.
+
+questions:
+  - id: pr-q-expected-value
+    prompt: >
+      A bet pays Rs 300 with probability 0.4 and loses Rs 100 with probability 0.6. What is its expected value?
+    choices:
+      - { id: a, text: "Rs +60" }
+      - { id: b, text: "Rs +100" }
+      - { id: c, text: "Rs +200" }
+      - { id: d, text: "Rs -60" }
+    answer: a
+    explanation: >
+      0.4 x 300 + 0.6 x (-100) = 120 - 60 = Rs +60. It is positive, but 60% of the time you lose.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 13.5 Probability Distributions, calculating expected values: https://openstax.org/books/principles-finance-2e/pages/13-5-probability-distributions
+
+  - id: pr-q-at-least-once
+    prompt: >
+      Each of ten independent trades has a 5% chance of a large loss. What is the chance that at least one of the ten has a large loss?
+    choices:
+      - { id: a, text: "5%" }
+      - { id: b, text: "About 40%" }
+      - { id: c, text: "50%" }
+      - { id: d, text: "95%" }
+    answer: b
+    explanation: >
+      P(no large loss in any trade) = 0.95^10 = 0.60, so P(at least one) = 1 - 0.60 = about 0.40. Small risks add up when you take many of them.
+    source: >
+      CFA Institute, Probability Trees and Conditional Expectations (refresher reading, 2026): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/probability-trees-and-conditional-expectations ; the complement rule is the same one used in the Question Bank item MBA-STAT-0006.
+
+  - id: pr-q-leverage-wipeout
+    prompt: >
+      A fund holds 30 dollars of debt for every 1 dollar of its own capital, so its assets are 31 dollars per 1 dollar of capital. About how far must the value of its assets fall to wipe out its capital?
+    choices:
+      - { id: a, text: "About 30%" }
+      - { id: b, text: "About 10%" }
+      - { id: c, text: "About 3%" }
+      - { id: d, text: "About 0.3%" }
+    answer: c
+    explanation: >
+      Capital is 1 of 31 in assets. A fall of 1 / 31 = 3.2% in the assets' value removes that dollar, and the debt must still be repaid in full.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management (about 30 dollars of debt for every dollar of capital at the end of 1997): https://www.federalreservehistory.org/essays/ltcm-near-failure ; the 1/31 is own arithmetic.
+
+  - id: pr-q-lose-everything
+    prompt: >
+      A strategy earns a small gain 95 times out of 100 and loses all of its capital the other 5 times. Why is its average gain per trade a poor guide to whether you should use it with all your money?
+    choices:
+      - { id: a, text: "Because a total loss ends the game: you cannot earn the later gains the average assumes" }
+      - { id: b, text: "Because averages are always wrong" }
+      - { id: c, text: "Because 95% is not a high enough probability to count" }
+      - { id: d, text: "Because gains and losses cannot be multiplied by probabilities" }
+    answer: a
+    explanation: >
+      Expected value is a long-run average over many repeats. If one outcome wipes out your capital, you cannot repeat the bet afterwards, so the average is never collected.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure ; OpenStax, Principles of Finance, 13.5 Probability Distributions: https://openstax.org/books/principles-finance-2e/pages/13-5-probability-distributions
+
+checks:
+  - id: pr-quiz-expected-value
+    kind: quiz
+    questions:
+      - pr-q-expected-value
+      - pr-q-at-least-once
+      - pr-q-leverage-wipeout
+      - pr-q-lose-everything
+      - bank:eab:MBA-STAT-0005
+      - bank:eab:MBA-STAT-0006
+      - bank:eab:MBA-STAT-0042
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: pr-ltcm-ev
+    kind: conversation
+    prompt: >
+      As of 1 August 1998, LTCM's trades have a positive expected profit and a long record of
+      small gains, and it holds about 30 dollars of debt per dollar of capital. Explain why that
+      positive expected value does not by itself make the fund safe, using probability and
+      leverage in your answer. What would you want to know about its losses before trusting it?
+    passCriteria: >
+      The Learner explains that expected value is a probability-weighted long-run average that
+      hides the size of the rare bad outcome, and that a loss big enough to wipe out the capital
+      ends the game so the average is never collected. They use leverage: with about 30 to 1
+      debt a fall in asset values of only about 3% (1/31) removes all of the fund's capital.
+      They say they would want to know how large and how likely the bad outcomes are, how
+      correlated the trades are (the small risks may not be independent), and how much
+      borrowing sits behind them. They do not need to cite the fund's actual outcome.

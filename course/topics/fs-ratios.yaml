@@ -1,0 +1,164 @@
+# Ratios, return on equity and DuPont: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: fs-ratios
+title: Ratios, return on equity and DuPont
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: coffee-day-2015
+    title: Coffee Day Enterprises at its IPO
+    data: [fy15-revenue, fy15-net-result, net-worth-jun15, total-debt-jun15, ipo-and-listing-price]
+    asOf: 2015-10-13
+    story: >
+      Coffee Day Enterprises runs Cafe Coffee Day, India's largest coffee chain, with more than
+      1,500 cafes. It also owns about 16 per cent of the software company Mindtree and about 53
+      per cent of Sical Logistics. On 14 October 2015 it opens an initial public offering (IPO,
+      the first sale of its shares to the public) to raise up to Rs 1,150 crore, at a price
+      between Rs 316 and Rs 328 a share, which would value the company at up to Rs 6,750 crore
+      (about 1 billion dollars). In the 2014-15 financial year it reported consolidated revenue
+      of Rs 2,549 crore, a loss before tax of Rs 147 crore, and a net loss of Rs 87 crore. At 30
+      June 2015, according to one analyst reading the prospectus, its net worth (the owners'
+      equity) was Rs 456 crore, against total debt of Rs 4,475 crore and cash of Rs 893 crore.
+      About Rs 633 crore of the money raised is meant to repay debt. As of this date, you are
+      deciding what the ratios say about the return the owners earn and how much of it is built on
+      borrowing.
+    reveal: >
+      The IPO was priced at Rs 328, the top of the range, on 21 October 2015, and subscribed 1.64
+      times. On listing on 2 November 2015 the shares opened at Rs 313 on the BSE, below the issue
+      price, and closed at Rs 270.15, 17.63 per cent below it. Buyers had paid up for a business
+      that earned a net loss on a thin base of equity and a large load of debt. In July 2019 the
+      founder, V. G. Siddhartha, died; a letter attributed to him cited pressure from lenders and a
+      liquidity crunch, and the shares fell by the daily limit of 20 per cent on 31 July 2019. The
+      ratios in 2015 had shown the combination (a net loss, low equity, high debt) that makes a
+      company fragile.
+
+concept: >
+  Return on equity (ROE) is net income divided by equity: the profit earned for each unit the
+  owners have put in. The DuPont method splits it into three parts that multiply:
+  ROE = net profit margin x asset turnover x equity multiplier. Net profit margin is net income
+  divided by sales (how much of each sale is kept). Asset turnover is sales divided by total
+  assets (how hard the assets work). The equity multiplier is total assets divided by equity
+  (how much borrowing sits under the owners' money); it equals 1 plus liabilities divided by
+  equity. Two companies with the same ROE can have very different risk: one from high margins,
+  the other from high leverage. Leverage multiplies a loss as well as a profit.
+
+principle: >
+  Before trusting a return on equity, break it into margin, turnover and leverage. High ROE
+  built mainly on a high equity multiplier is borrowed, and the same leverage turns a small loss
+  into a large negative return on thin equity.
+
+questions:
+  - id: fr-q-roe
+    prompt: >
+      A company earns a net income of 90 on equity of 600. What is its return on equity?
+    choices:
+      - { id: a, text: "15%" }
+      - { id: b, text: "6.7%" }
+      - { id: c, text: "1.5%" }
+      - { id: d, text: "150%" }
+    answer: a
+    explanation: >
+      ROE = net income / equity = 90 / 600 = 0.15, or 15%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fr-q-dupont
+    prompt: >
+      A company has a net profit margin of 5%, an asset turnover of 2.0 and an equity multiplier of 3.0. What is its ROE?
+    choices:
+      - { id: a, text: "30%" }
+      - { id: b, text: "10%" }
+      - { id: c, text: "13%" }
+      - { id: d, text: "3%" }
+    answer: a
+    explanation: >
+      ROE = 0.05 x 2.0 x 3.0 = 0.30, or 30%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fr-q-same-roe
+    prompt: >
+      Company A has a margin of 10%, an asset turnover of 0.75 and an equity multiplier of 2.0. Company B has a margin of 3%, an asset turnover of 1.0 and an equity multiplier of 5.0. Both earn an ROE of 15%. Which statement is right?
+    choices:
+      - { id: a, text: "B's return relies much more on borrowing than A's" }
+      - { id: b, text: "A relies more on borrowing, because its margin is higher" }
+      - { id: c, text: "They are equally risky, because the ROE is the same" }
+      - { id: d, text: "A's equity multiplier is higher" }
+    answer: a
+    explanation: >
+      A: 0.10 x 0.75 x 2.0 = 15%. B: 0.03 x 1.0 x 5.0 = 15%. B's equity multiplier of 5 means 4 units of liabilities per unit of equity; A's is 2. B's identical ROE rests on leverage and is more fragile.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fr-q-negative-roe
+    prompt: >
+      A company has a net profit margin of minus 4%, an asset turnover of 0.5 and an equity multiplier of 8. What is its ROE?
+    choices:
+      - { id: a, text: "Minus 16%" }
+      - { id: b, text: "Minus 2%" }
+      - { id: c, text: "Minus 0.16%" }
+      - { id: d, text: "Plus 16%" }
+    answer: a
+    explanation: >
+      ROE = -0.04 x 0.5 x 8 = -0.16, or minus 16%. A margin of only minus 4% becomes a loss of 16% of owners' equity, because leverage multiplies it by 8.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fr-q-multiplier
+    prompt: >
+      A company has total assets of 5,000 and equity of 500. What is its equity multiplier, and how many units of liabilities does it have per unit of equity?
+    choices:
+      - { id: a, text: "10, with 9 units of liabilities per unit of equity" }
+      - { id: b, text: "10, with 10 units of liabilities per unit of equity" }
+      - { id: c, text: "0.1, with 0.9 units of liabilities per unit of equity" }
+      - { id: d, text: "9, with 10 units of liabilities per unit of equity" }
+    answer: a
+    explanation: >
+      Equity multiplier = assets / equity = 5,000 / 500 = 10. Liabilities = 5,000 - 500 = 4,500, which is 9 times equity. In general the multiplier is 1 plus liabilities / equity.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method (equity multiplier = total assets / stockholders' equity): https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fr-q-which-lever
+    prompt: >
+      A supermarket chain earns a thin net margin but a high asset turnover. Which DuPont component is doing most of the work to lift its ROE?
+    choices:
+      - { id: a, text: "Asset turnover: it sells a lot for every unit of assets" }
+      - { id: b, text: "The net profit margin" }
+      - { id: c, text: "The equity multiplier only" }
+      - { id: d, text: "None of the three" }
+    answer: a
+    explanation: >
+      With a thin margin, a high turnover (sales / assets) is what turns each unit of assets into return. The three parts multiply, so a small margin can be offset by high turnover.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+checks:
+  - id: fr-quiz-dupont
+    kind: quiz
+    questions:
+      - fr-q-roe
+      - fr-q-dupont
+      - fr-q-same-roe
+      - fr-q-negative-roe
+      - fr-q-multiplier
+      - fr-q-which-lever
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fr-coffee-roe
+    kind: conversation
+    prompt: >
+      Coffee Day Enterprises reported consolidated revenue of Rs 2,549 crore and a net loss of Rs
+      87 crore for 2014-15. At 30 June 2015 its net worth was Rs 456 crore against debt of Rs
+      4,475 crore. Work out its net profit margin, say what the equity multiplier must be at
+      least (total assets cannot be less than debt plus net worth), and roughly what its return
+      on equity was. What does that tell you about its position at the IPO?
+    passCriteria: >
+      The Learner computes a net margin of about minus 3.4% (minus 87 / 2,549) and a rough ROE
+      near minus 19% (minus 87 / 456, noting that the loss and the net worth are from different
+      dates). They say that assets are at least debt plus net worth, about Rs 4,931 crore, so
+      the equity multiplier is at least about 10.8, and that this leverage multiplies a small
+      negative margin into a large negative return. They conclude that the company is fragile at
+      the IPO: thin equity, heavy debt and a loss, so lenders and the use of IPO money to repay
+      debt matter. They may note that the full DuPont split needs total assets from the
+      prospectus.

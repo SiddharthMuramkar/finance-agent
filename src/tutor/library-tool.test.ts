@@ -3,6 +3,7 @@ import { importLibrary, type LibraryFile } from "@/library/ingest";
 import { NO_VOYAGE_KEY, VOYAGE_DOWN } from "@/library/library";
 import { scriptedClient, type ScriptedRequest } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
+import { presentValueOnly } from "@/test/present-value-map";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
 
@@ -58,7 +59,7 @@ describe("search_library tool in the Tutor Turn", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hello." }] }]);
 
-    await collect(runTutorTurn({ db, client }, "Hi"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
 
     expect(requests[0].tools).toContainEqual({ name: "search_library" });
     expect(TUTOR_INSTRUCTIONS).toContain("name its source in plain text");
@@ -70,7 +71,7 @@ describe("search_library tool in the Tutor Turn", () => {
     await importLibrary(db, blog);
     const { client, requests } = scriptedClient(structuredClone(searchThenReply));
 
-    await collect(runTutorTurn({ db, client }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
 
     const text = searchResult(requests);
     expect(text).toContain("Source: B. Author, A textbook (Publisher, 2022), CC BY 4.0");
@@ -89,7 +90,7 @@ describe("search_library tool in the Tutor Turn", () => {
       throw new Error("Voyage 503");
     };
 
-    await collect(runTutorTurn({ db, client, embedQuery }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, embedQuery, map: presentValueOnly() }, "What does the Library say about present value?"));
 
     const text = searchResult(requests);
     expect(text).toContain(VOYAGE_DOWN);
@@ -100,7 +101,7 @@ describe("search_library tool in the Tutor Turn", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient(structuredClone(searchThenReply));
 
-    await collect(runTutorTurn({ db, client }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
 
     expect(searchResult(requests)).toContain("No Library passage matched");
   });
