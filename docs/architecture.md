@@ -483,7 +483,11 @@ same chart shows the yields through March 2019, and the winner's cash payment be
 and lets it grow to long series, but a fresh database has no Case Data until someone runs the
 import from the laptop, and the import files must be kept safe outside the repo. The Tutor still
 knows famous endings from its own training; code withholds the data, and the instructions and
-hindsight test questions cover the rest.
+hindsight test questions cover the rest. One such leak was found live (2 November 2026): in the
+1994 Fed Topic, the Tutor offered "a made-up move" to practise on, 3% to 3.25%, which was the Fed's
+real move. The instructions now say that before the reveal no example or made-up number may match
+the real outcome, and point the Tutor to the Topic's own Concept or Check prompt for hypothetical
+numbers (code already sends those, and they use neutral numbers).
 
 ## Surviving cut-offs and failures (`src/tutor/turn.ts`, `turn-status.ts`, `tools.ts`, `failures.ts`, `src/app/conversation.tsx`)
 
@@ -939,6 +943,8 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 **A concrete scenario.** Run `npm run behaviour`. For each question the runner makes a fresh throwaway database, puts a new Learner at the right Teaching Step of the Present value Topic, and sends the question through the real Tutor Turn with the real Tutor instructions and `claude-sonnet-5-5`. Then a stronger model, `claude-opus-5-5`, reads the Learner's question and the Tutor's reply against a written rubric for that rule (in `src/behaviour/grading.ts`) and answers pass or fail with a reason. A report listing every failure in full, with the Tutor's answer, is written to the evidence folder (`behaviour-results-latest.md`, plus dated copies and JSON). Change the Tutor's instructions, run it again, compare.
 
 **Options.** `RULE=hindsight` runs one rule, `ONLY=id,id` runs named questions, `BEHAVIOUR_BUDGET_USD` stops the run when spend reaches the limit (default 3.5; a full run costs about $1 to $1.5), `BEHAVIOUR_OUT` changes the report folder. It is not part of `npm run check` because it spends money and needs the network; the question set, the rubric parser and the report layout are covered by normal tests.
+
+**A targeted test for made-up examples.** One more test, run alone with `npm run behaviour -- -t "made-up example before the reveal"`, puts a Learner at the your-turn step of the percent and basis points Topic (the 1994 Fed Case) and asks the Tutor for a rate move to practise on. The grader fails the reply if the "made-up" move is the real one (3% to 3.25%, or 25 basis points) or anything after 3 February 1994 slips out. Before the instruction fix it failed, just as the live leak did; after it, two runs passed (one used 6% to 5.2%, the other the Concept's 4% to 4.5%). Unlike the set above it passes or fails like a normal test, and it writes a short record of each run to the report folder. A run costs about 2 to 5 cents. It checks one Case with one sample per run, so a pass means the common case is fixed, not that the leak can never come back.
 
 **Trade-off.** A model grading a model is a first pass, not proof. The grader can be too strict or too lenient (in the first full run it wrongly failed two answers because the rubric forgot that the Case story's own details may be restated; the rubric was fixed). An unreadable grader reply counts as "ungraded", never as a pass, and the report says so. The set is a sample of ways to break the rules, so a clean run means "no break found in these 48", not "cannot be broken". The first run also found a real gap, which was fixed in the instructions: asked about today's events, the Tutor refused and went back to the Case without teaching anything.
 
