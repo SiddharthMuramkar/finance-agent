@@ -1,0 +1,231 @@
+# Analyse: transfer to India. Two Cases apply the valuation and bank skills to Indian facts as of a past date.
+# No Case Data: the figures are headline numbers stated in the stories; see docs/architecture.md.
+# Case sources (checked 2 Nov 2026):
+#  - Yes Bank Q2 FY20 results of 1 Nov 2019: Business Standard / Times of India (PTI), ANI; share price and Dec 2019 downgrades: Times of India; 27 Feb 2020 price: Business Standard; reveal: RBI press release 2019-2020/2025 of 5 Mar 2020, Economic Times, Hindu BusinessLine, Fortune India.
+#  - Rupee 2013: RBI Third Quarter Review of Monetary Policy 2013-14 (28 Jan 2014); Rajan, BIS speech of 5 Sep 2016 (bis.org/review/r160905b.htm); Indian Express for the rupee level 40 days in.
+#  - Method: Damodaran, discount-rate notes and slides (currency consistency, inflation differential, country risk premium).
+id: ana-india-transfer
+title: "Analyse: transfer to India (G-sec, bank, rupee)"
+
+cases:
+  - id: yesbank-2020-02-ratios-and-price
+    title: Reading an Indian private bank from its published numbers
+    asOf: 2020-02-28
+    story: >
+      On 28 February 2020 Yes Bank, India's fourth-largest private sector bank, was a
+      share you could buy on the BSE and NSE. Its last published results were for the quarter to
+      30 September 2019, released on 1 November 2019: a standalone net loss of about Rs 600 crore
+      (Rs 629.1 crore consolidated) against a profit of Rs 964.70 crore a year earlier. Gross
+      non-performing assets (NPAs) were Rs 17,134 crore, 7.39% of gross advances, up from 1.60% a year
+      before; net NPAs were Rs 9,757 crore, 4.35% (0.84% a year before). Provisions and contingencies
+      for the quarter were Rs 1,336.25 crore. The bank had said it received a binding offer of about
+      $1.2 billion (about Rs 8,520 crore) from a global investor for a stake, and said its capital
+      and liquidity were above the regulatory minimum. On 19 December 2019 two rating agencies
+      downgraded it. Its shares closed at Rs 66.60 on 1 November 2019 and at Rs 45.35 on 12 December 2019
+      (market value Rs 11,566 crore). On 27 February 2020 they traded near Rs 37.85, down about 84%
+      in a year, and because of the losses the trailing price-to-earnings ratio was not meaningful.
+      The bank had not yet published results for the quarter to 31 December 2019. Using only
+      what is on this page, what do the numbers say about the bank's asset quality and its
+      earnings? Which other numbers would you want before you put a value on its equity (and why is
+      a free-cash-flow DCF the wrong tool for a bank)? What would an Indian cost of equity be built
+      from, and what can you not conclude from this evidence?
+    reveal: >
+      On 5 March 2020 the RBI, in consultation with the Central Government, superseded the
+      bank's board for 30 days "owing to serious deterioration in the financial position of the
+      Bank" and appointed Prashant Kumar, formerly deputy managing director and chief financial
+      officer of State Bank of India, as administrator (RBI press release 2019-2020/2025).
+      Withdrawals were capped at Rs 50,000 a depositor. The RBI's draft reconstruction scheme had
+      State Bank of India take up to 49% of the bank at Rs 10 a share (about Rs 2,450 crore);
+      the Government notified the scheme on 13 March and the restrictions ended at 6 p.m. on
+      18 March 2020. The shares closed at Rs 16.20 on 6 March 2020. The published ratios
+      had already shown a sharp deterioration, but they were months old and a bank's equity is a
+      thin layer on a large balance sheet, so a rise in bad loans or a loss of depositor
+      confidence can consume it quickly. The lesson for valuing an Indian bank is the same as for
+      any bank: start from capital, asset quality and funding, treat the reported ratios as
+      dated and unaudited by the market, and be wary of a price that looks cheap against an old
+      book value.
+
+  - id: rupee-2013-09-currency-consistent-value
+    title: Valuing rupee cash flows when the rupee has fallen
+    asOf: 2013-09-03
+    story: >
+      By 3 September 2013 the rupee had fallen about 17% against the US dollar since the first
+      signs that the US Federal Reserve might slow its bond purchases ("tapering").
+      Inflation in India was running close to double digits. Imagine a dollar-based investor
+      looking at an Indian company that she expects to produce free cash flow to equity of Rs 100
+      crore next year, growing at the rupee inflation rate for ever. For this exercise take rupee
+      inflation as 8% a year, dollar inflation as 2%, a dollar cost of equity for this company of 10%
+      (already including any country risk premium), and a round exchange rate of Rs 65 to the
+      dollar (not the day's actual rate). First value the company in rupees, converting the dollar
+      cost of equity with the inflation differential. Then value it in dollars, converting each
+      rupee cash flow at an exchange rate that moves with the inflation differential, and convert
+      the answer back at Rs 65. Do the two values agree? Then consider the other reading, in which
+      the investor discounts the rupee cash flows at the 10% dollar rate: what error is that?
+      Finally, does the 17% fall already seen tell you what the rupee will do next, and what
+      would you need to know before using it?
+    reveal: >
+      The two values agree at about Rs 1,181 crore: the rupee discount rate is
+      1.10 x 1.08 / 1.02 - 1, about 16.5%, so the value is 100 / (16.47% - 8%); in dollars the
+      cash flow grows at 1.08 / 1.0588 - 1 = 2% and is discounted at 10%, and converting back
+      at Rs 65 gives the same answer. Discounting rupee flows at the dollar rate gives
+      100 / (10% - 8%) = Rs 5,000 crore, more than four times too much, because it mixes currencies.
+      Looking back, the RBI's January 2014 review counted a fall of nearly $17 billion in its
+      reserves and net foreign portfolio outflows of over $13.4 billion ($10.5 billion from debt,
+      $2.8 billion from shares) over that stretch of 2013. The historical record then showed why guessing the currency path is not part of the method.
+      On the afternoon of 4 September 2013 the RBI announced a package that included a swap window
+      for fresh FCNR(B) deposits. In Governor Raghuram Rajan's later account the scheme drew in
+      $26 billion, "the rupee continued strengthening", and the RBI "covered our forward swaps
+      cheaply". News reports put the rupee near 61.3 to the dollar about 40 days into the scheme. A
+      valuation that kept cash flows and discount rates in one currency did not depend on
+      guessing either direction; the exercise still needs honest inputs for inflation and country risk.
+
+concept: >
+  Valuation skills transfer to India if each input is Indian and every part is in the same
+  currency. Currency consistency: estimate cash flows and the discount rate in the same
+  currency, nominal with nominal. To move a cost of equity from dollars to rupees, use the
+  inflation differential: (1 + rupee rate) = (1 + dollar rate) x (1 + rupee inflation) /
+  (1 + dollar inflation). Done consistently, the answer is the same in either currency; if it is
+  not, the inflation assumptions are inconsistent. Country risk: an Indian company's cost of
+  equity adds a country risk premium to the mature-market premium. One way to estimate it is the
+  default spread on the country's dollar bonds times the ratio of the equity market's
+  volatility to the bond's volatility; cost of equity = risk-free rate + beta x (mature premium +
+  country risk premium). A rupee government-bond yield contains inflation and some default
+  spread, so check what it holds before treating it as risk-free. Banks: a bank's raw material
+  is money, so value its equity (dividends or excess capital, price to book against return
+  on equity) rather than free cash flow to the firm, and read asset quality and capital first.
+  Gross NPA ratio = gross non-performing assets / gross advances; net NPA ratio uses advances
+  and NPAs after provisions. Reported ratios are dated, so ask what has happened since the date.
+
+principle: >
+  Transfer the method, not the numbers. Keep every valuation input in one currency, add
+  country risk explicitly, value a bank from its capital and loan quality, and treat a
+  published ratio or a past currency move as a dated fact that does not by itself say what
+  comes next.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: ana-india-q-currency-match
+    prompt: >
+      A dollar-based analyst projects an Indian company's free cash flows in rupees. In which currency should the discount rate be estimated?
+    choices:
+      - { id: a, text: "Dollars, because the analyst reports in dollars" }
+      - { id: b, text: "Rupees, the currency of the cash flows" }
+      - { id: c, text: "Either, because the currency never matters" }
+    answer: b
+    explanation: >
+      The currency of the cash flows and of the discount rate must match. Mixing a dollar rate with rupee cash flows ignores the inflation difference between the two currencies.
+    source: >
+      Damodaran, discount rates notes (NYU Stern): https://pages.stern.nyu.edu/~adamodar/pdfiles/ovhds/dam2ed/discountrates.pdf
+
+  - id: ana-india-q-inflation-convert
+    prompt: >
+      A company's cost of equity is 10% in dollars. Expected inflation is 8% a year in rupees and 2% in dollars. About what is the cost of equity in rupees?
+    choices:
+      - { id: a, text: "About 18.0%" }
+      - { id: b, text: "About 16.5%" }
+      - { id: c, text: "About 12.0%" }
+      - { id: d, text: "About 8.0%" }
+    answer: b
+    explanation: >
+      (1 + 0.10) x (1.08 / 1.02) - 1 = 1.10 x 1.0588 - 1 = about 16.5%. Simply adding the 6-point inflation gap gives 16%, and 18% adds 8 points of inflation.
+    source: >
+      Damodaran, Cost of Capital lecture slides (NYU Stern, 2024), cost of equity conversion with the inflation differential: https://pages.stern.nyu.edu/~adamodar/podcasts/cfspr24/session10slides.pdf
+
+  - id: ana-india-q-currency-neutral
+    prompt: >
+      An analyst values the same Indian project twice, once in rupees and once in dollars, with inflation handled consistently in both cash flows and discount rates. What should happen?
+    choices:
+      - { id: a, text: "The rupee value is always higher" }
+      - { id: b, text: "The dollar value is always higher" }
+      - { id: c, text: "The two values should agree once converted at the same exchange rate" }
+    answer: c
+    explanation: >
+      If inflation is built consistently into cash flows and discount rates, the choice of currency should not change the result. A divergence points to an inconsistency in the inflation assumptions.
+    source: >
+      Damodaran, Cost of Capital: Revisiting Basics and Getting Perspective (NYU Stern), Proposition 3: https://pages.stern.nyu.edu/~adamodar/pdfiles/country/Duff&PhelpsWACC.pdf
+
+  - id: ana-india-q-cost-of-equity
+    prompt: >
+      The risk-free rate is 4%, the mature-market equity premium is 5%, a country risk premium of 3% applies, and a company has a beta of 1.2 and is exposed to country risk in line with its beta. Using cost of equity = risk-free rate + beta x (mature premium + country risk premium), what is its cost of equity?
+    choices:
+      - { id: a, text: "10.0%" }
+      - { id: b, text: "13.0%" }
+      - { id: c, text: "13.6%" }
+      - { id: d, text: "16.0%" }
+    answer: c
+    explanation: >
+      4% + 1.2 x (5% + 3%) = 4% + 9.6% = 13.6%. Leaving out the country risk premium gives 10%, and adding the premium without scaling it by beta gives 13%.
+    source: >
+      Damodaran, Valuation lecture slides, session 5 (NYU Stern, spring 2020), approaches to country risk exposure: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr20/session5slides.pdf
+
+  - id: ana-india-q-country-premium
+    prompt: >
+      A country's dollar bonds carry a default spread of 2%. The country's stock market has a standard deviation of 30% and its government bond a standard deviation of 20%. Scaling the default spread by relative volatility, what is the country equity risk premium?
+    choices:
+      - { id: a, text: "1.33%" }
+      - { id: b, text: "2%" }
+      - { id: c, text: "3%" }
+      - { id: d, text: "6%" }
+    answer: c
+    explanation: >
+      Country risk premium = default spread x (equity volatility / bond volatility) = 2% x (30 / 20) = 3%. Equity is the riskier asset, so the premium is larger than the bond's spread.
+    source: >
+      Damodaran, Valuation lecture slides, session 5 (NYU Stern, spring 2020): https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr20/session5slides.pdf
+
+  - id: ana-india-q-gross-npa
+    prompt: >
+      A bank reports gross non-performing assets of Rs 5,000 crore on gross advances of Rs 80,000 crore. What is its gross NPA ratio?
+    choices:
+      - { id: a, text: "1.6%" }
+      - { id: b, text: "6.25%" }
+      - { id: c, text: "16%" }
+      - { id: d, text: "62.5%" }
+    answer: b
+    explanation: >
+      Gross NPA ratio = gross NPAs / gross advances = 5,000 / 80,000 = 6.25%. Indian banks report it as a percentage of gross advances.
+    source: >
+      Business Standard / PTI, 1 Nov 2019, an Indian bank's results stating gross bad loans as a percentage of gross advances: https://www.business-standard.com/amp/article/pti-stories/yes-bank-posts-net-loss-of-rs-629-cr-in-sept-quarter-as-bad-loans-spike-119110101058_1.html
+
+checks:
+  - id: ana-india-quiz-method
+    kind: quiz
+    questions:
+      - ana-india-q-currency-match
+      - ana-india-q-inflation-convert
+      - ana-india-q-currency-neutral
+      - ana-india-q-cost-of-equity
+      - ana-india-q-country-premium
+      - ana-india-q-gross-npa
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ana-india-bank-reading
+    kind: conversation
+    prompt: >
+      Using only what was published by 28 February 2020, say what Yes Bank's numbers show about
+      its asset quality and earnings, which further numbers you would want before valuing its
+      equity, and what you cannot conclude from the evidence. Do not forecast.
+    passCriteria: >
+      The Learner reads the figures correctly (a gross NPA ratio of 7.39% against 1.60% a year
+      earlier, net NPA 4.35%, a quarterly loss against a profit, a share price far below earlier
+      closes) and says that they show deteriorating asset quality and falling earnings. They name
+      what a bank valuation needs instead of free cash flow to the firm: capital ratios, provisions
+      cover, funding and deposits, book value per share and return on equity, and the missing
+      results for the latest quarter. They say that a low price against old book value or a
+      stake offer does not prove the equity is cheap, that the evidence is dated, and that they
+      cannot say what will happen next. They give no buy, sell or hold view and no prediction.
+  - id: ana-india-currency-consistency
+    kind: conversation
+    prompt: >
+      A dollar-based investor values a company's rupee cash flows. Explain how you would keep the
+      valuation consistent, where country risk enters, and whether the rupee's earlier 17% fall
+      changes the method.
+    passCriteria: >
+      The Learner says cash flows and discount rate must be in the same currency, converts the
+      dollar cost of equity to rupees with the inflation differential (about 16.5% in the
+      exercise, giving about Rs 1,181 crore) or values in dollars and gets the same answer, and
+      says that discounting rupee flows at a dollar rate overstates value. They put country risk
+      in the cost of equity as a premium rather than leaving it out. They say that a past fall in
+      the currency does not by itself say what the exchange rate will do next, and that the method
+      does not depend on guessing it. They make no forecast of the rupee and no buy, sell or hold
+      call.

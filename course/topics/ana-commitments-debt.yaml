@@ -1,0 +1,198 @@
+# Commitments as debt: an Analyse Topic taught through the purchase commitments in Anthropic's S-1.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked 2 Nov 2026 against the filing text): Anthropic, PBC, Form S-1 filed 26 Oct 2026 (CIK 0002130357, accession 0001628280-26-067168): https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+# Notes 13 and 17 (commitments table at 31 Dec 2025, $265.6bn at 30 Jun 2026, $417bn and $245bn of later agreements) and the "Contractual obligations" and "Infrastructure Service Arrangements" passages of the prospectus. The filing is preliminary: the aggregate committed spend and the amount due in 12 months are blank.
+# Method sources: Damodaran, Dealing with Operating Leases in Valuation: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf ; Damodaran, Operating versus Capital Leases: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/AccPrimer/lease.htm
+id: ana-commitments-debt
+title: "Analyse: commitments as debt"
+
+cases:
+  - id: anthropic-s1-commitments-2026
+    title: A compute company's purchase commitments in its first prospectus
+    asOf: 2026-10-26
+    story: >
+      On 26 October 2026 Anthropic, PBC, the maker of the Claude models, filed its first
+      registration statement (Form S-1) for a share sale. It is a preliminary prospectus: the
+      share price and several totals are left blank. Compute is its largest cost, and it buys
+      much of it under long contracts. Note 13 of the financial statements lists the "future
+      minimum payments under non-cancelable purchase commitments with a remaining term in
+      excess of one year" as of 31 December 2025, in $ million: 2026 7,059; 2027 11,128; 2028
+      10,832; 2029 8,304; 2030 5,428; thereafter 11,808; total 54,559. It adds that as of 30
+      June 2026 (unaudited) such fixed or minimum commitments were "approximately $265.6
+      billion" with terms of one to 20 years, and that other compute agreements with no fixed
+      dollar amount are not counted. The business section describes the largest contracts:
+      Microsoft, at least $44.9 billion between November 2026 and May 2033, "regardless of actual
+      usage"; Google, at least about $114.5 billion between April 2026 and July 2033; Amazon, at
+      least $110.0 billion between May 2026 and April 2036; five-year equipment leases with
+      Broadcom, accounted for as finance leases, with rent of about $161.2 billion excluding
+      interest; and agreements with SpaceXAI to spend "up to" $120.5 billion into 2029, which
+      either party may cancel on 90 days' notice after initial non-cancelable periods end in
+      January and March 2027. At 30 June 2026 the company held cash and cash equivalents of
+      $112.4 billion and short-term investments of $19.3 billion. No one has yet said what the
+      commitments are worth in today's money. Using the 31 December 2025 schedule, work out the
+      present value of the commitments at a rate you choose and state, and say how you would
+      decide which of the contracts above belong in a debt-like total, and what the filing
+      would need to show for you to do the same for the later, larger figures.
+    reveal: >
+      Treating each year's payment as made at year end, and spreading the 11,808 "thereafter"
+      evenly over 2031 to 2035 (the filing does not give the split, so this is an assumption),
+      the 31 December 2025 schedule of $54.6 billion has a present value of about $45.3 billion
+      at 5% a year, $40.9 billion at 8% and $38.4 billion at 10%: roughly 83%, 75% and 70% of
+      the undiscounted total. The result moves with the rate and with the unknown split of the
+      tail, so a single number needs both stated. The same filing shows why the later figures
+      cannot be treated the same way. It reports about $417 billion of further minimum payments
+      from agreements signed after 31 December 2025 and, in a later note, about $245 billion
+      plus about $21 billion of short-term minimum payments from agreements after 30 June 2026,
+      but gives no year-by-year schedule for them, and leaves its own aggregate committed spend
+      and its 12-month payments blank. Adding the filing's named items shows how much depends
+      on scope: Microsoft, Google and Amazon come to $269.4 billion; adding the Broadcom lease
+      rent makes $430.6 billion; adding the "up to" SpaceXAI figure makes $551.1 billion; and the
+      filing separately says that amounts it expects for additional Google TPU capacity
+      ($125 billion to $150 billion) and for AMD (more than $20 billion) are not in its
+      commitments table. Which of these belong in a debt-like total is a choice about
+      cancellability, conditions and whether a fixed dollar amount exists, and the filing as
+      filed does not let a reader reconcile the totals. This Case ends there: it asks how to
+      measure what the contracts commit the company to, not what will happen to the company.
+
+concept: >
+  A contract that obliges you to pay a fixed amount on fixed dates behaves like debt, whatever
+  the accounts call it. Damodaran's treatment of operating leases is the model: take the
+  schedule of commitments in the filing's notes, discount it at the firm's pre-tax cost of debt
+  (the commitments are pre-tax and unsecured claims), and treat the present value as debt. An
+  asset of the same value is created on the other side, and the payments become financing
+  rather than operating costs. The sum of undiscounted payments overstates the debt: the
+  longer the payments are spread, the lower their present value. Two judgements come before
+  the arithmetic. Scope: count what is fixed and non-cancelable (a take-or-pay or pay-
+  regardless-of-usage clause, a finance lease), treat "up to" amounts and contracts that can be
+  cancelled on short notice as options, and keep conditional or not-yet-fixed amounts separate.
+  Schedule: you cannot discount a total; you need the dates. Where a filing gives only a total,
+  say that the present value needs an assumption, state it, and show how much the answer moves
+  when it changes. Compare the debt-like total with the cash and the cash flow available to pay
+  it as a separate step. The calculator can do the discounting, and the working should be
+  shown.
+
+principle: >
+  Debt is defined by what must be paid, not by what the balance sheet calls it. Ask what is
+  fixed, what can be cancelled, on what dates, and what rate fits; and when the filing does not
+  say, state the assumption rather than invent the schedule.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: cd-q-pv-annuity
+    prompt: >
+      A company must pay $1 million at the end of each of the next five years. Its pre-tax cost of borrowing is 10%. What is the present value of these commitments?
+    choices:
+      - { id: a, text: "About $3.79 million" }
+      - { id: b, text: "$5.00 million" }
+      - { id: c, text: "About $4.55 million" }
+      - { id: d, text: "About $3.00 million" }
+    answer: a
+    explanation: >
+      1/1.10 + 1/1.10^2 + 1/1.10^3 + 1/1.10^4 + 1/1.10^5 = 3.7908, so $3,790,787. The undiscounted total of $5 million overstates the debt-equivalent.
+    source: >
+      Damodaran, Dealing with Operating Leases in Valuation (Table 1, $1 million a year for five years at 10%): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf
+
+  - id: cd-q-rate
+    prompt: >
+      To turn a schedule of fixed commitments into a debt-equivalent, which discount rate does Damodaran's approach use?
+    choices:
+      - { id: a, text: "The firm's pre-tax cost of debt" }
+      - { id: b, text: "The firm's cost of equity" }
+      - { id: c, text: "Zero, because the payments are certain" }
+      - { id: d, text: "The firm's after-tax return on equity" }
+    answer: a
+    explanation: >
+      The commitments are fixed, pre-tax claims that rank like unsecured borrowing, so they are discounted at the pre-tax cost of debt and the result is treated as debt.
+    source: >
+      Damodaran, Operating versus Capital Leases: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/AccPrimer/lease.htm
+
+  - id: cd-q-two-payments
+    prompt: >
+      A firm owes $600 at the end of year 1 and $600 at the end of year 2. At a discount rate of 10%, what is the present value of the two payments together?
+    choices:
+      - { id: a, text: "$1,041" }
+      - { id: b, text: "$1,200" }
+      - { id: c, text: "$1,090" }
+      - { id: d, text: "$1,000" }
+    answer: a
+    explanation: >
+      600 / 1.10 = 545.45 and 600 / 1.10^2 = 495.87, which add to 1,041.32.
+    source: >
+      OpenStax, Principles of Finance, 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: cd-q-longer-is-less
+    prompt: >
+      Two obligations each total $100 billion in undiscounted payments, paid in equal yearly amounts. One runs for 3 years and the other for 20 years. At the same positive discount rate, which has the lower present value?
+    choices:
+      - { id: a, text: "The 20-year obligation" }
+      - { id: b, text: "The 3-year obligation" }
+      - { id: c, text: "They are equal, because the totals are equal" }
+      - { id: d, text: "It cannot be said without knowing the company's profit" }
+    answer: a
+    explanation: >
+      Payments spread over more years are on average further away, so more of them are discounted heavily. The same undiscounted total is worth less today when it is paid over 20 years.
+    source: >
+      OpenStax, Principles of Finance, 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: cd-q-other-side
+    prompt: >
+      An analyst converts a firm's operating lease commitments into debt at their present value. What happens on the other side of the balance sheet?
+    choices:
+      - { id: a, text: "An asset of the same value is recognised" }
+      - { id: b, text: "Equity falls by the same amount" }
+      - { id: c, text: "Nothing, because debt can be added alone" }
+      - { id: d, text: "Cash rises by the same amount" }
+    answer: a
+    explanation: >
+      The right to use the leased asset is worth what the commitments are worth, so the debt is matched by an asset of exactly the same value.
+    source: >
+      Damodaran, valuation course slides, Dealing with Operating Lease Expenses ("you also create an asset to counter it of exactly the same value"): https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr20/session7slides.pdf
+
+  - id: cd-q-cancelable
+    prompt: >
+      Contract A obliges a company to spend at least $10 billion over eight years regardless of how much it uses. Contract B lets either side cancel on 90 days' notice after the first year, with spending of up to $10 billion. Which is the stronger candidate for a debt-like total, and why?
+    choices:
+      - { id: a, text: "A, because the payments are fixed and cannot be avoided by not using the service" }
+      - { id: b, text: "B, because its stated ceiling is the same" }
+      - { id: c, text: "Both equally, because both headline figures are $10 billion" }
+      - { id: d, text: "Neither, because purchase contracts are never debt-like" }
+    answer: a
+    explanation: >
+      A fixed minimum that must be paid whatever the usage is a commitment like a loan repayment. An "up to" amount that either party can cancel on short notice is closer to an option, not a fixed claim.
+    source: >
+      Damodaran, Operating versus Capital Leases (a commitment is a commitment, whatever the form): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/AccPrimer/lease.htm ; Anthropic, PBC, Form S-1, Note 13 (the table counts only "non-cancelable" purchase commitments): https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+
+checks:
+  - id: cd-quiz-commitments
+    kind: quiz
+    questions:
+      - cd-q-pv-annuity
+      - cd-q-rate
+      - cd-q-two-payments
+      - cd-q-longer-is-less
+      - cd-q-other-side
+      - cd-q-cancelable
+      - bank:eab:MBA-FIN-CF-0006
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cd-commitments-explain
+    kind: conversation
+    prompt: >
+      Using the schedule in the filing as of 31 December 2025, show how you would turn the
+      commitments into a present value, naming the rate you chose and why. Then say which
+      of the named contracts (Microsoft, Google, Amazon, Broadcom, SpaceXAI) you would count in a
+      debt-like total and which you would leave out or keep separate, and what you would need
+      from the filing to do the same for the larger later figure.
+    passCriteria: >
+      The Learner discounts each year's payment, or a stated assumed split of the "thereafter"
+      amount, at a stated rate and gets a present value below the undiscounted total, and
+      shows or describes the working. They justify the rate as a pre-tax borrowing rate for fixed,
+      unsecured claims (or give a reasoned alternative) and recognise the answer changes with
+      the rate and with the assumed tail. They separate fixed, non-cancelable or pay-regardless
+      commitments and finance leases from "up to" or short-notice-cancelable amounts and from
+      amounts not yet fixed, and say the totals depend on that scope. They say a total with no
+      payment dates cannot be discounted without a stated assumption, and name the payment
+      schedule as the missing item. They make no forecast about the company and no buy, sell or
+      hold call. The Learner does not need exact decimals; a present value between roughly 70% and
+      85% of the undiscounted total for rates of 5% to 10% is reasonable.

@@ -1,0 +1,169 @@
+# Analyse: build a valuation as of a past date, taught through Amazon.com in February 2000.
+# The Learner chooses the inputs, values the firm, and only then sees Damodaran's inputs and what happened.
+# Case sources (checked): Damodaran, valuation paper on young high-growth firms (HighGrow.pdf, pages 31-34: inputs and output; valuation done February 2000); Amazon.com Form 10-K405 for 2000 (net sales, operating loss and quarterly share prices).
+id: ana-build-valuation
+title: "Analyse: build a valuation as of a past date"
+
+cases:
+  - id: amazon-2000-analyse
+    title: Build your own value for Amazon.com
+    asOf: 2000-02-01
+    story: >
+      It is February 2000. Amazon.com, the online retailer, trades on the Nasdaq at $84 a share.
+      You will build your own discounted cash flow valuation from what was public then. Revenue
+      for the twelve months to September 1999 was $1,117 million, with an operating loss of $410
+      million, a margin of about -36.7%. In 1998 revenue was $610 million and the operating loss
+      $125 million. The firm has $26 million of cash and $349 million of debt, about 341 million
+      shares, and employees hold about 38 million options with an exercise price of $13.375. The
+      Treasury bond yield is 6.5% and the marginal tax rate is 35%. Established specialty
+      retailers earn an operating margin of about 10%. Amazon spends on warehouses and systems as
+      it grows; assume it needs about $1 of new capital for every $3 of added revenue. Choose
+      your own path for ten years: how fast revenue grows, when the margin turns positive and
+      where it settles, what rate you discount at, and what stable growth rate you use after year
+      10. Then work out free cash flow each year, a terminal value, and a value per share, taking
+      cash, debt and the options into account. Write your inputs down before you compute
+      anything. How does your value compare with $84, and which of your inputs moves it most?
+      (You are valuing the firm as of February 2000 only. Do not try to say what happens next.)
+    reveal: >
+      Aswath Damodaran, a professor at New York University's Stern School of Business, valued
+      Amazon in February 2000 with a paper dated March 2000. He grew revenue 150%, 100%, 75%, 50%
+      and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6% in years 6 to 10, which
+      takes revenue to $39,006 million in year 10. His operating margin rose from -13.35% in year
+      1 to -1.68%, 4.16%, 7.08%, 8.54%, 9.27%, 9.64%, 9.82%, 9.91% and 9.95% in year 10. He
+      assumed $1 of capital for every $3 of added revenue, taxes of 0% in years 1 to 3, 16.13% in
+      year 4 and 35% after, and a cost of capital of 12.84% falling to 9.61% by year 10 as beta
+      fell towards 1. Stable growth was 6% after year 10. His result was $35.08 a share, against
+      $84, after subtracting $2,892 million for the options. What happened: in 2000 Amazon's net
+      sales were $2,762 million, close to his year-1 figure of about $2,793 million, but its
+      operating loss was $864 million, a margin of about -31%, far below his -13.35% for year 1.
+      The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and
+      $14.88 in the fourth quarter (Amazon's 10-K405 for 2000). Compare your own inputs with his:
+      his revenue path was one many could accept, but the whole value rested on the margin
+      reaching about 10% and on the discount rate falling. Your value, his value and the price are
+      three estimates of one firm, and the gaps between them come from stated inputs that can be
+      examined. The price falling does not prove either valuation right: a value and a price are
+      compared as questions.
+
+concept: >
+  Building a valuation as of a past date means fixing the date, using only what was known then,
+  and writing every input down before computing. For a young company, set out four things: the
+  revenue path (growth fading year by year to a stable rate), the operating margin path (from
+  today's margin towards what mature firms in the business earn), the reinvestment needed (new
+  revenue divided by sales-to-capital gives new capital spending), and the discount rate (the
+  cost of capital, which can fall as the firm matures and its beta moves towards 1). Free cash
+  flow to the firm each year = operating income x (1 - tax rate) - reinvestment. Tax is zero while
+  there are losses to carry forward. Terminal value = free cash flow in year 11 / (cost of capital
+  - stable growth), and stable growth should not exceed the risk-free rate, or the firm would
+  outgrow the economy for ever. Operating value + cash - debt = value of equity; subtract the
+  value of employee options before dividing by the shares. The `dcf` calculator takes one flat
+  discount rate, so use it for a quick version of the valuation and say that a rate that falls
+  over time will raise the value a little. Then compare the result with the price as a question
+  and with a second analyst's inputs, input by input, rather than only the final numbers. Run
+  sensitivity tests on the margin, the growth rate and the cost of capital, and say which one
+  moves the value most. The valuation is practised on a past date only: do not forecast, and do
+  not turn a value into a buy, sell or hold call.
+
+principle: >
+  Write the inputs down before computing, test the ones that drive the value, and compare your
+  value with the price and with other analysts' inputs as questions, never as verdicts.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: abv-q-revenue
+    prompt: >
+      A young firm has revenue of $1,000 million. An analyst assumes it grows 100% in year 1, 50% in year 2 and 20% in year 3. What is revenue in year 3?
+    choices:
+      - { id: a, text: "$3,600 million" }
+      - { id: b, text: "$1,700 million" }
+      - { id: c, text: "$2,700 million" }
+      - { id: d, text: "$3,000 million" }
+    answer: a
+    explanation: >
+      Growth compounds: 1,000 x 2.00 x 1.50 x 1.20 = 3,600. Adding the growth rates (170%) would give 2,700, which is wrong.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems (compound growth): https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: abv-q-reinvest
+    prompt: >
+      A firm assumes it needs $1 of new capital for every $3 of added revenue (sales-to-capital of 3). Revenue rises from $1,000 million to $1,600 million. How much does it reinvest that year?
+    choices:
+      - { id: a, text: "$200 million" }
+      - { id: b, text: "$600 million" }
+      - { id: c, text: "$1,800 million" }
+      - { id: d, text: "$533 million" }
+    answer: a
+    explanation: >
+      Reinvestment = added revenue / sales-to-capital = (1,600 - 1,000) / 3 = 200. It is subtracted from after-tax operating income to give free cash flow.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where reinvestment is set by a sales-to-capital ratio of 3.0: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+  - id: abv-q-terminal-share
+    prompt: >
+      In a valuation of a hypothetical young company, the present value of the ten forecast years of free cash flow is $200 million and the present value of the terminal value is $800 million. What share of the operating value comes from beyond year 10?
+    choices:
+      - { id: a, text: "80%" }
+      - { id: b, text: "20%" }
+      - { id: c, text: "40%" }
+      - { id: d, text: "It cannot be worked out" }
+    answer: a
+    explanation: >
+      The operating value is 200 + 800 = 1,000, and 800 / 1,000 = 80% comes from beyond year 10. When this share is high, the stable-growth and margin assumptions deserve the most testing.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+  - id: abv-q-options
+    prompt: >
+      A hypothetical valuation gives operating assets of $5,000 million. The firm has cash of $100 million, debt of $300 million, employee options worth $400 million and 100 million shares. What is the value per share?
+    choices:
+      - { id: a, text: "$44" }
+      - { id: b, text: "$48" }
+      - { id: c, text: "$50" }
+      - { id: d, text: "$52" }
+    answer: a
+    explanation: >
+      Equity = 5,000 + 100 - 300 = 4,800; less the options, 4,400; divided by 100 million shares = $44. Leaving out the options would give $48.
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), pages 31-34 (the bridge from operating value to value per share, with options subtracted): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+  - id: abv-q-stable-growth
+    prompt: >
+      The Treasury bond yield is 6.5%. Which stable growth rate after year 10 is hardest to defend?
+    choices:
+      - { id: a, text: "9%, because the firm would outgrow the whole economy for ever" }
+      - { id: b, text: "6%" }
+      - { id: c, text: "4%" }
+      - { id: d, text: "2%" }
+    answer: a
+    explanation: >
+      The risk-free rate is a rough ceiling for the long-run nominal growth of the economy, so a stable growth rate above it implies the firm eventually becomes larger than the economy. 
+    source: >
+      Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where stable growth is capped by the Treasury bond yield: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+checks:
+  - id: abv-quiz-build
+    kind: quiz
+    questions:
+      - abv-q-revenue
+      - abv-q-reinvest
+      - abv-q-terminal-share
+      - abv-q-options
+      - abv-q-stable-growth
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: abv-build-explain
+    kind: conversation
+    prompt: >
+      Using the Amazon figures from February 2000, state the inputs of your own valuation (revenue
+      growth path, the margin you reach in year 10, the discount rate, stable growth), show how
+      you get from them to a value per share (use the dcf calculator for a quick version), and
+      say which input moves your value most. Then compare your value with the $84 price.
+    passCriteria: >
+      The Learner writes their inputs down before giving a result: a revenue path that fades,
+      an operating margin that improves towards a level justified by mature firms, a discount
+      rate and a stable growth rate no higher than the risk-free rate. They get from free cash
+      flow to value per share through a terminal value, cash, debt and the options. They name
+      the input that drives the value (usually the long-run margin, the discount rate or
+      terminal growth) and test it with a different value. They treat the gap with the price as a
+      question, not proof that the price is wrong, and make no forecast of the share price and no
+      buy, sell or hold call.
