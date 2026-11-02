@@ -1,5 +1,6 @@
 # Money, banks and credit creation: a foundation Topic taught through the 1992 securities scam.
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): BSE, SENSEX@40 white paper (January 2026) for the 28 April 1992 fall of 12.77 per cent; Mint for the April 1993 level (secondary source).
 id: eco-money-banking
 title: Money, banks and credit creation
 
@@ -27,10 +28,12 @@ cases:
       that cash into shares. Estimates of the size differ by source: Forbes India says about
       Rs 1,000 crore was siphoned out of the banking system and about Rs 3,500 crore manipulated;
       India Today puts the scam at nearly Rs 4,000 crore. The Sensex had gone from 1,194 to 4,467
-      (up 274 per cent) between April 1991 and April 1992. After the exposure it fell sharply: it
-      lost 570 points (12.7 per cent) on 28 April 1992, then dropped from 4,467 to about 1,980 in
-      the year to April 1993 (down 56 per cent). The CBI arrested Mehta in November 1992. The
-      lesson: the share prices were lifted by bank credit that had no real backing.
+      (up 274 per cent) between April 1991 and April 1992. After the exposure it fell sharply: on
+      28 April 1992 it fell 12.77 per cent in a day, the largest one-day percentage fall in its
+      history outside the Covid crash (BSE). It then dropped from 4,467 to about 1,980 in the year
+      to April 1993, down 56 per cent (Mint, a secondary source). The CBI arrested Mehta in
+      November 1992. The lesson: the share prices were lifted by bank credit that had no real
+      backing.
 
 concept: >
   Most of what we call money is bank deposits. When a bank lends, it credits the borrower's account,

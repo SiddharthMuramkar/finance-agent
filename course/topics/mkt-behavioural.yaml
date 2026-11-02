@@ -1,6 +1,6 @@
 # Behavioural finance and bubbles: a foundation Topic taught through Webvan's flotation.
 # Case Data (the share price and valuation figures) lives in the database; see docs/architecture.md.
-# Case sources (checked): New York Times 6 Nov 1999; Wired/Reuters 4 Nov 1999; Wall Street Journal 23 Jul 1999; Reuters 6 Sep 2019; Bloomberg 6 Sep 2019.
+# Case sources (checked): New York Times 6 Nov 1999; Wired/Reuters 4 Nov 1999; Wall Street Journal 23 Jul 1999; Webvan final prospectus (424B1) dated 4 Nov 1999 (SEC accession 0000891618-99-004914); Webvan Form 8-K filed 27 Jul 2001 (SEC accession 0001021408-01-504054); Bloomberg 6 Sep 2019; Reuters 13 Sep 2019.
 id: mkt-behavioural
 title: Behavioural finance and bubbles
 
@@ -16,8 +16,10 @@ cases:
       at more than $4 billion less than two months after its first delivery. The share sale had
       been postponed a month earlier, at the request of the Securities and Exchange Commission,
       because the company had given select investors financial information in a conference call
-      that was not in its public documents. Webvan was expected to lose about $65 million in 1999
-      and had warned of operating losses for the foreseeable future. On the morning of Thursday 4
+      that was not in its public documents. Webvan had lost $35.1 million in the first half of
+      1999. It expected a net loss of $64 million to $65 million for the third quarter alone,
+      including about $41 million of compensation expense (a bonus and stock-based pay), and had
+      warned of operating losses for the foreseeable future. On the morning of Thursday 4
       November 1999 the lead underwriter, Goldman Sachs, raised the expected price range from $11
       to $13 to $13 to $15 a share because demand was strong, for 25 million shares. The offer
       priced that evening at $15, raising $375 million, and trading was due to begin the next day.
@@ -25,13 +27,15 @@ cases:
       other buyers?
     reveal: >
       On 5 November the shares traded as high as $34 and closed at $24.875, 65% above the offer
-      price, valuing Webvan at $7.9 billion. The company went on to lose $453.3 million in 2000 and
-      filed for bankruptcy on 9 July 2001. The pattern came back twenty years later. WeWork was
-      valued at $47 billion in a private round in January 2019. Bankers had talked of $65 billion
-      for its share sale, and by 6 September 2019 it was reported to be considering a valuation as
-      low as $10 billion. The sale was withdrawn at the end of September. In both cases the price
-      rested on growth stories and on what the next buyer would pay, with little in the accounts to
-      support it.
+      price, valuing Webvan at $7.9 billion. The company went on to lose $453.3 million in 2000. On
+      9 July 2001 it shut down and said it would file for bankruptcy protection, and it filed on 13
+      July. The pattern came back twenty years later. WeWork was valued at $47 billion in a private
+      round in January 2019. Bankers had talked of $65 billion for its share sale. On 6 September
+      2019 Bloomberg reported that the valuation it was considering had fallen to about $20 billion,
+      and on 13 September Reuters reported that it might seek as little as $10 billion to $12
+      billion. The sale was withdrawn at the end of September. In both cases the price rested on
+      growth stories and on what the next buyer would pay, with little in the accounts to support
+      it.
 
 concept: >
   Behavioural finance studies how predictable human habits move prices. Overconfidence makes

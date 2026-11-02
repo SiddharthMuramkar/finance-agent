@@ -1,5 +1,6 @@
 # Reading empirical claims: causation, data and spreadsheet errors, taught through Reinhart and Rogoff's 90% debt threshold.
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Herndon, Ash and Pollin, UMass PERI Working Paper 322 (15 April 2013), read in full: coding error, selective exclusion of years, weighting and the 2.2 per cent figure.
 id: num-econometrics
 title: "Reading empirical claims: causation, data and spreadsheet errors"
 
@@ -22,10 +23,13 @@ cases:
       professors Michael Ash and Robert Pollin published a re-examination after Reinhart and Rogoff gave
       them the spreadsheet. They found three problems. First, a coding error: the average of growth rates
       covered rows 30 to 44 instead of 30 to 49, which left out five countries (Australia, Austria, Belgium,
-      Canada and Denmark); that slip alone moved the average growth in the highest-debt group by 0.3
-      percentage points. Second, selective exclusion: only 15 of the 20 countries in the report were used in
-      the average. Third, unconventional weighting: for example, New Zealand's one year of data above the
-      threshold (1951, growth -7.6 per cent) counted as much as Belgium's 26 years. The corrected figure for
+      Canada and Denmark); that slip alone lowered the average growth in the highest-debt group by 0.3
+      percentage points. Second, selective exclusion of years: Reinhart and Rogoff left out available early
+      years for three countries, Australia (1946 to 1950), New Zealand (1946 to 1949) and Canada (1946 to
+      1950). All four omitted New Zealand years were above the 90 per cent threshold, so New Zealand was left
+      with a single high-debt year, 1951. Third, unconventional weighting: each country's average counted
+      equally, however many years lay behind it, so New Zealand's one year (1951, growth -7.6 per cent)
+      counted as much as the United Kingdom's 19 years (average growth 2.4 per cent). The corrected figure for
       average real GDP growth in countries with debt above 90 per cent was 2.2 per cent, not -0.1 per cent.
       Reinhart and Rogoff acknowledged a "regrettable slip" that led to "a notable change in the average growth
       rate for the over-90-per-cent debt group", but said it did not affect the central message of their paper.
