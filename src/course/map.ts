@@ -34,6 +34,19 @@ const caseSchema = z.object({
   story: z.string().min(1),
   /** Withheld from the Tutor until the reveal Teaching Step. */
   reveal: z.string().min(1),
+  /** Case Data: sourced figures. Before the reveal, code hides any dated after `asOf`. */
+  data: z
+    .array(
+      z.object({
+        id,
+        label: z.string().min(1),
+        date: z.iso.date(),
+        value: z.number(),
+        unit: z.string().min(1),
+        source: z.string().min(1),
+      }),
+    )
+    .default([]),
 });
 
 export const STAGES = ["foundation", "follow", "judge", "analyse"] as const;

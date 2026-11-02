@@ -8,6 +8,7 @@ import { TEACHING_STEPS } from "@/course/navigator";
 import { messages, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, saveFinishedStep, summaryText } from "@/learner/memory";
+import { replaceBrokenWidgets, replyWidgetProblems } from "@/widgets/check";
 import { stepContext } from "./context";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 
@@ -44,7 +45,14 @@ export type TutorClient = {
   };
 };
 
-export type TurnEvent = { type: "text"; text: string } | { type: "done"; stopReason: string | null };
+export type TurnEvent =
+  | { type: "text"; text: string }
+  /** The reply's widget failed the server check; the text that follows is its one correction. */
+  | { type: "correction" }
+  | { type: "done"; stopReason: string | null };
+
+/** Opens the message code sends when a finished widget fails the check. */
+export const WIDGET_CHECK_PREFIX = "Widget check by code:";
 
 type Session = typeof sessions.$inferSelect;
 
@@ -77,6 +85,14 @@ async function sessionForAction(db: Db, now: Date): Promise<Session | undefined>
   const session = await currentSession(db);
   if (!session) return undefined;
   if (session.fingerprint !== fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)) return undefined;
+  // An earlier build opened Sessions with a system message, which the API rejects; start afresh.
+  const [first] = await db
+    .select({ role: messages.role })
+    .from(messages)
+    .where(eq(messages.sessionId, session.id))
+    .orderBy(asc(messages.seq))
+    .limit(1);
+  if (first?.role === "system") return undefined;
   const [{ last }] = await db
     .select({ last: max(messages.createdAt) })
     .from(messages)
@@ -169,10 +185,15 @@ function lastContextSent(msgs: Message[]): string | undefined {
     if (role === "user" && Array.isArray(content)) {
       const result = content.findLast((b) => b.type === "tool_result" && !b.is_error && typeof b.content === "string");
       if (result && result.type === "tool_result") return result.content as string;
+      const opening = content.find((b) => b.type === "text" && b.text.startsWith(OPENING_PREFIX));
+      if (opening && opening.type === "text") return opening.text;
     }
   }
   return undefined;
 }
+
+/** Opens the Session's first message: the Learner's summary and the Course Navigator's context. */
+export const OPENING_PREFIX = "Where the Learner stands:";
 
 export type TurnInput = string | { continue: true };
 /** What the Learner's "Continue" button sends. */
@@ -204,32 +225,61 @@ export async function* runTutorTurn(
     msgs.push(message);
   };
 
-  if (msgs.length === 0) await add({ role: "system", content: `Where the Learner stands:\n${summaryText(place)}\n\n${context}` });
-  else if (!lastContextSent(msgs)?.endsWith(context)) await add({ role: "system", content: context });
-  await add({ role: "user", content: typeof input === "string" ? input : CONTINUE_TEXT });
-
-  let saved = msgs.length;
-  let stopReason: string | null = null;
-  const runner = client.beta.messages.toolRunner(requestFor(session, msgs, toolCode(db, map, now)));
-
-  // Saves anything the runner added to history that isn't stored yet (tool results).
-  const syncRunnerHistory = async () => {
-    const all = runner.params.messages;
-    for (; saved < all.length; saved++) await append(db, sessionId, saved, all[saved], now());
-  };
-
-  for await (const stream of runner) {
-    await syncRunnerHistory();
-    for await (const event of stream) {
-      if (event.type === "content_block_delta" && event.delta.type === "text_delta" && event.delta.text) {
-        yield { type: "text", text: event.delta.text };
-      }
-    }
-    const final = await stream.finalMessage();
-    await append(db, sessionId, saved++, { role: "assistant", content: final.content }, now());
-    stopReason = final.stop_reason;
+  const learnerText = typeof input === "string" ? input : CONTINUE_TEXT;
+  if (msgs.length === 0) {
+    // The API rejects a system message as the first message, so a Session's opening context is
+    // the first block of the Learner's first message.
+    const opening = `${OPENING_PREFIX}\n${summaryText(place)}\n\n${context}`;
+    await add({ role: "user", content: [{ type: "text", text: opening }, { type: "text", text: learnerText }] });
+  } else {
+    if (!lastContextSent(msgs)?.endsWith(context)) await add({ role: "system", content: context });
+    await add({ role: "user", content: learnerText });
   }
-  await syncRunnerHistory();
+
+  let stopReason: string | null = null;
+  const activeSession = session;
+
+  // Runs Tool Runner over `messages`, streaming text and saving each loop step. Returns the replies' text.
+  async function* loop(messages: Message[]): AsyncGenerator<TurnEvent, string> {
+    let saved = messages.length;
+    const runner = client.beta.messages.toolRunner(requestFor(activeSession, messages, toolCode(db, map, now)));
+    // Saves anything the runner added to history that isn't stored yet (tool results).
+    const syncRunnerHistory = async () => {
+      const all = runner.params.messages;
+      for (; saved < all.length; saved++) await append(db, sessionId, saved, all[saved], now());
+    };
+    let text = "";
+    for await (const stream of runner) {
+      await syncRunnerHistory();
+      for await (const event of stream) {
+        if (event.type === "content_block_delta" && event.delta.type === "text_delta" && event.delta.text) {
+          yield { type: "text", text: event.delta.text };
+        }
+      }
+      const final = await stream.finalMessage();
+      await append(db, sessionId, saved++, { role: "assistant", content: final.content }, now());
+      text += textOf(final.content);
+      stopReason = final.stop_reason;
+    }
+    await syncRunnerHistory();
+    return text;
+  }
+
+  const reply = yield* loop(msgs);
+
+  // A finished widget that would not render gets one correction turn. History stays add-only.
+  const broken = replyWidgetProblems(reply);
+  if (broken.length) {
+    const stored = await history(db, sessionId);
+    const problems = broken.flatMap((b) => b.problems.map((p) => `- Widget ${b.index + 1}: ${p}`));
+    const correction: Message = {
+      role: "user",
+      content: `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn.\n${problems.join("\n")}\nReply with only the corrected openui-lang block, written in full. Write no prose.`,
+    };
+    await append(db, sessionId, stored.length, correction, now());
+    yield { type: "correction" };
+    yield* loop([...stored, correction]);
+  }
   yield { type: "done", stopReason };
 }
 
@@ -246,20 +296,33 @@ export async function listSessions(db: Db): Promise<{ id: number; createdAt: Dat
   return db.select({ id: sessions.id, createdAt: sessions.createdAt }).from(sessions).orderBy(desc(sessions.id));
 }
 
-/** One Session's conversation as plain text lines. No model call. */
+/**
+ * One Session's conversation as plain text lines. No model call. A widget
+ * correction is shown in place of the broken widget it replaced.
+ */
 export async function loadSession(db: Db, sessionId: number): Promise<Line[]> {
-  const msgs = await history(db, sessionId);
-  return msgs.flatMap((m) => {
+  const lines: Line[] = [];
+  let correcting = false;
+  for (const m of await history(db, sessionId)) {
     const text = textOf(m.content);
-    return text && m.role !== "system" ? [{ role: m.role, text }] : [];
-  });
+    if (!text || m.role === "system") continue;
+    if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
+      correcting = true;
+      continue;
+    }
+    const target = correcting && m.role === "assistant" ? lines.findLast((l) => l.role === "assistant") : undefined;
+    correcting = false;
+    if (target) target.text = replaceBrokenWidgets(target.text, text);
+    else lines.push({ role: m.role, text });
+  }
+  return lines;
 }
 
 function textOf(content: unknown): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
   return content
-    .filter((b): b is { type: "text"; text: string } => b?.type === "text")
+    .filter((b): b is { type: "text"; text: string } => b?.type === "text" && !b.text.startsWith(OPENING_PREFIX))
     .map((b) => b.text)
     .join("");
 }

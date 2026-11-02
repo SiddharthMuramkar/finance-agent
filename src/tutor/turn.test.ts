@@ -2,11 +2,12 @@ import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
-import { settings } from "@/db/schema";
+import { messages, settings } from "@/db/schema";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
-import { listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
+import { OPENING_PREFIX, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap } from "@/course/map";
 import { recordCheckResultForTest, workspaceSummary } from "@/learner/memory";
+import frozenWidgets from "@/widgets/frozen.generated.json";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -72,19 +73,34 @@ describe("Tutor Turn", () => {
     await collect(runTutorTurn({ db, client }, "Why is that?"));
     await collect(runTutorTurn({ db, client }, "Got it"));
 
-    // The first message is code's context message: where the Learner stands and the Teaching Step.
-    expect(requests[1].messages[0].role).toBe("system");
-    expect(requests[1].messages.slice(1)).toEqual([
-      { role: "user", content: "Why discount?" },
+    // The first message opens with code's context (where the Learner stands and the Teaching Step), then the Learner's words.
+    const [first, ...rest] = requests[1].messages;
+    expect(first.role).toBe("user");
+    expect(first.content).toEqual([
+      { type: "text", text: expect.stringContaining(OPENING_PREFIX) },
+      { type: "text", text: "Why discount?" },
+    ]);
+    expect(rest).toEqual([
       { role: "assistant", content: firstReply },
       { role: "user", content: "Why is that?" },
     ]);
     // Each request starts with exactly what the previous one sent and received.
-    expect(requests[2].messages.slice(0, 4)).toEqual(requests[1].messages);
-    expect(requests[2].messages[4]).toEqual({
+    expect(requests[2].messages.slice(0, 3)).toEqual(requests[1].messages);
+    expect(requests[2].messages[3]).toEqual({
       role: "assistant",
       content: [{ type: "redacted_thinking", data: "opaque==" }, { type: "text", text: "Because of interest." }],
     });
+  });
+
+  it("starts a new Session when the current one opens with a system message, which the API rejects", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "One." }] }, { content: [{ type: "text", text: "Two." }] }]);
+    await collect(runTutorTurn({ db, client }, "Hello"));
+    // An earlier build stored the opening context as a system message.
+    await db.update(messages).set({ role: "system", content: "Where the Learner stands: old" }).where(eq(messages.seq, 0));
+    await collect(runTutorTurn({ db, client }, "Again"));
+    expect(await listSessions(db)).toHaveLength(2);
+    expect(requests[1].messages[0].role).toBe("user");
   });
 
   describe("led by the Course Navigator", () => {
@@ -101,8 +117,14 @@ describe("Tutor Turn", () => {
       let t = start;
       return { now: () => new Date(t), advance: (ms: number) => (t += ms) };
     };
+    // Context code sent the Tutor: appended system messages, and the opening block of a Session's first user message.
     const systemTexts = (request: { messages: { role: string; content?: unknown }[] }) =>
-      request.messages.filter((m) => m.role === "system").map((m) => String(m.content));
+      request.messages.flatMap((m) => {
+        if (m.role === "system") return [String(m.content)];
+        if (m.role === "user" && Array.isArray(m.content))
+          return m.content.filter((b) => b.type === "text" && b.text.startsWith(OPENING_PREFIX)).map((b) => b.text as string);
+        return [];
+      });
 
     it("opening the workspace makes no model call and shows a plain-text summary", async () => {
       const db = await testDb();
@@ -167,7 +189,8 @@ describe("Tutor Turn", () => {
       const sessions = await listSessions(db);
       expect(sessions).toHaveLength(2);
       const fresh = requests.at(-1)!;
-      expect(fresh.messages[0].role).toBe("system");
+      // The API rejects a system message as the first message (live 400), so the opening context rides in the first user message.
+      expect(fresh.messages[0].role).toBe("user");
       expect(systemTexts(fresh)[0]).toContain("Teaching Step: reveal");
       expect(systemTexts(fresh)[0]).toContain(pv.cases[0].reveal.trim());
     });
@@ -211,6 +234,58 @@ describe("Tutor Turn", () => {
         { role: "user", text: "Second" },
         { role: "assistant", text: "Reply 1" },
       ]);
+    });
+  });
+
+  describe("widgets", () => {
+    const good = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
+    const bad = '```openui-lang\nroot = Widget("PV", [chart])\nchart = LineChart([1, 2, 3])\n```';
+
+    it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hi." }] }]);
+      await collect(runTutorTurn({ db, client }, "Hello"));
+      expect(requests[0].system[0].text).toContain(frozenWidgets.instructions);
+    });
+
+    it("a valid widget needs no correction turn", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Try it.\n${good}\nDrag the rate.` }] }]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      expect(requests).toHaveLength(1);
+      expect(events.some((e) => e.type === "correction")).toBe(false);
+    });
+
+    it("detects an invalid widget on the server, allows one correction turn, and the corrected widget replaces the broken one on reload", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([
+        { content: [{ type: "text", text: `Try it.\n${bad}\nDrag the rate.` }] },
+        { content: [{ type: "text", text: good }] },
+      ]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+
+      expect(requests).toHaveLength(2);
+      const correction = requests[1].messages.at(-1)!;
+      expect(correction.role).toBe("user");
+      expect(String(correction.content)).toMatch(/LineChart/);
+      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+
+      // History stays add-only: both replies and the correction request are stored.
+      expect(await loadCurrentSession(db)).toEqual([
+        { role: "user", text: "Show me" },
+        { role: "assistant", text: `Try it.\n${good}\nDrag the rate.` },
+      ]);
+    });
+
+    it("gives up after one correction turn, leaving the browser to show a plain fallback", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([
+        { content: [{ type: "text", text: bad }] },
+        { content: [{ type: "text", text: bad }] },
+      ]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      expect(requests).toHaveLength(2);
+      expect(events.filter((e) => e.type === "correction")).toHaveLength(1);
     });
   });
 });

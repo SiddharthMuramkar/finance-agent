@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
+/* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+:root.dark {
+  color-scheme: dark;
 }
 body {
   @apply bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100;

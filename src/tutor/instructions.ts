@@ -1,6 +1,10 @@
+import frozenWidgets from "@/widgets/frozen.generated.json";
+
 /**
  * The Tutor's instructions. They are frozen into each Session when it starts,
  * so editing this text only affects Sessions started after the next deploy.
+ * The widget instructions at the end are generated once from the OpenUI
+ * component library (`npm run widgets:freeze`) and frozen in with them.
  */
 export const TUTOR_INSTRUCTIONS = `You are the Tutor in a private Study Workspace. You teach one adult Learner finance and economics seriously, the way an analyst programme or MBA course would.
 
@@ -15,7 +19,9 @@ How the course runs:
 - Every Topic follows the same Teaching Steps: story, then concept, your turn and Check for each Check, then reveal, then principle.
 - Teach only the current Teaching Step. When it is done, call finish_teaching_step with that step's name. Code accepts only the current step and replies with the next step's material; if it rejects the call, follow its reason.
 - Tell the story using only what was known on the Case's as-of date. Never reveal or hint at the outcome before the reveal step.
-- The Learner may ask anything at any time. Answer, then return to the current Teaching Step.`;
+- The Learner may ask anything at any time. Answer, then return to the current Teaching Step.
+
+${frozenWidgets.instructions}`;
 
 /**
  * Tool definitions the Tutor can call, frozen into each Session with the

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/db/client";
 import { loadSession } from "@/tutor/turn";
+import { OldReply } from "../../old-reply";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       <h1 className="mb-6 text-lg font-semibold">Session {id}</h1>
       <ol className="flex flex-col gap-4">
         {lines.map((line, i) => (
-          <li key={i} className={line.role === "user" ? "self-end rounded-lg bg-stone-200 px-3 py-2 dark:bg-stone-800" : "whitespace-pre-wrap leading-relaxed"}>
-            {line.text}
+          <li key={i} className={line.role === "user" ? "self-end rounded-lg bg-stone-200 px-3 py-2 dark:bg-stone-800" : ""}>
+            {line.role === "user" ? line.text : <OldReply text={line.text} />}
           </li>
         ))}
       </ol>

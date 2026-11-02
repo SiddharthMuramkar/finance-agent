@@ -13,11 +13,16 @@
     "course:check": "node scripts/check-course.mjs",
     "check": "npm run typecheck && npm run lint && npm run course:check && npm run test",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate"
+    "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate",
+    "widgets:freeze": "FREEZE=1 vitest run src/widgets/widgets.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.3.0",
+    "@assistant-ui/react": "0.15.32",
+    "@formulajs/formulajs": "4.6.1",
     "@neondatabase/serverless": "1.2.0",
+    "@openuidev/lang-core": "1.0.2",
+    "@openuidev/react-lang": "1.0.2",
     "drizzle-orm": "0.45.4",
     "next": "16.4.3",
     "react": "19.3.1",

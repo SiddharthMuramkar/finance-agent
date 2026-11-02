@@ -24,6 +24,19 @@ cases:
       The cash figure was not a discount for impatience invented by the lottery: it was
       roughly what the lottery would have had to spend on bonds to fund the 30 payments,
       that is, the present value of the annuity at the interest rates of the time.
+    data:
+      - id: advertised-annuity
+        label: Advertised jackpot (sum of 30 annuity payments)
+        date: 2018-10-23
+        value: 1537000000
+        unit: USD
+        source: CNBC and ABC News reports, 24 October 2018
+      - id: cash-option
+        label: Cash option
+        date: 2018-10-23
+        value: 877800000
+        unit: USD
+        source: CNBC and ABC News reports, 24 October 2018
 
 concept: >
   Money available today is worth more than the same amount later, because today's money
