@@ -415,3 +415,26 @@ export const questionBank = pgTable(
   },
   (t) => [index("question_bank_source_idx").on(t.source, t.bankTitle)],
 );
+
+/**
+ * Text the Learner pasted into the workspace (for example the part of a Zitron article being
+ * studied). It belongs to the turn that sent it and the Session that turn ran in, is given to the
+ * Tutor as marked text appended to the Learner's message, and is never added to the Library.
+ * Private: it lives only in this database, never in the repo.
+ */
+export const pastedTexts = pgTable(
+  "pasted_texts",
+  {
+    id: serial("id").primaryKey(),
+    /** The turn that sent it; one paste per turn, so a retry reuses it. */
+    turnId: integer("turn_id")
+      .notNull()
+      .references(() => turns.id),
+    /** Set once the turn has chosen its Session; null only for a turn that failed before that. */
+    sessionId: integer("session_id").references(() => sessions.id),
+    text: text("text").notNull(),
+    words: integer("words").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("pasted_texts_turn").on(t.turnId), index("pasted_texts_session").on(t.sessionId)],
+);

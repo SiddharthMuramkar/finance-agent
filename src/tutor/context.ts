@@ -1,7 +1,9 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
+import type { Piece } from "@/course/map";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { PASTE_PREFIX, type PasteSummary } from "./pasted";
 
 const AFTER_REVEAL = TEACHING_STEPS.indexOf("reveal");
 
@@ -14,7 +16,7 @@ export const JUMP_NOTE =
  * Case's outcome is included only from the reveal on, so hindsight is withheld
  * by code as well as by instructions.
  */
-export function stepContext(place: Place | null, caseData: CaseData[] = []): string {
+export function stepContext(place: Place | null, caseData: CaseData[] = [], pastes: PasteSummary = { count: 0, words: 0 }): string {
   if (!place) return "Course Navigator: every Topic on the Course Map is passed. Answer the Learner's questions.";
   const { topic, step, check } = place;
   const revealed = TEACHING_STEPS.indexOf(step) >= AFTER_REVEAL;
@@ -26,6 +28,7 @@ export function stepContext(place: Place | null, caseData: CaseData[] = []): str
   if (place.unmetPrerequisites.length) lines.push(`Prerequisites not yet passed: ${place.unmetPrerequisites.join(", ")}.`);
   for (const c of topic.cases) {
     lines.push("", `Case: ${c.title}, as of ${c.asOf}.`, `Story (only what was known on ${c.asOf}): ${c.story.trim()}`);
+    if (c.piece) lines.push(...pieceLines(c.piece, pastes));
     if (revealed) lines.push(`Reveal (what happened): ${c.reveal.trim()}`);
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
@@ -52,6 +55,27 @@ export function stepContext(place: Place | null, caseData: CaseData[] = []): str
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");
+}
+
+/**
+ * Where the Tutor gets a studied piece's text: the Library through the source filter, or only what
+ * the Learner has pasted in this Session, counted by code so the Tutor knows what it has seen.
+ */
+function pieceLines(piece: Piece, pastes: PasteSummary): string[] {
+  const lines = [`Piece studied: ${piece.author}, "${piece.title}", published ${piece.published} (${piece.url}). The Learner reads the piece itself; you walk its argument step by step with them.`];
+  if (piece.from === "paste") {
+    lines.push(
+      "Its text is not in the Library and you cannot fetch it: you see only what the Learner pastes into this Session, from the writer's own site.",
+      pastes.count
+        ? `Passages the Learner pasted in this Session: ${pastes.count} (${pastes.words} words), each in a Learner message marked "${PASTE_PREFIX.split(" (")[0]}". Work only from those passages. If the Learner refers to a part you have not been given, say plainly that you have not seen it and ask them to paste it; never describe, quote or summarise unseen parts from memory.`
+        : "The Learner has not pasted any of it in this Session, so you have not seen its text. Ask them to paste the part being studied, and do not describe, quote or summarise the piece from memory.",
+    );
+    return lines;
+  }
+  lines.push(
+    `Its text is in the Library: call search_library with source "${piece.librarySource}" and words from the part you are discussing (never the writer's name), and work from the passages it returns. Quote only short passages with credit, within the limit the search result gives, and put the rest in your own words. If a search does not return the part the Learner means, say plainly that you have not seen that passage rather than reconstructing it from memory.`,
+  );
+  return lines;
 }
 
 /** A series this long is summarised by its first and last points; shorter ones are listed in full. */
@@ -83,8 +107,8 @@ function caseDataLines(data: CaseData | undefined): string[] {
  * The context for a Learner who is still at a Check after a turn that recorded
  * no verdict: a note first, then the usual context, so it still ends the same.
  */
-export function noVerdictContext(place: Place & { check: NonNullable<Place["check"]> }, caseData: CaseData[] = []): string {
-  return `No verdict was recorded for Check ${place.check.id} in the last turn, so the Learner is still at this Check.\n${stepContext(place, caseData)}`;
+export function noVerdictContext(place: Place & { check: NonNullable<Place["check"]> }, caseData: CaseData[] = [], pastes?: PasteSummary): string {
+  return `No verdict was recorded for Check ${place.check.id} in the last turn, so the Learner is still at this Check.\n${stepContext(place, caseData, pastes)}`;
 }
 
 /** Opens the Session's first message: the Learner's summary and the Course Navigator's context. */
