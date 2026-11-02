@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 9 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 17 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -86,7 +86,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 10. Revenue recognition, run rates, gross vs net
 
-- ID: `fs-revenue-runrate` · Coming
+- ID: `fs-revenue-runrate` · Written
 - Needs first: How the three statements link (accrual accounting)
 - Case: **WeWork's run-rate boast** (as of 2019-08-14)
   - Outcome: The S-1 said run-rate revenue reached $3bn in six months; first-half revenue was $1.54bn with a $905m loss.
@@ -94,7 +94,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 11. Capex, depreciation, amortisation and EBITDA
 
-- ID: `fs-capex-dep` · Coming
+- ID: `fs-capex-dep` · Written
 - Needs first: How the three statements link (accrual accounting)
 - Case: **Webvan's warehouse and fleet build-out** (as of 1999-11-05) **to verify**
   - Outcome: Planned 26 distribution centres, ran seven markets; $143 spent per $100 of food sold; closed Jul 2001.
@@ -103,7 +103,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 12. Leases, commitments and debt-like items
 
-- ID: `fs-leases-debt` · Coming
+- ID: `fs-leases-debt` · Written
 - Needs first: How the three statements link (accrual accounting), Time value and present value
 - Case: **WeWork's lease obligations** (as of 2019-06-30)
   - Outcome: Long-term lease obligations of about $17bn in the S-1; $19bn liabilities in the Nov 2023 filing; leases rejected in restructuring.
@@ -111,7 +111,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 13. Reading filings: S-1, 10-K, Indian annual report and Ind AS
 
-- ID: `fs-filings` · Coming
+- ID: `fs-filings` · Written
 - Needs first: Ratios, return on equity and DuPont
 - Case: **WeWork's governance clause** (as of 2019-08-14)
   - Outcome: The S-1 gave the CEO profits interests at a $90bn cap; the IPO was pulled.
@@ -123,7 +123,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 14. Earnings quality and accounting fraud
 
-- ID: `fs-earnings-quality` · Coming
+- ID: `fs-earnings-quality` · Written
 - Needs first: Ratios, return on equity and DuPont, Capex, depreciation, amortisation and EBITDA
 - Case: **Satyam, the day before the confession** (as of 2009-01-06)
   - Outcome: Raju's letter of 7 Jan 2009 admitted inflated profits and cash; SEC order followed.
@@ -131,7 +131,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 15. Corporate tax and after-tax cash flows
 
-- ID: `fs-tax` · Coming
+- ID: `fs-tax` · Written
 - Needs first: How the three statements link (accrual accounting)
 - Case: **India cuts corporate tax to 22%** (as of 2019-09-19)
   - Outcome: Announced 20 Sep 2019: base rate 30% to 22% (effective 34.94% to 25.17%), 15% for new manufacturers; Rs 1.45 lakh crore revenue foregone; the Sensex had its biggest single-day gain in a decade.
@@ -140,7 +140,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 16. Statistics: mean, variance, correlation, regression
 
-- ID: `num-statistics` · Coming
+- ID: `num-statistics` · Written
 - Needs first: Probability and expected value
 - Case: **The 1987 crash** (as of 1987-10-16)
   - Outcome: On 19 Oct 1987 the S&P 500 fell about 20% and S&P futures 29%; a tail event far outside normal-distribution odds.
@@ -148,7 +148,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 17. Supply, demand and prices
 
-- ID: `eco-supply-demand` · Coming
+- ID: `eco-supply-demand` · Written
 - Needs first: Percent, percentage points and basis points
 - Case: **Indian onion price shocks** (as of 2019-09-01) **to verify**
   - Outcome: An RBI working paper (Aug 2024) says tomato, onion and potato prices drive volatility of Indian food inflation.

@@ -1,0 +1,126 @@
+# Leases, commitments and debt-like items: a foundation Topic taught through WeWork's lease obligations.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: fs-leases-debt
+title: Leases, commitments and debt-like items
+
+cases:
+  - id: wework-leases-2019
+    title: WeWork's lease obligations
+    asOf: 2019-08-14
+    story: >
+      WeWork's IPO prospectus of 14 August 2019 covered the position at 30 June 2019. WeWork rents
+      office buildings from landlords and sublets space to members. The filing showed long-term lease
+      obligations of $17.9 billion on its balance sheet. It also said that, not discounted, its future
+      lease payments came to $47.2 billion at 30 June, up from roughly $34 billion at the end of 2018.
+      The average initial lease with a landlord in the US ran 15 years, while its members' contracts
+      averaged about 15 months. The company pointed investors to $4 billion of "committed revenue
+      backlog" from members. Most of its leases were signed by separate single-purpose subsidiaries,
+      and the parent had guaranteed only a small part of the total (the filing and press reports put
+      it at about $4.5 billion). It planned to raise up to $6 billion of debt alongside the IPO and
+      said it had about $2.5 billion of cash, half of it unrestricted. Revenue for the first half of
+      2019 was $1.54 billion, with a loss of about $905 million.
+    reveal: >
+      The IPO was withdrawn on 30 September 2019. WeWork filed for Chapter 11 bankruptcy in
+      November 2023, listing about $19 billion of liabilities and $15 billion of assets. In its
+      restructuring, approved in May 2024, it rejected unprofitable leases and said it would cut
+      its future rent obligations roughly in half, to about $12 billion. The leases were commitments
+      that stayed fixed when the revenue they were meant to be paid from did not hold up.
+
+concept: >
+  A lease is a promise to pay rent for years. Under current accounting rules (IFRS 16 and ASC 842)
+  most leases appear on the balance sheet as a lease liability, equal to the present value of the
+  remaining payments, with a matching right-of-use asset. So $47.2 billion of payments spread over
+  15 years or more shows as a much smaller liability once discounted, which is the present value
+  idea at work. Debt-like items go beyond bank loans: leases, guarantees, purchase commitments and
+  unfunded pensions all oblige the company to pay whatever its sales do. The danger is a mismatch:
+  commitments that last for years funded by revenue that can leave in months.
+
+principle: >
+  Count every fixed promise to pay as debt in spirit, discount it to today, and compare how long
+  the company is committed to pay with how long its customers are committed to stay.
+
+questions:
+  - id: ls-q-gap
+    prompt: >
+      WeWork's S-1 showed $47.2 billion of undiscounted future lease payments but $17.9 billion of
+      long-term lease obligations on the balance sheet. What mainly explains the gap?
+    choices:
+      - { id: a, text: "Future payments are discounted to present value" }
+      - { id: b, text: "WeWork had already paid most of the rent" }
+      - { id: c, text: "The balance sheet leaves out leases it does not own the buildings for" }
+      - { id: d, text: "The two figures cover different companies" }
+    answer: a
+    explanation: >
+      A liability is recorded at the present value of the payments, not their sum. Payments many years away are worth much less today at any positive discount rate.
+    source: >
+      CNBC, WeWork releases S-1 filing for IPO, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+
+  - id: ls-q-pv-rent
+    prompt: >
+      A tenant must pay rent of 100 at the end of each of the next two years. At a discount rate of 10% a year, what is the present value of the two payments?
+    choices:
+      - { id: a, text: "173.55" }
+      - { id: b, text: "200.00" }
+      - { id: c, text: "190.91" }
+      - { id: d, text: "165.29" }
+    answer: a
+    explanation: >
+      100 / 1.10 = 90.91 and 100 / 1.21 = 82.64, which add to 173.55. Adding the payments without discounting (200) overstates the liability.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: ls-q-mismatch
+    prompt: >
+      WeWork's leases with landlords averaged 15 years, while its members' contracts averaged about 15
+      months. What risk does that mismatch create in a downturn?
+    choices:
+      - { id: a, text: "Members can leave within months while rent is owed for years" }
+      - { id: b, text: "Rent falls automatically when members leave" }
+      - { id: c, text: "WeWork cannot sublet space it leases" }
+      - { id: d, text: "No risk, because the two periods cancel out" }
+    answer: a
+    explanation: >
+      The rent is a fixed commitment over the long lease term, while income depends on members who can go after a short period. A downturn cuts income quickly but not the rent.
+    source: >
+      Business Insider, WeWork's $47 billion, $4 billion lease disparity, 22 August 2019: https://www.businessinsider.com/wework-47-billion-and-4-billion-lease-disparity-dangerous-recipe-2019-8
+
+  - id: ls-q-debt-like
+    prompt: >
+      Which of these is closest to debt in its effect on a company that cannot pay?
+    choices:
+      - { id: a, text: "A 15-year lease with fixed rent payments" }
+      - { id: b, text: "A signed customer order that can be cancelled at no cost" }
+      - { id: c, text: "A trademark the company owns" }
+      - { id: d, text: "Cash in the bank" }
+    answer: a
+    explanation: >
+      A lease is a contract to pay fixed amounts over years whatever the company earns, like loan repayments. Cancellable orders, owned assets and cash do not oblige the company to pay anyone.
+    source: >
+      IFRS 16 Leases, summary of the lessee model (leases recognised as a liability for the present value of payments): https://www.ifrs.org/issued-standards/list-of-standards/ifrs-16-leases/
+
+checks:
+  - id: ls-quiz-leases
+    kind: quiz
+    questions:
+      - ls-q-gap
+      - ls-q-pv-rent
+      - ls-q-mismatch
+      - ls-q-debt-like
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ls-lease-view
+    kind: conversation
+    prompt: >
+      On 14 August 2019 WeWork reports $17.9 billion of lease obligations, $47.2 billion of
+      undiscounted lease payments and $4 billion of committed member revenue. Explain how the first
+      two figures relate, and judge whether the leases should be treated like debt when sizing up
+      the company's risk.
+    passCriteria: >
+      The Learner explains that $47.2 billion is the plain sum of future payments and $17.9 billion
+      is roughly its present value, because later payments are discounted. They argue the leases are
+      debt-like: fixed payments over about 15 years that must be met whatever revenue does, set
+      against members who commit for about 15 months and a backlog of $4 billion that is small next
+      to the $47.2 billion. They may note that single-purpose subsidiaries and limited parent
+      guarantees soften the risk for the parent but not for the business, which still depends on
+      the sites.
