@@ -13,8 +13,24 @@ The agent that teaches, explains and works through finance and economics with th
 _Avoid_: Assistant, bot
 
 **Course Map**:
-The ordered set of topics across finance and economics that the Tutor leads the Learner through. The Learner can leave it to ask anything and return to where they were.
+The Topics across finance and economics, what each one requires first, and a default path the Tutor leads the Learner along. The Learner can leave it to ask anything and return to where they were.
 _Avoid_: Syllabus, curriculum
+
+**Topic**:
+A lesson-sized stop on the Course Map, with an ordered list of Checks along the way.
+_Avoid_: Lesson, module, unit
+
+**Teaching Step**:
+One of the six parts every Topic follows: story, concept, your turn, Check, reveal and principle.
+_Avoid_: Phase, stage
+
+**Case**:
+A real past episode that a Topic is taught through, with an outcome that is already known.
+_Avoid_: Example, scenario
+
+**Session**:
+One continuous conversation between the Learner and the Tutor. Returning after a long break starts a new one.
+_Avoid_: Login, thread, chat
 
 **Stage**:
 One of the three levels the course takes the Learner through: Follow (understand what a writer argues), Judge (spot where an argument is weak) and Analyse (reach an own view from the numbers).
@@ -25,11 +41,11 @@ The private collection of source material the Tutor searches for quotes and cont
 _Avoid_: Knowledge base, corpus
 
 **Check**:
-A moment when the Tutor tests the Learner's understanding of a topic, through conversation or a quiz.
-_Avoid_: Test, exam
+A marked point in a Topic where the Tutor tests the Learner's understanding, through conversation or a quiz. The last Check passed is the Learner's place on the Course Map.
+_Avoid_: Checkpoint, test, exam
 
 **Study Workspace**:
-The main product: a conversation with the Tutor beside charts and calculators the learner can play with, the sources behind each answer, and what has been learned so far.
+The main product: a conversation with the Tutor beside charts and calculators the Learner can play with, the sources behind each answer, and what has been learned so far.
 _Avoid_: Dashboard
 
 **Market Workbench**:
