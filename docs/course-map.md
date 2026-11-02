@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 33 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 41 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -360,7 +360,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 42. Market efficiency
 
-- ID: `mkt-efficiency` · Coming
+- ID: `mkt-efficiency` · Written
 - Needs first: CAPM, beta and factor models
 - Case: **Blodget versus Grantham on the dot-com valuations** (as of 2000-01-01) **to verify**
   - Outcome: The Nasdaq bust followed in 2000-02.
@@ -369,7 +369,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 43. Behavioural finance and bubbles
 
-- ID: `mkt-behavioural` · Coming
+- ID: `mkt-behavioural` · Written
 - Needs first: Market efficiency
 - Case: **Webvan and WeWork at the top** (as of 1999-11-05)
   - Outcome: Webvan $7.9bn on day one, bankrupt 20 months later; WeWork $47bn in Jan 2019, IPO valuation cut to $20bn in Sep 2019.
@@ -377,7 +377,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 44. NPV, IRR and capital budgeting
 
-- ID: `cf-capital-budgeting` · Coming
+- ID: `cf-capital-budgeting` · Written
 - Needs first: Time value and present value, The cash flow statement
 - Case: **Webvan's 26-centre build plan** (as of 1999-11-05)
   - Outcome: A plan for 26 automated distribution centres at the peak; ran seven markets and closed in Jul 2001.
@@ -386,7 +386,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 45. Cost of capital and WACC
 
-- ID: `cf-wacc` · Coming
+- ID: `cf-wacc` · Written
 - Needs first: CAPM, beta and factor models, Credit spreads, ratings and default, NPV, IRR and capital budgeting
 - Case: **Eurotunnel's financing cost** (as of 2006-09-01)
   - Outcome: Debt of 6.2bn pounds, about 330m a year of interest; creditors approved a rescue by one vote on 27 Nov 2006; debt cut to 2.84bn pounds on 15 Jan 2007.
@@ -395,7 +395,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 46. Capital structure and Modigliani-Miller
 
-- ID: `cf-capital-structure` · Coming
+- ID: `cf-capital-structure` · Written
 - Needs first: Cost of capital and WACC
 - Case: **The Coffee Day group's debt** (as of 2019-03-31) **to verify**
   - Outcome: Founder's letter of 27 Jul 2019 cited lender and private-equity pressure; about 76% of founders' holdings pledged; shares fell by the 20% limit.
@@ -404,7 +404,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 47. Dividends and buybacks
 
-- ID: `cf-payout` · Coming
+- ID: `cf-payout` · Written
 - Needs first: Capital structure and Modigliani-Miller
 - Case: **A buyback forced on a levered group** (as of 2019-07-27) **to verify**
   - Outcome: The Coffee Day founder's letter cites a private-equity partner forcing a buyback.
@@ -413,7 +413,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 48. Corporate credit analysis
 
-- ID: `credit-analysis` · Coming
+- ID: `credit-analysis` · Written
 - Needs first: Credit spreads, ratings and default, Ratios, return on equity and DuPont, Leases, commitments and debt-like items
 - Case: **IL&FS before its defaults** (as of 2018-06-30) **to verify**
   - Outcome: 169 group companies, high leverage; defaults in Aug-Sep 2018; board superseded in Oct 2018.
@@ -422,7 +422,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 49. DCF valuation
 
-- ID: `val-dcf` · Coming
+- ID: `val-dcf` · Written
 - Needs first: Cost of capital and WACC, The cash flow statement, Capex, depreciation, amortisation and EBITDA
 - Case: **Damodaran values Amazon.com** (as of 2000-02-01)
   - Outcome: Stock at $84; Damodaran's base-case value about $35 per share; split-adjusted close $0.78 on 29 Dec 2000, down about 81%.

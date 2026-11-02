@@ -1,0 +1,157 @@
+# Market efficiency: a foundation Topic taught through the Blodget versus Grantham debate of May 2000.
+# Case Data (the index levels) lives in the database; see docs/architecture.md.
+# Case sources (checked): Forbes, 12 Jun 2000, 'Henry Blodget Debates Jeremy Grantham' (copy on Damodaran's site); AP and CNBC index milestones; Reuters 21 May 2007.
+id: mkt-efficiency
+title: Market efficiency
+
+cases:
+  - id: blodget-grantham-2000
+    title: Blodget versus Grantham on the dot-com valuations
+    data: [nasdaq-composite-close, sp500-close]
+    asOf: 2000-05-01
+    story: >
+      In early May 2000 Forbes put two well-known investors in a room to argue about the stock
+      market. Henry Blodget, 34, was an internet analyst at Merrill Lynch. Jeremy Grantham, 61,
+      ran the money manager Grantham, Mayo, Van Otterloo. The Nasdaq Composite had closed at a
+      record 5,048.62 on 10 March 2000 and had fallen sharply since. Blodget said it was still up
+      40% over the past year, after rising 83% in 1999. He said valuations would matter more as
+      the internet industry matured, that perhaps 75% of the new companies would disappear, but
+      that the strongest would keep growing for years. Yahoo, he said, sold at about 340 times
+      earnings. Grantham pointed out that the internet sector, which he defined to include Cisco
+      and AOL, was worth $1.2 trillion at the end of February against negative earnings of $2.5
+      billion. He expected 80% of such companies to cease to exist. He thought the S&P 500, at
+      about 30 times earnings, should drift back towards 17.5 times, and that from their highs the
+      S&P 500 would fall 50%, the Nasdaq 70%. Blodget also noted that many fund managers are judged
+      against the S&P 500, so they risk their jobs if they do not own the stocks everyone else owns.
+      If the market were informationally efficient, what would that say about both men's forecasts?
+      What would you want to see before calling today's prices wrong?
+    reveal: >
+      The Nasdaq kept falling. It closed at 1,114.11 on 9 October 2002, 78% below its March 2000
+      record, and did not close above that record again until April 2015. The S&P 500 went from its
+      record close of 1,527.46 on 24 March 2000 to a closing low of 776.76 on 9 October 2002, a fall
+      of about 49%. Grantham's calls of a 50% and a 70% fall were close to the eventual declines,
+      though they took two and a half years, not months, and Blodget's warning that most of the new
+      companies would not survive was also borne out. The episode shows two different claims. 'These
+      prices are too high' is a claim about value. 'Someone could reliably profit from knowing it' is
+      a claim about market efficiency, and it needs timing, patience and a way to survive the years
+      in which the mispricing grows before it shrinks.
+
+concept: >
+  An efficient market is one in which prices already reflect the available information, so that
+  nobody can consistently earn more than the return their risk deserves by trading on that
+  information. The efficient market hypothesis comes in three forms. In the weak form prices
+  reflect all past prices and trading volume, so charting the past cannot beat the market. In the
+  semi-strong form prices reflect all public information (accounts, news, announcements), so
+  analysing public data cannot beat it either. In the strong form prices reflect even private
+  information, so insiders cannot profit either. Efficiency does not say prices are always right,
+  only that they are hard to beat: if a price is wrong, nobody knows in which direction until
+  later. Testing it is hard because every test also assumes a model of risk (the joint hypothesis
+  problem), and arbitrage is limited: a trader who bets against a mispricing can be forced out, by
+  clients or lenders, before it corrects. Anomalies such as the value premium or post-earnings
+  drift may be mispricing, compensation for risk the model misses, or patterns that fade once
+  they are known.
+
+principle: >
+  Separate the claim that a price is wrong from the claim that anyone could reliably profit from
+  it. Ask what would have to be true for the price to be right, and what would have to be true
+  for a trader to survive until it is corrected.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: ef-q-semi-strong
+    prompt: >
+      In a market where prices reflect all publicly available information, such as accounts and news announcements, but not private information, which form of efficiency holds?
+    choices:
+      - { id: a, text: "Weak form only" }
+      - { id: b, text: "Semi-strong form" }
+      - { id: c, text: "Strong form" }
+      - { id: d, text: "None: prices always reflect information" }
+    answer: b
+    explanation: >
+      Semi-strong form efficiency means prices reflect all public information. Weak form covers only past prices and volume. Strong form would include private information too.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
+
+  - id: ef-q-technical
+    prompt: >
+      If a market is weak-form efficient, which strategy cannot consistently earn more than the market's risk-adjusted return?
+    choices:
+      - { id: a, text: "Choosing stocks by studying past price patterns on charts" }
+      - { id: b, text: "Trading on confidential information about a coming takeover" }
+      - { id: c, text: "Holding a diversified index fund" }
+      - { id: d, text: "Buying shares after reading the company's published accounts" }
+    answer: a
+    explanation: >
+      Weak form efficiency says past prices and volumes are already in today's price, so technical analysis of them gives no consistent edge. Strategies based on public accounts need semi-strong inefficiency, and use of confidential information needs the strong form to fail.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
+
+  - id: ef-q-luck
+    prompt: >
+      1,000 fund managers each have an independent 50% chance of beating the market in any one year, by luck alone. About how many would you expect to beat it three years in a row?
+    choices:
+      - { id: a, text: "About 125" }
+      - { id: b, text: "About 500" }
+      - { id: c, text: "About 250" }
+      - { id: d, text: "About 12" }
+    answer: a
+    explanation: >
+      The chance of three wins in a row is 0.5 x 0.5 x 0.5 = 0.125, and 0.125 x 1,000 = 125. A streak among many managers is therefore not by itself proof of skill, which is why a track record has to be judged against the number of managers who tried.
+    source: >
+      Own arithmetic on the binomial probability of independent events; the efficient-market reading follows OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
+
+  - id: ef-q-announcement
+    prompt: >
+      A company announces earnings that are far better than analysts expected. In a semi-strong efficient market, what is the most likely pattern of its share price?
+    choices:
+      - { id: a, text: "It jumps almost immediately and then follows no predictable drift" }
+      - { id: b, text: "It rises slowly over the following months" }
+      - { id: c, text: "It does not move, because earnings are public" }
+      - { id: d, text: "It falls first and then recovers" }
+    answer: a
+    explanation: >
+      If prices reflect public information, new information is absorbed quickly. A slow drift in the same direction after an announcement would be an anomaly, a pattern known as post-earnings drift.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
+
+  - id: ef-q-benchmark-risk
+    prompt: >
+      A manager believes the market's price level is too high, yet keeps buying the stocks that make up the index their clients use as a benchmark. Which reason from the Blodget and Grantham debate best explains this?
+    choices:
+      - { id: a, text: "A manager who is far from the benchmark risks losing clients if the market keeps rising, so being right later may come too late" }
+      - { id: b, text: "Index stocks cannot be mispriced" }
+      - { id: c, text: "Regulations forbid holding cash" }
+      - { id: d, text: "Benchmark stocks always have the lowest risk" }
+    answer: a
+    explanation: >
+      Both men in the Forbes debate describe benchmark risk: being underweight a rising index can end a career before a mispricing is corrected. This is one reason arbitrage is limited, so prices can stay out of line for longer than expected.
+    source: >
+      Forbes, 'Henry Blodget Debates Jeremy Grantham', 12 June 2000 (copy on Damodaran's site): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html
+
+checks:
+  - id: ef-quiz-forms
+    kind: quiz
+    questions:
+      - ef-q-semi-strong
+      - ef-q-technical
+      - ef-q-luck
+      - ef-q-announcement
+      - ef-q-benchmark-risk
+      - bank:eab:MBA-FIN-VAL-0039
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ef-debate-explain
+    kind: conversation
+    prompt: >
+      Suppose an investor is convinced that a whole market is priced far too high. Using the
+      Blodget and Grantham debate, explain what the efficient market hypothesis says about that
+      view, what difference there is between 'the price is wrong' and 'someone can reliably profit
+      from the price being wrong', and what evidence would persuade you either way.
+    passCriteria: >
+      The Learner says the hypothesis claims prices reflect available information, so it is hard
+      (not impossible) to know a price is wrong or to profit from it consistently. They separate a
+      claim about value from a claim about trading profits, mention at least one reason a correct
+      view can still lose money (timing, benchmark or funding pressure, limits to arbitrage), and
+      name evidence that would help, such as a track record across many managers that beats
+      chance, or returns that persist after costs and after adjusting for risk.

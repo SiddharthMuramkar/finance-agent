@@ -1,0 +1,137 @@
+# Dividends and buybacks: a foundation Topic taught through Microsoft's special dividend of 2004.
+# Case Data (cash, dividends and buybacks) lives in the database; see docs/architecture.md.
+# Case sources (checked): Microsoft press release 20 Jul 2004; Microsoft Form 10-K for fiscal 2004 (filed 1 Sep 2004) and fiscal 2005 (filed 26 Aug 2005).
+id: cf-payout
+title: Dividends and buybacks
+
+cases:
+  - id: microsoft-special-dividend-2004
+    title: What should Microsoft do with its cash?
+    data: [msft-cash-and-investments, msft-dividends-paid, msft-buybacks]
+    asOf: 2004-07-19
+    story: >
+      Microsoft, the world's largest software company, had begun paying a dividend only in fiscal
+      2003 (the year to 30 June 2003): 8 cents a share, and 16 cents in fiscal 2004. In fiscal 2003
+      it earned revenue of $32.19 billion and generated $15.8 billion of cash from operations. It
+      had also been buying back its own shares, spending $6.5 billion on that in fiscal 2003. At 31
+      March 2004 it held about $56 billion in cash and short-term investments, up from $49.0 billion
+      a year earlier. Investors had long asked why a company with so much cash and little need for
+      it did not return more to owners. Management had said that it first wanted to settle its
+      legal disputes, among them an antitrust case with the European Commission. As of 19 July 2004
+      the question facing the board is whether to pay cash out, how, and how much. Should the payout be a bigger regular dividend, a share buyback, or a
+      one-off special dividend? What happens to the share price and to each shareholder's wealth in
+      each case?
+    reveal: >
+      On 20 July 2004 Microsoft announced that it would double its regular quarterly dividend to 8
+      cents a share, buy back up to $30 billion of its stock over four years, and pay a one-time
+      special dividend of $3.00 a share, about $32 billion. Together it called this up to $75 billion
+      of value for shareholders over four years. The company noted that after a large one-time
+      distribution the value of the company falls by the amount paid and the share price by a
+      similar amount, so it adjusted employee stock options. The special dividend of $32.64 billion
+      was paid on 2 December 2004. Dividends paid rose from $1.7 billion in fiscal 2004 to $36.1
+      billion in fiscal 2005, buybacks from $3.4 billion to $8.1 billion, and cash and short-term
+      investments fell from $60.6 billion on 30 June 2004 to $37.8 billion on 30 June 2005.
+
+concept: >
+  Companies return cash to shareholders by paying dividends or by buying back shares. Modigliani
+  and Miller showed that in a perfect market the choice does not change shareholder wealth: when a
+  firm pays out cash, its value falls by that cash, so the share price drops by about the dividend
+  per share on the ex-dividend date, and a holder who wants cash can sell shares to create a
+  'homemade' dividend. A buyback cuts the number of shares, which raises earnings per share, but
+  does not by arithmetic make the shares worth more, because the cash that left the company was
+  worth the same. Real-world factors make the choice matter: tax (dividends and capital gains may be
+  taxed differently, and buybacks let holders choose when to realise gains), signalling (a regular
+  dividend is hard to cut, so raising it signals confidence; a special dividend commits the firm to
+  nothing in future), investor clienteles, and the risk that managers waste idle cash. The choice
+  also depends on whether the firm has projects that earn more than their cost of capital: if it
+  does, it should invest first and distribute only what is left.
+
+principle: >
+  Cash that a firm cannot invest at more than its cost of capital is worth more in shareholders'
+  hands. Compare payout methods on tax, commitment and signal, not on earnings per share.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: po-q-ex-div
+    prompt: >
+      In a frictionless market a share trades at $60. The company pays a one-off special dividend of $2 a share. About what should the share price be on the first day it trades without the dividend?
+    choices:
+      - { id: a, text: "$58" }
+      - { id: b, text: "$60" }
+      - { id: c, text: "$62" }
+      - { id: d, text: "$2" }
+    answer: a
+    explanation: >
+      The company has $2 a share less cash, so each share is worth $2 less: $58. Shareholders have $58 in shares plus $2 in cash, the same $60 as before.
+    source: >
+      Miller and Modigliani, 'Dividend Policy, Growth, and the Valuation of Shares', Journal of Business 34 (1961): https://doi.org/10.1086/294442
+
+  - id: po-q-eps
+    prompt: >
+      A company's net income is unchanged. It buys back 10% of its shares. By what factor does earnings per share rise, ignoring the lost interest on the cash used?
+    choices:
+      - { id: a, text: "About 1.11 (up 11%)" }
+      - { id: b, text: "1.10 (up 10%)" }
+      - { id: c, text: "0.90 (down 10%)" }
+      - { id: d, text: "It does not change" }
+    answer: a
+    explanation: >
+      With 90% of the shares left, EPS = E / 0.9 shares = 1.11 times its previous value. That does not mean shareholders are better off: the cash that paid for the shares has left the company.
+    source: >
+      Miller and Modigliani, 'Dividend Policy, Growth, and the Valuation of Shares', Journal of Business 34 (1961): https://doi.org/10.1086/294442
+
+  - id: po-q-tax
+    prompt: >
+      In a country where dividends are taxed immediately at a higher rate than capital gains, which payout method usually suits long-term holders better, other things equal?
+    choices:
+      - { id: a, text: "A share buyback, because holders realise gains and the tax when they choose" }
+      - { id: b, text: "A cash dividend, because it is always tax-free" }
+      - { id: c, text: "Neither: tax never affects payout choice" }
+      - { id: d, text: "A share split" }
+    answer: a
+    explanation: >
+      Dividends are taxed in the year paid. In a buyback, only the holders who sell realise a gain, so others can defer tax. Tax is one of the real-world reasons payout policy is not irrelevant.
+    source: >
+      Miller and Modigliani, 'Dividend Policy, Growth, and the Valuation of Shares', Journal of Business 34 (1961): https://doi.org/10.1086/294442
+
+  - id: po-q-invest-first
+    prompt: >
+      A firm has a project that earns well above its cost of capital and also holds spare cash. What does value-maximising payout policy say it should do first?
+    choices:
+      - { id: a, text: "Fund the project, and pay out only the cash left over" }
+      - { id: b, text: "Pay out all the cash and borrow for the project" }
+      - { id: c, text: "Hold the cash indefinitely" }
+      - { id: d, text: "Buy back shares to raise earnings per share" }
+    answer: a
+    explanation: >
+      Positive-NPV projects add value, so they come before payouts. Cash with no use that earns more than its cost of capital should go back to shareholders.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 16.2 Net Present Value (NPV) Method: https://openstax.org/books/principles-finance-2e/pages/16-2-net-present-value-npv-method
+
+checks:
+  - id: po-quiz-payout
+    kind: quiz
+    questions:
+      - po-q-ex-div
+      - po-q-eps
+      - po-q-tax
+      - po-q-invest-first
+      - bank:eab:MBA-FIN-CF-0042
+      - bank:eab:MBA-FIN-CF-0044
+      - bank:eab:MBA-FIN-CF-0045
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: po-payout-explain
+    kind: conversation
+    prompt: >
+      A cash-rich software company must choose between raising its regular dividend, a share buyback
+      and a one-off special dividend. Explain what happens to the share price and to each
+      shareholder's wealth in a frictionless market, and which real-world factors would make you
+      prefer one of the three.
+    passCriteria: >
+      The Learner says that in a frictionless market wealth is unchanged: the share price falls by
+      about the cash paid per share, and a buyback raises earnings per share without adding value.
+      They name real-world factors such as tax treatment of dividends and capital gains, the signal
+      and commitment of a regular dividend, the flexibility of a special dividend or buyback, and
+      whether the firm has projects that earn more than their cost of capital.
