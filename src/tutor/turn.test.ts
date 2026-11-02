@@ -4,7 +4,7 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { messages, settings } from "@/db/schema";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
-import { OPENING_PREFIX, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
+import { OPENING_PREFIX, type Line, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap } from "@/course/map";
 import { recordCheckResultForTest, workspaceSummary } from "@/learner/memory";
 import frozenWidgets from "@/widgets/frozen.generated.json";
@@ -14,6 +14,9 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   for await (const e of events) out.push(e);
   return out;
 }
+
+/** Lines without the usage panel data, which has its own tests. */
+const noUsage = (lines: Line[]) => lines.map((l) => ({ role: l.role, text: l.text }));
 
 describe("Tutor Turn", () => {
   it("streams the Tutor's reply and the Session is still there after a reload", async () => {
@@ -27,9 +30,9 @@ describe("Tutor Turn", () => {
     expect(events).toEqual([
       { type: "text", text: "Present value " },
       { type: "text", text: "starts with a story." },
-      { type: "done", stopReason: "end_turn" },
+      { type: "done", stopReason: "end_turn", usage: expect.any(Object) },
     ]);
-    expect(await loadCurrentSession(db)).toEqual([
+    expect(noUsage(await loadCurrentSession(db))).toEqual([
       { role: "user", text: "What is present value?" },
       { role: "assistant", text: "Present value starts with a story." },
     ]);
@@ -246,7 +249,7 @@ describe("Tutor Turn", () => {
       expect(all).toHaveLength(3);
 
       const oldest = all.at(-1)!;
-      expect(await loadSession(db, oldest.id)).toEqual([
+      expect(noUsage(await loadSession(db, oldest.id))).toEqual([
         { role: "user", text: "First" },
         { role: "assistant", text: "Reply 0" },
         { role: "user", text: "Second" },
@@ -289,7 +292,7 @@ describe("Tutor Turn", () => {
       expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
 
       // History stays add-only: both replies and the correction request are stored.
-      expect(await loadCurrentSession(db)).toEqual([
+      expect(noUsage(await loadCurrentSession(db))).toEqual([
         { role: "user", text: "Show me" },
         { role: "assistant", text: `Try it.\n${good}\nDrag the rate.` },
       ]);

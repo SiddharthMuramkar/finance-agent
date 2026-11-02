@@ -10,6 +10,7 @@ import type { Db } from "@/db/types";
 import { ensureTopicStarted, saveFinishedStep, summaryText } from "@/learner/memory";
 import { replaceBrokenWidgets, replyWidgetProblems } from "@/widgets/check";
 import { stepContext } from "./context";
+import { saveTurnUsage, loadTurnUsages, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
@@ -33,7 +34,7 @@ export type TutorRequest = {
 };
 
 type MessageStream = AsyncIterable<BetaRawMessageStreamEvent> & {
-  finalMessage(): Promise<{ content: BetaContentBlock[]; stop_reason: string | null }>;
+  finalMessage(): Promise<{ content: BetaContentBlock[]; stop_reason: string | null; usage?: ApiUsage }>;
 };
 
 /** The slice of the Anthropic client the Tutor Turn uses; tests pass a scripted stub. */
@@ -49,7 +50,7 @@ export type TurnEvent =
   | { type: "text"; text: string }
   /** The reply's widget failed the server check; the text that follows is its one correction. */
   | { type: "correction" }
-  | { type: "done"; stopReason: string | null };
+  | { type: "done"; stopReason: string | null; usage: TurnUsage };
 
 /** Opens the message code sends when a finished widget fails the check. */
 export const WIDGET_CHECK_PREFIX = "Widget check by code:";
@@ -225,6 +226,9 @@ export async function* runTutorTurn(
     msgs.push(message);
   };
 
+  const turnSeq = msgs.length;
+  const turnStart = performance.now();
+  const steps: StepUsage[] = [];
   const learnerText = typeof input === "string" ? input : CONTINUE_TEXT;
   if (msgs.length === 0) {
     // The API rejects a system message as the first message, so a Session's opening context is
@@ -252,6 +256,8 @@ export async function* runTutorTurn(
       for (; saved < all.length; saved++) await append(db, sessionId, saved, all[saved], now());
     };
     let text = "";
+    // A step's time runs from the end of the one before (so it includes the tools that ran between) to its final message.
+    let stepStart = performance.now();
     for await (const stream of runner) {
       await syncRunnerHistory();
       for await (const event of stream) {
@@ -260,6 +266,9 @@ export async function* runTutorTurn(
         }
       }
       const final = await stream.finalMessage();
+      const tools = final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
+      steps.push(stepUsage(activeSession.model, steps.length + 1, final.usage, tools, Math.round(performance.now() - stepStart), final.stop_reason));
+      stepStart = performance.now();
       await append(db, sessionId, saved++, { role: "assistant", content: final.content }, now());
       text += textOf(final.content);
       stopReason = final.stop_reason;
@@ -283,10 +292,12 @@ export async function* runTutorTurn(
     yield { type: "correction" };
     yield* loop([...stored, correction]);
   }
-  yield { type: "done", stopReason };
+  const usage = sumSteps(activeSession.model, steps, Math.round(performance.now() - turnStart));
+  await saveTurnUsage(db, sessionId, turnSeq, usage, now());
+  yield { type: "done", stopReason, usage };
 }
 
-export type Line = { role: "user" | "assistant"; text: string };
+export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage };
 
 /** The latest Session as plain text lines, for showing after a reload. No model call. */
 export async function loadCurrentSession(db: Db): Promise<Line[]> {
@@ -304,9 +315,15 @@ export async function listSessions(db: Db): Promise<{ id: number; createdAt: Dat
  * correction is shown in place of the broken widget it replaced.
  */
 export async function loadSession(db: Db, sessionId: number): Promise<Line[]> {
-  const lines: Line[] = [];
+  const lines: (Line & { turnSeq?: number })[] = [];
   let correcting = false;
-  for (const m of await history(db, sessionId)) {
+  let turnSeq = 0;
+  const rows = await db
+    .select({ seq: messages.seq, role: messages.role, content: messages.content })
+    .from(messages)
+    .where(eq(messages.sessionId, sessionId))
+    .orderBy(asc(messages.seq));
+  for (const m of rows as (Message & { seq: number })[]) {
     const text = textOf(m.content);
     if (!text || m.role === "system") continue;
     if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
@@ -316,9 +333,17 @@ export async function loadSession(db: Db, sessionId: number): Promise<Line[]> {
     const target = correcting && m.role === "assistant" ? lines.findLast((l) => l.role === "assistant") : undefined;
     correcting = false;
     if (target) target.text = replaceBrokenWidgets(target.text, text);
-    else lines.push({ role: m.role, text });
+    else {
+      if (m.role === "user") turnSeq = m.seq;
+      lines.push({ role: m.role, text, turnSeq });
+    }
   }
-  return lines;
+  // The panel hangs off the last reply of each turn.
+  for (const [seq, usage] of await loadTurnUsages(db, sessionId)) {
+    const last = lines.findLast((l) => l.role === "assistant" && l.turnSeq === seq);
+    if (last) last.usage = usage;
+  }
+  return lines.map((l) => ({ role: l.role, text: l.text, ...(l.usage && { usage: l.usage }) }));
 }
 
 function textOf(content: unknown): string {

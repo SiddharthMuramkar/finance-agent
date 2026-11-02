@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/db/client";
 import { loadSession } from "@/tutor/turn";
 import { OldReply } from "../../old-reply";
+import { UnderTheHood } from "../../under-the-hood";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         {lines.map((line, i) => (
           <li key={i} className={line.role === "user" ? "self-end rounded-lg bg-stone-200 px-3 py-2 dark:bg-stone-800" : ""}>
             {line.role === "user" ? line.text : <OldReply text={line.text} />}
+            {line.usage && <UnderTheHood usage={line.usage} />}
           </li>
         ))}
       </ol>

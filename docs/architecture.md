@@ -3,6 +3,22 @@
 A plain-words map of the layers built so far. Each layer says what it does, a concrete
 scenario, and the trade-off we accepted. Newest layers are added at the bottom.
 
+## How the layers fit together
+
+One turn, start to finish. The Learner types a message in the **app**, past the **passcode**
+gate. The **Tutor Turn** asks the **Course Navigator** and **Learner Memory** where the Learner
+stands, tells Claude, and streams the reply back. If the reply holds a **widget**, the browser
+draws it and the Learner plays with it at no cost. Everything is saved in the **database**, and
+the **usage** layer records what the turn cost, which the "under the hood" panel shows under
+the reply.
+
+The rule behind the whole design: **code decides what happens next, and the model teaches.**
+The Course Navigator, the saved progress, the numbers in charts and the price table are all
+ordinary tested code. Claude explains, asks and judges, but cannot skip a step or invent a figure.
+
+**How to keep this note current.** Whoever adds a layer adds a section here in the same change:
+what it does, a concrete scenario, the trade-off. Also update the database section if tables change.
+
 ## The app (Next.js on Vercel)
 
 **What it does.** One Next.js 16 TypeScript app holds the pages the Learner sees and the
@@ -29,11 +45,14 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 
 ## Database (Neon Postgres through Drizzle)
 
-**What it does.** Neon is the only store. Three tables so far:
-- `settings`: the Tutor's model (`claude-sonnet-5-5`) and effort (`medium`), editable without a rebuild.
+**What it does.** Neon is the only store. Seven tables so far:
+- `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
+  a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
   effort frozen when it started, plus a fingerprint of the instructions and tools.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
+- `learner_state`, `topic_progress`, `check_results`: Learner Memory (below).
+- `usage`: what each turn and each step of it cost (below).
 
 The app uses Neon's pooled connection (`DATABASE_URL`). Schema changes are migration files in
 `drizzle/`, applied with `npm run db:migrate`, which uses the direct connection
@@ -212,6 +231,39 @@ first paint, with no flash.
 
 **Trade-off.** The choice is per browser, not per Learner account (there is only one Learner), and
 it ignores the computer's own dark-mode setting until the Learner first toggles.
+
+## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
+
+**What it does.** Every Tutor turn is made of one or more *steps*. A step is one request to
+Claude; when Claude calls a tool, code runs it and a new step starts. After each step the turn
+records what Claude's own report says it used: input tokens, output tokens, tokens read from and
+written to the prompt cache, reasoning ("thinking") tokens when the API reports them, which tools
+were called, how long the step took, and the cost in US dollars. It saves one `usage` row per step
+plus one summary row for the whole turn. Cost comes from a small price table in code
+(`pricing.ts`: Sonnet 5.5 $2 in and $10 out per million tokens, Opus 5.5 $4 and $20, Haiku 5.5
+$0.10 and $0.50, cache reads at a tenth of the input price, cache writes at 1.25 times), checked
+against Anthropic's published rates on 2 November 2026. A model missing from the table is shown
+as "unpriced", never given a guessed price.
+
+Under each Tutor reply, a collapsed "Under the hood" line gives the step count, tokens, cost and
+time. Opening it shows a table, one row per step, with a total row. The same panel appears when
+reading an old Session, because it is read back from SQL.
+
+**Scenario.** The Learner asks one plain question. The panel reads: 1 step, 9,643 tokens in, 55
+out, $0.025, 2.9 s. Nearly all of the tokens are the Tutor's frozen instructions being written to
+the cache for the first time, which is why that first turn costs more than the next ones will.
+When the Tutor finishes a Teaching Step, the panel shows two steps: the first calls
+`finish_teaching_step`, the second is the reply that follows.
+
+**Trade-off.** Storing usage in our own table means cost history outlives Vercel's short log
+retention and can be summed with plain SQL. The price is that the price table is ours to keep
+current: when Anthropic changes a rate, someone edits `pricing.ts` (old rows keep the cost they
+were saved with). The API does not report thinking tokens on every reply, so that column can read
+"n/a". A step's time includes the tools that ran just before it, so it is "time since the last step".
+
+**How it is tested.** The price table is checked against worked literals ($12 for a million
+tokens in and out on Sonnet). The turn tests check that scripted replies produce the right rows,
+sums and costs, and that a reloaded Session shows the same panel.
 
 ## Checks before merging (CI)
 

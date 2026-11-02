@@ -15,9 +15,11 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
 import { replaceBrokenWidgets } from "@/widgets/check";
 import { splitReply, type Segment } from "@/widgets/split";
+import type { TurnUsage } from "@/tutor/usage";
+import { UnderTheHood } from "./under-the-hood";
 import { WidgetView } from "./widget-view";
 
-export type Line = { role: "user" | "assistant"; text: string };
+export type Line = { role: "user" | "assistant"; text: string; usage?: TurnUsage };
 type Message = Line & { id: string };
 type WidgetRef = { key: string; number: number; code: string; complete: boolean };
 
@@ -42,7 +44,7 @@ function layout(messages: Message[], running: boolean) {
   return { segments, widgets };
 }
 
-type Layout = ReturnType<typeof layout> & { shown?: string; show(key: string): void };
+type Layout = ReturnType<typeof layout> & { shown?: string; show(key: string): void; usages: Map<string, TurnUsage> };
 const LayoutContext = createContext<Layout | null>(null);
 
 /** A reply's prose, with a small marker where each widget belongs. On a phone the widget sits in the conversation. */
@@ -87,9 +89,13 @@ function UserMessage() {
 }
 
 function AssistantMessage() {
+  const ctx = useContext(LayoutContext)!;
+  const id = useAuiState((s) => s.message.id);
+  const usage = ctx.usages.get(id);
   return (
     <MessagePrimitive.Root className="max-w-[95%]" data-testid="assistant-message">
       <MessagePrimitive.Parts components={{ Text: ReplyText }} />
+      {usage && <UnderTheHood usage={usage} />}
     </MessagePrimitive.Root>
   );
 }
@@ -138,6 +144,9 @@ export function Conversation({ initial, summary }: { initial: Line[]; summary: s
           else if (event.type === "correction") {
             correction = "";
             setFixing(true);
+          } else if (event.type === "done" && event.usage) {
+            const usage = event.usage as TurnUsage;
+            setMessages((m) => m.map((x) => (x.id === `a-${stamp}` ? { ...x, usage } : x)));
           } else if (event.type === "error") setError(event.message);
         }
       }
@@ -164,7 +173,8 @@ export function Conversation({ initial, summary }: { initial: Line[]; summary: s
 
   const laidOut = useMemo(() => layout(messages, running), [messages, running]);
   const current = laidOut.widgets.find((w) => w.key === shown) ?? laidOut.widgets.at(-1);
-  const ctx: Layout = { ...laidOut, shown: current?.key, show: setShown };
+  const usages = useMemo(() => new Map(messages.flatMap((m) => (m.usage ? [[m.id, m.usage] as const] : []))), [messages]);
+  const ctx: Layout = { ...laidOut, shown: current?.key, show: setShown, usages };
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>

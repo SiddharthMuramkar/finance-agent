@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, numeric, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** Settings stored in SQL, such as the Tutor's model and effort. */
 export const settings = pgTable("settings", {
@@ -67,3 +67,36 @@ export const checkResults = pgTable("check_results", {
   model: text("model"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * What the model cost. One "step" row per Tool Runner loop step and one "turn" row per Tutor turn
+ * (the sum of its steps). `turnSeq` is the seq of the Learner's message that began the turn.
+ * Kept in SQL so cost history outlives Vercel's short log retention.
+ */
+export const usageRows = pgTable(
+  "usage",
+  {
+    id: serial("id").primaryKey(),
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => sessions.id),
+    turnSeq: integer("turn_seq").notNull(),
+    kind: text("kind").notNull().$type<"turn" | "step">(),
+    /** 1, 2, ... for step rows; null for the turn row. */
+    step: integer("step"),
+    model: text("model").notNull(),
+    inputTokens: integer("input_tokens").notNull(),
+    outputTokens: integer("output_tokens").notNull(),
+    cacheReadTokens: integer("cache_read_tokens").notNull(),
+    cacheWriteTokens: integer("cache_write_tokens").notNull(),
+    /** Output tokens spent on reasoning, when the API reports them. */
+    thinkingTokens: integer("thinking_tokens"),
+    tools: jsonb("tools").notNull().$type<string[]>(),
+    stopReason: text("stop_reason"),
+    durationMs: integer("duration_ms").notNull(),
+    /** US dollars; null when the model has no row in the price table. */
+    costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("usage_turn_kind_step").on(t.sessionId, t.turnSeq, t.kind, t.step)],
+);

@@ -1,7 +1,7 @@
 import type { TutorClient, TutorRequest } from "@/tutor/turn";
 
 type Block = Record<string, unknown> & { type: string };
-export type ScriptedReply = { content: Block[]; stop_reason?: string };
+export type ScriptedReply = { content: Block[]; stop_reason?: string; usage?: Record<string, unknown> };
 
 /**
  * Stands in for the Anthropic client at the Tutor Turn seam. Each loop step
@@ -28,6 +28,7 @@ export function scriptedClient(replies: ScriptedReply[]) {
                 const final = {
                   content: reply.content,
                   stop_reason: reply.stop_reason ?? (uses.length ? "tool_use" : "end_turn"),
+                  usage: reply.usage,
                 };
                 yield {
                   async *[Symbol.asyncIterator]() {
