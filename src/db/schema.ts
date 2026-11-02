@@ -239,3 +239,32 @@ export const toolCalls = pgTable("tool_calls", {
   beganStep: boolean("began_step").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Spaced review: one FSRS card per quiz question (`ts-fsrs` fields, stored as columns). A question
+ * gets its card once its Check is passed. Reviews touch only these tables, never a Topic's status.
+ */
+export const reviewCards = pgTable("review_cards", {
+  questionId: text("question_id").primaryKey(),
+  due: timestamp("due", { withTimezone: true }).notNull(),
+  stability: doublePrecision("stability").notNull(),
+  difficulty: doublePrecision("difficulty").notNull(),
+  elapsedDays: integer("elapsed_days").notNull(),
+  scheduledDays: integer("scheduled_days").notNull(),
+  reps: integer("reps").notNull(),
+  lapses: integer("lapses").notNull(),
+  learningSteps: integer("learning_steps").notNull(),
+  /** The `ts-fsrs` State number (0 new, 1 learning, 2 review, 3 relearning). */
+  state: integer("state").notNull(),
+  lastReview: timestamp("last_review", { withTimezone: true }),
+});
+
+/** Every rating given to a question. `source` "review" rows are the ones the per-Session cap counts. */
+export const reviewLog = pgTable("review_log", {
+  id: serial("id").primaryKey(),
+  questionId: text("question_id").notNull(),
+  /** 1 Again, 3 Good. */
+  rating: integer("rating").notNull(),
+  source: text("source").notNull().$type<"quiz" | "review">(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }).notNull(),
+});

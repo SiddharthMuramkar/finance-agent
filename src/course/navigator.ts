@@ -200,3 +200,22 @@ export function courseOverview(map: CourseMap, progress: Progress): TopicOvervie
     };
   });
 }
+
+/** The most reviews offered in one Session, unless the `review_cap` setting says otherwise. */
+export const DEFAULT_REVIEW_CAP = 10;
+
+/** What the Navigator needs to know of a review card: which question, and when it falls due. */
+export type DueCard = { questionId: string; due: Date };
+
+/**
+ * Reviews to offer at `now`: cards that have fallen due and whose question is still on the Course
+ * Map, most overdue first, at most `cap` minus the reviews already done since the Session started.
+ * `dueCount` is how many are due in all, so a long break shows as a count, not a pile. Reviews come
+ * before the current Teaching Step and never touch Progress, so a missed one cannot unpass a Topic.
+ */
+export function reviewsDue<C extends DueCard>(map: CourseMap, cards: C[], now: Date, doneThisSession: number, cap = DEFAULT_REVIEW_CAP): { offered: C[]; dueCount: number } {
+  const due = cards
+    .filter((c) => c.due.getTime() <= now.getTime() && map.question(c.questionId))
+    .sort((a, b) => a.due.getTime() - b.due.getTime() || a.questionId.localeCompare(b.questionId));
+  return { offered: due.slice(0, Math.max(0, cap - doneThisSession)), dueCount: due.length };
+}

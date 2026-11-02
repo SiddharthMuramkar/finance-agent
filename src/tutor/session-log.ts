@@ -14,7 +14,7 @@ import { turnBefore, type Turn } from "./turn-status";
 export type Message = BetaMessageParam;
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
-export const DEFAULT_SETTINGS = { model: "claude-sonnet-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000" };
+export const DEFAULT_SETTINGS = { model: "claude-sonnet-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10" };
 
 /** Why a turn opened a new Session: the last one went idle, the build's instructions or tools changed, or the last reply was declined. */
 export type NewSessionReason = "idle" | "updated" | "refused";
@@ -34,6 +34,8 @@ export async function readSettings(db: Db) {
     effort: get("effort") as Effort,
     idleHours: Number(get("session_idle_hours")),
     compactAtTokens: Number(get("compact_at_tokens")),
+    /** The most spaced reviews offered in one Session. */
+    reviewCap: Number(get("review_cap")),
   };
 }
 

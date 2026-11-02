@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseCourseMap, type CourseMap } from "./map";
-import { courseOverview, finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Progress, type TopicProgress } from "./navigator";
+import { courseOverview, finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, reviewsDue, type Progress, type TopicProgress } from "./navigator";
 
 function topicFile(id: string, path: number, checks: { id: string; required?: boolean }[], prerequisites: string[] = []) {
   const text = [
@@ -330,5 +330,63 @@ describe("Course Navigator", () => {
       const edited = courseMap(topicFile("pv", 20, [{ id: "pv-1" }, { id: "pv-2" }], ["compounding"]), topicFile("compounding", 10, [{ id: "co-1" }]));
       expect(navigate(edited, halfway)).toMatchObject({ topic: { id: "pv" }, unmetPrerequisites: ["compounding"] });
     });
+  });
+});
+
+describe("reviews due", () => {
+  const q = (n: number) => `  - { id: q${n}, prompt: "Q${n}?", choices: [{ id: a, text: A }, { id: b, text: B }], answer: a, explanation: E, source: S }`;
+  const { map: reviewMap, errors } = parseCourseMap([
+    {
+      name: "t.yaml",
+      text: [
+        "id: t", "title: T", "stage: foundation", "path: 1", "cases:",
+        "  - { id: c, title: C, asOf: 2018-10-24, story: S, reveal: R }",
+        "concept: C", "principle: P", "questions:", q(1), q(2), q(3),
+        "checks:", "  - { id: quiz, kind: quiz, questions: [q1, q2, q3], passRule: { correct: 2 } }",
+      ].join("\n"),
+    },
+  ]);
+  if (!reviewMap) throw new Error(errors.join("\n"));
+  const hour = 3_600_000;
+  const now = new Date("2026-03-10T12:00:00Z");
+  const card = (questionId: string, hoursFromNow: number) => ({ questionId, due: new Date(now.getTime() + hoursFromNow * hour) });
+
+  it("offers only cards due at the given time, most overdue first", () => {
+    const due = reviewsDue(reviewMap, [card("q1", -2), card("q2", 5), card("q3", -30)], now, 0, 10);
+    expect(due.offered.map((c) => c.questionId)).toEqual(["q3", "q1"]);
+    expect(due.dueCount).toBe(2);
+  });
+
+  it("a card becomes due exactly when its time arrives", () => {
+    const cards = [card("q1", 1)];
+    expect(reviewsDue(reviewMap, cards, now, 0, 10).offered).toEqual([]);
+    expect(reviewsDue(reviewMap, cards, new Date(now.getTime() + hour), 0, 10).offered).toHaveLength(1);
+  });
+
+  it("caps the offer at the limit minus reviews already done this Session, so a long break is no backlog", () => {
+    const cards = [card("q1", -3), card("q2", -2), card("q3", -1)];
+    expect(reviewsDue(reviewMap, cards, now, 0, 2).offered.map((c) => c.questionId)).toEqual(["q1", "q2"]);
+    const afterOne = reviewsDue(reviewMap, cards, now, 1, 2);
+    expect(afterOne.offered.map((c) => c.questionId)).toEqual(["q1"]);
+    expect(afterOne.dueCount).toBe(3);
+    expect(reviewsDue(reviewMap, cards, now, 2, 2).offered).toEqual([]);
+    expect(reviewsDue(reviewMap, cards, now, 5, 2).offered).toEqual([]);
+  });
+
+  it("the default cap is 10", () => {
+    const many = Array.from({ length: 12 }, (_, i) => card("q1", -i - 1));
+    expect(reviewsDue(reviewMap, many, now, 0).offered).toHaveLength(10);
+  });
+
+  it("ignores a question removed from the Course Map", () => {
+    expect(reviewsDue(reviewMap, [card("gone", -5), card("q1", -1)], now, 0, 10).offered.map((c) => c.questionId)).toEqual(["q1"]);
+  });
+
+  it("never changes a Topic's passed status: reviews are not part of Progress", () => {
+    const passed: Progress = { currentTopicId: null, topics: { t: { step: "principle", passedChecks: ["quiz"], revealShown: true, status: "passed" } } };
+    const before = JSON.stringify(passed);
+    reviewsDue(reviewMap, [card("q1", -100)], now, 0, 10);
+    expect(JSON.stringify(passed)).toBe(before);
+    expect(navigate(reviewMap, passed)).toBeNull();
   });
 });

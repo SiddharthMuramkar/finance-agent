@@ -605,3 +605,34 @@ marker between the list and the next paragraph; the chart is in the right pane.
 longer animated word by word as it streams (`smooth` off): the animation would put the shown text
 behind the real text, and widget markers are matched against the real text. Learner messages stay
 plain text on purpose.
+
+## Spaced review (`src/course/review.ts`, `reviewsDue` in `navigator.ts`, `src/learner/review.ts`, `/api/review`, `src/app/review-panel.tsx`)
+
+**What it does.** Old quiz questions come back just as the Learner is likely to forget them. A
+question gets a review schedule once its quiz Check is passed. Its first rating comes from the
+Learner's answers in that Check: right counts as "Good", wrong as "Again". The schedule is worked
+out by the `ts-fsrs` library (the FSRS method), set to whole-day gaps, and kept per question in
+SQL (`review_cards`, plus `review_log` for every rating). At the top of the Study Workspace, above
+"Where you stand" and the current Teaching Step, a review panel shows one due question at a time,
+most overdue first. Code marks the answer, shows the right one with its explanation and
+reschedules the question. No model is called, to open the page or to answer.
+
+**A concrete scenario.** The Learner passes the present value quiz on Monday, getting two of
+three right. The wrong one is due again in about a day, the right ones in a few days. Three weeks
+later they open the app: all three are overdue, and the panel offers the one missed first. Answering
+it right pushes it out by weeks; answering it wrong brings it back soon. After 10 reviews in the
+Session the panel stops, even if 40 are due, and the rest wait for the next Session. A long
+holiday shows as "40 due, 10 per Session", not as a pile to clear.
+
+**Rules in code.** The Course Navigator's `reviewsDue` is a pure function: cards, the time and
+the number done this Session in; the overdue cards to offer out, capped. The cap is the
+`review_cap` setting (default 10), changeable in SQL without a rebuild. "This Session" is counted
+from when the Session began. A Session that begins after an idle gap counts from that gap, so
+reviews done before its first message still count against it. A review never writes to Topic
+progress: a missed review cannot unpass a Topic (a test pins this).
+
+**Trade-offs.** Cards are built from saved quiz attempts the first time the review state is read,
+so no change to the quiz code was needed and it can be re-run safely. The cost is that a card can
+appear a moment after the pass rather than at it. Whole-day scheduling suits "open the app once a
+day" study but cannot do same-day repeats of a missed question. Only questions still on the Course
+Map are offered, so deleting a question quietly retires its card.

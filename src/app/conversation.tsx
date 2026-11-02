@@ -17,7 +17,9 @@ import { replaceBrokenWidgets } from "@/widgets/check";
 import { splitReply, type Segment } from "@/widgets/split";
 import type { TurnUsage } from "@/tutor/usage";
 import type { OpenQuiz } from "@/learner/quiz";
+import type { ReviewState } from "@/learner/review";
 import { QuizPanel } from "./quiz-panel";
+import { ReviewPanel } from "./review-panel";
 import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
 import { UnderTheHood } from "./under-the-hood";
 import { WidgetView } from "./widget-view";
@@ -121,7 +123,7 @@ const MAX_RESUMES = 10;
 const BUSY_WAIT_MS = 3000;
 const MAX_BUSY_WAITS = 60;
 
-export function Conversation({ initial, summary, quiz, pending }: { initial: Line[]; summary: string; quiz: OpenQuiz | null; pending: PendingTurn }) {
+export function Conversation({ initial, summary, quiz, pending, review }: { initial: Line[]; summary: string; quiz: OpenQuiz | null; pending: PendingTurn; review: ReviewState }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
@@ -265,6 +267,7 @@ export function Conversation({ initial, summary, quiz, pending }: { initial: Lin
       <LayoutContext.Provider value={ctx}>
         <div className="grid flex-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="flex min-w-0 flex-col">
+            <ReviewPanel review={review} />
             <section aria-label="Where you stand" className="mb-6 rounded-lg border border-stone-300 p-4 dark:border-stone-700">
               <p className="whitespace-pre-line text-sm leading-relaxed">{summary}</p>
               <button
