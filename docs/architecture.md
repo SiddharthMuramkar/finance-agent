@@ -678,3 +678,11 @@ description; a wrong name shows a plain "could not run" message in place of a nu
 render shows "Working it out…" until the browser sets the slider values. Hosted code execution
 costs extra tokens for the code and its output and is optional: the Tutor is told to prefer
 `calculate`. Yearly rates are percentages everywhere (5 means 5%), a deliberate house convention.
+
+## Phone view (`src/app/conversation.tsx`, `quiz-panel.tsx`, `review-panel.tsx`, `globals.css`)
+
+**What it does.** The same workspace works on a phone. Below the laptop breakpoint the right-hand widget pane is hidden and each widget (slider, chart, calculator) is drawn inside the conversation, right where the Tutor put it. Reading, quizzes and spaced reviews are one column with no sideways scrolling: answer rows are at least 44px tall so a thumb can hit them, wide Markdown tables scroll inside their own box, and long addresses wrap.
+
+**Scenario.** On the train the Learner opens the page, answers the two reviews that are due, takes the quiz Check, then asks the Tutor about a 50 lakh loan. The loan calculator appears under the reply; dragging its slider changes the instalment instantly and costs no tokens. When a Tutor table was previously shown as raw pipe characters, it now renders as a table (we added `remark-gfm`, the standard table plug-in for Markdown).
+
+**Trade-off.** One layout for both screens keeps the code small, but a phone shows one widget per reply in the flow instead of a pinned pane, so scrolling back up finds old widgets. Serious work (long calculators, many-row cash flows, big comparisons) stays a laptop job by design. Checked with a headless 390x844 browser run (`evidence/29/phone-run.mjs`), not a physical phone.

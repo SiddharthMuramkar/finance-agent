@@ -67,8 +67,8 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
       <fieldset>
         <legend className="mb-1 text-sm">{q.prompt}</legend>
         {q.choices.map((c) => (
-          <label key={c.id} className="flex items-center gap-2 py-0.5 text-sm">
-            <input type="radio" name={`review-${q.id}`} checked={picked === c.id} onChange={() => setPicked(c.id)} />
+          <label key={c.id} className="flex min-h-11 items-center gap-3 py-1 text-sm">
+            <input type="radio" className="size-5 shrink-0" name={`review-${q.id}`} checked={picked === c.id} onChange={() => setPicked(c.id)} />
             {c.text}
           </label>
         ))}

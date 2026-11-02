@@ -14,7 +14,7 @@ export function ThemeToggle({ initial }: { initial: Theme }) {
     setTheme(next);
   }
   return (
-    <button onClick={toggle} className="text-sm text-stone-500 hover:underline dark:text-stone-400" aria-label="Switch dark or light mode">
+    <button onClick={toggle} className="min-h-11 text-sm text-stone-500 hover:underline dark:text-stone-400" aria-label="Switch dark or light mode">
       {theme === "dark" ? "Light mode" : "Dark mode"}
     </button>
   );

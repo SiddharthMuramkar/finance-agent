@@ -35,4 +35,11 @@ describe("an old Session page", () => {
     expect(html).not.toContain("```");
     expect(html).not.toContain("openui-lang");
   });
+
+  it("shows a Markdown table as a table", () => {
+    const text = "Rates:\n\n| Year | Open |\n|---|---|\n| 1 | 50 |\n\nDone.";
+    const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text }]} />);
+    expect(html).toMatch(/<table/);
+    expect(html).not.toContain("|---|");
+  });
 });

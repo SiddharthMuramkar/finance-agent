@@ -2,6 +2,7 @@
 
 import { useAuiState, useMessagePartText } from "@assistant-ui/react";
 import { MarkdownTextPrimitive, type SyntaxHighlighterProps } from "@assistant-ui/react-markdown";
+import remarkGfm from "remark-gfm";
 import { createContext, useCallback, useContext, type ReactNode } from "react";
 import { findWidget, markdownSource, splitReply } from "@/widgets/split";
 
@@ -38,7 +39,7 @@ export function ReplyMarkdown({ slot }: { slot: WidgetSlot }) {
   const preprocess = useCallback((text: string) => markdownSource(text, { streaming }), [streaming]);
   return (
     <SlotContext.Provider value={slot}>
-      <MarkdownTextPrimitive className="md" smooth={false} preprocess={preprocess} componentsByLanguage={BY_LANGUAGE} />
+      <MarkdownTextPrimitive className="md" remarkPlugins={[remarkGfm]} smooth={false} preprocess={preprocess} componentsByLanguage={BY_LANGUAGE} />
     </SlotContext.Provider>
   );
 }
