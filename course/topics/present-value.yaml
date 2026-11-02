@@ -64,7 +64,7 @@ questions:
     explanation: >
       PV = 1,100 / (1 + 0.10)^1 = 1,000.
     source: >
-      Investopedia, Present Value: https://www.investopedia.com/terms/p/presentvalue.asp
+      OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
   - id: pv-q-two-years
     prompt: >
@@ -119,7 +119,7 @@ questions:
     explanation: >
       PV = 5,000 / (1.05)^2 = 5,000 / 1.1025 = 4,535.15. $4,762 discounts for one year only.
     source: >
-      Investopedia, Present Value: https://www.investopedia.com/terms/p/presentvalue.asp
+      OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
 
 checks:
