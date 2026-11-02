@@ -10,27 +10,27 @@ cases:
     data: [fy15-revenue, fy15-net-result, net-worth-jun15, total-debt-jun15, ipo-and-listing-price]
     asOf: 2015-10-13
     story: >
-      Coffee Day Enterprises runs Cafe Coffee Day, India's largest coffee chain, with more than
-      1,500 cafes. It also owns about 16 per cent of the software company Mindtree and about 53
-      per cent of Sical Logistics. On 14 October 2015 it opens an initial public offering (IPO,
+      Coffee Day Enterprises runs Cafe Coffee Day, an Indian coffee chain, and owns other
+      businesses including coffee estates and an IT park. On 14 October 2015 it opens an initial public offering (IPO,
       the first sale of its shares to the public) to raise up to Rs 1,150 crore, at a price
       between Rs 316 and Rs 328 a share, which would value the company at up to Rs 6,750 crore
-      (about 1 billion dollars). In the 2014-15 financial year it reported consolidated revenue
-      of Rs 2,549 crore, a loss before tax of Rs 147 crore, and a net loss of Rs 87 crore. At 30
-      June 2015, according to one analyst reading the prospectus, its net worth (the owners'
-      equity) was Rs 456 crore, against total debt of Rs 4,475 crore and cash of Rs 893 crore.
-      About Rs 633 crore of the money raised is meant to repay debt. As of this date, you are
-      deciding what the ratios say about the return the owners earn and how much of it is built on
+      (about 1 billion dollars). The prospectus gives restated consolidated figures. For the
+      2014-15 financial year (to 31 March 2015) revenue from operations was Rs 2,479 crore, the
+      loss before tax Rs 147 crore and the net loss Rs 87 crore (the year before: revenue Rs
+      2,287 crore, net loss Rs 77 crore). At 31 March 2015 total assets were Rs 6,014 crore,
+      shareholders' funds (the owners' equity) Rs 532 crore, borrowings about Rs 3,550 crore and
+      cash and bank balances Rs 743 crore. As of this date, you are deciding what the ratios say about the return the owners earn and how much of it is built on
       borrowing.
     reveal: >
-      The IPO was priced at Rs 328, the top of the range, on 21 October 2015, and subscribed 1.64
+      The IPO was priced at Rs 328, the top of the range, and subscribed 1.64
       times. On listing on 2 November 2015 the shares opened at Rs 313 on the BSE, below the issue
       price, and closed at Rs 270.15, 17.63 per cent below it. Buyers had paid up for a business
       that earned a net loss on a thin base of equity and a large load of debt. In July 2019 the
-      founder, V. G. Siddhartha, died; a letter attributed to him cited pressure from lenders and a
-      liquidity crunch, and the shares fell by the daily limit of 20 per cent on 31 July 2019. The
-      ratios in 2015 had shown the combination (a net loss, low equity, high debt) that makes a
-      company fragile.
+      founder, V. G. Siddhartha, was found dead after a letter dated 27 July that cited pressure
+      from lenders. The 2015 prospectus itself had warned that the promoter had given personal
+      guarantees and share pledges for group loans and that lenders could take the pledged
+      shares. The ratios in 2015 had shown the combination (a net loss, low equity, high
+      debt) that makes a company fragile.
 
 concept: >
   Return on equity (ROE) is net income divided by equity: the profit earned for each unit the
@@ -148,17 +148,15 @@ checks:
   - id: fr-coffee-roe
     kind: conversation
     prompt: >
-      Coffee Day Enterprises reported consolidated revenue of Rs 2,549 crore and a net loss of Rs
-      87 crore for 2014-15. At 30 June 2015 its net worth was Rs 456 crore against debt of Rs
-      4,475 crore. Work out its net profit margin, say what the equity multiplier must be at
-      least (total assets cannot be less than debt plus net worth), and roughly what its return
-      on equity was. What does that tell you about its position at the IPO?
+      Coffee Day Enterprises reported consolidated revenue of Rs 2,479 crore and a net loss of Rs
+      87 crore for 2014-15. At 31 March 2015 its total assets were Rs 6,014 crore and its
+      shareholders' funds Rs 532 crore. Use the DuPont method: work out its net profit margin,
+      asset turnover, equity multiplier and return on equity. What does that tell you about its
+      position at the IPO?
     passCriteria: >
-      The Learner computes a net margin of about minus 3.4% (minus 87 / 2,549) and a rough ROE
-      near minus 19% (minus 87 / 456, noting that the loss and the net worth are from different
-      dates). They say that assets are at least debt plus net worth, about Rs 4,931 crore, so
-      the equity multiplier is at least about 10.8, and that this leverage multiplies a small
-      negative margin into a large negative return. They conclude that the company is fragile at
-      the IPO: thin equity, heavy debt and a loss, so lenders and the use of IPO money to repay
-      debt matter. They may note that the full DuPont split needs total assets from the
-      prospectus.
+      The Learner computes a net margin of about minus 3.5% (minus 87 / 2,479), an asset
+      turnover of about 0.41 (2,479 / 6,014), an equity multiplier of about 11.3 (6,014 / 532)
+      and an ROE of about minus 16% (the product, or minus 87 / 532), and says that the low
+      turnover and heavy leverage multiply a small negative margin into a large negative return
+      on thin equity. They conclude that the company is fragile at the IPO: a loss, low equity
+      and heavy borrowing, so lenders and how the IPO money is used matter.

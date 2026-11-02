@@ -11,15 +11,14 @@ cases:
       It is 27 January 2014, the day before the Reserve Bank of India (RBI) announces the Third Quarter
       Review of its monetary policy. Raghuram Rajan has been Governor since September 2013. Consumer price
       inflation (CPI) has stayed close to 10 per cent a year, and inflation excluding food and fuel, which
-      is less swayed by vegetable and oil prices, is persistent at 8.0 per cent. During 2013-14 the RBI has
-      raised its policy repo rate by 50 basis points in two steps, and the rate now stands at 7.75 per cent,
-      25 basis points above its level at the start of the financial year. A saver puts Rs 10 lakh in a
+      is less swayed by vegetable and oil prices, is persistent at 8.0 per cent. Since Rajan took
+      office the RBI has raised its policy repo rate in two steps of 25 basis points, and the rate now
+      stands at 7.75 per cent. A saver puts Rs 10 lakh in a
       one-year fixed deposit at, say, 9 per cent. A borrower takes a home loan at a rate above that. Prices
-      of vegetables and other food items, which make up over half of the consumer price index, keep rising.
+      of vegetables and other food items, which weigh heavily in the consumer price index, keep rising.
       The question before the RBI is whether the policy rate is high enough, given where inflation is.
     reveal: >
-      On 28 January 2014 the RBI raised the repo rate by another 25 basis points, to 8.0 per cent, while
-      saying that the slowdown in the economy was a growing worry. Even
+      On 28 January 2014 the RBI raised the repo rate by another 25 basis points, to 8.0 per cent. Even
       at 8.0 per cent the repo rate was below CPI inflation of close to 10 per cent, so the policy rate
       was still negative in real terms, which is what makes the RBI's decision a test of how far to
       tighten. A saver in a 9 per cent deposit earned a real return of roughly -1 per cent: Rs 10 lakh
@@ -88,15 +87,15 @@ questions:
 
   - id: ir-q-real-policy-rate
     prompt: >
-      A central bank's policy rate is 7.75% and consumer price inflation is about 10%. How would you describe
-      its monetary policy in real terms?
+      In a made-up example, a central bank's policy rate is 6% and consumer price inflation is about 9%. How
+      would you describe its monetary policy in real terms?
     choices:
-      - { id: a, text: "Tight, because the rate is above 7%" }
+      - { id: a, text: "Tight, because the rate is above 5%" }
       - { id: b, text: "Loose, because the real policy rate is negative" }
       - { id: c, text: "Neutral, because inflation will fall anyway" }
     answer: b
     explanation: >
-      The real policy rate is roughly 7.75 - 10 = -2.25 per cent. Borrowing is cheap once inflation is
+      The real policy rate is roughly 6 - 9 = -3 per cent. Borrowing is cheap once inflation is
       taken into account, which supports demand rather than restraining it.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates

@@ -19,16 +19,17 @@ cases:
       emergency funds from the IMF. In July the rupee had been devalued. Domestic demand,
       the spending of households, businesses and the government at home, had grown 4.6% in
       1989/90 and 6.7% in 1990/91. Think about an economy that can only import what its
-      foreign exchange earnings and loans allow. Who is hurt first when imports are squeezed,
-      and what happens to factories that need imported inputs?
+      foreign exchange earnings and loans allow. What would a squeeze on imports do for the
+      country's balance of payments, and what might it cost?
     reveal: >
       The squeeze did its job on the balance of payments. The IMF estimates that the tighter
       import restrictions and the fall in the rupee reduced the economy's import intensity
       by over 1.5% of GDP in 1991. But the restrictions fell heavily on intermediate inputs,
       the raw materials, spare parts and components that industry needs. Together with tighter
       budgets and credit, domestic demand fell 2.5% in 1991/92, and growth slowed to about 1%,
-      and industry contracted. The government relaxed the import restrictions in March 1992,
-      and growth recovered to nearly 4.5% a year in the following two years, helped by
+      and industry contracted. Import liberalisation began in July 1991, with tradable import
+      entitlements (Exim scrips) for exporters, and a dual exchange rate began on 1 March
+      1992. Growth recovered to nearly 4.5% a year in the following two years, helped by
       industrial deregulation and trade liberalisation, which made imported inputs cheaper
       and more accessible. In the IMF's account exports gained market share in 1993 and 1994.
 
@@ -96,31 +97,31 @@ questions:
 
   - id: et-q-compression
     prompt: >
-      India squeezed imports in 1990-91 because it had almost no foreign exchange to pay for them. Which result did the IMF find for 1991/92?
+      A country with almost no foreign exchange squeezes imports by controlling what may be bought from abroad. Which cost is most likely for its domestic industry?
     choices:
-      - { id: a, text: "Domestic demand fell by 2.5%, and the restrictions fell heavily on intermediate inputs" }
-      - { id: b, text: "Domestic demand rose by 6.7%, because cheaper imports raised spending" }
-      - { id: c, text: "Exports fell to zero" }
-      - { id: d, text: "Growth was unchanged, because imports were not needed" }
+      - { id: a, text: "Factories that rely on imported raw materials, spare parts and components may have to cut output" }
+      - { id: b, text: "Domestic firms gain cheaper inputs, because imports compete less with them" }
+      - { id: c, text: "Exports rise at once, because factories no longer need imports" }
+      - { id: d, text: "Output is unchanged, because imports were never needed" }
     answer: a
     explanation: >
-      Tighter fiscal and monetary policy squeezed domestic demand, which fell 2.5% in 1991/92, and import restrictions hit the raw materials and parts industry needs. Growth slowed to about 1%.
+      Controls limit the quantity of imports, but industry often needs imported raw materials and parts as inputs. When they are scarce, output falls; a squeeze on imports is paid for in output.
     source: >
-      IMF, India: Economic Reform and Growth (Occasional Paper), chapter III by Ajai Chopra and Charles Collyns: http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
 
   - id: et-q-relax
     prompt: >
-      According to the IMF, when did India relax the import restrictions it had imposed during the crisis?
+      How does an import quota differ from a tariff?
     choices:
-      - { id: a, text: "In March 1992" }
-      - { id: b, text: "In July 1991, at the time of the devaluation" }
-      - { id: c, text: "In March 1994" }
-      - { id: d, text: "They were never relaxed" }
+      - { id: a, text: "A quota limits the quantity of a good that may be imported; a tariff is a tax on each unit imported" }
+      - { id: b, text: "A quota is a tax on imports; a tariff limits the quantity imported" }
+      - { id: c, text: "Both are subsidies paid to importers" }
+      - { id: d, text: "A quota applies to exports only" }
     answer: a
     explanation: >
-      The text says the import restrictions were relaxed in March 1992, after the rupee had been devalued and fiscal and monetary policy tightened.
+      A tariff taxes imports and raises revenue for the government; a quota caps the amount that may come in. Both raise the domestic price of the protected good.
     source: >
-      IMF, India: Economic Reform and Growth (Occasional Paper), chapter III: http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
 
 checks:
   - id: et-quiz-trade
@@ -140,12 +141,10 @@ checks:
   - id: et-import-squeeze-explain
     kind: conversation
     prompt: >
-      India squeezed imports in 1990-91 to protect its foreign exchange. Explain why this
-      helped the balance of payments but cost output, and why relaxing the controls in 1992
-      helped industry.
+      India squeezed imports in 1990-91 to protect its foreign exchange. Explain how this
+      would help the balance of payments, and what it might cost the economy, especially
+      industry that uses imported inputs.
     passCriteria: >
       The Learner says that cutting imports reduces the foreign exchange going out, which eases
       the payments crisis. They explain that many imports are inputs for factories (raw
-      materials, parts), so fewer inputs and weaker demand reduce output, and that
-      relaxing controls and liberalising trade let industry buy inputs more cheaply and easily.
-      They may add that consumers and firms pay for protection through higher prices.
+      materials, parts), so fewer inputs and weaker demand would reduce output. They may add that consumers and firms pay for protection through higher prices.

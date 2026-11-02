@@ -11,21 +11,19 @@ cases:
     asOf: 2001-04-02
     story: >
       Webvan is an online grocer that delivers to homes from large automated warehouses. It went
-      public in November 1999, raising about 402.6 million dollars after costs, and bought its
+      public in 1999, raising about 402.6 million dollars after costs, and bought its
       rival HomeGrocer in 2000. On 2 April 2001 it files its annual report for 2000. The report
-      shows net sales of 178.5 million dollars (13.3 million the year before) and a net loss of
-      453.3 million dollars. The cash flow statement shows net cash used in operating activities
+      shows net sales of 178.5 million dollars and a net loss of 453.3 million dollars. The cash flow statement shows net cash used in operating activities
       of 263.1 million dollars, and 259.8 million dollars spent on property, equipment and
       leasehold improvements, mostly warehouses and vehicles. At 31 December 2000 it holds 40.3
-      million dollars in cash and 171.6 million dollars in marketable securities, and plans to
-      spend only 10 to 15 million dollars on equipment in 2001. As of this date, the question is
+      million dollars in cash and 171.6 million dollars in marketable securities. As of this date, the question is
       how long that cash will last and what the three sections of the statement say about the
       business.
     reveal: >
-      Webvan filed for Chapter 11 bankruptcy protection on 9 July 2001, halted deliveries in all
-      its markets and laid off about 2,000 people. TIME reported that it had burned through 480
-      million dollars, and Bloomberg that it had lost more than 800 million dollars since it was
-      founded in December 1996. The cash flow statement had already shown it: the business used
+      Webvan filed for Chapter 11 bankruptcy protection on 9 July 2001 and shut down all seven
+      of its markets, which served about 750,000 customers. Its accumulated deficit had reached
+      829.7 million dollars by 31 March 2001. (A TIME report put its cash burn at 480 million
+      dollars; that is a press estimate, not a filing figure.) The cash flow statement had already shown it: the business used
       cash in operations (263.1 million dollars in 2000, up from 58.8 million in 1999), spent
       almost as much again on warehouses, and was paying for both from money raised from investors
       in 1999. Once that money was spent, nothing from sales was coming in to replace it.
@@ -141,8 +139,8 @@ checks:
       The Learner explains that the gap between the loss and the operating cash use is mostly
       non-cash expenses added back (depreciation, share-based pay, restructuring charges). They
       say the equipment was bought with money raised from investors in earlier years (the 1999
-      share sale and preferred stock) and from selling securities, not from operating cash.
+      share sale among it) and from selling securities, not from operating cash.
       They calculate about 10 months of operating cash use (212 / (263 / 12)), noting it is
-      shorter if equipment spending continues, and say they would ask about the planned fall in
-      equipment spending, whether sales were rising fast enough to cut the operating cash use,
+      shorter if equipment spending continues, and say they would ask whether equipment spending
+      would fall, whether sales were rising fast enough to cut the operating cash use,
       and whether new financing was available.

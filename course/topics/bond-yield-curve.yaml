@@ -16,9 +16,7 @@ cases:
       three months. The Federal Reserve's overnight rate had averaged about 3.05% in January.
       In January the 10-year monthly average yield had been 1.61 percentage points above the
       2-year average. Suppose the Fed began to raise the short-term rate it controls. What
-      would you expect to happen to the shape of the
-      curve over the following year, and why might the long end not move as much as the
-      short end?
+      would you expect to happen to the shape of the curve over the following year, and why?
     reveal: >
       On 4 February 1994 the Fed began raising the overnight (federal funds) rate, from about
       3.00% to 3.25%, the first of a series (the overnight rate averaged 5.45% in December 1994). Short yields
@@ -83,7 +81,7 @@ questions:
       - { id: c, text: "It does not change shape" }
     answer: a
     explanation: >
-      The short end moves with the policy rate. The long yield, which averages expected future short rates with other factors, rises by less, so the gap shrinks. This is what happened in 1994: the 10-year minus 2-year gap went from 1.61 to 0.22 percentage points.
+      The short end moves with the policy rate. The long yield, which averages expected future short rates with other factors, rises by less, so the gap shrinks.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
 
@@ -111,7 +109,7 @@ questions:
       - { id: d, text: "No part of it: central banks do not affect yields" }
     answer: a
     explanation: >
-      Short-term yields are set largely by what the central bank is doing and is expected to do in the next few years. Long yields depend on expectations over many years. In 1994 the 3-month yield rose from 3.04% to 5.76%, the 10-year from 5.75% to 7.81%.
+      Short-term yields are set largely by what the central bank is doing and is expected to do in the next few years. Long yields depend on expectations over many years.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.3 Using the Yield Curve: https://openstax.org/books/principles-finance-2e/pages/10-3-using-the-yield-curve
 
@@ -131,12 +129,12 @@ checks:
   - id: yc-flattening-explain
     kind: conversation
     prompt: >
-      In 1994 the Fed raised short-term rates and the Treasury curve flattened. Explain why
-      the 2-year yield rose more than the 10-year yield, and what an inverted curve would have
-      told you instead.
+      Suppose the Fed raises short-term rates several times over a year. Explain what you
+      would expect to happen to the 2-year yield compared with the 10-year yield, and what an
+      inverted curve would tell you instead.
     passCriteria: >
       The Learner says short yields follow the central bank's rate, while long yields reflect
-      the average of rates expected over many years, so a series of rises lifted the short end
-      most and narrowed the gap. They add that an inverted curve would show the market expecting
+      the average of rates expected over many years, so a series of rises would lift the short
+      end most and narrow the gap. They add that an inverted curve would show the market expecting
       short rates to fall later, often as the economy weakens, and that it is a signal, not a
       certainty.

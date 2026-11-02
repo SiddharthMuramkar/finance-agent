@@ -12,15 +12,13 @@ cases:
       the US Securities and Exchange Commission. Readers who went past the revenue figures found
       the founder and chief executive, Adam Neumann, all through the document. He would control
       more than half of the voting power through Class B and Class C shares; a Class C share carried
-      20 votes. He was due 9.4 million "profits interests" vesting over five years after the
-      offering, each converting to a Class C share. He could earn further blocks if the company's
-      market value reached set levels and stayed there for at least 60 days: two blocks of
+      20 votes. He could earn three blocks of "profits interests", each converting to a Class C
+      share, only if the company's public market value reached set thresholds: two blocks of
       7.1 million at $50 billion and $72 billion, and a block of 9.4 million at $90 billion. The
-      company had lent him $362 million in April 2019 for an early exercise of stock options, and
-      he had a $500 million credit line from banks secured on his shares. He had interests in four
-      buildings leased to WeWork, with minimum lease obligations of $236.6 million on them; WeWork
-      had paid the landlords of those buildings $20.9 million between 2016 and June 2019. The
-      risk factors said he was critical to the business and had no employment agreement.
+      company had lent him $362 million for the exercise of stock options, and he had borrowed from
+      banks against his shares. He had interests in buildings leased to WeWork, with minimum lease
+      obligations of $236.6 million on them. The risk factors said he was critical to the
+      business.
     reveal: >
       The IPO did not go ahead. Adam Neumann stepped down as chief executive on 24 September 2019, and on
       30 September the company filed to withdraw its IPO. The profits-interest clause and the
@@ -106,7 +104,8 @@ questions:
   - id: fl-q-votes
     prompt: >
       Each Class C share of The We Company carried 20 votes, and each profits interest converted to
-      one Class C share. How many votes would 9.4 million profits interests carry once converted?
+      one Class C share. How many votes would the 9.4 million profits interests in the largest
+      block carry once converted?
     choices:
       - { id: a, text: "188 million" }
       - { id: b, text: "9.4 million" }

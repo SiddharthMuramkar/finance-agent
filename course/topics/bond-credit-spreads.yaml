@@ -44,8 +44,8 @@ concept: >
   chance: bonds rated BBB (Baa at Moody's) or higher are investment grade, and those below are
   high-yield, or junk, bonds with wider spreads. In a scare, investors move to safe, liquid
   assets and spreads widen, which lowers the price of risky bonds. A trade that bets spreads
-  will narrow can be right in the long run and still lose money first, and borrowing makes a
-  small fall in asset value a large fall in the owner's capital.
+  will narrow loses money if they widen instead, and borrowing makes a small fall in asset
+  value a large fall in the owner's capital.
 
 principle: >
   A spread is the price of risk, and it can widen when everyone wants safety at once. A bet
@@ -103,7 +103,7 @@ questions:
       - { id: c, text: "It does not change, because the coupon is fixed" }
     answer: a
     explanation: >
-      Lenders demand more yield for credit and liquidity risk, so the risky bond's yield rises relative to the government bond's, and its price falls. In August 1998 the spreads LTCM expected to narrow diverged in almost every case.
+      Lenders demand more yield for credit and liquidity risk, so the risky bond's yield rises relative to the government bond's, and its price falls.
     source: >
       Federal Reserve History, Near Failure of Long-Term Capital Management (Fleming and Liu): https://www.federalreservehistory.org/essays/ltcm-near-failure
 
@@ -136,12 +136,13 @@ checks:
   - id: cs-ltcm-explain
     kind: conversation
     prompt: >
-      LTCM's trades bet that credit spreads would narrow, and in the long run the idea was
-      sound. Explain why the fund still lost almost everything in 1998, and what the leverage
-      had to do with it.
+      LTCM's trades bet that credit spreads would narrow, and the fund held about $30 of debt
+      for every $1 of capital. Suppose a financial scare hits and investors rush to safe,
+      liquid assets. Explain what would happen to the fund's trades, and what the leverage
+      would have to do with it.
     passCriteria: >
-      The Learner says spreads widened in the scare after Russia's default, as investors moved
-      to safe, liquid assets, so trades betting on narrowing lost at the same time. They explain
+      The Learner says that in a scare investors move to safe, liquid assets, so spreads widen
+      and trades betting on narrowing lose at the same time. They explain
       that at about $30 of debt per $1 of capital a loss of a few percent on the assets
-      exhausted the capital, so the fund could not wait for spreads to return to normal. They
+      exhausts the capital, so the fund could not wait for spreads to return to normal. They
       may add that a correct bet is no use if it cannot be held.

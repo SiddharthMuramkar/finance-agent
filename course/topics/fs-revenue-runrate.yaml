@@ -15,14 +15,16 @@ cases:
       and reported revenue of $1.54 billion for the first six months of 2019, about double the same
       period a year earlier. It also said: "It took us more than seven years to achieve $1 billion
       of run-rate revenue, but only one additional year to reach $2 billion of run-rate revenue
-      and just six months to reach $3 billion of run-rate revenue." The same first-half figures
+      and just six months to reach $3 billion of run-rate revenue." It defined run-rate revenue as
+      the revenue recognised in the last month of a period multiplied by 12, and put it at
+      $3.3 billion at 30 June 2019. The same first-half figures
       showed a net loss of about $905 million. Revenue for the whole of 2018 had been about
       $1.8 billion. As of 14 August 2019 investors were deciding whether to buy the shares, which
       were expected to start trading the following month.
     reveal: >
       The listing never happened. The company filed to withdraw its IPO on 30 September 2019,
       after its founder and chief executive stepped down on 24 September. A rescue by its biggest
-      investor, SoftBank, later in October 2019 valued the company at just under $8 billion,
+      investor, SoftBank, later in October 2019 valued the company at about $8 billion,
       against $47 billion in January. The revenue was real, but a run-rate is a statement about the
       pace of a recent period, not revenue already earned, and it says nothing about cost: the
       company was losing roughly 59 cents on every dollar of first-half revenue.
@@ -150,8 +152,9 @@ checks:
       about $905 million. Explain what the run-rate figure does and does not tell you, and name
       two questions you would put to the company before trusting it.
     passCriteria: >
-      The Learner explains that run-rate scales a recent period to a year (doubling six months of
-      revenue gives roughly $3 billion), so it is a pace and an assumption, not recorded revenue.
+      The Learner explains that run-rate scales a recent period to a year (the S-1 used the last
+      month's revenue times 12), so it is a pace and an assumption, not recorded revenue; for
+      comparison, simply doubling the six months' revenue gives about $3.1 billion.
       They note it says nothing about costs or profit (the loss was about 59 cents per dollar of
       revenue). They raise at least two sensible questions, for example how the run-rate is
       defined, how much revenue is recurring, how long customers commit, whether revenue is gross

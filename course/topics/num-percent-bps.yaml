@@ -6,7 +6,7 @@ title: Percent, percentage points and basis points
 
 cases:
   - id: fed-hike-1994
-    title: The Fed raises its target rate by 25 basis points
+    title: The Federal Reserve meets in February 1994
     data: [fed-funds-target]
     asOf: 1994-02-03
     story: >
@@ -14,13 +14,13 @@ cases:
       Reserve steers, stands at 3%. Short-term rates have been low for some time, many investors
       have borrowed cheaply to hold long-term bonds, and the Fed's policy committee is about to
       announce its next decision. If it acts, the move will be reported in three different ways:
-      a bond trader will say "up 25", a newspaper will say "a quarter point", and a headline
-      writer might say "rates up 8 percent". As of this date nobody knows whether the Fed will
-      move, by how much, or how the market for long-term bonds will react.
+      a bond trader would say it in basis points, a newspaper in fractions of a point, and a
+      headline writer might use percent of the old rate. As of this date nobody knows whether the
+      Fed will move, by how much, or how the market for long-term bonds will react.
     reveal: >
-      On 4 February 1994 the Fed tightened: the federal funds rate rose by 25 basis points, from 3%
-      to 3.25%. Its statement spoke only of "a slight increase in the degree of pressure on
-      reserve positions". The long end moved far more over the following weeks, as leveraged
+      On 4 February 1994 the Fed tightened. It announced no numeric target; its statement spoke
+      only of "a slight increase in the degree of pressure on reserve positions". The federal
+      funds rate went from about 3% to 3.25%, which markets read as 25 basis points. The long end moved far more over the following weeks, as leveraged
       bondholders sold to limit their losses: the US Treasury's 10-year par yield went from 5.81%
       on 3 February to 5.94% on 4 February, 6.15% by 28 February and 7.49% by 9 May, a rise of
       about 168 basis points, while the Fed's total increase by early May was 75 basis points.
@@ -28,11 +28,11 @@ cases:
       the long-rate rise that followed was several times larger than the step that set it off.
 
 concept: >
-  A percentage point is the plain difference between two percentages: going from 3% to 3.25%
-  is a rise of 0.25 percentage points. A basis point is one hundredth of a percentage point, so
-  0.25 percentage points is 25 basis points (bp), and 1 percentage point is 100 bp. A percent
-  change is relative: it compares the change with the starting level, so 3% to 3.25% is also a
-  rise of 0.25 / 3 = 8.3 percent of the old rate. Rates move in points or basis points; prices
+  A percentage point is the plain difference between two percentages: going from 4% to 4.5%
+  is a rise of 0.5 percentage points. A basis point is one hundredth of a percentage point, so
+  0.5 percentage points is 50 basis points (bp), and 1 percentage point is 100 bp. A percent
+  change is relative: it compares the change with the starting level, so 4% to 4.5% is also a
+  rise of 0.5 / 4 = 12.5 percent of the old rate. Rates move in points or basis points; prices
   and amounts move in percent. Always say which one you mean.
 
 principle: >
@@ -57,17 +57,17 @@ questions:
 
   - id: pb-q-wrong-description
     prompt: >
-      A central bank moves its rate from 3.00% to 3.25%. Which description of this move is wrong?
+      A central bank moves its rate from 4.00% to 4.50%. Which description of this move is wrong?
     choices:
-      - { id: a, text: "The rate is up 25 basis points" }
-      - { id: b, text: "The rate is up a quarter of a percentage point" }
-      - { id: c, text: "The rate is up 25 percent" }
-      - { id: d, text: "The rate is up about 8.3 percent of its old level" }
+      - { id: a, text: "The rate is up 50 basis points" }
+      - { id: b, text: "The rate is up half of a percentage point" }
+      - { id: c, text: "The rate is up 50 percent" }
+      - { id: d, text: "The rate is up 12.5 percent of its old level" }
     answer: c
     explanation: >
-      The change is 0.25 percentage points, which is 25 basis points. Relative to the old rate it is 0.25 / 3.00 = 8.3 percent. "Up 25 percent" would mean a new rate of 3.75%.
+      The change is 0.5 percentage points, which is 50 basis points. Relative to the old rate it is 0.5 / 4.00 = 12.5 percent. "Up 50 percent" would mean a new rate of 6.00%.
     source: >
-      Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm ; the percent figures are the arithmetic 0.25 / 3.00.
+      Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm ; the percent figures are the arithmetic 0.5 / 4.00.
 
   - id: pb-q-bond-140
     prompt: >
@@ -141,14 +141,14 @@ checks:
   - id: pb-fed-language
     kind: conversation
     prompt: >
-      Three people describe the same Fed move from 3.00% to 3.25%: a trader says "up 25", a
-      reporter says "a quarter point", and a headline says "rates up 8 percent". Explain why all
+      Three people describe the same central bank move from 4.00% to 4.50%: a trader says "up
+      50", a reporter says "half a point", and a headline says "rates up 12.5 percent". Explain why all
       three can be right, which phrase is most likely to mislead a reader, and how you would
       state the move so nobody can misread it.
     passCriteria: >
-      The Learner explains that "25" means basis points (0.25 percentage points), that "a
-      quarter point" means 0.25 percentage points, and that "8 percent" is the relative change
-      0.25 / 3.00 = 8.3% of the old rate. They identify the relative "percent" phrase (or the
-      bare "25") as the one most likely to be misread, because a reader may take it as 8 or 25
+      The Learner explains that "50" means basis points (0.5 percentage points), that "half a
+      point" means 0.5 percentage points, and that "12.5 percent" is the relative change
+      0.5 / 4.00 = 12.5% of the old rate. They identify the relative "percent" phrase (or the
+      bare "50") as the one most likely to be misread, because a reader may take it as 12.5 or 50
       percentage points, and they propose stating the move in basis points or percentage points
       with the starting and ending levels.

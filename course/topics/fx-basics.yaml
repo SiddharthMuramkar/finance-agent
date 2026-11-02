@@ -15,11 +15,10 @@ cases:
       paying their debts only by squeezing imports and by emergency financing from the
       International Monetary Fund. The rupee was not allowed to float: it was fixed by the RBI
       against a basket of currencies, and the RBI adjusted the rate in small daily steps.
-      Policymakers were discussing a one-time cut in the rupee's value against other currencies.
+      Suppose policymakers decide to cut the rupee's value against other currencies.
       Consider the rupee price of a dollar. If India lowers the rupee's value, what happens to the
       rupee price of imported oil, to the dollar price of Indian exports, and to the
-      incentive to send money home or to hold it abroad? How large a cut would be enough,
-      and why might one step be risky?
+      incentive to send money home or to hold it abroad? How large a cut would be enough?
     reveal: >
       On 1 July 1991 the RBI cut the rupee's value by about 9%. Two days later, on 3 July,
       it cut it by a further 11%. The RBI's own chronology puts the cumulative devaluation at
@@ -39,8 +38,8 @@ concept: >
   depreciated; one currency's appreciation is the other's depreciation. A devaluation is an
   official cut in the value of a currency that a government has fixed against others.
   Percentage changes need care: a rupee that goes from 75 to 80 per dollar has lost 6.25% of its
-  dollar value, while the dollar has gained 6.7% in rupees. Two successive cuts of 9% and 11%
-  multiply to a 19% fall, not 20%. Over the long term, a currency's value should tend
+  dollar value, while the dollar has gained 6.7% in rupees. Two successive cuts, 10% and then
+  20% of the new value, leave 0.90 x 0.80 = 72% of the original value: a 28% fall, not 30%. Over the long term, a currency's value should tend
   toward purchasing power parity (PPP): the exchange rate at which the same traded goods cost
   the same in both countries, since otherwise people would buy where it is cheaper and sell
   where it is dearer. In the short and medium run exchange rates often stray from PPP. A related
@@ -112,17 +111,17 @@ questions:
 
   - id: fx-q-compound
     prompt: >
-      A currency is devalued by 9% and then, two days later, by 11% of its new value. What is the total fall in its value, to the nearest whole percent?
+      A currency is devalued by 15% and then, two days later, by 20% of its new value. What is the total fall in its value, to the nearest whole percent?
     choices:
-      - { id: a, text: "19%" }
-      - { id: b, text: "20%" }
-      - { id: c, text: "21%" }
-      - { id: d, text: "18%" }
+      - { id: a, text: "32%" }
+      - { id: b, text: "35%" }
+      - { id: c, text: "30%" }
+      - { id: d, text: "28%" }
     answer: a
     explanation: >
-      After the first cut the currency is worth 91% of its old value; after the second, 89% of that: 0.91 x 0.89 = 0.81, a total fall of 19%. Adding 9 and 11 gives 20%, which overstates it. The RBI quotes about 18% in dollar terms and the IMF 19% for the same July 1991 event.
+      After the first cut the currency is worth 85% of its old value; after the second, 80% of that: 0.85 x 0.80 = 0.68, a total fall of 32%. Adding 15 and 20 gives 35%, which overstates it.
     source: >
-      Arithmetic; the figures of the July 1991 devaluation from Reserve Bank of India, Chronology of Events 1991 to 2000: https://rbi.org.in/history/Brief_Chro1991to2000.html and IMF, India: Economic Reform and Growth, chapter III: http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+      Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-ppp
     prompt: >
@@ -156,11 +155,12 @@ checks:
   - id: fx-devaluation-explain
     kind: conversation
     prompt: >
-      In July 1991 India cut the rupee's value by 9% and then 11%. Explain what this does to
-      the rupee price of imports and to the dollar price of exports, why the total fall was 19%
-      and not 20%, and how it helped with the payments crisis.
+      Suppose a country with a fixed exchange rate cuts its currency's value by 10% and then
+      by a further 20% of the new value. Explain what this does to the price of imports and to
+      the foreign-currency price of exports, why the total fall is 28% and not 30%, and how
+      it could help with a payments crisis like India's in 1991.
     passCriteria: >
-      The Learner says imports cost more rupees and exports cost fewer dollars, so imports
-      are discouraged and exports encouraged. They say the two cuts multiply (0.91 x 0.89 = 0.81)
-      for a 19% fall in the rupee's dollar value. They connect it to the crisis: a cheaper
-      rupee improves the trade balance and the incentive to hold rupees, which helps restore reserves.
+      The Learner says imports cost more in the home currency and exports cost less in foreign currency, so imports
+      are discouraged and exports encouraged. They say the two cuts multiply (0.90 x 0.80 = 0.72)
+      for a 28% fall in the currency's value. They connect it to the crisis: a cheaper
+      currency improves the trade balance and the incentive to hold the home currency, which helps restore reserves.

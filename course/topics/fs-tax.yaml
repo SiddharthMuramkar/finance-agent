@@ -13,14 +13,15 @@ cases:
       economy was slowing: growth in the April to June quarter was 5%, down for six quarters in a row
       from 8.1% in early 2018, and a six-year low. The Reserve Bank of India had cut its policy rate
       four times so far in 2019, yet spending and investment remained weak. Economists expected the
-      central bank to keep doing the heavy lifting, and few expected a fiscal stimulus. A company
+      central bank to keep doing the heavy lifting. A company
       choosing whether to build a new factory would compare what it would earn after tax on the
       project with what it had to spend, and the tax rate sits in every year of that comparison.
     reveal: >
       On 20 September 2019 the finance minister, Nirmala Sitharaman, cut the base rate for domestic
-      companies from 30% to 22%, which with a 10% surcharge and 4% cess is an effective 25.17%,
-      down from 34.94%. New manufacturing companies incorporated after 1 October 2019 that begin
-      production before 31 March 2023 could choose a 15% rate (about 17% effective). The cut was
+      companies from 30% to 22%, for those that gave up exemptions and incentives, which with a 10%
+      surcharge and 4% cess is an effective 25.17%, down from 34.94%. They also paid no Minimum
+      Alternate Tax. New manufacturing companies incorporated on or after 1 October 2019 that begin
+      production by 31 March 2023 could choose a 15% rate (17.01% effective). The cut was
       estimated to cost the government Rs 1.45 lakh crore of revenue. The Sensex jumped 1,921
       points, or 5.32%, in one day, its biggest single-day gain in over a decade.
 
@@ -32,7 +33,7 @@ concept: >
   (revenue - cash costs) x (1 - tax rate) + depreciation x tax rate. A lower tax rate raises
   profit after tax and the cash left for investors, and it also shrinks the value of depreciation
   and interest shields. In India the effective rate adds surcharge and cess on top of the base rate:
-  22% x 1.10 x 1.04 = 25.17%. Accounting profit and taxable profit can differ by timing, which
+  30% x 1.12 x 1.04 = 34.94%. Accounting profit and taxable profit can differ by timing, which
   creates deferred tax.
 
 principle: >
@@ -42,45 +43,45 @@ principle: >
 questions:
   - id: tx-q-after-tax-profit
     prompt: >
-      A company earns profit before tax of Rs 1,000 crore. At an effective tax rate of 25.17%, what is its profit after tax?
+      A company earns profit before tax of Rs 1,000 crore. At an effective tax rate of 34.94%, what is its profit after tax?
     choices:
-      - { id: a, text: "Rs 748.3 crore" }
-      - { id: b, text: "Rs 650.6 crore" }
-      - { id: c, text: "Rs 251.7 crore" }
-      - { id: d, text: "Rs 780.0 crore" }
+      - { id: a, text: "Rs 650.6 crore" }
+      - { id: b, text: "Rs 349.4 crore" }
+      - { id: c, text: "Rs 700.0 crore" }
+      - { id: d, text: "Rs 1,349.4 crore" }
     answer: a
     explanation: >
-      Tax = 1,000 x 0.2517 = 251.7. Profit after tax = 1,000 - 251.7 = 748.3. Rs 650.6 crore is what remains at the old 34.94% rate.
+      Tax = 1,000 x 0.3494 = 349.4. Profit after tax = 1,000 - 349.4 = 650.6. Rs 349.4 crore is the tax, not what is left.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement (taxes and net income): https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement ; rates from DNA India, 20 September 2019: https://www.dnaindia.com/business/report-finance-minister-nirmala-sitharaman-announces-corporate-tax-cut-to-spur-growth-2791283
+      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement (taxes and net income): https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: tx-q-saving
     prompt: >
-      A company earns Rs 1,000 crore profit before tax. By how much does its tax bill fall when the effective rate drops from 34.94% to 25.17%?
+      A company earns Rs 1,000 crore profit before tax. By how much does its tax bill fall if the effective rate drops from 40% to 30%?
     choices:
-      - { id: a, text: "Rs 97.7 crore" }
-      - { id: b, text: "Rs 251.7 crore" }
-      - { id: c, text: "Rs 349.4 crore" }
-      - { id: d, text: "Rs 9.8 crore" }
+      - { id: a, text: "Rs 100 crore" }
+      - { id: b, text: "Rs 300 crore" }
+      - { id: c, text: "Rs 400 crore" }
+      - { id: d, text: "Rs 10 crore" }
     answer: a
     explanation: >
-      Old tax 349.4, new tax 251.7; the difference is 97.7. That is 9.77 percentage points of profit.
+      Old tax 400, new tax 300; the difference is 100, which is 10 percentage points of profit.
     source: >
-      Rates from DNA India, 20 September 2019: https://www.dnaindia.com/business/report-finance-minister-nirmala-sitharaman-announces-corporate-tax-cut-to-spur-growth-2791283 ; the arithmetic is a multiplication.
+      A made-up example; the arithmetic is a multiplication.
 
   - id: tx-q-effective-rate
     prompt: >
-      A base corporate tax rate of 22% plus a 10% surcharge on the tax and a 4% cess gives an effective rate of about what?
+      A base corporate tax rate of 20% plus a 10% surcharge on the tax and a 4% cess gives an effective rate of about what?
     choices:
-      - { id: a, text: "25.17%" }
-      - { id: b, text: "36%" }
-      - { id: c, text: "22.14%" }
-      - { id: d, text: "26%" }
+      - { id: a, text: "22.88%" }
+      - { id: b, text: "34%" }
+      - { id: c, text: "22.00%" }
+      - { id: d, text: "20.80%" }
     answer: a
     explanation: >
-      The surcharge and cess are charged on the tax, so they multiply: 22% x 1.10 x 1.04 = 25.168%, which rounds to 25.17%.
+      The surcharge and cess are charged on the tax, so they multiply: 20% x 1.10 x 1.04 = 22.88%. Adding them as 20% + 10% + 4% = 34% is wrong because they are percentages of the tax, not of profit.
     source: >
-      The Economic Times CIO, Sitharaman's tax cut move, 21 September 2019: https://cio.economictimes.indiatimes.com/news/government-policy/sitharamans-tax-cut-move-why-it-matters-so-much-for-india-inc-economy-and-modi-govt/71229310
+      A made-up example of the compounding that Indian surcharge and cess work through; the arithmetic is a multiplication.
 
   - id: tx-q-shield
     prompt: >
@@ -128,11 +129,12 @@ checks:
     prompt: >
       It is 19 September 2019 and a company is weighing a new Rs 500 crore factory that would earn
       a pre-tax operating profit of Rs 100 crore a year. Explain how the corporate tax rate enters
-      the project's after-tax cash flows and what a cut from about 34.94% to 25.17% would do to them.
+      the project's after-tax cash flows and what a cut of five percentage points in the effective
+      rate (say from 35% to 30%) would do to them.
     passCriteria: >
       The Learner explains that tax is charged on profit, so after-tax cash flow is profit x (1 - tax
-      rate) plus any depreciation add-back. They compute or reason that a cut from 34.94% to 25.17%
-      raises after-tax profit on Rs 100 crore from about Rs 65.1 crore to about Rs 74.8 crore, an
-      increase of roughly 15%, which lifts the project's value; and note that depreciation and
+      rate) plus any depreciation add-back. They compute or reason that a cut from 35% to 30%
+      raises after-tax profit on Rs 100 crore from Rs 65 crore to Rs 70 crore, an increase of
+      roughly 8%, which lifts the project's value; and note that depreciation and
       interest shields are worth somewhat less at a lower rate. Mentioning that weak demand, not tax,
       may still limit investment is a plus.

@@ -40,10 +40,9 @@ concept: >
   because tax revenue falls and spending rises. Samples can mislead: looking only at survivors (survivorship
   bias), or at the people who chose to reply to a survey (non-response bias), hides the cases that would
   contradict the story. Testing many hypotheses finds some false positives by chance, and a model that
-  fits the data it was built on may fail on new data (overfitting). Spreadsheets add risks of their own:
-  a range that stops one row short, an excluded case or a weighting choice can change the answer, so
-  results should be reproducible from the raw data by someone else, and thresholds such as "90 per cent"
-  deserve suspicion unless the evidence shows a sharp break.
+  fits the data it was built on may fail on new data (overfitting). Spreadsheets add risks of their own, so
+  results should be reproducible from the raw data by someone else, and a round-number threshold
+  deserves a look at whether the evidence really shows a sharp break.
 
 principle: >
   Before quoting a number, ask four things: could someone reproduce it from the data, what was left out,
@@ -67,12 +66,12 @@ checks:
   - id: eco-econ-rr-reasoning
     kind: conversation
     prompt: >
-      Reinhart and Rogoff reported that growth was about -0.1 per cent in countries with debt above 90 per cent
-      of GDP. Herndon, Ash and Pollin found 2.2 per cent. Describe what went wrong in the analysis, and explain
-      why even the corrected figures would not show that high debt causes slow growth.
+      Reinhart and Rogoff report that average growth was about -0.1 per cent in countries with debt above 90
+      per cent of GDP, using a spreadsheet they have not published. List the checks you would make on this
+      analysis, and explain whether the result, even if correct, would show that high debt causes slow growth.
     passCriteria: >
-      The Learner names at least two of the problems: the spreadsheet range that left out five countries,
-      the exclusion of some available data, and the weighting that let one year for New Zealand count as much
-      as many years for another country. They explain that association does not show causation, with at
-      least one of reverse causality (slow growth raising debt) or a confounding factor, and say that the
-      result should be checked against raw data and by replication.
+      The Learner names at least two sensible checks, such as reproducing the numbers from the raw data,
+      whether all countries and years were included, how the averages are weighted, and whether results hold
+      for other thresholds. They explain that association does not show causation, with at least one of
+      reverse causality (slow growth raising debt) or a confounding factor, and say that the result should
+      be checked by replication.
