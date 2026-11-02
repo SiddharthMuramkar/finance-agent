@@ -1,0 +1,158 @@
+# Revenue recognition, run rates, gross versus net: a foundation Topic taught through WeWork's S-1.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: fs-revenue-runrate
+title: Revenue recognition, run rates, gross vs net
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: wework-run-rate-2019
+    title: WeWork's run-rate boast
+    asOf: 2019-08-14
+    story: >
+      On 14 August 2019 WeWork, which had renamed its parent company The We Company, published
+      the prospectus (Form S-1) for its planned stock-market listing. It was last valued by private
+      investors at $47 billion. The filing said the company had 527,000 members in 528 locations
+      and reported revenue of $1.54 billion for the first six months of 2019, about double the same
+      period a year earlier. It also said: "It took us more than seven years to achieve $1 billion
+      of run-rate revenue, but only one additional year to reach $2 billion of run-rate revenue
+      and just six months to reach $3 billion of run-rate revenue." The same first-half figures
+      showed a net loss of about $905 million. Revenue for the whole of 2018 had been about
+      $1.8 billion. As of 14 August 2019 investors were deciding whether to buy the shares, which
+      were expected to start trading the following month.
+    reveal: >
+      The listing never happened. The company filed to withdraw its IPO on 30 September 2019,
+      after its founder and chief executive stepped down on 24 September. A rescue by its biggest
+      investor, SoftBank, later in October 2019 valued the company at just under $8 billion,
+      against $47 billion in January. The revenue was real, but a run-rate is a statement about the
+      pace of a recent period, not revenue already earned, and it says nothing about cost: the
+      company was losing roughly 59 cents on every dollar of first-half revenue.
+
+concept: >
+  Revenue is the amount a company has earned by delivering goods or services to customers, recorded
+  when control of what was promised passes to the customer (the five-step model of IFRS 15 and the
+  US equivalent, ASC 606). That can be at one moment, or gradually over time as the work is done.
+  When a company only arranges a sale for another seller (an agent, such as a marketplace keeping
+  a commission), it reports just its commission as revenue; when it controls the goods itself (a
+  principal), it reports the full price. Gross versus net changes revenue sharply but not profit.
+  A run-rate takes a recent period (a month or a quarter) and scales it to a year. It is a
+  forecast-style number, not recorded revenue, and it is only as good as the assumption that the
+  recent pace repeats.
+
+principle: >
+  Ask of every revenue number: recorded or annualised, gross or net, and what did it cost to
+  earn. A fast-growing run-rate with a loss on every dollar of revenue is growth, not yet a
+  business.
+
+questions:
+  - id: rr-q-recorded
+    prompt: >
+      WeWork's S-1 reported revenue of $1.54 billion for the first half of 2019 and said it had
+      reached $3 billion of run-rate revenue. Which of the two figures is revenue the company
+      had actually recorded in the first half?
+    choices:
+      - { id: a, text: "The $1.54 billion" }
+      - { id: b, text: "The $3 billion" }
+      - { id: c, text: "Both; a run-rate is recorded revenue" }
+    answer: a
+    explanation: >
+      Reported revenue is what has been earned and recorded in the period. A run-rate scales a
+      recent period up to a year, so it describes a pace, not revenue already earned.
+    source: >
+      CNBC, WeWork releases S-1 filing for IPO, reveals massive $900 million loss, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+
+  - id: rr-q-annualise
+    prompt: >
+      A company earned $1.54 billion in revenue in the first six months of a year. Doubling that
+      to a yearly pace gives a run-rate of about what?
+    choices:
+      - { id: a, text: "$3.08 billion" }
+      - { id: b, text: "$1.54 billion" }
+      - { id: c, text: "$6.16 billion" }
+      - { id: d, text: "$0.77 billion" }
+    answer: a
+    explanation: >
+      Six months is half a year, so the yearly pace is 2 x 1.54 = 3.08. It assumes the next six
+      months look like the last six, which is a forecast.
+    source: >
+      Revenue figure from CNBC, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html ; the arithmetic is a doubling.
+
+  - id: rr-q-loss-per-dollar
+    prompt: >
+      In the first half of 2019 WeWork reported revenue of $1.54 billion and a net loss of about
+      $905 million. About how much did it lose per dollar of revenue?
+    choices:
+      - { id: a, text: "About 59 cents" }
+      - { id: b, text: "About 17 cents" }
+      - { id: c, text: "About $1.70" }
+      - { id: d, text: "About 91 cents" }
+    answer: a
+    explanation: >
+      905 / 1,540 = 0.588, so roughly 59 cents lost for each dollar of revenue.
+    source: >
+      Forbes, WeWork Files IPO Plan, Showing First-Half Losses Grew 25%, 14 August 2019: https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
+
+  - id: rr-q-agent-net
+    prompt: >
+      An online marketplace lets outside sellers list goods, set their own prices and ship to
+      buyers. It collects payment and keeps a 15% commission on $400 million of goods sold
+      through it. What revenue should it report, and why?
+    choices:
+      - { id: a, text: "$400 million, because the cash passes through its accounts" }
+      - { id: b, text: "$60 million, because it is an agent and does not control the goods before transfer" }
+      - { id: c, text: "$340 million, the amount it pays to sellers" }
+      - { id: d, text: "Either figure is acceptable if disclosed" }
+    answer: b
+    explanation: >
+      An entity that arranges for another party to provide goods, without controlling them before
+      they reach the customer, is an agent and reports only its fee or commission: 15% of 400 is 60.
+      Reporting 400 would inflate revenue almost sevenfold without changing profit.
+    source: >
+      IFRS 15 Revenue from Contracts with Customers, paragraphs B34 to B38 (principal versus agent): https://www.ifrs.org/content/dam/ifrs/supporting-implementation/agenda-decisions/2022/principal-versus-agent-software-reseller-may-2022.pdf
+
+  - id: rr-q-over-time
+    prompt: >
+      A contractor signs a $9 million contract to build a plant on the customer's land. The customer
+      controls the work as it is built. By year-end the contractor has spent $2.4 million of an
+      expected $6.0 million total cost. Measuring progress by cost, how much revenue is recognised
+      this year?
+    choices:
+      - { id: a, text: "Nothing until the plant is finished" }
+      - { id: b, text: "$3.6 million" }
+      - { id: c, text: "$2.4 million" }
+      - { id: d, text: "$9 million" }
+    answer: b
+    explanation: >
+      Control passes as the work is done, so revenue is recognised over time. Progress is
+      2.4 / 6.0 = 40%, and 40% of $9 million is $3.6 million.
+    source: >
+      IFRS 15, paragraphs 35 to 37 and B14 to B19 (performance obligations satisfied over time, cost-to-cost progress): https://ifrs.org/content/dam/ifrs/publications/pdf-standards/english/2021/issued/part-a/ifrs-15-revenue-from-contracts-with-customers.pdf
+
+checks:
+  - id: rr-quiz-recognition
+    kind: quiz
+    questions:
+      - rr-q-recorded
+      - rr-q-annualise
+      - rr-q-loss-per-dollar
+      - rr-q-agent-net
+      - rr-q-over-time
+      - bank:eab:MBA-ACC-FA-0029
+      - bank:eab:MBA-ACC-FA-0028
+      - bank:eab:MBA-ACC-FA-0026
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: rr-run-rate-view
+    kind: conversation
+    prompt: >
+      You are an investor reading WeWork's S-1 on 14 August 2019. The filing boasts of
+      $3 billion of run-rate revenue; first-half revenue was $1.54 billion with a net loss of
+      about $905 million. Explain what the run-rate figure does and does not tell you, and name
+      two questions you would put to the company before trusting it.
+    passCriteria: >
+      The Learner explains that run-rate scales a recent period to a year (doubling six months of
+      revenue gives roughly $3 billion), so it is a pace and an assumption, not recorded revenue.
+      They note it says nothing about costs or profit (the loss was about 59 cents per dollar of
+      revenue). They raise at least two sensible questions, for example how the run-rate is
+      defined, how much revenue is recurring, how long customers commit, whether revenue is gross
+      or net, or what the path to profit is.

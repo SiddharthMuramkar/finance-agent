@@ -1,0 +1,115 @@
+# Statistics (mean, variance, correlation, regression): a foundation Topic taught through the 1987 crash.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: num-statistics
+title: "Statistics: mean, variance, correlation, regression"
+
+cases:
+  - id: crash-1987
+    title: The 1987 crash
+    asOf: 1987-10-16
+    story: >
+      It is the close of trading on Friday 16 October 1987. The S&P 500, the index of 500 large US
+      companies, has fallen more than 9% over the week. That is one of the largest one-week declines
+      of the previous couple of decades. The decline began on Wednesday and has continued for the
+      rest of the week. Stock-index futures, contracts that let investors bet on or protect against
+      index moves, trade alongside the shares in Chicago. Many large investors use computer-driven
+      strategies, such as portfolio insurance, that trade stock-index futures. Markets reopen on Monday
+      19 October, and risk managers are asking how large a fall is possible and how likely it is.
+    reveal: >
+      On Monday 19 October 1987 the S&P 500 fell about 20% in a single day; the Dow Jones Industrial
+      Average, the S&P 500 and the Wilshire 5000 each declined between 18% and 23%. The S&P 500
+      futures contract fell 29%. A fall of that size is so far outside the odds of a normal
+      distribution fitted to ordinary days that it is effectively impossible in such a model. One
+      amplifier was portfolio insurance, a strategy that sells index futures as prices fall to limit
+      losses, which covered an estimated $80 billion of funds. When markets dived, the insurers sold
+      together, which pushed prices down further. The statistics had measured calm; the crash
+      showed their limit.
+
+concept: >
+  The mean is the average of a set of numbers. Variance is the average squared distance from the
+  mean, and the standard deviation (its square root) is a typical size of the distance, in the
+  same units as the data, which makes it the usual measure of risk. For a sample, divide by n - 1
+  rather than n. Correlation (r, between -1 and +1) measures how strongly two series move together
+  in a straight line; it does not show that one causes the other, and r squared is the share of the
+  variation the line explains. Regression fits a line (y = a + b x) to describe how one variable
+  changes with another; the slope b is the expected change in y for a one-unit change in x. If
+  returns are assumed normal, about 68% of days fall within one standard deviation of the mean and
+  about 95% within two. Real markets have fatter tails than the normal curve: rare extremes happen
+  far more often than the model says, and relationships such as correlations can change in a crisis.
+
+principle: >
+  Statistics describe the past sample you fed them. Before trusting one, ask what period it
+  covers, what it assumes about extremes, and what could make the relationship change.
+
+questions:
+  - id: st-q-sd
+    prompt: >
+      Five daily returns are +2%, -1%, +3%, 0% and -4%. Their mean is 0%. What is the sample
+      standard deviation, using n - 1?
+    choices:
+      - { id: a, text: "About 2.74%" }
+      - { id: b, text: "About 2.45%" }
+      - { id: c, text: "0%" }
+      - { id: d, text: "About 6%" }
+    answer: a
+    explanation: >
+      The squared deviations are 4, 1, 9, 0 and 16, which total 30. Dividing by n - 1 = 4 gives a variance of 7.5, and its square root is 2.74%. Dividing by n = 5 gives 6 and 2.45%, the population version.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread
+
+  - id: st-q-sigma
+    prompt: >
+      Suppose daily stock returns are normally distributed with a mean of 0% and a standard deviation of 1%. A one-day fall of 20% is how many standard deviations below the mean?
+    choices:
+      - { id: a, text: "20" }
+      - { id: b, text: "2" }
+      - { id: c, text: "0.2" }
+      - { id: d, text: "5" }
+    answer: a
+    explanation: >
+      20% / 1% = 20 standard deviations. In a normal model, a move beyond about three standard deviations happens on well under one day in a hundred, so 20 is effectively impossible. The 1% figure is an assumption for the exercise, not a measured one.
+    source: >
+      The size of the 19 October 1987 fall is from the Federal Reserve, A Brief History of the 1987 Stock Market Crash (FEDS 2007-13): https://www.federalreserve.gov/pubs/feds/2007/200713/ ; the normal-curve rule is in OpenStax 13.2: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread
+
+  - id: st-q-tails
+    prompt: >
+      A risk model fitted to years of calm daily returns says a 20% one-day fall is practically impossible. The S&P 500 fell about 20% on 19 October 1987. What does that show?
+    choices:
+      - { id: a, text: "A model fitted to calm periods can badly understate extreme moves" }
+      - { id: b, text: "The mean of daily returns was wrong" }
+      - { id: c, text: "Standard deviation cannot be calculated for stock returns" }
+      - { id: d, text: "The crash was impossible and the data must be wrong" }
+    answer: a
+    explanation: >
+      Extreme moves are far more common than a normal distribution fitted to ordinary days implies. A statistic is only as good as the sample and the shape assumed for it.
+    source: >
+      Federal Reserve, A Brief History of the 1987 Stock Market Crash (FEDS 2007-13): https://www.federalreserve.gov/pubs/feds/2007/200713/
+
+checks:
+  - id: st-quiz-statistics
+    kind: quiz
+    questions:
+      - st-q-sd
+      - st-q-sigma
+      - st-q-tails
+      - bank:eab:MBA-STAT-0030
+      - bank:eab:MBA-STAT-0029
+      - bank:eab:MBA-STAT-0015
+      - bank:eab:MBA-FIN-VAL-0045
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: st-crash-view
+    kind: conversation
+    prompt: >
+      It is the evening of 16 October 1987, and the S&P 500 has fallen more than 9% this week. A risk
+      manager says "our model, fitted to the past five calm years, says a 20% daily fall has
+      essentially zero probability, so we are safe". Using ideas of mean, standard deviation and
+      distributions, explain what is wrong with that reasoning.
+    passCriteria: >
+      The Learner explains that the model's mean and standard deviation come from a calm sample, so a
+      normal curve built on them puts almost no probability on extreme moves; a 20% fall would be
+      many standard deviations from the mean. They point out that markets have fat tails, that
+      volatility and correlations can rise sharply in a crisis, and that a sample describes the past
+      conditions it came from. They suggest remedies such as stress tests, longer or crisis-inclusive
+      samples, or not relying on a normal-distribution probability for tail risk.

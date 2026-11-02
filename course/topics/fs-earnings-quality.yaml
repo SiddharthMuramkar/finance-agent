@@ -1,0 +1,136 @@
+# Earnings quality and accounting fraud: a foundation Topic taught through Satyam.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: fs-earnings-quality
+title: Earnings quality and accounting fraud
+
+cases:
+  - id: satyam-2009
+    title: Satyam, the day before the confession
+    asOf: 2009-01-06
+    story: >
+      Satyam Computer Services, based in Hyderabad, was India's fourth-largest software services
+      company, with some 53,000 staff and customers that included many of the Fortune 500. Its shares
+      traded in Mumbai and, as American depositary receipts, on the New York Stock Exchange. Its
+      published accounts for the quarter to 30 September 2008 showed revenue of Rs 2,700 crore, an
+      operating margin of Rs 649 crore (24% of revenue), and cash and bank balances of Rs 5,361 crore
+      with receivables of Rs 2,651 crore. On 16 December 2008 the board announced that Satyam would
+      buy Maytas Properties for $1.3 billion and 51% of Maytas Infra for $300 million. These were
+      construction businesses in which the chairman, B. Ramalinga Raju, and other insiders held 35% of
+      Maytas Properties and 36% of Maytas Infra. Investors reacted at once: the ADRs fell 55% on the New York exchange that day to $5.70,
+      and in Mumbai the shares slumped about 31% on 17 December after the company withdrew the
+      deal within hours. Satyam's market value had been about Rs 15,262 crore at the close on
+      16 December.
+    reveal: >
+      On 7 January 2009 Raju wrote to the board and the regulators and resigned. He said that cash
+      and bank balances of Rs 5,040 crore on the 30 September 2008 balance sheet did not exist (against
+      Rs 5,361 crore in the books), that accrued interest of Rs 376 crore was non-existent and that
+      receivables were overstated (Rs 490 crore real against Rs 2,651 crore in the books). For the
+      September quarter he said the company had reported revenue of Rs 2,700 crore and an operating
+      margin of Rs 649 crore (24%), against actual revenue of Rs 2,112 crore and an operating margin
+      of only Rs 61 crore (3%). The gap had grown over several years; he compared it to "riding a
+      tiger, not knowing how to get off without being eaten". The shares fell about 80% that day, to
+      Rs 39.95. The US Securities and Exchange Commission later alleged that officials had used false
+      invoices and forged bank statements to inflate results.
+
+concept: >
+  Earnings quality asks whether reported profit is real, repeatable and backed by cash. Profit is an
+  accounting number built on accruals (revenue recorded before cash arrives, costs spread over time);
+  cash is harder to fake and easier to check against a bank statement. Warning signs include profit
+  that grows without matching operating cash flow, receivables that grow faster than sales, large cash
+  balances earning little interest, spending on assets far from the business, dealings with
+  insiders, and margins far above peers. Accounting fraud is the extreme case, where the figures
+  are invented. The tools are the same as for ordinary analysis: tie profit to cash, check each
+  balance-sheet item against something outside the company, and ask what the money is being spent on.
+
+principle: >
+  Profit is an opinion and cash is a fact. When profit, cash and behaviour do not tell the same
+  story, believe the cash and ask why.
+
+questions:
+  - id: eq-q-cash-share
+    prompt: >
+      Satyam's books showed cash and bank balances of Rs 5,361 crore at 30 September 2008. Its
+      chairman later said Rs 5,040 crore of that did not exist. About what share of the reported
+      cash was non-existent?
+    choices:
+      - { id: a, text: "About 94%" }
+      - { id: b, text: "About 6%" }
+      - { id: c, text: "About 50%" }
+      - { id: d, text: "About 15%" }
+    answer: a
+    explanation: >
+      5,040 / 5,361 = 0.940, so about 94% of the reported cash was fictitious, leaving only Rs 321 crore real.
+    source: >
+      B. Ramalinga Raju, resignation letter to the board, 7 January 2009 (SEC filing, Exhibit 99.2): https://www.sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+
+  - id: eq-q-margin
+    prompt: >
+      The chairman's letter said the actual operating margin for the September 2008 quarter was
+      Rs 61 crore on actual revenue of Rs 2,112 crore. About what margin is that?
+    choices:
+      - { id: a, text: "About 3%" }
+      - { id: b, text: "About 24%" }
+      - { id: c, text: "About 30%" }
+      - { id: d, text: "About 0.3%" }
+    answer: a
+    explanation: >
+      61 / 2,112 = 0.029, about 3%. The reported margin was 649 / 2,700 = 24%, eight times the actual margin.
+    source: >
+      B. Ramalinga Raju, resignation letter, 7 January 2009 (SEC Exhibit 99.2): https://www.sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+
+  - id: eq-q-cash-test
+    prompt: >
+      Which single check is hardest for a company to fake and most useful for testing reported profit?
+    choices:
+      - { id: a, text: "Compare profit with operating cash flow and confirm cash balances with the bank" }
+      - { id: b, text: "Read the chairman's letter in the annual report" }
+      - { id: c, text: "Compare the company's margin with its own earlier margins only" }
+      - { id: d, text: "Count the number of pages of notes" }
+    answer: a
+    explanation: >
+      Cash and bank balances can be confirmed with outside parties, and profit that does not turn into operating cash flow over time needs an explanation. The other checks rely on the company's own words.
+    source: >
+      SEC litigation release on Satyam, alleging false invoices and forged bank statements: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+
+  - id: eq-q-maytas
+    prompt: >
+      A company with Rs 5,361 crore of reported cash proposes to spend $1.6 billion on two construction
+      businesses owned partly by its chairman's family, in a line of business unrelated to its own.
+      Which concern is most relevant to earnings quality and governance?
+    choices:
+      - { id: a, text: "A related-party deal that does not fit the business, and cash that may not be what it seems" }
+      - { id: b, text: "Construction is always a worse business than software" }
+      - { id: c, text: "Companies should never use their cash" }
+      - { id: d, text: "A large deal is proof of a strong balance sheet" }
+    answer: a
+    explanation: >
+      Dealings with insiders and spending far from the core business are classic warning signs, and the purchase would have moved cash to the chairman's family firms. Later it emerged the cash was largely absent.
+    source: >
+      Reuters, Satyam abandons plan to buy builders, 16 December 2008: https://www.reuters.com/article/marketsNews/idINN1628370020081216/
+
+checks:
+  - id: eq-quiz-quality
+    kind: quiz
+    questions:
+      - eq-q-cash-share
+      - eq-q-margin
+      - eq-q-cash-test
+      - eq-q-maytas
+      - bank:eab:MBA-ACC-FA-0050
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eq-satyam-view
+    kind: conversation
+    prompt: >
+      It is 6 January 2009. Satyam's published accounts show a 24% operating margin and Rs 5,361 crore
+      of cash, yet it tried to spend $1.6 billion on firms owned partly by its chairman's family.
+      What would you check to test whether its earnings and cash are real, and why does cash
+      matter more than profit here?
+    passCriteria: >
+      The Learner explains that profit rests on accruals and judgement while cash can be checked
+      outside the company. They propose concrete checks: compare profit with operating cash flow
+      over several years, confirm bank balances with the banks, check how much interest the cash
+      earns, look at receivables against sales, compare the margin with peers, and examine the
+      related-party nature of the Maytas deal. They conclude that profit and cash diverging, or cash
+      sitting idle while the company spends elsewhere, calls for scepticism.
