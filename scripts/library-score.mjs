@@ -52,12 +52,31 @@ for (const question of set.questions) {
     if (rank === 1) hits1++;
   } else misses.push(`  MISS ${q}\n       expected ${[...(question.expect ?? []), ...(question.sources ?? [])].join(", ")}; got ${results.map((r) => `${r.sourceId}/${doc(r.ref)} (${r.heading.slice(0, 50)})`).join(" | ") || "nothing"}`);
 }
+// Author-named questions: the same search again the way the Tutor now sends it, the writer's name moved into the source filter.
+const scopedQuestions = set.questions.filter((qu) => qu.scoped);
+let scopedHits = 0;
+let scopedRr = 0;
+const scopedMisses = [];
+for (const question of scopedQuestions) {
+  const { q, source } = question.scoped;
+  const results = await searchPassages(db, { query: q, source, asOf: null, ranking, embedding: embed ? await embed(q) : undefined, limit: 5 });
+  const rank = results.findIndex((r) => answers(question, r)) + 1;
+  if (rank) {
+    scopedHits++;
+    scopedRr += 1 / rank;
+  } else scopedMisses.push(`  SCOPED MISS "${q}" [source ${source}]; got ${results.map((r) => `${r.sourceId}/${doc(r.ref)}`).join(" | ") || "nothing"}`);
+}
 const n = set.questions.length;
 console.log(`Library search score (${mode}), ${n} questions`);
 console.log(`  hits@5 ${hits5}/${n} (${Math.round((100 * hits5) / n)}%), hits@1 ${hits1}/${n}, mean reciprocal rank ${(rr / n).toFixed(2)}`);
 console.log(`  judged hits@5 (also counting other-source passages read and judged to answer, see alsoExpect) ${judgedHits5}/${n} (${Math.round((100 * judgedHits5) / n)}%)`);
 console.log(`  by source: ${Object.entries(byGroup).map(([k, v]) => `${k} ${v.hit}/${v.n}`).join(", ")}`);
 if (misses.length) console.log(misses.join("\n"));
+if (scopedQuestions.length) {
+  const named = scopedQuestions.map((qu) => misses.some((m) => m.startsWith(`  MISS ${qu.q}\n`)));
+  console.log(`  author-named questions (${scopedQuestions.length}): name left in the query ${named.filter((m) => !m).length}/${scopedQuestions.length}; scoped by the source filter ${scopedHits}/${scopedQuestions.length}, MRR ${(scopedRr / scopedQuestions.length).toFixed(2)}`);
+  if (scopedMisses.length) console.log(scopedMisses.join("\n"));
+}
 
 console.log("\nHindsight probes (as-of rule on):");
 for (const { q, asOf, outcome } of set.hindsight ?? []) {

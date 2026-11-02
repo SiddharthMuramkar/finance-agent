@@ -105,4 +105,29 @@ describe("search_library tool in the Tutor Turn", () => {
 
     expect(searchResult(requests)).toContain("No Library passage matched");
   });
+
+  it("scopes a search to one writer with the source filter, so the writer's name is not in the query", async () => {
+    const db = await testDb();
+    await importLibrary(db, book);
+    await importLibrary(db, {
+      ...book,
+      source: { ...book.source, id: "other-book", title: "Another textbook", credit: "C. Other, Another textbook (Press, 2020)", url: "https://example.org/other" },
+      passages: [{ ref: "pv2", heading: "Present value again", url: "https://example.org/other/pv", text: "Present value discounts every future payment at the discount rate, said the other author." }],
+    });
+    const { client, requests } = scriptedClient([
+      { content: [{ type: "tool_use", id: "search-1", name: "search_library", input: { query: "present value discount rate", source: "B. Author" } }] },
+      { content: [{ type: "text", text: "As B. Author puts it, present value discounts each payment." }] },
+    ]);
+
+    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does B. Author say about present value?"));
+
+    const text = searchResult(requests);
+    expect(text).toContain("Present value discounts each future payment back to today");
+    expect(text).not.toContain("said the other author");
+  });
+
+  it("tells the Tutor, in its instructions, to use the source filter instead of putting a writer's name in the query", () => {
+    expect(TUTOR_INSTRUCTIONS).toContain("source filter");
+    expect(TUTOR_INSTRUCTIONS).toContain("never put a writer's name in the query");
+  });
 });

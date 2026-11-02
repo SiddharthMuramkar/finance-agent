@@ -69,7 +69,7 @@ export function toolCode(
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
-  const searchInput = z.object({ query: z.string().min(1) });
+  const searchInput = z.object({ query: z.string().min(1), source: z.string().optional() });
 
   /**
    * Pacing rule: whether the Learner's current step began during this turn, so it has not yet been
@@ -109,7 +109,7 @@ export function toolCode(
   return {
     search_library: {
       parse: (input) => searchInput.parse(input),
-      run: async ({ query }) => searchResultText(await searchLibrary({ db, map, embedQuery }, query)),
+      run: async ({ query, source }) => searchResultText(await searchLibrary({ db, map, embedQuery }, query, { source })),
     },
     // Pure: it writes nothing, so it does not go through `once`; the same inputs always give the same answer.
     calculate: {

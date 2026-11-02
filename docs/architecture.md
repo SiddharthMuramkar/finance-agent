@@ -778,6 +778,24 @@ present value Case), return no passage mentioning a later year or the Case's end
 search should be judged against the same questions. Four more probes, as of 2018, 2014, 2007 and
 2008, check the new dated sources: none return a later post, the S-1 or an ending.
 
+**Naming a writer (follow-up to #21).** A real Tutor query, "Aswath Damodaran valuing Anthropic
+IPO", put the title pages of his 45 papers in the top five and pushed his own Anthropic post out.
+A title page is nearly all names and dates, and the writer's name in the query matches all of it.
+Two fixes, both in code. First, the loader (`prepareDocuments`) now leaves out a document's
+title page, meaning its first passage when it is short and holds no sentence, or carries an e-mail
+or school line (36 of 45 papers, 26 + 23 Yale lecture headers, the S-1 cover line; reported when
+a source loads). Second, `search_library` takes an optional `source`: text matched against each
+source's id, title and credit line ("Damodaran", "Shiller", "Yale", "S-1"), which scopes the search
+to those sources, with the as-of rule still applied. The Tutor's instructions say to use it and
+never to put a writer's name in the query; a `source` that matches nothing returns the list of
+sources the Library holds. The test set gained five author-named questions (73 to 78): the name left in the query found the right passage in 3 of 5 before the fix
+and 4 of 5 after (the Anthropic post is now in the top five, though papers still rank above it);
+scoped with the source filter, all 5 of 5 both before and after, right passage first every time.
+Scenario: the Learner asks what Damodaran made of the Anthropic IPO; the Tutor calls
+`search_library` with query "valuing Anthropic IPO" and source "Damodaran" and gets his post
+first. Trade-off: `source` is a text match, not an author field, so "Damodaran" covers both his
+blog and his papers but a misspelling matches nothing (the Tutor is then shown the source names).
+
 **Scenario.** The Learner asks what a textbook says about valuing a perpetuity. The Tutor calls
 `search_library`, gets section 8.1 of *Principles of Finance 2e* with its credit line, quotes "An
 indefinite stream of payments cannot be compounded into a future value, but it can be discounted to
