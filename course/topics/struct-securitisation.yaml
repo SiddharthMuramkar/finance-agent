@@ -1,0 +1,161 @@
+# Securitisation, MBS and CDOs: a foundation Topic taught through the path from a subprime loan to a AAA tranche.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Federal Reserve Bank of Philadelphia Working Paper 11-30/R (May 2012): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf ; Financial Crisis Inquiry Commission, The Financial Crisis Inquiry Report (27 Jan 2011): https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
+# Figures from the FCIC report (counts of AAA ratings, "83% downgraded") were NOT checked against its pages and are left out.
+id: struct-securitisation
+title: Securitisation, MBS and CDOs
+
+cases:
+  - id: subprime-aaa-2006-tranches
+    title: From a subprime loan to a AAA tranche
+    asOf: 2006-12-31
+    story: >
+      At the end of 2006 US lenders have made a very large number of subprime mortgages, loans to
+      borrowers with weaker credit. Few lenders keep these loans. A bank sells a pool of them to a
+      special-purpose vehicle, which pays for the pool by issuing bonds in layers called tranches.
+      The cash that borrowers pay is passed up the layers in order, the senior bonds first;
+      losses go the other way, the bottom layer first. Take a simplified pool of $1,000 million (an
+      illustration, not a real deal) that issues four layers: a $770 million AAA tranche, a
+      $150 million A tranche, a $50 million BBB tranche and a $30 million residual tranche that the
+      lender keeps. The AAA tranche is rated AAA even though the loans are subprime, because the 23%
+      of the pool beneath it (150 + 50 + 30 = 230) must be lost before it takes its first dollar of
+      loss. The BBB tranches are the hardest to sell. So an investment bank buys BBB tranches from
+      many such pools, puts them into a new vehicle, a collateralised debt obligation (CDO), and
+      issues layers against them again; the top layer of the CDO is also rated AAA. The rating
+      agencies' models assume that losses on the separate pools are not strongly linked to one another.
+      A Lehman Brothers research note in 2005 judged that the cushion under new BBB bonds was sized
+      for house prices rising between 5% and 8% a year for the life of the loans, and warned that
+      new BBB bonds had downgrade risk if house price growth slowed to 5%. As of 31 December 2006,
+      which tranche takes the first loss, how much loss on the pool does each tranche survive, and
+      what has to be true of the loans behind a CDO for its top layer to be as safe as its rating says?
+    reveal: >
+      The Federal Reserve Bank of Philadelphia counted 727 publicly traded structured-finance CDOs
+      issued between 1999 and 2007, worth $641 billion, and estimated total write-downs of $420
+      billion, 65% of the issuance. Because the unsold lower layers of CDOs were mostly put into other
+      CDOs, $64 billion of BBB-rated subprime bonds became $140 billion of CDO collateral. The paper
+      found that the A-rated subprime bonds had on average only 8% of subordination under them, so
+      subprime losses of 8% would wipe out the BBB layer completely; consensus views in early 2007
+      put subprime losses at 3% to 5%, so losses needed to reach only about 1.5 to 2.5 times their
+      expected level for the mezzanine CDOs to become worthless, though they would have to be 5 to 8
+      times the expected level before the AAA subprime bonds lost anything. The ratings of the senior
+      CDO layers rested on the assumption that the BBB bonds would not all go wrong at once;
+      because they all depended on the same thing, US house prices, they did. The Financial Crisis
+      Inquiry Commission published its report on 27 January 2011, placing mortgage securities and
+      CDOs at the centre of the crisis.
+
+concept: >
+  Securitisation turns a pool of loans into securities. A vehicle buys the loans and funds itself by
+  issuing tranches in order of seniority (a waterfall): cash flows go to the senior tranche first, and
+  losses are absorbed from the bottom. A tranche's subordination is the share of the pool that must be
+  lost before the tranche takes its first loss; a tranche with 23% of subordination can survive losses
+  of 23% of the pool. Subordination is credit enhancement: it is how a pool of risky loans can support
+  a very safe senior bond. The price is concentration of risk in the junior tranches. A CDO repeats
+  the trick using tranches as its collateral. The top CDO layer is safe only if the tranches inside
+  it are unlikely to lose together; the correlation between them is the critical assumption. If
+  all of them depend on one common factor, such as house prices, the diversification is much less
+  than it looks. Selling loans on rather than holding them also changes who checks the borrower:
+  whoever holds the loan bears the loss, and if that is someone else, the lender has less reason to
+  be careful.
+
+principle: >
+  A rating is only as good as the assumption about how the risks are linked. A structure can re-label
+  risk by slicing it, but it cannot remove the risk that is common to all the pieces.
+
+questions:
+  - id: ss-q-first-loss
+    prompt: >
+      A pool of $1,000 million is financed by tranches: $770 million AAA, $150 million A, $50 million BBB and $30 million residual. The pool loses 2% ($20 million) from defaults. Which tranche takes the loss?
+    choices:
+      - { id: a, text: "Only the $30 million residual tranche" }
+      - { id: b, text: "All tranches, in proportion to their size" }
+      - { id: c, text: "The AAA tranche, because it is the largest" }
+      - { id: d, text: "The BBB tranche" }
+    answer: a
+    explanation: >
+      Losses are absorbed from the bottom. The residual tranche of $30 million is the first to take them and can absorb up to 3% of the pool, so a 2% loss ($20 million) leaves every other tranche whole.
+    source: >
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R, section I (senior/subordinated structure): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf ; example figures are hypothetical
+
+  - id: ss-q-partial-loss
+    prompt: >
+      In the same pool, losses reach 10% of the pool ($100 million). What fraction of the $150 million A tranche is lost?
+    choices:
+      - { id: a, text: "About 13%" }
+      - { id: b, text: "10%" }
+      - { id: c, text: "100%" }
+      - { id: d, text: "None" }
+    answer: a
+    explanation: >
+      The residual ($30 million) and BBB ($50 million) tranches absorb the first $80 million. The remaining $20 million falls on the A tranche: 20 / 150 = 13.3%. The AAA tranche is untouched.
+    source: >
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R (waterfall and subordination): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf ; losses calculated on hypothetical figures
+
+  - id: ss-q-subordination
+    prompt: >
+      In the same pool, what is the subordination of the $770 million AAA tranche?
+    choices:
+      - { id: a, text: "23%" }
+      - { id: b, text: "77%" }
+      - { id: c, text: "3%" }
+      - { id: d, text: "100%" }
+    answer: a
+    explanation: >
+      Subordination is the share of the pool beneath the tranche: 150 + 50 + 30 = 230 out of 1,000, or 23%. Pool losses can reach 23% before the AAA tranche loses anything.
+    source: >
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R, section II ("Subordination is a summary measure of how high collateral losses need to be before the bonds suffer losses"): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
+
+  - id: ss-q-wipe-bbb
+    prompt: >
+      In the same pool, at what level of losses on the pool is the $50 million BBB tranche completely wiped out?
+    choices:
+      - { id: a, text: "8%" }
+      - { id: b, text: "5%" }
+      - { id: c, text: "3%" }
+      - { id: d, text: "23%" }
+    answer: a
+    explanation: >
+      The BBB tranche has the $30 million residual (3%) beneath it. The first $30 million of loss goes to the residual, and the next $50 million wipes out BBB, so total losses of $80 million, 8% of the pool, remove the BBB tranche entirely. It takes its first loss at 3%.
+    source: >
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R (subordination levels): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf ; calculated on hypothetical figures
+
+  - id: ss-q-correlation
+    prompt: >
+      Two CDOs each hold 100 BBB tranches. In CDO X the tranches come from pools in the same regions and on the same kinds of loan, so they depend on the same house-price movements. In CDO Y they come from very different kinds of asset. Which CDO's top layer is more exposed to losing value?
+    choices:
+      - { id: a, text: "CDO X, because its tranches are likely to lose value at the same time" }
+      - { id: b, text: "CDO Y, because it holds different assets" }
+      - { id: c, text: "Both equally; the number of tranches is what matters" }
+      - { id: d, text: "Neither; a AAA rating removes the risk" }
+    answer: a
+    explanation: >
+      A top layer is safe if losses in the collateral tend to be spread out and smaller than its cushion. When all the tranches depend on the same factor, they tend to fail together, so diversification across 100 bonds is much less than it seems. Ratings that assumed low correlation therefore overstated the safety of the top layers.
+    source: >
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R (rating agencies' assumption of low asset correlations): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
+
+checks:
+  - id: ss-quiz-tranches
+    kind: quiz
+    questions:
+      - ss-q-first-loss
+      - ss-q-partial-loss
+      - ss-q-subordination
+      - ss-q-wipe-bbb
+      - ss-q-correlation
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ss-cdo-safety
+    kind: conversation
+    prompt: >
+      A mortgage pool's senior tranche is rated AAA because 23% of the pool must be lost before it
+      takes a loss. A CDO then buys many of the pool's lowest-rated tranches and again issues a AAA
+      top layer. Explain why the first AAA may be reasonable and what additional assumption the
+      second AAA depends on.
+    passCriteria: >
+      The Learner says that the first AAA rests on subordination: the lower tranches absorb the first
+      23% of losses, which is far above the losses that mortgage pools have typically suffered. They
+      explain that the CDO's collateral is the lowest-rated tranches, which are exposed to the first
+      losses, and so the top layer of the CDO is safe only if those tranches do not lose together.
+      The additional assumption is low correlation between the pools or tranches. They add that if
+      all the pools depend on one common factor, such as house prices, the tranches can fail together,
+      and a small rise in losses above expectations can wipe out the collateral.

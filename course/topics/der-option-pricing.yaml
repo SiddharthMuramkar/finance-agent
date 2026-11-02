@@ -1,0 +1,154 @@
+# Binomial and Black-Scholes pricing: a foundation Topic taught through Long-Term Capital Management and the option-pricing pioneers.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Nobel Prize press release, Economic Sciences 1997 (14 Oct 1997): https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/ ; Scholes, Nobel biographical note: https://www.nobelprize.org/prizes/economic-sciences/1997/scholes/biographical/ ; Fleming and Liu, Near Failure of Long-Term Capital Management, Federal Reserve History: https://www.federalreservehistory.org/essays/ltcm-near-failure ; Report of the President's Working Group on Financial Markets, Hedge Funds, Leverage and the Lessons of Long-Term Capital Management (April 1999): https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; Greenspan, testimony of 1 October 1998: https://www.federalreserve.gov/boarddocs/testimony/1998/19981001.htm ; Morgenson, "When Theory Met Reality", New York Times, 14 November 1998: https://www.nytimes.com/1998/11/14/business/when-theory-met-reality-special-report-teachings-two-nobelists-also-proved-their.html
+id: der-option-pricing
+title: Binomial and Black-Scholes option pricing
+
+cases:
+  - id: ltcm-1998-option-pricing
+    title: LTCM and the men who priced options
+    asOf: 1998-08-01
+    story: >
+      In October 1997 the Royal Swedish Academy of Sciences gave the economics Nobel Prize to
+      Robert Merton and Myron Scholes "for a new method to determine the value of derivatives"
+      (the Black-Scholes formula, worked out with the late Fischer Black). Both men are partners in
+      Long-Term Capital Management (LTCM), a hedge fund in Greenwich, Connecticut, founded in
+      February 1994 by John Meriwether and colleagues from Salomon Brothers; Scholes is a co-founder.
+      The fund has returned 20% in 1994, 43% in 1995, 41% in 1996 and 17% in 1997. At the end of 1997
+      it gave $2.7 billion back to its investors, leaving capital of $4.8 billion, against total
+      assets of $129 billion on its balance sheet (a leverage of 28 to 1) and a much larger book
+      of derivatives. The Black-Scholes method prices an option by building a risk-free portfolio
+      of the share and the option, adjusted as the share price moves, so the option's value does not
+      depend on anyone's view of where the share is heading. Its inputs are the share price, the
+      strike, the time to expiry, the interest rate and the share's volatility, assumed constant,
+      and it assumes you can trade whenever you wish at the market price. As of 1 August 1998, what
+      is the formula really telling LTCM, which input is the hardest to know, and what happens to
+      its risk if volatility or liquidity behaves differently from the model?
+    reveal: >
+      By the end of August 1998 LTCM had lost about half its capital: the Federal Reserve History
+      essay says the fund lost 44% of its value in August alone, and the President's Working Group
+      reports capital of $4.1 billion on 31 July falling to $2.3 billion during August. The losses
+      came in markets all over the world at the same time, far beyond what the fund's risk models,
+      estimated in calm periods, said was probable. The report concluded that "it is clear that
+      LTCM's models underestimated the risk they were taking and the effect of their own positions
+      in markets." On 23 September 1998 fourteen banks and brokerages put in $3.625 billion for
+      90% of the fund, an arrangement the Federal Reserve Bank of New York organised without lending
+      its own money. The lesson for option pricing is that a model gives a price only under its
+      assumptions: a hedge that must be adjusted continuously fails when volatility jumps and when
+      the market stops being liquid.
+
+concept: >
+  An option's price is the cost of building its payoff from the share and borrowing. In a
+  one-period binomial model the share can only go up to S x u or down to S x d. With a risk-free
+  rate r per period, the risk-neutral probability of an up move is p = ((1 + r) - d) / (u - d), and
+  the option is worth its expected payoff under p, discounted at 1 + r. Equivalently, hold delta =
+  (payoff up - payoff down) / (S x u - S x d) shares and borrow the balance, and you copy the option
+  exactly. Black and Scholes take the same idea to its limit, with trading at every instant: the
+  option is worth more when the share price, the volatility, the interest rate and the time to
+  expiry are higher, and when the strike is lower (for a call). No forecast of the share's return is
+  needed. The cost is a set of assumptions: constant volatility, continuous trading, no trading
+  costs. A seller who hedges by delta must keep trading as delta changes, and this fails when prices
+  jump or when no one will trade.
+
+principle: >
+  A pricing model is a conditional statement: the price is right if its assumptions hold. Know
+  which input you cannot observe, which assumption you depend on, and what happens to your
+  hedge when the assumption fails.
+
+questions:
+  - id: ox-q-binomial-value
+    prompt: >
+      A share is at $100. In one period it will either rise to $120 or fall to $80. The risk-free rate is 5% for the period. A call option has a strike of $100. What is the call's value today, using the one-period binomial model?
+    choices:
+      - { id: a, text: "$11.90" }
+      - { id: b, text: "$12.50" }
+      - { id: c, text: "$20.00" }
+      - { id: d, text: "$10.00" }
+    answer: a
+    explanation: >
+      The payoff is $20 if the share rises and $0 if it falls. The risk-neutral probability of a rise is (1.05 - 0.80) / (1.20 - 0.80) = 0.625. The expected payoff is 0.625 x 20 = $12.50, discounted one period at 1.05: 12.50 / 1.05 = $11.90. $12.50 forgets to discount.
+    source: >
+      Cox, Ross and Rubinstein, "Option pricing: a simplified approach", Journal of Financial Economics 7 (1979), 229-263: https://doi.org/10.1016/0304-405X(79)90015-1 ; figures calculated and cross-checked by replication (0.5 shares less $38.10 of borrowing = $11.90)
+
+  - id: ox-q-delta-shares
+    prompt: >
+      In the one-period model above, how many shares replicate one call option (the delta)?
+    choices:
+      - { id: a, text: "0.5 shares" }
+      - { id: b, text: "1 share" }
+      - { id: c, text: "0.2 shares" }
+      - { id: d, text: "0.625 shares" }
+    answer: a
+    explanation: >
+      Delta = (payoff up - payoff down) / (price up - price down) = (20 - 0) / (120 - 80) = 0.5. The 0.625 is the risk-neutral probability, not a number of shares.
+    source: >
+      Cox, Ross and Rubinstein, "Option pricing: a simplified approach", Journal of Financial Economics 7 (1979), 229-263: https://doi.org/10.1016/0304-405X(79)90015-1 ; delta calculated from the formula
+
+  - id: ox-q-hedge-count
+    prompt: >
+      A trader owns 1,000 shares and sells call options on them. Each call (on one share) rises $0.60 when the share rises $1. About how many calls must be sold to make the position insensitive to small price moves?
+    choices:
+      - { id: a, text: "About 1,667" }
+      - { id: b, text: "600" }
+      - { id: c, text: "1,000" }
+      - { id: d, text: "About 2,000" }
+    answer: a
+    explanation: >
+      A $1 rise gains $1,000 on the shares. Each short call loses $0.60, so 1,000 / 0.60 = 1,667 calls offset it. The Nobel committee's own example is a call that moves $1 when the share moves $2, which needs two options sold for each share. The ratio has to be adjusted as the share price and time change.
+    source: >
+      Nobel Prize press release, Economic Sciences 1997, the hedged option-share portfolio: https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/ ; number of calls calculated
+
+  - id: ox-q-vol-rises
+    prompt: >
+      All else equal, what happens to the value of a call option when the volatility of the share rises?
+    choices:
+      - { id: a, text: "It rises" }
+      - { id: b, text: "It falls" }
+      - { id: c, text: "It does not change" }
+      - { id: d, text: "It rises for puts only" }
+    answer: a
+    explanation: >
+      The buyer's loss is capped at the premium while the gain is not, so a wider spread of possible share prices adds to the value. The Black-Scholes formula gives a higher option value the higher the volatility. The same holds for puts.
+    source: >
+      Nobel Prize press release, Economic Sciences 1997 ("the option value is higher the higher the volatility of the share price"): https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/
+
+  - id: ox-q-assumption
+    prompt: >
+      Which of these is an assumption behind the Black-Scholes formula?
+    choices:
+      - { id: a, text: "The share's volatility is constant and the option can be hedged by trading continuously at the market price" }
+      - { id: b, text: "The share's expected return must be known" }
+      - { id: c, text: "Investors must be risk-seeking" }
+      - { id: d, text: "The share price can never fall" }
+    answer: a
+    explanation: >
+      The formula needs constant volatility and frictionless continuous trading. It does not need the share's expected return, which is a result the Nobel committee stressed: no risk premium is needed to value an option.
+    source: >
+      Black and Scholes, "The pricing of options and corporate liabilities", Journal of Political Economy 81(3), 1973, 637-654: https://doi.org/10.1086/260062 ; Nobel Prize press release, Economic Sciences 1997: https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/
+
+checks:
+  - id: ox-quiz-pricing
+    kind: quiz
+    questions:
+      - ox-q-binomial-value
+      - ox-q-delta-shares
+      - ox-q-hedge-count
+      - ox-q-vol-rises
+      - ox-q-assumption
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ox-model-limits
+    kind: conversation
+    prompt: >
+      A bank sells an option and hedges it by holding delta shares, adjusting the hedge as the
+      price moves. Explain why this works in the Black-Scholes world, and name two ways it can fail
+      in a real market.
+    passCriteria: >
+      The Learner says that holding delta shares against the option makes the portfolio risk-free
+      for small price moves, so the option's value does not depend on the share's expected return
+      and can be priced from the share price, strike, time, interest rate and volatility. They name
+      at least two failures: volatility is not constant (it can jump, and it is the one input that
+      cannot be observed), trading is not continuous or free (prices can gap, and in a stressed market
+      no one may trade at the modelled price), and the hedger's own large trades can move the market.
+      Bonus: they say a model calibrated in calm periods underestimates losses in a crisis.
