@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, date, doublePrecision, integer, jsonb, numeric, pgTable, primaryKey, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, customType, date, doublePrecision, index, integer, jsonb, numeric, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, vector } from "drizzle-orm/pg-core";
 
 /** Settings stored in SQL, such as the Tutor's model and effort. */
 export const settings = pgTable("settings", {
@@ -268,3 +268,60 @@ export const reviewLog = pgTable("review_log", {
   source: text("source").notNull().$type<"quiz" | "review">(),
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }).notNull(),
 });
+
+/** Postgres full-text search terms, kept by the database itself (a generated column). */
+const tsvector = customType<{ data: string }>({ dataType: () => "tsvector" });
+
+/**
+ * Library: one source the Tutor can search, such as a book or a blog. A `dated` source's passages
+ * fall under the as-of rule; a `timeless` reference (a textbook) is always searchable. Loaded from
+ * the laptop (`npm run library:load`); the app only reads it.
+ */
+export const librarySources = pgTable("library_sources", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  kind: text("kind").notNull().$type<"dated" | "timeless">(),
+  licence: text("licence").notNull(),
+  licenceUrl: text("licence_url").notNull(),
+  /** The credit line every search result carries. */
+  credit: text("credit").notNull(),
+  url: text("url").notNull(),
+  /** When the copy in the Library was taken from the source. */
+  fetchedOn: date("fetched_on", { mode: "string" }).notNull(),
+});
+
+/**
+ * Library: one passage, cut from a source by the Library scripts, with its own source, licence,
+ * credit and publication date. `search` is its keyword terms (heading and text); `embedding` its
+ * Voyage vector, empty until embedded.
+ */
+export const libraryPassages = pgTable(
+  "library_passages",
+  {
+    id: serial("id").primaryKey(),
+    sourceId: text("source_id")
+      .notNull()
+      .references(() => librarySources.id),
+    /** Stable key within the source, so a reload updates the same passage. */
+    ref: text("ref").notNull(),
+    heading: text("heading").notNull(),
+    url: text("url").notNull(),
+    /** When the passage was published; the as-of rule filters dated sources on it. */
+    publishedOn: date("published_on", { mode: "string" }),
+    text: text("text").notNull(),
+    licence: text("licence").notNull(),
+    credit: text("credit").notNull(),
+    search: tsvector("search")
+      .notNull()
+      .generatedAlwaysAs(sql`to_tsvector('english', heading || ' ' || text)`),
+    /**
+     * The latest year (1900 to 2099) the passage mentions, set by the load. Before a Case's reveal a
+     * timeless passage mentioning a year after the as-of date is hidden too, as it may tell the ending.
+     */
+    latestYear: integer("latest_year"),
+    embedding: vector("embedding", { dimensions: 1024 }),
+    /** The Voyage model that made the embedding. */
+    embeddedWith: text("embedded_with"),
+  },
+  (t) => [uniqueIndex("library_passages_source_ref").on(t.sourceId, t.ref), index("library_passages_search").using("gin", t.search)],
+);

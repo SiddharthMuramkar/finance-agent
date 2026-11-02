@@ -8,6 +8,7 @@ import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
 import { toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
+import { searchLibrary, searchResultText, type QueryEmbedder } from "@/library/library";
 import { stepContext } from "./context";
 import type { ToolDefinition } from "./instructions";
 
@@ -47,16 +48,26 @@ export async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
 }
 
 /**
- * The code behind each tool, by name. Every tool writes, so each runs through `once`:
+ * The code behind each tool, by name. Every tool that writes runs through `once`:
  * the effect and the saved result share one transaction keyed by the tool call ID, so a
  * repeated call, or a call re-run after a cut-off, returns the saved result and has no
  * second effect. If the write fails, the transaction rolls back (the Course Navigator
- * does not advance) and the Tutor is told nothing was recorded.
+ * does not advance) and the Tutor is told nothing was recorded. search_library only reads, so
+ * it simply runs again if repeated.
  */
-export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string, effects: ToolEffects, turnId: number): Record<string, ToolCode> {
+export function toolCode(
+  db: Db,
+  map: CourseMap,
+  now: () => Date,
+  model: string,
+  effects: ToolEffects,
+  turnId: number,
+  embedQuery?: QueryEmbedder,
+): Record<string, ToolCode> {
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
+  const searchInput = z.object({ query: z.string().min(1) });
 
   /**
    * Pacing rule: whether the Learner's current step began during this turn, so it has not yet been
@@ -92,6 +103,10 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
   }
 
   return {
+    search_library: {
+      parse: (input) => searchInput.parse(input),
+      run: async ({ query }) => searchResultText(await searchLibrary({ db, map, embedQuery }, query)),
+    },
     record_misconception: {
       parse: (input) => misconceptionInput.parse(input),
       run: ({ description, topic_id }, context) =>

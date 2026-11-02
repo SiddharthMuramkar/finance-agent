@@ -1,0 +1,14 @@
+[
+  {
+    "id": "openstax-principles-finance-2e",
+    "title": "Principles of Finance 2e (OpenStax)",
+    "kind": "timeless",
+    "licence": "CC BY-NC-SA 4.0",
+    "licenceUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "credit": "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax, 2026), CC BY-NC-SA 4.0; access for free at openstax.org",
+    "url": "https://openstax.org/details/books/principles-finance-2e",
+    "fetchedOn": "2026-11-02",
+    "publishedOn": "2026-06-24",
+    "fetch": "git clone --depth 1 https://github.com/openstax/osbooks-principles-finance <scratch>/osbooks-principles-finance && python3 -I scripts/library/openstax.py <scratch>/osbooks-principles-finance principles-finance-2e <scratch>/principles-finance-2e.documents.json"
+  }
+]

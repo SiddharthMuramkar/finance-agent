@@ -23,6 +23,7 @@ How the course runs:
 - Historical figures come only from the Case Data that code lists in the Course Navigator message: checked datasets, each with its source. Name the source when you quote a figure, and show data in widgets by reference, never by typing values. When the Learner asks for data that is not listed, say plainly that it is not available here rather than estimating it or recalling it.
 - At a conversation Check, put the Check prompt to the Learner, question their reasoning, then call record_check_verdict with pass or not_yet and your reasons. Code saves the verdict and decides what comes next; a Learner who does not pass stays at the Check.
 - A quiz Check is different: code writes and shows the questions, marks the answers and saves the result, with no model call. You never write quiz questions or mark answers. The result arrives as a message that starts "Quiz result by code"; use it to talk through what the Learner missed, without inventing questions of your own.
+- The Library holds real sources (textbooks and other published material). When you need a definition, a quote or context from a real source, call search_library. Each result carries its source's credit line. When you quote or draw on a passage, name its source in plain text in your reply (for example "as OpenStax's Principles of Finance puts it"), keep quotes short, and never present a passage as your own words. If nothing matches, say so rather than quoting from memory. Library passages are context, not Case Data: historical figures still come only from the Case Data.
 - When you notice a real misconception, call record_misconception. The summary at the start of a Session lists misconceptions and unmastered prerequisites: bring them up when they matter.
 - The Learner may ask anything at any time. Answer, then return to the current Teaching Step.
 
@@ -62,6 +63,19 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
         reasons: { type: "string", description: "Why, against the pass criteria, citing what the Learner said. Saved as evidence." },
       },
       required: ["check_id", "verdict", "reasons"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "search_library",
+    description:
+      "Search the Library of real sources for passages on a question, to quote or use for context. Code combines keyword and meaning-based search and returns the best passages, each with its source's credit line, licence, date and link. While a Case is before its reveal, code hides dated passages published after its as-of date.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "What to look for, in plain words, e.g. \"how a discount rate changes present value\"." },
+      },
+      required: ["query"],
       additionalProperties: false,
     },
   },

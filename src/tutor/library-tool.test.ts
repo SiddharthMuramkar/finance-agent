@@ -1,0 +1,107 @@
+import { describe, expect, it } from "vitest";
+import { importLibrary, type LibraryFile } from "@/library/ingest";
+import { NO_VOYAGE_KEY, VOYAGE_DOWN } from "@/library/library";
+import { scriptedClient, type ScriptedRequest } from "@/test/scripted-client";
+import { testDb } from "@/test/pglite";
+import { TUTOR_INSTRUCTIONS } from "./instructions";
+import { runTutorTurn, type TurnEvent } from "./turn";
+
+async function collect(events: AsyncIterable<TurnEvent>) {
+  const out: TurnEvent[] = [];
+  for await (const e of events) out.push(e);
+  return out;
+}
+
+const book: LibraryFile = {
+  source: {
+    id: "a-book",
+    title: "A textbook",
+    kind: "timeless",
+    licence: "CC BY 4.0",
+    licenceUrl: "https://creativecommons.org/licenses/by/4.0/",
+    credit: "B. Author, A textbook (Publisher, 2022), CC BY 4.0",
+    url: "https://example.org/book",
+    fetchedOn: "2026-11-02",
+  },
+  passages: [{ ref: "pv", heading: "Present value", url: "https://example.org/book/pv", text: "Present value discounts each future payment back to today at the discount rate." }],
+};
+
+const blog: LibraryFile = {
+  source: {
+    id: "a-blog",
+    title: "A blog",
+    kind: "dated",
+    licence: "Short quotes with credit",
+    licenceUrl: "https://example.org/terms",
+    credit: "A. Writer, A blog",
+    url: "https://example.org/blog",
+    fetchedOn: "2026-11-02",
+  },
+  // After the present value Case's as-of date (24 October 2018).
+  passages: [{ ref: "later", heading: "The winner's choice", url: "https://example.org/blog/later", publishedOn: "2019-03-05", text: "The winner took the cash option; present value explains why." }],
+};
+
+/** The tool_result text the Tutor received for its search, from the request that followed the call. */
+function searchResult(requests: ScriptedRequest[]): string {
+  const blocks = requests[1].messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])) as { type: string; tool_use_id?: string; content?: unknown }[];
+  const result = blocks.find((b) => b.type === "tool_result" && b.tool_use_id === "search-1");
+  return String(result?.content);
+}
+
+const searchThenReply = [
+  { content: [{ type: "tool_use", id: "search-1", name: "search_library", input: { query: "present value discount rate" } }] },
+  { content: [{ type: "text", text: "As A textbook by B. Author puts it, present value discounts each payment." }] },
+];
+
+describe("search_library tool in the Tutor Turn", () => {
+  it("is offered to the Tutor, whose instructions say to name the source in plain text when quoting", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hello." }] }]);
+
+    await collect(runTutorTurn({ db, client }, "Hi"));
+
+    expect(requests[0].tools).toContainEqual({ name: "search_library" });
+    expect(TUTOR_INSTRUCTIONS).toContain("name its source in plain text");
+  });
+
+  it("returns passages with their credit line, keyword-only without Voyage, and hides later dated passages before the reveal", async () => {
+    const db = await testDb();
+    await importLibrary(db, book);
+    await importLibrary(db, blog);
+    const { client, requests } = scriptedClient(structuredClone(searchThenReply));
+
+    await collect(runTutorTurn({ db, client }, "What does the Library say about present value?"));
+
+    const text = searchResult(requests);
+    expect(text).toContain("Source: B. Author, A textbook (Publisher, 2022), CC BY 4.0");
+    expect(text).toContain("https://example.org/book/pv");
+    expect(text).toContain("Present value discounts each future payment");
+    expect(text).toContain(NO_VOYAGE_KEY);
+    expect(text).toContain("dated passages published after 2018-10-24, and reference passages that mention a later year, are hidden");
+    expect(text).not.toContain("The winner took the cash option");
+  });
+
+  it("tells the Tutor when Voyage is down and keyword results are used instead", async () => {
+    const db = await testDb();
+    await importLibrary(db, book);
+    const { client, requests } = scriptedClient(structuredClone(searchThenReply));
+    const embedQuery = async (): Promise<number[]> => {
+      throw new Error("Voyage 503");
+    };
+
+    await collect(runTutorTurn({ db, client, embedQuery }, "What does the Library say about present value?"));
+
+    const text = searchResult(requests);
+    expect(text).toContain(VOYAGE_DOWN);
+    expect(text).toContain("Source: B. Author, A textbook");
+  });
+
+  it("says plainly when nothing matches", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient(structuredClone(searchThenReply));
+
+    await collect(runTutorTurn({ db, client }, "What does the Library say about present value?"));
+
+    expect(searchResult(requests)).toContain("No Library passage matched");
+  });
+});

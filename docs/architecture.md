@@ -55,6 +55,7 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 - `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`: Learner Memory (below).
 - `usage`: what each turn and each step of it cost (below).
 - `case_datasets`, `case_data_points`: Case Data, checked historical datasets with their sources (below).
+- `library_sources`, `library_passages`: the Library, real sources cut into searchable passages (below).
 - `turns`, `tool_calls`: each turn's saved status (running, cut off, finished, failed), which is also
   the one-turn lock, and the saved result of every tool call, keyed by its tool call ID (below).
 
@@ -663,3 +664,63 @@ so no change to the quiz code was needed and it can be re-run safely. The cost i
 appear a moment after the pass rather than at it. Whole-day scheduling suits "open the app once a
 day" study but cannot do same-day repeats of a missed question. Only questions still on the Course
 Map are offered, so deleting a question quietly retires its card.
+
+## Library (`src/library/`, `search_library` tool, `npm run library:load`, `library:embed`, `library:score`)
+
+**What it does.** The Library is the private collection of real sources the Tutor searches when it
+wants a definition, a quote or context. It lives only in Neon: `library_sources` holds one row per
+source (title, licence, credit line, link, and whether it is **dated**, like a blog post, or
+**timeless** reference, like a textbook); `library_passages` holds the source cut into passages of
+up to about 300 words, each with its own heading, link, publication date, licence and credit. The
+Tutor has one new tool, `search_library`. Code runs the search and hands back the best five
+passages, each with its credit line, licence, date and link, and the Tutor's instructions say to
+name the source in plain text whenever it quotes or draws on one, and to keep quotes short.
+
+**How search works.** Two rankings are combined in one SQL query. The keyword ranking is BM25, the
+standard search-engine scoring, through Neon's `lakebase_text` extension (confirmed working on the
+Free plan on 2 Nov 2026; the migration switches it on wherever it exists). The meaning ranking
+compares Voyage embeddings with pgvector, so a question that shares no words with its answer can
+still find it. The two lists are merged by reciprocal rank fusion (a passage near the top of either
+list rises). Voyage is optional: without a `VOYAGE_API_KEY`, or when Voyage doesn't answer within
+5 seconds, search uses keyword results only and the tool result tells the Tutor so.
+
+**The as-of rule here.** While the Learner's current Topic has a Case before its reveal, search
+leaves out dated passages published after the Case's as-of date, and also timeless passages that
+mention a later year (a 2026 textbook can describe 2020 or 2022). After the reveal, everything is
+searchable again.
+
+**Library scripts (laptop only).** Source text never enters the public repo. For OpenStax:
+`git clone` the book's repository into a scratch folder, run `scripts/library/openstax.py` to pull
+out the book's own words (exercises, quizzes, videos and figures left out), then
+`npm run library:load -- openstax-principles-finance-2e <file>`. The loader cleans the text (folds
+ligatures such as "ﬁ", rejoins words split across lines), cuts it into passages, keeps corrupted
+passages out and lists them ("CreaAon" for "Creation", letters spaced apart, PDF character codes),
+replaces the source's passages, and refreshes the BM25 statistics. `npm run library:embed` adds
+Voyage embeddings once a key is set. Source details (licence, credit, how to fetch) are in
+`scripts/library/sources.json`.
+
+**First source.** OpenStax *Principles of Finance 2e* (Dahlquist and Knight, published 24 Jun 2026,
+CC BY-NC-SA 4.0): 130 chapter sections, 1,043 passages, about 191,000 words, 6 MB in the database.
+None was flagged as corrupted (it comes from clean XML, not PDF). It is marked timeless.
+
+**How good is it?** `npm run library:score` runs 42 test questions written in a Learner's words
+(`scripts/library/eval/questions.json`) through the app's own search and counts how often a passage
+from the right section is in the top five. Keyword-only BM25 (today's setup): 40 of 42 (95%), the
+right section first for 32 of 42, mean reciprocal rank 0.84. Plain Postgres full-text ranking, for
+comparison: 34 of 42 (81%). The two misses are wording gaps ("a payment that goes on forever" for
+perpetuities) that the Voyage half should close. Four hindsight probes, run as of 24 Oct 2018 (the
+present value Case), return no passage mentioning a later year or the Case's ending. Any change to
+search should be judged against the same questions.
+
+**Scenario.** The Learner asks what a textbook says about valuing a perpetuity. The Tutor calls
+`search_library`, gets section 8.1 of *Principles of Finance 2e* with its credit line, quotes "An
+indefinite stream of payments cannot be compounded into a future value, but it can be discounted to
+a present value", and says where it comes from, with the link (live run, 2 Nov 2026, $0.025).
+
+**Trade-off.** Keeping the Library in Postgres, beside everything else, means one database, one
+query for both rankings and the as-of rule applied inside the search itself, at the cost of using
+Neon's newer `lakebase_text` extension (tests run on plain Postgres full-text ranking instead,
+because the in-memory test database doesn't have it). Hiding timeless passages that mention later
+years costs about one passage in nine during a 2018 Case, a price paid for not giving endings away.
+Voyage is a new outside service: until its key is added, search works on keywords alone.
+
