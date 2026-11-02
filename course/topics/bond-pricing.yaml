@@ -15,9 +15,9 @@ cases:
       through the month. A 10-year Treasury bond issued that day at its face value would
       therefore carry a coupon of about 5.7%: for every $1,000 of face value, $57 a year,
       paid in two halves, and the $1,000 back after ten years. Nobody could say where yields
-      would go next, and a bond's price depends on where they go. Suppose you buy one of these 10-year bonds at par
-      today and yields on new 10-year bonds then rise by a couple of percentage points.
-      What happens to the price of the bond you hold?
+      would go next, and a bond's price depends on where they go. Suppose you buy one of these
+      10-year bonds at par today and yields on new 10-year bonds then move by a couple of
+      percentage points, up or down. What happens to the price of the bond you hold in each case?
     reveal: >
       On 4 February 1994 the Federal Reserve began tightening. Its statement spoke only of
       "a slight increase in the degree of pressure on reserve positions"; the federal funds
@@ -117,15 +117,15 @@ questions:
 
   - id: bp-q-1994
     prompt: >
-      In January 1994 you buy a 10-year bond at par with a 5.70% coupon, paid half-yearly. Later in the year the market yield on 10-year bonds is 7.96%. About what is the bond worth per $1,000 of face value, ignoring the time that has passed?
+      You buy a 10-year bond at par with a 5% coupon, paid half-yearly. Later the market yield on 10-year bonds is 7%. About what is the bond worth per $1,000 of face value, ignoring the time that has passed?
     choices:
-      - { id: a, text: "About $846" }
+      - { id: a, text: "About $858" }
       - { id: b, text: "About $1,000" }
-      - { id: c, text: "About $960" }
-      - { id: d, text: "About $1,154" }
+      - { id: c, text: "About $925" }
+      - { id: d, text: "About $1,172" }
     answer: a
     explanation: >
-      Discount 20 half-yearly payments of $28.50 and the $1,000 at 3.98% per half year: the sum is about $846, a fall of about 15%. A rise of 2.26 points in the yield cost the holder roughly 15% of the price.
+      Discount 20 half-yearly payments of $25 and the $1,000 at 3.5% per half year: the sum is about $858, a fall of about 14%. A rise of 2 points in the yield cost the holder roughly 14% of the price.
     source: >
       Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
@@ -146,12 +146,12 @@ checks:
   - id: bp-selloff-explain
     kind: conversation
     prompt: >
-      In 1994 US Treasury bonds lost value even though the government was certain to pay every
-      coupon and the face value. Explain why the prices fell, and why a 30-year bond would
-      have lost more than a 2-year bond.
+      Suppose market yields on US Treasury bonds rise sharply, though the government is certain
+      to pay every coupon and the face value. Would the prices of bonds already held change,
+      and why? Why would a 30-year bond be hit harder than a 2-year bond?
     passCriteria: >
       The Learner explains that a bond's price is the present value of its fixed payments
       discounted at the market yield, so when yields rose the same payments were worth less
-      today. They say the safety of the payments did not protect the price, and that a longer
+      today. They say the safety of the payments does not protect the price, and that a longer
       bond has more of its payments far in the future, where a higher discount rate takes the
       larger bite, so its price moves more.

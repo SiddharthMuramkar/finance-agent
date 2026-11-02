@@ -39,8 +39,8 @@ concept: >
   taxes cushion the cycle without new laws, while discretionary stimulus needs a decision. Government
   borrowing can crowd out private investment when the economy is near full capacity, because it competes for
   the same savings and raises interest rates. Investors will hold a government's bonds only at a yield that
-  compensates for the risk, so a plan they distrust raises the cost of borrowing at once. If major holders
-  are leveraged, falling bond prices force them to sell, which makes the fall worse.
+  compensates for the risk they see in them. Many bond holders borrow to hold bonds (leverage), which
+  magnifies their gains and their losses.
 
 principle: >
   A government's room to borrow is a matter of confidence as well as arithmetic. Look at the deficit, the
@@ -106,11 +106,14 @@ checks:
   - id: eco-fiscal-gilt-reasoning
     kind: conversation
     prompt: >
-      Explain how a tax-cut announcement by the UK government in September 2022 ended up requiring the Bank of
-      England to buy 65 billion pounds of gilts to protect pension funds.
+      The UK government announces about 45 billion pounds of tax cuts without matching spending cuts or an
+      independent forecast, while the Bank of England is raising rates and many pension funds hold leveraged
+      gilt positions. Predict what could happen to gilt prices and yields, who could be hurt, and how the
+      damage might spread.
     passCriteria: >
-      The Learner links the unfunded tax cuts (and no independent forecast) to investors demanding higher
-      yields on gilts, so bond prices fell. They explain that leveraged pension funds (liability-driven
-      investment) faced margin calls and had to sell gilts, pushing prices down further in a spiral, and that
-      the Bank stepped in to restore orderly markets. They note that it was a financial-stability action
-      rather than a rate cut, and that confidence in fiscal credibility matters for borrowing costs.
+      The Learner links the unfunded tax cuts (and no independent forecast) to investors possibly demanding
+      higher yields on gilts, so bond prices would fall. They reason that leveraged holders such as pension
+      funds using liability-driven investment could face margin calls and have to sell, pushing prices down
+      further in a spiral, which could threaten financial stability and might call for a central bank to
+      step in to restore orderly markets. They note that confidence in fiscal credibility matters for
+      borrowing costs.

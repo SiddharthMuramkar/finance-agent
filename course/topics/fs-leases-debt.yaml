@@ -11,27 +11,23 @@ cases:
       WeWork's IPO prospectus of 14 August 2019 covered the position at 30 June 2019. WeWork rents
       office buildings from landlords and sublets space to members. The filing showed long-term lease
       obligations of $17.9 billion on its balance sheet. It also said that, not discounted, its future
-      lease payments came to $47.2 billion at 30 June, up from roughly $34 billion at the end of 2018.
-      The average initial lease with a landlord in the US ran 15 years, while its members' contracts
+      minimum lease payments under signed leases came to $47.2 billion at 30 June, including $13.1
+      billion on signed leases that had not yet started. The average initial lease with a landlord in the US ran 15 years, while its members' contracts
       averaged about 15 months. The company pointed investors to $4 billion of "committed revenue
-      backlog" from members. Most of its leases were signed by separate single-purpose subsidiaries,
-      and the parent had guaranteed only a small part of the total (the filing and press reports put
-      it at about $4.5 billion). It planned to raise up to $6 billion of debt alongside the IPO and
-      said it had about $2.5 billion of cash, half of it unrestricted. Revenue for the first half of
+      backlog" from members. It had about $2.5 billion of cash. Revenue for the first half of
       2019 was $1.54 billion, with a loss of about $905 million.
     reveal: >
       The IPO was withdrawn on 30 September 2019. WeWork filed for Chapter 11 bankruptcy in
-      November 2023, listing about $19 billion of liabilities and $15 billion of assets. In its
-      restructuring, approved in May 2024, it rejected unprofitable leases and said it would cut
-      its future rent obligations roughly in half, to about $12 billion. The leases were commitments
+      November 2023, listing nearly $19 billion of liabilities. In the restructuring it rejected
+      leases it could not afford. The leases were commitments
       that stayed fixed when the revenue they were meant to be paid from did not hold up.
 
 concept: >
   A lease is a promise to pay rent for years. Under current accounting rules (IFRS 16 and ASC 842)
   most leases appear on the balance sheet as a lease liability, equal to the present value of the
-  remaining payments, with a matching right-of-use asset. So $47.2 billion of payments spread over
-  15 years or more shows as a much smaller liability once discounted, which is the present value
-  idea at work. Debt-like items go beyond bank loans: leases, guarantees, purchase commitments and
+  remaining payments, with a matching right-of-use asset. So payments spread over 15 years or more
+  show as a much smaller liability once discounted, which is the present value idea at work. Leases
+  signed but not yet started are not yet on the balance sheet, though they are already promises. Debt-like items go beyond bank loans: leases, guarantees, purchase commitments and
   unfunded pensions all oblige the company to pay whatever its sales do. The danger is a mismatch:
   commitments that last for years funded by revenue that can leave in months.
 
@@ -43,15 +39,15 @@ questions:
   - id: ls-q-gap
     prompt: >
       WeWork's S-1 showed $47.2 billion of undiscounted future lease payments but $17.9 billion of
-      long-term lease obligations on the balance sheet. What mainly explains the gap?
+      long-term lease obligations on the balance sheet. What explains the gap?
     choices:
-      - { id: a, text: "Future payments are discounted to present value" }
+      - { id: a, text: "Future payments are discounted to present value, and signed leases not yet started are not yet on the balance sheet" }
       - { id: b, text: "WeWork had already paid most of the rent" }
       - { id: c, text: "The balance sheet leaves out leases it does not own the buildings for" }
       - { id: d, text: "The two figures cover different companies" }
     answer: a
     explanation: >
-      A liability is recorded at the present value of the payments, not their sum. Payments many years away are worth much less today at any positive discount rate.
+      A liability is recorded at the present value of the payments, not their sum, and payments many years away are worth much less today at any positive discount rate. Of the $47.2 billion, about $13.1 billion was on signed leases that had not yet started, which are not on the balance sheet yet.
     source: >
       CNBC, WeWork releases S-1 filing for IPO, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
 
@@ -117,10 +113,9 @@ checks:
       two figures relate, and judge whether the leases should be treated like debt when sizing up
       the company's risk.
     passCriteria: >
-      The Learner explains that $47.2 billion is the plain sum of future payments and $17.9 billion
-      is roughly its present value, because later payments are discounted. They argue the leases are
+      The Learner explains that $47.2 billion is the plain sum of future payments, and that the
+      $17.9 billion on the balance sheet is smaller mainly because later payments are discounted
+      (and because about $13.1 billion of signed leases had not yet started). They argue the leases are
       debt-like: fixed payments over about 15 years that must be met whatever revenue does, set
       against members who commit for about 15 months and a backlog of $4 billion that is small next
-      to the $47.2 billion. They may note that single-purpose subsidiaries and limited parent
-      guarantees soften the risk for the parent but not for the business, which still depends on
-      the sites.
+      to the $47.2 billion.

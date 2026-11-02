@@ -138,9 +138,9 @@ checks:
   - id: bd-svb-explain
     kind: conversation
     prompt: >
-      SVB's securities were safe from default, yet the bank failed. Using duration, explain
-      why rising rates hurt it, and why classifying the securities as held-to-maturity did
-      not protect it once depositors wanted their money.
+      SVB's securities were safe from default. Using duration, explain why rising rates hurt
+      the bank, and whether classifying the securities as held-to-maturity would protect it if
+      depositors wanted their money back.
     passCriteria: >
       The Learner says a duration of about six years means a rise of a few points in yields cuts
       the securities' market value by a double-digit percentage, whatever the credit quality.

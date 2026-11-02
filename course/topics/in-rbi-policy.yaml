@@ -10,8 +10,7 @@ cases:
     story: >
       The Indian rupee is under heavy pressure. After the US Federal Reserve hinted in May 2013 that it might
       slow its bond purchases, investors pulled money out of emerging markets, and the rupee slid from about
-      Rs 54 to the dollar in May to a record low of nearly Rs 68.85 in August. International markets talk of
-      the rupee reaching 100 to the dollar. India's current account deficit for 2012-13 was a record
+      Rs 54 to the dollar in May to a record low of nearly Rs 69 in August. India's current account deficit for 2012-13 was a record
       $88.2 billion, 4.8 per cent of GDP. The government has raised the duty on gold, one of the largest imports,
       to 10 per cent and banned imports of gold coins and medallions. The RBI's policy repo rate, the rate at
       which banks borrow overnight from the RBI against government securities, stands at 7.25 per cent. Inflation
@@ -23,8 +22,8 @@ cases:
       windows. Banks could raise new three-year FCNR(B) deposits, dollar deposits from non-resident Indians,
       and swap the dollars with the RBI for rupees at a concessional rate, so that the RBI, not the banks,
       bore the exchange-rate risk of returning the dollars three years later. Banks could also swap dollars
-      raised through overseas borrowing. The FCNR(B) route drew in about $26 billion and the two windows
-      together mobilised $34 billion before they closed. The rupee stabilised and the cost of buying dollars
+      raised through overseas borrowing. The FCNR(B) route drew in about $26 billion, and press estimates put the two windows
+      together at roughly $34 billion. The rupee stabilised and the cost of buying dollars
       forward fell. In the following weeks the RBI also raised the repo rate by 25 basis points on 20 September
       (to 7.5 per cent) and again on 29 October 2013 (to 7.75 per cent), while cutting the marginal standing facility
       rate, its penal ceiling rate for banks, from 9.0 to 8.75 per cent. One analyst has pointed out that a
@@ -40,8 +39,8 @@ concept: >
   standing facility (MSF) lets banks borrow extra at a higher, penal rate. The cash reserve ratio (CRR) and
   statutory liquidity ratio (SLR) set how much of their deposits banks must hold with the RBI or in government
   securities. Liquidity is the amount of cash in the banking system; when it is scarce, banks rely on the
-  RBI. The RBI also manages the rupee: it can sell dollars, change rules on flows, or swap dollars with
-  banks to bring foreign currency in. Since an agreement between the government and the RBI in February
+  RBI. The RBI also manages the rupee: it can sell dollars from its reserves or change rules on
+  foreign-currency flows. Since an agreement between the government and the RBI in February
   2015, the RBI follows flexible inflation targeting, a medium-term consumer inflation
   goal of 4 per cent with a band of 2 percentage points on either side.
 
@@ -95,16 +94,16 @@ questions:
 
   - id: rbi-q-swap
     prompt: >
-      In the September 2013 FCNR(B) swap window, banks swapped the dollars they raised with the RBI for three
-      years or more. What risk did the swap take off the banks?
+      Suppose a central bank lets banks raise three-year dollar deposits from non-residents and swap the
+      dollars with the central bank at a forward rate fixed today. What risk does the swap take off the banks?
     choices:
       - { id: a, text: "The risk that the rupee would weaken before the dollars had to be returned" }
       - { id: b, text: "The risk that depositors would withdraw their deposits in rupees" }
       - { id: c, text: "The risk that the RBI would raise the repo rate" }
     answer: a
     explanation: >
-      The RBI provided forward dollars at a concessional rate, so banks knew in advance the rupee price at which
-      they could return the dollars after three years, and the exchange-rate risk moved to the RBI.
+      With the forward rate fixed today, banks know in advance the rupee price at which they can return the
+      dollars after three years, so the exchange-rate risk moves to the central bank.
     source: >
       Reserve Bank of India circular RBI/2013-14/234, 6 September 2013, Swap Window for Attracting FCNR(B) Dollar Funds: https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0 ; Raghuram Rajan, "The independence of the central bank", 3 September 2016 (BIS): https://bis.org/review/r160905b.htm
 
@@ -123,12 +122,12 @@ checks:
   - id: eco-rbi-package-reasoning
     kind: conversation
     prompt: >
-      In September 2013 the rupee was falling and India's current account deficit was large. Explain what the
-      RBI's FCNR(B) swap window was meant to do, who carried the exchange-rate risk, and why the RBI also used
-      the repo rate.
+      It is 3 September 2013: the rupee is falling and India's current account deficit is large. Suggest what
+      the RBI could do to bring dollars in, who would carry the exchange-rate risk under a scheme that
+      attracts dollar deposits, and whether the repo rate alone could handle both the currency and inflation.
     passCriteria: >
-      The Learner explains that the window was meant to bring in dollars by letting banks raise three-year dollar
-      deposits and swap them with the RBI, which carried the risk of the rupee's value when the dollars were
-      returned, and that this relieved pressure on the rupee. They explain that the repo rate and liquidity tools
-      work on inflation and the cost of money, so the RBI raised the repo rate in September and October 2013 as
-      a separate step, while the swap targeted the currency.
+      The Learner proposes sensible ways to bring in dollars or ease outflows (for example attracting dollar
+      deposits from non-residents or banks' overseas borrowing, selling reserves, curbing imports) and names who
+      would bear the exchange-rate risk under such a scheme (depositor, bank or central bank) and why that
+      matters. They explain that the repo rate and liquidity tools work on inflation and the cost of money,
+      while currency measures target the exchange rate, so the two are separate instruments.

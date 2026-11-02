@@ -10,12 +10,14 @@ cases:
     asOf: 1999-11-05
     story: >
       Webvan, an online grocer based in Foster City, California, sold its shares to the public for
-      the first time in early November 1999. The offering was priced at $15 a share and raised
-      $375 million by selling 24 million shares; trading was due to begin on 5 November. The
+      the first time in early November 1999. The offering was priced at $15 a share; the base deal
+      of 25 million shares raised $375 million, and trading was due to begin on 5 November. The
       company then delivered only in the San Francisco Bay Area. In the six months to 30 June 1999
-      it had revenue of $395,000 and a loss of more than $33 million. Its plan was to expand to
-      some 26 new markets within about two years, and it had placed a $1 billion order with the
-      engineering firm Bechtel to build automated distribution centres, one for each market. The
+      it had revenue of $395,000 and a loss of more than $33 million. It planned to expand into
+      many new markets, and in July 1999 it had agreed with the engineering firm Bechtel to build
+      up to 26 more automated distribution centres over three years, at about $1 billion in all,
+      though with no specific capital commitment. Its Oakland centre alone covered 336,000 square
+      feet. The
       average order was about $80. Analysts noted that grocers earn thin margins. Goldman Sachs, the
       lead underwriter, projected revenue of $120 million for 2000 and $518 million for 2001, with
       losses of $154 million and $302 million.
@@ -23,8 +25,9 @@ cases:
       Webvan's shares rose on the first day, closing at $24.875 and valuing the company at about
       $7.9 billion. The plan did not hold. It bought a rival, HomeGrocer, and net losses grew from
       $144.6 million in 1999 to $453.3 million in 2000, when auditors voiced "substantial doubt"
-      about its ability to continue. An analyst estimated that Webvan spent $143 for every $100 of
-      groceries it sold. On 9 July 2001 it filed for bankruptcy and shut down, with the shares at
+      about its ability to continue. In early 2001 its operating costs alone (marketing,
+      development, administration) came to $143 for every $100 of sales, on top of $72 of food
+      cost, on the Chicago Tribune's reading of its quarterly report. On 9 July 2001 it filed for bankruptcy and shut down, with the shares at
       6 cents. The heavy spending on warehouses and trucks had been committed ahead of the
       customers who would pay for it.
 
@@ -76,7 +79,7 @@ questions:
 
   - id: cx-q-bechtel
     prompt: >
-      Webvan placed a $1 billion order for distribution centres in 1999. If the centres last 20
+      In 1999 Webvan agreed with Bechtel to build distribution centres costing about $1 billion in all. If the centres last 20
       years with no residual value and are depreciated straight-line, about how much yearly
       depreciation does that order alone add?
     choices:
@@ -88,7 +91,7 @@ questions:
     explanation: >
       1,000 / 20 = 50. The 20-year life is an assumption for this exercise, not a figure from Webvan's accounts. Against first-half revenue of $395,000, even a fraction of such a charge dwarfs sales.
     source: >
-      Order size from CNET, Webvan delivers on the Street, 6 November 1999: https://cnet.com/culture/webvan-delivers-on-the-street ; the life is an assumption of the exercise.
+      Contract size from Webvan's 10-K405 for 1999, filed 30 March 2000 (EDGAR, accession 0000891618-00-001877); the life is an assumption of the exercise.
 
 checks:
   - id: cx-quiz-depreciation
@@ -106,8 +109,8 @@ checks:
   - id: cx-ebitda-view
     kind: conversation
     prompt: >
-      It is 5 November 1999. Webvan has a $1 billion order for distribution centres and revenue of
-      $395,000 for the half year. A banker says "look at EBITDA, not net loss". Explain what
+      It is 5 November 1999. Webvan has agreed to build distribution centres costing about
+      $1 billion and has revenue of $395,000 for the half year. A banker says "look at EBITDA, not net loss". Explain what
       depreciation and EBITDA would show for this plan over the next few years, and what you would
       look at instead to judge whether the build-out can pay for itself.
     passCriteria: >

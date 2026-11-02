@@ -23,13 +23,13 @@ cases:
       really says about the business, and nobody knows if the share sale will go ahead.
     reveal: >
       The share sale did not go ahead. After the company's co-founder and chief executive, Adam
-      Neumann, stepped down in late September, WeWork formally withdrew its prospectus on 30
-      September 2019, and said it would try again later. It never became a profitable company:
-      it listed through a different route in 2021, and on 6 November 2023 it filed for Chapter
-      11 bankruptcy protection in the US, reporting debts of 18.65 billion dollars against
-      assets of 15.06 billion dollars. The 2019 income statement was already showing the
+      Neumann, stepped down on 24 September, WeWork asked on 30 September 2019 to withdraw its
+      prospectus. It never became a profitable company: it listed through a different route in
+      2021, and on 6 November 2023 it filed for Chapter 11 bankruptcy protection in the US,
+      listing nearly 19 billion dollars of liabilities against about 15 billion dollars of assets.
+      The 2019 income statement was already showing the
       problem: for the six months, expenses ran above revenue by more than half of the
-      revenue (a net margin of about minus 58 per cent), and rapid revenue growth had not
+      revenue (a net margin of about minus 59 per cent), and rapid revenue growth had not
       narrowed the loss.
 
 concept: >
@@ -153,7 +153,7 @@ checks:
       bringing the company closer to profit, and what can an income statement not tell you
       about whether the company can keep going?
     passCriteria: >
-      The Learner works out a net margin of about minus 58% or worse (loss divided by revenue,
+      The Learner works out a net margin of about minus 59% (accept minus 58% to minus 60%) (loss divided by revenue,
       roughly minus 0.6), explains that the company spends more than a dollar for every dollar
       of revenue, and that growth in revenue (for example, revenue and loss both about doubling
       in 2018) has not narrowed the loss. They note that an income statement covers a period and

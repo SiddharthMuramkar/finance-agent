@@ -9,7 +9,7 @@ cases:
     asOf: 2009-01-06
     story: >
       Satyam Computer Services, based in Hyderabad, was India's fourth-largest software services
-      company, with some 53,000 staff and customers that included many of the Fortune 500. Its shares
+      company, with more than 50,000 staff and customers that included many of the Fortune 500. Its shares
       traded in Mumbai and, as American depositary receipts, on the New York Stock Exchange. Its
       published accounts for the quarter to 30 September 2008 showed revenue of Rs 2,700 crore, an
       operating margin of Rs 649 crore (24% of revenue), and cash and bank balances of Rs 5,361 crore
@@ -18,18 +18,17 @@ cases:
       construction businesses in which the chairman, B. Ramalinga Raju, and other insiders held 35% of
       Maytas Properties and 36% of Maytas Infra. Investors reacted at once: the ADRs fell 55% on the New York exchange that day to $5.70,
       and in Mumbai the shares slumped about 31% on 17 December after the company withdrew the
-      deal within hours. Satyam's market value had been about Rs 15,262 crore at the close on
-      16 December.
+      deal within hours.
     reveal: >
       On 7 January 2009 Raju wrote to the board and the regulators and resigned. He said that cash
       and bank balances of Rs 5,040 crore on the 30 September 2008 balance sheet did not exist (against
       Rs 5,361 crore in the books), that accrued interest of Rs 376 crore was non-existent and that
-      receivables were overstated (Rs 490 crore real against Rs 2,651 crore in the books). For the
+      receivables were overstated by Rs 490 crore (of Rs 2,651 crore in the books). For the
       September quarter he said the company had reported revenue of Rs 2,700 crore and an operating
       margin of Rs 649 crore (24%), against actual revenue of Rs 2,112 crore and an operating margin
       of only Rs 61 crore (3%). The gap had grown over several years; he compared it to "riding a
-      tiger, not knowing how to get off without being eaten". The shares fell about 80% that day, to
-      Rs 39.95. The US Securities and Exchange Commission later alleged that officials had used false
+      tiger, not knowing how to get off without being eaten". The shares fell sharply that day, to
+      Rs 39.95 in Mumbai. The US Securities and Exchange Commission later alleged that officials had used false
       invoices and forged bank statements to inflate results.
 
 concept: >
@@ -49,9 +48,8 @@ principle: >
 questions:
   - id: eq-q-cash-share
     prompt: >
-      Satyam's books showed cash and bank balances of Rs 5,361 crore at 30 September 2008. Its
-      chairman later said Rs 5,040 crore of that did not exist. About what share of the reported
-      cash was non-existent?
+      A company's books show cash and bank balances of Rs 5,000 crore. Confirmations from the banks
+      support only Rs 300 crore of it. About what share of the reported cash is unsupported?
     choices:
       - { id: a, text: "About 94%" }
       - { id: b, text: "About 6%" }
@@ -59,24 +57,24 @@ questions:
       - { id: d, text: "About 15%" }
     answer: a
     explanation: >
-      5,040 / 5,361 = 0.940, so about 94% of the reported cash was fictitious, leaving only Rs 321 crore real.
+      (5,000 - 300) / 5,000 = 0.94, so about 94% of the reported cash is unsupported. The 6% figure is the share that is supported.
     source: >
-      B. Ramalinga Raju, resignation letter to the board, 7 January 2009 (SEC filing, Exhibit 99.2): https://www.sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+      A made-up example; the arithmetic is a share of a total.
 
   - id: eq-q-margin
     prompt: >
-      The chairman's letter said the actual operating margin for the September 2008 quarter was
-      Rs 61 crore on actual revenue of Rs 2,112 crore. About what margin is that?
+      A software company reports quarterly revenue of Rs 2,700 crore and an operating margin
+      (operating profit) of Rs 649 crore. About what operating margin percentage is that?
     choices:
-      - { id: a, text: "About 3%" }
-      - { id: b, text: "About 24%" }
+      - { id: a, text: "About 24%" }
+      - { id: b, text: "About 4%" }
       - { id: c, text: "About 30%" }
-      - { id: d, text: "About 0.3%" }
+      - { id: d, text: "About 2.4%" }
     answer: a
     explanation: >
-      61 / 2,112 = 0.029, about 3%. The reported margin was 649 / 2,700 = 24%, eight times the actual margin.
+      649 / 2,700 = 0.240, about 24%. A margin is profit divided by revenue; dividing the other way (2,700 / 649 = 4.2) gives a ratio, not a margin. A margin far above peers is itself something to test.
     source: >
-      B. Ramalinga Raju, resignation letter, 7 January 2009 (SEC Exhibit 99.2): https://www.sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+      Reported figures from Satyam's published results for the quarter to 30 September 2008, as restated in B. Ramalinga Raju's letter of 7 January 2009 (SEC Exhibit 99.2): https://www.sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
 
   - id: eq-q-cash-test
     prompt: >
@@ -90,7 +88,7 @@ questions:
     explanation: >
       Cash and bank balances can be confirmed with outside parties, and profit that does not turn into operating cash flow over time needs an explanation. The other checks rely on the company's own words.
     source: >
-      SEC litigation release on Satyam, alleging false invoices and forged bank statements: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+      PCAOB, AS 2310 The Auditor's Use of Confirmation (confirming balances with outside parties): https://pcaobus.org/oversight/standards/auditing-standards/details/AS2310
 
   - id: eq-q-maytas
     prompt: >
@@ -98,13 +96,13 @@ questions:
       businesses owned partly by its chairman's family, in a line of business unrelated to its own.
       Which concern is most relevant to earnings quality and governance?
     choices:
-      - { id: a, text: "A related-party deal that does not fit the business, and cash that may not be what it seems" }
+      - { id: a, text: "A related-party deal that does not fit the business and needs independent scrutiny" }
       - { id: b, text: "Construction is always a worse business than software" }
       - { id: c, text: "Companies should never use their cash" }
       - { id: d, text: "A large deal is proof of a strong balance sheet" }
     answer: a
     explanation: >
-      Dealings with insiders and spending far from the core business are classic warning signs, and the purchase would have moved cash to the chairman's family firms. Later it emerged the cash was largely absent.
+      Dealings with insiders and spending far from the core business are classic warning signs, and the purchase would have moved cash to the chairman's family firms.
     source: >
       Reuters, Satyam abandons plan to buy builders, 16 December 2008: https://www.reuters.com/article/marketsNews/idINN1628370020081216/
 

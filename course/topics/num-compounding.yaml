@@ -11,18 +11,19 @@ cases:
     asOf: 1992-03-31
     story: >
       The Sensex is the index of 30 leading shares on the Bombay Stock Exchange. Its base value
-      was set at 100 on 1 April 1979 (base year 1978-79), and the BSE has published it since
-      1 January 1986. It first closed above 1,000 on 25 July 1990, at 1,001. On 15 January 1992,
-      after the government's liberalising reforms, it closed above 2,000, at 2,020. On 30 March
-      1992 it crossed 4,000 and closed at 4,091, on hopes of a liberal export-import policy. The
-      Union Budget a month earlier was seen as market friendly. As of 31 March 1992 the index
-      has risen more than fortyfold in 13 years, and commentators are calling it the start of a
-      new era. Nobody knows what comes next.
+      was set at 100 in the base year 1978-79, and the BSE has published it since January 1986.
+      It first closed above 1,000 on 25 July 1990. It ended 1991 at 1,908.85, up 82% on the
+      year, after the government's liberalising reforms. On 29 February 1992, Union Budget day,
+      it rose 9.37% to 3,017.68, its first close above 3,000. In March 1992 it closed above
+      4,000 for the first time and ended the month at 4,285. As of 31 March 1992 the index has
+      risen more than fortyfold in 13 years, and commentators are calling it the start of a new
+      era. Nobody knows what comes next.
     reveal: >
-      The Sensex peaked at 4,467 on 22 April 1992. On 28 April 1992, as the Harshad Mehta
-      securities scam came to light, it fell 570 points (12.77 per cent) to close at 3,870, then
-      the biggest one-day fall in its history. By April 1993 it stood at 1,980, down 56 per cent
-      from the peak (Mint). A 56 per cent fall needs a rise of about 126 per cent to get back to
+      The Sensex peaked with a close of 4,467 in April 1992. On 28 April 1992, as the Harshad
+      Mehta securities scam came to light, it fell 12.77 per cent in a day, the largest one-day
+      percentage fall in its history outside the Covid crash. The index lost 5 per cent in April
+      and 23 per cent in May. By April 1993 it stood at about 1,980, down about 56 per cent from
+      the peak (Mint, a secondary source). A 56 per cent fall needs a rise of about 126 per cent to get back to
       the old high, because the index must double and then some from a smaller base. The long run
       of about 33 per cent a year was real, but the last stretch had been far faster than that and
       far less stable.
@@ -114,17 +115,17 @@ questions:
 
   - id: cp-q-index-rate
     prompt: >
-      An index rises from 100 to 4,091 in 13 years. Which is the best summary of its yearly growth?
+      An index rises from 100 to 4,285 in 13 years. Which is the best summary of its yearly growth?
     choices:
-      - { id: a, text: "About 307% a year, the total gain divided by 13 years and by 100" }
-      - { id: b, text: "About 33% a year, found as the 13th root of 40.91, minus 1" }
-      - { id: c, text: "About 4,091% a year" }
+      - { id: a, text: "About 322% a year, the total gain divided by 13 years and by 100" }
+      - { id: b, text: "About 33% a year, found as the 13th root of 42.85, minus 1" }
+      - { id: c, text: "About 4,285% a year" }
       - { id: d, text: "About 13% a year" }
     answer: b
     explanation: >
-      The index multiplied by 4,091 / 100 = 40.91. The steady yearly rate g solves (1 + g)^13 = 40.91, so g = 40.91^(1/13) - 1 = 0.33, about 33% a year. Dividing the gain by years ignores compounding.
+      The index multiplied by 4,285 / 100 = 42.85. The steady yearly rate g solves (1 + g)^13 = 42.85, so g = 42.85^(1/13) - 1 = 0.335, about 33% a year. Dividing the gain by years ignores compounding.
     source: >
-      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance (solving for the growth rate): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Sensex values: Rediff, The Sensex story from 1K to 18K, and Wikipedia, BSE SENSEX.
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance (solving for the growth rate): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Sensex values: BSE, SENSEX@40 white paper (January 2026), https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
 
 checks:
   - id: cp-quiz-compounding
@@ -142,14 +143,14 @@ checks:
   - id: cp-sensex-rate
     kind: conversation
     prompt: >
-      The Sensex went from 100 to 4,091 in about 13 years. A friend divides the 3,991-point gain
-      by 100 and by 13 and says it rose about 307% a year. Explain what is wrong with that, and
-      work out roughly what steady yearly rate would take 100 to 4,091 in 13 years. Then use the
-      July 1990 close of 1,001 to say whether the pace looks steady over those 13 years.
+      The Sensex went from 100 to 4,285 in about 13 years. A friend divides the 4,185-point gain
+      by 100 and by 13 and says it rose about 322% a year. Explain what is wrong with that, and
+      work out roughly what steady yearly rate would take 100 to 4,285 in 13 years. Then use the
+      July 1990 level of about 1,000 to say whether the pace looks steady over those 13 years.
     passCriteria: >
       The Learner explains that growth compounds, so the total gain cannot be spread evenly
       over the years by simple division. They compute a compound rate near 33% a year (accept
-      30% to 36%) using the 13th root of 40.91 or logarithms. They note that going from 1,001
-      (July 1990) to 4,091 (March 1992) is about a four-fold rise in under two years, far above
-      33% a year, so the pace was not steady and the early years must have been slower (about
-      22% a year by the same method). A rough answer is fine if the method is right.
+      30% to 36%) using the 13th root of 42.85 or logarithms. They note that going from about
+      1,000 (July 1990) to 4,285 (March 1992) is more than a four-fold rise in under two years,
+      far above 33% a year, so the pace was not steady and the early years must have been slower
+      (about 22% a year by the same method). A rough answer is fine if the method is right.

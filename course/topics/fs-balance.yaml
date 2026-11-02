@@ -23,9 +23,8 @@ cases:
       reflected in the books, Rs 5,040 crore did not exist; debtors were overstated by Rs 490
       crore (Rs 2,651 crore in the books); there was Rs 376 crore of accrued interest that did
       not exist; and a liability of Rs 1,230 crore for funds he had arranged was left out. Cash
-      that never existed means equity that never existed: he wrote that after overstating
-      profit and understating debt, the company's net worth was zero. Satyam's shares fell 77.69
-      per cent that day, to Rs 39.95.
+      that never existed means equity that never existed. The US SEC later put the fictitious
+      cash at more than 1 billion dollars, about half of the company's total assets.
 
 concept: >
   The balance sheet shows a company's financial position on one date. Assets are what it owns
@@ -100,29 +99,29 @@ questions:
 
   - id: fb-q-overstated-receivables
     prompt: >
-      A company overstates the money owed to it by customers by Rs 490 crore, and its liabilities are right. What else on the balance sheet must be overstated?
+      A company overstates the money owed to it by customers by Rs 200 crore, and its liabilities are right. What else on the balance sheet must be overstated?
     choices:
       - { id: a, text: "Nothing: assets can be overstated on their own" }
-      - { id: b, text: "Equity, by Rs 490 crore" }
-      - { id: c, text: "Liabilities, by Rs 490 crore" }
-      - { id: d, text: "Cash, by Rs 490 crore" }
+      - { id: b, text: "Equity, by Rs 200 crore" }
+      - { id: c, text: "Liabilities, by Rs 200 crore" }
+      - { id: d, text: "Cash, by Rs 200 crore" }
     answer: b
     explanation: >
-      The balance sheet must balance. With liabilities correct, assets overstated by 490 means equity is overstated by 490.
+      The balance sheet must balance. With liabilities correct, assets overstated by 200 means equity is overstated by 200.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet (assets = liabilities + equity): https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 
   - id: fb-q-missing-assets
     prompt: >
-      A company reports assets of 8,000 and liabilities of 3,500. It then turns out that 1,200 of the assets do not exist, and the liabilities are correct. What is its true equity?
+      A company reports assets of 8,000 and liabilities of 3,500. It then turns out that 900 of the assets do not exist, and the liabilities are correct. What is its true equity?
     choices:
       - { id: a, text: "4,500" }
-      - { id: b, text: "3,300" }
+      - { id: b, text: "3,600" }
       - { id: c, text: "5,700" }
-      - { id: d, text: "1,200" }
+      - { id: d, text: "900" }
     answer: b
     explanation: >
-      Reported equity is 8,000 - 3,500 = 4,500. Remove the 1,200 that does not exist: true assets 6,800, so true equity = 6,800 - 3,500 = 3,300.
+      Reported equity is 8,000 - 3,500 = 4,500. Remove the 900 that does not exist: true assets 7,100, so true equity = 7,100 - 3,500 = 3,600.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 

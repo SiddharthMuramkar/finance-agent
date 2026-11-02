@@ -14,9 +14,8 @@ cases:
       ended 30 September 2008 revenue of Rs 2,700 crore and an operating profit of Rs 649 crore,
       an operating margin of 24 per cent. Its balance sheet at that date showed cash and bank
       balances of Rs 5,361 crore and debtors (money owed by customers) of Rs 2,651 crore. In
-      December 2008 investors force it to call off a 1.6 billion dollar purchase of two
-      construction companies partly owned by its founders, and the World Bank bars it from
-      direct contracts for eight years. As of 31 December 2008, you are asked a single
+      December 2008 investors force it to call off a planned purchase of two construction
+      companies partly owned by its founders. As of 31 December 2008, you are asked a single
       question: if those profit figures were real, how would they have to show up on all three
       statements, and where would you look for a mismatch if they were not?
     reveal: >
@@ -27,8 +26,8 @@ cases:
       cash and bank balances going up by Rs 588 crore in Q2 alone". The US SEC later said Satyam's
       managers created more than 6,000 phony invoices and bogus bank statements, giving more than
       1 billion dollars of fictitious cash, about half of total assets; Satyam paid a 10 million
-      dollar penalty to settle. A single false profit had to appear on every statement, which is
-      also why the fraud needed false bank statements to hold it together.
+      dollar penalty to settle. A single false profit had to appear in the general ledger and the
+      financial statements, which is also why the fraud needed false bank statements to hold it together.
 
 concept: >
   The three statements are one system. Under accrual accounting, revenue is recorded when it is
@@ -142,6 +141,5 @@ checks:
       cash flow statement net income is the starting line, adjusted for non-cash items and for
       changes in receivables, with ending cash equal to the balance sheet cash. They name two
       mismatches, for example: profit not turning into operating cash flow (growing receivables
-      or low cash conversion), a cash balance that is large but earns little interest income,
-      cash balances that cannot be confirmed with the bank, or a company with large cash that
-      still borrows or raises money.
+      or low cash conversion), ending cash that does not tie across the statements, or profit
+      and balances that independent evidence does not support.

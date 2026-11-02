@@ -40,7 +40,7 @@ concept: >
   ratio gives a multiplier of 10. The money banks can create from their excess reserves is the
   multiplier times those excess reserves. Credit is therefore money, and credit that flows into asset
   markets can push prices up for as long as the lending continues. Banks protect their lending with
-  collateral such as government securities; if the collateral is missing, the safeguard is gone.
+  collateral such as government securities.
 
 principle: >
   Ask what backs a boom. Prices lifted by credit last only as long as lenders keep lending and the
@@ -107,8 +107,8 @@ questions:
       - { id: c, text: "That the loan was guaranteed by the Reserve Bank" }
     answer: a
     explanation: >
-      A BR stood in for the securities that secured the roughly 15-day loan. In the scam, fake receipts
-      were issued with no securities behind them, so lenders were exposed without knowing it.
+      A BR stood in for the securities that secured the roughly 15-day loan: the lender relied on the
+      receipt rather than holding the securities itself.
     source: >
       India Today, "Lessons unlearnt: The story of big bull Harshad Mehta and bank frauds in India", 20 October 2020: https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
 
@@ -126,11 +126,12 @@ checks:
   - id: eco-money-scam-reasoning
     kind: conversation
     prompt: >
-      Explain how money held in Indian banks ended up buying shares on the stock exchange in 1992, and why
-      the share price rise depended on that flow continuing.
+      Share prices in early 1992 are climbing fast while a few brokers buy heavily. Using what you know about
+      ready forward deals and bank receipts, suggest how money held in Indian banks could end up funding
+      share purchases, and what would make the price rise fragile.
     passCriteria: >
       The Learner explains that banks lend deposits against collateral, that in ready forward deals
-      government securities (or bank receipts standing in for them) were the collateral, and that fake
-      bank receipts let the broker draw cash from banks with no real backing. They say that this
-      credit, which is money, was used to buy shares, pushing prices up, and that prices could fall
-      once the flow stopped or the missing collateral was discovered.
+      government securities (or bank receipts standing in for them) are the collateral, and that a broker
+      sitting between the banks could draw cash from them and use it to buy shares if the receipts were
+      not checked against real securities. They say that this credit, which is money, would push share
+      prices up, and that prices would depend on the flow continuing and the collateral being real.

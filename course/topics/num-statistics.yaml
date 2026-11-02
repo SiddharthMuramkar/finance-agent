@@ -16,12 +16,11 @@ cases:
       strategies, such as portfolio insurance, that trade stock-index futures. Markets reopen on Monday
       19 October, and risk managers are asking how large a fall is possible and how likely it is.
     reveal: >
-      On Monday 19 October 1987 the S&P 500 fell about 20% in a single day; the Dow Jones Industrial
-      Average, the S&P 500 and the Wilshire 5000 each declined between 18% and 23%. The S&P 500
-      futures contract fell 29%. A fall of that size is so far outside the odds of a normal
+      On Monday 19 October 1987 the S&P 500 fell about 20% in a single day, and the other major US
+      stock indices fell by roughly a fifth too. The S&P 500 futures contract fell 29%. A fall of that size is so far outside the odds of a normal
       distribution fitted to ordinary days that it is effectively impossible in such a model. One
       amplifier was portfolio insurance, a strategy that sells index futures as prices fall to limit
-      losses, which covered an estimated $80 billion of funds. When markets dived, the insurers sold
+      losses, which covered tens of billions of dollars of funds. When markets dived, the insurers sold
       together, which pushed prices down further. The statistics had measured calm; the crash
       showed their limit.
 
@@ -59,21 +58,21 @@ questions:
 
   - id: st-q-sigma
     prompt: >
-      Suppose daily stock returns are normally distributed with a mean of 0% and a standard deviation of 1%. A one-day fall of 20% is how many standard deviations below the mean?
+      Suppose daily stock returns are normally distributed with a mean of 0% and a standard deviation of 1%. A one-day fall of 12% is how many standard deviations below the mean?
     choices:
-      - { id: a, text: "20" }
-      - { id: b, text: "2" }
-      - { id: c, text: "0.2" }
-      - { id: d, text: "5" }
+      - { id: a, text: "12" }
+      - { id: b, text: "1.2" }
+      - { id: c, text: "0.12" }
+      - { id: d, text: "3" }
     answer: a
     explanation: >
-      20% / 1% = 20 standard deviations. In a normal model, a move beyond about three standard deviations happens on well under one day in a hundred, so 20 is effectively impossible. The 1% figure is an assumption for the exercise, not a measured one.
+      12% / 1% = 12 standard deviations. In a normal model, a move beyond about three standard deviations happens on well under one day in a hundred, so 12 is effectively impossible. The 1% figure is an assumption for the exercise, not a measured one.
     source: >
-      The size of the 19 October 1987 fall is from the Federal Reserve, A Brief History of the 1987 Stock Market Crash (FEDS 2007-13): https://www.federalreserve.gov/pubs/feds/2007/200713/ ; the normal-curve rule is in OpenStax 13.2: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread
+      The normal-curve rule is in OpenStax 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the numbers are made up.
 
   - id: st-q-tails
     prompt: >
-      A risk model fitted to years of calm daily returns says a 20% one-day fall is practically impossible. The S&P 500 fell about 20% on 19 October 1987. What does that show?
+      A risk model fitted to years of calm daily returns says a one-day fall of more than 10% in a stock index is practically impossible. Then such a fall happens. What does that show?
     choices:
       - { id: a, text: "A model fitted to calm periods can badly understate extreme moves" }
       - { id: b, text: "The mean of daily returns was wrong" }
@@ -83,7 +82,7 @@ questions:
     explanation: >
       Extreme moves are far more common than a normal distribution fitted to ordinary days implies. A statistic is only as good as the sample and the shape assumed for it.
     source: >
-      Federal Reserve, A Brief History of the 1987 Stock Market Crash (FEDS 2007-13): https://www.federalreserve.gov/pubs/feds/2007/200713/
+      OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is hypothetical.
 
 checks:
   - id: st-quiz-statistics
@@ -103,13 +102,13 @@ checks:
     kind: conversation
     prompt: >
       It is the evening of 16 October 1987, and the S&P 500 has fallen more than 9% this week. A risk
-      manager says "our model, fitted to the past five calm years, says a 20% daily fall has
-      essentially zero probability, so we are safe". Using ideas of mean, standard deviation and
+      manager says "our model, fitted to the past five calm years, says a daily fall of 10% or
+      more has essentially zero probability, so we are safe". Using ideas of mean, standard deviation and
       distributions, explain what is wrong with that reasoning.
     passCriteria: >
       The Learner explains that the model's mean and standard deviation come from a calm sample, so a
-      normal curve built on them puts almost no probability on extreme moves; a 20% fall would be
-      many standard deviations from the mean. They point out that markets have fat tails, that
+      normal curve built on them puts almost no probability on extreme moves; a fall that large
+      would be many standard deviations from the mean. They point out that markets have fat tails, that
       volatility and correlations can rise sharply in a crisis, and that a sample describes the past
       conditions it came from. They suggest remedies such as stress tests, longer or crisis-inclusive
       samples, or not relying on a normal-distribution probability for tail risk.

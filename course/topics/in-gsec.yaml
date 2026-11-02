@@ -20,22 +20,24 @@ cases:
       with trades of about Rs 3,000 to 4,000 crore a day, and a dozen brokers approved by the
       RBI helped banks find each other. Money borrowed in this formal market cost about 18-20%
       a year. Stock market brokers paid 35-40% for their own short-term finance. The BSE
-      Sensitive Index (the Sensex) had risen from about 1,000 in February 1991 to about 4,500
-      in March 1992. In practice, banks often used paper "bank receipts" instead of SGL forms,
+      Sensitive Index (the Sensex) had risen from 1,048 at the end of 1990 to 4,285 at the
+      end of March 1992. In practice, banks often used paper "bank receipts" instead of SGL forms,
       because the PDO was slow to record transfers. A bank receipt confirmed the sale, received
       the cash and promised to deliver the securities. Who checks that the securities behind a
       15-day loan exist, and what happens to the lender if they do not?
     reveal: >
       In April 1992 the first press report appeared of a shortfall in the government securities
-      held by the State Bank of India; one account puts the missing SGL holding at Rs 500 crore
-      in SBI's account at the RBI's Public Debt Office. Investigation showed this was the tip of
+      held by the State Bank of India. The figure for the missing SGL holding in SBI's account
+      at the RBI's Public Debt Office varies by source: Rs 500 crore was first reported and
+      Rs 574 crore was found by SBI. Investigation showed this was the tip of
       a scheme in which brokers, passing the payments and delivery between banks, had
       persuaded some banks to lend against nothing. Two small banks, the Bank of Karad and the
       Metropolitan Cooperative Bank, issued bank receipts not backed by securities, and larger
       banks lent to them in ready forward deals. The borrowed money went to the stock market.
       Barua and Varma estimated that over Rs 3,500 crore was diverted from the banking system
-      between April 1991 and May 1992; Mint, writing later, says over Rs 4,000 crore. In less than two months after the scam came to light, share prices fell by
-      over 40%. A secured loan had become an unsecured loan to a broker, because nobody
+      between April 1991 and May 1992; Mint, writing later, says over Rs 4,000 crore. On 28 April 1992 the Sensex fell 12.77% in a single day, its
+      largest one-day percentage fall apart from the Covid crash, and it fell a further 23%
+      in May. A secured loan had become an unsecured loan to a broker, because nobody
       checked the securities against the ledger.
 
 concept: >
@@ -49,8 +51,8 @@ concept: >
   forward deals). Corporate bonds are issued by companies, carry more credit risk than government
   bonds because a company cannot raise taxes, and so pay a higher yield. Holdings of G-secs are
   recorded in the RBI's books (the SGL), so a bank can only deliver G-secs it actually owns.
-  Rupee amounts are written in lakh (1,00,000) and crore (1,00,00,000), so Rs 500 crore is
-  Rs 5,000 million.
+  Rupee amounts are written in lakh (1,00,000) and crore (1,00,00,000), so Rs 100 crore is
+  Rs 1,000 million.
 
 principle: >
   A loan is only as secure as the check that the collateral exists. When a market lets
@@ -158,11 +160,12 @@ checks:
   - id: gs-scam-explain
     kind: conversation
     prompt: >
-      A ready forward deal is meant to be a safe, secured loan. Explain how in 1992 it became
-      a loan to a broker with nothing behind it, and what check would have caught that.
+      A ready forward deal is meant to be a safe, secured loan. Suppose banks routinely trade
+      on bank receipts instead of SGL transfers. Explain how a deal could turn into a loan to
+      a broker with nothing behind it, and what check would catch that.
     passCriteria: >
       The Learner says the lending bank handed money to or through a broker and accepted a bank
       receipt, a mere promise to deliver securities, instead of the securities or an SGL transfer.
-      Some receipts were issued by small banks with no securities behind them, so the loan was
+      A receipt could be issued by a bank with no securities behind it, so the loan would be
       unsecured. They name a check such as matching each bank's claimed holdings against the
       RBI's SGL records, or settling directly between the banks and refusing receipts for G-secs.

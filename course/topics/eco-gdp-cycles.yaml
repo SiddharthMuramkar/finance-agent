@@ -42,8 +42,8 @@ concept: >
   defined as two consecutive quarters of falling real GDP; agencies today look at a broader set of
   indicators such as employment, income and industrial production. Some indicators lead the cycle (new
   orders, building permits); others lag it (unemployment, inflation). Growth is only as sound as its
-  financing: an economy that grows by borrowing from its government's budget and from abroad can run
-  into a balance of payments crisis even while output is rising.
+  financing: an economy that grows by borrowing from its government's budget and from abroad depends on
+  lenders continuing to lend.
 
 principle: >
   Read growth together with its financing. Ask who is borrowing, from whom and in which currency; a
@@ -96,11 +96,11 @@ checks:
   - id: eco-gdp-growth-financing
     kind: conversation
     prompt: >
-      India grew faster in the late 1980s than before, yet in 1991 it faced a balance of payments crisis.
-      Using the figures from the Case, explain how rising GDP and a looming crisis could exist together.
+      India grew faster in the late 1980s than before. Using the figures from the Case, judge whether that
+      growth looks sustainable, and explain what could go wrong even while GDP is rising.
     passCriteria: >
       The Learner explains that growth was financed by large fiscal deficits (around 8 to 9 per cent of GDP),
       partly funded by the central bank, and by external borrowing, so imports and the current account deficit
-      grew faster than exports and reserves ran down to about two months of imports or less. They say that
-      an oil price shock and a loss of remittances in 1990 then exposed the weakness. They conclude that GDP
-      growth alone does not show whether it can be sustained.
+      grew faster than exports and reserves ran down to a little over two months of imports. They say that
+      this leaves the economy exposed to an external shock or a loss of lender confidence. They conclude that
+      GDP growth alone does not show whether it can be sustained.
