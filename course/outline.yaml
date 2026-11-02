@@ -95,11 +95,12 @@ topics:
     cases:
       - title: "Webvan's cash burn"
         asOf: 2001-04-02
-        outcome: "Webvan filed for Chapter 11 on 9 Jul 2001 and shut all seven of its markets, which served about 750,000 customers; its accumulated deficit was $829.7m at 31 Mar 2001. The cash flow statement had already shown it: $263.1m used in operations in 2000 (up from $58.8m in 1999) and $259.8m spent on property and equipment, paid for from money raised from investors in 1999. TIME's cash burn of $480m is a press estimate, not a filing figure."
+        outcome: "On 9 Jul 2001 Webvan shut all seven of its markets, which served about 750,000 customers, and said it would file for bankruptcy protection; it filed for Chapter 11 on 13 Jul 2001. Its accumulated deficit was $829.7m at 31 Mar 2001. The cash flow statement had already shown it: $263.1m used in operations in 2000 (up from $58.8m in 1999) and $259.8m spent on property and equipment, paid for from money raised from investors in 1999. TIME's cash burn of $480m is a press estimate, not a filing figure."
         sources:
           - https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
           - https://www.sec.gov/Archives/edgar/data/1092657/000101287001500862/d10q.txt
           - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+          - https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt
           - https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html
           - https://time.com/archive/6904080/webvans-last-desperate-hope
         verified: true
@@ -150,12 +151,14 @@ topics:
     cases:
       - title: "Webvan's warehouse and fleet build-out"
         asOf: 1999-11-05
-        outcome: "Webvan's shares rose on the first day, closing at $24.875 and valuing it at about $7.9bn. It then bought its rival HomeGrocer, and net loss grew from $144.6m in 1999 to $453.3m in 2000, when auditors voiced substantial doubt about its ability to continue. In early 2001 its operating costs alone (marketing, development, administration) were $143 for every $100 of sales, on top of $72 of food cost (the Chicago Tribune's reading of its quarterly report). It filed for bankruptcy on 9 Jul 2001 and shut down, with the shares at 6 cents."
+        outcome: "Webvan's shares rose on the first day, closing at $24.875 and valuing it at about $7.9bn. It then bought its rival HomeGrocer, and net loss grew from $144.6m in 1999 to $453.3m in 2000, when auditors voiced substantial doubt about its ability to continue. In early 2001 its operating costs alone (marketing, development, administration) were $143 for every $100 of sales, on top of $72 of food cost (the Chicago Tribune's reading of its quarterly report). On 9 Jul 2001, with the shares at 6 cents, it shut down and said it would file for bankruptcy protection; it filed on 13 Jul 2001."
         sources:
           - https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt
           - https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
           - https://www.chicagotribune.com/2001/05/30/webvan-delivers-losses-but-not-enough-customers/
           - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+          - https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt
+          - https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt
           - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
         verified: true
         note: "Checked against Webvan's 10-K405 for 1999 and 10-K for 2000: the Oakland centre was 336,000 sq ft, and the $143 counts operating costs only (with food cost it is $215 per $100 of sales, before goodwill, deferred compensation and restructuring)."
@@ -266,13 +269,15 @@ topics:
     cases:
       - title: "The 1992 securities scam"
         asOf: 1992-02-01
-        outcome: "The scam came to light in late April 1992 when the State Bank of India reported a shortfall of government securities, about Rs 500 crore missing from its books. Mehta had obtained fake bank receipts through officials of the Bank of Karad and the Metropolitan Cooperative Bank; lenders handed over cash against receipts backed by no securities, and the broker put it into shares. Size is disputed by source: about Rs 1,000 crore siphoned and Rs 3,500 crore manipulated (Forbes India), nearly Rs 4,000 crore (India Today). The Sensex had gone from 1,194 to 4,467 (+274%) between April 1991 and April 1992; it fell about 12.7% (570 points; BSE gives 12.77%) on 28 Apr 1992 and to about 1,980 by April 1993 (-56%). The CBI arrested Mehta in Nov 1992."
+        outcome: "The scam came to light in late April 1992 when the State Bank of India reported a shortfall of government securities, about Rs 500 crore missing from its books. Mehta had obtained fake bank receipts through officials of the Bank of Karad and the Metropolitan Cooperative Bank; lenders handed over cash against receipts backed by no securities, and the broker put it into shares. Size is disputed by source: about Rs 1,000 crore siphoned and Rs 3,500 crore manipulated (Forbes India), nearly Rs 4,000 crore (India Today). The Sensex had gone from 1,194 to 4,467 (+274%) between April 1991 and April 1992; it fell 12.77% in a day on 28 Apr 1992 (BSE), the largest one-day percentage fall in its history outside the Covid crash, and to about 1,980 by April 1993, down 56% (Mint, a secondary source). The CBI arrested Mehta in Nov 1992."
         sources:
           - https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
           - https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1
           - https://www.jrvarma.in/papers/vik18-1.pdf
           - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
+          - https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
         verified: true
+        note: "The April 1993 level (about 1,980, down 56%) is Mint, a secondary source; BSE gives the 28 Apr 1992 fall as 12.77%."
   - id: eco-central-banks
     title: "Central banks and monetary policy"
     stage: foundation
@@ -589,13 +594,15 @@ topics:
     cases:
       - title: "Webvan's first day as a public company"
         asOf: 1999-11-04
-        outcome: "On 5 Nov 1999 the shares traded as high as $34 and closed at $24.875, 65% above the $15 offer price, valuing Webvan at $7.9bn. The company lost $453.3m in 2000 and filed for bankruptcy on 9 Jul 2001, about 20 months later. The pattern came back with WeWork: valued at $47bn in a private round in Jan 2019, with bankers having talked of $65bn for its share sale, its IPO valuation was reported at about $20bn by 6 Sep 2019 and as low as $10-12bn by 13 Sep. The sale was withdrawn on 30 Sep, and SoftBank's rescue in Oct 2019 valued the company at about $8bn."
+        outcome: "On 5 Nov 1999 the shares traded as high as $34 and closed at $24.875, 65% above the $15 offer price, valuing Webvan at $7.9bn. The company lost $453.3m in 2000. On 9 Jul 2001, about 20 months later, it shut down and said it would file for bankruptcy protection; it filed on 13 Jul 2001. The pattern came back with WeWork. Valued at $47bn in a private round in Jan 2019, with bankers having talked of $65bn for its share sale, it was reported by Bloomberg on 6 Sep 2019 to be weighing an IPO valuation of about $20bn, and by Reuters on 13 Sep to be weighing as little as $10-12bn. The sale was withdrawn on 30 Sep, and SoftBank's rescue in Oct 2019 valued the company at about $8bn."
         sources:
           - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
           - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+          - https://www.sec.gov/Archives/edgar/data/1092657/0000891618-99-004914.txt
+          - https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt
           - https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html
           - https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion
-          - https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/
+          - https://www.reuters.com/article/world/uk/exclusive-wework-considers-ipo-valuation-of-as-low-as-10-billion-sources-idUSKCN1VY1PD/
           - https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
         verified: true
   - id: cf-capital-budgeting
@@ -605,11 +612,12 @@ topics:
     cases:
       - title: "Webvan's plan for 26 more distribution centres"
         asOf: 2000-03-30
-        outcome: "Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8m on equipment and buildings that year against a plan of $300m to $350m, and cut its 2001 spending plan to $10m to $15m. Its net loss in 2000 was $453.3m and it filed for bankruptcy on 9 Jul 2001. The investment case rested on a centre reaching high volumes and an average order far above the one it had, and its payback claim was an EBITDA figure, before tax, upkeep and head-office costs, that ignored the time value of money."
+        outcome: "Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8m on equipment and buildings that year against a plan of $300m to $350m, and cut its 2001 spending plan to $10m to $15m. Its net loss in 2000 was $453.3m. On 9 Jul 2001 it shut down and said it would file for bankruptcy protection, and it filed on 13 Jul 2001. The investment case rested on a centre reaching high volumes and an average order far above the one it had, and its payback claim was an EBITDA figure, before tax, upkeep and head-office costs, that ignored the time value of money."
         sources:
           - https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt
           - https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
           - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+          - https://www.sec.gov/Archives/edgar/data/1092657/0001021408-01-504054.txt
         verified: true
         note: "Reuses Webvan; the Eurotunnel replacement (see cf-wacc) is the alternative."
   - id: cf-wacc
@@ -1013,240 +1021,315 @@ topics:
     stage: follow
     prerequisites: [val-young]
     cases:
-      - title: "Damodaran's Uber post"
+      - title: "Damodaran hands readers the controls of an Uber valuation"
         asOf: 2014-12-02
-        outcome: "Uber IPO priced $45 on 9 May 2019 at $82.4bn fully diluted, closed down 7.6%."
+        outcome: "Uber priced its IPO at $45 on 9 May 2019, near the bottom of its range, valuing it at about $82.4bn fully diluted and raising $8.1bn; its last private round, in Aug 2018, had valued it at $76bn. On its first day the stock closed at $41.57, about 7.6% below the offer price, and Uber had lost about $3bn from operations in 2018. Against the post, whose grid of reader stories ran from under $1bn to about $90bn, the listing landed inside the range, near the upper end. Which story was right remains a judgement; the post's point was that gaps between values are gaps between stories."
         sources:
           - https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
           - https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html
+          - https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday
         verified: true
   - id: fol-twitter-ipo
     title: "Follow: Damodaran, Twitter IPO valuation (Oct 2013)"
     stage: follow
     prerequisites: [val-young, mkt-ipo-float]
     cases:
-      - title: "Damodaran's Twitter post"
-        asOf: 2013-10-05
-        outcome: "Twitter traded below its IPO price by 2016 and below $6 in 2019."
+      - title: "Damodaran explains why an IPO is a pricing event, not a valuation event"
+        asOf: 2013-10-28
+        outcome: "Twitter priced its offering at $26 on 6 Nov 2013, well above the $17-20 range, raising about $1.8bn and valuing the company at over $18bn; Reuters reported subscriptions of about 30 times the shares on offer. On 7 Nov the shares opened near $45, reached $50 and closed at $44.90, up 73% on the offer price, a market value of about $25bn. They peaked above $73 around the end of Dec 2013, closed at exactly $26 on 20 Aug 2015, the first time they fell to the offer price, and Twitter was taken private at $54.20 a share, about $44bn, in a deal that closed on 27 Oct 2022. Against the post: his $17.84 was about 31% below the offer price and the close about 2.5 times his value; his guess that bankers saw a fair price near $25 was close to the $26 they set, but his first-day jump of 20-25% fell far short of 73%."
         sources:
-          - https://aswathdamodaran.blogspot.com/2022/04/
-        verified: false
-        note: "Direct URL of the 2013 post not fetched."
+          - https://aswathdamodaran.blogspot.com/2013/10/the-twitter-ipo-thoughts-on-ipo-end-game.html
+          - https://www.npr.org/sections/thetwo-way/2013/11/06/243583735/twitter-sets-ipo-price-hopes-to-raise-1-8-billion
+          - https://www.reuters.com/article/technology/twitter-shares-soar-in-frenzied-nyse-debut-idUSBRE99N1AE/
+          - https://wired.com/2015/08/twitter-stock-falls-ipo-price-first-time
+          - https://www.bloomberg.com/news/articles/2022-10-28/musk-completes-44-billion-twitter-deal-ending-months-of-enmity
+        verified: true
+        note: "The December 2013 peak above $73 and the $54.20 take-private price come from press reports, not filings."
   - id: fol-tesla-2020
     title: "Follow: Damodaran, Tesla valuation (Feb 2020)"
     stage: follow
     prerequisites: [val-young]
     cases:
-      - title: "Damodaran's do-it-yourself Tesla valuation"
+      - title: "Damodaran lets readers choose their own Tesla story"
         asOf: 2020-02-06
-        outcome: "Value $427 per share against a close of $581."
+        outcome: "Tesla split its shares 5-for-1 (Aug 2020) and 3-for-1 (Aug 2022), so one February 2020 share became 15 and Damodaran's $427 is about $28.47 on today's basis. On 25 Oct 2021, after Hertz announced an order for 100,000 cars, Tesla closed at a record $1,024.86, a market value just over $1tn (about $341.62 on the basis after both splits). The stock then lost about 65% in 2022 and closed the year at $123.18 after losing more than $700bn of market value, still about four times his $427 on the same basis. The post's four stories ran from about $106 to $2,106 a share before the splits; a value follows from a story you can name, and a price can sit far from a value for years in either direction."
         sources:
           - https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html
+          - https://cnbc.com/2022/08/24/tesla-stock-set-for-3-for-1-split-after-market-close.html
+          - https://www.reuters.com/business/autos-transportation/tesla-shares-limelight-3-1-stock-split-kicks-2022-08-25/
+          - https://www.nytimes.com/2021/10/25/business/hertz-tesla-electric-vehicles.html
+          - https://www.wsj.com/articles/tesla-stock-is-headed-for-its-biggest-ever-annual-decline-11672374248
         verified: true
   - id: fol-roe
     title: "Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)"
     stage: follow
     prerequisites: [val-multiples, fs-ratios]
     cases:
-      - title: "Damodaran on ROE and earnings yield"
+      - title: "Damodaran goes back to basics on return on equity"
         asOf: 2025-02-18
-        outcome: "The post has an Indian-market thread; test its claims in the Judge Topic."
+        outcome: "Damodaran returned to the same ground in a post on 6 Oct 2025 about US stocks: the earnings yield was 4% in Sep 2025, 0.16 percentage points below the ten-year Treasury rate, a gap some analysts treat as a sign that stocks are overpriced. He replied that comparing an earnings yield with a bond rate treats shares as bonds and ignores growth and reinvestment, and noted the gap's spotty record as a timing tool. What the Feb 2025 post settled is a definition, not a forecast: return on equity is profit over the book value of equity and measures the quality of a business, while the earnings yield is profit over market value and is a pricing ratio. In its toy case two companies earn 25% and 5% on book but the same 10% on price."
         sources:
           - https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
-        verified: false
-        note: "Outcome is the Learner's judgement of the post."
+        verified: true
+        note: "The 6 Oct 2025 follow-up post is cited by date; its URL was not kept."
   - id: fol-sov-ratings
     title: "Follow: Damodaran, sovereign ratings and default risk (Jun 2025)"
     stage: follow
     prerequisites: [sov-default-country-risk]
     cases:
-      - title: "Damodaran on sovereign ratings"
+      - title: "Damodaran on what a sovereign rating change does and does not change"
         asOf: 2025-06-02
-        outcome: "Moody's cut the US from Aaa to Aa1 on 16 May 2025, having held Aaa since 1919."
+        outcome: "Moody's cut the US from Aaa to Aa1 on 16 May 2025, and the post was written about the first two weeks. US Treasury par yields afterwards: the 10-year was 4.41% on 30 May 2025 and 4.46% on 2 Jun, reached its low for the year of 3.97% on 22 Oct and ended 2025 at 4.18%; the 30-year went from 4.92% to 4.84% and the 2-year from 3.89% to 3.47% over the same dates. Yields did not climb to a lasting higher level, which fits Damodaran's reading that the move was small, expected and mostly about pride. The data cannot prove it, since many other things moved yields through 2025."
         sources:
           - https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html
           - https://www.reuters.com/markets/us/moodys-downgrades-us-aa1-rating-2025-05-16/
           - https://www.cnbc.com/2025/05/16/moodys-downgrades-united-states-credit-rating-on-increase-in-government-debt.html
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2025/all?type=daily_treasury_yield_curve&field_tdr_date_value=2025&page&_format=csv
         verified: true
   - id: fol-subprime-ai
     title: "Follow: Zitron, The Subprime AI Crisis (Sep 2024)"
     stage: follow
     prerequisites: [bond-credit-spreads, fs-revenue-runrate]
     cases:
-      - title: "Zitron's Subprime AI Crisis"
+      - title: "Zitron argues that cheap AI prices hide a funding problem"
         asOf: 2024-09-16
-        outcome: "Judge the piece's claims against later filings."
+        outcome: "OpenAI closed $6.6bn on 2 Oct 2024 at a $157bn valuation, as convertible notes whose conversion depended on its restructuring into a for-profit company, and announced a $4bn bank credit line. On 31 Mar 2025 it announced $40bn at a $300bn valuation, with SoftBank's $30bn share paid in stages and cut to $20bn if the restructuring was not done by the end of 2025. On 10 Jun 2025 it cut the price of its o3 model by 80%, so the tenfold-to-hundredfold price rise the piece used as a hypothetical had not arrived. Unsettled: whether prices cover cost, because the cost side is not public; a falling price cannot tell competition from subsidy."
         sources:
           - https://www.wheresyoured.at/subprimeai/
-        verified: false
-        note: "Outcome section to write from later sources."
+          - https://www.nbcchicago.com/news/business/money-report/openai-closes-funding-at-157-billion-valuation-as-microsoft-nvidia-softbank-join-round/3563420/
+          - https://www.reuters.com/technology/artificial-intelligence/openai-raise-40-billion-softbank-led-new-funding-2025-03-31/
+        verified: true
+        note: "The o3 price cut rests on VentureBeat and Neowin reports (URLs not kept); the piece's own as-of figures were not re-fetched."
   - id: fol-systemic-risk
     title: "Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)"
     stage: follow
     prerequisites: [fs-leases-debt, fs-cashflow]
     cases:
-      - title: "Zitron's OpenAI systemic-risk piece"
+      - title: "Zitron maps who depends on whom around one AI company"
         asOf: 2025-04-14
-        outcome: "Judge the piece's claims against later filings."
+        outcome: "The funding condition the essay stressed was met: SoftBank said it completed a further $22.5bn on 26 Dec 2025, fully funding its commitment to OpenAI at $41bn including $11bn from other investors, for a stake of about 11%. OpenAI completed its conversion into a for-profit public benefit corporation on 28 Oct 2025, valued at $500bn, with Microsoft holding about 27%. The first Stargate site, in Abilene, Texas, was running on Oracle's cloud by Sep 2025. One link did break: CoreWeave's $9bn purchase of Core Scientific was voted down and ended on 30 Oct 2025, a failed deal rather than a failure to pay. The essay's other claims, such as OpenAI's revenue against its commitments and what a failure would do to its suppliers, were not tested by these events."
         sources:
           - https://www.wheresyoured.at/openai-is-a-systemic-risk-to-the-tech-industry-2/
-        verified: false
-        note: "Outcome section to write from later sources."
+          - https://group.softbank/en/news/press/20251231
+          - https://www.reuters.com/business/media-telecom/softbank-has-fully-funded-its-40-billion-investment-openai-cnbc-reports-2025-12-30/
+          - https://www.cnbc.com/2025/10/28/open-ai-for-profit-microsoft.html
+          - https://www.cnbc.com/2025/09/23/openai-first-data-center-in-500-billion-stargate-project-up-in-texas.html
+          - https://www.reuters.com/business/core-scientific-terminates-9-billion-merger-deal-with-coreweave-2025-10-30/
+        verified: true
   - id: fol-money-trap
     title: "Follow: Zitron, AI Is A Money Trap (Aug 2025)"
     stage: follow
     prerequisites: [fs-revenue-runrate, cf-venture]
     cases:
-      - title: "Zitron's AI Is A Money Trap"
+      - title: "Zitron questions the money behind AI start-ups"
         asOf: 2025-08-06
-        outcome: "It says Cursor must die or be acquired; SpaceX announced the $60bn all-stock purchase on 16 Jun 2026 and completed it 14 Aug 2026."
+        outcome: "On 13 Nov 2025 Cursor announced a $2.3bn funding round at a $29.3bn post-money valuation, nearly triple its value in June, co-led by Accel and Coatue; it said it had crossed $1bn in annualised revenue, about double the figure Zitron used. New investors paid almost three times the price the piece called hard to justify, so the claim that such valuations had no buyers did not hold for this round. The round did not settle the economics he questioned: the $1bn is the company's own annualised figure, and nothing showed what Cursor paid its model suppliers or whether it made a profit."
         sources:
           - https://www.wheresyoured.at/ai-is-a-money-trap/
-          - https://www.reuters.com/legal/transactional/spacex-buy-anysphere-60-billion-2026-06-16/
-          - https://www.bloomberg.com/news/articles/2026-08-14/spacex-completes-its-60-billion-cursor-acquisition
+          - https://www.cnbc.com/2025/11/13/cursor-ai-startup-funding-round-valuation.html
         verified: true
+        note: "Uses the Nov 2025 round only; the later events are the Case of jud-predicted-outcomes."
   - id: fol-erp
     title: "Follow: Damodaran, The Price of Risk (Aug 2023)"
     stage: follow
     prerequisites: [val-implied-erp]
     cases:
-      - title: "Damodaran on equity risk premiums"
+      - title: "Damodaran explains why equity risk premium numbers disagree"
         asOf: 2023-08-05
-        outcome: "Compare the 2023 implied premium with later data."
+        outcome: "Damodaran's implied premium was 5.94% at the start of 2023, 4.44% in Aug 2023, 4.60% at the start of 2024 and 4.33% at the start of 2025, while the S&P 500 rose about 24% in 2023 (to 4,769.83, price only) and about 23% in 2024 (to 5,881.63). The Fed-model gap (earnings yield less the 10-year Treasury rate) was about +0.76 points at the start of 2024 (rate 3.88%, earnings yield 4.64%) and about -0.44 at the start of 2025 (rate 4.58%, yield 4.14%). The gap can turn negative with no change in cash flows because it assumes no growth, while the implied premium allows for it. Neither measure settled whether stocks were cheap or dear, and the post itself calls the link to later returns noisy."
         sources:
           - https://aswathdamodaran.blogspot.com/2023/08/the-price-of-risk-with-equity-risk.html
           - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html
-        verified: false
-        note: "Outcome to source."
+        verified: true
   - id: jud-rating-boundary
     title: "Judge: where does junk start?"
     stage: judge
     prerequisites: [fol-sov-ratings, bond-credit-spreads]
     cases:
-      - title: "Damodaran's Baa2 claim"
+      - title: "A writer says where speculative grade starts"
         asOf: 2025-06-02
-        outcome: "D7 calls Baa2 and below speculative; the line is between Baa3 and Ba1."
+        outcome: "Moody's own rating-scale card brackets Aaa down to Baa3 as Investment Grade and Ba1 down to C as Non-Investment Grade, so the line falls between Baa3 and Ba1. The post's sentence put it between Baa1 and Baa2, two notches too high: Baa2 and Baa3 are investment grade. The slip is easy to make, because Moody's wording for the Baa class, 'may possess certain speculative characteristics', sounds like the start of junk, but Moody's reserves 'speculative' for Ba and below. The post's broad point, that default rates rise as ratings fall, survives."
         sources:
           - https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html
-          - https://bis.org/bcbs/qis/qisrating.htm
+          - https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf
           - https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
         verified: true
+        note: "The post's default rates (24% and 1.8%) and whether the post was later corrected were not checked."
   - id: jud-assumptions
     title: "Judge: the no-growth assumption in ROE versus earnings yield"
     stage: judge
     prerequisites: [fol-roe]
     cases:
-      - title: "Damodaran's ROE post"
+      - title: "Taking a back-to-basics post on ROE back to its own numbers"
         asOf: 2025-02-18
-        outcome: "Recompute with changed growth and R&D treatment."
+        outcome: "Recomputed from the post's own inputs, the toy case ties out (company A: ROE 25%, value $150m, price to book 2.5, earnings yield 10%; company B: 5%, $30m, 0.5, 10%). Three statements each rest on an assumption the post does not state: the R&D example needs book equity to stay at $30m, which means the cash earned in the loss year is paid out; the growth sentence depends on what the growth costs and earns (if B's growth needed no reinvestment it would be worth about $905.8m, if new capital earned 20% about $467.9m, and if it earned the 10% cost of equity $30.0m); and the low price-to-book sentence holds only if prices are fair. The verdict: the arithmetic is sound, and each of the three statements needs its assumption named."
         sources:
           - https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
-        verified: false
-        note: "Recompute to be built when written."
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/peratio.htm
+        verified: true
+        note: "No Case Data: every figure is the post's input or the Learner's recomputation; the growth values are the course's reconstruction, not the post's."
   - id: jud-narrative-numbers
     title: "Judge: stories into inputs (Uber 2014 versus outcome)"
     stage: judge
     prerequisites: [fol-uber-2014]
     cases:
-      - title: "Uber 2014 and 2019"
+      - title: "The inputs behind Damodaran's Uber valuation exercise"
         asOf: 2014-12-02
-        outcome: "IPO $45, $82.4bn fully diluted, 2018 revenue $11.3bn and loss $1.8bn."
+        outcome: "Judged against what Uber later filed, the post's starting numbers were a mixed record. The arithmetic ties ($3.5bn x 20% = $700m). The first public filing (the S-1 of 11 Apr 2019) gave 2014 revenue of $495m, below the post's $700m, but that figure is unaudited, kept under the accounting rules then in force and without the China business sold in 2016, so it is not like for like; the filing gives no 2014 Gross Bookings, so the $3.5bn and the 20% slice cannot be checked directly. For 2015 the filing's revenue of $1,995m is almost exactly 20% of the leaked $10bn, which is consistent with the leak but an inference. Filings can test a story's inputs but cannot declare a story right."
         sources:
           - https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
+          - https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
+        verified: true
+      - title: "Uber's first public filing, April 2019"
+        asOf: 2019-04-11
+        outcome: "Uber priced its IPO at $45 on 9 May 2019, near the bottom of its $44-50 range, at about $82.4bn counting options and restricted stock, and raised $8.1bn; its last private round, in Aug 2018, had valued it at $76bn. On day one the shares closed at $41.57, about 7.6% below the offer price. Reuters described the 2018 result as a loss of about $3bn from operations, which is the filing's operating loss of $3,033m; the $1.8bn sometimes quoted is the Adjusted EBITDA loss, and 2018 net income was a profit of $997m because of $4,993m of other income. For 2019 Uber reported revenue of $14,147m and a loss from operations of $8,596m (8-K of 6 Feb 2020); its earnings releases for 2024 and 2025 show revenue of $43,978m and $52,017m and income from operations of $2,799m and $5,565m. These can be set beside the post's range of reader values, $799m to $90.5bn, but they do not decide which story was right."
+        sources:
+          - https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
           - https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html
           - https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday
+          - https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
         verified: true
   - id: jud-ipo-forecast
     title: "Judge: Twitter's 2013 IPO valuation versus what happened"
     stage: judge
     prerequisites: [fol-twitter-ipo, fs-filings]
     cases:
-      - title: "Twitter's IPO"
+      - title: "A writer values a company from its first filing"
         asOf: 2013-10-05
-        outcome: "Below the IPO price by 2016."
+        outcome: "Checked against Twitter's S-1 and final prospectus, the arithmetic is nearly all sound: the twelve months to Jun 2013 are $448.2m, first-half revenue rose 107%, and $9.97bn over 574.44m shares gives the post's $17.36. Small slips: data licensing was 12.7% of first-half revenue, not 12.6%; the risk-premium weights give 6.12%, not 6.15%; Google and Facebook revenues were 71% of his market, not '60-70%'. The slip that matters: the post counts the shares before the offering but adds about $1bn of offering cash, so counting about 50m new shares puts the value near $15.97, about 8% lower (an inference beyond the filing). Twitter priced at $26.00 on 6 Nov 2013, closed day one at $44.90 (+73%), closed at exactly $26 on 20 Aug 2015, and was taken private at $54.20 a share (about $44bn) in a deal that closed on 27 Oct 2022. Its revenue ran ahead of the post's 55% path at first and fell behind by 2017 ($1.40bn in 2014, $3.04bn in 2018, $5.08bn in 2021). The offering price was a pricing event, so $26 and $44.90 do not show that his $17.36 was wrong."
         sources:
-          - https://aswathdamodaran.blogspot.com/2022/04/
-        verified: false
-        note: "Recompute from Twitter filings."
+          - https://aswathdamodaran.blogspot.com/2013/10/twitter-announces-ipo-valuation.html
+          - https://www.sec.gov/Archives/edgar/data/1418091/000119312513390321/d564001ds1.htm
+          - https://www.sec.gov/Archives/edgar/data/1418091/000119312513431301/d564001d424b4.htm
+          - https://www.reuters.com/article/technology/twitter-shares-soar-in-frenzied-nyse-debut-idUSBRE99N1AE/
+          - https://wired.com/2015/08/twitter-stock-falls-ipo-price-first-time
+          - https://theguardian.com/business/live/2022/oct/28/elon-musk-bought-twitter-natwest-profits-economy-inflation-business-live
+        verified: true
+        note: "Whether the post's spreadsheet counted the new shares elsewhere cannot be told from the post."
   - id: jud-predicted-outcomes
     title: "Judge: Zitron's predictions versus later events"
     stage: judge
     prerequisites: [fol-money-trap, fol-subprime-ai, fol-systemic-risk]
     cases:
-      - title: "Cursor"
+      - title: "A forecast for an AI coding startup, claim by claim"
         asOf: 2025-08-06
-        outcome: "SpaceX bought Anysphere for $60bn all-stock (16 Jun 2026; completed 14 Aug 2026)."
+        outcome: "On 13 Nov 2025 Cursor announced a $2.3bn round at a $29.3bn post-money valuation, nearly three times the $9.9bn of June, and said it had crossed $1bn in annualised revenue, about twice the figure in the piece (a company statement about a rate), so the claims that annualised revenue would drop and its ability to raise money would suffer did not hold in the next three months. SpaceX disclosed an option in Apr 2026 to buy Cursor for $60bn, agreed the all-stock purchase on 16 Jun 2026 and closed it on 14 Aug 2026 (about 389.3m SpaceX shares), about six times the Jun 2025 valuation, so 'nobody will buy at $9.9 billion' did not hold. 'Die, or get acquired' is consistent with the sale, but the fork left out a third branch (staying independent and raising at a higher price), the sale does not show that the reasons given were the cause (Reuters pointed to a lack of computing power), the 'no exits' claim depends on scope, and 'just fine' has no number or date."
         sources:
           - https://www.wheresyoured.at/ai-is-a-money-trap/
+          - https://www.cnbc.com/2025/11/13/cursor-ai-startup-funding-round-valuation.html
           - https://www.reuters.com/legal/transactional/spacex-buy-anysphere-60-billion-2026-06-16/
           - https://www.bloomberg.com/news/articles/2026-08-14/spacex-completes-its-60-billion-cursor-acquisition
         verified: true
+        note: "Not checked: Cursor's revenue after its pricing change, and whether the customers described ever left."
+      - title: "The pace needed to reach a revenue target"
+        asOf: 2025-08-06
+        outcome: "On 6 Aug 2025 a $12.7bn revenue target for 2025 needed about $1.49bn a month for the last five months, against a reported pace of about $1bn a month, so the doubt was reasonable on the numbers then public. OpenAI's audited statements, reported by Ed Zitron in Jun 2026 and said by the Financial Times to match the documents it saw, show 2025 revenue of $13.07bn (about 3% above the target), with monthly revenue close to $2bn by the end of the year, so 'trouble hitting' the projection did not hold. They also show a loss from operations of $20.92bn (minus 160% of revenue), so 'lose more than $10 billion' held on that measure; the reported net loss was distorted by a non-cash charge of $41.55bn from the conversion to a for-profit company. 'Revenue' meant the year's revenue, not the run rate, and 'lose' the operating loss, not cash burn."
+        sources:
+          - https://www.wheresyoured.at/ai-is-a-money-trap/
+          - https://www.wheresyoured.at/exclusive-openai-financials/
+        verified: false
+        note: "The audited figures reach us through Zitron's report and the Financial Times, not through an OpenAI filing, and OpenAI declined to comment; no primary source was seen."
   - id: jud-units-periods
-    title: "Judge: units and periods (430% versus 340%, basis points, SOFR)"
+    title: "Judge: units, periods and labels"
     stage: judge
     prerequisites: [fs-revenue-runrate, bond-yield, num-percent-bps]
     cases:
-      - title: "Zitron's slips on units"
+      - title: "A run rate set against one quarter of revenue"
         asOf: 2026-10-13
-        outcome: "Checkable slips: 430% versus 340% (annual versus quarter), a basis point as 0.001, SOFR glossed as borrowing from the Fed."
+        outcome: "Anthropic's Form S-1, filed on 26 Oct 2026, later gave audited quarterly revenue of $4,731m for Q1 2026 and $11,555m for Q2 ($16,286m for the half), and defines run-rate revenue as the trailing 28 days of usage fees x 13 plus monthly subscription fees x 12, not a substitute for revenue or a forecast. Recomputed from the piece's own numbers, $48bn is 4.40 times the Q2 revenue he gives ($10.9bn), about 340% more, not 430%; against the S-1's $11,555m it is 4.15 times, about 315% more. The comparison also sets an annual pace against one quarter: four times the quarter is $43.6bn on his figure or $46.2bn on the S-1's. The second claim's slip is smaller: $12.4bn + $15.5bn = $27.9bn, and 48 - 27.9 = $20.1bn, not $19.1bn. His main point, that a run rate is a pace and not revenue already earned, survives; the stated percentages do not."
         sources:
           - https://www.wheresyoured.at/annualized-enron-rate/
-          - https://www.wheresyoured.at/credit-crunch/
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+        verified: true
+        note: "The OpenAI figures cannot be checked against any filing."
+      - title: "A basis point defined in a bond sidenote"
+        asOf: 2026-09-29
+        outcome: "A basis point is one hundredth of a percentage point: 0.01%, or 0.0001 as a fraction (SEC Investor.gov glossary; European Central Bank). The sidenote's '0.001' is ten times too large (0.1% instead of 0.01%); the rest of the sidenote stands, and the writer's own piece a week later used the unit correctly. The 10-year yield he quoted fits Treasury's data: the par yield closed at 5.24% on 28 Sep, 5.26% on 29 Sep and 5.29% on 30 Sep 2026, up from 4.79% on 1 Sep, a rise of 47 basis points to 29 Sep."
+        sources:
           - https://www.wheresyoured.at/dead-money/
+          - https://investor.gov/introduction-investing/investing-basics/glossary/basis-point
+          - https://ecb.europa.eu/stats/ecb_statistics/anacredit/questions/html/ecb.anaq.200131.0002.hr.html
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_yield_curve&field_tdr_date_value=2026&page&_format=csv
+        verified: true
+      - title: "SOFR explained as borrowing from the Fed"
+        asOf: 2026-10-06
+        outcome: "The Federal Reserve Bank of New York, which publishes SOFR each business day, describes it as a broad measure of the cost of borrowing cash overnight collateralised by Treasury securities, calculated from repurchase-agreement transactions between market participants. It is a private-market rate, so 'borrowing from the Fed' mislabels it; banks that do borrow from the Fed do so at the discount window, at a separate rate. The slip does not change how a floating loan is priced (SOFR plus a margin), but it changes what a reader believes the benchmark is and why it moves."
+        sources:
+          - https://www.wheresyoured.at/credit-crunch/
           - https://www.newyorkfed.org/markets/reference-rates/sofr
-        verified: false
-        note: "S-1 figures to re-fetch."
+        verified: true
   - id: jud-filing-vs-claim
     title: "Judge: claim versus filing"
     stage: judge
     prerequisites: [fs-filings, fs-income, jud-units-periods]
     cases:
-      - title: "The Anthropic S-1 against two readings"
+      - title: "A professor summarises the first six months of a filing"
         asOf: 2026-10-28
-        outcome: "S-1 Q2 operating income $974m and cash $112.4bn confirmed; the H1 loss and commitments figures not re-verified."
+        outcome: "Checked against the S-1 on 2 Nov 2026, three statements tie out: operating income of $974m in the quarter to 30 Jun 2026 after a loss of $1,667m in Q1; compute and infrastructure expense of 251% of revenue in the March 2025 quarter and 48% in the June 2026 quarter; and a six-month net loss of $80,748m, of which $72,388m was the change in fair value of convertible notes, derivative liabilities and SAFEs. The 'operating loss of over $8 billion' is a mislabel: the S-1's six-month operating loss is $693m, and the $8,360m is the net loss before the fair-value change (after $1,111m of interest income, $21m of tax and $8,757m of other expense). The '$114 billion' of cash matches neither balance-sheet measure ($112,389m of cash and cash equivalents; $19,262m of short-term investments) and sits close to the $114,918m of cash, cash equivalents and restricted cash in the cash flow statement."
+        sources:
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
+        verified: true
+        note: "Not checked: whether the post was corrected later, and the spreadsheet behind it."
+      - title: "A newsletter writer reads the same filing"
+        asOf: 2026-10-28
+        outcome: "Checked against the S-1 on 2 Nov 2026. The sum is right and its label is wrong: revenue was $4,585m for 2025 and $1,163m for the first half of 2025, so the second half was $3,422 million, not billion, and the twelve months to 30 Jun 2026 were $19,708m, the figure he gives. The distillation statement goes beyond the text: the S-1 estimates that revenue from customers using its models 'in violation of our usage policy or commercial terms' was approximately 5% to 7% for the nine months to 30 Sep 2026, without saying who those customers are. The 'guaranteed' statement drops the hedge: for margins the S-1 says 'may compress' and nowhere says any of this is guaranteed. The third-quarter statement overreaches: the S-1 has no financial statements for the quarter to 30 Sep 2026, but it does contain Q3 and nine-month facts."
         sources:
           - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
           - https://www.wheresyoured.at/exit-liquidity/
-          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
-        verified: false
-        note: "Fetch the S-1 figures before writing."
+        verified: true
+        note: "Not checked: whether the article was corrected later."
   - id: jud-rating-conflict
     title: "Judge: junk or BB+?"
     stage: judge
     prerequisites: [credit-analysis, jud-rating-boundary]
     cases:
-      - title: "Anthropic's rating"
-        asOf: 2026-06-01
-        outcome: "KBRA gave BB+ in Jun 2026 (highest speculative grade) per the FT; Zitron's B to CCC+ unchecked."
+      - title: "A writer puts a rating range on companies with negative earnings"
+        asOf: 2026-10-06
+        outcome: "Anthropic filed its S-1 on 26 Oct 2026, twenty days after the piece. It reports 2025 revenue of $4,585m and an operating loss of $8,060m (about minus 176%), Q1 2026 revenue of $4,731m and an operating loss of $1,667m (minus 35%), and Q2 revenue of $11,555m with operating income of $974m (plus 8%). These are operating margins, not EBITDA, but the minus 160% Zitron took from OpenAI sat close to Anthropic's 2025 figure and far from its two most recent quarters. Inside the piece, the heading's range (B- to CCC+) is one notch narrower at the top than the body's (B to CCC+), and his remark that BB+ is the highest level of junk is correct."
         sources:
+          - https://www.wheresyoured.at/credit-crunch/
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+          - https://www.fitchratings.com/products/rating-definitions
+          - https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating
+        verified: true
+      - title: "A valuation post cites a BB+ rating with no source"
+        asOf: 2026-10-28
+        outcome: "The Financial Times reported on 16 Oct 2026, from documents it saw, that KBRA, a smaller agency, gave Anthropic an issuer rating of BB+ in Jun 2026, one notch below investment grade; about $4.4bn of junior debt in a $35bn financing carried BB+ with a stable outlook and was sold at a yield of about 8.5%, against about 5.75% for the senior debt, which funds chips on Broadcom's platform. The post's grade matches the one rating found; 'bond rating' is loose, since the FT calls the June action an issuer rating; 'current' rests on a June action; and the post cites no source. Zitron's range (B to CCC+) was conditional on negative EBITDA and no government or hyperscaler guarantee, so one smaller agency's rating neither confirms nor refutes it. On 30 Oct the FT reported, according to second-hand copies, that Blackstone told investors a 'high' junk rating from the major agencies was expected after the IPO."
+        sources:
+          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
           - https://www.ft.com/content/5a310aee-f555-4266-874c-b1b4db20186d
           - https://aiweekly.co/alerts/anthropic-landed-bb-kbra-rating-in-june-ahead-of-35b-apollo-deal
-          - https://www.wheresyoured.at/credit-crunch/
-        verified: false
-        note: "BB+ side verified only."
+          - https://enterpriseai.economictimes.indiatimes.com/news/industry/anthropic-may-not-secure-investment-grade-rating-after-ipo-blackstone-tells-investors/135373431
+          - https://www.kbra.com/understanding-ratings/rating-scales/long-term-credit-rating
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+        verified: true
+        note: "KBRA's own release was not found, the FT article is paywalled and the Blackstone report was read only second-hand."
   - id: ana-build-valuation
     title: "Analyse: build a valuation as of a past date"
     stage: analyse
     prerequisites: [val-multiples, val-young, val-distress]
     cases:
-      - title: "A lesser-known company's valuation"
-        asOf: 1999-11-05
-        outcome: "Choose Webvan (Nov 1999), Coffee Day (Oct 2015) or Yes Bank (Feb 2020); each has a known outcome."
+      - title: "Build your own value for Amazon.com"
+        asOf: 2000-02-01
+        outcome: "Damodaran valued Amazon in Feb 2000, in a paper dated Mar 2000, at $35.08 a share against the $84 price, after subtracting $2,892m for options. He grew revenue 150%, 100%, 75%, 50% and 30% in years 1 to 5, then 25.2%, 20.4%, 15.6%, 10.8% and 6%, to $39,006m in year 10, with operating margin rising from -13.35% in year 1 to 9.95% in year 10 and a cost of capital of 12.84% falling to 9.61%. In 2000 Amazon's net sales were $2,762m, close to his year-1 figure of about $2,793m, but its operating loss was $864m (about -31%), far below his -13.35%. The shares traded between $91.50 and $58.44 in the first quarter and between $40.88 and $14.88 in the fourth. His revenue path was one many could accept, but the whole value rested on the margin reaching about 10% and on the discount rate falling."
         sources:
-          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
-          - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
-          - https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477
+          - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
         verified: true
   - id: ana-who-pays-whom
     title: "Analyse: trace who pays whom"
     stage: analyse
     prerequisites: [fs-leases-debt, struct-securitisation, private-credit]
     cases:
-      - title: "WeWork's leases and SoftBank"
+      - title: "Where WeWork's cash came from and where it went"
         asOf: 2019-08-14
-        outcome: "WeWork owed about $17bn in leases while SoftBank funded the losses; bankrupt in Nov 2023."
+        outcome: "The S-1 showed $47.2bn of undiscounted future lease payments ($17.9bn of long-term lease obligations on the balance sheet), lease cost of about $775m for the first half of 2019, a net loss of about $905m and about $2.5bn of cash at 30 Jun 2019, with SoftBank covering the shortfall through a convertible note and two warrants. The listing did not go ahead: WeWork postponed it and asked to withdraw its filing on 30 Sep 2019, after Adam Neumann stepped down as chief executive on 24 Sep. In Oct 2019 SoftBank stepped in with a rescue reported as a $5bn loan, the $1.5bn of equity due in 2020 paid early and an offer to buy up to $3bn of shares from existing holders, valuing the company at about $8bn, so in effect the investor, not the members, kept paying the landlords. WeWork filed for Chapter 11 on 6 Nov 2023, listing nearly $19bn of liabilities, and used the process to reject leases it could not afford."
         sources:
+          - https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
           - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
+          - https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
           - https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall
         verified: true
   - id: ana-commitments-debt
@@ -1254,52 +1337,74 @@ topics:
     stage: analyse
     prerequisites: [fs-leases-debt, val-dcf, jud-filing-vs-claim]
     cases:
-      - title: "Purchase commitments in the Anthropic S-1"
+      - title: "A compute company's purchase commitments in its first prospectus"
         asOf: 2026-10-26
-        outcome: "$430bn undiscounted versus its present value; the scope gap against 'over $600bn' is unreconciled."
+        outcome: "Treating each year's payment as made at year end, and spreading the $11,808m 'thereafter' evenly over 2031 to 2035 (the filing does not give the split, so this is an assumption), the 31 Dec 2025 schedule of $54.6bn has a present value of about $45.3bn at 5% a year, $40.9bn at 8% and $38.4bn at 10%: roughly 83%, 75% and 70% of the undiscounted total. The later figures cannot be treated the same way: about $417bn of further minimum payments from agreements signed after 31 Dec 2025, and about $245bn plus about $21bn of short-term minimum payments from agreements after 30 Jun 2026, come with no year-by-year schedule, and the filing leaves its aggregate committed spend and its 12-month payments blank. Microsoft, Google and Amazon come to $269.4bn; adding the Broadcom lease rent makes $430.6bn; adding the 'up to' SpaceXAI figure makes $551.1bn; and the filing says amounts it expects for additional Google TPU capacity ($125bn to $150bn) and for AMD (more than $20bn) are not in its commitments table. Which of these belong in a debt-like total is a choice about cancellability, conditions and whether a fixed dollar amount exists, and the filing as filed does not let a reader reconcile the totals."
         sources:
           - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
-          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
-          - https://www.wheresyoured.at/exit-liquidity/
-        verified: false
-        note: "Commitments figure came back blank in the scrape; re-fetch."
+          - https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf
+          - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/AccPrimer/lease.htm
+        verified: true
+        note: "The filing is preliminary: its aggregate committed spend and 12-month payments are blank, and the even split of the tail after 2030 is the Topic's assumption."
   - id: ana-india-transfer
     title: "Analyse: transfer to India (G-sec, bank, rupee)"
     stage: analyse
     prerequisites: [val-india, val-banks, in-gsec, fx-regimes-crises]
     cases:
-      - title: "Yes Bank, the rupee in 2013 and country risk"
+      - title: "Reading an Indian private bank from its published numbers"
         asOf: 2020-02-28
-        outcome: "Yes Bank moratorium 5 Mar 2020; rupee package 4 Sep 2013."
+        outcome: "On 5 Mar 2020 the RBI, in consultation with the Central Government, superseded Yes Bank's board for 30 days 'owing to serious deterioration in the financial position of the Bank' and appointed Prashant Kumar, formerly deputy managing director and chief financial officer of State Bank of India, as administrator (RBI press release 2019-2020/2025). Withdrawals were capped at Rs 50,000 a depositor. The draft reconstruction scheme had SBI take up to 49% at Rs 10 a share (about Rs 2,450 crore); the Government notified it on 13 Mar and the restrictions ended at 6 p.m. on 18 Mar 2020. The shares closed at Rs 16.20 on 6 Mar 2020. The published ratios had already shown a sharp deterioration, but they were months old and a bank's equity is a thin layer on a large balance sheet: start from capital, asset quality and funding, and be wary of a price that looks cheap against an old book value."
         sources:
           - https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477
-          - https://bis.org/review/r160905b.htm
-          - https://aswathdamodaran.blogspot.com/2026/07/country-risk-drivers-measures-and.html
+          - https://www.business-standard.com/amp/article/pti-stories/yes-bank-posts-net-loss-of-rs-629-cr-in-sept-quarter-as-bad-loans-spike-119110101058_1.html
         verified: true
+        note: "The as-of ratios come from press reports of the Q2 FY20 results (Business Standard, Times of India, ANI), not from the bank's own filings."
+      - title: "Valuing rupee cash flows when the rupee has fallen"
+        asOf: 2013-09-03
+        outcome: "The two currency-consistent values agree at about Rs 1,181 crore (rupee discount rate 1.10 x 1.08 / 1.02 - 1, about 16.5%; in dollars the cash flow grows 2% and is discounted at 10%, converted at Rs 65), while discounting rupee flows at the dollar rate gives Rs 5,000 crore, more than four times too much. The RBI's Jan 2014 review counted a fall of nearly $17bn in its reserves and net foreign portfolio outflows of over $13.4bn ($10.5bn from debt, $2.8bn from shares) over that stretch of 2013. On 4 Sep 2013 the RBI announced a package that included a swap window for fresh FCNR(B) deposits, which in Governor Rajan's later account drew in $26bn; news reports put the rupee near 61.3 to the dollar about 40 days in. A valuation that kept cash flows and discount rates in one currency did not depend on guessing either direction."
+        sources:
+          - https://bis.org/review/r160905b.htm
+          - https://indianexpress.com/article/business/banking-and-finance/fcnrb-deposits-push-forex-reserves-to-all-time-high-of-729-billion-in-august-10853919/
+          - https://pages.stern.nyu.edu/~adamodar/pdfiles/ovhds/dam2ed/discountrates.pdf
+        verified: true
+        note: "The RBI's January 2014 review figures are cited in the Topic but its page was not re-fetched here (the RBI site blocks scripted access)."
   - id: ana-decide-between
     title: "Analyse: decide between writers, facts versus framing"
     stage: analyse
     prerequisites: [jud-predicted-outcomes, jud-units-periods, jud-filing-vs-claim]
     cases:
-      - title: "Blodget versus Grantham"
-        asOf: 2000-01-01
-        outcome: "The dot-com bust settled which framing was right."
+      - title: "Two investors, one market, and what each claim is made of"
+        asOf: 2000-06-12
+        outcome: "The Nasdaq Composite closed at 1,114.11 on 9 Oct 2002 by one count, more than 75% below its March 2000 record, and did not close above that record again until 23 Apr 2015 (5,056.06). The S&P 500 fell from its record close of 1,527.46 on 24 Mar 2000 to a closing low of 776.76 on 9 Oct 2002, about 49%. So Grantham's sizes (S&P 500 down 50%, Nasdaq down 70%) landed close to the result, and his 'sooner or later' took two and a half years. Blodget's 83% was within three points of the Nasdaq's own 85.59%, and his 340 times could not be reproduced from Yahoo's April release (about 225 times on reported earnings and about 277 times on pro forma earnings, annualised, at $70bn). On 28 Apr 2003 Blodget settled SEC and industry charges, without admitting or denying them, that some of his research on other internet companies expressed views inconsistent with what he said privately; he was barred from the securities industry and paid $4m. That concerned particular reports, not the Forbes debate. The lesson is the order of the work: check facts and definitions first, judge forecasts by their reasoning, notice the framing, and only then let the outcome grade the forecasts."
         sources:
+          - https://www.forbes.com/forbes/2000/0612/6514312a.html
           - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html
-        verified: false
-        note: "Outcome data to source."
+          - https://cnbc.com/2007/07/13/sp-500-milestones.html
+          - https://www.sec.gov/news/press/2003-56.htm
+          - https://www.sec.gov/litigation/litreleases/lr18115.htm
+        verified: true
+        note: "The share of new internet companies that disappeared was not counted, so that claim stays untested here."
   - id: ana-anthropic-s1
     title: "Analyse: the writers' opposing readings of the Anthropic S-1"
     stage: analyse
     prerequisites: [ana-who-pays-whom, ana-commitments-debt, ana-decide-between, ana-india-transfer, jud-rating-conflict]
     cases:
-      - title: "The S-1 filed 26 October 2026"
+      - title: "The Anthropic S-1, and Damodaran's reading of it"
         asOf: 2026-10-28
-        outcome: "Zitron's 'Exit Liquidity' and Damodaran's 'The Anthropic Prospectus Arrives' both appeared on 28 Oct 2026. Judge the readings; do not forecast."
+        outcome: "The filing's figures, set beside Damodaran's reading. He is right that H1 2026 revenue ($16,286m) was about fourteen times H1 2025 ($1,163m), that the top five customers were about 25% of revenue for the nine months to 30 Sep 2026, that compute cost fell to about 48% of revenue in Q2 2026 and that Q2 showed an operating profit ($974m). Three of his figures do not match: the H1 2026 'operating loss of over $8 billion' (the S-1's is $693m; the figure matches the net loss less the $72,388m fair-value change, about $8.4bn), cash 'already at $114 billion' (the S-1 gives $112.4bn of cash and equivalents plus $19.3bn of short-term investments), and a debt figure 'close to half a billion' (reads as a unit slip, not confirmed). His 'in excess of $600 billion' of compute commitments is a matter of scope: the commitments table holds $430.6bn, with further items outside it. His BB+ rating is not in the S-1 (the Financial Times reported a June 2026 KBRA issuer rating), and his remark that revenue growth slowed in Q3 cannot be checked, since the S-1 leaves its Q3 revenue figure blank. His $1.475tn estimate is a forecast, which the Topic does not judge."
         sources:
+          - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+          - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
+          - https://www.ft.com/content/5a310aee-f555-4266-874c-b1b4db20186d
           - https://www.anthropic.com/news/s1-sec
+        verified: true
+        note: "Whether either writer later corrected the piece was not checked."
+      - title: "The Anthropic S-1, and Zitron's reading of it"
+        asOf: 2026-10-28
+        outcome: "His total of about $430bn of non-cancellable compute commitments ties out (Google $114.5bn + Amazon $110.0bn + Microsoft $44.9bn + Broadcom finance-lease rent $161.2bn = $430.6bn); it is an undiscounted sum that mixes purchase commitments with lease rent and leaves out the SpaceXAI arrangement (up to $120.5bn, cancellable after early 2027). The S-1 has no Q3 financial statements and leaves its Q3 revenue figure blank, but it gives some nine-month and Q3 facts. On margins it says they 'may compress', which a reading that makes this certain drops. The 5% to 7% estimate is of revenue from customers using its models in violation of its usage policy or terms; the S-1 does not say they were competitors or that the use was distillation. His claims about intent and about where growth and margins go next are framing and forecasts, which the Topic does not judge. The two writers agree on most facts and differ mainly in scope (undiscounted commitments counted as obligations versus discounted into debt and set against cash) and in framing; each made slips the filing exposes, and neither set of slips decides the framing argument."
+        sources:
           - https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
           - https://www.wheresyoured.at/exit-liquidity/
           - https://aswathdamodaran.blogspot.com/2026/10/the-anthropic-prospectus-arrives-ipo.html
-        verified: false
-        note: "Arithmetic beyond cash and operating income not verified."
+        verified: true
+        note: "Whether either writer later corrected the piece was not checked."
