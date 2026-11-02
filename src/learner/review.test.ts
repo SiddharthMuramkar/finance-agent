@@ -1,5 +1,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
+import { importBank } from "@/bank/ingest";
+import type { BankQuestion } from "@/bank/normalise";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { messages, reviewCards, reviewLog, settings } from "@/db/schema";
 import { startSession } from "@/tutor/session-log";
@@ -173,3 +175,81 @@ describe("spaced review", () => {
     expect((await reviewState(db, map, new Date(next.getTime() + 120_000))).question).toBeNull();
   });
 });
+
+describe("spaced review of Question Bank questions", () => {
+  it("enrols a passed bank question, offers it when due without the key, and marks and reschedules it", async () => {
+    const db = await testDb();
+    await importBank(db, [bankChoice(1), bankChoice(2)]);
+    const map = bankReviewMap();
+    await ensureTopicStarted(db, map);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    const quiz = (await openQuiz(db, map))!;
+    const passAt = new Date("2026-01-01T10:00:00Z");
+    expect(quiz.questions.map((q) => q.id)).toEqual(["bank:eab:R-1", "bank:eab:R-2"]);
+    await submitQuiz(db, map, quiz.attemptId, { "bank:eab:R-1": "B", "bank:eab:R-2": "A" }, passAt);
+
+    const later = new Date(passAt.getTime() + 30 * day);
+    const state = await reviewState(db, map, later);
+    expect(state.dueCount).toBe(2);
+    expect(state.question?.id).toBe("bank:eab:R-2"); // the missed one comes back first
+    for (const secret of ["Bank because", "Executive Assessment Bank", '"answer"']) expect(JSON.stringify(state.question)).not.toContain(secret);
+
+    const graded = await answerReview(db, map, "bank:eab:R-2", "B", later);
+    expect(graded).toMatchObject({ ok: true, correct: true, answer: "B", explanation: "Bank because 2.", credit: "Executive Assessment Bank, CC-BY-4.0", verified: false });
+    expect(await db.select().from(reviewLog).where(eq(reviewLog.questionId, "bank:eab:R-2"))).toHaveLength(2);
+    expect((await reviewState(db, map, later)).dueCount).toBe(1);
+  });
+});
+
+function bankChoice(n: number): BankQuestion {
+  return {
+    id: `bank:eab:R-${n}`,
+    source: "eab",
+    bankTitle: "MBA core - Test",
+    topic: "tvm",
+    kind: "choice",
+    prompt: `Review question ${n}?`,
+    context: null,
+    choices: [
+      { id: "A", text: `Wrong ${n}` },
+      { id: "B", text: `Right ${n}` },
+    ],
+    answer: "B",
+    explanation: `Bank because ${n}.`,
+    licence: "CC-BY-4.0",
+    credit: "Executive Assessment Bank, CC-BY-4.0",
+    sourceUrl: "https://example.org",
+    upstreamReview: "self-checked",
+    verified: false,
+    verifiedNote: null,
+  };
+}
+
+function bankReviewMap(): CourseMap {
+  const { map, errors } = parseCourseMap([
+    {
+      name: "t.yaml",
+      text: `
+id: t
+title: T
+stage: foundation
+path: 1
+cases: [{ id: c, title: C, asOf: 2018-10-24, story: S, reveal: R }]
+concept: C
+principle: P
+checks:
+  - id: quiz
+    kind: quiz
+    questions: ["bank:eab:R-1", "bank:eab:R-2"]
+    passRule: { correct: 1 }
+    perAttempt: 2
+  - id: talk
+    kind: conversation
+    prompt: Explain.
+    passCriteria: Explains.
+`,
+    },
+  ]);
+  if (!map) throw new Error(errors.join("\n"));
+  return map;
+}

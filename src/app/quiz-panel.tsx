@@ -62,6 +62,11 @@ export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
                 right answer: {q.choices.find((c) => c.id === q.answer)?.text}
               </p>
               <p className="text-stone-600 dark:text-stone-400">{q.explanation}</p>
+              {q.credit && (
+                <p className="text-xs text-stone-500">
+                  Question: {q.credit}.{q.verified ? "" : " The answer key has not been checked by a person yet."}
+                </p>
+              )}
             </li>
           ))}
         </ol>

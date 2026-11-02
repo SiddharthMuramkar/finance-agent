@@ -91,3 +91,52 @@ describe("quiz marking", () => {
     expect(result.questions.map((q) => q.chosen)).toEqual([null, null]);
   });
 });
+
+describe("quiz questions from the Question Bank", () => {
+  const bankQuestion = {
+    id: "bank:eab:MBA-FIN-CF-0002",
+    prompt: "What is $2.0M worth in 5 years at 6%?",
+    choices: [
+      { id: "A", text: "$2,600,000" },
+      { id: "B", text: "$2,676,451" },
+    ],
+    answer: "B",
+    explanation: "FV = 2,000,000 x 1.06^5.",
+    credit: "Executive Assessment Bank, CC BY 4.0",
+    verified: false,
+  };
+
+  function mixed() {
+    const { map, check } = quizMap(3, 3, 2);
+    const lookup = { question: (id: string) => (id === bankQuestion.id ? bankQuestion : map.question(id)) };
+    return { lookup, check, ids: ["q1", bankQuestion.id, "q2"] };
+  }
+
+  it("selects bank IDs from a Check's list like any other, and a retry rotates to different ones", () => {
+    const { check } = quizMap(4, 2, 2);
+    const withBank = { ...check, questions: ["q1", "bank:a", "bank:b", "bank:c"] };
+    expect(selectQuestions(withBank, 0)).toEqual(["q1", "bank:a"]);
+    expect(selectQuestions(withBank, 1)).toEqual(["bank:b", "bank:c"]);
+  });
+
+  it("keeps the key, the explanation and the credit out of what the browser receives", () => {
+    const { lookup, ids } = mixed();
+    const text = JSON.stringify(publicQuestions(lookup, ids));
+    expect(text).toContain("What is $2.0M worth");
+    for (const secret of ["2,676,451 x", "FV =", "Executive Assessment Bank", "verified", '"answer"']) expect(text).not.toContain(secret);
+  });
+
+  it("marks bank questions with the Check's pass rule and returns the credit and verified flag with the marking", () => {
+    const { lookup, check, ids } = mixed();
+    const result = markAttempt(lookup, check, ids, { q1: "a", [bankQuestion.id]: "B", q2: "b" });
+    expect(result.passed).toBe(true);
+    expect(result.questions.find((q) => q.id === bankQuestion.id)).toMatchObject({ correct: true, credit: bankQuestion.credit, verified: false });
+    expect(result.questions.find((q) => q.id === "q1")).toMatchObject({ verified: true });
+  });
+
+  it("fails clearly when a question cannot be found", () => {
+    const { check } = quizMap(2, null, 2);
+    expect(() => publicQuestions({ question: () => undefined }, ["bank:gone"])).toThrow(/bank:gone/);
+    expect(() => markAttempt({ question: () => undefined }, check, ["bank:gone"], {})).toThrow(/bank:gone/);
+  });
+});

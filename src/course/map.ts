@@ -35,7 +35,7 @@ const quizCheck = z.object({
   id,
   kind: z.literal("quiz"),
   required: z.boolean().default(false),
-  /** IDs of questions in the Topic's `questions` list. */
+  /** IDs of questions in the Topic's `questions` list, and of Question Bank questions (`bank:...`). */
   questions: z.array(z.string().min(1)).min(1),
   /** How many questions one attempt shows; defaults to the pass rule's `correct`. */
   perAttempt: z.number().int().min(1).optional(),
@@ -45,6 +45,8 @@ const quizCheck = z.object({
 const caseSchema = z.object({
   id,
   title: z.string().min(1),
+  /** IDs of the Case Data datasets this Case is taught with. The laptop check confirms each one exists. */
+  data: z.array(id).default([]),
   /** The story uses only what was known on this date. */
   asOf: z.iso.date(),
   story: z.string().min(1),
@@ -173,6 +175,10 @@ function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | unde
   return { ...file, stage: planned.stage, path: planned.path, prerequisites: planned.prerequisites };
 }
 
+/** The ID prefix of a Question Bank question. Bank questions live in the database, so the file cannot hold them. */
+export const BANK_PREFIX = "bank:";
+export const isBankId = (questionId: string) => questionId.startsWith(BANK_PREFIX);
+
 function quizProblems(t: Topic): string[] {
   const problems: string[] = [];
   for (const q of t.questions) {
@@ -183,7 +189,7 @@ function quizProblems(t: Topic): string[] {
   const known = new Set(t.questions.map((q) => q.id));
   for (const c of t.checks) {
     if (c.kind !== "quiz") continue;
-    for (const q of c.questions) if (!known.has(q)) problems.push(`Check "${c.id}" uses question "${q}", which Topic "${t.id}" does not have`);
+    for (const q of c.questions) if (!isBankId(q) && !known.has(q)) problems.push(`Check "${c.id}" uses question "${q}", which Topic "${t.id}" does not have`);
     if (new Set(c.questions).size !== c.questions.length) problems.push(`Check "${c.id}" lists a question twice`);
     const shown = c.perAttempt ?? c.passRule.correct;
     if (shown > c.questions.length) problems.push(`Check "${c.id}" shows ${shown} questions per attempt but lists only ${c.questions.length}`);

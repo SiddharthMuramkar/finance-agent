@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, gte, inArray, max } from "drizzle-orm";
+import { questionLookup } from "@/bank/lookup";
 import { DEFAULT_REVIEW_CAP, reviewsDue } from "@/course/navigator";
 import type { CourseMap, QuizCheck } from "@/course/map";
 import { publicQuestions, type PublicQuestion } from "@/course/quiz";
@@ -56,13 +57,14 @@ export async function enrollPassedQuestions(db: Db, map: CourseMap): Promise<voi
     .from(quizAttempts)
     .where(inArray(quizAttempts.checkId, checkIds))
     .orderBy(asc(quizAttempts.id));
+  const lookup = await questionLookup(db, map, attempts.flatMap((a) => a.questionIds));
   const have = new Set((await db.select({ id: reviewCards.questionId }).from(reviewCards)).map((r) => r.id));
   const events = new Map<string, { at: Date; correct: boolean }[]>();
   for (const attempt of attempts) {
     if (!attempt.submittedAt || !attempt.answers) continue;
     const check = map.check(attempt.checkId) as QuizCheck;
     for (const id of attempt.questionIds) {
-      const question = map.question(id);
+      const question = lookup.question(id);
       if (!question || have.has(id) || !check.questions.includes(id)) continue;
       events.set(id, [...(events.get(id) ?? []), { at: attempt.submittedAt, correct: attempt.answers[id] === question.answer }]);
     }
@@ -116,18 +118,19 @@ export async function reviewState(db: Db, map: CourseMap, now = new Date()): Pro
   await enrollPassedQuestions(db, map);
   const [cards, done, settings] = await Promise.all([db.select().from(reviewCards), doneThisSession(db, now), readSettings(db)]);
   const cap = Number.isFinite(settings.reviewCap) ? settings.reviewCap : DEFAULT_REVIEW_CAP;
-  const { offered, dueCount } = reviewsDue(map, cards, now, done, cap);
-  return { question: offered[0] ? publicQuestions(map, [offered[0].questionId])[0] : null, dueCount, done, cap };
+  const lookup = await questionLookup(db, map, cards.map((c) => c.questionId));
+  const { offered, dueCount } = reviewsDue(lookup, cards, now, done, cap);
+  return { question: offered[0] ? publicQuestions(lookup, [offered[0].questionId])[0] : null, dueCount, done, cap };
 }
 
 export type ReviewAnswer =
-  | { ok: true; correct: boolean; answer: string; explanation: string; choices: { id: string; text: string }[]; chosen: string | null; nextDue: Date }
+  | { ok: true; correct: boolean; answer: string; explanation: string; choices: { id: string; text: string }[]; chosen: string | null; nextDue: Date; credit?: string; verified: boolean }
   | { ok: false; reason: string };
 
 /** Marks a review on the server and reschedules the question. Only the question currently offered is accepted. */
 export async function answerReview(db: Db, map: CourseMap, questionId: string, choiceId: string, now = new Date()): Promise<ReviewAnswer> {
   const state = await reviewState(db, map, now);
-  const question = map.question(questionId);
+  const question = (await questionLookup(db, map, [questionId])).question(questionId);
   if (!question || state.question?.id !== questionId) return { ok: false, reason: "That question is not up for review right now." };
   const [row] = await db.select().from(reviewCards).where(eq(reviewCards.questionId, questionId));
   const chosen = question.choices.some((c) => c.id === choiceId) ? choiceId : null;
@@ -138,5 +141,5 @@ export async function answerReview(db: Db, map: CourseMap, questionId: string, c
     await tx.update(reviewCards).set(toRow(questionId, card)).where(eq(reviewCards.questionId, questionId));
     await tx.insert(reviewLog).values({ questionId, rating: correct ? 3 : 1, source: "review", reviewedAt: now });
   });
-  return { ok: true, correct, answer: question.answer, explanation: question.explanation, choices: question.choices.map(({ id, text }) => ({ id, text })), chosen, nextDue: card.due };
+  return { ok: true, correct, answer: question.answer, explanation: question.explanation, choices: question.choices.map(({ id, text }) => ({ id, text })), chosen, nextDue: card.due, ...(question.credit ? { credit: question.credit } : {}), verified: question.verified ?? true };
 }

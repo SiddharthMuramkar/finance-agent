@@ -1,7 +1,9 @@
 import { eq, sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { parseCourseMap, type CourseMap } from "@/course/map";
-import { quizAttempts } from "@/db/schema";
+import { importBank } from "@/bank/ingest";
+import type { BankQuestion } from "@/bank/normalise";
+import { questionBank, quizAttempts } from "@/db/schema";
 import { testDb } from "@/test/pglite";
 import { ensureTopicStarted, loadCheckResults, loadProgress, saveFinishedStep } from "./memory";
 import { markQuizReported, openQuiz, pendingQuizNote, submitQuiz } from "./quiz";
@@ -157,5 +159,114 @@ describe("quiz results for the Tutor", () => {
     expect(await pendingQuizNote(db, map)).toBeNull();
     const rows = await db.select().from(quizAttempts).where(eq(quizAttempts.id, first.attemptId));
     expect(rows[0].reportedAt).not.toBeNull();
+  });
+});
+
+describe("quiz Check with Question Bank questions", () => {
+  const bankRow = (n: number): BankQuestion => ({
+    id: `bank:eab:Q-${n}`,
+    source: "eab",
+    bankTitle: "MBA core - Test",
+    topic: "tvm",
+    kind: "choice",
+    prompt: `Bank question ${n}?`,
+    context: null,
+    choices: [
+      { id: "A", text: `Wrong ${n}` },
+      { id: "B", text: `Right ${n}` },
+    ],
+    answer: "B",
+    explanation: `Bank because ${n}.`,
+    licence: "CC-BY-4.0",
+    credit: "Executive Assessment Bank, CC-BY-4.0",
+    sourceUrl: "https://example.org",
+    upstreamReview: "self-checked",
+    verified: false,
+    verifiedNote: null,
+  });
+
+  /** A Check listing one Topic question and four bank questions; two shown per attempt, both needed. */
+  function bankMap(): CourseMap {
+    const { map, errors } = parseCourseMap([
+      {
+        name: "t.yaml",
+        text: `
+id: t
+title: T
+stage: foundation
+path: 1
+cases: [{ id: c, title: C, asOf: 2018-10-24, story: S, reveal: R }]
+concept: C
+principle: P
+questions:${question(1)}
+checks:
+  - id: quiz
+    kind: quiz
+    questions: [q1, "bank:eab:Q-1", "bank:eab:Q-2", "bank:eab:Q-3", "bank:eab:Q-4"]
+    perAttempt: 2
+    passRule: { correct: 2 }
+  - id: talk
+    kind: conversation
+    prompt: Explain.
+    passCriteria: Explains.
+`,
+      },
+    ]);
+    if (!map) throw new Error(errors.join("\n"));
+    return map;
+  }
+
+  async function atBankQuiz() {
+    const db = await testDb();
+    const map = bankMap();
+    await importBank(db, [1, 2, 3, 4].map(bankRow));
+    await ensureTopicStarted(db, map);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    return { db, map };
+  }
+
+  it("shows bank questions with no key, credit or explanation before the Learner has answered", async () => {
+    const { db, map } = await atBankQuiz();
+    const quiz = (await openQuiz(db, map))!;
+    expect(quiz.questions.map((q) => q.id)).toEqual(["q1", "bank:eab:Q-1"]);
+    const text = JSON.stringify(quiz);
+    for (const secret of ["Bank because", "Executive Assessment Bank", "verified", '"answer"']) expect(text).not.toContain(secret);
+    expect(text).toContain("Bank question 1?");
+    expect(text).toContain("Wrong 1");
+  });
+
+  it("marks bank questions on the server, returns the key, explanation, credit and unverified flag with the marking, and passes", async () => {
+    const { db, map } = await atBankQuiz();
+    const quiz = (await openQuiz(db, map))!;
+    const result = await submitQuiz(db, map, quiz.attemptId, { q1: "a", "bank:eab:Q-1": "B" });
+    if (!result.ok) throw new Error(result.reason);
+    expect(result).toMatchObject({ passed: true, correctCount: 2 });
+    expect(result.questions[1]).toMatchObject({ id: "bank:eab:Q-1", correct: true, explanation: "Bank because 1.", credit: "Executive Assessment Bank, CC-BY-4.0", verified: false });
+    expect(await loadCheckResults(db)).toMatchObject([{ checkId: "quiz", passed: true }]);
+  });
+
+  it("a miss keeps the Learner at the Check and the retry draws different bank questions", async () => {
+    const { db, map } = await atBankQuiz();
+    const first = (await openQuiz(db, map))!;
+    const missed = await submitQuiz(db, map, first.attemptId, { q1: "a", "bank:eab:Q-1": "A" });
+    expect(missed).toMatchObject({ ok: true, passed: false });
+    const retry = (await openQuiz(db, map))!;
+    expect(retry.questions.map((q) => q.id)).toEqual(["bank:eab:Q-2", "bank:eab:Q-3"]);
+    expect(retry.questions.map((q) => q.id)).not.toContain("bank:eab:Q-1");
+  });
+
+  it("tells the Tutor which bank answer was missed and that its key is unchecked", async () => {
+    const { db, map } = await atBankQuiz();
+    const quiz = (await openQuiz(db, map))!;
+    await submitQuiz(db, map, quiz.attemptId, { q1: "a", "bank:eab:Q-1": "A" });
+    const note = (await pendingQuizNote(db, map))!;
+    expect(note.text).toContain('Bank question 1? The Learner chose "Wrong 1"; the right answer is "Right 1".');
+    expect(note.text).toMatch(/answer key .*not been checked/i);
+  });
+
+  it("does not show or mark a question that has left the bank: the attempt cannot open, so nothing is lost", async () => {
+    const { db, map } = await atBankQuiz();
+    await db.delete(questionBank);
+    await expect(openQuiz(db, map)).rejects.toThrow(/bank:eab:Q-1/);
   });
 });

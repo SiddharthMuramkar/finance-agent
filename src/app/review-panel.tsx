@@ -50,6 +50,11 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
         <p className="font-medium">{result.correct ? "Correct." : `Not quite. You chose: ${text(result.chosen) ?? "no answer"}.`}</p>
         <p className="mt-1 text-sm">Right answer: {text(result.answer)}</p>
         <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">{result.explanation}</p>
+        {result.credit && (
+          <p className="mt-1 text-xs text-stone-500">
+            Question: {result.credit}.{result.verified ? "" : " The answer key has not been checked by a person yet."}
+          </p>
+        )}
         <button onClick={next} className="mt-3 rounded bg-stone-900 px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-stone-900">
           {review.dueCount > 1 && review.done + 1 < review.cap ? "Next review" : "Done"}
         </button>

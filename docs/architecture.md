@@ -54,6 +54,7 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
 - `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`: Learner Memory (below).
 - `usage`: what each turn and each step of it cost (below).
+- `question_bank`: the Question Bank, imported human-written questions with licence and credit (below).
 - `case_datasets`, `case_data_points`: Case Data, checked historical datasets with their sources (below).
 - `library_sources`, `library_passages`: the Library, real sources cut into searchable passages (below).
 - `turns`, `tool_calls`: each turn's saved status (running, cut off, finished, failed), which is also
@@ -795,3 +796,53 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 **The recommendation is made by code, not by the model.** If the cheaper model broke no more rules than the stronger one, the report recommends the cheaper one. If it broke more by a wide margin, the stronger one. A gap of two or fewer judgements counts as noise: the report calls it too close to call, keeps the stronger model and states both prices. The first full run came out 9 failures for Haiku against 8 for Sonnet, so the advice was to keep Sonnet while naming Haiku as a real option if cost ever becomes the limit.
 
 **Trade-offs.** The set is small (19 questions, 57 judgements per model), so differences of one or two are not real. The give-away check is strict for questions asked at a "your turn" step, and it also marked Haiku and Sonnet down when they simply answered a FinanceBench question the Learner pasted in; both models were hit about equally, so the comparison is fair, but the give-away numbers are higher than a Learner would feel. The grader sees a reference answer only for questions that have one. The script runs the Tutor on a throwaway in-memory database, with the model set in that database's settings the way the app does, so it never touches the Learner's real Sessions.
+
+## Question Bank (`src/bank/`, `npm run bank:import`, `bank:verify`, `course:refs`)
+
+**What it does.** Quiz Checks can now draw on questions other people wrote, as well as the
+questions Claude wrote in a Topic file. The imported questions live in one table, `question_bank`,
+in the private database; none of their text is in the public repository. Each has a permanent ID
+that starts with `bank:` (for example `bank:eab:MBA-FIN-CF-0002`), its source, its licence, a credit
+line, a link back, and a `verified` flag that starts false. Three sources are loaded: the University
+of Padova MBA exam questions (CC0, 78 multiple-choice), the Executive Assessment Bank's `mba-core`
+questions (CC BY 4.0, 410 multiple-choice; its keys were produced by a model, so they stay
+unverified until a person checks them) and FinQA's dev set (MIT, 871 company-report questions kept
+for the Judge Stage; they have numeric answers, so a quiz Check cannot use them yet). Open-response,
+calculation and other items that code cannot mark were left out of the import and counted in its output.
+
+**How a Check uses it.** A quiz Check in a Topic file lists question IDs. An ID starting with
+`bank:` is looked up in the database; any other ID is a question in the same file. Everything
+after that is the same as for Topic questions, because the marking code asks one question, "find
+this ID", and does not care where the answer comes from: code picks the questions for an attempt
+(walking round the list so a retry shows different ones), the browser receives prompts and choices
+only, the key arrives with the marking, and the pass is saved through Learner Memory. Answered
+bank questions enter spaced review the same way. The result screen and the review screen show the
+credit line, and "The answer key has not been checked by a person yet" while the flag is false.
+The Tutor's note about a quiz result says the same, so it works a disputed answer out with the
+Learner instead of defending the key.
+
+**Concrete scenario.** The Present value Check lists three Topic questions and four
+`bank:eab:...` ones, showing two per attempt. The Learner misses one on attempt 1; attempt 2 shows
+the next two in the list. After a pass, those questions come back for review weeks later, whichever
+source they came from. If one bank answer looks wrong to the Learner, the owner works it out and
+runs `npm run bank:verify -- "worked by hand" bank:eab:...`, and the warning goes away. Re-importing
+a bank file corrects text and keeps checked keys checked, unless the answer itself changed.
+
+**The laptop check.** `npm run course:refs` reads the database named in `.env` and confirms that
+every `bank:` ID a Check lists exists (and is a multiple-choice question), and that every Case
+Data dataset a Case lists in `data:` exists. It prints each missing item with the Check or Case
+that names it and exits with an error if any is missing, so a typo cannot reach the Learner as a
+broken quiz. It needs the database, so it is not part of `npm run check`; the file-only part of
+the validator still runs there and accepts `bank:` IDs without looking them up.
+
+**Lumen was not imported.** Lumen's macroeconomics question banks download only as LMS packages
+(QTI). The page states no licence for the question files (the CC BY label on that page covers the
+page's own text), says the files cannot be opened outside a learning management system, and says
+Lumen withholds written forms to protect quiz integrity. That is not a confirmed licence match
+with the book, so nothing was taken. The OpenStax end-of-chapter questions are the open alternative.
+
+**Trade-off.** A question that leaves the bank breaks any attempt that names it; the laptop check
+exists to catch that before the Learner does. Unverified keys are used anyway, with a visible
+warning, because waiting for a person to check 400 questions would leave the bank idle; checked
+questions can be chosen for the Checks that matter most. FinQA is stored but not used yet:
+marking a typed number needs an input and a tolerance rule, which is a separate piece of work.
