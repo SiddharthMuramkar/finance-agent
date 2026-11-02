@@ -14,7 +14,7 @@ import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { OPENING_PREFIX, type Line, latestTurn, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
-import { loadCheckResults, saveCheckResult, saveFinishedStep, workspaceSummary } from "@/learner/memory";
+import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, workspaceSummary } from "@/learner/memory";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
@@ -177,6 +177,7 @@ describe("Tutor Turn", () => {
 
     it("the Tutor reports a finished Teaching Step through a tool, and code accepts only the next legal one", async () => {
       const db = await testDb();
+    await ensureTopicStarted(db, map); // an earlier turn has shown the story
       const { client, requests } = scriptedClient([
         { content: [finish("reveal")] },
         { content: [finish("story")] },
@@ -198,6 +199,7 @@ describe("Tutor Turn", () => {
 
     it("rejects finishing a Teaching Step that began during the same turn, so each step is taught in a reply the Learner answers", async () => {
       const db = await testDb();
+    await ensureTopicStarted(db, map); // an earlier turn has shown the story
       const { client, requests } = scriptedClient([
         { content: [finish("story")] },
         { content: [finish("concept")] },
@@ -217,6 +219,28 @@ describe("Tutor Turn", () => {
       // After the Learner replies, a new turn may finish the step.
       await collect(runTutorTurn({ db, client, map }, "Understood."));
       expect(await workspaceSummary(db, map)).toContain("Teaching Step: your turn");
+    });
+
+    it("starts text written after a tool call on a new paragraph, so the streamed reply does not run two steps' sentences together", async () => {
+      const db = await testDb();
+      const { client } = scriptedClient([
+        { content: [{ type: "text", text: "Story told." }, finish("story")] },
+        { content: [{ type: "text", text: "Now the concept." }] },
+      ]);
+      const events = await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      const streamed = events.flatMap((e) => (e.type === "text" ? [e.text] : [])).join("");
+      expect(streamed).toBe("Story told.\n\nNow the concept.");
+    });
+
+    it("a Topic started by this turn cannot have its first step finished in the same turn", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [finish("story")] }, { content: [{ type: "text", text: "The story." }] }]);
+      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      const [result] = requests[1].messages.flatMap((m) =>
+        Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
+      );
+      expect(result).toMatchObject({ is_error: true });
+      expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
     });
 
     it("tells the Tutor the pacing rule in its instructions", () => {
@@ -743,6 +767,7 @@ describe("surviving cut-offs and failures", () => {
 
   it("a turn cut off by its time limit is saved as cut off, and the resume continues from the last saved loop step without repeating a write", async () => {
     const db = await testDb();
+    await ensureTopicStarted(db, map); // an earlier turn has shown the story
     const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Never saved.")], delayMs: 400 }]);
     const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
     expect(events.at(-1)).toEqual({ type: "cut_off" });
@@ -819,6 +844,7 @@ describe("surviving cut-offs and failures", () => {
 
   it("a new message after a cut-off first answers the saved tool calls that had no result, then carries on", async () => {
     const db = await testDb();
+    await ensureTopicStarted(db, map); // an earlier turn has shown the story
     const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Lost.")], delayMs: 400 }]);
     await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
     const next = scriptedClient([{ content: [text("Where were we? The concept.")] }]);
@@ -906,6 +932,7 @@ describe("surviving cut-offs and failures", () => {
 
   it("if a progress write fails, the Tutor is told nothing was recorded, the Learner sees an error, and the Course Navigator doesn't advance", async () => {
     const db = await testDb();
+    await ensureTopicStarted(db, map); // an earlier turn has shown the story
     await db.execute(sql`CREATE FUNCTION refuse_write() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'disk full'; END $$ LANGUAGE plpgsql`);
     await db.execute(sql`CREATE TRIGGER refuse_progress BEFORE UPDATE ON topic_progress FOR EACH ROW EXECUTE FUNCTION refuse_write()`);
     const { client, requests } = scriptedClient([{ content: [finish("story")] }, { content: [text("Sorry, that was not saved.")] }]);
@@ -971,6 +998,7 @@ describe("surviving cut-offs and failures", () => {
 
   it("a repeated finish_teaching_step under the same tool call ID has no second effect", async () => {
     const db = await testDb();
+    await ensureTopicStarted(db, map); // an earlier turn has shown the story
     const same = finish("story", "toolu_same");
     const { client, requests } = scriptedClient([{ content: [same] }, { content: [same] }, { content: [text("Concept.")] }]);
     await collect(runTutorTurn({ db, client, map }, { continue: true }));

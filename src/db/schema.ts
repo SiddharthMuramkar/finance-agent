@@ -199,6 +199,8 @@ export const turns = pgTable(
     stopReason: text("stop_reason"),
     /** What went wrong, for a failed turn. */
     error: text("error"),
+    /** True when the Learner's Topic was started by this turn, so its first step has not been shown yet. */
+    startedTopic: boolean("started_topic").notNull().default(false),
     /** When the current run of the turn started; a resume starts a new run. */
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),

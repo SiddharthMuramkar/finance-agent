@@ -6,7 +6,8 @@ import { loadCourseMap, type CourseMap } from "@/course/map";
 import { messages, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
-import { ensureTopicStarted, learnerSummary } from "@/learner/memory";
+import { navigate } from "@/course/navigator";
+import { ensureTopicStarted, learnerSummary, loadProgress } from "@/learner/memory";
 import { replaceBrokenWidgets, replyWidgetProblems } from "@/widgets/check";
 import { noVerdictContext, stepContext } from "./context";
 import { describeFailure, type FailureKind } from "./failures";
@@ -60,6 +61,9 @@ export type TutorClient = {
 
 /** Why a turn opened a new Session: the last one went idle, the build's instructions or tools changed, or the last reply was declined. */
 export type NewSessionReason = "idle" | "updated" | "refused";
+
+/** What separates the text of one loop step from the next within a reply. */
+const PARAGRAPH = "\n\n";
 
 export type TurnEvent =
   | { type: "text"; text: string }
@@ -375,7 +379,8 @@ function turnText(rows: Row[], turnSeq: number): string {
   for (const r of rows.filter((r) => r.seq > turnSeq)) {
     if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) correcting = true;
     if (r.role !== "assistant") continue;
-    text = correcting ? replaceBrokenWidgets(text, textOf(r.content)) : text + textOf(r.content);
+    const added = textOf(r.content);
+    text = correcting ? replaceBrokenWidgets(text, added) : text && added ? text + PARAGRAPH + added : text + added;
     correcting = false;
   }
   return text;
@@ -400,7 +405,10 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     yield { type: "replay", text: turnText(log.rows, turnSeq) };
     yield* repairToolCalls();
   } else {
+    const freshTopic = navigate(map, await loadProgress(db))?.status === "not_started";
     const place = await ensureTopicStarted(db, map, now());
+    // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
+    if (freshTopic) await updateTurn(db, turn.id, { startedTopic: true });
     const previous = await currentSession(db);
     const found = await sessionForAction(db, now(), turn);
     const continuing = "session" in found ? found.session : undefined;
@@ -483,11 +491,17 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         if (!compacting) await syncRunnerHistory();
         yield* reportSaveFailure();
         const events = stream[Symbol.asyncIterator]();
+        let stepHasText = false;
         for (;;) {
           const event = await beforeDeadline(events.next(), deadline);
           if (event.done) break;
           const e = event.value;
-          if (!compacting && e.type === "content_block_delta" && e.delta.type === "text_delta" && e.delta.text) yield { type: "text", text: e.delta.text };
+          if (!compacting && e.type === "content_block_delta" && e.delta.type === "text_delta" && e.delta.text) {
+            // Text after a tool call is a new loop step: start it on a new paragraph.
+            if (!stepHasText && text) yield { type: "text", text: PARAGRAPH };
+            stepHasText = true;
+            yield { type: "text", text: e.delta.text };
+          }
         }
         const final = await beforeDeadline(stream.finalMessage(), deadline);
         const tools = compacting ? ["compaction"] : final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
@@ -505,7 +519,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
-        text += textOf(final.content);
+        const added = textOf(final.content);
+        text += text && added ? PARAGRAPH + added : added;
         if (final.stop_reason === "end_turn" && compactAtTokens > 0 && contextTokens(final.usage) >= compactAtTokens) {
           runner.compactBeforeNextTurn();
           compacting = true;

@@ -186,9 +186,10 @@ async function resetTopic() {
   const checkIds = (parse(readFileSync(join("course", "topics", `${topicId}.yaml`), "utf8")).checks ?? []).map((c) => c.id);
   const attempts = await query("update quiz_attempts set check_id = $1 || check_id where check_id = any($2) returning id", [`${tag}:`, checkIds]);
   const notes = await query("update misconceptions set topic_id = $2 where topic_id = $1 returning id", [topicId, `${tag}:${topicId}`]);
-  await query("update topic_progress set step = 'story', reveal_shown = false, status = 'in_progress', updated_at = now() where topic_id = $1", [topicId]);
-  await query("update learner_state set current_topic_id = $1, updated_at = now() where id = 1", [topicId]);
-  say(`Reset: archived ${results.length} Check result(s), ${attempts.length} quiz attempt(s), ${notes.length} misconception(s) under "${tag}"; progress set back to the story.`);
+  // The Topic's own row is renamed too, so the app starts the Topic afresh (and the first step cannot be skipped).
+  await query("update topic_progress set topic_id = $2 where topic_id = $1", [topicId, `${tag}:${topicId}`]);
+  await query("update learner_state set current_topic_id = null, updated_at = now() where id = 1");
+  say(`Reset: archived ${results.length} Check result(s), ${attempts.length} quiz attempt(s), ${notes.length} misconception(s) under "${tag}"; the Topic will start afresh at the story.`);
 }
 
 async function setIdleHours(value) {
@@ -200,7 +201,7 @@ async function setIdleHours(value) {
 const PERSONA = `You are simulating an adult Learner using a private finance tutoring app for the first time. You are bright and curious but new to finance. You type short messages, one to four sentences, in plain language.
 - When the Tutor asks you to predict or choose, give a reasoned guess and say why.
 - When the Tutor asks you to explain, reason in your own words from what you were taught, including how a later payment compares with one today.
-- When the Tutor asks you to move a slider or use a chart or calculator, say what you tried and what you noticed, using only what the Tutor described.
+- When the Tutor asks you to move a slider or use a chart or calculator, act as if you can see and use it: report the readings you got, working them out from the numbers in the conversation if you can, and never say you cannot see the widget.
 - If the Tutor asked nothing, just say: Okay, go on.
 Reply with only what you would type, nothing else.`;
 
@@ -210,7 +211,7 @@ function stripWidgets(text) {
   return text.replace(/```[\s\S]*?(```|$)/g, "[widget]").trim();
 }
 
-async function learn(system, messages, maxTokens = 400) {
+async function learn(system, messages, maxTokens = 800) {
   const response = await anthropic.messages.create({ model: learnerModel, max_tokens: maxTokens, system, messages });
   learnerCalls++;
   learnerCost += (response.usage.input_tokens * LEARNER_PRICE.input + response.usage.output_tokens * LEARNER_PRICE.output) / 1_000_000;
@@ -219,7 +220,7 @@ async function learn(system, messages, maxTokens = 400) {
 
 async function learnerReply(tutorText) {
   convo.push({ role: "user", content: `Tutor: ${stripWidgets(tutorText) || "(no text)"}` });
-  const reply = await learn(PERSONA, convo);
+  const reply = (await learn(PERSONA, convo)) || "Okay, go on.";
   convo.push({ role: "assistant", content: reply });
   return reply;
 }

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
-import { toolCalls } from "@/db/schema";
+import { toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { stepContext } from "./context";
@@ -111,7 +111,8 @@ export function toolCode(db: Db, map: CourseMap, now: () => Date, model: string,
         once(context?.toolUse.id, "finish_teaching_step", async (tx) => {
           // Pacing rule: a step that began in this turn has not yet been taught in a reply the Learner answered.
           const [began] = await tx.select().from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.beganStep, true)));
-          if (began) return { ok: false, text: PACING_REJECTION };
+          const [thisTurn] = await tx.select().from(turns).where(eq(turns.id, turnId));
+          if (began || thisTurn?.startedTopic) return { ok: false, text: PACING_REJECTION };
           const move = await saveFinishedStep(tx, map, step, now());
           if (!move.ok) return { ok: false, text: move.reason };
           return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now())) };

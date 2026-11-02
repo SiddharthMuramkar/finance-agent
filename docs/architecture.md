@@ -465,3 +465,50 @@ repeats no write (a finished step and a verdict), the replayed text, a resume wh
 saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credits error with Retry,
 a database write that fails (a test trigger refuses the write), a changed fingerprint, a misconception
 with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
+
+## Pacing rule (`src/tutor/tools.ts`, `src/tutor/instructions.ts`)
+
+**What it does.** Live runs showed the Tutor finishing several Teaching Steps in one turn without
+teaching them: it called `finish_teaching_step` for the concept, then the your-turn step, then the
+Check, all in one reply. Now code refuses. When a tool call moves the Learner onto a new step (a
+`finish_teaching_step`, or a passing Check verdict), the `tool_calls` table records that this turn
+began a step (`turn_id`, `began_step`). A later `finish_teaching_step` in the same turn is rejected
+as a tool error: "it began during this turn. Teach it in your reply now, then stop and wait for the
+Learner to answer". The same applies to the very first step: a Topic that this turn started (its
+`turns.started_topic` flag) cannot have its story finished in that turn. So every step is taught in a
+reply the Learner sees and answers before it can be finished. The Tutor's instructions state the rule too, so it normally never trips it. A resumed turn
+keeps its turn ID, so a cut-off cannot be used to skip the wait.
+
+**Scenario.** The Tutor finishes the story, and code moves the Learner to the concept. The Tutor
+tries to finish the concept straight away; code answers with the rejection. The Tutor teaches the
+concept in its reply and stops. The Learner answers; in that next turn finishing the concept works.
+
+**Trade-off.** One step per turn at most, so a Topic takes more turns (about fourteen for present
+value) and costs a little more than a Tutor that sprints. That is the point: the Learner is taught
+each step. The rule lives in code, not in the prompt, because a prompt-only rule was ignored.
+A turn also puts text written after a tool call on a new paragraph, since a reply can now hold
+the end of one step and the start of the next.
+
+## Simulated Learner (`scripts/simulated-learner.mjs`)
+
+**What it does.** A script that plays the Learner over HTTP against any running copy of the app: it
+logs in with the passcode, presses Continue, answers the Tutor with a cheap model (`claude-haiku-5-5`),
+takes the quiz through `GET`/`POST /api/quiz` (code marks it, no model call), and keeps going until the
+Topic is passed. After each turn it reads the step, duration and cost from the `usage` table, and it
+writes a transcript, a per-turn table and a cost summary to a folder you give it (outside the repo,
+because transcripts hold source-derived text). `--reset` archives the Topic's saved progress first (rows
+are renamed, nothing is deleted) so a run starts at the story. By default it forces one new Session in the
+middle of the Topic, by setting `session_idle_hours` to 0 for a single turn, to prove that closing the app
+and returning resumes at the right place.
+
+**Scenario.** After a deploy, run it against the production URL: fourteen turns later you have a
+transcript of a whole Topic, the cost per turn, the longest turn, and proof that a new Session carried on
+at the same step.
+
+**Trade-off.** It talks to the real Tutor and the real database, so each run costs about a quarter of a
+dollar and changes the saved progress (hence `--reset`). The Learner is a model, so it is polite and
+quick to follow: it checks the plumbing and the pacing, not whether a real person finds the teaching
+good. It reads the database directly for cost and step, so it must use the same `DATABASE_URL` as the app.
+
+**How it is tested.** The pacing rule and the paragraph break are tested at the Tutor Turn seam with the
+scripted client. The runner itself is a script, checked by running it end to end (evidence folder for #11).
