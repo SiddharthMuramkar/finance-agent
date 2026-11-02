@@ -45,13 +45,13 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 
 ## Database (Neon Postgres through Drizzle)
 
-**What it does.** Neon is the only store. Seven tables so far:
+**What it does.** Neon is the only store. Eight tables so far:
 - `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
   a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
   effort frozen when it started, plus a fingerprint of the instructions and tools.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
-- `learner_state`, `topic_progress`, `check_results`: Learner Memory (below).
+- `learner_state`, `topic_progress`, `check_results`, `misconceptions`: Learner Memory (below).
 - `usage`: what each turn and each step of it cost (below).
 
 The app uses Neon's pooled connection (`DATABASE_URL`). Schema changes are migration files in
@@ -138,23 +138,24 @@ and whether it is passed) and `check_results` (every Check result, kept even if 
 later removed). Progress is saved when a Topic starts and at every Teaching Step change. It also
 turns the records into a short plain-text summary.
 
-Until the Check tickets land, only tests record Check results (`recordCheckResultForTest`), so in
-the live app the Learner currently stops at the first Check step.
+Since the conversation Check landed (below), a Check result also keeps the Tutor's reasons as
+evidence and the model that taught it, and a fourth table, `misconceptions`, keeps what the Tutor
+noticed the Learner getting wrong.
 
 **Scenario.** The Learner reaches the reveal, closes the laptop and comes back the next day.
 The workspace shows "Present value (foundation Stage). Teaching Step: reveal. The reveal has
 been shown." with a Continue button, read straight from SQL.
 
 **Trade-off.** Hand-written tables and a summary in code instead of a memory framework: less to
-learn and nothing hidden, but each new kind of memory (misconceptions arrive next) is new code.
+learn and nothing hidden, but each new kind of memory is new code.
 
 ## Teaching Steps in the Tutor Turn (`src/tutor/turn.ts`, `src/tutor/context.ts`)
 
 **What it does.** Before each Learner message, code appends a "Course Navigator" context
 message whenever the Learner's place changed: the Topic, the Teaching Step, the Case's story,
-and only the material for that step (the concept, the coming Check, the principle). The Case's
+and only the material for that step (the concept, the current Check, the principle). The Case's
 outcome is included only from the reveal step on, so hindsight is withheld by code. The Tutor has
-one tool, `finish_teaching_step`; when it calls it, code asks the Navigator, saves the move if it
+a tool, `finish_teaching_step`; when it calls it, code asks the Navigator, saves the move if it
 is legal and replies with the next step's material, or replies with an error if it isn't.
 
 **Sessions.** Opening the workspace makes no model call: the page reads the summary and the
@@ -269,3 +270,46 @@ sums and costs, and that a reloaded Session shows the same panel.
 
 `npm run check` runs the type checker, the linter, the Course Map validator and the tests.
 GitHub Actions runs `npm ci && npm run check` on every push with no secrets.
+
+## Conversation Check and what the Tutor remembers (`src/tutor/turn.ts`, `src/tutor/context.ts`, `src/learner/memory.ts`)
+
+**What it does.** At a conversation Check, the Tutor puts the Check's question to the Learner,
+questions their reasoning, and then gives a verdict, pass or not yet, with its reasons, through
+a tool called `record_check_verdict`. Code, not the Tutor, decides what the verdict means:
+
+- **Only the current Check.** The Check's question and pass criteria reach the Tutor only when the
+  Learner is at that Check's step, never earlier and never for a later Check. A verdict for any
+  other Check, or when no Check is being taken, is refused with a tool error, and nothing is saved.
+- **Saved with reasons.** Every verdict is a row in `check_results`: pass or not, the Tutor's
+  reasons as evidence, and the model that taught the Check (so models can later be compared on
+  real results).
+- **Not yet means stay.** A Learner who doesn't pass stays at the Check and tries again. A pass
+  moves them on (to the next Check or the reveal).
+- **No verdict.** If a turn ends at a Check without a verdict (the Tutor has just asked the
+  question, or is still probing), the Learner stays put and the next context message opens with
+  "No verdict was recorded for Check ...", including the first message of a new Session.
+- **Misconceptions.** When the Tutor notices a real misunderstanding, it calls
+  `record_misconception`, and code saves it in `misconceptions` with the Topic, the Check in play
+  and the model.
+- **Once only.** Both tools are keyed by the tool call's ID, so if the same call arrives twice
+  (a retry, a resumed turn), the second has no effect.
+
+**The summary.** Code builds a short plain-text summary from SQL, with no model call, and sends
+it as the first message of every new Session (the workspace shows the same text on opening). It
+says the Topic and Teaching Step, the unmastered prerequisites (the Topic's prerequisites, and
+theirs, that are not passed, with "not started" or "in progress"), the last eight misconceptions
+noted in those Topics, and the last "not yet" verdict at the current Check with its reasons.
+
+**Scenario.** At the jackpot Check the Learner says "$1.537 billion is bigger than $877.8 million,
+so take the annuity." The Tutor saves "not yet" with the reason "compared undiscounted totals" and
+notes the misconception "compares payments at different dates without discounting". The Learner
+stays at the Check. They come back two days later: the new Session's first message tells the
+Tutor about that misconception and the last verdict, so it picks up the real gap. A live run of
+exactly this, against the real API with a throwaway database, cost about $0.04 for three turns.
+
+**Trade-off.** The Tutor judges the reasoning, which a quiz key can't, but its judgement is only
+as good as the model and the pass criteria; saving the reasons makes each verdict reviewable.
+A plain SQL table and a summary written in code (no memory framework such as mem0 or Letta) keep
+everything visible and testable, at the cost of writing each kind of memory by hand. The summary
+lists at most eight misconceptions and never marks one as fixed yet, so an old confusion can
+linger in it until a later ticket adds that.
