@@ -8,14 +8,16 @@ topics:
     stage: foundation
     prerequisites: []
     cases:
-      - title: "The Fed raises its target rate by 25 basis points"
+      - title: "The Federal Reserve meets in February 1994"
         asOf: 1994-02-03
-        outcome: "The 25 bp rise in the overnight rate triggered an immediate 40 bp rise in the 30-year rate; by early May, 75 bp of hikes and 140 bp on long bonds. The funds rate averaged 3.05% in Jan 1994 and 5.45% in Dec 1994."
+        outcome: "The Fed tightened on 4 Feb 1994 but announced no numeric target; its statement spoke only of 'a slight increase in the degree of pressure on reserve positions', and the funds rate went from about 3.00% to 3.25%, which markets read as 25 bp. The 10-year Treasury par yield went from 5.81% (3 Feb) to 5.94% (4 Feb), 6.15% (28 Feb) and 7.49% (9 May), about 168 bp, while the Fed's own increase by early May was 75 bp."
         sources:
+          - https://www.federalreserve.gov/fomc/19940204default.htm
+          - https://www.federalreserve.gov/fomc/MINUTES/1994/19940204min.htm
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
           - https://fortune.com/article/the-great-bond-massacre-fortune-1994
-          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS2,GS10,TB3MS,FEDFUNDS&cosd=1993-12-01&coed=1995-01-01
-          - https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html
         verified: true
+        note: "Fortune's 'immediate 40 bp rise in the 30-year' is not in the Treasury data (+6 bp on 4 Feb, +36 bp by 28 Feb) and is not used."
   - id: num-compounding
     title: "Growth, compounding and logs"
     stage: foundation
@@ -23,13 +25,13 @@ topics:
     cases:
       - title: "The Sensex from base 100 (1979) to 1992"
         asOf: 1992-03-31
-        outcome: "Base 100 on 1 Apr 1979; 1,001 on 25 Jul 1990; 4,091 on 30 Mar 1992; 4,467 in Apr 1992, about 34% a year compound (own arithmetic). Then 1,980 by Apr 1993."
+        outcome: "The Sensex peaked with a close of 4,467 in April 1992. On 28 Apr 1992, as the Harshad Mehta securities scam came to light, it fell 12.77% in a day, the largest one-day percentage fall in its history outside the Covid crash; it lost 5% in April and 23% in May, and by April 1993 stood at about 1,980, about 56% below the peak. From base 100 the long-run rate was about 33% a year compound (own arithmetic)."
         sources:
-          - https://en.wikipedia.org/wiki/BSE_SENSEX
-          - https://www.rediff.com/business/special/spec1/20071009.htm?print=true
+          - https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
+          - https://beta.bseindia.com/Sensex/bse_sensex.aspx
           - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
         verified: true
-        note: "Secondary sources; fetch the BSE history before writing."
+        note: "BSE's month-end close for March 1992 is 4,285; Rediff's 4,091 for 30 Mar 1992 conflicts with it and is not used. The April 1993 level (about 1,980) is Mint, a secondary source."
   - id: num-probability
     title: "Probability and expected value"
     stage: foundation
@@ -37,12 +39,13 @@ topics:
     cases:
       - title: "Long-Term Capital Management, before the loss"
         asOf: 1998-08-01
-        outcome: "About $30 of debt per $1 of capital at end-1997; lost half its capital by end Aug 1998; 14 firms put in $3.6bn for control on 23 Sep 1998. Teach leverage and loss, not the risk-model inputs (unverified)."
+        outcome: "LTCM lost 44% of its value in August 1998 alone. On 23 Sep 1998 fourteen banks and brokerage firms put in $3.625bn for 90% of the fund, an arrangement the Fed facilitated without lending its own money; the original partners and investors kept 10%. With about $30 of debt per $1 of capital, a fall of only about 3% in the value of its assets was enough to wipe out all its capital."
         sources:
           - https://www.federalreservehistory.org/essays/ltcm-near-failure
           - https://www.federalreserve.gov/boarddocs/testimony/1998/19981001.htm
           - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
         verified: true
+        note: "Teaches leverage and loss, not the risk-model inputs."
   - id: present-value
     title: "Time value and present value"
     stage: foundation
@@ -50,19 +53,14 @@ topics:
     cases:
       - title: "The $1.537 billion Mega Millions jackpot"
         asOf: 2018-10-24
-        outcome: "The winner took the $877,784,124 cash option on 4 Mar 2019, roughly the present value of the 30-payment annuity. Written Topic."
+        outcome: "The winner stayed anonymous until 4 Mar 2019, then took the cash option: a one-time $877,784,124 before tax, roughly the present value of the 30 annuity payments at the interest rates of the time."
         sources:
-          - https://www.megamillions.com/
-          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve
+          - https://www.megamillions.com/News/2018/Record-Mega-Millions-Jackpot-Won-in-South-Carolina.aspx
+          - https://www.cnbc.com/2018/10/24/heres-how-much-the-mega-millions-winner-will-get-to-save-and-spend.html
+          - https://www.reuters.com/article/lifestyle/south-carolina-lottery-winner-claims-record-877-million-cash-prize-idUSKCN1QM09L/
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2018
         verified: true
-      - title: "Webvan's first-day value"
-        asOf: 1999-11-05
-        outcome: "IPO at $15 raised $375m; first-day close $24.875, market value $7.9bn (not $11bn). Chapter 11 filed 9 Jul 2001; shares half a cent on 10 Jul 2001."
-        sources:
-          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
-          - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
-          - https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html
-        verified: true
+        note: "The 5% yearly rise in the 30 payments (first payment about $23.1m, total $1.537bn) is checked by arithmetic against the 2018 payout schedule; no 2018-dated page stating the 5% was found."
   - id: fs-income
     title: "The income statement"
     stage: foundation
@@ -70,11 +68,12 @@ topics:
     cases:
       - title: "WeWork's S-1"
         asOf: 2019-08-14
-        outcome: "H1 2019 revenue $1.54bn, net loss over $900m. IPO withdrawn Sep 2019; Chapter 11 on 6 Nov 2023."
+        outcome: "The share sale did not go ahead: co-founder and chief executive Adam Neumann stepped down on 24 Sep 2019 and WeWork asked on 30 Sep 2019 to withdraw its prospectus. It listed through a different route in 2021 and on 6 Nov 2023 filed for Chapter 11 with nearly $19bn of liabilities against about $15bn of assets. The 2019 income statement already showed the problem: first-half revenue of $1.54bn against a net loss of about $905m, a net margin of about minus 59%."
         sources:
+          - https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
           - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
-          - https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
           - https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall
+          - https://time.com/6332270/wework-bankruptcy/
         verified: true
   - id: fs-balance
     title: "The balance sheet"
@@ -83,23 +82,26 @@ topics:
     cases:
       - title: "Satyam's balance sheet"
         asOf: 2008-09-30
-        outcome: "Reported cash inflated by Rs 5,040 crore; the chairman's confession on 7 Jan 2009 admitted it."
+        outcome: "On 7 Jan 2009 chairman B. Ramalinga Raju wrote to the board admitting that the accounts had been falsified for years. Of the Rs 5,361 crore of cash and bank balances in the books, Rs 5,040 crore did not exist; debtors were overstated by Rs 490 crore (Rs 2,651 crore in the books); Rs 376 crore of accrued interest did not exist; and a Rs 1,230 crore liability for funds he had arranged was left out. The SEC later put the fictitious cash at more than $1bn, about half of total assets."
         sources:
           - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
           - https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
         verified: true
+        note: "The 'reported' figures are quoted from Raju's letter; Satyam's own Q2 FY09 results (6-K, Oct 2008) were not fetched."
   - id: fs-cashflow
     title: "The cash flow statement"
     stage: foundation
     prerequisites: [fs-balance]
     cases:
       - title: "Webvan's cash burn"
-        asOf: 2001-03-31
-        outcome: "Burned about $480m by Mar 2001 (Time); lost more than $800m since Dec 1996; shut down Jul 2001. The draft's 'raised $1.2bn' is unconfirmed."
+        asOf: 2001-04-02
+        outcome: "Webvan filed for Chapter 11 on 9 Jul 2001 and shut all seven of its markets, which served about 750,000 customers; its accumulated deficit was $829.7m at 31 Mar 2001. The cash flow statement had already shown it: $263.1m used in operations in 2000 (up from $58.8m in 1999) and $259.8m spent on property and equipment, paid for from money raised from investors in 1999. TIME's cash burn of $480m is a press estimate, not a filing figure."
         sources:
-          - https://time.com/archive/6904080/webvans-last-desperate-hope
+          - https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
+          - https://www.sec.gov/Archives/edgar/data/1092657/000101287001500862/d10q.txt
           - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
           - https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html
+          - https://time.com/archive/6904080/webvans-last-desperate-hope
         verified: true
   - id: fs-links
     title: "How the three statements link (accrual accounting)"
@@ -108,11 +110,10 @@ topics:
     cases:
       - title: "Satyam's forged invoices and bank statements"
         asOf: 2008-12-31
-        outcome: "Over 6,000 fake invoices and forged bank statements ran through all three statements; the SEC settled an action in 2011 with a $10m penalty."
+        outcome: "On 7 Jan 2009 Raju wrote that for the September 2008 quarter Satyam had reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (24%) against actual revenue of Rs 2,112 crore and operating profit of Rs 61 crore (3%); the Rs 588 crore difference showed up as 'artificial cash and bank balances'. The SEC later said managers created more than 6,000 phony invoices and bogus bank statements, giving more than $1bn of fictitious cash, about half of total assets; Satyam paid a $10m penalty to settle. The false profit had to appear in the general ledger and the financial statements."
         sources:
           - https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
           - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
-          - https://www.sebi.gov.in/sebi_data/attachdocs/1441894262377.pdf
         verified: true
   - id: fs-ratios
     title: "Ratios, return on equity and DuPont"
@@ -120,14 +121,14 @@ topics:
     prerequisites: [fs-links]
     cases:
       - title: "Coffee Day Enterprises at its IPO"
-        asOf: 2015-10-07
-        outcome: "Net loss widened from Rs 21 crore (FY13) to Rs 87 crore (FY15); IPO at 21 to 21.5 times EV/EBITDA; founder died Jul 2019 under lender pressure."
+        asOf: 2015-10-13
+        outcome: "The IPO was priced at Rs 328, the top of the Rs 316-328 band, and subscribed 1.64 times. Shares listed on 2 Nov 2015 at Rs 313 on the BSE, below the issue price, and closed at Rs 270.15, 17.63% below it. In July 2019 founder V. G. Siddhartha was found dead after a letter dated 27 Jul citing lender pressure; the 2015 prospectus had warned that he had given personal guarantees and share pledges for group loans and that lenders could take the pledged shares."
         sources:
-          - https://www.business-standard.com/article/markets/coffee-day-makes-tamest-debut-in-three-years-115110201108_1.html
-          - https://www.businesstoday.in/markets/stocks/story/coffee-day-enterprises-fixes-rs-316-328-price-band-for-ipo-57513-2015-10-07
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+          - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
+          - https://www.businesstoday.in/markets/company-stock/story/coffee-day-shares-list-on-bse-plunge-within-minutes-in-trade-56487-2015-11-02
           - https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
-        verified: false
-        note: "Press level only; the DuPont inputs need the prospectus from SEBI/BSE."
+        verified: true
   - id: fs-revenue-runrate
     title: "Revenue recognition, run rates, gross vs net"
     stage: foundation
@@ -135,10 +136,12 @@ topics:
     cases:
       - title: "WeWork's run-rate boast"
         asOf: 2019-08-14
-        outcome: "The S-1 said run-rate revenue reached $3bn in six months; first-half revenue was $1.54bn with a $905m loss."
+        outcome: "The listing never happened: WeWork filed to withdraw its IPO on 30 Sep 2019, after co-founder and chief executive Adam Neumann stepped down on 24 Sep. SoftBank's rescue in Oct 2019 valued the company at about $8bn, against $47bn in January. The S-1's run-rate revenue (the last month's revenue times 12) was $3.3bn at 30 Jun 2019, but first-half revenue was $1.54bn and the net loss about $905m, roughly 59 cents lost on every dollar of revenue."
         sources:
+          - https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
           - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
           - https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
+          - https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
         verified: true
   - id: fs-capex-dep
     title: "Capex, depreciation, amortisation and EBITDA"
@@ -147,26 +150,30 @@ topics:
     cases:
       - title: "Webvan's warehouse and fleet build-out"
         asOf: 1999-11-05
-        outcome: "Planned 26 distribution centres, ran seven markets; $143 spent per $100 of food sold; closed Jul 2001."
+        outcome: "Webvan's shares rose on the first day, closing at $24.875 and valuing it at about $7.9bn. It then bought its rival HomeGrocer, and net loss grew from $144.6m in 1999 to $453.3m in 2000, when auditors voiced substantial doubt about its ability to continue. In early 2001 its operating costs alone (marketing, development, administration) were $143 for every $100 of sales, on top of $72 of food cost (the Chicago Tribune's reading of its quarterly report). It filed for bankruptcy on 9 Jul 2001 and shut down, with the shares at 6 cents."
         sources:
-          - https://www.sfgate.com/food/article/rise-fall-bay-area-startup-webvan-19829522.php
-          - https://time.com/archive/6904080/webvans-last-desperate-hope
+          - https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt
+          - https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
+          - https://www.chicagotribune.com/2001/05/30/webvan-delivers-losses-but-not-enough-customers/
           - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
-        verified: false
-        note: "Press scale facts only; asset-level 10-K figures not fetched."
+          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
+        verified: true
+        note: "Checked against Webvan's 10-K405 for 1999 and 10-K for 2000: the Oakland centre was 336,000 sq ft, and the $143 counts operating costs only (with food cost it is $215 per $100 of sales, before goodwill, deferred compensation and restructuring)."
   - id: fs-leases-debt
     title: "Leases, commitments and debt-like items"
     stage: foundation
     prerequisites: [fs-links, present-value]
     cases:
       - title: "WeWork's lease obligations"
-        asOf: 2019-06-30
-        outcome: "Long-term lease obligations of about $17bn in the S-1; $19bn liabilities in the Nov 2023 filing; leases rejected in restructuring."
+        asOf: 2019-08-14
+        outcome: "The IPO was withdrawn on 30 Sep 2019. WeWork filed for Chapter 11 on 6 Nov 2023, listing nearly $19bn of liabilities, and in the restructuring rejected leases it could not afford. At 30 Jun 2019 the S-1 had shown $17.9bn of long-term lease obligations on the balance sheet and $47.2bn of undiscounted future minimum lease payments, including $13.1bn on signed leases not yet started."
         sources:
+          - https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
           - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
           - https://bloomberg.com/news/articles/2023-11-07/wework-goes-bankrupt-capping-co-working-company-s-downfall
           - https://straitstimes.com/business/wework-cleared-to-exit-bankruptcy-shedding-adam-neumann-legacy
         verified: true
+        note: "That leases were rejected in the restructuring rests on Bloomberg and the Straits Times (not re-opened in the verification pass)."
   - id: fs-filings
     title: "Reading filings: S-1, 10-K, Indian annual report and Ind AS"
     stage: foundation
@@ -174,19 +181,12 @@ topics:
     cases:
       - title: "WeWork's governance clause"
         asOf: 2019-08-14
-        outcome: "The S-1 gave the CEO profits interests at a $90bn cap; the IPO was pulled."
+        outcome: "The IPO did not go ahead: Adam Neumann stepped down as chief executive on 24 Sep 2019 and WeWork filed to withdraw its IPO on 30 Sep. The S-1 had shown his profits interests vesting only when public market value reached $50bn, $72bn and $90bn (performance thresholds, not a cap), a $362m loan from the company for exercising options, and $236.6m of minimum lease payments on buildings in which he had interests."
         sources:
+          - https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
           - https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann
           - https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html
         verified: true
-      - title: "Coffee Day's IPO prospectus (an Indian DRHP)"
-        asOf: 2015-10-07
-        outcome: "Filed with SEBI for Rs 1,150 crore, band Rs 316-328, priced Rs 328 on 21 Oct 2015, subscribed 1.81 times; listed below issue price."
-        sources:
-          - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
-          - https://timesofindia.indiatimes.com/business/india-business/cold-debut-for-ccd-stock-plunges-18/articleshow/49637562.cms
-        verified: false
-        note: "Fetch the prospectus from SEBI before writing."
   - id: fs-earnings-quality
     title: "Earnings quality and accounting fraud"
     stage: foundation
@@ -194,10 +194,12 @@ topics:
     cases:
       - title: "Satyam, the day before the confession"
         asOf: 2009-01-06
-        outcome: "Raju's letter of 7 Jan 2009 admitted inflated profits and cash; SEC order followed."
+        outcome: "On 7 Jan 2009 Raju wrote to the board and the regulators and resigned. He said Rs 5,040 crore of the Rs 5,361 crore of cash and bank balances on the 30 Sep 2008 balance sheet did not exist, Rs 376 crore of accrued interest was non-existent and receivables were overstated by Rs 490 crore (of Rs 2,651 crore). For the September quarter the reported revenue of Rs 2,700 crore and operating margin of Rs 649 crore (24%) compared with actual figures of Rs 2,112 crore and Rs 61 crore (3%). The shares fell to Rs 39.95 in Mumbai that day. The SEC later alleged that officials used false invoices and forged bank statements to inflate results."
         sources:
           - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
           - https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+          - https://www.reuters.com/article/marketsNews/idINN1628370020081216/
+          - https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17
         verified: true
   - id: fs-tax
     title: "Corporate tax and after-tax cash flows"
@@ -206,8 +208,9 @@ topics:
     cases:
       - title: "India cuts corporate tax to 22%"
         asOf: 2019-09-19
-        outcome: "Announced 20 Sep 2019: base rate 30% to 22% (effective 34.94% to 25.17%), 15% for new manufacturers; Rs 1.45 lakh crore revenue foregone; the Sensex had its biggest single-day gain in a decade."
+        outcome: "On 20 Sep 2019 Finance Minister Nirmala Sitharaman cut the base corporate tax rate for domestic companies from 30% to 22% for those that give up exemptions and incentives (25.17% effective with a 10% surcharge and 4% cess, down from 34.94%), with no Minimum Alternate Tax. New manufacturing companies incorporated on or after 1 Oct 2019 and starting production by 31 Mar 2023 could choose 15% (17.01% effective). The cut was estimated to cost Rs 1.45 lakh crore of revenue, and the Sensex rose 1,921 points (5.32%) in a day, its biggest single-day gain in over a decade."
         sources:
+          - https://www.pib.gov.in/Pressreleaseshare.aspx?PRID=1585641&lang=2&reg=48
           - https://www.dnaindia.com/business/report-finance-minister-nirmala-sitharaman-announces-corporate-tax-cut-to-spur-growth-2791283
           - https://cio.economictimes.indiatimes.com/news/government-policy/sitharamans-tax-cut-move-why-it-matters-so-much-for-india-inc-economy-and-modi-govt/71229310
         verified: true
@@ -219,9 +222,9 @@ topics:
     cases:
       - title: "The 1987 crash"
         asOf: 1987-10-16
-        outcome: "On 19 Oct 1987 the S&P 500 fell about 20% and S&P futures 29%; a tail event far outside normal-distribution odds."
+        outcome: "On Monday 19 Oct 1987 the S&P 500 fell about 20% in a single day, the other major US indices fell between 18% and 23%, and S&P 500 futures fell 29%. A fall that size is effectively impossible in a normal distribution fitted to ordinary days. Portfolio insurance, which sells index futures as prices fall, amplified it when the insurers sold together."
         sources:
-          - https://www.federalreserve.gov/pubs/feds/2007/200713/
+          - https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf
           - https://time.com/archive/6711376/the-culprits-behind-the-crash
         verified: true
   - id: eco-supply-demand
@@ -229,13 +232,17 @@ topics:
     stage: foundation
     prerequisites: [num-percent-bps]
     cases:
-      - title: "Indian onion price shocks"
+      - title: "India's onion price shock"
         asOf: 2019-09-01
-        outcome: "An RBI working paper (Aug 2024) says tomato, onion and potato prices drive volatility of Indian food inflation."
+        outcome: "Prices climbed every month after the as-of date: the all-India average retail price was Rs 38.30 a kg in Sep 2019, Rs 47.02 in Oct, Rs 61.08 in Nov and Rs 82.17 in early Dec, and the daily average reached Rs 101.35 on 10 Dec, five times a year earlier. Untimely, prolonged rain in Sep and Oct damaged the kharif crop (combined production estimated at 54.73 lakh tonnes against 69.91 lakh tonnes, about 22% lower). The government set a minimum export price of $850 a tonne on 13 Sep, banned exports from 29 Sep, put stock limits on traders and approved imports; the ban pushed prices up in Bangladesh, Nepal and Sri Lanka."
         sources:
-          - https://rbidocs.rbi.org.in/rdocs/Publications/PDFs/08WPS031020249D7A858AE5674ACF934C3EB9865794A2.PDF
-        verified: false
-        note: "No dated price move extracted yet; pick one from the paper before writing."
+          - https://pib.gov.in/Pressreleaseshare.aspx?PRID=1595294&lang=2&reg=48
+          - https://timesofindia.indiatimes.com/business/india-business/avg-onion-prices-jump-five-fold-to-rs-101-per-kg-compared-to-last-year/articleshow/72518678.cms
+          - https://www.hindustantimes.com/business-news/government-bans-export-of-onions-with-immediate-effect/story-LZBxPGPrPPEAI5aNB8VKyH.html
+          - https://www.newindianexpress.com/business/2019/sep/29/government-bans-export-of-onions-with-immediate-effect-imposes-stock-limit-2040807.html
+          - https://www.firstpost.com/business/lasalgaon-onion-producers-refuse-to-sell-produce-in-wholesale-market-prices-down-post-ban-on-exports-govt-imposing-stock-limit-on-traders-7426441.html
+        verified: true
+        note: "Replaces the earlier candidate (an RBI working paper on food-price volatility), which named no dated price move."
   - id: eco-micro-competition
     title: "Competition, market structure and pricing power"
     stage: foundation
@@ -243,11 +250,13 @@ topics:
     cases:
       - title: "Reliance Jio's free launch"
         asOf: 2016-09-01
-        outcome: "Announced 1 Sep 2016: free voice and cheap data. Airtel and Idea shares fell up to 9% that day; a price war followed in a market with over $50bn of telecom debt."
+        outcome: "Within hours on 1 Sep 2016 Idea Cellular fell 9% to Rs 85 and Bharti Airtel 8.99% to Rs 302; by the close Idea was down about 10% and Airtel about 6% (the BBC put Airtel's loss of market value at about $1.3bn and Idea's at over $500m). Jio launched officially on 5 Sep 2016 with free voice and data to 31 Dec. Analysts were split between customers as the winners of a price war and the risk of a monopoly; incumbents' pricing power had rested on a few rivals who all wanted profits."
         sources:
           - https://bbc.com/news/business-37273073
           - https://timesofindia.indiatimes.com/business/india-business/idea-airtel-shares-tank-on-rel-jios-lower-tariff-offers/articleshow/53958653.cms
+          - https://timesofindia.indiatimes.com/business/india-business/rel-jio-call-leaves-rs-13000cr-hole-in-telcos-market-cap/articleshow/53970361.cms
           - https://www.theguardian.com/world/2016/sep/05/reliance-jio-launches-cheap-4g-services-in-india
+          - https://www.reuters.com/article/business/indias-richest-man-unveils-telecoms-venture-with-free-calls-cut-price-data-idUSKCN1175BJ/
         verified: true
         note: "Added to cover the economics of firms; later consolidation not yet sourced."
   - id: eco-money-banking
@@ -257,11 +266,11 @@ topics:
     cases:
       - title: "The 1992 securities scam"
         asOf: 1992-02-01
-        outcome: "Ready-forward deals and fake bank receipts moved bank money into shares. Fraud size disputed: about Rs 1,000 crore siphoned (Forbes India) to over Rs 4,000 crore (Mint). Mehta arrested 9 Nov 1992."
+        outcome: "The scam came to light in late April 1992 when the State Bank of India reported a shortfall of government securities, about Rs 500 crore missing from its books. Mehta had obtained fake bank receipts through officials of the Bank of Karad and the Metropolitan Cooperative Bank; lenders handed over cash against receipts backed by no securities, and the broker put it into shares. Size is disputed by source: about Rs 1,000 crore siphoned and Rs 3,500 crore manipulated (Forbes India), nearly Rs 4,000 crore (India Today). The Sensex had gone from 1,194 to 4,467 (+274%) between April 1991 and April 1992; it fell about 12.7% (570 points; BSE gives 12.77%) on 28 Apr 1992 and to about 1,980 by April 1993 (-56%). The CBI arrested Mehta in Nov 1992."
         sources:
           - https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
-          - https://www.moneycontrol.com/news/business/markets/harshad-mehta-scam-10-key-points-of-the-scam-that-jolted-india-in-1992-5939931.html
           - https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1
+          - https://www.jrvarma.in/papers/vik18-1.pdf
           - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
         verified: true
   - id: eco-central-banks
@@ -271,11 +280,12 @@ topics:
     cases:
       - title: "The 1994 Fed tightening"
         asOf: 1994-02-03
-        outcome: "Little prior guidance; markets surprised, bond funds saw outflows; funds rate rose to 5.45% by Dec 1994."
+        outcome: "On 4 Feb 1994 the FOMC tightened. Its statement spoke only of 'a slight increase in the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%; markets were surprised. Monthly averages from the Fed's H.15 release: the 10-year Treasury yield went from 5.75% in Jan 1994 to a peak of 7.96% in Nov (+221 bp) and the 2-year from 4.14% to 7.59%, so the 10s-2s gap shrank from 1.61 to 0.22 points; the funds rate averaged 3.05% in Jan and 5.45% in Dec. A Fed study contrasts 2004, when the Fed issued a statement after each meeting and signalled a 'measured pace', and the 10-year yield fell 8 bp on the day of the first increase."
         sources:
+          - https://www.federalreserve.gov/fomc/19940204default.htm
+          - https://www.federalreserve.gov/fomc/MINUTES/1994/19940204min.htm
           - https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html
-          - https://www.federalreserve.gov/monetarypolicy/files/fomc19940706bluebook19940630.pdf
-          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS2,GS10,TB3MS,FEDFUNDS&cosd=1993-12-01&coed=1995-01-01
+          - https://www.federalreserve.gov/releases/h15/
         verified: true
   - id: eco-inflation-real
     title: "Inflation, nominal vs real rates"
@@ -283,8 +293,8 @@ topics:
     prerequisites: [eco-central-banks, num-compounding]
     cases:
       - title: "India's near double-digit inflation"
-        asOf: 2013-12-31
-        outcome: "CPI inflation near 10% in Dec 2013, 8.0% excluding food and fuel; the RBI tightened under Rajan."
+        asOf: 2014-01-27
+        outcome: "On 28 Jan 2014 the RBI raised the repo rate by another 25 bp, to 8.0%, still below CPI inflation of close to 10%, so the policy rate stayed negative in real terms. A saver in a 9% deposit earned a real return of roughly -1%: Rs 10 lakh grew to Rs 10.9 lakh but, at 10% inflation, could buy only about Rs 9.9 lakh of today's goods."
         sources:
           - https://rbi.org.in/Scripts/PublicationsView.aspx?id=15709
           - https://bis.org/review/r160905b.htm
@@ -296,9 +306,10 @@ topics:
     cases:
       - title: "India before the 1991 crisis"
         asOf: 1990-06-30
-        outcome: "Growth of 7.6% a year for the three years to 1990-91, fiscally fuelled; external payments crisis in July 1991."
+        outcome: "It did not last. Iraq invaded Kuwait in Aug 1990, oil prices jumped and Gulf remittances fell. The planned cut in the fiscal deficit did not happen (9.4% of GDP in 1990-91), the current account deficit widened to about 3.0% of GDP and inflation rose to 12.0%. Growth had averaged 7.6% a year over the three years to 1990-91, fuelled by expansionary fiscal policy. By end-March 1991 gross official reserves were $5.8bn, 1.3 months of imports. The rupee was devalued on 1 and 3 Jul 1991 (about 18% in dollar terms, RBI), and the IMF approved a stand-by of SDR 1,656m on 31 Oct 1991."
         sources:
           - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter11_04122018.pdf
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
         verified: true
   - id: eco-fiscal-debt
     title: "Fiscal policy and government debt"
@@ -307,17 +318,10 @@ topics:
     cases:
       - title: "The UK mini-budget and gilt crisis"
         asOf: 2022-09-23
-        outcome: "Pound fell to $1.03; the Bank of England bought up to 65bn pounds of gilts from 28 Sep 2022 to stop pension-fund LDI selling. A credibility and leverage Case."
+        outcome: "Markets rejected the plan. On Monday 26 Sep 2022 the pound fell nearly 5% at one point to $1.0327, its lowest since decimalisation in 1971, and gilt yields rose sharply. Some long-dated bonds held by pension funds lost around half their value in days; liability-driven investment funds got margin calls and sold gilts, pushing prices down further. On 28 Sep the Bank of England announced temporary purchases of long-dated gilts of up to 65bn pounds (up to 5bn a day until 14 Oct) and postponed its gilt sales, with the Treasury covering any losses."
         sources:
           - https://theguardian.com/business/2022/sep/28/bank-of-england-in-65bn-scramble-to-avert-financial-crisis
           - https://www.cnbc.com/2022/09/29/pension-fund-panic-led-to-bank-of-englands-emergency-intervention.html
-        verified: true
-      - title: "India's fiscal expansion before 1991"
-        asOf: 1991-03-31
-        outcome: "Fiscal expansion in 1990-91 ended in the July 1991 payments crisis and IMF support."
-        sources:
-          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter11_04122018.pdf
-          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
         verified: true
   - id: num-econometrics
     title: "Reading empirical claims: causation, data and spreadsheet errors"
@@ -326,11 +330,10 @@ topics:
     cases:
       - title: "Reinhart and Rogoff's 90% debt threshold"
         asOf: 2010-05-01
-        outcome: "Published 2010; in Apr 2013 Herndon, Ash and Pollin found an omitted-rows spreadsheet error, selective exclusions and odd weighting; growth above 90% debt was about 2.2%, not -0.1%. Reinhart and Rogoff admitted the slip."
+        outcome: "In Apr 2013 Herndon, Ash and Pollin re-examined the spreadsheet and found three problems: a coding error that averaged rows 30-44 instead of 30-49 and so left out five countries (Australia, Austria, Belgium, Canada, Denmark); the exclusion of available years for Australia (1946-50), New Zealand (1946-49) and Canada (1946-50); and unconventional weighting, under which New Zealand's single high-debt year (1951, growth -7.6%) counted as much as the UK's 19 years. The corrected average real GDP growth for debt above 90% of GDP was 2.2%, not -0.1%. Reinhart and Rogoff acknowledged a 'regrettable slip' but said it did not affect the central message of their paper."
         sources:
+          - https://peri.umass.edu/wp-content/uploads/joomla/images/WP322.pdf
           - https://www.cnbc.com/2013/04/17/reinhartrogoff-error-sparks-austerity-debate.html
-          - https://www.theatlantic.com/business/archive/2013/04/forget-excel-this-was-reinhart-and-rogoffs-biggest-mistake/275088/
-          - https://www.bloomberg.com/news/articles/2013-04-17/7-data-disasters-more-embarrassing-than-reinhart-and-rogoff-s
         verified: true
         note: "Added to cover econometrics beyond basics."
   - id: in-rbi-policy
@@ -340,11 +343,12 @@ topics:
     cases:
       - title: "The RBI's package of 4 September 2013"
         asOf: 2013-09-03
-        outcome: "The FCNR(B) swap window drew in dollars; the rupee stabilised and forward cover became cheap."
+        outcome: "On 4 Sep 2013 Governor Raghuram Rajan announced a package with two swap windows: banks could swap dollars from new three-year FCNR(B) deposits, and dollars from overseas borrowing, with the RBI at a concessional rate, so the RBI carried the exchange-rate risk. The FCNR(B) route drew in about $26bn and press estimates put the two windows together at roughly $34bn. The rupee stabilised and forward dollar cover became cheaper. The RBI also raised the repo rate by 25 bp on 20 Sep (to 7.5%) and on 29 Oct 2013 (to 7.75%) and cut the marginal standing facility rate from 9.0% to 8.75%. One analyst noted that much of the FCNR(B) inflow was overseas bank money routed through the scheme, not new savings."
         sources:
           - https://bis.org/review/r160905b.htm
-          - https://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1294FSR1213.pdf
+          - https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0
         verified: true
+        note: "RBI opened a new FCNR(B) swap facility in June 2026; keep that 2026 material out of this Case."
   - id: bond-pricing
     title: "Bond basics and pricing"
     stage: foundation
@@ -352,11 +356,12 @@ topics:
     cases:
       - title: "The 1994 bond sell-off"
         asOf: 1994-01-31
-        outcome: "10-year yield (monthly average) 5.75% in Jan 1994 to 7.96% in Nov 1994, up 221 bp; use a price calculation as the exercise."
+        outcome: "On 4 Feb 1994 the Fed began tightening: its statement spoke only of 'a slight increase in the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%. The 10-year Treasury par yield went from 5.81% (3 Feb) to 5.94% (4 Feb), 6.15% (28 Feb) and 7.49% (9 May); as a monthly average it went from 5.75% in Jan to 7.96% in Nov 1994 (daily peak 8.05% on 7 Nov), a rise of 221 bp. A 5.70% ten-year bond bought at par in January and valued at a 7.96% yield is worth about $846 per $1,000 of face value, a loss of about 15%, though every promised payment was still safe."
         sources:
-          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10&cosd=1993-10-01&coed=1995-02-01
-          - https://www.federalreserve.gov/monetarypolicy/files/fomc19940706bluebook19940630.pdf
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
+          - https://www.federalreserve.gov/fomc/19940204default.htm
           - https://fortune.com/article/the-great-bond-massacre-fortune-1994
+          - https://www.federalreserve.gov/releases/h15/
         verified: true
   - id: bond-yield
     title: "Yield to maturity, coupon and current yield"
@@ -365,11 +370,13 @@ topics:
     cases:
       - title: "Orange County's leveraged pool"
         asOf: 1994-06-30
-        outcome: "A $20.6bn leveraged portfolio lost about $1.5bn (not $1.7bn); Chapter 9 petition on 6 Dec 1994."
+        outcome: "In early Dec 1994 the county announced that the pool's $20.6bn portfolio had lost about $1.5bn in market value (SEC administrative order). The rise in rates during 1994 had brought market losses and collateral calls on the borrowing, and on 6 Dec 1994 Orange County filed for protection under Chapter 9 of the US Bankruptcy Code. The Treasurer's yield was real only if every bond could be held to maturity; the borrowing meant the pool could be pressed to give up collateral or sell."
         sources:
           - https://sec.gov/files/litigation/admin/3436761.txt
           - https://sec.gov/files/litigation/litreleases/lr15160.txt
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
         verified: true
+        note: "The loss is $1.5bn in the SEC order (release 36761); SEC litigation release 15160 says $1.7bn. The Topic quotes both."
   - id: bond-yield-curve
     title: "Yield curve and term structure"
     stage: foundation
@@ -377,10 +384,11 @@ topics:
     cases:
       - title: "The 1994 curve flattening"
         asOf: 1994-02-03
-        outcome: "Two-year yield 4.14% (Jan) to 7.59% (Dec 1994); the 10s-2s gap shrank from 1.61 to 0.22 percentage points."
+        outcome: "On 4 Feb 1994 the Fed began raising the overnight rate, from about 3.00% to 3.25%, the first of a series (it averaged 5.45% in Dec 1994). The 2-year monthly average went from 4.14% in Jan to 7.59% in Dec and the 3-month from 3.04% to 5.76%, while the 10-year rose less, from 5.75% to 7.81%, so the 10s-2s gap shrank from 1.61 points to 0.22. On 30 Dec 1994 the Treasury par yields were 5.68% for 3 months, 7.69% for 2 years, 7.84% for 10 years and 7.89% for 30 years: an almost flat curve."
         sources:
-          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS2,GS10,TB3MS,FEDFUNDS&cosd=1993-12-01&coed=1995-01-01
-          - https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10&cosd=1993-10-01&coed=1995-02-01
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
+          - https://www.federalreserve.gov/fomc/19940204default.htm
+          - https://www.federalreserve.gov/releases/h15/
         verified: true
   - id: bond-duration
     title: "Duration and convexity"
@@ -389,10 +397,11 @@ topics:
     cases:
       - title: "Silicon Valley Bank's securities portfolio"
         asOf: 2022-12-31
-        outcome: "Unrealised losses grew as rates rose; the bank failed on 10 Mar 2023."
+        outcome: "In early 2023 deposit outflows quickened. On 8 Mar 2023 SVB Financial Group announced that it had sold $21bn of available-for-sale securities at an after-tax loss of $1.8bn and planned to raise $2.25bn of equity. On 9 Mar depositors withdrew over $40bn, and management expected over $100bn more on 10 Mar. A bank cannot repay deposits from securities it carries at cost without selling them at market prices, so the unrecognised loss became real; regulators closed SVB on 10 Mar 2023. The Fed's April 2023 review describes a mismatch between long-duration securities and short-duration deposits."
         sources:
           - https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf
           - https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2022
         verified: true
   - id: bond-credit-spreads
     title: "Credit spreads, ratings and default"
@@ -401,7 +410,7 @@ topics:
     cases:
       - title: "LTCM's spread trades"
         asOf: 1998-08-01
-        outcome: "Spread-convergence trades lost as spreads widened; private rescue by 14 firms on 23 Sep 1998."
+        outcome: "In Aug 1998 Russia devalued its currency and stopped payments on part of its debt, investors rushed to safer and more liquid assets, and the spreads LTCM had bet on narrowing widened almost everywhere. The fund lost 44% of its value in August alone. On 23 Sep 1998 fourteen banks and brokerage firms put up $3.625bn for 90% of the fund; the Fed arranged the meeting but lent nothing. The partners and other investors lost heavily, the fund sold its positions, and the last of the group's $3.6bn was returned by the end of 1999."
         sources:
           - https://www.federalreservehistory.org/essays/ltcm-near-failure
           - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
@@ -411,14 +420,17 @@ topics:
     stage: foundation
     prerequisites: [bond-yield-curve, in-rbi-policy]
     cases:
-      - title: "The securities scam's SGL fraud"
+      - title: "The securities scam's missing government securities"
         asOf: 1992-04-01
-        outcome: "Rs 500 crore missing from SBI's account at the RBI's public debt office exposed the scam in April 1992."
+        outcome: "In April 1992 the first press report appeared of a shortfall in the government securities held by the State Bank of India; the missing SGL holding at the RBI's Public Debt Office was first reported as Rs 500 crore, and SBI found Rs 574 crore. The Bank of Karad and the Metropolitan Cooperative Bank had issued bank receipts not backed by securities, and larger banks lent to them in ready forward deals; the money went to the stock market. Barua and Varma estimated that over Rs 3,500 crore was diverted from the banking system between April 1991 and May 1992 (Mint says over Rs 4,000 crore). On 28 Apr 1992 the Sensex fell 12.77% in a day, and a further 23% in May."
         sources:
+          - https://www.jrvarma.in/papers/vik18-1.pdf
           - https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
-          - https://www.moneycontrol.com/news/business/markets/harshad-mehta-scam-10-key-points-of-the-scam-that-jolted-india-in-1992-5939931.html
+          - https://www.moneylife.in/article/sitaraman-of-sbi-convicted-23-years-after-the-securities-scam-of-1992-surfaced/43889.html
+          - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
+          - https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
         verified: false
-        note: "Draft source only; confirm the SGL detail in the Janakiraman report."
+        note: "Not verified in a primary source: the SBI shortfall differs by source (Rs 500 crore first reported, Rs 574 crore found by SBI, about Rs 650 crore in the Janakiraman Committee report per a secondary source), and the Janakiraman and 1993 JPC reports exist only as scans. The Topic gives the Rs 500 crore and Rs 574 crore figures with their sources."
   - id: fx-basics
     title: "Exchange rates and parity"
     stage: foundation
@@ -426,7 +438,7 @@ topics:
     cases:
       - title: "The 1991 rupee devaluation"
         asOf: 1991-06-30
-        outcome: "Two steps on 1 and 3 Jul 1991 (about 9% and 11%), about 18% cumulative in dollar terms (RBI); the IMF's 19% is the same event under other arithmetic."
+        outcome: "On 1 Jul 1991 the RBI cut the rupee's value by about 9% and on 3 Jul by a further 11%. The RBI puts the cumulative devaluation at about 18% in US dollar terms; the IMF says 19% (0.91 x 0.89 = 0.81, a fall of 19%). The plan, code-named 'hop, skip and jump', was always for two stages (C. Rangarajan); after the first step the market grew nervous and expected a larger fall, so the second was brought forward. A dual exchange rate began in March 1992 and the two rates were unified in March 1993."
         sources:
           - https://rbi.org.in/scriptS/chro_1991.aspx
           - https://rbi.org.in/history/Brief_Chro1991to2000.html
@@ -440,63 +452,59 @@ topics:
     cases:
       - title: "India's import controls in 1991-92"
         asOf: 1991-07-31
-        outcome: "Import controls tightened in 1991 and relaxed in Mar 1992; domestic demand fell about 2.5% in 1991/92."
+        outcome: "The squeeze did its job on the balance of payments: the IMF estimates that tighter import restrictions and the lower rupee cut import intensity by over 1.5% of GDP in 1991. But the restrictions fell heavily on intermediate inputs; with tighter budgets and credit, domestic demand fell 2.5% in 1991/92, growth slowed to about 1% and industry contracted. Import liberalisation began in July 1991 (tradable Exim scrips for exporters) and a dual exchange rate began on 1 Mar 1992. Growth recovered to nearly 4.5% a year in the following two years."
         sources:
           - http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
           - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
-        verified: false
-        note: "Secondary summary of the IMF text; re-open the chapter before writing."
+        verified: true
   - id: fx-bop
     title: "Balance of payments and capital flows"
     stage: foundation
     prerequisites: [fx-basics, eco-gdp-cycles]
     cases:
-      - title: "India's 1990-91 trade deficit"
+      - title: "India's external accounts at the end of 1990-91"
         asOf: 1991-03-31
-        outcome: "Trade deficit of $9,437m, up 26.5%; the outcome was an IMF programme."
+        outcome: "The year's numbers, as the RBI reported them, were worse than 1989-90 on almost every line: exports US$18,477m, imports US$27,914m, a trade deficit of US$9,437m (up 26.5%), invisibles of minus US$242m and a current account deficit of US$9,680m (3.0% of GDP). The capital account brought in US$7,188m (non-resident Indian deposits fell from US$2,403m to US$1,536m); the overall deficit of US$2,492m was met from reserves and US$1,214m drawn from the IMF. The IMF approved a stand-by of SDR 1,656m on 31 Oct 1991 and the rupee was devalued. In 1991-92 imports were cut to US$21,064m, the trade deficit shrank to US$2,798m and the current account deficit to US$1,178m (0.3% of GDP); reserves rose from US$5,834m to US$9,220m."
         sources:
           - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter11_04122018.pdf
         verified: true
   - id: in-economy
     title: "India's economy and the 1991 reforms"
     stage: foundation
     prerequisites: [eco-gdp-cycles, fx-bop]
     cases:
-      - title: "The 1991 reform chronology"
+      - title: "The weeks around 1 July 1991"
         asOf: 1991-07-01
-        outcome: "Rupee devalued 1-3 Jul 1991; Narasimham report Nov 1991; NSE started trading Jun 1994."
+        outcome: "On 1 and 3 Jul 1991 the RBI cut the rupee in two steps, about 18% in dollar terms. July brought a liberalised industrial policy, an investment policy opening sectors to foreign investment and a trade policy replacing import licences with tradable Exim scrips. The 24 Jul Budget ended industrial licensing for most industries (all but 18 in the RBI's account), raised the foreign equity limit to 51% in priority industries and announced stake sales in public enterprises. The IMF approved a stand-by of SDR 1,656m on 31 Oct 1991. The Narasimham Committee reported in Nov 1991; the dual exchange rate began in Mar 1992, a unified rate in 1993 and current-account convertibility in Aug 1994. SEBI framed insider-trading rules in 1992, and the NSE began operating in 1994 (its wholesale debt market in June, equity trading in November)."
         sources:
-          - https://rbi.org.in/scriptS/chro_1991.aspx
+          - http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
           - https://rbi.org.in/history/Brief_Chro1991to2000.html
+          - https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
+          - https://www.nseindia.com/static/national-stock-exchange/history-milestones
         verified: true
   - id: fx-regimes-crises
     title: "Exchange-rate regimes and currency crises"
     stage: foundation
     prerequisites: [fx-bop, eco-central-banks]
     cases:
-      - title: "The rupee in the 2013 taper tantrum"
-        asOf: 2013-08-31
-        outcome: "Package of 4 Sep 2013; the rupee stabilised afterwards."
-        sources:
-          - https://bis.org/review/r160905b.htm
-          - https://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1294FSR1213.pdf
-        verified: true
-      - title: "The 1997 Asian crisis"
+      - title: "Thailand's baht on 1 July 1997"
         asOf: 1997-07-01
-        outcome: "Thailand floated the baht on 2 Jul 1997; baht about 25 to 56 per dollar by year-end; IMF package for Thailand over $17bn on 11 Aug 1997."
+        outcome: "On 2 Jul 1997 the Bank of Thailand gave up the peg and floated the baht, which fell 15-20% (ADST) and about 20% during July (IMF). The central bank had spent about US$24bn of the US$38.7bn of reserves it held in 1996 defending the rate. On 11 Aug an IMF-convened meeting in Tokyo gathered pledges of US$12.7bn beside the IMF's own money, and on 20 Aug the IMF approved a stand-by credit of SDR 2.9bn (about US$3.9bn), requiring a tighter budget, a floating baht and the closure of weak finance companies. Within about six months the baht fell from about 25 to a low near 56 per dollar, and the crisis spread to Indonesia, Korea and other Asian economies."
         sources:
+          - https://www.imf.org/external/np/sec/pr/1997/pr9737.htm
           - https://adst.org/2016/12/thai-tanic-responding-asian-financial-crisis-1997
-          - https://goldmansachs.com/our-firm/history/moments/1997-asia-financial-crisis
-          - https://en.wikipedia.org/wiki/1997_Asian_financial_crisis
+          - https://www.bot.or.th/en/our-roles/special-measures/Tom-Yum-Kung-lesson.html
         verified: true
+        note: "The baht's low near 56 (reached in Jan 1998, not at the end of 1997) rests on ADST; the BIS Paper 24 PDF could not be retrieved and the year-end 1997 rate was not retrieved."
   - id: sov-default-country-risk
     title: "Sovereign default and country risk"
     stage: foundation
     prerequisites: [bond-credit-spreads, fx-regimes-crises]
     cases:
-      - title: "Argentina's default"
+      - title: "Argentina on 1 December 2001"
         asOf: 2001-12-01
-        outcome: "Default declared 23 Dec 2001, convertibility ended 6 Jan 2002; debt size $88bn to $141bn by source; 2005 swap accepted at about 30 cents on the dollar."
+        outcome: "On 6 Dec 2001 the IMF withheld the next US$1.24bn of its loan; riots followed (at least 29 dead) and President de la Rua resigned on 20 Dec. On 23 Dec the caretaker president, Adolfo Rodriguez Saa, told Congress that Argentina would suspend payments on its foreign debt, the largest sovereign default to that date. The debt in default is US$88bn (US State Department), about US$100bn (Wall Street Journal), US$132bn (New York Times) or US$141bn (Yale Journal of Financial Crises). On 6 Jan 2002 Congress ended convertibility; dollar deposits were converted at 1.4 pesos per dollar. In Feb 2005 holders of 76% of the defaulted principal accepted an offer worth roughly 30 cents on the dollar; the economy grew 8.7% in 2003 and 9.0% in 2004."
         sources:
           - https://elischolar.library.yale.edu/journal-of-financial-crises/vol7/iss2/3
           - https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm
@@ -508,10 +516,15 @@ topics:
     stage: foundation
     prerequisites: [fs-balance]
     cases:
-      - title: "The 1992 scam and SEBI's powers"
+      - title: "SEBI's first months, April 1992"
         asOf: 1992-04-30
-        outcome: "The scam led to the Securities Laws (Amendment) Act 1995 widening SEBI's powers."
+        outcome: "SEBI in 1992 had the duty to protect investors and regulate the market, but limited powers to act quickly. Parliament widened them in the Securities Laws (Amendment) Act, 1995: the SEBI Act's footnotes show the directions power (Section 11B) was inserted by Act 9 of 1995 with effect from 25 Jan 1995, and the powers to order investigations and to call for bank records were added by the 2002 amendment. Press accounts link the scam to the 1995 amendment, but the order of events is the safer fact: SEBI gained statutory status on 30 Jan 1992, three months before the scam surfaced, and its powers were widened three years after. The NSE was incorporated in 1992, recognised by SEBI in April 1993 and began operating in 1994, with dematerialised trading from 1995-96; SEBI framed insider-trading rules in 1992."
         sources:
+          - https://www.sebi.gov.in/about-sebi.html
+          - https://www.sebi.gov.in/acts/act15ac.html
+          - https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
+          - https://www.nseindia.com/static/national-stock-exchange/history-milestones
+          - https://rbi.org.in/history/Brief_Chro1991to2000.html
           - https://www.moneycontrol.com/news/business/markets/harshad-mehta-scam-10-key-points-of-the-scam-that-jolted-india-in-1992-5939931.html
           - https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
         verified: true
@@ -520,77 +533,82 @@ topics:
     stage: foundation
     prerequisites: [num-statistics, eq-markets]
     cases:
-      - title: "The Sensex boom and bust"
-        asOf: 1992-03-30
-        outcome: "Apr 1991 to Apr 1992: 1,194 to 4,467 (+274%); 28 Apr 1992 fell 570 points (12.7%); down 56% by Apr 1993."
+      - title: "The Sensex at the end of March 1992"
+        asOf: 1992-03-31
+        outcome: "The Sensex reached its high close of 4,467 in April 1992 (Forbes India: +274% from 1,194 in April 1991). On 28 Apr it fell 12.77% in a day as the securities scam came to light, and it fell 5% over April and 23% in May. It ended 1992 at 2,615, about 41% below the April high though 37% up on the calendar year, then rose 28% in 1993 (3,346) and 17% in 1994 (3,927) before falling 21% in 1995 (3,110). BSE's white paper counts positive returns in 75% of the last 40 calendar years. In the US, over 1981-2020, large company stocks returned 12.64% a year on average against 8.21% for ten-year Treasury bonds and 3.94% for bills, with bigger swings."
         sources:
+          - https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
           - https://www.forbesindia.com/article/independence-day-special/economic-milestone-stock-market-scam-(1992)/38457/1
-          - https://livemint.com/market/stock-market-news/bears-vs-bulls-harshad-mehta-scam-to-covid-19-top-7-biggest-stock-market-crashes-in-indias-financial-market-history-11740843716063.html
-          - https://www.rediff.com/business/special/spec1/20071009.htm?print=true
+          - https://www.rediff.com/business/special/spec1/20071009.htm
+          - https://openstax.org/books/principles-finance-2e/pages/12-4-historical-picture-of-returns-to-stocks
         verified: true
   - id: risk-portfolio
     title: "Risk, diversification and portfolio theory"
     stage: foundation
     prerequisites: [num-statistics, eq-history]
     cases:
-      - title: "The 1987 crash and portfolio insurance"
+      - title: "Portfolio insurance on Friday 16 October 1987"
         asOf: 1987-10-16
-        outcome: "About $80bn was portfolio-insured; insurers sold just under $2bn of $21bn of NYSE sales on the day."
+        outcome: "On Monday 19 Oct 1987 the Dow, the S&P 500 and the Wilshire 5000 fell between 18% and 23% in a day, and S&P 500 futures fell 29% (Fed). The ten largest sellers made up half of non-market-maker futures volume and many were portfolio insurers; Wells Fargo alone sold $1.6bn of futures. Futures fell faster than stocks, so the insurers' orders pushed prices down and triggered more selling by the models. The Brady task force blamed the insurers as a main cause; the estimated $80bn of insured assets shrank by about two-thirds afterwards. Diversification across 500 shares did not help, because the shares fell together."
         sources:
-          - https://www.federalreserve.gov/pubs/feds/2007/200713/
+          - https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf
           - https://time.com/archive/6711376/the-culprits-behind-the-crash
-          - https://www.nber.org/system/files/chapters/c10958/c10958.pdf
         verified: true
   - id: risk-capm
     title: "CAPM, beta and factor models"
     stage: foundation
     prerequisites: [risk-portfolio]
     cases:
-      - title: "Amazon's cost of equity in Damodaran's valuation"
+      - title: "What return should Amazon's shareholders require? (February 2000)"
         asOf: 2000-02-01
-        outcome: "Stock at $84 in Feb 2000; split-adjusted close $0.78 on 29 Dec 2000, down more than 80%."
+        outcome: "Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00); the regression beta of 2.29 would have implied 15.66%. His cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, against the $84 price. Amazon's 10-K shows 2000 quarterly highs and lows of $91.50 and $58.44, $68.63 and $32.47, $49.63 and $27.88, and $40.88 and $14.88: a high of $91.50 and a low of $14.88 for the year. The cost of equity says what return to demand, not what the price will do in the next year."
         sources:
           - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-          - https://www.statmuse.com/money/ask/amzn-stock-price-dec-2000
-          - https://pages.stern.nyu.edu/~adamodar/pc/datasets/waccIndia.xls?outputType=chromeless
-        verified: false
-        note: "Use the paper's cost-of-equity inputs; pair Indian beta files (damoindia, damobeta) for the India half."
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
+        verified: true
+        note: "The Topic uses the Amazon Case only; no past-dated Damodaran India beta file was found, so the India half is dropped."
   - id: mkt-efficiency
     title: "Market efficiency"
     stage: foundation
     prerequisites: [risk-capm]
     cases:
       - title: "Blodget versus Grantham on the dot-com valuations"
-        asOf: 2000-01-01
-        outcome: "The Nasdaq bust followed in 2000-02."
+        asOf: 2000-05-01
+        outcome: "The Nasdaq kept falling: it closed at 1,114.11 on 9 Oct 2002, 78% below its record close of 5,048.62 on 10 Mar 2000, and did not close above that record again until April 2015. The S&P 500 went from its record close of 1,527.46 on 24 Mar 2000 to a closing low of 776.76 on 9 Oct 2002, a fall of about 49%. Grantham's calls of a 50% fall for the S&P 500 and 70% for the Nasdaq were close to the eventual declines, though they took two and a half years, and Blodget's warning that most of the new companies would not survive was also borne out."
         sources:
-          - https://pages.stern.nyu.edu/~adamodar/pdfiles/ovhds/dam2ed/ValIntro.pdf
+          - https://www.forbes.com/forbes/2000/0612/6514312a.html
           - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/darkside/articles/blodget.html
-        verified: false
-        note: "Outcome figures (Nasdaq peak and trough) still to be sourced."
+          - https://apnews.com/general-news-5472b273b06642eaa5a0487fed43e9c4
+          - https://cnbc.com/2007/07/13/sp-500-milestones.html
+        verified: true
+        note: "The debate was staged in early May 2000, after the 10 Mar 2000 Nasdaq peak, not on 1 Jan 2000. Only headline index closes are used (AP, CNBC, Reuters); the Nasdaq decimals come from secondary sources."
   - id: mkt-behavioural
     title: "Behavioural finance and bubbles"
     stage: foundation
     prerequisites: [mkt-efficiency]
     cases:
-      - title: "Webvan and WeWork at the top"
-        asOf: 1999-11-05
-        outcome: "Webvan $7.9bn on day one, bankrupt 20 months later; WeWork $47bn in Jan 2019, IPO valuation cut to $20bn in Sep 2019."
+      - title: "Webvan's first day as a public company"
+        asOf: 1999-11-04
+        outcome: "On 5 Nov 1999 the shares traded as high as $34 and closed at $24.875, 65% above the $15 offer price, valuing Webvan at $7.9bn. The company lost $453.3m in 2000 and filed for bankruptcy on 9 Jul 2001, about 20 months later. The pattern came back with WeWork: valued at $47bn in a private round in Jan 2019, with bankers having talked of $65bn for its share sale, its IPO valuation was reported at about $20bn by 6 Sep 2019 and as low as $10-12bn by 13 Sep. The sale was withdrawn on 30 Sep, and SoftBank's rescue in Oct 2019 valued the company at about $8bn."
         sources:
           - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
-          - https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/
+          - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
+          - https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html
           - https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion
+          - https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/
+          - https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
         verified: true
   - id: cf-capital-budgeting
     title: "NPV, IRR and capital budgeting"
     stage: foundation
     prerequisites: [present-value, fs-cashflow]
     cases:
-      - title: "Webvan's 26-centre build plan"
-        asOf: 1999-11-05
-        outcome: "A plan for 26 automated distribution centres at the peak; ran seven markets and closed in Jul 2001."
+      - title: "Webvan's plan for 26 more distribution centres"
+        asOf: 2000-03-30
+        outcome: "Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8m on equipment and buildings that year against a plan of $300m to $350m, and cut its 2001 spending plan to $10m to $15m. Its net loss in 2000 was $453.3m and it filed for bankruptcy on 9 Jul 2001. The investment case rested on a centre reaching high volumes and an average order far above the one it had, and its payback claim was an EBITDA figure, before tax, upkeep and head-office costs, that ignored the time value of money."
         sources:
-          - https://www.sfgate.com/food/article/rise-fall-bay-area-startup-webvan-19829522.php
+          - https://www.sec.gov/Archives/edgar/data/1092657/000089161800001877/0000891618-00-001877.txt
+          - https://www.sec.gov/Archives/edgar/data/1092657/000101287001001485/0001012870-01-001485.txt
           - https://latimes.com/archives/la-xpm-2001-jul-10-mn-20432-story.html
         verified: true
         note: "Reuses Webvan; the Eurotunnel replacement (see cf-wacc) is the alternative."
@@ -601,12 +619,11 @@ topics:
     cases:
       - title: "Eurotunnel's financing cost"
         asOf: 2006-09-01
-        outcome: "Debt of 6.2bn pounds, about 330m a year of interest; creditors approved a rescue by one vote on 27 Nov 2006; debt cut to 2.84bn pounds on 15 Jan 2007."
+        outcome: "Creditors approved a rescue plan in Paris on 27 Nov 2006 by a single vote, 28 of 53 creditors. The plan cut the debt from 6.2bn to 2.84bn pounds, backed by the Paris commercial court on 15 Jan 2007. Shareholders were left with 13% of the new company, and bank lenders received a mixture of cash and a hybrid note of 1.3bn pounds convertible into 87% of it. The cost of capital had been set by the borrowing, not by the tunnel's earnings: the business could not earn the return that the debt required."
         sources:
           - https://www.nytimes.com/2007/01/15/business/worldbusiness/15iht-tunnel.4211789.html
           - http://www.bbc.co.uk/2/hi/business/6262345.stm
           - https://www.theguardian.com/business/2006/nov/28/transportintheuk.travel1
-          - https://www.theguardian.com/business/2007/may/26/travel.travelnews
         verified: true
         note: "Replaces the Tube Investments exercise, which had no outcome."
   - id: cf-capital-structure
@@ -615,37 +632,42 @@ topics:
     prerequisites: [cf-wacc]
     cases:
       - title: "The Coffee Day group's debt"
-        asOf: 2019-03-31
-        outcome: "Founder's letter of 27 Jul 2019 cited lender and private-equity pressure; about 76% of founders' holdings pledged; shares fell by the 20% limit."
+        asOf: 2019-07-26
+        outcome: "The founder's letter, dated 27 Jul 2019, said he could not take any more pressure from one of the company's private equity partners to buy back shares and referred to pressure from lenders and a serious liquidity crunch. He was found dead on 31 Jul 2019, and the shares fell by the 20% limit on two successive days. On 17 Aug the company disclosed that the group's debt on 31 Jul was Rs 4,970 crore, of which Rs 4,796 crore was secured, including Rs 1,622 crore in Tanglin Developments, Rs 1,488 crore in Sical and Rs 1,097 crore in Coffee Day Global; the sale of the Global Village Tech Park to Blackstone would cut it by about Rs 2,400 crore. The promoters' stake fell from 54% in Jul 2019 to 17% by Jan 2020 as lenders enforced the pledges."
         sources:
           - https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html
           - https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
-        verified: false
-        note: "Debt amounts not fetched."
+          - https://www.businesstoday.in/latest/economy-politics/story/coffee-day-enterprises-discloses-debt-down-rs-4970-crore-slash-rs-2570-crore-global-village-sale-221819-2019-08-17
+          - https://thehindubusinessline.com/companies/coffee-day-enterprises-debt-at-rs-4970-crore/article29119177.ece
+          - https://timesofindia.indiatimes.com/business/india-business/coffee-day-promoters-stake-dives-to-17-from-54/articleshow/73113651.cms
+        verified: true
   - id: cf-payout
     title: "Dividends and buybacks"
     stage: foundation
     prerequisites: [cf-capital-structure]
     cases:
-      - title: "A buyback forced on a levered group"
-        asOf: 2019-07-27
-        outcome: "The Coffee Day founder's letter cites a private-equity partner forcing a buyback."
+      - title: "What should Microsoft do with its cash?"
+        asOf: 2004-07-19
+        outcome: "On 20 Jul 2004 Microsoft announced that it would double its regular quarterly dividend to 8 cents a share, buy back up to $30bn of its stock over four years, and pay a one-time special dividend of $3.00 a share, about $32bn (together up to $75bn over four years). The special dividend of $32.64bn was paid on 2 Dec 2004. Dividends paid rose from $1.7bn in fiscal 2004 to $36.1bn in fiscal 2005, buybacks from $3.4bn to $8.1bn, and cash and short-term investments fell from $60.6bn on 30 Jun 2004 to $37.8bn on 30 Jun 2005."
         sources:
-          - https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html
-        verified: false
-        note: "A policy Case with payout data is still missing; find one before writing."
+          - https://news.microsoft.com/source/2004/07/20/microsoft-outlines-quarterly-dividend-four-year-stock-buyback-plan-and-special-dividend-to-shareholders
+          - https://www.sec.gov/Archives/edgar/data/789019/000119312505174825/d10k.htm
+        verified: true
+        note: "Replaces the earlier candidate (the Coffee Day founder's buyback remark), which was not a payout-policy Case and had no payout data."
   - id: credit-analysis
     title: "Corporate credit analysis"
     stage: foundation
     prerequisites: [bond-credit-spreads, fs-ratios, fs-leases-debt]
     cases:
-      - title: "IL&FS before its defaults"
-        asOf: 2018-06-30
-        outcome: "169 group companies, high leverage; defaults in Aug-Sep 2018; board superseded in Oct 2018."
+      - title: "IL&FS, rated AAA"
+        asOf: 2018-08-15
+        outcome: "On 16 Aug 2018 a group company defaulted on a payment to SIDBI. ICRA and CARE cut the rating in mid-August by one notch and then, within a month, to default grade: ICRA to BB on 8 Sep and CARE the same on 9 Sep. On 1 Oct 2018 the government moved to replace the board, saying the group had 169 companies and about Rs 91,000 crore of debt against assets above Rs 1,15,000 crore, over Rs 20,000 crore of intangible assets, about half of revenue stuck in litigation and arbitration, and negative operating cash flow of Rs 7,020 crore in 2017-18. The FY2018 consolidated figures quoted later showed a loss of Rs 1,887 crore and a leverage ratio of 10.99. Reuters noted that all three agencies had rated it AAA and moved to default within a month."
         sources:
+          - https://www.ilfsindia.com/media/2042/infrastructure-leasing-financial-services-limited-revision-11092018.pdf
           - https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3
-        verified: false
-        note: "Primary figures on group debt to fetch."
+          - https://reuters.com/article/business/indias-ratings-firms-face-reform-pressure-after-failing-to-flag-ilfs-woes-idUSKCN1ME1YQ
+        verified: true
+        note: "As-of is 15 Aug 2018, before the 16 Aug SIDBI default. The story uses only FY2017 figures: the FY2018 accounts appear in rating reports dated 8-9 Sep 2018, after the defaults, so they sit in the reveal."
   - id: val-dcf
     title: "DCF valuation"
     stage: foundation
@@ -653,58 +675,60 @@ topics:
     cases:
       - title: "Damodaran values Amazon.com"
         asOf: 2000-02-01
-        outcome: "Stock at $84; Damodaran's base-case value about $35 per share; split-adjusted close $0.78 on 29 Dec 2000, down about 81%."
+        outcome: "Damodaran's terminal value was $52,148m, and the present value of all the cash flows was $15,170m for the operations. Adding cash and subtracting debt gave equity of $14,847m; after deducting $2,892m for the options, the common stock was worth $11,955m, or $35.08 a share on 340.79m shares, against the $84 price. The price did not fall at once: in the first quarter of 2000 the shares traded as high as $91.50, then fell through the year to a low of $14.88 in the fourth quarter. More than the whole value came from years after year 10, since the early cash flows were negative."
         sources:
           - http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-          - https://www.statmuse.com/money/ask/amzn-stock-price-dec-2000
+          - https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt
         verified: true
-        note: "Confirm that $35.08 is the base case before use."
+        note: "$35.08 is the paper's one valuation (the treasury-stock method gives $40.54)."
   - id: val-multiples
     title: "Relative valuation and multiples"
     stage: foundation
     prerequisites: [val-dcf, fs-ratios]
     cases:
-      - title: "WeWork at $47bn versus IWG"
-        asOf: 2019-08-14
-        outcome: "26 times 2018 revenue; valuation cut to about $20bn and the IPO pulled in Sep 2019."
+      - title: "WeWork at $47 billion against IWG"
+        asOf: 2019-08-20
+        outcome: "The market did not pay the multiple. By late September advisers were telling WeWork it would probably fetch about a quarter of $47bn, and reports put the IPO valuation as low as $10bn. Adam Neumann stepped down as chief executive on 24 Sep 2019 and the IPO was withdrawn on 30 Sep. On 22 Oct 2019 SoftBank agreed a rescue that valued WeWork at less than $8bn, a cut of more than 80% from January: about 2.6 times first-half revenue doubled (about $3.1bn), still above the roughly 1.4 times at which IWG's shares stood in August, but far below 26 times 2018 revenue."
         sources:
           - https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
-          - https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion
+          - https://www.thestar.com/business/wework-is-valued-10-times-greater-than-this-profitable-public-rival/article_4f3a25b8-c326-50f6-aefc-6e39d447bee4.html
+          - https://investors.iwgplc.com/~/media/Files/I/IWG-IR/reports-and-presentations/2019/annual-results-announcement-year-ended-31-december-2018-presentation.pdf
+          - https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html
+          - https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/
+          - https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
         verified: true
+        note: "IWG's market value ($4.45bn, shares only) is from a Bloomberg report syndicated by the Toronto Star on 20 Aug 2019, not a London closing price."
   - id: val-young
     title: "Valuing young, loss-making companies"
     stage: foundation
     prerequisites: [val-dcf, val-multiples, fs-revenue-runrate]
     cases:
-      - title: "Uber, Damodaran versus venture capital"
+      - title: "Uber, Damodaran against venture capital"
         asOf: 2014-12-02
-        outcome: "Damodaran about $6bn against $17-18bn privately; Uber IPO priced $45 on 9 May 2019, $82.4bn fully diluted, closed down 7.6%."
+        outcome: "Uber went public on 9 May 2019 at $45 a share, near the bottom of its $44-50 range, which valued it at $82.4bn once options and restricted stock were counted (about $75bn on shares outstanding): above the $76bn of its last private round in Aug 2018 and below the $100bn it had forecast to some investors. On its first day of trading the shares closed at $41.57, down 7.6% from the offer price. The 2014 estimates, from $6bn to $40bn and more, were each a story about the Uber of 2014; what the market paid in 2019 followed the story it then chose to believe about market size, margins and survival."
         sources:
           - https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
           - https://www.nytimes.com/2019/05/09/technology/uber-ipo-stock-price.html
+          - https://www.nytimes.com/2019/05/10/technology/uber-stock-price-ipo.html
           - https://theguardian.com/business/2019/may/09/uber-value-wall-street-ipo-friday
         verified: true
-        note: "The $6bn versus $17-18bn figures not re-checked."
-      - title: "Webvan at its IPO"
-        asOf: 1999-11-05
-        outcome: "Day-one value $7.9bn; bankrupt in Jul 2001."
-        sources:
-          - https://www.nytimes.com/1999/11/06/business/webvan-stock-price-closes-65-above-initial-offering.html
-          - https://www.nytimes.com/2001/07/09/technology/online-grocer-webvan-to-file-for-chapter-11.html
-        verified: true
+        note: "The $6bn is Damodaran's June 2014 valuation of Uber as an urban car service company, revisited in his post of 2 Dec 2014; venture capital was then paying prices implying $17-18bn."
   - id: val-banks
     title: "Valuing banks and financial firms"
     stage: foundation
     prerequisites: [val-dcf, eco-money-banking]
     cases:
-      - title: "Yes Bank before the moratorium"
+      - title: "Yes Bank in February 2020"
         asOf: 2020-02-28
-        outcome: "RBI moratorium from 5 Mar 2020, withdrawals capped at Rs 50,000; SBI to take up to 49% at Rs 10 a share."
+        outcome: "On 5 Mar 2020 the RBI superseded the board of Yes Bank for 30 days, citing a serious deterioration in the bank's financial position and its inability to raise capital, and imposed a moratorium until 3 Apr under which depositors could withdraw at most Rs 50,000. The shares closed at Rs 16.20 on 6 Mar, down 56% in a day. The draft rescue plan of 6 Mar had the State Bank of India buy up to 49% at Rs 10 a share; on 12 Mar SBI said it would put in Rs 7,250 crore for 725 crore shares at that price. The Cabinet approved the plan on 13 Mar and the moratorium ended at 6 p.m. on 18 Mar 2020."
         sources:
           - https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=49477
           - https://www.businesstoday.in/latest/economy-politics/story/yes-bank-revival-plan-gets-cabinet-go-ahead-moratorium-to-end-soon-251981-2020-03-13
           - https://www.businesstoday.in/industry/banks/story/yes-bank-rescue-plan-notified-moratorium-to-be-lifted-on-march-18-252087-2020-03-14
+          - https://www.ndtvprofit.com/markets/q2-results-yes-banks-stock-tumbles-as-analysts-remain-cautious-over-asset-quality-10305078
+          - https://timesofindia.indiatimes.com/business/india-business/yes-bank-shares-surge-6-pc-on-value-buying-after-5-day-losing-streak/amp_articleshow/72493732.cms?ps=5
         verified: true
+        note: "Book value per share at the as-of date is not available (the bank had not published results since Sep 2019); the Topic says so."
   - id: val-distress
     title: "Valuing distressed firms"
     stage: foundation
@@ -712,102 +736,100 @@ topics:
     cases:
       - title: "Coffee Day Enterprises in July 2019"
         asOf: 2019-07-29
-        outcome: "Market cap Rs 4,068 crore on 29 Jul 2019, Rs 2,604 crore on 31 Jul 2019."
+        outcome: "On the evening of 29 Jul 2019 the founder, V. G. Siddhartha, went missing, and his body was found on 31 Jul. A letter attributed to him, dated 27 Jul, spoke of pressure from a private equity partner to buy back shares, pressure from lenders and a serious liquidity crunch. The shares fell by the 20% daily limit on 30 and on 31 Jul, to Rs 123.25, taking market value from Rs 4,067.65 crore on 29 Jul to Rs 3,254.33 crore and then Rs 2,603.68 crore, down 37% in two days. On 17 Aug the company disclosed group debt of Rs 4,970 crore on 31 Jul (Rs 3,472 crore for Coffee Day Enterprises without Sical); selling the Global Village Tech Park to Blackstone for Rs 2,600-3,000 crore could take it to about Rs 2,570 crore. By Jan 2020 the promoter group's holding had fallen from 54% to 17% as lenders invoked the pledges."
         sources:
           - https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31
           - https://www.hindustantimes.com/business-news/cafe-coffee-day-shares-plunge-by-20-after-police-finds-body-of-vg-siddhartha/story-bJbkjL8Zqf4yIogALmMBhJ.html
+          - https://www.businesstoday.in/latest/economy-politics/story/coffee-day-enterprises-discloses-debt-down-rs-4970-crore-slash-rs-2570-crore-global-village-sale-221819-2019-08-17
+          - https://timesofindia.indiatimes.com/business/india-business/coffee-day-promoters-stake-dives-to-17-from-54/articleshow/73113651.cms
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
         verified: true
   - id: val-implied-erp
     title: "Implied equity risk premium and market-level valuation"
     stage: foundation
     prerequisites: [val-dcf, mkt-efficiency, bond-yield]
     cases:
-      - title: "The implied equity risk premium at end-2007"
+      - title: "The implied equity risk premium at the end of 2007"
         asOf: 2007-12-31
-        outcome: "S&P 500 1,468.36; implied ERP 4.37% on 1 Jan 2008; 6.43% a year later at 903.25."
+        outcome: "A year later, on 31 Dec 2008, the S&P 500 stood at 903.25, down 38.5%; the Treasury bond rate had fallen to 2.21% and the dividend yield risen to 3.11%. Damodaran's implied premium for the start of 2009 was 6.43%, the highest of the period (against 4.37% a year earlier). It fell back to 4.36% a year later, with the index at 1,115.10, and was 5.20% a year after that. The premium moved with prices and expectations rather than being a fixed property of stocks."
         sources:
           - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html
+          - https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
         verified: true
   - id: val-india
     title: "Valuing Indian companies, currency and country risk"
     stage: foundation
     prerequisites: [val-dcf, sov-default-country-risk, in-gsec]
     cases:
-      - title: "Coffee Day's IPO"
-        asOf: 2015-10-21
-        outcome: "Priced Rs 328; listed Rs 317 on NSE; closed Rs 270.45, down 17.6%."
+      - title: "Coffee Day's IPO, in rupees and in dollars"
+        asOf: 2015-10-22
+        outcome: "The shares listed on 2 Nov 2015 at Rs 313 on the BSE and Rs 317 on the NSE, below the Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6%. The gap between the two bond yields (1.0758 / 1.0204, about 5.4% a year) pointed to a rupee falling from 65.12 to roughly 68.7 to the dollar within a year; by 20 Jan 2016 it was about 68. In his Jan 2016 update Damodaran gave India a Baa3 default spread of 2.44%, multiplied it by 1.34 for a country risk premium of 3.28%, and added it to a mature market premium of 6%."
         sources:
           - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+          - https://www.reuters.com/article/world/us/indian-fxdebt-factors-to-watch-oct-23-idUSL3N12L3UP/
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2015
+          - https://www.business-standard.com/article/markets/markets-likely-to-open-weak-tracking-asian-cues-115101300127_1.html
           - https://www.hindustantimes.com/business/coffee-day-shares-open-below-issue-price-down-4-5/story-Gk0pIIaOJE0MRfS7uqcmfN.html
           - https://www.bloomberg.com/news/articles/2015-11-02/starbucks-india-rival-coffee-day-falls-in-mumbai-trading-debut
+          - https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
         verified: true
-      - title: "Paytm's IPO"
-        asOf: 2021-11-17
-        outcome: "Priced Rs 2,150; closed day one Rs 1,564 (-27%)."
-        sources:
-          - https://archive.siasat.com/news/paytm-shares-partly-pare-losses-after-disappointing-debut-2231426/
-        verified: false
-        note: "Not re-checked in the verification pass."
   - id: cf-venture
     title: "Venture finance and private rounds"
     stage: foundation
     prerequisites: [val-young, cf-capital-structure]
     cases:
-      - title: "WeWork's $47bn private round"
-        asOf: 2019-01-01
-        outcome: "SoftBank-led round at $47bn; IPO valuation cut to $20bn in Sep 2019."
+      - title: "WeWork's $47 billion private round"
+        asOf: 2019-01-08
+        outcome: "In Aug 2019 WeWork's parent filed to go public and its private valuation was tested: by late September advisers said it would fetch about a quarter of $47bn and reports put the IPO valuation as low as $10bn. WeWork withdrew its IPO filing on 30 Sep. On 22 Oct 2019 SoftBank agreed a rescue that took its stake to about 80% and valued WeWork at less than $8bn, a fall of more than 80% from January; SoftBank, which had committed more than $13bn in equity, held a company now worth a fraction of what it had paid in. The $47bn had been the price of the newest shares times every share in the company, never a price at which the whole company could be sold for cash."
         sources:
+          - https://cnbc.com/2019/01/08/wework-rebranding-as-the-we-company-softbank-invests-2-billion.html
+          - https://reuters.com/article/markets/asia/wework-gets-2-billion-after-softbank-cuts-planned-investment-idUSKCN1P21OG
+          - https://www.nytimes.com/2019/01/07/business/softbank-wework.html
           - https://www.reuters.com/article/us-wework-ipo-neumann-newsmaker/wework-ipo-spells-rough-landing-for-ceo-neumann-idUSKBN1W009Z/
-          - https://www.bloomberg.com/news/articles/2019-09-06/wework-goes-from-hot-to-not-as-dream-value-plunges-45-billion
+          - https://reuters.com/article/technology/softbank-clinches-wework-takeover-deal-bailing-out-co-founder-idUSKBN1X11JN
         verified: true
   - id: mkt-ipo-float
     title: "IPOs, book building and float"
     stage: foundation
     prerequisites: [cf-venture, eq-markets]
     cases:
-      - title: "Coffee Day's IPO"
+      - title: "How Coffee Day sold its shares to the public"
         asOf: 2015-10-21
-        outcome: "Band Rs 316-328, priced Rs 328, listed below the issue price, 17.02% of post-issue capital."
+        outcome: "The shares began trading on 2 Nov 2015, opening at Rs 313 on the BSE and Rs 317 on the NSE against the Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6%. At the NSE close the company was worth about Rs 5,571 crore against Rs 6,757 crore at the issue price. Only the 17.02% sold in the issue could be traded in the following days; most of the company, including the promoters' 52.56%, was locked in. The issue price had been set by book building before trading began; the first day showed what the open market, with its small float, would pay."
         sources:
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
           - https://www.business-standard.com/article/markets/coffee-day-prices-ipo-at-upper-end-of-range-115102101210_1.html
-          - https://www.bloomberg.com/news/articles/2015-11-02/starbucks-india-rival-coffee-day-falls-in-mumbai-trading-debut
+          - https://www.hindustantimes.com/business/coffee-day-shares-open-below-issue-price-down-4-5/story-Gk0pIIaOJE0MRfS7uqcmfN.html
           - https://timesofindia.indiatimes.com/business/india-business/cold-debut-for-ccd-stock-plunges-18/articleshow/49637562.cms
+          - https://www.bloomberg.com/news/articles/2015-11-02/starbucks-india-rival-coffee-day-falls-in-mumbai-trading-debut
         verified: true
-      - title: "Paytm's IPO"
-        asOf: 2021-11-17
-        outcome: "Listed below issue price and closed down 27% on day one."
-        sources:
-          - https://archive.siasat.com/news/paytm-shares-partly-pare-losses-after-disappointing-debut-2231426/
-        verified: false
-        note: "Not re-checked."
   - id: der-forwards
     title: "Forwards and futures"
     stage: foundation
     prerequisites: [bond-pricing, fx-basics, eq-markets]
     cases:
       - title: "Metallgesellschaft's stack-and-roll hedge"
-        asOf: 1993-12-31
-        outcome: "Long-dated fixed-price delivery hedged with short-dated futures; losses $1.3bn to $1.5bn; rescued for $1.9bn to $2.2bn in 1994; CFTC fine $2.25m in 1995."
+        asOf: 1993-09-30
+        outcome: "In late 1993 OPEC members could not agree on production quotas and the oil price fell. The market moved from backwardation to contango, so rolling the futures now cost money; daily margin calls had to be paid in cash, while the gains on the customers' fixed prices would arrive only as oil was delivered over ten years. In Dec 1993 MG disclosed that its energy business had lost about $1.5bn (other sources say $1.3bn); Deutsche Bank ousted the chief executive and cut off the credit line. More than 100 creditor banks mounted a rescue of about $1.9bn ($2.2bn in some accounts) in 1994, and in Jul 1995 MG agreed to a $2.25m fine to the CFTC."
         sources:
           - https://sk.sagepub.com/ency/edvol/encyclopedia-of-white-collar-and-corporate-crime-2e/chpt/metallgesellschaft
+          - https://sk.sagepub.com/ency/edvol/sage-encyclopedia-of-business-ethics-and-society-2e/chpt/metallgesellschaft-ag
+          - https://www.wsj.com/articles/the-ceo-at-the-center-of-a-controversial-1993-commodity-hedge-1465178461
           - https://www.nytimes.com/1995/07/28/business/metallgesellschaft-to-pay-fine-to-us.html
+          - https://www.uni-trier.de/fileadmin/fb4/studium/FFA/Downloads/Risk_Management/CASE3_Metallgesellschaft_AG_1.pdf
         verified: true
-      - title: "The 1987 futures discount"
-        asOf: 1987-10-19
-        outcome: "S&P 500 futures fell 29% against 20% for the cash index, opening a discount."
-        sources:
-          - https://www.federalreserve.gov/pubs/feds/2007/200713/
-        verified: true
+        note: "Losses and rescue are ranges by source: $1.3bn (Sage) or $1.5bn (NYT, Reuters); rescue $1.9bn (Sage) to $2.2bn (NYT). As-of is 30 Sep 1993 because the loss was disclosed in Dec 1993."
   - id: der-options
     title: "Options and payoffs"
     stage: foundation
     prerequisites: [der-forwards, num-probability]
     cases:
-      - title: "1987 portfolio insurance as a replicated put"
+      - title: "Portfolio insurance as a home-made put"
         asOf: 1987-10-16
-        outcome: "Dynamic hedging sold into the fall; the crash on 19 Oct 1987."
+        outcome: "On Monday 19 Oct 1987 the S&P 500 fell about 20% in a single day and the S&P 500 futures contract fell 29%, so futures traded at a deep discount to the shares they track. Roughly 40% of futures sales by traders other than market-makers came from portfolio insurers; one large institution sold thirteen instalments of just under $100m each ($1.1bn in all), and Wells Fargo alone sold $1.6bn of futures. The Fed said on 20 Oct that it was ready to supply liquidity. The Fed paper says the insurers' selling 'may have contributed' to the futures discount; because the models sell more as prices fall, the selling could feed on itself."
         sources:
-          - https://www.federalreserve.gov/pubs/feds/2007/200713/
+          - https://www.federalreserve.gov/pubs/feds/2007/200713/200713pap.pdf
           - https://time.com/archive/6711376/the-culprits-behind-the-crash
         verified: true
   - id: der-option-pricing
@@ -815,12 +837,15 @@ topics:
     stage: foundation
     prerequisites: [der-options, num-statistics]
     cases:
-      - title: "LTCM and the option-pricing pioneers"
+      - title: "LTCM and the men who priced options"
         asOf: 1998-08-01
-        outcome: "Scholes and Merton were partners; Nobel 1997; LTCM lost $4.6bn in under four months."
+        outcome: "By the end of Aug 1998 LTCM had lost about half its capital: the Fed History essay says it lost 44% of its value in August alone, and the President's Working Group reports capital of $4.1bn on 31 Jul falling to $2.3bn during August. The losses came in markets all over the world at once, far beyond what the fund's risk models, estimated in calm periods, said was probable; the report concluded that LTCM's models underestimated the risk. On 23 Sep 1998 fourteen banks and brokerages put in $3.625bn for 90% of the fund, an arrangement the New York Fed organised without lending its own money."
         sources:
+          - https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/
           - https://www.federalreservehistory.org/essays/ltcm-near-failure
+          - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
           - https://www.federalreserve.gov/boarddocs/testimony/1998/19981001.htm
+          - https://www.nytimes.com/1998/11/14/business/when-theory-met-reality-special-report-teachings-two-nobelists-also-proved-their.html
         verified: true
   - id: der-rates-fx
     title: "Interest-rate and currency derivatives, swaps"
@@ -829,96 +854,102 @@ topics:
     cases:
       - title: "The RBI's FCNR(B) swap window"
         asOf: 2013-09-03
-        outcome: "Banks swapped dollar deposits with the RBI at a fixed rate; the rupee steadied and cover was cheap."
+        outcome: "On the afternoon of 4 Sep 2013 the RBI announced a package that included the swap window; its circular of 6 Sep set the terms: a dollar-rupee swap for fresh FCNR(B) deposits of three years or more, open from 10 Sep to 30 Nov 2013, at a fixed rate of 3.5% a year. The scheme drew in $26bn, more than anyone expected. Confidence returned, the rupee kept strengthening (partly because global investor mood and Indian election forecasts also changed) and the RBI covered its forward promises cheaply. Rajan said three years later: 'We are fully covered for outflows today and have made money on the deal', adding that the scheme was 'a measured risk'."
         sources:
           - https://bis.org/review/r160905b.htm
-          - https://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1294FSR1213.pdf
+          - https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0
         verified: true
+        note: "RBI opened a new FCNR(B) swap facility in June 2026; keep that 2026 material out of this Case."
   - id: der-hedging
     title: "Hedging and risk management"
     stage: foundation
     prerequisites: [der-option-pricing, der-rates-fx, cf-capital-structure]
     cases:
-      - title: "Orange County and Metallgesellschaft"
-        asOf: 1994-06-30
-        outcome: "Leveraged rate bets lost $1.5bn at Orange County; Metallgesellschaft's hedge lost $1.3-1.5bn."
+      - title: "Orange County's investment pool, a hedge or a bet?"
+        asOf: 1994-09-30
+        outcome: "In early Dec 1994 the county announced that the pool's $20.6bn portfolio had lost about $1.5bn in market value; it was built on only $7.6bn of deposits, so the leverage multiplied the loss. On 6 Dec 1994 the county filed for Chapter 9 protection. After the portfolio was sold, the county realised a loss of about $600m on its own investment and lost a further $157m of expected interest earnings. In Jan 1996 the SEC found that the official statements for the county's bond offerings had material misstatements and omissions about the risks of the pools. The structure raised, rather than reduced, the pool's exposure to a rise in interest rates, while reports to the Board of Supervisors said there was no risk of losing principal."
         sources:
           - https://sec.gov/files/litigation/admin/3436761.txt
-          - https://sk.sagepub.com/ency/edvol/encyclopedia-of-white-collar-and-corporate-crime-2e/chpt/metallgesellschaft
-          - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
+          - https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv
         verified: true
   - id: bank-regulation
     title: "Bank regulation, capital and liquidity"
     stage: foundation
     prerequisites: [eco-money-banking, fs-ratios]
     cases:
-      - title: "SVB's supervisory warnings"
-        asOf: 2022-03-31
-        outcome: "31 unaddressed supervisory warnings, three times the peer average; closure on 10 Mar 2023."
+      - title: "Silicon Valley Bank, passing every test"
+        asOf: 2022-12-31
+        outcome: "SVB was closed by regulators on 10 Mar 2023. The Fed's review of 28 Apr 2023 found that SVBFG had 31 open supervisory findings when it failed, about triple the number at peer firms, in areas such as governance and risk management, liquidity and interest-rate risk. It had met its capital requirements every year from 2017 to 2022, but the requirements did not cover what failed: under the pre-2019 rules it would have had a shortfall of about 9% in high-quality liquid assets in Dec 2022 (about 17% in Feb 2023), and counting its AFS losses would have cut regulatory capital by $1.9bn, taking the CET1 ratio from 12.1% to 10.4%. The Fed concluded that the tailoring approach 'impeded effective supervision'."
         sources:
-          - https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm
           - https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf
+          - https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm
+          - https://data.sec.gov/api/xbrl/companyconcept/CIK0000719739/us-gaap/HeldToMaturitySecuritiesAccumulatedUnrecognizedHoldingLoss.json
         verified: true
+        note: "Supervisory findings were confidential at the time, so the 31 open findings appear only in the reveal. The Topic calls them 'open supervisory findings', not 'warnings'."
   - id: crisis-bank-runs
     title: "Bank runs and interest-rate risk in banks"
     stage: foundation
     prerequisites: [bank-regulation, bond-duration]
     cases:
-      - title: "The run on SVB"
+      - title: "Silicon Valley Bank on 8 March 2023"
         asOf: 2023-03-08
-        outcome: "Restructuring announced 8 Mar 2023, closed 10 Mar 2023."
+        outcome: "Uninsured depositors read the 8 Mar announcement as a sign of distress. On 9 Mar SVB lost over $40bn of deposits in a day, and management told supervisors it expected to lose over $100bn more on 10 Mar, roughly 85% of its deposit base; for scale, Wachovia lost about $10bn over eight days in 2008 and Washington Mutual $19bn over 16 days. SVB did not have enough cash or collateral to meet the outflows and had not tested its ability to borrow at the Fed's discount window in 2022. The California regulator closed the bank on the morning of 10 Mar 2023 and appointed the FDIC as receiver."
         sources:
           - https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf
           - https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm
+          - https://data.sec.gov/api/xbrl/companyconcept/CIK0000719739/us-gaap/HeldToMaturitySecurities.json
         verified: true
   - id: struct-securitisation
     title: "Securitisation, MBS and CDOs"
     stage: foundation
     prerequisites: [bond-credit-spreads, bank-regulation]
     cases:
-      - title: "US housing finance"
+      - title: "From a subprime loan to a AAA tranche"
         asOf: 2006-12-31
-        outcome: "The FCIC reported its findings in Jan 2011; mortgage securities and CDOs sat at the centre of the crisis."
+        outcome: "The Philadelphia Fed counted 727 publicly traded structured-finance CDOs issued between 1999 and 2007, worth $641bn, and estimated write-downs of $420bn, 65% of the issuance; $64bn of BBB-rated subprime bonds became $140bn of CDO collateral. A-rated subprime bonds had on average only 8% of subordination, so subprime losses of 8% would wipe out the BBB layer; with consensus losses of 3-5% in early 2007, losses needed to reach only about 1.5 to 2.5 times the expected level for mezzanine CDOs to become worthless, against 5 to 8 times for AAA subprime bonds to lose anything. The senior CDO layers' ratings assumed the BBB bonds would not all go wrong at once; they all depended on US house prices. The FCIC published its report on 27 Jan 2011."
         sources:
+          - https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
           - https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
-        verified: false
-        note: "No figures extracted yet."
+        verified: true
+        note: "The four-tranche pool in the story is an illustration, labelled hypothetical; the real figures are the Philadelphia Fed's. The FCIC's rating counts (such as 45,000 AAA ratings) and '83% downgraded' were left out as unchecked."
   - id: private-credit
     title: "Shadow banks, private credit and SPVs"
     stage: foundation
     prerequisites: [struct-securitisation, credit-analysis]
     cases:
-      - title: "IL&FS and mutual-fund redemptions"
-        asOf: 2018-08-31
-        outcome: "Defaults in Aug-Sep 2018 hit mutual funds holding its paper."
+      - title: "IL&FS and the mutual funds that held its debt"
+        asOf: 2018-09-12
+        outcome: "In Sep 2018 mutual fund industry assets fell 12.5%, to Rs 22 lakh crore from Rs 25.2 lakh crore, with a net outflow of Rs 2.3 lakh crore (liquid funds Rs 2.1 lakh crore, income funds Rs 30,504 crore). Not all of it was fear (advance tax and GST payments, one large SBI redemption), but fund officials said the IL&FS default led to redemptions. The Rs 2,800 crore of IL&FS paper was only about 0.11% of industry assets. On 1 Oct 2018 the government asked the NCLT to replace IL&FS's board, saying the defaults caused 'redemption pressure on the mutual funds', quality papers sold at steep discounts and a sell-off in non-bank lenders' shares."
         sources:
+          - https://www.thehindubusinessline.com/markets/investors-jittery-over-2800-crore-mutual-fund-investments-in-ilfs/article24937207.ece
+          - https://timesofindia.indiatimes.com/business/india-business/ilfs-default-tax-dues-suck-rs-2-3l-cr-out-of-mfs-in-sept/articleshow/66126785.cms
           - https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3
-        verified: false
-        note: "Fund exposure figures to fetch."
+        verified: true
   - id: funds-passive
     title: "Mutual funds, ETFs and passive investing (incl. India AIFs)"
     stage: foundation
     prerequisites: [risk-portfolio, mkt-efficiency]
     cases:
-      - title: "IL&FS paper in mutual funds"
-        asOf: 2018-09-30
-        outcome: "Paper held by mutual funds forced redemptions in 2018."
+      - title: "Warren Buffett bets an index fund against hedge funds"
+        asOf: 2007-12-19
+        outcome: "Berkshire's 2017 letter gives the result. Over the ten years the index fund gained 125.8% (8.5% a year); the five funds of funds gained 21.7, 42.3, 87.7, 2.8 and 27.0% (2.0, 3.6, 6.5, 0.3 and 2.4% a year), an average of about 36% (own arithmetic from the letter's table). Each beat the index fund in 2008 (it fell 37%, they fell 16.5% to 30.1%), but the average of the five trailed it in each of the next nine years. Buffett puts the fixed fees at about 2.5% of assets a year. In 2012 the two sides had swapped the bonds for Berkshire B shares, and the charity, Girls Inc. of Omaha, received $2,222,279."
         sources:
-          - https://pib.gov.in/PressReleasePage.aspx?PRID=1548093&lang=2&reg=3
-          - https://www.sebi.gov.in/sebi_data/attachdocs/1471519155273.pdf
-        verified: false
-        note: "Pick an AIF Case from NISM material; the SEBI AIF regulations are the source of rules, not a Case."
+          - https://www.berkshirehathaway.com/letters/2017ltr.pdf
+          - https://longbets.org/362/
+        verified: true
+        note: "Replaces the earlier candidate (IL&FS paper in mutual funds), which was a credit event, not a passive-versus-active Case. Berkshire's site bars reproduction, so only the letter's figures are used, with credit."
   - id: ins-risk-transfer
     title: "Insurance and risk transfer"
     stage: foundation
     prerequisites: [fs-balance, num-probability]
     cases:
-      - title: "AIG's credit default swaps"
-        asOf: 2008-09-15
-        outcome: "On 16 Sep 2008 the Fed authorised up to $85bn for 79.9% of AIG; total commitment $182.3bn; taxpayers made a $22.7bn profit."
+      - title: "AIG and the credit protection it sold"
+        asOf: 2008-09-12
+        outcome: "On Monday 15 Sep 2008 all three rating agencies cut AIG (to A- at S&P, A2 at Moody's, A at Fitch). Collateral calls on the multi-sector swaps jumped by $8.6bn in a day, to $32.0bn, and the gap between calls and what AIG had posted peaked at $12.4bn. On 16 Sep the Fed authorised the New York Fed to lend AIG up to $85bn in return for a 79.9% equity interest held for the Treasury; the US government's total commitment later came to $182.3bn. AIG lost $99.3bn in 2008. By Dec 2012 the Treasury and the Fed had recovered the whole $182.3bn plus an additional $22.7bn, so taxpayers ended with a profit."
         sources:
+          - https://www.chicagofed.org/-/media/publications/working-papers/2014/wp2014-07-pdf.pdf
           - https://www.newyorkfed.org/aboutthefed/aig
-          - https://elischolar.library.yale.edu/journal-of-financial-crises/vol3/iss1/8
+          - https://home.treasury.gov/news/press-releases/tg1805
         verified: true
         note: "Added to cover insurance, a gap in the first draft."
   - id: real-assets
@@ -926,54 +957,56 @@ topics:
     stage: foundation
     prerequisites: [present-value, eq-markets]
     cases:
-      - title: "India's gold import curbs"
-        asOf: 2013-06-30
-        outcome: "Record current account deficit of $88.2bn (4.8% of GDP) in 2012-13; gold duty raised to 10%; gold and silver imports $55.79bn to $33.46bn."
-        sources:
-          - https://www.businesstoday.in/latest/economy-politics/story/gold-imports-drop-fy-2013-2014-import-duty-to-stay-govt-137501-2014-07-25
-          - https://www.thehindubusinessline.com/economy/gold-silver-imports-decline-40-to-335-bn-in-2013-14/article20751941.ece
-        verified: true
-      - title: "The US housing boom and bust"
+      - title: "Seven years of rising US house prices"
         asOf: 2006-12-31
-        outcome: "FCIC report Jan 2011."
+        outcome: "The FHFA purchase-only index (Jan 1991 = 100) peaked in April 2007 at 224.47, only about 0.8% above its Dec 2006 level of 222.68, then fell for four years to 176.67 in May 2011, 21.3% below the peak though still above its Jan 2000 level of 136.89; it was 199.86 in Dec 2013. With 3% down, a fall of just 3% in the house price wipes out the buyer's deposit, and a fall of 21% leaves the loan larger than the house."
         sources:
-          - https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
-        verified: false
+          - https://www.fhfa.gov/hpi/download/monthly/hpi_master.csv
+          - https://oyc.yale.edu/economics/econ-251/lecture-1
+        verified: true
+        note: "FHFA revises the series, so the Topic uses the 2026 vintage of the data and says so."
   - id: hist-macro-regimes
     title: "Inflation regimes and stagflation"
     stage: foundation
     prerequisites: [eco-inflation-real, eco-fiscal-debt]
     cases:
-      - title: "Volcker's disinflation"
+      - title: "The Saturday meeting of 6 October 1979"
         asOf: 1979-10-06
-        outcome: "Funds rate near 20% in 1981; 10-year yield above 15% in Sep 1981; recession Jul 1981 to Nov 1982; unemployment nearly 11%."
+        outcome: "The funds rate, which averaged 13.77% in Oct 1979, climbed to 17.19% in Mar 1980 and 19.10% in Jun 1981, the highest monthly average in the data shown (the Fed History essay says it reached a record of about 20% in late 1980). The 10-year Treasury yield rose from 10.30% in Oct 1979 to 15.32% in Sep 1981. Inflation first rose further, peaking at 11.6% in Mar 1980. The economy fell into recession from Jul 1981 to Nov 1982 and unemployment reached 10.8% in late 1982; by Oct 1982 inflation had fallen to about 5%, and the funds rate was 12.37% in Dec 1981 and 9.20% in Nov 1982."
         sources:
           - https://www.federalreservehistory.org/essays/anti-inflation-measures
           - https://www.federalreservehistory.org/essays/recession-of-1981-82
+          - https://www.federalreserve.gov/releases/h15/
         verified: true
   - id: gov-ethics
     title: "Governance, ethics and fraud"
     stage: foundation
     prerequisites: [fs-earnings-quality, eq-markets]
     cases:
-      - title: "Satyam and Maytas"
+      - title: "A software company's board approves a deal with the chairman's family firms"
         asOf: 2008-12-16
-        outcome: "Satyam tried to buy promoter-linked Maytas; fraud revealed 7 Jan 2009."
+        outcome: "Satyam's American shares fell $6.85, or 55%, to $5.70 on the NYSE that day, the biggest percentage fall on the exchange, and late the same day Satyam called the deal off. The board minutes reported a month later showed that the five independent directors had voiced concerns about the valuation, the related-party nature of the deal and the board being used as a 'rubber stamp', yet the resolution passed unanimously. On 7 Jan 2009 Raju wrote that Satyam's accounts had been inflated for years and that the Maytas deal was 'the last attempt to fill the fictitious assets with real ones'. The SEC later said the company had overstated cash and revenue by more than $1bn, and Satyam paid a $10m penalty."
         sources:
-          - https://www.sebi.gov.in/sebi_data/attachdocs/1441894262377.pdf
+          - https://www.reuters.com/article/business/media-telecom/indias-satyam-to-acquire-stake-in-maytas-infra-idUSBMA002023/
+          - https://www.reuters.com/article/marketsNews/idINN1628370020081216/
+          - https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17
           - https://sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+          - https://www.sebi.gov.in/sebi_data/attachdocs/1441894262377.pdf
+          - https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
         verified: true
   - id: crisis-leverage
     title: "Leverage, liquidity spirals and systemic risk"
     stage: foundation
     prerequisites: [struct-securitisation, der-hedging, crisis-bank-runs]
     cases:
-      - title: "LTCM and 2008"
+      - title: "The lenders to a heavily borrowed fund"
         asOf: 1998-09-01
-        outcome: "LTCM rescue of 23 Sep 1998; FCIC report on 2008."
+        outcome: "In Aug 1998 the fund lost $1.8bn, bringing its loss of capital for the year to over 50% and its capital to $2.3bn. It told its investors on 2 Sep and began seeking new capital, but found selling hard while firms across the market were pulling back from risk. On 23 Sep 1998 fourteen banks and brokerage firms put up $3.625bn for 90% of the fund; the Fed arranged the meeting but lent nothing, worried that a fire sale by LTCM's many counterparties could harm the wider economy. The same chain ran on a far larger scale a decade later: the Philadelphia Fed counted 727 subprime-linked CDOs ($641bn issued) with $420bn of write-downs (65%), and in Mar 2008 the Fed lent to help JPMorgan Chase buy Bear Stearns."
         sources:
+          - https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm
           - https://www.federalreservehistory.org/essays/ltcm-near-failure
-          - https://govinfo.gov/content/pkg/GPO-FCIC/pdf/GPO-FCIC.pdf
+          - https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
+          - https://fcic-static.law.stanford.edu/cdn_media/fcic-docs/2009-12-28%20FRB%20Report%20on%20Acquisition%20of%20Bear%20Stearns%20by%20JPMorgan.pdf
         verified: true
   - id: fol-uber-2014
     title: "Follow: Damodaran, crowd valuation of Uber (Dec 2014)"
