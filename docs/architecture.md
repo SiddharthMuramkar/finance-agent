@@ -46,7 +46,7 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 
 ## Database (Neon Postgres through Drizzle)
 
-**What it does.** Neon is the only store. Eleven tables so far:
+**What it does.** Neon is the only store. Thirteen tables so far:
 - `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
   a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
@@ -55,8 +55,11 @@ user account system. Changing `SESSION_SECRET` signs every device out.
 - `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`: Learner Memory (below).
 - `usage`: what each turn and each step of it cost (below).
 - `case_datasets`, `case_data_points`: Case Data, checked historical datasets with their sources (below).
+- `turns`, `tool_calls`: each turn's saved status (running, cut off, finished, failed), which is also
+  the one-turn lock, and the saved result of every tool call, keyed by its tool call ID (below).
 
-The app uses Neon's pooled connection (`DATABASE_URL`). Schema changes are migration files in
+The app uses Neon's pooled connection (`DATABASE_URL`), over WebSockets rather than HTTP, because
+only WebSockets allow the transactions the Tutor's tools need (see "Surviving cut-offs and failures"). Schema changes are migration files in
 `drizzle/`, applied with `npm run db:migrate`, which uses the direct connection
 (`DATABASE_URL_UNPOOLED`).
 
@@ -405,3 +408,60 @@ and lets it grow to long series, but a fresh database has no Case Data until som
 import from the laptop, and the import files must be kept safe outside the repo. The Tutor still
 knows famous endings from its own training; code withholds the data, and the instructions and
 hindsight test questions cover the rest.
+
+## Surviving cut-offs and failures (`src/tutor/turn.ts`, `turn-status.ts`, `tools.ts`, `failures.ts`, `src/app/conversation.tsx`)
+
+**What it does.** Makes a turn safe to interrupt and safe to repeat.
+- **Saved status and resume.** Each turn has a row in `turns`: running, cut off, finished or failed.
+  A turn stops itself after 270 seconds, inside Vercel's 300, and marks itself cut off. Everything
+  up to the last finished loop step is already saved. The browser sees the stream end without
+  "done" and starts a resume request on its own, which continues from the last saved step in a
+  new function call. The resume first sends the saved reply text, which replaces what was on
+  screen, so text from the unfinished step is never kept. Opening the page with a cut-off turn
+  also resumes it. A turn killed outright counts as cut off once it is older than any function can live.
+- **Tools that write happen once.** Every tool call's effect (a verdict, a finished step, a
+  misconception) and its result are saved together in one transaction, keyed by the tool call ID.
+  A repeat of the same call returns the saved result and changes nothing. A tool call that was
+  saved without its result (the cut came between the two) is re-run under its own ID before Claude
+  is called again, so it gets its result without a second effect.
+- **One turn at a time.** Only one `turns` row may be running; the database enforces it. A second
+  send, from a phone or another tab, gets a plain "turn in progress" answer (HTTP 409), and nothing
+  is saved.
+- **Stop reasons and failures.** A reply that hits `max_tokens` is kept as sent and the Learner gets
+  a Continue button; a tool call cut off inside it is never run, and is answered "not run". A
+  `refusal` is discarded, because Claude's docs say to treat a declined reply as incomplete and
+  discard it, so it cannot stay in history. The Learner sees a plain message, their place doesn't
+  change, and the next message starts a new Session from SQL rather than editing history. An API
+  error says why in plain words (credits run out or spend limit, rate limit, Claude busy, no
+  connection), keeps everything saved, and offers Retry, which resumes the same turn rather than
+  sending the Learner's message again (this fixes the repeated Learner messages seen in #6).
+- **A failed progress write.** If saving a verdict or step fails, the transaction rolls back, so
+  the Course Navigator doesn't advance. Claude's tool result says plainly that nothing was recorded,
+  and the Learner sees an error.
+- **A deploy that changes the Tutor.** A Session whose frozen instructions or tools differ from the
+  new build's starts afresh from SQL on the next message, and the workspace says so in one line.
+- **Compaction for long Sessions.** When a turn ends with the conversation over `compact_at_tokens`
+  (a setting, default 200,000 tokens), the Tool Runner asks Claude's API for a summary (on-demand
+  compaction, beta `compact-2026-09-04`). The summary is stored as a new message; later requests
+  start from it. Nothing is deleted, so the whole Session still reads back in full, and the Course
+  Navigator's context is sent again after it, because context inside the summary no longer counts.
+
+**Scenario.** The Learner sends a message. Claude finishes the story step, then starts a long
+explanation, and the 270 seconds run out. The finished step and its tool result are saved; the
+half-written explanation is not. The browser shows "resuming", calls again, receives the saved text,
+and the explanation is written afresh in the new call. The step was recorded once. If the Learner's
+phone sends a message meanwhile, it is told a turn is in progress. (Live check, 2 Nov 2026: with the
+limit set to 1.5 seconds the browser resumed ten times on its own, the phone got the 409, and opening
+the page with the normal limit finished the turn with the Learner's message shown once.)
+
+**Trade-off.** A single loop step longer than the time limit can never finish, because each resume
+starts that step again; at 270 seconds and a 16,000-token reply this is far off (the longest real
+turn so far took about 23 seconds, over five steps). Discarding a declined reply costs a fresh Session, which loses the
+conversation's flow but keeps all progress. WebSocket connections are slightly slower to open than
+HTTP queries. Compaction loses detail from early in a long Session; the summary is Claude's own.
+
+**How it is tested.** At the Tutor Turn seam with the scripted client: a cut-off and resume that
+repeats no write (a finished step and a verdict), the replayed text, a resume whose reply was already
+saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credits error with Retry,
+a database write that fails (a test trigger refuses the write), a changed fingerprint, a misconception
+with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
