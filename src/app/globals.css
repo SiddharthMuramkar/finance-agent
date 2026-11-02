@@ -45,6 +45,10 @@ body {
 .md a {
   @apply underline;
 }
+/* A citation marker: a small raised number linking to the Library passage behind the claim. */
+.md sup a.cite {
+  @apply ml-0.5 px-0.5 text-xs text-stone-500 no-underline hover:underline dark:text-stone-400;
+}
 .md blockquote {
   @apply border-l-2 border-stone-300 pl-3 text-stone-600 dark:border-stone-700 dark:text-stone-400;
 }

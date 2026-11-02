@@ -61,12 +61,18 @@ const pasteMap = () =>
   url: https://example.org/news/piece
   from: paste`);
 
+/** A tool result's text: plain, or the text inside its search_result blocks. */
+function toolResultText(content: unknown): string {
+  if (!Array.isArray(content)) return String(content);
+  return (content as { content?: { text: string }[] }[]).flatMap((r) => (r.content ?? []).map((b) => b.text)).join("\n");
+}
+
 /** Every text the Tutor was sent in a request: user text blocks, system messages and tool results. */
 function sentTexts(request: ScriptedRequest): string[] {
   return request.messages.flatMap((m) => {
     if (typeof m.content === "string") return [m.content];
     return (m.content as { type: string; text?: string; content?: unknown }[]).flatMap((b) =>
-      b.type === "text" ? [b.text!] : b.type === "tool_result" ? [String(b.content)] : [],
+      b.type === "text" ? [b.text!] : b.type === "tool_result" ? [toolResultText(b.content)] : [],
     );
   });
 }

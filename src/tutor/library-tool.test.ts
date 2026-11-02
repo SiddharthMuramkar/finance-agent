@@ -42,11 +42,20 @@ const blog: LibraryFile = {
   passages: [{ ref: "later", heading: "The winner's choice", url: "https://example.org/blog/later", publishedOn: "2019-03-05", text: "The winner took the cash option; present value explains why." }],
 };
 
-/** The tool_result text the Tutor received for its search, from the request that followed the call. */
-function searchResult(requests: ScriptedRequest[]): string {
+type SearchResultBlock = { type: "search_result"; source: string; title: string; content: { type: "text"; text: string }[]; citations?: { enabled: boolean } };
+
+/** The tool_result content the Tutor received for its search, from the request that followed the call. */
+function searchContent(requests: ScriptedRequest[]): string | SearchResultBlock[] {
   const blocks = requests[1].messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])) as { type: string; tool_use_id?: string; content?: unknown }[];
   const result = blocks.find((b) => b.type === "tool_result" && b.tool_use_id === "search-1");
-  return String(result?.content);
+  return result?.content as string | SearchResultBlock[];
+}
+
+/** All the text the Tutor received for its search, whether as plain text or inside search results. */
+function searchResult(requests: ScriptedRequest[]): string {
+  const content = searchContent(requests);
+  if (typeof content === "string") return content;
+  return content.flatMap((r) => r.content.map((b) => b.text)).join("\n");
 }
 
 const searchThenReply = [
@@ -80,6 +89,38 @@ describe("search_library tool in the Tutor Turn", () => {
     expect(text).toContain(NO_VOYAGE_KEY);
     expect(text).toContain("dated passages published after 2018-10-24, and reference passages that mention a later year, are hidden");
     expect(text).not.toContain("The winner took the cash option");
+  });
+
+  it("returns found passages as search_result blocks with citations enabled, each linking to its passage view and opening with its credit line", async () => {
+    const db = await testDb();
+    await importLibrary(db, {
+      ...book,
+      passages: [{ ref: "pv", heading: "Present value", url: "https://example.org/book/pv", text: "Present value discounts each future payment back to today. A higher discount rate gives a lower present value." }],
+    });
+    const { client, requests } = scriptedClient(structuredClone(searchThenReply));
+
+    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
+
+    const content = searchContent(requests);
+    expect(Array.isArray(content)).toBe(true);
+    const [result] = content as SearchResultBlock[];
+    expect(result.type).toBe("search_result");
+    expect(result.citations).toEqual({ enabled: true });
+    expect(result.source).toMatch(/^\/passages\/\d+$/);
+    expect(result.title).toBe("Present value");
+    // The first block is the credit; then one block per sentence, so a citation points at the exact sentence.
+    expect(result.content[0].text).toContain("Source: B. Author, A textbook (Publisher, 2022), CC BY 4.0");
+    expect(result.content.slice(1).map((b) => b.text)).toEqual(["Present value discounts each future payment back to today. ", "A higher discount rate gives a lower present value."]);
+  });
+
+  it("still tells the Tutor each source's quote limit inside the search results", async () => {
+    const db = await testDb();
+    await importLibrary(db, { ...book, source: { ...book.source, quoteWords: 60 } });
+    const { client, requests } = scriptedClient(structuredClone(searchThenReply));
+
+    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
+
+    expect(searchResult(requests)).toContain('Quote at most 60 words from "A textbook" at a time, with credit');
   });
 
   it("tells the Tutor when Voyage is down and keyword results are used instead", async () => {

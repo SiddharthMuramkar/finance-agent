@@ -47,8 +47,12 @@ export function scriptedClient(replies: ScriptedReply[]) {
             const final = { content: reply.content, stop_reason: stopReason, usage: reply.usage };
             return {
               async *[Symbol.asyncIterator]() {
+                // As the API streams a cited text block: its citations, then its text, then the block's end.
                 for (const [index, block] of reply.content.entries()) {
-                  if (block.type === "text") yield { type: "content_block_delta", index, delta: { type: "text_delta", text: block.text } };
+                  if (block.type !== "text") continue;
+                  for (const citation of (block.citations as unknown[] | undefined) ?? []) yield { type: "content_block_delta", index, delta: { type: "citations_delta", citation } };
+                  yield { type: "content_block_delta", index, delta: { type: "text_delta", text: block.text } };
+                  yield { type: "content_block_stop", index };
                 }
               },
               finalMessage: async () => final,

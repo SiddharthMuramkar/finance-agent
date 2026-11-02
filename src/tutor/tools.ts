@@ -9,7 +9,7 @@ import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
 import { toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
-import { searchLibrary, searchResultText, type QueryEmbedder } from "@/library/library";
+import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library/library";
 import { stepContext } from "./context";
 import { pasteSummary } from "./pasted";
 import type { ToolDefinition } from "./instructions";
@@ -111,7 +111,7 @@ export function toolCode(
   return {
     search_library: {
       parse: (input) => searchInput.parse(input),
-      run: async ({ query, source }) => searchResultText(await searchLibrary({ db, map, embedQuery }, query, { source })),
+      run: async ({ query, source }) => searchResultBlocks(await searchLibrary({ db, map, embedQuery }, query, { source })),
     },
     // Pure: it writes nothing, so it does not go through `once`; the same inputs always give the same answer.
     calculate: {
@@ -203,7 +203,7 @@ export async function rerunToolCalls(uses: ToolUse[], code: Record<string, ToolC
     try {
       if (!impl) throw new Error(`Unknown tool ${use.name}`);
       const content = await impl.run(impl.parse(use.input), { toolUse: use, toolUseBlock: use } as never);
-      results.push({ type: "tool_result" as const, tool_use_id: use.id, content: content as string });
+      results.push({ type: "tool_result" as const, tool_use_id: use.id, content });
     } catch (e) {
       results.push({ type: "tool_result" as const, tool_use_id: use.id, content: `Error: ${(e as Error).message}`, is_error: true });
     }

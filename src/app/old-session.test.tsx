@@ -42,4 +42,12 @@ describe("an old Session page", () => {
     expect(html).toMatch(/<table/);
     expect(html).not.toContain("|---|");
   });
+
+  it("shows each citation as a small numbered link to its passage and lists the reply's sources as links", () => {
+    const text = "Present value discounts each payment[1](/passages/4?blocks=1-2).\n\nSources:\n\n1. [Present value](/passages/4)\n";
+    const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text }]} />);
+    expect(html).toMatch(/<sup[^>]*><a[^>]*href="\/passages\/4\?blocks=1-2"[^>]*>1<\/a><\/sup>/);
+    expect(html).toMatch(/<a[^>]*href="\/passages\/4"[^>]*>Present value<\/a>/);
+    expect(html).not.toContain("](/passages");
+  });
 });
