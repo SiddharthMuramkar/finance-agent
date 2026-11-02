@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { boolean, date, doublePrecision, integer, jsonb, numeric, pgTable, primaryKey, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** Settings stored in SQL, such as the Tutor's model and effort. */
@@ -179,3 +180,41 @@ export const caseDataPoints = pgTable(
   },
   (t) => [primaryKey({ columns: [t.caseId, t.datasetId, t.date] })],
 );
+
+/**
+ * One Tutor turn and its saved status. `running` doubles as the lock: at most one row can be
+ * running at a time (a partial unique index), so a second send, from any device, is turned away.
+ * A turn cut off by the time limit is `cut_off` and the browser resumes it; `failed` (an API
+ * error) is resumed by the Learner's Retry. `sessionId` and `turnSeq` are filled in once the
+ * turn knows its Session; `turnSeq` is the seq of the Learner's message that began it.
+ */
+export const turns = pgTable(
+  "turns",
+  {
+    id: serial("id").primaryKey(),
+    sessionId: integer("session_id").references(() => sessions.id),
+    turnSeq: integer("turn_seq"),
+    status: text("status").notNull().$type<"running" | "cut_off" | "finished" | "failed">(),
+    /** The last loop step's stop reason once the turn ends (`refusal`, `max_tokens`, ...). */
+    stopReason: text("stop_reason"),
+    /** What went wrong, for a failed turn. */
+    error: text("error"),
+    /** When the current run of the turn started; a resume starts a new run. */
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+  },
+  () => [uniqueIndex("turns_one_running").on(sql`(true)`).where(sql`status = 'running'`)],
+);
+
+/**
+ * The saved outcome of every tool call that writes, keyed by its tool call ID. Written in the
+ * same transaction as the tool's effect, so a repeated or re-run call returns the saved result
+ * and has no second effect.
+ */
+export const toolCalls = pgTable("tool_calls", {
+  toolCallId: text("tool_call_id").primaryKey(),
+  name: text("name").notNull(),
+  result: text("result").notNull(),
+  isError: boolean("is_error").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

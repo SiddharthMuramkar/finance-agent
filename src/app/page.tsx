@@ -4,8 +4,8 @@ import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { workspaceSummary } from "@/learner/memory";
 import { openQuiz } from "@/learner/quiz";
-import { loadCurrentSession } from "@/tutor/turn";
-import { Conversation } from "./conversation";
+import { latestTurn, loadCurrentSession } from "@/tutor/turn";
+import { Conversation, type PendingTurn } from "./conversation";
 import { ThemeToggle } from "./theme-toggle";
 
 // Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
@@ -14,7 +14,15 @@ export const dynamic = "force-dynamic";
 export default async function WorkspacePage() {
   const db = getDb();
   const map = loadCourseMap();
-  const [summary, initial, jar, quiz] = await Promise.all([workspaceSummary(db, map), loadCurrentSession(db), cookies(), openQuiz(db, map)]);
+  const [summary, initial, jar, quiz, turn] = await Promise.all([
+    workspaceSummary(db, map),
+    loadCurrentSession(db),
+    cookies(),
+    openQuiz(db, map),
+    latestTurn(db),
+  ]);
+  // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one.
+  const pending: PendingTurn = turn && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col p-4 sm:p-6">
       <header className="mb-6 flex items-baseline justify-between gap-4">
@@ -26,7 +34,7 @@ export default async function WorkspacePage() {
           </Link>
         </nav>
       </header>
-      <Conversation initial={initial} summary={summary} quiz={quiz} />
+      <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} />
     </main>
   );
 }

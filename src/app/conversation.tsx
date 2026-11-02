@@ -12,7 +12,7 @@ import {
   type ThreadMessageLike,
 } from "@assistant-ui/react";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { replaceBrokenWidgets } from "@/widgets/check";
 import { splitReply, type Segment } from "@/widgets/split";
 import type { TurnUsage } from "@/tutor/usage";
@@ -110,55 +110,129 @@ const convertMessage = (m: Message): ThreadMessageLike => ({ id: m.id, role: m.r
  * Replies stream in through assistant-ui's external-store runtime; widget
  * blocks are pulled out of the prose as they arrive.
  */
-export function Conversation({ initial, summary, quiz }: { initial: Line[]; summary: string; quiz: OpenQuiz | null }) {
+/** The latest turn's saved status, as the page found it. */
+export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
+type Body = { message: string } | { continue: true } | { resume: true };
+
+const NOTICES: Record<string, string> = {
+  updated: "The Tutor was updated, so this is a new Session, started from your saved progress.",
+  refused: "A new Session started from your saved progress.",
+};
+/** How many cut-offs in a row the browser resumes on its own, and how long it waits for a turn running elsewhere. */
+const MAX_RESUMES = 10;
+const BUSY_WAIT_MS = 3000;
+const MAX_BUSY_WAITS = 60;
+
+export function Conversation({ initial, summary, quiz, pending }: { initial: Line[]; summary: string; quiz: OpenQuiz | null; pending: PendingTurn }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
   const [fixing, setFixing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(pending?.status === "failed" ? pending.error : null);
+  const [notice, setNotice] = useState<string | null>(pending?.status === "running" ? "A turn is in progress, perhaps on another device." : null);
+  const [canRetry, setCanRetry] = useState(pending?.status === "failed");
+  const [cutShort, setCutShort] = useState(false);
   const [shown, setShown] = useState<string>();
 
-  async function send(body: { message: string } | { continue: true }, shown: string) {
+  /**
+   * Sends a message, Continue, or a resume, and streams the reply. When the stream ends
+   * without "done" (the turn was cut off by the time limit or the connection dropped),
+   * it resumes on its own from the last saved loop step; the saved text replaces what
+   * was on screen.
+   */
+  async function send(body: Body, userText?: string) {
     setError(null);
+    setNotice(null);
+    setCanRetry(false);
+    setCutShort(false);
     setRunning(true);
     setShown(undefined);
     const stamp = Date.now();
-    setMessages((m) => [...m, { id: `u-${stamp}`, role: "user", text: shown }, { id: `a-${stamp}`, role: "assistant", text: "" }]);
-    const updateReply = (f: (text: string) => string) =>
-      setMessages((m) => [...m.slice(0, -1), { ...m[m.length - 1], text: f(m[m.length - 1].text) }]);
-    let correction: string | null = null;
+    const replyId = `a-${stamp}`;
+    setMessages((m) => {
+      if (userText !== undefined) return [...m, { id: `u-${stamp}`, role: "user", text: userText }, { id: replyId, role: "assistant", text: "" }];
+      // A resume continues the reply on screen, or starts one after the Learner's last message.
+      const last = m[m.length - 1];
+      return last?.role === "assistant" ? [...m.slice(0, -1), { ...last, id: replyId }] : [...m, { id: replyId, role: "assistant", text: "" }];
+    });
+    const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, text: f(x.text) } : x)));
+    let request = body;
+    let resumes = 0;
+    let busyWaits = 0;
     try {
-      const res = await fetch("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (!res.ok || !res.body) throw new Error(`The Tutor could not answer (${res.status}).`);
-      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
-      let buffer = "";
       for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += value;
-        const parts = buffer.split("\n");
-        buffer = parts.pop() ?? "";
-        for (const part of parts) {
-          if (!part) continue;
-          const event = JSON.parse(part);
-          if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
-          else if (event.type === "text") correction += event.text;
-          else if (event.type === "correction") {
-            correction = "";
-            setFixing(true);
-          } else if (event.type === "done" && event.usage) {
-            const usage = event.usage as TurnUsage;
-            setMessages((m) => m.map((x) => (x.id === `a-${stamp}` ? { ...x, usage } : x)));
-          } else if (event.type === "error") setError(event.message);
+        const res = await fetch("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+        if (res.status === 409) {
+          const { error: busy } = (await res.json()) as { error: string };
+          if (!("resume" in request)) {
+            // Nothing was saved: take the message back off the screen.
+            setMessages((m) => m.filter((x) => x.id !== `u-${stamp}` && x.id !== replyId));
+            setError(busy);
+            return;
+          }
+          // The turn is still running elsewhere (for example, the connection dropped): wait for it.
+          if (++busyWaits > MAX_BUSY_WAITS) return window.location.reload();
+          setNotice(busy);
+          await new Promise((r) => setTimeout(r, BUSY_WAIT_MS));
+          continue;
         }
-      }
-      // The corrected widget replaces the broken one on screen; history keeps both.
-      if (correction !== null) {
-        const fix = correction;
-        updateReply((t) => replaceBrokenWidgets(t, fix));
+        if (!res.ok || !res.body) throw new Error(`The Tutor could not answer (${res.status}).`);
+        let finished = false;
+        let failed = false;
+        let correction: string | null = null;
+        const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+        let buffer = "";
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += value;
+          const parts = buffer.split("\n");
+          buffer = parts.pop() ?? "";
+          for (const part of parts) {
+            if (!part) continue;
+            const event = JSON.parse(part);
+            if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
+            else if (event.type === "text") correction += event.text;
+            else if (event.type === "replay") updateReply(() => event.text);
+            else if (event.type === "correction") {
+              correction = "";
+              setFixing(true);
+            } else if (event.type === "done") {
+              finished = true;
+              if (event.usage) {
+                const usage = event.usage as TurnUsage;
+                setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, usage } : x)));
+              }
+            } else if (event.type === "session" && NOTICES[event.reason]) setNotice(NOTICES[event.reason]);
+            else if (event.type === "refusal") {
+              updateReply(() => "");
+              setNotice(event.message);
+            } else if (event.type === "cut_short") setCutShort(true);
+            else if (event.type === "save_failed") setError(event.message);
+            else if (event.type === "error") {
+              failed = true;
+              setError(event.message);
+              setCanRetry(true);
+            }
+          }
+        }
+        // The corrected widget replaces the broken one on screen; history keeps both.
+        if (correction !== null) {
+          const fix = correction;
+          updateReply((t) => replaceBrokenWidgets(t, fix));
+        }
+        if (finished || failed) return;
+        // No "done": the turn was cut off. Resume from the last saved loop step.
+        if (++resumes > MAX_RESUMES) {
+          setError("The turn keeps being cut off. Press Retry to try again.");
+          setCanRetry(true);
+          return;
+        }
+        request = { resume: true };
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "The turn failed.");
+      setCanRetry(true);
     } finally {
       setRunning(false);
       setFixing(false);
@@ -166,6 +240,15 @@ export function Conversation({ initial, summary, quiz }: { initial: Line[]; summ
       router.refresh();
     }
   }
+
+  // A turn cut off while the page was closed resumes as soon as the page opens.
+  const resumedOnOpen = useRef(false);
+  useEffect(() => {
+    if (pending?.status !== "cut_off" || resumedOnOpen.current) return;
+    resumedOnOpen.current = true;
+    void send({ resume: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onNew = async (message: AppendMessage) => {
     const text = message.content.map((c) => (c.type === "text" ? c.text : "")).join("").trim();
@@ -199,7 +282,33 @@ export function Conversation({ initial, summary, quiz }: { initial: Line[]; summ
                 <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
               </ThreadPrimitive.Viewport>
               {fixing && <p className="mt-2 text-xs text-stone-500">Fixing the widget…</p>}
-              {error && <p className="my-3 text-sm text-red-700 dark:text-red-400">{error}</p>}
+              {notice && (
+                <p className="my-3 text-sm text-stone-600 dark:text-stone-400" data-testid="turn-notice">
+                  {notice}
+                </p>
+              )}
+              {error && (
+                <p className="my-3 text-sm text-red-700 dark:text-red-400" data-testid="turn-error">
+                  {error}
+                </p>
+              )}
+              {(canRetry || cutShort) && !running && (
+                <div className="my-2 flex gap-2">
+                  {canRetry && (
+                    <button onClick={() => void send({ resume: true })} className="rounded border border-stone-400 px-3 py-1 text-sm dark:border-stone-600">
+                      Retry
+                    </button>
+                  )}
+                  {cutShort && (
+                    <>
+                      <span className="text-sm text-stone-600 dark:text-stone-400">The reply was cut short.</span>
+                      <button onClick={() => void send({ continue: true }, "Continue.")} className="rounded border border-stone-400 px-3 py-1 text-sm dark:border-stone-600">
+                        Continue
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
               <ComposerPrimitive.Root className="sticky bottom-0 mt-6 flex gap-2 bg-stone-50 py-3 dark:bg-stone-950">
                 <ComposerPrimitive.Input
                   placeholder="Ask the Tutor"

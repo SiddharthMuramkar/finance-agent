@@ -1,46 +1,85 @@
 import type { TutorClient, TutorRequest } from "@/tutor/turn";
 
 type Block = Record<string, unknown> & { type: string };
-export type ScriptedReply = { content: Block[]; stop_reason?: string; usage?: Record<string, unknown> };
+export type ScriptedReply =
+  | {
+      content: Block[];
+      stop_reason?: string;
+      usage?: Record<string, unknown>;
+      /** Waits this long before the reply starts, like a slow model call. */
+      delayMs?: number;
+      /** Waits for this promise before the reply starts. */
+      hold?: Promise<unknown>;
+    }
+  /** The API call fails with this error. */
+  | { error: Error };
+
+export type ScriptedRequest = TutorRequest & { compaction?: boolean };
 
 /**
  * Stands in for the Anthropic client at the Tutor Turn seam. Each loop step
  * takes the next scripted reply, streams its text as deltas and records the
- * request. Like the real Tool Runner, a reply with tool_use blocks runs those
- * tools, appends the reply and the tool results to `params.messages`, and
- * loops; a thrown error becomes an `is_error` tool result.
+ * request. Like the real Tool Runner, a reply that stops for `tool_use` runs
+ * its tools, appends the reply and the tool results to `params.messages`, and
+ * loops; a thrown error becomes an `is_error` tool result. Any other stop
+ * reason (end_turn, max_tokens, refusal) ends the loop without running tools.
+ * `compactBeforeNextTurn()` makes the runner send one compaction request after
+ * the final step and replace its history with the reply, as the SDK does.
  */
 export function scriptedClient(replies: ScriptedReply[]) {
-  const requests: TutorRequest[] = [];
+  const requests: ScriptedRequest[] = [];
   const client: TutorClient = {
     beta: {
       messages: {
         toolRunner(params) {
+          let compact = false;
+          const record = (extra: object = {}) =>
+            requests.push(structuredClone({ ...params, tools: params.tools.map(({ name }) => ({ name })), ...extra }) as never);
+          const next = async () => {
+            const reply = replies.shift();
+            if (!reply) throw new Error("scripted client ran out of replies");
+            if ("error" in reply) throw reply.error;
+            if (reply.delayMs) await new Promise((r) => setTimeout(r, reply.delayMs));
+            if (reply.hold) await reply.hold;
+            return reply;
+          };
+          const streamOf = (reply: Exclude<ScriptedReply, { error: Error }>, stopReason: string) => {
+            const final = { content: reply.content, stop_reason: stopReason, usage: reply.usage };
+            return {
+              async *[Symbol.asyncIterator]() {
+                for (const [index, block] of reply.content.entries()) {
+                  if (block.type === "text") yield { type: "content_block_delta", index, delta: { type: "text_delta", text: block.text } };
+                }
+              },
+              finalMessage: async () => final,
+            } as never;
+          };
           return {
             params,
+            compactBeforeNextTurn() {
+              compact = true;
+            },
             async *[Symbol.asyncIterator]() {
               for (;;) {
                 assertSystemPlacement(params.messages);
-                requests.push(structuredClone({ ...params, tools: params.tools.map(({ name }) => ({ name })) }) as never);
-                const reply = replies.shift();
-                if (!reply) throw new Error("scripted client ran out of replies");
+                assertToolCallsAnswered(params.messages);
+                record();
+                const reply = await next();
                 const uses = reply.content.filter((b) => b.type === "tool_use");
-                const final = {
-                  content: reply.content,
-                  stop_reason: reply.stop_reason ?? (uses.length ? "tool_use" : "end_turn"),
-                  usage: reply.usage,
-                };
-                yield {
-                  async *[Symbol.asyncIterator]() {
-                    for (const [index, block] of reply.content.entries()) {
-                      if (block.type === "text") {
-                        yield { type: "content_block_delta", index, delta: { type: "text_delta", text: block.text } };
-                      }
+                const stopReason = reply.stop_reason ?? (uses.length ? "tool_use" : "end_turn");
+                yield streamOf(reply, stopReason);
+                if (stopReason !== "tool_use") {
+                  if (compact) {
+                    params.messages.push({ role: "assistant", content: reply.content as never });
+                    record({ compaction: true });
+                    const summary = await next();
+                    yield streamOf(summary, summary.stop_reason ?? "compaction");
+                    if (summary.content.some((b) => b.type === "compaction")) {
+                      params.messages.splice(0, params.messages.length, { role: "assistant", content: summary.content as never });
                     }
-                  },
-                  finalMessage: async () => final,
-                } as never;
-                if (!uses.length) return;
+                  }
+                  return;
+                }
                 const results = [];
                 for (const use of uses) {
                   const tool = params.tools.find((t) => "name" in t && t.name === use.name)!;
@@ -71,6 +110,22 @@ function assertSystemPlacement(messages: { role: string }[]) {
   messages.forEach((m, i) => {
     if (m.role === "system" && messages[i - 1]?.role !== "user") {
       throw new Error(`400 invalid_request_error: messages.${i}: role 'system' must follow a 'user' message`);
+    }
+  });
+}
+
+/** Mirrors the API's 400 for a tool_use block without a tool_result in the next message. */
+function assertToolCallsAnswered(messages: { role: string; content?: unknown }[]) {
+  messages.forEach((m, i) => {
+    if (m.role !== "assistant" || !Array.isArray(m.content)) return;
+    const next = messages[i + 1];
+    const answered = new Set(
+      Array.isArray(next?.content) ? (next.content as Block[]).filter((b) => b.type === "tool_result").map((b) => b.tool_use_id) : [],
+    );
+    for (const b of m.content as Block[]) {
+      if (b.type === "tool_use" && !answered.has(b.id)) {
+        throw new Error(`400 invalid_request_error: messages.${i}: tool_use ${String(b.id)} has no tool_result right after it`);
+      }
     }
   });
 }

@@ -6,9 +6,12 @@ import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
-import { messages, settings } from "@/db/schema";
+import { messages, sessions as sessionsTable, settings, turns } from "@/db/schema";
+import { APIError } from "@anthropic-ai/sdk";
+import { sql } from "drizzle-orm";
+import { describeFailure } from "./failures";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
-import { OPENING_PREFIX, type Line, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
+import { OPENING_PREFIX, type Line, latestTurn, listSessions, loadCurrentSession, loadSession, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { loadCheckResults, saveCheckResult, workspaceSummary } from "@/learner/memory";
@@ -663,5 +666,281 @@ describe("Tutor Turn", () => {
       expect(requests.at(-1)!.messages[0].role).toBe("user");
       expect(contextTexts(requests.at(-1)!)[0]).toContain("Quiz result by code");
     });
+  });
+});
+
+describe("surviving cut-offs and failures", () => {
+  const map = withoutQuizChecks(loadCourseMap());
+  const finish = (step: string, id = `toolu_${step}`) => ({ type: "tool_use", id, name: "finish_teaching_step", input: { step } });
+  const text = (t: string) => ({ type: "text", text: t });
+
+  it("only one turn runs at a time: a second send, from any device, gets a clear turn-in-progress response and changes nothing", async () => {
+    const db = await testDb();
+    let release!: () => void;
+    const hold = new Promise<void>((r) => (release = r));
+    const first = scriptedClient([{ content: [text("Slow reply.")], hold }]);
+    const running = collect(runTutorTurn({ db, client: first.client, map }, "First message"));
+    await new Promise((r) => setTimeout(r, 20));
+
+    const other = scriptedClient([{ content: [text("Should not run.")] }]);
+    const events = await collect(runTutorTurn({ db, client: other.client, map }, "From my phone"));
+    expect(events).toEqual([{ type: "busy", message: expect.stringMatching(/turn is in progress/i) }]);
+    expect(other.requests).toHaveLength(0);
+
+    release();
+    await running;
+    expect(noUsage(await loadCurrentSession(db))).toEqual([
+      { role: "user", text: "First message" },
+      { role: "assistant", text: "Slow reply." },
+    ]);
+    expect(await latestTurn(db)).toMatchObject({ status: "finished", stopReason: "end_turn" });
+    // Once the first turn has finished, the next send runs.
+    const after = scriptedClient([{ content: [text("Now it runs.")] }]);
+    expect((await collect(runTutorTurn({ db, client: after.client, map }, "Again"))).at(-1)).toMatchObject({ type: "done" });
+  });
+
+  const types = (events: TurnEvent[]) => events.map((e) => e.type);
+  const resultsIn = (request: { messages: { content?: unknown }[] }) =>
+    request.messages.flatMap((m) =>
+      Array.isArray(m.content) ? (m.content as { type: string; content?: unknown; is_error?: boolean; tool_use_id?: string }[]).filter((b) => b.type === "tool_result") : [],
+    );
+
+  it("a turn cut off by its time limit is saved as cut off, and the resume continues from the last saved loop step without repeating a write", async () => {
+    const db = await testDb();
+    const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Never saved.")], delayMs: 400 }]);
+    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
+    expect(events.at(-1)).toEqual({ type: "cut_off" });
+    expect(await latestTurn(db)).toMatchObject({ status: "cut_off" });
+    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+
+    const resume = scriptedClient([{ content: [text("Now the concept.")] }]);
+    const resumed = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
+    expect(types(resumed)).toEqual(["replay", "text", "done"]);
+    // The finish_teaching_step call ran before the cut-off, but its result was never saved: it is re-run
+    // under its tool call ID, returns the saved result, and the Learner moves on only once.
+    const results = resultsIn(resume.requests[0]);
+    expect(results).toHaveLength(1);
+    expect(results[0]).not.toHaveProperty("is_error");
+    expect(String(results[0].content)).toContain("Teaching Step: concept");
+    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await latestTurn(db)).toMatchObject({ status: "finished" });
+    // The Learner's message is stored once, and the unsaved step's text never was.
+    expect(noUsage(await loadCurrentSession(db))).toEqual([
+      { role: "user", text: "Continue." },
+      { role: "assistant", text: "Now the concept." },
+    ]);
+  });
+
+  it("a verdict saved before a cut-off is not saved again when the resume re-runs its tool call", async () => {
+    const db = await testDb();
+    const pv = map.topic("present-value")!;
+    const checkId = pv.checks[0].id;
+    const toCheck = ["story", "concept", "your_turn"].map((s) => ({ content: [finish(s)] }));
+    const verdict = { type: "tool_use", id: "toolu_v", name: "record_check_verdict", input: { check_id: checkId, verdict: "not_yet", reasons: "No discounting." } };
+    const first = scriptedClient([...toCheck, { content: [text("Your Check.")] }, { content: [verdict] }, { content: [text("Lost.")], delayMs: 400 }]);
+    await collect(runTutorTurn({ db, client: first.client, map }, { continue: true }));
+    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "The bigger number wins."));
+    expect(await loadCheckResults(db)).toHaveLength(1);
+
+    const resume = scriptedClient([{ content: [text("Not yet. Think about timing.")] }]);
+    await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
+    expect(await loadCheckResults(db)).toHaveLength(1);
+    expect(String(resultsIn(resume.requests[0]).at(-1)!.content)).toContain("Recorded by code: not yet");
+  });
+
+  it("the resume replays the reply text saved so far, so text from the unsaved step is replaced on screen", async () => {
+    const db = await testDb();
+    const first = scriptedClient([{ content: [text("Saved part. "), finish("story")] }, { content: [text("Unsaved part.")], delayMs: 400 }]);
+    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
+    expect(events).toContainEqual({ type: "text", text: "Saved part. " });
+    const resume = scriptedClient([{ content: [text("Resumed part.")] }]);
+    const resumed = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
+    expect(resumed[0]).toEqual({ type: "replay", text: "Saved part. " });
+  });
+
+  it("resuming a turn whose final reply was already saved asks the model nothing and marks it finished", async () => {
+    const db = await testDb();
+    const first = scriptedClient([{ content: [text("All done.")] }]);
+    await collect(runTutorTurn({ db, client: first.client, map }, "Hi"));
+    // The function was killed after the final save, before the turn was marked finished.
+    await db.update(turns).set({ status: "cut_off" });
+    const resume = scriptedClient([]);
+    const events = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
+    expect(types(events)).toEqual(["replay", "done"]);
+    expect(events[0]).toEqual({ type: "replay", text: "All done." });
+    expect(resume.requests).toHaveLength(0);
+    expect(await latestTurn(db)).toMatchObject({ status: "finished" });
+  });
+
+  it("a resume after the turn already finished elsewhere just replays the saved reply", async () => {
+    const db = await testDb();
+    const first = scriptedClient([{ content: [text("Finished while you were offline.")] }]);
+    await collect(runTutorTurn({ db, client: first.client, map }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client: scriptedClient([]).client, map }, { resume: true }));
+    expect(events[0]).toEqual({ type: "replay", text: "Finished while you were offline." });
+    expect(events.at(-1)).toMatchObject({ type: "done" });
+  });
+
+  it("a new message after a cut-off first answers the saved tool calls that had no result, then carries on", async () => {
+    const db = await testDb();
+    const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Lost.")], delayMs: 400 }]);
+    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
+    const next = scriptedClient([{ content: [text("Where were we? The concept.")] }]);
+    expect((await collect(runTutorTurn({ db, client: next.client, map }, "Hello?"))).at(-1)).toMatchObject({ type: "done" });
+    const sent = next.requests[0].messages;
+    expect(sent.findIndex((m) => m.role === "user" && m.content === "Hello?")).toBeGreaterThan(
+      sent.findIndex((m) => JSON.stringify(m.content).includes('"tool_result"')),
+    );
+    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
+  });
+
+  it("a turn left running by a killed function no longer blocks the next send", async () => {
+    const db = await testDb();
+    let t = Date.parse("2026-11-02T09:00:00Z");
+    const now = () => new Date(t);
+    await db.insert(turns).values({ status: "running", startedAt: now() });
+    t += 6 * 60_000;
+    const { client } = scriptedClient([{ content: [text("Here.")] }]);
+    expect((await collect(runTutorTurn({ db, client, map, now }, "Hello"))).at(-1)).toMatchObject({ type: "done" });
+  });
+
+  it("max_tokens: the partial reply is kept as sent, the Learner is told it was cut short, a truncated tool call is not run, and Continue carries on", async () => {
+    const db = await testDb();
+    const partial = [text("A rupee today is worth"), finish("story", "toolu_cut")];
+    const { client, requests } = scriptedClient([{ content: partial, stop_reason: "max_tokens" }, { content: [text("...more than a rupee next year.")] }]);
+    const events = await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    expect(events).toContainEqual({ type: "cut_short", message: expect.stringMatching(/cut short/i) });
+    expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "max_tokens" });
+    expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
+
+    await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    const sent = requests[1].messages;
+    expect(sent).toContainEqual({ role: "assistant", content: partial });
+    expect(resultsIn(requests[1])).toEqual([{ type: "tool_result", tool_use_id: "toolu_cut", is_error: true, content: expect.stringMatching(/Not run/) }]);
+  });
+
+  it("refusal: the declined reply is discarded, the Learner sees a plain message, their place doesn't change, and the next message starts a new Session from SQL", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([
+      { content: [text("Hello.")] },
+      { content: [text("I can help with tha")], stop_reason: "refusal" },
+      { content: [text("Back to present value.")] },
+    ]);
+    await collect(runTutorTurn({ db, client, map }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map }, "Something declined"));
+    expect(events).toContainEqual({ type: "refusal", message: expect.stringMatching(/declined/i) });
+    expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
+    // The partial reply is never stored.
+    expect(noUsage(await loadCurrentSession(db)).map((l) => l.text)).not.toContain("I can help with tha");
+
+    const next = await collect(runTutorTurn({ db, client, map }, "Let us go on"));
+    expect(next).toContainEqual({ type: "session", reason: "refused" });
+    expect(await listSessions(db)).toHaveLength(2);
+    expect(requests.at(-1)!.messages).toHaveLength(1);
+    expect(String(JSON.stringify(requests.at(-1)!.messages))).not.toContain("Something declined");
+  });
+
+  it("an API error or exhausted credits shows the reason and a retry, keeps everything saved, and Retry doesn't repeat the Learner's message", async () => {
+    const db = await testDb();
+    const credits = APIError.generate(402, { type: "error", error: { type: "billing_error", message: "Your credit balance is too low" } }, "402 billing", new Headers());
+    const { client, requests } = scriptedClient([{ content: [text("First reply.")] }, { error: credits }, { content: [text("Answer after retry.")] }]);
+    await collect(runTutorTurn({ db, client, map }, "Hello"));
+    const failed = await collect(runTutorTurn({ db, client, map }, "Why discount?"));
+    expect(failed.at(-1)).toEqual({ type: "error", kind: "credits", message: expect.stringMatching(/credits/i) });
+    expect(await latestTurn(db)).toMatchObject({ status: "failed" });
+
+    const retried = await collect(runTutorTurn({ db, client, map }, { resume: true }));
+    expect(retried.at(-1)).toMatchObject({ type: "done" });
+    expect(requests.at(-1)!.messages.at(-1)).toMatchObject({ role: "user", content: "Why discount?" });
+    expect(noUsage(await loadCurrentSession(db))).toEqual([
+      { role: "user", text: "Hello" },
+      { role: "assistant", text: "First reply." },
+      { role: "user", text: "Why discount?" },
+      { role: "assistant", text: "Answer after retry." },
+    ]);
+  });
+
+  it("describes rate limits, overload and spend limits plainly", () => {
+    const err = (status: number, message = "x") => APIError.generate(status, { type: "error", error: { type: "e", message } }, message, new Headers());
+    expect(describeFailure(err(429)).kind).toBe("rate_limit");
+    expect(describeFailure(err(529)).kind).toBe("overloaded");
+    expect(describeFailure(err(400, "You have reached your specified workspace API usage limits; spend limit")).kind).toBe("credits");
+    expect(describeFailure(new Error("boom"))).toEqual({ kind: "error", message: expect.stringContaining("boom") });
+  });
+
+  it("if a progress write fails, the Tutor is told nothing was recorded, the Learner sees an error, and the Course Navigator doesn't advance", async () => {
+    const db = await testDb();
+    await db.execute(sql`CREATE FUNCTION refuse_write() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'disk full'; END $$ LANGUAGE plpgsql`);
+    await db.execute(sql`CREATE TRIGGER refuse_progress BEFORE UPDATE ON topic_progress FOR EACH ROW EXECUTE FUNCTION refuse_write()`);
+    const { client, requests } = scriptedClient([{ content: [finish("story")] }, { content: [text("Sorry, that was not saved.")] }]);
+    const events = await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    expect(events).toContainEqual({ type: "save_failed", message: expect.stringMatching(/could not be saved/i) });
+    expect(resultsIn(requests[1])[0]).toMatchObject({ is_error: true, content: expect.stringMatching(/Nothing was recorded/) });
+    await db.execute(sql`DROP TRIGGER refuse_progress ON topic_progress`);
+    expect(await workspaceSummary(db, map)).toContain("Teaching Step: story");
+  });
+
+  it("a changed fingerprint of instructions and tools starts a new Session from SQL, and the workspace is told", async () => {
+    const db = await testDb();
+    const { client } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }]);
+    await collect(runTutorTurn({ db, client, map }, "Hello"));
+    // As if the Session was frozen by an earlier build.
+    await db.update(sessionsTable).set({ fingerprint: "an-earlier-build" });
+    const events = await collect(runTutorTurn({ db, client, map }, "Hello again"));
+    expect(events[0]).toEqual({ type: "session", reason: "updated" });
+    expect(await listSessions(db)).toHaveLength(2);
+  });
+
+  it("a misconception given a topic_id that isn't on the Course Map is saved under the current Topic, not lost", async () => {
+    const db = await testDb();
+    const time = Date.parse("2026-11-02T09:00:00Z");
+    const note = { type: "tool_use", id: "toolu_m", name: "record_misconception", input: { description: "Adds payments without discounting.", topic_id: "Present value" } };
+    const { client, requests } = scriptedClient([{ content: [note] }, { content: [text("Noted.")] }, { content: [text("Welcome back.")] }]);
+    await collect(runTutorTurn({ db, client, map, now: () => new Date(time) }, { continue: true }));
+    expect(resultsIn(requests[1])[0]).not.toHaveProperty("is_error");
+    await collect(runTutorTurn({ db, client, map, now: () => new Date(time + 7 * 3600_000) }, { continue: true }));
+    expect(JSON.stringify(requests.at(-1)!.messages[0])).toContain("Adds payments without discounting.");
+  });
+
+  it("on-demand compaction: once a Session grows past the setting, the runner is asked for a summary after the turn, and later requests start from it", async () => {
+    const db = await testDb();
+    await db.insert(settings).values({ key: "compact_at_tokens", value: "1000" }).onConflictDoUpdate({ target: settings.key, set: { value: "1000" } });
+    const summary = { type: "compaction", content: "Summary of the Session so far.", encrypted_content: null, signature: "sig==" };
+    const { client, requests } = scriptedClient([
+      { content: [text("Short reply.")], usage: { input_tokens: 10, output_tokens: 5 } },
+      { content: [text("Long reply.")], usage: { input_tokens: 5, cache_read_input_tokens: 2000, output_tokens: 50 } },
+      { content: [summary], stop_reason: "compaction", usage: { input_tokens: 0, output_tokens: 0, iterations: [{ input_tokens: 2100, output_tokens: 300 }] } },
+      { content: [text("Carrying on.")] },
+    ]);
+    await collect(runTutorTurn({ db, client, map }, "First"));
+    expect(requests.filter((r) => r.compaction)).toHaveLength(0);
+    const second = await collect(runTutorTurn({ db, client, map }, "Second"));
+    expect(requests.filter((r) => r.compaction)).toHaveLength(1);
+    // The summary is not streamed to the Learner, and its cost shows in the panel.
+    expect(second.filter((e) => e.type === "text").map((e) => (e as { text: string }).text)).toEqual(["Long reply."]);
+    const done = second.at(-1) as Extract<TurnEvent, { type: "done" }>;
+    expect(done.usage.steps.at(-1)).toMatchObject({ tools: ["compaction"], inputTokens: 2100, outputTokens: 300 });
+
+    await collect(runTutorTurn({ db, client, map }, "Third"));
+    const third = requests.at(-1)!;
+    expect(third.betas).toContain("compact-2026-09-04");
+    expect(third.messages[0]).toEqual({ role: "assistant", content: [summary] });
+    expect(third.messages[1]).toMatchObject({ role: "user", content: "Third" });
+    // Context messages before the summary were summarised, so code sends the Course Navigator's context again.
+    expect(third.messages[2]).toMatchObject({ role: "system" });
+    expect(String(third.messages[2].content)).toContain("Course Navigator:");
+    // Nothing is deleted: the whole Session still reads back in full.
+    expect(noUsage(await loadCurrentSession(db)).map((l) => l.text)).toEqual(["First", "Short reply.", "Second", "Long reply.", "Third", "Carrying on."]);
+  });
+
+  it("a repeated finish_teaching_step under the same tool call ID has no second effect", async () => {
+    const db = await testDb();
+    const same = finish("story", "toolu_same");
+    const { client, requests } = scriptedClient([{ content: [same] }, { content: [same] }, { content: [text("Concept.")] }]);
+    await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    const results = resultsIn(requests.at(-1)!);
+    expect(results.map((r) => r.is_error ?? false)).toEqual([false, false]);
+    expect(results[1].content).toEqual(results[0].content);
+    expect(await workspaceSummary(db, map)).toContain("Teaching Step: concept");
   });
 });

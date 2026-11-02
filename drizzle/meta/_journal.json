@@ -43,6 +43,13 @@
       "when": 1793604323024,
       "tag": "0005_case_data",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793605755256,
+      "tag": "0006_turns_and_tool_calls",
+      "breakpoints": true
     }
   ]
 }
