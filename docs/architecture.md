@@ -1059,3 +1059,26 @@ India beta dated before 2000 was found.
 **Where the facts and questions come from.** Each Case was re-read from sources this batch: the Forbes debate, AP and CNBC index records, the New York Times and Reuters on Webvan's offering, Webvan's 10-K405, the Guardian and BBC on Eurotunnel, Hindustan Times and Business Today on Coffee Day, Microsoft's release and 10-Ks, ICRA, CARE, Reuters and the PIB on IL&FS, and Damodaran's paper with Amazon's 10-K405. Fourteen Question Bank items (investment appraisal, cost of capital, capital structure, payout, DCF and efficiency) are used, their keys recomputed or checked and marked verified. Case Data: 10 small datasets (index closes, Webvan's offer and first-day close, Microsoft's cash, dividends and buybacks, Amazon's price and 2000 range), imported from a file kept outside the repo.
 
 **Trade-off.** Two Cases date from the same moment as other Topics that use the same company (Webvan, Amazon), with different facts and Case IDs. The capital budgeting Case is dated 30 March 2000, the day of the annual report, not 5 November 1999, because its investment case was first published then. Eurotunnel's story has few figures (debt, interest, 2005 revenue), so the WACC exercise leans on the Learner's own assumptions and the quiz uses hypothetical numbers. The Coffee Day reveal mentions the founder's death only briefly.
+
+## Foundation Topics, batch 7 (`course/topics/`, issue #37)
+
+**What it does.** Eight more Topics join the Course Map as Written, all on valuation and raising
+money: multiples (WeWork's $47 billion against IWG, as of 20 August 2019), young loss-making
+companies (Uber, Damodaran against venture capital, December 2014), banks (Yes Bank in February
+2020), distressed firms (Coffee Day Enterprises, 29 July 2019), the implied equity risk premium
+(the S&P 500 at the end of 2007), valuing Indian companies (Coffee Day's 2015 issue in rupees and in
+dollars), venture rounds (WeWork's January 2019 round) and IPOs and float (Coffee Day's 2015
+issue). Each has a Case told only with what was known on its date, a reveal held back until the
+Tutor reaches that step, a quiz Check with a pass rule and a conversation Check. Their sourced
+figures sit in Case Data (71 datasets in `case-data/foundation-b37.json`, outside the repo), and
+nine checked Question Bank items feed the quizzes.
+
+**Concrete scenario.** The Learner reaches Distressed firms. The Tutor tells the Coffee Day story
+up to the evening of 29 July 2019: share value, loans and the pledged promoter shares. The sharp
+fall in the shares and the later debt figures stay out of the lesson and out of the chart labels
+until the reveal step.
+
+**Trade-off.** Dataset labels and credits are shown before the reveal, so they were written
+neutrally and the detail that hints at the outcome sits in a note the Tutor never sees. Two Topics
+share Coffee Day and two share WeWork, with different facts each, which costs some repetition but
+keeps each Case self-contained. Some figures are press reports where no filing gives the same number.

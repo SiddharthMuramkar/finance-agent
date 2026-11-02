@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 57 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 65 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -431,7 +431,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 50. Relative valuation and multiples
 
-- ID: `val-multiples` · Coming
+- ID: `val-multiples` · Written
 - Needs first: DCF valuation, Ratios, return on equity and DuPont
 - Case: **WeWork at $47bn versus IWG** (as of 2019-08-14)
   - Outcome: 26 times 2018 revenue; valuation cut to about $20bn and the IPO pulled in Sep 2019.
@@ -439,7 +439,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 51. Valuing young, loss-making companies
 
-- ID: `val-young` · Coming
+- ID: `val-young` · Written
 - Needs first: DCF valuation, Relative valuation and multiples, Revenue recognition, run rates, gross vs net
 - Case: **Uber, Damodaran versus venture capital** (as of 2014-12-02)
   - Outcome: Damodaran about $6bn against $17-18bn privately; Uber IPO priced $45 on 9 May 2019, $82.4bn fully diluted, closed down 7.6%.
@@ -451,7 +451,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 52. Valuing banks and financial firms
 
-- ID: `val-banks` · Coming
+- ID: `val-banks` · Written
 - Needs first: DCF valuation, Money, banks and credit creation
 - Case: **Yes Bank before the moratorium** (as of 2020-02-28)
   - Outcome: RBI moratorium from 5 Mar 2020, withdrawals capped at Rs 50,000; SBI to take up to 49% at Rs 10 a share.
@@ -459,7 +459,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 53. Valuing distressed firms
 
-- ID: `val-distress` · Coming
+- ID: `val-distress` · Written
 - Needs first: DCF valuation, Corporate credit analysis
 - Case: **Coffee Day Enterprises in July 2019** (as of 2019-07-29)
   - Outcome: Market cap Rs 4,068 crore on 29 Jul 2019, Rs 2,604 crore on 31 Jul 2019.
@@ -467,7 +467,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 54. Implied equity risk premium and market-level valuation
 
-- ID: `val-implied-erp` · Coming
+- ID: `val-implied-erp` · Written
 - Needs first: DCF valuation, Market efficiency, Yield to maturity, coupon and current yield
 - Case: **The implied equity risk premium at end-2007** (as of 2007-12-31)
   - Outcome: S&P 500 1,468.36; implied ERP 4.37% on 1 Jan 2008; 6.43% a year later at 903.25.
@@ -475,7 +475,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 55. Valuing Indian companies, currency and country risk
 
-- ID: `val-india` · Coming
+- ID: `val-india` · Written
 - Needs first: DCF valuation, Sovereign default and country risk, India: G-secs, T-bills, SDLs and the corporate bond market
 - Case: **Coffee Day's IPO** (as of 2015-10-21)
   - Outcome: Priced Rs 328; listed Rs 317 on NSE; closed Rs 270.45, down 17.6%.
@@ -487,7 +487,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 56. Venture finance and private rounds
 
-- ID: `cf-venture` · Coming
+- ID: `cf-venture` · Written
 - Needs first: Valuing young, loss-making companies, Capital structure and Modigliani-Miller
 - Case: **WeWork's $47bn private round** (as of 2019-01-01)
   - Outcome: SoftBank-led round at $47bn; IPO valuation cut to $20bn in Sep 2019.
@@ -495,7 +495,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 57. IPOs, book building and float
 
-- ID: `mkt-ipo-float` · Coming
+- ID: `mkt-ipo-float` · Written
 - Needs first: Venture finance and private rounds, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **Coffee Day's IPO** (as of 2015-10-21)
   - Outcome: Band Rs 316-328, priced Rs 328, listed below the issue price, 17.02% of post-issue capital.
