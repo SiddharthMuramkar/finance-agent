@@ -2,6 +2,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { messages, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { displayText } from "./citations";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentSession, type Message, type Row } from "./session-log";
@@ -19,7 +20,7 @@ export function turnText(rows: Row[], turnSeq: number): string {
   for (const r of rows.filter((r) => r.seq > turnSeq)) {
     if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) correcting = true;
     if (r.role !== "assistant") continue;
-    const added = textOf(r.content);
+    const added = displayText(r.content);
     text = correcting ? replaceBrokenWidgets(text, added) : text && added ? text + PARAGRAPH + added : text + added;
     correcting = false;
   }
@@ -53,7 +54,8 @@ export async function loadSession(db: Db, sessionId: number): Promise<Line[]> {
     .where(eq(messages.sessionId, sessionId))
     .orderBy(asc(messages.seq));
   for (const m of rows as (Message & { seq: number })[]) {
-    const text = textOf(m.content);
+    // A reply is shown with its citation markers and sources.
+    const text = m.role === "assistant" ? displayText(m.content) : textOf(m.content);
     if (!text || m.role === "system") continue;
     if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
       correcting = true;

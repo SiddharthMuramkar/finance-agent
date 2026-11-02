@@ -4,7 +4,7 @@ import type { Db } from "@/db/types";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { importLibrary, passagesToEmbed, saveEmbeddings, type LibraryFile } from "./ingest";
-import { NO_VOYAGE_KEY, searchLibrary, searchResultText, VOYAGE_DOWN } from "./library";
+import { loadPassageView, NO_VOYAGE_KEY, searchLibrary, searchResultText, VOYAGE_DOWN } from "./library";
 
 const map = parseCourseMap([
   {
@@ -244,5 +244,73 @@ describe("short quotes only", () => {
     expect(found.results.find((r) => r.ref === "ch1")?.quoteWords).toBeNull();
     expect(text).toMatch(/Quote at most 40 words from "A blog"/);
     expect(text.match(/Quote at most/g)).toHaveLength(1);
+  });
+});
+
+describe("passage view (where a citation leads)", () => {
+  async function idOf(db: Db, ref: string): Promise<number> {
+    const found = await searchLibrary({ db, map }, "jackpot cash option annuity instalments");
+    const hit = found.results.find((r) => r.ref === ref);
+    if (hit) return hit.id;
+    await passRevealOf(db);
+    return (await searchLibrary({ db, map }, "jackpot cash option annuity instalments")).results.find((r) => r.ref === ref)!.id;
+  }
+
+  it("shows a passage with no quote limit in full, with its credit, licence, date and link, and marks the cited sentences", async () => {
+    const db = await testDb();
+    await importLibrary(db, {
+      ...book,
+      passages: [{ ref: "ch1", heading: "Annuities", url: "https://example.org/book/1", text: "An annuity is a series of equal payments. Its present value discounts each jackpot instalment." }],
+    });
+    const id = await idOf(db, "ch1");
+
+    const view = await loadPassageView({ db, map }, id, { from: 2, to: 3 });
+
+    expect(view).toMatchObject({
+      status: "shown",
+      heading: "Annuities",
+      credit: "B. Author, A textbook (Publisher, 2022), CC BY 4.0",
+      licence: "CC BY 4.0",
+      url: "https://example.org/book/1",
+      publishedOn: null,
+      shortened: false,
+    });
+    if (view.status !== "shown") throw new Error("not shown");
+    expect(view.sentences).toEqual([
+      { text: "An annuity is a series of equal payments. ", cited: false },
+      { text: "Its present value discounts each jackpot instalment.", cited: true },
+    ]);
+  });
+
+  it("for a source with a quote limit shows only the cited sentences, cut to that many words, and points to the original", async () => {
+    const db = await testDb();
+    await importLibrary(db, {
+      ...blog,
+      source: { ...blog.source, quoteWords: 5 },
+      passages: [{ ref: "before", heading: "Lottery annuities", url: "https://example.org/blog/1", publishedOn: "2018-10-20", text: "First sentence here. The jackpot annuity pays thirty graduated instalments over many years. Last one." }],
+    });
+    const id = await idOf(db, "before");
+
+    const view = await loadPassageView({ db, map }, id, { from: 2, to: 3 });
+
+    if (view.status !== "shown") throw new Error("not shown");
+    expect(view.quoteWords).toBe(5);
+    expect(view.shortened).toBe(true);
+    expect(view.sentences).toEqual([{ text: "The jackpot annuity pays thirty …", cited: true }]);
+    expect(view.url).toBe("https://example.org/blog/1");
+  });
+
+  it("hides a dated passage published after the as-of date while the Case is before its reveal, and shows it after", async () => {
+    const db = await libraryDb();
+    const id = await idOf(db, "after");
+    // idOf passed the reveal to find it; start again before the reveal.
+    const fresh = await libraryDb();
+
+    expect(await loadPassageView({ db: fresh, map }, id)).toEqual({ status: "hidden", asOf: "2018-10-24" });
+    expect((await loadPassageView({ db, map }, id)).status).toBe("shown");
+  });
+
+  it("says a passage that does not exist is missing", async () => {
+    expect(await loadPassageView({ db: await testDb(), map }, 999)).toEqual({ status: "missing" });
   });
 });

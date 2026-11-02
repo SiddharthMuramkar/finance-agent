@@ -10,6 +10,7 @@ import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
+import { CitationMarks, type Citation } from "./citations";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -348,16 +349,24 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         yield* reportSaveFailure();
         const events = stream[Symbol.asyncIterator]();
         let stepHasText = false;
+        // Citation markers follow each cited block, and the step's sources follow the step, as displayText shows them on reload.
+        const marks = new CitationMarks();
+        const cited = new Map<number, Citation[]>();
+        const show = (shown: string): TurnEvent[] => {
+          if (!shown) return [];
+          // Text after a tool call is a new loop step: start it on a new paragraph.
+          const out: TurnEvent[] = !stepHasText && text ? [{ type: "text", text: PARAGRAPH }] : [];
+          stepHasText = true;
+          return [...out, { type: "text", text: shown }];
+        };
         for (;;) {
           const event = await beforeDeadline(events.next(), deadline);
           if (event.done) break;
           const e = event.value;
-          if (!compacting && e.type === "content_block_delta" && e.delta.type === "text_delta" && e.delta.text) {
-            // Text after a tool call is a new loop step: start it on a new paragraph.
-            if (!stepHasText && text) yield { type: "text", text: PARAGRAPH };
-            stepHasText = true;
-            yield { type: "text", text: e.delta.text };
-          }
+          if (compacting) continue;
+          if (e.type === "content_block_delta" && e.delta.type === "text_delta" && e.delta.text) yield* show(marks.add(e.delta.text));
+          if (e.type === "content_block_delta" && e.delta.type === "citations_delta") cited.set(e.index, [...(cited.get(e.index) ?? []), e.delta.citation]);
+          if (e.type === "content_block_stop") yield* show(marks.markers(cited.get(e.index)));
         }
         const final = await beforeDeadline(stream.finalMessage(), deadline);
         const tools = compacting ? ["compaction"] : final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
@@ -375,6 +384,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
+        yield* show(marks.sources());
         const added = textOf(final.content);
         text += text && added ? PARAGRAPH + added : added;
         if (final.stop_reason === "end_turn" && compactAtTokens > 0 && contextTokens(final.usage) >= compactAtTokens) {
