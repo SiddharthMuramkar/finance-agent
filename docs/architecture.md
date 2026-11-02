@@ -995,3 +995,31 @@ RBI's September 2013 repo level is derived from two RBI releases. The inflation 
 January 2014, not 31 December 2013, because the RBI overview it relies on was published on 28
 January 2014. No Case Data was added: the Cases teach from the story's figures, and FRED series may
 not be stored.
+
+## Follow Topics (`course/topics/fol-*.yaml`, `piece` in `src/course/map.ts`, `src/tutor/pasted.ts`, `pasted_texts` table, issue #25)
+
+**What it does.** A Follow Topic teaches by having the Learner read a dated piece they have not
+seen and explain each step of its argument. A Case names its `piece` (author, title, date, link)
+and where the text comes from. The piece is the story as it stood on its date, and what happened
+afterwards is the reveal. Nine Topics now exist: six on Damodaran's posts (Uber 2014, Twitter's
+IPO 2013, Tesla 2020, equity risk premium 2023, return on equity 2025, sovereign ratings 2025) and
+three on Zitron's articles (subprime AI 2024, systemic risk 2025, "AI Is A Money Trap" 2025).
+Damodaran's posts are read from the Library through the source filter and quoted only in short
+passages with credit (60 words at most). Zitron's articles are never stored: the Learner pastes
+the part they are studying, the text is kept privately with that Session in `pasted_texts`, is
+shown to the Tutor as appended text, and is not added to the Library. The Tutor works only from
+what it has been shown and says so when a passage has not been pasted.
+
+**Concrete scenario.** The Learner opens the Uber Topic. The Tutor says Damodaran published a
+post on 2 December 2014, finds it with the Library filter, and asks the Learner to read it and
+explain the steps in order: potential market, growth, share, margin, reinvestment, risk. In
+the Zitron "Money Trap" Topic the Learner pastes two paragraphs and explains them; asked about a
+later section, the Tutor says it has not seen that section. Only after the Learner passes the
+quiz and the conversation Check does the Tutor reveal that Uber listed in May 2019 at $45.
+
+**Trade-off.** Pasting keeps copyrighted text out of the repo and the Library, but the Learner
+has to fetch and paste it, and a Zitron Topic cannot be checked without the Learner's paste. The
+reveals sometimes rest on press reports (for example the Twitter take-private price), and the
+Tesla and Twitter reveals give prices adjusted or described only as far as sources were read.
+No claim is made about who the piece got right: the Checks test whether the Learner can follow
+and separate the argument's facts, inferences and forecasts.

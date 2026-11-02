@@ -1,0 +1,135 @@
+# Follow Topic: Damodaran's crowd valuation of Uber (2 Dec 2014), a dated piece taught as a Case.
+# The post's text is in the Library (Damodaran's blog); the Tutor quotes it only in short passages with credit.
+id: fol-uber-2014
+title: "Follow: Damodaran, crowd valuation of Uber (Dec 2014)"
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-uber-2014-crowd
+    title: Damodaran hands readers the controls of an Uber valuation
+    asOf: 2014-12-02
+    piece:
+      author: Aswath Damodaran
+      title: "Up, Up and Away! A Crowd Valuation of Uber!"
+      published: 2014-12-02
+      url: https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html
+      from: library
+      librarySource: Damodaran
+    story: >
+      On 2 December 2014 Aswath Damodaran, a valuation professor at NYU Stern, published a blog
+      post about Uber, then a private company. In June 2014 he had valued it at about $6 billion,
+      when venture investors were paying prices that implied $17 to $18 billion, and readers had
+      argued with him. Now estimates of $40 billion and more were in the news. Instead of giving his
+      own number again, he set out the steps of a valuation and asked readers to choose at each
+      step, so that the value would follow from their story. He worked from what little was public:
+      Uber said it was in 51 countries and about 230 cities, and a leaked document reported in the
+      press projected $10 billion of gross receipts for 2015. He assumed $3.5 billion of gross
+      receipts for 2014 with Uber keeping 20%, so about $700 million of revenue. The Learner reads
+      the post in full, without stopping, and then explains each step of its argument.
+    reveal: >
+      Uber listed four and a half years later. It priced its shares at $45 on 9 May 2019, near the
+      bottom of its range, valuing the company at about $82.4 billion fully diluted and raising
+      $8.1 billion (New York Times; Reuters). Its last private round, in August 2018, had valued it
+      at $76 billion. On its first day the stock closed at $41.57, about
+      7.6% below the offer price. Uber had lost about $3 billion from operations in 2018 (Reuters).
+      Set against the post: the grid of reader stories ran from under $1 billion to about $90
+      billion, and the listing landed inside it, near the upper end. Which story was right is still
+      a judgement; what the post showed is that the gap between values was a gap between stories.
+
+concept: >
+  A valuation of a young company is a story turned into numbers. Each part of the story becomes an
+  input: how big the market can be, how fast it grows, what share the company wins, what slice of
+  each sale it keeps as revenue and profit, how much it must reinvest to grow (sales to capital),
+  and how risky the cash flows are (cost of capital and the chance of failure). Revenue in a future
+  year is roughly market size times market share times the company's slice. Two careful analysts
+  who use the same spreadsheet can reach values far apart because they tell different stories, so
+  arguing about the story is more useful than arguing about the arithmetic.
+
+principle: >
+  When values for the same company differ widely, look first for the difference in story, then
+  check that each number follows from it. A value is only as good as the story is plausible, and a
+  story should be revised when the facts arrive.
+
+questions:
+  - id: fu-q-revenue-chain
+    prompt: >
+      A car-service market is worth $100 billion a year. Suppose a company wins a 10% share of the
+      money customers spend and keeps 20% of every fare as its own revenue. What is its revenue?
+    choices:
+      - { id: a, text: "$2 billion" }
+      - { id: b, text: "$10 billion" }
+      - { id: c, text: "$20 billion" }
+      - { id: d, text: "$30 billion" }
+    answer: a
+    explanation: >
+      Gross receipts are 10% of $100 billion, or $10 billion; the company keeps 20% of that, so its
+      revenue is $2 billion. Gross receipts and revenue are different numbers.
+    source: >
+      Arithmetic on the market x share x slice chain set out in Damodaran, "Up, Up and Away! A Crowd
+      Valuation of Uber!", Musings on Markets, 2 December 2014.
+  - id: fu-q-market-growth
+    prompt: >
+      A market of $100 billion grows 10.39% a year for ten years. About how big is it at the end?
+    choices:
+      - { id: a, text: "About $204 billion" }
+      - { id: b, text: "About $269 billion" }
+      - { id: c, text: "About $110 billion" }
+      - { id: d, text: "About $1,039 billion" }
+    answer: b
+    explanation: >
+      1.1039 to the power 10 is about 2.69, so the market grows to about $269 billion. Simply adding
+      10.39% ten times would give about $204 billion and understates compounding.
+    source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
+  - id: fu-q-reinvestment
+    prompt: >
+      A company expects revenue to rise by $5 billion. Each dollar of new capital it invests supports
+      $2.50 of extra revenue (a sales-to-capital ratio of 2.5). How much must it reinvest?
+    choices:
+      - { id: a, text: "$12.5 billion" }
+      - { id: b, text: "$2 billion" }
+      - { id: c, text: "$5 billion" }
+      - { id: d, text: "$0.5 billion" }
+    answer: b
+    explanation: >
+      Reinvestment = change in revenue / sales to capital = 5 / 2.5 = $2 billion. A higher ratio
+      means growth needs less capital, which raises value.
+    source: Sales-to-capital reinvestment, as used in Damodaran's young-company valuations (Musings on Markets, 2014).
+  - id: fu-q-why-gap
+    prompt: >
+      Two analysts use the same valuation model for a young company. One gets $6 billion, the other
+      $40 billion. What is the most likely reason?
+    choices:
+      - { id: a, text: "One of them made an arithmetic error" }
+      - { id: b, text: "They assume different stories: market size, share and margins" }
+      - { id: c, text: "A discounted cash flow model cannot value young companies" }
+      - { id: d, text: "One used a higher tax rate" }
+    answer: b
+    explanation: >
+      With the same model, large gaps nearly always come from different narratives, which change
+      several inputs at once. The model is a way of making the story's consequences explicit.
+    source: Narrative and numbers, as argued in Damodaran, "Up, Up and Away! A Crowd Valuation of Uber!", 2 December 2014.
+
+checks:
+  - id: fu-quiz-story-numbers
+    kind: quiz
+    questions: [fu-q-revenue-chain, fu-q-market-growth, fu-q-reinvestment, fu-q-why-gap]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fu-follow-argument
+    kind: conversation
+    prompt: >
+      You have read Damodaran's crowd valuation of Uber as it stood on 2 December 2014. Explain, in
+      your own words and in order, each step of his argument: why he redid the valuation this way,
+      the reminders he gives the reader, the steps he asks you to choose at, and what he concludes
+      from the range of results. Then make one choice at each step yourself and say what kind of
+      company your choices describe.
+    passCriteria: >
+      The Learner explains why he redid it (his $6 billion value was disputed; he opens the process
+      so readers own their story) and his reminders (it is your valuation, you are almost certainly
+      wrong, be open to revising it). They name the steps in order: potential market, growth of that
+      market, market share (network effects), the slice kept as revenue and margin (competitive
+      advantage), reinvestment (sales to capital) and risk (cost of capital and survival). They state
+      his conclusion that wide differences in value come mostly from different narratives, not from
+      arithmetic. Their own choices are internally consistent with the company they describe. They
+      do not claim to know how Uber later fared.

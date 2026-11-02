@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 33 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 42 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -639,7 +639,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 73. Follow: Damodaran, crowd valuation of Uber (Dec 2014)
 
-- ID: `fol-uber-2014` · Coming
+- ID: `fol-uber-2014` · Written
 - Needs first: Valuing young, loss-making companies
 - Case: **Damodaran's Uber post** (as of 2014-12-02)
   - Outcome: Uber IPO priced $45 on 9 May 2019 at $82.4bn fully diluted, closed down 7.6%.
@@ -647,71 +647,66 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 74. Follow: Damodaran, Twitter IPO valuation (Oct 2013)
 
-- ID: `fol-twitter-ipo` · Coming
+- ID: `fol-twitter-ipo` · Written
 - Needs first: Valuing young, loss-making companies, IPOs, book building and float
-- Case: **Damodaran's Twitter post** (as of 2013-10-05) **to verify**
-  - Outcome: Twitter traded below its IPO price by 2016 and below $6 in 2019.
-  - Note: Direct URL of the 2013 post not fetched.
-  - Sources: https://aswathdamodaran.blogspot.com/2022/04/
+- Case: **Damodaran's Twitter post** (as of 2013-10-28)
+  - Outcome: Priced $26 on 6 Nov 2013 (range $17-20), first close $44.90 (+73%); first close at $26 on 20 Aug 2015; taken private at $54.20 on 27 Oct 2022.
+  - Sources: https://aswathdamodaran.blogspot.com/2013/10/the-twitter-ipo-thoughts-on-ipo-end-game.html https://www.reuters.com/article/technology/twitter-shares-soar-in-frenzied-nyse-debut-idUSBRE99N1AE/
 
 ### 75. Follow: Damodaran, Tesla valuation (Feb 2020)
 
-- ID: `fol-tesla-2020` · Coming
+- ID: `fol-tesla-2020` · Written
 - Needs first: Valuing young, loss-making companies
 - Case: **Damodaran's do-it-yourself Tesla valuation** (as of 2020-02-06)
-  - Outcome: Value $427 per share against a close of $581.
+  - Outcome: $427 is about $28.47 on today's split basis; record close $1,024.86 on 25 Oct 2021 (value just over $1tn); 2022 close $123.18 after a 65% fall.
   - Sources: https://aswathdamodaran.blogspot.com/2020/02/a-do-it-yourself-diy-valuation-of-tesla.html
 
 ### 76. Follow: Damodaran, ROE, earnings yield and efficiency (Feb 2025)
 
-- ID: `fol-roe` · Coming
+- ID: `fol-roe` · Written
 - Needs first: Relative valuation and multiples, Ratios, return on equity and DuPont
-- Case: **Damodaran on ROE and earnings yield** (as of 2025-02-18) **to verify**
-  - Outcome: The post has an Indian-market thread; test its claims in the Judge Topic.
-  - Note: Outcome is the Learner's judgement of the post.
+- Case: **Damodaran on ROE and earnings yield** (as of 2025-02-18)
+  - Outcome: Damodaran's 6 Oct 2025 follow-up: US earnings yield 4% in Sep 2025, 0.16 points below the ten-year Treasury rate; the post's Indian-market thread is tested in the Judge Topic.
   - Sources: https://aswathdamodaran.blogspot.com/2025/02/return-on-equity-earnings-yield-and.html
 
 ### 77. Follow: Damodaran, sovereign ratings and default risk (Jun 2025)
 
-- ID: `fol-sov-ratings` · Coming
+- ID: `fol-sov-ratings` · Written
 - Needs first: Sovereign default and country risk
 - Case: **Damodaran on sovereign ratings** (as of 2025-06-02)
-  - Outcome: Moody's cut the US from Aaa to Aa1 on 16 May 2025, having held Aaa since 1919.
+  - Outcome: Moody's cut the US from Aaa to Aa1 on 16 May 2025; the 10-year yield was 4.41% on 30 May, 4.46% on 2 Jun, 3.97% low on 22 Oct and 4.18% at end-2025 (US Treasury).
   - Sources: https://aswathdamodaran.blogspot.com/2025/06/sovereign-ratings-default-risk-and.html https://www.reuters.com/markets/us/moodys-downgrades-us-aa1-rating-2025-05-16/ https://www.cnbc.com/2025/05/16/moodys-downgrades-united-states-credit-rating-on-increase-in-government-debt.html
 
 ### 78. Follow: Zitron, The Subprime AI Crisis (Sep 2024)
 
-- ID: `fol-subprime-ai` · Coming
+- ID: `fol-subprime-ai` · Written
 - Needs first: Credit spreads, ratings and default, Revenue recognition, run rates, gross vs net
-- Case: **Zitron's Subprime AI Crisis** (as of 2024-09-16) **to verify**
-  - Outcome: Judge the piece's claims against later filings.
-  - Note: Outcome section to write from later sources.
+- Case: **Zitron's Subprime AI Crisis** (as of 2024-09-16)
+  - Outcome: OpenAI raised $6.6bn at $157bn on 2 Oct 2024 and $40bn at $300bn on 31 Mar 2025; cut its o3 price by 80% on 10 Jun 2025.
   - Sources: https://www.wheresyoured.at/subprimeai/
 
 ### 79. Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)
 
-- ID: `fol-systemic-risk` · Coming
+- ID: `fol-systemic-risk` · Written
 - Needs first: Leases, commitments and debt-like items, The cash flow statement
-- Case: **Zitron's OpenAI systemic-risk piece** (as of 2025-04-14) **to verify**
-  - Outcome: Judge the piece's claims against later filings.
-  - Note: Outcome section to write from later sources.
-  - Sources: https://www.wheresyoured.at/openai-is-a-systemic-risk-to-the-tech-industry-2/
+- Case: **Zitron's OpenAI systemic-risk piece** (as of 2025-04-14)
+  - Outcome: SoftBank completed its $22.5bn on 26 Dec 2025; OpenAI converted to a for-profit on 28 Oct 2025 at $500bn; CoreWeave's $9bn Core Scientific deal ended 30 Oct 2025.
+  - Sources: https://www.wheresyoured.at/openai-is-a-systemic-risk-to-the-tech-industry-2/ https://group.softbank/en/news/press/20251231 https://www.reuters.com/business/core-scientific-terminates-9-billion-merger-deal-with-coreweave-2025-10-30/
 
 ### 80. Follow: Zitron, AI Is A Money Trap (Aug 2025)
 
-- ID: `fol-money-trap` · Coming
+- ID: `fol-money-trap` · Written
 - Needs first: Revenue recognition, run rates, gross vs net, Venture finance and private rounds
 - Case: **Zitron's AI Is A Money Trap** (as of 2025-08-06)
-  - Outcome: It says Cursor must die or be acquired; SpaceX announced the $60bn all-stock purchase on 16 Jun 2026 and completed it 14 Aug 2026.
-  - Sources: https://www.wheresyoured.at/ai-is-a-money-trap/ https://www.reuters.com/legal/transactional/spacex-buy-anysphere-60-billion-2026-06-16/ https://www.bloomberg.com/news/articles/2026-08-14/spacex-completes-its-60-billion-cursor-acquisition
+  - Outcome: Cursor raised $2.3bn at a $29.3bn post-money valuation on 13 Nov 2025, with over $1bn annualised revenue (company figure).
+  - Sources: https://www.wheresyoured.at/ai-is-a-money-trap/ https://www.cnbc.com/2025/11/13/cursor-ai-startup-funding-round-valuation.html
 
 ### 81. Follow: Damodaran, The Price of Risk (Aug 2023)
 
-- ID: `fol-erp` · Coming
+- ID: `fol-erp` · Written
 - Needs first: Implied equity risk premium and market-level valuation
-- Case: **Damodaran on equity risk premiums** (as of 2023-08-05) **to verify**
-  - Outcome: Compare the 2023 implied premium with later data.
-  - Note: Outcome to source.
+- Case: **Damodaran on equity risk premiums** (as of 2023-08-05)
+  - Outcome: Implied ERP 4.44% (Aug 2023), 4.60% (Jan 2024), 4.33% (Jan 2025); Fed-model gap +0.76 then -0.44 points.
   - Sources: https://aswathdamodaran.blogspot.com/2023/08/the-price-of-risk-with-equity-risk.html https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html
 
 ## Judge
@@ -745,10 +740,10 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 - ID: `jud-ipo-forecast` · Coming
 - Needs first: Follow: Damodaran, Twitter IPO valuation (Oct 2013), Reading filings: S-1, 10-K, Indian annual report and Ind AS
-- Case: **Twitter's IPO** (as of 2013-10-05) **to verify**
-  - Outcome: Below the IPO price by 2016.
+- Case: **Twitter's IPO** (as of 2013-10-28) **to verify**
+  - Outcome: First closed at the $26 IPO price on 20 Aug 2015 (2016 lows not checked).
   - Note: Recompute from Twitter filings.
-  - Sources: https://aswathdamodaran.blogspot.com/2022/04/
+  - Sources: https://aswathdamodaran.blogspot.com/2013/10/the-twitter-ipo-thoughts-on-ipo-end-game.html
 
 ### 86. Judge: Zitron's predictions versus later events
 
