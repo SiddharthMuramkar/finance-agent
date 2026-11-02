@@ -19,11 +19,14 @@ const FENCE = "```";
 const linkText = (text: string) => text.replace(/[[\]]/g, (c) => `\\${c}`);
 
 /** One reply's citation marks: fed its text and citations in order, it gives the markers and source list to show. */
+/** Shown in the Sources list instead of the heading of a passage the as-of rule hides now. */
+export const HIDDEN_SOURCE_TITLE = "Library passage (hidden until the reveal)";
+
 export class CitationMarks {
   private text = "";
   /** Where the current block's text starts. */
   private blockStart = 0;
-  private passages: { source: string; title: string }[] = [];
+  private passages: { id: number; source: string; title: string }[] = [];
 
   /** Records shown text (a streamed delta or a whole block) and gives it back. */
   add(text: string): string {
@@ -43,9 +46,10 @@ export class CitationMarks {
     if (touchesWidget || !citations?.length) return "";
     let out = "";
     for (const c of citations) {
-      if (c.type !== "search_result_location" || !c.source || passageIdOf(c.source) === null) continue;
+      const id = c.type === "search_result_location" && c.source ? passageIdOf(c.source) : null;
+      if (id === null || !c.source) continue;
       let n = this.passages.findIndex((p) => p.source === c.source) + 1;
-      if (!n) n = this.passages.push({ source: c.source, title: c.title || "Library passage" });
+      if (!n) n = this.passages.push({ id, source: c.source, title: c.title || "Library passage" });
       out += `[${n}](${c.source}?blocks=${c.start_block_index}-${c.end_block_index})`;
     }
     this.add(out);
@@ -53,17 +57,26 @@ export class CitationMarks {
     return out;
   }
 
-  /** The list of passages the reply cited, numbered as in its markers, to show at its end; empty when none. */
-  sources(): string {
+  /** The IDs of the passages cited so far, for asking which the as-of rule hides (see `hiddenPassages`). */
+  cited(): number[] {
+    return this.passages.map((p) => p.id);
+  }
+
+  /**
+   * The list of passages the reply cited, numbered as in its markers, to show at its end; empty when none.
+   * A passage in `hidden` (one the as-of rule hides now) is listed without its heading, which could tell a Case's ending.
+   */
+  sources(hidden: ReadonlySet<number> = new Set()): string {
     if (!this.passages.length) return "";
-    return this.add(`\n\nSources:\n\n${this.passages.map((p, i) => `${i + 1}. [${linkText(p.title)}](${p.source})\n`).join("")}`);
+    const title = (p: { id: number; title: string }) => (hidden.has(p.id) ? HIDDEN_SOURCE_TITLE : p.title);
+    return this.add(`\n\nSources:\n\n${this.passages.map((p, i) => `${i + 1}. [${linkText(title(p))}](${p.source})\n`).join("")}`);
   }
 }
 
 type Block = { type?: string; text?: string; citations?: Citation[] | null };
 
 /** A stored Tutor reply as the Learner sees it: its text with citation markers, then its sources. */
-export function displayText(content: unknown): string {
+export function displayText(content: unknown, hidden?: ReadonlySet<number>): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
   const marks = new CitationMarks();
@@ -72,5 +85,20 @@ export function displayText(content: unknown): string {
     if (b?.type !== "text" || typeof b.text !== "string") continue;
     out += marks.add(b.text) + marks.markers(b.citations);
   }
-  return out + marks.sources();
+  return out + marks.sources(hidden);
+}
+
+/** The Library passage IDs cited in these stored messages' contents, for asking which the as-of rule hides. */
+export function citedPassageIds(contents: unknown[]): number[] {
+  const ids = new Set<number>();
+  for (const content of contents) {
+    if (!Array.isArray(content)) continue;
+    for (const b of content as Block[]) {
+      for (const c of b?.citations ?? []) {
+        const id = c.type === "search_result_location" && c.source ? passageIdOf(c.source) : null;
+        if (id !== null) ids.add(id);
+      }
+    }
+  }
+  return [...ids];
 }

@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         />
         {wrong && !locked && <p className="text-sm text-red-700 dark:text-red-400">That passcode is not right.</p>}
         {locked && (
-          <p className="text-sm text-red-700 dark:text-red-400">Too many wrong passcodes. Logins are paused for up to an hour; try again later.</p>
+          <p className="text-sm text-red-700 dark:text-red-400">Too many wrong passcodes. Logins from here are paused for 15 minutes; try again later.</p>
         )}
         <button className="rounded bg-stone-900 px-3 py-2 text-white dark:bg-stone-100 dark:text-stone-900">Enter</button>
       </form>

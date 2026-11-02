@@ -49,10 +49,21 @@ describe("Passcode login attempts", () => {
     expect(signedIn(await login(PASSCODE))).toBe(true);
   });
 
-  it("guesses spread over many addresses are capped too", async () => {
+  it("guesses sent all at once from one address still get only five comparisons", async () => {
+    const burst = await Promise.all(Array.from({ length: 20 }, (_, i) => login(`guess ${i}`)));
+    const after = [];
+    for (let i = 0; i < 10; i++) after.push(await login(`later guess ${i}`));
+    expect([...burst, ...after].filter((r) => where(r) === "?wrong=1").length).toBe(5);
+  });
+
+  it("after fifty wrong guesses from all addresses in an hour, each address gets one try per 15 minutes, so the owner can still sign in", async () => {
     for (let i = 0; i < 50; i++) await login(`guess ${i}`, `192.0.2.${i}`);
-    const locked = await login(PASSCODE, "198.51.100.9");
-    expect(where(locked)).toBe("?locked=1");
-    expect(signedIn(locked)).toBe(false);
+    // An address that guessed during the lock is refused, even with the right passcode.
+    expect(where(await login(PASSCODE, "192.0.2.0"))).toBe("?locked=1");
+    // A new address gets its one try: a wrong guess, then a refusal.
+    expect(where(await login("another guess", "198.51.100.8"))).toBe("?wrong=1");
+    expect(where(await login(PASSCODE, "198.51.100.8"))).toBe("?locked=1");
+    // The owner on a new phone, with the right passcode, signs in.
+    expect(signedIn(await login(PASSCODE, "198.51.100.9"))).toBe(true);
   });
 });

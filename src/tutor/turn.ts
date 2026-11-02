@@ -6,8 +6,8 @@ import { navigate } from "@/course/navigator";
 import { sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
-import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
-import type { QueryEmbedder } from "@/library/library";
+import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
+import { hiddenPassages, type QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
@@ -187,7 +187,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now());
   if (claim.alreadyFinished) {
     // It finished after the browser lost the stream: show the saved reply.
-    yield* finishedTurnReplay(db, turn);
+    yield* finishedTurnReplay(db, deps.map ?? loadCourseMap(), turn);
     return;
   }
   let ended = false;
@@ -214,10 +214,10 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   }
 }
 
-async function* finishedTurnReplay(db: Db, turn: Turn): AsyncGenerator<TurnEvent> {
+async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGenerator<TurnEvent> {
   if (turn.sessionId === null || turn.turnSeq === null) return;
   const log = await openLog(db, turn.sessionId, () => new Date());
-  yield { type: "replay", text: turnText(log.rows, turn.turnSeq) };
+  yield { type: "replay", text: (await turnText(log.rows, turn.turnSeq, { db, map })) };
   const usage = (await loadTurnUsages(db, turn.sessionId)).get(turn.turnSeq);
   const [session] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
   yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0) };
@@ -245,7 +245,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   if (resumed) {
     ({ session, log, turnSeq } = resumed);
     code = toolCode(db, map, now, session.model, effects, turn.id, deps.embedQuery);
-    yield { type: "replay", text: turnText(log.rows, turnSeq) };
+    yield { type: "replay", text: (await turnText(log.rows, turnSeq, { db, map })) };
     yield* repairToolCalls();
   } else {
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
@@ -269,7 +269,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const paste = await pasteForTurn(db, turn.id, session.id);
     const pastes = await pasteSummary(db, session.id);
     const caseData = await caseDataFor(db, map, place);
-    const plainContext = stepContext(place, caseData, pastes);
+    const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
+    const plainContext = stepContext(place, caseData, pastes, quizDown);
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
@@ -384,7 +385,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
-        yield* show(marks.sources());
+        yield* show(marks.sources(await hiddenPassages({ db, map }, marks.cited())));
         const added = textOf(final.content);
         text += text && added ? PARAGRAPH + added : added;
         if (final.stop_reason === "end_turn" && compactAtTokens > 0 && contextTokens(final.usage) >= compactAtTokens) {
@@ -425,7 +426,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       .select({ id: toolCalls.toolCallId })
       .from(toolCalls)
       .where(and(eq(toolCalls.turnId, turn.id), eq(toolCalls.isError, false)));
-    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: turnText(log.rows, turnSeq) };
+    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: (await turnText(log.rows, turnSeq, { db, map })) };
   } else if (stopReason === "max_tokens") {
     // Kept as sent; a tool call it was cut off in is never run, and is answered so the history stays valid.
     const truncated = unansweredToolCalls(log.messages);

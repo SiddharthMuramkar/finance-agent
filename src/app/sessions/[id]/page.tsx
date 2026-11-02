@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadSession } from "@/tutor/transcript";
 import { OldSession } from "../../old-session";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
-  const lines = await loadSession(getDb(), id);
+  const lines = await loadSession(getDb(), id, loadCourseMap());
   if (lines.length === 0) notFound();
   return (
     <main className="mx-auto max-w-2xl p-6">

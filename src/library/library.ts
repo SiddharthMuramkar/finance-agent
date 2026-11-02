@@ -4,7 +4,7 @@ import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import type { BetaSearchResultBlockParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import { firstWords, passagePath, passageSentences } from "./passage";
-import { allSources, passageById, searchPassages, sourcesMatching, type LibraryHit } from "./search";
+import { allSources, hiddenAmong, passageById, searchPassages, sourcesMatching, type LibraryHit } from "./search";
 
 /** Turns the Learner's search into its Voyage embedding; absent when no Voyage key is set. */
 export type QueryEmbedder = (query: string) => Promise<number[]>;
@@ -38,6 +38,16 @@ export function libraryAsOf(map: CourseMap, progress: Progress): string | null {
   const place = navigate(map, progress);
   if (!place || !place.topic.cases.length || progress.topics[place.topic.id]?.revealShown) return null;
   return place.topic.cases.map((c) => c.asOf).sort()[0];
+}
+
+/**
+ * The as-of rule for citations: which of these cited passages are hidden now. A reply can cite a passage
+ * found by a search made before the Learner reached a Case, so its heading is withheld in the Sources list
+ * until the reveal, as the passage view withholds its text.
+ */
+export async function hiddenPassages(deps: Pick<LibraryDeps, "db" | "map">, ids: number[]): Promise<Set<number>> {
+  if (!ids.length) return new Set();
+  return hiddenAmong(deps.db, ids, libraryAsOf(deps.map, await loadProgress(deps.db)));
 }
 
 /**

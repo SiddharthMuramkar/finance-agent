@@ -154,3 +154,13 @@ export async function passageById(db: Executor, id: number, asOf: string | null)
   );
   return row;
 }
+
+/** Which of these stored passages the as-of rule hides now; none while nothing is withheld. */
+export async function hiddenAmong(db: Executor, ids: number[], asOf: string | null): Promise<Set<number>> {
+  if (!asOf || !ids.length) return new Set();
+  const rows = await rowsOf<{ id: number }>(
+    db,
+    sql`select p.id from library_passages p where p.id in (${sql.join(ids.map((id) => sql`${id}`), sql`, `)}) and not coalesce(${allowed(asOf)}, false)`,
+  );
+  return new Set(rows.map((r) => r.id));
+}

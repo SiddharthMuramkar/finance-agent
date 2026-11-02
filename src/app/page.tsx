@@ -18,7 +18,7 @@ export default async function WorkspacePage() {
   const map = loadCourseMap();
   const [summary, initial, jar, quiz, turn, review] = await Promise.all([
     learnerSummary(db, map),
-    loadCurrentSession(db),
+    loadCurrentSession(db, map),
     cookies(),
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
     openQuiz(db, map).catch((error) => {

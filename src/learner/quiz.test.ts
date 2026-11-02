@@ -286,6 +286,19 @@ checks:
     expect(await loadCheckResults(db)).toEqual([]);
   });
 
+  it("still tells the Tutor a submitted result, from its saved marking, when one of its questions has since left the bank", async () => {
+    const { db, map } = await atBankQuiz();
+    const quiz = (await openQuiz(db, map))!;
+    await submitQuiz(db, map, quiz.attemptId, { q1: "b", "bank:eab:Q-1": "B" });
+    await db.delete(questionBank).where(eq(questionBank.id, "bank:eab:Q-1"));
+    const note = (await pendingQuizNote(db, map))!;
+    expect(note.text).toContain("Quiz result by code, Check quiz, attempt 1: 1 of 2 correct (needs 2).");
+    expect(note.text).toContain("Not passed");
+    // The question still on the Course Map is still named; the one that left the bank cannot be.
+    expect(note.text).toContain('Question 1? The Learner chose "Wrong 1"; the right answer is "Right 1".');
+    expect(note.attemptIds).toEqual([quiz.attemptId]);
+  });
+
   it("an open attempt whose bank question has left the bank is reopened with questions that can still be shown", async () => {
     const { db, map } = await atBankQuiz();
     const first = (await openQuiz(db, map))!;
