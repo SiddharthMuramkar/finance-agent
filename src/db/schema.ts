@@ -325,3 +325,52 @@ export const libraryPassages = pgTable(
   },
   (t) => [uniqueIndex("library_passages_source_ref").on(t.sourceId, t.ref), index("library_passages_search").using("gin", t.search)],
 );
+
+/**
+ * One run of the model comparison script (npm run compare:models): which models answered, who
+ * graded, the written report and the recommendation. Saved from the laptop; the app never reads it.
+ */
+export const modelComparisonRuns = pgTable("model_comparison_runs", {
+  id: serial("id").primaryKey(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  models: jsonb("models").notNull().$type<string[]>(),
+  graderModel: text("grader_model").notNull(),
+  /** Hash of the Tutor instructions and tools the models were given. */
+  fingerprint: text("fingerprint").notNull(),
+  report: text("report").notNull(),
+  recommendation: text("recommendation").notNull(),
+  /** Everything the run spent, Tutor turns and grading. */
+  totalCostUsd: numeric("total_cost_usd", { precision: 12, scale: 6, mode: "number" }).notNull(),
+});
+
+/** One model's answer to one question in a comparison run, with its tokens, cost and the grader's three verdicts. */
+export const modelComparisonAnswers = pgTable(
+  "model_comparison_answers",
+  {
+    id: serial("id").primaryKey(),
+    runId: integer("run_id")
+      .notNull()
+      .references(() => modelComparisonRuns.id),
+    questionId: text("question_id").notNull(),
+    /** "own" for our questions, "financebench" for the FinanceBench open sample (testing only). */
+    source: text("source").notNull(),
+    model: text("model").notNull(),
+    turns: jsonb("turns").notNull().$type<string[]>(),
+    answer: text("answer").notNull(),
+    inputTokens: integer("input_tokens").notNull(),
+    outputTokens: integer("output_tokens").notNull(),
+    cacheReadTokens: integer("cache_read_tokens").notNull(),
+    cacheWriteTokens: integer("cache_write_tokens").notNull(),
+    /** Tutor turns taken to answer (more than one for a two-step question). */
+    turnCount: integer("turn_count").notNull(),
+    costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }).notNull(),
+    durationMs: integer("duration_ms").notNull(),
+    /** pass, fail, na (does not apply) or ungraded (grader reply unreadable). */
+    correctness: text("correctness").notNull(),
+    giveAway: text("give_away").notNull(),
+    pastOnly: text("past_only").notNull(),
+    reasons: text("reasons").notNull(),
+    graderCostUsd: numeric("grader_cost_usd", { precision: 12, scale: 6, mode: "number" }).notNull(),
+  },
+  (t) => [uniqueIndex("model_comparison_answer_unique").on(t.runId, t.questionId, t.model)],
+);
