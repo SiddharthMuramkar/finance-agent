@@ -1,0 +1,156 @@
+# Forwards and futures: a foundation Topic taught through Metallgesellschaft's stack-and-roll hedge.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Wall Street Journal, "The CEO at the Center of a Controversial 1993 Commodity Hedge", 6 June 2016: https://www.wsj.com/articles/the-ceo-at-the-center-of-a-controversial-1993-commodity-hedge-1465178461 ; Digenan,Felson, Kelly and Wiemert, Metallgesellschaft AG: A Case Study (Trier University): https://www.uni-trier.de/fileadmin/fb4/studium/FFA/Downloads/Risk_Management/CASE3_Metallgesellschaft_AG_1.pdf ; Salinger (ed.), Encyclopedia of White-Collar and Corporate Crime, "Metallgesellschaft": https://sk.sagepub.com/ency/edvol/encyclopedia-of-white-collar-and-corporate-crime-2e/chpt/metallgesellschaft ; Baird, SAGE Encyclopedia of Business Ethics and Society, "Metallgesellschaft AG": https://sk.sagepub.com/ency/edvol/sage-encyclopedia-of-business-ethics-and-society-2e/chpt/metallgesellschaft-ag ; Reuters in the New York Times, 28 July 1995: https://www.nytimes.com/1995/07/28/business/metallgesellschaft-to-pay-fine-to-us.html ; Penn State EBF 301, Case Study 3: Metallgesellschaft: https://courses.ems.psu.edu/ebf301/node/571
+id: der-forwards
+title: Forwards and futures
+
+cases:
+  - id: metallgesellschaft-1993-stack-roll
+    title: Metallgesellschaft's stack-and-roll hedge
+    asOf: 1993-09-30
+    story: >
+      Metallgesellschaft (MG) is a German industrial group with about 250 subsidiaries. Its
+      American unit, MG Refining and Marketing (MGRM), has found a popular product: it agrees to
+      sell customers heating oil and gasoline at a fixed price, every month, for up to ten years.
+      By September 1993 it has sold forward the equivalent of about 160 million barrels. Many
+      contracts also let the customer end the deal early, and collect cash from MGRM, if the
+      price of the nearest futures contract on the New York Mercantile Exchange rises above the
+      fixed price. MGRM now holds a promise to deliver oil at fixed prices for years, so it
+      loses if oil gets more expensive. To cover that risk it buys oil futures, but only
+      short-dated ones, because those are the liquid contracts. Each month it will close the
+      contracts that are about to expire and buy the next month's: a "stack and roll". MG's
+      reasoning is that the futures market is currently in backwardation (nearer contracts cost
+      more than later ones), so each roll should earn a small gain. Futures are marked to market
+      every day: gains and losses on them are paid in cash daily. The forward contracts with
+      customers are settled only when the oil is delivered, over the coming years. As of 30
+      September 1993, how well does a one-month futures position cover a ten-year fixed-price
+      promise, and what would the firm need to have available if it went wrong?
+    reveal: >
+      In late 1993 OPEC members could not agree on production quotas and the oil price fell. The
+      market moved from backwardation to contango (later contracts costing more than nearer
+      ones), so rolling the futures now cost money instead of earning it. The futures lost value
+      and the daily margin calls had to be paid in cash, while the gains on the customers' fixed
+      prices would only arrive as oil was delivered over the next ten years. In December 1993
+      MG disclosed that its energy business had lost about $1.5 billion (other sources say
+      $1.3 billion); Deutsche Bank, a part-owner, ousted the chief executive and cut off the credit
+      line that backed the hedge (Wall Street Journal, 2016). More than 100 creditor banks mounted a rescue of about $1.9 billion
+      (some accounts say $2.2 billion, including shareholders) in 1994. In July 1995 MG agreed
+      to pay a $2.25 million fine to the US Commodity Futures Trading Commission to settle
+      charges of illegal futures trading. Whether the hedge was sound in principle is still argued;
+      what is clear is that the cash needed to hold it was not planned for.
+
+concept: >
+  A forward contract is a private agreement to buy or sell an asset on a set future date at a
+  price fixed today; nothing is paid until that date. A futures contract is the same promise
+  made standard and traded on an exchange: both sides post margin, and the contract is marked to
+  market, meaning gains and losses are settled in cash every day. With no income or storage
+  costs, the fair forward price is the spot price grown at the interest rate: F = S x (1 + r)^T.
+  When storage and convenience matter, the futures price can sit above spot (contango) or below
+  it (backwardation). A company that must sell later hedges by selling forward or futures; one
+  that must buy later hedges by buying. A hedge held in short-dated futures must be rolled as
+  each contract expires, so the roll cost, the mismatch in timing, and the cash needed for daily
+  settlement all belong in the plan.
+
+principle: >
+  A hedge removes price risk only on paper if its cash flows come at different times from the
+  exposure it covers. Ask what the hedge costs to keep, and whether you can fund its daily
+  cash calls until the exposure it protects actually pays.
+
+questions:
+  - id: fw-q-fair-forward
+    prompt: >
+      A metal costs $100 today and has no storage cost or income. The interest rate is 5% a year. What is the fair price for a forward contract to buy it in one year?
+    choices:
+      - { id: a, text: "$105" }
+      - { id: b, text: "$100" }
+      - { id: c, text: "$95" }
+      - { id: d, text: "$110" }
+    answer: a
+    explanation: >
+      Buying forward leaves your $100 free to earn interest for a year, so the forward price must be the spot price grown at the interest rate: 100 x 1.05 = $105. A forward at $100 would let a trader borrow, buy the metal and deliver it at a sure profit.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.2 Commodity Price Risk (forward and futures contracts): https://openstax.org/books/principles-finance/pages/20-2-commodity-price-risk ; cost-of-carry price calculated as F = S x (1 + r)^T
+
+  - id: fw-q-futures-forward
+    prompt: >
+      Which statement correctly separates a futures contract from a forward contract?
+    choices:
+      - { id: a, text: "A futures contract is standardised and traded on an exchange, with margin posted and daily settlement; a forward is a private agreement settled at the end" }
+      - { id: b, text: "A forward contract is traded on an exchange and a futures contract is private" }
+      - { id: c, text: "A futures contract cannot be used to hedge" }
+      - { id: d, text: "A forward contract requires daily cash settlement of gains and losses" }
+    answer: a
+    explanation: >
+      Standard terms, an exchange and daily marking to market are the marks of futures. Forwards are tailored private deals where nothing is paid until the delivery date, which adds credit risk but no daily cash calls.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), Chapter 20 Key Terms (forward contract, futures contract, margin, marking to market): https://openstax.org/books/principles-finance/pages/20-key-terms
+
+  - id: fw-q-mark-to-market
+    prompt: >
+      A grain merchant is long 5,000 bushels of wheat futures. The futures price falls by $0.40 a bushel today. What happens at the end of the day?
+    choices:
+      - { id: a, text: "The merchant must pay $2,000 into the margin account" }
+      - { id: b, text: "Nothing is paid until the contract expires" }
+      - { id: c, text: "The merchant receives $2,000" }
+      - { id: d, text: "The exchange cancels the contract" }
+    answer: a
+    explanation: >
+      Futures are marked to market daily. A long position loses when the price falls: 5,000 x $0.40 = $2,000 is settled in cash that day (a variation margin payment). A forward contract would show the same paper loss but no cash call.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.2 Commodity Price Risk (futures, margin and marking to market): https://openstax.org/books/principles-finance/pages/20-2-commodity-price-risk
+
+  - id: fw-q-short-hedge
+    prompt: >
+      A farmer will harvest corn in three months and wants to lock in today's price. Which position hedges the price risk?
+    choices:
+      - { id: a, text: "Sell corn futures for delivery in three months" }
+      - { id: b, text: "Buy corn futures for delivery in three months" }
+      - { id: c, text: "Do nothing; a fall in the price helps farmers" }
+    answer: a
+    explanation: >
+      The farmer is long corn (will have the crop) and loses if the price falls. Selling futures gains when the price falls, offsetting the loss on the crop. Buying futures would double the exposure.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.2 Commodity Price Risk: https://openstax.org/books/principles-finance/pages/20-2-commodity-price-risk
+
+  - id: fw-q-contango
+    prompt: >
+      A futures market is in contango. What does that mean?
+    choices:
+      - { id: a, text: "Contracts for later delivery are priced above contracts for nearer delivery" }
+      - { id: b, text: "Contracts for later delivery are priced below contracts for nearer delivery" }
+      - { id: c, text: "The futures price equals the spot price at every maturity" }
+      - { id: d, text: "No contracts are being traded" }
+    answer: a
+    explanation: >
+      Contango is an upward-sloping futures curve: later maturities cost more. Backwardation is the opposite. Anyone who holds a long position and rolls it into the next contract each month buys at the higher price in contango and at the lower price in backwardation.
+    source: >
+      Penn State EBF 301, Case Study 3: Metallgesellschaft (definitions of contango and backwardation): https://courses.ems.psu.edu/ebf301/node/571
+
+checks:
+  - id: fw-quiz-forwards
+    kind: quiz
+    questions:
+      - fw-q-fair-forward
+      - fw-q-futures-forward
+      - fw-q-mark-to-market
+      - fw-q-short-hedge
+      - fw-q-contango
+      - bank:eab:MBA-FIN-CF-0057
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fw-mgrm-hedge
+    kind: conversation
+    prompt: >
+      A firm has promised to deliver oil at fixed prices every month for ten years and covers
+      that promise with one-month futures that it rolls each month. Explain what the hedge does
+      well, and name two things it leaves unprotected: one about timing and one about cash.
+    passCriteria: >
+      The Learner says the long futures gain when oil prices rise, offsetting the higher cost of
+      the fixed-price promise, so the price direction is covered. They name a timing mismatch: a
+      one-month contract has to be rolled about 120 times over ten years, and each roll depends
+      on the shape of the futures curve (contango costs money, backwardation earns it). They name
+      a cash mismatch: futures are marked to market daily and settled in cash, while the gains on
+      the fixed-price contracts arrive only as oil is delivered, so the firm needs cash or credit
+      lines to meet margin calls. Mentioning that the early-termination right given to customers
+      adds a further exposure is a bonus.

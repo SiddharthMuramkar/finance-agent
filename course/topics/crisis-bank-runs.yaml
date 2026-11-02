@@ -1,0 +1,173 @@
+# Bank runs and interest-rate risk in banks: a foundation Topic taught through the run on Silicon Valley Bank.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; press release of 28 Apr 2023: https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm ; SVB Financial Group 2022 Form 10-K (filed 24 Feb 2023), SEC XBRL API: https://data.sec.gov/api/xbrl/companyconcept/CIK0000719739/us-gaap/HeldToMaturitySecurities.json
+id: crisis-bank-runs
+title: Bank runs and interest-rate risk in banks
+
+cases:
+  - id: svb-run-2023
+    title: The run on Silicon Valley Bank
+    asOf: 2023-03-08
+    story: >
+      On the evening of Wednesday 8 March 2023, SVB Financial Group (SVBFG), the parent of Silicon
+      Valley Bank, tells its investors that it has restructured its balance sheet. It has sold
+      $21 billion of available-for-sale securities, and will book an after-tax loss of $1.8
+      billion on the sale. It plans to raise $2.25 billion of new capital and to increase its
+      term borrowing by $15 billion to $30 billion. It says the steps are meant to strengthen the bank
+      for a period in which its customers, technology and venture-backed companies, are drawing down
+      their cash. It also notes that Moody's and S&P are considering rating actions. The same day,
+      another bank that served the technology sector, Silvergate Bank, announced that it would wind
+      down and liquidate. SVBFG's last annual report shows $91.3 billion of held-to-maturity
+      securities carrying an unrecognised loss of $15.2 billion, against shareholders' equity of $16.0
+      billion, and about 94% of its deposits are uninsured. Over the past year its clients have
+      withdrawn cash to fund their operations, and interest rates have risen sharply. As of the evening
+      of 8 March, what are the depositors likely to be thinking, what decides whether they stay, and
+      what does the bank need to be able to do in the next 24 hours?
+    reveal: >
+      Uninsured depositors read the announcement as a sign of distress. On 9 March, SVB lost over
+      $40 billion in deposits in a single day, and on the evening of 9 March and the morning of 10
+      March management told supervisors it expected to lose over $100 billion more that day, roughly
+      85% of its deposit base. For scale, the Federal Reserve's review points to the failure of
+      Wachovia in 2008, which saw about $10 billion leave over eight days, and Washington Mutual,
+      which lost $19 billion over 16 days. The run was driven by a small, tightly connected group of
+      venture investors and technology firms who withdrew in step, helped by social media. SVB did
+      not have enough cash or collateral to meet the outflows, and it had not tested its ability to
+      borrow at the Federal Reserve's discount window in 2022. The California Department of
+      Financial Protection and Innovation closed the bank on the morning of 10 March 2023 and appointed
+      the FDIC as receiver. The Fed's review linked the failure directly to the concentration of
+      uninsured deposits and the board and management's failure to manage liquidity and interest-rate
+      risk.
+
+concept: >
+  A bank's balance sheet is assets (loans, securities, reserves) against liabilities (deposits) and
+  equity. Net worth is assets minus liabilities. A bank is solvent while its assets are worth more
+  than its liabilities, and liquid while it can pay depositors on demand. It can be solvent but not
+  liquid: long-term assets cannot be turned into cash quickly without selling at a loss. Interest-rate
+  risk is part of this: when rates rise, the market value of the bank's long-term fixed-rate assets
+  falls while its deposits are repaid at par, and the bank must pay more to keep deposits. Securities
+  held to maturity are carried at cost, so the loss is not on the balance sheet; but selling them to
+  raise cash turns the loss into a real one. A bank run happens when depositors, fearing the bank
+  will fail, rush to withdraw. It is self-fulfilling: the rush itself makes the bank fail, even if
+  it started healthy. Deposit insurance (in the US, $250,000 per depositor) removes the reason to run
+  for insured deposits; uninsured depositors still have a reason to be first out. Central banks act as
+  lender of last resort by lending against collateral in a panic, but only to banks that have the
+  collateral and the paperwork ready.
+
+principle: >
+  Solvency on paper is not liquidity in practice. Ask how fast each source of funding can leave,
+  what assets could be turned into cash at what loss, and whether the bank can reach emergency
+  funding in hours, not days.
+
+questions:
+  - id: bk-q-net-worth
+    prompt: >
+      A bank has assets of $120 million and deposits of $110 million. The market value of its assets then falls 10%. What is its net worth after the fall?
+    choices:
+      - { id: a, text: "-$2 million (negative)" }
+      - { id: b, text: "$10 million" }
+      - { id: c, text: "$12 million" }
+      - { id: d, text: "-$12 million" }
+    answer: a
+    explanation: >
+      Assets fall to 120 x 0.90 = $108 million. Net worth = assets - liabilities = 108 - 110 = -$2 million. A fall of less than 8.3% would have left the bank solvent.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), 27.3 The Role of Banks (balance sheet and net worth): https://openstax.org/books/principles-economics-3e/pages/27-3-the-role-of-banks ; figures are hypothetical
+
+  - id: bk-q-sell-loss
+    prompt: >
+      A bank holds $50 billion of bonds carried at their cost. Their market value is $42 billion. Deposit withdrawals force it to sell half the bonds. What loss does it realise?
+    choices:
+      - { id: a, text: "$4 billion" }
+      - { id: b, text: "$8 billion" }
+      - { id: c, text: "$0, because the bonds are held to maturity" }
+      - { id: d, text: "$2 billion" }
+    answer: a
+    explanation: >
+      Half the bonds cost $25 billion and sell for $21 billion, a $4 billion loss. Holding to maturity hid the loss on paper, but selling makes it real. The other half still carries an unrealised loss of $4 billion.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), 27.3 The Role of Banks (banks lose when asset values fall): https://openstax.org/books/principles-economics-3e/pages/27-3-the-role-of-banks ; figures are hypothetical
+
+  - id: bk-q-insured
+    prompt: >
+      A company keeps $2 million in one US bank account. Deposit insurance covers up to $250,000 per depositor. How much of the balance is uninsured?
+    choices:
+      - { id: a, text: "$1.75 million" }
+      - { id: b, text: "$250,000" }
+      - { id: c, text: "$2 million" }
+      - { id: d, text: "None; the whole balance is covered" }
+    answer: a
+    explanation: >
+      $2,000,000 - $250,000 = $1,750,000 is uninsured. Depositors with large uninsured balances have the most reason to withdraw at the first sign of trouble.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), 28.2 Bank Regulation (FDIC guarantees deposits up to $250,000): https://openstax.org/books/principles-economics-3e/pages/28-2-bank-regulation
+
+  - id: bk-q-healthy-run
+    prompt: >
+      Why can a rumour cause even a healthy bank to fail?
+    choices:
+      - { id: a, text: "Banks hold only a fraction of deposits in liquid form, so if many depositors withdraw at once the bank cannot pay without selling assets at a loss" }
+      - { id: b, text: "Healthy banks cannot fail" }
+      - { id: c, text: "Rumours change the interest rate the bank pays" }
+      - { id: d, text: "Banks keep all deposits as cash, so a rumour makes them lose it" }
+    answer: a
+    explanation: >
+      A bank lends most of its deposits out. If enough depositors fear failure and withdraw together, the fear fulfils itself. This is why runs are described as self-fulfilling prophecies.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), 28.2 Bank Regulation (bank runs): https://openstax.org/books/principles-economics-3e/pages/28-2-bank-regulation ; Chapter 28 self-check questions: https://openstax.org/books/principles-economics-2e/pages/28-self-check-questions
+
+  - id: bk-q-mismatch
+    prompt: >
+      A bank has funded 30-year fixed-rate loans with deposits. Market interest rates then rise by 3 percentage points. Which problem does the bank face?
+    choices:
+      - { id: a, text: "It earns the old low rate on its loans but must pay higher rates to keep its deposits" }
+      - { id: b, text: "Its loans become more valuable" }
+      - { id: c, text: "Nothing, because deposits are insured" }
+      - { id: d, text: "It earns the new high rate on its old loans" }
+    answer: a
+    explanation: >
+      This is an asset-liability time mismatch. The fixed-rate loans keep paying the old rate and lose market value, while the bank has to pay depositors more or lose them.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), Chapter 27 Key Concepts and Summary (asset-liability time mismatch): http://openstax.org/books/principles-economics-3e/pages/27-key-concepts-and-summary
+
+  - id: bk-q-last-resort
+    prompt: >
+      What does a central bank do when it acts as lender of last resort?
+    choices:
+      - { id: a, text: "It makes short-term loans to banks during a severe panic, against collateral" }
+      - { id: b, text: "It pays every depositor in full whatever the bank's condition" }
+      - { id: c, text: "It sets the bank's capital ratio" }
+      - { id: d, text: "It buys the bank's shares" }
+    answer: a
+    explanation: >
+      The central bank supplies short-term cash against collateral when private lenders will not. It can only lend to a bank that has eligible collateral and the operational arrangements in place.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), 28.2 Bank Regulation (lender of last resort): https://openstax.org/books/principles-economics-3e/pages/28-2-bank-regulation
+
+checks:
+  - id: bk-quiz-runs
+    kind: quiz
+    questions:
+      - bk-q-net-worth
+      - bk-q-sell-loss
+      - bk-q-insured
+      - bk-q-healthy-run
+      - bk-q-mismatch
+      - bk-q-last-resort
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: bk-run-reading
+    kind: conversation
+    prompt: >
+      A bank announces that it has sold securities at a loss and will raise new capital. Most of its
+      deposits are uninsured and held by a tightly connected group of customers. Explain how those
+      depositors might read the news and what features of the bank's funding decide whether it
+      stays calm or runs.
+    passCriteria: >
+      The Learner says that uninsured depositors may read a loss and a capital raise as a sign that
+      the bank is in trouble, and that each has a reason to withdraw first because the last to
+      leave may lose money. They identify what decides the reaction: how much of the funding is
+      insured, how concentrated and connected the depositors are (they act together and quickly), how
+      much liquid collateral the bank holds, and whether it can borrow from the central bank at once.
+      They connect the earlier losses (rate rises cutting the value of long-term securities that
+      were carried at cost) to the bank's inability to sell them without crystallising the loss.

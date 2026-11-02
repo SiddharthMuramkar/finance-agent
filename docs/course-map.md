@@ -2,7 +2,7 @@
 
 # Course Map
 
-95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 33 written so far; the rest are Coming.
+95 Topics (72 Foundation, 9 Follow, 8 Judge, 6 Analyse), in default-path order. 41 written so far; the rest are Coming.
 A Case marked **to verify** has facts that must be checked against a source before its Topic is written.
 
 ## Foundation
@@ -507,7 +507,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 58. Forwards and futures
 
-- ID: `der-forwards` · Coming
+- ID: `der-forwards` · Written
 - Needs first: Bond basics and pricing, Exchange rates and parity, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **Metallgesellschaft's stack-and-roll hedge** (as of 1993-12-31)
   - Outcome: Long-dated fixed-price delivery hedged with short-dated futures; losses $1.3bn to $1.5bn; rescued for $1.9bn to $2.2bn in 1994; CFTC fine $2.25m in 1995.
@@ -518,7 +518,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 59. Options and payoffs
 
-- ID: `der-options` · Coming
+- ID: `der-options` · Written
 - Needs first: Forwards and futures, Probability and expected value
 - Case: **1987 portfolio insurance as a replicated put** (as of 1987-10-16)
   - Outcome: Dynamic hedging sold into the fall; the crash on 19 Oct 1987.
@@ -526,7 +526,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 60. Binomial and Black-Scholes
 
-- ID: `der-option-pricing` · Coming
+- ID: `der-option-pricing` · Written
 - Needs first: Options and payoffs, Statistics: mean, variance, correlation, regression
 - Case: **LTCM and the option-pricing pioneers** (as of 1998-08-01)
   - Outcome: Scholes and Merton were partners; Nobel 1997; LTCM lost $4.6bn in under four months.
@@ -534,7 +534,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 61. Interest-rate and currency derivatives, swaps
 
-- ID: `der-rates-fx` · Coming
+- ID: `der-rates-fx` · Written
 - Needs first: Forwards and futures, Duration and convexity
 - Case: **The RBI's FCNR(B) swap window** (as of 2013-09-03)
   - Outcome: Banks swapped dollar deposits with the RBI at a fixed rate; the rupee steadied and cover was cheap.
@@ -542,7 +542,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 62. Hedging and risk management
 
-- ID: `der-hedging` · Coming
+- ID: `der-hedging` · Written
 - Needs first: Binomial and Black-Scholes, Interest-rate and currency derivatives, swaps, Capital structure and Modigliani-Miller
 - Case: **Orange County and Metallgesellschaft** (as of 1994-06-30)
   - Outcome: Leveraged rate bets lost $1.5bn at Orange County; Metallgesellschaft's hedge lost $1.3-1.5bn.
@@ -550,7 +550,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 63. Bank regulation, capital and liquidity
 
-- ID: `bank-regulation` · Coming
+- ID: `bank-regulation` · Written
 - Needs first: Money, banks and credit creation, Ratios, return on equity and DuPont
 - Case: **SVB's supervisory warnings** (as of 2022-03-31)
   - Outcome: 31 unaddressed supervisory warnings, three times the peer average; closure on 10 Mar 2023.
@@ -558,7 +558,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 64. Bank runs and interest-rate risk in banks
 
-- ID: `crisis-bank-runs` · Coming
+- ID: `crisis-bank-runs` · Written
 - Needs first: Bank regulation, capital and liquidity, Duration and convexity
 - Case: **The run on SVB** (as of 2023-03-08)
   - Outcome: Restructuring announced 8 Mar 2023, closed 10 Mar 2023.
@@ -566,7 +566,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 65. Securitisation, MBS and CDOs
 
-- ID: `struct-securitisation` · Coming
+- ID: `struct-securitisation` · Written
 - Needs first: Credit spreads, ratings and default, Bank regulation, capital and liquidity
 - Case: **US housing finance** (as of 2006-12-31) **to verify**
   - Outcome: The FCIC reported its findings in Jan 2011; mortgage securities and CDOs sat at the centre of the crisis.

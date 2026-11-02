@@ -977,3 +977,35 @@ RBI's September 2013 repo level is derived from two RBI releases. The inflation 
 January 2014, not 31 December 2013, because the RBI overview it relies on was published on 28
 January 2014. No Case Data was added: the Cases teach from the story's figures, and FRED series may
 not be stored.
+
+## Foundation Topics, batch 8 (`course/topics/der-forwards.yaml` and seven more, issue #38)
+
+**What it does.** Eight more Topics join the Course Map as Written: forwards and futures
+(Metallgesellschaft's stack-and-roll hedge, as of 30 September 1993), options and payoffs (1987
+portfolio insurance as a home-made put), binomial and Black-Scholes pricing (LTCM and the
+Nobel-winning pricing pioneers who were its partners, 1 August 1998), interest-rate and currency
+swaps (the RBI's FCNR(B) swap window, the day before it was announced in 2013), hedging (Orange
+County's investment pool, 30 September 1994), bank regulation (Silicon Valley Bank at the end of
+2022, passing every ratio), bank runs (8 March 2023) and securitisation (a simplified subprime pool
+and the CDO built from its BBB tranches, end of 2006). Each file has the usual story, held-back
+reveal, concept, principle, a quiz Check with a pass rule and a conversation Check.
+
+**Concrete scenario.** On the bank regulation Topic the Tutor shows the Learner a bank with a
+12.1% capital ratio against a 7% requirement and asks what the ratio counts and leaves out. Only
+after the Checks does the reveal bring the Federal Reserve's own review: 31 open supervisory
+findings, and the estimate that counting unrealised securities losses would have cut the ratio to
+10.4%.
+
+**Rules kept.** Quiz prompts, choices and explanations, and the conversation Checks, use made-up
+numbers (a $100 million pool, a Rs 100 crore swap, a four-tranche deal) so they never state the
+Case's outcome. Case IDs are specific to the Topic (for example `ltcm-1998-option-pricing`) because
+three other Topics already use LTCM, and two use Orange County and SVB. The FCNR(B) Topic uses only
+the 2013 window.
+
+**Trade-off.** Some Case figures are secondary: Metallgesellschaft's loss is given as a range
+($1.3 to $1.5 billion) and its rescue as $1.9 to $2.2 billion because sources disagree, and the
+securitisation Case leaves out the Financial Crisis Inquiry Commission's rating counts because its
+PDF could not be read reliably. The securitisation story uses an illustrative pool, labelled as
+such, instead of a real deal, and the real figures (727 CDOs, $641 billion issued, $420 billion
+of write-downs) come in the reveal. Three bank questions from the Question Bank were added (key
+checked by hand and marked verified); no Case Data was needed.

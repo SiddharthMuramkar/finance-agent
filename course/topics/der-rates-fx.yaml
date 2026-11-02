@@ -1,0 +1,157 @@
+# Interest-rate and currency derivatives, swaps: a foundation Topic taught through the RBI's FCNR(B) swap window of 2013.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Rajan, "The independence of the central bank", speech at St. Stephen's College, 3 September 2016 (BIS review 105/2016): https://bis.org/review/r160905b.htm ; RBI circular RBI/2013-2014/234, "Swap Window for Attracting FCNR (B) Dollar Funds", 6 September 2013: https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0
+# Only the 2013 window is used; later schemes are not part of this Topic.
+id: der-rates-fx
+title: Interest-rate and currency derivatives, swaps
+
+cases:
+  - id: rbi-fcnr-swap-2013
+    title: The RBI's FCNR(B) swap window
+    asOf: 2013-09-03
+    story: >
+      In the summer of 2013 the US Federal Reserve hinted that it might slow its bond purchases,
+      and money began to leave emerging markets, above all those thought to be weak. India, with a
+      high fiscal deficit, a high current account deficit and inflation close to double digits,
+      was counted among the "Fragile Five". The rupee has fallen sharply and some commentators say
+      it could reach 100 to the dollar. Raghuram Rajan has been named the new Governor of the
+      Reserve Bank of India and takes charge tomorrow, 4 September. Officials need a quick,
+      visible way to bring in dollars. Bankers have proposed one. A Non-Resident Indian can place
+      dollars with an Indian bank in an FCNR(B) deposit (a foreign-currency deposit) for three
+      years; the bank owes dollars back at the end, so it carries the risk that the rupee falls.
+      The bankers say they would raise plenty of such deposits, convert the dollars to rupees and
+      invest them in India, if the RBI would let them swap the rupees back into dollars three
+      years later at a fixed, cheap price. The banks would earn rupee interest and be guaranteed
+      the price of their dollars. The RBI would carry the exchange risk. The incoming Governor
+      weighs it. If the rupee stays weak, he judges, each rupee rise in the dollar-rupee rate
+      adds about Rs 40,000 crore to India's import bill, whereas even if the scheme draws in a great
+      deal of money, the payout to the banks would be only tens of thousands of crore. What is the swap worth to the banks, what
+      does it cost the RBI, and under what conditions does the RBI come out ahead?
+    reveal: >
+      On the afternoon of 4 September 2013 the RBI announced a package that included the swap
+      window. Its circular of 6 September set the terms: a dollar-rupee swap for fresh FCNR(B)
+      deposits of three years or more, open from 10 September to 30 November 2013, at a fixed
+      rate of 3.5% a year, with the bank selling dollars to the RBI now and buying them back
+      at the end of the swap. The scheme drew in $26 billion, more than anyone expected. Confidence returned and
+      the rupee kept strengthening after the money came in, partly because global investor
+      mood and Indian election forecasts also changed, and the RBI covered its forward promises
+      cheaply. In Rajan's words three years later: "We are fully covered for outflows today and have made money on the deal."
+      He also stressed that nobody knew at the time how it would turn out, and that the scheme
+      "was a measured risk, with a probability that the RBI would lose money, a certainty that the
+      bankers would make money, but also a reasonable chance that the country would be significantly
+      better off."
+
+concept: >
+  A currency forward fixes today the rate at which two currencies will be exchanged later. Covered
+  interest parity ties it to interest rates: the forward rate in rupees per dollar is the spot rate
+  times (1 + rupee rate) / (1 + dollar rate) for the period. The currency with the higher interest
+  rate trades at a forward discount, so more of it is needed per dollar. A currency swap exchanges
+  currencies now and swaps them back at a set rate later, so it is a spot deal plus a forward deal; a
+  central bank that offers it takes the exchange-rate risk off the bank. An interest-rate swap
+  exchanges a fixed-rate stream for a floating-rate stream on an agreed notional amount, which is not
+  itself exchanged: only the net difference in interest is paid each period. The payer of fixed
+  gains when floating rates end up higher than the fixed rate. Swaps let firms and banks change the
+  form of a liability or an exposure without changing the underlying loan or deposit.
+
+principle: >
+  A derivative moves a risk, it does not remove it. Always ask who now holds the risk, what they are
+  paid for holding it, and in which states of the world they win or lose.
+
+questions:
+  - id: rx-q-cip
+    prompt: >
+      The spot rate is Rs 60 per dollar. One-year interest rates are 8% in rupees and 3% in dollars. According to covered interest parity, what is the one-year forward rate (rupees per dollar)?
+    choices:
+      - { id: a, text: "About Rs 62.91" }
+      - { id: b, text: "Rs 60.00" }
+      - { id: c, text: "About Rs 57.22" }
+      - { id: d, text: "Rs 65.00" }
+    answer: a
+    explanation: >
+      Forward = 60 x 1.08 / 1.03 = 62.91. The rupee, with the higher interest rate, trades at a forward discount: more rupees per dollar. Rs 57.22 inverts the ratio.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (forward contracts for currency): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; forward rate calculated from covered interest parity
+
+  - id: rx-q-fixed-payer
+    prompt: >
+      A company has a floating-rate loan and wants the certainty of a fixed rate. Which interest-rate swap gives it that?
+    choices:
+      - { id: a, text: "Pay fixed and receive floating on the loan's notional amount" }
+      - { id: b, text: "Pay floating and receive fixed" }
+      - { id: c, text: "Swap the principal of the loan with the bank" }
+      - { id: d, text: "A swap cannot change the loan's cost" }
+    answer: a
+    explanation: >
+      The floating payments received from the swap pay the floating interest on the loan, leaving the company paying the swap's fixed rate. It has turned a floating-rate loan into a fixed one without touching the loan.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk (swaps): https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk
+
+  - id: rx-q-net-payment
+    prompt: >
+      A swap has a notional amount of Rs 100 crore. One side pays a fixed 7% and receives a floating rate that is 6% for the year. What is the net payment for the year, and who makes it?
+    choices:
+      - { id: a, text: "Rs 1 crore, paid by the fixed-rate payer" }
+      - { id: b, text: "Rs 7 crore, paid by the fixed-rate payer" }
+      - { id: c, text: "Rs 1 crore, paid by the floating-rate payer" }
+      - { id: d, text: "Rs 100 crore, paid by the fixed-rate payer" }
+    answer: a
+    explanation: >
+      Only the difference changes hands: 7% fixed minus 6% floating is 1% of Rs 100 crore = Rs 1 crore, paid by the fixed-rate payer. The notional is never exchanged in an interest-rate swap.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk (swaps exchange payment streams): https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk ; payment calculated
+
+  - id: rx-q-who-bears
+    prompt: >
+      A bank sells dollars to a central bank today and agrees to buy them back in three years at a price fixed today. If the rupee turns out to be much weaker in three years than the fixed price assumed, who gains?
+    choices:
+      - { id: a, text: "The bank, which buys its dollars at the lower fixed price" }
+      - { id: b, text: "The central bank, which sold at the lower fixed price" }
+      - { id: c, text: "Neither; a swap cannot gain or lose" }
+      - { id: d, text: "The depositor, whose dollars are repaid in rupees" }
+    answer: a
+    explanation: >
+      The bank has locked in the price of its dollars, so it is protected if the rupee falls. The central bank must supply dollars at the fixed price when they cost more in the market, so it loses. If the rupee were stronger, the positions would reverse.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (forward contracts fix an exchange rate): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk
+
+  - id: rx-q-currency-swap
+    prompt: >
+      What distinguishes a currency swap from an interest-rate swap?
+    choices:
+      - { id: a, text: "A currency swap exchanges the two currencies at the start and swaps them back at the end; an interest-rate swap exchanges only the net interest" }
+      - { id: b, text: "A currency swap involves no exchange of money at all" }
+      - { id: c, text: "An interest-rate swap exchanges the principal in two currencies" }
+      - { id: d, text: "There is no difference" }
+    answer: a
+    explanation: >
+      Because the two currencies are different, the principal amounts are real money, exchanged at the start and returned at the end at an agreed rate. In an interest-rate swap both sides use one currency and the same notional, so the principal never moves.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk (swaps): https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk
+
+checks:
+  - id: rx-quiz-swaps
+    kind: quiz
+    questions:
+      - rx-q-cip
+      - rx-q-fixed-payer
+      - rx-q-net-payment
+      - rx-q-who-bears
+      - rx-q-currency-swap
+      - bank:eab:MBA-ECON-0052
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: rx-swap-risk
+    kind: conversation
+    prompt: >
+      A central bank offers banks a deal: sell dollars to it now and buy them back in three years
+      at a rate fixed today. Explain what the banks get, what risk the central bank takes on, and
+      in what circumstances the central bank would be better off.
+    passCriteria: >
+      The Learner says the banks get a fixed price for their dollars in three years, which removes
+      the exchange-rate risk on the dollar deposits they owe, and which they would otherwise pay
+      the market for forward cover. The central bank takes that risk over: it must supply dollars at
+      the fixed price, so it loses if the rupee is weaker than the price assumed and gains if the
+      rupee is stronger. They may add that the fixed price is set with covered interest parity in
+      mind (the interest-rate gap between the currencies) and that the central bank can also
+      hedge its position or hold reserves against it.
