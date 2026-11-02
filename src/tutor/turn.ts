@@ -232,8 +232,11 @@ export async function* runTutorTurn(
     const opening = `${OPENING_PREFIX}\n${summaryText(place)}\n\n${context}`;
     await add({ role: "user", content: [{ type: "text", text: opening }, { type: "text", text: learnerText }] });
   } else {
-    if (!lastContextSent(msgs)?.endsWith(context)) await add({ role: "system", content: context });
+    // The API accepts a system message only right after a user message (live 400 otherwise),
+    // so changed context follows the Learner's message.
+    const contextChanged = !lastContextSent(msgs)?.endsWith(context);
     await add({ role: "user", content: learnerText });
+    if (contextChanged) await add({ role: "system", content: context });
   }
 
   let stopReason: string | null = null;

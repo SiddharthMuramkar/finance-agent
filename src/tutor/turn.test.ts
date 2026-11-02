@@ -195,6 +195,24 @@ describe("Tutor Turn", () => {
       expect(systemTexts(fresh)[0]).toContain(pv.cases[0].reveal.trim());
     });
 
+    it("appends changed context mid-Session right after the Learner's message, where the API accepts it", async () => {
+      const db = await testDb();
+      const steps = ["story", "concept", "your_turn"];
+      const { client, requests } = scriptedClient([
+        ...steps.map((s) => ({ content: [finish(s)] })),
+        { content: [{ type: "text", text: "Your Check." }] },
+        { content: [{ type: "text", text: "Here is what happened." }] },
+      ]);
+      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await recordCheckResultForTest(db, map, pv.checks[0].id, true);
+
+      await collect(runTutorTurn({ db, client, map }, "What happened next?"));
+      const sent = requests.at(-1)!.messages;
+      expect(sent.at(-1)).toMatchObject({ role: "system" });
+      expect(String(sent.at(-1)!.content)).toContain("Teaching Step: reveal");
+      expect(sent.at(-2)).toMatchObject({ role: "user", content: "What happened next?" });
+    });
+
     it("rejects a test Check result for a Check that is not current", async () => {
       const db = await testDb();
       expect(await recordCheckResultForTest(db, map, pv.checks[0].id, true)).toEqual({

@@ -20,6 +20,7 @@ export function scriptedClient(replies: ScriptedReply[]) {
             params,
             async *[Symbol.asyncIterator]() {
               for (;;) {
+                assertSystemPlacement(params.messages);
                 requests.push(structuredClone({ ...params, tools: params.tools.map(({ name }) => ({ name })) }) as never);
                 const reply = replies.shift();
                 if (!reply) throw new Error("scripted client ran out of replies");
@@ -59,4 +60,16 @@ export function scriptedClient(replies: ScriptedReply[]) {
     },
   };
   return { client, requests };
+}
+
+/**
+ * Mirrors the live API's rule, found on 2026-11-02: a `system` message is rejected with a 400
+ * at messages.0, and anywhere it doesn't directly follow a `user` message.
+ */
+function assertSystemPlacement(messages: { role: string }[]) {
+  messages.forEach((m, i) => {
+    if (m.role === "system" && messages[i - 1]?.role !== "user") {
+      throw new Error(`400 invalid_request_error: messages.${i}: role 'system' must follow a 'user' message`);
+    }
+  });
 }
