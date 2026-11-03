@@ -14,6 +14,8 @@ import {
 import { WIDGET_TOOL_NAMES, WIDGET_TOOL_SPECS } from "./tool-specs";
 
 const FROZEN_PATH = new URL("./frozen.generated.json", import.meta.url);
+/** The schema alone, for the widget check: the browser runs it too, and needs none of the instructions' text. */
+const FROZEN_SCHEMA_PATH = new URL("./frozen-schema.generated.json", import.meta.url);
 const EXAMPLES = [...WIDGET_PROMPT_OPTIONS.examples, ...WIDGET_PROMPT_OPTIONS.toolExamples];
 
 describe("widget instructions", () => {
@@ -22,8 +24,12 @@ describe("widget instructions", () => {
       instructions: widgetInstructions(),
       schema: widgetLibrary.toJSONSchema(),
     };
-    if (process.env.FREEZE) writeFileSync(FROZEN_PATH, JSON.stringify(generated, null, 2) + "\n");
+    if (process.env.FREEZE) {
+      writeFileSync(FROZEN_PATH, JSON.stringify(generated, null, 2) + "\n");
+      writeFileSync(FROZEN_SCHEMA_PATH, JSON.stringify(generated.schema, null, 2) + "\n");
+    }
     expect(JSON.parse(readFileSync(FROZEN_PATH, "utf8"))).toEqual(JSON.parse(JSON.stringify(generated)));
+    expect(JSON.parse(readFileSync(FROZEN_SCHEMA_PATH, "utf8"))).toEqual(JSON.parse(JSON.stringify(generated.schema)));
   });
 
   it("teach inline mode, our parts, the kit's charts and tabs, and Query", () => {

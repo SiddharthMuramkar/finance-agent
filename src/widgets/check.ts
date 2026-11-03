@@ -1,7 +1,8 @@
 import { createParser, type ASTNode, type LibraryJSONSchema, type ParseResult } from "@openuidev/lang-core";
 import { CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
-import frozen from "./frozen.generated.json";
+// The frozen schema alone: the browser draws widgets with this check, and needs none of the instructions' text.
+import frozenSchema from "./frozen-schema.generated.json";
 import { guidedTaskProblems, parsedTasks, walkNodes } from "./guided-tasks";
 import { splitReply } from "./split";
 import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NAMES, type WidgetToolName } from "./tool-specs";
@@ -9,7 +10,7 @@ import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NA
 /** Opens the message code sends when a finished widget fails the check. */
 export const WIDGET_CHECK_PREFIX = "Widget check by code:";
 
-const parser = createParser(frozen.schema as unknown as LibraryJSONSchema, "Widget");
+const parser = createParser(frozenSchema as unknown as LibraryJSONSchema, "Widget");
 
 /** Problems that stop a finished widget from rendering properly; empty when it is fine. */
 export function widgetProblems(code: string): string[] {
