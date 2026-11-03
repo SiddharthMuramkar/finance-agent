@@ -43,6 +43,7 @@
     "@openuidev/react-headless": "0.18.1",
     "@openuidev/react-lang": "1.0.2",
     "@openuidev/react-ui": "0.18.1",
+    "@vercel/analytics": "^2.0.1",
     "drizzle-orm": "0.45.4",
     "htmlparser2": "12.0.0",
     "next": "16.4.3",
