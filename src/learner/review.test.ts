@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { importBank } from "@/bank/ingest";
 import type { BankQuestion } from "@/bank/normalise";
 import { parseCourseMap, type CourseMap } from "@/course/map";
-import { messages, reviewCards, reviewLog, settings } from "@/db/schema";
-import { startSession } from "@/tutor/session-log";
+import { messages, OWNER_LEARNER_ID, reviewCards, reviewLog, settings } from "@/db/schema";
+import { sessionForTurn } from "@/tutor/session-log";
 import { testDb } from "@/test/pglite";
 import { ensureTopicStarted, loadProgress, saveFinishedStep } from "./memory";
 import { openQuiz, submitQuiz } from "./quiz";
@@ -153,7 +153,7 @@ describe("spaced review", () => {
     await db.insert(settings).values({ key: "review_cap", value: "1" });
     await answerReview(db, map, "q3", "a", first);
     const later = new Date(first.getTime() + 20 * 3600_000);
-    const s = await startSession(db, later);
+    const s = await sessionForTurn(db, later, OWNER_LEARNER_ID, "rev");
     await db.insert(messages).values({ sessionId: s.id, seq: 0, role: "user", content: "hi", createdAt: later });
     expect(await reviewState(db, map, later)).toMatchObject({ question: null, done: 1 });
   });
@@ -164,7 +164,7 @@ describe("spaced review", () => {
     const first = new Date(passAt.getTime() + 60 * day);
     await db.insert(settings).values({ key: "review_cap", value: "1" });
     // One Session, never idle and never restarted: only the clock moves the window.
-    await startSession(db, first);
+    await sessionForTurn(db, first, OWNER_LEARNER_ID, "rev");
     await answerReview(db, map, "q3", "a", first);
     expect((await reviewState(db, map, new Date(first.getTime() + day - 60_000))).question).toBeNull();
     const state = await reviewState(db, map, new Date(first.getTime() + day + 60_000));

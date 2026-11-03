@@ -3,7 +3,7 @@ import type { TurnEvent, TurnInput } from "@/tutor/turn";
 import { takeWholeTurn } from "./resume";
 
 const usage = (cost: number) => ({ inputTokens: 10, outputTokens: 5, cacheReadTokens: 1, cacheWriteTokens: 2, costUsd: cost, durationMs: 100 }) as never;
-const done = (cost: number, stopReason = "end_turn"): TurnEvent => ({ type: "done", stopReason, usage: usage(cost), ref: { sessionId: 1, turnSeq: 1 } });
+const done = (cost: number, stopReason = "end_turn"): TurnEvent => ({ type: "done", stopReason, usage: usage(cost), ref: { sessionId: 1, turnSeq: 1 }, shown: { sessionId: 1 } });
 
 /** A scripted Tutor: each call to run() plays the next list of events and records its input. */
 function scripted(script: TurnEvent[][]) {
