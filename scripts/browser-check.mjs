@@ -163,7 +163,7 @@ async function studyShots(browser, size, theme) {
 
     await step(`${tag}: profile form card`, async () => {
       // The first-visit offer shows because the seed left no profile and no dismissal.
-      await page.getByText("Work", { exact: false }).first().waitFor({ timeout: 10_000 });
+      await page.locator("[data-profile-card]").waitFor({ state: "visible", timeout: 10_000 });
       await shot(page, `${tag}-2-profile-card`);
     });
 
