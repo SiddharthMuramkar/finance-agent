@@ -4,6 +4,7 @@ import { FormulaFigure, type CardValue } from "@/widgets/formula-card-view";
 import { MarkedText } from "@/widgets/marked-text";
 import { Card, Eyebrow } from "../ui";
 import { OwnLines } from "./own-lines";
+import { SavedItems } from "./saved-items";
 
 const STAGE: Record<TopicNote["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 
@@ -82,10 +83,11 @@ export function NotesView({ notes }: { notes: TopicNote[] }) {
       </p>
       <div className="flex flex-col gap-4">
         {notes.map((note) => (
-          <Card key={note.topicId} data-note={note.topicId} data-passed={note.passed} className={note.passed ? "" : "print:[&:not(:has([data-line]))]:hidden"}>
+          <Card key={note.topicId} data-note={note.topicId} data-passed={note.passed} className={note.passed ? "" : "print:[&:not(:has([data-line],[data-saved]))]:hidden"}>
             <Eyebrow>{STAGE[note.stage]}</Eyebrow>
             <h2 className="text-base font-semibold leading-6">{note.title}</h2>
             {note.filled ? <FilledPart filled={note.filled} /> : <p className="mt-1 text-sm leading-5 text-[var(--muted)] print:hidden">Fills in when you pass this Topic.</p>}
+            <SavedItems items={note.saved} />
             <OwnLines topicId={note.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text }))} />
           </Card>
         ))}

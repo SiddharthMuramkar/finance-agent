@@ -4,6 +4,7 @@ import { AssistantRuntimeProvider, ComposerPrimitive, ThreadPrimitive, useExtern
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { replaceBrokenWidgets } from "@/widgets/check";
+import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
@@ -143,6 +144,11 @@ export function Conversation({
               if (event.usage) {
                 const usage = event.usage as TurnUsage;
                 setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, usage } : x)));
+              }
+              // The finished reply can now be saved to notes.
+              if (event.ref) {
+                const ref = event.ref as TurnRef;
+                setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, ref } : x)));
               }
             } else if (event.type === "session" && NOTICES[event.reason]) setNotice(NOTICES[event.reason]);
             else if (event.type === "refusal") {
