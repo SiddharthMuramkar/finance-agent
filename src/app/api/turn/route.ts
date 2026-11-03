@@ -5,6 +5,8 @@ import { anthropicTutorClient } from "@/tutor/anthropic";
 import { MAX_PASTE_WORDS, PASTE_MESSAGE, wordCount } from "@/tutor/pasted";
 import type { Shown } from "@/tutor/session-log";
 import { runTutorTurn, type TurnInput } from "@/tutor/turn";
+import type { NextName } from "@/tutor/next";
+import { TEACHING_STEPS, type TeachingStep } from "@/course/navigator";
 
 export const runtime = "nodejs";
 // Vercel Hobby's ceiling for one function, streaming included. The turn stops itself
@@ -20,17 +22,33 @@ function shownOf(value: unknown): Shown | undefined {
   return undefined;
 }
 
+/** The step a Next names (or "complete" for Complete this Topic); anything else is not a Next. */
+function nextOf(value: unknown): NextName | undefined {
+  return value === "complete" || TEACHING_STEPS.includes(value as TeachingStep) ? (value as NextName) : undefined;
+}
+
 /**
- * Runs one Tutor turn (a message, Continue, or the opener the page starts for a Session with no messages), or resumes the last one, and streams its events as
+ * Runs one Tutor turn (a message, Next, Continue, or the opener the page starts for a Session with no messages), or resumes the last one, and streams its events as
  * newline-delimited JSON. A send while another turn runs gets a 409, and so does a send from a tab
  * whose Topic is no longer the Learner's current one (`stale`).
  */
 export async function POST(request: Request) {
-  const body = (await request.json()) as { message?: string; paste?: string; continue?: boolean; opener?: boolean; resume?: boolean; shown?: unknown };
+  const body = (await request.json()) as { message?: string; paste?: string; continue?: boolean; opener?: boolean; next?: unknown; resume?: boolean; shown?: unknown };
   const paste = body.paste?.trim();
   if (paste && wordCount(paste) > MAX_PASTE_WORDS) return Response.json({ error: `A paste can hold at most ${MAX_PASTE_WORDS} words; paste the part being studied.` }, { status: 400 });
   const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);
-  const input: TurnInput | undefined = body.resume ? { resume: true } : body.opener ? { opener: true } : body.continue ? { continue: true } : message && paste ? { message, paste } : message;
+  const next = nextOf(body.next);
+  const input: TurnInput | undefined = body.resume
+    ? { resume: true }
+    : body.opener
+      ? { opener: true }
+      : next
+        ? { next }
+        : body.continue
+          ? { continue: true }
+          : message && paste
+            ? { message, paste }
+            : message;
   if (!input) return Response.json({ error: "Empty message" }, { status: 400 });
 
   const started = Date.now();
@@ -45,6 +63,7 @@ export async function POST(request: Request) {
   const first = await turn.next();
   if (!first.done && first.value.type === "busy") return Response.json({ error: first.value.message }, { status: 409 });
   if (!first.done && first.value.type === "stale") return Response.json({ error: first.value.message, stale: true }, { status: 409 });
+  if (!first.done && first.value.type === "not_allowed") return Response.json({ error: first.value.message }, { status: 409 });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

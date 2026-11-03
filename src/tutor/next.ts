@@ -53,8 +53,9 @@ export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number
     const begun = await stepBegun(tx, map, learnerId, place.topic.id);
     const move = takeNext(map, progress, named, { begun });
     if (!move.ok) return move;
-    const offer = nextOffer(map, progress, { begun })!;
-    const advances = offer.kind === "complete" || (offer.kind === "next" && offer.advances);
+    // takeNext accepted it, so the offer is a Next or Complete this Topic, never Just tell me.
+    const offer = nextOffer(map, progress, { begun }) as Exclude<NextOffer, { kind: "just_tell_me" }>;
+    const advances = offer.kind === "complete" || offer.advances;
     if (advances) {
       const saved = await saveFinishedStep(tx, map, place.step, now, learnerId);
       if (!saved.ok) return saved;
