@@ -1453,3 +1453,27 @@ also sends four headers on every route: no other site may frame a page (`frame-a
 to other sites. There is no full script policy: Next's inline scripts would need per-request nonces.
 The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
 the screenshot is never covered.
+
+## Formula registry (`src/finance/formulas.ts`, `formula-ids.ts`, ADR 0002, issue #64)
+
+**What it does.** A list of every named formula the Tutor may show: its plain-word title, the calculator that works it out, each symbol with its letter, plain-word name and unit, the value worked out last (and any worked out on the way), and the formula's lines. Present value starts with three: one future payment, equal yearly payments, and growing yearly payments (the jackpot annuity, which got a new tested calculator, `growing_annuity_present_value`). Each Topic file lists the formulas it teaches (`formulas:` in its YAML). `npm run course:check` fails on a name the registry does not have, which is why the bare list of names sits in `formula-ids.ts` with no imports: the check runs under plain Node.
+
+**Scenario.** The present value Topic lists `growing-annuity-present-value`. When the Learner reaches it, code adds one line to what the Tutor is sent: the formulas this Topic teaches, with the keys each Formula Card takes. The Tutor is told to show those only as Formula Cards and to describe any other formula in words. A Topic that wanted WACC could not list it until WACC had a calculator and a registry entry.
+
+**Trade-off.** A formula costs a tested calculator before it can be taught, which is slower than typing it. In return the Tutor cannot show a formula that code cannot work out, and every symbol's name is written once by us, not improvised by the model each time. A Topic that lists no formulas shows none as cards; moving the other Topics over is done in batches.
+
+## Formula Cards (`FormulaCard` in `src/widgets/library.tsx`, `formula-card-view.tsx`, `check.ts`, issue #64)
+
+**What it does.** A Widget that draws one registered formula: the formula with the symbols' letters, the same formula with the numbers filled in, and a list that names each symbol in plain words with its unit. Each value is coloured by where it came from: teal for the Learner's assumption (a slider), amber for a sourced Case Data figure (with its credit beside it), plain for a fixed number. The result, and values worked out on the way such as the first payment, come only from the formula's calculator, so moving a slider redraws them in the browser with no model call. The Tutor gives the card three small lists: `inputs` (symbol to a `$variable` bound to a Slider), `sourced` (symbol to a Case Data reference, whose latest point is used) and `fixed` (symbol to a number).
+
+**Scenario.** The Tutor writes a Slider for the discount rate and a card for present value with the cash option as a sourced amount and five years fixed. The Learner drags the rate from 5% to 8%: the teal rate, the filled-in formula and the amber-and-plain list all stay put except the result, which falls. If the Tutor instead types the rate as a plain number under `inputs`, or lists `amount` under both `inputs` and `sourced`, or leaves out `years`, the server's Widget check names the problem and the existing correction turn asks the Tutor to rewrite the Widget once.
+
+**Trade-offs.** The check is stricter than the language: it reads the parsed Widget, which is why a card can never show an assumption that no slider controls. The card does not do any arithmetic, so a formula whose calculator fails shows a plain "could not be worked out" message, not a guess. The frozen Widget instructions changed (a new component, a rule and an example), so the next action after deploy starts a new Session; a test checks that the instructions name only components the library has.
+
+## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
+
+**What it does.** A Topic file may carry two or three Connections: short plain-word links from the Topic's idea to other ideas, each naming the outline Topic IDs it links to. At the principle step, and not before, the Tutor's context carries them with the titles of the linked Topics, and the instructions tell the Tutor to give them there. The Learner can still ask a connection question at any time. A Topic without Connections behaves as it did.
+
+**Scenario.** Present value ends with three: a bond's yield is the market's discount rate (so when yields rise, bond prices fall), safe rates usually fall in a recession while the extra return on risky payments can rise, and far-off cash in a business loses the most when rates rise. At the principle step the Tutor sees each one beside "Bond basics and pricing", "GDP, growth and business cycles" or "DCF valuation", and says them in its own words. Had someone typed `bond-prcing`, `npm run course:check` would fail with `Connection 1 links to "bond-prcing", which is not in the outline`.
+
+**Trade-off.** Code checks the links, not the economics: a Connection that names real Topics can still be wrong, so the text is written once and reviewed by the owner. Connections hold no figures (the check rejects digits, `%` and currency signs), so every number the Learner sees still comes from Case Data or a calculator; the price is that a Connection cannot say "by how much". Links may point at Topics still to come, so the course can link forward before those Topics are written.

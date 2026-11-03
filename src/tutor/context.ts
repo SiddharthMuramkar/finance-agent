@@ -1,6 +1,7 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import type { Piece } from "@/course/map";
+import { formulaById, formulaGuide } from "@/finance/formulas";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
@@ -31,6 +32,12 @@ export function stepContext(
     `Topic: ${topic.title} (${topic.stage} Stage).`,
     `Teaching Step: ${step}${check ? ` (Check ${topic.checks.indexOf(check) + 1} of ${topic.checks.length}: ${check.id})` : ""}.`,
   ];
+  const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
+  if (formulas.length) {
+    lines.push(
+      `Formulas this Topic teaches (show each only as a FormulaCard widget; describe any other formula in words, never with typed symbols): ${formulas.map(formulaGuide).join(" ")}`,
+    );
+  }
   if (place.unmetPrerequisites.length) lines.push(`Prerequisites not yet passed: ${place.unmetPrerequisites.join(", ")}.`);
   for (const c of topic.cases) {
     lines.push("", `Case: ${c.title}, as of ${c.asOf}.`, `Story (only what was known on ${c.asOf}): ${c.story.trim()}`);
@@ -56,7 +63,16 @@ export function stepContext(
       );
     }
   }
-  if (step === "principle") lines.push("", `Principle: ${topic.principle.trim()}`);
+  if (step === "principle") {
+    lines.push("", `Principle: ${topic.principle.trim()}`);
+    if (topic.connections.length) {
+      lines.push(
+        "",
+        "Connections: after the principle, give the Learner these links from this Topic's idea to others, in your own words and in this order. Link each to its Course Map Topic by title, and add no figures of your own.",
+        ...topic.connections.map((c, i) => `${i + 1}. ${c.text.trim()} (links to: ${c.titles.join("; ")})`),
+      );
+    }
+  }
   lines.push(
     "",
     step !== "check"

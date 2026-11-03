@@ -221,6 +221,17 @@ describe("Tutor Turn", () => {
       expect(context).not.toContain(pv.cases[0].reveal.trim());
     });
 
+    it("tells the Tutor which formulas the Topic teaches, and that they appear only as Formula Cards", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
+      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      const [context] = systemTexts(requests[0]);
+      expect(context).toContain("Formulas this Topic teaches");
+      expect(context).toContain('"growing-annuity-present-value"');
+      expect(context).toContain("ratePercent");
+      expect(TUTOR_INSTRUCTIONS).toContain("Show each only as a FormulaCard widget");
+    });
+
     it("tells the Tutor that made-up numbers before the reveal must not match the real outcome, and sends the Concept to take them from at the your-turn step", async () => {
       expect(TUTOR_INSTRUCTIONS).toContain("a made-up number must never match the Case's real outcome or anything else you know happened after the as-of date");
       expect(TUTOR_INSTRUCTIONS).toContain("Take hypothetical numbers from the Concept or Check prompt in the Course Navigator message");
@@ -526,7 +537,7 @@ describe("Tutor Turn", () => {
         const twoChecks = parseCourseMap([
           {
             name: "pv.yaml",
-            text: stringify({ ...parse(yaml), stage: "foundation", path: 1, questions: undefined, checks: [...parse(yaml).checks.filter((c: { kind: string }) => c.kind === "conversation"), second] }),
+            text: stringify({ ...parse(yaml), stage: "foundation", path: 1, connections: undefined, questions: undefined, checks: [...parse(yaml).checks.filter((c: { kind: string }) => c.kind === "conversation"), second] }),
           },
         ]).map!;
         const first = twoChecks.topic("present-value")!.checks[0];
@@ -794,6 +805,20 @@ describe("Tutor Turn", () => {
         { role: "user", text: "Show me" },
         { role: "assistant", text: `Try it.\n${good}\nDrag the rate.` },
       ]);
+    });
+
+    it("sends a Formula Card with a rate bound to no slider back for one correction turn, naming the symbol", async () => {
+      const unbound = '```openui-lang\nroot = Widget("PV", [card])\ncard = FormulaCard("present-value", {ratePercent: 5}, {}, {amount: 1000, years: 5})\n```';
+      const fixed = '```openui-lang\nroot = Widget("PV", [rate, card])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.5, $rate, "percent")\ncard = FormulaCard("present-value", {ratePercent: $rate}, {}, {amount: 1000, years: 5})\n```';
+      const db = await testDb();
+      const { client, requests } = scriptedClient([
+        { content: [{ type: "text", text: `Try it.\n${unbound}` }] },
+        { content: [{ type: "text", text: fixed }] },
+      ]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me the formula"));
+      expect(requests).toHaveLength(2);
+      expect(String(requests[1].messages.at(-1)!.content)).toMatch(/input "ratePercent" is bound to no Slider/);
+      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
     });
 
     it("gives up after one correction turn, leaving the browser to show a plain fallback", async () => {

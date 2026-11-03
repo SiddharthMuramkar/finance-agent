@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
+import { FORMULA_IDS } from "../finance/formula-ids.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
@@ -77,6 +78,13 @@ const caseSchema = z.object({
 
 export { STAGES };
 
+/** A link from a Topic's idea to others, given at the principle step. Plain words only: figures belong to the Case Data. */
+const connectionSchema = z.object({
+  text: z.string().min(1),
+  /** Outline Topic IDs (written or still coming) this Connection links to. */
+  topics: z.array(id).min(1),
+});
+
 /**
  * A Topic file. Stage, place and prerequisites belong in `course/outline.yaml`. A file sets them
  * itself only when a map is checked without an outline (as the tests do).
@@ -90,13 +98,28 @@ const topicSchema = z.object({
   prerequisites: z.array(id).optional(),
   cases: z.array(caseSchema).min(1),
   concept: z.string().min(1),
+  /** The named formulas this Topic teaches, each shown only as a Formula Card (IDs from the formula registry). */
+  formulas: z
+    .array(z.string().refine((f) => (FORMULA_IDS as readonly string[]).includes(f), { message: `Unknown formula; the formula registry has: ${FORMULA_IDS.join(", ")}` }))
+    .default([]),
   principle: z.string().min(1),
+  /** Two or three Connections the Tutor gives at the principle step. Optional. */
+  connections: z
+    .array(connectionSchema)
+    .max(3)
+    .refine((c) => c.length !== 1, "give two or three Connections, or none")
+    .optional(),
   /** Claude-written quiz questions that this Topic's quiz Checks draw on. */
   questions: z.array(quizQuestion).default([]),
   checks: z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
 });
 
-export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prerequisites"> & {
+/** A Connection with the titles of its linked Topics filled in by code. */
+export type Connection = { text: string; topics: string[]; titles: string[] };
+
+export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prerequisites" | "connections"> & {
+  /** Empty when the Topic has none. */
+  connections: Connection[];
   stage: (typeof STAGES)[number];
   /** The field a Foundation Topic belongs to (from the outline); none for later Stages. */
   subject?: Subject;
@@ -163,7 +186,10 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
   }
 
   const byId = new Map(topics.map((t) => [t.id, t]));
+  // With an outline a Connection may name any planned Topic, written or coming; without one, written Topics only.
+  const titles = new Map((outline ? outline.topics : topics).map((t) => [t.id, t.title] as const));
   for (const t of topics) {
+    errors.push(...connectionProblems(t, titles));
     if (t.checks.length === 0) errors.push(`Topic "${t.id}" has no Checks`);
     errors.push(...quizProblems(t));
     for (const p of t.prerequisites) {
@@ -199,18 +225,39 @@ function pieceProblems(c: z.infer<typeof caseSchema>): string[] {
   return problems;
 }
 
+/** Connections before their Topic titles are looked up (done once every Topic is read). */
+const unresolved = (file: z.infer<typeof topicSchema>): Connection[] => (file.connections ?? []).map((c) => ({ ...c, titles: [] }));
+
+/** A Connection's text may not hold a figure: numbers come only from Case Data and the calculators. */
+const FIGURE = /[0-9%$€£₹]/;
+
+/** Checks each Connection against the known Topic titles, and fills in the titles of the Topics it links to. */
+function connectionProblems(t: Topic, known: Map<string, string>): string[] {
+  const problems: string[] = [];
+  t.connections.forEach((c, i) => {
+    const n = i + 1;
+    if (FIGURE.test(c.text)) problems.push(`Topic "${t.id}" Connection ${n} contains a figure; Connections are written in words`);
+    for (const target of c.topics) {
+      if (target === t.id) problems.push(`Topic "${t.id}" Connection ${n} links to the Topic itself`);
+      else if (!known.has(target)) problems.push(`Topic "${t.id}" Connection ${n} links to "${target}", which is not in the outline`);
+    }
+    c.titles = c.topics.map((x) => known.get(x) ?? x);
+  });
+  return problems;
+}
+
 /** Fills in Stage, place and prerequisites. Returns a problem message when the file and outline disagree. */
 function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | undefined): Topic | string {
   if (!outline) {
     if (file.stage === undefined || file.path === undefined) return "stage and path are required";
-    return { ...file, stage: file.stage, path: file.path, prerequisites: file.prerequisites ?? [] };
+    return { ...file, connections: unresolved(file), stage: file.stage, path: file.path, prerequisites: file.prerequisites ?? [] };
   }
   const planned = outline.topics.find((t) => t.id === file.id);
   if (!planned) return `Topic "${file.id}" is not in the outline`;
   if (file.stage !== undefined || file.path !== undefined || file.prerequisites !== undefined) {
     return `stage, path and prerequisites belong in the outline, not in the Topic file`;
   }
-  return { ...file, stage: planned.stage, subject: planned.subject, path: planned.path, prerequisites: planned.prerequisites };
+  return { ...file, connections: unresolved(file), stage: planned.stage, subject: planned.subject, path: planned.path, prerequisites: planned.prerequisites };
 }
 
 /** The ID prefix of a Question Bank question. Bank questions live in the database, so the file cannot hold them. */
