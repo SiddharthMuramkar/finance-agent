@@ -10,11 +10,12 @@ import { ThreadMessages } from "./thread";
 import type { TurnStream } from "./turn-stream";
 import { SecondaryButton } from "./ui";
 import { exploreItem, PinnedExplore } from "./widget-panel";
-import { StatusCard, type PassedTopic, type Place } from "./workspace-parts";
+import { JUST_TELL_ME, NextChip, StatusCard, type PassedTopic, type Place } from "./workspace-parts";
+import type { NextOffer } from "@/course/navigator";
 
 /**
  * The Study Workspace's left column, top to bottom: the status card, the pinned explore Widget, the folded
- * review, the thread with the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
+ * review, the thread with the Next chip under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
  * itself is in the right panel's Check tab), and the message box with the writing indicator and Attach a passage.
  * A Topic passed in a turn stays on screen with no message box: What comes next and the Course Map instead.
  * It shows the turn stream's state and starts turns through it; Widget chips come from the Widget host's `slot`.
@@ -28,7 +29,10 @@ export function LeftColumn({
   quizOpen,
   explore,
   passed = null,
+  next = null,
 }: {
+  /** The Next the Course Navigator offers now (null while a Check is open), drawn as the chip under the latest reply. */
+  next?: NextOffer | null;
   turn: TurnStream;
   slot: WidgetSlot;
   summary: string;
@@ -38,12 +42,16 @@ export function LeftColumn({
   explore: { code: string } | null;
   passed?: PassedTopic;
 }) {
-  const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
+  const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
+  // The Next chip stands only under the latest Tutor reply or card: never under the Learner's own message, during a
+  // turn, before the page has re-read the Learner's place after one, with Retry on offer, or on a passed Topic.
+  const latest = messages.at(-1);
+  const chip = next && !passed && latest && latest.role !== "user" && !running && !refreshing && !canRetry ? next : null;
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
       {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a long summary, a Review) can squeeze the chat. */}
       <div data-testid="above-thread" className="mb-6 flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
-        <StatusCard place={place} summary={summary} onContinue={() => void send({ continue: true }, "Continue.")} disabled={running || passed !== null} />
+        <StatusCard place={place} summary={summary} />
         {explore && <PinnedExplore item={exploreItem(explore.code)} />}
         <ReviewPanel review={review} />
       </div>
@@ -51,6 +59,7 @@ export function LeftColumn({
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />
         </div>
+        {chip && <NextChip offer={chip} onNext={(named) => void send({ next: named })} onJustTellMe={() => void send({ message: JUST_TELL_ME }, JUST_TELL_ME)} />}
         {fixing && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Fixing the widget…</p>}
         {notice && (
           <p className="my-3 text-sm leading-5 text-[var(--muted)]" data-testid="turn-notice">

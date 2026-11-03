@@ -45,11 +45,11 @@ function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the workspace's left column", () => {
-  it("shows the status card: Course Map, Stage and Topic, the summary and Continue", () => {
+  it("shows the status card: Course Map, Stage and Topic and the summary, with no Continue button", () => {
     const html = text(workspace());
     expect(html).toContain("Course Map · Foundation · Present value");
     expect(html).toContain("You are learning present value.");
-    expect(html).toMatch(/Continue/);
+    expect(html).not.toMatch(/Continue/);
   });
 
   it("has a polite status line for screen readers, empty until a turn runs, apart from the streaming text", () => {
@@ -183,6 +183,46 @@ describe("the workspace's left column", () => {
     const shown = text(workspace({ initial, developerDetails: true }));
     expect(shown).toContain("Under the hood: 0 steps, 1,200 tokens in, 300 out");
     expect(shown.indexOf("Under the hood")).toBeGreaterThan(shown.indexOf("Today's worth"));
+  });
+});
+
+describe("the Next chip", () => {
+  const conversation: Line[] = [
+    { role: "user", text: "Hi" },
+    { role: "assistant", text: "Once, a lottery winner had a choice." },
+    { role: "user", text: "Go on." },
+    { role: "assistant", text: "Which would you take?" },
+  ];
+  const toConcept = { kind: "next", step: "concept", label: "Next: Concept", advances: true } as const;
+  const chips = (html: string) => html.match(/<button[^>]*data-testid="next-chip"[^>]*>[^<]*<\/button>/g) ?? [];
+
+  it("names the next step once, under the latest Tutor reply only", () => {
+    const html = workspace({ initial: conversation, next: toConcept });
+    expect(chips(html)).toHaveLength(1);
+    expect(chips(html)[0]).toContain("Next: Concept →");
+    expect(text(html).indexOf("Next: Concept →")).toBeGreaterThan(text(html).indexOf("Which would you take?"));
+  });
+
+  it("stands under a step divider that ends the thread, but never under the Learner's own message or in an empty thread", () => {
+    const divider: Line = { role: "item", kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 9 · Concept" } };
+    expect(chips(workspace({ initial: [...conversation, divider], next: toConcept }))).toHaveLength(1);
+    expect(chips(workspace({ initial: [...conversation, { role: "user", text: "Wait" }], next: toConcept }))).toHaveLength(0);
+    expect(chips(workspace({ initial: [], next: toConcept }))).toHaveLength(0);
+  });
+
+  it("is not there while a Check is open (the Course Navigator offers none)", () => {
+    const html = workspace({ initial: conversation, next: null, quiz });
+    expect(chips(html)).toHaveLength(0);
+    expect(html).toContain("Quiz open: the Tutor will help with these questions after you submit.");
+  });
+
+  it("reads Just tell me at an unsettled Explore, and Complete this Topic at the Principle", () => {
+    expect(chips(workspace({ initial: conversation, next: { kind: "just_tell_me", label: "Just tell me" } }))[0]).toContain("Just tell me →");
+    expect(chips(workspace({ initial: conversation, next: { kind: "complete", label: "Complete this Topic" } }))[0]).toContain("Complete this Topic →");
+  });
+
+  it("is not offered on a passed Topic kept on screen", () => {
+    expect(chips(workspace({ initial: conversation, next: toConcept, passed: { title: "Present value", next: null } }))).toHaveLength(0);
   });
 });
 

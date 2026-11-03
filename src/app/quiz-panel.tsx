@@ -81,7 +81,7 @@ export function QuizPanel({ quiz, onDismiss }: { quiz: OpenQuiz | null; onDismis
         <PrimaryButton onClick={dismiss} className="mt-3">
           {result.passed ? "Done" : "Try again"}
         </PrimaryButton>
-        {result.passed && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Press Continue to tell the Tutor.</p>}
+        {result.passed && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Press Next in the conversation to carry on.</p>}
       </section>
     );
   }
