@@ -1087,8 +1087,9 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
 - **Only code marks a quiz.** The Tutor's verdict tool refuses a quiz Check ("it is marked by code
   from the Learner's answers"), so a Learner who asks to be passed still has to submit the quiz. The
   one exception is a quiz that cannot be shown (above).
-- **The Tutor hears afterwards.** The Learner's result is not sent to the Tutor at once, because
-  the Tutor is not called. On its next call, code puts a note in the history: "Quiz result by code,
+- **The Tutor hears afterwards.** Marking calls no model. After a miss the page starts a quiz
+  follow-up turn at once (see "Check result cards and the quiz follow-up"); after a pass the Tutor
+  hears on its next call, usually the Learner's Next. Either way code puts a note in the history: "Quiz result by code,
   Check ..., attempt 1: 1 of 3 correct (needs 2). Not passed ...", naming each missed question,
   what the Learner chose and the right answer. It goes in the same system message as the
   Course Navigator's context, directly after the Learner's message (the one place the API accepts
@@ -1101,8 +1102,8 @@ so it passes at once, and the screen explains the miss ("dividing by 1.10 only o
 one year"). They press the Next chip, "Next: Concept →", and the Tutor opens with a short, informed
 word about the one-year versus two-year slip, then teaches Check 2's Concept, a step reached by code
 and not yet begun. Had they got only one right, they would have stayed
-at the Check, seen a different set of three questions, and the Tutor would have been told about
-the miss on its next turn.
+at the Check, the Tutor would have gone over the miss in a follow-up turn code started, and a different set of three questions
+would open when they pressed Try Check 1 again.
 
 **Trade-off.** Multiple choice is fast, cheap and can't be argued with, but it tests recall and
 recognition, not reasoning; that is what the conversation Check is for. Writing the questions in
@@ -1704,8 +1705,8 @@ step a refusal names) or a message, and never Continue.
   off the saved input like the opener's and Next's prefixes, so Retry re-runs it as a chip.
 - **Which messages can count as an Insight attempt.** Only words the Learner typed. The Insight tool
   refuses, with no row stored: an old "Continue." (from before Finish this reply), any note code wrote
-  (every prefix in `CODE_WRITTEN_PREFIXES`: the opener's, Next's and Finish this reply's; quiz follow-up
-  and widget report notes join that list when their tickets add them), and the two help chips. "Just
+  (every prefix in `CODE_WRITTEN_PREFIXES`: the opener's, Next's, Finish this reply's and the quiz
+  follow-up's; widget report notes join that list when their ticket adds them), and the two help chips. "Just
   tell me." is a chip that counts only as asking to be told: whatever outcome the Tutor reports for it,
   code records `asked_to_be_told`, so the Insight is told at once and it is never a not-yet. The order
   of ADR 0001 (hint one, hint two, then the Insight) is unchanged, because only typed not-yets move it.
@@ -1784,6 +1785,46 @@ a due Explore says "New step · Explore"; a passed Topic with nothing due draws 
 render: the Picking up and Due Check dividers as centred separators after the last reply with the message
 box ready, and Passed ✓ with no Resume on a passed Topic. Home's button rule (`landing.test.tsx`) covers
 Resume, Start, New in <Topic>: Check N →, Explore → and Next Topic.
+
+## Check result cards and the quiz follow-up (`src/tutor/check-results.ts`, `record_check_verdict` in `tools.ts`, `checkTabNow` and `retryQuiz` in `src/learner/quiz.ts`, `/api/quiz`, `quiz-panel.tsx`, `conversation.tsx`, `session-item-view.tsx`, spec #119, ticket #141)
+
+**What it does.**
+- **Result cards are Session items.** A Check's result shows in the conversation as a small card, stored in
+  `session_items` (kind `check_result`) after the latest message of the Check's Topic Session, so, like a
+  step divider, it is drawn but never sent to the model.
+  - A quiz's card is stored when the Learner presses Submit answers, in the same transaction as the result,
+    so a repeat submission stores no second card. It is worded from the marking against the Check's pass
+    rule: "2 of 3 — passed ✓", adding "· let's look at question 3" when one was missed, or
+    "1 of 3 — not passed yet · let's look at question 2" (the first missed question).
+  - A conversation Check's card is stored when the Tutor records its verdict: "Check 2 — passed ✓" or
+    "Check 2 — not passed yet". Next stays hidden until then, as at any open Check.
+  - The submit answers with the card, so the page draws it at once; a reload draws it from the table.
+- **After a pass**, nothing runs: the page re-reads the Learner's place, and the Next chip comes back under
+  the card, naming the step the pass reached, which has not begun yet.
+- **After a miss**, the page starts a quiz follow-up turn by itself (once no other turn is running). It is a
+  code-written turn like the opener and Next: its note starts "Quiz follow-up by code:", it draws no Learner
+  bubble, its kind is `quiz_follow_up`, and Retry re-runs it. The Tutor gets the usual "Quiz result by code"
+  note with the missed questions and goes over them. A follow-up with no missed result waiting (another
+  tab already ran it) is refused and nothing is stored.
+- **Try Check k again.** After a miss the Check tab keeps the marking with **Try Check k again →**. The page
+  reads the tab with `checkTabNow`, which returns the missed attempt's marking and makes no new attempt;
+  only the press (`POST /api/quiz` with `{ retry: true }`) makes the next one, with different questions where
+  there are any. (`GET /api/quiz`, which scripts use, still opens the next attempt itself.)
+- **Everything else re-reads.** The submit and every turn end refresh the page, so the Topic bar's strip reads
+  the new result without reloading the Session; the Course Map and Progress read it on their next visit.
+
+**Scenario.** The Learner submits Check 1 of 2 with one of three right. "1 of 3 — not passed yet · let's look at
+question 2" appears under the last reply, and with no message from the Learner the Tutor walks through
+questions 2 and 3. The Check tab still shows the marking. A few minutes later they press Try Check 1 again →, a
+fresh set of three opens, they get two right, and "2 of 3 — passed ✓ · let's look at question 1" appears with
+"Next: Concept →" under it.
+
+**Trade-off.** Storing the card's words rather than working them out at each render means an old card keeps the
+wording of its day; it also means the thread needs no Course Map lookup to draw it. Starting the follow-up from
+the browser keeps it a normal streamed turn with the usual lock, Retry and resume, but a Learner who closes the
+tab the instant they submit gets no follow-up: the Tutor then hears of the miss with their next message, as
+before. Making the next attempt only on Try again means a Learner can read the follow-up with the marking in
+view, at the cost of one more press.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 
@@ -2217,7 +2258,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 ## The fixed two-column layout and the Check tab (`workspace-frame.tsx`, `left-column.tsx`, `widget-host.tsx`, `quiz-panel.tsx`, `study/page.tsx`, spec #119, ticket #140)
 
-**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
+**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. After a miss the tab keeps the marking with Try Check k again →, even after a reload, and the next attempt is made only on that press (see "Check result cards and the quiz follow-up"). While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
 
 **Scenario.** The Learner reaches Check 1 of 2 on a 1024 × 640 laptop with three Reviews due. The right panel switches to "Check 1 of 2" with six questions that scroll inside the panel. They open the Review row: it scrolls inside its capped box, while the last Tutor message, the quiz note and the message box all stay on screen and the page stays 640 px tall. They ask "is a basis point a hundredth of a percent?"; the Tutor answers that but won't touch the quiz, and the Check tab is still selected when the reply ends.
 

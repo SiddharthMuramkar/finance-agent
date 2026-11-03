@@ -397,6 +397,69 @@ describe("a quiz Check in the right panel", () => {
   });
 });
 
+describe("Check results in the conversation", () => {
+  const conversation: Line[] = [
+    { role: "user", text: "Ready." },
+    { role: "assistant", text: "Your quiz is on the right, in the Check tab." },
+  ];
+  const card = (label: string, passed: boolean, check = 1): Line => ({ role: "item", kind: "check_result", data: { check, passed, label } });
+  const cards = (html: string) => html.match(/<[^>]*data-testid="check-result-card"[^>]*>.*?<\/div>/g) ?? [];
+  const toConcept = { kind: "next", step: "concept", label: "Next: Concept", advances: false } as const;
+  const chips = (html: string) => html.match(/<button[^>]*data-testid="next-chip"[^>]*>[^<]*<\/button>/g) ?? [];
+  /** The words as read: markup gone, apostrophes unescaped. */
+  const words = (html = "") => text(html).replace(/&#x27;/g, "'");
+
+  it("draws a passed quiz's card after the reply, with the Next chip under it naming the step not yet begun", () => {
+    const html = workspace({ initial: [...conversation, card("2 of 3 — passed ✓ · let's look at question 3", true)], next: toConcept });
+    expect(cards(html)).toHaveLength(1);
+    expect(words(cards(html)[0])).toContain("2 of 3 — passed ✓ · let's look at question 3");
+    // A card, not a message: no Tutor label or bubble of its own.
+    expect(html.match(/data-testid="tutor-label"/g)).toHaveLength(1);
+    expect(html.indexOf("2 of 3 — passed ✓")).toBeGreaterThan(html.indexOf("Your quiz is on the right"));
+    expect(chips(html)).toHaveLength(1);
+    expect(chips(html)[0]).toContain("Next: Concept →");
+    expect(html.indexOf('data-testid="next-chip"')).toBeGreaterThan(html.indexOf("2 of 3 — passed ✓"));
+  });
+
+  it("draws a missed quiz's card, then the Tutor's follow-up with no Learner bubble, and no Next", () => {
+    const initial: Line[] = [...conversation, card("1 of 3 — not passed yet · let's look at question 2", false), { role: "assistant", text: "Let's look at question 2." }];
+    const html = workspace({ initial, next: null });
+    expect(words(cards(html)[0])).toContain("1 of 3 — not passed yet · let's look at question 2");
+    expect(html.indexOf("not passed yet")).toBeLessThan(html.indexOf("look at question 2."));
+    expect(html.match(/bg-\[var\(--bubble\)\]/g)).toHaveLength(1);
+    expect(chips(html)).toHaveLength(0);
+  });
+
+  it("draws a conversation Check's card: Check k — passed ✓, or Check k — not passed yet", () => {
+    expect(words(cards(workspace({ initial: [...conversation, card("Check 2 — passed ✓", true, 2)] }))[0])).toContain("Check 2 — passed ✓");
+    expect(words(cards(workspace({ initial: [...conversation, card("Check 2 — not passed yet", false, 2)] }))[0])).toContain("Check 2 — not passed yet");
+  });
+
+  it("after a miss, the Check tab shows the marking and Try Check k again →, with no questions to answer and no quiz note", () => {
+    const missed = {
+      attemptId: 1,
+      checkId: "c",
+      checkNumber: 1,
+      checkCount: 2,
+      attemptNo: 0,
+      result: {
+        correctCount: 0,
+        shown: 1,
+        needed: 1,
+        passed: false,
+        questions: [{ id: "q", prompt: "How many basis points?", choices, chosen: "b", answer: "a", correct: false, explanation: "One percent is 100 basis points.", verified: true }],
+      },
+    };
+    const html = workspace({ initial: conversation, missed });
+    const pane = html.slice(html.indexOf('data-testid="widget-pane"'));
+    expect(pane).toMatch(/<button[^>]*aria-pressed="true"[^>]*>(<[^>]+>)*Check 1 of 2</);
+    expect(text(pane)).toContain("Your answer: Zero point two five");
+    expect(text(pane)).toContain("Try Check 1 again →");
+    expect(text(pane)).not.toContain("Submit answers");
+    expect(text(html)).not.toContain("Quiz open:");
+  });
+});
+
 describe("the Widget panel", () => {
   const items: WidgetItem[] = [
     { key: "a:0", number: 1, code: HISTORY, complete: true },
