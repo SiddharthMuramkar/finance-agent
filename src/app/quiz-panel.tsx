@@ -12,7 +12,8 @@ import { PrimaryButton } from "./ui";
 type Result = Marking & { attemptNo: number; checkNumber: number };
 
 /** What the server says after marking a submission: the verdict, and the result card it stored for the conversation. */
-export type QuizSubmitted = { passed: boolean; item?: SessionItemData };
+/** `item` is the result card; `complete` the Topic complete card, when the pass passed the Topic (its last Due Check). */
+export type QuizSubmitted = { passed: boolean; item?: SessionItemData; complete?: SessionItemData };
 
 /** The name of the right panel's tab for an open quiz: "Check 1 of 2". */
 export const checkTabName = (quiz: Pick<OpenQuiz, "checkNumber" | "checkCount">) => `Check ${quiz.checkNumber} of ${quiz.checkCount}`;
@@ -57,9 +58,9 @@ export function QuizPanel({
     setBusy(true);
     setError(null);
     try {
-      const data = (await post({ attemptId: active.attemptId, answers: picked })) as Marking & { attemptNo: number; item?: SessionItemData };
+      const data = (await post({ attemptId: active.attemptId, answers: picked })) as Marking & { attemptNo: number; item?: SessionItemData; complete?: SessionItemData };
       setResult({ ...data, checkNumber: active.checkNumber });
-      onSubmitted?.({ passed: data.passed, item: data.item });
+      onSubmitted?.({ passed: data.passed, item: data.item, complete: data.complete });
       // The summary and the Next on offer come from the server; the marking stays on screen.
       router.refresh();
     } catch (e) {

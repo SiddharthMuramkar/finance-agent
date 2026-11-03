@@ -83,9 +83,10 @@ export function Conversation({
     explore,
     quiz,
     missed,
-    onQuizSubmitted: ({ passed, item }) => {
-      // The result card goes in the conversation at once, where a reload draws it.
+    onQuizSubmitted: ({ passed, item, complete }) => {
+      // The result card goes in the conversation at once, where a reload draws it, and after it any Topic complete card.
       if (item) turn.appendItem(item);
+      if (complete) turn.appendItem(complete);
       if (!passed) setMisses((n) => n + 1);
     },
   });
