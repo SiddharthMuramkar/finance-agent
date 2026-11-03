@@ -268,15 +268,30 @@ formula.js and checked against textbook worked examples) or a reference to a Cas
 written `caseId/datasetId`, which the browser fetches from `/api/case-data/<case>` under the as-of
 rule (see Case Data below). `AnnuityChart` draws the formula and can show a sourced figure beside
 it; `HistoryChart` draws one dataset as a line over its dates. Everything the Learner sets carries
-a teal "Your assumption" tag; everything drawn from Case Data sits in its own amber box with a
+a teal (`--you` tokens) "Your assumption" tag; everything drawn from Case Data sits in its own amber box with a
 "Sourced" tag and a link to its source, so the two never blend.
 
 **Layout.** The conversation runs on assistant-ui's external-store runtime: our code owns the
-messages and streaming, assistant-ui draws them. As a reply streams in, code splits it into prose
-and widget blocks. The prose stays on the left with a small "Widget 1" marker where the widget
-belongs; the right pane shows the latest widget (or the one whose marker was clicked). On a phone
-the widget sits in the conversation instead. Old Sessions rebuild their widgets from the stored
-text, with controls back at their starting values.
+messages and streaming, assistant-ui draws them (`src/app/thread.tsx` holds the message look, shared
+with the old Session page). As a reply streams in, code splits it into prose and widget blocks. The
+prose stays on the left with a "Widget 1 →" chip where the widget belongs; widgets are never drawn
+inside the conversation. Old Sessions rebuild their widgets from the stored text, with controls back
+at their starting values.
+
+**The Widget panel (`src/app/widget-panel.tsx`, issue #47).** The right column is one sticky panel,
+capped at the column's height so it never runs under the header. It shows one card: an eyebrow naming
+the concept, then the widget with its title but without its own border (the card is the only frame).
+The eyebrow is worked out by code from the widget's components, read with OpenUI's parser
+(`widgetParts` in `check.ts`): an AnnuityChart is "Present value", a HistoryChart "Case Data", a
+Calculator "Calculator", anything else the current Topic's title. The newest widget shows on its own,
+including when a new turn brings one. With two or more widgets a row of chips (one per widget title)
+sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
+flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
+box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier
+and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
+"Long-term interest rates" chip and the chart fades in under "Case Data". Trade-off: one widget at a
+time keeps the panel calm and the sliders roomy, but comparing two widgets means switching between
+them.
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser. If one cannot be drawn, code sends the Tutor one correction request listing the problems,
@@ -707,6 +722,24 @@ longer animated word by word as it streams (`smooth` off): the animation would p
 behind the real text, and widget markers are matched against the real text. Learner messages stay
 plain text on purpose.
 
+## Past Sessions (`src/app/sessions/`, `session-card.tsx`, `old-session.tsx`, `src/tutor/session-summary.ts`)
+
+**What it does.** Past Sessions is a list of cards, one per Session, newest first. Each card shows
+"SESSION 3 · 24 OCT 2026", a title (the Session's first Topic and its date), a pill per Topic and a
+Widget count. The database has no Topic column, so code reads the "Topic: ..." lines the Tutor
+context left in the saved messages, in one query for all Sessions, and counts the Widget blocks
+(minus the ones a correction replaced). With no Topic found the title falls back to "Session 3".
+A card opens the old Session page: the workspace's two columns, read-only, with "Widget N →" chips,
+the Widget panel (controls at their starting values) and a "Back to the workspace" button where
+the composer would be. No model call anywhere.
+
+**Scenario.** The Learner opens Past Sessions, sees "Present value, 24 Oct 2026" with "2 Widgets",
+opens it, clicks "Widget 2 →" to see that chart again, then goes back to the workspace to carry on.
+
+**Trade-off.** Topics come from reading saved text, not a stored column, so a Session whose
+messages were compacted away shows the number title. Adding a column would be exact but needs a
+migration and a backfill.
+
 ## Spaced review (`src/course/review.ts`, `reviewsDue` in `navigator.ts`, `src/learner/review.ts`, `/api/review`, `src/app/review-panel.tsx`)
 
 **What it does.** Old quiz questions come back just as the Learner is likely to forget them. A
@@ -961,13 +994,21 @@ render shows "Working it out…" until the browser sets the slider values. Hoste
 costs extra tokens for the code and its output and is optional: the Tutor is told to prefer
 `calculate`. Yearly rates are percentages everywhere (5 means 5%), a deliberate house convention.
 
-## Phone view (`src/app/conversation.tsx`, `quiz-panel.tsx`, `review-panel.tsx`, `globals.css`)
+## Workspace left column (`src/app/conversation.tsx`, `workspace-parts.tsx`, `thread.tsx`, issue #44)
 
-**What it does.** The same workspace works on a phone. Below the laptop breakpoint the right-hand widget pane is hidden and each widget (slider, chart, calculator) is drawn inside the conversation, right where the Tutor put it. Reading, quizzes and spaced reviews are one column with no sideways scrolling: answer rows are at least 44px tall so a thumb can hit them, wide Markdown tables scroll inside their own box, and long addresses wrap.
+**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic", the plain summary, a navy Continue that starts a turn), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the open quiz folded into one row ("Quiz Check open · Show"), the conversation in its own scroll area, and the composer pinned at the bottom with a 24px fade above it. The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume, Retry, notices, the paste panel and the Widget correction turn are the same code as before; only the look moved into small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`) that tests render on their own.
 
-**Scenario.** On the train the Learner opens the page, answers the two reviews that are due, takes the quiz Check, then asks the Tutor about a 50 lakh loan. The loan calculator appears under the reply; dragging its slider changes the instalment instantly and costs no tokens. When a Tutor table was previously shown as raw pipe characters, it now renders as a table (we added `remark-gfm`, the standard table plug-in for Markdown).
+**Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
-**Trade-off.** One layout for both screens keeps the code small, but a phone shows one widget per reply in the flow instead of a pinned pane, so scrolling back up finds old widgets. Serious work (long calculators, many-row cash flows, big comparisons) stays a laptop job by design. Checked with a headless 390x844 browser run (`evidence/29/phone-run.mjs`), not a physical phone.
+**Trade-off.** Folding the review and quiz keeps the conversation high on the screen, but a due review is one click away instead of in plain view.
+
+## Phone note (`SignedInFrame` in `src/app/ui.tsx`, issue #48)
+
+**What it does.** Phones are out of scope. Below 768px wide, every signed-in page shows one line, "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad.", and nothing else. The old phone-only behaviour is gone: widgets are never drawn inside the conversation at any width, and quiz and review answers no longer have phone tap sizing. An upright iPad (768–1023px) keeps the two-column workspace with a 24px gap and 16px padding. Login and the landing page are not affected.
+
+**Scenario.** On the train the Learner opens the app on a phone and sees the note. At home they open it on an iPad held upright and get both columns: the conversation on the left, the Widget panel on the right.
+
+**Trade-off.** One layout for laptop and iPad keeps the code small and lets the Widget panel sit beside the conversation always. The price is that quizzes and spaced reviews no longer work on a phone: a review that falls due waits until the Learner is at a bigger screen.
 
 ## Tutor behaviour tests (`src/behaviour/`, `npm run behaviour`)
 

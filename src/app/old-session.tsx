@@ -1,62 +1,39 @@
 "use client";
 
-import { AssistantRuntimeProvider, MessagePrimitive, ThreadPrimitive, useAuiState, useExternalStoreRuntime, type ThreadMessageLike } from "@assistant-ui/react";
-import { createContext, useContext } from "react";
-import type { TurnUsage } from "@/tutor/usage";
-import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
-import { UnderTheHood } from "./under-the-hood";
-import { WidgetView } from "./widget-view";
+import Link from "next/link";
+import { useMemo } from "react";
+import type { WidgetSlot } from "./reply-markdown";
+import { readOnlyLines, ReadOnlyThread, widgetsIn, type Line } from "./thread";
+import { primaryButtonClass } from "./ui";
+import { useWidgetPicker, WidgetChip, WidgetPanel } from "./widget-panel";
 
-export type OldLine = { role: "user" | "assistant"; text: string; usage?: TurnUsage };
+export type OldLine = Line;
 
-const UsageContext = createContext<Map<string, TurnUsage>>(new Map());
-
-/** In an old Session each widget is rebuilt where it stood, with controls at their starting values. */
-const inlineWidget: WidgetSlot = ({ code, complete }) => (
-  <div className="my-3" data-testid="inline-widget">
-    <WidgetView code={code} complete={complete} />
-  </div>
-);
-
-const Reply = () => <ReplyMarkdown slot={inlineWidget} />;
-
-function UserMessage() {
+/**
+ * An old Session, read-only, in the workspace's two columns: the conversation with "Widget N →" chips on the left,
+ * the Widget panel on the right (controls at their starting values). Where the composer would be there is a link
+ * back to the workspace. No composer and no model call.
+ */
+export function OldSession({ lines, topicTitle }: { lines: OldLine[]; topicTitle?: string }) {
+  const widgets = useMemo(() => widgetsIn(readOnlyLines(lines)), [lines]);
+  const picker = useWidgetPicker(widgets);
+  const slot: WidgetSlot = ({ messageId, index }) => {
+    const item = widgets.find((w) => w.key === `${messageId}:${index}`);
+    return item ? <WidgetChip item={item} active={item.key === picker.shown?.key} onPick={picker.pick} /> : null;
+  };
   return (
-    <MessagePrimitive.Root className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-stone-200 px-3 py-2 dark:bg-stone-800">
-        <MessagePrimitive.Parts />
+    <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8" data-testid="old-session">
+      <div className="flex min-h-0 min-w-0 flex-col gap-4">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <ReadOnlyThread lines={lines} slot={slot} />
+        </div>
+        <Link href="/" className={`${primaryButtonClass} self-start`}>
+          Back to the workspace
+        </Link>
       </div>
-    </MessagePrimitive.Root>
-  );
-}
-
-function AssistantMessage() {
-  const id = useAuiState((s) => s.message.id);
-  const usage = useContext(UsageContext).get(id);
-  return (
-    <MessagePrimitive.Root data-testid="assistant-message">
-      <MessagePrimitive.Parts components={{ Text: Reply }} />
-      {usage && <UnderTheHood usage={usage} />}
-    </MessagePrimitive.Root>
-  );
-}
-
-const convertMessage = (m: OldLine & { id: string }): ThreadMessageLike => ({ id: m.id, role: m.role, content: [{ type: "text", text: m.text }] });
-
-/** An old Session, read-only: the same Markdown rendering as the workspace, with no composer and no model call. */
-export function OldSession({ lines }: { lines: OldLine[] }) {
-  const messages = lines.map((l, i) => ({ ...l, id: `old-${i}` }));
-  const runtime = useExternalStoreRuntime({ messages, isRunning: false, convertMessage, onNew: async () => {} });
-  const usages = new Map(messages.flatMap((m) => (m.usage ? [[m.id, m.usage] as const] : [])));
-  return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      <UsageContext.Provider value={usages}>
-        <ThreadPrimitive.Root>
-          <ThreadPrimitive.Viewport className="flex flex-col gap-4">
-            <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
-          </ThreadPrimitive.Viewport>
-        </ThreadPrimitive.Root>
-      </UsageContext.Provider>
-    </AssistantRuntimeProvider>
+      <aside aria-label="Widget panel" data-testid="widget-pane" className="sticky top-6 max-h-[min(100%,calc(100dvh-48px))] min-w-0 overflow-y-auto">
+        <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} />
+      </aside>
+    </div>
   );
 }

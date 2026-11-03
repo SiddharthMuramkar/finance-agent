@@ -60,6 +60,10 @@ _Avoid_: Checkpoint, test, exam
 The main product: a conversation with the Tutor beside charts and calculators the Learner can play with, the sources behind each answer, and what has been learned so far.
 _Avoid_: Dashboard
 
+**Widget**:
+An interactive chart or calculator the Tutor puts beside the conversation, whose assumptions the Learner can change at no cost.
+_Avoid_: artifact, card
+
 **Market Workbench**:
 A possible later section for analysing real companies with real data alongside the Tutor.
 _Avoid_: Dashboard, terminal

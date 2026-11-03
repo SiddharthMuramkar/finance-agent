@@ -1,27 +1,37 @@
-import Link from "next/link";
+import { cookies } from "next/headers";
 import { getDb } from "@/db/client";
 import { listSessions } from "@/tutor/transcript";
+import { loadSessionSummaries } from "@/tutor/session-summary";
+import { SessionCard } from "../session-card";
+import { AppHeader, SignedInFrame } from "../ui";
 
 export const dynamic = "force-dynamic";
 
 /** Every Session, newest first. Old Sessions stay readable. */
 export default async function SessionsPage() {
-  const sessions = await listSessions(getDb());
+  const db = getDb();
+  const [sessions, summaries, jar] = await Promise.all([listSessions(db), loadSessionSummaries(db), cookies()]);
+  // Numbered by order started, so the oldest is Session 1 whatever the ids.
+  const numberOf = new Map([...sessions].reverse().map((s, i) => [s.id, i + 1]));
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-lg font-semibold">Past Sessions</h1>
-      <ul className="flex flex-col gap-2">
-        {sessions.map((s) => (
-          <li key={s.id}>
-            <Link href={`/sessions/${s.id}`} className="hover:underline">
-              Session {s.id}, started {s.createdAt.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <Link href="/" className="mt-8 inline-block text-sm text-stone-500 hover:underline">
-        Back to the Study Workspace
-      </Link>
-    </main>
+    <SignedInFrame>
+      <main className="mx-auto max-w-[720px] px-4 pb-12 pt-4 lg:pt-6">
+        <AppHeader current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
+        {sessions.length === 0 ? (
+          <p className="text-sm leading-5 text-[var(--muted)]">No Sessions yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {sessions.map((s) => {
+              const sum = summaries.get(s.id);
+              return (
+                <li key={s.id}>
+                  <SessionCard id={s.id} number={numberOf.get(s.id)!} createdAt={s.createdAt} topics={sum?.topics ?? []} widgets={sum?.widgets ?? 0} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </main>
+    </SignedInFrame>
   );
 }

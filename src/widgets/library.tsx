@@ -7,7 +7,7 @@ import {
   useStateField,
   type ComponentRenderProps,
 } from "@openuidev/react-lang";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
@@ -60,7 +60,7 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
         step={props.step}
         value={value}
         onChange={(e) => field.setValue(Number(e.target.value))}
-        className="mt-2 w-full accent-teal-700 dark:accent-teal-400"
+        className="mt-2 w-full accent-[var(--you)]"
       />
     </label>
   );
@@ -105,7 +105,7 @@ function useCaseDataset(reference: string | undefined): Loaded {
 
 function Missing({ reference }: { reference: string }) {
   return (
-    <p className="py-2 text-sm text-stone-500 dark:text-stone-400">
+    <p className="py-2 text-sm text-[var(--muted)]">
       No sourced data is available for {reference}. It may not exist, or it is withheld until the reveal.
     </p>
   );
@@ -124,7 +124,7 @@ function AnnuityChartView({ props }: ComponentRenderProps<z.infer<typeof chartPr
   // While a widget streams in, or a slider's $variable is not set yet, inputs can be missing.
   const inputs = [props.total, props.payments, props.growthPercent, props.ratePercent];
   if (!inputs.every((v) => typeof v === "number" && Number.isFinite(v))) {
-    return <p className="py-6 text-sm text-stone-500 dark:text-stone-400">Drawing the chart…</p>;
+    return <p className="py-6 text-sm text-[var(--muted)]">Drawing the chart…</p>;
   }
   return (
     <>
@@ -149,7 +149,7 @@ const historyProps = z.object({
 function HistoryChartView({ props }: ComponentRenderProps<z.infer<typeof historyProps>>) {
   const loaded = useCaseDataset(props.dataset);
   if (!props.dataset) return null;
-  if (loaded === undefined) return <p className="py-6 text-sm text-stone-500 dark:text-stone-400">Fetching sourced data…</p>;
+  if (loaded === undefined) return <p className="py-6 text-sm text-[var(--muted)]">Fetching sourced data…</p>;
   if (loaded === null) return <Missing reference={props.dataset} />;
   return <HistoryFigure dataset={loaded.dataset} revealed={loaded.data.revealed} asOf={loaded.data.asOf} />;
 }
@@ -172,26 +172,26 @@ function CalculatorView({ props }: ComponentRenderProps<z.infer<typeof calculato
   const inputs = props.inputs ?? {};
   // While a widget streams in, or a slider's $variable is not set yet, inputs can be missing or not numbers.
   if (Object.values(inputs).some((v) => typeof v !== "number" || !Number.isFinite(v))) {
-    return <p className="py-6 text-sm text-stone-500 dark:text-stone-400">Working it out…</p>;
+    return <p className="py-6 text-sm text-[var(--muted)]">Working it out…</p>;
   }
   const result = calculate(props.calculator, inputs, props.currency);
   if (!result.ok) {
     return (
-      <p role="status" className="py-2 text-sm text-stone-600 dark:text-stone-400">
+      <p role="status" className="py-2 text-sm text-[var(--muted)]">
         This calculator could not run: {result.error}
       </p>
     );
   }
   return (
     <div className="py-2" data-testid="calculator">
-      <p data-kind="assumption" className="rounded-md border-l-4 border-teal-600 bg-teal-50/50 p-2 text-sm dark:border-teal-400 dark:bg-teal-950/20">
+      <p data-kind="assumption" className="rounded-md border-l-4 border-[var(--you-line)] bg-[var(--you-tint)] p-2 text-sm">
         <AssumptionTag />
         {result.title}
       </p>
       <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
         {result.results.map((r) => (
           <div key={r.label} className="contents">
-            <dt className="text-stone-600 dark:text-stone-400">{r.label}</dt>
+            <dt className="text-[var(--muted)]">{r.label}</dt>
             <dd className="text-right font-medium tabular-nums">{r.text}</dd>
           </div>
         ))}
@@ -215,13 +215,21 @@ const Widget = defineComponent({
     title: z.string(),
     children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref])),
   }),
-  component: ({ props, renderNode }) => (
-    <section className="rounded-lg border border-stone-300 p-4 dark:border-stone-700">
+  component: WidgetFrame,
+});
+
+/** False inside a card that already draws the frame (the Widget panel), so the Widget adds no second border. */
+export const WidgetBorderContext = createContext(true);
+
+function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string; children: unknown }>) {
+  const bordered = useContext(WidgetBorderContext);
+  return (
+    <section className={bordered ? "rounded-lg border border-[var(--border)] p-4" : ""}>
       <h3 className="mb-2 font-medium">{props.title}</h3>
       {renderNode(props.children)}
     </section>
-  ),
-});
+  );
+}
 
 export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator], root: "Widget" });
 

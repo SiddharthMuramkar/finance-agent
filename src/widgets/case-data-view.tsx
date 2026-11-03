@@ -1,5 +1,6 @@
 import type { CaseDataset } from "@/case-data/case-data";
 import { annuitySchedule, type AnnuityInputs } from "@/finance/present-value";
+import { Tag } from "@/app/ui";
 
 // Pure drawings for the widget components. Anything drawn from Case Data carries a "Sourced"
 // tag in amber with its source; anything the Learner sets carries a "Your assumption" tag in
@@ -20,19 +21,17 @@ export function formatValue(value: number, unit: string): string {
   return `${value.toLocaleString("en-US")} ${unit}`;
 }
 
-const tag = "mr-1 inline-block rounded px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide";
-
 export function AssumptionTag() {
-  return <span className={`${tag} bg-teal-100 text-teal-900 dark:bg-teal-950 dark:text-teal-200`}>Your assumption</span>;
+  return <Tag kind="you" />;
 }
 
 export function SourcedTag({ children = "Sourced" }: { children?: string }) {
-  return <span className={`${tag} bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200`}>{children}</span>;
+  return <Tag kind="src">{children}</Tag>;
 }
 
 function Credit({ dataset }: { dataset: CaseDataset }) {
   return (
-    <span className="text-xs text-stone-500 dark:text-stone-400">
+    <span className="text-xs text-[var(--muted)]">
       Source:{" "}
       <a href={dataset.sourceUrl} target="_blank" rel="noreferrer" className="underline">
         {dataset.source}
@@ -55,7 +54,7 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
   const first = points[0];
   const last = points.at(-1)!;
   return (
-    <figure data-kind="sourced" className="my-2 rounded-md border-l-4 border-amber-500 bg-amber-50/50 p-3 dark:border-amber-400 dark:bg-amber-950/20">
+    <figure data-kind="sourced" className="my-2 rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] p-3">
       <p className="mb-1 text-sm">
         <SourcedTag>Sourced history</SourcedTag> {dataset.label}
       </p>
@@ -64,10 +63,10 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
           points={points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")}
           fill="none"
           strokeWidth={2}
-          className="stroke-amber-600 dark:stroke-amber-400"
+          className="stroke-[var(--src)]"
         />
         {points.map((p, i) => (
-          <circle key={p.date} data-testid="history-point" cx={x(i)} cy={y(p.value)} r={points.length > 60 ? 1 : 2.5} className="fill-amber-600 dark:fill-amber-400">
+          <circle key={p.date} data-testid="history-point" cx={x(i)} cy={y(p.value)} r={points.length > 60 ? 1 : 2.5} className="fill-[var(--src)]">
             <title>{`${p.date}: ${formatValue(p.value, dataset.unit)}`}</title>
           </circle>
         ))}
@@ -81,7 +80,7 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
             {last.date}: {formatValue(last.value, dataset.unit)}
           </span>
         </p>
-        <p className="text-xs text-stone-500 dark:text-stone-400">
+        <p className="text-xs text-[var(--muted)]">
           Range {formatValue(lo, dataset.unit)} to {formatValue(hi, dataset.unit)}.
           {!revealed && ` Data after ${asOf} is withheld until the reveal.`}
         </p>
@@ -110,33 +109,33 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
       <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Annuity payments and their present value" className="w-full">
         {rows.map((r) => (
           <g key={r.year}>
-            <rect x={r.year * bar + 1} y={y(r.payment)} width={bar - 2} height={h - y(r.payment)} className="fill-stone-300 dark:fill-stone-700" />
+            <rect x={r.year * bar + 1} y={y(r.payment)} width={bar - 2} height={h - y(r.payment)} className="fill-[var(--data)]" />
             <rect
               data-testid="pv-bar"
               x={r.year * bar + 1}
               y={y(r.presentValue)}
               width={bar - 2}
               height={h - y(r.presentValue)}
-              className="fill-teal-700 transition-all duration-150 dark:fill-teal-400"
+              className="fill-[var(--you)] transition-all duration-150 "
             />
           </g>
         ))}
       </svg>
       <figcaption className="mt-2 space-y-2 text-sm">
-        <p className="flex flex-wrap gap-x-4 text-xs text-stone-500 dark:text-stone-400">
+        <p className="flex flex-wrap gap-x-4 text-xs text-[var(--muted)]">
           <span>
-            <span className="mr-1 inline-block size-2 bg-stone-300 dark:bg-stone-700" />
+            <span className="mr-1 inline-block size-2 bg-[var(--data)]" />
             Payment in its year
           </span>
           <span>
-            <span className="mr-1 inline-block size-2 bg-teal-700 dark:bg-teal-400" />
+            <span className="mr-1 inline-block size-2 bg-[var(--you)]" />
             Worth today at {inputs.ratePercent}%
           </span>
         </p>
         <p>
           Sum of payments: <span className="tabular-nums">{formatUsd(inputs.total)}</span>
         </p>
-        <p data-kind="assumption" className="rounded-md border-l-4 border-teal-600 bg-teal-50/50 p-2 dark:border-teal-400 dark:bg-teal-950/20">
+        <p data-kind="assumption" className="rounded-md border-l-4 border-[var(--you-line)] bg-[var(--you-tint)] p-2">
           <AssumptionTag />
           Present value at {inputs.ratePercent}%:{" "}
           <strong data-testid="pv-total" className="tabular-nums">
@@ -144,11 +143,11 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
           </strong>
         </p>
         {sourced && figure && (
-          <div data-kind="sourced" className="rounded-md border-l-4 border-amber-500 bg-amber-50/50 p-2 dark:border-amber-400 dark:bg-amber-950/20">
+          <div data-kind="sourced" className="rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] p-2">
             <p>
               <SourcedTag />
               {sourced.label}: <strong className="tabular-nums">{formatValue(figure.value, sourced.unit)}</strong>{" "}
-              <span className="text-xs text-stone-500 dark:text-stone-400">({figure.date})</span>
+              <span className="text-xs text-[var(--muted)]">({figure.date})</span>
             </p>
             <Credit dataset={sourced} />
           </div>
@@ -156,8 +155,8 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
         {sourced && figure && sourced.unit === "USD" && (
           // Today's value of the payments beside the sourced figure, on one scale.
           <svg viewBox="0 0 600 44" role="img" aria-label={`Present value compared with ${sourced.label}`} className="w-full">
-            <rect data-testid="pv-compare-bar" x={0} y={2} height={18} width={(600 * presentValue) / scale} className="fill-teal-700 transition-all duration-150 dark:fill-teal-400" />
-            <rect data-testid="sourced-bar" x={0} y={24} height={18} width={(600 * figure.value) / scale} className="fill-amber-600 dark:fill-amber-400" />
+            <rect data-testid="pv-compare-bar" x={0} y={2} height={18} width={(600 * presentValue) / scale} className="fill-[var(--you)] transition-all duration-150 " />
+            <rect data-testid="sourced-bar" x={0} y={24} height={18} width={(600 * figure.value) / scale} className="fill-[var(--src)]" />
           </svg>
         )}
       </figcaption>
