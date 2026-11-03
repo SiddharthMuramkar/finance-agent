@@ -1732,23 +1732,36 @@ reply opens with a small navy "Tutor", then "Present value is **today's worth** 
 of blue), but the Tutor has to bold sparingly for the navy to mean "key term". The "never lesson" rule is
 held by tests on the screens we render, not by a site-wide scan, so a new screen needs its own check.
 
-## Past Sessions (`src/app/sessions/`, `session-card.tsx`, `old-session.tsx`, `src/tutor/session-summary.ts`)
+## Past Sessions (`src/app/sessions/`, `src/app/past-sessions.tsx`, `old-session.tsx`, `src/tutor/past-sessions.ts`)
 
-**What it does.** Past Sessions is a list of cards, one per Session, newest first. Each card shows
-"SESSION 3 · 24 OCT 2026", a title (the Session's first Topic and its date), a pill per Topic and a
-Widget count. The database has no Topic column, so code reads the "Topic: ..." lines the Tutor
-context left in the saved messages, in one query for all Sessions, and counts the Widget blocks
-(minus the ones a correction replaced). With no Topic found the title falls back to "Session 3".
-A card opens the old Session page: the workspace's two columns, read-only, with "Open: <title> →" chips,
-the Widget panel (controls at their starting values) and a "Back to the workspace" button where
-the composer would be. No model call anywhere.
+**What it does.** Since each Topic has one Session (ADR 0004), Past Sessions lists one row per Topic
+Session: the Topic's title and "Last worked on 24 Oct 2026", the one worked on most recently first.
+Last activity is the newest saved message in the Session (or its start, before any). The every-Topic-passed
+Session, which has no Topic, is a row of its own called "Free questions". Every Session from before the
+change is Older (the `older` flag the expand migration set), and they sit apart under an **Older sessions**
+heading, newest first, each with its date and the Topics it touched. Older Sessions have no Topic column
+worth trusting (one could hold several Topics), so their Topics are still read from the "Topic: ..." lines
+the Tutor context left in their messages; with none found the row says "No Topic".
 
-**Scenario.** The Learner opens Past Sessions, sees "Present value, 24 Oct 2026" with "2 Widgets",
-opens it, clicks "Open: What the annuity is worth today →" to see that chart again, then goes back to the workspace to carry on.
+A row opens the Session's page: a "← Past Sessions" back link at the top, then a header, then the
+workspace's two columns, read-only, with "Open: <title> →" chips and the Widget panel. A Topic Session's
+header shows the Topic, the date last worked on and **Resume this Topic**, a plain form post to `/api/open`
+that makes it the current Topic and opens the Study Workspace; once the Topic is passed it shows Passed ✓
+instead. An Older session's header shows its date, its Topics (or No Topic) and "Older session · read-only",
+with no Resume. Old stored "Continue." messages, from when moving on posted one as if the Learner typed it,
+draw on these pages as a small "→ next step" divider in their place, never as a Learner bubble; nothing
+stored changes. Another Learner's Session id answers 404. No model call anywhere.
 
-**Trade-off.** Topics come from reading saved text, not a stored column, so a Session whose
-messages were compacted away shows the number title. Adding a column would be exact but needs a
-migration and a backfill.
+**Scenario.** The Learner studied Present value last week, Bond prices yesterday and went back to Present
+value this morning. Past Sessions shows Present value first, then Bond prices, then under Older sessions
+the mixed Session from September with pills for Present value and Annuities. They open Bond prices, read the
+conversation, and press Resume this Topic to carry on where they left off.
+
+**Trade-off.** Ordering by the newest message means one extra grouped query instead of reading a stored
+"last active" column, which would need a migration and keeping in step with every write. Older Sessions keep
+the read-the-text approach, so one whose messages were compacted away shows No Topic. The "→ next step"
+divider is drawn at read time from the message text rather than rewriting history, so the stored log stays
+exactly as it was sent.
 
 ## Spaced review (`src/course/review.ts`, `reviewsDue` in `navigator.ts`, `src/learner/review.ts`, `/api/review`, `src/app/review-panel.tsx`)
 

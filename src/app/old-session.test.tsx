@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { foldText, HIDDEN_SOURCE_TITLE } from "@/tutor/citations";
 import { summariseRows } from "@/tutor/session-summary";
 import { OldSession } from "./old-session";
-import { SessionCard } from "./session-card";
 
 const reply = [
   "## Why discount?",
@@ -104,32 +103,6 @@ describe("the read-only layout", () => {
     expect(html).not.toContain("Ask the Tutor");
     expect(html).not.toContain("Resume");
     expect(html).not.toContain(">Send<");
-  });
-});
-
-describe("a Past Sessions card", () => {
-  const card = renderToStaticMarkup(<SessionCard id={7} number={3} createdAt={new Date("2026-10-24T08:00:00Z")} topics={["Present value", "Annuities"]} widgets={2} />);
-
-  it("shows the eyebrow, a title from the first Topic and date, a pill per Topic and the Widget count, and opens its Session", () => {
-    expect(card).toContain("Session 3 · 24 OCT 2026");
-    expect(card).toContain("Present value, 24 Oct 2026");
-    expect(card).toContain("Annuities");
-    expect(card).toContain("2 Widgets");
-    expect(card).toContain('href="/sessions/7"');
-  });
-
-  it("falls back to the Session number when no Topic can be found", () => {
-    const plain = renderToStaticMarkup(<SessionCard id={1} number={1} createdAt={new Date("2026-10-24T08:00:00Z")} topics={[]} widgets={1} />);
-    expect(plain).toContain("Session 1, 24 Oct 2026");
-    expect(plain).toContain("1 Widget<");
-  });
-});
-
-describe("a Past Sessions card date", () => {
-  it("always writes a three-letter month, including September", () => {
-    const card = renderToStaticMarkup(<SessionCard id={2} number={3} createdAt={new Date("2026-09-05T08:00:00Z")} topics={[]} widgets={0} />);
-    expect(card).toContain("Session 3 · 5 SEP 2026");
-    expect(card).not.toContain("SEPT");
   });
 });
 
