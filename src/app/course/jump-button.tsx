@@ -4,13 +4,13 @@ import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "re
 import { PrimaryButton, SecondaryButton } from "../ui";
 
 /** A full page load, so the workspace's server page re-reads the saved place. */
-function openWorkspace() {
+export function openWorkspace() {
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full load is wanted here
   window.location.assign("/study");
 }
 
 /** Chooses a Topic (null: back to the default path), or what comes next. Null when it worked, else what went wrong. */
-async function post(choice: { topicId: string | null } | { next: true }): Promise<string | null> {
+export async function chooseTopic(choice: { topicId: string | null } | { next: true }): Promise<string | null> {
   const res = await fetch("/api/jump", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(choice) });
   if (res.ok) return null;
   const { error } = (await res.json().catch(() => ({ error: null }))) as { error: string | null };
@@ -19,7 +19,7 @@ async function post(choice: { topicId: string | null } | { next: true }): Promis
 
 /** Chooses a Topic (or opens the current one), then opens the Study Workspace. Null when it worked, else what went wrong. */
 async function choose(choice: { topicId: string } | { next: true }): Promise<string | null> {
-  const failed = await post(choice);
+  const failed = await chooseTopic(choice);
   if (!failed) openWorkspace();
   return failed;
 }
@@ -162,7 +162,7 @@ export function BackToPathButton() {
       <SecondaryButton
         data-back-to-path
         onClick={async () => {
-          const failed = await post({ topicId: null });
+          const failed = await chooseTopic({ topicId: null });
           if (failed) setError(failed);
           else openWorkspace();
         }}
@@ -186,7 +186,7 @@ export function WhatComesNextButton({ label }: { label: string }) {
       <PrimaryButton
         data-what-comes-next
         onClick={async () => {
-          const failed = await post({ next: true });
+          const failed = await chooseTopic({ next: true });
           if (failed) setError(failed);
           else openWorkspace();
         }}

@@ -7,6 +7,7 @@ import { replaceBrokenWidgets } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
+import type { SessionItemData } from "./session-item-view";
 import { convertMessage, type Line, type ThreadLine } from "./thread";
 
 /** How an attached passage shows in the thread: a short label, as the saved transcript shows it. */
@@ -97,14 +98,52 @@ export function useTurnStream({
     const slow = setTimeout(() => setWaiting((w) => (w === "writing" ? "slow" : w)), SLOW_AFTER_MS);
     onTurnStart();
     const stamp = Date.now();
-    const replyId = `a-${stamp}`;
+    const firstId = `a-${stamp}`;
+    // The reply part text streams into: a Session item (a step divider) arriving mid-reply starts a new part after it.
+    let replyId = firstId;
+    const partIds = [firstId];
     setMessages((m) => {
-      if (userText !== undefined) return [...m, { id: `u-${stamp}`, role: "user", text: userText }, { id: replyId, role: "assistant", text: "" }];
+      if (userText !== undefined) return [...m, { id: `u-${stamp}`, role: "user", text: userText }, { id: firstId, role: "assistant", text: "" }];
       // A resume continues the reply on screen, or starts one after the Learner's last message.
       const last = m[m.length - 1];
-      return last?.role === "assistant" ? [...m.slice(0, -1), { ...last, id: replyId }] : [...m, { id: replyId, role: "assistant", text: "" }];
+      return last?.role === "assistant" ? [...m.slice(0, -1), { ...last, id: firstId }] : [...m, { id: firstId, role: "assistant", text: "" }];
     });
-    const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, text: f(x.text) } : x)));
+    const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId && x.role !== "item" ? { ...x, text: f(x.text) } : x)));
+    /** Draws a Session item where the reply has got to: before the reply if it has no text yet, else between two parts of it. */
+    const addItem = (item: SessionItemData) => {
+      const at = replyId;
+      const part = `${firstId}-${partIds.length}`;
+      const itemLine: ThreadLine = { id: `${part}-item`, role: "item", ...item };
+      setMessages((m) => {
+        const i = m.findIndex((x) => x.id === at);
+        const current = m[i];
+        if (!current || current.role === "item") return [...m, itemLine, { id: part, role: "assistant", text: "" }];
+        // Nothing written yet: the item goes before the reply, which carries on as the new part.
+        if (!current.text) return [...m.slice(0, i), itemLine, { ...current, id: part }, ...m.slice(i + 1)];
+        return [...m.slice(0, i), { ...current, more: true }, itemLine, { id: part, role: "assistant", text: "" }, ...m.slice(i + 1)];
+      });
+      replyId = part;
+      partIds.push(part);
+    };
+    /** Every line this send drew: the reply's parts and the items between them. */
+    const ours = (x: ThreadLine) => x.id === firstId || x.id.startsWith(`${firstId}-`);
+    /**
+     * A replay (a resume, or a refusal) sends the whole reply's saved text: it replaces every part of the reply and the
+     * items between them (a reload draws those again from what was saved).
+     */
+    const replaceReply = (text: string) => {
+      replyId = firstId;
+      partIds.splice(1);
+      setMessages((m) => {
+        const first = m.findIndex(ours);
+        if (first < 0) return m;
+        // Parts of this reply the page loaded before a resume, with their items, go too.
+        let start = first;
+        const earlierPart = (x: ThreadLine) => x.role === "item" || (x.role === "assistant" && x.more === true);
+        while (start > 0 && earlierPart(m[start - 1])) start--;
+        return [...m.slice(0, start), { id: firstId, role: "assistant", text }, ...m.slice(first).filter((x) => !ours(x))];
+      });
+    };
     let request = body;
     let resumes = 0;
     let busyWaits = 0;
@@ -155,7 +194,8 @@ export function useTurnStream({
             if ((event.type === "text" || event.type === "replay") && event.text) setWaiting(null);
             if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
             else if (event.type === "text") correction += event.text;
-            else if (event.type === "replay") updateReply(() => event.text);
+            else if (event.type === "replay") replaceReply(event.text);
+            else if (event.type === "item" && event.item) addItem(event.item as SessionItemData);
             else if (event.type === "correction") {
               correction = "";
               flagged = Array.isArray(event.widgets) ? (event.widgets as number[]) : undefined;
@@ -168,14 +208,14 @@ export function useTurnStream({
               }
               // What the next turn request says the page shows.
               if (event.shown) shownRef.current = event.shown as Shown;
-              // The finished reply can now be saved to notes.
+              // The finished reply can now be saved to notes (every part of it: its Widgets are saved by the whole reply's count).
               if (event.ref) {
                 const ref = event.ref as TurnRef;
-                setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, ref } : x)));
+                setMessages((m) => m.map((x) => (partIds.includes(x.id) && x.role === "assistant" ? { ...x, ref } : x)));
               }
             } else if (event.type === "refusal") {
               // Only the declined loop step is dropped; what earlier steps saved stays, as a reload shows it.
-              updateReply(() => event.text ?? "");
+              replaceReply(event.text ?? "");
               setNotice(event.message);
             } else if (event.type === "cut_short") setCutShort(true);
             else if (event.type === "save_failed") fail(event.message);

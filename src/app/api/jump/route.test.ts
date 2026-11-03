@@ -13,7 +13,7 @@ import { startTurn } from "@/tutor/turn-status";
 
 /**
  * Choosing a Topic (spec #119, "Choosing and opening a Topic"), through the routes the pages call: the
- * Course Map's Study this Topic and Back to the default path, What comes next, and Home's Resume. Each
+ * Course Map's Topic rows and Back to the default path, What comes next, and Home's Resume. Each
  * sets the current Topic and shows its Session at once; while a turn runs, choosing answers "turn in progress".
  */
 
@@ -63,7 +63,7 @@ async function setUp() {
 }
 
 describe("choosing a Topic", () => {
-  it("Study this Topic sets the current Topic and shows it at once, before its first turn", async () => {
+  it("choosing a Topic row on the Course Map sets the current Topic and shows it at once, before its first turn", async () => {
     await setUp();
     const res = await post({ topicId: "bonds" });
     expect(res.status).toBe(200);

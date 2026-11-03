@@ -31,7 +31,7 @@ export function OldSession({
   developerDetails?: boolean;
 }) {
   const tutorWidgets = useMemo(() => widgetsIn(readOnlyLines(lines)), [lines]);
-  const sessionId = lines.find((l) => l.ref)?.ref?.sessionId;
+  const sessionId = lines.flatMap((l) => (l.role !== "item" && l.ref ? [l.ref.sessionId] : []))[0];
   const widgets = useMemo(() => withExplore(tutorWidgets, explore, tutorWidgets.length, sessionId), [tutorWidgets, explore, sessionId]);
   const picker = useWidgetPicker(widgets);
   const slot: WidgetSlot = ({ messageId, index }) => {

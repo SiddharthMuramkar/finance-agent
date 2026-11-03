@@ -40,6 +40,22 @@ describe("an old Session page", () => {
     expect(html).not.toContain("openui-lang");
   });
 
+  it("draws a stored step divider between the two parts of the reply it cut", () => {
+    const html = renderToStaticMarkup(
+      <OldSession
+        lines={[
+          { role: "assistant", text: "Good thinking.", more: true },
+          { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },
+          { role: "assistant", text: "Now the concept." },
+        ]}
+      />,
+    );
+    const at = html.indexOf("Step 2 of 6 · Concept");
+    expect(html).toContain('data-testid="step-divider"');
+    expect(at).toBeGreaterThan(html.indexOf("Good thinking."));
+    expect(at).toBeLessThan(html.indexOf("Now the concept."));
+  });
+
   it("shows a Markdown table as a table", () => {
     const text = "Rates:\n\n| Year | Open |\n|---|---|\n| 1 | 50 |\n\nDone.";
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text }]} />);

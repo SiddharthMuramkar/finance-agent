@@ -9,15 +9,14 @@ import { courseOverview, whatComesNext } from "@/course/navigator";
 import { revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
 import { learnerSummary, loadProgress } from "@/learner/memory";
-import { loadProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
+import { showsWelcome } from "@/learner/welcome";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
-import { loadSession } from "@/tutor/transcript";
+import { loadThread } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "../conversation";
-import { ProfileForm } from "../profile/profile-form";
 import { readTheme } from "../theme-cookie";
 import { AppHeader, SignedInFrame } from "../ui";
 
@@ -60,14 +59,16 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   }
   const db = getDb();
   const learnerId = learner.id;
+  // A new Learner (no Sessions, no Topic chosen yet) sees the Welcome before anything else.
+  if (await showsWelcome(db, learnerId)) redirect("/welcome");
   // The Learner's shown Session: the current Topic's own (ADR 0004), or the Topic alone before its first turn (the page
   // then starts the opener); a Topic passed in a turn stays shown until the Learner chooses. Rendering makes no Session.
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [summary, initial, quiz, turn, review, progress, profile, widgetStates] = await Promise.all([
+  const [summary, initial, quiz, turn, review, progress, widgetStates] = await Promise.all([
     learnerSummary(db, map, learnerId),
-    "sessionId" in shown ? loadSession(db, shown.sessionId, map, learnerId) : [],
+    "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
     openQuiz(db, map, new Date(), learnerId).catch((error) => {
       console.error("The open quiz could not be loaded", error);
@@ -76,7 +77,6 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     latestTurn(db, learnerId),
     reviewState(db, map, new Date(), learnerId),
     loadProgress(db, learnerId),
-    loadProfile(db, learnerId),
     // The Widgets' saved work in this Session (slider values and ticks), so a reload draws them as they were left.
     "sessionId" in shown ? loadWidgetStates(db, shown.sessionId, learnerId) : {},
   ]);
@@ -91,12 +91,6 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
   return (
     <WorkspaceShell>
-      {shouldOfferProfile(profile) && (
-        // Capped and scrolling inside itself, like everything above the chat, so the card cannot squeeze the columns.
-        <div className="max-h-[40%] shrink-0 overflow-y-auto">
-          <ProfileForm mode="card" initial={{ work: "", location: "", loan: "", savingFor: "" }} />
-        </div>
-      )}
       <Conversation
         initial={initial}
         summary={passed ? `${passed.title} is passed. Choose where to go next.` : summary}
