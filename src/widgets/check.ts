@@ -181,6 +181,47 @@ export function replaceBrokenWidgets(text: string, correction: string): string {
   return text.replace(FENCE, (block) => (broken.has(index++) && fixes.length ? fixes.shift()! : block));
 }
 
+/**
+ * A Query of one of our Widget tools as the widget writes it: its statement's name, its tool, and its arguments,
+ * with each part the browser works out (a $variable, an expression) left open.
+ */
+export type WrittenQuery = { statementId: string; tool: WidgetToolName; args: unknown };
+
+/** The parsed widget's Queries of our Widget tools, in order; a Query of a tool that does not exist is left out. */
+function writtenQueries(result: ParseResult): WrittenQuery[] {
+  return result.queryStatements.flatMap((q) => {
+    const tool = q.toolAST?.k === "Str" ? q.toolAST.v : undefined;
+    return isWidgetToolName(tool) ? [{ statementId: q.statementId, tool, args: literalValue(q.argsAST) }] : [];
+  });
+}
+
+/** A widget's Queries of our Widget tools, as written; none when the code does not parse. */
+export function widgetQueries(code: string): WrittenQuery[] {
+  try {
+    return writtenQueries(parser.parse(code));
+  } catch {
+    return [];
+  }
+}
+
+/** True when `value` has every value written out in `written`, at the same places; the open parts take anything. */
+function holds(value: unknown, written: unknown): boolean {
+  if (written === WORKED_OUT || written === undefined) return true;
+  if (Array.isArray(written)) return Array.isArray(value) && value.length === written.length && written.every((w, i) => holds(value[i], w));
+  if (isRecord(written)) return isRecord(value) && Object.entries(written).every(([key, w]) => holds(value[key], w));
+  return value === written;
+}
+
+/**
+ * True when a tool call in the browser answers this Query: the same tool, with every argument the Query writes
+ * out. The browser does not say which Query it runs, so the arguments tell: Query("case_data", {dataset: $pick})
+ * is answered whatever dataset is picked, and two Queries of emi that write different loan lengths each get
+ * their own calls.
+ */
+export function answers(query: WrittenQuery, tool: WidgetToolName, args: unknown): boolean {
+  return query.tool === tool && holds(args, query.args);
+}
+
 /** What a widget is made of; see widgetParts. */
 export type WidgetParts = { title: string | null; components: string[]; tools: WidgetToolName[]; datasets: string[] };
 
@@ -197,10 +238,7 @@ export function widgetParts(code: string): WidgetParts {
     const root = result.root;
     const title = typeof root?.props.title === "string" ? root.props.title : null;
     const components = [...walkNodes(root?.props.children)].map((n) => n.typeName).filter((name) => name !== "GuidedTask");
-    const calls = result.queryStatements.flatMap((q) => {
-      const tool = q.toolAST?.k === "Str" ? q.toolAST.v : undefined;
-      return isWidgetToolName(tool) ? [{ tool, args: literalValue(q.argsAST) }] : [];
-    });
+    const calls = writtenQueries(result);
     const datasets = calls.flatMap(({ tool, args }) => {
       const dataset = tool === "case_data" && isRecord(args) ? args.dataset : undefined;
       return typeof dataset === "string" && CASE_DATA_REFERENCE.test(dataset) ? [dataset] : [];

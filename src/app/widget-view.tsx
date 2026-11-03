@@ -3,7 +3,7 @@
 import { Renderer } from "@openuidev/react-lang";
 import { Component, useMemo, useState, type ReactNode } from "react";
 import type { CaseLoad } from "@/widgets/case-data-client";
-import { widgetProblems } from "@/widgets/check";
+import { answers, widgetProblems, widgetQueries, type WrittenQuery } from "@/widgets/check";
 import { GenuiTheme } from "@/widgets/genui-theme";
 import { WidgetBorderContext, widgetLibrary } from "@/widgets/library";
 import { settingsFrom } from "@/widgets/settings";
@@ -41,24 +41,42 @@ const LOADING = (
 );
 
 /**
- * Which query a tool call answers: the tool and what it reads (dataset, calculator, the input it varies, the
- * result it picks), not the numbers, so the same query run again with new slider values replaces its outcome.
+ * How one tool call of a widget went: the call (its tool and arguments, also as text), when it was made (a later
+ * call counts over an earlier one, whichever answers first), and its error in plain words, none when it worked.
  */
-function queryKey(tool: WidgetToolName, args: Record<string, unknown>): string {
-  return JSON.stringify([tool, args.dataset, args.calculator, args.vary, args.output]);
-}
+export type ToolOutcome = { call: string; tool: WidgetToolName; args: unknown; order: number; error?: string };
 
 /**
- * The Widget tools, each reporting how its call went: its error in plain words, or undefined when it worked.
- * `loadCase` is the widget's shared Case loads, if it has some.
+ * What to say under a finished widget: for each of its Queries, the error of the latest call answering it, when
+ * that call failed. The browser does not say which Query a call is for, so the written-out arguments tell (see
+ * `answers`): a Query whose dataset a Select picks loses its message once a pick works, and one Query's success
+ * never hides another's failure. A call that answers none of the Queries stands for itself.
  */
-function reportingTools(loadCase: CaseLoad | undefined, report: (query: string, error: string | undefined) => void): WidgetToolProvider {
+export function failedQueries(queries: WrittenQuery[], outcomes: ToolOutcome[]): string[] {
+  const latest = new Map<string, ToolOutcome>();
+  for (const outcome of outcomes) {
+    const answered = queries.filter((q) => answers(q, outcome.tool, outcome.args)).map((q) => q.statementId);
+    for (const query of answered.length ? answered : [outcome.call]) {
+      if ((latest.get(query)?.order ?? 0) < outcome.order) latest.set(query, outcome);
+    }
+  }
+  return [...new Set([...latest.values()].flatMap((outcome) => (outcome.error ? [outcome.error] : [])))];
+}
+
+/** The Widget tools, each reporting how its call went; `loadCase` is the widget's shared Case loads, if it has some. */
+function reportingTools(loadCase: CaseLoad | undefined, report: (outcome: ToolOutcome) => void): WidgetToolProvider {
   const tools = createWidgetTools({ fetchCaseData: loadCase });
+  let calls = 0;
   const reporting =
-    <K extends WidgetToolName>(name: K) =>
+    <K extends WidgetToolName>(tool: K) =>
     async (args: Record<string, unknown>) => {
-      const result = await tools[name](args);
-      report(queryKey(name, args), result.error);
+      const order = ++calls;
+      const result = await tools[tool](args);
+      try {
+        report({ call: JSON.stringify([tool, args]), tool, args, order, error: result.error });
+      } catch {
+        // A call that cannot be written down goes unreported; the chart still gets its rows.
+      }
       return result;
     };
   return {
@@ -71,8 +89,8 @@ function reportingTools(loadCase: CaseLoad | undefined, report: (query: string, 
 
 /**
  * One widget drawn with its own Widget tools, so its Queries get numbers from our code in the browser
- * (three Queries on one Case make one request). Under a finished widget, each query whose latest call
- * failed says why in one quiet line; moving a slider back to numbers the query can use clears it.
+ * (three Queries on one Case make one request). Under a finished widget, each Query whose latest call
+ * failed says why in one quiet line; moving a slider back to numbers the Query can use clears it.
  */
 function DrawnWidget({
   code,
@@ -85,21 +103,14 @@ function DrawnWidget({
   onSettings?: (settings: Record<string, number>) => void;
   loadCase?: CaseLoad;
 }) {
-  const [failed, setFailed] = useState<Record<string, string>>({});
+  // The latest outcome of each different call, by its text.
+  const [outcomes, setOutcomes] = useState<Record<string, ToolOutcome>>({});
   const tools = useMemo(
-    () =>
-      reportingTools(loadCase, (query, error) =>
-        setFailed((now) => {
-          if (now[query] === error) return now;
-          const next = { ...now };
-          if (error) next[query] = error;
-          else delete next[query];
-          return next;
-        }),
-      ),
+    () => reportingTools(loadCase, (outcome) => setOutcomes((now) => ((now[outcome.call]?.order ?? 0) > outcome.order ? now : { ...now, [outcome.call]: outcome }))),
     [loadCase],
   );
-  const messages = complete ? [...new Set(Object.values(failed))] : [];
+  const queries = useMemo(() => (complete ? widgetQueries(code) : []), [code, complete]);
+  const messages = complete ? failedQueries(queries, Object.values(outcomes)) : [];
   return (
     <>
       <GenuiTheme>

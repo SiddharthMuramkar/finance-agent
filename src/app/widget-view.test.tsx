@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { widgetProblems } from "@/widgets/check";
-import { WidgetView } from "./widget-view";
+import { widgetProblems, widgetQueries } from "@/widgets/check";
+import type { WidgetToolName } from "@/widgets/tool-specs";
+import { failedQueries, WidgetView, type ToolOutcome } from "./widget-view";
 
 // Widgets drawn on the server, as tests and the Notes page draw them: OpenUI's kit (layouts, charts) and our
 // Widget tools beside our own parts. A Query runs only in the browser, so on the server a chart reading one
@@ -52,5 +53,63 @@ describe("a Widget drawn with OpenUI's kit and our Widget tools", () => {
     const html = draw(UNKNOWN_TOOL);
     expect(html).toContain(FALLBACK);
     expect(html).not.toContain("Sensex prices");
+  });
+});
+
+/** A tool call's outcome as the Widget records it: `order` counts calls in the order they were made. */
+const outcome = (order: number, tool: WidgetToolName, args: Record<string, unknown>, error?: string): ToolOutcome => ({
+  call: JSON.stringify([tool, args]),
+  tool,
+  args,
+  order,
+  error,
+});
+
+describe("the line under a finished Widget when a Query's data could not be loaded", () => {
+  const PICKED = widgetQueries(`root = Widget("Two series", [pick, line])
+$pick = ""
+pick = Select("dataset", [sensex, fed], "Pick a series", {}, $pick)
+sensex = SelectItem("sensex-1992/sensex-close", "Sensex")
+fed = SelectItem("fed-hike-1994/fed-funds-rate", "Fed funds rate")
+d = Query("case_data", {dataset: $pick}, {rows: []})
+line = LineChart(d.rows.date, [Series("Value", d.rows.value)])`);
+  const notPicked = outcome(1, "case_data", { dataset: "" }, 'case_data: dataset: a Case Data reference, "caseId/datasetId". It takes {dataset}.');
+  const withheld = "No sourced data for fed-hike-1994/fed-funds-rate: it may not exist, or it is withheld until the reveal.";
+
+  it("goes once the Query's next call works, even when a Select changed the dataset it reads", () => {
+    expect(PICKED.map((q) => q.statementId)).toEqual(["d"]);
+    expect(failedQueries(PICKED, [notPicked])).toEqual([notPicked.error]);
+    const sensex = outcome(2, "case_data", { dataset: "sensex-1992/sensex-close" });
+    expect(failedQueries(PICKED, [notPicked, sensex])).toEqual([]);
+    expect(failedQueries(PICKED, [notPicked, sensex, outcome(3, "case_data", { dataset: "fed-hike-1994/fed-funds-rate" }, withheld)])).toEqual([withheld]);
+  });
+
+  it("counts the latest call to a Query, whichever answers first", () => {
+    const sensex = outcome(2, "case_data", { dataset: "sensex-1992/sensex-close" });
+    expect(failedQueries(PICKED, [sensex, notPicked])).toEqual([]);
+  });
+
+  it("keeps a Query's own message when another Query of the same tool works", () => {
+    const queries = widgetQueries(`root = Widget("Two loans", [rate, short, long])
+$rate = 8.5
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+q20 = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}}, {rows: []})
+q30 = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 30}}, {rows: []})
+short = Table([Col("Over 20 years", q20.rows.label), Col("Amount", q20.rows.text)])
+long = Table([Col("Over 30 years", q30.rows.label), Col("Amount", q30.rows.text)])`);
+    const failed = outcome(1, "calculate", { calculator: "emi", inputs: { principal: 5000000, ratePercent: 8.5, years: 20 } }, "emi could not run.");
+    const worked = outcome(2, "calculate", { calculator: "emi", inputs: { principal: 5000000, ratePercent: 8.5, years: 30 } });
+    expect(failedQueries(queries, [failed, worked])).toEqual(["emi could not run."]);
+    expect(failedQueries(queries, [failed, worked, outcome(3, "calculate", { calculator: "emi", inputs: { principal: 5000000, ratePercent: 9, years: 20 } })])).toEqual([]);
+  });
+
+  it("says each message once, and keeps the message of a call that answers none of the Widget's Queries", () => {
+    const queries = widgetQueries(`root = Widget("Two Cases", [a, b])
+a = HistoryChart("sensex-1992/sensex-close")
+b = HistoryChart("fed-hike-1994/fed-funds-rate")
+x = Query("case_data", {dataset: "fed-hike-1994/fed-funds-rate"}, {rows: []})
+y = Query("case_data", {dataset: "fed-hike-1994/fed-funds-rate"}, {rows: []})`);
+    expect(failedQueries(queries, [outcome(1, "case_data", { dataset: "fed-hike-1994/fed-funds-rate" }, withheld)])).toEqual([withheld]);
+    expect(failedQueries([], [outcome(1, "calculate", { calculator: "emi" }, "emi: inputs: expected record.")])).toEqual(["emi: inputs: expected record."]);
   });
 });
