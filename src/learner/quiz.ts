@@ -13,7 +13,8 @@ import { loadProgress, saveCheckResult } from "./memory";
  * hears the result later, in its next message (see `pendingQuizNote`).
  */
 
-export type OpenQuiz = { attemptId: number; checkId: string; attemptNo: number; questions: PublicQuestion[] };
+/** `checkNumber` of `checkCount`: where this Check stands among its Topic's Checks, for the "Check 1 of 2" tab. */
+export type OpenQuiz = { attemptId: number; checkId: string; checkNumber: number; checkCount: number; attemptNo: number; questions: PublicQuestion[] };
 
 /** The quiz to show now: the current Check, if it is a quiz at its Check step. Creates the attempt the first time. */
 export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promise<OpenQuiz | null> {
@@ -46,7 +47,14 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promis
     questionIds = selectQuestions({ ...check, questions: usable }, attempt.attemptNo);
     await db.update(quizAttempts).set({ questionIds }).where(eq(quizAttempts.id, attempt.id));
   }
-  return { attemptId: attempt.id, checkId: check.id, attemptNo: attempt.attemptNo, questions: publicQuestions(lookup, questionIds) };
+  return {
+    attemptId: attempt.id,
+    checkId: check.id,
+    checkNumber: place!.topic.checks.indexOf(check) + 1,
+    checkCount: place!.topic.checks.length,
+    attemptNo: attempt.attemptNo,
+    questions: publicQuestions(lookup, questionIds),
+  };
 }
 
 /**
