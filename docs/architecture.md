@@ -444,7 +444,8 @@ table of the Sensex asks the server for that Case once. A dataset that is missin
 line in the strip: the Widget's own line under the chart already says its data could not be loaded
 (see "When a widget is broken"), so the Learner reads it once. `HistoryChart` keeps its own amber
 frame, credit and withheld note, and it is easier to read: numbers on the left axis (lowest, middle,
-highest) and dates along the bottom (first, middle, last), bigger points, a readout ("<date>:
+highest) and dates along the bottom (first, middle, last), bigger points that keep their size on screen
+however narrow the panel (an 8px dot and a 7px ring round the point read), a readout ("<date>:
 <value>") when a point is hovered, tapped or reached with the keyboard (a line of more than 30 points
 is one stop, read with the arrow keys), and each value printed above its point when there are 12
 points or fewer. It is still plain SVG, so it draws on the server and in tests too.

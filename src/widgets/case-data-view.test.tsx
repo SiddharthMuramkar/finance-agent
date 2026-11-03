@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { CaseDataset } from "@/case-data/case-data";
 import { AnnuityFigure, HistoryFigure } from "./case-data-view";
+import { pointSizes } from "./history-plot";
 
 const yields: CaseDataset = {
   id: "treasury-30-year",
@@ -133,6 +134,32 @@ describe("a history chart the Learner can read", () => {
     expect(html.match(/data-testid="credit"/g)).toHaveLength(1);
     expect(marked(html, "sourced").join(" ")).toContain("Sourced history");
     expect(marked(html, "assumption")).toEqual([]);
+  });
+});
+
+describe("the size of a history chart's points on screen", () => {
+  // The drawing is 600 units wide; at the 768px iPad's panel it is 230px wide on screen, at a laptop's 410px.
+  const ipad = 600 / 230;
+  const laptop = 600 / 410;
+
+  it("draws as before on the server, where nothing is measured: dots of radius 4 and a ring of 7", () => {
+    expect(pointSizes(5, 1)).toEqual({ dot: 4, ring: 7 });
+    expect(draw(sensex)).toMatch(/<circle data-testid="history-point"[^>]* r="4"/);
+  });
+
+  it("keeps a dot of 4px and a ring of 7px however narrow the panel draws the line", () => {
+    for (const unitsPerPixel of [ipad, laptop]) {
+      const { dot, ring } = pointSizes(5, unitsPerPixel);
+      expect(dot / unitsPerPixel).toBeCloseTo(4);
+      expect(ring / unitsPerPixel).toBeCloseTo(7);
+    }
+  });
+
+  it("makes dots smaller where points crowd, so neighbours never merge, and leaves a long line's dots small", () => {
+    const gap = 580 / 29;
+    expect(pointSizes(30, ipad).dot).toBeCloseTo(0.4 * gap);
+    expect(pointSizes(30, laptop).dot / laptop).toBeCloseTo(4);
+    expect(pointSizes(31, ipad)).toEqual({ dot: 1.75, ring: 7 * ipad });
   });
 });
 
