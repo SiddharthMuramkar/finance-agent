@@ -1,7 +1,9 @@
 // Simulated Learner: drives the running app over HTTP, the way a person would, to walk the present value Topic.
 //
-// It logs in with the passcode, presses Continue, answers the Tutor with a cheap Learner model (claude-haiku-5-5),
-// takes the quiz through /api/quiz, and keeps going until the Topic is passed. After each turn it reads the Tutor's
+// It logs in with the passcode and drives the app as a Learner does (src/dev/learner-moves.ts): it chooses the
+// Topic (the page starts the opener), presses Next when there is nothing to answer and Finish this reply under a
+// reply cut off at its length limit, answers the Tutor with a cheap Learner model (claude-haiku-5-5), takes the
+// quiz through /api/quiz, and keeps going until the Topic is passed. After each turn it reads the Tutor's
 // step, duration and cost from the database (the `usage` table), and at the end it writes a transcript, a per-turn
 // table and a cost summary to the output folder. Source material and transcripts never go in the repo: pass an
 // output folder outside it.
@@ -24,6 +26,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { parse } from "yaml";
 import { join } from "node:path";
 import { archiveTopic, withIdleHours } from "../src/dev/simulated-learner.ts";
+import { nextMove, nextNamedIn, saysGoOn, turnBody } from "../src/dev/learner-moves.ts";
 
 const args = parseArgs(process.argv.slice(2));
 const base = (args.base ?? "").replace(/\/$/, "");
@@ -89,10 +92,14 @@ async function login() {
 
 const headers = () => ({ "Content-Type": "application/json", Cookie: cookie });
 
-/** Posts to /api/turn and reads the NDJSON stream. Returns the reply text and the events seen. */
+/** Posts to /api/turn and reads the NDJSON stream. Returns the reply text and the events seen, or why it was refused. */
 async function postTurn(body) {
   const res = await fetch(`${base}/api/turn`, { method: "POST", headers: headers(), body: JSON.stringify(body) });
-  if (res.status === 409) return { busy: true, text: "", events: [] };
+  if (res.status === 409) {
+    // Another turn is running (wait for it), or nothing ran: a Next not on offer, or an opener for a Session that already has messages.
+    const { error = "" } = await res.json().catch(() => ({}));
+    return /in progress/i.test(error) ? { busy: true, text: "", events: [] } : { refused: error, text: "", events: [] };
+  }
   if (!res.ok) throw new Error(`/api/turn answered HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const events = [];
   let text = "";
@@ -120,6 +127,7 @@ async function runTurn(body) {
   let resumes = 0;
   for (let attempt = 0; attempt < 12; attempt++) {
     const result = await postTurn(current);
+    if (result.refused !== undefined) return { refused: result.refused, text: "", events: [], resumes };
     if (result.busy) {
       await new Promise((r) => setTimeout(r, 3000));
       continue;
@@ -135,6 +143,40 @@ async function runTurn(body) {
     break;
   }
   return { text, events, resumes };
+}
+
+/** Chooses the Topic on the Course Map, as a Learner does: its Session shows at once. */
+async function chooseTopic() {
+  const res = await fetch(`${base}/api/jump`, { method: "POST", headers: headers(), body: JSON.stringify({ topicId }) });
+  if (!res.ok) throw new Error(`POST /api/jump answered HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+}
+
+/**
+ * Takes one move as a full turn. A refused Next is pressed again on the step the refusal names; with no Next on
+ * offer (a Check open, Explore unsettled), or an opener refused because the Session already has messages, the
+ * Learner types a reply instead. Returns the body that ran and its result.
+ */
+async function takeMove(move) {
+  let body = move.kind === "message" ? turnBody(move, await learnerReply(lastTutorText)) : turnBody(move);
+  // The Learner model only says to go on: a Learner now presses Next instead.
+  if (body.message !== undefined && saysGoOn(body.message)) body = turnBody({ kind: "next", step: state.step });
+  for (let tries = 0; tries < 3; tries++) {
+    const result = await runTurn(body);
+    if (result.refused === undefined) return { body, result };
+    const named = body.next ? nextNamedIn(result.refused) : null;
+    if (named) body = { next: named };
+    else if (body.opener) body = turnBody({ kind: "next", step: state.step });
+    else body = turnBody({ kind: "message" }, await learnerReply(lastTutorText || "(Say what you would like to do next.)"));
+  }
+  throw new Error(`The app refused every move: ${JSON.stringify(body)}`);
+}
+
+/** How a turn's body reads in the transcript. */
+function moveLabel(body) {
+  if (body.opener) return "(chose the Topic; the page started the opener)";
+  if (body.finish) return "(pressed Finish this reply)";
+  if (body.next) return `(pressed Next: ${body.next})`;
+  return body.message;
 }
 
 async function getQuiz() {
@@ -238,6 +280,9 @@ async function takeQuiz(quiz) {
 
 // ---------------------------------------------------------------- the run
 
+// Where the Learner stands, read after each turn; takeMove reads it too.
+let state;
+let lastTutorText = "";
 const transcript = [];
 const turns = [];
 const startedAt = new Date();
@@ -247,12 +292,12 @@ try {
   say(`Logged in to ${base} as the passcode holder.`);
   if (args.reset) await resetTopic();
 
-  let state = await readState();
+  state = await readState();
   say(`Start: step "${state.step}", status "${state.status}", ${state.sessions} Session(s) already.`);
   let forceNewSession = Boolean(args.reset);
   let newSessionDone = newSessionAt === "none";
   let afterQuiz = false;
-  let lastTutorText = "";
+  let cutShort = false;
   let sameStep = 0;
   let previousStep = null;
 
@@ -276,8 +321,8 @@ try {
       break;
     }
 
-    const body = n === 1 || afterQuiz || !lastTutorText ? { continue: true } : { message: await learnerReply(lastTutorText) };
-    if (body.continue && n > 1) noteAction("(I pressed Continue.)");
+    const move = nextMove({ first: n === 1, cutShort, afterQuiz, tutorText: lastTutorText, step: state.step });
+    if (move.kind === "opener") await chooseTopic();
     afterQuiz = false;
 
     const newSession = !newSessionDone && state.step === newSessionAt && n > 1;
@@ -285,7 +330,8 @@ try {
     const sessionsBefore = state.sessions;
     const wallStart = performance.now();
     // The setting goes back after the turn, and also on Ctrl-C or a kill in the middle of it.
-    const result = idleOverride ? await withIdleHours(query, "0", () => runTurn(body)) : await runTurn(body);
+    const { body, result } = idleOverride ? await withIdleHours(query, "0", () => takeMove(move)) : await takeMove(move);
+    if (body.message === undefined && n > 1) noteAction(`(I ${moveLabel(body).slice(1, -1)}.)`);
     const wallMs = Math.round(performance.now() - wallStart);
     const record = await readTurnRecord();
     state = await readState();
@@ -293,10 +339,11 @@ try {
     if (newSession) newSessionDone = true;
     forceNewSession = false;
     lastTutorText = result.text;
+    cutShort = result.events.some((e) => e.type === "cut_short");
 
     const turn = {
       n,
-      learner: body.continue ? "(pressed Continue)" : body.message,
+      learner: moveLabel(body),
       stepBefore,
       stepAfter: state.step,
       status: state.status,

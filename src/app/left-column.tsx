@@ -87,7 +87,10 @@ export function LeftColumn({
             {cutShort && (
               <>
                 <span className="text-sm leading-5 text-[var(--muted)]">The reply was cut short.</span>
-                <SecondaryButton onClick={() => void send({ continue: true }, "Continue.")}>Continue</SecondaryButton>
+                {/* Code asks the Tutor to finish: no Learner message is stored or drawn. */}
+                <SecondaryButton data-testid="finish-reply" onClick={() => void send({ finish: true })}>
+                  Finish this reply
+                </SecondaryButton>
               </>
             )}
           </div>

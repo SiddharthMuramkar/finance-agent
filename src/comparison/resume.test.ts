@@ -38,13 +38,13 @@ describe("taking a whole Tutor turn", () => {
     expect(r.resumes).toBe(1);
   });
 
-  it("continues a reply cut short at max_tokens and joins the parts", async () => {
+  it("finishes a reply cut short at max_tokens with Finish this reply and joins the parts", async () => {
     const s = scripted([
       [{ type: "text", text: "Part one." }, { type: "cut_short", message: "m" }, done(0.01, "max_tokens")],
       [{ type: "text", text: " Part two." }, done(0.02)],
     ]);
     const r = await takeWholeTurn(s.run, "hi");
-    expect(s.inputs).toEqual(["hi", { continue: true }]);
+    expect(s.inputs).toEqual(["hi", { finish: true }]);
     expect(r.text).toBe("Part one.\n\n Part two.");
     expect(r.usage.costUsd).toBeCloseTo(0.03, 6);
   });

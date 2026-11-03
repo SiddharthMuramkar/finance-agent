@@ -43,7 +43,7 @@ const sent = (request: Request) => JSON.stringify(request.messages);
 describe("present value pilot, end to end", () => {
   it("walks concept, explore, your turn, the Check, reveal and principle to a passed Topic with a filled Topic Note", async () => {
     const db = await testDb();
-    const turn = async (message: string | { continue: true }, replies: ScriptedReply[]) => {
+    const turn = async (message: string | { opener: true }, replies: ScriptedReply[]) => {
       const { client, requests } = scriptedClient(replies);
       await collect(runTutorTurn({ db, client, map }, message));
       return requests;
@@ -52,7 +52,7 @@ describe("present value pilot, end to end", () => {
 
     // Story and concept.
     expect(await stepNow()).toBe("story");
-    await turn({ continue: true }, [say("Picture October 2018.")]);
+    await turn({ opener: true }, [say("Picture October 2018.")]);
     await turn("Interesting, go on", [finish("f-story", "story"), say("Now the idea.")]);
     expect(await stepNow()).toBe("concept");
     await turn("Got it, carry on", [finish("f-concept", "concept"), say("Over to the Widget.")]);

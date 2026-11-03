@@ -47,6 +47,21 @@ function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the workspace's left column", () => {
+  it("draws an old stored Continue. as a → next step divider, and says Continue nowhere", () => {
+    const html = workspace({
+      initial: [
+        { role: "assistant", text: "That is the story." },
+        { role: "user", text: "Continue." },
+        { role: "assistant", text: "Now the concept." },
+      ],
+    });
+    const at = html.indexOf("→ next step");
+    expect(at).toBeGreaterThan(html.indexOf("That is the story."));
+    expect(at).toBeLessThan(html.indexOf("Now the concept."));
+    expect(html).toContain('data-testid="next-step-divider"');
+    expect(html).not.toMatch(/Continue/);
+  });
+
   it("has a polite status line for screen readers, empty until a turn runs, apart from the streaming text", () => {
     const html = workspace();
     expect(html).toMatch(/<p role="status" aria-live="polite" class="sr-only" data-testid="turn-status"><\/p>/);

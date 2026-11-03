@@ -40,7 +40,7 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, CONTINUE_TEXT, dropTurn, latestTurn, NEXT_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
@@ -51,7 +51,7 @@ import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage
  * runs the Tool Runner loop with cut-off, compaction, refusal and widget-correction handling.
  */
 
-export { latestTurn, BUSY_MESSAGE, CONTINUE_TEXT } from "./turn-status";
+export { latestTurn, BUSY_MESSAGE } from "./turn-status";
 
 /** Room for adaptive thinking as well as the visible reply. */
 const MAX_TOKENS = 16000;
@@ -118,7 +118,7 @@ export type TurnEvent =
   | { type: "replay"; text: string }
   /** The turn reached its time limit; saved loop steps are kept and the browser should resume. */
   | { type: "cut_off" }
-  /** The reply hit max_tokens: it is kept as sent, and the Learner can continue. */
+  /** The reply hit max_tokens: it is kept as sent, and the Learner is offered Finish this reply. */
   | { type: "cut_short"; message: string }
   /**
    * The model declined; the declined loop step is discarded. `text` is the reply saved by earlier
@@ -130,7 +130,7 @@ export type TurnEvent =
   /** The API call failed; everything already saved is kept and the Learner can retry. */
   | { type: "error"; kind: FailureKind; message: string };
 
-export const CUT_SHORT_MESSAGE = "The reply was cut short because it reached its length limit. Press Continue to carry on.";
+export const CUT_SHORT_MESSAGE = "The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
 /** The refusal message when tool calls earlier in the same turn had already saved progress. */
 export const REFUSAL_AFTER_SAVES_MESSAGE =
@@ -155,12 +155,13 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 }
 
 /**
- * A new message, Continue (the cut-off reply's button), the opener (the page starts it when the Session it
- * shows has no messages; code writes its note), the Learner's Next (naming the step on its chip, or
- * "complete"; code writes its note), the quiz follow-up the page starts after a missed quiz (code writes its note),
- * or a resume of the last turn after a cut-off or failure (Retry).
+ * A new message, Finish this reply (offered under a reply cut off at its length limit; code writes its note),
+ * the opener (the page starts it when the Session it shows has no messages; code writes its note), the
+ * Learner's Next (naming the step on its chip, or "complete"; code writes its note), the quiz follow-up the page
+ * starts after a missed quiz (code writes its note), or a resume of the last turn after a cut-off or failure
+ * (Retry), which sends again whatever note or message the turn saved.
  */
-export type TurnInput = string | { continue: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { resume: true } | PastedInput;
+export type TurnInput = string | { finish: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -234,6 +235,9 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   } else if (typeof input === "object" && "next" in input) {
     // Code writes the Next's note once it has taken the move, inside the lock.
     started = NEXT_PREFIX;
+  } else if (typeof input === "object" && "finish" in input) {
+    // Finish this reply stores no Learner message: code writes the note that asks the Tutor to finish.
+    started = FINISH_NOTE;
   } else if (typeof input === "object" && "quizFollowUp" in input) {
     // Code writes the follow-up's note inside the lock, once it has found the missed quiz to go over.
     started = QUIZ_FOLLOW_UP_PREFIX;
@@ -353,8 +357,10 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   } else {
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
     // that turn is run again from the message saved on it.
-    // An opener sends the note code wrote for it, which its turn saved.
-    const learnerText = typeof input === "object" && ("resume" in input || "opener" in input || "next" in input || "quizFollowUp" in input) ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
+    // A code-written turn (opener, Next, Finish this reply, quiz follow-up) sends the note its turn saved, and so does a Retry of any turn.
+    // A turn from before Finish this reply that saved the old "Continue." (or, older still, nothing) is asked to finish instead.
+    const saved = turn.input === OLD_CONTINUE_TEXT ? null : turn.input;
+    const learnerText = typeof input === "string" || "paste" in input ? learnerTextOf(input) : (saved ?? FINISH_NOTE);
     // Complete this Topic passed the Topic its Next pinned: the turn closes it in that Session, and starts nothing else.
     const completed = await completedSession(db, map, turn);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
@@ -588,10 +594,9 @@ async function completedSession(db: Db, map: CourseMap, turn: Turn): Promise<Ses
   return pinned && pinned.topicId !== (await currentTopicId(db, map, turn.learnerId)) ? pinned : undefined;
 }
 
-/** What the Learner sent, as saved on the turn: their message, or "Continue.". */
-function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true } | { next: NextName } | { quizFollowUp: true }>): string {
-  if (typeof input === "string") return input;
-  return "paste" in input ? input.message : CONTINUE_TEXT;
+/** What the Learner wrote, as saved on the turn. */
+function learnerTextOf(input: string | PastedInput): string {
+  return typeof input === "string" ? input : input.message;
 }
 
 /** How big the conversation was on the last request, which the next request repeats and adds to. */

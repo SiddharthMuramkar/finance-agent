@@ -214,7 +214,7 @@ describe("Tutor Turn", () => {
     it("tells the Tutor the Topic and Teaching Step in an appended message, withholding the reveal", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map }, "Go on."));
       const [context] = systemTexts(requests[0]);
       expect(context).toContain("Present value");
       expect(context).toContain("Teaching Step: story");
@@ -225,7 +225,7 @@ describe("Tutor Turn", () => {
     it("tells the Tutor which formulas the Topic teaches, and that they appear only as Formula Cards", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map }, "Go on."));
       const [context] = systemTexts(requests[0]);
       expect(context).toContain("Formulas this Topic teaches");
       expect(context).toContain('"growing-annuity-present-value"');
@@ -279,7 +279,7 @@ describe("Tutor Turn", () => {
         { content: [finish("concept", "toolu_concept_again")] },
         { content: [{ type: "text", text: "Your turn." }] },
       ]);
-      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map }, "Go on."));
       const results = requests[2].messages.flatMap((m) =>
         Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
       );
@@ -299,7 +299,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Story told." }, finish("story")] },
         { content: [{ type: "text", text: "Now the concept." }] },
       ]);
-      const events = await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      const events = await collect(runTutorTurn({ db, client, map }, "Go on."));
       const streamed = events.flatMap((e) => (e.type === "text" ? [e.text] : [])).join("");
       expect(streamed).toBe("Story told.\n\nNow the concept.");
     });
@@ -307,7 +307,7 @@ describe("Tutor Turn", () => {
     it("a Topic started by this turn cannot have its first step finished in the same turn", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [finish("story")] }, { content: [{ type: "text", text: "The story." }] }]);
-      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map }, "Go on."));
       const [result] = requests[1].messages.flatMap((m) =>
         Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
       );
@@ -327,7 +327,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Your Check." }] },
         { content: [{ type: "text", text: "Here is what happened." }] },
       ]);
-      await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
       // A Check result saved outside a turn (as a quiz will be).
       expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true })).toEqual({ ok: true, repeated: false });
       const summary = await learnerSummary(db, map);
@@ -335,7 +335,7 @@ describe("Tutor Turn", () => {
       expect(summary).toContain("The reveal has been shown.");
 
       time.advance(7 * HOUR);
-      await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
       const sessions = await listSessions(db);
       expect(sessions).toHaveLength(1);
       const later = requests.at(-1)!;
@@ -353,7 +353,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Your Check." }] },
         { content: [{ type: "text", text: "Here is what happened." }] },
       ]);
-      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map }, "Go on."));
       await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true });
 
       await collect(runTutorTurn({ db, client, map }, "What happened next?"));
@@ -481,7 +481,7 @@ describe("Tutor Turn", () => {
         const db = await testDb();
         await seed(db);
         const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Go on."));
         const [context] = systemTexts(requests[0]);
         expect(context).toContain(`"${caseId}/cash-option"`);
         expect(context).toContain("Source of cash-option");
@@ -501,7 +501,7 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Your Check." }] },
           { content: [{ type: "text", text: "Here is what happened." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Go on."));
         await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true });
         await collect(runTutorTurn({ db, client, map }, "What happened next?"));
         const context = String(requests.at(-1)!.messages.at(-1)!.content);
@@ -513,7 +513,7 @@ describe("Tutor Turn", () => {
       it("when a Case has no Case Data, the context says so and tells the Tutor to say data is missing", async () => {
         const db = await testDb();
         const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Go on."));
         const [context] = systemTexts(requests[0]);
         expect(context).toMatch(/Case Data: none is available for this Case/);
         expect(context).toMatch(/say plainly that it is not available/i);
@@ -552,7 +552,7 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: first.id, verdict: "pass", reasons: "Discounted the payments." })] },
           { content: [{ type: "text", text: "On to the next part." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map: twoChecks }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map: twoChecks }, "Go on."));
 
         // What the Tutor had seen at each request: context messages and tool results.
         const seen = requests.map((r) => [...systemTexts(r), ...toolResults(r).map((b) => String(b.content))].join("\n"));
@@ -573,7 +573,7 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: checkId, verdict: "pass", reasons: "Discounted each payment and named the rate." })] },
           { content: [{ type: "text", text: "Well reasoned." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Go on."));
         await collect(runTutorTurn({ db, client, map }, "Later payments are worth less today."));
 
         expect(requests[0].tools).toContainEqual({ name: "record_check_verdict" });
@@ -603,7 +603,7 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: checkId, verdict: "pass", reasons: "Too early." }, "toolu_early")] },
           { content: [{ type: "text", text: "Story first." }] },
         ]);
-        await collect(runTutorTurn({ db, client: early.client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client: early.client, map }, "Go on."));
         const earlyResults = toolResults(early.requests.at(-1)!);
         await advanceToCheck(db, map);
         const { client, requests } = scriptedClient([
@@ -629,7 +629,7 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: checkId, verdict: "not_yet", reasons: "Added the payments without discounting." })] },
           { content: [{ type: "text", text: "Not yet. Try again." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Go on."));
 
         expect(String(toolResults(requests.at(-1)!).at(-1)!.content)).toContain("not yet");
         expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
@@ -654,7 +654,7 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Not yet." }] },
           { content: [{ type: "text", text: "Go on." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Go on."));
         await collect(runTutorTurn({ db, client, map }, "Because of interest."));
 
         const second = requests[1].messages;
@@ -681,9 +681,9 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Why can both figures describe one prize?" }] },
           { content: [{ type: "text", text: "Welcome back." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
         time.advance(7 * HOUR);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
         expect(await listSessions(db)).toHaveLength(1);
         expect(systemTexts(requests.at(-1)!).at(-1)).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
       });
@@ -704,11 +704,11 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Not yet." }] },
           { content: [{ type: "text", text: "Welcome back." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
         expect(String(toolResults(requests[1]).at(-2)!.content)).toContain("Recorded by code: misconception noted");
 
         time.advance(7 * HOUR);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
         const opening = systemTexts(requests.at(-1)!).at(-1)!;
         expect(opening.startsWith(OPENING_PREFIX)).toBe(true);
         // Saved once despite the repeated tool call ID.
@@ -726,7 +726,7 @@ describe("Tutor Turn", () => {
           { content: [same] },
           { content: [{ type: "text", text: "Try again." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map }, "Go on."));
         expect(await loadCheckResults(db)).toHaveLength(1);
       });
     });
@@ -905,7 +905,7 @@ describe("Tutor Turn", () => {
       expect(events.filter((e) => e.type === "correction")).toHaveLength(1);
     });
 
-    it("a correction cut off by max_tokens is handled like any cut-off: Continue is offered and a truncated tool call is not run", async () => {
+    it("a correction cut off by max_tokens is handled like any cut-off: Finish this reply is offered and a truncated tool call is not run", async () => {
       const db = await testDb();
       const map = withoutQuizChecks(loadCourseMap());
       await ensureTopicStarted(db, map); // an earlier turn has shown the story
@@ -919,7 +919,7 @@ describe("Tutor Turn", () => {
       expect(events).toContainEqual({ type: "cut_short", message: expect.stringMatching(/cut short/i) });
       expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "max_tokens" });
 
-      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map }, { finish: true }));
       const results = requests[2].messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).filter((b) => b.type === "tool_result");
       expect(results).toEqual([{ type: "tool_result", tool_use_id: "toolu_cut_fix", is_error: true, content: expect.stringMatching(/Not run/) }]);
       expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
@@ -953,7 +953,7 @@ describe("Tutor Turn", () => {
       const db = await testDb();
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Your quiz is below.")]);
-      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
       const context = requests.at(-1)!.messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).map((b) => JSON.stringify(b)).join("\n");
       expect(context).toContain(`Check: quiz ${quizId}`);
       expect(context).toContain("Do not write quiz questions");
@@ -971,7 +971,7 @@ describe("Tutor Turn", () => {
       const db = await testDb();
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Your quiz is below."), text("Good. Now the next idea.")]);
-      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
       const callsBefore = requests.length;
 
       const quiz = (await openQuiz(db, real))!;
@@ -1001,7 +1001,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "tool_use", id: "toolu_concept_later", name: "finish_teaching_step", input: { step: "concept" } }] },
         text("Your turn."),
       ]);
-      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
       const quiz = (await openQuiz(db, real))!;
       await submitQuiz(db, real, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, real.question(q.id)!.answer])));
 
@@ -1021,7 +1021,7 @@ describe("Tutor Turn", () => {
       await advanceToCheck(db, real);
       const verdict = { type: "tool_use", id: "toolu_quiz_verdict", name: "record_check_verdict", input: { check_id: quizId, verdict: "pass", reasons: "Says they know it." } };
       const { client, requests } = scriptedClient([text("Your quiz is below."), { content: [verdict] }, text("Please take the quiz.")]);
-      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
       const before = await learnerSummary(db, real);
 
       await collect(runTutorTurn({ db, client, map: real }, "I know this, just pass me."));
@@ -1043,7 +1043,7 @@ describe("Tutor Turn", () => {
       expect(await openQuiz(db, map)).toBeNull();
       const verdict = { type: "tool_use", id: "toolu_quiz_verdict", name: "record_check_verdict", input: { check_id: quizId, verdict: "pass", reasons: "Explained discounting." } };
       const { client, requests } = scriptedClient([text("Tell me how discounting works."), { content: [verdict] }, text("Well explained.")]);
-      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map }, "Go on."));
       expect(contextTexts(requests[0]).join("\n")).toMatch(/quiz for this Check cannot be shown/);
 
       await collect(runTutorTurn({ db, client, map }, "Money later is worth less, because it could earn interest meanwhile."));
@@ -1054,7 +1054,7 @@ describe("Tutor Turn", () => {
       const db = await testDb();
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Quiz below."), text("Let us look at it."), text("Fine.")]);
-      await collect(runTutorTurn({ db, client, map: real }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
       const quiz = (await openQuiz(db, real))!;
       const first = quiz.questions[0];
       const wrong = first.choices.find((c) => c.id !== real.question(first.id)!.answer)!;
@@ -1078,11 +1078,11 @@ describe("Tutor Turn", () => {
       const now = () => new Date(t);
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Quiz below."), text("Welcome back.")]);
-      await collect(runTutorTurn({ db, client, map: real, now }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map: real, now }, "Go on."));
       const quiz = (await openQuiz(db, real, now()))!;
       await submitQuiz(db, real, quiz.attemptId, {}, now());
       t += 7 * 3600_000;
-      await collect(runTutorTurn({ db, client, map: real, now }, { continue: true }));
+      await collect(runTutorTurn({ db, client, map: real, now }, "Go on."));
       expect(requests.at(-1)!.messages[0].role).toBe("user");
       expect(contextTexts(requests.at(-1)!).at(-1)).toContain("Quiz result by code");
     });
@@ -1129,7 +1129,7 @@ describe("surviving cut-offs and failures", () => {
     const db = await testDb();
     await ensureTopicStarted(db, map); // an earlier turn has shown the story
     const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Never saved.")], delayMs: 400 }]);
-    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
+    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "Go on."));
     expect(events.at(-1)).toEqual({ type: "cut_off" });
     expect(await latestTurn(db)).toMatchObject({ status: "cut_off" });
     expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
@@ -1147,7 +1147,7 @@ describe("surviving cut-offs and failures", () => {
     expect(await latestTurn(db)).toMatchObject({ status: "finished" });
     // The Learner's message is stored once, and the unsaved step's text never was.
     expect(noUsage(await loadCurrentSession(db))).toEqual([
-      { role: "user", text: "Continue." },
+      { role: "user", text: "Go on." },
       { role: "assistant", text: "Now the concept." },
     ]);
   });
@@ -1159,7 +1159,7 @@ describe("surviving cut-offs and failures", () => {
     await advanceToCheck(db, map);
     const verdict = { type: "tool_use", id: "toolu_v", name: "record_check_verdict", input: { check_id: checkId, verdict: "not_yet", reasons: "No discounting." } };
     const first = scriptedClient([{ content: [text("Your Check.")] }, { content: [verdict] }, { content: [text("Lost.")], delayMs: 400 }]);
-    await collect(runTutorTurn({ db, client: first.client, map }, { continue: true }));
+    await collect(runTutorTurn({ db, client: first.client, map }, "Go on."));
     await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "The bigger number wins."));
     expect(await loadCheckResults(db)).toHaveLength(1);
 
@@ -1172,7 +1172,7 @@ describe("surviving cut-offs and failures", () => {
   it("the resume replays the reply text saved so far, so text from the unsaved step is replaced on screen", async () => {
     const db = await testDb();
     const first = scriptedClient([{ content: [text("Saved part. "), finish("story")] }, { content: [text("Unsaved part.")], delayMs: 400 }]);
-    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
+    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "Go on."));
     expect(events).toContainEqual({ type: "text", text: "Saved part. " });
     const resume = scriptedClient([{ content: [text("Resumed part.")] }]);
     const resumed = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
@@ -1206,7 +1206,7 @@ describe("surviving cut-offs and failures", () => {
     const db = await testDb();
     await ensureTopicStarted(db, map); // an earlier turn has shown the story
     const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Lost.")], delayMs: 400 }]);
-    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, { continue: true }));
+    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "Go on."));
     const next = scriptedClient([{ content: [text("Where were we? The concept.")] }]);
     expect((await collect(runTutorTurn({ db, client: next.client, map }, "Hello?"))).at(-1)).toMatchObject({ type: "done" });
     const sent = next.requests[0].messages;
@@ -1226,16 +1226,16 @@ describe("surviving cut-offs and failures", () => {
     expect((await collect(runTutorTurn({ db, client, map, now }, "Hello"))).at(-1)).toMatchObject({ type: "done" });
   });
 
-  it("max_tokens: the partial reply is kept as sent, the Learner is told it was cut short, a truncated tool call is not run, and Continue carries on", async () => {
+  it("max_tokens: the partial reply is kept as sent, the Learner is told it was cut short, a truncated tool call is not run, and Finish this reply carries on", async () => {
     const db = await testDb();
     const partial = [text("A rupee today is worth"), finish("story", "toolu_cut")];
     const { client, requests } = scriptedClient([{ content: partial, stop_reason: "max_tokens" }, { content: [text("...more than a rupee next year.")] }]);
-    const events = await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    const events = await collect(runTutorTurn({ db, client, map }, "Go on."));
     expect(events).toContainEqual({ type: "cut_short", message: expect.stringMatching(/cut short/i) });
     expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "max_tokens" });
     expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
 
-    await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    await collect(runTutorTurn({ db, client, map }, { finish: true }));
     const sent = requests[1].messages;
     expect(sent).toContainEqual({ role: "assistant", content: partial });
     expect(resultsIn(requests[1])).toEqual([{ type: "tool_result", tool_use_id: "toolu_cut", is_error: true, content: expect.stringMatching(/Not run/) }]);
@@ -1328,7 +1328,7 @@ describe("surviving cut-offs and failures", () => {
     await db.execute(sql`CREATE FUNCTION refuse_write() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'disk full'; END $$ LANGUAGE plpgsql`);
     await db.execute(sql`CREATE TRIGGER refuse_progress BEFORE UPDATE ON topic_progress FOR EACH ROW EXECUTE FUNCTION refuse_write()`);
     const { client, requests } = scriptedClient([{ content: [finish("story")] }, { content: [text("Sorry, that was not saved.")] }]);
-    const events = await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    const events = await collect(runTutorTurn({ db, client, map }, "Go on."));
     expect(events).toContainEqual({ type: "save_failed", message: expect.stringMatching(/could not be saved/i) });
     expect(resultsIn(requests[1])[0]).toMatchObject({ is_error: true, content: expect.stringMatching(/Nothing was recorded/) });
     await db.execute(sql`DROP TRIGGER refuse_progress ON topic_progress`);
@@ -1365,9 +1365,9 @@ describe("surviving cut-offs and failures", () => {
     const time = Date.parse("2026-11-02T09:00:00Z");
     const note = { type: "tool_use", id: "toolu_m", name: "record_misconception", input: { description: "Adds payments without discounting.", topic_id: "Present value" } };
     const { client, requests } = scriptedClient([{ content: [note] }, { content: [text("Noted.")] }, { content: [text("Welcome back.")] }]);
-    await collect(runTutorTurn({ db, client, map, now: () => new Date(time) }, { continue: true }));
+    await collect(runTutorTurn({ db, client, map, now: () => new Date(time) }, "Go on."));
     expect(resultsIn(requests[1])[0]).not.toHaveProperty("is_error");
-    await collect(runTutorTurn({ db, client, map, now: () => new Date(time + 7 * 3600_000) }, { continue: true }));
+    await collect(runTutorTurn({ db, client, map, now: () => new Date(time + 7 * 3600_000) }, "Go on."));
     expect(String(requests.at(-1)!.messages.at(-1)!.content)).toContain("Adds payments without discounting.");
   });
 
@@ -1407,7 +1407,7 @@ describe("surviving cut-offs and failures", () => {
     await ensureTopicStarted(db, map); // an earlier turn has shown the story
     const same = finish("story", "toolu_same");
     const { client, requests } = scriptedClient([{ content: [same] }, { content: [same] }, { content: [text("Concept.")] }]);
-    await collect(runTutorTurn({ db, client, map }, { continue: true }));
+    await collect(runTutorTurn({ db, client, map }, "Go on."));
     const results = resultsIn(requests.at(-1)!);
     expect(results.map((r) => r.is_error ?? false)).toEqual([false, false]);
     expect(results[1].content).toEqual(results[0].content);

@@ -18,7 +18,7 @@ import { pasteSummary } from "./pasted";
 import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import type { ToolDefinition } from "./instructions";
 import { JUST_TELL_ME } from "./chips";
-import { CONTINUE_TEXT, isCodeWritten, turnKind } from "./turn-status";
+import { isCodeWritten, OLD_CONTINUE_TEXT, turnKind } from "./turn-status";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
@@ -53,10 +53,6 @@ export const VERDICT_PACING_REJECTION =
 /** Sent back when the Tutor records an Insight attempt at an explore step it only just reached, before the Learner could try. */
 export const INSIGHT_PACING_REJECTION =
   "Cannot record an attempt: the explore step began during this turn, so the Learner has not seen the Insight question yet. Put the question in your reply now, then stop and wait for the Learner's own words; record their attempt in a later turn.";
-
-/** Sent back when the Learner only pressed Continue: that is never an attempt. */
-export const CONTINUE_NOT_AN_ATTEMPT =
-  "Not recorded: the Learner only pressed Continue, which is never an attempt at the Insight. Invite them to play with the Widget and say what they notice, in their own words, then wait.";
 
 /** Sent back when the message is a help chip's words or a note code wrote: neither is ever an attempt. */
 export const NOT_THE_LEARNERS_ATTEMPT =
@@ -240,11 +236,12 @@ export function toolCode(
         once(context?.toolUse.id, "record_insight_attempt", async (tx) => {
           const [turn] = await tx.select().from(turns).where(eq(turns.id, turnId));
           const message = turn?.input ?? "";
-          // Pressing Continue is never an attempt, whatever words the Tutor offers.
-          if (message.trim() === CONTINUE_TEXT) return { ok: false, text: CONTINUE_NOT_AN_ATTEMPT };
-          // Nor is a note code wrote or a help chip; the Just tell me chip only ever asks to be told (ADR 0001).
+          // An old "Continue.", a note code wrote (Finish this reply's among them) or a help chip is never an attempt,
+          // whatever words the Tutor offers; the Just tell me chip only ever asks to be told (ADR 0001).
           const justTellMe = message.trim() === JUST_TELL_ME;
-          if (isCodeWritten(message) || (turn && turnKind(turn) === "chip" && !justTellMe)) return { ok: false, text: NOT_THE_LEARNERS_ATTEMPT };
+          if (message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || (turn && turnKind(turn) === "chip" && !justTellMe)) {
+            return { ok: false, text: NOT_THE_LEARNERS_ATTEMPT };
+          }
           // Pacing rule: the Learner must have seen the question before an attempt can count.
           if (navigate(map, await loadProgress(tx, learnerId))?.step === "explore" && (await stepBeganThisTurn(tx))) return { ok: false, text: INSIGHT_PACING_REJECTION };
           const saved = await saveInsightAttempt(
