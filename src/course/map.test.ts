@@ -77,6 +77,18 @@ describe("Course Map validator", () => {
     expect(map?.topic("b")?.formulas).toEqual([]);
   });
 
+  it("exposes a Topic's You'll learn bullets, and none when the file has none", () => {
+    const { map, errors } = parseCourseMap([topic("a", "youllLearn:\n  - Tell a point from a percent.\n  - Name the base of a change."), topic("b")]);
+    expect(errors).toEqual([]);
+    expect(map?.topic("a")?.youllLearn).toEqual(["Tell a point from a percent.", "Name the base of a change."]);
+    expect(map?.topic("b")?.youllLearn).toBeUndefined();
+  });
+
+  it("rejects one You'll learn bullet or four", () => {
+    expect(parseCourseMap([topic("a", "youllLearn: [One.]")]).errors.join()).toMatch(/a\.yaml: youllLearn/);
+    expect(parseCourseMap([topic("a", "youllLearn: [One., Two., Three., Four.]")]).errors.join()).toMatch(/a\.yaml: youllLearn/);
+  });
+
   it("rejects a Topic that lists a formula the registry does not have", () => {
     const { errors } = parseCourseMap([topic("a", "formulas: [wacc]")]);
     expect(errors.join()).toMatch(/a\.yaml: formulas\.0: Unknown formula; the formula registry has: present-value/);
