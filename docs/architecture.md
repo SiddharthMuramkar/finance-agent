@@ -1511,7 +1511,7 @@ and separate the argument's facts, inferences and forecasts.
 
 **What it does.** Signed out, `/` shows a public page that says what the Study Workspace is: a
 headline, a screenshot, three counts (Topics written of planned, every Case in the outline, Library
-sources), the six Teaching Steps and "Every number has a source". Signed in, `/` is the workspace as
+sources), the seven Teaching Steps and "Every number has a source". Signed in, `/` is the workspace as
 before. The page reads no Learner data and no Library text, only counts. All its words live in
 `copy.ts`, marked DRAFT, and a small "Draft" pill shows near the headline until the owner rewrites them.
 
