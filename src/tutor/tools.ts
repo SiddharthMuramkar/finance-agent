@@ -16,7 +16,8 @@ import { stepContext, topicCompleteContext } from "./context";
 import { pasteSummary } from "./pasted";
 import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import type { ToolDefinition } from "./instructions";
-import { CONTINUE_TEXT } from "./turn-status";
+import { JUST_TELL_ME } from "./chips";
+import { CONTINUE_TEXT, isCodeWritten, turnKind } from "./turn-status";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
@@ -55,6 +56,10 @@ export const INSIGHT_PACING_REJECTION =
 /** Sent back when the Learner only pressed Continue: that is never an attempt. */
 export const CONTINUE_NOT_AN_ATTEMPT =
   "Not recorded: the Learner only pressed Continue, which is never an attempt at the Insight. Invite them to play with the Widget and say what they notice, in their own words, then wait.";
+
+/** Sent back when the message is a help chip's words or a note code wrote: neither is ever an attempt. */
+export const NOT_THE_LEARNERS_ATTEMPT =
+  "Not recorded: this message is a chip the Learner pressed or a note code wrote, which is never an attempt at the Insight. Answer what it asks, invite the Learner to say what they notice in their own words, then wait.";
 
 /** The closing instruction of every Insight result: the reply's last words come after the tool result. */
 const WRITE_AFTER = "Write your reply to the Learner now, after this result, and make it the final text of your reply.";
@@ -230,12 +235,15 @@ export function toolCode(
           const message = turn?.input ?? "";
           // Pressing Continue is never an attempt, whatever words the Tutor offers.
           if (message.trim() === CONTINUE_TEXT) return { ok: false, text: CONTINUE_NOT_AN_ATTEMPT };
+          // Nor is a note code wrote or a help chip; the Just tell me chip only ever asks to be told (ADR 0001).
+          const justTellMe = message.trim() === JUST_TELL_ME;
+          if (isCodeWritten(message) || (turn && turnKind(turn) === "chip" && !justTellMe)) return { ok: false, text: NOT_THE_LEARNERS_ATTEMPT };
           // Pacing rule: the Learner must have seen the question before an attempt can count.
           if (navigate(map, await loadProgress(tx, learnerId))?.step === "explore" && (await stepBeganThisTurn(tx))) return { ok: false, text: INSIGHT_PACING_REJECTION };
           const saved = await saveInsightAttempt(
             tx,
             map,
-            { reported: outcome, words: learner_words, learnerMessage: message, toolCallId: context!.toolUse.id, model, turnId },
+            { reported: justTellMe ? "asked_to_be_told" : outcome, words: learner_words, learnerMessage: message, toolCallId: context!.toolUse.id, model, turnId },
             now(),
             learnerId,
           );

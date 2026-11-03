@@ -1563,7 +1563,7 @@ and a finish that passes the Topic store none. In the workspace render: the divi
 separator between the parts, with one Save to notes; Widget chips stay in each part; an unknown kind
 is skipped. The old Session page draws the divider between the parts too.
 
-## The Learner's Next and code-written turns (`src/tutor/next.ts`, `turn.ts`, `turn-status.ts`, `transcript.ts`, `NextChip` in `workspace-parts.tsx`, `left-column.tsx`, `turn-stream.ts`, spec #119, ticket #133)
+## The Learner's Next and code-written turns (`src/tutor/next.ts`, `turn.ts`, `turn-status.ts`, `transcript.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-stream.ts`, spec #119, ticket #133)
 
 **What it does.**
 - **The Next chip.** Under the latest Tutor reply or card (a step divider ending the thread counts), the
@@ -1584,7 +1584,7 @@ is skipped. The old Session page draws the divider between the parts too.
   answers 409 with the reason, which the page shows in place of the reply. A taken one streams the
   divider first, then runs the turn from the note, so the reply that teaches the step follows the line.
 - **Just tell me** is not a Next: it posts "Just tell me." as the Learner's own message, and the Tutor
-  records it as asking to be told.
+  records it as asking to be told (code holds that; see "Help chips, and which messages count as Insight attempts").
 - **Steps not yet begun.** A step reached outside a Tutor turn has not begun (`stepBegun`): the step a
   quiz pass moved the Learner to, until a turn tells the Tutor of that pass, and the first step of a Due
   Check run, until its "New Check" divider is stored. Its chip names that step ("Next: Concept →" for
@@ -1602,7 +1602,7 @@ is skipped. The old Session page draws the divider between the parts too.
   (`CODE_WRITTEN_PREFIXES`). Each is saved as the turn's input and stored as the turn's user message,
   so the model sees it, but the thread never draws it as a bubble, and a reply after it always starts
   its own line rather than running on from the reply before. The turn's kind is read off the prefix
-  (`turnKind`: message, opener or next), and Retry re-runs that kind: a failed Next re-sends its note
+  (`turnKind`: message, chip, opener or next), and Retry re-runs that kind: a failed Next re-sends its note
   without moving the Learner on a second time, because the move was saved once when the turn began.
 - **Fresh pacing.** Next turns and openers are fresh: in that reply the Tutor teaches the step and
   can't finish it, record a Check verdict or record an Insight attempt (the pacing rule's rejections).
@@ -1631,6 +1631,45 @@ Session. In the workspace render (`workspace.test.tsx`, `message-box.test.tsx`):
 latest reply or divider only, none under a Learner message or in an empty thread, none while a Check is
 open, during a turn, while the page refreshes or with Retry on offer, Just tell me at Explore, Complete
 this Topic at Principle, and no Continue on the status card.
+
+## Help chips, and which messages count as Insight attempts (`src/tutor/chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-status.ts`, `record_insight_attempt` in `tools.ts`, spec #119, ticket #135)
+
+**What it does.**
+- **Two help chips** sit beside Next under the latest Tutor reply or card: **Explain that more simply**
+  and **Show me in a widget**. They follow the Next chip's rules for where they stand (never under an
+  older reply or the Learner's own message, not during a turn, a refresh, with Retry on offer, or on a
+  passed Topic), with one difference: while a quiz or conversation Check is open Next is hidden but the
+  two help chips stay, so a Learner who is stuck can always ask for help in another form.
+- **Pressing one** posts its words ("Explain that more simply.", "Show me in a widget.") as the
+  Learner's own message, drawn as their bubble, and the Tutor answers it as an ordinary turn. The words
+  of every chip, Just tell me included, live in one small module (`chips.ts`) that both the page and the
+  Tutor Turn read. A turn whose input is exactly a chip's words has the kind **chip** (`turnKind`), read
+  off the saved input like the opener's and Next's prefixes, so Retry re-runs it as a chip.
+- **Which messages can count as an Insight attempt.** Only words the Learner typed. The Insight tool
+  refuses, with no row stored: "Continue." (the cut-off reply's button), any note code wrote (every
+  prefix in `CODE_WRITTEN_PREFIXES`: the opener's and Next's today; Finish this reply, quiz follow-up
+  and widget report notes join that list when their tickets add them), and the two help chips. "Just
+  tell me." is a chip that counts only as asking to be told: whatever outcome the Tutor reports for it,
+  code records `asked_to_be_told`, so the Insight is told at once and it is never a not-yet. The order
+  of ADR 0001 (hint one, hint two, then the Insight) is unchanged, because only typed not-yets move it.
+
+**Scenario.** At the Explore of Present value the Learner reads the question and presses "Explain that
+more simply". Their bubble reads "Explain that more simply." and the Tutor rephrases the question. If
+the Tutor then tried to record that as a not-yet, code refuses it and no hint is released, so the
+Learner's first typed guess still gets hint 1. Later, mid-quiz, the chips "Explain that more simply"
+and "Show me in a widget" still sit under the last reply, though Next does not.
+
+**Trade-off.** The chip kind is worked out from the exact words, with no column (this ticket adds no
+migration), so a Learner who types exactly "Show me in a widget." is treated as having pressed the chip.
+That is harmless: the words ask for help, not an answer. A Tutor that ignores the refusal can still
+write a hint in prose, but nothing is stored and the hint count does not move.
+
+**How it is tested.** At the Tutor Turn seam (`explore.test.ts`, scripted client on in-memory
+Postgres): each help chip is sent as the Learner's message, its turn kind is chip and its attempt is
+refused, while a typed answer after it still counts as hint 1; an opener's note is refused; "Just tell
+me." reported as not-yet is stored as asked to be told and tells the Insight. In the workspace render
+(`workspace.test.tsx`): both chips under the latest reply only, beside and after Next, staying with no
+Next while a quiz or conversation Check is open, and gone on a passed Topic.
 
 ## Coming back: Picking up where you left off, read-only passed Topics and Due Checks (`src/tutor/coming-back.ts`, `turn.ts`, `src/app/study/page.tsx`, `session-item-view.tsx`, `left-column.tsx`, `_landing/landing.tsx`, spec #119, ticket #136)
 

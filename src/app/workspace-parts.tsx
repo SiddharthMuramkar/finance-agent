@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Topic } from "@/course/map";
 import type { NextOffer } from "@/course/navigator";
+import { HELP_CHIPS, JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
 import { Eyebrow, SecondaryButton } from "./ui";
 
@@ -28,21 +29,27 @@ export function StatusCard({ place, summary }: { place: Place; summary: string }
   );
 }
 
-/** The words "Just tell me" posts as the Learner's own message at an unsettled Explore. */
-export const JUST_TELL_ME = "Just tell me.";
-
 /**
- * The Next chip under the latest Tutor reply or card, from the Course Navigator's offer: "Next: <step> →",
- * "Complete this Topic →", or "Just tell me →" at an unsettled Explore (which posts "Just tell me." as the
- * Learner's message). Next and Complete send no Learner message: code writes the turn's note.
+ * The chips under the latest Tutor reply or card. First the Next chip from the Course Navigator's offer (none
+ * while a Check is open): "Next: <step> →", "Complete this Topic →", or "Just tell me →" at an unsettled
+ * Explore (which posts "Just tell me." as the Learner's message). Next and Complete send no Learner message:
+ * code writes the turn's note. Then the two help chips, which stay during a Check and post their words
+ * ("Explain that more simply.", "Show me in a widget.") as the Learner's message.
  */
-export function NextChip({ offer, onNext, onJustTellMe }: { offer: NextOffer; onNext: (named: NextName) => void; onJustTellMe: () => void }) {
-  const press = () => (offer.kind === "just_tell_me" ? onJustTellMe() : onNext(offer.kind === "complete" ? "complete" : offer.step));
+export function Chips({ offer, onNext, onSay }: { offer: NextOffer | null; onNext: (named: NextName) => void; onSay: (words: string) => void }) {
+  const press = (offer: NextOffer) => (offer.kind === "just_tell_me" ? onSay(JUST_TELL_ME) : onNext(offer.kind === "complete" ? "complete" : offer.step));
   return (
     <div className="mt-3 flex flex-wrap gap-2">
-      <SecondaryButton data-testid="next-chip" onClick={press}>
-        {offer.label} →
-      </SecondaryButton>
+      {offer && (
+        <SecondaryButton data-testid="next-chip" onClick={() => press(offer)}>
+          {offer.label} →
+        </SecondaryButton>
+      )}
+      {HELP_CHIPS.map((words) => (
+        <SecondaryButton key={words} data-testid="help-chip" onClick={() => onSay(words)}>
+          {words.replace(/\.$/, "")}
+        </SecondaryButton>
+      ))}
     </div>
   );
 }
