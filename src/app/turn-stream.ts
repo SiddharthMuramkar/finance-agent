@@ -258,7 +258,7 @@ export function useTurnStream({
       setWaiting(null);
       setRunning(false);
       setFixing(false);
-      // Re-reads the summary and the Next on offer, since the Tutor may have finished a Teaching Step; `refreshing`
+      // Re-reads the strip and the Next on offer, since the Tutor may have finished a Teaching Step; `refreshing`
       // stays true until the page has them, so a Next chip from before the turn is never offered.
       startRefresh(() => router.refresh());
     }
