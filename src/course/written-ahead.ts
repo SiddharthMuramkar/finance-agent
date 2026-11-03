@@ -40,10 +40,26 @@ const REVEAL_TASK = "revealTask";
 
 const fill = (template: string, move: RevealMove) => template.replaceAll("{before}", String(move.before)).replaceAll("{after}", String(move.after));
 
-/** The Widget's code with its reveal task added last to its GuidedTasks, its numbers filled in from the move. */
+/**
+ * The slider named `name` with one more quick button, `{value, note}`, added last to its quick buttons (the list after
+ * its unit), or given a list of its own. Slider lines are one line each in a Topic file.
+ */
+function withQuickButton(code: string, name: string, value: number, note: string): string {
+  const button = `{value: ${value}, note: ${JSON.stringify(note)}}`;
+  return code.replace(new RegExp(`^(\\w+ = Slider\\(${JSON.stringify(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")},.*?)\\)\\s*$`, "m"), (line: string, call: string) => {
+    const list = call.match(/^(.*), \[([^\]]*)\]$/);
+    return list ? `${list[1]}, [${list[2].trim() ? `${list[2]}, ` : ""}${button}])` : `${call}, [${button}])`;
+  });
+}
+
+/**
+ * The Widget's code with its reveal task added last to its GuidedTasks, its numbers filled in from the move, and its
+ * reveal quick button (when it has one) added to its slider, set to the move's {before} value.
+ */
 export function withRevealTask(code: string, task: NonNullable<WrittenAheadSpec["revealTask"]>, move: RevealMove): string {
   const joined = code.replace(/GuidedTasks\(\[([^\]]*)\]\)/, (_, tasks: string) => `GuidedTasks([${tasks.trim() ? `${tasks}, ` : ""}${REVEAL_TASK}])`);
-  return `${joined.trimEnd()}\n${REVEAL_TASK} = GuidedTask(${JSON.stringify(fill(task.text, move))}, ${fill(task.done, move)})`;
+  const quick = task.quick ? withQuickButton(joined, task.quick.slider, move.before, task.quick.note) : joined;
+  return `${quick.trimEnd()}\n${REVEAL_TASK} = GuidedTask(${JSON.stringify(fill(task.text, move))}, ${fill(task.done, move)})`;
 }
 
 /** The Topic's written-ahead Widgets as written, before any reveal: the course check and the Tutor's context read these. */

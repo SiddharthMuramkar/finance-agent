@@ -13,7 +13,8 @@ import { finishStep, recordCheckResult, type Progress } from "./navigator";
 
 const map = presentValueOnly();
 const topic = map.topic("present-value")!;
-const code = topic.explore!.widget!;
+const id = topic.explore!.widget!;
+const code = topic.widgets.find((w) => w.id === id)!.code;
 
 function topicText(widgetLine: string, data = "[cash-option]") {
   return [
@@ -32,15 +33,20 @@ function topicText(widgetLine: string, data = "[cash-option]") {
     "  hints: [Look at the far bars.]",
     "explore:",
     "  before: c1",
-    "  widget: |",
-    `    ${widgetLine}`,
+    "  widget: w1",
+    "widgets:",
+    "  - id: w1",
+    "    code: |",
+    '      root = Widget("Explore it", [chart])',
+    `      ${widgetLine}`,
     "checks:",
     "  - { id: c1, kind: conversation, prompt: Q, passCriteria: A }",
   ].join("\n");
 }
 
 describe("the explore Widget in a Topic file", () => {
-  it("is present value's: an interest-rate slider, the annuity chart set against the sourced cash option, and its Guided Tasks", () => {
+  it("is present value's annuity Widget, one of its written-ahead Widgets: a rate slider, the annuity chart set against the sourced cash option, and its Guided Tasks", () => {
+    expect(id).toBe("annuity-worth-today");
     expect(widgetProblems(code)).toEqual([]);
     expect(widgetParts(code).components).toEqual(["Slider", "AnnuityChart", "GuidedTasks"]);
     expect(code).toContain('"mega-millions-2018/cash-option"');
@@ -60,11 +66,16 @@ describe("the explore Widget in a Topic file", () => {
     expect(otherData.errors.join("\n")).toMatch(/does not list dataset "winner-choice"/);
   });
 
+  it("must name one of the Topic's written-ahead Widgets", () => {
+    const text = topicText('chart = AnnuityChart(1, 2, 3, 4, "jackpot/cash-option")').replace("  widget: w1", "  widget: gone");
+    expect(parseCourseMap([{ name: "pv.yaml", text }]).errors.join("\n")).toMatch(/explore Widget "gone" is not one of the Topic's written-ahead Widgets/);
+  });
+
   it("is optional: a Topic with an Insight can do without one", () => {
-    const text = topicText("x").replace(/  widget: \|\n    x\n/, "");
-    expect(text).not.toContain("widget:");
+    const text = topicText('chart = AnnuityChart(1, 2, 3, 4, "jackpot/cash-option")').replace("  widget: w1\n", "");
+    expect(text).not.toContain("  widget:");
     expect(parseCourseMap([{ name: "pv.yaml", text }]).errors).toEqual([]);
-    expect(loadCourseMap().topic("present-value")?.explore?.widget).toBe(code);
+    expect(loadCourseMap().topic("present-value")?.explore?.widget).toBe(id);
   });
 });
 
@@ -85,7 +96,7 @@ describe("when code shows the explore Widget", () => {
   });
 
   it("from the moment the explore step begins", () => {
-    expect(exploreWidgetFor(map, progressAt([...BEFORE_EXPLORE]))).toEqual({ topicId: "present-value", code });
+    expect(exploreWidgetFor(map, progressAt([...BEFORE_EXPLORE]))).toEqual({ topicId: "present-value", id, code });
   });
 
   it("and keeps it through your turn and the Check, until the Topic is passed", () => {
@@ -115,7 +126,7 @@ describe("the explore Widget in an old Session", () => {
   const context = (step: string) => `Course Navigator: where the Learner is now.\nTopic: Present value (Foundation Stage).\nTeaching Step: ${step}.`;
 
   it("is the Topic's own when the Session stood at its explore step", () => {
-    expect(exploreWidgetInSession(map, `${context("concept")}\n\n${context("explore")}`)).toEqual({ topicId: "present-value", code });
+    expect(exploreWidgetInSession(map, `${context("concept")}\n\n${context("explore")}`)).toEqual({ topicId: "present-value", id, code });
   });
 
   it("is absent from a Session that never reached explore", () => {

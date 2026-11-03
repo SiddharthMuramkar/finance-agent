@@ -28,6 +28,7 @@ function withBonds(): CourseMap {
     path: 30,
     prerequisites: [],
     cases: pv.cases.map((c) => ({ ...c, id: "bonds-case" })),
+    widgets: undefined,
     checks: [{ id: "bonds-check", kind: "conversation", prompt: "Why do prices fall?", passCriteria: "Discounting." }],
     questions: undefined,
     insight: undefined,

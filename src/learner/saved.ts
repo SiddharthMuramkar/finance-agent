@@ -1,5 +1,6 @@
 import { and, asc, eq, isNull, ne } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
+import { exploreWidgetOf } from "@/course/explore-widget";
 import { navigate } from "@/course/navigator";
 import { messages, noteItems, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -86,7 +87,8 @@ export async function saveToNotes(db: Db, map: CourseMap, request: SaveRequest, 
   if (req.kind === "widget" && req.widgetIndex === EXPLORE_INDEX) {
     if (req.sessionId !== undefined && !(await ownSession(db, req.sessionId, learnerId))) return notFound("That Session does not exist.");
     const topicId = await topicOfTurn(db, map, req.sessionId, undefined, learnerId);
-    const code = topicId ? map.topic(topicId)?.explore?.widget : undefined;
+    const topic = topicId ? map.topic(topicId) : undefined;
+    const code = topic ? exploreWidgetOf(topic)?.code : undefined;
     if (!topicId || !code) return notFound("There is no explore Widget to save.");
     return keep(db, learnerId, { topicId, kind: "widget", sessionId: req.sessionId ?? null, turnSeq: null, widgetIndex: EXPLORE_INDEX }, code, req.settings, now);
   }
@@ -163,7 +165,8 @@ export async function loadSaved(db: Db, map: CourseMap, learnerId = OWNER_LEARNE
     if (r.kind === "reply" && reply && r.sessionId !== null && r.turnSeq !== null)
       item = { id: r.id, kind: "reply", text: reply.text, savedAt: r.createdAt, again: { kind: "reply", sessionId: r.sessionId, turnSeq: r.turnSeq } };
     else if (r.kind === "widget") {
-      const base = r.widgetIndex === EXPLORE_INDEX ? map.topic(r.topicId)?.explore?.widget : reply ? widgetsOf(reply.text)[r.widgetIndex ?? -2] : undefined;
+      const exploreTopic = r.widgetIndex === EXPLORE_INDEX ? map.topic(r.topicId) : undefined;
+      const base = exploreTopic ? exploreWidgetOf(exploreTopic)?.code : reply ? widgetsOf(reply.text)[r.widgetIndex ?? -2] : undefined;
       if (base !== undefined) {
         const code = applySettings(base, r.widgetState);
         const again: SaveAgain = {

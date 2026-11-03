@@ -5,6 +5,7 @@ import { plainFormulaText as plain } from "@/finance/formula-text";
 import type { ExploreInfo } from "@/learner/insight";
 import { formulaById, formulaGuide } from "@/finance/formulas";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
+import { exploreWidgetOf } from "@/course/explore-widget";
 import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
 import { PROFILE_BLOCK_HEADING } from "@/learner/profile";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
@@ -94,7 +95,7 @@ export function stepContext(
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
   if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
-  if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, topic.explore?.widget));
+  if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, exploreWidgetOf(topic)?.code));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
     if (check.kind === "conversation") {

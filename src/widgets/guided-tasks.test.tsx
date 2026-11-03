@@ -3,13 +3,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { WidgetView } from "@/app/widget-view";
 import { guidedTaskCheck } from "@/course/guided-task-check";
-import { annuitySchedule } from "@/finance/present-value";
+import { annuityBreakEven } from "@/finance/present-value";
 import { presentValueOnly } from "@/test/present-value-map";
 import { widgetParts, widgetProblems, widgetTaskTexts } from "./check";
 import frozen from "./frozen.generated.json";
 import { advanceReached, guidedTaskProblems, parsedSliders, parsedTasks, taskStates, walkNodes } from "./guided-tasks";
 import { GuidedTasksFigure } from "./guided-tasks-view";
 import { WIDGET_PROMPT_OPTIONS, widgetLibrary } from "./library";
+
+/** Present value's annuity Widget as written in its Topic file (before any reveal). */
+const annuityCode = () => presentValueOnly().topic("present-value")!.widgets.find((w) => w.id === "annuity-worth-today")!.code;
 
 const parser = createParser(frozen.schema as unknown as LibraryJSONSchema, "Widget");
 
@@ -119,10 +122,10 @@ describe("the server's Widget check for Guided Tasks", () => {
 describe("the course check for Guided Tasks", () => {
   const check = (...tasks: string[]) => guidedTaskCheck("pv", widget(...tasks));
 
-  it("passes present value's four tasks", () => {
-    const pv = presentValueOnly().topic("present-value")!;
-    expect(widgetTaskTexts(pv.explore!.widget!)).toHaveLength(4);
-    expect(guidedTaskCheck("present-value", pv.explore!.widget!)).toEqual([]);
+  it("passes present value's annuity Widget's two tasks (its third joins after the reveal)", () => {
+    const code = annuityCode();
+    expect(widgetTaskTexts(code)).toHaveLength(2);
+    expect(guidedTaskCheck("present-value", code)).toEqual([]);
   });
 
   it("passes tasks that can be reached on the slider", () => {
@@ -213,18 +216,16 @@ describe("what the browser hands the stepper", () => {
   });
 });
 
-describe("present value's 'closest' task", () => {
-  it("is true at exactly the slider positions where the payments' worth today is nearest the sourced cash option", () => {
-    const pv = presentValueOnly().topic("present-value")!;
-    const code = pv.explore!.widget!;
-    const closest = parsedTasks(parser.parse(code).root!.props.children).at(-1)!;
-    const cashOption = 877_800_000;
-    const gaps = Array.from({ length: 41 }, (_, i) => i * 0.25).map((rate) => ({
-      rate,
-      gap: Math.abs(annuitySchedule({ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: rate }).presentValue - cashOption),
-    }));
-    const nearest = [...gaps].sort((a, b) => a.gap - b.gap).slice(0, 2).map((g) => g.rate).sort((a, b) => a - b);
-    const ticks = gaps.filter((g) => evaluate(closest.condition as never, { getState: () => g.rate, resolveRef: () => undefined }) === true).map((g) => g.rate);
-    expect(ticks).toEqual(nearest);
+describe("present value's 'find where the annuity equals the cash' task", () => {
+  it("ticks at exactly the 0.01 slider positions within 0.02 points of the break-even code works out against the cash option", () => {
+    const even = parsedTasks(parser.parse(annuityCode()).root!.props.children).at(-1)!;
+    const rates = Array.from({ length: 1001 }, (_, i) => Number((i * 0.01).toFixed(2)));
+    const ticks = rates.filter((rate) => evaluate(even.condition as never, { getState: () => rate, resolveRef: () => undefined }) === true);
+    // The cash option as advertised ($877.8 million) and as paid ($877,784,124) give the same positions.
+    for (const cashOption of [877_800_000, 877_784_124]) {
+      const breakEven = annuityBreakEven({ total: 1_537_000_000, payments: 30, growthPercent: 5 }, cashOption)!;
+      expect(ticks).toEqual(rates.filter((rate) => Math.abs(rate - breakEven) <= 0.02));
+    }
+    expect(ticks).toEqual([3.36, 3.37, 3.38, 3.39]);
   });
 });

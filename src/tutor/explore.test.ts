@@ -76,7 +76,7 @@ describe("explore step in the Tutor Turn", () => {
     const [request] = await turn(db, "Ready.", [say("Here is a question.")]);
     const sent = everything(request);
     expect(sent).toContain("Guided Tasks under the Explore Widget");
-    expect(sent).toContain("1. Set the interest rate to 0% 2. Now set it to 2% 3. Now set it to 8% 4. Find the rate where");
+    expect(sent).toContain("1. Set the rate to 0%: the payments are worth the advertised $1.537B 2. Find the rate where the annuity is worth the same as the cash");
     expect(sent).toContain("do not mark them");
     expect(sent).not.toContain("$rate");
     expect(sent).not.toContain("GuidedTask(");

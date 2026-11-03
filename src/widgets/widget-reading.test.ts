@@ -5,7 +5,8 @@ import { allTasksTicked, foundText, readWidget, type SourcedLookup } from "./wid
 // What code tells the Tutor a Widget shows, and the message Tell the Tutor what I found posts (spec #119). The
 // expected figures come from the spec's present value maths, not from the code.
 
-const explore = presentValueOnly({ withoutQuiz: true }).topic("present-value")!.explore!.widget!;
+const pv = presentValueOnly({ withoutQuiz: true }).topic("present-value")!;
+const explore = pv.widgets.find((w) => w.id === pv.explore!.widget)!.code;
 const cashOption: SourcedLookup = (ref) => (ref === "mega-millions-2018/cash-option" ? { label: "Cash option", value: 877_800_000, unit: "USD", date: "2018-10-23" } : undefined);
 
 describe("Tell the Tutor what I found's message", () => {
@@ -24,8 +25,8 @@ describe("Tell the Tutor what I found's message", () => {
 
 describe("whether every Guided Task is ticked", () => {
   it("needs each task's text among the ticks, and a Widget with no tasks never counts", () => {
-    const texts = ["Set the interest rate to 0%", "Now set it to 2%", "Now set it to 8%", "Find the rate where the payments' worth today comes closest to the cash option"];
-    expect(allTasksTicked(explore, texts.slice(0, 3))).toBe(false);
+    const texts = ["Set the rate to 0%: the payments are worth the advertised $1.537B", "Find the rate where the annuity is worth the same as the cash"];
+    expect(allTasksTicked(explore, texts.slice(0, 1))).toBe(false);
     expect(allTasksTicked(explore, texts)).toBe(true);
     expect(allTasksTicked('root = Widget("No tasks", [])', [])).toBe(false);
   });

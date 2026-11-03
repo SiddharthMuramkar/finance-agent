@@ -187,7 +187,7 @@ describe("Save to notes: Widgets", () => {
     const db = await testDb();
     const real = presentValueOnly();
     const topic = real.topic("present-value")!;
-    const declared = declaredSettings(topic.explore!.widget!);
+    const declared = declaredSettings(topic.widgets.find((w) => w.id === topic.explore!.widget)!.code);
     const [name, start] = Object.entries(declared)[0];
     const saved = await saveToNotes(db, real, { kind: "widget", widgetIndex: EXPLORE_INDEX, settings: { [name]: start + 1 } });
     expect(saved.ok && saved.topicId).toBe("present-value");
