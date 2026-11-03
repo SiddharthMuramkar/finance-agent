@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import { asc, desc, eq, max } from "drizzle-orm";
-import { messages, sessions, settings } from "@/db/schema";
+import { messages, OWNER_LEARNER_ID, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 import { turnBefore, type Turn } from "./turn-status";
@@ -43,19 +43,20 @@ export function fingerprint(instructions: string, tools: unknown[]) {
   return createHash("sha256").update(JSON.stringify({ instructions, tools })).digest("hex");
 }
 
-export async function currentSession(db: Db): Promise<Session | undefined> {
-  const [row] = await db.select().from(sessions).orderBy(desc(sessions.id)).limit(1);
+/** The Learner's latest Session. */
+export async function currentSession(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Session | undefined> {
+  const [row] = await db.select().from(sessions).where(eq(sessions.learnerId, learnerId)).orderBy(desc(sessions.id)).limit(1);
   return row;
 }
 
 /**
- * The Session the next action continues: the latest one, unless it was frozen
+ * The Session the next action continues: the turn's Learner's latest one, unless it was frozen
  * from different instructions or tools, its last reply was declined, or it has
  * been idle longer than the `session_idle_hours` setting (default 6). Then the
  * reason a new Session starts is returned instead.
  */
 export async function sessionForAction(db: Db, now: Date, turn: Turn): Promise<{ session: Session } | { reason: NewSessionReason | "first" }> {
-  const session = await currentSession(db);
+  const session = await currentSession(db, turn.learnerId);
   if (!session) return { reason: "first" };
   if (session.fingerprint !== fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)) return { reason: "updated" };
   // An earlier build opened Sessions with a system message, which the API rejects; start afresh.
@@ -67,7 +68,7 @@ export async function sessionForAction(db: Db, now: Date, turn: Turn): Promise<{
     .limit(1);
   if (first?.role === "system") return { reason: "updated" };
   // A declined reply is discarded, not kept in history, so the conversation continues in a new Session from SQL.
-  const before = await turnBefore(db, turn.id);
+  const before = await turnBefore(db, turn.id, turn.learnerId);
   if (before?.sessionId === session.id && before.stopReason === "refusal") return { reason: "refused" };
   const [{ last }] = await db
     .select({ last: max(messages.createdAt) })
@@ -78,13 +79,14 @@ export async function sessionForAction(db: Db, now: Date, turn: Turn): Promise<{
   return now.getTime() - lastActive.getTime() > idleHours * 3600_000 ? { reason: "idle" } : { session };
 }
 
-/** Freezes the current instructions, tools, model and effort into a new Session. */
-export async function startSession(db: Db, now: Date): Promise<Session> {
+/** Freezes the current instructions, tools, model and effort into a new Session of the Learner's. */
+export async function startSession(db: Db, now: Date, learnerId = OWNER_LEARNER_ID): Promise<Session> {
   const { model, effort } = await readSettings(db);
   const tools: ToolDefinition[] = TUTOR_TOOLS;
   const [row] = await db
     .insert(sessions)
     .values({
+      learnerId,
       instructions: TUTOR_INSTRUCTIONS,
       tools,
       model,

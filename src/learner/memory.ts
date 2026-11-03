@@ -1,19 +1,28 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Jump, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
-import { checkResults, insightAttempts, learnerState, misconceptions, topicProgress } from "@/db/schema";
+import { checkResults, insightAttempts, learnerState, misconceptions, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 /**
- * Learner Memory: the Learner's place and results in SQL. Code reads and
- * writes it; the Course Navigator decides what the records mean.
+ * Learner Memory: one Learner's place and results in SQL. Code reads and
+ * writes it; the Course Navigator decides what the records mean. Every read
+ * and write is of the given Learner's rows only (the owner's when none is
+ * named, as the database's own default has it until every caller names one).
  */
 
-export async function loadProgress(db: Db): Promise<Progress> {
-  const [state] = await db.select().from(learnerState).where(eq(learnerState.id, 1));
-  const topics = await db.select().from(topicProgress);
-  const passes = await db.select().from(checkResults).where(eq(checkResults.passed, true));
-  const settled = await db.select().from(insightAttempts).where(inArray(insightAttempts.released, ["found", "told"])).orderBy(asc(insightAttempts.id));
+export async function loadProgress(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Progress> {
+  const [state] = await db.select().from(learnerState).where(eq(learnerState.learnerId, learnerId));
+  const topics = await db.select().from(topicProgress).where(eq(topicProgress.learnerId, learnerId));
+  const passes = await db
+    .select()
+    .from(checkResults)
+    .where(and(eq(checkResults.learnerId, learnerId), eq(checkResults.passed, true)));
+  const settled = await db
+    .select()
+    .from(insightAttempts)
+    .where(and(eq(insightAttempts.learnerId, learnerId), inArray(insightAttempts.released, ["found", "told"])))
+    .orderBy(asc(insightAttempts.id));
   return {
     currentTopicId: state?.currentTopicId ?? null,
     topics: Object.fromEntries(
@@ -31,54 +40,62 @@ export async function loadProgress(db: Db): Promise<Progress> {
   };
 }
 
-/** Writes the current Topic and every Topic's step, reveal flag and status. Check passes are written separately. */
-async function saveProgress(db: Db, progress: Progress, now: Date) {
+/** Writes the Learner's place on the Course Map: one row per Learner, whose id is the Learner's. */
+async function saveState(db: Db, learnerId: number, set: Partial<typeof learnerState.$inferInsert>) {
   await db
     .insert(learnerState)
-    .values({ id: 1, currentTopicId: progress.currentTopicId, updatedAt: now })
-    .onConflictDoUpdate({ target: learnerState.id, set: { currentTopicId: progress.currentTopicId, updatedAt: now } });
+    .values({ id: learnerId, learnerId, ...set })
+    .onConflictDoUpdate({ target: learnerState.id, set });
+}
+
+/** Writes the current Topic and every Topic's step, reveal flag and status. Check passes are written separately. */
+async function saveProgress(db: Db, progress: Progress, now: Date, learnerId: number) {
+  await saveState(db, learnerId, { currentTopicId: progress.currentTopicId, updatedAt: now });
   for (const [topicId, t] of Object.entries(progress.topics)) {
     const values = { step: t.step, revealShown: t.revealShown, status: t.status, updatedAt: now };
     await db
       .insert(topicProgress)
-      .values({ topicId, ...values, startedAt: now })
-      .onConflictDoUpdate({ target: topicProgress.topicId, set: values });
+      .values({ learnerId, topicId, ...values, startedAt: now })
+      .onConflictDoUpdate({ target: [topicProgress.learnerId, topicProgress.topicId], set: values });
   }
 }
 
 /** Saves a new current Topic; marks the entry for the next turn when the Learner's Topic actually changes. */
-async function saveCurrentTopic(db: Db, map: CourseMap, before: Progress, after: Progress, now: Date) {
+async function saveCurrentTopic(db: Db, map: CourseMap, before: Progress, after: Progress, now: Date, learnerId: number) {
   const changed = navigate(map, before)?.topic.id !== navigate(map, after)?.topic.id;
-  const set = { currentTopicId: after.currentTopicId, updatedAt: now, ...(changed ? { enteredByJump: true } : {}) };
-  await db.insert(learnerState).values({ id: 1, ...set }).onConflictDoUpdate({ target: learnerState.id, set });
+  await saveState(db, learnerId, { currentTopicId: after.currentTopicId, updatedAt: now, ...(changed ? { enteredByJump: true } : {}) });
 }
 
 /**
  * The Learner chose a Topic on the Course Map page (after any prompt about unmet prerequisites).
  * Only the current Topic changes; every Topic keeps its progress.
  */
-export async function saveJump(db: Db, map: CourseMap, topicId: string, now = new Date()): Promise<Jump> {
-  const progress = await loadProgress(db);
+export async function saveJump(db: Db, map: CourseMap, topicId: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Jump> {
+  const progress = await loadProgress(db, learnerId);
   const jump = jumpTo(map, progress, topicId);
-  if (jump.ok) await saveCurrentTopic(db, map, progress, jump.progress, now);
+  if (jump.ok) await saveCurrentTopic(db, map, progress, jump.progress, now, learnerId);
   return jump;
 }
 
 /** The Learner goes back to the default path; the Topic they leave keeps its progress. */
-export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new Date()): Promise<void> {
-  const progress = await loadProgress(db);
-  await saveCurrentTopic(db, map, progress, returnToDefaultPath(progress), now);
+export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
+  const progress = await loadProgress(db, learnerId);
+  await saveCurrentTopic(db, map, progress, returnToDefaultPath(progress), now, learnerId);
 }
 
-/** Whether the Learner entered a Topic by a jump since the last turn; clears the mark, so only one turn sees it. */
-export async function takeJumpEntry(db: Db): Promise<boolean> {
-  const [row] = await db.update(learnerState).set({ enteredByJump: false }).where(and(eq(learnerState.id, 1), eq(learnerState.enteredByJump, true))).returning();
+/** Whether the Learner entered a Topic by a jump since their last turn; clears the mark, so only one turn sees it. */
+export async function takeJumpEntry(db: Db, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
+  const [row] = await db
+    .update(learnerState)
+    .set({ enteredByJump: false })
+    .where(and(eq(learnerState.learnerId, learnerId), eq(learnerState.enteredByJump, true)))
+    .returning();
   return Boolean(row);
 }
 
 /** Saves the start of the current Topic the first time the Learner reaches it. */
-export async function ensureTopicStarted(db: Db, map: CourseMap, now = new Date()): Promise<Place | null> {
-  const progress = await loadProgress(db);
+export async function ensureTopicStarted(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Place | null> {
+  const progress = await loadProgress(db, learnerId);
   const place = navigate(map, progress);
   if (place?.status === "not_started") {
     await saveProgress(
@@ -88,16 +105,17 @@ export async function ensureTopicStarted(db: Db, map: CourseMap, now = new Date(
         topics: { ...progress.topics, [place.topic.id]: { step: "story", passedChecks: [], revealShown: false, status: "in_progress" } },
       },
       now,
+      learnerId,
     );
-    return navigate(map, await loadProgress(db));
+    return navigate(map, await loadProgress(db, learnerId));
   }
   return place;
 }
 
 /** Applies the Tutor's "finished this Teaching Step" report if the Course Navigator accepts it. */
-export async function saveFinishedStep(db: Db, map: CourseMap, step: TeachingStep, now = new Date()): Promise<Move> {
-  const move = finishStep(map, await loadProgress(db), step);
-  if (move.ok) await saveProgress(db, move.progress, now);
+export async function saveFinishedStep(db: Db, map: CourseMap, step: TeachingStep, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Move> {
+  const move = finishStep(map, await loadProgress(db, learnerId), step);
+  if (move.ok) await saveProgress(db, move.progress, now, learnerId);
   return move;
 }
 
@@ -122,23 +140,24 @@ export async function saveCheckResult(
   map: CourseMap,
   input: CheckResultInput,
   now = new Date(),
+  learnerId = OWNER_LEARNER_ID,
 ): Promise<{ ok: true; repeated: boolean } | { ok: false; reason: string }> {
   const { checkId, passed, evidence = null, model = null, toolCallId = null } = input;
   if (toolCallId) {
     const [done] = await db.select({ id: checkResults.id }).from(checkResults).where(eq(checkResults.toolCallId, toolCallId));
     if (done) return { ok: true, repeated: true };
   }
-  const move = recordCheckResult(map, await loadProgress(db), checkId, passed);
+  const move = recordCheckResult(map, await loadProgress(db, learnerId), checkId, passed);
   if (!move.ok) return move;
   const topicId = map.check(checkId)!.topicId;
-  await db.insert(checkResults).values({ topicId, checkId, passed, evidence, model, toolCallId, createdAt: now });
-  await saveProgress(db, move.progress, now);
+  await db.insert(checkResults).values({ learnerId, topicId, checkId, passed, evidence, model, toolCallId, createdAt: now });
+  await saveProgress(db, move.progress, now, learnerId);
   return { ok: true, repeated: false };
 }
 
-/** Every saved Check result, oldest first, with its evidence and the model that taught it. */
-export async function loadCheckResults(db: Db) {
-  return db.select().from(checkResults).orderBy(asc(checkResults.id));
+/** The Learner's every saved Check result, oldest first, with its evidence and the model that taught it. */
+export async function loadCheckResults(db: Db, learnerId = OWNER_LEARNER_ID) {
+  return db.select().from(checkResults).where(eq(checkResults.learnerId, learnerId)).orderBy(asc(checkResults.id));
 }
 
 export type MisconceptionInput = { topicId: string; checkId?: string | null; description: string; model: string; toolCallId: string };
@@ -149,11 +168,12 @@ export async function saveMisconception(
   map: CourseMap,
   input: MisconceptionInput,
   now = new Date(),
+  learnerId = OWNER_LEARNER_ID,
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   if (!map.topic(input.topicId)) return { ok: false, reason: `Topic "${input.topicId}" is not on the Course Map.` };
   await db
     .insert(misconceptions)
-    .values({ ...input, checkId: input.checkId ?? null, createdAt: now })
+    .values({ ...input, learnerId, checkId: input.checkId ?? null, createdAt: now })
     .onConflictDoNothing({ target: misconceptions.toolCallId });
   return { ok: true };
 }
@@ -180,8 +200,8 @@ function unmasteredPrerequisites(map: CourseMap, progress: Progress, topicId: st
  * in those Topics, and the last verdict at the current Check. No model call.
  * The workspace shows it on opening, and a new Session opens with it.
  */
-export async function learnerSummary(db: Db, map: CourseMap): Promise<string> {
-  const progress = await loadProgress(db);
+export async function learnerSummary(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<string> {
+  const progress = await loadProgress(db, learnerId);
   const place = navigate(map, progress);
   if (!place) return "Every Topic on the Course Map is passed.";
   const { topic, step, check } = place;
@@ -198,19 +218,27 @@ export async function learnerSummary(db: Db, map: CourseMap): Promise<string> {
     lines.push(`Unmastered prerequisites: ${prerequisites.map((id) => `${title(id)} (${status(id)})`).join(", ")}.`);
   }
   const relevant = [topic.id, ...prerequisites];
-  const noted = (await db.select().from(misconceptions).where(inArray(misconceptions.topicId, relevant)).orderBy(asc(misconceptions.id))).slice(
-    -SUMMARY_MISCONCEPTIONS,
-  );
+  const noted = (
+    await db
+      .select()
+      .from(misconceptions)
+      .where(and(eq(misconceptions.learnerId, learnerId), inArray(misconceptions.topicId, relevant)))
+      .orderBy(asc(misconceptions.id))
+  ).slice(-SUMMARY_MISCONCEPTIONS);
   if (noted.length) {
     lines.push("Misconceptions noted:");
     for (const m of noted) lines.push(`- ${title(m.topicId)}${m.topicId === topic.id ? "" : " (prerequisite)"}: ${m.description}`);
   }
   if (step === "check" && check) {
-    const [last] = await db.select().from(checkResults).where(eq(checkResults.checkId, check.id)).orderBy(desc(checkResults.id)).limit(1);
+    const [last] = await db
+      .select()
+      .from(checkResults)
+      .where(and(eq(checkResults.learnerId, learnerId), eq(checkResults.checkId, check.id)))
+      .orderBy(desc(checkResults.id))
+      .limit(1);
     if (last && !last.passed) lines.push(`Last verdict at this Check: not yet.${last.evidence ? ` ${last.evidence}` : ""}`);
   }
   if (place.revealShown) lines.push("The reveal has been shown.");
   if (place.dueChecks.length) lines.push(`Checks due in passed Topics: ${place.dueChecks.map((c) => c.id).join(", ")}.`);
   return lines.join("\n");
 }
-

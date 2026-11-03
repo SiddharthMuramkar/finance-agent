@@ -6,7 +6,7 @@ import { loadCaseData } from "@/case-data/case-data";
 import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
-import { toolCalls, turns } from "@/db/schema";
+import { OWNER_LEARNER_ID, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
@@ -51,15 +51,22 @@ const WRITE_AFTER = "Write your reply to the Learner now, after this result, and
 /** What the Learner sees when a progress write failed. */
 export const SAVE_FAILED_MESSAGE = "Your progress could not be saved just now. The Tutor has been told nothing was recorded.";
 
-/** The Course Navigator's context for a place, with the Case Data the as-of rule allows right now. */
-export async function navigatorContext(db: Db, map: CourseMap, place: Place | null, turnId?: number): Promise<string> {
+/** The Course Navigator's context for the Learner's place, with the Case Data the as-of rule allows them right now. */
+export async function navigatorContext(db: Db, map: CourseMap, place: Place | null, turnId?: number, learnerId = OWNER_LEARNER_ID): Promise<string> {
   const sessionId = turnId === undefined ? null : (await db.select({ s: turns.sessionId }).from(turns).where(eq(turns.id, turnId)))[0]?.s;
-  return stepContext(place, await caseDataFor(db, map, place), await pasteSummary(db, sessionId), false, await loadExploreInfo(db, place, turnId));
+  return stepContext(
+    place,
+    await caseDataFor(db, map, place, learnerId),
+    await pasteSummary(db, sessionId),
+    false,
+    await loadExploreInfo(db, place, turnId, learnerId),
+  );
 }
 
-export async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
+/** The Case Data of the place's Cases, under the as-of rule for this Learner's progress. */
+export async function caseDataFor(db: Db, map: CourseMap, place: Place | null, learnerId = OWNER_LEARNER_ID) {
   if (!place) return [];
-  const progress = await loadProgress(db);
+  const progress = await loadProgress(db, learnerId);
   const all = await Promise.all(place.topic.cases.map((c) => loadCaseData(db, map, progress, c.id)));
   return all.filter((d) => d !== undefined);
 }
@@ -73,15 +80,19 @@ export async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
  * does not advance) and the Tutor is told nothing was recorded. search_library only reads, so
  * it simply runs again if repeated.
  */
+/** The turn the tools run in, and the Learner whose memory they read and write. */
+export type ToolTurn = { id: number; learnerId: number };
+
 export function toolCode(
   db: Db,
   map: CourseMap,
   now: () => Date,
   model: string,
   effects: ToolEffects,
-  turnId: number,
+  turn: ToolTurn,
   embedQuery?: QueryEmbedder,
 ): Record<string, ToolCode> {
+  const { id: turnId, learnerId } = turn;
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
@@ -126,7 +137,7 @@ export function toolCode(
   return {
     search_library: {
       parse: (input) => searchInput.parse(input),
-      run: async ({ query, source }) => searchResultBlocks(await searchLibrary({ db, map, embedQuery }, query, { source })),
+      run: async ({ query, source }) => searchResultBlocks(await searchLibrary({ db, map, embedQuery, learnerId }, query, { source })),
     },
     // Pure: it writes nothing, so it does not go through `once`; the same inputs always give the same answer.
     calculate: {
@@ -141,13 +152,13 @@ export function toolCode(
       parse: (input) => misconceptionInput.parse(input),
       run: ({ description, topic_id }, context) =>
         once(context?.toolUse.id, "record_misconception", async (tx) => {
-          const place = navigate(map, await loadProgress(tx));
+          const place = navigate(map, await loadProgress(tx, learnerId));
           // A topic_id that isn't on the Course Map is kept under the current Topic rather than lost.
           const known = topic_id && map.topic(topic_id) ? topic_id : undefined;
           const topicId = known ?? place?.topic.id;
           if (!topicId) return { ok: false, text: "No current Topic; give the topic_id of a Topic on the Course Map." };
           const checkId = place && topicId === place.topic.id ? (place.check?.id ?? null) : null;
-          const saved = await saveMisconception(tx, map, { topicId, checkId, description, model, toolCallId: context!.toolUse.id }, now());
+          const saved = await saveMisconception(tx, map, { topicId, checkId, description, model, toolCallId: context!.toolUse.id }, now(), learnerId);
           if (!saved.ok) return { ok: false, text: saved.reason };
           const note = topic_id && !known ? ` "${topic_id}" is not a Topic ID on the Course Map, so it was recorded under the current Topic.` : "";
           return { ok: true, text: `Recorded by code: misconception noted for Topic ${topicId}.${note}` };
@@ -163,16 +174,16 @@ export function toolCode(
           if (quiz?.kind === "quiz" && !(await quizUnavailable(tx, map, quiz)))
             return { ok: false, text: `Check ${check_id} is a quiz, so it is marked by code from the Learner's answers. Nothing was recorded; ask the Learner to submit the quiz.` };
           // Pacing rule, for the Check that is being taken; any other verdict gets the Course Navigator's own reason below.
-          const at = navigate(map, await loadProgress(tx));
+          const at = navigate(map, await loadProgress(tx, learnerId));
           if (at?.step === "check" && at.check?.id === check_id && (await stepBeganThisTurn(tx))) return { ok: false, text: VERDICT_PACING_REJECTION };
           const passed = verdict === "pass";
-          const saved = await saveCheckResult(tx, map, { checkId: check_id, passed, evidence: reasons, model, toolCallId: context!.toolUse.id }, now());
+          const saved = await saveCheckResult(tx, map, { checkId: check_id, passed, evidence: reasons, model, toolCallId: context!.toolUse.id }, now(), learnerId);
           if (!saved.ok) return { ok: false, text: saved.reason };
-          const place = await ensureTopicStarted(tx, map, now());
+          const place = await ensureTopicStarted(tx, map, now(), learnerId);
           const recorded = passed
             ? `Recorded by code: pass for Check ${check_id}.`
             : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
-          return { ok: true, began: passed, text: `${recorded}\n\n${await navigatorContext(tx, map, place, turnId)}` };
+          return { ok: true, began: passed, text: `${recorded}\n\n${await navigatorContext(tx, map, place, turnId, learnerId)}` };
         }),
     },
     record_insight_attempt: {
@@ -184,12 +195,13 @@ export function toolCode(
           // Pressing Continue is never an attempt, whatever words the Tutor offers.
           if (message.trim() === CONTINUE_TEXT) return { ok: false, text: CONTINUE_NOT_AN_ATTEMPT };
           // Pacing rule: the Learner must have seen the question before an attempt can count.
-          if (navigate(map, await loadProgress(tx))?.step === "explore" && (await stepBeganThisTurn(tx))) return { ok: false, text: INSIGHT_PACING_REJECTION };
+          if (navigate(map, await loadProgress(tx, learnerId))?.step === "explore" && (await stepBeganThisTurn(tx))) return { ok: false, text: INSIGHT_PACING_REJECTION };
           const saved = await saveInsightAttempt(
             tx,
             map,
             { reported: outcome, words: learner_words, learnerMessage: message, toolCallId: context!.toolUse.id, model, turnId },
             now(),
+            learnerId,
           );
           if (!saved.ok) return { ok: false, text: saved.reason };
           const written = `Written Insight: ${saved.insight.written.trim()}`;
@@ -220,9 +232,9 @@ export function toolCode(
       run: ({ step }, context) =>
         once(context?.toolUse.id, "finish_teaching_step", async (tx) => {
           if (await stepBeganThisTurn(tx)) return { ok: false, text: PACING_REJECTION };
-          const move = await saveFinishedStep(tx, map, step, now());
+          const move = await saveFinishedStep(tx, map, step, now(), learnerId);
           if (!move.ok) return { ok: false, text: move.reason };
-          return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now()), turnId) };
+          return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now(), learnerId), turnId, learnerId) };
         }),
     },
   };

@@ -3,7 +3,7 @@ import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { and, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { sessions, toolCalls, turns } from "@/db/schema";
+import { OWNER_LEARNER_ID, sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
 import { profileBlock } from "@/learner/profile";
@@ -141,6 +141,8 @@ export type PastedInput = { message: string; paste: string };
 export type TurnDeps = {
   db: Db;
   client: TutorClient;
+  /** The Learner taking the turn (the current Learner of the request); the owner when none is named. */
+  learnerId?: number;
   map?: CourseMap;
   now?: () => Date;
   /** How long this run may take before it cuts itself off; defaults to TIME_BUDGET_MS. */
@@ -166,7 +168,7 @@ async function beforeDeadline<T>(promise: Promise<T>, deadline: number): Promise
 }
 
 /**
- * Runs one Tutor turn: takes the one-turn lock, saves the Learner's message,
+ * Runs one Tutor turn for one Learner: takes their one-turn lock, saves their message,
  * streams the reply through Tool Runner and saves each loop step's messages
  * unchanged as they finish. Before the message, code appends the Course
  * Navigator's context whenever it changed; a new Session opens with the
@@ -179,7 +181,8 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   const now = deps.now ?? (() => new Date());
   const deadline = performance.now() + (deps.timeBudgetMs ?? TIME_BUDGET_MS);
   const resuming = typeof input === "object" && "resume" in input;
-  const claim = resuming ? await resumeTurn(db, now()) : { turn: await startTurn(db, now(), learnerTextOf(input)), alreadyFinished: false };
+  const learnerId = deps.learnerId ?? OWNER_LEARNER_ID;
+  const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), learnerTextOf(input), learnerId), alreadyFinished: false };
   if (!claim.turn) {
     yield { type: "busy", message: BUSY_MESSAGE };
     return;
@@ -219,7 +222,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
 async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGenerator<TurnEvent> {
   if (turn.sessionId === null || turn.turnSeq === null) return;
   const log = await openLog(db, turn.sessionId, () => new Date());
-  yield { type: "replay", text: (await turnText(log.rows, turn.turnSeq, { db, map })) };
+  yield { type: "replay", text: (await turnText(log.rows, turn.turnSeq, { db, map, learnerId: turn.learnerId })) };
   const usage = (await loadTurnUsages(db, turn.sessionId)).get(turn.turnSeq);
   const [session] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
   yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0), ref: { sessionId: turn.sessionId, turnSeq: turn.turnSeq } };
@@ -227,6 +230,7 @@ async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGen
 
 async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, deadline: number): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
   const { db, client } = deps;
+  const { learnerId } = turn;
   const map = deps.map ?? loadCourseMap();
   const now = deps.now ?? (() => new Date());
   const runStart = performance.now();
@@ -246,8 +250,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   }
   if (resumed) {
     ({ session, log, turnSeq } = resumed);
-    code = toolCode(db, map, now, session.model, effects, turn.id, deps.embedQuery);
-    yield { type: "replay", text: (await turnText(log.rows, turnSeq, { db, map })) };
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
+    yield { type: "replay", text: (await turnText(log.rows, turnSeq, { db, map, learnerId })) };
     yield* repairToolCalls();
   } else {
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
@@ -255,24 +259,24 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const learnerText = typeof input === "object" && "resume" in input ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
     // Saved before the Topic starts, so a retry after a failure in between still knows.
-    if (navigate(map, await loadProgress(db))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
+    if (navigate(map, await loadProgress(db, learnerId))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
     // A Topic entered by a jump (or by going back to the default path) has not been taught in this conversation either.
     // The mark is taken once and kept on the turn, so a retry still knows.
-    if (await takeJumpEntry(db)) await updateTurn(db, turn.id, { freshStep: true, enteredByJump: true });
+    if (await takeJumpEntry(db, learnerId)) await updateTurn(db, turn.id, { freshStep: true, enteredByJump: true });
     const jumped = (await db.select({ j: turns.enteredByJump }).from(turns).where(eq(turns.id, turn.id)))[0]?.j ?? false;
-    const place = await ensureTopicStarted(db, map, now());
-    const previous = await currentSession(db);
+    const place = await ensureTopicStarted(db, map, now(), learnerId);
+    const previous = await currentSession(db, learnerId);
     const found = await sessionForAction(db, now(), turn);
     const continuing = "session" in found ? found.session : undefined;
     // The last turn may have been in the previous Session.
     const lastTurn = continuing ? await history(db, continuing.id) : previous ? await history(db, previous.id) : [];
-    session = continuing ?? (await startSession(db, now()));
+    session = continuing ?? (await startSession(db, now(), learnerId));
     // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
     const paste = await pasteForTurn(db, turn.id, session.id);
     const pastes = await pasteSummary(db, session.id);
-    const caseData = await caseDataFor(db, map, place);
+    const caseData = await caseDataFor(db, map, place, learnerId);
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
-    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id));
+    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId));
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
@@ -281,14 +285,14 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const learnerBlocks = [{ type: "text" as const, text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     if ("reason" in found && found.reason !== "first") yield { type: "session", reason: found.reason };
     log = await openLog(db, session.id, now);
-    code = toolCode(db, map, now, session.model, effects, turn.id, deps.embedQuery);
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
 
     turnSeq = log.nextSeq;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
-    const quiz = await pendingQuizNote(db, map);
+    const quiz = await pendingQuizNote(db, map, learnerId);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
     if (quiz?.passed) await updateTurn(db, turn.id, { freshStep: true });
     if (log.messages.length === 0) {
@@ -296,7 +300,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       // the first block of the Learner's first message.
       // Order: the Learner summary, the Learner Profile (if shared), then the Navigator context last.
       const profile = await profileBlock(db);
-      const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${profile ? `${profile}\n\n` : ""}${quiz ? `${quiz.text}\n\n` : ""}${context}`;
+      const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map, learnerId)}\n\n${profile ? `${profile}\n\n` : ""}${quiz ? `${quiz.text}\n\n` : ""}${context}`;
       await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {
       // The API accepts a system message only right after a user message (live 400 otherwise),
@@ -307,7 +311,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       await log.append({ role: "user", content: paste ? learnerBlocks : learnerText });
       if (contextChanged) await log.append({ role: "system", content: quiz ? `${quiz.text}\n\n${context}` : context });
     }
-    if (quiz) await markQuizReported(db, quiz.attemptIds, now());
+    if (quiz) await markQuizReported(db, quiz.attemptIds, now(), learnerId);
   }
 
   async function* repairToolCalls(): AsyncGenerator<TurnEvent> {
@@ -408,7 +412,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     yield* reportSaveFailure();
     // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
     if (stopReason !== "refusal") {
-      const fold = replyFold(marks, shownText, await sourceContext({ db, map }, marks.cited()));
+      const fold = replyFold(marks, shownText, await sourceContext({ db, map, learnerId }, marks.cited()));
       if (fold) yield { type: "text", text: fold };
     }
     return text;
@@ -438,7 +442,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       .select({ id: toolCalls.toolCallId })
       .from(toolCalls)
       .where(and(eq(toolCalls.turnId, turn.id), eq(toolCalls.isError, false)));
-    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: (await turnText(log.rows, turnSeq, { db, map })) };
+    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: (await turnText(log.rows, turnSeq, { db, map, learnerId })) };
   } else if (stopReason === "max_tokens") {
     // Kept as sent; a tool call it was cut off in is never run, and is answered so the history stays valid.
     const truncated = unansweredToolCalls(log.messages);
