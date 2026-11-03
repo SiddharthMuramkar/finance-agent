@@ -84,8 +84,16 @@ The page at the site's main address, where every visit starts. Signed out, it in
 _Avoid_: Landing page, dashboard, start page
 
 **Widget**:
-An interactive chart, calculator or Formula Card the Tutor puts beside the conversation, whose assumptions the Learner can change at no cost.
+An interactive picture the Tutor builds beside the conversation: charts, tables, sliders and calculators whose numbers come from code, or a labelled Illustration.
 _Avoid_: artifact, card (on its own)
+
+**Widget tool**:
+A small piece of our code a Widget calls in the browser to get real numbers (Case Data, a calculator, a range of answers, an annuity schedule), so moving a slider redraws without asking the Tutor.
+_Avoid_: API, query
+
+**Illustration**:
+A Widget built from clearly made-up numbers to picture an idea; its card says Illustration.
+_Avoid_: example chart, mock data
 
 **Formula Card**:
 A Widget that shows a named formula with each symbol in plain words, the Learner's numbers filled in live and the result worked out by tested code.
