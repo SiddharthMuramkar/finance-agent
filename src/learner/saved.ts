@@ -9,6 +9,7 @@ import { widgetParts } from "@/widgets/check";
 import { applySettings, cleanSettings } from "@/widgets/settings";
 import { splitReply } from "@/widgets/split";
 import { loadProgress } from "./memory";
+import { loadWidgetState } from "./widget-state";
 
 /**
  * "Save to notes": a Tutor reply, or a Widget, kept on a Topic Note. Only a pointer is stored (table
@@ -27,7 +28,8 @@ export const MAX_SETTINGS = 20;
 
 export type SaveRequest =
   | { kind: "reply"; sessionId: number; turnSeq: number }
-  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; settings?: unknown };
+  /** `widgetKey`: the key the Widget's state is saved under in that Session; what is saved there is what the note keeps. */
+  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; settings?: unknown; widgetKey?: string };
 
 export type SaveResult = { ok: true; id: number; topicId: string } | { ok: false; reason: string; status: 400 | 404 };
 
@@ -79,7 +81,8 @@ async function ownSession(db: Db, sessionId: number, learnerId: number): Promise
  * Saves a reply, or a Widget with its settings, on the right Topic's Note of this Learner. Saving the same thing
  * again changes nothing (a Widget's settings are updated). Another Learner's Session is no such Session.
  */
-export async function saveToNotes(db: Db, map: CourseMap, req: SaveRequest, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<SaveResult> {
+export async function saveToNotes(db: Db, map: CourseMap, request: SaveRequest, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<SaveResult> {
+  const req = await withSavedState(db, request, learnerId);
   if (req.kind === "widget" && req.widgetIndex === EXPLORE_INDEX) {
     if (req.sessionId !== undefined && !(await ownSession(db, req.sessionId, learnerId))) return notFound("That Session does not exist.");
     const topicId = await topicOfTurn(db, map, req.sessionId, undefined, learnerId);
@@ -97,6 +100,17 @@ export async function saveToNotes(db: Db, map: CourseMap, req: SaveRequest, now 
   const code = Number.isInteger(req.widgetIndex) ? widgetsOf(reply.text)[req.widgetIndex] : undefined;
   if (code === undefined) return notFound("That reply has no such Widget.");
   return keep(db, learnerId, { ...key, kind: "widget", widgetIndex: req.widgetIndex }, code, req.settings, now);
+}
+
+/**
+ * A Widget saved under its Widget key keeps the values saved with the Session under that key (Widget state), so the
+ * note and the Session agree; with nothing saved there yet, the numbers the browser sent. Another Learner's
+ * Session has no saved state for them (and is refused as no such Session below).
+ */
+async function withSavedState(db: Db, req: SaveRequest, learnerId: number): Promise<SaveRequest> {
+  if (req.kind !== "widget" || req.widgetKey === undefined || req.sessionId === undefined) return req;
+  const state = await loadWidgetState(db, req.sessionId, req.widgetKey, learnerId);
+  return state ? { ...req, settings: state.values } : req;
 }
 
 type Key = { topicId: string; kind: "reply" | "widget"; sessionId: number | null; turnSeq: number | null; widgetIndex: number | null };

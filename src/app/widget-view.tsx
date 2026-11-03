@@ -7,8 +7,8 @@ import type { CaseLoad } from "@/widgets/case-data-client";
 import { useCaseLoad } from "@/widgets/case-data-provider";
 import { answers, widgetProblems, widgetQueries, type WrittenQuery } from "@/widgets/check";
 import { GenuiTheme } from "@/widgets/genui-theme";
-import { WidgetBorderContext, widgetLibrary } from "@/widgets/library";
-import { settingsFrom } from "@/widgets/settings";
+import { StartingValuesContext, WidgetBorderContext, widgetLibrary } from "@/widgets/library";
+import { declaredSettings, settingsFrom } from "@/widgets/settings";
 import type { WidgetToolName } from "@/widgets/tool-specs";
 import { createWidgetTools, type WidgetToolProvider } from "@/widgets/tools";
 
@@ -150,11 +150,13 @@ function DrawnWidget({
   complete,
   onSettings,
   loadCase,
+  initialValues,
 }: {
   code: string;
   complete: boolean;
   onSettings?: (settings: Record<string, number>) => void;
   loadCase?: CaseLoad;
+  initialValues?: Record<string, number>;
 }) {
   // The latest outcome of each different call, by its text.
   const [outcomes, setOutcomes] = useState<Record<string, ToolOutcome>>({});
@@ -173,6 +175,7 @@ function DrawnWidget({
           isStreaming={!complete}
           toolProvider={tools}
           queryLoader={LOADING}
+          initialState={initialValues}
           onStateUpdate={onSettings && ((state) => onSettings(settingsFrom(state)))}
         />
       </GenuiTheme>
@@ -204,6 +207,7 @@ function useWidgetNumber(code: string): number {
  * plain fallback instead. `bare` drops the Widget's own border, for a card that already frames it.
  * `onSettings` hears the numbers on the Widget's sliders each time the Learner moves one (for "Save to notes").
  * `loadCase` shares the Widget's Case Data loads with whatever else reads them beside it (its Sourced strip).
+ * `initialValues` are the slider values it starts at instead of the ones its code declares (its saved Widget state).
  */
 export function WidgetView({
   code,
@@ -211,22 +215,28 @@ export function WidgetView({
   bare = false,
   onSettings,
   loadCase,
+  initialValues,
 }: {
   code: string;
   complete: boolean;
   bare?: boolean;
   onSettings?: (settings: Record<string, number>) => void;
   loadCase?: CaseLoad;
+  initialValues?: Record<string, number>;
 }) {
   const number = useWidgetNumber(code);
   // Without a loader of its own, the Widget's tools read the page's shared Case Data cache.
   const pageLoad = useCaseLoad();
   loadCase ??= pageLoad;
+  // Reset goes back to the numbers the code starts at, whatever saved values the Widget opened at.
+  const starting = useMemo(() => (complete ? declaredSettings(code) : {}), [code, complete]);
   if (complete && widgetProblems(code).length) return <Fallback />;
   return (
     <Contain code={code}>
       <WidgetBorderContext.Provider value={!bare}>
-        <DrawnWidget key={number} code={code} complete={complete} onSettings={onSettings} loadCase={loadCase} />
+        <StartingValuesContext.Provider value={starting}>
+          <DrawnWidget key={number} code={code} complete={complete} onSettings={onSettings} loadCase={loadCase} initialValues={initialValues} />
+        </StartingValuesContext.Provider>
       </WidgetBorderContext.Provider>
     </Contain>
   );

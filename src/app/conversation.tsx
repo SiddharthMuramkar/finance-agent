@@ -5,10 +5,12 @@ import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
+import type { WidgetStates } from "@/widgets/widget-state";
 import { LeftColumn } from "./left-column";
 import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
+import { WidgetStatesProvider } from "./widget-states";
 import { WorkspaceFrame } from "./workspace-frame";
 import type { PassedTopic, Place } from "./workspace-parts";
 
@@ -34,6 +36,7 @@ export function Conversation({
   explore = null,
   revealed = [],
   shown,
+  widgetStates,
   passed = null,
   developerDetails = false,
 }: {
@@ -49,6 +52,8 @@ export function Conversation({
   revealed?: readonly string[];
   /** What the page shows (its Topic's Session, or the Topic before its first turn), carried by every turn request. */
   shown?: Shown;
+  /** The shown Session's saved Widget state, by Widget key (loadWidgetStates): slider values and ticked Guided Tasks. */
+  widgetStates?: WidgetStates;
   /** A Topic passed in a turn, kept on screen until the Learner chooses where to go; its page sends no turns. */
   passed?: PassedTopic;
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
@@ -63,10 +68,13 @@ export function Conversation({
       {/* One Case Data cache for the page, cleared as each turn ends. */}
       <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
         <DeveloperDetails on={developerDetails}>
-          <WorkspaceFrame
-            left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} />}
-            right={<WidgetHost host={host} topicTitle={place?.title} />}
-          />
+          {/* The Widgets' saved work in the shown Session, kept across tab switches and saved for a reload. */}
+          <WidgetStatesProvider sessionId={shown && "sessionId" in shown ? shown.sessionId : undefined} initial={widgetStates}>
+            <WorkspaceFrame
+              left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} />}
+              right={<WidgetHost host={host} topicTitle={place?.title} />}
+            />
+          </WidgetStatesProvider>
         </DeveloperDetails>
       </CaseDataProvider>
     </AssistantRuntimeProvider>
