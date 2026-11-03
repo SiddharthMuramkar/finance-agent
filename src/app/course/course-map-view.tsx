@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { TopicOverview } from "@/course/navigator";
 import { Card, Eyebrow, KeyValueRow, Pill } from "../ui";
 import { BackToPathButton, JumpButton } from "./jump-button";
@@ -117,12 +116,6 @@ export function CourseMapView({ topics, coming = [] }: { topics: TopicOverview[]
 export function ProgressView({ topics }: { topics: TopicOverview[] }) {
   return (
     <div>
-      <p className="mb-4 text-sm leading-5">
-        <Link href="/profile" data-about-you className="underline underline-offset-4 hover:text-[var(--brand)]">
-          About you
-        </Link>{" "}
-        <span className="text-[var(--muted)]">· share a little so the Tutor can pick everyday examples that fit you</span>
-      </p>
       <Eyebrow className="mb-2">Topics</Eyebrow>
       <div>
         {topics.map((t) => (

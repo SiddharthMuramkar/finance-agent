@@ -4,7 +4,7 @@ import { AppHeader, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
 
 describe("ReadingPage", () => {
   it("puts the header in the same wide box on every reading page and narrows only the content", () => {
-    const pages = (["course", "progress", "sessions", "notes", undefined] as const).map((current) =>
+    const pages = (["course", "progress", "sessions", "notes", "settings", undefined] as const).map((current) =>
       renderToStaticMarkup(
         <ReadingPage current={current} theme="light">
           <p>content</p>
@@ -27,6 +27,7 @@ describe("AppHeader", () => {
     ["progress", "/progress", "Progress"],
     ["sessions", "/sessions", "Past Sessions"],
     ["notes", "/notes", "Notes"],
+    ["settings", "/settings", "Settings"],
   ] as const;
 
   it("puts Finance Agent at the left as the heading, leading to Home", () => {
@@ -35,7 +36,7 @@ describe("AppHeader", () => {
     expect(html.indexOf("Finance Agent")).toBeLessThan(html.indexOf("<nav"));
   });
 
-  it("lists the pages in order, then the theme toggle and Sign out", () => {
+  it("lists the pages in order, Settings last, then the theme toggle and Sign out", () => {
     const html = renderToStaticMarkup(<AppHeader current="progress" theme="light" />);
     const at = (pattern: RegExp) => html.search(pattern);
     const order = [
@@ -44,6 +45,7 @@ describe("AppHeader", () => {
       at(/href="\/progress"[^>]*>Progress</),
       at(/href="\/sessions"[^>]*>Past Sessions</),
       at(/href="\/notes"[^>]*>Notes</),
+      at(/href="\/settings"[^>]*>Settings</),
       at(/Dark mode/),
       at(/Sign out/),
     ];

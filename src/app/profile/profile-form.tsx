@@ -6,9 +6,12 @@ import { Card, Eyebrow, PrimaryButton, SecondaryButton } from "../ui";
 
 export type ProfileValues = Record<ProfileField, string>;
 
-/** What the Learner is told about the profile, in both the card and the edit page. */
+/**
+ * What the Learner is told about the profile, in both the card and Settings. A change reaches the Tutor
+ * with the Learner's next message (a new Where the Learner stands block), so nothing waits for a new Session.
+ */
 export const PROFILE_PRIVACY =
-  "This is private. It is given to the Tutor when a Session starts, and kept in that Session's record. The Tutor uses it only to choose everyday examples, never as advice. If you change it, the change applies from your next Session.";
+  "This is private. The Tutor is given it with your messages, and it is kept in your Session's record. The Tutor uses it only to choose everyday examples, never as advice.";
 
 const inputClass =
   "mt-1 w-full rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-sm leading-5 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
@@ -55,7 +58,7 @@ export async function send(url: string, method: string, body?: unknown): Promise
 
 /**
  * Saves the profile. "card" is the first-visit offer (Save and Not now; it hides itself afterwards);
- * "page" is the edit page ("About you"), which only saves.
+ * "page" is About you on Settings, which only saves.
  */
 export function ProfileForm({ initial, mode }: { initial: ProfileValues; mode: "card" | "page" }) {
   const [values, setValues] = useState(initial);
@@ -90,7 +93,7 @@ export function ProfileForm({ initial, mode }: { initial: ProfileValues; mode: "
           </SecondaryButton>
         )}
         <p role="status" aria-live="polite" className="text-xs leading-4 text-[var(--muted)]">
-          {status === "saved" ? "Saved. It applies from your next Session." : ""}
+          {status === "saved" ? "Saved. The Tutor sees it from your next message." : ""}
         </p>
       </div>
       {error && (

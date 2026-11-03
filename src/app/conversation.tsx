@@ -6,7 +6,7 @@ import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { LeftColumn } from "./left-column";
-import type { Line } from "./thread";
+import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
 import { WorkspaceFrame } from "./workspace-frame";
@@ -35,6 +35,7 @@ export function Conversation({
   revealed = [],
   shown,
   passed = null,
+  developerDetails = false,
 }: {
   initial: Line[];
   summary: string;
@@ -50,6 +51,8 @@ export function Conversation({
   shown?: Shown;
   /** A Topic passed in a turn, kept on screen until the Learner chooses where to go; its page sends no turns. */
   passed?: PassedTopic;
+  /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
+  developerDetails?: boolean;
 }) {
   // Each new turn sends the panel back to the newest Widget.
   const turn = useTurnStream({ initial, pending, shown, opener: !passed, onTurnStart: () => host.showNewest() });
@@ -59,10 +62,12 @@ export function Conversation({
     <AssistantRuntimeProvider runtime={turn.runtime}>
       {/* One Case Data cache for the page, cleared as each turn ends. */}
       <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
-        <WorkspaceFrame
-          left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} />}
-          right={<WidgetHost host={host} topicTitle={place?.title} />}
-        />
+        <DeveloperDetails on={developerDetails}>
+          <WorkspaceFrame
+            left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} />}
+            right={<WidgetHost host={host} topicTitle={place?.title} />}
+          />
+        </DeveloperDetails>
       </CaseDataProvider>
     </AssistantRuntimeProvider>
   );
