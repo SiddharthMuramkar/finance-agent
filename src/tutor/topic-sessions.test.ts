@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { stringify } from "yaml";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
-import { messages, sessions as sessionsTable, settings, topicProgress } from "@/db/schema";
+import { messages, OWNER_LEARNER_ID, sessions as sessionsTable, settings, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { learnerSummary, loadCheckResults, loadProgress, saveFinishedStep, saveJump } from "@/learner/memory";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
@@ -15,6 +15,7 @@ import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
 import type { Shown } from "./session-log";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
+import { turnKind } from "./turn-status";
 
 /**
  * One Session per Topic (ADR 0004, spec #119): the Tutor Turn on in-memory Postgres with the real
@@ -180,7 +181,7 @@ describe("one Session per Topic", () => {
     // As the expand migration left it: a Session that may hold several Topics, Older by default.
     const [old] = await db
       .insert(sessionsTable)
-      .values({ instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "present-value" })
+      .values({ learnerId: OWNER_LEARNER_ID, instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "present-value" })
       .returning();
     await db.insert(messages).values({ sessionId: old.id, seq: 0, role: "user", content: "An old question about the Sensex." });
     expect(await texts(db)).toEqual([]);
@@ -193,7 +194,7 @@ describe("one Session per Topic", () => {
 
   it("with every Topic passed, the Learner talks to the Tutor in one Session with no Topic", async () => {
     const db = await testDb();
-    for (const topicId of ["present-value", "bonds"]) await db.insert(topicProgress).values({ topicId, step: "principle", status: "passed" });
+    for (const topicId of ["present-value", "bonds"]) await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId, step: "principle", status: "passed" });
     await turn(db, "What next?", [say("Every Topic is passed.")]);
     const again = await turn(db, "Tell me more.", [say("Ask me anything.")]);
     expect(sent(again.requests[0])).toContain("What next?");
@@ -242,6 +243,25 @@ describe("one Session per Topic", () => {
     await saveJump(db, map, "present-value");
     const a = await turn(db, "Back again.", [say("You passed.")], map);
     expect(sent(a.requests[0])).toContain(`Quiz result by code, Check ${quiz.checkId}, attempt 1`);
+  });
+});
+
+describe("the opener: the page starts a Topic's first turn by itself", () => {
+  it("stores no Learner message, is recorded as an opener turn, and teaches the Story of a Topic not yet started", async () => {
+    const db = await testDb();
+    await saveJump(db, twoTopics, "bonds");
+    const opened = await turn(db, { opener: true }, [say("Picture a bond in 1994.")], twoTopics, { topicId: "bonds" });
+    expect(opened.events.at(-1)).toMatchObject({ type: "done" });
+
+    // Only the Tutor's reply is on screen: no Learner bubble.
+    expect(await texts(db)).toEqual(["Picture a bond in 1994."]);
+    expect(turnKind((await latestTurn(db))!)).toBe("opener");
+    const request = sent(opened.requests[0]);
+    expect(request).toContain("Opener by code:");
+    expect(request).toContain("Teach the Story");
+    expect(request).toContain("Teaching Step: story.");
+    // The opener started the Topic.
+    expect((await loadProgress(db)).topics["bonds"]).toMatchObject({ step: "story", status: "in_progress" });
   });
 });
 

@@ -3,7 +3,7 @@ import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages
 import { and, asc, eq, isNotNull, isNull, max } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { messages, OWNER_LEARNER_ID, sessions, settings, turns } from "@/db/schema";
+import { learnerState, messages, OWNER_LEARNER_ID, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
@@ -65,6 +65,29 @@ export async function shownNow(db: Db, map: CourseMap, learnerId: number): Promi
   const topicId = await currentTopicId(db, map, learnerId);
   const live = await liveSession(db, learnerId, topicId);
   return live ? { sessionId: live.id } : { topicId };
+}
+
+/**
+ * What the Study Workspace renders: the Learner's shown Session. A turn shows the Session it runs in,
+ * and choosing a Topic shows that Topic's; a Topic passed in a turn stays on screen until the Learner
+ * chooses where to go, though their current Topic has moved on. With none saved (or one no longer
+ * live), the current Topic's Session, or the Topic before its first turn.
+ */
+export async function shownInWorkspace(db: Db, map: CourseMap, learnerId: number): Promise<Shown> {
+  const [saved] = await db
+    .select({ id: sessions.id })
+    .from(learnerState)
+    .innerJoin(sessions, eq(sessions.id, learnerState.shownSessionId))
+    .where(and(eq(learnerState.learnerId, learnerId), eq(sessions.learnerId, learnerId), eq(sessions.older, false)));
+  return saved ? { sessionId: saved.id } : shownNow(db, map, learnerId);
+}
+
+/** Saves the Learner's shown Session (null: their current Topic, before its first turn). */
+export async function saveShownSession(db: Db, learnerId: number, sessionId: number | null): Promise<void> {
+  await db
+    .insert(learnerState)
+    .values({ id: learnerId, learnerId, shownSessionId: sessionId })
+    .onConflictDoUpdate({ target: learnerState.id, set: { shownSessionId: sessionId } });
 }
 
 /** Whether what a request says the page shows is the Learner's current Topic (a live Session of theirs for it, or the Topic itself). */
