@@ -50,15 +50,15 @@ principle: >
 insight:
   question: >
     Move the interest rate up and down and watch what happens to the payments that come later.
-    What do you notice, and what does it tell you about a smaller sum in your hand now compared
-    with bigger payments spread over many years?
+    What do you notice, and what does it mean for the choice?
   written: >
     When interest rates are high, money today beats bigger payments later: a high rate shrinks
     far-off payments so much that a smaller sum now can be worth more than a larger total paid out over many years.
   foundWhen: >
-    The Learner says in their own words that a higher interest rate makes payments that arrive later
-    worth much less today, so a smaller sum now can beat larger payments later. Noticing only that
-    "the bars get smaller" is not yet enough: they must connect it to choosing between now and later.
+    The Learner says in their own words how the rate changes what the later payments are worth, and
+    which payments it changes most, and then draws a conclusion about having money now versus
+    receiving it later. Noticing only that "the bars get smaller" is not yet enough: they must
+    connect it to the choice between now and later.
   hints:
     - >
       Watch the bars for the payments that arrive furthest away as you raise the rate. Which bars

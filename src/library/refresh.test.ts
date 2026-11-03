@@ -269,6 +269,35 @@ describe("an edited post", () => {
     expect(withOld.length).toBeGreaterThan(0);
   });
 
+  it("reads a picture once: an edited post with an unchanged picture makes no model call and keeps the picture's date", async () => {
+    const db = await testDb();
+    const published = "2019-01-10T09:00:00.000Z";
+    const img = `<img src="https://blogger.googleusercontent.com/img/a/AVvX/s320/chart.png" width="600" height="400">`;
+    let calls = 0;
+    const pictures = {
+      messages: {
+        create: async () => {
+          calls++;
+          return { content: [{ type: "text", text: `Cash option\nShare of jackpot | ${calls}0%` }], stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 10 } };
+        },
+      },
+    } as unknown as PictureClient;
+    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(9, { published, html: `<p>${PROSE}</p>${img}` })]).fetchFn, now: () => FIXED });
+    expect(calls).toBe(1);
+    const before = (await stored(db)).find((p) => p.text.includes("Share of jackpot"));
+    expect(before?.published_on).toBe("2019-01-10");
+
+    const edited = entry(9, { published, updated: "2019-06-01T12:00:00.000Z", html: `<p>${PROSE}</p>${img}` });
+    const weekLater = new Date(FIXED.getTime() + 7 * 86_400_000);
+    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([edited]).fetchFn, now: () => weekLater });
+    expect(calls).toBe(1);
+    const after = (await stored(db)).find((p) => p.text.includes("Share of jackpot"));
+    expect(after?.text).toContain("Share of jackpot | 10%");
+    expect(after?.published_on).toBe("2019-01-10");
+    const docs = (await db.execute(sql`select ref, updated_at from library_documents`)) as unknown as { rows: { ref: string }[] };
+    expect(docs.rows.map((d) => d.ref)).toEqual(["post-9"]);
+  });
+
   it("keeps an unchanged passage's date and embedding when only a later passage is added", async () => {
     const db = await testDb();
     const published = "2019-01-10T09:00:00.000Z";

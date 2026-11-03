@@ -120,7 +120,7 @@ function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widget
   const lines = [
     "",
     widgetCode
-      ? "Explore: the Learner finds this Topic's Insight by playing with the Topic's own Explore Widget. Code has put it on screen already, in the Widget panel as an \"Explore\" chip (and in the conversation column on a narrow screen), and keeps it there until the Topic is passed. It has an interest-rate slider and the sourced figures. Do not draw it yourself; point the Learner to it, then they say what they noticed in their own words."
+      ? "Explore: the Learner finds this Topic's Insight by playing with the Topic's own Explore Widget. Code has put it on screen already, in the Widget panel as an \"Explore\" chip (and in the conversation column on a narrow screen), and keeps it there until the Topic is passed. Do not draw it yourself; point the Learner to it, then they say what they noticed in their own words."
       : "Explore: the Learner finds this Topic's Insight by playing with the Widget you drew at the concept step (keep it available), then says what they noticed in their own words.",
     ...guidedTaskLines(widgetCode),
     `Insight question: ${insight.question.trim()}`,

@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { sql, type SQL } from "drizzle-orm";
 import { blogDocuments, blogPictures, bloggerFeed } from "./blog.ts";
 import { importLibraryDocument, passagesToEmbed, saveEmbeddings, type Executor, type LibraryFile } from "./ingest.ts";
+import { loadReadings, recordDocument, saveReading } from "./picture-cache.ts";
 import { READER_MODEL, readParams, unreadPictures, type PictureReadings } from "./pictures.ts";
 import { toReading, type PictureClient } from "./pictures-run.ts";
 import { prepareDocuments, type PreparedPassage } from "./prepare.ts";
@@ -160,14 +161,16 @@ async function processPost(entry: Entry, deps: RefreshDeps, outOfTime: () => boo
   const ref = entry.ref;
 
   // Pictures first: each unread one is a model call, so the budget is checked before every call.
-  const readings: PictureReadings = {};
+  // Readings already stored (library_pictures) are reused, so an edited post pays for no picture twice and keeps the same words.
   const urls = [...new Set(blogPictures(page).map((p) => p.url))];
+  const readings: PictureReadings = await loadReadings(db, urls);
   if (urls.length && !deps.pictures) problems.push({ step: `${ref} pictures`, message: `${urls.length} pictures not read: no Anthropic key is set` });
   else {
     for (const url of unreadPictures(urls, readings)) {
       if (outOfTime()) throw new OutOfTime();
       try {
         readings[url] = toReading(await deps.pictures!.messages.create(readParams(url)), READER_MODEL);
+        await saveReading(db, url, readings[url]);
       } catch (error) {
         problems.push({ step: `${ref} picture`, message: `${url}: ${error instanceof Error ? error.message : error}` });
       }
@@ -184,6 +187,7 @@ async function processPost(entry: Entry, deps: RefreshDeps, outOfTime: () => boo
   if (doc || existed) {
     const prepared = doc ? prepareDocuments([doc]).passages : [];
     passages = await importPrepared(db, sources.blog, ref, prepared, floorDay);
+    await recordDocument(db, sources.blog.id, ref, parsed.published.$t, entry.updatedAt);
   }
 
   // The spreadsheets the post links to, each its own document in the spreadsheets source.
@@ -204,6 +208,8 @@ async function processPost(entry: Entry, deps: RefreshDeps, outOfTime: () => boo
       // Spreadsheet text that is new to a document already stored is dated by the edit too.
       const known = (await storedPassages(db, SHEETS_SOURCE, sheetDoc.ref)).length > 0;
       await importPrepared(db, sources.sheets, sheetDoc.ref, prepared, existed || known ? updatedDay : null);
+      const modified = got.lastModified ? new Date(got.lastModified) : undefined;
+      await recordDocument(db, sources.sheets.id, sheetDoc.ref, parsed.published.$t, modified && !Number.isNaN(modified.getTime()) ? modified.toISOString() : null);
       spreadsheets++;
     } catch (error) {
       if (error instanceof OutOfTime) throw error;

@@ -65,4 +65,6 @@ console.log(`${docs.length} blog posts, ${words} words -> ${out}`);
 
 if (!noLoad) {
   execFileSync(process.execPath, ["scripts/library-load.mjs", "damodaran-blog", out], { stdio: "inherit" });
+  // Hand the picture readings to the database too, so the weekly refresh never pays for a picture twice.
+  if (existsSync(readingsFile)) execFileSync(process.execPath, ["scripts/library-seed-pictures.mjs", scratch], { stdio: "inherit" });
 }

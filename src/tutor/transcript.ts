@@ -2,9 +2,11 @@ import { asc, desc, eq } from "drizzle-orm";
 import { messages, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import type { CaseDataset } from "@/case-data/case-data";
 import type { CourseMap } from "@/course/map";
 import { CitationMarks, citedPassageIds, displayText } from "./citations";
-import { replyFold, sourceContext } from "./sources";
+import { replyFold, sourceContext, topicDatasets } from "./sources";
+import { topicTitleIn } from "./session-summary";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentSession, type Message, type Row } from "./session-log";
@@ -63,7 +65,9 @@ export async function listSessions(db: Db): Promise<{ id: number; createdAt: Dat
  */
 export async function loadSession(db: Db, sessionId: number, map?: CourseMap): Promise<Line[]> {
   // A turn's loop steps make one reply: one line, whose citation numbers run through all its steps and whose sources fold at its end.
-  const lines: (Line & { turnSeq?: number; marks?: CitationMarks })[] = [];
+  const lines: (Line & { turnSeq?: number; marks?: CitationMarks; topic?: string })[] = [];
+  // The Topic the Tutor's context named by each reply: its Case Data credits follow that Topic, not today's.
+  let topic: string | undefined;
   let correcting = false;
   let turnSeq = 0;
   const rows = await db
@@ -73,6 +77,7 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap): P
     .orderBy(asc(messages.seq));
   const ctx = await sourcesFor(db, map, rows.filter((m) => m.role === "assistant").map((m) => m.content));
   for (const m of rows as (Message & { seq: number })[]) {
+    topic = topicTitleIn(m.content) ?? topic;
     const fix = correcting && m.role === "assistant";
     // A reply is shown with its citation markers; its sources are added once the reply is complete.
     const marks = fix ? new CitationMarks() : (lines.at(-1)?.role === "assistant" ? lines.at(-1)!.marks : undefined) ?? new CitationMarks();
@@ -88,13 +93,20 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap): P
       const target = lines.findLast((l) => l.role === "assistant");
       if (target) target.text = replaceBrokenWidgets(target.text, text);
       else lines.push({ role: m.role, text, turnSeq, marks });
-    } else if (m.role === "assistant" && last?.role === "assistant") last.text += PARAGRAPH + text;
-    else {
+    } else if (m.role === "assistant" && last?.role === "assistant") {
+      last.text += PARAGRAPH + text;
+      last.topic = topic;
+    } else {
       if (m.role === "user") turnSeq = m.seq;
-      lines.push({ role: m.role, text, turnSeq, ...(m.role === "assistant" && { marks }) });
+      lines.push({ role: m.role, text, turnSeq, ...(m.role === "assistant" && { marks, topic }) });
     }
   }
-  for (const l of lines) if (l.marks) l.text += replyFold(l.marks, l.text, ctx);
+  const datasetsByTopic = new Map<string | undefined, CaseDataset[]>();
+  for (const l of lines) {
+    if (!l.marks) continue;
+    if (map && !datasetsByTopic.has(l.topic)) datasetsByTopic.set(l.topic, await topicDatasets({ db, map }, l.topic));
+    l.text += replyFold(l.marks, l.text, map ? { ...ctx, datasets: datasetsByTopic.get(l.topic) ?? [] } : ctx);
+  }
   // The panel hangs off the last reply of each turn.
   for (const [seq, usage] of await loadTurnUsages(db, sessionId)) {
     const last = lines.findLast((l) => l.role === "assistant" && l.turnSeq === seq);

@@ -377,6 +377,34 @@ export const libraryRefreshRuns = pgTable(
 );
 
 /**
+ * What the model read from a Library picture, kept by the picture's original-size address so each
+ * picture is read once, ever. `text` is null when the picture has nothing of substance.
+ */
+export const libraryPictures = pgTable("library_pictures", {
+  url: text("url").primaryKey(),
+  text: text("text"),
+  model: text("model").notNull(),
+  stopReason: text("stop_reason"),
+  problems: jsonb("problems").notNull().$type<string[]>().default(sql`'[]'::jsonb`),
+  readAt: timestamp("read_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** A Library document (a blog post or a spreadsheet file) and its published and updated times as the source gave them. */
+export const libraryDocuments = pgTable(
+  "library_documents",
+  {
+    sourceId: text("source_id")
+      .notNull()
+      .references(() => librarySources.id),
+    ref: text("ref").notNull(),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.sourceId, t.ref] })],
+);
+
+/**
  * One run of the model comparison script (npm run compare:models): which models answered, who
  * graded, the written report and the recommendation. Saved from the laptop; the app never reads it.
  */
