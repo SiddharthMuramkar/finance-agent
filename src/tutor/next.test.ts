@@ -197,9 +197,11 @@ describe("the Learner's Next", () => {
     const request = sent(closed.requests[0]);
     expect(request).toContain("the Learner pressed Complete this Topic. Topic complete: stop here.");
     expect(request).not.toContain("every Topic on the Course Map is passed");
-    expect(seen(await loadThread(db, sessionOf(first.events), plain)).slice(-2)).toEqual([
+    // No step divider: the Topic complete card ends the conversation instead.
+    expect(seen(await loadThread(db, sessionOf(first.events), plain)).slice(-3)).toEqual([
       { role: "assistant", text: "Once upon a time." },
       { role: "assistant", text: "Well done: that is the Topic." },
+      { role: "item", kind: "topic_complete", data: expect.objectContaining({ title: "Present value" }) },
     ]);
   });
 

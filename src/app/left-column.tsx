@@ -13,6 +13,7 @@ import { exploreItem, PinnedExplore } from "./widget-panel";
 import { Chips, TopicBar, type PassedTopic, type Place } from "./workspace-parts";
 import type { NextOffer, StepSequence } from "@/course/navigator";
 import { TOPIC_START } from "@/course/topic-start";
+import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 
 /**
  * The Study Workspace's left column, top to bottom: the Topic bar, the pinned explore Widget, the folded
@@ -52,6 +53,8 @@ export function LeftColumn({
   const latest = messages.at(-1);
   const opening = latest?.role === "item" && latest.kind === TOPIC_START;
   const chips = !passed && latest && latest.role !== "user" && !opening && !running && !refreshing && !canRetry;
+  // The passed Topic's conversation ends at its Topic complete card, which offers where to go next.
+  const carded = messages.some((m) => m.role === "item" && m.kind === TOPIC_COMPLETE);
   // The steps whose divider ("step" items) is in the thread: the strip scrolls back to those.
   const marked = new Set(messages.flatMap((m) => (m.role === "item" && m.kind === "step" && typeof m.data.number === "number" ? [m.data.number] : [])));
   return (
@@ -103,10 +106,15 @@ export function LeftColumn({
             Passed ✓
           </span>
           <p className="text-sm leading-5">{passed.title} is passed.</p>
-          {passed.next && <WhatComesNextButton label={passed.next} />}
-          <a href="/course" className="text-sm leading-5 underline">
-            Course Map
-          </a>
+          {/* The Topic complete card carries What comes next and the Course Map; a Topic passed before the card existed has them here. */}
+          {!carded && (
+            <>
+              {passed.next && <WhatComesNextButton label={passed.next} />}
+              <a href="/course" className="text-sm leading-5 underline">
+                Course Map
+              </a>
+            </>
+          )}
         </section>
       ) : (
         <>

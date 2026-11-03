@@ -20,7 +20,8 @@ export async function GET() {
 
 /**
  * Marks one of the current Learner's quiz attempts on the server; another Learner's attempt answers 404.
- * No model call: code marks, saves the result and its result card (`item`, for the page to draw), and returns
+ * No model call: code marks, saves the result and its result card (`item`, for the page to draw; `complete`, the Topic complete card, when
+ * the pass passed the Topic), and returns
  * the key with the marking. `{ retry: true }` is Try Check <k> again: it makes and returns the next attempt.
  */
 export async function POST(request: Request) {
