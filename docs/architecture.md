@@ -1354,33 +1354,65 @@ first turn after a Due Check reopens a passed Topic's Session (see "Coming back"
 ## Simulated Learner (`scripts/simulated-learner.mjs`)
 
 **What it does.** A script that plays the Learner over HTTP against any running copy of the app: it
-logs in with the passcode and drives the app as a Learner does (`src/dev/learner-moves.ts`, tested): it
+signs in as the tools Learner and starts that Learner over (see "The tools Learner" below), so every run
+begins from an empty Learner, and it drives the app as a Learner does (`src/dev/learner-moves.ts`, tested): it
 chooses the Topic (`POST /api/jump`; the page's opener starts the Session), presses Next when the Tutor
 asked nothing or a quiz was just taken (a refused Next names the step on offer, and it presses that one),
 presses Finish this reply under a reply cut off at its length limit, answers the Tutor with a cheap model (`claude-haiku-5-5`),
 takes the quiz through `GET`/`POST /api/quiz` (code marks it, no model call), and keeps going until the
 Topic is passed. After each turn it reads the step, duration and cost from the `usage` table, and it
 writes a transcript, a per-turn table and a cost summary to a folder you give it (outside the repo,
-because transcripts hold source-derived text). `--reset` archives the Topic's saved progress first (rows
-are renamed, nothing is deleted) so a run starts at the story. It still sets `session_idle_hours` to 0
-for one turn in the middle of the Topic, a leftover from when that forced a new Session; since one Session
-per Topic (ADR 0004) idle time never starts a Session, so that turn carries on the same Session (removing
-it is ticket #158's). The saved value is put back after that turn, and also if you press Ctrl-C or the
-script is killed during it. `--reset` clears the Learner's current Topic only when it is the Topic being reset, so a
-Topic you chose on the Course Map page is kept.
+because transcripts hold source-derived text). Every database read (step, status, passes, Sessions, the
+last turn) filters by the tools Learner's id. It writes nothing to the database itself: the app writes the
+tools Learner's rows as it would for anyone.
 
-**Scenario.** After a deploy, run it against the production URL: fourteen turns later you have a
-transcript of a whole Topic, the cost per turn and the longest turn.
+It used to sign in with the owner's passcode, so it shared the owner's Learner. To start a fresh walk it
+renamed the owner's Topic rows (`--reset`), and it set the app's `session_idle_hours` to 0 for one turn
+to force a new Session. On 2 November that rename is what hid the owner's passed Checks. Both are gone:
+Start over on its own Learner gives a clean start, and since one Session per Topic (ADR 0004) idle time
+never starts a Session, so there is nothing to force and no app setting is ever changed.
+
+**Scenario.** After a deploy, run it against the production URL: it signs in as `tools`, archives the
+tools Learner from the last run, and fourteen turns later you have a transcript of a whole Topic, the
+cost per turn and the longest turn. The owner opens the Study Workspace afterwards and finds his own
+Topic exactly where he left it.
 
 **Trade-off.** It talks to the real Tutor and the real database, so each run costs about a quarter of a
-dollar and changes the saved progress (hence `--reset`). The Learner is a model, so it is polite and
-quick to follow: it checks the plumbing and the pacing, not whether a real person finds the teaching
-good. It reads the database directly for cost and step, so it must use the same `DATABASE_URL` as the app.
+dollar, and each run leaves one more archived tools Learner with its rows (nothing is deleted, so the
+history of runs stays readable). The Learner is a model, so it is polite and quick to follow: it checks
+the plumbing and the pacing, not whether a real person finds the teaching good. It reads the database
+directly for cost and step, so it must use the same `DATABASE_URL` as the app, and the app's `PASSCODES`
+must list the same `tools` pair as the script's environment.
 
 **How it is tested.** The pacing rule and the paragraph break are tested at the Tutor Turn seam with the
 scripted client. The runner itself is a script, checked by running it end to end (evidence folder for #11).
-Its two database writes, the temporary idle setting and `--reset`, live in `src/dev/simulated-learner.ts`
-and are tested against the in-memory database, including a Ctrl-C in the middle of a turn.
+Its sign-in and its reads live in `src/dev/simulated-learner.ts` and are tested against the real login
+and Start over routes on the in-memory database (`simulated-learner.test.ts`).
+
+## The tools Learner (`src/dev/simulated-learner.ts`, `src/dev/tools-learner.ts`, spec #119, ticket #158)
+
+**What it does.** The owner's test tools run as their own Learner, named `tools` (`TOOLS_NAME` in
+`src/auth/passcode.ts`), never as the owner or the owner's `test` Learner. Each run first does Start over
+on that Learner: the active tools Learner is archived (its rows stay, untouched) and a fresh, empty one
+opens under the same name. Then the run reads and writes only that fresh Learner's rows.
+- **Over HTTP** (the simulated learner and the browser check): `signInAsToolsLearner` posts the tools
+  passcode to `/api/login`, then posts the confirmed Start over to `/api/start-over` with the site's
+  Origin, exactly as Settings' button does, and keeps the new cookie. The passcode comes only from the
+  `tools:` pair in `PASSCODES`; with none listed the tool stops with that reason, and there is no fallback
+  to `PASSCODE` (which would sign in as the owner).
+- **In memory** (the model comparisons and the behaviour run): each question's throwaway database calls
+  `freshToolsLearner`, which does the same sign-in and Start over in code, and every placement, Learner
+  Profile and Tutor Turn of the run names that Learner.
+
+**Scenario.** The owner runs the browser check against a local server on a Neon test branch. It starts
+the tools Learner over four times (one per part) and seeds each fresh Learner with inserts only. Later
+he signs in as `test` on the same branch: his test Learner's Welcome, Sessions and progress are as he
+left them, and so are the owner's.
+
+**Trade-off.** One more name in `PASSCODES` to keep in step between Vercel, `.env` and the tools. Archived
+tools Learners pile up, one per run; they cost a few rows each and show the history of runs, and nothing
+lists them to a Learner. The in-memory runs gain nothing in safety (their database is thrown away), but
+playing the same Learner as the HTTP tools means a run reads exactly like a new Learner's.
 
 ## Course Map page and jumps (`/course`, `/progress`, `/api/jump`, `src/course/navigator.ts`)
 
@@ -2917,11 +2949,11 @@ backfill reload places the corrected readings.
 
 ## Present value pilot check (`src/tutor/pilot.test.ts`, `src/course/connections-check.ts`, `scripts/browser-check.mjs`, ticket #74)
 
-**What it does.** Three guards that the insight-led Topic works as one piece. (1) One turn test plays present value start to finish with a scripted Tutor and a real in-memory database: story and concept, then explore (a miss that earns hint 1, then the Learner's own words found), the Learner's turn, the Check, the reveal and the principle with its Connections, ending with a passed Topic. It then reads the Topic Note and expects the Learner's words, the Connections and a Formula Card that code works out from the registry's calculator. (2) The course check now fails any Topic that has an Insight but not two or three Connections. (3) A browser script signs in to a local server, seeds a test database with a Learner at the explore step, and takes screenshots at laptop and upright-iPad sizes in light and dark: the explore Widget, Guided Tasks ticking, the live Formula Card, folded sources, Notes and the profile form. It makes no model call.
+**What it does.** Three guards that the insight-led Topic works as one piece. (1) One turn test plays present value start to finish with a scripted Tutor and a real in-memory database: story and concept, then explore (a miss that earns hint 1, then the Learner's own words found), the Learner's turn, the Check, the reveal and the principle with its Connections, ending with a passed Topic. It then reads the Topic Note and expects the Learner's words, the Connections and a Formula Card that code works out from the registry's calculator. (2) The course check now fails any Topic that has an Insight but not two or three Connections. (3) A browser script signs in to a local server as the tools Learner, starts it over before each part (see "The tools Learner"), seeds the fresh Learner with inserts only, and takes screenshots at laptop and upright-iPad sizes in light and dark: the explore Widget, Guided Tasks ticking, the live Formula Card, folded sources, Notes and Settings. Since ticket #158 it also checks what only a real browser shows: a reload, a switch of the panel's tabs and a second browser tab keep slider values and ticked Guided Tasks; with a quiz open, the last Tutor message and the message box stay on screen and the page is no taller than the window; and the first-visit walk, sign-in → Welcome → Start this Topic → Next chips → quiz → passed, pressing only named buttons and answering from the Topic file's answer key. Only the walk calls the model (real Tutor turns on the local server, a few cents); `--skip-walk` leaves it out.
 
-**Scenario.** Someone edits the Tutor's context so the principle step stops listing Connections: the turn test fails at the principle step. Someone adds a second Insight Topic and forgets its Connections: `npm run course:check` says `Topic "x" has an Insight, so it needs two or three Connections (it has 0)`. Someone changes the Formula Card so the rate slider no longer moves it: the browser script fails with "the Formula Card did not change when the rate slider moved".
+**Scenario.** Someone edits the Tutor's context so the principle step stops listing Connections: the turn test fails at the principle step. Someone adds a second Insight Topic and forgets its Connections: `npm run course:check` says `Topic "x" has an Insight, so it needs two or three Connections (it has 0)`. Someone changes the Formula Card so the rate slider no longer moves it: the browser script fails with "the Formula Card did not change when the rate slider moved". Someone lets the quiz panel push the page taller: it fails with "the page grew to 1460px in a 900px window".
 
-**Trade-off.** The turn test proves the wiring and the saved records, not what Opus will actually say; that is the live run's job. The browser script needs a Neon test branch and a local server, so it runs by hand rather than in CI, and it seeds the test branch directly with SQL, so a change to those tables means updating the script.
+**Trade-off.** The turn test proves the wiring and the saved records, not what Opus will actually say; that is the live run's job. The browser script needs a Neon test branch and a local server, so it runs by hand rather than in CI, and it seeds the test branch directly with SQL, so a change to those tables means updating the script. The walk depends on the live Tutor finishing each step, so a slow or odd reply can fail it; it waits up to four minutes for each press.
 
 ## Own passcodes, the Learner-carrying cookie and the dropped owner defaults (`src/auth/passcode.ts`, `learners.ts`, `session.ts`, `src/proxy.ts`, `drizzle/0028_learners_contract.sql`, spec #119, ticket #127)
 
