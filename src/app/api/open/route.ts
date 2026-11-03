@@ -1,18 +1,40 @@
+import { loadCourseMap } from "@/course/map";
 import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
-import { openCurrentTopic } from "@/learner/memory";
+import type { Db } from "@/db/types";
+import { openCurrentTopic, saveJump } from "@/learner/memory";
+import { liveSession, saveShownSession } from "@/tutor/session-log";
 import { turnRunning } from "@/tutor/turn-status";
 
 export const runtime = "nodejs";
 
 /**
- * Home's Resume (or Start): a plain form post, so it works without scripts. It opens the Learner's current
- * Topic, whose Session then shows at once, and goes to the Study Workspace. While a turn is running nothing is
+ * A Progress row: an unpassed Topic becomes the current Topic and its Session shows at once; a passed
+ * Topic (read-only, it can't be chosen) has its own Session shown, as after the turn that passed it, and
+ * the current Topic stays as it was. A passed Topic with no Session of its own leaves things as they are.
+ */
+async function openTopic(db: Db, learnerId: number, topicId: string): Promise<void> {
+  const map = loadCourseMap();
+  const jump = await saveJump(db, map, topicId, new Date(), learnerId);
+  if (jump.ok || !map.topic(topicId)) return;
+  const session = await liveSession(db, learnerId, topicId);
+  if (session) await saveShownSession(db, learnerId, session.id);
+}
+
+/**
+ * Home's Resume (or Start), and Progress rows: plain form posts, so they work without scripts. With no
+ * `topic` field it opens the Learner's current Topic; with one it opens that Topic. Either way the Session
+ * then shows at once and the Learner goes to the Study Workspace. While a turn is running nothing is
  * chosen: the Study Workspace says a turn is in progress.
  */
 export async function POST(request: Request) {
   const db = getDb();
   const learnerId = await currentLearnerId();
-  if (!(await turnRunning(db, new Date(), learnerId))) await openCurrentTopic(db, learnerId);
+  const form = await request.formData().catch(() => null);
+  const topic = form?.get("topic");
+  if (!(await turnRunning(db, new Date(), learnerId))) {
+    if (typeof topic === "string" && topic) await openTopic(db, learnerId, topic);
+    else await openCurrentTopic(db, learnerId);
+  }
   return Response.redirect(new URL("/study", request.url), 303);
 }
