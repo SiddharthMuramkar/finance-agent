@@ -1511,7 +1511,7 @@ and separate the argument's facts, inferences and forecasts.
 
 **What it does.** Signed out, `/` shows a public page that says what the Study Workspace is: a
 headline, a screenshot, three counts (Topics written of planned, every Case in the outline, Library
-sources), the six Teaching Steps and "Every number has a source". Signed in, `/` is the workspace as
+sources), the seven Teaching Steps and "Every number has a source". Signed in, `/` is the workspace as
 before. The page reads no Learner data and no Library text, only counts. All its words live in
 `copy.ts`, marked DRAFT, and a small "Draft" pill shows near the headline until the owner rewrites them.
 
@@ -1567,6 +1567,38 @@ Session (the cards say so). That keeps the Session's record true to what the Tut
 keeps the cached conversation prefix byte-for-byte stable, at the cost of a short wait before an edit
 shows in the examples. The profile is stored in plain text in the database and in each Session's
 record; it is meant for light context, not for anything private such as account numbers.
+
+## Pictures in Damodaran's posts (`src/library/pictures.ts`, `pictures-run.ts`, `citation-impact.ts`, `npm run library:pictures`, IL 14, #71)
+
+**What it does.** Damodaran's valuation tables (Tesla's inputs, say) and charts are pictures, so the
+Library could not search them. Each picture on Blogger's own image hosts is now read once by Haiku 5.5
+into text, and that text sits in the post at the picture's position, as lines starting with
+`[picture]`. Pictures are fetched at original size (Blogger serves a resized copy unless the address
+asks for `s0`), and pictures on other sites, icons and tracking pixels are skipped. Readings are cached
+in the scratch folder by picture address, so a re-run or a resumed run never pays twice. Search
+results that hold picture text carry a note in the first result's credit block, and the Passage view
+shows the same note: it was read by a machine, check the numbers against the original.
+
+**A scenario.** A post opens with a table of Tesla's inputs. `library:pictures plan` counts the
+pictures and prints the cost range, `dry-run` reads five for a few cents, `submit` sends the rest as
+one Message Batch (half price), and `collect` is run later, as often as needed, until the batch has
+ended. `verify` has Opus 5.5 re-read 40 spread-out pictures. `library:blog` then places the text in
+the posts, and the table is the post's first passage: the title-page filter ignores any passage with
+picture text, so a post that opens with a picture keeps it. The Learner asks for Tesla's growth
+input, the search finds the table lines, and the reply cites them with the machine-read note beside.
+
+**Accuracy is checked by code, on every reading.** Cut off by the length limit, empty, or a refusal;
+table rows with a different number of cells; a letter standing in a digit; a line repeating; a Total
+row that does not add up its column. Then the stronger model's 40 readings are compared number by
+number with Haiku's, and each disagreement is listed to be fixed or flagged. Before the reload,
+`impact` lists stored Citations whose blog passages will change, because a Citation names sentences
+by number.
+
+**Trade-offs.** Haiku is cheap but can misread a digit, so the machine-read note stays on forever
+and only a sample is re-read (the code checks cover the rest). Reading by address means we never
+download or store the pictures, but a picture Blogger later removes cannot be re-read (its cached
+text stays). Batches are slow (up to a day) but half price, and the saved batch id lets a stopped
+run resume. Measured cost and accuracy: to be filled in from the live run (see #71).
 
 ## Formula registry (`src/finance/formulas.ts`, `formula-ids.ts`, ADR 0002, issue #64)
 
