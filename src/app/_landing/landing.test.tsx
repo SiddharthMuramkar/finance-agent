@@ -5,6 +5,9 @@ import type { Db } from "@/db/types";
 import { ensureTopicStarted } from "@/learner/memory";
 import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
+import { stringify } from "yaml";
+import { loadCourseMap, parseCourseMap, type Topic } from "@/course/map";
+import type { Progress, TopicProgress } from "@/course/navigator";
 import { copy } from "./copy";
 
 const getDbMock = vi.hoisted(() => vi.fn());
@@ -139,6 +142,11 @@ describe("Home, the signed-in button", () => {
   it("Start names the Topic and opens it, as a form posting to /api/open", () => {
     expect(hero({ kind: "start", topic: "Present value" })).toMatch(/^<form[^>]*action="\/api\/open"[^>]*method="post"[^>]*><button type="submit"[^>]*>Start: Present value<\/button><\/form>$/);
   });
+  it("What comes next shows its label and opens that Topic, as a form posting to /api/open", () => {
+    const h = renderToStaticMarkup(<LandingView stats={stats} button={{ kind: "next", label: "New in Percent: Check 3 →" }} />);
+    expect(h).toMatch(/<form[^>]*action="\/api\/open"[^>]*method="post"[^>]*><button type="submit"[^>]*>New in Percent: Check 3 →<\/button><\/form>/);
+    expect(h).not.toContain("Resume");
+  });
   it("Open Study Workspace opens /study", () => {
     expect(hero({ kind: "open" })).toContain(">Open Study Workspace</a>");
   });
@@ -148,16 +156,36 @@ describe("Home, the signed-in button", () => {
   });
 });
 
-describe("Home, the button rule", () => {
-  const map = presentValueOnly();
-  const title = map.topic("present-value")!.title;
-  const place = (status: "not_started" | "in_progress" | "passed", dueChecks: unknown[] = []) =>
-    ({ topic: map.topic("present-value")!, status, dueChecks }) as never;
+describe("Home, the button rule: What comes next, in the Course Navigator's order", () => {
+  const map = presentValueOnly({ withoutQuiz: true });
+  const pv = map.topic("present-value")!;
+  const passed = (topic: Topic): TopicProgress => ({ step: "principle", passedChecks: topic.checks.map((c) => c.id), revealShown: true, status: "passed", insight: "found" });
+  const progress = (topics: Progress["topics"], currentTopicId: string | null = null): Progress => ({ currentTopicId, topics });
 
-  it("is Open when there is no place", () => expect(homeButton(null)).toEqual({ kind: "open" }));
-  it("is Start for a Topic never started", () => expect(homeButton(place("not_started"))).toEqual({ kind: "start", topic: title }));
-  it("is Resume for a Topic in progress", () => expect(homeButton(place("in_progress"))).toEqual({ kind: "resume", topic: title }));
-  it("is Resume for a passed Topic with a Check due", () => expect(homeButton(place("passed", [{}]))).toEqual({ kind: "resume", topic: title }));
+  it("is Open once every Topic is passed and nothing is due", () => expect(homeButton(map, progress({ [pv.id]: passed(pv) }))).toEqual({ kind: "open" }));
+  it("is Start for a Learner who has started nothing", () => expect(homeButton(map, progress({}))).toEqual({ kind: "start", topic: pv.title }));
+  it("is Resume for the chosen Topic in progress", () =>
+    expect(homeButton(map, progress({ [pv.id]: { step: "concept", passedChecks: [], revealShown: false, status: "in_progress" } }, pv.id))).toEqual({ kind: "resume", topic: pv.title }));
+  it("is Start for a chosen Topic not yet started", () => {
+    const real = loadCourseMap();
+    const [first, second] = real.topics;
+    expect(homeButton(real, progress({ [first.id]: passed(first) }, second.id))).toEqual({ kind: "start", topic: second.title });
+  });
+  it("is New in <Topic>: Check N → for a passed Topic with a Check due", () => {
+    const text = stringify({ ...pv, connections: undefined, prerequisites: [], checks: [...pv.checks, { id: "pv-new", kind: "conversation", prompt: "Which?", passCriteria: "Compares.", required: true }] });
+    const edited = parseCourseMap([{ name: "present-value.yaml", text }]).map!;
+    expect(homeButton(edited, progress({ [pv.id]: passed(pv) }))).toEqual({ kind: "next", label: `New in ${pv.title}: Check ${pv.checks.length + 1} →` });
+  });
+  it("is New in <Topic>: Explore → for a passed Topic whose Explore is now required", () => {
+    const text = stringify({ ...pv, connections: undefined, prerequisites: [], explore: { ...pv.explore, requiredWhenPassed: true } });
+    const edited = parseCourseMap([{ name: "present-value.yaml", text }]).map!;
+    expect(homeButton(edited, progress({ [pv.id]: { ...passed(pv), insight: undefined } }))).toEqual({ kind: "next", label: `New in ${pv.title}: Explore →` });
+  });
+  it("is Next Topic: <title> → after a Topic is passed", () => {
+    const real = loadCourseMap();
+    const [first, second] = real.topics;
+    expect(homeButton(real, progress({ [first.id]: passed(first) }))).toEqual({ kind: "next", label: `Next Topic: ${second.title} →` });
+  });
 });
 
 describe("Home's page, signed in", () => {
