@@ -39,6 +39,13 @@ describe("The signed-out gate", () => {
     }
   });
 
+  it("sends a signed-out visitor from the Study Workspace to the login, and lets a signed-in one in", async () => {
+    expect(redirectedToLogin(await proxy(request("/study")))).toBe(true);
+    expect(redirectedToLogin(await proxy(request("/study?demo=1")))).toBe(true);
+    const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
+    expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
+  });
+
   it("answers 401 on API routes", async () => {
     expect((await proxy(request("/api/turn", { method: "POST" }))).status).toBe(401);
     expect((await proxy(request("/api/turn"))).status).toBe(401);

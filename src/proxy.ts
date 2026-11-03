@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ACCESS_COOKIE, hasAccess } from "@/auth/passcode";
 
-/** The only files a signed-out visitor may fetch besides the landing page: its screenshots. */
+/** The only files a signed-out visitor may fetch besides Home: its screenshots. */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
 /**
  * Every page and API route needs the passcode cookie, except the login page itself.
- * Signed out, only a plain GET or HEAD of "/" (the public landing page) and its images get through.
+ * Signed out, only a plain GET or HEAD of "/" (Home) and its images get through.
  */
 export async function proxy(request: NextRequest) {
   const ok = await hasAccess(request.cookies.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "");
