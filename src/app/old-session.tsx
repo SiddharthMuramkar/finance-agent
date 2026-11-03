@@ -3,19 +3,12 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { WidgetSlot } from "./reply-markdown";
-import { DeveloperDetails, readOnlyLines, ReadOnlyThread, widgetsIn, type Line } from "./thread";
+import { DeveloperDetails, readOnlyLines, ReadOnlyThread, widgetsIn, withNextStepDividers, type Line } from "./thread";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { primaryButtonClass } from "./ui";
 import { exploreItem, PinnedExplore, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
 
 export type OldLine = Line;
-
-/**
- * Before Next replaced it, moving on posted a "Continue." message as if the Learner typed it. On a Past
- * Sessions page each one draws as a small "→ next step" divider in its place, never as a Learner bubble.
- */
-const withNextStepDividers = (lines: OldLine[]): OldLine[] =>
-  lines.map((l) => (l.role === "user" && l.text.trim() === "Continue." ? { role: "item", kind: "next_step", data: {} } : l));
 
 /**
  * An old Session, read-only, in the workspace's two columns: the conversation with "Open: <title> →" chips on the left,

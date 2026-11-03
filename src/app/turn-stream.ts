@@ -9,7 +9,7 @@ import type { Shown } from "@/tutor/session-log";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import type { SessionItemData } from "./session-item-view";
-import { convertMessage, type Line, type ThreadLine } from "./thread";
+import { convertMessage, withNextStepDividers, type Line, type ThreadLine } from "./thread";
 
 /** How an attached passage shows in the thread: a short label, as the saved transcript shows it. */
 export function pastePreview(paste: string): string {
@@ -67,7 +67,8 @@ export function useTurnStream({
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
   const shownRef = useRef(shown);
-  const [messages, setMessages] = useState<ThreadLine[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
+  // An old stored "Continue." draws as a "→ next step" divider, never as a Learner bubble.
+  const [messages, setMessages] = useState<ThreadLine[]>(() => withNextStepDividers(initial).map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const [fixing, setFixing] = useState(false);
