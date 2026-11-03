@@ -9,8 +9,8 @@ export async function GET() {
 }
 
 /**
- * Saves the Learner Profile (all four answers; an empty one means "not shared"). A Session already
- * open keeps the profile it started with: a change applies from the next Session.
+ * Saves the Learner Profile (all four answers; an empty one means "not shared"). The next turn sends
+ * the Tutor the changed profile in a new Where the Learner stands block; nothing already sent changes.
  */
 export async function PUT(request: Request) {
   const parsed = profileInput.safeParse(await request.json().catch(() => null));

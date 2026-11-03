@@ -31,9 +31,10 @@ export async function readSettings(db: Db) {
   return {
     model: get("model")!,
     effort: get("effort") as Effort,
+    /** How long a gap counts as a break; it never starts a new Session (ADR 0004). */
     idleHours: Number(get("session_idle_hours")),
     compactAtTokens: Number(get("compact_at_tokens")),
-    /** The most spaced reviews offered in one Session. */
+    /** The most spaced reviews offered over the last 24 hours. */
     reviewCap: Number(get("review_cap")),
   };
 }

@@ -39,7 +39,7 @@ import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage
 
 /**
  * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
- * one-turn lock, picks the Session (session-log.ts), sends changed context (context.ts), and
+ * one-turn lock, picks the Topic's Session (session-log.ts), sends changed context (context.ts), and
  * runs the Tool Runner loop with cut-off, compaction, refusal and widget-correction handling.
  */
 
@@ -176,13 +176,13 @@ async function beforeDeadline<T>(promise: Promise<T>, deadline: number): Promise
 }
 
 /**
- * Runs one Tutor turn for one Learner: takes their one-turn lock, saves their message,
- * streams the reply through Tool Runner and saves each loop step's messages
- * unchanged as they finish. Before the message, code appends the Course
- * Navigator's context whenever it changed; a new Session opens with the
- * Learner's summary and that context. A turn is saved as running, cut off,
- * finished or failed; `{ resume: true }` continues a cut-off or failed turn
- * from its last saved loop step.
+ * Runs one Tutor turn for one Learner: refuses a request from a tab showing another Topic, takes
+ * their one-turn lock, saves their message in the live Session of their current Topic, streams the
+ * reply through Tool Runner and saves each loop step's messages unchanged as they finish. After the
+ * message, code appends the Course Navigator's context (and the Where the Learner stands block)
+ * whenever it changed; a Topic's first turn makes its Session, which opens with both. A turn is
+ * saved as running, cut off, finished or failed; `{ resume: true }` continues a cut-off or failed
+ * turn from its last saved loop step.
  */
 export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGenerator<TurnEvent> {
   const { db } = deps;
