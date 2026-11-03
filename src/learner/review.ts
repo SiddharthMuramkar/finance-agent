@@ -29,7 +29,7 @@ const toState = (row: CardRow): ReviewCardState => ({
   last_review: row.lastReview ?? undefined,
 });
 
-const toRow = (questionId: string, c: ReviewCardState): CardRow => ({
+const toRow = (questionId: string, c: ReviewCardState): Omit<CardRow, "learnerId"> => ({
   questionId,
   due: c.due,
   stability: c.stability,

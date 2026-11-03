@@ -156,6 +156,8 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
 - `turns`, `tool_calls`: each turn's saved status (running, cut off, finished, failed), which is also
   the one-turn lock, and the saved result of every tool call, keyed by its tool call ID (below).
 - `login_failures`: wrong passcodes by address and time, for the login's guessing limit (Passcode gate, above).
+- `learners`, `session_items`, `widget_state`: Learners, the display-only items between messages,
+  and saved Widget work (next section). Nothing reads them yet.
 
 The app uses Neon's pooled connection (`DATABASE_URL`), over WebSockets rather than HTTP, because
 only WebSockets allow the transactions the Tutor's tools need (see "Surviving cut-offs and failures"). Schema changes are migration files in
@@ -167,6 +169,48 @@ messages from Neon and shows them again, without calling Claude.
 
 **Trade-off.** Storing raw message content as JSON keeps it byte-for-byte replayable, which
 Claude's thinking rules need, but makes it less convenient to query than neat columns.
+
+## Learners, Topic Sessions and the expand step (`learners`, `session_items`, `widget_state`, `drizzle/0026_learners_expand.sql`, spec #119)
+
+**What it does.** This is the groundwork for own Learners and one Session per Topic (ADR 0004). It
+changes the database only; no code reads or writes the new parts yet, so nothing on screen changes.
+- **Learners** (`learners`): one row per Learner, with a name, an archived time (set by Start over)
+  and the Show developer details choice (off). The migration makes the owner's Learner, id 1, named
+  "owner" (`OWNER_LEARNER_ID` in `src/db/schema.ts`). At most one Learner per name is not archived.
+- **A Learner id on every Learner-owned table**: the place on the Course Map (`learner_state`),
+  `topic_progress`, `check_results`, `quiz_attempts`, `misconceptions`, `insight_attempts`,
+  `review_cards`, `review_log`, `note_items`, `learner_profile`, `pasted_texts`, `sessions`, `turns`,
+  and the two new stores below. The column defaults to the owner, which gave every existing row to
+  the owner, and also gives the owner every row written by today's code, which never names a Learner.
+- **On Sessions**: the Topic (empty for now), an Older flag and the position where the Session's
+  instructions were last refrozen after a deploy. Every existing Session is Older. The flag defaults
+  to Older, so a Session started by today's code is Older too, until the code that makes Topic
+  Sessions sets it to live. A database rule allows one live Session per Learner and Topic; Older
+  Sessions and Sessions with no Topic are not limited.
+- **Session items** (`session_items`): what the Study Workspace will draw between messages and never
+  send to the model: step dividers, "Picking up where you left off" and Due Check dividers, Check
+  result cards and Topic complete cards. Each has its Learner, Session, the message it follows
+  (`after_seq`), a kind and its data.
+- **Widget state** (`widget_state`): one row per Session and Widget key (a written-ahead Widget's
+  id, or a Tutor-drawn Widget's title) holding the slider values and ticked Guided Tasks.
+- **The shown Session** (`learner_state.shown_session_id`): which Session the Study Workspace shows,
+  so a passed Topic can stay on screen until the Learner chooses where to go.
+
+**Why expand, then contract.** Migrations are applied by hand and every merge deploys at once, so a
+schema change comes in three steps. Expand (this one): add everything, with defaults that keep the
+live code working, and apply it to production before any code uses it. Then the code that uses it
+(per-Learner reads and writes, Topic Sessions). Last, contract: the per-Learner keys (Topic progress
+by Learner and Topic, and so on) and dropping the owner defaults, so no row is written without a
+Learner.
+
+**Scenario.** The migration runs on production while the old code is live. The owner sends a message
+a minute later: the old code starts a Session and a turn without naming a Learner, and both rows
+belong to the owner and the Session is Older. Weeks later the per-Learner code is live, and those
+rows show up in the owner's Older sessions, as every Session from before the change should.
+
+**Trade-off.** Defaults that point at the owner keep the old code working without a single change,
+but for a while a row written without a Learner silently belongs to the owner rather than failing.
+The contract step closes that gap by dropping the defaults once every write names a Learner.
 
 ## Tutor Turn (`src/tutor/turn.ts`, `session-log.ts`, `transcript.ts`, `context.ts`)
 
