@@ -121,7 +121,7 @@ function cleanLine(text: string): { ok: true; text: string } | { ok: false; reas
 
 /** Adds the Learner's own line to a Topic's note. Any Topic of the Course Map takes lines, passed or not. */
 export async function addLine(db: Db, map: CourseMap, topicId: string, text: string, now = new Date()): Promise<LineResult> {
-  if (!map.topic(topicId)) return { ok: false, reason: "That Topic is not on the Course Map." };
+  if (!map.topic(topicId)) return { ok: false, reason: "That Topic is not on the Course Map.", status: 404 };
   const clean = cleanLine(text);
   if (!clean.ok) return clean;
   const [row] = await db.insert(noteItems).values({ topicId, kind: "line", text: clean.text, createdAt: now, updatedAt: now }).returning();

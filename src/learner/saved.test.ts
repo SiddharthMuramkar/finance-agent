@@ -216,7 +216,8 @@ describe("saving the same thing at once", () => {
   it("keeps one row when a reply is saved twice together (double click, two tabs)", async () => {
     const db = await testDb();
     const id = await session(db, textReply("It is worth less later."));
-    const [a, b] = await Promise.all([saveToNotes(db, map, { kind: "reply", sessionId: id, turnSeq: 1 }), saveToNotes(db, map, { kind: "reply", sessionId: id, turnSeq: 1 })]);
+    const [a, b] = await Promise.all([saveToNotes(db, map, { kind: "reply", sessionId: id, turnSeq: 0 }), saveToNotes(db, map, { kind: "reply", sessionId: id, turnSeq: 0 })]);
+    expect([a, b]).toEqual([expect.objectContaining({ ok: true }), expect.objectContaining({ ok: true })]);
     expect(a.ok && b.ok && a.id === b.id).toBe(true);
     expect(await db.select().from(noteItems)).toHaveLength(1);
   });

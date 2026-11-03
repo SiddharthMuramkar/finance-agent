@@ -316,11 +316,13 @@ describe("an edited post", () => {
 describe("a failing reindex after the posts are in", () => {
   it("still finishes done with its watermark and says what failed", async () => {
     const real = await testDb();
+    // A plain index under the BM25 index's name makes the refresh take its reindex path (PGlite has no BM25).
+    await real.execute(sql`create index library_passages_bm25 on library_passages (text)`);
     const db = new Proxy(real, {
       get(target, prop, receiver) {
         if (prop === "execute") {
           return (q: unknown) => {
-            if (JSON.stringify(q).includes("reindex")) throw new Error("reindex failed");
+            if (JSON.stringify(q).includes("reindex index")) throw new Error("cannot rebuild the index here");
             return (target as unknown as { execute: (q: unknown) => unknown }).execute(q);
           };
         }

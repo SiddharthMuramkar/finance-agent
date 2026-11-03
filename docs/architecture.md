@@ -776,6 +776,8 @@ the question. Telling the Insight marks the step as begun this turn, so the paci
 Tutor finishing explore in the same turn. At the principle step the context carries the Learner's own
 words, saved at the attempt that settled it, and says whether they found it or were told.
 
+The "settled once" rule is also held by the database: a unique index allows only one `found` or `told` row per Topic in `insight_attempts`, and the insert ignores a clash, so a second settling attempt (or a repeated tool call) is refused even if two turns ever ran at once.
+
 **A concrete scenario.** The Learner writes "the bars get smaller". The Tutor records a not-yet, and
 code replies with hint 1. After the same again, hint 2. After a third not-yet the result contains the
 written Insight and the Tutor tells it kindly. Had the Learner written "just tell me" at the start, the
