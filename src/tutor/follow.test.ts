@@ -100,7 +100,7 @@ describe("Follow Topics: a dated piece as a Case", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Let's read it." }] }]);
 
-    await collect(runTutorTurn({ db, client, map: libraryMap() }, "Continue."));
+    await collect(runTutorTurn({ db, client, map: libraryMap() }, "Go on."));
 
     const context = sentTexts(requests[0]).join("\n");
     expect(context).toContain('Piece studied: A. Writer, "Up, up and away", published 2014-12-02 (https://example.org/blog/up).');
@@ -135,7 +135,7 @@ describe("Follow Topics: text the Learner pastes", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Please paste the opening." }] }]);
 
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, "Continue."));
+    await collect(runTutorTurn({ db, client, map: pasteMap() }, "Go on."));
 
     const context = sentTexts(requests[0]).join("\n");
     expect(context).toContain('Piece studied: B. Writer, "A newsletter piece", published 2014-12-01');
@@ -151,7 +151,7 @@ describe("Follow Topics: text the Learner pastes", () => {
       { content: [{ type: "text", text: "The first step is the subsidy claim." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, "Continue."));
+    await collect(runTutorTurn({ db, client, map: pasteMap() }, "Go on."));
     await collect(runTutorTurn({ db, client, map: pasteMap() }, { message: "Here is the opening.", paste: passage }));
 
     const msgs = requests[1].messages;

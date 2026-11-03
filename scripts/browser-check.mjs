@@ -95,7 +95,8 @@ async function seed(passed) {
     );
     const id = rows[0].id;
     const lines = [
-      ["user", [{ type: "text", text: "Continue." }]],
+      // The opener the page starts for an empty Session: a note code wrote, never drawn as a Learner bubble.
+      ["user", [{ type: "text", text: "Opener by code: the Learner has just opened this Topic, and this turn was started by the page; the Learner has written nothing yet." }]],
       ["assistant", [{ type: "text", text: REPLY }]],
     ];
     for (const [seq, [role, content]] of lines.entries()) {
