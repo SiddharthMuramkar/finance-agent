@@ -28,12 +28,22 @@ function nextOf(value: unknown): NextName | undefined {
 }
 
 /**
- * Runs one Tutor turn (a message, Next, Continue, or the opener the page starts for a Session with no messages), or resumes the last one, and streams its events as
+ * Runs one Tutor turn (a message, Next, Continue, the opener the page starts for a Session with no messages, or the
+ * quiz follow-up it starts after a missed quiz), or resumes the last one, and streams its events as
  * newline-delimited JSON. A send while another turn runs gets a 409, and so does a send from a tab
  * whose Topic is no longer the Learner's current one (`stale`).
  */
 export async function POST(request: Request) {
-  const body = (await request.json()) as { message?: string; paste?: string; continue?: boolean; opener?: boolean; next?: unknown; resume?: boolean; shown?: unknown };
+  const body = (await request.json()) as {
+    message?: string;
+    paste?: string;
+    continue?: boolean;
+    opener?: boolean;
+    next?: unknown;
+    quizFollowUp?: boolean;
+    resume?: boolean;
+    shown?: unknown;
+  };
   const paste = body.paste?.trim();
   if (paste && wordCount(paste) > MAX_PASTE_WORDS) return Response.json({ error: `A paste can hold at most ${MAX_PASTE_WORDS} words; paste the part being studied.` }, { status: 400 });
   const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);
@@ -44,7 +54,9 @@ export async function POST(request: Request) {
       ? { opener: true }
       : next
         ? { next }
-        : body.continue
+        : body.quizFollowUp
+          ? { quizFollowUp: true }
+          : body.continue
           ? { continue: true }
           : message && paste
             ? { message, paste }

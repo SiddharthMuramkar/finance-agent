@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { OpenQuiz } from "@/learner/quiz";
-import { checkTabName, QuizPanel } from "./quiz-panel";
+import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
+import { checkTabName, QuizPanel, type QuizSubmitted } from "./quiz-panel";
 import type { WidgetSlot } from "./reply-markdown";
 import { widgetsIn, type ThreadLine } from "./thread";
 import { holdsKey, updatedInPlace, useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
@@ -17,11 +17,27 @@ const CHECK_KEY = "check";
  * `WidgetHost` in the right column.
  *
  * An open quiz is shown on its own tab ("Check 1 of 2"), selected unless the Learner picks a Widget's tab. The
- * tab is kept after the server stops sending the quiz (a pass) until the Learner dismisses the marking.
+ * tab is kept after the server stops sending the quiz (a pass) until the Learner dismisses the marking. After a miss
+ * (`missed`) it shows the last attempt's marking with Try Check <k> again until the Learner presses it.
  */
 export type WidgetHostState = ReturnType<typeof useWidgetHost>;
 
-export function useWidgetHost({ messages, running, explore, quiz = null }: { messages: ThreadLine[]; running: boolean; explore: { code: string } | null; quiz?: OpenQuiz | null }) {
+export function useWidgetHost({
+  messages,
+  running,
+  explore,
+  quiz = null,
+  missed = null,
+  onQuizSubmitted,
+}: {
+  messages: ThreadLine[];
+  running: boolean;
+  explore: { code: string } | null;
+  quiz?: OpenQuiz | null;
+  missed?: MissedQuiz | null;
+  /** A quiz was marked: the conversation draws its result card, and after a miss starts the Tutor's follow-up. */
+  onQuizSubmitted?: (submitted: QuizSubmitted) => void;
+}) {
   const tutorWidgets = useMemo(() => widgetsIn(messages, running), [messages, running]);
   const exploreAnchor = useExploreAnchor(explore, tutorWidgets.length);
   // In drawing order; a Widget the Tutor draws again under the same title then takes the earlier one's tab.
@@ -32,14 +48,15 @@ export function useWidgetHost({ messages, running, explore, quiz = null }: { mes
   // The quiz the Check tab holds: the open one, or the last one while its marking is still on screen.
   const [held, setHeld] = useState<OpenQuiz | null>(quiz);
   if (quiz && quiz.attemptId !== held?.attemptId) setHeld(quiz);
-  const checkSelected = !!held && (picker.picked === CHECK_KEY || !widgets.some((w) => holdsKey(w, picker.picked)));
-  const check = held
+  const tab = held ?? missed;
+  const checkSelected = !!tab && (picker.picked === CHECK_KEY || !widgets.some((w) => holdsKey(w, picker.picked)));
+  const check = tab
     ? {
-        name: checkTabName(held),
+        name: checkTabName(tab),
         selected: checkSelected,
         onPick: () => picker.pick(CHECK_KEY),
         // When the marking is dismissed the tab goes, unless the server has opened the next attempt.
-        body: <QuizPanel quiz={quiz} onDismiss={() => setHeld(quiz)} />,
+        body: <QuizPanel quiz={quiz} missed={missed} onSubmitted={onQuizSubmitted} onDismiss={() => setHeld(quiz)} />,
       }
     : undefined;
 
