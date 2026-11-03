@@ -1,6 +1,7 @@
 import { Parser } from "htmlparser2";
 import { z } from "zod";
-import type { SourceDocument } from "./prepare";
+import { originalPictureUrl, readingLines, type PictureReadings } from "./pictures.ts";
+import type { SourceDocument } from "./prepare.ts";
 
 // Damodaran's blog (Musings on Markets) as the Library reads it: Blogger's JSON feed in, documents
 // out. Packages and type-only imports, so the laptop backfill command runs this file with Node's
@@ -16,13 +17,21 @@ export type Section = { heading: string; paragraphs: string[] };
 
 const squash = (text: string) => text.split(/\s+/).filter(Boolean).join(" ");
 
+/** What to do with the pictures in a post: `onPicture` hears each original-size address in order; `readings` supplies the text read from them, placed where the picture is. */
+export type PictureOptions = { onPicture?: (url: string) => void; readings?: PictureReadings };
+
+/** Icons and tracking pixels: a picture declared smaller than 100 pixels either way. */
+const tiny = (attrs: Record<string, string>) => [attrs.width, attrs.height].some((v) => v !== undefined && Number(v) > 0 && Number(v) < 100);
+
 /**
  * Turns HTML into blocks, `h` for headings and `p` for everything else. Block tags end a block;
  * a table row becomes one block "a | b | c"; a list item starts with a bullet. Same rules, tag
  * for tag, as the Python reader in scripts/library/sources.py (a parity test holds them together).
  */
-export function htmlBlocks(markup: string): Block[] {
+export function htmlBlocks(markup: string, pictures: PictureOptions = {}): Block[] {
   const blocks: Block[] = [];
+  /** Picture paragraphs waiting for the end of a table row: a picture in a cell is placed just before its row. */
+  let waiting: Block[] = [];
   let buf: string[] = [];
   let skip = 0;
   let heading = 0;
@@ -37,7 +46,19 @@ export function htmlBlocks(markup: string): Block[] {
 
   const parser = new Parser(
     {
-      onopentag(tag) {
+      onopentag(tag, attrs) {
+        if (tag === "img" && !skip) {
+          const url = originalPictureUrl(attrs.src ?? "");
+          if (url && !tiny(attrs)) {
+            pictures.onPicture?.(url);
+            const lines = (readingLines(pictures.readings, url) ?? []).map((text): Block => ({ kind: "p", text }));
+            if (cells) waiting.push(...lines);
+            else {
+              flush();
+              blocks.push(...lines);
+            }
+          }
+        }
         if (SKIP.has(tag)) skip++;
         else if (tag === "td" || tag === "th") cell = [];
         else if (tag === "tr") {
@@ -57,6 +78,8 @@ export function htmlBlocks(markup: string): Block[] {
         } else if (tag === "tr" && cells) {
           const row = cells.filter(Boolean).join(" | ");
           cells = null;
+          blocks.push(...waiting);
+          waiting = [];
           if (row) blocks.push({ kind: "p", text: row });
         } else if (BLOCK.has(tag)) {
           flush();
@@ -114,12 +137,12 @@ export const bloggerFeed = z.object({
 export type BlogDocument = SourceDocument & { publishedAt: string; updatedAt: string | null };
 
 /** The posts of one feed page that hold text. A post with no link or no text is left out. */
-export function blogDocuments(page: unknown): BlogDocument[] {
+export function blogDocuments(page: unknown, { readings }: { readings?: PictureReadings } = {}): BlogDocument[] {
   const docs: BlogDocument[] = [];
   for (const e of bloggerFeed.parse(page).feed.entry) {
     const url = e.link.find((l) => l.rel === "alternate")?.href;
     if (!url) continue;
-    const sections = sectionsFromBlocks(htmlBlocks(e.content?.$t ?? ""));
+    const sections = sectionsFromBlocks(htmlBlocks(e.content?.$t ?? "", { readings }));
     if (!sections.length) continue;
     docs.push({
       ref: `post-${e.id.$t.split("post-").pop()}`,
@@ -138,3 +161,13 @@ export function blogDocuments(page: unknown): BlogDocument[] {
 export const feedTotal = (page: unknown): number => Number(bloggerFeed.parse(page).feed.openSearch$totalResults.$t);
 /** How many posts this feed page holds. */
 export const feedCount = (page: unknown): number => bloggerFeed.parse(page).feed.entry.length;
+
+/** Every picture of the posts on one feed page, in reading order: the post it is in and its original-size address. */
+export function blogPictures(page: unknown): { ref: string; url: string }[] {
+  const found: { ref: string; url: string }[] = [];
+  for (const e of bloggerFeed.parse(page).feed.entry) {
+    const ref = `post-${e.id.$t.split("post-").pop()}`;
+    htmlBlocks(e.content?.$t ?? "", { onPicture: (url) => found.push({ ref, url }) });
+  }
+  return found;
+}

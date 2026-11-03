@@ -3,6 +3,7 @@ import { navigate, type Progress } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import type { BetaSearchResultBlockParam } from "@anthropic-ai/sdk/resources/beta/messages";
+import { isMachineRead, MACHINE_READ_NOTE } from "./pictures";
 import { firstWords, passagePath, passageSentences } from "./passage";
 import { allSources, creditsOf, hiddenAmong, passageById, searchPassages, sourcesMatching, type LibraryHit } from "./search";
 
@@ -88,6 +89,7 @@ function searchNotes(search: LibrarySearch): string[] {
   const lines = [`Library search for "${search.query}"${scope}: ${search.mode === "combined" ? "keyword and vector results combined." : "keyword results only."}`];
   if (search.fallback) lines.push(search.fallback);
   if (search.asOf) lines.push(`The Case is before its reveal, so dated passages published after ${search.asOf}, and reference passages that mention a later year, are hidden. Do not use what is shown to hint at the Case's outcome.`);
+  if (search.results.some((r) => isMachineRead(r.text))) lines.push(MACHINE_READ_NOTE);
   return lines;
 }
 
@@ -161,6 +163,8 @@ export type PassageView =
       quoteWords: number | null;
       /** True when the quote limit cut the passage down: the rest is read at `url`. */
       shortened: boolean;
+      /** True when the passage holds text a machine read from a picture, which the page says so. */
+      machineRead: boolean;
       /** The sentences shown, each marked if the citation rests on it. */
       sentences: { text: string; cited: boolean }[];
     };
@@ -188,5 +192,5 @@ export async function loadPassageView(deps: LibraryDeps, id: number, blocks?: { 
     sentences = [{ text: cut.text, cited: chosen.some((s) => s.cited) }];
   }
   const { heading, sourceTitle, credit, licence, url, publishedOn, quoteWords } = passage;
-  return { status: "shown", heading, sourceTitle, credit, licence, url, publishedOn, quoteWords, shortened, sentences };
+  return { status: "shown", heading, sourceTitle, credit, licence, url, publishedOn, quoteWords, shortened, machineRead: isMachineRead(passage.text), sentences };
 }
