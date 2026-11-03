@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_DESTINATION, safeDestination } from "@/auth/destination";
 import { ACCESS_COOKIE, hasAccess } from "@/auth/passcode";
 
-/** The only files a signed-out visitor may fetch besides the landing page: its screenshots. */
+/** The only files a signed-out visitor may fetch besides Home: its screenshots. */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
 /** Next.js's own query parameters (such as `_rsc`), never part of a page the Learner meant to open. */
@@ -16,7 +16,7 @@ function rememberedPage(url: URL): string | null {
 
 /**
  * Every page and API route needs the passcode cookie.
- * Signed out, only a plain GET or HEAD of "/" (the public landing page), its images and exactly the
+ * Signed out, only a plain GET or HEAD of "/" (Home), its images and exactly the
  * login page get through. Other pages redirect to the login, remembering a GET or HEAD's page as `next`.
  * Signed in, a GET or HEAD of the login page skips the form and goes to the safe `next`, or /study.
  */

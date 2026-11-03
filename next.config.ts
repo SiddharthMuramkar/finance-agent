@@ -3,10 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // The Course Map is read from course/topics and course/outline.yaml at runtime, so ship those files with every route.
   outputFileTracingIncludes: { "/*": ["./course/topics/**/*", "./course/outline.yaml"] },
-  // "/" is public, so no other site may frame any page (clickjacking), browsers must not guess content types,
+  // "/" (Home) is public, so no other site may frame any page (clickjacking), browsers must not guess content types,
   // and other sites see only our origin as the referrer. Only frame-ancestors is set: a full script CSP would need nonces.
   async headers() {
     return [
+      // Home is one address for two pages, keyed only by the cookie: never cached by a CDN or the browser.
+      { source: "/", headers: [{ key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" }] },
       {
         source: "/:path*",
         headers: [

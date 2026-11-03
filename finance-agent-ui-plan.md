@@ -96,7 +96,7 @@ The prototype code is the primary source for these details. It is to be kept on 
 
 **Landing page (to be built)**
 12. It's a showcase for people the owner shows it to. No sign-up and no accounts.
-13. The main address depends on the passcode cookie. Signed out, it shows the landing page. Signed in,
+13. (Superseded by #77: the main address is now always Home and the workspace is at `/study`.) The main address depends on the passcode cookie. Signed out, it shows the landing page. Signed in,
     it goes straight to the workspace.
 14. The stats card has real counts, made by code: Topics as "90 of 95" (written of planned), all Cases
     in the outline, and Library sources. Counts only: no private Library text and no Learner data on the
@@ -145,7 +145,7 @@ The prototype code is the primary source for these details. It is to be kept on 
 
 - Good tests check what the Learner sees, not how it is built. For example: the Course Map shows four
   Stage groups in order; a Foundation row shows its Subject; the phone width shows the note; a
-  signed-out visit to `/` shows the landing page and a signed-in one shows the workspace; the landing
+  signed-out visit to `/` shows the landing page and a signed-in one shows the workspace (superseded by #77: signed in, `/` is still Home and the workspace is `/study`); the landing
   counts match the outline.
 - Prior art: the page component tests next to the pages (course map view, old Session, phone view,
   widget view and calculator widget tests), the Course Navigator's tests for `courseOverview`, and

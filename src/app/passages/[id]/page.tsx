@@ -89,7 +89,7 @@ export default async function PassagePage({
           </article>
         )}
         <Link
-          href="/"
+          href="/study"
           className="mt-8 block text-sm text-[var(--muted)] hover:underline"
         >
           Back to the Study Workspace

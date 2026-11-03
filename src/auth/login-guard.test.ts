@@ -18,6 +18,22 @@ function login(passcode: string, ip = "203.0.113.7", next?: string) {
 const where = (response: Response) => new URL(response.headers.get("location")!).search;
 const signedIn = (response: Response) => (response.headers.get("set-cookie") ?? "").includes("fa_access=");
 
+describe("A right passcode", () => {
+  beforeEach(async () => {
+    db = await testDb();
+    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("SESSION_SECRET", "test-secret");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("lands in the Study Workspace", async () => {
+    const ok = await login(PASSCODE);
+    expect(ok.status).toBe(303);
+    expect(new URL(ok.headers.get("location")!).pathname).toBe("/study");
+    expect(signedIn(ok)).toBe(true);
+  });
+});
+
 describe("Passcode login attempts", () => {
   beforeEach(async () => {
     db = await testDb();

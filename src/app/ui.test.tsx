@@ -29,13 +29,13 @@ describe("AppHeader", () => {
     expect(html).toMatch(/href="\/sessions"[^>]*>Past Sessions</);
     expect(html).toContain("Dark mode");
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
-    expect(html).toMatch(/href="\/"[^>]*>Study Workspace</);
+    expect(html).toMatch(/href="\/study"[^>]*>Study Workspace</);
   });
 
   it("marks no link on the workspace and offers Light mode in dark mode", () => {
     const html = renderToStaticMarkup(<AppHeader current="workspace" theme="dark" />);
     expect(html).not.toContain("aria-current");
-    expect(html).not.toMatch(/href="\/"/);
+    expect(html).not.toMatch(/href="\/study"/);
     expect(html).toContain("Light mode");
   });
 });

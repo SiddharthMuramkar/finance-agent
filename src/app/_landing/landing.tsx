@@ -4,8 +4,11 @@ import { landingStats, type LandingStats } from "./stats";
 
 const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
 
-/** The public page at "/" for a signed-out visitor. It shows counts only: no Learner data, no Library text. */
-export function LandingView({ stats }: { stats: LandingStats }) {
+/**
+ * Home, at "/". It shows counts only: no Learner data, no Library text. Signed out, the top bar and hero offer
+ * Sign in; signed in (`signedIn`), they offer the Study Workspace at /study instead.
+ */
+export function LandingView({ stats, signedIn = false }: { stats: LandingStats; signedIn?: boolean }) {
   const columns = [
     { value: stats.topics, label: copy.stats.topics },
     { value: String(stats.cases), label: copy.stats.cases },
@@ -16,8 +19,8 @@ export function LandingView({ stats }: { stats: LandingStats }) {
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <span className="text-base font-semibold">{copy.brand}</span>
-          <a href="/login" className="text-sm text-[var(--muted)] hover:text-[var(--ink)]">
-            {copy.signIn}
+          <a href={signedIn ? "/study" : "/login"} className="text-sm text-[var(--muted)] hover:text-[var(--ink)]">
+            {signedIn ? copy.studyWorkspace : copy.signIn}
           </a>
         </div>
       </header>
@@ -38,8 +41,8 @@ export function LandingView({ stats }: { stats: LandingStats }) {
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-7 text-[var(--muted)]">{copy.subtext}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="/login" className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
-                {copy.signIn}
+              <a href={signedIn ? "/study" : "/login"} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
+                {signedIn ? copy.openStudyWorkspace : copy.signIn}
               </a>
               <a href="#how" className={`${bigButton} border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--hairline)]`}>
                 {copy.howItWorks}
@@ -113,7 +116,7 @@ export function LandingView({ stats }: { stats: LandingStats }) {
   );
 }
 
-/** Loads the counts (the database part cached for a day) and renders the landing page. */
-export async function LandingPage() {
-  return <LandingView stats={await landingStats()} />;
+/** Loads the counts (the database part cached for a day) and renders Home. */
+export async function LandingPage({ signedIn = false }: { signedIn?: boolean }) {
+  return <LandingView stats={await landingStats()} signedIn={signedIn} />;
 }
