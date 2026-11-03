@@ -421,12 +421,12 @@ of nine: Numbers & time value, Financial statements, Economics & policy, Currenc
 Bonds & credit, Markets & investing, Valuation & corporate finance, Derivatives, and Banks, crises &
 the system. The outline check fails when a Foundation Topic has no Subject, when a Subject is not
 one of the nine, or when a Follow, Judge or Analyse Topic has one. The Subject travels from the
-outline to the Topic and to `courseOverview`, and shows as a pill on Foundation rows of the Course Map
-and in `docs/course-map.md`.
+outline to the Topic and to `courseOverview`. The Course Map groups Foundation Topics under their
+Subject in collapsible sections, and `docs/course-map.md` lists it beside each Topic.
 
 **Scenario.** The owner adds a Foundation Topic on swaps and forgets the Subject: `npm run course:check`
 fails with `Foundation Topic "der-swaps" has no Subject`. They add `subject: "Derivatives"`, and the
-Course Map shows the pill beside the Topic.
+Course Map shows the Topic in the Derivatives section.
 
 **Trade-off.** A fixed list of nine keeps the Course Map scannable and a typo cannot invent a tenth
 field, at the price of editing the list in code when a genuinely new field is needed. A Subject is a
@@ -912,7 +912,7 @@ other link points at `/`. Sign out (`SignOutButton`) is a plain form posting to 
 like the links; Home's signed-in top bar uses the same button. The gaps shrink to 8px below 1024px so the
 row stays on one line from 768px, with room for the Notes link (#69) and the Settings link (#129)
 before the theme toggle (measured in the system font at 14px: about 720px of the 736px there is). Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
-group that moves focus to "Go ahead" (Escape or "Not now" gives focus back), the cited sentence on a
+group that moves focus to its main button (Escape or "Not now" gives focus back), the cited sentence on a
 Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
 **Scenario.** The Learner switches to dark mode. The toggle puts a `dark` class on the page, the
@@ -1379,10 +1379,24 @@ and are tested against the in-memory database, including a Ctrl-C in the middle 
 ## Course Map page and jumps (`/course`, `/progress`, `/api/jump`, `src/course/navigator.ts`)
 
 **What it does.** Two ordinary pages, read from saved progress only (no model call, no randomness),
-so they look the same on every visit. The **Course Map** page (`/course`) shows every Topic as a stop
-in default-path order, its Checks marked along the way (a tick for a pass, a frame round the Check
-the Learner is at), the Topic's status and step, any prerequisites not yet passed, and a "You are
-here" label. The **progress** page (`/progress`) has a title and a one-line summary, "2 in progress ·
+so they look the same on every visit. The **Course Map** page (`/course`, spec #119, ticket #150)
+is built to be scanned, not scrolled:
+- It starts with one big **Recommended next** card. Its button is What comes next (`whatComesNext`),
+  the same label Home's button and the Topic complete card show ("Resume: …", "New in …: Check N",
+  "Next Topic: …"), and it opens that Topic.
+- **Foundation Topics are grouped by Subject** in collapsible sections (`<details>`), each with "n of m
+  passed". Only the Subject holding the Learner's current Topic (or, with none, the recommended one)
+  is open. Follow, Judge and Analyse are their own sections, collapsed unless they hold that Topic.
+- **Each Topic row is one whole-row link**: the title is a link stretched over the row, so there are
+  no more 94 identical buttons. A row not yet passed chooses the Topic; the current row opens it; a
+  **passed row shows Passed ✓ and opens the Topic's Session read-only** (`/sessions/<id>`, found by
+  `topicSessions`; Past Sessions when the pass came from an Older Session).
+- **Prerequisites not yet passed show as "Do first: <title>" links**, which choose that Topic and open
+  it. They sit above the row link, so they can be clicked on their own.
+- **Check pills show only once a Topic is started** (a tick for a pass, a frame round the Check the
+  Learner is at), with the status and Teaching Step and a "You are here" label.
+
+The **progress** page (`/progress`) has a title and a one-line summary, "2 in progress ·
 1 passed · Next: Bond prices", where Next is What comes next's Topic (`whatComesNext`, the same one
 Home's button shows; left out once every Topic is passed). Below it is a table: each Topic's Stage,
 status (not started, in progress or passed) and how many Checks are passed. Both pages come from one
@@ -1399,12 +1413,13 @@ Progress, reread its Principle, then press What comes next to go back to Bond pr
 passed Topic with no Session of its own (passed before Sessions were per Topic) opens the workspace on
 the current Topic instead; its old Sessions are still under Past Sessions.
 
-Each Topic not yet passed has a "Study this Topic" button. If the Topic has prerequisites the
-Learner hasn't passed, the button first asks: "Bond prices builds on Present value, which you have
-not passed yet. You can fill the gap first, or go ahead anyway." Going ahead calls `/api/jump`,
+If a chosen Topic has prerequisites the Learner hasn't passed, the row first warns: "Bond prices
+builds on Present value, which you have not passed yet. You can fill the gap first, or go ahead
+anyway." Filling the gap is the easy path: the main button is **Study <first unpassed prerequisite>
+first** (it chooses and opens that Topic), then **Go ahead anyway**, then **Not now**. Either choice calls `/api/jump`,
 which saves only the current Topic (`learner_state.current_topic_id`) and shows its Session at once
 (see "Choosing and opening a Topic"). Every other Topic keeps its step and passes untouched. After the
-jump, both buttons do a full page load of `/study`, the Study Workspace. A "Back to the default path"
+jump, the page does a full load of `/study`, the Study Workspace. A "Back to the default path"
 button clears the choice. Passing the chosen Topic also
 returns the Learner to the default path (that rule was already in the Navigator). Asking an off-map
 question changes nothing: the place is always computed from saved progress, and only tools and jumps
@@ -1424,27 +1439,32 @@ next; an added prerequisite never moves the Learner out of a started Topic and i
 in the jump prompt.
 
 **Scenario.** The Learner is halfway through Present value (at Check 2's concept) and is curious about
-bonds. On the Course Map they press "Study this Topic" on Bond prices, see the prerequisite prompt,
-and go ahead. The workspace opens Bond prices' own (empty) Session and the opener starts by itself:
-the Tutor tells the Bond prices story. Two days later they press "Back to the default path": Present
-value's thread shows at once, still at Check 2's concept.
+bonds. They open the Course Map: the Recommended next card says "Resume: Present value →", and only
+the Numbers & time value Subject is open. They open the Bonds & credit Subject and click the Bond
+prices row, see the warning, and press Go ahead anyway. The workspace opens Bond prices' own (empty)
+Session and the opener starts by itself: the Tutor tells the Bond prices story. Two days later they
+press "Back to the default path": Present value's thread shows at once, still at Check 2's concept.
+Had they pressed "Study Present value first" instead, Present value would have opened straight away.
+Later, the passed Compounding row (Passed ✓) opens Compounding's Session to reread, with nothing to send.
 
 **Trade-off.** The warning is a prompt, not a block: the Learner may study out of order, at the cost
 of meeting ideas before their foundations (the Tutor sees the unmet prerequisites in its context). A
-passed Topic can't be chosen again as a jump; looking back is what old Sessions are for, and spaced
-review will bring back its questions. The page groups Topics under four Stage headings (Foundation,
-Follow, Judge, Analyse), each a list in default-path order with a dot for not started, current or
-passed; Foundation rows also show their Subject. Progress, the Passage view and Login use the same
+passed Topic can't be chosen again as a jump; its row opens its Session read-only instead, and spaced
+review will bring back its questions. Collapsing every Subject but the current one makes the page
+short and puts the Learner's place in view, at the price of a click to see the rest; the
+Recommended next card means most visits need no scanning at all. A whole-row link with links inside
+it (Do first) needs the stretched-link pattern rather than nested anchors, which HTML forbids. Rows
+keep a dot for not started, current or passed, in default-path order within each group. Progress, the Passage view and Login use the same
 design tokens; the first two sit under the app header, Login (signed out) has none.
 
 ## Choosing and opening a Topic: the shown Session, the opener and turn kinds (`/api/jump`, `/api/open`, `session-log.ts`, `context.ts`, `tools.ts`, `turn-stream.ts`, spec #119, ticket #131)
 
 **What it does.**
 - **Choosing a Topic** sets the current Topic and shows its Session at once. The ways in today: the
-  Course Map's Study this Topic and Back to the default path, What comes next (on a passed Topic, see
-  below), and Home's Resume and Start (a plain form posting to `/api/open`, which goes on to `/study`).
-  Progress rows post a `topic` to `/api/open` (see above), and the Welcome's Start this Topic uses
-  `/api/jump`. Study X first will use the same routes. While a turn is running,
+  Course Map's Topic rows, Do first links, Study X first, Recommended next and Back to the default
+  path, What comes next (on a passed Topic, see below), and Home's Resume and Start (a plain form
+  posting to `/api/open`, which goes on to `/study`). Progress rows post a `topic` to `/api/open`
+  (see above), and the Welcome's Start this Topic uses `/api/jump`. While a turn is running,
   `/api/jump` answers "A turn is in progress…" and changes nothing; `/api/open` then just opens the
   Study Workspace, which says the same.
 - **The shown Session** (`learner_state.shown_session_id`) is what the Study Workspace renders

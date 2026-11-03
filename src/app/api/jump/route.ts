@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 const body = z.union([z.object({ topicId: z.string().min(1).nullable() }), z.object({ next: z.literal(true) })]);
 
 /**
- * The Learner chooses a Topic (the Course Map's Study this Topic), goes back to the default path, or takes
+ * The Learner chooses a Topic (a Course Map row, Do first link or Study X first), goes back to the default path, or takes
  * What comes next. No model call: code saves the current Topic and shows its Session at once; the page then
  * starts the opener if that Session has no messages. Refused while a turn is running for this Learner
  * ("turn in progress"), so the Tutor's tools never act on a Topic that changed under them.
