@@ -87,14 +87,14 @@ describe("step dividers when the Tutor moves on", () => {
     expect(first.map((e) => e.type)).not.toContain("item");
     expect((await loadThread(db, sessionOf(first), map)).filter((e) => e.role === "item")).toEqual([]);
 
-    // At the Principle, finishing passes the Topic: no next step, so no divider.
+    // At the Principle, finishing passes the Topic: no next step, so no divider; only its Topic complete card.
     for (const step of ["story", "concept", "your_turn"] as const) await saveStep(db, step);
     await passCheck(db);
     for (const step of ["reveal"] as const) await saveStep(db, step);
     const { client: last } = scriptedClient([{ content: [{ type: "text", text: "That is the principle." }, finish("principle")] }, say("Well done.")]);
     const done = await collect(runTutorTurn({ db, client: last, map }, "Money today is worth more."));
-    expect(done.map((e) => e.type)).not.toContain("item");
-    expect((await loadThread(db, sessionOf(done), map)).filter((e) => e.role === "item")).toEqual([]);
+    expect(done.filter((e) => e.type === "item").map((e) => e.type === "item" && e.item.kind)).toEqual(["topic_complete"]);
+    expect((await loadThread(db, sessionOf(done), map)).flatMap((e) => (e.role === "item" ? [e.kind] : []))).toEqual(["topic_complete"]);
   });
 });
 

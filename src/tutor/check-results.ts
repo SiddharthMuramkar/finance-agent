@@ -4,6 +4,7 @@ import type { Db } from "@/db/types";
 import { pendingQuizNote, submitQuiz, type QuizResult } from "@/learner/quiz";
 import { currentTopicId, liveSession } from "./session-log";
 import { saveItemAfterLatest, type SessionItem } from "./session-items";
+import { storeTopicComplete } from "./topic-complete";
 import { QUIZ_FOLLOW_UP_PREFIX } from "./turn-status";
 
 /**
@@ -56,8 +57,9 @@ export async function submitQuizAnswers(
   answers: Record<string, string>,
   now: Date,
   learnerId: number,
-): Promise<QuizResult & { item?: SessionItem }> {
+): Promise<QuizResult & { item?: SessionItem; complete?: SessionItem }> {
   let item: SessionItem | undefined;
+  let complete: SessionItem | null = null;
   const result = await submitQuiz(db, map, attemptId, answers, now, learnerId, async (tx, { checkId, marking }) => {
     const check = map.check(checkId);
     const n = checkNumber(map, checkId);
@@ -65,8 +67,10 @@ export async function submitQuizAnswers(
     if (!session || n === null) return;
     item = quizResultCard(n, marking);
     await saveItemAfterLatest(tx, learnerId, session.id, item, now);
+    // A pass of the last Due Check passes the Topic again: its Topic complete card follows the result card.
+    complete = await storeTopicComplete(tx, map, learnerId, session.id, now);
   });
-  return result.ok && item ? { ...result, item } : result;
+  return result.ok && item ? { ...result, item, ...(complete && { complete }) } : result;
 }
 
 /** What the turn says when there is no missed quiz to go over (it was gone over already, or the quiz was passed). */
