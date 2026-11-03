@@ -117,6 +117,11 @@ describe("Where the passcode lands", () => {
       "/\n/evil.example",
       // "//evil.example" encoded once: it is never decoded a second time, so it doesn't even start with "/".
       "%2F%2Fevil.example",
+      // A percent-encoded slash or backslash after the leading "/" is refused outright, in any case.
+      "/%2F%2Fevil.example",
+      "/%2f%2fevil.example",
+      "/%5Cevil.example",
+      "/%5cevil.example",
       "/a/../api/turn",
       "/login",
       "/api/turn",

@@ -8,7 +8,7 @@ export default async function LoginPage({
 }) {
   const { wrong, locked, next: requested } = await searchParams;
   // Only a safe destination is carried through, as its resolved path; anything else means the Study Workspace.
-  const next = safeDestination(typeof requested === "string" ? requested : undefined);
+  const next = safeDestination(requested);
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 p-6">
       <h1 className="text-xl font-semibold">Finance Agent</h1>

@@ -17,7 +17,7 @@ describe("The signed-out gate", () => {
   beforeEach(() => vi.stubEnv("SESSION_SECRET", SECRET));
   afterEach(() => vi.unstubAllEnvs());
 
-  it("lets a signed-out visitor read the landing page", async () => {
+  it("lets a signed-out visitor read Home", async () => {
     expect(allowed(await proxy(request("/")))).toBe(true);
     expect(allowed(await proxy(request("/", { method: "HEAD" })))).toBe(true);
   });
@@ -28,7 +28,7 @@ describe("The signed-out gate", () => {
     expect((await proxy(request("/course", { headers: { "Next-Action": "abc" } }))).status).toBe(401);
   });
 
-  it("serves the landing screenshots", async () => {
+  it("serves the screenshots on Home", async () => {
     expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
     expect(allowed(await proxy(request("/landing-assets/workspace-dark.webp")))).toBe(true);
   });
@@ -108,5 +108,11 @@ describe("The signed-out gate", () => {
     const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
     expect(allowed(await proxy(request("/course", { headers: { cookie } })))).toBe(true);
     expect(allowed(await proxy(request("/api/turn", { method: "POST", headers: { cookie } })))).toBe(true);
+  });
+
+  it("lets a signed-in visitor read Home and sign out", async () => {
+    const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
+    expect(allowed(await proxy(request("/", { headers: { cookie } })))).toBe(true);
+    expect(allowed(await proxy(request("/api/logout", { method: "POST", headers: { cookie } })))).toBe(true);
   });
 });

@@ -26,11 +26,11 @@ export function homeButton(place: Place | null): HomeButton {
 const buttonLabel = (b: HomeButton) => (b.kind === "open" ? copy.openStudyWorkspace : `${b.kind === "resume" ? copy.resume : copy.start} ${b.topic}`);
 
 /**
- * Home, at "/". It shows counts only: no Learner data, no Library text. Signed out, the top bar and hero offer
- * Sign in; signed in (a `button` is given), the top bar links the Study Workspace beside Sign out, and the hero button is `button`'s label.
+ * Home, at "/": counts only, no Learner data or Library text. With no `button` (signed out) the top bar and hero offer
+ * Sign in; with one, the top bar links the Study Workspace beside Sign out and the hero button shows its label.
  */
 export function LandingView({ stats, button }: { stats: LandingStats; button?: HomeButton }) {
-  const signedIn = button !== undefined;
+  const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.signIn };
   const columns = [
     { value: stats.topics, label: copy.stats.topics },
     { value: String(stats.cases), label: copy.stats.cases },
@@ -41,7 +41,7 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <span className="text-base font-semibold">{copy.brand}</span>
-          {signedIn ? (
+          {button ? (
             <div className="flex items-center gap-4">
               <a href="/study" className={topBarLink}>
                 {copy.studyWorkspace}
@@ -72,8 +72,8 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-7 text-[var(--muted)]">{copy.subtext}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={signedIn ? "/study" : "/login"} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
-                {button ? buttonLabel(button) : copy.signIn}
+              <a href={hero.href} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
+                {hero.label}
               </a>
               <a href="#how" className={`${bigButton} border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--hairline)]`}>
                 {copy.howItWorks}
@@ -147,19 +147,17 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
   );
 }
 
-/**
- * Loads the counts (the database part cached for a day) and renders Home. Signed in, it also reads saved
- * progress to name the Learner's place. It only reads: no model call, nothing written. If progress can't be
- * loaded the error is logged and the button falls back to "Open Study Workspace".
- */
-export async function LandingPage({ signedIn = false }: { signedIn?: boolean }) {
-  const stats = await landingStats();
-  if (!signedIn) return <LandingView stats={stats} />;
-  let button: HomeButton = { kind: "open" };
+/** The signed-in Learner's button, from saved progress. Read-only; if progress can't be loaded it logs and falls back to Open. */
+export async function loadHomeButton(): Promise<HomeButton> {
   try {
-    button = homeButton(navigate(loadCourseMap(), await loadProgress(getDb())));
+    return homeButton(navigate(loadCourseMap(), await loadProgress(getDb())));
   } catch (error) {
     console.error("Home could not load the Learner's place", error);
+    return { kind: "open" };
   }
-  return <LandingView stats={stats} button={button} />;
+}
+
+/** Loads the counts (the database part cached for a day) and renders Home; with no `button`, no Learner data is read. */
+export async function LandingPage({ button }: { button?: HomeButton }) {
+  return <LandingView stats={await landingStats()} button={button} />;
 }
