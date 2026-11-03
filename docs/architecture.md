@@ -1518,7 +1518,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **What it does.** The Study Workspace used to be one 330-line component. It is now four parts, and `Conversation` only puts them together:
 - **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
-- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box and the paste panel in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review and quiz, the thread, the turn's notices and Retry, and the box. Every button that starts a turn calls the turn stream's `send`.
+- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review and quiz, the thread, the turn's notices and Retry, and the box. Every button that starts a turn calls the turn stream's `send`.
 - **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid and the right column's size and scrolling.
 - **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), which one the panel shows, and the "Widget N →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget.
 
@@ -1535,6 +1535,17 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 **Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
 **Trade-off.** Folding the review and quiz keeps the conversation high on the screen, but a due review is one click away instead of in plain view.
+
+## The message box: writing indicator, drafting and Attach a passage (`src/app/message-box.tsx`, `turn-stream.ts`, spec #119, ticket #155)
+
+**What it does.** Three things around the message box at the bottom of the left column.
+- **Writing indicator.** The turn stream keeps a small `waiting` state: "writing" from the moment the Learner presses Send, "slow" if no words have arrived 8 seconds later, and nothing once the first text of the reply (or a saved replay) arrives or the turn ends. The message box shows it above itself as "Tutor is writing…" or "Still working on it…".
+- **Drafting during a turn.** The box stays editable while the Tutor writes, so the Learner can type the next message; the draft stays in the box when the turn ends. Send is off during a turn and while the box is empty, and Enter is ignored during a turn. These rules are assistant-ui's own composer rules (its Send and Enter check `isRunning` and an empty box), so there is no code of ours for them, only render tests.
+- **Attach a passage.** A button beside the box opens a small passage box above it (it reads "Remove passage" while open). The passage lives in the turn stream (`passage`, null while closed). When the Learner presses the one Send, the turn stream sends the message with the passage as `paste`, shows the message in the thread with the passage's short label ("(Pasted passage, 41 words: …)"), and closes the box. The server side is unchanged: the passage is saved privately with the Session in `pasted_texts` and reaches the Tutor as before (see "Follow Topics"). The old in-thread "Paste a passage" panel with its own "Send passage" button is gone, so there is one Send on screen.
+
+**Scenario.** The Learner on a Zitron Topic presses Attach a passage, pastes two paragraphs, types "Does the $430 billion tie out?" and presses Send. The thread shows the question and "(Pasted passage, 112 words: …)", and "Tutor is writing…" appears. The Tutor calls a tool first and nothing streams for 9 seconds, so the line changes to "Still working on it…"; meanwhile the Learner starts typing a follow-up. The reply streams in, the line disappears, and when the turn ends the follow-up is still in the box, ready to send.
+
+**Trade-off.** A message must have text: a passage on its own can't be sent (the old panel filled in "Here is the passage we are studying."), because one Send that is off for an empty box is simpler to read. The 8-second timer runs in the browser, so it measures the wait as the Learner sees it, not the server's own time. The indicator stays on through a Widget correction or tool call only until the first words arrive; after that the streaming text is the sign of life.
 
 ## Phone note (`SignedInFrame` in `src/app/ui.tsx`, issue #48)
 

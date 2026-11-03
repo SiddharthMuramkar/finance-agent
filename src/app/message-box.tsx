@@ -1,15 +1,54 @@
 "use client";
 
 import { ComposerPrimitive } from "@assistant-ui/react";
-import { useState } from "react";
-import { PrimaryButton } from "./ui";
+import type { Waiting } from "./turn-stream";
 
-/** The message box at the bottom of the Study Workspace's left column, pinned under the thread with a fade above it. */
-export function MessageBox() {
+/** "Tutor is writing…" from Send until the first words of the reply, then "Still working on it…" after 8 seconds. */
+export function WritingIndicator({ waiting }: { waiting: Waiting }) {
+  if (!waiting) return null;
+  return (
+    <p className="mb-2 text-sm leading-5 text-[var(--muted)]" data-testid="writing-indicator">
+      {waiting === "slow" ? "Still working on it…" : "Tutor is writing…"}
+    </p>
+  );
+}
+
+/**
+ * The message box at the bottom of the Study Workspace's left column, pinned under the thread with a fade above it.
+ * It stays editable while a turn runs, so the Learner can draft the next message; Send stays off during a turn and
+ * while the box is empty (assistant-ui's composer rules). Attach a passage opens a small box beside it: the text is
+ * saved privately with this Session and given to the Tutor with the message, never added to the Library. The one
+ * Send sends the message and the passage together.
+ */
+export function MessageBox({ waiting, passage, onPassage }: { waiting: Waiting; passage: string | null; onPassage: (passage: string | null) => void }) {
+  const open = passage !== null;
   return (
     <div className="relative">
       <div aria-hidden className="fade-above pointer-events-none absolute inset-x-0 -top-6 h-6" />
+      <WritingIndicator waiting={waiting} />
+      {open && (
+        <div className="mb-2 rounded-lg border border-[var(--border)] p-3" data-testid="attach-box">
+          <p className="text-xs leading-4 text-[var(--muted)]">
+            Paste the part of the piece you are studying. It is kept privately with this Session and is never added to the Library. It goes with your next message.
+          </p>
+          <textarea
+            value={passage}
+            onChange={(e) => onPassage(e.target.value)}
+            aria-label="Passage to attach"
+            rows={4}
+            className="mt-2 w-full rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-sm leading-5"
+          />
+        </div>
+      )}
       <ComposerPrimitive.Root className="flex gap-2">
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => onPassage(open ? null : "")}
+          className="rounded border border-[var(--border)] px-3 text-sm leading-5 text-[var(--muted)] transition-colors duration-200 hover:border-[var(--brand-line)] hover:text-[var(--brand)]"
+        >
+          {open ? "Remove passage" : "Attach a passage"}
+        </button>
         <ComposerPrimitive.Input
           placeholder="Ask the Tutor"
           aria-label="Message"
@@ -22,56 +61,5 @@ export function MessageBox() {
         </ComposerPrimitive.Send>
       </ComposerPrimitive.Root>
     </div>
-  );
-}
-
-/** How a paste shows in the thread: a short label, as the saved transcript shows it. */
-export function pastePreview(paste: string): string {
-  const words = paste.split(/\s+/).filter(Boolean);
-  return `(Pasted passage, ${words.length} words: "${words.slice(0, 6).join(" ")} …")`;
-}
-
-/**
- * Pasting the part of a piece being studied (for example a Zitron article read on his own site).
- * The text is saved privately with this Session and given to the Tutor with the message; it is
- * never added to the Library.
- */
-export function PastePanel({ disabled, onSend }: { disabled: boolean; onSend: (message: string, paste: string) => void }) {
-  const [paste, setPaste] = useState("");
-  const [note, setNote] = useState("");
-  const [open, setOpen] = useState(false);
-  return (
-    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="mt-6 rounded-lg border border-[var(--border)] p-3 text-sm leading-5" data-testid="paste-panel">
-      <summary className="cursor-pointer select-none">Paste a passage</summary>
-      <p className="mt-2 text-xs leading-4 text-[var(--muted)]">
-        Paste the part of the piece you are studying. It is kept privately with this Session and is never added to the Library. The Tutor works only from what you paste.
-      </p>
-      <textarea
-        value={paste}
-        onChange={(e) => setPaste(e.target.value)}
-        aria-label="Passage to paste"
-        rows={6}
-        className="mt-2 w-full rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2"
-      />
-      <input
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        aria-label="Message with the passage"
-        placeholder="Optional: what you want to ask about it"
-        className="mt-2 w-full rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2"
-      />
-      <PrimaryButton
-        disabled={disabled || !paste.trim()}
-        onClick={() => {
-          onSend(note.trim() || "Here is the passage we are studying.", paste.trim());
-          setPaste("");
-          setNote("");
-          setOpen(false);
-        }}
-        className="mt-2"
-      >
-        Send passage
-      </PrimaryButton>
-    </details>
   );
 }

@@ -41,6 +41,6 @@ describe("the latest turn's saved status in the workspace", () => {
     const pane = html.indexOf('data-testid="widget-pane"');
     expect(html.indexOf("What is a basis point?")).toBeLessThan(pane);
     expect(html.indexOf('placeholder="Ask the Tutor"')).toBeLessThan(pane);
-    expect(html.indexOf('data-testid="paste-panel"')).toBeLessThan(pane);
+    expect(html.indexOf("Attach a passage")).toBeLessThan(pane);
   });
 });

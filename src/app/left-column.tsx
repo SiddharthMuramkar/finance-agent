@@ -3,7 +3,7 @@
 import { ThreadPrimitive } from "@assistant-ui/react";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
-import { MessageBox, PastePanel, pastePreview } from "./message-box";
+import { MessageBox } from "./message-box";
 import { QuizPanel } from "./quiz-panel";
 import type { WidgetSlot } from "./reply-markdown";
 import { ReviewPanel } from "./review-panel";
@@ -15,7 +15,8 @@ import { StatusCard, type Place } from "./workspace-parts";
 
 /**
  * The Study Workspace's left column, top to bottom: the status card, the pinned explore Widget, the folded
- * review and quiz, the thread with the turn's notices, error and Retry, the paste panel, and the message box.
+ * review and quiz, the thread with the turn's notices, error and Retry,
+ * and the message box with the writing indicator and Attach a passage.
  * It shows the turn stream's state and starts turns through it; Widget chips come from the Widget host's `slot`.
  */
 export function LeftColumn({
@@ -35,7 +36,7 @@ export function LeftColumn({
   quiz: OpenQuiz | null;
   explore: { code: string } | null;
 }) {
-  const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, send } = turn;
+  const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
       <div className="mb-6 flex flex-col gap-3">
@@ -70,12 +71,11 @@ export function LeftColumn({
             )}
           </div>
         )}
-        <PastePanel disabled={running} onSend={(message, paste) => void send({ message, paste }, `${message}\n\n${pastePreview(paste)}`)} />
       </ThreadPrimitive.Viewport>
       <p role="status" aria-live="polite" className="sr-only" data-testid="turn-status">
         {announcement}
       </p>
-      <MessageBox />
+      <MessageBox waiting={waiting} passage={passage} onPassage={setPassage} />
     </ThreadPrimitive.Root>
   );
 }
