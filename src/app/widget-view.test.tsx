@@ -54,6 +54,8 @@ describe("a Widget drawn with OpenUI's kit and our Widget tools", () => {
     const html = draw(UNKNOWN_TOOL);
     expect(html).toContain(FALLBACK);
     expect(html).not.toContain("Sensex prices");
+    expect(html).toContain("The Topic carries on without it.");
+    expect(html.toLowerCase()).not.toContain("lesson");
   });
 });
 
