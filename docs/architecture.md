@@ -1151,22 +1151,26 @@ reschedules the question. No model is called, to open the page or to answer.
 **A concrete scenario.** The Learner passes the present value quiz on Monday, getting two of
 three right. The wrong one is due again in about a day, the right ones in a few days. Three weeks
 later they open the app: all three are overdue, and the panel offers the one missed first. Answering
-it right pushes it out by weeks; answering it wrong brings it back soon. After 10 reviews in the
-Session the panel stops, even if 40 are due, and the rest wait for the next Session. A long
-holiday shows as "40 due, 10 per Session", not as a pile to clear.
+it right pushes it out by weeks; answering it wrong brings it back soon. After 10 reviews in 24
+hours the panel stops, even if 40 are due, and the rest wait until the oldest of those 10 is more
+than 24 hours old. Opening another Topic, and so another Session, does not reset the count. A long
+holiday shows as "40 due, up to 10 a day", not as a pile to clear.
 
 **Rules in code.** The Course Navigator's `reviewsDue` is a pure function: cards, the time and
-the number done this Session in; the overdue cards to offer out, capped. The cap is the
-`review_cap` setting (default 10), changeable in SQL without a rebuild. "This Session" is counted
-from when the Session began. A Session that begins after an idle gap counts from that gap, so
-reviews done before its first message still count against it. A review never writes to Topic
-progress: a missed review cannot unpass a Topic (a test pins this).
+the number done in the last 24 hours in; the overdue cards to offer out, capped. The cap is the
+`review_cap` setting (default 10), changeable in SQL without a rebuild. The count is a rolling 24
+hours read from `review_log`; it never looks at when a Session began or at the idle window, because
+with one Session per Topic (ADR 0004) a Session can last for days and a new one starts with every
+Topic. A review never writes to Topic progress: a missed review cannot unpass a Topic (a test pins
+this).
 
 **Trade-offs.** Cards are built from saved quiz attempts the first time the review state is read,
 so no change to the quiz code was needed and it can be re-run safely. The cost is that a card can
 appear a moment after the pass rather than at it. Whole-day scheduling suits "open the app once a
 day" study but cannot do same-day repeats of a missed question. Only questions still on the Course
-Map are offered, so deleting a question quietly retires its card.
+Map are offered, so deleting a question quietly retires its card. A rolling 24 hours rather than a
+calendar day means no time zone is needed and midnight never frees a second batch, at the price
+that the next review returns at a time of day the Learner may not expect.
 
 ## Library (`src/library/`, `search_library` tool, `npm run library:load`, `library:embed`, `library:score`)
 
