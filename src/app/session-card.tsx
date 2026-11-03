@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { Eyebrow, Pill } from "./ui";
 
-const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "numeric", year: "numeric", timeZone: "Asia/Kolkata" });
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "5 Sep 2026": always a three-letter month (Intl prints "Sept" for September). */
+export function shortDate(d: Date): string {
+  const parts = Object.fromEntries(dateFormat.formatToParts(d).map((p) => [p.type, p.value]));
+  return `${Number(parts.day)} ${MONTHS[Number(parts.month) - 1]} ${parts.year}`;
+}
 
 /** One Session in the Past Sessions list: eyebrow, a title from its first Topic and date, a pill per Topic and the Widget count. */
 export function SessionCard({ id, number, createdAt, topics, widgets }: { id: number; number: number; createdAt: Date; topics: string[]; widgets: number }) {
-  const date = dateFormat.format(createdAt);
+  const date = shortDate(createdAt);
   const title = topics.length ? `${topics[0]}, ${date}` : `Session ${number}, ${date}`;
   return (
     <Link

@@ -51,12 +51,12 @@ export const primaryButtonClass = `inline-flex items-center justify-center round
 export const secondaryButtonClass = `inline-flex items-center justify-center rounded border border-[var(--border)] px-4 py-2 text-sm leading-5 text-[var(--ink)] transition-colors duration-200 hover:bg-[var(--hairline)] disabled:opacity-50 disabled:hover:bg-transparent ${focusRing}`;
 
 /** Navy primary button; every native button prop (type defaults to "button", disabled, onClick, className...). */
-export function PrimaryButton({ className = "", type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+export function PrimaryButton({ className = "", type = "button", ...props }: React.ComponentProps<"button">) {
   return <button type={type} className={`${primaryButtonClass} ${className}`} {...props} />;
 }
 
 /** Outlined secondary button; every native button prop (type defaults to "button"). */
-export function SecondaryButton({ className = "", type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+export function SecondaryButton({ className = "", type = "button", ...props }: React.ComponentProps<"button">) {
   return <button type={type} className={`${secondaryButtonClass} ${className}`} {...props} />;
 }
 
@@ -147,6 +147,22 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
         <ThemeToggle initial={theme} />
       </nav>
     </header>
+  );
+}
+
+/**
+ * Page shell for the reading pages (Course Map, Progress, Past Sessions, Passage): the header sits in the
+ * same 6xl box as the workspace's, so the title and nav stay put between pages, and only the content
+ * below it uses the narrower reading column.
+ */
+export function ReadingPage({ current, theme, children }: { current?: HeaderPage; theme: Theme; children: ReactNode }) {
+  return (
+    <main className="mx-auto max-w-6xl px-4 pb-12 pt-4 lg:px-6 lg:pt-6">
+      <AppHeader current={current} theme={theme} className="mb-6" />
+      <div data-testid="reading-column" className="mx-auto max-w-2xl">
+        {children}
+      </div>
+    </main>
   );
 }
 

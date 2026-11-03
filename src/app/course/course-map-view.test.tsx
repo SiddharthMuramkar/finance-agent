@@ -76,6 +76,14 @@ describe("the progress view", () => {
   });
 });
 
+describe("the in-progress status wording", () => {
+  it("reads as a phrase, not 'at the your turn step'", () => {
+    const html = renderToStaticMarkup(<CourseMapView topics={topics.map((t) => (t.status === "in_progress" ? { ...t, step: "your_turn" as const } : t))} />);
+    expect(html).toContain("In progress · Teaching Step: your turn");
+    expect(html).not.toContain("at the");
+  });
+});
+
 describe("Topics not written yet", () => {
   it("shows them as coming, not as stops the Learner can jump to", () => {
     const coming = [

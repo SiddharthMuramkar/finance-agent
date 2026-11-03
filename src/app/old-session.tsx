@@ -22,7 +22,7 @@ export function OldSession({ lines, topicTitle }: { lines: OldLine[]; topicTitle
     return item ? <WidgetChip item={item} active={item.key === picker.shown?.key} onPick={picker.pick} /> : null;
   };
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8" data-testid="old-session">
+    <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] items-start gap-6 lg:gap-8" data-testid="old-session">
       <div className="flex min-h-0 min-w-0 flex-col gap-4">
         <div className="min-h-0 flex-1 overflow-y-auto">
           <ReadOnlyThread lines={lines} slot={slot} />

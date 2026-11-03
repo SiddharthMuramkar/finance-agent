@@ -3,7 +3,7 @@ import { getDb } from "@/db/client";
 import { listSessions } from "@/tutor/transcript";
 import { loadSessionSummaries } from "@/tutor/session-summary";
 import { SessionCard } from "../session-card";
-import { AppHeader, SignedInFrame } from "../ui";
+import { ReadingPage, SignedInFrame } from "../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +15,7 @@ export default async function SessionsPage() {
   const numberOf = new Map([...sessions].reverse().map((s, i) => [s.id, i + 1]));
   return (
     <SignedInFrame>
-      <main className="mx-auto max-w-[720px] px-4 pb-12 pt-4 lg:pt-6">
-        <AppHeader current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
+      <ReadingPage current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"}>
         {sessions.length === 0 ? (
           <p className="text-sm leading-5 text-[var(--muted)]">No Sessions yet.</p>
         ) : (
@@ -31,7 +30,7 @@ export default async function SessionsPage() {
             })}
           </ul>
         )}
-      </main>
+      </ReadingPage>
     </SignedInFrame>
   );
 }

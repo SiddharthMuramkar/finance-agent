@@ -4,7 +4,7 @@ import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadPassageView } from "@/library/library";
 import { readTheme } from "../../theme-cookie";
-import { AppHeader, Eyebrow, SignedInFrame } from "../../ui";
+import { Eyebrow, ReadingPage, SignedInFrame } from "../../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +39,7 @@ export default async function PassagePage({
   const theme = await readTheme();
   return (
     <SignedInFrame>
-      <main className="mx-auto max-w-2xl p-4 sm:p-6">
-        <AppHeader theme={theme} className="mb-6" />
+      <ReadingPage theme={theme}>
         <Eyebrow className="mb-1">Library passage</Eyebrow>
         {view.status === "hidden" ? (
           <p data-testid="passage-hidden">
@@ -59,7 +58,7 @@ export default async function PassagePage({
                 s.cited ? (
                   <mark
                     key={i}
-                    className="rounded bg-[var(--src-tint)] text-[var(--ink)]"
+                    className="rounded border-b-2 border-[var(--src)] bg-[var(--src-tag)] text-[var(--ink)]"
                   >
                     {s.text}
                   </mark>
@@ -95,7 +94,7 @@ export default async function PassagePage({
         >
           Back to the Study Workspace
         </Link>
-      </main>
+      </ReadingPage>
     </SignedInFrame>
   );
 }

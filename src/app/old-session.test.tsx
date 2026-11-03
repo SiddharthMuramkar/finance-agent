@@ -89,6 +89,23 @@ describe("a Past Sessions card", () => {
   });
 });
 
+describe("a Past Sessions card date", () => {
+  it("always writes a three-letter month, including September", () => {
+    const card = renderToStaticMarkup(<SessionCard id={2} number={3} createdAt={new Date("2026-09-05T08:00:00Z")} topics={[]} widgets={0} />);
+    expect(card).toContain("Session 3 · 5 SEP 2026");
+    expect(card).not.toContain("SEPT");
+  });
+});
+
+describe("the old Session page on an iPad", () => {
+  it("keeps the conversation and the Widget panel side by side from the narrowest width", () => {
+    const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text: "Hi" }]} />);
+    const grid = html.match(/<div[^>]*data-testid="old-session"[^>]*>/)![0];
+    expect(grid).toMatch(/\bgrid-cols-2\b/);
+    expect(grid).not.toMatch(/\bgrid-cols-1\b/);
+  });
+});
+
 describe("working out a Session's Topics and Widgets from its messages", () => {
   it("reads Topic lines in order, once each, and counts Widgets net of corrections", () => {
     const ctx = (t: string) => `Course Navigator: where.\nTopic: ${t} (Foundations Stage).\nTeaching Step: concept.`;
