@@ -64,13 +64,14 @@ Font: system stack (measured): `-apple-system, system-ui, "Segoe UI", Roboto, "H
 
 ## 3. App shell (Study Workspace)
 - Full-height shell (`100dvh`). Container `max-width: 1152px` [max-w-6xl], centered, `padding: 24px 24px 12px`.
-- **Header** (row, space-between, mb 24): h1 "Study Workspace" on the left. On the right, text links 14px `--muted` with a 16px gap ("Dark mode", "Past Sessions"). Hover is `--ink`. The current page is `--brand` with a 1px underline, offset 4px.
+- **Header** (row, space-between, mb 24): h1 "Study Workspace" on the left. On the right, four text links 14px `--muted` with a 16px gap: Course Map · Progress · Past Sessions · Dark mode (the dark-mode toggle is the fourth link). On every page but the workspace, "Study Workspace" links to `/`. Hover is `--ink`. The current page is `--brand` with a 1px underline, offset 4px, and `aria-current="page"`.
 - **Grid**: `grid-template-columns: 1fr 1fr; gap: 32px; align-items: start`, giving two 536px columns. Both columns start at the same y (76px from the top).
 - **Left column** is a flex column: status card, then the message list (its own scroll, `min-height: 0`), then the composer pinned 12px above the viewport bottom. Add a 24px `--bg`→transparent fade above the composer so text never looks cut off. (The live page currently hides text behind the composer.)
-- **Right column** is the widget panel: `position: sticky; top: 24px; max-height: calc(100dvh - 48px); overflow-y: auto`. The card hugs its content (live: 536×547).
+- **Right column** is the widget panel: `position: sticky; top: 24px; overflow-y: auto`, with its max height capped at the column height (decided in #42: the earlier `calc(100dvh - 48px)` was about 40px too tall). The card hugs its content (live: 536×547).
 - On pages that scroll the whole window (Past Sessions, Course Map, Landing), the header is sticky (B): `--bg` @90%, `backdrop-filter: blur(8px)`, and a 1px `--hairline` bottom border that appears after scrolling.
 
 ## 4. Conversation components (measured)
+- **Spaced review** (decided in #42): folded into one row, "Spaced review · N due · Show", shown only when a review is due; Show opens it in place. An open quiz Check folds the same way ("Quiz Check open · Show").
 - **Status card**: 1px `--border`, r8, p16, transparent, live size 536×105. The message is 14/20 `--ink`, with the primary button 16px below it. Optional (B) eyebrow above the message ("COURSE MAP").
 - **Primary button** ("Continue"): `--brand` fill, white 14/20, weight 500~, padding 8×16, giving 90×36, r4. Hover `--brand-hover`. Focus: 2px `--brand` outline, offset 2. Disabled: opacity .5.
 - **Secondary button** (B): transparent, 1px `--border`, `--ink` text, same size as primary. Hover bg is `--hairline`.
@@ -144,7 +145,7 @@ When there are 2+ widgets, a switcher row of chips (§4 chip style) sits above t
 | Guided tasks | exercises | stepper |
 
 Panel states:
-- **Empty**: 1px dashed `--border`, r8, p24, 14px `--muted` "Widgets the tutor builds appear here."
+- **Empty**: 1px dashed `--border`, r8, p24, 14px `--muted` "Widgets the Tutor builds appear here."
 - **Loading**: `--hairline` blocks pulsing every 1.2s, plus a 12px "Building widget…".
 - **Error**: 14px `--danger` text plus a secondary "Retry" button.
 
@@ -156,7 +157,7 @@ Panel states:
 - Every chart gets `role="img"` and an `aria-label` that summarizes it in one sentence.
 
 ## 6. Other pages (provisional, to be updated when I see them)
-- **Session view** (`/sessions/:id`). Today it is a 672px single column with inline widgets, and that layout is retired. Use the §3 two-column layout in read-only mode: the composer becomes a primary "Resume session" button, and chips select widgets.
+- **Session view** (`/sessions/:id`). Today it is a 672px single column with inline widgets, and that layout is retired. Use the §3 two-column layout in read-only mode: chips select widgets, controls start at their starting values, and a primary "Back to the workspace" button sits where the composer was. There is no "Resume session": Sessions are never resumed (decided in #42).
 - **Past Sessions**: header as in §3. A single-column list (max-width 720) of cards: 1px `--border`, r8, p16, gap 12. Each card has:
   - an eyebrow "SESSION 3 · 24 OCT 2026",
   - a title at 16/26 500,
@@ -164,14 +165,14 @@ Panel states:
   - a row of pills (topic, widget count).
 
   Hover: `--brand-line` border and `--brand-tint` bg.
-- **Course Map** (B stepper as a map): horizontal on desktop, vertical on mobile, with a topic card under each dot. States are todo/current/passed as in §5.6; passed adds a "Passed" pill. The workspace status card links here.
-- **Landing** (B, if added):
+- **Course Map**: grouped by Stage (four groups in course order, each in default-path order), with no stepper (decided in #42). Each row has a todo/current/passed dot as in §5.6, and Foundation rows carry their Subject pill. Jumps, the prerequisite prompt and "Back to the default path" are unchanged. The workspace status card links here.
+- **Landing** (decided in #42): a public page at `/` when signed out; signed in, `/` is the workspace. Every other page and API route still needs the passcode. It shows no Library text and no Learner data, only counts. It works on phones.
   - Sticky blurred header.
   - Hero on `--bg` with a faint 40px grid (`--hairline` @40%). In order: brand pill badge, H1 on two lines (line 2 in `--brand`), 18px `--muted` subtext, primary + secondary buttons (16px, padding 12×24, r8).
-  - A workspace screenshot in a browser frame (1px `--border`, r12), with a stats card overlapping it: 3 columns, values 28px 700 `--brand`, 12px labels.
-  - "How it works": a 4-step stepper (Ask → Learn → Explore → Pass).
-  - One dark section `#001647` with `#6699FF` eyebrows and numbers.
-  - Footer `#001034` with `#A6A09B` text.
+  - A workspace screenshot in a browser frame (1px `--border`, r12), with a stats card overlapping it: 3 columns, values 28px 700 `--brand`, 12px labels. Real counts from one function: Topics as "written of planned" (e.g. "90 of 95"), every Case in the outline, Library sources.
+  - "How it works": the six Teaching Steps (story, concept, your turn, Check, reveal, principle).
+  - One dark section `--navy-deep` (#001647) with `--navy-accent` (#6699FF) eyebrows and numbers, explaining "Every number has a source".
+  - Footer `--navy-deeper` (#001034) with `--navy-muted` (#A6A09B) text.
 
 ## 7. Motion
 - Data: 150ms ease-out (bars, values).
@@ -183,7 +184,7 @@ Panel states:
 ## 8. Responsive
 - **≥1024px**: the §3 grid.
 - **768–1023px**: same grid, gap 24, container padding 16.
-- **<768px**: one column. The widget panel becomes a sticky top drawer: a 44px bar with the title and a chevron that expands to 60dvh. The composer stays pinned, and the header links collapse into a menu.
+- **<768px** (decided in #42): signed-in pages show only a one-line note, "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad." There is no drawer and no phone layout. The landing page and Login stay fully responsive.
 
 ## 9. Don'ts
 - No inline giant widgets in the conversation, and no centered single column for sessions.

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
@@ -8,7 +7,7 @@ import { reviewState } from "@/learner/review";
 import { loadCurrentSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "./conversation";
-import { ThemeToggle } from "./theme-toggle";
+import { AppHeader } from "./ui";
 
 // Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
 export const dynamic = "force-dynamic";
@@ -32,21 +31,7 @@ export default async function WorkspacePage() {
   const pending: PendingTurn = turn && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col p-4 sm:p-6">
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-lg font-semibold">Study Workspace</h1>
-        <nav className="flex flex-wrap items-center gap-x-4">
-          <ThemeToggle initial={jar.get("theme")?.value === "dark" ? "dark" : "light"} />
-          <Link href="/course" className="flex min-h-11 items-center text-sm text-stone-500 hover:underline dark:text-stone-400">
-            Course Map
-          </Link>
-          <Link href="/progress" className="flex min-h-11 items-center text-sm text-stone-500 hover:underline dark:text-stone-400">
-            Progress
-          </Link>
-          <Link href="/sessions" className="flex min-h-11 items-center text-sm text-stone-500 hover:underline dark:text-stone-400">
-            Past Sessions
-          </Link>
-        </nav>
-      </header>
+      <AppHeader current="workspace" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
       <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} />
     </main>
   );

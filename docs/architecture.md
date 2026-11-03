@@ -314,6 +314,21 @@ first paint, with no flash.
 **Trade-off.** The choice is per browser, not per Learner account (there is only one Learner), and
 it ignores the computer's own dark-mode setting until the Learner first toggles.
 
+## Design tokens (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/theme-cookie.ts`)
+
+**What they are.** A short list of named colours (`--bg`, `--ink`, `--muted`, `--border`, `--brand`,
+the teal `--you` set for the Learner's assumptions, the amber `--src` set for sourced facts, and a
+few more) defined once in `globals.css`, with a light value and a dark value. Every screen paints
+with these names instead of raw colours. `ui.tsx` holds the shared look pieces built on them: tags,
+eyebrow, pills, chips, buttons, card, callout, key/value row, the app header and the phone-note frame.
+
+**Scenario.** The Learner switches to dark mode. The toggle puts a `dark` class on the page, the
+token values swap (navy buttons become light navy with dark text, the teal and amber tags darken),
+and every piece follows at once without a single per-component dark rule.
+
+**Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
+a quick palette class. In return the look stays consistent and a colour change is one line.
+
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
 **What it does.** Every Tutor turn is made of one or more *steps*. A step is one request to

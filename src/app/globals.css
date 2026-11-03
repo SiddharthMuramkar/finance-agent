@@ -3,17 +3,90 @@
 /* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Design tokens (finance-agent-ui-spec.md §2). Components use them as `bg-[var(--bubble)]`;
+   dark mode is these values switching under `.dark`, so components need no dark: colour variants. */
 :root {
   color-scheme: light;
+  --bg: #fafaf9;
+  --ink: #1c1917;
+  --muted: #79716b;
+  --border: #d6d3d1;
+  --hairline: #e7e5e4;
+  --bubble: #e7e5e4;
+  --field: #ffffff;
+  --brand: #002366;
+  --brand-hover: #001e57;
+  --brand-ink: #ffffff;
+  --brand-tint: #f0f5ff;
+  --brand-line: #c2cde2;
+  --you: #00786f;
+  --you-line: #009689;
+  --you-tint: #f5fcf9;
+  --you-tag: #cbfbf1;
+  --you-tag-ink: #0b4f4a;
+  --src: #e17100;
+  --src-line: #fe9a00;
+  --src-tint: #fdfbf2;
+  --src-tag: #fef3c6;
+  --src-tag-ink: #7b3306;
+  --data: #d6d3d1;
+  --danger: #c10007;
+  /* Landing page only; the same in both modes. */
+  --navy-deep: #001647;
+  --navy-deeper: #001034;
+  --navy-accent: #6699ff;
+  --navy-muted: #a6a09b;
 }
 :root.dark {
   color-scheme: dark;
+  --bg: #0c0a09;
+  --ink: #f5f5f4;
+  --muted: #a6a09b;
+  --border: #44403b;
+  --hairline: #292524;
+  --bubble: #292524;
+  --field: #1c1917;
+  --brand: #6699ff;
+  --brand-hover: #85adff;
+  --brand-ink: #0c0a09;
+  --brand-tint: #161b26;
+  --brand-line: #2b3b5e;
+  --you: #00d5be;
+  --you-line: #00d5be;
+  --you-tint: rgb(4 47 46 / 0.2);
+  --you-tag: #022f2e;
+  --you-tag-ink: #96f7e4;
+  --src: #ffb900;
+  --src-line: #ffb900;
+  --src-tint: rgb(70 25 1 / 0.2);
+  --src-tag: #461901;
+  --src-tag-ink: #fee685;
+  --data: #44403b;
+  --danger: #ff6467;
 }
 body {
-  @apply bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight, no colour. */
+/* The composer fade (spec §3): a 24px band so text never looks cut off behind the composer. */
+.fade-above {
+  height: 24px;
+  background: linear-gradient(to top, var(--bg), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight. */
 .md {
   @apply leading-relaxed break-words;
 }
@@ -42,21 +115,28 @@ body {
 .md li + li {
   @apply mt-1;
 }
+/* Links and Citation numbers in the app's colour (spec §1: navy = the app). */
 .md a {
   @apply underline;
+  color: var(--brand);
 }
 /* A citation marker: a small raised number linking to the Library passage behind the claim. */
 .md sup a.cite {
-  @apply ml-0.5 px-0.5 text-xs text-stone-500 no-underline hover:underline dark:text-stone-400;
+  @apply ml-0.5 px-0.5 text-xs font-medium no-underline hover:underline;
+  color: var(--brand);
 }
 .md blockquote {
-  @apply border-l-2 border-stone-300 pl-3 text-stone-600 dark:border-stone-700 dark:text-stone-400;
+  @apply border-l-2 pl-3;
+  border-color: var(--border);
+  color: var(--muted);
 }
 .md code {
-  @apply rounded bg-stone-200 px-1 text-[0.9em] dark:bg-stone-800;
+  @apply rounded px-1 text-[0.9em];
+  background: var(--hairline);
 }
 .md pre {
-  @apply overflow-x-auto rounded bg-stone-200 p-3 text-sm dark:bg-stone-800;
+  @apply overflow-x-auto rounded p-3 text-sm;
+  background: var(--hairline);
 }
 .md pre code {
   @apply bg-transparent p-0;
@@ -66,8 +146,9 @@ body {
 }
 .md th,
 .md td {
-  @apply border border-stone-300 px-2 py-1 text-left dark:border-stone-700;
+  @apply border px-2 py-1 text-left;
+  border-color: var(--border);
 }
 .md hr {
-  @apply border-stone-300 dark:border-stone-700;
+  border-color: var(--border);
 }
