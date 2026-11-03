@@ -4,7 +4,7 @@
  * the current numbers of those variables, and reopens by writing them in place of the starting numbers.
  */
 
-const DECLARATION = /^\$([A-Za-z_]\w*)[ \t]*=[ \t]*(-?\d+(?:\.\d+)?)[ \t]*$/gm;
+const DECLARATION = /^\$([A-Za-z_]\w*)[ \t]*=[ \t]*(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)[ \t]*$/gm;
 
 /** The numeric `$variables` a Widget's code declares, with their starting numbers (keys keep the `$`). */
 export function declaredSettings(code: string): Record<string, number> {
@@ -20,7 +20,7 @@ export function settingsFrom(snapshot: Record<string, unknown>): Record<string, 
 export function cleanSettings(code: string, raw: unknown): Record<string, number> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
   const declared = declaredSettings(code);
-  return Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([k, v]) => Object.hasOwn(declared, k) &&typeof v === "number" && Number.isFinite(v)) as [string, number][]);
+  return Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([k, v]) => Object.hasOwn(declared, k) && typeof v === "number" && Number.isFinite(v)) as [string, number][]);
 }
 
 /** The code with the saved numbers written in place of the starting ones. Unknown names are ignored. */

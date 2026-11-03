@@ -76,7 +76,9 @@ export async function saveInsightAttempt(db: Db, map: CourseMap, input: InsightA
     const attempt = n + 1;
     released = attempt === 1 && insight.hints.length >= 1 ? "hint_1" : attempt === 2 && insight.hints.length >= 2 ? "hint_2" : "told";
   }
-  await db.insert(insightAttempts).values({
+  const inserted = await db
+    .insert(insightAttempts)
+    .values({
     topicId: topic.id,
     reported: input.reported,
     released,
@@ -85,7 +87,11 @@ export async function saveInsightAttempt(db: Db, map: CourseMap, input: InsightA
     turnId: input.turnId,
     toolCallId: input.toolCallId,
     createdAt: now,
-  });
+    })
+    // The database settles a race: a second settling attempt (or a repeated tool call) writes nothing.
+    .onConflictDoNothing()
+    .returning({ id: insightAttempts.id });
+  if (!inserted.length) return { ok: false, reason: "That attempt was already recorded, or the Insight is already settled for this Topic. Finish the explore step." };
   // Saved as the step, so a passed Topic taken back through explore stays at it until the Tutor finishes it.
   await db.update(topicProgress).set({ step: "explore" }).where(eq(topicProgress.topicId, topic.id));
   return { ok: true, released, topicId: topic.id, insight, words, hint: released === "hint_1" ? insight.hints[0] : released === "hint_2" ? insight.hints[1] : undefined };

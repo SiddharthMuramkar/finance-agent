@@ -100,3 +100,11 @@ describe("the Learner's own lines", () => {
     expect((await note(db)).lines.map((l) => l.text)).toEqual(["keep"]);
   });
 });
+
+describe("editing a line that is gone", () => {
+  it("says 404 itself, not by its wording", async () => {
+    const db = await testDb();
+    expect(await editLine(db, 9999, "hello")).toMatchObject({ ok: false, status: 404 });
+    expect(await editLine(db, 9999, "")).toMatchObject({ ok: false, status: 400 });
+  });
+});

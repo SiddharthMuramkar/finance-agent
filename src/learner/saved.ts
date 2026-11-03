@@ -92,13 +92,12 @@ async function keep(db: Db, key: Key, code: string | undefined, rawSettings: unk
     key.turnSeq === null ? isNull(noteItems.turnSeq) : eq(noteItems.turnSeq, key.turnSeq),
     key.widgetIndex === null ? isNull(noteItems.widgetIndex) : eq(noteItems.widgetIndex, key.widgetIndex),
   );
+  // Insert first and let the unique index (note_items_saved_once) turn a double click or a second tab into "already there".
+  const [row] = await db.insert(noteItems).values({ ...key, widgetState, createdAt: now, updatedAt: now }).onConflictDoNothing().returning({ id: noteItems.id });
+  if (row) return { ok: true, id: row.id, topicId: key.topicId };
   const [existing] = await db.select({ id: noteItems.id }).from(noteItems).where(same);
-  if (existing) {
-    if (widgetState) await db.update(noteItems).set({ widgetState, updatedAt: now }).where(eq(noteItems.id, existing.id));
-    return { ok: true, id: existing.id, topicId: key.topicId };
-  }
-  const [row] = await db.insert(noteItems).values({ ...key, widgetState, createdAt: now, updatedAt: now }).returning({ id: noteItems.id });
-  return { ok: true, id: row.id, topicId: key.topicId };
+  if (widgetState) await db.update(noteItems).set({ widgetState, updatedAt: now }).where(eq(noteItems.id, existing.id));
+  return { ok: true, id: existing.id, topicId: key.topicId };
 }
 
 /** Takes a saved reply or Widget off its Topic Note. False when there was no such item. The Learner's own lines are not touched. */

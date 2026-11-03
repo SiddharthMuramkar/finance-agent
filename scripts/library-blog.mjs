@@ -4,7 +4,7 @@
 // repo), reads the posts with the TypeScript reader in src/library/blog.ts, writes
 // <scratch>/damodaran-blog.documents.json, then loads it with `library:load` (cleaning, cutting,
 // replacing the source's passages, refreshing the BM25 statistics). --no-load stops after the file.
-// The weekly refresh (a later ticket) uses the same reader.
+// The weekly refresh (src/library/refresh.ts) uses the same reader.
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

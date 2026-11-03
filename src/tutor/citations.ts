@@ -31,6 +31,11 @@ export function foldText(entries: SourceEntry[]): string {
   return `\n\n${FENCE}${SOURCES_FENCE}\n${JSON.stringify(entries).replace(/`/g, "\\u0060")}\n${FENCE}`;
 }
 
+/** A source link the code itself writes: a Library passage view, or an https address (a Case Data source). */
+export function isSafeHref(href: string): boolean {
+  return /^\/passages\/[^\s]*$/.test(href) || /^https:\/\/[^\s]+$/.test(href);
+}
+
 /** The entries inside a sources fence; none if it is not what `foldText` wrote. */
 export function parseFold(code: string): SourceEntry[] {
   try {

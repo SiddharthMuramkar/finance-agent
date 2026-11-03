@@ -32,3 +32,12 @@ describe("a Widget's settings", () => {
     expect(applySettings(code, {})).toBe(code);
   });
 });
+
+describe("a saved Widget with a very small or large number", () => {
+  it("can be saved again: the number is read back from its code", () => {
+    const once = applySettings(code, { $rate: 1e-7, $years: 1e21 });
+    expect(once).toContain("$rate = 1e-7\n");
+    expect(declaredSettings(once)).toEqual({ $rate: 1e-7, $years: 1e21 });
+    expect(declaredSettings(applySettings(once, { $rate: 2 }))).toEqual({ $rate: 2, $years: 1e21 });
+  });
+});

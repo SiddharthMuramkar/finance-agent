@@ -41,8 +41,13 @@ export function ProfileFields({ values, onChange, idPrefix = "profile" }: { valu
   );
 }
 
-async function send(url: string, method: string, body?: unknown): Promise<string | null> {
-  const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+export async function send(url: string, method: string, body?: unknown): Promise<string | null> {
+  let res: Response;
+  try {
+    res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+  } catch {
+    return "Could not reach the server. Check your connection and try again.";
+  }
   if (res.ok) return null;
   const { error } = (await res.json().catch(() => ({ error: null }))) as { error: string | null };
   return error ?? `Could not save (${res.status}).`;

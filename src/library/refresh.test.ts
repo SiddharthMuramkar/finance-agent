@@ -312,3 +312,29 @@ describe("an edited post", () => {
     expect(after.find((p) => p.text.includes("sixty percent"))).toMatchObject({ published_on: "2019-06-01", embedded: false });
   });
 });
+
+describe("a failing reindex after the posts are in", () => {
+  it("still finishes done with its watermark and says what failed", async () => {
+    const real = await testDb();
+    // A plain index under the BM25 index's name makes the refresh take its reindex path (PGlite has no BM25).
+    await real.execute(sql`create index library_passages_bm25 on library_passages (text)`);
+    const db = new Proxy(real, {
+      get(target, prop, receiver) {
+        if (prop === "execute") {
+          return (q: unknown) => {
+            if (JSON.stringify(q).includes("reindex index")) throw new Error("cannot rebuild the index here");
+            return (target as unknown as { execute: (q: unknown) => unknown }).execute(q);
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+    const { fetchFn } = network([entry(5, { html: `<p>${PROSE}</p>` })]);
+    const result = await refreshLibrary({ db, sources: SOURCES, fetch: fetchFn, now: () => FIXED });
+    expect(result).toMatchObject({ status: "done" });
+    const [log] = await runs(real);
+    expect(log.status).toBe("done");
+    expect(log.watermark).toBe(FIXED.toISOString());
+    expect(log.failed.some((f) => f.step === "statistics")).toBe(true);
+  });
+});

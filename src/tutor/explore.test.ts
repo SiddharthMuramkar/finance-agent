@@ -224,3 +224,14 @@ describe("explore step in the Tutor Turn", () => {
     expect(everything(request)).toContain("after being told it");
   });
 });
+
+describe("settling the Insight is enforced by the database", () => {
+  it("lets only one of two simultaneous settling attempts through", async () => {
+    const { saveInsightAttempt } = await import("@/learner/insight");
+    const db = await atExplore();
+    const input = (toolCallId: string) => ({ reported: "found" as const, words: "money now is worth more", learnerMessage: "I think money now is worth more", toolCallId, model: "m", turnId: 1 });
+    const results = await Promise.all([saveInsightAttempt(db, map, input("a")), saveInsightAttempt(db, map, input("b"))]);
+    expect(results.filter((r) => r.ok)).toHaveLength(1);
+    expect((await db.select().from(insightAttempts)).filter((r) => r.released === "found")).toHaveLength(1);
+  });
+});

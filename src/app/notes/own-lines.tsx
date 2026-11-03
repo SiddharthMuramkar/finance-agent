@@ -7,8 +7,13 @@ export type OwnLine = { id: number; text: string };
 
 const MAX = 2000;
 
-async function send(method: "POST" | "PATCH" | "DELETE", body: object): Promise<{ ok: true; line?: OwnLine } | { ok: false; error: string }> {
-  const res = await fetch("/api/notes", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+export async function send(method: "POST" | "PATCH" | "DELETE", body: object): Promise<{ ok: true; line?: OwnLine } | { ok: false; error: string }> {
+  let res: Response;
+  try {
+    res = await fetch("/api/notes", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch {
+    return { ok: false, error: "Could not reach the server. Check your connection and try again." };
+  }
   const data = (await res.json().catch(() => null)) as { id?: number; text?: string; error?: string } | null;
   if (!res.ok) return { ok: false, error: data?.error ?? `Something went wrong (${res.status}).` };
   return { ok: true, line: data?.id !== undefined && data.text !== undefined ? { id: data.id, text: data.text } : undefined };

@@ -110,18 +110,18 @@ export async function loadNotes(db: Db, map: CourseMap): Promise<TopicNote[]> {
   });
 }
 
-export type LineResult = { ok: true; line: NoteLine } | { ok: false; reason: string };
+export type LineResult = { ok: true; line: NoteLine } | { ok: false; reason: string; status: 400 | 404 };
 
-function cleanLine(text: string): { ok: true; text: string } | { ok: false; reason: string } {
+function cleanLine(text: string): { ok: true; text: string } | { ok: false; reason: string; status: 400 } {
   const trimmed = text.trim();
-  if (!trimmed) return { ok: false, reason: "Write something first." };
-  if (trimmed.length > MAX_LINE_LENGTH) return { ok: false, reason: `A line can be at most ${MAX_LINE_LENGTH} characters.` };
+  if (!trimmed) return { ok: false, reason: "Write something first.", status: 400 };
+  if (trimmed.length > MAX_LINE_LENGTH) return { ok: false, reason: `A line can be at most ${MAX_LINE_LENGTH} characters.`, status: 400 };
   return { ok: true, text: trimmed };
 }
 
 /** Adds the Learner's own line to a Topic's note. Any Topic of the Course Map takes lines, passed or not. */
 export async function addLine(db: Db, map: CourseMap, topicId: string, text: string, now = new Date()): Promise<LineResult> {
-  if (!map.topic(topicId)) return { ok: false, reason: "That Topic is not on the Course Map." };
+  if (!map.topic(topicId)) return { ok: false, reason: "That Topic is not on the Course Map.", status: 404 };
   const clean = cleanLine(text);
   if (!clean.ok) return clean;
   const [row] = await db.insert(noteItems).values({ topicId, kind: "line", text: clean.text, createdAt: now, updatedAt: now }).returning();
@@ -137,7 +137,7 @@ export async function editLine(db: Db, id: number, text: string, now = new Date(
     .set({ text: clean.text, updatedAt: now })
     .where(and(eq(noteItems.id, id), eq(noteItems.kind, "line")))
     .returning();
-  if (!row) return { ok: false, reason: "That line does not exist." };
+  if (!row) return { ok: false, reason: "That line does not exist.", status: 404 };
   return { ok: true, line: { id: row.id, text: clean.text, createdAt: row.createdAt, updatedAt: row.updatedAt } };
 }
 
