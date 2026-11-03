@@ -1,14 +1,15 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { currentLearner } from "@/auth/session";
-import { DEMO_SUMMARY, isDemoMode } from "../_landing/demo-mode";
+import { DEMO_PROGRESS, isDemoMode } from "../_landing/demo-mode";
 import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
 import { exploreWidgetFor } from "@/course/explore-widget";
-import { courseOverview, whatComesNext } from "@/course/navigator";
+import { courseOverview, stepSequence, whatComesNext } from "@/course/navigator";
+import { topicStart } from "@/course/topic-start";
 import { revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
-import { learnerSummary, loadProgress } from "@/learner/memory";
+import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { showsWelcome } from "@/learner/welcome";
@@ -50,7 +51,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
       <WorkspaceShell>
         <Conversation
           initial={SAMPLE_LINES}
-          summary={DEMO_SUMMARY}
+          strip={stepSequence(map, DEMO_PROGRESS, "present-value")}
           quiz={null}
           pending={null}
           review={{ question: null, dueCount: 0, done: 0, cap: 0 }}
@@ -68,8 +69,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [summary, thread, checkTab, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
-    learnerSummary(db, map, learnerId),
+  const [thread, checkTab, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
     "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
     // The Check tab: the open quiz, or after a miss its marking with Try again (the next attempt is made only on that press).
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
@@ -89,21 +89,28 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     // The Next chip under the latest reply, from the Course Navigator's place (none while a Check is open).
     nextOfferNow(db, map, learnerId, new Date()),
   ]);
-  const initial: Line[] = [...thread, ...comingBack.map((item) => ({ role: "item" as const, ...item }))];
+  // The shown Topic: a passed Topic still on screen, else the current Topic.
+  const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
+  const place = current ? { stage: current.stage, title: current.title } : null;
+  // The Topic Start card opens the Topic's conversation: worked out from course data now, never stored.
+  const start = current ? topicStart(map, progress, current.id) : null;
+  const initial: Line[] = [
+    ...(start ? [{ role: "item" as const, ...start }] : []),
+    ...thread,
+    ...comingBack.map((item) => ({ role: "item" as const, ...item })),
+  ];
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
   const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
-  // The shown Topic and its Stage, for the status card's eyebrow: a passed Topic still on screen, else the current Topic.
-  const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
-  const place = current ? { stage: current.stage, title: current.title } : null;
   // A passed Topic on screen sends no turns: What comes next (from the Course Navigator's place) and the Course Map instead.
   const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
   return (
     <WorkspaceShell>
       <Conversation
         initial={initial}
-        summary={passed ? `${passed.title} is passed. Choose where to go next.` : summary}
+        // The Topic bar's strip: the shown Topic's steps, grouped by Check, with the Learner's place.
+        strip={current ? stepSequence(map, progress, current.id) : null}
         // The quiz and explore Widget belong to the current Topic, not the passed one on screen.
         quiz={passed ? null : checkTab.quiz}
         missed={passed ? null : checkTab.missed}

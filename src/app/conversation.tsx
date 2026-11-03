@@ -1,8 +1,8 @@
 "use client";
 
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
-import type { NextOffer } from "@/course/navigator";
 import { useEffect, useRef, useState } from "react";
+import type { NextOffer, StepSequence } from "@/course/navigator";
 import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
@@ -30,7 +30,7 @@ export type { Line, PendingTurn };
  */
 export function Conversation({
   initial,
-  summary,
+  strip = null,
   quiz,
   missed = null,
   pending,
@@ -47,7 +47,8 @@ export function Conversation({
   /** The Next the Course Navigator offers now (nextOfferNow), or null while a Check is open: the chip under the latest reply. */
   next?: NextOffer | null;
   initial: Line[];
-  summary: string;
+  /** The shown Topic's step sequence (stepSequence), drawn as the Topic bar's progress strip. */
+  strip?: StepSequence | null;
   quiz: OpenQuiz | null;
   /** The quiz Check's last attempt, missed, while no new one is open: the Check tab shows it with Try Check <k> again. */
   missed?: MissedQuiz | null;
@@ -100,7 +101,7 @@ export function Conversation({
           {/* The Widgets' saved work in the shown Session, kept across tab switches and saved for a reload. */}
           <WidgetStatesProvider sessionId={shown && "sessionId" in shown ? shown.sessionId : undefined} initial={widgetStates}>
             <WorkspaceFrame
-              left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
+              left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
               right={<WidgetHost host={host} topicTitle={place?.title} />}
             />
           </WidgetStatesProvider>

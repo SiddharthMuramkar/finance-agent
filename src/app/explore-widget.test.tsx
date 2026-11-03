@@ -19,7 +19,7 @@ const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
 
 function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}, narrow = false) {
   const page = (
-    <Conversation initial={[]} summary="You are learning present value." quiz={null} pending={null} review={noReview} place={{ stage: "foundation", title: "Present value" }} {...over} />
+    <Conversation initial={[]} quiz={null} pending={null} review={noReview} place={{ stage: "foundation", title: "Present value" }} {...over} />
   );
   return renderToStaticMarkup(narrow ? <NarrowScreen>{page}</NarrowScreen> : page);
 }
