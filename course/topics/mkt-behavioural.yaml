@@ -53,6 +53,12 @@ principle: >
   When a price is justified mainly by what the next buyer will pay, ask what cash flows would be
   needed to earn a fair return at that price, and who is left to buy when the story is tested.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Name the habits that move prices: overconfidence, herding, anchoring and chasing recent winners."
+  - "Ask what cash flows a price would need to earn a fair return."
+  - "Read a big first-day jump as a sign of demand, not of value."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: bf-q-herding
