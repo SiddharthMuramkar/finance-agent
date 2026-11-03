@@ -1,4 +1,10 @@
+/* Cascade layers, declared before any import so nothing can reorder them: OpenUI's widget kit (@layer openui)
+   sits above Tailwind's reset, which can't strip its styles, and below the utilities, which still win. */
+@layer theme, base, openui, components, utilities;
 @import "tailwindcss";
+/* OpenUI's component kit for generated widgets, imported from this one place only (OpenUI's rule for
+   layered styles). GenuiTheme (src/widgets/genui-theme.tsx) points its colours and fonts at our tokens. */
+@import "@openuidev/react-ui/layered/styles/index.css";
 
 /* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -68,6 +74,12 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Figures in generated widgets stay in tabular numbers like the rest of the app: the kit's `font` shorthand
+   resets them, so a table's column of numbers would not line up. */
+.genui * {
   font-variant-numeric: tabular-nums;
 }
 
