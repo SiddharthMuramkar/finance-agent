@@ -5,7 +5,7 @@ import { plainFormulaText as plain } from "@/finance/formula-text";
 import type { ExploreInfo } from "@/learner/insight";
 import { formulaById, formulaGuide } from "@/finance/formulas";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
-import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
 
 /** Turns at explore with no attempt before the context reminds the Tutor to put the question. */
@@ -53,7 +53,7 @@ export function stepContext(
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
   if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
-  if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, Boolean(topic.explore?.widget)));
+  if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, topic.explore?.widget));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
     if (check.kind === "conversation") {
@@ -101,15 +101,28 @@ export function stepContext(
 }
 
 /**
+ * The Guided Tasks under the explore Widget, as the Learner reads them. They tick themselves in the
+ * browser, are practice only, and say nothing the Tutor needs to mark.
+ */
+function guidedTaskLines(widgetCode: string | undefined): string[] {
+  const tasks = widgetCode ? widgetTaskTexts(widgetCode) : [];
+  if (!tasks.length) return [];
+  return [
+    `Guided Tasks under the Explore Widget (they tick themselves, in order, as the Learner moves the slider; practice only): ${tasks.map((t, i) => `${i + 1}. ${t}`).join(" ")} You can point the Learner to them, but do not mark them, ask the Learner to report them done, or treat a ticked task as their Insight.`,
+  ];
+}
+
+/**
  * The explore step's lines. The written Insight appears only once it is settled (found or told);
  * until then the Tutor has the question, how to tell it is found, and the hints already released.
  */
-function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widgetOnScreen: boolean): string[] {
+function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widgetCode: string | undefined): string[] {
   const lines = [
     "",
-    widgetOnScreen
+    widgetCode
       ? "Explore: the Learner finds this Topic's Insight by playing with the Topic's own Explore Widget. Code has put it on screen already, in the Widget panel as an \"Explore\" chip (and in the conversation column on a narrow screen), and keeps it there until the Topic is passed. It has an interest-rate slider and the sourced figures. Do not draw it yourself; point the Learner to it, then they say what they noticed in their own words."
       : "Explore: the Learner finds this Topic's Insight by playing with the Widget you drew at the concept step (keep it available), then says what they noticed in their own words.",
+    ...guidedTaskLines(widgetCode),
     `Insight question: ${insight.question.trim()}`,
     `The Insight is found when: ${insight.foundWhen.trim()}`,
   ];

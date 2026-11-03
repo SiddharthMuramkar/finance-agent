@@ -14,6 +14,8 @@ import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
+import { advanceReached } from "./guided-tasks";
+import { GuidedTasksFigure } from "./guided-tasks-view";
 
 // The OpenUI component library the Tutor writes widgets with. Charts take only
 // inputs to a tested Finance Calculations formula, or a Case Data reference
@@ -290,12 +292,50 @@ const FormulaCard = defineComponent({
   component: FormulaCardView,
 });
 
+const guidedTaskProps = z.object({
+  text: z.string().describe('The instruction, e.g. "Set the rate to 0%"'),
+  done: z
+    .boolean()
+    .describe("A condition that reads a $variable bound to a Slider in this widget, e.g. $rate == 0 or $rate >= 3 && $rate <= 4; the task ticks itself when it holds"),
+});
+
+const GuidedTask = defineComponent({
+  name: "GuidedTask",
+  description: "One Guided Task: a short instruction and the condition that completes it. Use it only inside GuidedTasks.",
+  props: guidedTaskProps,
+  component: () => null,
+});
+
+const guidedTasksProps = z.object({
+  tasks: z.array(GuidedTask.ref).describe("The tasks in the order the Learner should do them"),
+});
+
+function GuidedTasksView({ props }: ComponentRenderProps<z.infer<typeof guidedTasksProps>>) {
+  const tasks = (Array.isArray(props.tasks) ? props.tasks : []).map((t) => {
+    const p = (t as { props?: { text?: unknown; done?: unknown } } | null)?.props;
+    return { text: typeof p?.text === "string" ? p.text : "", done: p?.done === true };
+  });
+  // Ticks stick: the count only grows, so moving a slider away again never unticks a task.
+  const [reached, setReached] = useState(0);
+  const now = advanceReached(reached, tasks.map((t) => t.done));
+  if (now !== reached) setReached(now);
+  return <GuidedTasksFigure tasks={tasks.map((t) => t.text)} reached={now} />;
+}
+
+const GuidedTasks = defineComponent({
+  name: "GuidedTasks",
+  description:
+    "Guided Tasks under a widget: small practice steps (to do, current, done) that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Practice only: never marked or saved.",
+  props: guidedTasksProps,
+  component: GuidedTasksView,
+});
+
 const Widget = defineComponent({
   name: "Widget",
   description: "The widget's frame: a short title above its controls and charts, in order.",
   props: z.object({
     title: z.string(),
-    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref, FormulaCard.ref])),
+    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref, FormulaCard.ref, GuidedTasks.ref])),
   }),
   component: WidgetFrame,
 });
@@ -313,7 +353,7 @@ function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string
   );
 }
 
-export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator, FormulaCard], root: "Widget" });
+export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks, GuidedTask], root: "Widget" });
 
 /** Options for the widget instructions frozen into the Tutor's instructions. */
 export const WIDGET_PROMPT_OPTIONS = {
@@ -339,8 +379,16 @@ calc = Calculator("emi", {principal: $amount, ratePercent: $rate, years: 20})`,
 $rate = 5
 rate = Slider("rate", "Discount rate", 0, 15, 0.5, $rate, "percent")
 card = FormulaCard("present-value", {ratePercent: $rate}, {amount: "mega-millions-2018/cash-option"}, {years: 5})`,
+    `root = Widget("What a home loan costs at different rates", [rate, calc, steps])
+$rate = 8.5
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+calc = Calculator("emi", {principal: 5000000, ratePercent: $rate, years: 20})
+steps = GuidedTasks([low, high])
+low = GuidedTask("Set the rate to 6%", $rate == 6)
+high = GuidedTask("Now set it to 12%", $rate == 12)`,
   ],
   additionalRules: [
+    "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
     "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
     "Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.",
     "Widgets are optional. Add one only when playing with numbers helps the current Teaching Step, and at most one per reply.",

@@ -51,13 +51,13 @@ describe("checking a finished widget on the server", () => {
 });
 
 describe("chart components take data only by reference or formula", () => {
-  type Prop = { type?: string; items?: Prop & { anyOf?: unknown[] } };
+  type Prop = { type?: string; items?: Prop & { anyOf?: unknown[]; $ref?: string } };
   const defs = (frozen.schema as unknown as { $defs: Record<string, { properties: Record<string, Prop> }> }).$defs;
 
   it("no component accepts a list of numbers, so the Tutor cannot type a series", () => {
     for (const [name, def] of Object.entries(defs)) {
       for (const [prop, schema] of Object.entries(def.properties)) {
-        const numbers = schema.type === "array" && (schema.items?.type === "number" || schema.items?.type === undefined && !schema.items?.anyOf);
+        const numbers = schema.type === "array" && (schema.items?.type === "number" || schema.items?.type === undefined && !schema.items?.anyOf && !schema.items?.$ref);
         expect(numbers, `${name}.${prop}`).toBe(false);
       }
     }
