@@ -1,4 +1,5 @@
 import type { Check, CourseMap, Topic } from "./map";
+import type { Subject } from "./outline";
 import type { QuestionLookup } from "./quiz";
 
 /**
@@ -169,6 +170,8 @@ export type TopicOverview = {
   id: string;
   title: string;
   stage: Topic["stage"];
+  /** The Subject of a Foundation Topic; null for later Stages. */
+  subject: Subject | null;
   status: TopicStatus;
   /** The Teaching Step a started Topic is at. */
   step: TeachingStep | null;
@@ -192,6 +195,7 @@ export function courseOverview(map: CourseMap, progress: Progress): TopicOvervie
       id: topic.id,
       title: topic.title,
       stage: topic.stage,
+      subject: topic.subject ?? null,
       status: record ? record.status : "not_started",
       step: here && record ? here.step : record && record.status !== "passed" ? placeIn(topic, record).step : null,
       checks: topic.checks.map((c) => ({ id: c.id, passed: record?.passedChecks.includes(c.id) ?? false, here: here?.check?.id === c.id })),

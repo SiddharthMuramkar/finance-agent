@@ -7,6 +7,20 @@ const id = z.string().regex(/^[a-z0-9-]+$/, "IDs use lower case letters, digits 
 
 export const STAGES = ["foundation", "follow", "judge", "analyse"] as const;
 
+/** The nine Subjects: the field a Foundation Topic belongs to. Later-Stage Topics have none. */
+export const SUBJECTS = [
+  "Numbers & time value",
+  "Financial statements",
+  "Economics & policy",
+  "Currencies & countries",
+  "Bonds & credit",
+  "Markets & investing",
+  "Valuation & corporate finance",
+  "Derivatives",
+  "Banks, crises & the system",
+] as const;
+export type Subject = (typeof SUBJECTS)[number];
+
 const outlineCase = z.object({
   title: z.string().min(1),
   /** The Case is told using only what was known on this date. */
@@ -24,6 +38,7 @@ const outlineTopic = z.object({
   id,
   title: z.string().min(1),
   stage: z.enum(STAGES),
+  subject: z.enum(SUBJECTS).optional(),
   prerequisites: z.array(id).default([]),
   cases: z.array(outlineCase).min(1, "a Topic needs at least one candidate Case"),
 });
@@ -58,6 +73,8 @@ export function parseOutline(text: string): { outline?: Outline; errors: string[
     byId.set(t.id, t);
   }
   for (const t of topics) {
+    if (t.stage === "foundation" && !t.subject) errors.push(`Foundation Topic "${t.id}" has no Subject`);
+    if (t.stage !== "foundation" && t.subject) errors.push(`Topic "${t.id}" is not Foundation, so it must not have a Subject`);
     for (const p of t.prerequisites) {
       if (!byId.has(p)) errors.push(`Topic "${t.id}" requires "${p}", which is not in the outline`);
     }
@@ -93,7 +110,7 @@ function findLoop(topics: OutlineTopic[], byId: Map<string, OutlineTopic>): stri
   return undefined;
 }
 
-const STAGE_TITLE: Record<(typeof STAGES)[number], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
+export const STAGE_TITLE: Record<(typeof STAGES)[number], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 
 /**
  * The readable Course Map for the owner: Topics in default-path order with Stage, prerequisites
@@ -118,7 +135,7 @@ export function renderCourseMapDoc(outline: Outline, written: ReadonlySet<string
     lines.push(`## ${STAGE_TITLE[stage]}`, "");
     for (const t of inStage) {
       lines.push(`### ${t.path}. ${t.title}`, "");
-      lines.push(`- ID: \`${t.id}\` · ${written.has(t.id) ? "Written" : "Coming"}`);
+      lines.push(`- ID: \`${t.id}\` · ${written.has(t.id) ? "Written" : "Coming"}${t.subject ? ` · Subject: ${t.subject}` : ""}`);
       lines.push(`- Needs first: ${t.prerequisites.length ? t.prerequisites.map(title).join(", ") : "nothing"}`);
       for (const c of t.cases) {
         lines.push(`- Case: **${c.title}** (as of ${c.asOf})${c.verified ? "" : " **to verify**"}`);

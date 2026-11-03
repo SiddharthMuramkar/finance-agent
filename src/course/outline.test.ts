@@ -2,12 +2,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap } from "./map";
-import { parseOutline, renderCourseMapDoc } from "./outline";
+import { parseOutline, renderCourseMapDoc, SUBJECTS } from "./outline";
 
 function entry(id: string, extra = "", cases = defaultCase(id)) {
   return `  - id: ${id}
     title: Title of ${id}
     stage: foundation
+    subject: "Numbers & time value"
 ${extra}${cases}`;
 }
 
@@ -138,7 +139,32 @@ describe("readable Course Map document", () => {
   });
 });
 
+describe("Subjects", () => {
+  it("errors when a Foundation Topic has no Subject", () => {
+    const text = outlineText(entry("a").replace('    subject: "Numbers & time value"\n', ""));
+    expect(parseOutline(text).errors).toEqual(['Foundation Topic "a" has no Subject']);
+  });
+
+  it("errors when a Subject is not one of the nine", () => {
+    const text = outlineText(entry("a").replace("Numbers & time value", "Astrology"));
+    expect(parseOutline(text).errors.join()).toContain("subject");
+  });
+
+  it("errors when a later-Stage Topic has a Subject", () => {
+    const text = outlineText(entry("a").replace("stage: foundation", "stage: follow"));
+    expect(parseOutline(text).errors).toEqual(['Topic "a" is not Foundation, so it must not have a Subject']);
+  });
+});
+
 describe("the real outline", () => {
+  it("gives every Foundation Topic one of the nine Subjects and later Topics none", () => {
+    const { outline } = parseOutline(readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8"));
+    for (const t of outline!.topics) {
+      if (t.stage === "foundation") expect(SUBJECTS).toContain(t.subject);
+      else expect(t.subject).toBeUndefined();
+    }
+  });
+
   const { outline, errors } = parseOutline(readFileSync(join(process.cwd(), "course", "outline.yaml"), "utf8"));
   const pathOf = (id: string) => outline?.topics.find((t) => t.id === id)?.path ?? -1;
 

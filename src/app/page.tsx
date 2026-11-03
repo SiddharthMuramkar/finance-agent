@@ -1,22 +1,48 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { isSignedIn } from "@/auth/session";
+import { DEMO_SUMMARY, isDemoMode } from "./_landing/demo-mode";
+import { SAMPLE_LINES } from "./_landing/demo-session";
+import { LandingPage } from "./_landing/landing";
 import { loadCourseMap } from "@/course/map";
+import { courseOverview } from "@/course/navigator";
 import { getDb } from "@/db/client";
-import { learnerSummary } from "@/learner/memory";
+import { learnerSummary, loadProgress } from "@/learner/memory";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { loadCurrentSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "./conversation";
-import { ThemeToggle } from "./theme-toggle";
+import { AppHeader, SignedInFrame } from "./ui";
 
 // Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
 export const dynamic = "force-dynamic";
 
-export default async function WorkspacePage() {
-  const db = getDb();
+export default async function WorkspacePage({ searchParams }: { searchParams: Promise<{ demo?: string | string[] }> }) {
+  // Signed out, "/" is the public landing page: decided before any Learner data is read.
+  if (!(await isSignedIn())) return <LandingPage />;
   const map = loadCourseMap();
-  const [summary, initial, jar, quiz, turn, review] = await Promise.all([
+  // Demo mode (local only, for the landing page screenshot): a sample conversation, no Learner data read.
+  if (isDemoMode(await searchParams)) {
+    const topic = map.topic("present-value");
+    const jar = await cookies();
+    return (
+      <SignedInFrame>
+        <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
+          <AppHeader current="workspace" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
+          <Conversation
+            initial={SAMPLE_LINES}
+            summary={DEMO_SUMMARY}
+            quiz={null}
+            pending={null}
+            review={{ question: null, dueCount: 0, done: 0, cap: 0 }}
+            place={topic ? { stage: topic.stage, title: topic.title } : null}
+          />
+        </main>
+      </SignedInFrame>
+    );
+  }
+  const db = getDb();
+  const [summary, initial, jar, quiz, turn, review, progress] = await Promise.all([
     learnerSummary(db, map),
     loadCurrentSession(db, map),
     cookies(),
@@ -27,27 +53,19 @@ export default async function WorkspacePage() {
     }),
     latestTurn(db),
     reviewState(db, map),
+    loadProgress(db),
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one.
   const pending: PendingTurn = turn && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
+  // The current Topic and its Stage, for the status card's eyebrow.
+  const current = courseOverview(map, progress).find((t) => t.current);
+  const place = current ? { stage: current.stage, title: current.title } : null;
   return (
-    <main className="mx-auto flex min-h-screen max-w-6xl flex-col p-4 sm:p-6">
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-lg font-semibold">Study Workspace</h1>
-        <nav className="flex flex-wrap items-center gap-x-4">
-          <ThemeToggle initial={jar.get("theme")?.value === "dark" ? "dark" : "light"} />
-          <Link href="/course" className="flex min-h-11 items-center text-sm text-stone-500 hover:underline dark:text-stone-400">
-            Course Map
-          </Link>
-          <Link href="/progress" className="flex min-h-11 items-center text-sm text-stone-500 hover:underline dark:text-stone-400">
-            Progress
-          </Link>
-          <Link href="/sessions" className="flex min-h-11 items-center text-sm text-stone-500 hover:underline dark:text-stone-400">
-            Past Sessions
-          </Link>
-        </nav>
-      </header>
-      <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} />
-    </main>
+    <SignedInFrame>
+      <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
+        <AppHeader current="workspace" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
+        <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} place={place} />
+      </main>
+    </SignedInFrame>
   );
 }

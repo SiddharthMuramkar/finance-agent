@@ -4,11 +4,12 @@ import type { TopicOverview } from "@/course/navigator";
 import { CourseMapView, ProgressView } from "./course-map-view";
 
 const topics: TopicOverview[] = [
-  { id: "compounding", title: "Compounding", stage: "foundation", status: "passed", step: null, checks: [{ id: "co-1", passed: true, here: false }], unmetPrerequisites: [], current: false, onDefaultPath: false },
+  { id: "compounding", title: "Compounding", stage: "foundation", subject: "Numbers & time value", status: "passed", step: null, checks: [{ id: "co-1", passed: true, here: false }], unmetPrerequisites: [], current: false, onDefaultPath: false },
   {
     id: "pv",
     title: "Present value",
     stage: "foundation",
+    subject: "Numbers & time value",
     status: "in_progress",
     step: "concept",
     checks: [
@@ -19,7 +20,7 @@ const topics: TopicOverview[] = [
     current: false,
     onDefaultPath: true,
   },
-  { id: "bonds", title: "Bond prices", stage: "follow", status: "not_started", step: null, checks: [{ id: "bo-1", passed: false, here: false }], unmetPrerequisites: ["pv"], current: true, onDefaultPath: false },
+  { id: "bonds", title: "Bond prices", stage: "follow", subject: null, status: "not_started", step: null, checks: [{ id: "bo-1", passed: false, here: false }], unmetPrerequisites: ["pv"], current: true, onDefaultPath: false },
 ];
 
 describe("the Course Map page", () => {
@@ -43,6 +44,18 @@ describe("the Course Map page", () => {
   it("has no way back when the Learner is already on the default path", () => {
     const onPath = topics.map((t) => ({ ...t, current: t.id === "pv" }));
     expect(renderToStaticMarkup(<CourseMapView topics={onPath} />)).not.toContain("Back to the default path");
+  });
+
+  it("groups Topics under four Stage headings in course order, with a Subject pill on Foundation rows only", () => {
+    const more: TopicOverview[] = [
+      { ...topics[2], id: "j", title: "Judge one", stage: "judge", current: false },
+      { ...topics[2], id: "a", title: "Analyse one", stage: "analyse", current: false },
+    ];
+    const html = renderToStaticMarkup(<CourseMapView topics={[...topics, ...more]} />);
+    expect([...html.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1])).toEqual(["Foundation", "Follow", "Judge", "Analyse"]);
+    expect(html.match(/Numbers &amp; time value/g)).toHaveLength(2);
+    const bondsRow = html.split('data-topic="bonds"')[1].split("</li></ol>")[0];
+    expect(bondsRow).not.toContain("Numbers");
   });
 
   it("is an ordinary page that renders the same markup every time from the same progress", () => {

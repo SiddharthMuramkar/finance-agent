@@ -41,6 +41,14 @@ passcode with `PASSCODE` and, if it matches, sets a cookie signed with `SESSION_
 **Scenario.** Someone finds the URL and posts to `/api/turn`. The proxy answers 401 before any
 Claude call happens, so no credits are spent.
 
+**The one public door.** Signed out, the proxy lets through only a plain GET or HEAD of `/` (the
+public landing page) and image files under `/landing-assets/` (`.png` or `.webp`). A POST to `/`, or
+any request carrying a `Next-Action` header (a Server Action call), answers 401. Every other page
+still redirects to `/login`, and every `/api/*` route still answers 401. `/` itself checks the cookie
+again (`isSignedIn()` in `src/auth/session.ts`) before it reads anything, and shows the landing page
+when signed out. The proxy skips `login` and `api/login` only as whole path segments, so
+`/login-anything` is still checked. Signed in, nothing changed.
+
 **Guessing is limited** (`src/auth/login-guard.ts`, table `login_failures`). Each wrong passcode
 is saved as the caller's address and the time (never the guess). After five wrong guesses from one
 address in 15 minutes, that address is refused, even with the right passcode, until the window
@@ -147,6 +155,24 @@ place and disappears from "Coming".
 reorderable before any Topic text exists, at the price of a second file to keep in step. The
 generated document is checked rather than hand-edited, so it cannot drift. Cases marked unverified are
 research candidates, not yet teachable facts.
+
+## Subjects in the Course Map outline (`subject` in `course/outline.yaml`, `SUBJECTS` in `src/course/outline.ts`)
+
+**What it does.** Each Foundation Topic names one Subject, the field it belongs to, from a fixed list
+of nine: Numbers & time value, Financial statements, Economics & policy, Currencies & countries,
+Bonds & credit, Markets & investing, Valuation & corporate finance, Derivatives, and Banks, crises &
+the system. The outline check fails when a Foundation Topic has no Subject, when a Subject is not
+one of the nine, or when a Follow, Judge or Analyse Topic has one. The Subject travels from the
+outline to the Topic and to `courseOverview`, and shows as a pill on Foundation rows of the Course Map
+and in `docs/course-map.md`.
+
+**Scenario.** The owner adds a Foundation Topic on swaps and forgets the Subject: `npm run course:check`
+fails with `Foundation Topic "der-swaps" has no Subject`. They add `subject: "Derivatives"`, and the
+Course Map shows the pill beside the Topic.
+
+**Trade-off.** A fixed list of nine keeps the Course Map scannable and a typo cannot invent a tenth
+field, at the price of editing the list in code when a genuinely new field is needed. A Subject is a
+label for finding things, not a teaching order: the default path still decides what comes next.
 
 ## Course Map (`course/topics/*.yaml`, `src/course/map.ts`)
 
@@ -268,15 +294,30 @@ formula.js and checked against textbook worked examples) or a reference to a Cas
 written `caseId/datasetId`, which the browser fetches from `/api/case-data/<case>` under the as-of
 rule (see Case Data below). `AnnuityChart` draws the formula and can show a sourced figure beside
 it; `HistoryChart` draws one dataset as a line over its dates. Everything the Learner sets carries
-a teal "Your assumption" tag; everything drawn from Case Data sits in its own amber box with a
+a teal (`--you` tokens) "Your assumption" tag; everything drawn from Case Data sits in its own amber box with a
 "Sourced" tag and a link to its source, so the two never blend.
 
 **Layout.** The conversation runs on assistant-ui's external-store runtime: our code owns the
-messages and streaming, assistant-ui draws them. As a reply streams in, code splits it into prose
-and widget blocks. The prose stays on the left with a small "Widget 1" marker where the widget
-belongs; the right pane shows the latest widget (or the one whose marker was clicked). On a phone
-the widget sits in the conversation instead. Old Sessions rebuild their widgets from the stored
-text, with controls back at their starting values.
+messages and streaming, assistant-ui draws them (`src/app/thread.tsx` holds the message look, shared
+with the old Session page). As a reply streams in, code splits it into prose and widget blocks. The
+prose stays on the left with a "Widget 1 →" chip where the widget belongs; widgets are never drawn
+inside the conversation. Old Sessions rebuild their widgets from the stored text, with controls back
+at their starting values.
+
+**The Widget panel (`src/app/widget-panel.tsx`, issue #47).** The right column is one sticky panel,
+capped at the column's height so it never runs under the header. It shows one card: an eyebrow naming
+the concept, then the widget with its title but without its own border (the card is the only frame).
+The eyebrow is worked out by code from the widget's components, read with OpenUI's parser
+(`widgetParts` in `check.ts`): an AnnuityChart is "Present value", a HistoryChart "Case Data", a
+Calculator "Calculator", anything else the current Topic's title. The newest widget shows on its own,
+including when a new turn brings one. With two or more widgets a row of chips (one per widget title)
+sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
+flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
+box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier
+and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
+"Long-term interest rates" chip and the chart fades in under "Case Data". Trade-off: one widget at a
+time keeps the panel calm and the sliders roomy, but comparing two widgets means switching between
+them.
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser. If one cannot be drawn, code sends the Tutor one correction request listing the problems,
@@ -313,6 +354,21 @@ first paint, with no flash.
 
 **Trade-off.** The choice is per browser, not per Learner account (there is only one Learner), and
 it ignores the computer's own dark-mode setting until the Learner first toggles.
+
+## Design tokens (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/theme-cookie.ts`)
+
+**What they are.** A short list of named colours (`--bg`, `--ink`, `--muted`, `--border`, `--brand`,
+the teal `--you` set for the Learner's assumptions, the amber `--src` set for sourced facts, and a
+few more) defined once in `globals.css`, with a light value and a dark value. Every screen paints
+with these names instead of raw colours. `ui.tsx` holds the shared look pieces built on them: tags,
+eyebrow, pills, chips, buttons, card, callout, key/value row, the app header and the phone-note frame.
+
+**Scenario.** The Learner switches to dark mode. The toggle puts a `dark` class on the page, the
+token values swap (navy buttons become light navy with dark text, the teal and amber tags darken),
+and every piece follows at once without a single per-component dark rule.
+
+**Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
+a quick palette class. In return the look stays consistent and a colour change is one line.
 
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
@@ -702,8 +758,10 @@ prices story. Two days later they press "Back to the default path": Present valu
 **Trade-off.** The warning is a prompt, not a block: the Learner may study out of order, at the cost
 of meeting ideas before their foundations (the Tutor sees the unmet prerequisites in its context). A
 passed Topic can't be chosen again as a jump; looking back is what old Sessions are for, and spaced
-review will bring back its questions. Today the real Course Map has one Topic, so the page has one
-stop; it grows as Topics are added.
+review will bring back its questions. The page groups Topics under four Stage headings (Foundation,
+Follow, Judge, Analyse), each a list in default-path order with a dot for not started, current or
+passed; Foundation rows also show their Subject. Progress, the Passage view and Login use the same
+design tokens; the first two sit under the app header, Login (signed out) has none.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 
@@ -725,6 +783,24 @@ marker between the list and the next paragraph; the chart is in the right pane.
 longer animated word by word as it streams (`smooth` off): the animation would put the shown text
 behind the real text, and widget markers are matched against the real text. Learner messages stay
 plain text on purpose.
+
+## Past Sessions (`src/app/sessions/`, `session-card.tsx`, `old-session.tsx`, `src/tutor/session-summary.ts`)
+
+**What it does.** Past Sessions is a list of cards, one per Session, newest first. Each card shows
+"SESSION 3 · 24 OCT 2026", a title (the Session's first Topic and its date), a pill per Topic and a
+Widget count. The database has no Topic column, so code reads the "Topic: ..." lines the Tutor
+context left in the saved messages, in one query for all Sessions, and counts the Widget blocks
+(minus the ones a correction replaced). With no Topic found the title falls back to "Session 3".
+A card opens the old Session page: the workspace's two columns, read-only, with "Widget N →" chips,
+the Widget panel (controls at their starting values) and a "Back to the workspace" button where
+the composer would be. No model call anywhere.
+
+**Scenario.** The Learner opens Past Sessions, sees "Present value, 24 Oct 2026" with "2 Widgets",
+opens it, clicks "Widget 2 →" to see that chart again, then goes back to the workspace to carry on.
+
+**Trade-off.** Topics come from reading saved text, not a stored column, so a Session whose
+messages were compacted away shows the number title. Adding a column would be exact but needs a
+migration and a backfill.
 
 ## Spaced review (`src/course/review.ts`, `reviewsDue` in `navigator.ts`, `src/learner/review.ts`, `/api/review`, `src/app/review-panel.tsx`)
 
@@ -980,13 +1056,21 @@ render shows "Working it out…" until the browser sets the slider values. Hoste
 costs extra tokens for the code and its output and is optional: the Tutor is told to prefer
 `calculate`. Yearly rates are percentages everywhere (5 means 5%), a deliberate house convention.
 
-## Phone view (`src/app/conversation.tsx`, `quiz-panel.tsx`, `review-panel.tsx`, `globals.css`)
+## Workspace left column (`src/app/conversation.tsx`, `workspace-parts.tsx`, `thread.tsx`, issue #44)
 
-**What it does.** The same workspace works on a phone. Below the laptop breakpoint the right-hand widget pane is hidden and each widget (slider, chart, calculator) is drawn inside the conversation, right where the Tutor put it. Reading, quizzes and spaced reviews are one column with no sideways scrolling: answer rows are at least 44px tall so a thumb can hit them, wide Markdown tables scroll inside their own box, and long addresses wrap.
+**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic", the plain summary, a navy Continue that starts a turn), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the open quiz folded into one row ("Quiz Check open · Show"), the conversation in its own scroll area, and the composer pinned at the bottom with a 24px fade above it. The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume, Retry, notices, the paste panel and the Widget correction turn are the same code as before; only the look moved into small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`) that tests render on their own.
 
-**Scenario.** On the train the Learner opens the page, answers the two reviews that are due, takes the quiz Check, then asks the Tutor about a 50 lakh loan. The loan calculator appears under the reply; dragging its slider changes the instalment instantly and costs no tokens. When a Tutor table was previously shown as raw pipe characters, it now renders as a table (we added `remark-gfm`, the standard table plug-in for Markdown).
+**Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
-**Trade-off.** One layout for both screens keeps the code small, but a phone shows one widget per reply in the flow instead of a pinned pane, so scrolling back up finds old widgets. Serious work (long calculators, many-row cash flows, big comparisons) stays a laptop job by design. Checked with a headless 390x844 browser run (`evidence/29/phone-run.mjs`), not a physical phone.
+**Trade-off.** Folding the review and quiz keeps the conversation high on the screen, but a due review is one click away instead of in plain view.
+
+## Phone note (`SignedInFrame` in `src/app/ui.tsx`, issue #48)
+
+**What it does.** Phones are out of scope. Below 768px wide, every signed-in page shows one line, "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad.", and nothing else. The old phone-only behaviour is gone: widgets are never drawn inside the conversation at any width, and quiz and review answers no longer have phone tap sizing. An upright iPad (768–1023px) keeps the two-column workspace with a 24px gap and 16px padding. Login and the landing page are not affected.
+
+**Scenario.** On the train the Learner opens the app on a phone and sees the note. At home they open it on an iPad held upright and get both columns: the conversation on the left, the Widget panel on the right.
+
+**Trade-off.** One layout for laptop and iPad keeps the code small and lets the Widget panel sit beside the conversation always. The price is that quizzes and spaced reviews no longer work on a phone: a review that falls due waits until the Learner is at a bigger screen.
 
 ## Tutor behaviour tests (`src/behaviour/`, `npm run behaviour`)
 
@@ -1288,3 +1372,25 @@ and separate the argument's facts, inferences and forecasts.
 **Concrete scenario.** A Learner on the valuation Topic is told only what was public on 1 February 2000: Amazon's revenue, losses, debt, cash, options and the 6.5% Treasury yield. They write down their own growth, margin and discount rate, use the dcf calculator for a quick version, and find that the long-run margin moves their value most. Only after all the Checks does the Tutor reveal Damodaran's $35.08 against the $84 price and the actual 2000 results, and say that a value and a price are two estimates to compare as questions. A second Case does the same for a lesser-known company, Webvan on the evening of 4 November 1999: from its prospectus alone the Learner builds a value out of how many distribution centres open, how full each one gets, the margin, the cash from the share sale and the options, and only at the reveal sees the underwriter's own projections, the 2000 results and the closure in July 2001.
 
 **Trade-off.** The dcf calculator takes one flat discount rate, while the valuation lets the rate fall as the firm matures, so the Learner's quick version is a little low and the Topic says so. Amazon, WeWork, Anthropic and the Forbes debate are well-known; Yes Bank and Webvan are less known, but Webvan's Check makes the valuation Topic two full valuations long, and a lesser-known company in the who-pays-whom Topic is left for a later Case. The Anthropic commitments Case discounts the filing's schedule only: the larger later figures have no dates, so they are shown as a scope question, not a number. The Forbes debate is also the Case of the market efficiency Topic, with a different question and Case ID.
+
+## Public landing page (`src/app/_landing/`, `src/auth/session.ts`)
+
+**What it does.** Signed out, `/` shows a public page that says what the Study Workspace is: a
+headline, a screenshot, three counts (Topics written of planned, every Case in the outline, Library
+sources), the six Teaching Steps and "Every number has a source". Signed in, `/` is the workspace as
+before. The page reads no Learner data and no Library text, only counts. All its words live in
+`copy.ts`, marked DRAFT, and a small "Draft" pill shows near the headline until the owner rewrites them.
+
+**Scenario.** A friend opens the link on a phone. The proxy lets the GET of `/` through; the page
+checks the cookie first, finds none, and renders the landing page without touching the Learner's
+Sessions. Tapping "Sign in" goes to `/login`. Trying `/course` still lands on the login.
+
+**Trade-off.** One URL now serves two very different things, so the cookie check at the top of the
+workspace page is load-bearing: anything added above it would run for strangers too. The proxy
+backs it up by allowing only reads of `/`, so no Server Action or POST can run signed out. The
+screenshots are static files in `public/landing-assets/`, taken from a demo workspace (`/?demo=1`, signed in only, and only when `WORKSPACE_DEMO=1` is set locally, never on Vercel) that shows a sample Mega Millions conversation instead of the Learner's own.
+
+**Why the stats are cached.** The Topic and Case counts come from files on disk and cost nothing.
+The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate
+86400): bots crawling the public page would otherwise wake Neon on every visit. A new source shows
+up on the page within a day.

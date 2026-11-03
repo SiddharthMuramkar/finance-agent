@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
-import { parseOutline, STAGES, type Outline, type OutlineTopic } from "./outline.ts";
+import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
 // can run it directly with Node's type stripping.
@@ -98,6 +98,8 @@ const topicSchema = z.object({
 
 export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prerequisites"> & {
   stage: (typeof STAGES)[number];
+  /** The field a Foundation Topic belongs to (from the outline); none for later Stages. */
+  subject?: Subject;
   /** Place on the default path; lower comes first. */
   path: number;
   prerequisites: string[];
@@ -208,7 +210,7 @@ function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | unde
   if (file.stage !== undefined || file.path !== undefined || file.prerequisites !== undefined) {
     return `stage, path and prerequisites belong in the outline, not in the Topic file`;
   }
-  return { ...file, stage: planned.stage, path: planned.path, prerequisites: planned.prerequisites };
+  return { ...file, stage: planned.stage, subject: planned.subject, path: planned.path, prerequisites: planned.prerequisites };
 }
 
 /** The ID prefix of a Question Bank question. Bank questions live in the database, so the file cannot hold them. */

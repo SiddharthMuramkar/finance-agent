@@ -8,19 +8,19 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 export function UnderTheHood({ usage }: { usage: TurnUsage }) {
   const cell = "px-2 py-1 text-right tabular-nums";
   return (
-    <details data-testid="under-the-hood" className="mt-2 text-xs text-stone-500 dark:text-stone-400">
+    <details data-testid="under-the-hood" className="mt-2 text-xs text-[var(--muted)]">
       <summary className="cursor-pointer select-none">
         Under the hood: {usage.steps.length} {usage.steps.length === 1 ? "step" : "steps"}, {n(usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens)} tokens in,{" "}
         {n(usage.outputTokens)} out, {usd(usage.costUsd)}, {secs(usage.durationMs)}
       </summary>
-      <div className="mt-2 overflow-x-auto rounded border border-stone-300 p-2 dark:border-stone-700">
+      <div className="mt-2 overflow-x-auto rounded border border-[var(--border)] p-2">
         <p className="mb-2">
           Model {usage.model}. {usage.tools.length ? `Tools called: ${usage.tools.join(", ")}.` : "No tools called."} Each step is one request to the model; a tool call
           makes a new step.
         </p>
         <table className="w-full min-w-[34rem] border-collapse">
           <thead>
-            <tr className="border-b border-stone-300 dark:border-stone-700">
+            <tr className="border-b border-[var(--border)]">
               <th className="px-2 py-1 text-left font-medium">Step</th>
               <th className="px-2 py-1 text-left font-medium">Tools</th>
               <th className={`${cell} font-medium`}>In</th>
@@ -46,7 +46,7 @@ export function UnderTheHood({ usage }: { usage: TurnUsage }) {
                 <td className={cell}>{usd(s.costUsd)}</td>
               </tr>
             ))}
-            <tr className="border-t border-stone-300 font-medium dark:border-stone-700">
+            <tr className="border-t border-[var(--border)] font-medium">
               <td className="px-2 py-1" colSpan={2}>
                 Turn
               </td>

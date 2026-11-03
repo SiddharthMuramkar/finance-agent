@@ -41,3 +41,22 @@ export function replaceBrokenWidgets(text: string, correction: string): string {
   let index = 0;
   return text.replace(FENCE, (block) => (broken.has(index++) && fixes.length ? fixes.shift()! : block));
 }
+
+/**
+ * What a widget is made of, read by the parser (not by matching text): its title and the names of the
+ * components inside it, e.g. { title: "What the annuity is worth today", components: ["Slider", "AnnuityChart"] }.
+ */
+export function widgetParts(code: string): { title: string | null; components: string[] } {
+  try {
+    const root = parser.parse(code).root;
+    const title = typeof root?.props.title === "string" ? root.props.title : null;
+    const children: unknown[] = Array.isArray(root?.props.children) ? root.props.children : [];
+    const components = children.flatMap((c) => {
+      const name = c && typeof c === "object" ? (c as { typeName?: unknown }).typeName : undefined;
+      return typeof name === "string" ? [name] : [];
+    });
+    return { title, components };
+  } catch {
+    return { title: null, components: [] };
+  }
+}

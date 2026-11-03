@@ -1,0 +1,166 @@
+// Shared look pieces of the design system (finance-agent-ui-spec.md, issue #43). Colours come only from
+// the tokens in globals.css, so light and dark mode need no per-piece variants. Server-safe: no
+// "use client" here; the only client piece rendered is ThemeToggle.
+
+import Link from "next/link";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { ThemeToggle, type Theme } from "./theme-toggle";
+
+const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
+
+/** Provenance tag (spec §5.2). kind "you" = the Learner's assumption (teal), "src" = a sourced fact (amber); children replace the default words. */
+export function Tag({ kind, children }: { kind: "you" | "src"; children?: ReactNode }) {
+  const look = kind === "you" ? "bg-[var(--you-tag)] text-[var(--you-tag-ink)]" : "bg-[var(--src-tag)] text-[var(--src-tag-ink)]";
+  return (
+    <span className={`mr-1 inline-block rounded px-1.5 text-[11px] font-medium uppercase leading-4 tracking-[0.025em] ${look}`}>
+      {children ?? (kind === "you" ? "Your assumption" : "Sourced")}
+    </span>
+  );
+}
+
+/** Small uppercase label above a block (spec §2), e.g. "SPACED REVIEW". className adds spacing. */
+export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <p className={`text-[11px] font-semibold uppercase leading-4 tracking-[0.08em] text-[var(--muted)] ${className}`}>{children}</p>;
+}
+
+/** Rounded label (spec §5.6). brand = navy tint and line; otherwise neutral grey. */
+export function Pill({ brand, children, className = "" }: { brand?: boolean; children: ReactNode; className?: string }) {
+  const look = brand ? "border border-[var(--brand-line)] bg-[var(--brand-tint)] text-[var(--brand)]" : "bg-[var(--hairline)] text-[var(--ink)]";
+  return <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium leading-4 ${look} ${className}`}>{children}</span>;
+}
+
+/** Small selectable button (spec §4 widget chip). active = its item is showing; takes every native button prop. */
+export function Chip({ active, className = "", type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
+  const look = active
+    ? "border-[var(--brand-line)] bg-[var(--brand-tint)] text-[var(--brand)]"
+    : "border-[var(--border)] text-[var(--muted)] hover:border-[var(--brand-line)] hover:bg-[var(--brand-tint)] hover:text-[var(--brand)]";
+  return (
+    <button
+      type={type}
+      aria-pressed={active ?? undefined}
+      className={`inline-flex items-center rounded border px-2 py-0.5 text-xs leading-4 transition-colors duration-200 ${focusRing} ${look} ${className}`}
+      {...props}
+    />
+  );
+}
+
+/** Classes of the navy primary button (spec §4), for a next/link Link that should look like one. */
+export const primaryButtonClass = `inline-flex items-center justify-center rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium leading-5 text-[var(--brand-ink)] transition-colors duration-200 hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:hover:bg-[var(--brand)] ${focusRing}`;
+
+/** Classes of the outlined secondary button (spec §4), for a next/link Link that should look like one. */
+export const secondaryButtonClass = `inline-flex items-center justify-center rounded border border-[var(--border)] px-4 py-2 text-sm leading-5 text-[var(--ink)] transition-colors duration-200 hover:bg-[var(--hairline)] disabled:opacity-50 disabled:hover:bg-transparent ${focusRing}`;
+
+/** Navy primary button; every native button prop (type defaults to "button", disabled, onClick, className...). */
+export function PrimaryButton({ className = "", type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button type={type} className={`${primaryButtonClass} ${className}`} {...props} />;
+}
+
+/** Outlined secondary button; every native button prop (type defaults to "button"). */
+export function SecondaryButton({ className = "", type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button type={type} className={`${secondaryButtonClass} ${className}`} {...props} />;
+}
+
+/** Bordered section (spec §5.1): 1px border, radius 8, padding 16. className adds layout. */
+export function Card({ children, className = "", ...props }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLElement>) {
+  return (
+    <section className={`rounded-lg border border-[var(--border)] p-4 ${className}`} {...props}>
+      {children}
+    </section>
+  );
+}
+
+/** Provenance callout (spec §5.2): tag, label, bold value, optional ISO date and, for sourced ones, a source link. */
+export function Callout({
+  kind,
+  label,
+  value,
+  date,
+  source,
+}: {
+  kind: "you" | "src";
+  label: ReactNode;
+  value: ReactNode;
+  date?: string;
+  source?: { href: string; text: string };
+}) {
+  const look = kind === "you" ? "border-[var(--you-line)] bg-[var(--you-tint)]" : "border-[var(--src-line)] bg-[var(--src-tint)]";
+  return (
+    <div className={`mb-2 rounded-md border-l-4 p-2 text-sm leading-5 ${look}`}>
+      <Tag kind={kind} /> {label} <span className="font-bold">{value}</span>
+      {date && <span className="text-xs text-[var(--muted)]"> ({date})</span>}
+      {source && (
+        <p className="text-xs leading-4 text-[var(--muted)]">
+          Source:{" "}
+          <a href={source.href} className="underline hover:text-[var(--brand)]">
+            {source.text}
+          </a>
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** One label/value row (spec §5.6): label muted left, value right; tag adds a provenance tag before the label. Stack rows in a list. */
+export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: ReactNode; tag?: "you" | "src" }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-[var(--hairline)] py-2 text-sm leading-5 last:border-b-0">
+      <span className="text-[var(--muted)]">
+        {tag && <Tag kind={tag} />}
+        {label}
+      </span>
+      <span className="font-medium text-[var(--ink)]">{value}</span>
+    </div>
+  );
+}
+
+export type HeaderPage = "workspace" | "course" | "progress" | "sessions";
+
+const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
+  { page: "course", href: "/course", label: "Course Map" },
+  { page: "progress", href: "/progress", label: "Progress" },
+  { page: "sessions", href: "/sessions", label: "Past Sessions" },
+];
+
+/**
+ * App header (spec §3): h1 "Study Workspace" (a link home except on the workspace), then Course Map ·
+ * Progress · Past Sessions · Dark mode. current = the page showing; theme from readTheme() in theme-cookie.ts.
+ */
+export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
+  const link = `text-sm leading-5 transition-colors duration-200 ${focusRing}`;
+  return (
+    <header className={`flex items-center justify-between gap-4 ${className}`}>
+      <h1 className="text-lg font-semibold leading-7">
+        {current === "workspace" ? "Study Workspace" : <Link href="/" className={`hover:text-[var(--brand)] ${focusRing}`}>Study Workspace</Link>}
+      </h1>
+      <nav aria-label="Pages" className="flex items-center gap-4">
+        {HEADER_LINKS.map(({ page, href, label }) =>
+          page === current ? (
+            <Link key={href} href={href} aria-current="page" className={`${link} text-[var(--brand)] underline decoration-1 underline-offset-4`}>
+              {label}
+            </Link>
+          ) : (
+            <Link key={href} href={href} className={`${link} text-[var(--muted)] hover:text-[var(--ink)]`}>
+              {label}
+            </Link>
+          ),
+        )}
+        <ThemeToggle initial={theme} />
+      </nav>
+    </header>
+  );
+}
+
+export const PHONE_NOTE = "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad.";
+
+/**
+ * Wraps a signed-in page: below 768px only the phone note shows; from 768px the children render as if
+ * the wrapper were not there (display: contents), so full-height and window-scrolling pages both work.
+ */
+export function SignedInFrame({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <p className="p-6 text-sm leading-5 text-[var(--muted)] md:hidden">{PHONE_NOTE}</p>
+      <div className="hidden md:contents">{children}</div>
+    </>
+  );
+}
