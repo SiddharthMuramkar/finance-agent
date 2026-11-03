@@ -1773,15 +1773,19 @@ and separate the argument's facts, inferences and forecasts.
 ## Home (`src/app/page.tsx`, `src/app/_landing/`, `src/auth/session.ts`)
 
 **What it does.** The main address, `/`, always shows Home, signed in or out. Home says what the
-Study Workspace is: a headline, a screenshot, three counts (Topics written of planned, every Case in
-the outline, Library sources), the seven Teaching Steps and "Every number has a source". Signed out,
-the hero and the top bar say "Sign in" (to `/login`). Signed in, it is the same page, but the hero
-button names the Learner's place and the top bar says "Study Workspace"; every one of them opens
+Study Workspace is: a headline, a screenshot, one stats line worked out by code ("95 Topics · 103
+historical cases · 8 sources": Topics written, every Case in the outline, Library sources), the
+seven Teaching Steps and "Every number has a source". Signed out, the main button is "Start
+learning", once in the hero and again after "Every number has a source", and the top bar says
+"Sign in"; all three go to the passcode page (`/login`). Signed in, it is the same page, but both
+main buttons name the Learner's place and the top bar says "Study Workspace"; every one of them opens
 `/study`, where the Study Workspace now lives (demo mode with it: `/study?demo=1`). Beside the top
 bar's link sits Sign out, the same form as the app header's; on a phone it is the only Sign out,
 since signed-in pages there show only the bigger-screen note. Signed out, the page reads no Learner
-data and no Library text, only counts. All its words live in `copy.ts`, marked DRAFT, and a small
-"Draft" pill shows near the headline until the owner rewrites them.
+data and no Library text, only counts. All its words live in `copy.ts`, so the owner can rewrite
+them in one place. There is no Draft badge: a visitor sees facts, not the owner's notes. Explore
+("move the sliders on a live Widget and spot the pattern") and Your turn ("answer a worked question
+on your own") are worded as two different steps, and the Principle line says Topic, not lesson.
 
 **The button rule.** Signed in, `page.tsx` has `loadHomeButton` read saved progress (`loadProgress`)
 and ask the Course Navigator's `navigate` for the place, then `homeButton` in `landing.tsx` picks
@@ -1797,8 +1801,9 @@ strangers trigger no read at all.
 **Scenario.** The owner has saved the passcode in Edge. They open the site and see Home, as on any
 website, instead of landing in the middle of a Topic, with a button reading "Resume: Present value".
 They press it when ready. A friend opens the same link on a phone: the proxy lets the GET of `/`
-through, the page checks the cookie first, finds none, and renders Home with "Sign in" without
-touching the Learner's Sessions. Trying `/course` or `/study` still lands on the login.
+through, the page checks the cookie first, finds none, and renders Home with "Start learning" without
+touching the Learner's Sessions. The friend reads down to "Every number has a source", finds a
+second "Start learning" there, and lands on the passcode page without scrolling back up. Trying `/course` or `/study` still lands on the login.
 
 **Trade-off.** One address now serves two versions of one page, told apart only by the cookie. So
 Home is never cached as a page: `export const dynamic = "force-dynamic"` plus an explicit private,
@@ -1815,7 +1820,9 @@ Millions conversation instead of the Learner's own.
 **Why the stats are cached.** The Topic and Case counts come from files on disk and cost nothing.
 The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate
 86400): bots crawling the public page would otherwise wake Neon on every visit. A new source shows
-up on the page within a day.
+up on the page within a day. The stats line shows only plain counts: an earlier "90 of 95" read like
+a progress note, so the planned-but-unwritten Topics are no longer shown; the trade-off is that a
+visitor can't see how much more is coming.
 
 **Shared links and headers.** Because `/` is public, the site's metadata (`src/app/site-metadata.ts`,
 used by the root layout) is public copy from `copy.ts`: title, description and an Open Graph card with
