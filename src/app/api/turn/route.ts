@@ -3,6 +3,7 @@ import { getDb } from "@/db/client";
 import { voyageQueryEmbedder } from "@/library/voyage";
 import { anthropicTutorClient } from "@/tutor/anthropic";
 import { MAX_PASTE_WORDS, PASTE_MESSAGE, wordCount } from "@/tutor/pasted";
+import type { Shown } from "@/tutor/session-log";
 import { runTutorTurn, type TurnInput } from "@/tutor/turn";
 
 export const runtime = "nodejs";
@@ -10,12 +11,22 @@ export const runtime = "nodejs";
 // before this (TIME_BUDGET_MS) and the browser resumes it in a new function call.
 export const maxDuration = 300;
 
+/** What the page says it shows: a Session id, or a Topic id (null for the every-Topic-passed Session) before its first turn. */
+function shownOf(value: unknown): Shown | undefined {
+  if (typeof value !== "object" || value === null) return undefined;
+  const v = value as Record<string, unknown>;
+  if (Number.isInteger(v.sessionId)) return { sessionId: v.sessionId as number };
+  if ("topicId" in v && (typeof v.topicId === "string" || v.topicId === null)) return { topicId: v.topicId };
+  return undefined;
+}
+
 /**
  * Runs one Tutor turn, or resumes the last one, and streams its events as
- * newline-delimited JSON. A send while another turn runs gets a 409.
+ * newline-delimited JSON. A send while another turn runs gets a 409, and so does a send from a tab
+ * whose Topic is no longer the Learner's current one (`stale`).
  */
 export async function POST(request: Request) {
-  const body = (await request.json()) as { message?: string; paste?: string; continue?: boolean; resume?: boolean };
+  const body = (await request.json()) as { message?: string; paste?: string; continue?: boolean; resume?: boolean; shown?: unknown };
   const paste = body.paste?.trim();
   if (paste && wordCount(paste) > MAX_PASTE_WORDS) return Response.json({ error: `A paste can hold at most ${MAX_PASTE_WORDS} words; paste the part being studied.` }, { status: 400 });
   const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);
@@ -28,9 +39,12 @@ export async function POST(request: Request) {
   // Without a Voyage key, Library search uses keyword results only and tells the Tutor so.
   const embedQuery = process.env.VOYAGE_API_KEY ? voyageQueryEmbedder({ apiKey: process.env.VOYAGE_API_KEY }) : undefined;
   const learnerId = await currentLearnerId();
-  const turn = runTutorTurn({ db: getDb(), client: anthropicTutorClient(), learnerId, timeBudgetMs, embedQuery }, input);
+  // The Study Workspace always says what it shows; the test tools' requests may not, and are not checked.
+  const shown = shownOf(body.shown);
+  const turn = runTutorTurn({ db: getDb(), client: anthropicTutorClient(), learnerId, timeBudgetMs, embedQuery, shown }, input);
   const first = await turn.next();
   if (!first.done && first.value.type === "busy") return Response.json({ error: first.value.message }, { status: 409 });
+  if (!first.done && first.value.type === "stale") return Response.json({ error: first.value.message, stale: true }, { status: 409 });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
