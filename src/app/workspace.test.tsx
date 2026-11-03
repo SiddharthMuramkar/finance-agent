@@ -151,6 +151,17 @@ chart = BarChart(["Before", "After"], [Series("Rate (%)", [5, 5.5])])`;
     expect(widgetConcept('root = Widget("Illustration: two rates", [t])\nt = Table([Col("Rate", ["5%", "5.5%"])])', "Bonds")).toBe("Illustration");
   });
 
+  it("names the Topic, not Illustration, over a finished Widget the check refuses, which shows only the fallback", () => {
+    const code = `root = Widget("Sensex prices", [line])
+prices = Query("not_a_tool", {dataset: "sensex-1992/sensex-close"}, {rows: []})
+line = LineChart(prices.rows.date, [Series("Close", prices.rows.value)])`;
+    const broken: WidgetItem = { key: "c:0", number: 3, code, complete: true };
+    const card = text(renderToStaticMarkup(<WidgetPanel widgets={[broken]} shown={broken} onPick={() => {}} topicTitle="Bonds" />));
+    expect(card).toContain("This widget could not be drawn");
+    expect(card).toContain("Bonds");
+    expect(card).not.toContain("Illustration");
+  });
+
   it("names the code behind a kit chart's numbers, deep in the layout, rather than Illustration", () => {
     const grow = `root = Widget("How 1 lakh grows at your rate", [box])
 $rate = 8

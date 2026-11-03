@@ -1,6 +1,7 @@
 "use client";
 
-import { Renderer } from "@openuidev/react-lang";
+import { defineComponent, Renderer, type ComponentRenderProps } from "@openuidev/react-lang";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openuidev/react-ui";
 import { Component, useMemo, useState, type ReactNode } from "react";
 import type { CaseLoad } from "@/widgets/case-data-client";
 import { answers, widgetProblems, widgetQueries, type WrittenQuery } from "@/widgets/check";
@@ -34,6 +35,57 @@ class Contain extends Component<{ code: string; children: ReactNode }, { failed:
     return this.state.failed ? <Fallback /> : this.props.children;
   }
 }
+
+/** One tab as the renderer hands it to Tabs: TabItem(value, trigger, content). */
+type TabNode = { props: { value: string; trigger: string; content: unknown } };
+const isTab = (item: unknown): item is TabNode => typeof (item as TabNode | null)?.props?.value === "string";
+
+/**
+ * Which tab a Widget's Tabs show: the one the Learner picked, while the Widget still has it, else the first.
+ * OpenUI's own Tabs move to whichever tab's content last grew, so a finished chart-and-table Widget jumped to its
+ * table the moment a Query's rows arrived, and on the server they showed no tab at all.
+ */
+export function shownTab(values: readonly string[], picked: string | undefined): string | undefined {
+  return picked !== undefined && values.includes(picked) ? picked : values[0];
+}
+
+/** OpenUI's Tabs, drawn with the kit's own tab parts, opening on the first tab and staying on the one picked. */
+function SteadyTabs({ props, renderNode }: ComponentRenderProps) {
+  const items = (Array.isArray(props.items) ? props.items : []).filter(isTab);
+  const [picked, setPicked] = useState<string>();
+  const value = shownTab(
+    items.map((item) => item.props.value),
+    picked,
+  );
+  if (value === undefined) return null;
+  return (
+    <Tabs value={value} onValueChange={setPicked}>
+      <TabsList>
+        {items.map((item) => (
+          <TabsTrigger key={item.props.value} value={item.props.value} text={item.props.trigger} />
+        ))}
+      </TabsList>
+      {items.map((item) => (
+        <TabsContent key={item.props.value} value={item.props.value}>
+          {renderNode(item.props.content)}
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
+}
+
+function withSteadyTabs(library: typeof widgetLibrary) {
+  const tabs = library.components.Tabs;
+  if (!library.extend || !tabs) throw new Error("The widget library has no Tabs to draw, or OpenUI's libraries can no longer be extended.");
+  return library.extend({ components: { override: [defineComponent({ name: "Tabs", props: tabs.props, description: tabs.description, component: SteadyTabs })] } });
+}
+
+/**
+ * The widget library as the browser draws it: the very parts and schema the Tutor writes to (so the frozen
+ * instructions and the check are unchanged), with Tabs that stay where the Learner put them. Made once, at
+ * module scope: parsers are cached per library.
+ */
+export const drawingLibrary = withSteadyTabs(widgetLibrary);
 
 /** While a widget's tools fetch data (a Case's data the first time): a small spinner in our colours, top right. */
 const LOADING = (
@@ -116,7 +168,7 @@ function DrawnWidget({
       <GenuiTheme>
         <Renderer
           response={code}
-          library={widgetLibrary}
+          library={drawingLibrary}
           isStreaming={!complete}
           toolProvider={tools}
           queryLoader={LOADING}

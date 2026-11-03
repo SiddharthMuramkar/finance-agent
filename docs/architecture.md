@@ -426,7 +426,8 @@ in `check.ts`, which looks through nested layouts and also lists the tools and C
 the widget uses): an AnnuityChart or the `annuity_schedule` tool is "Present value", a HistoryChart or
 `case_data` "Case Data", a Calculator, `calculate` or `calculate_range` "Calculator", a FormulaCard
 "Formula", a kit chart or table with no tool and none of our code-backed parts "Illustration", and
-anything else the current Topic's title. The newest widget shows on its own, including when a new
+anything else the current Topic's title. A finished widget the check refuses shows only the fallback
+note, so its eyebrow is the Topic's title too, never "Illustration". The newest widget shows on its own, including when a new
 turn brings one. With two or more widgets a row of chips (one per widget title) sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
 flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
 box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier
@@ -443,7 +444,8 @@ table of the Sensex asks the server for that Case once. A dataset that is missin
 line in the strip: the Widget's own line under the chart already says its data could not be loaded
 (see "When a widget is broken"), so the Learner reads it once. `HistoryChart` keeps its own amber
 frame, credit and withheld note, and it is easier to read: numbers on the left axis (lowest, middle,
-highest) and dates along the bottom (first, middle, last), bigger points, a readout ("<date>:
+highest) and dates along the bottom (first, middle, last), bigger points that keep their size on screen
+however narrow the panel (an 8px dot and a 7px ring round the point read), a readout ("<date>:
 <value>") when a point is hovered, tapped or reached with the keyboard (a line of more than 30 points
 is one stop, read with the arrow keys), and each value printed above its point when there are 12
 points or fewer. It is still plain SVG, so it draws on the server and in tests too.
@@ -457,7 +459,11 @@ from the middle of the list (one series is navy; two are teal and amber; three a
 amber). It follows our
 dark-mode class on the page, not the computer's own setting, so a Widget always matches the rest of
 the page. Charts are SVG, whose colours cannot always read CSS variables, so the theme gives them the
-same colours as fixed hex values for each mode, copied from `globals.css`.
+same colours as fixed hex values for each mode, copied from `globals.css`. Tabs open on their first
+view and stay on the one the Learner picks: the browser draws Widgets with the same library and
+schema, but its own Tabs (`drawingLibrary` in `src/app/widget-view.tsx`), because OpenUI's jump to
+whichever tab's content last grew, so a chart-and-table Widget opened on its table as soon as the
+Query's rows arrived (browser check, 3 Nov 2026), and drew no tab at all on the server.
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a

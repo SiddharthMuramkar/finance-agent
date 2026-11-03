@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from "react";
 
 // The interactive part of a Case Data line chart. It is a client component of its own because the module
 // that frames it (case-data-view.tsx) is also imported by server components, which may not use React state.
@@ -24,6 +24,36 @@ const KEY_STEPS: Record<string, number> = { ArrowLeft: -1, ArrowDown: -1, ArrowR
 const share = (part: number, whole: number) => `${(part / whole) * 100}%`;
 
 /**
+ * The radii of a line's dots and of the ring round the point read, in drawing units, for a drawing shown at
+ * `unitsPerPixel` units to a screen pixel (1 on the server, where nothing is measured). The line scales with the
+ * panel, but its dots keep a 4px radius and the ring 7px, so a narrow panel never shrinks them to specks. Where
+ * points crowd, a dot takes at most 40% of the gap to its neighbour, so dots never merge; a long line keeps its
+ * small dots, since the line itself carries it.
+ */
+export function pointSizes(n: number, unitsPerPixel: number): { dot: number; ring: number } {
+  const ring = 7 * unitsPerPixel;
+  if (n > DENSE) return { dot: 1.75, ring };
+  const gap = n > 1 ? (W - 2 * PAD_X) / (n - 1) : W;
+  return { dot: Math.min(4 * unitsPerPixel, 0.4 * gap), ring };
+}
+
+/** Drawing units per screen pixel of the plot's SVG, kept up to date as the panel resizes; 1 until measured. */
+function useUnitsPerPixel(svg: RefObject<SVGSVGElement | null>): number {
+  const [unitsPerPixel, setUnitsPerPixel] = useState(1);
+  useEffect(() => {
+    const el = svg.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      const width = el.getBoundingClientRect().width;
+      if (width > 0) setUnitsPerPixel(W / width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [svg]);
+  return unitsPerPixel;
+}
+
+/**
  * A sourced line readable at any width: values at the left (lowest, middle, highest), dates below (first,
  * middle, last), each value above its point when there are 12 or fewer, and a readout line. Hovering, tapping
  * or focusing a point reads it as "<date>: <value>". The labels are page text beside the drawing, so they keep
@@ -31,7 +61,9 @@ const share = (part: number, whole: number) => `${(part / whole) * 100}%`;
  */
 export function HistoryPlot({ label, unit, points, ticks }: { label: string; unit?: string; points: PlotPoint[]; ticks: PlotTick[] }) {
   const [picked, setPicked] = useState<number | null>(null);
+  const svg = useRef<SVGSVGElement>(null);
   const n = points.length;
+  const sizes = pointSizes(n, useUnitsPerPixel(svg));
   const values = points.map((p) => p.value);
   const lo = Math.min(...values);
   const hi = Math.max(...values);
@@ -83,7 +115,7 @@ export function HistoryPlot({ label, unit, points, ticks }: { label: string; uni
           ))}
         </div>
         <div className="relative min-w-0 flex-1">
-          <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={label} className="block w-full overflow-visible">
+          <svg ref={svg} viewBox={`0 0 ${W} ${H}`} role="group" aria-label={label} className="block w-full overflow-visible">
             {ticks.map((t) => (
               <line key={t.value} x1={0} x2={W} y1={y(t.value)} y2={y(t.value)} strokeWidth={1} vectorEffect="non-scaling-stroke" className="stroke-[var(--border)]" />
             ))}
@@ -99,12 +131,12 @@ export function HistoryPlot({ label, unit, points, ticks }: { label: string; uni
               <line x1={x(active)} x2={x(active)} y1={0} y2={H} strokeWidth={1} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" className="stroke-[var(--muted)]" />
             )}
             {points.map((p, i) => (
-              <circle key={p.date} data-testid="history-point" cx={x(i)} cy={y(p.value)} r={dense ? 1.75 : 4} className="fill-[var(--src)]">
+              <circle key={p.date} data-testid="history-point" cx={x(i)} cy={y(p.value)} r={sizes.dot} className="fill-[var(--src)]">
                 <title>{`${p.date}: ${p.text}`}</title>
               </circle>
             ))}
             {active !== null && (
-              <circle cx={x(active)} cy={y(points[active].value)} r={7} fill="none" strokeWidth={2} vectorEffect="non-scaling-stroke" className="stroke-[var(--ink)]" />
+              <circle cx={x(active)} cy={y(points[active].value)} r={sizes.ring} fill="none" strokeWidth={2} vectorEffect="non-scaling-stroke" className="stroke-[var(--ink)]" />
             )}
             {dense ? (
               <rect
@@ -147,7 +179,8 @@ export function HistoryPlot({ label, unit, points, ticks }: { label: string; uni
                 data-testid="history-value"
                 aria-hidden
                 className={`absolute whitespace-nowrap text-[11px] leading-none tabular-nums text-[var(--ink)] ${n <= 6 ? "@max-xs:hidden" : "@max-md:hidden"}`}
-                style={{ left: share(x(i), W), top: share(y(p.value), H), transform: `translate(${along(i)}, calc(-100% - 7px))` }}
+                // 10px up: clear of the 7px ring round a point being read.
+                style={{ left: share(x(i), W), top: share(y(p.value), H), transform: `translate(${along(i)}, calc(-100% - 10px))` }}
               >
                 {p.short}
               </span>
