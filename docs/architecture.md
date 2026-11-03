@@ -82,6 +82,22 @@ only allows paths, so a destination can never be another of the owner's own doma
 needed. An encoded slash inside a query (`?q=a%2Fb`) is refused too; no page links that way, and the
 cost is only landing in the Study Workspace.
 
+**The passcode page** (`src/app/login/page.tsx`). A heading, "Enter your passcode", the passcode
+field, an **Enter** button and a "← Back to home" link to `/`. The field (`passcode-field.tsx`, the
+page's one client piece) starts hidden; an eye button beside it switches it between hidden and
+visible, labelled "Show passcode" or "Hide passcode" for what it will do next. `?wrong=1` shows
+"That passcode didn't work. Check it and try again." directly under the field, and `?locked=1`
+shows the pause message instead. The page only shows things: the form posts to the same sign-in
+route as before, so the lock-out and the safe redirect are untouched.
+
+*Scenario.* The Learner types a long passcode on a phone, gets "That passcode didn't work…", taps
+the eye, sees a typo, fixes it and presses Enter. Someone who arrived by mistake taps "← Back to
+home".
+
+*Trade-off.* The eye makes the field a client component, a little script on an otherwise
+server-only page; without it a mistyped passcode can only be retyped blind. A shown passcode is
+visible to anyone looking at the screen, so it is hidden again on every page load.
+
 **The sign-out door** (`src/app/api/logout/route.ts`). Signed in or out, a POST to exactly
 `/api/logout` gets through the proxy; a GET, or a path that merely starts with it (`/api/logout/x`,
 `/api/logoutx`), still answers 401, and the Server Action refusal still runs first. The route itself
