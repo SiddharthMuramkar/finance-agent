@@ -72,7 +72,7 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
 ## Database (Neon Postgres through Drizzle)
 
 **What it does.** Neon is the only store. Thirteen tables so far:
-- `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
+- `settings`: the Tutor's model (`claude-opus-5-5`), effort (`medium`) and the idle hours before
   a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
   effort frozen when it started, plus a fingerprint of the instructions and tools.
@@ -103,13 +103,17 @@ Claude's thinking rules need, but makes it less convenient to query than neat co
 request only from what the Session saved (never from today's code or settings), and runs it
 through the Anthropic SDK's Tool Runner with streaming. Text is forwarded to the browser as it
 arrives. When each step of the loop finishes, the reply is saved unchanged, thinking blocks
-included. The Tool Runner is in beta, so the SDK version is pinned exactly (`1.3.0`).
+included. The Tutor runs on Opus 5.5 at medium effort (the stored default; each Session keeps the
+model it started with). No request forces a tool or sends sampling settings such as temperature.
+The Tool Runner is in beta, so the SDK version is pinned exactly (`1.3.0`).
 
 **Scenario.** On the third message of a Session, the request contains the first two exchanges
 exactly as they happened, including Claude's signed thinking blocks, followed by the new
 message. Because nothing earlier was edited, Claude accepts the thinking and no 400 error occurs.
-If the owner switches the model setting to Haiku meanwhile, this Session keeps Sonnet; the next
-Session picks up Haiku.
+If the owner switches the model setting to Haiku meanwhile, this Session keeps Opus; the next
+Session picks up Haiku. The default is Opus 5.5 at medium effort; a data migration moved the stored
+setting from the old Sonnet default to Opus only where it still held that default, so a model the
+owner chose by hand is never overwritten.
 
 **Trade-off.** Add-only history means context that changes (for example, the current teaching
 step) must be sent as a new message rather than by editing the instructions. That is a little
@@ -406,7 +410,7 @@ were saved with). The API does not report thinking tokens on every reply, so tha
 "n/a". A step's time includes the tools that ran just before it, so it is "time since the last step".
 
 **How it is tested.** The price table is checked against worked literals ($12 for a million
-tokens in and out on Sonnet). The turn tests check that scripted replies produce the right rows,
+tokens in and out on Sonnet, and a worked Opus turn at $4 in, $20 out and $0.20 per million cache reads). The turn tests check that scripted replies produce the right rows,
 sums and costs, and that a reloaded Session shows the same panel.
 
 ## Checks before merging (CI) (`.github/workflows/ci.yml`, `vercel.json`, `src/test/setup.ts`)
@@ -906,6 +910,23 @@ this Web Site or any of the contents are prohibited" without written permission,
 storing its primers in the Library would be. The owner can write to the RBI for permission; until
 then the loader refuses it. The New York Fed's old Fedpoints series has been retired from its site,
 so its current explainer pages stand in.
+
+**The blog is read in TypeScript (IL 3, #60).** Damodaran's blog used to be read by a Python script
+that only ran on the laptop. It is now read by `src/library/blog.ts` (using `htmlparser2`, the
+owner-approved HTML reader), because the weekly refresh that comes later runs on Vercel, which has no
+Python. One reader, shared: `npm run library:blog -- <scratch>` fetches Blogger's feed (cached in the
+scratch folder), turns each post into a document that also records its published and updated times,
+writes the documents file and loads it. The other sources keep their Python extractors, and the
+Python HTML reader stays for them. A parity test runs the same sample HTML through both readers and
+expects identical sections, and on 2 Nov 2026's feed the new reader gave the same 685 posts and the
+same 6,513 passages, text for text, as the old one. Scripts, styles and embedded players (iframes,
+objects, video, audio) leave nothing in the text. Scenario: a post that embeds a YouTube player and a
+table of yields gives its words and the table rows, with no player text. Importing one post
+(`importLibraryDocument`) replaces only that post's passages: an unchanged passage keeps its Voyage
+embedding, an edited one is embedded again, and a passage the post no longer has is removed, so a
+weekly run touches a few posts instead of reloading 6,500 passages. Trade-off: the two readers must
+now agree on HTML by test rather than by being one program, and a post whose HTML is badly broken
+may read slightly differently from before (none of the 685 does).
 
 **Corrupted text, found and repaired.** PDF text breaks in known ways. The loader detects them
 (lost ligatures such as "CreaAon" for "Creation", letters spaced apart, PDF character codes,
@@ -1435,3 +1456,11 @@ also sends four headers on every route: no other site may frame a page (`frame-a
 to other sites. There is no full script policy: Next's inline scripts would need per-request nonces.
 The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
 the screenshot is never covered.
+
+## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
+
+**What it does.** A Topic file may carry two or three Connections: short plain-word links from the Topic's idea to other ideas, each naming the outline Topic IDs it links to. At the principle step, and not before, the Tutor's context carries them with the titles of the linked Topics, and the instructions tell the Tutor to give them there. The Learner can still ask a connection question at any time. A Topic without Connections behaves as it did.
+
+**Scenario.** Present value ends with three: a bond's yield is the market's discount rate (so when yields rise, bond prices fall), safe rates usually fall in a recession while the extra return on risky payments can rise, and far-off cash in a business loses the most when rates rise. At the principle step the Tutor sees each one beside "Bond basics and pricing", "GDP, growth and business cycles" or "DCF valuation", and says them in its own words. Had someone typed `bond-prcing`, `npm run course:check` would fail with `Connection 1 links to "bond-prcing", which is not in the outline`.
+
+**Trade-off.** Code checks the links, not the economics: a Connection that names real Topics can still be wrong, so the text is written once and reviewed by the owner. Connections hold no figures (the check rejects digits, `%` and currency signs), so every number the Learner sees still comes from Case Data or a calculator; the price is that a Connection cannot say "by how much". Links may point at Topics still to come, so the course can link forward before those Topics are written.

@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
-// The source extractors are Python (scripts/library/sources.py). These tests run its pure functions on tiny made-up
+// The other sources' extractors are Python (scripts/library/sources.py); the blog is read in TypeScript (blog.ts, tested in blog.test.ts). These tests run its pure functions on tiny made-up
 // inputs, so no real source text is needed; the real runs are the commands in scripts/library/sources.json.
 function python<T>(code: string): T {
   const script = `
