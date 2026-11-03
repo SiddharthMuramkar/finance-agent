@@ -1558,7 +1558,7 @@ opener.
   database transaction stores a divider of kind `step` after the Session's latest message (the reply
   part holding the tool call). The Course Navigator numbers and names it from the Learner's new place
   (`stepSequence`): `{ step, number, label: "Step 3 of 9 · Your turn" }`. A refused finish stores
-  nothing; a finish that passes the Topic stores none either (the Topic complete card will mark that);
+  nothing; a finish that passes the Topic stores none either (the Topic complete card marks that);
   a repeated tool call, or one re-run after a cut-off, returns its saved result and stores no second
   divider.
 - **Drawn in place.** `loadThread` is `loadSession`'s lines with each item placed after the message it
@@ -1631,10 +1631,10 @@ is skipped. The old Session page draws the divider between the parts too.
   before the move and stored with the Next, ahead of the step divider, so the thread reads "Picking up
   where you left off · Step 3 of 9 · Your turn", then "Step 4 of 9 · Check".
 - **Complete this Topic** passes the Topic (the Principle, or the end of a Due Check run), stores no
-  divider (the Topic complete card will mark it), and runs the turn in that Topic's own Session, which
+  divider (the Topic complete card marks it), and runs the turn in that Topic's own Session, which
   the turn row pins: the note tells the Tutor "Topic complete: stop here", no Course Navigator context
-  for another Topic is sent and the next Topic is not started. The page then shows the passed Topic with
-  What comes next.
+  for another Topic is sent and the next Topic is not started. The turn ends at the Topic complete card
+  (see "The Topic complete card"), and the page shows the passed Topic with it.
 - **Code-written turns.** The opener's note starts "Opener by code:", Next's "Next by code:" and Finish
   this reply's "Finish by code:" (`CODE_WRITTEN_PREFIXES`). Each is saved as the turn's input and stored as the turn's user message,
   so the model sees it, but the thread never draws it as a bubble, and a reply after it always starts
@@ -1857,6 +1857,47 @@ the browser keeps it a normal streamed turn with the usual lock, Retry and resum
 tab the instant they submit gets no follow-up: the Tutor then hears of the miss with their next message, as
 before. Making the next attempt only on Try again means a Learner can read the follow-up with the marking in
 view, at the cost of one more press.
+
+## The Topic complete card (`src/tutor/topic-complete.ts`, `topic-complete-card.ts`, `src/app/topic-complete-card.tsx`, `session-item-view.tsx`, `left-column.tsx`, `study/page.tsx`, spec #119, ticket #142)
+
+**What it does.**
+- **A Session item at the end of the passed Topic.** When a Topic is passed (its Principle finished, or its last
+  Due Check passed), code stores a card of kind `topic_complete` in `session_items` after the Session's latest
+  message. Like the dividers and result cards it is drawn, never sent to the model.
+  - A turn that passed its Topic (Complete this Topic, or the Tutor finishing the Principle or recording the
+    last Due Check's verdict with its tools) stores it as the turn ends, after the Tutor's closing reply, and
+    streams it as an `item`. Nothing else runs: the Tutor was told "Topic complete: stop here".
+  - A quiz pass of the last Due Check passes the Topic with no turn: the submit stores the card after the result
+    card, in the same transaction, and answers with it (`complete`) so the page draws it at once.
+  - One card per pass: none is stored while the Topic is reopened for a Due Check, or when a card already
+    follows the Session's latest Due Check divider. So a Topic passed, reopened and passed again has two.
+- **What it shows.** "Topic complete", the title, the principle's first sentence (its one or two lines),
+  "Saved to your Notes ✓" (Notes fill in the Topic once it is passed), the What comes next button and Course Map.
+  What comes next is the Course Navigator's (`whatComesNext`): **Next Topic: <title> →**, or **New in <Topic>:
+  Check N →** / **New in <Topic>: Explore →** when a passed Topic owes a Due Check; with every Topic passed,
+  only Course Map. The label is stored with the card for the live stream, and a reload fills it from the
+  Learner's place now. In a Session reopened for a Due Check, an earlier card offers only Course Map.
+- **It stays until the Learner chooses.** The passed Topic stays the shown Session (see "Choosing and opening a
+  Topic"), so a reload draws the conversation ending at the card, with no message box and no chips. The bar
+  under the thread keeps "Passed ✓" and drops its own What comes next and Course Map when the card is there; a
+  Topic passed before cards existed still gets them from the bar.
+
+**Scenario.** At Present value's Principle the Learner presses Complete this Topic →. The Tutor closes the Topic
+in two sentences, then the card appears: "Topic complete · Present value · An advertised total that adds up
+payments made at different times overstates their value. · Saved to your Notes ✓ · Next Topic: <the next Topic on the default path> →
+· Course Map". They close the laptop; tomorrow /study shows the same conversation and card until they press
+Next Topic.
+
+**Trade-off.** Storing the card rather than drawing it from progress keeps it in its place in the conversation
+and in Past Sessions, and a Topic passed twice shows both passes; the cost is a check at the end of every turn
+(one small query when the Topic isn't passed). Using the principle's first sentence keeps the card short with no
+new course field, at the price of a long first sentence running to a third line on a phone.
+
+**How it is tested.** At the Tutor Turn seam (`topic-complete.test.ts`): Complete this Topic ends at the card
+after the closing reply with one model call and the card never in the request; the Tutor finishing the
+Principle gets it too; a quiz pass of the last Due Check stores a second card after its result card. In the
+workspace render (`workspace.test.tsx`): the card's principle, "Saved to your Notes ✓", Next Topic, the Due
+Check wording and Course Map, shown once, with only Course Map once every Topic is passed.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 

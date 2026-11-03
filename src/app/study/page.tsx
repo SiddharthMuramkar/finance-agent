@@ -16,6 +16,7 @@ import { showsWelcome } from "@/learner/welcome";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
 import { comingBackItems } from "@/tutor/coming-back";
+import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 import { loadThread } from "@/tutor/transcript";
 import { nextOfferNow } from "@/tutor/next";
 import { latestTurn } from "@/tutor/turn-status";
@@ -94,17 +95,18 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const place = current ? { stage: current.stage, title: current.title } : null;
   // The Topic Start card opens the Topic's conversation: worked out from course data now, never stored.
   const start = current ? topicStart(map, progress, current.id) : null;
+  // A passed Topic on screen sends no turns: What comes next (from the Course Navigator's place) and the Course Map instead.
+  const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
   const initial: Line[] = [
     ...(start ? [{ role: "item" as const, ...start }] : []),
-    ...thread,
+    // A Topic complete card offers What comes next as it is now; in a Session reopened for a Due Check, an earlier card offers only the Course Map.
+    ...thread.map((line) => (line.role === "item" && line.kind === TOPIC_COMPLETE ? { ...line, data: { ...line.data, next: passed?.next ?? null } } : line)),
     ...comingBack.map((item) => ({ role: "item" as const, ...item })),
   ];
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
   const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
-  // A passed Topic on screen sends no turns: What comes next (from the Course Navigator's place) and the Course Map instead.
-  const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
   return (
     <WorkspaceShell>
       <Conversation

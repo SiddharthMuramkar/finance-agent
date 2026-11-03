@@ -16,6 +16,7 @@ import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import type { SessionItem } from "./session-items";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
+import { storeTopicComplete } from "./topic-complete";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -571,6 +572,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     }
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
   }
+  // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
+  const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());
+  if (passedCard) yield { type: "item", item: passedCard };
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
   return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq }, shown: await shownInWorkspace(db, map, learnerId) };
 }
