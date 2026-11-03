@@ -14,6 +14,7 @@ describe("hosted code execution", () => {
       record_insight_attempt: { run: async () => "", parse: (x) => x },
       search_library: { run: async () => "", parse: (x) => x },
       record_misconception: { run: async () => "", parse: (x) => x },
+      open_widget: { run: async () => "", parse: (x) => x },
       calculate: { run: async () => "", parse: (x) => x },
     });
     const server = bound.find((t) => t.name === "code_execution");

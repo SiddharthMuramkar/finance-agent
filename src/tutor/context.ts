@@ -50,6 +50,15 @@ export function openWidgetsNote(titles: readonly string[]): string | null {
 }
 
 /**
+ * The line that tells the Tutor the current Topic's written-ahead Widgets, by title and id, and that it opens one with
+ * open_widget rather than drawing its own version. Null for a Topic with none.
+ */
+export function writtenAheadNote(widgets: readonly { id: string; title: string }[]): string | null {
+  if (!widgets.length) return null;
+  return `Written-ahead Widgets for this Topic (open one with open_widget; never draw your own version): ${widgets.map((w) => `"${w.title}" (id ${w.id})`).join(", ")}.`;
+}
+
+/**
  * The Teaching Step context code sends the Tutor as an appended message. The
  * Case's outcome is included only from the reveal on, so hindsight is withheld
  * by code as well as by instructions.

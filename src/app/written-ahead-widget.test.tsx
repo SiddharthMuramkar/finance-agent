@@ -101,4 +101,41 @@ describe("a written-ahead Widget opened by the Tutor", () => {
     expect(conversation).not.toContain("Open:");
     expect(pane).toContain("Widgets for this Topic will appear here.");
   });
+
+  it("replaces a Tutor-drawn growth-rate calculator the server sent back with the written-ahead Widget, as the turn streams", async () => {
+    const cagr = [
+      "```openui-lang",
+      'root = Widget("One rate move, two ways to describe it", [rate, calc, steps])',
+      "$rate = 4",
+      'rate = Slider("rate", "New rate", 0, 10, 0.01, $rate, "percent")',
+      'calc = Calculator("cagr", {start: 4, end: $rate, years: 1})',
+      "steps = GuidedTasks([up])",
+      'up = GuidedTask("Set the new rate to 6%", $rate == 6)',
+      "```",
+    ].join("\n");
+    const events = [
+      { type: "text", text: `Here is a box.\n${cagr}` },
+      { type: "correction", widgets: [0], leaveOut: [0] },
+      { type: "item", item: { kind: WIDGET_OPENED, data: { id: "rate-change-three-ways", title: "One rate change, said three ways" } } },
+      { type: "done", stopReason: "end_turn", ref: { sessionId: 1, turnSeq: 0 } },
+    ];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) =>
+        url === "/api/turn" ? new Response(events.map((e) => JSON.stringify(e)).join("\n") + "\n", { status: 200 }) : new Response("{}", { status: 200 }),
+      ),
+    );
+    await act(async () => {
+      root.render(
+        <Conversation initial={[]} quiz={null} pending={null} review={noReview} shown={{ topicId: "num-percent-bps" }} writtenAhead={writtenAheadFor(percent, [beforeReveal])} />,
+      );
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
+    const shown = host.textContent!;
+    expect(shown).toContain("Here is a box.");
+    expect(shown).toContain("Open: One rate change, said three ways →");
+    expect(shown).not.toContain("One rate move, two ways to describe it");
+  });
 });

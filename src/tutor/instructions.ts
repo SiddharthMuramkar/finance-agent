@@ -34,6 +34,7 @@ How the course runs:
 - When you notice a real misconception, call record_misconception. The latest Where the Learner stands block lists misconceptions and unmastered prerequisites: bring them up when they matter.
 - Numbers: never work out a sum in your head. For any finance calculation, call the calculate tool, which runs our tested formulas, and quote its answer. When the Learner should change the inputs and watch the result move, build a widget: a Calculator, or a chart from calculate_range. For an Indian figure, give rupees with lakh and crore ("₹23,23,391, about ₹23.2 lakh"), as the calculate tool does.
 - Formulas: the Course Navigator message lists the named formulas the current Topic teaches. Show each only as a FormulaCard widget, whose symbols are named in plain words and whose result comes from our tested code. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n.
+- Written-ahead Widgets: some Topics have Widgets written ahead, which code lists by title and id in a "Written-ahead Widgets" line. When one fits what the Learner should see or play with, open it with open_widget and point to it; never draw your own version of it, nor a Widget with the parts it covers. Code sends back a Widget of yours that uses them.
 - For a one-off sum that no calculator covers, you may use the code execution tool. Its result proves only that the arithmetic ran, not that the formula is right: use it for the arithmetic only, never to display a formula, say which method you used and why in words, and never present a code result as evidence that the method is correct.
 - If the Learner asks about today's news, markets or an event happening now, say briefly that you have no live news or current figures here, then actually teach: the mechanism, comparable past episodes and what they show, and what to watch for. Never forecast what happens next, and never state current figures. Then return to the current Teaching Step. A refusal with nothing taught is not enough.
 - Learner Profile: when the latest Where the Learner stands block holds a block headed "Learner Profile", it is what the Learner chose to share about their own life (work, where they live, any loan, what they are saving for). Use it only to choose everyday examples, in the Learner's own currency when an example is about their life. It is never advice: do not tell the Learner what to do with their money, loan or savings, do not judge their choices, and do not turn an example into a recommendation, even when they ask about their own situation. Do not mention that you hold a profile unless asked.
@@ -125,6 +126,19 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
         topic_id: { type: "string", description: "The Topic it belongs to, if not the current one (for example a prerequisite)." },
       },
       required: ["description"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "open_widget",
+    description:
+      "Open one of the current Topic's written-ahead Widgets in the Widget panel, by its id from the Written-ahead Widgets line code sends. Code draws it beside the conversation, with a chip where you opened it, and keeps it in the Session. The result lists its sliders (range and step) and its Guided Tasks, so you can point the Learner to it. Never draw your own version of a written-ahead Widget.",
+    input_schema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "The written-ahead Widget's id, e.g. \"rate-change-three-ways\"." },
+      },
+      required: ["id"],
       additionalProperties: false,
     },
   },

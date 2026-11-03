@@ -10,8 +10,9 @@ import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { newReplyWidgetProblems, openWidgetsIn, WIDGET_CHECK_PREFIX, type OpenWidget } from "@/widgets/check";
-import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext } from "./context";
+import { droppedWidgets, newReplyWidgetProblems, openWidgetsIn, widgetCheckMessage, type OpenWidget } from "@/widgets/check";
+import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
+import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import type { SessionItem } from "./session-items";
@@ -95,7 +96,7 @@ export type TurnEvent =
    * The reply's widget failed the server check; the text that follows is its one correction. `widgets` are the
    * positions (from 0) of the reply's widgets it corrects, in order.
    */
-  | { type: "correction"; widgets: number[] }
+  | { type: "correction"; widgets: number[]; /** Of those, the ones to leave out of the reply: written-ahead Widgets cover them, and none replaces them. */ leaveOut: number[] }
   /**
    * `ref` names the turn's Session and turn, so the browser can offer "Save to notes" on the reply at once.
    * `shown` is what the page's next turn request says it shows: this Session, or the next Topic if the turn moved the Learner on.
@@ -376,7 +377,10 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
     // The Widgets open in the panel, by title, so the Tutor can update one in place rather than add a near-copy.
     const widgetsNote = openWidgetsNote(openWidgetsBefore(log, turnSeq).map((w) => w.title));
-    const context = widgetsNote ? `${widgetsNote}\n${stepped}` : stepped;
+    // The Topic's written-ahead Widgets, by title and id, which the Tutor opens with open_widget.
+    const sessionTopic = session.topicId ? map.topic(session.topicId) : undefined;
+    const aheadNote = writtenAheadNote(sessionTopic ? writtenAheadWidgets(sessionTopic) : []);
+    const context = [widgetsNote, aheadNote, stepped].filter(Boolean).join("\n");
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = completed ? null : await pendingQuizNote(db, map, learnerId, session.topicId);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
@@ -522,14 +526,16 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
 
   // A finished widget that would not render, or breaks a Widget rule, gets one correction turn. History stays add-only.
   // Only the reply being written is checked, against the Widgets open before it; stored Widgets never are.
-  const broken = stopReason === "refusal" || stopReason === "max_tokens" ? [] : newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code));
+  // A Widget of the Tutor's own that uses a written-ahead Widget's parts is left out, and the Tutor told to open that one.
+  const covering = activeSession.topicId ? map.topic(activeSession.topicId) : undefined;
+  const broken =
+    stopReason === "refusal" || stopReason === "max_tokens"
+      ? []
+      : newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code), covering ? coveredParts(covering) : []);
   if (broken.length) {
-    const problems = broken.flatMap((b) => b.problems.map((p) => `- Widget ${b.index + 1}: ${p}`));
-    await log.append({
-      role: "user",
-      content: `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn or breaks a Widget rule.\n${problems.join("\n")}\nReply with only the corrected openui-lang block, written in full. Write no prose.`,
-    });
-    yield { type: "correction", widgets: broken.map((b) => b.index) };
+    const message = widgetCheckMessage(broken);
+    await log.append({ role: "user", content: message });
+    yield { type: "correction", widgets: broken.map((b) => b.index), leaveOut: droppedWidgets(message) };
     yield* loop();
   }
 
