@@ -118,6 +118,12 @@ principle: >
   condition, and trace each to its own source. Say what is shown wrong, what is shown right, and what
   could not be checked; a claim with no source is not thereby false, only unconfirmed.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Count distance on the rating ladder in notches."
+  - "Match two rating claims on borrower, instrument, agency, date and condition."
+  - "Say what is shown wrong, what is shown right and what is still unconfirmed."
+
 questions:
   - id: jrc-q-notches-line
     prompt: >

@@ -71,6 +71,12 @@ principle: >
   by what happens when everyone needs liquidity at once, not by how a position behaves on
   an average day.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read a leverage ratio and see how it magnifies gains and losses on capital."
+  - "Follow how haircuts and calls for collateral can start a fire sale."
+  - "Judge risk by what happens when everyone needs cash at once."
+
 # Claude-written quiz questions with hypothetical numbers; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: cl-q-leverage-ratio

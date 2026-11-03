@@ -63,6 +63,12 @@ principle: >
   market value (what it is priced at). Then ask what the comparison leaves out, such as growth,
   reinvestment and accounting treatment, before treating the gap as a signal.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell return on equity, a book measure, from the earnings yield, a market measure."
+  - "See why a good company is not automatically a good investment."
+  - "Ask what growth, reinvestment and accounting leave out of a ratio comparison."
+
 questions:
   - id: fr-q-roe-excess
     prompt: >

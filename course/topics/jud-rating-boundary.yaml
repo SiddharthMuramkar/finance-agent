@@ -61,6 +61,12 @@ principle: >
   Check a claim against the source's own words and its own structure, not against what the wording
   feels like. Say exactly what is wrong, say what is still right, and say what you could not check.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Find where each agency draws the line between investment and speculative grade."
+  - "Check a writer's claim against the source's own words and structure."
+  - "Sort mistakes into mislabels, mismatches and inferences beyond the text."
+
 questions:
   - id: jrb-q-mislabel
     prompt: >

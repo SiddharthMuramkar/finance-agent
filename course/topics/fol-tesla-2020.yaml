@@ -60,6 +60,12 @@ principle: >
   and test each lever against the industry data. The most dangerous valuation is the one where each
   assumption is picked on its own, the best case on every lever at once.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Reduce a valuation story to growth, margin, reinvestment and risk."
+  - "Test each of those levers against industry data."
+  - "Spot the danger of picking the best case on every lever at once."
+
 questions:
   - id: ft-q-compounding
     prompt: >

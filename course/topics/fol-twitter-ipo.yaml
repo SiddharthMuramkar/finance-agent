@@ -62,6 +62,12 @@ principle: >
   price implies; and do not take agreement between your value and the market's price as proof that
   you are right.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Keep the price of a new share issue apart from its value."
+  - "See why bankers and old owners may both accept an offer price set low."
+  - "Ask what story a price implies, without taking agreement as proof."
+
 questions:
   - id: ftw-q-proceeds
     prompt: >
