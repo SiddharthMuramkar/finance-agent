@@ -1,9 +1,15 @@
 import type { CaseData } from "../case-data/case-data";
-import { widgetCodeTitle, type Topic, type WrittenAheadSpec } from "./map.ts";
+import type { Topic, WrittenAheadSpec } from "./map.ts";
 
 // Written-ahead Widgets (spec #119, "Widgets › Written-ahead Widgets"): Widgets written in a Topic file, which the
 // Tutor opens by id (open_widget in src/tutor/tools.ts) and never draws a version of its own. Pure: no React, no
-// database and no "@/" imports, so the course check (scripts/check-course.mjs, plain Node) can share it.
+// database and no "@/" imports, so the course check (scripts/check-course.mjs, plain Node) can share it. It imports
+// only types, so the browser can use it without the Course Map's file reading.
+
+/** The title a Widget's code gives in its root = Widget("Title", ...) line, or null when it has none. */
+export function widgetCodeTitle(code: string): string | null {
+  return code.match(/^root = Widget\("([^"]+)"/m)?.[1]?.trim() || null;
+}
 
 /** A written-ahead Widget as the Workspace draws it: its id (its Widget key), its title and its code now. */
 export type WrittenAhead = { id: string; title: string; code: string };

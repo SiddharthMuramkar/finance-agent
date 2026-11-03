@@ -5,6 +5,7 @@ import { z } from "zod";
 import { FORMULA_IDS } from "../finance/formula-ids.ts";
 import { markerProblems } from "../finance/formula-markers.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
+import { widgetCodeTitle } from "./written-ahead.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
 // can run it directly with Node's type stripping.
@@ -363,11 +364,6 @@ function widgetReferenceProblems(t: Pick<Topic, "id" | "cases">, code: string, w
 /** Case Data references in the explore Widget's code that do not belong to the Topic's own Cases and their datasets. */
 function exploreWidgetReferenceProblems(t: Pick<Topic, "id" | "cases" | "explore">): string[] {
   return widgetReferenceProblems(t, t.explore?.widget ?? "", `Topic "${t.id}" explore Widget`);
-}
-
-/** The title a Widget's code gives in its root = Widget("Title", ...) line, or null when it has none. */
-export function widgetCodeTitle(code: string): string | null {
-  return code.match(/^root = Widget\("([^"]+)"/m)?.[1]?.trim() || null;
 }
 
 /** Problems in a Topic's written-ahead Widgets that the file alone shows; whether each draws is the course check's job. */

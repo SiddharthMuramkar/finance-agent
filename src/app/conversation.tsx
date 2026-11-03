@@ -2,6 +2,7 @@
 
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import type { NextOffer, StepSequence } from "@/course/navigator";
+import type { WrittenAhead } from "@/course/written-ahead";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
@@ -35,6 +36,7 @@ export function Conversation({
   review,
   place = null,
   explore = null,
+  writtenAhead,
   revealed = [],
   shown,
   widgetStates,
@@ -53,6 +55,8 @@ export function Conversation({
   place?: Place;
   /** The Topic's own explore Widget while the Learner has it (see exploreWidgetFor); shown by code, not drawn by the Tutor. */
   explore?: { code: string } | null;
+  /** The Topic's written-ahead Widgets as the Learner sees them now (writtenAheadFor); those the Tutor opened are drawn. */
+  writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
   revealed?: readonly string[];
   /** What the page shows (its Topic's Session, or the Topic before its first turn), carried by every turn request. */
@@ -66,7 +70,7 @@ export function Conversation({
 }) {
   // Each new turn sends the panel back to the newest Widget.
   const turn = useTurnStream({ initial, pending, shown, opener: !passed, onTurnStart: () => host.showNewest() });
-  const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz });
+  const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz, writtenAhead });
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
