@@ -9,7 +9,7 @@ One turn, start to finish. The Learner types a message in the **app**, past the 
 gate. The **Tutor Turn** asks the **Course Navigator** and **Learner Memory** where the Learner
 stands, tells Claude (with the **Case Data** the as-of rule allows), and streams the reply back.
 If the reply holds a **widget**, the browser draws it, fetching any sourced data through the same
-rule, and the Learner plays with it at no cost. Everything is saved in the **database**, and
+rule and working its numbers out with our tested formulas, and the Learner plays with it at no cost. Everything is saved in the **database**, and
 the **usage** layer records what the turn cost, which the "under the hood" panel shows under
 the reply.
 
@@ -339,24 +339,73 @@ the Tutor where the Learner stands, and teaching picks up at the same Teaching S
 **Trade-off.** Context goes in as appended messages rather than edits to the instructions, which
 keeps Claude's thinking valid but repeats some text in long Sessions.
 
-## Widgets (OpenUI: `src/widgets/`, `src/app/conversation.tsx`, `src/app/widget-view.tsx`)
+## Widgets (OpenUI: `src/widgets/`, `src/app/conversation.tsx`, `src/app/widget-view.tsx`, `src/app/widget-panel.tsx`, ADR 0003)
 
-**What it does.** The Tutor can put an interactive widget beside the conversation by writing a
-short block in OpenUI's small UI language inside its reply. The browser draws it with OpenUI's
-open-source renderer (no paid Thesys service) from our own three components: `Widget` (the
-frame), `Slider` (one of the Learner's assumptions) and `AnnuityChart` (yearly payments and what
-each is worth today). The instructions that teach the Tutor this language are generated once from
-those components (`npm run widgets:freeze`), checked in, and frozen into each Session with the
-rest of the Tutor's instructions, so they never change under a running conversation.
+**What it does.** Widgets are how the Study Workspace shows things. The Tutor builds one beside the
+conversation whenever a picture, a chart, a table or something to play with makes an idea clearer,
+and always when the Learner asks for a chart, graph, table, picture or comparison. It builds at most
+one per reply, so each is rich: a slider or two, a chart, and a small table or callout. It writes the
+Widget as a short block in OpenUI's small UI language inside its reply, and the browser draws it with
+OpenUI's free, open-source renderer from two sets of parts:
+- **OpenUI's ready-made kit** (`@openuidev/react-ui`, by the makers of the renderer): charts (bar,
+  line, area, pie and more), tables, tabs, callouts, tags, selects and switches, laid out in stacks.
+  Parts that could mislead, or that a Widget has no use for, are left out: images (the model could
+  invent links), code blocks and the kit's Markdown renderer (they would show typed formulas, which
+  ADR 0002 rules out), forms, inputs, date pickers, buttons, modals and carousels.
+- **Our own parts**, each backed by tested code: `Widget` (the frame), `Slider` (one of the
+  Learner's assumptions; it takes the kit slider's place under the same name, so the "Your
+  assumption" tag and saved slider settings keep working), `AnnuityChart` (yearly payments and what
+  each is worth today), `HistoryChart` (one Case Data dataset over its dates), `Calculator`,
+  `FormulaCard` and Guided Tasks.
 
-**Numbers come from code, not the model.** A chart never accepts a list of numbers. It takes
-either the inputs to a tested formula (the present value code in `src/finance/`, built on
-formula.js and checked against textbook worked examples) or a reference to a Case Data dataset,
-written `caseId/datasetId`, which the browser fetches from `/api/case-data/<case>` under the as-of
-rule (see Case Data below). `AnnuityChart` draws the formula and can show a sourced figure beside
-it; `HistoryChart` draws one dataset as a line over its dates. Everything the Learner sets carries
-a teal (`--you` tokens) "Your assumption" tag; everything drawn from Case Data sits in its own amber box with a
-"Sourced" tag and a link to its source, so the two never blend.
+The instructions that teach the Tutor this language are generated once from those parts, with our
+own notes and worked examples (`npm run widgets:freeze`), checked in, and frozen into each Session
+with the rest of the Tutor's instructions, so they never change under a running conversation.
+OpenUI's stock text for widgets written inside a reply contradicted our rules in three places (send
+only the changed lines; answer a question with text only); code cuts those lines out, and the freeze
+fails loudly if OpenUI ever rewords them.
+
+**No Thesys key needed.** OpenUI's makers, Thesys, also sell a hosted model, their Gateway, that
+writes the interface itself. `THESYS_API_KEY` is only for that service, and this app does not use
+it: the renderer needs no key. The Gateway would replace Claude as the Tutor, add a paid service and
+give up the rule below that numbers come from our code (ADR 0003).
+
+**Numbers come from code, not the model.** The Tutor draws the blueprint ("a line chart of loan cost
+by year, with the rate on a slider"); our code supplies the bricks, the numbers. Real figures reach a
+Widget only two ways: through our code-backed parts (`HistoryChart` takes a Case Data reference,
+written `caseId/datasetId`; `AnnuityChart`, `Calculator` and `FormulaCard` take the inputs of a
+tested formula), or through the Widget tools (below), which a kit chart or table calls for its rows.
+The formulas are the tested code in `src/finance/`, and Case Data comes from `/api/case-data/<case>`
+under the as-of rule (see Case Data below). Everything the Learner sets carries a teal (`--you`
+tokens) "Your assumption" tag; everything drawn from Case Data carries an amber "Sourced" tag and a
+link to its source, so the two never blend. For example, the Tutor tells the Mega Millions story and
+adds a discount-rate slider beside an annuity chart of the 30 payments. The Learner drags the rate
+from 3% to 7%: the bars and the present value ($930 million to $535 million) redraw instantly in the
+browser, and no request goes to Claude. The cash option bar beside them comes from the sourced
+figure, not from anything the Tutor typed.
+
+**Illustrations.** Some ideas have no real numbers to show, such as the difference between percent
+and percentage points. For those the Tutor may type made-up numbers into a chart or table, but only
+in a plainly hypothetical example whose title starts "Illustration:". Before the reveal its numbers
+must never match the Case's real outcome, and its arithmetic is written as an expression the Widget
+works out, such as `(5.5 - 5) * 100` basis points, never as a result the Tutor worked out itself.
+Code labels it as well: a kit chart or table that calls no Widget tool and uses none of our
+code-backed parts gets the eyebrow "Illustration", so made-up numbers are never mistaken for real
+ones.
+
+**Scenarios.**
+- *A live chart.* The Learner asks "graph how 1 lakh grows at my rate". The panel shows a slider for
+  the yearly return and an area chart of the value over 30 years, with real axes and hover values.
+  Dragging the slider redraws the chart at once in the browser, with no model call. Every number
+  comes from our tested `future_value` formula, through the `calculate_range` tool.
+- *Real history in two views.* The Learner asks "chart the Sensex milestones". The panel shows two
+  tabs, "Chart" (a line chart) and "Table" (dates and closes), over a thin amber "Sourced" strip with
+  the ⓘ credit. The values are Case Data, fetched from the server under the as-of rule, so before
+  the reveal nothing after the Case's as-of date, 31 March 1992, appears.
+- *A picture of an idea.* The Learner asks "draw me the difference between percent and percentage
+  points". The Tutor builds a clearly made-up example, a rate moving from 5% to 5.5%, as bars plus a
+  callout whose numbers the Widget works out: 50 basis points, and a rise of 10% of the old rate. The
+  card's eyebrow says Illustration.
 
 **Layout.** The conversation runs on assistant-ui's external-store runtime: our code owns the
 messages and streaming, assistant-ui draws them (`src/app/thread.tsx` holds the message look, shared
@@ -368,11 +417,13 @@ at their starting values.
 **The Widget panel (`src/app/widget-panel.tsx`, issue #47).** The right column is one sticky panel,
 capped at the column's height so it never runs under the header. It shows one card: an eyebrow naming
 the concept, then the widget with its title but without its own border (the card is the only frame).
-The eyebrow is worked out by code from the widget's components, read with OpenUI's parser
-(`widgetParts` in `check.ts`): an AnnuityChart is "Present value", a HistoryChart "Case Data", a
-Calculator "Calculator", anything else the current Topic's title. The newest widget shows on its own,
-including when a new turn brings one. With two or more widgets a row of chips (one per widget title)
-sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
+The eyebrow is worked out by code from the widget's parts, read with OpenUI's parser (`widgetParts`
+in `check.ts`, which looks through nested layouts and also lists the tools and Case Data references
+the widget uses): an AnnuityChart or the `annuity_schedule` tool is "Present value", a HistoryChart or
+`case_data` "Case Data", a Calculator, `calculate` or `calculate_range` "Calculator", a FormulaCard
+"Formula", a kit chart or table with no tool and none of our code-backed parts "Illustration", and
+anything else the current Topic's title. The newest widget shows on its own, including when a new
+turn brings one. With two or more widgets a row of chips (one per widget title) sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
 flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
 box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier
 and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
@@ -380,23 +431,48 @@ and a loan calculator from this reply; the calculator shows, eyebrow "Calculator
 time keeps the panel calm and the sliders roomy, but comparing two widgets means switching between
 them.
 
+**The Sourced strip and readable Case Data charts.** Under a Widget that calls `case_data`, one thin
+amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit, fetched once when
+the Widget appears; before the reveal it adds "Data after <as-of date> is withheld until the reveal."
+A dataset that is missing or withheld shows a muted "No sourced data for <reference>" note instead.
+`HistoryChart` keeps its own amber frame, credit and withheld note, and it is easier to read: numbers
+on the left axis (lowest, middle, highest) and dates along the bottom (first, middle, last), bigger
+points, a readout ("<date>: <value>") when a point is hovered, tapped or reached with the keyboard,
+and each value printed above its point when there are 12 points or fewer. It is still plain SVG, so
+it draws on the server and in tests too.
+
+**Look and theme (`src/widgets/genui-theme.tsx`, `src/app/globals.css`).** The kit's styles come from
+OpenUI's layered stylesheet, placed in a CSS layer (`openui`) above Tailwind's base layer and below
+its utilities, so our own classes still win. `GenuiTheme` wraps every Widget and maps the kit's theme
+onto our design tokens: the navy brand for accents, our ink and muted colours for text, our borders,
+plain or field-coloured surfaces, and chart colours with teal, navy and amber first. It follows our
+dark-mode class on the page, not the computer's own setting, so a Widget always matches the rest of
+the page. Charts are SVG, whose colours cannot always read CSS variables, so the theme gives them the
+same colours as fixed hex values for each mode, copied from `globals.css`.
+
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
-parser. If one cannot be drawn, code sends the Tutor one correction request listing the problems,
-and the corrected widget replaces the broken one on screen. History keeps both, unchanged. If the
+parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
+Formula Card input or Guided Task bound to no slider (looked for anywhere in the Widget, not only in
+its top row), and for the tools: a tool name that does not exist, any `Mutation()` (widgets only
+read), written-out arguments that fail the tool's own checks, a calculator we do not have, or a
+malformed Case Data reference. Arguments that take a slider's value are checked for their written-out
+parts only. If a widget fails, code sends the Tutor one correction request listing the problems, and
+the corrected widget replaces the broken one on screen. History keeps both, unchanged. If the
 correction is broken too, the browser shows a plain "This widget could not be drawn" note and the
-lesson carries on. A widget that crashes while drawing is caught the same way. A correction reply
-that is cut off by the length limit or declined is handled like any other reply: the Learner gets
-Continue or the refusal message, and a tool call it was cut off in is never run.
+lesson carries on. A widget that crashes while drawing is caught the same way. A tool that cannot run
+(a withheld dataset, an input a calculator does not take) leaves its chart empty, with a muted line
+under the Widget: "This chart's data could not be loaded: …". A correction reply that is cut off by
+the length limit or declined is handled like any other reply: the Learner gets Continue or the
+refusal message, and a tool call it was cut off in is never run.
 
-**Scenario.** The Tutor tells the Mega Millions story and adds a discount-rate slider beside a chart
-of the 30 payments. The Learner drags the rate from 3% to 7%: the bars and the present value
-($930 million to $535 million) redraw instantly in the browser, and no request goes to Claude.
-The cash option bar beside it comes from the sourced figure, not from anything the Tutor typed.
-
-**Trade-off.** Widgets inside the prose (OpenUI's inline mode) keep one simple reply format and
-stream naturally, but the model can write invalid code, which is why the server check and one
-correction turn exist. Whether native citations combine with inline mode is still untested (the
-citations ticket decides). The fallback, if OpenUI ever has to go, is one plain tool per widget.
+**Trade-off.** We gain rich, interactive pictures for almost any idea, with honest numbers. We give
+up a larger frozen instruction prompt (cached, so it adds little to each turn's cost), a heavier
+widget bundle (the kit ships as one bundle), and Illustration numbers that are labelled but not
+computed by our code. Changing the frozen instructions means the next action after a deploy starts a
+new Session. Widgets inside the prose (OpenUI's inline mode) keep one simple reply format, stream
+naturally and work with Claude's citations (see Citations below), but the model can write invalid
+code, which is why the server check and one correction turn exist. The fallback, if OpenUI ever has
+to go, is one plain tool per widget.
 
 **Measured (go or no-go, real headless Chrome).** All eight criteria held: streaming through Tool
 Runner and assistant-ui, slider redraw with zero model calls, formulas from tested code, a chart
@@ -406,6 +482,52 @@ Session's opening context out of a first-place "system" message). The live Tutor
 widgets, so the broken-widget path was exercised with scripted replies in the browser and with
 tests on the server. These runs were against the app on a laptop with the real API and database;
 the production check waits on a deploy. OpenUI stays.
+
+**The live probe (`src/widgets/genui.live.ts`, `genui-asks.ts`, `npm run widgets:live`).** Eight
+asks a Learner might make for a chart, graph, table or picture, across four Topics, go through the
+real Tutor Turn on production's settings (Opus 5.5, medium effort), each on a fresh throwaway
+database with its Topic's Case Data, so nothing touches the real learning history. One is the exact
+ask that failed on 2 November 2026: after "Continue." in the 1994 Fed Topic, "can you generate a
+chart to explain it", which got "I don't have a chart type that fits this idea" and a table. Code
+reads each reply as the browser would, a correction turn included, and the run passes when at least
+7 of the 8 chart replies hold a complete Widget, no Widget fails the server check, and no Widget
+without tools or our code-backed parts types chart numbers unless its title starts "Illustration:".
+The report (each ask, its Topic and Teaching Step, the reply, the Widget code, problems, tools and
+cost) goes to the evidence folder. A run costs a dollar or two by estimate and starts no new ask once
+`WIDGETS_LIVE_BUDGET_USD` (default $4) is spent; `ONLY=id,id` runs some asks again. Like the behaviour
+tests, it is not part of `npm run check`, because it spends money and needs the network.
+
+### Widget tools (`src/widgets/tools.ts`, `src/widgets/tool-specs.ts`)
+
+**What they are.** Four small functions of ours that run in the browser when a Widget asks for
+numbers with `Query("tool", {...}, {rows: []})`. This is OpenUI's own pattern for tools on the page;
+the `{rows: []}` is what the chart draws until the answer arrives.
+- `case_data` fetches one Case Data dataset by its reference, `caseId/datasetId`, from
+  `/api/case-data/<case>` under the as-of rule, with its label, unit, source and as-of date. Several
+  Queries on one Case make one request.
+- `calculate` runs one of our tested calculators and gives one row per result line.
+- `calculate_range` runs a calculator across a range of one of its inputs, at most 200 points, and
+  gives one row per point with a text label for the chart's axis: the points of a chart.
+- `annuity_schedule` gives a growing annuity's yearly payments and what each is worth today, by the
+  same tested formula as `AnnuityChart`.
+
+A Slider bound to a `$variable` that a Query's arguments use makes OpenUI run that tool again when it
+moves, and the chart redraws with no model call. Every row field is a plain name, so a chart takes a
+column as `d.rows.value`, and its category labels are text (`d.rows.label` or `d.rows.date`). A tool
+never throws: on bad arguments it gives no rows and a plain-words error that names the fix (for
+example, that `vary` must be one of the calculator's inputs), which the Widget shows as the muted
+line described above. Widgets only read; nothing they call can change anything.
+
+**Scenario.** The Learner asks for a 50 lakh home loan's EMI by loan length. The Widget holds a rate
+slider, a `calculate_range` Query of `emi` over 5 to 30 years and a `calculate` Query for the loan as
+it stands, drawn as a line chart and a small table. Moving the rate from 8.5% to 10.5% runs both
+Queries again in the browser, and both redraw from the tested EMI formula.
+
+**Trade-off.** The tools are a second way to reach the calculators, beside the Tutor's own
+`calculate` tool, but both read the same registry, so they cannot disagree. A tool is only as good as
+its arguments: a wrong input name gives a quiet error line instead of a chart, which is why the
+server check reads the written-out arguments first. The tools' names and argument rules sit in one
+file with no React (`tool-specs.ts`), because the server check reads them too.
 
 ## Dark and light modes (`src/app/theme-toggle.tsx`)
 
@@ -1252,8 +1374,9 @@ fixed and recurring deposits, bond price, yield to maturity and duration, divide
 discounted cash flow and CAGR. Where the `formula.js` library has the function (FV, PV, PMT, NPV,
 IRR, RATE, EFFECT, NOMINAL) it does the arithmetic, wrapped so callers see ordinary numbers and
 plain errors; the rest is a few lines of arithmetic. All of them are listed in one registry
-(`calculators.ts`). Two things read that same registry: the Tutor's `calculate` tool, and the
-`Calculator` widget, so a widget and a tool can never disagree. `indian-format.ts` writes rupees
+(`calculators.ts`). Three things read that same registry: the Tutor's `calculate` tool, the
+`Calculator` widget, and the Widget tools `calculate` and `calculate_range` (see Widgets), so a
+widget and a tool can never disagree. `indian-format.ts` writes rupees
 the Indian way: `₹12,34,567` (grouped 3 then 2), and in words from one lakh up (`₹2.35 lakh`,
 `₹1.5 crore`, and `₹1 crore` rather than `₹100 lakh`). Loans and Indian savings products show
 rupees by default; everything else shows dollars unless the Tutor says otherwise.
