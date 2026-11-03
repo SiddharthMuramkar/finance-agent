@@ -15,10 +15,6 @@ export const IDLE_TURNS_BEFORE_REMINDER = 2;
 
 const AFTER_REVEAL =TEACHING_STEPS.indexOf("reveal");
 
-/** Prefixed to the context in the first turn after the Learner chose a Topic on the Course Map page or went back to the default path. */
-export const JUMP_NOTE =
-  "The Learner chose this Topic on the Course Map (or went back to the default path), so this is where they are now. Pick up at the Teaching Step below and teach it afresh; nothing of it has been taught in this conversation yet.";
-
 /**
  * The note code writes for an opener (no Learner message comes with it): teach the Learner's saved step.
  * The Story in a Topic not yet started; otherwise the step reached, which nothing in this Session has
@@ -34,6 +30,14 @@ export function openerNote(place: Place | null, { quizOpen }: { quizOpen: boolea
     return `${resumed} The quiz for ${at} is open on the right, in the Check tab. Point the Learner to it in a sentence or two, and say you will help with its questions after they submit. Do not teach or hint at its questions.`;
   }
   return `${resumed} Teach this step afresh.`;
+}
+
+/**
+ * What the Tutor is told when a move passed the Topic (its Principle, or its last Due Check): stop. It has
+ * no context for another Topic, and code starts none; the Learner chooses where to go next.
+ */
+export function topicCompleteContext(title: string): string {
+  return `Topic complete: stop here. Code has recorded ${title} as passed. Close the Topic in a sentence or two. Do not start, teach or preview another Topic: the Learner chooses where to go next.`;
 }
 
 /**

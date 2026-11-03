@@ -27,7 +27,7 @@ import { importCaseData } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
 import { settings } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { saveJump, takeJumpEntry } from "@/learner/memory";
+import { saveJump } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
@@ -77,7 +77,6 @@ async function ask(q: TeachingQuestion, model: string) {
   await db.insert(settings).values({ key: "model", value: model });
   if (existsSync(CASE_DATA)) await importCaseData(db, JSON.parse(readFileSync(CASE_DATA, "utf8")));
   await saveJump(db, map, TOPIC);
-  await takeJumpEntry(db);
   const place = await placeLearner(db, map, "explore");
   if (place.topic.id !== TOPIC || place.step !== "explore") throw new Error(`Learner is at ${place.topic.id}/${place.step}, not ${TOPIC}/explore`);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "explore" (the Learner has not yet tried the Widget; the Insight is still hidden).`;

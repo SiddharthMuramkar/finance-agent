@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { messages, OWNER_LEARNER_ID, sessions as sessionsTable, settings, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { learnerSummary, loadCheckResults, loadProgress, saveFinishedStep, saveJump } from "@/learner/memory";
+import { learnerSummary, loadCheckResults, loadProgress, openCurrentTopic, saveFinishedStep, saveJump } from "@/learner/memory";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { profileInput, saveProfile } from "@/learner/profile";
 import { OPENING_PREFIX } from "./context";
@@ -13,7 +13,7 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
-import type { Shown } from "./session-log";
+import { shownInWorkspace, type Shown } from "./session-log";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
 
@@ -310,6 +310,32 @@ describe("the opener: the page starts a Topic's first turn by itself", () => {
     expect(sent(retried.requests[0])).toContain("Opener by code:");
     expect(turnKind((await latestTurn(db))!)).toBe("opener");
     expect(await texts(db)).toEqual(["Picture a bond."]);
+  });
+});
+
+describe("a Topic passed in a turn", () => {
+  it("tells the Tutor \"Topic complete: stop here\" with no context for another Topic, starts nothing, and stays on screen", async () => {
+    const db = await testDb();
+    await saveJump(db, twoTopics, "present-value");
+    await turn(db, "Hi", [say("Hello.")]);
+    await db.update(topicProgress).set({ step: "principle" });
+    const finish = { type: "tool_use", id: "toolu_done", name: "finish_teaching_step", input: { step: "principle" } };
+    const passed = await turn(db, "So money today is worth more.", [{ content: [{ type: "text", text: "Exactly." }, finish], stop_reason: "tool_use" }, say("Well done.")], twoTopics);
+
+    const result = JSON.stringify(passed.requests[1].messages.at(-1));
+    expect(result).toContain("Topic complete: stop here");
+    expect(result).not.toContain("Bond prices");
+    expect(result).not.toContain("Course Navigator:");
+    // The next Topic is not started, and the Learner's shown Session is still the passed one.
+    expect((await loadProgress(db)).topics).not.toHaveProperty("bonds");
+    const done = passed.events.at(-1) as Extract<TurnEvent, { type: "done" }>;
+    expect(done.shown).toEqual({ sessionId: done.ref.sessionId });
+    expect(await shownInWorkspace(db, twoTopics, OWNER_LEARNER_ID)).toEqual({ sessionId: done.ref.sessionId });
+    expect((await loadSession(db, done.ref.sessionId, twoTopics)).map((l) => l.text)).toEqual(["Hi", "Hello.", "So money today is worth more.", "Exactly.\n\nWell done."]);
+
+    // Choosing where to go shows that Topic: here, what comes next (Bond prices), before its first turn.
+    await openCurrentTopic(db);
+    expect(await shownInWorkspace(db, twoTopics, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
   });
 });
 
