@@ -358,6 +358,24 @@
             "usd",
             "inr"
           ]
+        },
+        "quick": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "required": [
@@ -389,6 +407,9 @@
         },
         "compareTo": {
           "type": "string"
+        },
+        "firstYear": {
+          "type": "number"
         }
       },
       "required": [

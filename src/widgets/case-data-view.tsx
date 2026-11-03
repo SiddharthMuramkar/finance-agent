@@ -1,7 +1,7 @@
 import type { CaseDataset } from "@/case-data/case-data";
-import { annuitySchedule, type AnnuityInputs } from "@/finance/present-value";
+import { annuityBreakEven, annuitySchedule, type AnnuityInputs } from "@/finance/present-value";
 import { Tag } from "@/app/ui";
-import { AnnuityPlot } from "./annuity-plot";
+import { AnnuityPlot, type AnnuityAxes } from "./annuity-plot";
 import { HistoryPlot } from "./history-plot";
 
 // Pure drawings for the widget components. Anything drawn from Case Data carries a "Sourced"
@@ -98,25 +98,74 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
   );
 }
 
+/** How close, in percentage points, the rate must come to the break-even before the break-even line shows by itself. */
+export const BREAK_EVEN_NEAR = 0.02;
+
+/** The payments as AnnuityFigure draws them: a whole number from 1 to 60. */
+const paymentCount = (payments: number) => Math.max(1, Math.min(60, Math.round(payments)));
+
 /**
- * The annuity's payments and what each is worth today at the Learner's rate, by the tested
- * formula; optionally beside a sourced Case Data figure (its latest point), on one scale.
+ * The annuity against a sourced cash figure, worked out by code: what it is worth today, the rate at which the two
+ * are worth the same (null when no rate gives it), and whether the Learner's rate is within BREAK_EVEN_NEAR of it.
  */
-export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sourced?: CaseDataset }) {
-  const payments = Math.max(1, Math.min(60, Math.round(inputs.payments)));
+export function annuityAgainstCash(inputs: AnnuityInputs, cash: number) {
+  const payments = paymentCount(inputs.payments);
+  const worth = annuitySchedule({ ...inputs, payments }).presentValue;
+  const breakEven = annuityBreakEven({ total: inputs.total, payments, growthPercent: inputs.growthPercent }, cash);
+  const near = breakEven !== null && Math.abs(inputs.ratePercent - breakEven) <= BREAK_EVEN_NEAR + 1e-9;
+  return { worth, breakEven, near };
+}
+
+/** The verdict line: "At 3.33%, the annuity is worth $6.3M more than the cash", "less" past the break-even. */
+export function annuityVerdict(ratePercent: number, worth: number, cash: number): string {
+  const gap = worth - cash;
+  if (Math.abs(gap) < 50_000) return `At ${ratePercent}%, the annuity and the cash are worth about the same`;
+  return `At ${ratePercent}%, the annuity is worth ${formatMillions(Math.abs(gap))} ${gap > 0 ? "more" : "less"} than the cash`;
+}
+
+/** The break-even line: "At about 3.38%, the annuity and the cash are worth the same." */
+export const breakEvenLine = (breakEven: number) => `At about ${breakEven.toFixed(2)}%, the annuity and the cash are worth the same.`;
+
+/** What the figure adds about the annuity against the sourced cash: the verdict, and the break-even line. */
+export type AnnuityCompare = { verdict: boolean; breakEven: boolean };
+
+/** The payments' years along the bottom, labelled every 5 years from the first, on a $ millions axis. */
+function yearAxes(firstYear: number, n: number): AnnuityAxes {
+  const xMarks = Array.from({ length: n }, (_, index) => index)
+    .filter((index) => index % 5 === 0)
+    .map((index) => ({ index, text: String(firstYear + index) }));
+  return { yName: "$ millions per payment", xName: "Year of payment (the first is paid now)", xMarks };
+}
+
+const millions = (value: number) => (value / 1e6).toLocaleString("en-US", { maximumFractionDigits: 1 });
+
+/**
+ * The annuity's payments and what each is worth today at the Learner's rate, by the tested formula; optionally
+ * beside a sourced Case Data figure (its latest point), with named bars on one scale. With `firstYear` the payments
+ * are drawn by year on a $ millions axis, each read "Payment in 2029: $X paid → worth $Y today". `compare` says
+ * whether to add the verdict against the sourced figure and the break-even line (both held back until the Insight).
+ */
+export function AnnuityFigure({ inputs, sourced, firstYear, compare }: { inputs: AnnuityInputs; sourced?: CaseDataset; firstYear?: number; compare?: AnnuityCompare }) {
+  const payments = paymentCount(inputs.payments);
   const { rows, presentValue } = annuitySchedule({ ...inputs, payments });
   const maxPayment = Math.max(...rows.map((r) => r.payment));
-  const ticks = [0, maxPayment / 2, maxPayment].map((value) => ({ value, text: shortValue(value, "USD") }));
+  const year = typeof firstYear === "number" && Number.isFinite(firstYear) ? firstYear : null;
+  const ticks = [0, maxPayment / 2, maxPayment].map((value) => ({ value, text: year !== null ? millions(value) : shortValue(value, "USD") }));
   const bars = rows.map((r) => ({
     payment: r.payment,
     presentValue: r.presentValue,
-    read: `Payment ${r.year + 1}: ${formatUsd(r.payment)} paid, worth ${formatUsd(r.presentValue)} today`,
+    read:
+      year !== null
+        ? `Payment in ${year + r.year}: ${formatMillions(r.payment)} paid → worth ${formatMillions(r.presentValue)} today`
+        : `Payment ${r.year + 1}: ${formatUsd(r.payment)} paid, worth ${formatUsd(r.presentValue)} today`,
   }));
   const figure = sourced?.points.at(-1);
-  const scale = Math.max(inputs.total, figure?.value ?? 0);
+  const cash = sourced && figure && sourced.unit === "USD" ? { label: sourced.label, value: figure.value } : null;
+  const scale = Math.max(presentValue, cash?.value ?? 0);
+  const against = cash ? annuityAgainstCash(inputs, cash.value) : null;
   return (
     <figure className="py-2">
-      <AnnuityPlot bars={bars} ticks={ticks} />
+      <AnnuityPlot bars={bars} ticks={ticks} axes={year !== null ? yearAxes(year, payments) : undefined} />
       <figcaption className="mt-2 space-y-2 text-sm">
         <p className="flex flex-wrap gap-x-4 text-xs text-[var(--muted)]">
           <span>
@@ -133,7 +182,7 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
         </p>
         <p data-kind="assumption" className="rounded-md border-l-4 border-[var(--you-line)] bg-[var(--you-tint)] p-2">
           <AssumptionTag />
-          Present value at {inputs.ratePercent}%:{" "}
+          Worth today at {inputs.ratePercent}%:{" "}
           <strong data-testid="pv-total" className="tabular-nums">
             {formatUsd(presentValue)}
           </strong>
@@ -145,12 +194,26 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
             <span className="text-xs text-[var(--muted)]">({figure.date})</span> <Credit dataset={sourced} />
           </div>
         )}
-        {sourced && figure && sourced.unit === "USD" && (
-          // Today's value of the payments beside the sourced figure, on one scale.
-          <svg viewBox="0 0 600 44" role="img" aria-label={`Present value compared with ${sourced.label}`} className="w-full">
-            <rect data-testid="pv-compare-bar" x={0} y={2} height={18} width={(600 * presentValue) / scale} className="fill-[var(--you)] transition-all duration-150 " />
-            <rect data-testid="sourced-bar" x={0} y={24} height={18} width={(600 * figure.value) / scale} className="fill-[var(--src)]" />
-          </svg>
+        {cash && (
+          // Today's value of the payments beside the sourced figure, on one scale, each bar named.
+          <div role="group" aria-label={`Worth today compared with ${cash.label}`} className="space-y-1 text-xs tabular-nums">
+            <p>Annuity, worth today: {formatMillions(presentValue)}</p>
+            <div data-testid="pv-compare-bar" className="h-4 bg-[var(--you)] transition-all duration-150" style={{ width: `${(100 * presentValue) / scale}%` }} />
+            <p>
+              {cash.label}: {formatMillions(cash.value)}
+            </p>
+            <div data-testid="sourced-bar" className="h-4 bg-[var(--src)]" style={{ width: `${(100 * cash.value) / scale}%` }} />
+          </div>
+        )}
+        {cash && against && compare?.verdict && (
+          <p data-testid="annuity-verdict" className="font-medium">
+            {annuityVerdict(inputs.ratePercent, against.worth, cash.value)}
+          </p>
+        )}
+        {against?.breakEven != null && compare?.breakEven && (
+          <p data-testid="break-even" className="font-medium">
+            {breakEvenLine(against.breakEven)}
+          </p>
         )}
       </figcaption>
     </figure>

@@ -11,17 +11,27 @@ export type AnnuityBar = { payment: number; presentValue: number; read: string }
 /** A label on the value axis: the value it marks, in short. */
 export type AnnuityTick = { value: number; text: string };
 
+/** How the plot names its axes and which payments it labels along the bottom (by index, with their words). */
+export type AnnuityAxes = { yName: string; xName: string; xMarks: { index: number; text: string }[] };
+
 const W = 600;
 const H = 180;
 
 const share = (part: number, whole: number) => `${(part / whole) * 100}%`;
 
+/** The axes by default: dollars up the side, and payments numbered along the bottom (first, middle, last). */
+function paymentAxes(n: number): AnnuityAxes {
+  const middle = Math.floor((n - 1) / 2);
+  const marked = n === 1 ? [0] : n === 2 ? [0, 1] : [0, middle, n - 1];
+  return { yName: "Dollars per payment", xName: "Payment number (the first is paid now)", xMarks: marked.map((index) => ({ index, text: `Payment ${index + 1}` })) };
+}
+
 /**
- * Each payment as a bar, with what it is worth today inside it. Dollars are labelled up the side (0, half and the
- * largest payment) and payments along the bottom (first, middle, last), each axis named. Hovering, tapping or
- * focusing a bar reads it as "Payment <n>: $X paid, worth $Y today". Drawn on the server with no bar read yet.
+ * Each payment as a bar, with what it is worth today inside it. Values are labelled up the side (0, half and the
+ * largest payment) and payments along the bottom (`axes`, by default first, middle and last by number), each axis
+ * named. Hovering, tapping or focusing a bar reads it (its `read`). Drawn on the server with no bar read yet.
  */
-export function AnnuityPlot({ bars, ticks }: { bars: AnnuityBar[]; ticks: AnnuityTick[] }) {
+export function AnnuityPlot({ bars, ticks, axes }: { bars: AnnuityBar[]; ticks: AnnuityTick[]; axes?: AnnuityAxes }) {
   const [picked, setPicked] = useState<number | null>(null);
   const n = bars.length;
   const top = Math.max(...ticks.map((t) => t.value));
@@ -32,13 +42,12 @@ export function AnnuityPlot({ bars, ticks }: { bars: AnnuityBar[]; ticks: Annuit
     const box = e.currentTarget.getBoundingClientRect();
     setPicked(Math.min(n - 1, Math.max(0, Math.floor(((e.clientX - box.left) / box.width) * n))));
   };
-  const middle = Math.floor((n - 1) / 2);
-  const marked = n === 1 ? [0] : n === 2 ? [0, 1] : [0, middle, n - 1];
+  const { yName, xName, xMarks } = axes ?? paymentAxes(n);
 
   return (
     <div>
       <p data-testid="chart-y-name" className="text-[11px] leading-4 text-[var(--muted)]">
-        Dollars per payment
+        {yName}
       </p>
       <div className="flex gap-2 pt-2">
         <div aria-hidden className="relative w-14 shrink-0">
@@ -93,19 +102,19 @@ export function AnnuityPlot({ bars, ticks }: { bars: AnnuityBar[]; ticks: Annuit
         </div>
       </div>
       <div aria-hidden className="relative ml-16 mt-1 h-4">
-        {marked.map((i) => (
+        {xMarks.map(({ index: i, text }) => (
           <span
             key={i}
             data-testid="chart-x-label"
             className="absolute top-0 -translate-x-1/2 whitespace-nowrap text-[11px] leading-4 tabular-nums text-[var(--muted)]"
             style={{ left: share((i + 0.5) * bar, W) }}
           >
-            {`Payment ${i + 1}`}
+            {text}
           </span>
         ))}
       </div>
       <p data-testid="chart-x-name" className="ml-16 text-[11px] leading-4 text-[var(--muted)]">
-        Payment number (the first is paid now)
+        {xName}
       </p>
       <p data-testid="chart-readout" className="mt-1 min-h-5 text-sm leading-5 tabular-nums">
         {read ? read.read : <span className="text-[var(--muted)]">Hover over or tap the chart to read a value.</span>}

@@ -179,9 +179,9 @@ describe("our code-backed parts take references or formula inputs, never results
 
   it("the history chart takes a Case Data reference, the annuity chart and Formula Card formula inputs, and the Slider is ours", () => {
     expect(defs.HistoryChart.properties.dataset).toEqual({ type: "string" });
-    expect(Object.keys(defs.AnnuityChart.properties)).toEqual(["total", "payments", "growthPercent", "ratePercent", "compareTo"]);
+    expect(Object.keys(defs.AnnuityChart.properties)).toEqual(["total", "payments", "growthPercent", "ratePercent", "compareTo", "firstYear"]);
     expect(Object.keys(defs.FormulaCard.properties)).toEqual(["formula", "inputs", "sourced", "fixed"]);
-    expect(Object.keys(defs.Slider.properties)).toEqual(["name", "label", "min", "max", "step", "value", "unit"]);
+    expect(Object.keys(defs.Slider.properties)).toEqual(["name", "label", "min", "max", "step", "value", "unit", "quick"]);
   });
 
   it("the instructions list the four Widget tools, each with a worked Query example", () => {

@@ -18,7 +18,9 @@ import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
-import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
+import { SecondaryButton } from "@/app/ui";
+import { AnnuityFigure, annuityAgainstCash, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
+import { InsightSettledContext } from "./insight-settled";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { useCaseLoad } from "./case-data-provider";
 import { advanceReached, savedReached, walkNodes } from "./guided-tasks";
@@ -53,6 +55,10 @@ const sliderProps = z.object({
   step: z.number(),
   value: reactive(z.number()),
   unit: z.enum(UNITS),
+  quick: z
+    .array(z.object({ value: z.number(), note: z.string().optional() }))
+    .optional()
+    .describe('Optional quick buttons that set the slider to a value at once, e.g. [{value: 0}]; a note is shown after the value'),
 });
 
 const stepButton =
@@ -128,8 +134,27 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
           className="w-20 shrink-0 rounded border border-[var(--border)] bg-[var(--field)] px-1.5 py-0.5 text-right text-sm tabular-nums"
         />
       </div>
+      {!!props.quick?.length && (
+        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={`Quick values for ${props.label}`}>
+          {props.quick.map((q) => (
+            <button
+              key={`${q.value} ${q.note ?? ""}`}
+              type="button"
+              onClick={() => field.setValue(settledValue(q.value, props))}
+              className="rounded border border-[var(--border)] px-2 py-0.5 text-xs tabular-nums hover:bg-[var(--field)]"
+            >
+              {quickLabel(q, props.unit)}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
+}
+
+/** A quick button's words: its value in the slider's unit, then its note: "3.33% (30-yr Treasury, 24 Oct 2018)". */
+function quickLabel(q: { value: number; note?: string }, unit: Unit): string {
+  return q.note ? `${formatUnit(q.value, unit)} (${q.note})` : formatUnit(q.value, unit);
 }
 
 const Slider = defineComponent({
@@ -179,18 +204,39 @@ const chartProps = z.object({
   growthPercent: z.number(),
   ratePercent: z.number().describe("Discount rate in percent; usually a $variable bound to a Slider"),
   compareTo: z.string().optional(),
+  firstYear: z.number().optional().describe("The calendar year of the first payment: the chart then labels payments by year on a $ millions axis"),
 });
 
+/**
+ * The annuity chart. Against a sourced cash figure, once the Topic's Insight is settled (InsightSettledContext), it
+ * adds code's verdict line and the break-even line: the latter when the rate is within 0.02 points of it, or on
+ * Show me, offered once the Learner has tried a rate other than the one the chart opened at. Before the Insight
+ * neither shows, so the Learner finds the idea first.
+ */
 function AnnuityChartView({ props }: ComponentRenderProps<z.infer<typeof chartProps>>) {
   const loaded = useCaseDataset(props.compareTo);
+  const settled = useContext(InsightSettledContext);
+  const rate = props.ratePercent;
+  const ready = [props.total, props.payments, props.growthPercent, rate].every((v) => typeof v === "number" && Number.isFinite(v));
+  // The rate the chart first drew at, so moving away from it counts as a try.
+  const [opened, setOpened] = useState<number | null>(null);
+  const [tried, setTried] = useState(false);
+  const [askedToShow, setAskedToShow] = useState(false);
+  if (ready && opened === null) setOpened(rate);
+  if (ready && opened !== null && rate !== opened && !tried) setTried(true);
   // While a widget streams in, or a slider's $variable is not set yet, inputs can be missing.
-  const inputs = [props.total, props.payments, props.growthPercent, props.ratePercent];
-  if (!inputs.every((v) => typeof v === "number" && Number.isFinite(v))) {
-    return <p className="py-6 text-sm text-[var(--muted)]">Drawing the chart…</p>;
-  }
+  if (!ready) return <p className="py-6 text-sm text-[var(--muted)]">Drawing the chart…</p>;
+  const cash = loaded?.dataset.unit === "USD" ? loaded.dataset.points.at(-1)?.value : undefined;
+  const against = settled && cash !== undefined ? annuityAgainstCash(props, cash) : null;
+  const breakEven = !!against?.breakEven && (against.near || askedToShow);
   return (
     <>
-      <AnnuityFigure inputs={props} sourced={loaded?.dataset} />
+      <AnnuityFigure inputs={props} sourced={loaded?.dataset} firstYear={props.firstYear} compare={{ verdict: !!against, breakEven }} />
+      {against?.breakEven != null && !breakEven && tried && (
+        <SecondaryButton onClick={() => setAskedToShow(true)} title="Show the rate at which the annuity and the cash are worth the same">
+          Show me
+        </SecondaryButton>
+      )}
       {loaded === null && props.compareTo && <Missing reference={props.compareTo} />}
     </>
   );
