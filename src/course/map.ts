@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
+import { FORMULA_IDS } from "../finance/formula-ids.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
@@ -121,6 +122,10 @@ const topicSchema = z.object({
   prerequisites: z.array(id).optional(),
   cases: z.array(caseSchema).min(1),
   concept: z.string().min(1),
+  /** The named formulas this Topic teaches, each shown only as a Formula Card (IDs from the formula registry). */
+  formulas: z
+    .array(z.string().refine((f) => (FORMULA_IDS as readonly string[]).includes(f), { message: `Unknown formula; the formula registry has: ${FORMULA_IDS.join(", ")}` }))
+    .default([]),
   principle: z.string().min(1),
   /** The Topic's Insight and the explore step that leads the Learner to it; both or neither. */
   insight: insightSchema.optional(),

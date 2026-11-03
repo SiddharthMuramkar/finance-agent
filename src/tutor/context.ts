@@ -2,6 +2,7 @@ import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import type { Insight, Piece } from "@/course/map";
 import type { ExploreInfo } from "@/learner/insight";
+import { formulaById, formulaGuide } from "@/finance/formulas";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
@@ -37,6 +38,12 @@ export function stepContext(
     `Topic: ${topic.title} (${topic.stage} Stage).`,
     `Teaching Step: ${step}${check ? ` (Check ${topic.checks.indexOf(check) + 1} of ${topic.checks.length}: ${check.id})` : ""}.`,
   ];
+  const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
+  if (formulas.length) {
+    lines.push(
+      `Formulas this Topic teaches (show each only as a FormulaCard widget; describe any other formula in words, never with typed symbols): ${formulas.map(formulaGuide).join(" ")}`,
+    );
+  }
   if (place.unmetPrerequisites.length) lines.push(`Prerequisites not yet passed: ${place.unmetPrerequisites.join(", ")}.`);
   for (const c of topic.cases) {
     lines.push("", `Case: ${c.title}, as of ${c.asOf}.`, `Story (only what was known on ${c.asOf}): ${c.story.trim()}`);

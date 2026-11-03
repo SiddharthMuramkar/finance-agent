@@ -14,7 +14,7 @@ import {
   realRate,
   ruleOf72,
 } from "./tvm";
-import { presentValue } from "./present-value";
+import { annuitySchedule, presentValue } from "./present-value";
 import { bondDuration, bondPrice, cagr, currentYield, dcfValuation, dividendYield, gordonGrowth, twoStageDdm, yieldToMaturity } from "./valuation";
 
 // The registry of Finance Calculations. The Tutor's `calculate` tool and the Calculator widget
@@ -92,6 +92,19 @@ export const CALCULATORS = [
       money("Present value", annuityPresentValue(payment, ratePercent, y * perYear, perYear, timing)),
       money("Sum of payments", payment * y * perYear),
     ],
+  }),
+  define({
+    id: "growing_annuity_present_value",
+    title: "Present value of growing yearly payments",
+    description:
+      "An advertised total paid as `payments` yearly payments, the first now, each `growthPercent` larger than the one before (the jackpot annuity). Gives the first payment and what all of them are worth today.",
+    defaultCurrency: "usd",
+    inputs: z.object({ total: z.number().positive(), payments: z.number().int().min(1).max(60), growthPercent: z.number().default(0), ratePercent: rate }),
+    example: { total: 3310, payments: 3, growthPercent: 10, ratePercent: 10 },
+    run: ({ total, payments, growthPercent, ratePercent }) => {
+      const schedule = annuitySchedule({ total, payments, growthPercent, ratePercent });
+      return [money("Present value", schedule.presentValue), money("First payment", schedule.rows[0].payment), money("Sum of payments", total)];
+    },
   }),
   define({
     id: "perpetuity",

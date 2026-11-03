@@ -141,6 +141,11 @@ body {
 .md pre code {
   @apply bg-transparent p-0;
 }
+/* A reply's folded sources ride in a fence but are not code: no box around them. */
+.md pre:has(.sources-fold) {
+  @apply overflow-visible p-0 font-sans;
+  background: transparent;
+}
 .md table {
   @apply block w-full max-w-full overflow-x-auto border-collapse text-sm;
 }
