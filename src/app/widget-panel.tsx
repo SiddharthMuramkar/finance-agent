@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { CaseData } from "@/case-data/case-data";
 import { fetchCaseData, splitReference, type CaseLoad } from "@/widgets/case-data-client";
 import { useCaseLoad } from "@/widgets/case-data-provider";
@@ -18,6 +18,32 @@ import { FoldedRow } from "./workspace-parts";
 export type WidgetItem = { key: string; number: number; code: string; complete: boolean; explore?: true; save?: SaveTarget & { kind: "widget" } };
 
 export const EXPLORE_KEY = "explore";
+
+/** Tailwind's lg breakpoint: from here the panel carries the explore Widget; below it, the conversation column does. */
+const LAPTOP = "(min-width: 1024px)";
+
+/** The width a server render assumes: a laptop, as the layout is desktop-first. Tests render the narrow case with NarrowScreen. */
+const ServerWidth = createContext<"laptop" | "narrow">("laptop");
+
+/** Renders its children as on a screen below the laptop breakpoint, where no screen is measured (the server, tests). */
+export function NarrowScreen({ children }: { children: ReactNode }) {
+  return <ServerWidth.Provider value="narrow">{children}</ServerWidth.Provider>;
+}
+
+const watchWidth = (changed: () => void) => {
+  const query = window.matchMedia(LAPTOP);
+  query.addEventListener("change", changed);
+  return () => query.removeEventListener("change", changed);
+};
+
+/**
+ * Whether the screen is at least laptop width, kept up to date as it resizes. The explore Widget is drawn in one
+ * place only, chosen by this, so it is mounted once: no hidden copy keeps its own sliders or fetches its own data.
+ */
+function useLaptopWidth(): boolean {
+  const server = useContext(ServerWidth) === "laptop";
+  return useSyncExternalStore(watchWidth, () => window.matchMedia(LAPTOP).matches, () => server);
+}
 
 /** The Topic's explore Widget as a panel item. In an old Session, `sessionId` tells the server which Topic it was played under. */
 export const exploreItem = (code: string, sessionId?: number): WidgetItem => ({
@@ -216,12 +242,13 @@ export function WidgetPanel({
   onPick: (key: string) => void;
   topicTitle?: string;
 }) {
+  const laptop = useLaptopWidth();
   if (!shown) {
     return <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">Widgets the Tutor builds appear here.</p>;
   }
   // Below the laptop breakpoint the explore Widget stands in the conversation column instead (PinnedExplore),
-  // so the panel hides its own copy there and says where it went.
-  const hiddenBelowLaptop = shown.explore ? "max-lg:hidden" : "";
+  // so the panel draws no copy of its own there and says where it went.
+  const elsewhere = shown.explore && !laptop;
   return (
     <>
       {(widgets.length >= 2 || widgets.some((w) => w.explore)) && (
@@ -241,29 +268,32 @@ export function WidgetPanel({
           ))}
         </div>
       )}
-      {shown.explore && (
-        <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)] lg:hidden">
+      {elsewhere ? (
+        <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">
           The Explore Widget is in the conversation, under the status card.
         </p>
+      ) : (
+        <section data-testid="widget-card" className={`rounded-lg border p-4 transition-colors duration-200 ${flashing ? "border-[var(--brand)]" : "border-[var(--border)]"}`}>
+          {/* Remounts per Widget, so each one fades in over 200ms. */}
+          <div key={shown.key} className="transition-opacity duration-200 starting:opacity-0">
+            <Eyebrow className="mb-1">{eyebrowFor(shown, topicTitle)}</Eyebrow>
+            <WidgetWithSave item={shown} />
+          </div>
+        </section>
       )}
-      <section data-testid="widget-card" className={`rounded-lg border p-4 transition-colors duration-200 ${hiddenBelowLaptop} ${flashing ? "border-[var(--brand)]" : "border-[var(--border)]"}`}>
-        {/* Remounts per Widget, so each one fades in over 200ms. */}
-        <div key={shown.key} className="transition-opacity duration-200 starting:opacity-0">
-          <Eyebrow className="mb-1">{eyebrowFor(shown, topicTitle)}</Eyebrow>
-          <WidgetWithSave item={shown} />
-        </div>
-      </section>
     </>
   );
 }
 
 /**
  * The explore Widget as a card in the conversation column, for widths below the laptop breakpoint, where the
- * panel does not carry it. A folded row, open to start, so the Learner can tuck it away and read the conversation.
+ * panel does not carry it; nothing at a laptop width. A folded row, open to start, so the Learner can tuck it away
+ * and read the conversation.
  */
 export function PinnedExplore({ item }: { item: WidgetItem }) {
+  if (useLaptopWidth()) return null;
   return (
-    <div className="lg:hidden" data-testid="explore-card">
+    <div data-testid="explore-card">
       <FoldedRow label={`Explore · ${widgetParts(item.code).title ?? "Widget"}`} open>
         <WidgetWithSave item={item} />
       </FoldedRow>
