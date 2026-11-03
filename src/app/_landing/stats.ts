@@ -29,7 +29,7 @@ const cachedSourceCount = unstable_cache(() => librarySourceCount(getDb()), ["la
   revalidate: 86400,
 });
 
-/** The three numbers the landing page shows. */
+/** The three numbers Home shows. */
 export async function landingStats(): Promise<LandingStats> {
   return { ...courseStats(), librarySources: await cachedSourceCount() };
 }

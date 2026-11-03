@@ -41,13 +41,68 @@ passcode with `PASSCODE` and, if it matches, sets a cookie signed with `SESSION_
 **Scenario.** Someone finds the URL and posts to `/api/turn`. The proxy answers 401 before any
 Claude call happens, so no credits are spent.
 
-**The one public door.** Signed out, the proxy lets through only a plain GET or HEAD of `/` (the
-public landing page) and image files under `/landing-assets/` (`.png` or `.webp`). A POST to `/`, or
-any request carrying a `Next-Action` header (a Server Action call), answers 401. Every other page
-still redirects to `/login`, and every `/api/*` route still answers 401. `/` itself checks the cookie
-again (`isSignedIn()` in `src/auth/session.ts`) before it reads anything, and shows the landing page
-when signed out. The proxy skips `login` and `api/login` only as whole path segments, so
-`/login-anything` is still checked. Signed in, nothing changed.
+**The public doors.** Signed out, the proxy lets through only a plain GET or HEAD of `/` (Home) and
+image files under `/landing-assets/` (`.png` or `.webp`). A POST to `/`, or any request carrying a
+`Next-Action` header (a Server Action call), answers 401. Every other page still redirects to
+`/login`, and every `/api/*` route still answers 401. `/` itself checks the cookie again
+(`isSignedIn()` in `src/auth/session.ts`) before it reads anything. The Study Workspace lives at
+`/study`, an ordinary gated page: signed out it redirects to `/login?next=%2Fstudy`. A GET or HEAD
+of exactly `/login` (with any query) also gets through; the match is exact, because anything looser
+would send the sign-in page back to itself forever. The proxy skips only `api/login`, as a whole
+path segment, so `/api/login-anything` is still checked; the sign-in page itself now goes through
+the proxy.
+
+**Sign in lands where you meant to go** (`src/auth/destination.ts`). Signed out, a GET or HEAD of
+any other page redirects to `/login?next=<that page>`: its path and query, minus Next.js's internal
+parameters such as `_rsc`. Any other method redirects to `/login` with no `next`, and API routes
+still answer 401 with no `next`. The sign-in page puts the `next` in a hidden form field; the
+sign-in route sends a right passcode there with a 303, or to `/study` when there is none. A wrong
+passcode goes to `/login?wrong=1` and a pause to `/login?locked=1`, each keeping the `next` (with
+none, those addresses are exactly as before). Signed in, a GET or HEAD of `/login` skips the form
+with a temporary (307) redirect to the `next`, or `/study`.
+
+One rule decides whether a `next` is safe, and the proxy, the sign-in page and the sign-in route all
+use it (`destinationOrDefault` adds the `/study` fallback). In order: it starts with `/` but not
+`//` or `/\`; it holds no percent-encoded slash or backslash (`%2F` or `%5C`, in any case); it holds
+no whitespace or control characters (the URL parser quietly drops tabs and newlines, so
+`/<tab>/evil.example` would otherwise reach another site); resolved as a URL it stays on this site;
+and the resolved path is neither `/login` (or below) nor `/api` (or below), so `/a/../api/turn`
+can't slip past. The redirect uses the resolved path and query, never the submitted text. The value
+is never decoded again, and an encoded slash is refused outright, so `/%2F%2Fevil.example` can't
+turn into `//` further along. Anything unsafe counts as no destination.
+
+*Scenario.* Signed out, the Learner opens a link to `/passages/12`. The proxy sends them to
+`/login?next=%2Fpassages%2F12`. They mistype the passcode, land on
+`/login?wrong=1&next=%2Fpassages%2F12`, type it again and open the Passage. A crafted link
+`/login?next=https://evil.example` signs them in and lands them in the Study Workspace instead.
+
+*Trade-off.* Remembering the page costs one shared rule that three places must use; a looser check
+in any of them would turn the sign-in page into a way to send the Learner to another site. The rule
+only allows paths, so a destination can never be another of the owner's own domains, which isn't
+needed. An encoded slash inside a query (`?q=a%2Fb`) is refused too; no page links that way, and the
+cost is only landing in the Study Workspace.
+
+**The sign-out door** (`src/app/api/logout/route.ts`). Signed in or out, a POST to exactly
+`/api/logout` gets through the proxy; a GET, or a path that merely starts with it (`/api/logout/x`,
+`/api/logoutx`), still answers 401, and the Server Action refusal still runs first. The route itself
+signs out only a request this site sent: if the browser sends `Sec-Fetch-Site`, only `same-origin`
+counts; if not, the `Origin` header must equal the address the request was sent to (scheme, host and
+port, read from the request, never a hard-coded domain). Anything else, including `Origin: null` or
+no `Origin` at all, gets a short 403 and the cookie is left alone. A same-origin POST gets the
+passcode cookie back with an empty value, an expiry in 1970, path `/`, no Domain and the same flags
+the sign-in route uses (one shared set, `ACCESS_COOKIE_OPTIONS`), then a 303 to `/`. A GET or HEAD
+answers 405. It never touches the database.
+
+*Scenario.* The Learner presses Sign out in the header. The browser posts the form, the cookie is
+expired, and the 303 reloads Home with "Sign in". If they had already signed out in another tab, the
+same thing happens rather than an error. A hostile page that auto-submits a form to `/api/logout`
+arrives as `cross-site` and gets 403, so the Learner stays signed in.
+
+*Trade-off.* Sign out is a button in a plain HTML form, never a link, so prefetching or a crawler
+can't sign anyone out, and it works without JavaScript. It clears only this browser's cookie: every
+device holds the same token, so other devices stay signed in, and changing `SESSION_SECRET` is still
+how to sign out everywhere. The apex address redirects to www, so a POST sent to the apex is
+refused; real sign-outs always come from www pages.
 
 **Guessing is limited** (`src/auth/login-guard.ts`, table `login_failures`). Each wrong passcode
 is saved as the caller's address and the time (never the guess). After five wrong guesses from one
@@ -371,7 +426,13 @@ eyebrow, pills, chips, buttons, card, callout, key/value row, the app header, th
 and the phone-note frame. The reading-page shell (Course Map, Progress, Past Sessions, Passage) puts
 the header in the same wide box as the workspace, so the title and links never shift between pages,
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
-those pages. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
+those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
+Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Dark mode ·
+Sign out. The current page's link is marked (`aria-current`), the Study Workspace included, and no
+other link points at `/`. Sign out (`SignOutButton`) is a plain form posting to `/api/logout`, styled
+like the links; Home's signed-in top bar uses the same button. The gaps shrink below 1024px so the
+row stays on one line from 768px, with room for the Notes link (#69) between Past Sessions and the
+theme toggle. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
 group that moves focus to "Go ahead" (Escape or "Not now" gives focus back), the cited sentence on a
 Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
@@ -831,11 +892,12 @@ Each Topic not yet passed has a "Study this Topic" button. If the Topic has prer
 Learner hasn't passed, the button first asks: "Bond prices builds on Present value, which you have
 not passed yet. You can fill the gap first, or go ahead anyway." Going ahead calls `/api/jump`,
 which saves only the current Topic (`learner_state.current_topic_id`). Every other Topic keeps its
-step and passes untouched. A "Back to the default path" button clears the choice. Passing the chosen
-Topic also returns the Learner to the default path (that rule was already in the Navigator).
-Asking an off-map question changes nothing: the place is always computed from saved progress, and
-only tools and jumps write it. A jump is refused while a turn is running, so the Tutor's tools
-never act on a Topic that changed under them.
+step and passes untouched. After the jump, both buttons do a full page load of `/study`, the Study
+Workspace. A "Back to the default path" button clears the choice. Passing the chosen Topic also
+returns the Learner to the default path (that rule was already in the Navigator). Asking an off-map
+question changes nothing: the place is always computed from saved progress, and only tools and jumps
+write it. A jump is refused while a turn is running, so the Tutor's tools never act on a Topic that
+changed under them.
 
 A jump sets `learner_state.entered_by_jump`. The next turn takes that mark (once), copies it to the
 turn row, and: (1) puts a short note before the context ("The Learner chose this Topic on the Course
@@ -1231,7 +1293,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 ## Phone note (`SignedInFrame` in `src/app/ui.tsx`, issue #48)
 
-**What it does.** Phones are out of scope. Below 768px wide, every signed-in page shows one line, "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad.", and nothing else. The old phone-only behaviour is gone: widgets are never drawn inside the conversation at any width, and quiz and review answers no longer have phone tap sizing. An upright iPad (768–1023px) keeps the two-column workspace with a 24px gap and 16px padding. Login and the landing page are not affected.
+**What it does.** Phones are out of scope. Below 768px wide, every signed-in page shows one line, "The Study Workspace needs a bigger screen. Open it on a laptop or an iPad.", and nothing else. The old phone-only behaviour is gone: widgets are never drawn inside the conversation at any width, and quiz and review answers no longer have phone tap sizing. An upright iPad (768–1023px) keeps the two-column workspace with a 24px gap and 16px padding. Login and Home are not affected: Home, signed in or out, is not covered by the bigger-screen note, so a phone can open it and see where the Learner is.
 
 **Scenario.** On the train the Learner opens the app on a phone and sees the note. At home they open it on an iPad held upright and get both columns: the conversation on the left, the Widget panel on the right.
 
@@ -1538,22 +1600,47 @@ and separate the argument's facts, inferences and forecasts.
 
 **Trade-off.** The dcf calculator takes one flat discount rate, while the valuation lets the rate fall as the firm matures, so the Learner's quick version is a little low and the Topic says so. Amazon, WeWork, Anthropic and the Forbes debate are well-known; Yes Bank and Webvan are less known, but Webvan's Check makes the valuation Topic two full valuations long, and a lesser-known company in the who-pays-whom Topic is left for a later Case. The Anthropic commitments Case discounts the filing's schedule only: the larger later figures have no dates, so they are shown as a scope question, not a number. The Forbes debate is also the Case of the market efficiency Topic, with a different question and Case ID.
 
-## Public landing page (`src/app/_landing/`, `src/auth/session.ts`)
+## Home (`src/app/page.tsx`, `src/app/_landing/`, `src/auth/session.ts`)
 
-**What it does.** Signed out, `/` shows a public page that says what the Study Workspace is: a
-headline, a screenshot, three counts (Topics written of planned, every Case in the outline, Library
-sources), the seven Teaching Steps and "Every number has a source". Signed in, `/` is the workspace as
-before. The page reads no Learner data and no Library text, only counts. All its words live in
-`copy.ts`, marked DRAFT, and a small "Draft" pill shows near the headline until the owner rewrites them.
+**What it does.** The main address, `/`, always shows Home, signed in or out. Home says what the
+Study Workspace is: a headline, a screenshot, three counts (Topics written of planned, every Case in
+the outline, Library sources), the seven Teaching Steps and "Every number has a source". Signed out,
+the hero and the top bar say "Sign in" (to `/login`). Signed in, it is the same page, but the hero
+button names the Learner's place and the top bar says "Study Workspace"; every one of them opens
+`/study`, where the Study Workspace now lives (demo mode with it: `/study?demo=1`). Beside the top
+bar's link sits Sign out, the same form as the app header's; on a phone it is the only Sign out,
+since signed-in pages there show only the bigger-screen note. Signed out, the page reads no Learner
+data and no Library text, only counts. All its words live in `copy.ts`, marked DRAFT, and a small
+"Draft" pill shows near the headline until the owner rewrites them.
 
-**Scenario.** A friend opens the link on a phone. The proxy lets the GET of `/` through; the page
-checks the cookie first, finds none, and renders the landing page without touching the Learner's
-Sessions. Tapping "Sign in" goes to `/login`. Trying `/course` still lands on the login.
+**The button rule.** Signed in, `page.tsx` has `loadHomeButton` read saved progress (`loadProgress`)
+and ask the Course Navigator's `navigate` for the place, then `homeButton` in `landing.tsx` picks
+the label. Home's view takes that button as an optional input, and none means signed out. The label:
+no place (every Topic passed, no Check due) is "Open Study Workspace"; a place whose Topic is not
+started is "Start: [Topic]"; any other place is "Resume: [Topic]", which includes a Topic chosen on
+the Course Map that was begun before and a passed Topic with a required Check due. Home only reads:
+no model call, and it never uses `ensureTopicStarted`, so a fresh database shows "Start: [first
+Topic]" and stays empty. If progress can't be loaded, the error is logged and the button says "Open
+Study Workspace", so the front door never breaks. The signed-out check still comes first, so
+strangers trigger no read at all.
 
-**Trade-off.** One URL now serves two very different things, so the cookie check at the top of the
-workspace page is load-bearing: anything added above it would run for strangers too. The proxy
-backs it up by allowing only reads of `/`, so no Server Action or POST can run signed out. The
-screenshots are static files in `public/landing-assets/`, taken from a demo workspace (`/?demo=1`, signed in only, and only when `WORKSPACE_DEMO=1` is set locally, never on Vercel) that shows a sample Mega Millions conversation instead of the Learner's own.
+**Scenario.** The owner has saved the passcode in Edge. They open the site and see Home, as on any
+website, instead of landing in the middle of a Topic, with a button reading "Resume: Present value".
+They press it when ready. A friend opens the same link on a phone: the proxy lets the GET of `/`
+through, the page checks the cookie first, finds none, and renders Home with "Sign in" without
+touching the Learner's Sessions. Trying `/course` or `/study` still lands on the login.
+
+**Trade-off.** One address now serves two versions of one page, told apart only by the cookie. So
+Home is never cached as a page: `export const dynamic = "force-dynamic"` plus an explicit private,
+no-store `Cache-Control` for `/` in `next.config.ts` (a test in `src/next-config.test.ts` checks
+it), so neither a CDN nor the browser can hand a signed-out copy to a signed-in visitor or the
+reverse. Only Home's statistics keep their day-long data cache. The signed-in button costs one small
+database read per visit (it was a free page before). The cookie check at the top of the page is
+load-bearing: anything added above it would run for strangers too. The proxy backs it up by allowing
+only reads of `/`, so no Server Action or POST can run signed out. The screenshots are static files
+in `public/landing-assets/`, taken from the demo Study Workspace (`/study?demo=1`, signed in only,
+and only when `WORKSPACE_DEMO=1` is set locally, never on Vercel), which shows a sample Mega
+Millions conversation instead of the Learner's own.
 
 **Why the stats are cached.** The Topic and Case counts come from files on disk and cost nothing.
 The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate

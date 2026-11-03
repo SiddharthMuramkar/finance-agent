@@ -21,23 +21,58 @@ describe("ReadingPage", () => {
 });
 
 describe("AppHeader", () => {
-  it("shows the five links with their addresses and marks the current page", () => {
+  const pages = [
+    ["workspace", "/study", "Study Workspace"],
+    ["course", "/course", "Course Map"],
+    ["progress", "/progress", "Progress"],
+    ["sessions", "/sessions", "Past Sessions"],
+    ["notes", "/notes", "Notes"],
+  ] as const;
+
+  it("puts Finance Agent at the left as the heading, leading to Home", () => {
     const html = renderToStaticMarkup(<AppHeader current="progress" theme="light" />);
-    expect(html).toContain("Study Workspace");
-    expect(html).toMatch(/href="\/course"[^>]*>Course Map</);
-    expect(html).toMatch(/<a aria-current="page"[^>]*href="\/progress"[^>]*>Progress</);
-    expect(html).toMatch(/href="\/sessions"[^>]*>Past Sessions</);
-    expect(html).toMatch(/href="\/notes"[^>]*>Notes</);
-    expect(html).toContain("Dark mode");
-    expect(html.match(/aria-current="page"/g)).toHaveLength(1);
-    expect(html).toMatch(/href="\/"[^>]*>Study Workspace</);
+    expect(html).toMatch(/<h1[^>]*><a[^>]*href="\/"[^>]*>Finance Agent<\/a><\/h1>/);
+    expect(html.indexOf("Finance Agent")).toBeLessThan(html.indexOf("<nav"));
   });
 
-  it("marks no link on the workspace and offers Light mode in dark mode", () => {
-    const html = renderToStaticMarkup(<AppHeader current="workspace" theme="dark" />);
-    expect(html).not.toContain("aria-current");
-    expect(html).not.toMatch(/href="\/"/);
-    expect(html).toContain("Light mode");
+  it("lists the pages in order, then the theme toggle and Sign out", () => {
+    const html = renderToStaticMarkup(<AppHeader current="progress" theme="light" />);
+    const at = (pattern: RegExp) => html.search(pattern);
+    const order = [
+      at(/href="\/study"[^>]*>Study Workspace</),
+      at(/href="\/course"[^>]*>Course Map</),
+      at(/href="\/progress"[^>]*>Progress</),
+      at(/href="\/sessions"[^>]*>Past Sessions</),
+      at(/href="\/notes"[^>]*>Notes</),
+      at(/Dark mode/),
+      at(/Sign out/),
+    ];
+    expect(order.every((i) => i > 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+  });
+
+  it("marks exactly the current page on every page, the Study Workspace included", () => {
+    for (const [page, href, label] of pages) {
+      const html = renderToStaticMarkup(<AppHeader current={page} theme="light" />);
+      expect(html.match(/aria-current="page"/g), page).toHaveLength(1);
+      expect(html, page).toMatch(new RegExp(`<a aria-current="page"[^>]*href="${href}"[^>]*>${label}<`));
+    }
+  });
+
+  it("points no link but Finance Agent at Home", () => {
+    for (const [page] of pages) {
+      const html = renderToStaticMarkup(<AppHeader current={page} theme="light" />);
+      expect(html.match(/href="\/"/g), page).toHaveLength(1);
+    }
+  });
+
+  it("signs out through a plain form that posts to the sign-out route", () => {
+    const html = renderToStaticMarkup(<AppHeader current="course" theme="light" />);
+    expect(html).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
+  });
+
+  it("offers Light mode in dark mode", () => {
+    expect(renderToStaticMarkup(<AppHeader current="workspace" theme="dark" />)).toContain("Light mode");
   });
 });
 

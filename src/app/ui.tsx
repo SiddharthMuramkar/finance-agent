@@ -116,36 +116,56 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
 export type HeaderPage = "workspace" | "course" | "progress" | "sessions" | "notes";
 
 const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
+  { page: "workspace", href: "/study", label: "Study Workspace" },
   { page: "course", href: "/course", label: "Course Map" },
   { page: "progress", href: "/progress", label: "Progress" },
   { page: "sessions", href: "/sessions", label: "Past Sessions" },
   { page: "notes", href: "/notes", label: "Notes" },
 ];
 
+const headerLink = `whitespace-nowrap text-sm leading-5 transition-colors duration-200 ${focusRing}`;
+const mutedLink = `${headerLink} text-[var(--muted)] hover:text-[var(--ink)]`;
+
 /**
- * App header (spec §3): h1 "Study Workspace" (a link home except on the workspace), then Course Map ·
- * Progress · Past Sessions · Notes · Dark mode. current = the page showing; theme from readTheme() in theme-cookie.ts.
+ * Sign out: a plain form posting to /api/logout (its 303 reloads the page), never a link (a GET could be
+ * prefetched) or next/form (it turns the action into a GET). className styles the button; children replace "Sign out".
+ */
+export function SignOutButton({ className = "", children = "Sign out" }: { className?: string; children?: ReactNode }) {
+  return (
+    <form action="/api/logout" method="post" className="contents">
+      <button type="submit" className={className}>
+        {children}
+      </button>
+    </form>
+  );
+}
+
+/**
+ * App header (spec #77): h1 "Finance Agent" linking to Home, the page links, Dark mode, Sign out. current = the page
+ * showing (aria-current); theme from readTheme(). Gaps tighten below 1024px to keep one line from 768px.
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
-  const link = `text-sm leading-5 transition-colors duration-200 ${focusRing}`;
+  // The two buttons share the links' look, with the padding that gives them the same height.
+  const mutedButton = `py-2 ${mutedLink}`;
   return (
-    <header className={`flex items-center justify-between gap-4 print:hidden ${className}`}>
-      <h1 className="text-lg font-semibold leading-7">
-        {current === "workspace" ? "Study Workspace" : <Link href="/" className={`hover:text-[var(--brand)] ${focusRing}`}>Study Workspace</Link>}
+    <header className={`flex items-center justify-between gap-3 lg:gap-4 ${className}`}>
+      <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
+        <Link href="/" className={`hover:text-[var(--brand)] ${focusRing}`}>Finance Agent</Link>
       </h1>
-      <nav aria-label="Pages" className="flex items-center gap-4">
+      <nav aria-label="Pages" className="flex items-center gap-3 lg:gap-4">
         {HEADER_LINKS.map(({ page, href, label }) =>
           page === current ? (
-            <Link key={href} href={href} aria-current="page" className={`${link} text-[var(--brand)] underline decoration-1 underline-offset-4`}>
+            <Link key={href} href={href} aria-current="page" className={`${headerLink} text-[var(--brand)] underline decoration-1 underline-offset-4`}>
               {label}
             </Link>
           ) : (
-            <Link key={href} href={href} className={`${link} text-[var(--muted)] hover:text-[var(--ink)]`}>
+            <Link key={href} href={href} className={mutedLink}>
               {label}
             </Link>
           ),
         )}
-        <ThemeToggle initial={theme} />
+        <ThemeToggle initial={theme} className={mutedButton} />
+        <SignOutButton className={mutedButton} />
       </nav>
     </header>
   );
