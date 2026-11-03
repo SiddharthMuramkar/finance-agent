@@ -4,12 +4,14 @@ import { importCaseData } from "@/case-data/import";
 import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
+import { dismissProfileOffer, loadProfile, profileInput, saveProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
+import { loadPastes, pasteSummary } from "./pasted";
 import { loadSessionSummaries } from "./session-summary";
 
 /**
@@ -28,9 +30,9 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   return out;
 }
 
-/** A second Learner beside the owner. */
-async function secondLearner(db: Db): Promise<number> {
-  const [row] = await db.insert(learners).values({ name: "second" }).returning();
+/** A second Learner beside the owner (or a third, by another name). */
+async function secondLearner(db: Db, name = "second"): Promise<number> {
+  const [row] = await db.insert(learners).values({ name }).returning();
   return row.id;
 }
 
@@ -193,5 +195,49 @@ describe("two Learners in the Tutor Turn", () => {
     expect(sent(secondTurn.requests[0])).toContain(`${caseId}/cash-option`);
     expect(sent(secondTurn.requests[0])).not.toContain("winner-choice");
     expect(sent(secondTurn.requests[0])).not.toContain("2019-03-04");
+  });
+
+  it("each Learner's Session opens with their own Learner Profile, and one with none shared gets no profile block", async () => {
+    const db = await testDb();
+    const second = await secondLearner(db);
+    const third = await secondLearner(db, "third");
+    await saveProfile(db, profileInput.parse({ work: "Nurse", location: "Pune" }), new Date(), OWNER_LEARNER_ID);
+    await saveProfile(db, profileInput.parse({ work: "Teacher" }), new Date(), second);
+    expect(await loadProfile(db, OWNER_LEARNER_ID)).toMatchObject({ work: "Nurse", location: "Pune" });
+    expect(await loadProfile(db, second)).toMatchObject({ work: "Teacher", location: null });
+    expect(shouldOfferProfile(await loadProfile(db, third))).toBe(true);
+
+    const ownerTurn = turnFor(db, OWNER_LEARNER_ID, "Hi", [say("Hello.")]);
+    await ownerTurn.events;
+    const secondTurn = turnFor(db, second, "Hi", [say("Hello.")]);
+    await secondTurn.events;
+    const thirdTurn = turnFor(db, third, "Hi", [say("Hello.")]);
+    await thirdTurn.events;
+    expect(sent(ownerTurn.requests[0])).toContain("- Work: Nurse");
+    expect(sent(ownerTurn.requests[0])).not.toContain("Teacher");
+    expect(sent(secondTurn.requests[0])).toContain("- Work: Teacher");
+    expect(sent(secondTurn.requests[0])).not.toContain("Nurse");
+    expect(sent(thirdTurn.requests[0])).not.toContain("Learner Profile");
+
+    // "Not now" on one Learner's card doesn't hide another's.
+    await dismissProfileOffer(db, new Date(), third);
+    expect(shouldOfferProfile(await loadProfile(db, third))).toBe(false);
+    expect((await loadProfile(db, second)).work).toBe("Teacher");
+  });
+
+  it("a pasted passage is stored and listed for the Learner who pasted it only", async () => {
+    const db = await testDb();
+    const second = await secondLearner(db);
+    const passage = "The cash option was smaller than the advertised jackpot.";
+    await turnFor(db, second, { message: "Here it is.", paste: passage }, [say("Thanks.")]).events;
+    await turnFor(db, OWNER_LEARNER_ID, "Hi", [say("Hello.")]).events;
+    const [secondSession] = await listSessions(db, second);
+    const [ownerSession] = await listSessions(db, OWNER_LEARNER_ID);
+
+    expect(await loadPastes(db, secondSession.id, second)).toEqual([expect.objectContaining({ learnerId: second, text: passage })]);
+    expect(await loadPastes(db, secondSession.id, OWNER_LEARNER_ID)).toEqual([]);
+    expect(await loadPastes(db, ownerSession.id, OWNER_LEARNER_ID)).toEqual([]);
+    expect(await pasteSummary(db, secondSession.id, OWNER_LEARNER_ID)).toEqual({ count: 0, words: 0 });
+    expect((await pasteSummary(db, secondSession.id, second)).count).toBe(1);
   });
 });

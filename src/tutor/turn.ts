@@ -189,7 +189,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   }
   const turn = claim.turn;
   // Saved with the turn before anything else, so a retry still has it.
-  if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now());
+  if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now(), learnerId);
   if (claim.alreadyFinished) {
     // It finished after the browser lost the stream: show the saved reply.
     yield* finishedTurnReplay(db, deps.map ?? loadCourseMap(), turn);
@@ -272,8 +272,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const lastTurn = continuing ? await history(db, continuing.id) : previous ? await history(db, previous.id) : [];
     session = continuing ?? (await startSession(db, now(), learnerId));
     // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
-    const paste = await pasteForTurn(db, turn.id, session.id);
-    const pastes = await pasteSummary(db, session.id);
+    const paste = await pasteForTurn(db, turn.id, session.id, learnerId);
+    const pastes = await pasteSummary(db, session.id, learnerId);
     const caseData = await caseDataFor(db, map, place, learnerId);
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
     const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId));
@@ -299,7 +299,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
       // Order: the Learner summary, the Learner Profile (if shared), then the Navigator context last.
-      const profile = await profileBlock(db);
+      const profile = await profileBlock(db, learnerId);
       const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map, learnerId)}\n\n${profile ? `${profile}\n\n` : ""}${quiz ? `${quiz.text}\n\n` : ""}${context}`;
       await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {

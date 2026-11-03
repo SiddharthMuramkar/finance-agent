@@ -57,7 +57,7 @@ export async function navigatorContext(db: Db, map: CourseMap, place: Place | nu
   return stepContext(
     place,
     await caseDataFor(db, map, place, learnerId),
-    await pasteSummary(db, sessionId),
+    await pasteSummary(db, sessionId, learnerId),
     false,
     await loadExploreInfo(db, place, turnId, learnerId),
   );
