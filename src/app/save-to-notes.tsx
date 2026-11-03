@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 
-/** What to save: a reply (its Session and turn), or a Widget of one (also its number in the reply; the explore Widget is number -1). */
+/**
+ * What to save: a reply (its Session and turn), or a Widget of one (also its number in the reply; the explore Widget
+ * is number -1, and `widgetKey` is the key its Widget state is saved under in that Session).
+ */
 export type SaveTarget =
   | { kind: "reply"; sessionId: number; turnSeq: number }
-  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number };
+  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; widgetKey?: string };
 
 /** Where the control is: not saved, saving, saved as item `id` on Topic `topicId`, or a failed save or Undo. */
 export type SaveState =
