@@ -8,6 +8,7 @@ import { loadProgress } from "@/learner/memory";
 import { loadPastSession } from "@/tutor/past-sessions";
 import { loadSessionExplore } from "@/tutor/session-summary";
 import { loadThread } from "@/tutor/transcript";
+import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { OldSession } from "../../old-session";
 import { PastSessionHeaderView } from "../../past-sessions";
 import { AppHeader, SignedInFrame } from "../../ui";
@@ -34,12 +35,14 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   ]);
   if (!header || lines.length === 0) notFound();
   const topicTitle = header.kind === "topic" ? (header.topicId ? header.title : undefined) : header.topics[0];
+  // A Topic Session's written-ahead Widgets, so one the Tutor opened there is drawn again.
+  const writtenAhead = header.kind === "topic" ? await loadWrittenAhead(db, map, progress, header.topicId) : [];
   return (
     <SignedInFrame>
       <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-4 pt-4 lg:px-6 lg:pt-6">
         <AppHeader current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
         <PastSessionHeaderView header={header} />
-        <OldSession lines={lines} topicTitle={topicTitle} explore={explore} revealed={revealedCases(map, progress)} developerDetails={learner.showDeveloperDetails} />
+        <OldSession lines={lines} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} revealed={revealedCases(map, progress)} developerDetails={learner.showDeveloperDetails} />
       </main>
     </SignedInFrame>
   );
