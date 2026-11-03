@@ -272,7 +272,8 @@ consistent but means a wrong habit (for example, a thin explanation) is repeated
 
 **What it does.** The module that decides what comes next. It takes the Course Map and the
 Learner's saved progress and returns the current Topic, the Teaching Step, the Check in play,
-the next legal step and any unmet prerequisites. It is pure: no model, no database, no clock.
+the next legal step and any unmet prerequisites (plus the numbered steps, the Next rules and What
+comes next, below). It is pure: no model, no database, no clock.
 There are seven Teaching Steps, run as a state machine: story, then concept, your turn and Check
 for each Check, then reveal, then principle. A Topic with an Insight adds the seventh, explore, once
 (see "The explore step"). Only a saved Check result moves past a Check step, the reveal opens
@@ -294,6 +295,36 @@ nothing is saved, and the Tutor gets that reason back as a tool error.
 **Trade-off.** Because it is pure, it is tested thoroughly and cheaply (no database, no Claude),
 and the course's correctness rests on code, not on the model's memory. The price is that the
 caller must load and save progress around every decision.
+
+### Step numbering, Next and What comes next (spec #119)
+
+**What it does.** Three more pure answers, so dividers, the progress strip, the Next chip and
+Home's button all come from one tested place. Nothing on screen calls them yet; later tickets do.
+
+- `stepSequence` lists a Topic's Teaching Steps for this Learner's record and numbers them
+  "Step k of N · <step>" with plain-word names (Story, Concept, Explore, Your turn, Check,
+  Reveal, Principle). Explore appears once, only with an Insight, after the Concept of the Check
+  that tests it, or just before Reveal for a Learner who passed that Check before the Insight
+  existed. A passed Topic with a Due Check lists only the due steps. It also groups the steps by
+  Check for the strip and marks the Learner's place.
+- `nextOffer` says which Next the Learner may take: the step that follows; **Complete this Topic**
+  at Principle; **Just tell me** at Explore until the Insight is found or told; nothing while a
+  Check is open (a miss keeps it open). The caller says whether the current step has begun: a step
+  reached after a quiz pass has not, so Next names that step and `takeNext` teaches it without
+  moving on. `takeNext` checks the press against the offer and refuses anything past a Check
+  without a saved pass or past an unsettled Explore.
+- `whatComesNext` gives, in order: the Topic the Learner chose and hasn't passed ("Resume:
+  <title>"); else a Due Check ("New in <Topic>: Check N", or "New in <Topic>: Explore"); else the
+  next unpassed Topic on the default path ("Next Topic: <title>").
+
+**Scenario.** In Percent (two Checks, no Insight) the sequence has nine steps, so the first Next
+draws "Step 2 of 9 · Concept". The Learner passes the first quiz; the Concept of Check 2 has not
+begun, so the chip reads "Next: Concept" and pressing it teaches that Concept without skipping it.
+
+**Trade-off.** Progress does not record when a late Explore was taken, so once it is finished the
+sequence lists it in its usual place again; and a Due Check run renumbers once its Explore is done.
+Both only touch steps already finished. Whether a step has begun is left to the caller, which keeps
+the module free of Session state but means each caller must pass it honestly.
 
 ## Learner Memory (`src/learner/memory.ts`)
 
