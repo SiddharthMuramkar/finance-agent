@@ -5,14 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CourseMap } from "@/course/map";
 import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { saveFinishedStep } from "@/learner/memory";
-import { saveProfile } from "@/learner/profile";
+import { loadProgress, saveFinishedStep } from "@/learner/memory";
+import { loadProfile, saveProfile } from "@/learner/profile";
+import { listSessions, loadSession } from "@/tutor/transcript";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import type { TutorClient } from "@/tutor/turn";
 import { runTutorTurn } from "@/tutor/turn";
-import { addLine } from "@/learner/notes";
+import { addLine, loadNotes } from "@/learner/notes";
 
 /**
  * Each person signs in with their own passcode and lands in their own Learner (spec #119, "Learners
@@ -55,6 +56,7 @@ const profileRoute = await import("@/app/api/profile/route");
 const quizRoute = await import("@/app/api/quiz/route");
 const reviewRoute = await import("@/app/api/review/route");
 const turnRoute = await import("@/app/api/turn/route");
+const startOverRoute = await import("@/app/api/start-over/route");
 
 const OWNER_PASSCODE = "correct horse battery";
 const TEST_PASSCODE = "staple gun";
@@ -229,5 +231,100 @@ describe("The owner and a second Learner", () => {
     const owners = await html(StudyPage({ searchParams: Promise.resolve({}) }));
     expect(owners).toContain("The owner&#x27;s reply about the annuity.");
     expect(owners).not.toContain("Welcome. Let&#x27;s start with a story.");
+  });
+});
+
+describe("Start over", () => {
+  /** Start over from Settings: the confirmed form, posted from this site. */
+  async function startOver({ confirm = "start-over", site = "same-origin" } = {}) {
+    const form = new FormData();
+    if (confirm) form.set("confirm", confirm);
+    return startOverRoute.POST(new Request("https://app.example/api/start-over", { method: "POST", body: form, headers: { "sec-fetch-site": site } }));
+  }
+
+  /** A Learner's own Session, Topic progress, note line and Learner Profile. */
+  async function rowsOf(learnerId: number) {
+    const map = as.map!;
+    const { client } = scriptedClient([text("The test Learner's reply.")]);
+    await drain(runTutorTurn({ db: as.db, client, map, learnerId }, "The test Learner's question"));
+    await saveFinishedStep(as.db, map, "story", new Date(), learnerId);
+    await addLine(as.db, map, "present-value", "The test Learner's note line", new Date(), learnerId);
+    await saveProfile(as.db, { work: "a nurse in Pune", location: null, loan: null, savingFor: null }, new Date(), learnerId);
+  }
+
+  /** Everything a Learner owns, read the way the app reads it for that Learner. */
+  async function everythingOf(learnerId: number) {
+    const map = as.map!;
+    const listed = await listSessions(as.db, learnerId);
+    return {
+      sessions: listed,
+      lines: await Promise.all(listed.map((s) => loadSession(as.db, s.id, map, learnerId))),
+      progress: await loadProgress(as.db, learnerId),
+      notes: await loadNotes(as.db, map, learnerId),
+      profile: await loadProfile(as.db, learnerId),
+    };
+  }
+
+  beforeEach(() => {
+    vi.stubEnv("PASSCODES", `owner:${OWNER_PASSCODE}, test:${TEST_PASSCODE}`);
+    vi.spyOn(console, "info").mockImplementation(() => {});
+  });
+
+  it("archives the Learner, starts a fresh empty one under the same name in this browser, and opens the Welcome; nothing old changes and the old cookie is refused", async () => {
+    await ownersRows();
+    await signIn(TEST_PASSCODE);
+    const old = await session.currentLearnerId();
+    await rowsOf(old);
+    const before = await everythingOf(old);
+    const oldCookie = as.cookie;
+
+    const response = await startOver();
+    // The Welcome route: the Study Workspace until the Welcome exists.
+    expect(response.status).toBe(303);
+    expect(new URL(response.headers.get("location")!).pathname).toBe("/study");
+    const set = /fa_access=([^;]*)/.exec(response.headers.get("set-cookie") ?? "")?.[1];
+    expect(set, "the new cookie is set in the same response").toBeTruthy();
+    as.cookie = decodeURIComponent(set!);
+
+    const fresh = await session.currentLearner();
+    expect(fresh).toMatchObject({ name: "test", archivedAt: null, showDeveloperDetails: false });
+    expect(fresh!.id).not.toBe(old);
+    // The fresh Learner starts empty.
+    expect(await html(SessionsPage())).toContain("No Sessions yet.");
+    expect(await html(NotesPage({ searchParams: Promise.resolve({ all: "1" }) }))).not.toContain("note line");
+    expect(await html(ProgressPage())).not.toMatch(/In progress/i);
+    expect(await json(profileRoute.GET())).toMatchObject({ work: null });
+    expect(await html(StudyPage({ searchParams: Promise.resolve({}) }))).not.toContain("The test Learner&#x27;s reply.");
+
+    // The old Learner is archived, and every row it owned reads back exactly as before.
+    const [archived] = await as.db.select().from(learners).where(eq(learners.id, old));
+    expect(archived.archivedAt).not.toBeNull();
+    expect(await everythingOf(old)).toEqual(before);
+    expect(before.sessions).toHaveLength(1);
+    expect(JSON.stringify(before.notes)).toContain("The test Learner's note line");
+
+    // Another device still holding the old cookie is signed out.
+    as.cookie = oldCookie;
+    expect(await session.isSignedIn()).toBe(false);
+    await expect(session.currentLearnerId()).rejects.toMatchObject(toLogin);
+
+    // The passcode now opens the fresh Learner, and the owner's rows are untouched.
+    await signIn(TEST_PASSCODE);
+    expect(await session.currentLearnerId()).toBe(fresh!.id);
+    await signIn(OWNER_PASSCODE);
+    expect(await html(StudyPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s reply about the annuity.");
+  });
+
+  it("does nothing without the confirmation, or when another site sends it", async () => {
+    await signIn(TEST_PASSCODE);
+    const id = await session.currentLearnerId();
+
+    const unconfirmed = await startOver({ confirm: "" });
+    expect(unconfirmed.status).toBe(400);
+    expect(unconfirmed.headers.get("set-cookie")).toBeNull();
+    expect((await startOver({ site: "cross-site" })).status).toBe(403);
+
+    expect(await session.currentLearnerId()).toBe(id);
+    expect(await as.db.select().from(learners).where(eq(learners.name, "test"))).toHaveLength(1);
   });
 });

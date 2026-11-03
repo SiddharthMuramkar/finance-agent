@@ -21,6 +21,25 @@ export async function signInAs(db: Db, name: string): Promise<Learner> {
 }
 
 /**
+ * Start over: archives the Learner and makes a fresh, empty, active Learner under the same name, in
+ * one transaction. Nothing is deleted or changed in the old Learner's rows; an archived Learner can
+ * no longer sign in, so every device holding its cookie is signed out. Null when the Learner is
+ * already archived (a second Start over from another tab), which changes nothing.
+ */
+export async function startOver(db: Db, learnerId: number, now = new Date()): Promise<Learner | null> {
+  return db.transaction(async (tx) => {
+    const [archived] = await tx
+      .update(learners)
+      .set({ archivedAt: now })
+      .where(and(eq(learners.id, learnerId), isNull(learners.archivedAt)))
+      .returning();
+    if (!archived) return null;
+    const [fresh] = await tx.insert(learners).values({ name: archived.name }).returning();
+    return fresh;
+  });
+}
+
+/**
  * The Learner a sign-in cookie opens, or null when the request counts as signed out: the cookie is
  * missing, old (no Learner) or wrongly signed, or its Learner is unknown, archived (Start over) or
  * under a name no longer in the passcode list.
