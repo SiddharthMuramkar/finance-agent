@@ -11,7 +11,7 @@ const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " "
 
 function workspace(pending: Parameters<typeof Conversation>[0]["pending"]) {
   return renderToStaticMarkup(
-    <Conversation initial={[{ role: "user", text: "What is a basis point?" }]} summary="You are learning present value." quiz={null} pending={pending} review={noReview} />,
+    <Conversation initial={[{ role: "user", text: "What is a basis point?" }]} quiz={null} pending={pending} review={noReview} />,
   );
 }
 
