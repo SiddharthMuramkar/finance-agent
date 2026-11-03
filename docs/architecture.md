@@ -928,6 +928,28 @@ weekly run touches a few posts instead of reloading 6,500 passages. Trade-off: t
 now agree on HTML by test rather than by being one program, and a post whose HTML is badly broken
 may read slightly differently from before (none of the 685 does).
 
+**Spreadsheets behind the posts (IL 15, #72).** Damodaran's numbers live in the spreadsheets his
+posts link to (Tesla's inputs, a country's tax rates), not in the post text. `src/library/spreadsheets.ts`
+finds each post's `.xls` and `.xlsx` links (old `www.stern` and `%7E` spellings are folded into one
+address; his yearly `datasets/` and `implprem/` files are left out, since they are whole-market
+tables, not worked examples), reads the file with SheetJS 0.20.3, and turns it into a Library
+document under a new dated source, `damodaran-spreadsheets`. SheetJS is installed from SheetJS's own
+download site, because the npm registry copy is out of date (npm 12 needs `--allow-remote=all` to
+install from a link; CI's npm does not). Only the values Excel saved in the file are read (nothing is
+recalculated) and hidden sheets are skipped. Input, output and valuation sheets come first, rows
+become lines of "cell | cell", and a workbook gives at most 12 passages. Every passage opens with a
+sentence naming its post, the file and the sheet. A passage is dated by the later of the post's date
+and the file's Last-Modified date, so a file he updated years after the post stays hidden from a
+Case set before the update. The source has no quote limit, so the Passage view shows it in full,
+with his acknowledgement credit. Scenario: while studying Tesla before its reveal, the Tutor
+searches "Tesla operating margin assumption" and gets the "Input sheet" passage of his Tesla
+workbook, opening "This is the sheet "Input sheet" of the spreadsheet teslathedisruptor.xls, linked
+from Aswath Damodaran's post ...". `npm run library:sheets -- <scratch>` runs the backfill on the
+laptop (`--dry-run 30` reads 30 files and writes nothing to a database). `crossCheck` lists the
+figures a post picture's text and its spreadsheet share, for the pictures ticket's report.
+Trade-off: a sheet is flat text, so a chart-heavy or formula-heavy sheet loses its layout; the
+12-passage cap means the long tail of a 19-sheet workbook is not searchable.
+
 **Corrupted text, found and repaired.** PDF text breaks in known ways. The loader detects them
 (lost ligatures such as "CreaAon" for "Creation", letters spaced apart, PDF character codes,
 replacement characters) and now also repairs what it safely can: a broken word is mended only when
