@@ -699,7 +699,7 @@ order is held by code, not by a prompt that live runs showed being ignored.
 ## Insight recording (`record_insight_attempt` in `src/tutor/tools.ts`, `src/learner/insight.ts`, the `insight_attempts` table)
 
 **What it does.** At explore the Tutor puts the Insight question and the Learner plays with the Widget
-drawn at the concept step, then says what they noticed. The Tutor reports each attempt with
+on screen (the Topic's own explore Widget, see below), then says what they noticed. The Tutor reports each attempt with
 `record_insight_attempt` as found, not yet, or asked to be told, quoting the Learner's words. Code
 checks the words are really in the Learner's message in that turn (a Continue press is never an
 attempt), saves them in `insight_attempts` once per tool call ID, and decides what happens next:
@@ -725,6 +725,37 @@ model can read free words; code controls everything around that judgement (the c
 withholding, the order). A Tutor that says "found" too readily is checked by the behaviour set, not by
 code. Sessions that started before this change keep their frozen tools and have no way to record an
 attempt, so the app starts a new Session when the tools change.
+
+## The explore Widget (`explore.widget` in `course/topics/*.yaml`, `src/course/explore-widget.ts`, `src/app/widget-panel.tsx`)
+
+**What it does.** A Topic with an explore step can carry its own Widget, written in the Topic file as
+OpenUI code beside the Insight. Code, not the Tutor, shows it. From the moment the explore step begins it
+opens by itself in the Widget panel as an "Explore" chip, and it stays there until the Topic is passed, so
+the Learner can keep playing during their turn and the Check. It is chosen from saved progress alone
+(`exploreWidgetFor`), so a page reload shows it exactly the same, and an old Session page shows it too when
+that Session reached the explore step (read from the Course Navigator context saved in the Session). A
+newer Widget from the Tutor still opens on its own, because the explore Widget is placed after only the
+Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells it the Widget is already on
+screen, so it points to it and does not draw its own. Below the laptop breakpoint (an upright iPad) the
+panel hides its copy and a folded card, open to start, stands in the conversation column under the status
+card instead; at laptop width only the panel shows it.
+
+**Rules the course check holds.** The `widget` text is optional, but every `"caseId/datasetId"` it names must
+be one of the Topic's own Cases and a dataset that Case lists in `data`. A test parses every real explore
+Widget with the same checker as Tutor Widgets. Case Data still goes through the as-of rule on the server, so
+the Widget cannot draw anything dated after the Case's as-of date before the reveal.
+
+**A concrete scenario.** Present value's explore Widget is an interest-rate slider and the annuity chart
+set against the sourced cash option (the one figure dated on or before 24 October 2018). The Learner
+finishes the jackpot Check's concept step; the next reply ends, the page refreshes and the "Explore" chip is
+already open with the slider at 5%. They ask a question, the Tutor draws a calculator, and that newer Widget
+takes the panel; the Explore chip stays beside it. After the Learner passes the Topic the chip is gone. The
+winner's payment and the 30-year Treasury chart are left out on purpose, so playing leads nowhere near the reveal.
+
+**Trade-off.** The Widget is fixed text in the Topic file, so it cannot adapt to a Learner the way a Tutor
+Widget can, and it costs nothing in tokens. Both the panel copy and the narrow card are drawn in the page
+(one hidden by CSS), so resizing the window resets the slider. An old Session is matched to the Topic by the
+title in its saved context, so a Topic renamed later loses its chip on old Session pages.
 
 ## Pacing rule (`src/tutor/tools.ts`, `src/tutor/instructions.ts`)
 
