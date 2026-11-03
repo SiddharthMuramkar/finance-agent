@@ -165,7 +165,7 @@ describe("finding Sliders and Guided Tasks at any depth", () => {
   });
 
   it("finds a Slider and Guided Tasks nested in a Stack and a tab, so the tasks pass", () => {
-    expect(parsedSliders(children)).toEqual([{ variable: "$rate", min: 0, max: 10, step: 0.5 }]);
+    expect(parsedSliders(children)).toEqual([{ variable: "$rate", min: 0, max: 10, step: 0.5, unit: "percent" }]);
     expect(parsedTasks(children)).toEqual([{ id: "t0", text: "Set 0%", condition: done }]);
     expect(guidedTaskProblems(children)).toEqual([]);
   });
