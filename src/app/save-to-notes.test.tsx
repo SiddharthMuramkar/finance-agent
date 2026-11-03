@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Conversation } from "./conversation";
 import { OldSession } from "./old-session";
 import { NarrowScreen } from "./widget-panel";
+import { SaveToNotesView } from "./save-to-notes";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
@@ -12,7 +13,7 @@ const EXPLORE = { code: 'root = Widget("Cash now or later", [calc])\ncalc = Calc
 const reply = { role: "assistant" as const, text: `Here you go.\n\n${fence(WIDGET)}`, ref: { sessionId: 3, turnSeq: 0 } };
 const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
 
-describe("Save to notes in the lesson", () => {
+describe("Save to notes in a Topic", () => {
   it("is offered under a finished reply and under its Widget, also in an old Session", () => {
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "user", text: "Show me." }, reply]} />);
     expect(html).toContain('aria-label="Save this reply to notes"');
@@ -34,6 +35,28 @@ describe("Save to notes in the lesson", () => {
     // In the panel at a laptop width, in its card below it: the Widget is mounted once either way.
     expect(renderToStaticMarkup(page).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);
     expect(renderToStaticMarkup(<NarrowScreen>{page}</NarrowScreen>).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);
+  });
+});
+
+describe("after Save to notes", () => {
+  const noop = () => {};
+  const saved = renderToStaticMarkup(<SaveToNotesView state={{ status: "saved", id: 4, topicId: "present-value" }} what="reply" onSave={noop} onUndo={noop} />);
+
+  it('reads "Saved ✓ · Undo · Open notes", with Open notes going to that Topic\'s note', () => {
+    const text = saved.replace(/<[^>]+>/g, "").replace("Saved to notes", "");
+    expect(text).toMatch(/Saved ✓\s*·\s*Undo\s*·\s*Open notes/);
+    expect(saved).toMatch(/<button[^>]*data-undo-save[^>]*>Undo<\/button>/);
+    expect(saved).toContain('href="/notes#note-present-value"');
+  });
+
+  it("offers no second Save while it is saved, so the same reply is not saved twice", () => {
+    expect(saved).not.toContain("Save to notes</button>");
+  });
+
+  it("is the plain Save to notes button before a save and after Undo", () => {
+    const idle = renderToStaticMarkup(<SaveToNotesView state={{ status: "idle" }} what="Widget" onSave={noop} onUndo={noop} />);
+    expect(idle).toMatch(/<button[^>]*aria-label="Save this Widget to notes"[^>]*>Save to notes<\/button>/);
+    expect(idle).not.toContain("Undo");
   });
 });
 
