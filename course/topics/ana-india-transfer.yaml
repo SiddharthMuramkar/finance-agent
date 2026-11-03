@@ -102,6 +102,12 @@ principle: >
   published ratio or a past currency move as a dated fact that does not by itself say what
   comes next.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Keep cash flows and the discount rate in one currency."
+  - "Add country risk to an Indian cost of equity explicitly."
+  - "Value a bank from its capital and the quality of its loans."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: ana-india-q-currency-match

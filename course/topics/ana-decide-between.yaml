@@ -90,6 +90,12 @@ principle: >
   notice what each writer gains from the view, and let the outcome grade the forecasts afterwards,
   not the writer.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Sort a writer's claims into fact, definition, forecast and framing."
+  - "Recompute disputed numbers with a stated definition."
+  - "Compare arguments rather than reputations, and notice what each writer gains from a view."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: adb-q-checkable

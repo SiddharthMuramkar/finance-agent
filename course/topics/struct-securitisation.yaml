@@ -61,6 +61,12 @@ principle: >
   A rating is only as good as the assumption about how the risks are linked. A structure can re-label
   risk by slicing it, but it cannot remove the risk that is common to all the pieces.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how slicing a pool of loans into tranches puts losses on the junior pieces first."
+  - "Read subordination as the cushion that protects a senior tranche."
+  - "Ask how closely the risks inside a structure move together before trusting its rating."
+
 questions:
   - id: ss-q-first-loss
     prompt: >

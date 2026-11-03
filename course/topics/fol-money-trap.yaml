@@ -60,6 +60,12 @@ principle: >
   buyer to earn a return, and who the next buyer could be. Treat a funding round as evidence of
   what investors would pay, not as proof that the business earns money.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read an annualised revenue figure for what it does and does not say."
+  - "See why gross margin matters when the biggest cost is bought from a supplier."
+  - "Treat a funding round as evidence of what investors would pay, not of profit."
+
 questions:
   - id: fmt-q-runrate
     prompt: >

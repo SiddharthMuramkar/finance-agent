@@ -84,6 +84,12 @@ principle: >
   had to add. A result that holds only under an assumption (no growth, constant earnings, a fair
   price) should be cited with that assumption attached.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Recompute a claim from the writer's own inputs."
+  - "Name the numerator and the denominator of every ratio and check the periods match."
+  - "Find the assumption a result rests on and cite the two together."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: ja-q-value-pb

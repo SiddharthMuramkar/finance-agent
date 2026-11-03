@@ -63,6 +63,12 @@ principle: >
   period) explain most of the gap. Choose the measure by what you will use it for, and be wary of
   any single estimate that claims precision about the future.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Explain the equity risk premium as the price of risk for shares."
+  - "Compare historical, Fed model and implied estimates by what each assumes."
+  - "See how the premium feeds every company's cost of capital."
+
 questions:
   - id: fe-q-fed-gap
     prompt: >
