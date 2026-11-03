@@ -12,11 +12,17 @@ export type GenuiAsk = {
    * Topic's conversation Check, past its explore step, so its Insight is already settled).
    */
   at: "story" | "check";
-  /** Sent one after another in the same Session; the last one is the chart ask the probe judges. */
-  turns: string[];
+  /**
+   * Sent one after another in the same Session; the last one is the chart ask the probe judges. OPENER is the
+   * turn the page starts by itself when the chosen Topic's Session is empty, as it does for a Learner.
+   */
+  turns: (string | typeof OPENER)[];
   /** What a good Widget for this ask holds, printed in the report for whoever reads it. Code does not grade it. */
   goodWidget: string;
 };
+
+/** The opener: the page starts it when the Learner chooses a Topic whose Session is empty. No Learner message. */
+export const OPENER = { opener: true } as const;
 
 export const GENUI_ASKS: GenuiAsk[] = [
   {
@@ -66,7 +72,8 @@ export const GENUI_ASKS: GenuiAsk[] = [
     id: "fed-chart-2-nov",
     topic: "num-percent-bps",
     at: "story",
-    turns: ["Continue.", "can you generate a chart to explain it"],
+    // Live, the story came after the old Continue; a Learner now gets it from the opener when they choose the Topic.
+    turns: [OPENER, "can you generate a chart to explain it"],
     goodWidget:
       "A Widget in the second reply: the sourced funds rate (fed-hike-1994/fed-funds-target), or a labelled Illustration of percent against percentage points whose made-up move is not the real 3% to 3.25%.",
   },
