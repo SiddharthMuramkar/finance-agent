@@ -5,7 +5,7 @@ import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
 import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
-import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
+import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
 import { OWNER_LEARNER_ID, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
@@ -14,16 +14,27 @@ import { quizUnavailable } from "@/learner/quiz";
 import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library/library";
 import { stepContext, topicCompleteContext } from "./context";
 import { pasteSummary } from "./pasted";
+import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import type { ToolDefinition } from "./instructions";
 import { CONTINUE_TEXT } from "./turn-status";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
 /** What a tool told the Tutor, and whether it was a rejection (sent back as a tool error). */
-type Outcome = { ok: boolean; text: string; /** The call moved the Learner onto a new Teaching Step. */ began?: boolean };
+type Outcome = {
+  ok: boolean;
+  text: string;
+  /** The call moved the Learner onto a new Teaching Step. */
+  began?: boolean;
+  /** A Session item the call stored (a step divider), for the Learner to see at once. */
+  item?: SessionItem;
+};
 
-/** Shared with the Tutor Turn so it can tell the Learner when a progress write failed. */
-export type ToolEffects = { saveFailed: boolean };
+/**
+ * Shared with the Tutor Turn: whether a progress write failed, so it can tell the Learner, and the
+ * Session items tool calls stored, which it streams to the browser as they are stored.
+ */
+export type ToolEffects = { saveFailed: boolean; items?: SessionItem[] };
 
 /** The tool result when a write failed: the Tutor is told plainly that nothing was saved. */
 export const NOTHING_RECORDED =
@@ -123,6 +134,17 @@ export function toolCode(
     return navigatorContext(tx, map, after, turnId, learnerId);
   }
 
+  /** Stores the divider for the Learner's new step in the turn's Session, when they are still in the Topic they were in. */
+  async function storeStepDivider(tx: Db, before: Place | null, progress: Progress): Promise<SessionItem | null> {
+    const after = navigate(map, progress);
+    if (!before || after?.topic.id !== before.topic.id) return null;
+    const item = stepDivider(map, progress, after.topic.id);
+    const [turn] = await tx.select({ sessionId: turns.sessionId }).from(turns).where(eq(turns.id, turnId));
+    if (!item || turn?.sessionId == null) return null;
+    await saveItemAfterLatest(tx, learnerId, turn.sessionId, item, now());
+    return item;
+  }
+
   async function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
     if (!toolCallId) throw new Error("Missing tool call ID.");
     let outcome: Outcome;
@@ -130,6 +152,7 @@ export function toolCode(
       outcome = await db.transaction(async (transaction) => {
         const tx = transaction as unknown as Db;
         const [done] = await tx.select().from(toolCalls).where(eq(toolCalls.toolCallId, toolCallId));
+        // A repeat has no second effect, so it stores no second item either.
         if (done) return { ok: !done.isError, text: done.result };
         const result = await effect(tx);
         await tx.insert(toolCalls).values({ toolCallId, name, result: result.text, isError: !result.ok, turnId, beganStep: result.began ?? false, createdAt: now() });
@@ -140,6 +163,7 @@ export function toolCode(
       effects.saveFailed = true;
       throw new Error(NOTHING_RECORDED);
     }
+    if (outcome.item) (effects.items ??= []).push(outcome.item);
     if (!outcome.ok) throw new Error(outcome.text);
     return outcome.text;
   }
@@ -247,7 +271,10 @@ export function toolCode(
           const before = navigate(map, await loadProgress(tx, learnerId));
           const move = await saveFinishedStep(tx, map, step, now(), learnerId);
           if (!move.ok) return { ok: false, text: move.reason };
-          return { ok: true, began: true, text: await contextAfterMove(tx, before) };
+          // The Learner sees where the next step begins: a divider after the reply that finished this one.
+          // None once the Topic is passed; its Topic complete card marks that.
+          const item = await storeStepDivider(tx, before, move.progress);
+          return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(item && { item }) };
         }),
     },
   };

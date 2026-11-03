@@ -6,7 +6,7 @@ import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { loadSessionExplore, loadSessionSummaries } from "@/tutor/session-summary";
-import { loadSession } from "@/tutor/transcript";
+import { loadThread } from "@/tutor/transcript";
 import { OldSession } from "../../old-session";
 import { AppHeader, SignedInFrame } from "../../ui";
 
@@ -21,7 +21,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const learnerId = learner.id;
   const map = loadCourseMap();
   const [lines, summaries, jar, explore, progress] = await Promise.all([
-    loadSession(db, id, map, learnerId),
+    loadThread(db, id, map, learnerId),
     loadSessionSummaries(db, learnerId),
     cookies(),
     loadSessionExplore(db, id, map),

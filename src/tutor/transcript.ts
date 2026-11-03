@@ -12,6 +12,7 @@ import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentTopicId, liveSession, type Message, type Row } from "./session-log";
 import { OPENER_PREFIX } from "./turn-status";
 import { loadTurnUsages, type TurnUsage } from "./usage";
+import { loadSessionItems, type StoredItem } from "./session-items";
 
 /** A Session turned into plain lines for display: the workspace after a reload, old Session pages, a replayed reply. No model call. */
 
@@ -78,6 +79,33 @@ export async function listSessions(db: Db, learnerId = OWNER_LEARNER_ID): Promis
  * passage the as-of rule hides now (for this Learner) is listed without its heading.
  */
 export async function loadSession(db: Db, sessionId: number, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<Line[]> {
+  return (await sessionEntries(db, sessionId, map, learnerId, [])) as Line[];
+}
+
+/** A Session item as the thread draws it, by its kind (session-items.ts). */
+export type ItemEntry = { role: "item"; kind: string; data: Record<string, unknown> };
+/**
+ * One entry of a Session's thread: a message, a part of a reply, or a Session item. A reply that a Session
+ * item cuts into parts has `more` on every part but its last: the reply goes on after the item.
+ */
+export type ThreadEntry = (Line & { more?: true }) | ItemEntry;
+
+/**
+ * One of the Learner's Sessions as the Study Workspace and the old Session page draw it: `loadSession`'s
+ * lines with the Session's items in place, each after the message it follows. An item that falls inside a
+ * reply (a step finished partway through it) cuts the reply in two there. No model call.
+ */
+export async function loadThread(db: Db, sessionId: number, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<ThreadEntry[]> {
+  return sessionEntries(db, sessionId, map, learnerId, await loadSessionItems(db, sessionId, learnerId));
+}
+
+/** Marks where an item falls inside a reply's text while the reply is put together; never shown. */
+const itemMark = (i: number) => `\u0000item:${i}\u0000`;
+const ITEM_MARK = /\u0000item:(\d+)\u0000/;
+
+const itemEntry = (item: StoredItem): ItemEntry => ({ role: "item", kind: item.kind, data: item.data });
+
+async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefined, learnerId: number, items: StoredItem[]): Promise<ThreadEntry[]> {
   // A turn's loop steps make one reply: one line, whose citation numbers run through all its steps and whose sources fold at its end.
   const lines: (Line & { turnSeq?: number; marks?: CitationMarks; topic?: string })[] = [];
   // The Topic the Tutor's context named by each reply: its Case Data credits follow that Topic, not today's.
@@ -93,7 +121,17 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap, le
     .orderBy(asc(messages.seq));
   const deps = { db, map, learnerId };
   const ctx = await sourcesFor(deps, rows.filter((m) => m.role === "assistant").map((m) => m.content));
+  // Items, in seq order, wait for the next row that is drawn: they go inside the reply that row continues, else before its line.
+  let nextItem = 0;
+  const waiting: number[] = [];
+  const entries: (ItemEntry | (typeof lines)[number])[] = [];
+  const push = (line: (typeof lines)[number]) => {
+    for (const i of waiting.splice(0)) entries.push(itemEntry(items[i]));
+    lines.push(line);
+    entries.push(line);
+  };
   for (const m of rows as (Message & { seq: number })[]) {
+    while (nextItem < items.length && items[nextItem].afterSeq < m.seq) waiting.push(nextItem++);
     topic = topicTitleIn(m.content) ?? topic;
     const fix = correcting !== null && m.role === "assistant";
     // A reply is shown with its citation markers; its sources are added once the reply is complete.
@@ -115,15 +153,19 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap, le
     if (fix) {
       const target = lines.findLast((l) => l.role === "assistant");
       if (target) target.text = replaceBrokenWidgets(target.text, text, flagged);
-      else lines.push({ role: m.role, text, turnSeq, marks });
+      else push({ role: m.role, text, turnSeq, marks });
     } else if (m.role === "assistant" && last?.role === "assistant") {
-      last.text += PARAGRAPH + text;
+      // Items waiting here fall inside this reply: marked in its text, which is cut there once the reply is complete.
+      last.text += (waiting.length ? waiting.splice(0).map(itemMark).join("") : PARAGRAPH) + text;
       last.topic = topic;
     } else {
       if (m.role === "user") turnSeq = m.seq;
-      lines.push({ role: m.role, text, turnSeq, ...(m.role === "assistant" && { marks, topic }) });
+      push({ role: m.role, text, turnSeq, ...(m.role === "assistant" && { marks, topic }) });
     }
   }
+  // Items after the last drawn row come last.
+  for (const i of waiting) entries.push(itemEntry(items[i]));
+  for (const item of items.slice(nextItem)) entries.push(itemEntry(item));
   const datasetsByTopic = new Map<string | undefined, CaseDataset[]>();
   for (const l of lines) {
     if (!l.marks) continue;
@@ -135,7 +177,20 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap, le
     const last = lines.findLast((l) => l.role === "assistant" && l.turnSeq === seq);
     if (last) last.usage = usage;
   }
-  return lines.map((l) => ({ role: l.role, text: l.text, ...(l.usage && { usage: l.usage }), ...(l.role === "assistant" && { ref: { sessionId, turnSeq: l.turnSeq! } }) }));
+  return entries.flatMap((l): ThreadEntry[] => {
+    if (l.role === "item") return [l];
+    const ref = l.role === "assistant" ? { ref: { sessionId, turnSeq: l.turnSeq! } } : {};
+    const pieces = l.text.split(ITEM_MARK);
+    if (pieces.length === 1) return [{ role: l.role, text: l.text, ...(l.usage && { usage: l.usage }), ...ref }];
+    // A reply with items inside: its parts, with the items between them. The usage and sources stay on the last part.
+    const out: ThreadEntry[] = [];
+    for (let k = 0; k < pieces.length; k += 2) {
+      const lastPart = k === pieces.length - 1;
+      if (pieces[k]) out.push({ role: l.role, text: pieces[k], ...(lastPart ? l.usage && { usage: l.usage } : { more: true as const }), ...ref });
+      if (!lastPart) out.push(itemEntry(items[Number(pieces[k + 1])]));
+    }
+    return out;
+  });
 }
 
 export function textOf(content: unknown): string {
