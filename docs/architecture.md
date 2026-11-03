@@ -190,10 +190,11 @@ changes the database only; no code reads or writes the new parts yet, so nothing
   Tutor Turn now makes live Topic Sessions (see "One Session per Topic" below). A database rule
   allows one live Session per Learner and Topic; Older Sessions and Sessions with no Topic are not
   limited.
-- **Session items** (`session_items`): what the Study Workspace will draw between messages and never
-  send to the model: step dividers, "Picking up where you left off" and Due Check dividers, Check
+- **Session items** (`session_items`): what the Study Workspace draws between messages and never
+  sends to the model: step dividers, "Picking up where you left off" and Due Check dividers, Check
   result cards and Topic complete cards. Each has its Learner, Session, the message it follows
-  (`after_seq`), a kind and its data.
+  (`after_seq`), a kind and its data. Step dividers are the first kind written (see "Session items
+  and step dividers" below).
 - **Widget state** (`widget_state`): one row per Session and Widget key (a written-ahead Widget's
   id, or a Tutor-drawn Widget's title) holding the slider values and ticked Guided Tasks.
 - **The shown Session** (`learner_state.shown_session_id`): which Session the Study Workspace shows,
@@ -1434,6 +1435,58 @@ next. Through the routes (`api/jump/route.test.ts`): each way of choosing shows 
 and each answers "turn in progress" while a turn runs. In the workspace render: the passed Topic's
 bar with no message box, and the empty panel's words. The jump tests in `turn.test.ts` now use the
 opener.
+
+## Session items and step dividers (`src/tutor/session-items.ts`, `finish_teaching_step` in `tools.ts`, `loadThread` in `transcript.ts`, `src/app/session-item-view.tsx`, `thread.tsx`, `turn-stream.ts`, spec #119, ticket #132)
+
+**What it does.**
+- **Stored, not sent.** A Session item is a row in `session_items`: the Learner, the Session, the seq
+  of the message it follows, a kind and its data. The model's history is read only from `messages`
+  (`openLog`), so no item ever reaches a request, and nothing about the Tutor's instructions changes.
+- **The step divider.** When the Tutor finishes a Teaching Step with `finish_teaching_step`, the same
+  database transaction stores a divider of kind `step` after the Session's latest message (the reply
+  part holding the tool call). The Course Navigator numbers and names it from the Learner's new place
+  (`stepSequence`): `{ step, number, label: "Step 3 of 9 · Your turn" }`. A refused finish stores
+  nothing; a finish that passes the Topic stores none either (the Topic complete card will mark that);
+  a repeated tool call, or one re-run after a cut-off, returns its saved result and stores no second
+  divider.
+- **Drawn in place.** `loadThread` is `loadSession`'s lines with each item placed after the message it
+  follows. An item that falls inside a reply (the Tutor gave feedback, finished the step, then began
+  teaching the next one) cuts the reply in two there; every part but the last carries `more`. The
+  Study Workspace and the old Session page both read it, so a reload draws the same dividers in the
+  same places. `loadSession` itself still gives one line per reply, which Save to notes keys on.
+- **Drawn by kind.** The thread carries an item as an assistant-ui system message, and
+  `SessionItemView` draws it by its kind: a `step` item is a small centred line with its label. A kind
+  it does not know draws nothing, so an item from a later change never breaks the thread. Later
+  dividers and cards (Picking up, Due Check, Check results, Topic complete) add their kind there and
+  store their rows the same way.
+- **Live.** The turn streams `{ type: "item" }` as the tool stores it. The browser ends the reply part
+  on screen, draws the divider and streams the rest of the reply into a new part. A replayed reply
+  (a resume after a cut-off, or a refusal) arrives as one text, so it replaces the parts and their
+  dividers until the next reload draws them again.
+- **One reply, several parts.** Save to notes still saves the whole reply, so it shows once, after the
+  last part; "Under the hood" sits there too. Widget chips are keyed per part, and their save number
+  counts on across the parts, as the saved reply numbers them.
+
+**Scenario.** The Learner answers the Story's question. The Tutor writes "Good thinking.", calls
+`finish_teaching_step` with `story`, and goes on: "Now the concept: money today is worth more." On
+screen, "Good thinking." ends, a thin centred line reads "Step 2 of 6 · Concept", and the concept
+follows under it. They reload: the line is in the same place. The Tutor's next request has the two
+reply parts and the tool result, and no "Step 2 of 6".
+
+**Trade-off.** Items live in their own table rather than as messages, so the model's history needs no
+filtering and stays add-only; the price is a second read when drawing a Session and the work of placing
+items between and inside replies. Cutting a reply into parts keeps the divider where the step really
+changed, at the cost of a reply that Save to notes, Widget numbering and a replay must treat as one.
+A replayed reply loses its dividers on screen until a reload, which keeps the browser simple for a rare
+case.
+
+**How it is tested.** At the Tutor Turn seam (`step-dividers.test.ts`, scripted client on in-memory
+Postgres): finishing a step streams one item between the reply's parts, `loadThread` draws it after
+the part that finished the step (and again after a reload), and the next model request has nothing
+from it; a reply that moves on before writing anything has the divider before it; a refused finish
+and a finish that passes the Topic store none. In the workspace render: the divider is a small centred
+separator between the parts, with one Save to notes; Widget chips stay in each part; an unknown kind
+is skipped. The old Session page draws the divider between the parts too.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 
