@@ -132,7 +132,7 @@ describe("database expand: Learners", () => {
     expect(await db.select({ shown: learnerState.shownSessionId }).from(learnerState)).toEqual([{ shown: null }]);
   });
 
-  it("rows written by today's code, which never names a Learner, belong to the owner, and its Sessions are Older", async () => {
+  it("rows written by code that never names a Learner belong to the owner, and its Sessions belong to their Topic", async () => {
     const db = await testDb();
     const map = presentValueOnly({ withoutInsight: true });
     const text = (t: string) => ({ content: [{ type: "text", text: t }] });
@@ -159,7 +159,7 @@ describe("database expand: Learners", () => {
       expect(new Set(ids), name).toEqual(new Set([OWNER_LEARNER_ID]));
     }
     expect(new Set((await db.select({ older: sessions.older, topicId: sessions.topicId }).from(sessions)).map((s) => JSON.stringify(s)))).toEqual(
-      new Set([JSON.stringify({ older: true, topicId: null })]),
+      new Set([JSON.stringify({ older: false, topicId: "present-value" })]),
     );
   });
 

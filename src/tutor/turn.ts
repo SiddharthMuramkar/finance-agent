@@ -11,34 +11,35 @@ import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
 import { newReplyWidgetProblems, openWidgetsIn, WIDGET_CHECK_PREFIX, type OpenWidget } from "@/widgets/check";
-import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, openWidgetsNote, stepContext } from "./context";
+import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, openWidgetsNote, standsAlreadySent, standsBlock, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
 import {
-  currentSession,
-  history,
   isCompaction,
   openLog,
   readSettings,
-  sessionForAction,
-  startSession,
+  refreezeIfChanged,
+  sessionForTurn,
+  showsCurrentTopic,
+  shownNow,
+  STALE_TAB_MESSAGE,
   type Effort,
   type Log,
   type Message,
-  type NewSessionReason,
   type Session,
+  type Shown,
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, CONTINUE_TEXT, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, CONTINUE_TEXT, latestTurn, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
  * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
- * one-turn lock, picks the Session (session-log.ts), sends changed context (context.ts), and
+ * one-turn lock, picks the Topic's Session (session-log.ts), sends changed context (context.ts), and
  * runs the Tool Runner loop with cut-off, compaction, refusal and widget-correction handling.
  */
 
@@ -89,12 +90,15 @@ export type TurnEvent =
    * positions (from 0) of the reply's widgets it corrects, in order.
    */
   | { type: "correction"; widgets: number[] }
-  /** `ref` names the turn's Session and turn, so the browser can offer "Save to notes" on the reply at once. */
-  | { type: "done"; stopReason: string | null; usage: TurnUsage; ref: { sessionId: number; turnSeq: number } }
+  /**
+   * `ref` names the turn's Session and turn, so the browser can offer "Save to notes" on the reply at once.
+   * `shown` is what the page's next turn request says it shows: this Session, or the next Topic if the turn moved the Learner on.
+   */
+  | { type: "done"; stopReason: string | null; usage: TurnUsage; ref: { sessionId: number; turnSeq: number }; shown: Shown }
   /** Another turn is running (perhaps on another device); nothing was saved or sent. */
   | { type: "busy"; message: string }
-  /** This turn started a new Session. */
-  | { type: "session"; reason: NewSessionReason }
+  /** The request came from a tab showing another Topic than the Learner's current one; nothing was saved or sent. */
+  | { type: "stale"; message: string }
   /** A resumed turn: the reply text saved so far, which replaces what the browser showed. */
   | { type: "replay"; text: string }
   /** The turn reached its time limit; saved loop steps are kept and the browser should resume. */
@@ -112,11 +116,10 @@ export type TurnEvent =
   | { type: "error"; kind: FailureKind; message: string };
 
 export const CUT_SHORT_MESSAGE = "The reply was cut short because it reached its length limit. Press Continue to carry on.";
-export const REFUSAL_MESSAGE =
-  "The Tutor declined to answer that message. Nothing was changed, and your place in the course is the same. Your next message starts a fresh Session from your saved progress.";
+export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
 /** The refusal message when tool calls earlier in the same turn had already saved progress. */
 export const REFUSAL_AFTER_SAVES_MESSAGE =
-  "The Tutor declined to go on with that reply. What it had already written and recorded earlier in this reply is kept, so your place in the course may have moved on; only the declined part was discarded. Your next message starts a fresh Session from your saved progress.";
+  "The Tutor declined to go on with that reply. What it had already written and recorded earlier in this reply is kept, so your place in the course may have moved on; only the declined part was discarded. Try asking another way.";
 /** The tool result for a tool call in a reply that hit max_tokens: its input may be cut off, so it never runs. */
 const NOT_RUN = "Not run: your reply reached max_tokens before this tool call was complete. Nothing was recorded.";
 
@@ -152,6 +155,11 @@ export type TurnDeps = {
   timeBudgetMs?: number;
   /** Voyage query embeddings for Library search; without them search uses keyword results only. */
   embedQuery?: QueryEmbedder;
+  /**
+   * What the page that sent the turn shows (its Session, or for a Topic's first turn its Topic). The
+   * turn is refused unless it is the Learner's current Topic. Left out, nothing is checked (test tools).
+   */
+  shown?: Shown;
 };
 
 /** Thrown when a run reaches its time budget. */
@@ -171,13 +179,13 @@ async function beforeDeadline<T>(promise: Promise<T>, deadline: number): Promise
 }
 
 /**
- * Runs one Tutor turn for one Learner: takes their one-turn lock, saves their message,
- * streams the reply through Tool Runner and saves each loop step's messages
- * unchanged as they finish. Before the message, code appends the Course
- * Navigator's context whenever it changed; a new Session opens with the
- * Learner's summary and that context. A turn is saved as running, cut off,
- * finished or failed; `{ resume: true }` continues a cut-off or failed turn
- * from its last saved loop step.
+ * Runs one Tutor turn for one Learner: refuses a request from a tab showing another Topic, takes
+ * their one-turn lock, saves their message in the live Session of their current Topic, streams the
+ * reply through Tool Runner and saves each loop step's messages unchanged as they finish. After the
+ * message, code appends the Course Navigator's context (and the Where the Learner stands block)
+ * whenever it changed; a Topic's first turn makes its Session, which opens with both. A turn is
+ * saved as running, cut off, finished or failed; `{ resume: true }` continues a cut-off or failed
+ * turn from its last saved loop step.
  */
 export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGenerator<TurnEvent> {
   const { db } = deps;
@@ -185,6 +193,15 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   const deadline = performance.now() + (deps.timeBudgetMs ?? TIME_BUDGET_MS);
   const resuming = typeof input === "object" && "resume" in input;
   const learnerId = deps.learnerId ?? OWNER_LEARNER_ID;
+  if (deps.shown && !(await showsCurrentTopic(db, deps.map ?? loadCourseMap(), learnerId, deps.shown))) {
+    // A resume may still carry on the tab's own unfinished turn, which may itself have moved the Learner to the next Topic.
+    const latest = resuming ? await latestTurn(db, learnerId) : undefined;
+    const ownTurn = latest !== undefined && latest.status !== "finished" && "sessionId" in deps.shown && latest.sessionId === deps.shown.sessionId;
+    if (!ownTurn) {
+      yield { type: "stale", message: STALE_TAB_MESSAGE };
+      return;
+    }
+  }
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), learnerTextOf(input), learnerId), alreadyFinished: false };
   if (!claim.turn) {
     yield { type: "busy", message: BUSY_MESSAGE };
@@ -228,7 +245,13 @@ async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGen
   yield { type: "replay", text: (await turnText(log.rows, turn.turnSeq, { db, map, learnerId: turn.learnerId })) };
   const usage = (await loadTurnUsages(db, turn.sessionId)).get(turn.turnSeq);
   const [session] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
-  yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0), ref: { sessionId: turn.sessionId, turnSeq: turn.turnSeq } };
+  yield {
+    type: "done",
+    stopReason: turn.stopReason,
+    usage: usage ?? sumSteps(session.model, [], 0),
+    ref: { sessionId: turn.sessionId, turnSeq: turn.turnSeq },
+    shown: await shownNow(db, map, turn.learnerId),
+  };
 }
 
 async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, deadline: number): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
@@ -268,12 +291,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     if (await takeJumpEntry(db, learnerId)) await updateTurn(db, turn.id, { freshStep: true, enteredByJump: true });
     const jumped = (await db.select({ j: turns.enteredByJump }).from(turns).where(eq(turns.id, turn.id)))[0]?.j ?? false;
     const place = await ensureTopicStarted(db, map, now(), learnerId);
-    const previous = await currentSession(db, learnerId);
-    const found = await sessionForAction(db, now(), turn);
-    const continuing = "session" in found ? found.session : undefined;
-    // The last turn may have been in the previous Session.
-    const lastTurn = continuing ? await history(db, continuing.id) : previous ? await history(db, previous.id) : [];
-    session = continuing ?? (await startSession(db, now(), learnerId));
+    // The live Session for the current Topic (made by its first turn), refrozen if a deploy changed the instructions.
+    session = await refreezeIfChanged(db, await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));
+    log = await openLog(db, session.id, now);
     // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
     const paste = await pasteForTurn(db, turn.id, session.id, learnerId);
     const pastes = await pasteSummary(db, session.id, learnerId);
@@ -281,13 +301,11 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
     const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId));
     const stepped =
-      place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
+      place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(log.messages, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
         : plainContext;
     const navigatorContext = jumped ? `${JUMP_NOTE}\n${stepped}` : stepped;
     const learnerBlocks = [{ type: "text" as const, text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
-    if ("reason" in found && found.reason !== "first") yield { type: "session", reason: found.reason };
-    log = await openLog(db, session.id, now);
     code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
@@ -298,24 +316,26 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const widgetsNote = openWidgetsNote(openWidgetsBefore(log, turnSeq).map((w) => w.title));
     const context = widgetsNote ? `${widgetsNote}\n${navigatorContext}` : navigatorContext;
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
-    const quiz = await pendingQuizNote(db, map, learnerId);
+    const quiz = await pendingQuizNote(db, map, learnerId, session.topicId);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
     if (quiz?.passed) await updateTurn(db, turn.id, { freshStep: true });
+    // Where the Learner stands: opens the Session, and is sent again as a new message whenever it changes.
+    const stands = standsBlock(await learnerSummary(db, map, learnerId), await profileBlock(db, learnerId));
     if (log.messages.length === 0) {
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
       // Order: the Learner summary, the Learner Profile (if shared), then the Navigator context last.
-      const profile = await profileBlock(db, learnerId);
-      const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map, learnerId)}\n\n${profile ? `${profile}\n\n` : ""}${quiz ? `${quiz.text}\n\n` : ""}${context}`;
+      const opening = [stands, quiz?.text, context].filter(Boolean).join("\n\n");
       await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {
       // The API accepts a system message only right after a user message (live 400 otherwise),
-      // so changed context follows the Learner's message.
-      // A quiz result goes in the same system message as the context, which then always follows it.
-      const contextChanged = quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
+      // so changed context follows the Learner's message. Nothing already sent is rebuilt.
+      // A quiz result or a changed stands block goes in the same system message as the context, which always ends it.
+      const standsChanged = !standsAlreadySent(log.messages, stands);
+      const contextChanged = standsChanged || quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
       // Pasted text goes in the Learner's own message, as a marked block after what they typed.
       await log.append({ role: "user", content: paste ? learnerBlocks : learnerText });
-      if (contextChanged) await log.append({ role: "system", content: quiz ? `${quiz.text}\n\n${context}` : context });
+      if (contextChanged) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
     }
     if (quiz) await markQuizReported(db, quiz.attemptIds, now(), learnerId);
   }
@@ -459,7 +479,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
   }
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
-  return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq } };
+  return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq }, shown: await shownNow(db, map, learnerId) };
 }
 
 /** The Widgets open in the panel before the turn at `turnSeq`: those its Session's earlier replies drew. */

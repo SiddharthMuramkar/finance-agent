@@ -3,13 +3,13 @@ import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { flaggedWidgets, replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import type { CaseDataset } from "@/case-data/case-data";
-import type { CourseMap } from "@/course/map";
+import { loadCourseMap, type CourseMap } from "@/course/map";
 import { CitationMarks, citedPassageIds, displayText } from "./citations";
 import { replyFold, sourceContext, topicDatasets, type SourceDeps } from "./sources";
 import { topicTitleIn } from "./session-summary";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
-import { currentSession, type Message, type Row } from "./session-log";
+import { currentTopicId, liveSession, type Message, type Row } from "./session-log";
 import { loadTurnUsages, type TurnUsage } from "./usage";
 
 /** A Session turned into plain lines for display: the workspace after a reload, old Session pages, a replayed reply. No model call. */
@@ -48,9 +48,17 @@ export type TurnRef = { sessionId: number; turnSeq: number };
 
 export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage; /** On a reply: where it sits in its Session. */ ref?: TurnRef };
 
-/** The Learner's latest Session as plain text lines, for showing after a reload. No model call. */
+/**
+ * The Learner's live Session for their current Topic, if its first turn has made it: what the Study
+ * Workspace shows. Rendering makes no Session. Without a Course Map, the real one is read.
+ */
+export async function currentTopicSession(db: Db, map?: CourseMap, learnerId = OWNER_LEARNER_ID) {
+  return liveSession(db, learnerId, await currentTopicId(db, map ?? loadCourseMap(), learnerId));
+}
+
+/** The Learner's live Session for their current Topic as plain text lines, for showing after a reload. No model call. */
 export async function loadCurrentSession(db: Db, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<Line[]> {
-  const session = await currentSession(db, learnerId);
+  const session = await currentTopicSession(db, map, learnerId);
   return session ? loadSession(db, session.id, map, learnerId) : [];
 }
 

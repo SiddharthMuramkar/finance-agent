@@ -1,23 +1,22 @@
 import { createHash } from "node:crypto";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
-import { asc, desc, eq, max } from "drizzle-orm";
-import { messages, OWNER_LEARNER_ID, sessions, settings } from "@/db/schema";
+import { and, asc, eq, isNotNull, isNull, max } from "drizzle-orm";
+import type { CourseMap } from "@/course/map";
+import { navigate } from "@/course/navigator";
+import { messages, OWNER_LEARNER_ID, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { loadProgress } from "@/learner/memory";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
-import { turnBefore, type Turn } from "./turn-status";
 
 /**
- * Sessions and their add-only message log: the stored settings a Session is frozen from,
- * which Session the next action continues, and the history sent to the model.
+ * Sessions and their add-only message log: the stored settings a Session is frozen from, which
+ * Session a turn runs in (one per Learner and Topic, ADR 0004), and the history sent to the model.
  */
 
 export type Message = BetaMessageParam;
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 export const DEFAULT_SETTINGS = { model: "claude-opus-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10" };
-
-/** Why a turn opened a new Session: the last one went idle, the build's instructions or tools changed, or the last reply was declined. */
-export type NewSessionReason = "idle" | "updated" | "refused";
 
 export type Session = typeof sessions.$inferSelect;
 
@@ -32,9 +31,10 @@ export async function readSettings(db: Db) {
   return {
     model: get("model")!,
     effort: get("effort") as Effort,
+    /** How long a gap counts as a break; it never starts a new Session (ADR 0004). */
     idleHours: Number(get("session_idle_hours")),
     compactAtTokens: Number(get("compact_at_tokens")),
-    /** The most spaced reviews offered in one Session. */
+    /** The most spaced reviews offered over the last 24 hours. */
     reviewCap: Number(get("review_cap")),
   };
 }
@@ -43,59 +43,91 @@ export function fingerprint(instructions: string, tools: unknown[]) {
   return createHash("sha256").update(JSON.stringify({ instructions, tools })).digest("hex");
 }
 
-/** The Learner's latest Session. */
-export async function currentSession(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Session | undefined> {
-  const [row] = await db.select().from(sessions).where(eq(sessions.learnerId, learnerId)).orderBy(desc(sessions.id)).limit(1);
+/**
+ * The Topic the Learner's next turn talks about: the Course Navigator's current Topic, or null when
+ * every Topic is passed (the one Session with no Topic).
+ */
+export async function currentTopicId(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<string | null> {
+  return navigate(map, await loadProgress(db, learnerId))?.topic.id ?? null;
+}
+
+/**
+ * What a turn request says the Study Workspace shows: the Session on screen, or, before a Topic's
+ * first turn has made its Session, the Topic (null: the every-Topic-passed Session).
+ */
+export type Shown = { sessionId: number } | { topicId: string | null };
+
+/** A turn from a tab whose Topic is no longer the Learner's current one (it changed in another tab). */
+export const STALE_TAB_MESSAGE = "This Topic changed in another tab. Reload to carry on.";
+
+/** What the Study Workspace shows the Learner now: their current Topic's live Session, or that Topic before its first turn. */
+export async function shownNow(db: Db, map: CourseMap, learnerId: number): Promise<Shown> {
+  const topicId = await currentTopicId(db, map, learnerId);
+  const live = await liveSession(db, learnerId, topicId);
+  return live ? { sessionId: live.id } : { topicId };
+}
+
+/** Whether what a request says the page shows is the Learner's current Topic (a live Session of theirs for it, or the Topic itself). */
+export async function showsCurrentTopic(db: Db, map: CourseMap, learnerId: number, shown: Shown): Promise<boolean> {
+  const topicId = await currentTopicId(db, map, learnerId);
+  if ("topicId" in shown) return shown.topicId === topicId;
+  const [session] = await db
+    .select({ topicId: sessions.topicId })
+    .from(sessions)
+    .where(and(eq(sessions.id, shown.sessionId), eq(sessions.learnerId, learnerId), eq(sessions.older, false)));
+  return session !== undefined && session.topicId === topicId;
+}
+
+/**
+ * The Learner's live Session for a Topic (null: the every-Topic-passed Session), if its first turn
+ * has made it. Older Sessions, from before one Session per Topic, are never live.
+ */
+export async function liveSession(db: Db, learnerId: number, topicId: string | null): Promise<Session | undefined> {
+  const [row] = await db
+    .select()
+    .from(sessions)
+    .where(and(eq(sessions.learnerId, learnerId), eq(sessions.older, false), topicId === null ? isNull(sessions.topicId) : eq(sessions.topicId, topicId)))
+    .orderBy(asc(sessions.id))
+    .limit(1);
   return row;
 }
 
 /**
- * The Session the next action continues: the turn's Learner's latest one, unless it was frozen
- * from different instructions or tools, its last reply was declined, or it has
- * been idle longer than the `session_idle_hours` setting (default 6). Then the
- * reason a new Session starts is returned instead.
+ * The Session a new turn runs in: the Learner's live Session for the Topic, made by this turn if it
+ * is the Topic's first. Made with on-conflict, so two tabs never make two for one Topic.
  */
-export async function sessionForAction(db: Db, now: Date, turn: Turn): Promise<{ session: Session } | { reason: NewSessionReason | "first" }> {
-  const session = await currentSession(db, turn.learnerId);
-  if (!session) return { reason: "first" };
-  if (session.fingerprint !== fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)) return { reason: "updated" };
-  // An earlier build opened Sessions with a system message, which the API rejects; start afresh.
-  const [first] = await db
-    .select({ role: messages.role })
-    .from(messages)
-    .where(eq(messages.sessionId, session.id))
-    .orderBy(asc(messages.seq))
-    .limit(1);
-  if (first?.role === "system") return { reason: "updated" };
-  // A declined reply is discarded, not kept in history, so the conversation continues in a new Session from SQL.
-  const before = await turnBefore(db, turn.id, turn.learnerId);
-  if (before?.sessionId === session.id && before.stopReason === "refusal") return { reason: "refused" };
-  const [{ last }] = await db
-    .select({ last: max(messages.createdAt) })
-    .from(messages)
-    .where(eq(messages.sessionId, session.id));
-  const { idleHours } = await readSettings(db);
-  const lastActive = last ?? session.createdAt;
-  return now.getTime() - lastActive.getTime() > idleHours * 3600_000 ? { reason: "idle" } : { session };
+export async function sessionForTurn(db: Db, now: Date, learnerId: number, topicId: string | null): Promise<Session> {
+  const live = await liveSession(db, learnerId, topicId);
+  if (live) return live;
+  await db
+    .insert(sessions)
+    .values({ ...(await frozenNow(db)), learnerId, topicId, older: false, createdAt: now })
+    .onConflictDoNothing();
+  return (await liveSession(db, learnerId, topicId))!;
 }
 
-/** Freezes the current instructions, tools, model and effort into a new Session of the Learner's. */
-export async function startSession(db: Db, now: Date, learnerId = OWNER_LEARNER_ID): Promise<Session> {
-  const { model, effort } = await readSettings(db);
-  const tools: ToolDefinition[] = TUTOR_TOOLS;
+/**
+ * After a deploy changed the instructions or tools, the next new turn (never a resume) refreezes the
+ * instructions, tools, model and effort inside the same Session and records the seq of the first
+ * message after it: thinking blocks before that seq are never sent again (see `openLog`).
+ */
+export async function refreezeIfChanged(db: Db, session: Session): Promise<Session> {
+  const frozen = await frozenNow(db);
+  if (session.fingerprint === frozen.fingerprint) return session;
+  const [{ last }] = await db.select({ last: max(messages.seq) }).from(messages).where(eq(messages.sessionId, session.id));
   const [row] = await db
-    .insert(sessions)
-    .values({
-      learnerId,
-      instructions: TUTOR_INSTRUCTIONS,
-      tools,
-      model,
-      effort,
-      fingerprint: fingerprint(TUTOR_INSTRUCTIONS, tools),
-      createdAt: now,
-    })
+    .update(sessions)
+    .set({ ...frozen, refrozenAtSeq: (last ?? -1) + 1 })
+    .where(eq(sessions.id, session.id))
     .returning();
   return row;
+}
+
+/** The instructions, tools, model and effort a Session freezes now, with their fingerprint. */
+async function frozenNow(db: Db) {
+  const { model, effort } = await readSettings(db);
+  const tools: ToolDefinition[] = TUTOR_TOOLS;
+  return { instructions: TUTOR_INSTRUCTIONS, tools, model, effort, fingerprint: fingerprint(TUTOR_INSTRUCTIONS, tools) };
 }
 
 export const isCompaction = (content: unknown) => Array.isArray(content) && content.some((b) => b?.type === "compaction");
@@ -103,8 +135,12 @@ export const isCompaction = (content: unknown) => Array.isArray(content) && cont
 export type Row = { seq: number } & Message;
 
 /**
- * A Session's stored history. Every row stays stored (add-only); what is sent to the model
- * starts at the latest compaction block, which stands in for everything before it.
+ * A Session's stored history. Every row stays stored (add-only); what is sent to the model:
+ * - starts at the latest compaction block, which stands in for everything before it;
+ * - leaves out every row of a refused turn (the Learner's message, context and kept loop steps alike),
+ *   which the Learner still sees;
+ * - leaves out the thinking blocks of rows before the Session was last refrozen, because the API
+ *   rejects thinking made under other instructions or tools. Everything else replays unchanged.
  */
 export async function openLog(db: Db, sessionId: number, now: () => Date) {
   const rows = (await db
@@ -112,7 +148,13 @@ export async function openLog(db: Db, sessionId: number, now: () => Date) {
     .from(messages)
     .where(eq(messages.sessionId, sessionId))
     .orderBy(asc(messages.seq))) as Row[];
-  const sent: Message[] = rows.slice(Math.max(rows.findLastIndex((r) => isCompaction(r.content)), 0)).map((r) => ({ role: r.role, content: r.content }) as Message);
+  const [session] = await db.select({ refrozenAtSeq: sessions.refrozenAtSeq }).from(sessions).where(eq(sessions.id, sessionId));
+  const refused = await refusedSeqs(db, sessionId);
+  const refrozenAt = session?.refrozenAtSeq ?? 0;
+  const sent: Message[] = rows
+    .slice(Math.max(rows.findLastIndex((r) => isCompaction(r.content)), 0))
+    .filter((r) => !refused(r.seq))
+    .map((r) => ({ role: r.role, content: r.seq < refrozenAt ? withoutThinking(r.content) : r.content }) as Message);
   let nextSeq = rows.length ? rows[rows.length - 1].seq + 1 : 0;
   return {
     rows,
@@ -128,6 +170,25 @@ export async function openLog(db: Db, sessionId: number, now: () => Date) {
       sent.push(message);
     },
   };
+}
+
+/**
+ * Whether a seq belongs to a refused turn of the Session: from the turn's first row (its turn seq)
+ * up to the next turn's first row.
+ */
+async function refusedSeqs(db: Db, sessionId: number): Promise<(seq: number) => boolean> {
+  const starts = await db
+    .select({ seq: turns.turnSeq, stopReason: turns.stopReason })
+    .from(turns)
+    .where(and(eq(turns.sessionId, sessionId), isNotNull(turns.turnSeq)))
+    .orderBy(asc(turns.turnSeq));
+  const ranges = starts.flatMap((t, i) => (t.stopReason === "refusal" ? [[t.seq!, starts[i + 1]?.seq ?? Infinity] as const] : []));
+  return (seq) => ranges.some(([from, to]) => seq >= from && seq < to);
+}
+
+/** Assistant content without its thinking blocks; anything else unchanged. */
+function withoutThinking(content: unknown): unknown {
+  return Array.isArray(content) ? content.filter((b) => b?.type !== "thinking" && b?.type !== "redacted_thinking") : content;
 }
 export type Log = Awaited<ReturnType<typeof openLog>>;
 

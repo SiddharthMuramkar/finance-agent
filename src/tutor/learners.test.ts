@@ -98,18 +98,22 @@ describe("two Learners in the Tutor Turn", () => {
     expect(await loadCurrentSession(db, plain, second)).toEqual([]);
   });
 
-  it("the turn before a Learner's turn is their own: another Learner's turn in between doesn't hide their declined reply", async () => {
+  it("a Learner's declined turn is left out of only their own later requests, whatever another Learner does in between", async () => {
     const db = await testDb();
     const second = await secondLearner(db);
+    await turnFor(db, OWNER_LEARNER_ID, "Owner says odd things too", [say("Owner's reply.")]).events;
     const refused = turnFor(db, second, "Something odd", [{ ...say("I can't"), stop_reason: "refusal" }]);
     expect(await refused.events).toContainEqual(expect.objectContaining({ type: "refusal" }));
     await turnFor(db, OWNER_LEARNER_ID, "Hello", [say("Hi.")]).events;
 
     const next = turnFor(db, second, "Let me ask another way", [say("Sure.")]);
-    expect(await next.events).toContainEqual({ type: "session", reason: "refused" });
-    // The owner's own Session carries on.
+    await next.events;
+    expect(sent(next.requests[0])).not.toContain("Something odd");
+    // The owner's own Session carries on whole.
     const owner = turnFor(db, OWNER_LEARNER_ID, "And again", [say("Still here.")]);
-    expect((await owner.events).map((e) => e.type)).not.toContain("session");
+    await owner.events;
+    expect(sent(owner.requests[0])).toContain("Owner says odd things too");
+    expect(sent(owner.requests[0])).toContain("Hello");
   });
 
   it("each Learner gets quiz attempt 0 for the same Check, and hears only their own result", async () => {

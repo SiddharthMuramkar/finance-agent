@@ -3,6 +3,7 @@
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
+import type { Shown } from "@/tutor/session-log";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { LeftColumn } from "./left-column";
 import type { Line } from "./thread";
@@ -32,6 +33,7 @@ export function Conversation({
   place = null,
   explore = null,
   revealed = [],
+  shown,
 }: {
   initial: Line[];
   summary: string;
@@ -43,9 +45,11 @@ export function Conversation({
   explore?: { code: string } | null;
   /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
   revealed?: readonly string[];
+  /** What the page shows (its Topic's Session, or the Topic before its first turn), carried by every turn request. */
+  shown?: Shown;
 }) {
   // Each new turn sends the panel back to the newest Widget.
-  const turn = useTurnStream({ initial, pending, onTurnStart: () => host.showNewest() });
+  const turn = useTurnStream({ initial, pending, shown, onTurnStart: () => host.showNewest() });
   const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz });
 
   return (

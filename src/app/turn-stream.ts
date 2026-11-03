@@ -4,6 +4,7 @@ import { useExternalStoreRuntime, type AppendMessage } from "@assistant-ui/react
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { replaceBrokenWidgets } from "@/widgets/check";
+import type { Shown } from "@/tutor/session-log";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import { convertMessage, type Line, type ThreadLine } from "./thread";
@@ -26,10 +27,6 @@ export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: str
 /** What a turn request carries: a message (with an optional pasted passage), Continue, or a resume. */
 export type TurnBody = { message: string; paste?: string } | { continue: true } | { resume: true };
 
-const NOTICES: Record<string, string> = {
-  updated: "The Tutor was updated, so this is a new Session, started from your saved progress.",
-  refused: "A new Session started from your saved progress.",
-};
 /** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
 export const SLOW_AFTER_MS = 8000;
 /** What the writing indicator says while a turn waits for its first words: "writing", then "slow" after 8 seconds. */
@@ -44,10 +41,13 @@ export type TurnStream = ReturnType<typeof useTurnStream>;
 
 /**
  * The conversation and its turn state. `onTurnStart` runs as each turn starts (the Widget host uses it to
- * go back to showing the newest Widget).
+ * go back to showing the newest Widget). `shown` is what the page shows (its Topic's Session, or the Topic
+ * before its first turn): every turn request carries it, so a tab left on another Topic is refused, and
+ * each finished turn says what the next request should carry.
  */
-export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line[]; pending: PendingTurn; onTurnStart: () => void }) {
+export function useTurnStream({ initial, pending, onTurnStart, shown }: { initial: Line[]; pending: PendingTurn; onTurnStart: () => void; shown?: Shown }) {
   const router = useRouter();
+  const shownRef = useRef(shown);
   const [messages, setMessages] = useState<ThreadLine[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
   const [announcement, setAnnouncement] = useState("");
@@ -97,9 +97,18 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
     let busyWaits = 0;
     try {
       for (;;) {
-        const res = await fetch("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+        const res = await fetch("/api/turn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...request, ...(shownRef.current && { shown: shownRef.current }) }),
+        });
         if (res.status === 409) {
-          const { error: busy } = (await res.json()) as { error: string };
+          const { error: busy, stale } = (await res.json()) as { error: string; stale?: boolean };
+          if (stale && "resume" in request) {
+            // This tab shows a Topic the Learner has left in another tab: nothing ran, and a reload shows the current one.
+            fail(busy);
+            return;
+          }
           if (!("resume" in request)) {
             // Nothing was saved: take the message back off the screen.
             setMessages((m) => m.filter((x) => x.id !== `u-${stamp}` && x.id !== replyId));
@@ -144,13 +153,14 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
                 const usage = event.usage as TurnUsage;
                 setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, usage } : x)));
               }
+              // What the next turn request says the page shows.
+              if (event.shown) shownRef.current = event.shown as Shown;
               // The finished reply can now be saved to notes.
               if (event.ref) {
                 const ref = event.ref as TurnRef;
                 setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, ref } : x)));
               }
-            } else if (event.type === "session" && NOTICES[event.reason]) setNotice(NOTICES[event.reason]);
-            else if (event.type === "refusal") {
+            } else if (event.type === "refusal") {
               // Only the declined loop step is dropped; what earlier steps saved stays, as a reload shows it.
               updateReply(() => event.text ?? "");
               setNotice(event.message);

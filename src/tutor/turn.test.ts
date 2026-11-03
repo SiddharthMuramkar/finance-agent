@@ -53,7 +53,7 @@ describe("Tutor Turn", () => {
     expect(events).toEqual([
       { type: "text", text: "Present value " },
       { type: "text", text: "starts with a story." },
-      { type: "done", stopReason: "end_turn", usage: expect.any(Object), ref: { sessionId: expect.any(Number), turnSeq: 0 } },
+      { type: "done", stopReason: "end_turn", usage: expect.any(Object), ref: { sessionId: expect.any(Number), turnSeq: 0 }, shown: { sessionId: expect.any(Number) } },
     ]);
     expect(noUsage(await loadCurrentSession(db))).toEqual([
       { role: "user", text: "What is present value?" },
@@ -95,7 +95,7 @@ describe("Tutor Turn", () => {
     }
   });
 
-  it("keeps a Session on the model it started with, and the next new Session uses the stored default", async () => {
+  it("keeps a Session on the model it started with, even after idle hours, until a deploy refreezes it on the stored default", async () => {
     const db = await testDb();
     let t = Date.parse("2026-11-03T09:00:00Z");
     const now = () => new Date(t);
@@ -103,6 +103,7 @@ describe("Tutor Turn", () => {
       { content: [{ type: "text", text: "One." }] },
       { content: [{ type: "text", text: "Two." }] },
       { content: [{ type: "text", text: "Three." }] },
+      { content: [{ type: "text", text: "Four." }] },
     ]);
 
     await collect(runTutorTurn({ db, client, now }, "Hello"));
@@ -110,9 +111,14 @@ describe("Tutor Turn", () => {
     t += 60_000;
     await collect(runTutorTurn({ db, client, now }, "Same Session"));
     t += 7 * 3600_000;
-    await collect(runTutorTurn({ db, client, now }, "New Session"));
+    await collect(runTutorTurn({ db, client, now }, "After a break"));
+    expect(requests.map((r) => r.model)).toEqual(["claude-opus-5-5", "claude-opus-5-5", "claude-opus-5-5"]);
 
-    expect(requests.map((r) => r.model)).toEqual(["claude-opus-5-5", "claude-opus-5-5", "claude-sonnet-5-5"]);
+    // A deploy that changes the instructions refreezes the Session at its next turn.
+    await db.update(sessionsTable).set({ fingerprint: "an-earlier-build" });
+    await collect(runTutorTurn({ db, client, now }, "After a deploy"));
+    expect(requests.at(-1)!.model).toBe("claude-sonnet-5-5");
+    expect(await listSessions(db)).toHaveLength(1);
   });
 
   it("shows text written before a tool call to the Learner and saves it in the reply", async () => {
@@ -169,17 +175,6 @@ describe("Tutor Turn", () => {
       role: "assistant",
       content: [{ type: "redacted_thinking", data: "opaque==" }, { type: "text", text: "Because of interest." }],
     });
-  });
-
-  it("starts a new Session when the current one opens with a system message, which the API rejects", async () => {
-    const db = await testDb();
-    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "One." }] }, { content: [{ type: "text", text: "Two." }] }]);
-    await collect(runTutorTurn({ db, client }, "Hello"));
-    // An earlier build stored the opening context as a system message.
-    await db.update(messages).set({ role: "system", content: "Where the Learner stands: old" }).where(eq(messages.seq, 0));
-    await collect(runTutorTurn({ db, client }, "Again"));
-    expect(await listSessions(db)).toHaveLength(2);
-    expect(requests[1].messages[0].role).toBe("user");
   });
 
   describe("led by the Course Navigator", () => {
@@ -324,7 +319,7 @@ describe("Tutor Turn", () => {
       expect(TUTOR_INSTRUCTIONS).toContain("never finish a step that began in the same turn");
     });
 
-    it("saves the current Topic, Teaching Step and reveal, and they survive a new Session", async () => {
+    it("saves the current Topic, Teaching Step and reveal, and after a break the Topic's Session carries on with them", async () => {
       const db = await testDb();
       const time = clock();
       await advanceToCheck(db, map);
@@ -342,12 +337,13 @@ describe("Tutor Turn", () => {
       time.advance(7 * HOUR);
       await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
       const sessions = await listSessions(db);
-      expect(sessions).toHaveLength(2);
-      const fresh = requests.at(-1)!;
+      expect(sessions).toHaveLength(1);
+      const later = requests.at(-1)!;
       // The API rejects a system message as the first message (live 400), so the opening context rides in the first user message.
-      expect(fresh.messages[0].role).toBe("user");
-      expect(systemTexts(fresh)[0]).toContain("Teaching Step: reveal");
-      expect(systemTexts(fresh)[0]).toContain(pv.cases[0].reveal.trim());
+      expect(later.messages[0].role).toBe("user");
+      // The latest Where the Learner stands block and context carry the new place.
+      expect(systemTexts(later).at(-1)).toContain("Teaching Step: reveal");
+      expect(systemTexts(later).at(-1)).toContain(pv.cases[0].reveal.trim());
     });
 
     it("appends changed context mid-Session right after the Learner's message, where the API accepts it", async () => {
@@ -672,10 +668,12 @@ describe("Tutor Turn", () => {
         await collect(runTutorTurn({ db, client, map }, "Interest compounds."));
         await collect(runTutorTurn({ db, client, map }, "Let me try again."));
         const fourth = requests.at(-1)!.messages;
-        expect(fourth.at(-1)).toMatchObject({ role: "user", content: "Let me try again." });
+        const fromLast = fourth.slice(fourth.findLastIndex((m) => m.role === "user" && m.content === "Let me try again."));
+        expect(fromLast.length).toBeGreaterThan(0);
+        expect(JSON.stringify(fromLast)).not.toContain("No verdict was recorded");
       });
 
-      it("a new Session after a turn that ended at a Check with no verdict opens by saying none was recorded", async () => {
+      it("after a break, a turn that ended at a Check with no verdict is followed by saying none was recorded", async () => {
         const db = await testDb();
         const time = clock();
         await advanceToCheck(db, map);
@@ -686,11 +684,11 @@ describe("Tutor Turn", () => {
         await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
         time.advance(7 * HOUR);
         await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
-        expect(await listSessions(db)).toHaveLength(2);
-        expect(systemTexts(requests.at(-1)!)[0]).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
+        expect(await listSessions(db)).toHaveLength(1);
+        expect(systemTexts(requests.at(-1)!).at(-1)).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
       });
 
-      it("the Tutor records a misconception through a tool, and a new Session's first message brings it up in code's summary", async () => {
+      it("the Tutor records a misconception through a tool, and the next Where the Learner stands block brings it up in code's summary", async () => {
         const db = await testDb();
         const time = clock();
         const note = (id: string) => ({
@@ -711,7 +709,7 @@ describe("Tutor Turn", () => {
 
         time.advance(7 * HOUR);
         await collect(runTutorTurn({ db, client, map, now: time.now }, { continue: true }));
-        const opening = systemTexts(requests.at(-1)!)[0];
+        const opening = systemTexts(requests.at(-1)!).at(-1)!;
         expect(opening.startsWith(OPENING_PREFIX)).toBe(true);
         // Saved once despite the repeated tool call ID.
         expect(opening.match(/Treats the advertised total as the prize's value today\./g)).toHaveLength(1);
@@ -741,37 +739,22 @@ describe("Tutor Turn", () => {
       });
     });
 
-    it("starts a new Session after six idle hours, as a changeable default, and old Sessions stay readable", async () => {
+    it("idle time never starts a new Session: the Topic's Session carries on after any break", async () => {
       const db = await testDb();
       const time = clock();
-      const { client } = scriptedClient(
-        Array.from({ length: 4 }, (_, i) => ({ content: [{ type: "text", text: `Reply ${i}` }] })),
+      const { client, requests } = scriptedClient(
+        Array.from({ length: 3 }, (_, i) => ({ content: [{ type: "text", text: `Reply ${i}` }] })),
       );
       await collect(runTutorTurn({ db, client, map, now: time.now }, "First"));
-      time.advance(5 * HOUR);
+      time.advance(7 * HOUR);
       await collect(runTutorTurn({ db, client, map, now: time.now }, "Second"));
-      expect(await listSessions(db)).toHaveLength(1);
-
-      time.advance(6 * HOUR + 1000);
+      time.advance(30 * 24 * HOUR);
       await collect(runTutorTurn({ db, client, map, now: time.now }, "Third"));
-      expect(await listSessions(db)).toHaveLength(2);
 
-      await db.insert(settings).values({ key: "session_idle_hours", value: "1" }).onConflictDoUpdate({
-        target: settings.key,
-        set: { value: "1" },
-      });
-      time.advance(2 * HOUR);
-      await collect(runTutorTurn({ db, client, map, now: time.now }, "Fourth"));
       const all = await listSessions(db);
-      expect(all).toHaveLength(3);
-
-      const oldest = all.at(-1)!;
-      expect(noUsage(await loadSession(db, oldest.id))).toEqual([
-        { role: "user", text: "First" },
-        { role: "assistant", text: "Reply 0" },
-        { role: "user", text: "Second" },
-        { role: "assistant", text: "Reply 1" },
-      ]);
+      expect(all).toHaveLength(1);
+      expect(JSON.stringify(requests.at(-1)!.messages)).toContain("Reply 1");
+      expect(noUsage(await loadSession(db, all[0].id)).map((l) => l.text)).toEqual(["First", "Reply 0", "Second", "Reply 1", "Third", "Reply 2"]);
     });
   });
 
@@ -1089,7 +1072,7 @@ describe("Tutor Turn", () => {
       expect(contextTexts(requests.at(-1)!).filter((t) => t.includes("Quiz result by code"))).toHaveLength(1);
     });
 
-    it("carries a result into the opening message of a new Session", async () => {
+    it("carries a result into the Topic's Session after a break", async () => {
       const db = await testDb();
       let t = Date.parse("2026-11-02T09:00:00Z");
       const now = () => new Date(t);
@@ -1101,7 +1084,7 @@ describe("Tutor Turn", () => {
       t += 7 * 3600_000;
       await collect(runTutorTurn({ db, client, map: real, now }, { continue: true }));
       expect(requests.at(-1)!.messages[0].role).toBe("user");
-      expect(contextTexts(requests.at(-1)!)[0]).toContain("Quiz result by code");
+      expect(contextTexts(requests.at(-1)!).at(-1)).toContain("Quiz result by code");
     });
   });
 });
@@ -1258,7 +1241,7 @@ describe("surviving cut-offs and failures", () => {
     expect(resultsIn(requests[1])).toEqual([{ type: "tool_result", tool_use_id: "toolu_cut", is_error: true, content: expect.stringMatching(/Not run/) }]);
   });
 
-  it("refusal: the declined reply is discarded, the Learner sees a plain message, their place doesn't change, and the next message starts a new Session from SQL", async () => {
+  it("refusal: the declined reply is discarded, the Learner sees a plain message, their place doesn't change, and the next message leaves the refused turn out", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([
       { content: [text("Hello.")] },
@@ -1272,10 +1255,9 @@ describe("surviving cut-offs and failures", () => {
     // The partial reply is never stored.
     expect(noUsage(await loadCurrentSession(db)).map((l) => l.text)).not.toContain("I can help with tha");
 
-    const next = await collect(runTutorTurn({ db, client, map }, "Let us go on"));
-    expect(next).toContainEqual({ type: "session", reason: "refused" });
-    expect(await listSessions(db)).toHaveLength(2);
-    expect(requests.at(-1)!.messages).toHaveLength(1);
+    await collect(runTutorTurn({ db, client, map }, "Let us go on"));
+    expect(await listSessions(db)).toHaveLength(1);
+    expect(requests.at(-1)!.messages.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
     expect(String(JSON.stringify(requests.at(-1)!.messages))).not.toContain("Something declined");
   });
 
@@ -1353,15 +1335,17 @@ describe("surviving cut-offs and failures", () => {
     expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
   });
 
-  it("a changed fingerprint of instructions and tools starts a new Session from SQL, and the workspace is told", async () => {
+  it("a changed fingerprint of instructions and tools refreezes them in the same Session, with no notice", async () => {
     const db = await testDb();
-    const { client } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }]);
+    const { client, requests } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }]);
     await collect(runTutorTurn({ db, client, map }, "Hello"));
     // As if the Session was frozen by an earlier build.
-    await db.update(sessionsTable).set({ fingerprint: "an-earlier-build" });
+    await db.update(sessionsTable).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
     const events = await collect(runTutorTurn({ db, client, map }, "Hello again"));
-    expect(events[0]).toEqual({ type: "session", reason: "updated" });
-    expect(await listSessions(db)).toHaveLength(2);
+    expect(events.map((e) => e.type)).toEqual(["text", "done"]);
+    expect(await listSessions(db)).toHaveLength(1);
+    expect(requests.at(-1)!.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
+    expect(JSON.stringify(requests.at(-1)!.messages)).toContain("One.");
   });
 
   it("the calculate tool runs the tested formula and answers with formatted numbers; bad input is an error result the Tutor can read", async () => {
@@ -1384,7 +1368,7 @@ describe("surviving cut-offs and failures", () => {
     await collect(runTutorTurn({ db, client, map, now: () => new Date(time) }, { continue: true }));
     expect(resultsIn(requests[1])[0]).not.toHaveProperty("is_error");
     await collect(runTutorTurn({ db, client, map, now: () => new Date(time + 7 * 3600_000) }, { continue: true }));
-    expect(JSON.stringify(requests.at(-1)!.messages[0])).toContain("Adds payments without discounting.");
+    expect(String(requests.at(-1)!.messages.at(-1)!.content)).toContain("Adds payments without discounting.");
   });
 
   it("on-demand compaction: once a Session grows past the setting, the runner is asked for a summary after the turn, and later requests start from it", async () => {
@@ -1459,7 +1443,7 @@ describe("Learner Profile in the Tutor Turn", () => {
     expect(openingOf(requests[0])).not.toContain("Learner Profile");
   });
 
-  it("an edit in the middle of a Session takes effect at the next Session, not this one", async () => {
+  it("an edit in the middle of a Session takes effect at the next turn, as a new block; the opening is not rebuilt", async () => {
     const db = await testDb();
     await saveProfile(db, profileInput.parse({ work: "Nurse" }));
     let t = Date.parse("2026-11-03T09:00:00Z");
@@ -1469,15 +1453,15 @@ describe("Learner Profile in the Tutor Turn", () => {
     await saveProfile(db, profileInput.parse({ work: "Teacher" }));
     t += 60_000;
     await collect(runTutorTurn({ db, client, map, now }, "Again"));
-    // The same Session replays the profile it started with.
+    // The same Session replays the opening it started with, and the edit follows as a new block.
     expect(await listSessions(db)).toHaveLength(1);
     expect(openingOf(requests[1])).toContain("- Work: Nurse");
     expect(openingOf(requests[1])).not.toContain("Teacher");
-    // A later Session picks up the edit.
+    expect(String(requests[1].messages.at(-1)!.content)).toContain("- Work: Teacher");
     t += 7 * 3600_000;
     await collect(runTutorTurn({ db, client, map, now }, "Third"));
-    expect(await listSessions(db)).toHaveLength(2);
-    expect(openingOf(requests[2])).toContain("- Work: Teacher");
+    expect(await listSessions(db)).toHaveLength(1);
+    expect(requests[2].messages.filter((m) => m.role === "system")).toHaveLength(1);
   });
 
   it("the instructions say the profile is for examples only, never advice", () => {

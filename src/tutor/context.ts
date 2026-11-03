@@ -6,6 +6,7 @@ import type { ExploreInfo } from "@/learner/insight";
 import { formulaById, formulaGuide } from "@/finance/formulas";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
 import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
+import { PROFILE_BLOCK_HEADING } from "@/learner/profile";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
 
 /** Turns at explore with no attempt before the context reminds the Tutor to put the question. */
@@ -207,8 +208,40 @@ export function noVerdictContext(place: Place & { check: NonNullable<Place["chec
   return `No verdict was recorded for Check ${place.check.id} in the last turn, so the Learner is still at this Check.\n${stepContext(place, caseData, pastes)}`;
 }
 
-/** Opens the Session's first message: the Learner's summary and the Course Navigator's context. */
+/**
+ * Opens the "Where the Learner stands" block: the Learner's summary and Learner Profile. It opens the
+ * Session's first message, and is sent again, as a new message, whenever it changes.
+ */
 export const OPENING_PREFIX = "Where the Learner stands:";
+
+/** The Where the Learner stands block, from the Learner summary and the Learner Profile block (if shared). */
+export function standsBlock(summary: string, profile: string | null): string {
+  return `${OPENING_PREFIX}\n${summary}${profile ? `\n\n${profile}` : ""}`;
+}
+
+/**
+ * Whether the latest Where the Learner stands block in these messages is this one. A sent block is
+ * followed by a blank line and the rest of its message (a quiz result, the Course Navigator context).
+ */
+export function standsAlreadySent(msgs: BetaMessageParam[], stands: string): boolean {
+  const sent = lastStandsSent(msgs);
+  if (sent === undefined || !(sent === stands || sent.startsWith(`${stands}\n\n`))) return false;
+  // A block without a profile is a prefix of the same block with one.
+  return !sent.slice(stands.length + 2).startsWith(PROFILE_BLOCK_HEADING);
+}
+
+/** The last message text that holds a Where the Learner stands block: a context message, or a Session's first message. */
+function lastStandsSent(msgs: BetaMessageParam[]): string | undefined {
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const { role, content } = msgs[i];
+    if (role === "system" && typeof content === "string" && content.startsWith(OPENING_PREFIX)) return content;
+    if (role === "user" && Array.isArray(content)) {
+      const opening = content.find((b) => b.type === "text" && b.text.startsWith(OPENING_PREFIX));
+      if (opening && opening.type === "text") return opening.text;
+    }
+  }
+  return undefined;
+}
 
 /** Every Course Navigator context contains this; other tool results (such as a saved misconception) do not. */
 export const CONTEXT_MARK = "Course Navigator:";

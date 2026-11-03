@@ -192,7 +192,7 @@ describe("Follow Topics: text the Learner pastes", () => {
     expect(lines[0]).toEqual({ role: "user", text: 'Here is the opening.\n\n(Pasted passage, 20 words: "Paragraph one of the newsletter piece …")' });
   });
 
-  it("does not carry pasted text into a new Session: the Tutor is told it has not seen the piece there", async () => {
+  it("keeps pasted text across a break, because the Topic keeps its Session", async () => {
     const db = await testDb();
     let now = new Date("2026-11-02T09:00:00Z");
     const { client, requests } = scriptedClient([
@@ -205,8 +205,8 @@ describe("Follow Topics: text the Learner pastes", () => {
     await collect(runTutorTurn({ db, client, map: pasteMap(), now: () => now }, "Where were we?"));
 
     const context = sentTexts(requests[1]).join("\n");
-    expect(context).not.toContain(passage);
-    expect(context).toContain("The Learner has not pasted any of it in this Session");
+    expect(context).toContain(passage);
+    expect(context).not.toContain("The Learner has not pasted any of it in this Session");
   });
 
   it("keeps the pasted text when a failed turn is retried", async () => {

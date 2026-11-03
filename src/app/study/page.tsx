@@ -12,7 +12,8 @@ import { learnerSummary, loadProgress } from "@/learner/memory";
 import { loadProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
-import { loadCurrentSession } from "@/tutor/transcript";
+import { shownNow } from "@/tutor/session-log";
+import { loadSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "../conversation";
 import { ProfileForm } from "../profile/profile-form";
@@ -57,9 +58,11 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   }
   const db = getDb();
   const learnerId = await currentLearnerId();
+  // The current Topic's own Session (ADR 0004), or the Topic alone before its first turn: rendering makes no Session.
+  const shown = await shownNow(db, map, learnerId);
   const [summary, initial, quiz, turn, review, progress, profile] = await Promise.all([
     learnerSummary(db, map, learnerId),
-    loadCurrentSession(db, map, learnerId),
+    "sessionId" in shown ? loadSession(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
     openQuiz(db, map, new Date(), learnerId).catch((error) => {
       console.error("The open quiz could not be loaded", error);
@@ -70,8 +73,10 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     loadProgress(db, learnerId),
     loadProfile(db, learnerId),
   ]);
-  // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one.
-  const pending: PendingTurn = turn && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
+  // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
+  // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
+  const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
+  const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
   // The current Topic and its Stage, for the status card's eyebrow.
   const current = courseOverview(map, progress).find((t) => t.current);
   const place = current ? { stage: current.stage, title: current.title } : null;
@@ -92,6 +97,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         place={place}
         explore={exploreWidgetFor(map, progress)}
         revealed={revealedCases(map, progress)}
+        shown={shown}
       />
     </WorkspaceShell>
   );
