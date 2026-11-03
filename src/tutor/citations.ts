@@ -5,9 +5,9 @@ import { passageIdOf } from "@/library/passage";
  * `search_result` block with citations on, so a reply's text comes back split into blocks, and a
  * block that rests on a passage carries citations naming the passage view (/passages/<id>) and the
  * sentences (block range) it drew on. Code turns those into what the Learner sees: a numbered link
- * after each cited claim, to the exact sentences in the passage view, and a list of the reply's
- * sources at its end. The stored reply is never changed; this is worked out the same way while it
- * streams and when it is read back, so the two always match.
+ * after each cited claim, to the exact sentences in the passage view, and one folded list of the
+ * reply's sources at its end (see src/tutor/sources.ts). The stored reply is never changed; this is
+ * worked out the same way while it streams and when it is read back, so the two always match.
  */
 
 /** The part of a citation this needs; only `search_result_location` citations of a Library passage count. */
@@ -15,13 +15,38 @@ export type Citation = { type: string; source?: string; title?: string | null; s
 
 const FENCE = "```";
 
-/** Square brackets would end a Markdown link's text early. */
-const linkText = (text: string) => text.replace(/[[\]]/g, (c) => `\\${c}`);
-
-/** One reply's citation marks: fed its text and citations in order, it gives the markers and source list to show. */
-/** Shown in the Sources list instead of the heading of a passage the as-of rule hides now. */
+/** Shown in the folded sources instead of the heading of a passage the as-of rule hides now. */
 export const HIDDEN_SOURCE_TITLE = "Library passage (hidden until the reveal)";
 
+/** One line of a reply's folded sources. `n` is the number its citation markers carry; null for a source no marker points to (Case Data). */
+export type SourceEntry = { n: number | null; title: string; href: string; credit: string | null };
+
+/** The language of the Markdown fence that carries a reply's folded sources, drawn by the reply renderer as a small "N sources" line. */
+export const SOURCES_FENCE = "sources";
+
+/** A reply's folded sources as the text that ends it; empty when there are none. */
+export function foldText(entries: SourceEntry[]): string {
+  if (!entries.length) return "";
+  // A backtick in a title could end the fence early.
+  return `\n\n${FENCE}${SOURCES_FENCE}\n${JSON.stringify(entries).replace(/`/g, "\\u0060")}\n${FENCE}`;
+}
+
+/** The entries inside a sources fence; none if it is not what `foldText` wrote. */
+export function parseFold(code: string): SourceEntry[] {
+  try {
+    const v: unknown = JSON.parse(code);
+    if (!Array.isArray(v)) return [];
+    return v.filter((e): e is SourceEntry => typeof e?.title === "string" && typeof e?.href === "string");
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * One reply's citation marks: fed its text and citations in order, it gives the markers to show and,
+ * at the end, the passages to list. One of these serves the whole reply (every loop step of the turn),
+ * so a number never means two different passages.
+ */
 export class CitationMarks {
   private text = "";
   /** Where the current block's text starts. */
@@ -32,6 +57,11 @@ export class CitationMarks {
   add(text: string): string {
     this.text += text;
     return text;
+  }
+
+  /** Starts a new loop step's text: a widget fence cannot run from one step into the next. */
+  newStep(): void {
+    this.blockStart = this.text.length;
   }
 
   /**
@@ -57,35 +87,41 @@ export class CitationMarks {
     return out;
   }
 
-  /** The IDs of the passages cited so far, for asking which the as-of rule hides (see `hiddenPassages`). */
+  /** The IDs of the passages cited so far, for looking up their credit and which the as-of rule hides. */
   cited(): number[] {
     return this.passages.map((p) => p.id);
   }
 
   /**
-   * The list of passages the reply cited, numbered as in its markers, to show at its end; empty when none.
-   * A passage in `hidden` (one the as-of rule hides now) is listed without its heading, which could tell a Case's ending.
+   * The passages the reply cited, numbered as in its markers. A passage in `hidden` (one the as-of
+   * rule hides now) is listed without its heading, which could tell a Case's ending, and without credit.
    */
-  sources(hidden: ReadonlySet<number> = new Set()): string {
-    if (!this.passages.length) return "";
-    const title = (p: { id: number; title: string }) => (hidden.has(p.id) ? HIDDEN_SOURCE_TITLE : p.title);
-    return this.add(`\n\nSources:\n\n${this.passages.map((p, i) => `${i + 1}. [${linkText(title(p))}](${p.source})\n`).join("")}`);
+  entries(credits: ReadonlyMap<number, string>, hidden: ReadonlySet<number> = new Set()): SourceEntry[] {
+    return this.passages.map((p, i) => ({
+      n: i + 1,
+      title: hidden.has(p.id) ? HIDDEN_SOURCE_TITLE : p.title,
+      href: p.source,
+      credit: hidden.has(p.id) ? null : (credits.get(p.id) ?? null),
+    }));
   }
 }
 
 type Block = { type?: string; text?: string; citations?: Citation[] | null };
 
-/** A stored Tutor reply as the Learner sees it: its text with citation markers, then its sources. */
-export function displayText(content: unknown, hidden?: ReadonlySet<number>): string {
+/**
+ * One stored Tutor message as the Learner sees it: its text with citation markers. The reply's sources
+ * are not part of it; they follow the whole reply (see `foldText`), numbered by the shared `marks`.
+ */
+export function displayText(content: unknown, marks: CitationMarks = new CitationMarks()): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
-  const marks = new CitationMarks();
+  marks.newStep();
   let out = "";
   for (const b of content as Block[]) {
     if (b?.type !== "text" || typeof b.text !== "string") continue;
     out += marks.add(b.text) + marks.markers(b.citations);
   }
-  return out + marks.sources(hidden);
+  return out;
 }
 
 /** The Library passage IDs cited in these stored messages' contents, for asking which the as-of rule hides. */

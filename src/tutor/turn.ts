@@ -6,11 +6,13 @@ import { navigate } from "@/course/navigator";
 import { sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
+import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
-import { hiddenPassages, type QueryEmbedder } from "@/library/library";
+import type { QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
+import { replyFold, sourceContext } from "./sources";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -30,7 +32,7 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, CONTINUE_TEXT, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
@@ -39,7 +41,7 @@ import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage
  * runs the Tool Runner loop with cut-off, compaction, refusal and widget-correction handling.
  */
 
-export { latestTurn, BUSY_MESSAGE } from "./turn-status";
+export { latestTurn, BUSY_MESSAGE, CONTINUE_TEXT } from "./turn-status";
 
 /** Room for adaptive thinking as well as the visible reply. */
 const MAX_TOKENS = 16000;
@@ -133,8 +135,6 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 export type TurnInput = string | { continue: true } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
-/** What the Learner's "Continue" button sends. */
-export const CONTINUE_TEXT = "Continue.";
 
 export type TurnDeps = {
   db: Db;
@@ -270,7 +270,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const pastes = await pasteSummary(db, session.id);
     const caseData = await caseDataFor(db, map, place);
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
-    const plainContext = stepContext(place, caseData, pastes, quizDown);
+    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id));
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
@@ -337,6 +337,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       for (; saved < all.length; saved++) await log.append(all[saved]);
     };
     let text = "";
+    // The reply's citation numbers and sources run once across all its loop steps, as displayText and replyFold show them on reload.
+    const marks = new CitationMarks();
+    let shownText = "";
     let compacting = false;
     // A step's time runs from the end of the one before (so it includes the tools that ran between) to its final message.
     let stepStart = performance.now();
@@ -350,14 +353,15 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         yield* reportSaveFailure();
         const events = stream[Symbol.asyncIterator]();
         let stepHasText = false;
-        // Citation markers follow each cited block, and the step's sources follow the step, as displayText shows them on reload.
-        const marks = new CitationMarks();
+        // Citation markers follow each cited block.
+        marks.newStep();
         const cited = new Map<number, Citation[]>();
         const show = (shown: string): TurnEvent[] => {
           if (!shown) return [];
           // Text after a tool call is a new loop step: start it on a new paragraph.
           const out: TurnEvent[] = !stepHasText && text ? [{ type: "text", text: PARAGRAPH }] : [];
           stepHasText = true;
+          shownText += (out.length ? PARAGRAPH : "") + shown;
           return [...out, { type: "text", text: shown }];
         };
         for (;;) {
@@ -385,7 +389,6 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
-        yield* show(marks.sources(await hiddenPassages({ db, map }, marks.cited())));
         const added = textOf(final.content);
         text += text && added ? PARAGRAPH + added : added;
         if (final.stop_reason === "end_turn" && compactAtTokens > 0 && contextTokens(final.usage) >= compactAtTokens) {
@@ -399,6 +402,11 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     }
     if (!compacting) await syncRunnerHistory();
     yield* reportSaveFailure();
+    // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
+    if (stopReason !== "refusal") {
+      const fold = replyFold(marks, shownText, await sourceContext({ db, map }, marks.cited()));
+      if (fold) yield { type: "text", text: fold };
+    }
     return text;
   }
 

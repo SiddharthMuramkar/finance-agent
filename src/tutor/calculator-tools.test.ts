@@ -11,6 +11,7 @@ describe("hosted code execution", () => {
     const bound = bindTools(TUTOR_TOOLS, {
       finish_teaching_step: { run: async () => "", parse: (x) => x },
       record_check_verdict: { run: async () => "", parse: (x) => x },
+      record_insight_attempt: { run: async () => "", parse: (x) => x },
       search_library: { run: async () => "", parse: (x) => x },
       record_misconception: { run: async () => "", parse: (x) => x },
       calculate: { run: async () => "", parse: (x) => x },

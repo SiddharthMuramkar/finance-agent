@@ -64,14 +64,14 @@ const searchThenReply = [
 ];
 
 describe("search_library tool in the Tutor Turn", () => {
-  it("is offered to the Tutor, whose instructions say to name the source in plain text when quoting", async () => {
+  it("is offered to the Tutor, whose instructions say not to name sources in the Tutor's sentences", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hello." }] }]);
 
     await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
 
     expect(requests[0].tools).toContainEqual({ name: "search_library" });
-    expect(TUTOR_INSTRUCTIONS).toContain("name its source in plain text");
+    expect(TUTOR_INSTRUCTIONS).toContain("do not name sources in your sentences");
   });
 
   it("returns passages with their credit line, keyword-only without Voyage, and hides later dated passages before the reveal", async () => {

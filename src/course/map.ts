@@ -76,6 +76,30 @@ const caseSchema = z.object({
   piece: pieceSchema.optional(),
 });
 
+/**
+ * A Topic's Insight (ADR 0001): the surprising consequence of its idea, which the Learner finds at
+ * the explore Teaching Step. The written Insight stays on the server until it is found or told.
+ */
+const insightSchema = z.object({
+  /** What the Tutor asks the Learner to work out. Must not give the Insight away. */
+  question: z.string().min(1),
+  /** The Insight as a sentence. Reaches the Tutor only in a tool result, once found or told. */
+  written: z.string().min(1),
+  /** How the Tutor tells the Learner has found it. */
+  foundWhen: z.string().min(1),
+  /** Hint 1, then hint 2, released one per not-yet attempt. */
+  hints: z.array(z.string().min(1)).min(1).max(2),
+});
+
+/** Where explore sits: after the concept of the named Check, before that Check's your turn. */
+const exploreSchema = z.object({
+  before: id,
+  /** Whether a Learner who already passed the Topic is taken through explore again. */
+  requiredWhenPassed: z.boolean().default(false),
+});
+
+export type Insight = z.infer<typeof insightSchema>;
+
 export { STAGES };
 
 /** A link from a Topic's idea to others, given at the principle step. Plain words only: figures belong to the Case Data. */
@@ -103,6 +127,9 @@ const topicSchema = z.object({
     .array(z.string().refine((f) => (FORMULA_IDS as readonly string[]).includes(f), { message: `Unknown formula; the formula registry has: ${FORMULA_IDS.join(", ")}` }))
     .default([]),
   principle: z.string().min(1),
+  /** The Topic's Insight and the explore step that leads the Learner to it; both or neither. */
+  insight: insightSchema.optional(),
+  explore: exploreSchema.optional(),
   /** Two or three Connections the Tutor gives at the principle step. Optional. */
   connections: z
     .array(connectionSchema)
@@ -191,7 +218,7 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
   for (const t of topics) {
     errors.push(...connectionProblems(t, titles));
     if (t.checks.length === 0) errors.push(`Topic "${t.id}" has no Checks`);
-    errors.push(...quizProblems(t));
+    errors.push(...quizProblems(t), ...insightProblems(t));
     for (const p of t.prerequisites) {
       if (!byId.has(p)) errors.push(`Topic "${t.id}" requires "${p}", which is not on the Course Map`);
     }
@@ -228,7 +255,7 @@ function pieceProblems(c: z.infer<typeof caseSchema>): string[] {
 /** Connections before their Topic titles are looked up (done once every Topic is read). */
 const unresolved = (file: z.infer<typeof topicSchema>): Connection[] => (file.connections ?? []).map((c) => ({ ...c, titles: [] }));
 
-/** A Connection's text may not hold a figure: numbers come only from Case Data and the calculators. */
+/** A Connection's or Insight's text may not hold a figure: numbers come only from Case Data and the calculators. */
 const FIGURE = /[0-9%$€£₹]/;
 
 /** Checks each Connection against the known Topic titles, and fills in the titles of the Topics it links to. */
@@ -258,6 +285,24 @@ function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | unde
     return `stage, path and prerequisites belong in the outline, not in the Topic file`;
   }
   return { ...file, connections: unresolved(file), stage: planned.stage, subject: planned.subject, path: planned.path, prerequisites: planned.prerequisites };
+}
+
+/** An Insight is written in words too: a figure would hand the Learner a number to look for. */
+function insightProblems(t: Topic): string[] {
+  const problems: string[] = [];
+  if (t.insight && !t.explore) problems.push(`Topic "${t.id}" has an insight but no explore`);
+  if (t.explore && !t.insight) problems.push(`Topic "${t.id}" has explore but no insight`);
+  if (t.explore && !t.checks.some((c) => c.id === t.explore!.before)) {
+    problems.push(`Topic "${t.id}" explores before Check "${t.explore.before}", which it does not have`);
+  }
+  if (t.insight) {
+    const { question, written, foundWhen, hints } = t.insight;
+    const fields: [string, string][] = [["question", question], ["written", written], ["foundWhen", foundWhen], ...hints.map((h, i): [string, string] => [`hints.${i}`, h])];
+    for (const [field, text] of fields) {
+      if (FIGURE.test(text)) problems.push(`Topic "${t.id}" has a figure in insight.${field}; write the Insight in words`);
+    }
+  }
+  return problems;
 }
 
 /** The ID prefix of a Question Bank question. Bank questions live in the database, so the file cannot hold them. */

@@ -77,7 +77,7 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
   effort frozen when it started, plus a fingerprint of the instructions and tools.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
-- `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`: Learner Memory (below).
+- `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`, `insight_attempts`: Learner Memory (below; the last is described under "Insight recording").
 - `usage`: what each turn and each step of it cost (below).
 - `question_bank`: the Question Bank, imported human-written questions with licence and credit (below).
 - `case_datasets`, `case_data_points`: Case Data, checked historical datasets with their sources (below).
@@ -188,7 +188,8 @@ through the 2018 $1.537 billion Mega Millions jackpot and its $877.8 million cas
 
 A validator checks the files: every prerequisite must exist, prerequisites must not loop, IDs
 must be unique, every Topic needs at least one Check, and a quiz Check may use only questions its
-Topic holds, with an answer that is one of the choices and a pass rule it can actually meet. It runs as part of `npm run check`,
+Topic holds, with an answer that is one of the choices and a pass rule it can actually meet. A Topic may also hold an
+`insight` and an `explore` block, both or neither, checked as described under "The explore step". It runs as part of `npm run check`,
 so CI fails on a bad edit.
 
 **Scenario.** Someone adds a Topic that requires `bond-pricing`, which doesn't exist yet. CI
@@ -217,8 +218,9 @@ consistent but means a wrong habit (for example, a thin explanation) is repeated
 **What it does.** The module that decides what comes next. It takes the Course Map and the
 Learner's saved progress and returns the current Topic, the Teaching Step, the Check in play,
 the next legal step and any unmet prerequisites. It is pure: no model, no database, no clock.
-Teaching Steps run as a state machine: story, then concept, your turn and Check for each Check,
-then reveal, then principle. Only a saved Check result moves past a Check step, the reveal opens
+There are seven Teaching Steps, run as a state machine: story, then concept, your turn and Check
+for each Check, then reveal, then principle. A Topic with an Insight adds the seventh, explore, once
+(see "The explore step"). Only a saved Check result moves past a Check step, the reveal opens
 only after the last Check is passed, and a Topic is passed only when its principle finishes.
 
 The Learner's place is worked out from recorded passes: the first Check, in the Topic's current
@@ -666,6 +668,64 @@ saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credi
 a database write that fails (a test trigger refuses the write), a changed fingerprint, a misconception
 with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
 
+## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
+
+**What it does.** A Topic file may carry an Insight (the question to put, the written Insight, a
+"found when" description and one or two hints) and an `explore` block naming the Check it comes
+before, and whether a Learner who already passed the Topic is taken through it again
+(`requiredWhenPassed`). The two come together or not at all. The course check rejects an `explore`
+that names a Check the Topic does not have, and any digit, currency sign or percent sign in the
+Insight text, so the Insight is written in words and cannot hand the Learner a number to look for.
+The Course Navigator then puts explore after the concept of that Check and before its your turn,
+once per Topic. Finishing it is refused until the Insight is recorded as found or told. A Topic
+without an Insight skips the step, so the course moves over in batches.
+
+**Rules for Learners already part-way.** The Navigator never moves anyone backwards. A Learner
+already past the anchor Check, because the Insight was added after they passed it, takes explore just
+before the reveal instead; a Learner whose reveal is already shown is left where they are. A passed
+Topic gets explore back only when it says `requiredWhenPassed`, and then before any new Topic starts,
+the way a due Check does.
+
+**A concrete scenario.** Present value has Checks for the discounting quiz and the jackpot
+conversation, and explore is anchored to the jackpot conversation. The Learner passes the quiz and
+finishes the jackpot Check's concept step. The Navigator now says "explore", not "your turn". The
+Course Map page shows "Teaching Step: explore". Only when the Insight is found or told does the
+Learner reach the jackpot conversation.
+
+**Trade-off.** A Topic takes one or two more turns, and progress rows now store "explore" as a step,
+so removing the step later needs a data migration that moves those rows on (ADR 0001). In return the
+order is held by code, not by a prompt that live runs showed being ignored.
+
+## Insight recording (`record_insight_attempt` in `src/tutor/tools.ts`, `src/learner/insight.ts`, the `insight_attempts` table)
+
+**What it does.** At explore the Tutor puts the Insight question and the Learner plays with the Widget
+drawn at the concept step, then says what they noticed. The Tutor reports each attempt with
+`record_insight_attempt` as found, not yet, or asked to be told, quoting the Learner's words. Code
+checks the words are really in the Learner's message in that turn (a Continue press is never an
+attempt), saves them in `insight_attempts` once per tool call ID, and decides what happens next:
+the first not-yet releases hint 1, the second hint 2, the next the written Insight; "asked to be told"
+releases the Insight at once. The result carries the hint or the written Insight, and tells the Tutor
+to write its confirmation or hint after the result, as the last text of its reply.
+
+**Withholding.** The context for the explore step holds the question, the "found when" description
+and the hints already released, never the written Insight, the reveal or Case Data dated after the
+as-of date. The written Insight reaches the Tutor only in the tool result (and in the context once it
+is settled). After two earlier turns at explore with no attempt, the context reminds the Tutor to put
+the question. Telling the Insight marks the step as begun this turn, so the pacing rule stops the
+Tutor finishing explore in the same turn. At the principle step the context carries the Learner's own
+words, saved at the attempt that settled it, and says whether they found it or were told.
+
+**A concrete scenario.** The Learner writes "the bars get smaller". The Tutor records a not-yet, and
+code replies with hint 1. After the same again, hint 2. After a third not-yet the result contains the
+written Insight and the Tutor tells it kindly. Had the Learner written "just tell me" at the start, the
+Insight would have come at once. All three messages sit in `insight_attempts` exactly as typed.
+
+**Trade-off.** Judging whether the Learner found the Insight stays with the model, because only a
+model can read free words; code controls everything around that judgement (the count, the hints, the
+withholding, the order). A Tutor that says "found" too readily is checked by the behaviour set, not by
+code. Sessions that started before this change keep their frozen tools and have no way to record an
+attempt, so the app starts a new Session when the tools change.
+
 ## Pacing rule (`src/tutor/tools.ts`, `src/tutor/instructions.ts`)
 
 **What it does.** Live runs showed the Tutor finishing several Teaching Steps in one turn without
@@ -852,7 +912,7 @@ source (title, licence, credit line, link, and whether it is **dated**, like a b
 up to about 300 words, each with its own heading, link, publication date, licence and credit. The
 Tutor has one new tool, `search_library`. Code runs the search and hands back the best five
 passages, each with its credit line, licence, date and link, and the Tutor's instructions say to
-name the source in plain text whenever it quotes or draws on one, and to keep quotes short.
+keep quotes short; code adds the citation and credit (the Tutor does not name sources in its sentences).
 
 **How search works.** Two rankings are combined in one SQL query. The keyword ranking is BM25, the
 standard search-engine scoring, through Neon's `lakebase_text` extension (confirmed working on the
@@ -928,6 +988,28 @@ weekly run touches a few posts instead of reloading 6,500 passages. Trade-off: t
 now agree on HTML by test rather than by being one program, and a post whose HTML is badly broken
 may read slightly differently from before (none of the 685 does).
 
+**Spreadsheets behind the posts (IL 15, #72).** Damodaran's numbers live in the spreadsheets his
+posts link to (Tesla's inputs, a country's tax rates), not in the post text. `src/library/spreadsheets.ts`
+finds each post's `.xls` and `.xlsx` links (old `www.stern` and `%7E` spellings are folded into one
+address; his yearly `datasets/` and `implprem/` files are left out, since they are whole-market
+tables, not worked examples), reads the file with SheetJS 0.20.3, and turns it into a Library
+document under a new dated source, `damodaran-spreadsheets`. SheetJS is installed from SheetJS's own
+download site, because the npm registry copy is out of date (npm 12 needs `--allow-remote=all` to
+install from a link; CI's npm does not). Only the values Excel saved in the file are read (nothing is
+recalculated) and hidden sheets are skipped. Input, output and valuation sheets come first, rows
+become lines of "cell | cell", and a workbook gives at most 12 passages. Every passage opens with a
+sentence naming its post, the file and the sheet. A passage is dated by the later of the post's date
+and the file's Last-Modified date, so a file he updated years after the post stays hidden from a
+Case set before the update. The source has no quote limit, so the Passage view shows it in full,
+with his acknowledgement credit. Scenario: while studying Tesla before its reveal, the Tutor
+searches "Tesla operating margin assumption" and gets the "Input sheet" passage of his Tesla
+workbook, opening "This is the sheet "Input sheet" of the spreadsheet teslathedisruptor.xls, linked
+from Aswath Damodaran's post ...". `npm run library:sheets -- <scratch>` runs the backfill on the
+laptop (`--dry-run 30` reads 30 files and writes nothing to a database). `crossCheck` lists the
+figures a post picture's text and its spreadsheet share, for the pictures ticket's report.
+Trade-off: a sheet is flat text, so a chart-heavy or formula-heavy sheet loses its layout; the
+12-passage cap means the long tail of a 19-sheet workbook is not searchable.
+
 **Corrupted text, found and repaired.** PDF text breaks in known ways. The loader detects them
 (lost ligatures such as "CreaAon" for "Creation", letters spaced apart, PDF character codes,
 replacement characters) and now also repairs what it safely can: a broken word is mended only when
@@ -1001,8 +1083,8 @@ built-in citations switched on. The passage is cut into one block per sentence, 
 with its credit line, licence, date, link and any quote limit, so a citation names the sentences
 it used. Claude then returns its reply split into text pieces, and a piece that rests on a passage
 carries a citation naming the passage (`/passages/<id>`) and the sentences. Code turns those into
-what the Learner sees: a small raised number after the claim, and a "Sources" list at the end of
-the reply. Clicking a number opens the passage view in a new tab: the stored passage, the cited
+what the Learner sees: a small raised number after the claim, and one folded "N sources" line at the
+end of the reply (see "Sources folded away" below). Clicking a number opens the passage view in a new tab: the stored passage, the cited
 sentences highlighted, the credit, licence and a link to the original. The stored reply is never
 changed; the numbers are worked out the same way while the reply streams and when it is read back,
 so the workspace, a reload and old Sessions all show the same thing.
@@ -1014,17 +1096,42 @@ future cash flows falls...")¹ and draws a slider widget in the same reply. The 
 credit "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax), CC BY-NC-SA 4.0".
 Live run, 2 Nov 2026: 3 citations, 2 sources, 2 widgets drawn without a correction turn, $0.089.
 
-**The source's terms still hold.** The Tutor still names the source in plain text when it quotes
-(its instructions are unchanged), and still gets each source's quote limit with the passage. The
+**The source's terms still hold.** The Tutor still gets each source's quote limit with the passage,
+and the credit still travels with the reply (now in the fold, no longer in the Tutor's sentences). The
 passage view respects the same limit: for a source with one (Damodaran's blog, 60 words) it shows
 only the cited sentences, cut to 60 words, says it was shortened and points to the original. A
 passage the as-of rule hides from search is hidden in the passage view too: during the 1994 Fed
 Case, a 2026 Damodaran post shows "hidden until the reveal" instead of its text. Its heading is
-withheld from the Sources list as well. A reply can cite a passage found by a search made earlier in
-the Session, before the Learner reached the Case; the Sources list then shows "Library passage
+withheld from the folded sources as well, and it gets no credit line there. A reply can cite a passage found by a search made earlier in
+the Session, before the Learner reached the Case; the fold then shows "Library passage
 (hidden until the reveal)" instead of a heading like "How Lehman's 2008 failure froze credit", live
 and after a reload, and shows the real heading again once the reveal is shown. Live run with
 Damodaran's blog, 2 Nov 2026: 5 citations to 3 posts, each passage view at most 60 words, $0.034.
+
+**Sources folded away (`src/tutor/sources.ts`).** Sources stay out of the reading. Citation numbers
+stay tiny; the reply ends with one small "3 sources" line that opens on click to the numbered list,
+each entry with its passage heading and credit line. One fold and one numbering serve the whole reply,
+however many loop steps (searches, tool calls) it took, so two different "1"s never meet. The stored
+reply is still never changed, and the same code builds the fold while the reply streams and when it
+is read back, old Sessions included (where a turn's steps now read as one reply, as they stream). The
+fold travels as a `sources` Markdown fence at the end of the reply text, which the reply renderer
+draws as the small line. A passage the as-of rule hides keeps its hidden title and gets no credit. A
+Case Data figure the text quotes (code looks for each allowed point's value written out whole,
+outside citation links and widget code) adds that dataset's credit, unnumbered. In Widgets, a sourced
+figure's credit sits behind a small ⓘ, and the amber still marks it as real data. The Tutor's
+instructions stop it naming sources in its sentences ("according to CNBC..."), except when the writer
+is the subject (Follow Topics) or the Learner asks where something comes from; a behaviour rule,
+"source named in the text", checks it.
+
+**Scenario.** The Learner asks why a higher rate lowers present value. The Tutor searches twice, cites
+OpenStax in each step and says it plainly, with no "as OpenStax puts it". The Learner reads the
+explanation with two tiny numbers and "2 sources" beneath; opening it shows both headings with their
+credit lines.
+
+**Trade-off.** Spotting a quoted Case Data figure is matching on the number's text, so it can miss a
+figure the Tutor rounds or rewords, or catch a coincidence; a miss costs a missing credit line in the
+fold (the widget keeps its own ⓘ either way). The fold appears when the reply ends, not while it
+streams.
 
 **Citations and widgets together.** The spec chose OpenUI's inline mode (widgets written in the
 reply's text) before knowing whether citations would combine with it. They do: the citation split
