@@ -116,6 +116,8 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
         let finished = false;
         let failed = false;
         let correction: string | null = null;
+        // Which of the reply's widgets the correction replaces, as the server named them.
+        let flagged: number[] | undefined;
         const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
         let buffer = "";
         for (;;) {
@@ -134,6 +136,7 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
             else if (event.type === "replay") updateReply(() => event.text);
             else if (event.type === "correction") {
               correction = "";
+              flagged = Array.isArray(event.widgets) ? (event.widgets as number[]) : undefined;
               setFixing(true);
             } else if (event.type === "done") {
               finished = true;
@@ -163,7 +166,7 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
         // The corrected widget replaces the broken one on screen; history keeps both.
         if (correction !== null) {
           const fix = correction;
-          updateReply((t) => replaceBrokenWidgets(t, fix));
+          updateReply((t) => replaceBrokenWidgets(t, fix, flagged));
         }
         if (finished || failed) return;
         // No "done": the turn was cut off. Resume from the last saved loop step.

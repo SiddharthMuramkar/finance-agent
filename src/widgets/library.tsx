@@ -134,7 +134,7 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
 const Slider = defineComponent({
   name: "Slider",
   description:
-    "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call.",
+    "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call. In Slider(name, label, min, max, step, value, unit) the Learner can set any number from min to max, on steps of `step` counted from min; the starting value sits on a step. A percent slider always moves in 0.01 steps, whatever step is written, so write 0.01 as a rate's step.",
   props: sliderProps,
   component: SliderView,
 });
@@ -621,25 +621,31 @@ export const WIDGET_PROMPT_OPTIONS = {
   bindings: true,
   builtinFunctions: true,
   examples: [
-    `root = Widget("What the annuity is worth today", [rate, chart])
+    `root = Widget("What the annuity is worth today", [rate, chart, steps])
 $rate = 3
-rate = Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")
-chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")`,
+rate = Slider("rate", "Discount rate", 0, 10, 0.01, $rate, "percent")
+chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")
+steps = GuidedTasks([zero])
+zero = GuidedTask("Set the rate to 0%", $rate == 0)`,
     `root = Widget("Long-term interest rates around the draw", [history])
 history = HistoryChart("mega-millions-2018/treasury-30-year")`,
-    `root = Widget("What a home loan costs", [amount, rate, calc])
+    `root = Widget("What a home loan costs", [amount, rate, calc, steps])
 $amount = 5000000
 $rate = 8.5
 amount = Slider("principal", "Loan amount", 500000, 20000000, 100000, $amount, "inr")
-rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
-calc = Calculator("emi", {principal: $amount, ratePercent: $rate, years: 20})`,
-    `root = Widget("What a payment in five years is worth today", [rate, card])
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.01, $rate, "percent")
+calc = Calculator("emi", {principal: $amount, ratePercent: $rate, years: 20})
+steps = GuidedTasks([double])
+double = GuidedTask("Double the loan to 1 crore", $amount == 10000000)`,
+    `root = Widget("What a payment in five years is worth today", [rate, card, steps])
 $rate = 5
-rate = Slider("rate", "Discount rate", 0, 15, 0.5, $rate, "percent")
-card = FormulaCard("present-value", {ratePercent: $rate}, {amount: "mega-millions-2018/cash-option"}, {years: 5})`,
+rate = Slider("rate", "Discount rate", 0, 15, 0.01, $rate, "percent")
+card = FormulaCard("present-value", {ratePercent: $rate}, {amount: "mega-millions-2018/cash-option"}, {years: 5})
+steps = GuidedTasks([ten])
+ten = GuidedTask("Set the rate to 10%", $rate == 10)`,
     `root = Widget("What a home loan costs at different rates", [rate, calc, steps])
 $rate = 8.5
-rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.01, $rate, "percent")
 calc = Calculator("emi", {principal: 5000000, ratePercent: $rate, years: 20})
 steps = GuidedTasks([low, high])
 low = GuidedTask("Set the rate to 6%", $rate == 6)
@@ -653,26 +659,32 @@ chartTab = TabItem("chart", "Chart", [line])
 tableTab = TabItem("table", "Table", [table])
 line = LineChart(sensex.rows.date, [Series("Sensex close", sensex.rows.value)], "linear", "Date", "Index points")
 table = Table([Col("Date", sensex.rows.date), Col("Close", sensex.rows.text)])`,
-    `root = Widget("How 1 lakh grows at your rate", [rate, growth])
+    `root = Widget("How 1 lakh grows at your rate", [rate, growth, steps])
 $rate = 8
-rate = Slider("ratePercent", "Yearly return", 1, 15, 0.5, $rate, "percent")
+rate = Slider("ratePercent", "Yearly return", 1, 15, 0.01, $rate, "percent")
 values = Query("calculate_range", {calculator: "future_value", inputs: {amount: 100000, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: 30, step: 1, currency: "inr"}, {rows: []})
-growth = AreaChart(values.rows.label, [Series("Value of 1 lakh", values.rows.value)], "natural", "Years", "Rupees")`,
-    `root = Widget("A 50 lakh home loan, by its length", [rate, line, table])
+growth = AreaChart(values.rows.label, [Series("Value of 1 lakh", values.rows.value)], "natural", "Years", "Rupees")
+steps = GuidedTasks([twelve])
+twelve = GuidedTask("Set the return to 12%", $rate == 12)`,
+    `root = Widget("A 50 lakh home loan, by its length", [rate, line, table, steps])
 $rate = 8.5
-rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.01, $rate, "percent")
 byLength = Query("calculate_range", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}, vary: "years", from: 5, to: 30, step: 5, output: "Monthly instalment"}, {rows: []})
 today = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}}, {rows: []})
 line = LineChart(byLength.rows.label, [Series("Monthly instalment", byLength.rows.value)], "linear", "Loan length", "Rupees a month")
-table = Table([Col("Over 20 years", today.rows.label), Col("Amount", today.rows.text)])`,
-    `root = Widget("Each payment, and what it is worth today", [rate, bars, total])
+table = Table([Col("Over 20 years", today.rows.label), Col("Amount", today.rows.text)])
+steps = GuidedTasks([ten])
+ten = GuidedTask("Set the rate to 10%", $rate == 10)`,
+    `root = Widget("Each payment, and what it is worth today", [rate, bars, total, steps])
 $rate = 3
-rate = Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")
+rate = Slider("rate", "Discount rate", 0, 10, 0.01, $rate, "percent")
 schedule = Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: $rate}, {rows: []})
 bars = BarChart(schedule.rows.label, [Series("Payment", schedule.rows.payment), Series("Worth today", schedule.rows.presentValue)], "grouped", "Payment", "Dollars")
-total = TextContent("Worth today, all 30 payments together: " + schedule.presentValueText, "large-heavy")`,
+total = TextContent("Worth today, all 30 payments together: " + schedule.presentValueText, "large-heavy")
+steps = GuidedTasks([zero])
+zero = GuidedTask("Set the rate to 0%", $rate == 0)`,
     `root = Widget("Illustration: a rate moving from 5% to 5.5%", [bars, note])
-bars = BarChart(["Before", "After"], [Series("Rate in percent", [5, 5.5])])
+bars = BarChart(["Before", "After"], [Series("Rate in percent", [5, 5.5])], "grouped", "When", "Percent")
 note = TextContent("It rose by " + (5.5 - 5) + " percentage points, which is " + (5.5 - 5) * 100 + " basis points. As a share of the old rate, it rose " + (5.5 - 5) / 5 * 100 + "%.")`,
   ],
   additionalRules: [
@@ -681,10 +693,13 @@ note = TextContent("It rose by " + (5.5 - 5) + " percentage points, which is " +
     'Real numbers come from code. Historical figures reach a widget only through Query("case_data", {dataset: "caseId/datasetId"}, {rows: []}) or HistoryChart, with references from the Case Data list code sent you. Finance results come only from Query("calculate" | "calculate_range" | "annuity_schedule", …), Calculator, AnnuityChart or FormulaCard. Never type a historical figure or a computed result into a widget.',
     'Made-up teaching examples are the exception. You may type their numbers into a chart or table when the example is plainly hypothetical: start the Widget\'s title with "Illustration:". Before the reveal they must never match the Case\'s real outcome. For their arithmetic, write the expression (e.g. (5.5 - 5) * 100) and let the widget compute it; never type a result you worked out.',
     "Bind Sliders to $variables and pass them into Query arguments, so moving a slider recomputes the chart in the browser with no model call.",
+    "Use only numbers a Widget can show. Every number you ask the Learner to try, in your prose or in a Guided Task, lies between that slider's min and max and on one of its steps (a percent slider: 0.01 steps). Never ask for a number the Widget cannot reach.",
+    "Charts: give every LineChart, AreaChart, BarChart, HorizontalBarChart and ScatterChart its axis labels: give it an x-axis and a y-axis label, in plain words with the unit.",
+    "Updating a Widget: code's context lists the open Widgets by title. To change an open Widget, write it again in full under exactly the same title: code replaces it in its tab. Draw a new Widget only for a new idea, never a near-copy under a new title, and never draw the same Case Data as an open Widget.",
     "Widgets only read: never use Mutation() or @Run.",
     "Use a Calculator, or a chart from calculate_range, for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",
     "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
-    "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
+    "Guided Tasks: Every Widget with a Slider has GuidedTasks, with at least one task. GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
     "If no Case Data covers what the Learner wants, say plainly that the data is not available here, and still show what code can compute, or a clearly labelled Illustration of the idea.",
     "Starting numbers you put in a Slider or chart must come from the Case material code sent you.",
     "Before the reveal step, never put a Case's outcome in a widget.",

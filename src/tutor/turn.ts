@@ -10,8 +10,8 @@ import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
-import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
+import { newReplyWidgetProblems, openWidgetsIn, WIDGET_CHECK_PREFIX, type OpenWidget } from "@/widgets/check";
+import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, openWidgetsNote, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { describeFailure, type FailureKind } from "./failures";
@@ -84,8 +84,11 @@ export type TutorClient = {
 
 export type TurnEvent =
   | { type: "text"; text: string }
-  /** The reply's widget failed the server check; the text that follows is its one correction. */
-  | { type: "correction" }
+  /**
+   * The reply's widget failed the server check; the text that follows is its one correction. `widgets` are the
+   * positions (from 0) of the reply's widgets it corrects, in order.
+   */
+  | { type: "correction"; widgets: number[] }
   /** `ref` names the turn's Session and turn, so the browser can offer "Save to notes" on the reply at once. */
   | { type: "done"; stopReason: string | null; usage: TurnUsage; ref: { sessionId: number; turnSeq: number } }
   /** Another turn is running (perhaps on another device); nothing was saved or sent. */
@@ -281,7 +284,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
         : plainContext;
-    const context = jumped ? `${JUMP_NOTE}\n${stepped}` : stepped;
+    const navigatorContext = jumped ? `${JUMP_NOTE}\n${stepped}` : stepped;
     const learnerBlocks = [{ type: "text" as const, text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     if ("reason" in found && found.reason !== "first") yield { type: "session", reason: found.reason };
     log = await openLog(db, session.id, now);
@@ -291,6 +294,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
 
     turnSeq = log.nextSeq;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
+    // The Widgets open in the panel, by title, so the Tutor can update one in place rather than add a near-copy.
+    const widgetsNote = openWidgetsNote(openWidgetsBefore(log, turnSeq).map((w) => w.title));
+    const context = widgetsNote ? `${widgetsNote}\n${navigatorContext}` : navigatorContext;
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = await pendingQuizNote(db, map, learnerId);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
@@ -423,15 +429,16 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   const complete = last?.role === "assistant" && unansweredToolCalls(log.messages).length === 0;
   const reply = complete ? "" : yield* loop();
 
-  // A finished widget that would not render gets one correction turn. History stays add-only.
-  const broken = stopReason === "refusal" || stopReason === "max_tokens" ? [] : replyWidgetProblems(reply);
+  // A finished widget that would not render, or breaks a Widget rule, gets one correction turn. History stays add-only.
+  // Only the reply being written is checked, against the Widgets open before it; stored Widgets never are.
+  const broken = stopReason === "refusal" || stopReason === "max_tokens" ? [] : newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code));
   if (broken.length) {
     const problems = broken.flatMap((b) => b.problems.map((p) => `- Widget ${b.index + 1}: ${p}`));
     await log.append({
       role: "user",
-      content: `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn.\n${problems.join("\n")}\nReply with only the corrected openui-lang block, written in full. Write no prose.`,
+      content: `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn or breaks a Widget rule.\n${problems.join("\n")}\nReply with only the corrected openui-lang block, written in full. Write no prose.`,
     });
-    yield { type: "correction" };
+    yield { type: "correction", widgets: broken.map((b) => b.index) };
     yield* loop();
   }
 
@@ -453,6 +460,11 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   }
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
   return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq } };
+}
+
+/** The Widgets open in the panel before the turn at `turnSeq`: those its Session's earlier replies drew. */
+function openWidgetsBefore(log: Log, turnSeq: number): OpenWidget[] {
+  return openWidgetsIn(log.rows.filter((r) => r.seq < turnSeq && r.role === "assistant").map((r) => textOf(r.content)));
 }
 
 /** What the Learner sent, as saved on the turn: their message, or "Continue.". */

@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { CALCULATORS } from "@/finance/calculators";
-import { widgetProblems } from "./check";
+import { widgetProblems, widgetRuleProblems } from "./check";
 import frozen from "./frozen.generated.json";
 import {
   OPENUI_SECTIONS_CUT,
@@ -56,6 +56,25 @@ describe("widget instructions", () => {
       expect(frozen.instructions).toContain(rule);
     }
     for (const old of ["Widgets are optional", "Charts never take data series", "draw no chart for it"]) expect(frozen.instructions).not.toContain(old);
+  });
+
+  it("give each slider's min, max and step, and ask only for numbers a Widget can show", () => {
+    expect(frozen.instructions).toContain("Slider(name, label, min, max, step, value, unit)");
+    expect(frozen.instructions).toContain("Use only numbers a Widget can show");
+    expect(frozen.instructions).toMatch(/A percent slider always moves in 0\.01 steps/);
+  });
+
+  it("write every rate example in 0.01 steps", () => {
+    const percentSliders = [...frozen.instructions.matchAll(/Slider\("[^"]*", "[^"]*", [\d.]+, [\d.]+, ([\d.]+), \$\w+, "percent"\)/g)];
+    expect(percentSliders.length).toBeGreaterThan(3);
+    for (const [slider, step] of percentSliders) expect(step, slider).toBe("0.01");
+  });
+
+  it("give every slider Widget a Guided Task, every kit chart its axis labels, and say to update an open Widget by reusing its title", () => {
+    expect(frozen.instructions).toContain("Every Widget with a Slider has GuidedTasks");
+    expect(frozen.instructions).toContain("give it an x-axis and a y-axis label");
+    expect(frozen.instructions).toContain("write it again in full under exactly the same title");
+    for (const example of EXAMPLES) expect(widgetRuleProblems(example), example).toEqual([]);
   });
 
   it("leave out OpenUI's advice that contradicts the Workspace: text-only answers, patches, writes, forms, buttons and mock data", () => {
