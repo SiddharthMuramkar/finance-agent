@@ -8,39 +8,7 @@ import type { Topic } from "./map.ts";
 // off. No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
 /** Topics with no You'll learn yet, in default-path order. Remove an ID when its Topic is filled; never add one. */
-export const NOT_YET_FILLED: readonly string[] = [
-  "struct-securitisation",
-  "private-credit",
-  "funds-passive",
-  "ins-risk-transfer",
-  "real-assets",
-  "hist-macro-regimes",
-  "gov-ethics",
-  "crisis-leverage",
-  "fol-uber-2014",
-  "fol-twitter-ipo",
-  "fol-tesla-2020",
-  "fol-roe",
-  "fol-sov-ratings",
-  "fol-subprime-ai",
-  "fol-systemic-risk",
-  "fol-money-trap",
-  "fol-erp",
-  "jud-rating-boundary",
-  "jud-assumptions",
-  "jud-narrative-numbers",
-  "jud-ipo-forecast",
-  "jud-predicted-outcomes",
-  "jud-units-periods",
-  "jud-filing-vs-claim",
-  "jud-rating-conflict",
-  "ana-build-valuation",
-  "ana-who-pays-whom",
-  "ana-commitments-debt",
-  "ana-india-transfer",
-  "ana-decide-between",
-  "ana-anthropic-s1",
-];
+export const NOT_YET_FILLED: readonly string[] = [];
 
 const FIGURE = /[0-9%$€£₹¥]/;
 

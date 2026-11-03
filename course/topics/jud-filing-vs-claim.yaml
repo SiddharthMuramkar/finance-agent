@@ -143,6 +143,12 @@ principle: >
   size of the gap and what it changes, keep the writer's right points as clearly as the wrong ones,
   and do not infer motive from a slip.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Follow a writer's number back to its line in a filing."
+  - "Name what you find: ties out, wrong label, wrong period or unit, or more than the text says."
+  - "Read an income statement in order, from operating income down to net income."
+
 # Claude-written quiz questions with invented companies and numbers; each answer was checked against the cited source and by recomputation.
 questions:
   - id: jfc-q-net-vs-operating

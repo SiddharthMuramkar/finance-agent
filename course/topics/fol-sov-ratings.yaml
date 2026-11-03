@@ -54,6 +54,12 @@ principle: >
   risk between the old and new grade really is. Judge an agency's opinion by its record, not by its
   letter alone.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read the sovereign rating ladder and where investment grade ends."
+  - "Ask what a rating change tells a market that it did not already know."
+  - "Link a government's default risk to the riskfree rate used in valuation."
+
 questions:
   - id: fsv-q-riskfree
     prompt: >

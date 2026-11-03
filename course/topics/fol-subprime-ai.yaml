@@ -65,6 +65,12 @@ principle: >
   another crisis (the label "subprime"). Check each step on its own, and do not let a well-chosen
   analogy stand in for a step.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Ask who pays the difference when a product is sold below its cost."
+  - "Read a run rate and the assumption hidden inside it."
+  - "Separate what a writer reports from what they infer and what they borrow by analogy."
+
 questions:
   - id: fsa-q-price-cost
     prompt: >

@@ -63,6 +63,12 @@ principle: >
   active investor cannot beat the average passive investor after costs. A manager may be
   skilled, but fees are certain and skill is hard to identify in advance.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read a fund's net asset value and tell a mutual fund from an exchange-traded fund."
+  - "Explain why active investors as a group trail passive ones after costs."
+  - "Compare funds net of fees, over the same period and the same risk."
+
 questions:
   - id: fp-q-nav
     prompt: >

@@ -54,6 +54,12 @@ principle: >
   each payment is promised. A business whose payments out are fixed for longer than the
   payments in are promised depends on a financier, and that financier is part of the analysis.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Draw a company's money as a chain of who pays whom."
+  - "Read operating and financing cash flow to see who covers the gap."
+  - "Compare how long each payment in and each payment out is promised."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: wpw-q-gap
