@@ -315,7 +315,7 @@ export const turns = pgTable(
     /** No longer written or read (the old pending switch); kept until a contract migration drops it. */
     enteredByJump: boolean("entered_by_jump").notNull().default(false),
     /**
-     * What the Learner sent (their message, or "Continue."), or the note code wrote for an opener, so a retry
+     * What the Learner sent (their message), or the note code wrote for an opener, a Next or Finish this reply, so a retry
      * can send it again if it was never stored. A code-written note's fixed prefix records the turn's kind (`turnKind`).
      */
     input: text("input"),

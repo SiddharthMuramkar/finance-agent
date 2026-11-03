@@ -30,7 +30,7 @@ describe("usage per Tutor turn", () => {
       { content: [{ type: "text", text: "Now the concept." }], usage: usage(300, 100, { cache_read_input_tokens: 5000 }) },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client }, "Continue"));
+    const events = await collect(runTutorTurn({ db, client }, "Go on"));
     const done = events.at(-1);
 
     const rows = await db.select().from(usageRows);
