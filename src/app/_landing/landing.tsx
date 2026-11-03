@@ -1,14 +1,34 @@
+import { loadCourseMap } from "@/course/map";
+import { navigate, type Place } from "@/course/navigator";
+import { getDb } from "@/db/client";
+import { loadProgress } from "@/learner/memory";
 import { Eyebrow, Pill } from "../ui";
 import { copy, DRAFT } from "./copy";
 import { landingStats, type LandingStats } from "./stats";
 
 const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
 
+/** The signed-in Learner's main button: what it says and, for Resume and Start, which Topic. Every one opens /study. */
+export type HomeButton = { kind: "resume" | "start"; topic: string } | { kind: "open" };
+
+/**
+ * The button rule, from the place the Course Navigator returns: no place (every Topic passed, no Check due)
+ * opens the workspace; a Topic not started is Start; any other place is Resume, which includes a passed Topic
+ * with a required Check due.
+ */
+export function homeButton(place: Place | null): HomeButton {
+  if (!place) return { kind: "open" };
+  return { kind: place.status === "not_started" ? "start" : "resume", topic: place.topic.title };
+}
+
+const buttonLabel = (b: HomeButton) => (b.kind === "open" ? copy.openStudyWorkspace : `${b.kind === "resume" ? copy.resume : copy.start} ${b.topic}`);
+
 /**
  * Home, at "/". It shows counts only: no Learner data, no Library text. Signed out, the top bar and hero offer
- * Sign in; signed in (`signedIn`), they offer the Study Workspace at /study instead.
+ * Sign in; signed in (a `button` is given), the top bar links the Study Workspace and the hero button is `button`'s label.
  */
-export function LandingView({ stats, signedIn = false }: { stats: LandingStats; signedIn?: boolean }) {
+export function LandingView({ stats, button }: { stats: LandingStats; button?: HomeButton }) {
+  const signedIn = button !== undefined;
   const columns = [
     { value: stats.topics, label: copy.stats.topics },
     { value: String(stats.cases), label: copy.stats.cases },
@@ -42,7 +62,7 @@ export function LandingView({ stats, signedIn = false }: { stats: LandingStats; 
             <p className="mt-6 max-w-2xl text-lg leading-7 text-[var(--muted)]">{copy.subtext}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={signedIn ? "/study" : "/login"} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
-                {signedIn ? copy.openStudyWorkspace : copy.signIn}
+                {button ? buttonLabel(button) : copy.signIn}
               </a>
               <a href="#how" className={`${bigButton} border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--hairline)]`}>
                 {copy.howItWorks}
@@ -116,7 +136,19 @@ export function LandingView({ stats, signedIn = false }: { stats: LandingStats; 
   );
 }
 
-/** Loads the counts (the database part cached for a day) and renders Home. */
+/**
+ * Loads the counts (the database part cached for a day) and renders Home. Signed in, it also reads saved
+ * progress to name the Learner's place. It only reads: no model call, nothing written. If progress can't be
+ * loaded the error is logged and the button falls back to "Open Study Workspace".
+ */
 export async function LandingPage({ signedIn = false }: { signedIn?: boolean }) {
-  return <LandingView stats={await landingStats()} signedIn={signedIn} />;
+  const stats = await landingStats();
+  if (!signedIn) return <LandingView stats={stats} />;
+  let button: HomeButton = { kind: "open" };
+  try {
+    button = homeButton(navigate(loadCourseMap(), await loadProgress(getDb())));
+  } catch (error) {
+    console.error("Home could not load the Learner's place", error);
+  }
+  return <LandingView stats={stats} button={button} />;
 }
