@@ -27,10 +27,10 @@ export function pastePreview(paste: string): string {
 /** The latest turn's saved status, as the page found it. */
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
 /**
- * What a turn request carries: a message (with an optional pasted passage), Continue (the cut-off reply's), the
- * opener, the Learner's Next (naming the step on its chip, or "complete"), or a resume.
+ * What a turn request carries: a message (with an optional pasted passage), Finish this reply (offered under a reply
+ * cut off at its length limit), the opener, the Learner's Next (naming the step on its chip, or "complete"), or a resume.
  */
-export type TurnBody = { message: string; paste?: string } | { continue: true } | { opener: true } | { next: NextName } | { resume: true };
+export type TurnBody = { message: string; paste?: string } | { finish: true } | { opener: true } | { next: NextName } | { resume: true };
 
 /** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
 export const SLOW_AFTER_MS = 8000;
@@ -80,7 +80,7 @@ export function useTurnStream({
   const [passage, setPassage] = useState<string | null>(null);
 
   /**
-   * Sends a message, Continue, or a resume, and streams the reply. When the stream ends
+   * Sends a message, Finish this reply, a Next, the opener or a resume, and streams the reply. When the stream ends
    * without "done" (the turn was cut off by the time limit or the connection dropped),
    * it resumes on its own from the last saved loop step; the saved text replaces what
    * was on screen.
@@ -112,7 +112,7 @@ export function useTurnStream({
       // A resume continues the reply on screen, or starts one after the Learner's last message.
       const last = m[m.length - 1];
       if ("resume" in body && last?.role === "assistant") return [...m.slice(0, -1), { ...last, id: firstId }];
-      // A Next (or the opener) is a new turn with no Learner bubble: its reply starts below what is on screen.
+      // A Next, Finish this reply or the opener is a new turn with no Learner bubble: its reply starts below what is on screen.
       return [...m, { id: firstId, role: "assistant", text: "" }];
     });
     const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId && x.role !== "item" ? { ...x, text: f(x.text) } : x)));
