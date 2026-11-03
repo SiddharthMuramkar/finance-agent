@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { siteMetadata } from "./site-metadata";
 
@@ -11,7 +12,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const dark = (await cookies()).get("theme")?.value === "dark";
   return (
     <html lang="en" className={dark ? "dark" : undefined}>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
