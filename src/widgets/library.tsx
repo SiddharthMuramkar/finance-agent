@@ -21,7 +21,8 @@ import { FORMULAS, formulaById } from "@/finance/formulas";
 import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { useCaseLoad } from "./case-data-provider";
-import { advanceReached, walkNodes } from "./guided-tasks";
+import { advanceReached, savedReached, walkNodes } from "./guided-tasks";
+import { SavedTicksContext } from "./saved-ticks";
 import { readingValue, settledValue, sliderStep, snappedValue, steppedValue, typedValue, type SliderRange } from "./slider-steps";
 import { GuidedTasksFigure } from "./guided-tasks-view";
 import { WIDGET_TOOL_SPECS } from "./tool-specs";
@@ -367,11 +368,21 @@ function GuidedTasksView({ props }: ComponentRenderProps<z.infer<typeof guidedTa
     const p = (t as { props?: { text?: unknown; done?: unknown } } | null)?.props;
     return { text: typeof p?.text === "string" ? p.text : "", done: p?.done === true };
   });
+  const texts = tasks.map((t) => t.text);
+  // Ticks saved with the Session (Widget state) come back on a reload or a tab switch.
+  const saved = useContext(SavedTicksContext);
+  const fromSaved = savedReached(texts, saved?.ticked ?? []);
   // Ticks stick: the count only grows, so moving a slider away again never unticks a task.
-  const [reached, setReached] = useState(0);
-  const now = advanceReached(reached, tasks.map((t) => t.done));
+  const [reached, setReached] = useState(fromSaved);
+  const now = advanceReached(Math.max(reached, fromSaved), tasks.map((t) => t.done));
   if (now !== reached) setReached(now);
-  return <GuidedTasksFigure tasks={tasks.map((t) => t.text)} reached={now} />;
+  const doneKey = texts.slice(0, now).join("\n");
+  const onTicked = saved?.onTicked;
+  const unsaved = now > fromSaved;
+  useEffect(() => {
+    if (onTicked && unsaved && doneKey) onTicked(doneKey.split("\n"));
+  }, [onTicked, unsaved, doneKey]);
+  return <GuidedTasksFigure tasks={texts} reached={now} />;
 }
 
 const GuidedTasks = defineComponent({
