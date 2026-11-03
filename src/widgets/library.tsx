@@ -9,7 +9,9 @@ import {
   type ComponentRenderProps,
   type PromptOptions,
 } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+// The package root, not "/genui-lib": that entry bundles its own theme context, so GenuiTheme's
+// colours would never reach its charts.
+import { openuiLibrary } from "@openuidev/react-ui";
 import { createContext, useContext, useEffect, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";

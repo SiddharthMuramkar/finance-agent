@@ -1,6 +1,7 @@
 import type { CaseDataset } from "@/case-data/case-data";
 import { annuitySchedule, type AnnuityInputs } from "@/finance/present-value";
 import { Tag } from "@/app/ui";
+import { HistoryPlot } from "./history-plot";
 
 // Pure drawings for the widget components. Anything drawn from Case Data carries a "Sourced"
 // tag in amber with its source; anything the Learner sets carries a "Your assumption" tag in
@@ -46,50 +47,45 @@ export function Credit({ dataset }: { dataset: CaseDataset }) {
   );
 }
 
-/** A dataset drawn as a line over its dates: sourced history only, with no Learner input. */
+const percentUnit = (unit: string) => unit === "percent" || unit.startsWith("percent ");
+
+/** A value as a short chart label in its unit, rounded for reading: 3.38%, $877.8m, 4,467. A point read gives it in full. */
+function shortValue(value: number, unit: string): string {
+  const abs = Math.abs(value);
+  const round = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: v >= 1000 ? 0 : v >= 100 ? 1 : 2 });
+  const sign = value < 0 ? "-" : "";
+  if (unit === "USD") {
+    if (abs >= 1e9) return `${sign}$${round(abs / 1e9)}bn`;
+    if (abs >= 1e6) return `${sign}$${round(abs / 1e6)}m`;
+    return `${sign}$${round(abs)}`;
+  }
+  return `${sign}${round(abs)}${percentUnit(unit) ? "%" : ""}`;
+}
+
+/**
+ * A dataset drawn as a line over its dates, with value and date axes, its values printed when there are
+ * few, and a readout of the point hovered, tapped or focused: sourced history only, with no Learner input.
+ */
 export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDataset; revealed: boolean; asOf: string }) {
-  const { points } = dataset;
-  const w = 600;
-  const h = 160;
-  const pad = 8;
+  const { points, unit } = dataset;
   const values = points.map((p) => p.value);
   const lo = Math.min(...values);
   const hi = Math.max(...values);
-  const x = (i: number) => (points.length === 1 ? w / 2 : pad + (i * (w - 2 * pad)) / (points.length - 1));
-  const y = (v: number) => (hi === lo ? h / 2 : h - pad - ((v - lo) / (hi - lo)) * (h - 2 * pad));
-  const first = points[0];
-  const last = points.at(-1)!;
+  const ticks = (hi === lo ? [lo] : [lo, (lo + hi) / 2, hi]).map((value) => ({ value, text: shortValue(value, unit) }));
   return (
     <figure data-kind="sourced" className="my-2 rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] p-3">
       <p className="mb-1 text-sm">
         <SourcedTag>Sourced history</SourcedTag> {dataset.label} <Credit dataset={dataset} />
       </p>
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${dataset.label}, ${first.date} to ${last.date}`} className="w-full">
-        <polyline
-          points={points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")}
-          fill="none"
-          strokeWidth={2}
-          className="stroke-[var(--src)]"
-        />
-        {points.map((p, i) => (
-          <circle key={p.date} data-testid="history-point" cx={x(i)} cy={y(p.value)} r={points.length > 60 ? 1 : 2.5} className="fill-[var(--src)]">
-            <title>{`${p.date}: ${formatValue(p.value, dataset.unit)}`}</title>
-          </circle>
-        ))}
-      </svg>
-      <figcaption className="mt-1 space-y-1 text-sm">
-        <p className="flex justify-between tabular-nums">
-          <span>
-            {first.date}: {formatValue(first.value, dataset.unit)}
-          </span>
-          <span>
-            {last.date}: {formatValue(last.value, dataset.unit)}
-          </span>
-        </p>
-        <p className="text-xs text-[var(--muted)]">
-          Range {formatValue(lo, dataset.unit)} to {formatValue(hi, dataset.unit)}.
-          {!revealed && ` Data after ${asOf} is withheld until the reveal.`}
-        </p>
+      <HistoryPlot
+        label={`${dataset.label}, ${points[0].date} to ${points.at(-1)!.date}`}
+        // Money and percentages carry their unit in each label; any other unit is named once above the axis.
+        unit={unit === "USD" || percentUnit(unit) ? undefined : unit}
+        ticks={ticks}
+        points={points.map((p) => ({ date: p.date, value: p.value, text: formatValue(p.value, unit), short: shortValue(p.value, unit) }))}
+      />
+      <figcaption className="mt-1 text-xs text-[var(--muted)]">
+        Range {formatValue(lo, unit)} to {formatValue(hi, unit)}.{!revealed && ` Data after ${asOf} is withheld until the reveal.`}
       </figcaption>
     </figure>
   );
