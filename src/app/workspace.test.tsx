@@ -122,6 +122,40 @@ describe("the workspace's left column", () => {
     expect(workspace({ quiz, review: { ...noReview, dueCount: 2 } }).toLowerCase()).not.toContain("lesson");
   });
 
+  it("draws a stored step divider as a small centred divider at its place in the thread, and the reply's Save to notes only once", () => {
+    const ref = { sessionId: 7, turnSeq: 2 };
+    const initial: Line[] = [
+      { role: "user", text: "I'd take the lump sum." },
+      { role: "assistant", text: "Good thinking.", ref, more: true },
+      { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },
+      { role: "assistant", text: "Now the concept: money today is worth more.", ref },
+    ];
+    const html = workspace({ initial });
+    const divider = html.match(/<div[^>]*data-testid="step-divider"[^>]*>.*?Step 2 of 6 · Concept.*?<\/div>/)?.[0];
+    expect(divider).toBeDefined();
+    expect(divider).toContain('role="separator"');
+    expect(divider).toContain("justify-center");
+    const at = html.indexOf("Step 2 of 6 · Concept");
+    expect(at).toBeGreaterThan(html.indexOf("Good thinking."));
+    expect(at).toBeLessThan(html.indexOf("Now the concept"));
+    // A divider is not a message: no Tutor label or bubble of its own, and one Save to notes for the whole reply, at its end.
+    expect(html.match(/data-testid="tutor-label"/g)).toHaveLength(2);
+    expect(text(html).match(/Save to notes/g)).toHaveLength(1);
+    expect(text(html).indexOf("Save to notes")).toBeGreaterThan(text(html).indexOf("Now the concept"));
+  });
+
+  it("skips a Session item of a kind it does not know, and draws the rest of the thread", () => {
+    const initial: Line[] = [
+      { role: "user", text: "Hello" },
+      { role: "item", kind: "from-the-future", data: { label: "Something new" } },
+      { role: "assistant", text: "Hi there." },
+    ];
+    const html = workspace({ initial });
+    expect(html).not.toContain("Something new");
+    expect(text(html)).toContain("Hello");
+    expect(text(html)).toContain("Hi there.");
+  });
+
   it("has a composer that asks the Tutor", () => {
     expect(workspace()).toContain('placeholder="Ask the Tutor"');
   });

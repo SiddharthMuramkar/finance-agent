@@ -7,6 +7,7 @@ import type { TurnUsage } from "@/tutor/usage";
 import { SaveToNotes } from "./save-to-notes";
 import { splitReply } from "@/widgets/split";
 import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
+import { SessionItemView, type SessionItemData } from "./session-item-view";
 import { UnderTheHood } from "./under-the-hood";
 import type { WidgetItem } from "./widget-panel";
 
@@ -14,16 +15,31 @@ import type { WidgetItem } from "./widget-panel";
 // messages as bubbles on the right, the Tutor's replies as plain text under a small navy "Tutor" label,
 // with "Under the hood" beneath when the Learner has turned on Show developer details (Settings).
 
-export type Line = { role: "user" | "assistant"; text: string; usage?: TurnUsage; /** Where a finished reply sits in its Session; it is what "Save to notes" keys on. */ ref?: TurnRef };
+export type MessageLine = {
+  role: "user" | "assistant";
+  text: string;
+  usage?: TurnUsage;
+  /** Where a finished reply sits in its Session; it is what "Save to notes" keys on. */
+  ref?: TurnRef;
+  /** The reply goes on after a Session item, in the next reply line: Save to notes and the Widget count carry on there. */
+  more?: true;
+};
+/** A display-only Session item between messages (a step divider), drawn by its kind; never a message. */
+export type ItemLine = { role: "item" } & SessionItemData;
+export type Line = MessageLine | ItemLine;
 export type ThreadLine = Line & { id: string };
 
 /** Every Widget in the conversation, numbered in order. Keys match the slot's `${messageId}:${index}`. */
 export function widgetsIn(messages: ThreadLine[], running = false): WidgetItem[] {
   const out: WidgetItem[] = [];
+  // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them.
+  let k = 0;
+  let continues = false;
   messages.forEach((m, i) => {
     if (m.role !== "assistant") return;
     const streaming = running && i === messages.length - 1;
-    let k = 0;
+    if (!continues) k = 0;
+    continues = m.more === true;
     for (const s of splitReply(m.text, { streaming })) {
       if (s.type === "widget") {
         const widgetIndex = k++;
@@ -48,7 +64,19 @@ export function DeveloperDetails({ on, children }: { on: boolean; children: Reac
   return <DeveloperDetailsContext.Provider value={on}>{children}</DeveloperDetailsContext.Provider>;
 }
 
-const ThreadContext = createContext<{ slot: WidgetSlot; usages: Map<string, TurnUsage>; refs: Map<string, TurnRef> }>({ slot: () => null, usages: new Map(), refs: new Map() });
+const ThreadContext = createContext<{ slot: WidgetSlot; usages: Map<string, TurnUsage>; refs: Map<string, TurnRef>; items: Map<string, SessionItemData> }>({
+  slot: () => null,
+  usages: new Map(),
+  refs: new Map(),
+  items: new Map(),
+});
+
+/** A Session item, which assistant-ui carries as a system message: drawn by its kind, with no label or bubble. */
+function ItemMessage() {
+  const id = useAuiState((s) => s.message.id);
+  const item = useContext(ThreadContext).items.get(id);
+  return item ? <SessionItemView item={item} /> : null;
+}
 
 function UserMessage() {
   return (
@@ -81,23 +109,28 @@ function AssistantMessage() {
   );
 }
 
-const MESSAGE_COMPONENTS = { UserMessage, AssistantMessage };
+const MESSAGE_COMPONENTS = { UserMessage, AssistantMessage, SystemMessage: ItemMessage };
 
 /**
  * The messages of the current assistant-ui thread. `slot` decides what stands where a Widget belongs
- * (a chip in the workspace); `lines` supply the usage behind each reply's "Under the hood" line.
+ * (a chip in the workspace); `lines` supply the usage behind each reply's "Under the hood" line, and the
+ * Session items drawn between messages.
  */
 export function ThreadMessages({ lines, slot }: { lines: ThreadLine[]; slot: WidgetSlot }) {
-  const usages = new Map(lines.flatMap((m) => (m.usage ? [[m.id, m.usage] as const] : [])));
-  const refs = new Map(lines.flatMap((m) => (m.ref && m.role === "assistant" ? [[m.id, m.ref] as const] : [])));
+  const usages = new Map(lines.flatMap((m) => (m.role !== "item" && m.usage ? [[m.id, m.usage] as const] : [])));
+  // Save to notes saves a whole reply, so a reply cut by an item offers it once, after its last part.
+  const refs = new Map(lines.flatMap((m) => (m.role === "assistant" && m.ref && !m.more ? [[m.id, m.ref] as const] : [])));
+  const items = new Map(lines.flatMap((m) => (m.role === "item" ? [[m.id, { kind: m.kind, data: m.data }] as const] : [])));
   return (
-    <ThreadContext.Provider value={{ slot, usages, refs }}>
+    <ThreadContext.Provider value={{ slot, usages, refs, items }}>
       <ThreadPrimitive.Messages components={MESSAGE_COMPONENTS} />
     </ThreadContext.Provider>
   );
 }
 
-export const convertMessage = (m: ThreadLine): ThreadMessageLike => ({ id: m.id, role: m.role, content: [{ type: "text", text: m.text }] });
+// A Session item travels as a system message, which assistant-ui keeps in place and never sends anywhere: nothing here talks to the model.
+export const convertMessage = (m: ThreadLine): ThreadMessageLike =>
+  m.role === "item" ? { id: m.id, role: "system", content: [{ type: "text", text: m.kind }] } : { id: m.id, role: m.role, content: [{ type: "text", text: m.text }] };
 
 /** A saved conversation, read-only: no composer and no model call. Ids are `line-<n>`, so Widget keys are `line-<n>:<k>`. */
 export function ReadOnlyThread({ lines, slot, className = "flex flex-col gap-4", children }: { lines: Line[]; slot: WidgetSlot; className?: string; children?: ReactNode }) {

@@ -13,7 +13,7 @@ import { loadProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
-import { loadSession } from "@/tutor/transcript";
+import { loadThread } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "../conversation";
 import { ProfileForm } from "../profile/profile-form";
@@ -66,7 +66,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const passedTopic = passedId ? map.topic(passedId) : undefined;
   const [summary, initial, quiz, turn, review, progress, profile] = await Promise.all([
     learnerSummary(db, map, learnerId),
-    "sessionId" in shown ? loadSession(db, shown.sessionId, map, learnerId) : [],
+    "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
     openQuiz(db, map, new Date(), learnerId).catch((error) => {
       console.error("The open quiz could not be loaded", error);
