@@ -1,5 +1,7 @@
 import { createParser, type LibraryJSONSchema } from "@openuidev/lang-core";
+import { FORMULAS, formulaById } from "@/finance/formulas";
 import frozen from "./frozen.generated.json";
+import { guidedTaskProblems, parsedTasks } from "./guided-tasks";
 import { splitReply } from "./split";
 
 /** Opens the message code sends when a finished widget fails the check. */
@@ -16,10 +18,56 @@ export function widgetProblems(code: string): string[] {
       .map((e) => `${e.statementId ?? e.component}: ${e.message}`);
     if (!result.root) problems.push("No root = Widget(...) statement was found.");
     if (result.meta.unresolved.length) problems.push(`Undefined names: ${result.meta.unresolved.join(", ")}.`);
+    problems.push(...formulaCardProblems(result.root?.props.children));
+    problems.push(...guidedTaskProblems(result.root?.props.children));
     return problems;
   } catch (e) {
     return [`The code could not be parsed: ${e instanceof Error ? e.message : String(e)}`];
   }
+}
+
+type Node = { typeName?: unknown; statementId?: string; props?: Record<string, unknown> };
+
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const stateRefName = (v: unknown): string | undefined => (isRecord(v) && v.k === "StateRef" && typeof v.n === "string" ? v.n : undefined);
+
+/**
+ * Problems in the widget's Formula Cards, which the parser cannot see: an unknown formula or symbol, a
+ * card input bound to no Slider, a symbol given under more than one of inputs, sourced and fixed, and a
+ * symbol of the formula not given at all. They feed the same correction turn as any other widget problem.
+ */
+function formulaCardProblems(children: unknown): string[] {
+  const nodes = (Array.isArray(children) ? children : []).filter((c): c is Node => isRecord(c));
+  const sliderVars = new Set(nodes.filter((n) => n.typeName === "Slider").map((n) => stateRefName(n.props?.value)));
+  return nodes
+    .filter((n) => n.typeName === "FormulaCard")
+    .flatMap((card) => {
+      const where = card.statementId ?? "FormulaCard";
+      const formula = typeof card.props?.formula === "string" ? formulaById(card.props.formula) : undefined;
+      if (!formula) return [`${where}: formula is not in the formula registry. Use one of: ${FORMULAS.map((f) => f.id).join(", ")}.`];
+      const maps = (["inputs", "sourced", "fixed"] as const).map(
+        (name) => [name, isRecord(card.props?.[name]) ? (card.props[name] as Record<string, unknown>) : {}] as const,
+      );
+      const problems: string[] = [];
+      const known = new Set(formula.symbols.map((s) => s.key));
+      for (const [name, map] of maps) {
+        for (const [key, value] of Object.entries(map)) {
+          if (!known.has(key)) problems.push(`${where}: "${key}" under ${name} is not a symbol of ${formula.id}. Its symbols are: ${[...known].join(", ")}.`);
+          if (name === "inputs") {
+            const variable = stateRefName(value);
+            if (!variable || !sliderVars.has(variable)) {
+              problems.push(`${where}: input "${key}" is bound to no Slider. Bind it to a $variable that a Slider in this widget uses, or move it under fixed.`);
+            }
+          }
+        }
+      }
+      for (const symbol of formula.symbols) {
+        const given = maps.filter(([, map]) => symbol.key in map).map(([name]) => name);
+        if (given.length > 1) problems.push(`${where}: "${symbol.key}" is given under both ${given.join(" and ")}. Give each symbol once.`);
+        if (given.length === 0) problems.push(`${where}: symbol "${symbol.key}" (${symbol.name}) is missing. Give it under inputs, sourced or fixed.`);
+      }
+      return problems;
+    });
 }
 
 /** Problems in each finished widget of a reply, by widget position; widgets with none are left out. */
@@ -58,5 +106,14 @@ export function widgetParts(code: string): { title: string | null; components: s
     return { title, components };
   } catch {
     return { title: null, components: [] };
+  }
+}
+
+/** The text of each Guided Task in a Widget, in order; none when it has no Guided Tasks. */
+export function widgetTaskTexts(code: string): string[] {
+  try {
+    return parsedTasks(parser.parse(code).root?.props.children).map((t) => t.text);
+  } catch {
+    return [];
   }
 }

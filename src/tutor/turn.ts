@@ -6,11 +6,14 @@ import { navigate } from "@/course/navigator";
 import { sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
+import { profileBlock } from "@/learner/profile";
+import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
-import { hiddenPassages, type QueryEmbedder } from "@/library/library";
+import type { QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
+import { replyFold, sourceContext } from "./sources";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -30,7 +33,7 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, CONTINUE_TEXT, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
@@ -39,7 +42,7 @@ import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage
  * runs the Tool Runner loop with cut-off, compaction, refusal and widget-correction handling.
  */
 
-export { latestTurn, BUSY_MESSAGE } from "./turn-status";
+export { latestTurn, BUSY_MESSAGE, CONTINUE_TEXT } from "./turn-status";
 
 /** Room for adaptive thinking as well as the visible reply. */
 const MAX_TOKENS = 16000;
@@ -83,7 +86,8 @@ export type TurnEvent =
   | { type: "text"; text: string }
   /** The reply's widget failed the server check; the text that follows is its one correction. */
   | { type: "correction" }
-  | { type: "done"; stopReason: string | null; usage: TurnUsage }
+  /** `ref` names the turn's Session and turn, so the browser can offer "Save to notes" on the reply at once. */
+  | { type: "done"; stopReason: string | null; usage: TurnUsage; ref: { sessionId: number; turnSeq: number } }
   /** Another turn is running (perhaps on another device); nothing was saved or sent. */
   | { type: "busy"; message: string }
   /** This turn started a new Session. */
@@ -133,8 +137,6 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 export type TurnInput = string | { continue: true } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
-/** What the Learner's "Continue" button sends. */
-export const CONTINUE_TEXT = "Continue.";
 
 export type TurnDeps = {
   db: Db;
@@ -220,7 +222,7 @@ async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGen
   yield { type: "replay", text: (await turnText(log.rows, turn.turnSeq, { db, map })) };
   const usage = (await loadTurnUsages(db, turn.sessionId)).get(turn.turnSeq);
   const [session] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
-  yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0) };
+  yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0), ref: { sessionId: turn.sessionId, turnSeq: turn.turnSeq } };
 }
 
 async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, deadline: number): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
@@ -270,7 +272,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const pastes = await pasteSummary(db, session.id);
     const caseData = await caseDataFor(db, map, place);
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
-    const plainContext = stepContext(place, caseData, pastes, quizDown);
+    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id));
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
@@ -292,7 +294,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     if (log.messages.length === 0) {
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
-      const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${quiz ? `${quiz.text}\n\n` : ""}${context}`;
+      // Order: the Learner summary, the Learner Profile (if shared), then the Navigator context last.
+      const profile = await profileBlock(db);
+      const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${profile ? `${profile}\n\n` : ""}${quiz ? `${quiz.text}\n\n` : ""}${context}`;
       await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {
       // The API accepts a system message only right after a user message (live 400 otherwise),
@@ -337,6 +341,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       for (; saved < all.length; saved++) await log.append(all[saved]);
     };
     let text = "";
+    // The reply's citation numbers and sources run once across all its loop steps, as displayText and replyFold show them on reload.
+    const marks = new CitationMarks();
+    let shownText = "";
     let compacting = false;
     // A step's time runs from the end of the one before (so it includes the tools that ran between) to its final message.
     let stepStart = performance.now();
@@ -350,14 +357,15 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         yield* reportSaveFailure();
         const events = stream[Symbol.asyncIterator]();
         let stepHasText = false;
-        // Citation markers follow each cited block, and the step's sources follow the step, as displayText shows them on reload.
-        const marks = new CitationMarks();
+        // Citation markers follow each cited block.
+        marks.newStep();
         const cited = new Map<number, Citation[]>();
         const show = (shown: string): TurnEvent[] => {
           if (!shown) return [];
           // Text after a tool call is a new loop step: start it on a new paragraph.
           const out: TurnEvent[] = !stepHasText && text ? [{ type: "text", text: PARAGRAPH }] : [];
           stepHasText = true;
+          shownText += (out.length ? PARAGRAPH : "") + shown;
           return [...out, { type: "text", text: shown }];
         };
         for (;;) {
@@ -385,7 +393,6 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
-        yield* show(marks.sources(await hiddenPassages({ db, map }, marks.cited())));
         const added = textOf(final.content);
         text += text && added ? PARAGRAPH + added : added;
         if (final.stop_reason === "end_turn" && compactAtTokens > 0 && contextTokens(final.usage) >= compactAtTokens) {
@@ -399,6 +406,11 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     }
     if (!compacting) await syncRunnerHistory();
     yield* reportSaveFailure();
+    // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
+    if (stopReason !== "refusal") {
+      const fold = replyFold(marks, shownText, await sourceContext({ db, map }, marks.cited()));
+      if (fold) yield { type: "text", text: fold };
+    }
     return text;
   }
 
@@ -436,7 +448,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
   }
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
-  return { type: "done", stopReason, usage };
+  return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq } };
 }
 
 /** What the Learner sent, as saved on the turn: their message, or "Continue.". */

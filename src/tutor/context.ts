@@ -1,11 +1,17 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
-import type { Piece } from "@/course/map";
+import type { Insight, Piece } from "@/course/map";
+import { plainFormulaText as plain } from "@/finance/formula-text";
+import type { ExploreInfo } from "@/learner/insight";
+import { formulaById, formulaGuide } from "@/finance/formulas";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
-import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
 
-const AFTER_REVEAL = TEACHING_STEPS.indexOf("reveal");
+/** Turns at explore with no attempt before the context reminds the Tutor to put the question. */
+export const IDLE_TURNS_BEFORE_REMINDER = 2;
+
+const AFTER_REVEAL =TEACHING_STEPS.indexOf("reveal");
 
 /** Prefixed to the context in the first turn after the Learner chose a Topic on the Course Map page or went back to the default path. */
 export const JUMP_NOTE =
@@ -22,6 +28,8 @@ export function stepContext(
   pastes: PasteSummary = { count: 0, words: 0 },
   /** The current quiz Check's questions cannot be found, so no quiz is shown (see `quizUnavailable`). */
   quizUnavailable = false,
+  /** The Topic's Insight attempts so far, for the explore and principle steps. */
+  explore?: ExploreInfo,
 ): string {
   if (!place) return "Course Navigator: every Topic on the Course Map is passed. Answer the Learner's questions.";
   const { topic, step, check } = place;
@@ -31,23 +39,30 @@ export function stepContext(
     `Topic: ${topic.title} (${topic.stage} Stage).`,
     `Teaching Step: ${step}${check ? ` (Check ${topic.checks.indexOf(check) + 1} of ${topic.checks.length}: ${check.id})` : ""}.`,
   ];
+  const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
+  if (formulas.length) {
+    lines.push(
+      `Formulas this Topic teaches (show each only as a FormulaCard widget; describe any other formula in words, never with typed symbols): ${formulas.map(formulaGuide).join(" ")}`,
+    );
+  }
   if (place.unmetPrerequisites.length) lines.push(`Prerequisites not yet passed: ${place.unmetPrerequisites.join(", ")}.`);
   for (const c of topic.cases) {
-    lines.push("", `Case: ${c.title}, as of ${c.asOf}.`, `Story (only what was known on ${c.asOf}): ${c.story.trim()}`);
+    lines.push("", `Case: ${c.title}, as of ${c.asOf}.`, `Story (only what was known on ${c.asOf}): ${plain(c.story.trim())}`);
     if (c.piece) lines.push(...pieceLines(c.piece, pastes));
-    if (revealed) lines.push(`Reveal (what happened): ${c.reveal.trim()}`);
+    if (revealed) lines.push(`Reveal (what happened): ${plain(c.reveal.trim())}`);
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
-  if (step === "concept" || step === "your_turn") lines.push("", `Concept: ${topic.concept.trim()}`);
+  if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
+  if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, topic.explore?.widget));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
     if (check.kind === "conversation") {
-      lines.push("", `Check prompt: ${check.prompt.trim()}`, `Pass criteria: ${check.passCriteria.trim()}`);
+      lines.push("", `Check prompt: ${plain(check.prompt.trim())}`, `Pass criteria: ${plain(check.passCriteria.trim())}`);
     } else if (quizUnavailable) {
       lines.push(
         "",
         `Check: quiz ${check.id}, but the quiz for this Check cannot be shown: too few of its questions can be found, so the Learner sees no quiz panel. Check the Learner in conversation instead: ask them to explain the Concept below in their own words and apply it to a small example of your own, and question their reasoning. Do not mention a quiz panel.`,
-        `Concept: ${topic.concept.trim()}`,
+        `Concept: ${plain(topic.concept.trim())}`,
       );
     } else {
       lines.push(
@@ -56,10 +71,24 @@ export function stepContext(
       );
     }
   }
-  if (step === "principle") lines.push("", `Principle: ${topic.principle.trim()}`);
+  if (step === "principle") {
+    lines.push("", `Principle: ${plain(topic.principle.trim())}`);
+    if (topic.insight && explore?.words) {
+      lines.push(`The Learner's own words about the Insight (${explore.settled === "told" ? "after being told it" : "found by themselves"}): "${explore.words}". Tie the principle back to them.`);
+    }
+    if (topic.connections.length) {
+      lines.push(
+        "",
+        "Connections: after the principle, give the Learner these links from this Topic's idea to others, in your own words and in this order. Link each to its Course Map Topic by title, and add no figures of your own.",
+        ...topic.connections.map((c, i) => `${i + 1}. ${plain(c.text.trim())} (links to: ${c.titles.join("; ")})`),
+      );
+    }
+  }
   lines.push(
     "",
-    step !== "check"
+    step === "explore" && !explore?.settled
+      ? "You cannot finish explore yet: code accepts it only once record_insight_attempt has recorded the Insight as found or told."
+      : step !== "check"
       ? `When this Teaching Step is done, call finish_teaching_step with step "${step}".`
       : check && quizUnavailable
         ? `When you can judge whether the Learner understands the Concept, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
@@ -69,6 +98,49 @@ export function stepContext(
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");
+}
+
+/**
+ * The Guided Tasks under the explore Widget, as the Learner reads them. They tick themselves in the
+ * browser, are practice only, and say nothing the Tutor needs to mark.
+ */
+function guidedTaskLines(widgetCode: string | undefined): string[] {
+  const tasks = widgetCode ? widgetTaskTexts(widgetCode) : [];
+  if (!tasks.length) return [];
+  return [
+    `Guided Tasks under the Explore Widget (they tick themselves, in order, as the Learner moves the slider; practice only): ${tasks.map((t, i) => `${i + 1}. ${t}`).join(" ")} You can point the Learner to them, but do not mark them, ask the Learner to report them done, or treat a ticked task as their Insight.`,
+  ];
+}
+
+/**
+ * The explore step's lines. The written Insight appears only once it is settled (found or told);
+ * until then the Tutor has the question, how to tell it is found, and the hints already released.
+ */
+function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widgetCode: string | undefined): string[] {
+  const lines = [
+    "",
+    widgetCode
+      ? "Explore: the Learner finds this Topic's Insight by playing with the Topic's own Explore Widget. Code has put it on screen already, in the Widget panel as an \"Explore\" chip (and in the conversation column on a narrow screen), and keeps it there until the Topic is passed. Do not draw it yourself; point the Learner to it, then they say what they noticed in their own words."
+      : "Explore: the Learner finds this Topic's Insight by playing with the Widget you drew at the concept step (keep it available), then says what they noticed in their own words.",
+    ...guidedTaskLines(widgetCode),
+    `Insight question: ${insight.question.trim()}`,
+    `The Insight is found when: ${insight.foundWhen.trim()}`,
+  ];
+  if (explore?.settled) {
+    lines.push(
+      `The Insight is settled (${explore.settled === "told" ? "the Learner was told it" : "the Learner found it"}). Written Insight: ${insight.written.trim()}`,
+      ...(explore.words ? [`The Learner's words: "${explore.words}".`] : []),
+    );
+    return lines;
+  }
+  lines.push(
+    explore?.hints.length ? `Hints released so far: ${explore.hints.map((h, i) => `hint ${i + 1}: ${h.trim()}`).join(" ")}` : "No hint has been released yet.",
+    "Put the question to the Learner, then wait for their own words. Do not state, paraphrase or hint at the Insight yourself, and do not draw a conclusion for them. When they answer, call record_insight_attempt with outcome found, not_yet or asked_to_be_told (when they ask you to just tell them), and their words copied exactly from their message this turn. Pressing Continue is not an attempt. Code replies with the hint or the written Insight; write your confirmation or hint after that result, as the final text of your reply.",
+  );
+  if ((explore?.idleTurns ?? 0) >= IDLE_TURNS_BEFORE_REMINDER) {
+    lines.push(`Reminder: the Learner has not yet tried the question after ${explore!.idleTurns} turns at explore. Put the Insight question to them now, point them to the Widget, and invite their own words.`);
+  }
+  return lines;
 }
 
 /**
@@ -122,6 +194,7 @@ function caseDataLines(data: CaseData | undefined): string[] {
  * no verdict: a note first, then the usual context, so it still ends the same.
  */
 export function noVerdictContext(place: Place & { check: NonNullable<Place["check"]> }, caseData: CaseData[] = [], pastes?: PasteSummary): string {
+  // A Check step never needs explore info, which is why none is taken here.
   return `No verdict was recorded for Check ${place.check.id} in the last turn, so the Learner is still at this Check.\n${stepContext(place, caseData, pastes)}`;
 }
 

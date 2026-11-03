@@ -8,7 +8,7 @@ import type { QuestionLookup } from "./quiz";
  * database, no clock: callers load and save progress around it.
  */
 
-export const TEACHING_STEPS = ["story", "concept", "your_turn", "check", "reveal", "principle"] as const;
+export const TEACHING_STEPS = ["story", "concept", "explore", "your_turn", "check", "reveal", "principle"] as const;
 export type TeachingStep = (typeof TEACHING_STEPS)[number];
 export type TopicStatus = "not_started" | "in_progress" | "passed";
 
@@ -18,6 +18,8 @@ export type TopicProgress = {
   passedChecks: string[];
   revealShown: boolean;
   status: "in_progress" | "passed";
+  /** How the Topic's Insight was settled at explore; absent until the Learner has found it or been told it. */
+  insight?: "found" | "told";
 };
 
 export type Progress = {
@@ -30,7 +32,7 @@ export type Place = {
   topic: Topic;
   status: TopicStatus;
   step: TeachingStep;
-  /** The Check the concept, your-turn and Check steps are about; null otherwise. */
+  /** The Check the concept, explore, your-turn and Check steps are about; null otherwise. */
   check: Check | null;
   /** The step that comes after this one, or "topic_passed" after the principle. */
   next: TeachingStep | "topic_passed";
@@ -56,13 +58,29 @@ function dueIn(topic: Topic, record: TopicProgress | undefined): Check[] {
 }
 
 /**
- * The current Topic: the chosen one if still open. Otherwise a passed Topic with a due Check, so
- * the Learner takes it before starting anything new; otherwise the first unpassed Topic on the default path.
+ * A passed Topic whose explore step is owed: it has an Insight, marks explore as required, and the
+ * Insight was never settled. Once settled it stays owed while the step is saved as explore, until the Tutor finishes it.
+ */
+function exploreDue(topic: Topic, record: TopicProgress | undefined): boolean {
+  return record?.status === "passed" && Boolean(topic.explore?.requiredWhenPassed) && (!record.insight || record.step === "explore");
+}
+
+/** The Check explore comes before, or null for a Topic without an Insight. */
+function anchorCheck(topic: Topic): Check | null {
+  return topic.explore ? (topic.checks.find((c) => c.id === topic.explore!.before) ?? null) : null;
+}
+
+/**
+ * The current Topic: the chosen one if still open. Otherwise a passed Topic with a due Check or a due
+ * explore step, so the Learner takes it before starting anything new; otherwise the first unpassed Topic on the default path.
  */
 function currentTopic(map: CourseMap, progress: Progress): Topic | undefined {
   const chosen = progress.currentTopicId ? map.topic(progress.currentTopicId) : undefined;
   if (chosen && !isPassed(progress, chosen.id)) return chosen;
-  return map.topics.find((t) => dueIn(t, progress.topics[t.id]).length) ?? map.topics.find((t) => !isPassed(progress, t.id));
+  return (
+    map.topics.find((t) => dueIn(t, progress.topics[t.id]).length || exploreDue(t, progress.topics[t.id])) ??
+    map.topics.find((t) => !isPassed(progress, t.id))
+  );
 }
 
 /** The first Check in the Topic's current order with no pass; in a passed Topic, the first due Check. */
@@ -75,14 +93,40 @@ function placeIn(topic: Topic, record: TopicProgress | undefined) {
   const r = record ?? FRESH;
   const check = firstUnpassed(topic, r);
   let step = r.step;
-  // A passed Topic is reopened only for a due Check: its concept, your-turn and Check steps, nothing else.
-  if (r.status === "passed" && check && !PER_CHECK.includes(step)) step = "concept";
+  // A Topic whose Insight was removed from its file has no explore step to stand at.
+  if (step === "explore" && !topic.explore) step = check ? "your_turn" : "reveal";
+  if (r.status === "passed") {
+    // A passed Topic is reopened only for a due explore step or a due Check: explore, then concept, your-turn and Check, nothing else.
+    if (exploreDue(topic, r)) step = "explore";
+    else if (step === "explore" || (check && !PER_CHECK.includes(step))) step = check ? "concept" : "principle";
+  }
+  if (step === "explore") return { record: r, step, check: anchorCheck(topic) };
   if (PER_CHECK.includes(step) && !check) step = r.status === "passed" ? "principle" : "reveal";
   return { record: r, step, check: PER_CHECK.includes(step) ? (check ?? null) : null };
 }
 
-function nextStep(step: TeachingStep): TeachingStep | "topic_passed" {
-  return step === "principle" ? "topic_passed" : step === "check" ? "concept" : TEACHING_STEPS[TEACHING_STEPS.indexOf(step) + 1];
+/** Where the Learner goes after explore: the Check it precedes, or on to the reveal (or, in a passed Topic, to any due Check, else the end). */
+function afterExplore(topic: Topic, record: TopicProgress): TeachingStep {
+  const next = firstUnpassed(topic, record);
+  if (record.status === "passed") return next ? "concept" : "principle";
+  if (!next) return "reveal";
+  return next.id === topic.explore?.before ? "your_turn" : "concept";
+}
+
+function nextStep(topic: Topic, record: TopicProgress, step: TeachingStep, check: Check | null): TeachingStep | "topic_passed" {
+  switch (step) {
+    case "principle":
+      return "topic_passed";
+    case "check":
+      return "concept";
+    case "concept":
+      // Explore follows the concept of the anchor Check, once per Topic, and only for a Topic still being taught.
+      return record.status !== "passed" && !record.insight && check && check.id === topic.explore?.before ? "explore" : "your_turn";
+    case "explore":
+      return afterExplore(topic, record);
+    default:
+      return TEACHING_STEPS[TEACHING_STEPS.indexOf(step) + 1];
+  }
 }
 
 /** Where the Learner is now, or null once every Topic is passed. */
@@ -96,7 +140,7 @@ export function navigate(map: CourseMap, progress: Progress): Place | null {
     status: record ? record.status : "not_started",
     step,
     check,
-    next: nextStep(step),
+    next: nextStep(topic, record ?? FRESH, step, check),
     unmetPrerequisites: topic.prerequisites.filter((p) => !isPassed(progress, p)),
     revealShown: (record?.revealShown ?? false) || step === "reveal",
     dueChecks: map.topics.flatMap((t) => dueIn(t, progress.topics[t.id])),
@@ -118,8 +162,11 @@ export function finishStep(map: CourseMap, progress: Progress, reported: Teachin
   if (reported !== step) return { ok: false, reason: `Cannot finish "${reported}": the current Teaching Step is "${step}".` };
   if (step === "check") return { ok: false, reason: "Only a saved Check result moves past a Check step." };
   if (record.status === "passed" && !check) return { ok: false, reason: "This Topic is passed; there is no step to finish." };
+  if (step === "explore" && !record.insight) {
+    return { ok: false, reason: "Cannot finish explore: the Learner has not yet found the Insight or been told it. Record their attempt with record_insight_attempt." };
+  }
   if (step === "principle") return { ok: true, progress: save(progress, topic, { ...record, status: "passed" }) };
-  const following = nextStep(step) as TeachingStep;
+  const following = nextStep(topic, record, step, check) as TeachingStep;
   return { ok: true, progress: save(progress, topic, { ...record, step: following, revealShown: record.revealShown || following === "reveal" }) };
 }
 
@@ -138,9 +185,16 @@ export function recordCheckResult(map: CourseMap, progress: Progress, checkId: s
     return { ok: true, progress: save(progress, topic, { ...record, passedChecks, step: more ? "concept" : "principle" }) };
   }
   const more = topic.checks.some((c) => !passedChecks.includes(c.id));
+  // A Learner who got past the anchor Check before the Topic had an Insight takes explore before the reveal, never earlier.
+  const explore = !more && !record.insight && topic.explore !== undefined && passedChecks.includes(topic.explore.before);
   return {
     ok: true,
-    progress: save(progress, topic, { ...record, passedChecks, step: more ? "concept" : "reveal", revealShown: !more || record.revealShown }),
+    progress: save(progress, topic, {
+      ...record,
+      passedChecks,
+      step: more ? "concept" : explore ? "explore" : "reveal",
+      revealShown: (!more && !explore) || record.revealShown,
+    }),
   };
 }
 

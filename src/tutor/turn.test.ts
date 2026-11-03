@@ -12,12 +12,14 @@ import { sql } from "drizzle-orm";
 import { describeFailure } from "./failures";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { OPENING_PREFIX } from "./context";
+import { plainFormulaText } from "@/finance/formula-text";
 import { type Line, listSessions, loadCurrentSession, loadSession } from "./transcript";
 import { latestTurn, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { presentValueOnly } from "@/test/present-value-map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, saveJump, saveReturnToDefaultPath, learnerSummary } from "@/learner/memory";
+import { profileInput, saveProfile } from "@/learner/profile";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
@@ -28,7 +30,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 
 /** The real present value Topic alone, with its quiz Check removed (see src/test/present-value-map.ts). */
 function withoutQuizChecks(real: CourseMap): CourseMap {
-  return presentValueOnly({ real, withoutQuiz: true });
+  return presentValueOnly({ real, withoutQuiz: true, withoutInsight: true });
 }
 
 /** Moves the Learner to the Check step by saving progress directly, as earlier turns would have (one step per turn). */
@@ -51,15 +53,18 @@ describe("Tutor Turn", () => {
     expect(events).toEqual([
       { type: "text", text: "Present value " },
       { type: "text", text: "starts with a story." },
-      { type: "done", stopReason: "end_turn", usage: expect.any(Object) },
+      { type: "done", stopReason: "end_turn", usage: expect.any(Object), ref: { sessionId: expect.any(Number), turnSeq: 0 } },
     ]);
     expect(noUsage(await loadCurrentSession(db))).toEqual([
       { role: "user", text: "What is present value?" },
       { role: "assistant", text: "Present value starts with a story." },
     ]);
+    // The finished reply says where it sits, so it can be saved to notes.
+    const line = (await loadCurrentSession(db)).at(-1)!;
+    expect(line.ref).toEqual((events.at(-1) as { ref: unknown }).ref);
   });
 
-  it("uses claude-sonnet-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {
+  it("uses claude-opus-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: "First." }] },
@@ -72,11 +77,13 @@ describe("Tutor Turn", () => {
     await collect(runTutorTurn({ db, client }, "And again"));
 
     for (const request of requests) {
-      expect(request.model).toBe("claude-sonnet-5-5");
+      expect(request.model).toBe("claude-opus-5-5");
+      for (const banned of ["tool_choice", "temperature", "top_p", "top_k"]) expect(request).not.toHaveProperty(banned);
       expect(request.output_config).toEqual({ effort: "medium" });
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
+        { name: "record_insight_attempt" },
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
@@ -86,6 +93,47 @@ describe("Tutor Turn", () => {
       expect(request.thinking).toEqual({ type: "adaptive" });
       expect(request.cache_control).toEqual({ type: "ephemeral" });
     }
+  });
+
+  it("keeps a Session on the model it started with, and the next new Session uses the stored default", async () => {
+    const db = await testDb();
+    let t = Date.parse("2026-11-03T09:00:00Z");
+    const now = () => new Date(t);
+    const { client, requests } = scriptedClient([
+      { content: [{ type: "text", text: "One." }] },
+      { content: [{ type: "text", text: "Two." }] },
+      { content: [{ type: "text", text: "Three." }] },
+    ]);
+
+    await collect(runTutorTurn({ db, client, now }, "Hello"));
+    await db.update(settings).set({ value: "claude-sonnet-5-5" }).where(eq(settings.key, "model"));
+    t += 60_000;
+    await collect(runTutorTurn({ db, client, now }, "Same Session"));
+    t += 7 * 3600_000;
+    await collect(runTutorTurn({ db, client, now }, "New Session"));
+
+    expect(requests.map((r) => r.model)).toEqual(["claude-opus-5-5", "claude-opus-5-5", "claude-sonnet-5-5"]);
+  });
+
+  it("shows text written before a tool call to the Learner and saves it in the reply", async () => {
+    const db = await testDb();
+    const { client } = scriptedClient([
+      {
+        content: [
+          { type: "text", text: "You found it: a higher rate shrinks later money." },
+          { type: "tool_use", id: "toolu_t1", name: "calculate", input: { expression: "100 / 1.08" } },
+        ],
+        stop_reason: "tool_use",
+      },
+      { content: [{ type: "text", text: "On to the Check." }] },
+    ]);
+
+    const events = await collect(runTutorTurn({ db, client }, "I think higher rates make later money worth less"));
+
+    const shown = events.filter((e) => e.type === "text").map((e) => (e as { text: string }).text);
+    expect(shown.join("")).toContain("You found it: a higher rate shrinks later money.");
+    const lines = await loadCurrentSession(db);
+    expect(lines.filter((l) => l.role === "assistant").map((l) => l.text).join("\n")).toContain("You found it: a higher rate shrinks later money.");
   });
 
   it("stores assistant content unchanged, thinking blocks included, and replays history add-only", async () => {
@@ -179,6 +227,17 @@ describe("Tutor Turn", () => {
       expect(context).not.toContain(pv.cases[0].reveal.trim());
     });
 
+    it("tells the Tutor which formulas the Topic teaches, and that they appear only as Formula Cards", async () => {
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
+      await collect(runTutorTurn({ db, client, map }, { continue: true }));
+      const [context] = systemTexts(requests[0]);
+      expect(context).toContain("Formulas this Topic teaches");
+      expect(context).toContain('"growing-annuity-present-value"');
+      expect(context).toContain("ratePercent");
+      expect(TUTOR_INSTRUCTIONS).toContain("Show each only as a FormulaCard widget");
+    });
+
     it("tells the Tutor that made-up numbers before the reveal must not match the real outcome, and sends the Concept to take them from at the your-turn step", async () => {
       expect(TUTOR_INSTRUCTIONS).toContain("a made-up number must never match the Case's real outcome or anything else you know happened after the as-of date");
       expect(TUTOR_INSTRUCTIONS).toContain("Take hypothetical numbers from the Concept or Check prompt in the Course Navigator message");
@@ -189,7 +248,7 @@ describe("Tutor Turn", () => {
       await collect(runTutorTurn({ db, client, map }, "Give me a move to practise on."));
       const [context] = systemTexts(requests[0]);
       expect(context).toContain("Teaching Step: your_turn");
-      expect(context).toContain(`Concept: ${pv.concept.trim()}`);
+      expect(context).toContain(`Concept: ${plainFormulaText(pv.concept.trim())}`);
       expect(context).not.toContain(pv.cases[0].reveal.trim());
     });
 
@@ -324,6 +383,8 @@ describe("Tutor Turn", () => {
               cases: pv.cases.map((c) => ({ ...c, id: "bonds-case" })),
               checks: [{ id: "bonds-check", kind: "conversation", prompt: "Why do prices fall?", passCriteria: "Discounting." }],
               questions: undefined,
+              insight: undefined,
+              explore: undefined,
             }),
           },
         ];
@@ -484,7 +545,7 @@ describe("Tutor Turn", () => {
         const twoChecks = parseCourseMap([
           {
             name: "pv.yaml",
-            text: stringify({ ...parse(yaml), stage: "foundation", path: 1, questions: undefined, checks: [...parse(yaml).checks.filter((c: { kind: string }) => c.kind === "conversation"), second] }),
+            text: stringify({ ...parse(yaml), stage: "foundation", path: 1, connections: undefined, questions: undefined, checks: [...parse(yaml).checks.filter((c: { kind: string }) => c.kind === "conversation"), second] }),
           },
         ]).map!;
         const first = twoChecks.topic("present-value")!.checks[0];
@@ -582,7 +643,7 @@ describe("Tutor Turn", () => {
             topicId: "present-value",
             passed: false,
             evidence: "Added the payments without discounting.",
-            model: "claude-sonnet-5-5",
+            model: "claude-opus-5-5",
           }),
         ]);
       });
@@ -754,6 +815,20 @@ describe("Tutor Turn", () => {
       ]);
     });
 
+    it("sends a Formula Card with a rate bound to no slider back for one correction turn, naming the symbol", async () => {
+      const unbound = '```openui-lang\nroot = Widget("PV", [card])\ncard = FormulaCard("present-value", {ratePercent: 5}, {}, {amount: 1000, years: 5})\n```';
+      const fixed = '```openui-lang\nroot = Widget("PV", [rate, card])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.5, $rate, "percent")\ncard = FormulaCard("present-value", {ratePercent: $rate}, {}, {amount: 1000, years: 5})\n```';
+      const db = await testDb();
+      const { client, requests } = scriptedClient([
+        { content: [{ type: "text", text: `Try it.\n${unbound}` }] },
+        { content: [{ type: "text", text: fixed }] },
+      ]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me the formula"));
+      expect(requests).toHaveLength(2);
+      expect(String(requests[1].messages.at(-1)!.content)).toMatch(/input "ratePercent" is bound to no Slider/);
+      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+    });
+
     it("gives up after one correction turn, leaving the browser to show a plain fallback", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([
@@ -797,7 +872,7 @@ describe("Tutor Turn", () => {
     });
   });
   describe("quiz Check", () => {
-    const real = presentValueOnly();
+    const real = presentValueOnly({ withoutInsight: true });
     const quizId = "pv-quiz-discounting";
     const finish = (step: string) => ({ content: [{ type: "tool_use", id: `toolu_${step}`, name: "finish_teaching_step", input: { step } }] });
     const text = (t: string) => ({ content: [{ type: "text", text: t }] });
@@ -1267,5 +1342,61 @@ describe("surviving cut-offs and failures", () => {
     expect(results.map((r) => r.is_error ?? false)).toEqual([false, false]);
     expect(results[1].content).toEqual(results[0].content);
     expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+  });
+});
+
+describe("Learner Profile in the Tutor Turn", () => {
+  const map = withoutQuizChecks(loadCourseMap());
+  const text = (t: string) => ({ type: "text", text: t });
+  const openingOf = (request: { messages: object[] }) => ((request.messages[0] as { content: { text: string }[] }).content)[0].text;
+
+  it("opens a new Session with the profile after the Learner summary and before the Course Navigator context", async () => {
+    const db = await testDb();
+    await saveProfile(db, profileInput.parse({ work: "Nurse", location: "Pune, India", loan: "Home loan", savingFor: "School fees" }));
+    const { client, requests } = scriptedClient([{ content: [text("Hello.")] }]);
+    await collect(runTutorTurn({ db, client, map }, "Hi"));
+    const opening = openingOf(requests[0]);
+    const profile = opening.indexOf("Learner Profile");
+    expect(opening.indexOf(OPENING_PREFIX)).toBe(0);
+    expect(profile).toBeGreaterThan(0);
+    expect(opening.indexOf("Course Navigator:")).toBeGreaterThan(profile);
+    expect(opening).toContain("- Work: Nurse");
+    expect(opening).toContain("- Where you live: Pune, India");
+    expect(opening).toContain("never as advice");
+    expect((requests[0].messages[0].content as { text: string }[])[1].text).toBe("Hi");
+  });
+
+  it("has no profile block when the Learner shared nothing", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([{ content: [text("Hello.")] }]);
+    await collect(runTutorTurn({ db, client, map }, "Hi"));
+    expect(openingOf(requests[0])).not.toContain("Learner Profile");
+  });
+
+  it("an edit in the middle of a Session takes effect at the next Session, not this one", async () => {
+    const db = await testDb();
+    await saveProfile(db, profileInput.parse({ work: "Nurse" }));
+    let t = Date.parse("2026-11-03T09:00:00Z");
+    const now = () => new Date(t);
+    const { client, requests } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }, { content: [text("Three.")] }]);
+    await collect(runTutorTurn({ db, client, map, now }, "Hi"));
+    await saveProfile(db, profileInput.parse({ work: "Teacher" }));
+    t += 60_000;
+    await collect(runTutorTurn({ db, client, map, now }, "Again"));
+    // The same Session replays the profile it started with.
+    expect(await listSessions(db)).toHaveLength(1);
+    expect(openingOf(requests[1])).toContain("- Work: Nurse");
+    expect(openingOf(requests[1])).not.toContain("Teacher");
+    // A later Session picks up the edit.
+    t += 7 * 3600_000;
+    await collect(runTutorTurn({ db, client, map, now }, "Third"));
+    expect(await listSessions(db)).toHaveLength(2);
+    expect(openingOf(requests[2])).toContain("- Work: Teacher");
+  });
+
+  it("the instructions say the profile is for examples only, never advice", () => {
+    expect(TUTOR_INSTRUCTIONS).toMatch(/Learner Profile/);
+    expect(TUTOR_INSTRUCTIONS).toMatch(/only to choose everyday examples/);
+    expect(TUTOR_INSTRUCTIONS).toMatch(/never advice/i);
   });
 });

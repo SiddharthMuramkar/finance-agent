@@ -4,6 +4,7 @@ import { AssistantRuntimeProvider, ComposerPrimitive, ThreadPrimitive, useExtern
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { replaceBrokenWidgets } from "@/widgets/check";
+import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
@@ -12,7 +13,7 @@ import { ReviewPanel } from "./review-panel";
 import type { WidgetSlot } from "./reply-markdown";
 import { convertMessage, ThreadMessages, widgetsIn, type Line, type ThreadLine } from "./thread";
 import { PrimaryButton, SecondaryButton } from "./ui";
-import { useWidgetPicker, WidgetChip, WidgetPanel } from "./widget-panel";
+import { exploreItem, PinnedExplore, useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
 import { StatusCard, type Place } from "./workspace-parts";
 
 export type { Line };
@@ -43,6 +44,7 @@ export function Conversation({
   pending,
   review,
   place = null,
+  explore = null,
 }: {
   initial: Line[];
   summary: string;
@@ -50,6 +52,8 @@ export function Conversation({
   pending: PendingTurn;
   review: ReviewState;
   place?: Place;
+  /** The Topic's own explore Widget while the Learner has it (see exploreWidgetFor); shown by code, not drawn by the Tutor. */
+  explore?: { code: string } | null;
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
@@ -60,7 +64,9 @@ export function Conversation({
   const [notice, setNotice] = useState<string | null>(pending?.status === "running" ? "A turn is in progress, perhaps on another device." : null);
   const [canRetry, setCanRetry] = useState(pending?.status === "failed");
   const [cutShort, setCutShort] = useState(false);
-  const widgets = useMemo(() => widgetsIn(messages, running), [messages, running]);
+  const tutorWidgets = useMemo(() => widgetsIn(messages, running), [messages, running]);
+  const exploreAnchor = useExploreAnchor(explore, tutorWidgets.length);
+  const widgets = useMemo(() => withExplore(tutorWidgets, explore, exploreAnchor), [tutorWidgets, explore, exploreAnchor]);
   const picker = useWidgetPicker(widgets);
 
   /**
@@ -139,6 +145,11 @@ export function Conversation({
                 const usage = event.usage as TurnUsage;
                 setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, usage } : x)));
               }
+              // The finished reply can now be saved to notes.
+              if (event.ref) {
+                const ref = event.ref as TurnRef;
+                setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, ref } : x)));
+              }
             } else if (event.type === "session" && NOTICES[event.reason]) setNotice(NOTICES[event.reason]);
             else if (event.type === "refusal") {
               // Only the declined loop step is dropped; what earlier steps saved stays, as a reload shows it.
@@ -206,6 +217,7 @@ export function Conversation({
         <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
           <div className="mb-6 flex flex-col gap-3">
             <StatusCard place={place} summary={summary} onContinue={() => void send({ continue: true }, "Continue.")} disabled={running} />
+            {explore && <PinnedExplore item={exploreItem(explore.code)} />}
             <ReviewPanel review={review} />
             <QuizPanel quiz={quiz} />
           </div>

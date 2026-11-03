@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap } from "./map";
+import { parseOutline } from "./outline";
 
 /** A minimal valid Topic file; tests override pieces of it. */
 function topic(id: string, extra = "", checks = defaultChecks(id)) {
@@ -69,6 +70,18 @@ describe("Course Map validator", () => {
     expect(errors).toEqual(['Topic "a" has no Checks']);
   });
 
+  it("accepts a Topic that lists registered formulas, and none by default", () => {
+    const { map, errors } = parseCourseMap([topic("a", "formulas: [present-value]"), topic("b")]);
+    expect(errors).toEqual([]);
+    expect(map?.topic("a")?.formulas).toEqual(["present-value"]);
+    expect(map?.topic("b")?.formulas).toEqual([]);
+  });
+
+  it("rejects a Topic that lists a formula the registry does not have", () => {
+    const { errors } = parseCourseMap([topic("a", "formulas: [wacc]")]);
+    expect(errors.join()).toMatch(/a\.yaml: formulas\.0: Unknown formula; the formula registry has: present-value/);
+  });
+
   it("rejects a malformed file with its name", () => {
     const { errors } = parseCourseMap([{ name: "bad.yaml", text: "id: bad\nstage: someday\n" }]);
     expect(errors[0]).toMatch(/^bad\.yaml: /);
@@ -79,6 +92,7 @@ describe("Course Map validator", () => {
     const pv = map.topic("present-value");
     expect(pv?.stage).toBe("foundation");
     expect(pv?.checks.length).toBeGreaterThanOrEqual(1);
+    expect(pv?.formulas).toEqual(["present-value", "annuity-present-value", "growing-annuity-present-value"]);
     expect(pv?.cases[0].asOf).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
@@ -153,6 +167,124 @@ ${lines}`;
     it("rejects a question ID that another Topic or Check already uses", () => {
       const { errors } = parseCourseMap([topic("a", questions, quiz("    questions: [q1]\n    passRule: { correct: 1 }")), topic("b", questions, quiz("    questions: [q1]\n    passRule: { correct: 1 }"))]);
       expect(errors).toContain('Duplicate ID "q1"');
+    });
+  });
+
+  describe("Insight and explore", () => {
+    const insight = `insight:
+  question: What do you notice when the rate is high?
+  written: When rates are high, money today beats bigger payments later.
+  foundWhen: The Learner says that a higher rate shrinks the value of later payments.
+  hints:
+    - Look at the bars for the far-off payments.`;
+    const explore = (before = "a-check", extra = "") => `explore:
+  before: ${before}
+${extra}`;
+
+    it("accepts an Insight with explore naming one of the Topic's own Checks", () => {
+      const { map, errors } = parseCourseMap([topic("a", `${insight}\n${explore("a-check", "  requiredWhenPassed: true")}`)]);
+      expect(errors).toEqual([]);
+      expect(map?.topic("a")?.explore).toEqual({ before: "a-check", requiredWhenPassed: true });
+      expect(map?.topic("a")?.insight?.hints).toHaveLength(1);
+    });
+
+    it("needs both an Insight and explore, or neither", () => {
+      expect(parseCourseMap([topic("a", insight)]).errors.join()).toContain("explore");
+      expect(parseCourseMap([topic("a", explore())]).errors.join()).toContain("insight");
+    });
+
+    it("rejects an explore that names a Check the Topic does not have", () => {
+      const { errors } = parseCourseMap([topic("a", `${insight}\n${explore("ghost")}`)]);
+      expect(errors).toEqual(['Topic "a" explores before Check "ghost", which it does not have']);
+    });
+
+    it("rejects figures in the Insight text", () => {
+      const withFigure = insight.replace("money today", "money today (8%)");
+      const { errors } = parseCourseMap([topic("a", `${withFigure}\n${explore()}`)]);
+      expect(errors.join()).toContain("figure");
+    });
+
+    it("allows one or two hints, no more", () => {
+      const three = insight + "\n    - Two.\n    - Three.";
+      expect(parseCourseMap([topic("a", `${three}\n${explore()}`)]).errors).not.toEqual([]);
+    });
+
+    it("loads present value with its Insight and explore anchor", () => {
+      const pv = loadCourseMap().topic("present-value")!;
+      expect(pv.insight?.written).toBeTruthy();
+      expect(pv.explore?.before).toBe("pv-jackpot-choice");
+    });
+  });
+
+  describe("Connections", () => {
+    const connection = (text: string, topics = "[b]") => `  - text: ${text}\n    topics: ${topics}`;
+    const withConnections = (...items: string[]) => `connections:\n${items.join("\n")}`;
+    const good = [connection("Rates and prices move opposite ways"), connection("Risk changes the rate demanded", "[b, c]")];
+
+    it("accepts two or three Connections that name Topics on the map, and fills in their titles", () => {
+      const { map, errors } = parseCourseMap([topic("a", withConnections(...good)), topic("b"), topic("c")]);
+      expect(errors).toEqual([]);
+      expect(map?.topic("a")?.connections).toEqual([
+        { text: "Rates and prices move opposite ways", topics: ["b"], titles: ["b"] },
+        { text: "Risk changes the rate demanded", topics: ["b", "c"], titles: ["b", "c"] },
+      ]);
+      expect(map?.topic("b")?.connections).toEqual([]);
+    });
+
+    it("fails on a Connection that names a Topic that is not there, or the Topic itself", () => {
+      const ghost = parseCourseMap([topic("a", withConnections(good[0], connection("Ghost link", "[ghost]"))), topic("b")]);
+      expect(ghost.errors).toEqual(['Topic "a" Connection 2 links to "ghost", which is not in the outline']);
+      const self = parseCourseMap([topic("a", withConnections(good[0], connection("Self link", "[a]"))), topic("b")]);
+      expect(self.errors).toEqual(['Topic "a" Connection 2 links to the Topic itself']);
+    });
+
+    it("fails on Connection text that contains a figure", () => {
+      for (const bad of ["Bonds fall 15 percent", "A 5% rise", "Costs $5", "Worth ₹100"]) {
+        const { errors } = parseCourseMap([topic("a", withConnections(good[0], connection(`"${bad}"`))), topic("b")]);
+        expect(errors).toEqual(['Topic "a" Connection 2 contains a figure; Connections are written in words']);
+      }
+    });
+
+    it("needs two or three Connections when it has any", () => {
+      expect(parseCourseMap([topic("a", withConnections(good[0])), topic("b")]).errors[0]).toMatch(/connections/);
+      const four = withConnections(good[0], good[1], good[0], good[1]);
+      expect(parseCourseMap([topic("a", four), topic("b")]).errors[0]).toMatch(/connections/);
+    });
+
+    it("checks against the outline when there is one, so a Topic still to be written is a valid target", () => {
+      const outline = parseOutline(`topics:
+  - id: a
+    title: Alpha
+    stage: foundation
+    subject: "Numbers & time value"
+    cases:
+      - title: A case
+        asOf: 2018-10-24
+        outcome: What happened.
+        sources: [https://example.com/a]
+        verified: true
+  - id: later
+    title: Later Topic
+    stage: foundation
+    subject: "Numbers & time value"
+    cases:
+      - title: A case
+        asOf: 2018-10-24
+        outcome: What happened.
+        sources: [https://example.com/a]
+        verified: true
+`);
+      expect(outline.errors).toEqual([]);
+      const file = topic("a", withConnections(good[0].replace("[b]", "[later]"), good[1].replace("[b, c]", "[later]")));
+      const text = file.text.replace(/^stage: foundation\npath: 1\n/m, "");
+      const { map, errors } = parseCourseMap([{ name: file.name, text }], outline.outline);
+      expect(errors).toEqual([]);
+      expect(map?.topic("a")?.connections[0].titles).toEqual(["Later Topic"]);
+    });
+
+    it("gives present value its three Connections, in words", () => {
+      const pv = loadCourseMap().topic("present-value")!;
+      expect(pv.connections.map((c) => c.topics)).toEqual([["bond-pricing", "bond-yield"], ["eco-gdp-cycles", "eco-central-banks"], ["val-dcf"]]);
     });
   });
 });

@@ -141,6 +141,11 @@ body {
 .md pre code {
   @apply bg-transparent p-0;
 }
+/* A reply's folded sources ride in a fence but are not code: no box around them. */
+.md pre:has(.sources-fold) {
+  @apply overflow-visible p-0 font-sans;
+  background: transparent;
+}
 .md table {
   @apply block w-full max-w-full overflow-x-auto border-collapse text-sm;
 }
@@ -151,4 +156,30 @@ body {
 }
 .md hr {
   border-color: var(--border);
+}
+
+/* Printing (the Notes page): always the light look on white paper, whatever the Learner's mode,
+   with the page margins left to the printer. Controls carry `print:hidden` in their markup. */
+@media print {
+  :root,
+  :root.dark {
+    color-scheme: light;
+    --bg: #ffffff;
+    --ink: #000000;
+    --muted: #4b4743;
+    --border: #a8a29e;
+    --hairline: #d6d3d1;
+    --field: #ffffff;
+    --you-tint: #f5fcf9;
+    --src-tint: #fdfbf2;
+    --you-line: #009689;
+    --src-line: #fe9a00;
+  }
+  body {
+    background: #ffffff;
+  }
+  main {
+    max-width: none;
+    padding: 0;
+  }
 }

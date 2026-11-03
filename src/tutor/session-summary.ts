@@ -1,4 +1,6 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
+import { exploreWidgetInSession, type ExploreWidget } from "@/course/explore-widget";
+import type { CourseMap } from "@/course/map";
 import { messages } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
@@ -31,6 +33,36 @@ export function summariseRows(rows: { role: string; content: unknown }[]): Sessi
   return { topics, widgets: Math.max(0, fences - corrections) };
 }
 
+/** The title of the last Topic the Tutor's context named in these messages, or undefined. */
+export function lastTopicTitle(rows: { content: unknown }[]): string | undefined {
+  let last: string | undefined;
+  for (const r of rows) last = topicTitleIn(r.content) ?? last;
+  return last;
+}
+
+/** The title of the last Topic one stored message names, or undefined. */
+export function topicTitleIn(content: unknown): string | undefined {
+  let last: string | undefined;
+  for (const m of stringsIn(content).join("\n").matchAll(TOPIC_LINE)) last = m[1];
+  return last;
+}
+
+/** True for a stored user message that only carries tool results or a widget correction: it continues the turn, it does not begin one. */
+export function continuesTurn(row: { role: string; content: unknown }): boolean {
+  if (row.role !== "user") return false;
+  if (Array.isArray(row.content) && row.content.some((b) => b?.type === "tool_result")) return true;
+  return stringsIn(row.content).some((t) => t.startsWith(WIDGET_CHECK_PREFIX));
+}
+
+/**
+ * The rows up to the end of the turn that began at `turnSeq`: the Learner's message, the context line
+ * stored right after it when the Topic changed, the loop steps and the reply, but not the next turn.
+ */
+export function rowsThroughTurn<T extends { seq: number; role: string; content: unknown }>(rows: T[], turnSeq: number): T[] {
+  const end = rows.find((r) => r.seq > turnSeq && r.role === "user" && !continuesTurn(r));
+  return rows.filter((r) => r.seq <= turnSeq || !end || r.seq < end.seq);
+}
+
 /** Every Session's summary in one query, keyed by Session id. */
 export async function loadSessionSummaries(db: Db): Promise<Map<number, SessionSummary>> {
   const rows = await db
@@ -44,4 +76,10 @@ export async function loadSessionSummaries(db: Db): Promise<Map<number, SessionS
     bySession.set(r.sessionId, list);
   }
   return new Map([...bySession].map(([id, rs]) => [id, summariseRows(rs)]));
+}
+
+/** The explore Widget an old Session showed (the Topic's own, not one the Tutor drew), or null. No model call. */
+export async function loadSessionExplore(db: Db, sessionId: number, map: CourseMap): Promise<ExploreWidget | null> {
+  const rows = await db.select({ content: messages.content }).from(messages).where(eq(messages.sessionId, sessionId)).orderBy(asc(messages.seq));
+  return exploreWidgetInSession(map, rows.flatMap((r) => stringsIn(r.content)).join("\n"));
 }

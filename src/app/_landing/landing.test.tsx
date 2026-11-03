@@ -27,8 +27,8 @@ describe("Home", () => {
     expect(html).toMatch(/<h1[^>]*>Learn finance from<br\/><span[^>]*>what already happened\.<\/span><\/h1>/);
   });
 
-  it("lists the six Teaching Steps in order", () => {
-    const names = ["Story", "Concept", "Your turn", "Check", "Reveal", "Principle"];
+  it("lists the seven Teaching Steps in order", () => {
+    const names = ["Story", "Concept", "Explore", "Your turn", "Check", "Reveal", "Principle"];
     const positions = names.map((n) => html.indexOf(`>${n}</h3>`));
     expect(positions.every((p) => p > 0)).toBe(true);
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);

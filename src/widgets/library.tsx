@@ -11,7 +11,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
+import { FORMULAS, formulaById } from "@/finance/formulas";
 import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
+import { FormulaFigure, type CardValue } from "./formula-card-view";
+import { advanceReached } from "./guided-tasks";
+import { GuidedTasksFigure } from "./guided-tasks-view";
 
 // The OpenUI component library the Tutor writes widgets with. Charts take only
 // inputs to a tested Finance Calculations formula, or a Case Data reference
@@ -208,12 +212,130 @@ const Calculator = defineComponent({
   component: CalculatorView,
 });
 
+const formulaCardProps = z.object({
+  formula: z.string().describe(`A formula ID from the list code sent you; one of: ${FORMULAS.map((f) => f.id).join(", ")}`),
+  inputs: z
+    .record(z.string(), z.number())
+    .describe("The Learner's assumptions by symbol key, each a $variable bound to a Slider in this widget, e.g. {ratePercent: $rate}"),
+  sourced: z
+    .record(z.string(), z.string())
+    .describe('Symbols taken from Case Data by symbol key, each a reference "caseId/datasetId" (its latest point is used), e.g. {amount: "mega-millions-2018/cash-option"}; {} for none'),
+  fixed: z.record(z.string(), z.number()).describe("Symbols held at a fixed number by symbol key, e.g. {years: 5}; {} for none"),
+});
+
+type SourcedValues = Record<string, CardValue | null> | undefined;
+
+/**
+ * Fetches the latest point of each sourced dataset ("caseId/datasetId") through the server's as-of rule.
+ * Undefined while loading; a key is null when its dataset is missing or withheld until the reveal.
+ */
+function useSourcedValues(refs: Record<string, string>): SourcedValues {
+  const wanted = JSON.stringify(refs);
+  const [loaded, setLoaded] = useState<{ wanted: string; values: Record<string, CardValue | null> } | undefined>(undefined);
+  useEffect(() => {
+    const entries = Object.entries(JSON.parse(wanted) as Record<string, string>);
+    if (!entries.length) return;
+    let live = true;
+    const caseIds = [...new Set(entries.map(([, ref]) => ref.split("/")[0]))];
+    Promise.all(
+      caseIds.map((caseId) =>
+        fetch(`/api/case-data/${encodeURIComponent(caseId)}`)
+          .then((r) => (r.ok ? (r.json() as Promise<CaseData>) : null))
+          .catch(() => null),
+      ),
+    ).then((cases) => {
+      if (!live) return;
+      const values = Object.fromEntries(
+        entries.map(([key, ref]): [string, CardValue | null] => {
+          const [caseId, datasetId] = ref.split("/");
+          const dataset = cases[caseIds.indexOf(caseId)]?.datasets.find((d) => d.id === datasetId);
+          const point = dataset?.points.at(-1);
+          if (!dataset || !point) return [key, null];
+          return [key, { value: point.value, from: "sourced", credit: { source: dataset.source, sourceUrl: dataset.sourceUrl, date: point.date } }];
+        }),
+      );
+      setLoaded({ wanted, values });
+    });
+    return () => {
+      live = false;
+    };
+  }, [wanted]);
+  return Object.keys(refs).length === 0 ? {} : loaded?.wanted === wanted ? loaded.values : undefined;
+}
+
+function FormulaCardView({ props }: ComponentRenderProps<z.infer<typeof formulaCardProps>>) {
+  const formula = formulaById(props.formula);
+  const sourced = useSourcedValues(props.sourced ?? {});
+  if (!formula) return <p className="py-2 text-sm text-[var(--muted)]">No formula called {props.formula} is available.</p>;
+  const values: Record<string, CardValue> = {};
+  for (const [key, value] of Object.entries(props.fixed ?? {})) values[key] = { value, from: "fixed" };
+  for (const [key, value] of Object.entries(props.inputs ?? {})) values[key] = { value, from: "assumption" };
+  for (const [key, value] of Object.entries(sourced ?? {})) if (value) values[key] = value;
+  // While a widget streams in, a slider's $variable is not set yet, or sourced data is still arriving, values can be missing.
+  const complete = formula.symbols.every((s) => typeof values[s.key]?.value === "number" && Number.isFinite(values[s.key].value));
+  if (sourced === undefined || !complete) {
+    const withheld = sourced && Object.entries(sourced).find(([, v]) => v === null);
+    return (
+      <p className="py-6 text-sm text-[var(--muted)]">
+        {withheld ? `No sourced data is available for ${props.sourced[withheld[0]]}. It may not exist, or it is withheld until the reveal.` : "Working it out…"}
+      </p>
+    );
+  }
+  return <FormulaFigure formula={formula} values={values} />;
+}
+
+const FormulaCard = defineComponent({
+  name: "FormulaCard",
+  description:
+    "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers). Never type a formula as text: show it with this card.",
+  props: formulaCardProps,
+  component: FormulaCardView,
+});
+
+const guidedTaskProps = z.object({
+  text: z.string().describe('The instruction, e.g. "Set the rate to 0%"'),
+  done: z
+    .boolean()
+    .describe("A condition that reads a $variable bound to a Slider in this widget, e.g. $rate == 0 or $rate >= 3 && $rate <= 4; the task ticks itself when it holds"),
+});
+
+const GuidedTask = defineComponent({
+  name: "GuidedTask",
+  description: "One Guided Task: a short instruction and the condition that completes it. Use it only inside GuidedTasks.",
+  props: guidedTaskProps,
+  component: () => null,
+});
+
+const guidedTasksProps = z.object({
+  tasks: z.array(GuidedTask.ref).describe("The tasks in the order the Learner should do them"),
+});
+
+function GuidedTasksView({ props }: ComponentRenderProps<z.infer<typeof guidedTasksProps>>) {
+  const tasks = (Array.isArray(props.tasks) ? props.tasks : []).map((t) => {
+    const p = (t as { props?: { text?: unknown; done?: unknown } } | null)?.props;
+    return { text: typeof p?.text === "string" ? p.text : "", done: p?.done === true };
+  });
+  // Ticks stick: the count only grows, so moving a slider away again never unticks a task.
+  const [reached, setReached] = useState(0);
+  const now = advanceReached(reached, tasks.map((t) => t.done));
+  if (now !== reached) setReached(now);
+  return <GuidedTasksFigure tasks={tasks.map((t) => t.text)} reached={now} />;
+}
+
+const GuidedTasks = defineComponent({
+  name: "GuidedTasks",
+  description:
+    "Guided Tasks under a widget: small practice steps (to do, current, done) that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Practice only: never marked or saved.",
+  props: guidedTasksProps,
+  component: GuidedTasksView,
+});
+
 const Widget = defineComponent({
   name: "Widget",
   description: "The widget's frame: a short title above its controls and charts, in order.",
   props: z.object({
     title: z.string(),
-    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref])),
+    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref, FormulaCard.ref, GuidedTasks.ref])),
   }),
   component: WidgetFrame,
 });
@@ -231,7 +353,7 @@ function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string
   );
 }
 
-export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator], root: "Widget" });
+export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks, GuidedTask], root: "Widget" });
 
 /** Options for the widget instructions frozen into the Tutor's instructions. */
 export const WIDGET_PROMPT_OPTIONS = {
@@ -253,8 +375,21 @@ $rate = 8.5
 amount = Slider("principal", "Loan amount", 500000, 20000000, 100000, $amount, "inr")
 rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
 calc = Calculator("emi", {principal: $amount, ratePercent: $rate, years: 20})`,
+    `root = Widget("What a payment in five years is worth today", [rate, card])
+$rate = 5
+rate = Slider("rate", "Discount rate", 0, 15, 0.5, $rate, "percent")
+card = FormulaCard("present-value", {ratePercent: $rate}, {amount: "mega-millions-2018/cash-option"}, {years: 5})`,
+    `root = Widget("What a home loan costs at different rates", [rate, calc, steps])
+$rate = 8.5
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+calc = Calculator("emi", {principal: 5000000, ratePercent: $rate, years: 20})
+steps = GuidedTasks([low, high])
+low = GuidedTask("Set the rate to 6%", $rate == 6)
+high = GuidedTask("Now set it to 12%", $rate == 12)`,
   ],
   additionalRules: [
+    "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
+    "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
     "Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.",
     "Widgets are optional. Add one only when playing with numbers helps the current Teaching Step, and at most one per reply.",
     "Use Calculator for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",

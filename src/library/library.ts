@@ -3,8 +3,9 @@ import { navigate, type Progress } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import type { BetaSearchResultBlockParam } from "@anthropic-ai/sdk/resources/beta/messages";
+import { isMachineRead, MACHINE_READ_NOTE } from "./pictures";
 import { firstWords, passagePath, passageSentences } from "./passage";
-import { allSources, hiddenAmong, passageById, searchPassages, sourcesMatching, type LibraryHit } from "./search";
+import { allSources, creditsOf, hiddenAmong, passageById, searchPassages, sourcesMatching, type LibraryHit } from "./search";
 
 /** Turns the Learner's search into its Voyage embedding; absent when no Voyage key is set. */
 export type QueryEmbedder = (query: string) => Promise<number[]>;
@@ -50,6 +51,11 @@ export async function hiddenPassages(deps: Pick<LibraryDeps, "db" | "map">, ids:
   return hiddenAmong(deps.db, ids, libraryAsOf(deps.map, await loadProgress(deps.db)));
 }
 
+/** The credit line of each of these passages, to show in a reply's folded sources (not for a hidden passage). */
+export async function passageCredits(deps: Pick<LibraryDeps, "db">, ids: number[]): Promise<Map<number, string>> {
+  return creditsOf(deps.db, ids);
+}
+
 /**
  * Searches the Library for the Tutor: combined keyword and vector search under the as-of rule.
  * If Voyage is missing or fails, it falls back to keyword results and says so. `source` scopes the
@@ -83,10 +89,12 @@ function searchNotes(search: LibrarySearch): string[] {
   const lines = [`Library search for "${search.query}"${scope}: ${search.mode === "combined" ? "keyword and vector results combined." : "keyword results only."}`];
   if (search.fallback) lines.push(search.fallback);
   if (search.asOf) lines.push(`The Case is before its reveal, so dated passages published after ${search.asOf}, and reference passages that mention a later year, are hidden. Do not use what is shown to hint at the Case's outcome.`);
+  if (search.results.some((r) => isMachineRead(r.text))) lines.push(MACHINE_READ_NOTE);
   return lines;
 }
 
-const QUOTING = "When you quote or draw on a passage, name its source in plain text, keep quotes short, and never present it as your own words.";
+const QUOTING =
+  "When you quote or draw on a passage, keep quotes short and never present it as your own words. Code adds the citation number and this credit to your reply's sources, so do not name the source in your sentence unless the writer is the subject or the Learner asks where it comes from.";
 
 /** A source's quoting terms: the most words that may be quoted at once, where the source sets a limit. */
 function quoteLimit(title: string, words: number): string {
@@ -155,6 +163,8 @@ export type PassageView =
       quoteWords: number | null;
       /** True when the quote limit cut the passage down: the rest is read at `url`. */
       shortened: boolean;
+      /** True when the passage holds text a machine read from a picture, which the page says so. */
+      machineRead: boolean;
       /** The sentences shown, each marked if the citation rests on it. */
       sentences: { text: string; cited: boolean }[];
     };
@@ -182,5 +192,5 @@ export async function loadPassageView(deps: LibraryDeps, id: number, blocks?: { 
     sentences = [{ text: cut.text, cited: chosen.some((s) => s.cited) }];
   }
   const { heading, sourceTitle, credit, licence, url, publishedOn, quoteWords } = passage;
-  return { status: "shown", heading, sourceTitle, credit, licence, url, publishedOn, quoteWords, shortened, sentences };
+  return { status: "shown", heading, sourceTitle, credit, licence, url, publishedOn, quoteWords, shortened, machineRead: isMachineRead(passage.text), sentences };
 }

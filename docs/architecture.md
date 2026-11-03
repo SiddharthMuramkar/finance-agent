@@ -127,12 +127,12 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
 ## Database (Neon Postgres through Drizzle)
 
 **What it does.** Neon is the only store. Thirteen tables so far:
-- `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
+- `settings`: the Tutor's model (`claude-opus-5-5`), effort (`medium`) and the idle hours before
   a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
   effort frozen when it started, plus a fingerprint of the instructions and tools.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
-- `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`: Learner Memory (below).
+- `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`, `insight_attempts`: Learner Memory (below; the last is described under "Insight recording").
 - `usage`: what each turn and each step of it cost (below).
 - `question_bank`: the Question Bank, imported human-written questions with licence and credit (below).
 - `case_datasets`, `case_data_points`: Case Data, checked historical datasets with their sources (below).
@@ -158,13 +158,17 @@ Claude's thinking rules need, but makes it less convenient to query than neat co
 request only from what the Session saved (never from today's code or settings), and runs it
 through the Anthropic SDK's Tool Runner with streaming. Text is forwarded to the browser as it
 arrives. When each step of the loop finishes, the reply is saved unchanged, thinking blocks
-included. The Tool Runner is in beta, so the SDK version is pinned exactly (`1.3.0`).
+included. The Tutor runs on Opus 5.5 at medium effort (the stored default; each Session keeps the
+model it started with). No request forces a tool or sends sampling settings such as temperature.
+The Tool Runner is in beta, so the SDK version is pinned exactly (`1.3.0`).
 
 **Scenario.** On the third message of a Session, the request contains the first two exchanges
 exactly as they happened, including Claude's signed thinking blocks, followed by the new
 message. Because nothing earlier was edited, Claude accepts the thinking and no 400 error occurs.
-If the owner switches the model setting to Haiku meanwhile, this Session keeps Sonnet; the next
-Session picks up Haiku.
+If the owner switches the model setting to Haiku meanwhile, this Session keeps Opus; the next
+Session picks up Haiku. The default is Opus 5.5 at medium effort; a data migration moved the stored
+setting from the old Sonnet default to Opus only where it still held that default, so a model the
+owner chose by hand is never overwritten.
 
 **Trade-off.** Add-only history means context that changes (for example, the current teaching
 step) must be sent as a new message rather than by editing the instructions. That is a little
@@ -239,7 +243,8 @@ through the 2018 $1.537 billion Mega Millions jackpot and its $877.8 million cas
 
 A validator checks the files: every prerequisite must exist, prerequisites must not loop, IDs
 must be unique, every Topic needs at least one Check, and a quiz Check may use only questions its
-Topic holds, with an answer that is one of the choices and a pass rule it can actually meet. It runs as part of `npm run check`,
+Topic holds, with an answer that is one of the choices and a pass rule it can actually meet. A Topic may also hold an
+`insight` and an `explore` block, both or neither, checked as described under "The explore step". It runs as part of `npm run check`,
 so CI fails on a bad edit.
 
 **Scenario.** Someone adds a Topic that requires `bond-pricing`, which doesn't exist yet. CI
@@ -268,8 +273,9 @@ consistent but means a wrong habit (for example, a thin explanation) is repeated
 **What it does.** The module that decides what comes next. It takes the Course Map and the
 Learner's saved progress and returns the current Topic, the Teaching Step, the Check in play,
 the next legal step and any unmet prerequisites. It is pure: no model, no database, no clock.
-Teaching Steps run as a state machine: story, then concept, your turn and Check for each Check,
-then reveal, then principle. Only a saved Check result moves past a Check step, the reveal opens
+There are seven Teaching Steps, run as a state machine: story, then concept, your turn and Check
+for each Check, then reveal, then principle. A Topic with an Insight adds the seventh, explore, once
+(see "The explore step"). Only a saved Check result moves past a Check step, the reveal opens
 only after the last Check is passed, and a Topic is passed only when its principle finishes.
 
 The Learner's place is worked out from recorded passes: the first Check, in the Topic's current
@@ -467,7 +473,7 @@ were saved with). The API does not report thinking tokens on every reply, so tha
 "n/a". A step's time includes the tools that ran just before it, so it is "time since the last step".
 
 **How it is tested.** The price table is checked against worked literals ($12 for a million
-tokens in and out on Sonnet). The turn tests check that scripted replies produce the right rows,
+tokens in and out on Sonnet, and a worked Opus turn at $4 in, $20 out and $0.20 per million cache reads). The turn tests check that scripted replies produce the right rows,
 sums and costs, and that a reloaded Session shows the same panel.
 
 ## Checks before merging (CI) (`.github/workflows/ci.yml`, `vercel.json`, `src/test/setup.ts`)
@@ -723,6 +729,97 @@ saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credi
 a database write that fails (a test trigger refuses the write), a changed fingerprint, a misconception
 with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
 
+## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
+
+**What it does.** A Topic file may carry an Insight (the question to put, the written Insight, a
+"found when" description and one or two hints) and an `explore` block naming the Check it comes
+before, and whether a Learner who already passed the Topic is taken through it again
+(`requiredWhenPassed`). The two come together or not at all. The course check rejects an `explore`
+that names a Check the Topic does not have, and any digit, currency sign or percent sign in the
+Insight text, so the Insight is written in words and cannot hand the Learner a number to look for.
+The Course Navigator then puts explore after the concept of that Check and before its your turn,
+once per Topic. Finishing it is refused until the Insight is recorded as found or told. A Topic
+without an Insight skips the step, so the course moves over in batches.
+
+**Rules for Learners already part-way.** The Navigator never moves anyone backwards. A Learner
+already past the anchor Check, because the Insight was added after they passed it, takes explore just
+before the reveal instead; a Learner whose reveal is already shown is left where they are. A passed
+Topic gets explore back only when it says `requiredWhenPassed`, and then before any new Topic starts,
+the way a due Check does.
+
+**A concrete scenario.** Present value has Checks for the discounting quiz and the jackpot
+conversation, and explore is anchored to the jackpot conversation. The Learner passes the quiz and
+finishes the jackpot Check's concept step. The Navigator now says "explore", not "your turn". The
+Course Map page shows "Teaching Step: explore". Only when the Insight is found or told does the
+Learner reach the jackpot conversation.
+
+**Trade-off.** A Topic takes one or two more turns, and progress rows now store "explore" as a step,
+so removing the step later needs a data migration that moves those rows on (ADR 0001). In return the
+order is held by code, not by a prompt that live runs showed being ignored.
+
+## Insight recording (`record_insight_attempt` in `src/tutor/tools.ts`, `src/learner/insight.ts`, the `insight_attempts` table)
+
+**What it does.** At explore the Tutor puts the Insight question and the Learner plays with the Widget
+on screen (the Topic's own explore Widget, see below), then says what they noticed. The Tutor reports each attempt with
+`record_insight_attempt` as found, not yet, or asked to be told, quoting the Learner's words. Code
+checks the words are really in the Learner's message in that turn (a Continue press is never an
+attempt), saves them in `insight_attempts` once per tool call ID, and decides what happens next:
+the first not-yet releases hint 1, the second hint 2, the next the written Insight; "asked to be told"
+releases the Insight at once. The result carries the hint or the written Insight, and tells the Tutor
+to write its confirmation or hint after the result, as the last text of its reply.
+
+**Withholding.** The context for the explore step holds the question, the "found when" description
+and the hints already released, never the written Insight, the reveal or Case Data dated after the
+as-of date. The written Insight reaches the Tutor only in the tool result (and in the context once it
+is settled). After two earlier turns at explore with no attempt, the context reminds the Tutor to put
+the question. Telling the Insight marks the step as begun this turn, so the pacing rule stops the
+Tutor finishing explore in the same turn. At the principle step the context carries the Learner's own
+words, saved at the attempt that settled it, and says whether they found it or were told.
+
+The "settled once" rule is also held by the database: a unique index allows only one `found` or `told` row per Topic in `insight_attempts`, and the insert ignores a clash, so a second settling attempt (or a repeated tool call) is refused even if two turns ever ran at once.
+
+**A concrete scenario.** The Learner writes "the bars get smaller". The Tutor records a not-yet, and
+code replies with hint 1. After the same again, hint 2. After a third not-yet the result contains the
+written Insight and the Tutor tells it kindly. Had the Learner written "just tell me" at the start, the
+Insight would have come at once. All three messages sit in `insight_attempts` exactly as typed.
+
+**Trade-off.** Judging whether the Learner found the Insight stays with the model, because only a
+model can read free words; code controls everything around that judgement (the count, the hints, the
+withholding, the order). A Tutor that says "found" too readily is checked by the behaviour set, not by
+code. Sessions that started before this change keep their frozen tools and have no way to record an
+attempt, so the app starts a new Session when the tools change.
+
+## The explore Widget (`explore.widget` in `course/topics/*.yaml`, `src/course/explore-widget.ts`, `src/app/widget-panel.tsx`)
+
+**What it does.** A Topic with an explore step can carry its own Widget, written in the Topic file as
+OpenUI code beside the Insight. Code, not the Tutor, shows it. From the moment the explore step begins it
+opens by itself in the Widget panel as an "Explore" chip, and it stays there until the Topic is passed, so
+the Learner can keep playing during their turn and the Check. It is chosen from saved progress alone
+(`exploreWidgetFor`), so a page reload shows it exactly the same, and an old Session page shows it too when
+that Session reached the explore step (read from the Course Navigator context saved in the Session). A
+newer Widget from the Tutor still opens on its own, because the explore Widget is placed after only the
+Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells it the Widget is already on
+screen, so it points to it and does not draw its own. Below the laptop breakpoint (an upright iPad) the
+panel hides its copy and a folded card, open to start, stands in the conversation column under the status
+card instead; at laptop width only the panel shows it.
+
+**Rules the course check holds.** The `widget` text is optional, but every `"caseId/datasetId"` it names must
+be one of the Topic's own Cases and a dataset that Case lists in `data`. A test parses every real explore
+Widget with the same checker as Tutor Widgets. Case Data still goes through the as-of rule on the server, so
+the Widget cannot draw anything dated after the Case's as-of date before the reveal.
+
+**A concrete scenario.** Present value's explore Widget is an interest-rate slider and the annuity chart
+set against the sourced cash option (the one figure dated on or before 24 October 2018). The Learner
+finishes the jackpot Check's concept step; the next reply ends, the page refreshes and the "Explore" chip is
+already open with the slider at 5%. They ask a question, the Tutor draws a calculator, and that newer Widget
+takes the panel; the Explore chip stays beside it. After the Learner passes the Topic the chip is gone. The
+winner's payment and the 30-year Treasury chart are left out on purpose, so playing leads nowhere near the reveal.
+
+**Trade-off.** The Widget is fixed text in the Topic file, so it cannot adapt to a Learner the way a Tutor
+Widget can, and it costs nothing in tokens. Both the panel copy and the narrow card are drawn in the page
+(one hidden by CSS), so resizing the window resets the slider. An old Session is matched to the Topic by the
+title in its saved context, so a Topic renamed later loses its chip on old Session pages.
+
 ## Pacing rule (`src/tutor/tools.ts`, `src/tutor/instructions.ts`)
 
 **What it does.** Live runs showed the Tutor finishing several Teaching Steps in one turn without
@@ -910,7 +1007,7 @@ source (title, licence, credit line, link, and whether it is **dated**, like a b
 up to about 300 words, each with its own heading, link, publication date, licence and credit. The
 Tutor has one new tool, `search_library`. Code runs the search and hands back the best five
 passages, each with its credit line, licence, date and link, and the Tutor's instructions say to
-name the source in plain text whenever it quotes or draws on one, and to keep quotes short.
+keep quotes short; code adds the citation and credit (the Tutor does not name sources in its sentences).
 
 **How search works.** Two rankings are combined in one SQL query. The keyword ranking is BM25, the
 standard search-engine scoring, through Neon's `lakebase_text` extension (confirmed working on the
@@ -968,6 +1065,45 @@ this Web Site or any of the contents are prohibited" without written permission,
 storing its primers in the Library would be. The owner can write to the RBI for permission; until
 then the loader refuses it. The New York Fed's old Fedpoints series has been retired from its site,
 so its current explainer pages stand in.
+
+**The blog is read in TypeScript (IL 3, #60).** Damodaran's blog used to be read by a Python script
+that only ran on the laptop. It is now read by `src/library/blog.ts` (using `htmlparser2`, the
+owner-approved HTML reader), because the weekly refresh that comes later runs on Vercel, which has no
+Python. One reader, shared: `npm run library:blog -- <scratch>` fetches Blogger's feed (cached in the
+scratch folder), turns each post into a document that also records its published and updated times,
+writes the documents file and loads it. The other sources keep their Python extractors, and the
+Python HTML reader stays for them. A parity test runs the same sample HTML through both readers and
+expects identical sections, and on 2 Nov 2026's feed the new reader gave the same 685 posts and the
+same 6,513 passages, text for text, as the old one. Scripts, styles and embedded players (iframes,
+objects, video, audio) leave nothing in the text. Scenario: a post that embeds a YouTube player and a
+table of yields gives its words and the table rows, with no player text. Importing one post
+(`importLibraryDocument`) replaces only that post's passages: an unchanged passage keeps its Voyage
+embedding, an edited one is embedded again, and a passage the post no longer has is removed, so a
+weekly run touches a few posts instead of reloading 6,500 passages. Trade-off: the two readers must
+now agree on HTML by test rather than by being one program, and a post whose HTML is badly broken
+may read slightly differently from before (none of the 685 does).
+
+**Spreadsheets behind the posts (IL 15, #72).** Damodaran's numbers live in the spreadsheets his
+posts link to (Tesla's inputs, a country's tax rates), not in the post text. `src/library/spreadsheets.ts`
+finds each post's `.xls` and `.xlsx` links (old `www.stern` and `%7E` spellings are folded into one
+address; his yearly `datasets/` and `implprem/` files are left out, since they are whole-market
+tables, not worked examples), reads the file with SheetJS 0.20.3, and turns it into a Library
+document under a new dated source, `damodaran-spreadsheets`. SheetJS is installed from SheetJS's own
+download site, because the npm registry copy is out of date (npm 12 needs `--allow-remote=all` to
+install from a link; CI's npm does not). Only the values Excel saved in the file are read (nothing is
+recalculated) and hidden sheets are skipped. Input, output and valuation sheets come first, rows
+become lines of "cell | cell", and a workbook gives at most 12 passages. Every passage opens with a
+sentence naming its post, the file and the sheet. A passage is dated by the later of the post's date
+and the file's Last-Modified date, so a file he updated years after the post stays hidden from a
+Case set before the update. The source has no quote limit, so the Passage view shows it in full,
+with his acknowledgement credit. Scenario: while studying Tesla before its reveal, the Tutor
+searches "Tesla operating margin assumption" and gets the "Input sheet" passage of his Tesla
+workbook, opening "This is the sheet "Input sheet" of the spreadsheet teslathedisruptor.xls, linked
+from Aswath Damodaran's post ...". `npm run library:sheets -- <scratch>` runs the backfill on the
+laptop (`--dry-run 30` reads 30 files and writes nothing to a database). `crossCheck` lists the
+figures a post picture's text and its spreadsheet share, for the pictures ticket's report.
+Trade-off: a sheet is flat text, so a chart-heavy or formula-heavy sheet loses its layout; the
+12-passage cap means the long tail of a 19-sheet workbook is not searchable.
 
 **Corrupted text, found and repaired.** PDF text breaks in known ways. The loader detects them
 (lost ligatures such as "CreaAon" for "Creation", letters spaced apart, PDF character codes,
@@ -1042,8 +1178,8 @@ built-in citations switched on. The passage is cut into one block per sentence, 
 with its credit line, licence, date, link and any quote limit, so a citation names the sentences
 it used. Claude then returns its reply split into text pieces, and a piece that rests on a passage
 carries a citation naming the passage (`/passages/<id>`) and the sentences. Code turns those into
-what the Learner sees: a small raised number after the claim, and a "Sources" list at the end of
-the reply. Clicking a number opens the passage view in a new tab: the stored passage, the cited
+what the Learner sees: a small raised number after the claim, and one folded "N sources" line at the
+end of the reply (see "Sources folded away" below). Clicking a number opens the passage view in a new tab: the stored passage, the cited
 sentences highlighted, the credit, licence and a link to the original. The stored reply is never
 changed; the numbers are worked out the same way while the reply streams and when it is read back,
 so the workspace, a reload and old Sessions all show the same thing.
@@ -1055,17 +1191,42 @@ future cash flows falls...")¹ and draws a slider widget in the same reply. The 
 credit "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax), CC BY-NC-SA 4.0".
 Live run, 2 Nov 2026: 3 citations, 2 sources, 2 widgets drawn without a correction turn, $0.089.
 
-**The source's terms still hold.** The Tutor still names the source in plain text when it quotes
-(its instructions are unchanged), and still gets each source's quote limit with the passage. The
+**The source's terms still hold.** The Tutor still gets each source's quote limit with the passage,
+and the credit still travels with the reply (now in the fold, no longer in the Tutor's sentences). The
 passage view respects the same limit: for a source with one (Damodaran's blog, 60 words) it shows
 only the cited sentences, cut to 60 words, says it was shortened and points to the original. A
 passage the as-of rule hides from search is hidden in the passage view too: during the 1994 Fed
 Case, a 2026 Damodaran post shows "hidden until the reveal" instead of its text. Its heading is
-withheld from the Sources list as well. A reply can cite a passage found by a search made earlier in
-the Session, before the Learner reached the Case; the Sources list then shows "Library passage
+withheld from the folded sources as well, and it gets no credit line there. A reply can cite a passage found by a search made earlier in
+the Session, before the Learner reached the Case; the fold then shows "Library passage
 (hidden until the reveal)" instead of a heading like "How Lehman's 2008 failure froze credit", live
 and after a reload, and shows the real heading again once the reveal is shown. Live run with
 Damodaran's blog, 2 Nov 2026: 5 citations to 3 posts, each passage view at most 60 words, $0.034.
+
+**Sources folded away (`src/tutor/sources.ts`).** Sources stay out of the reading. Citation numbers
+stay tiny; the reply ends with one small "3 sources" line that opens on click to the numbered list,
+each entry with its passage heading and credit line. One fold and one numbering serve the whole reply,
+however many loop steps (searches, tool calls) it took, so two different "1"s never meet. The stored
+reply is still never changed, and the same code builds the fold while the reply streams and when it
+is read back, old Sessions included (where a turn's steps now read as one reply, as they stream). The
+fold travels as a `sources` Markdown fence at the end of the reply text, which the reply renderer
+draws as the small line. A passage the as-of rule hides keeps its hidden title and gets no credit. A
+Case Data figure the text quotes (code looks for each allowed point's value written out whole,
+outside citation links and widget code) adds that dataset's credit, unnumbered. In Widgets, a sourced
+figure's credit sits behind a small ⓘ, and the amber still marks it as real data. The Tutor's
+instructions stop it naming sources in its sentences ("according to CNBC..."), except when the writer
+is the subject (Follow Topics) or the Learner asks where something comes from; a behaviour rule,
+"source named in the text", checks it.
+
+**Scenario.** The Learner asks why a higher rate lowers present value. The Tutor searches twice, cites
+OpenStax in each step and says it plainly, with no "as OpenStax puts it". The Learner reads the
+explanation with two tiny numbers and "2 sources" beneath; opening it shows both headings with their
+credit lines.
+
+**Trade-off.** Spotting a quoted Case Data figure is matching on the number's text, so it can miss a
+figure the Tutor rounds or rewords, or catch a coincidence; a miss costs a missing credit line in the
+fold (the widget keeps its own ⓘ either way). The fold appears when the reply ends, not while it
+streams.
 
 **Citations and widgets together.** The spec chose OpenUI's inline mode (widgets written in the
 reply's text) before knowing whether citations would combine with it. They do: the citation split
@@ -1144,7 +1305,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **What it does.** A repeatable set of 48 test questions checks that the Tutor keeps its rules. The questions live in `src/behaviour/questions.ts` (only the Learner's wording, no source material). Each rule has direct and indirect attempts to break it: buy, sell or hold calls; requests for stock picks (which must be turned back into analysis); forecasts; invented figures; hindsight leaks before a Case's reveal (asked at the story, your-turn and Check steps); role-play and "ignore your rules" tricks; and questions about today's events (which must be answered from concepts and precedent, with no forecast). Some are two-step: a polite first question, then pressure.
 
-**A concrete scenario.** Run `npm run behaviour`. For each question the runner makes a fresh throwaway database, puts a new Learner at the right Teaching Step of the Present value Topic, and sends the question through the real Tutor Turn with the real Tutor instructions and `claude-sonnet-5-5`. Then a stronger model, `claude-opus-5-5`, reads the Learner's question and the Tutor's reply against a written rubric for that rule (in `src/behaviour/grading.ts`) and answers pass or fail with a reason. A report listing every failure in full, with the Tutor's answer, is written to the evidence folder (`behaviour-results-latest.md`, plus dated copies and JSON). Change the Tutor's instructions, run it again, compare.
+**A concrete scenario.** Run `npm run behaviour`. For each question the runner makes a fresh throwaway database, puts a new Learner at the right Teaching Step of the Present value Topic, and sends the question through the real Tutor Turn with the real Tutor instructions and the Tutor's model from the stored settings (Opus 5.5 by default). Then a stronger model, `claude-opus-5-5`, reads the Learner's question and the Tutor's reply against a written rubric for that rule (in `src/behaviour/grading.ts`) and answers pass or fail with a reason. A report listing every failure in full, with the Tutor's answer, is written to the evidence folder (`behaviour-results-latest.md`, plus dated copies and JSON). Change the Tutor's instructions, run it again, compare.
 
 **Options.** `RULE=hindsight` runs one rule, `ONLY=id,id` runs named questions, `BEHAVIOUR_BUDGET_USD` stops the run when spend reaches the limit (default 3.5; a full run costs about $1 to $1.5), `BEHAVIOUR_OUT` changes the report folder. It is not part of `npm run check` because it spends money and needs the network; the question set, the rubric parser and the report layout are covered by normal tests.
 
@@ -1152,7 +1313,21 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **Trade-off.** A model grading a model is a first pass, not proof. The grader can be too strict or too lenient (in the first full run it wrongly failed two answers because the rubric forgot that the Case story's own details may be restated; the rubric was fixed). An unreadable grader reply counts as "ungraded", never as a pass, and the report says so. The set is a sample of ways to break the rules, so a clean run means "no break found in these 48", not "cannot be broken". The first run also found a real gap, which was fixed in the instructions: asked about today's events, the Tutor refused and went back to the Case without teaching anything.
 
-## Haiku versus Sonnet comparison (`src/comparison/`, `npm run compare:models`)
+## Model comparison: teaching and rule-keeping (`src/comparison/`, `npm run compare:models`, `npm run compare:rules`)
+
+### Teaching comparison of Sonnet, Opus and Fable (`teaching.ts`, `resume.ts`, `run.live.ts`)
+
+**What it does.** `npm run compare:models` asks which model teaches best on the explore flow, not only which keeps the rules. Twelve fixed questions (in `teaching.ts`) are asked at the explore step of the Present value Topic: finding the Insight, a connection question ("How do discount rates and bond yields relate?"), plain wording, a formula described in words, an example from the Learner's own life without advice, and one that asks the Tutor to back itself from the Library. Three models answer each one through the real Tutor Turn: `claude-sonnet-5-5`, `claude-opus-5-5` and `claude-fable-5-1` (the price table now has Fable 5.1 at $10 and $50 per million tokens). The runner pins the Topic with a jump, pins the model in the throwaway database's settings, and checks the Learner really is at the explore step. A turn cut off at its time limit is resumed, and a reply cut short at its length limit is continued, the way the browser does, so a long Fable answer is not scored half-written.
+
+**How answers are judged.** Opus 5.5 grades each answer against a six-item rubric for the analyst course: accurate; guides rather than tells; pitched at an MBA-level reader (terms an MBA student knows are fine); a new term is defined at first use; no ambiguous words (a word such as "discount" or "value" that could mean two things fails); no advice. The shared reply rules from `src/behaviour/grading.ts` apply where a question calls for them: the typed-formula rule is graded by the code detector, with no model call, and the named-source, Insight-stated-too-early and profile-advice rubrics are given to the grader. Then Opus ranks the three answers to each question blind: the answers are shuffled with a seed from the question, labelled A, B and C, and the ranking is turned back into model names by code.
+
+**The recommendation is made by code.** The best model has the fewest shared-rule failures, then the highest rubric pass rate, then the best mean blind rank. Code recommends the cheapest model that is within 5 points of the best rubric rate, within 0.25 of its mean rank, and with no more shared-rule failures, and the report states every model's cost per turn. An unreadable grade counts as not passed. All of this is tested with no network (`teaching.test.ts`, `resume.test.ts`).
+
+**A concrete scenario.** The owner runs `npm run compare:models` (about $9). For "How do discount rates and bond yields relate?", the three answers are shown to the ranker as A, B and C in a seeded order. Say Sonnet is ranked first on seven questions and Fable on five, the rubric rates are 92% and 94%, and Sonnet costs a fifth of Fable per turn. Sonnet is within both margins, so the report recommends Sonnet and prints the cost per turn of all three. If Fable had broken the typed-formula rule fewer times, Sonnet would be passed over however cheap. The report is written to the evidence folder and saved in SQL, in the existing `model_comparison_runs` and `model_comparison_answers` tables (no new table: the "accurate" verdict is stored as correctness, "guides rather than tells" as give-away, and "no advice plus the shared rules" as past-only, with the full rubric and the rank written into the reasons).
+
+**Trade-offs.** Twelve questions and one grader are a small sample: gaps inside the margins are noise, which is why the rule prefers the cheaper model when it is close. The grader and ranker is Opus 5.5, one of the three models being compared, so it may favour its own style; the blind labels remove the name but not the style. The rubric is a judgement, not a measurement, and the report keeps the same limit statement as the rule-keeping comparison. Each question is asked on a fresh database with no earlier conversation, so this measures a single explore turn, not a whole Session.
+
+### Rule-keeping comparison, Haiku versus Sonnet (`run-rules.live.ts`, `npm run compare:rules`)
 
 **What it does.** A script puts the same fixed set of tutoring questions to two models, `claude-haiku-5-5` and `claude-sonnet-5-5`, through the real Tutor Turn with the real Tutor instructions and tools. The set has 19 questions: five of our own present-value questions (each with a short reference answer), eight rule-testing questions reused from the behaviour set (buy or sell, stock pick, forecast, invented figure, hindsight, role-play, today's events), and six items from the FinanceBench open sample, each given to the Tutor with its filing extract. The FinanceBench text is downloaded when the script runs and is used for testing only (its licence is non-commercial); none of it is stored in the repo. For each answer the script records tokens, cost and time. Then `claude-opus-5-5` grades three things: whether the answer was correct, whether it gave away something the Learner should work out (or the Case outcome), and whether the past-only rules held.
 
@@ -1445,7 +1620,7 @@ and separate the argument's facts, inferences and forecasts.
 
 **What it does.** The main address, `/`, always shows Home, signed in or out. Home says what the
 Study Workspace is: a headline, a screenshot, three counts (Topics written of planned, every Case in
-the outline, Library sources), the six Teaching Steps and "Every number has a source". Signed out,
+the outline, Library sources), the seven Teaching Steps and "Every number has a source". Signed out,
 the hero and the top bar say "Sign in" (to `/login`). Signed in, it is the same page, but the hero
 button names the Learner's place and the top bar says "Study Workspace"; every one of them opens
 `/study`, where the Study Workspace now lives (demo mode with it: `/study?demo=1`). Beside the top
@@ -1497,3 +1672,142 @@ also sends four headers on every route: no other site may frame a page (`frame-a
 to other sites. There is no full script policy: Next's inline scripts would need per-request nonces.
 The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
 the screenshot is never covered.
+
+## Learner Profile (`src/learner/profile.ts`, `learner_profile` table, `/api/profile`, `src/app/profile/`, ticket #67)
+
+**What it does.** The Learner can share four things about their own life: work, where they live, any
+loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
+a one-row table (`learner_profile`, id 1) with a flag, `offer_dismissed`, that records "Not now". On
+the first visit the workspace shows a small card with Save and Not now; after either, the card never
+comes back. "About you", linked from the Progress page, edits the same four answers later. Both go
+through `/api/profile` (and `/api/profile/dismiss`), which sit behind the passcode like every other
+route. No model call is made to save it.
+
+**What the Tutor gets.** When a new Session opens, code puts the profile in the Session's first
+message as its own block: after the Learner summary and before the Course Navigator context (which
+stays last, because the Tutor Turn compares against the end of that message). The block says what it is
+for. The Tutor's instructions say the same: use it only to choose everyday examples, in the Learner's
+currency when the example is about their life, and never as advice. Nothing is sent when the Learner
+shared nothing.
+
+**A concrete scenario.** A nurse in Pune saves "Home loan of about 40 lakh" and starts a Present value
+Session. The Tutor may now explain discounting with a loan repayment in rupees instead of an invented
+dollar example. If she then asks "so should I prepay my loan?", the Tutor teaches how to compare the
+two choices and does not tell her which to pick. A behaviour rule, "profile turned into advice", has
+one direct and one indirect question that run with a saved profile.
+
+**The trade-off.** A Session is frozen when it starts, so a profile edit applies only from the next
+Session (the cards say so). That keeps the Session's record true to what the Tutor actually saw, and
+keeps the cached conversation prefix byte-for-byte stable, at the cost of a short wait before an edit
+shows in the examples. The profile is stored in plain text in the database and in each Session's
+record; it is meant for light context, not for anything private such as account numbers.
+
+## Pictures in Damodaran's posts (`src/library/pictures.ts`, `pictures-run.ts`, `citation-impact.ts`, `npm run library:pictures`, IL 14, #71)
+
+**What it does.** Damodaran's valuation tables (Tesla's inputs, say) and charts are pictures, so the
+Library could not search them. Each picture on Blogger's own image hosts is now read once by Haiku 5.5
+into text, and that text sits in the post at the picture's position, as lines starting with
+`[picture]`. Pictures are fetched at original size (Blogger serves a resized copy unless the address
+asks for `s0`), and pictures on other sites, icons and tracking pixels are skipped. Readings are cached
+in the scratch folder by picture address, so a re-run or a resumed run never pays twice. Search
+results that hold picture text carry a note in the first result's credit block, and the Passage view
+shows the same note: it was read by a machine, check the numbers against the original.
+
+**A scenario.** A post opens with a table of Tesla's inputs. `library:pictures plan` counts the
+pictures and prints the cost range, `dry-run` reads five for a few cents, `submit` sends the rest as
+one Message Batch (half price), and `collect` is run later, as often as needed, until the batch has
+ended. `verify` has Opus 5.5 re-read 40 spread-out pictures. `library:blog` then places the text in
+the posts, and the table is the post's first passage: the title-page filter ignores any passage with
+picture text, so a post that opens with a picture keeps it. The Learner asks for Tesla's growth
+input, the search finds the table lines, and the reply cites them with the machine-read note beside.
+
+**Accuracy is checked by code, on every reading.** Cut off by the length limit, empty, or a refusal;
+table rows with a different number of cells; a letter standing in a digit; a line repeating; a Total
+row that does not add up its column. Then the stronger model's 40 readings are compared number by
+number with Haiku's, and each disagreement is listed to be fixed or flagged. Before the reload,
+`impact` lists stored Citations whose blog passages will change, because a Citation names sentences
+by number.
+
+**Trade-offs.** Haiku is cheap but can misread a digit, so the machine-read note stays on forever
+and only a sample is re-read (the code checks cover the rest). Reading by address means we never
+download or store the pictures, but a picture Blogger later removes cannot be re-read (its cached
+text stays). Batches are slow (up to a day) but half price, and the saved batch id lets a stopped
+run resume. Measured cost and accuracy: to be filled in from the live run (see #71).
+
+## Formula registry (`src/finance/formulas.ts`, `formula-ids.ts`, ADR 0002, issue #64)
+
+**What it does.** A list of every named formula the Tutor may show: its plain-word title, the calculator that works it out, each symbol with its letter, plain-word name and unit, the value worked out last (and any worked out on the way), and the formula's lines. Present value starts with three: one future payment, equal yearly payments, and growing yearly payments (the jackpot annuity, which got a new tested calculator, `growing_annuity_present_value`). Each Topic file lists the formulas it teaches (`formulas:` in its YAML). `npm run course:check` fails on a name the registry does not have, which is why the bare list of names sits in `formula-ids.ts` with no imports: the check runs under plain Node.
+
+**Scenario.** The present value Topic lists `growing-annuity-present-value`. When the Learner reaches it, code adds one line to what the Tutor is sent: the formulas this Topic teaches, with the keys each Formula Card takes. The Tutor is told to show those only as Formula Cards and to describe any other formula in words. A Topic that wanted WACC could not list it until WACC had a calculator and a registry entry.
+
+**Trade-off.** A formula costs a tested calculator before it can be taught, which is slower than typing it. In return the Tutor cannot show a formula that code cannot work out, and every symbol's name is written once by us, not improvised by the model each time. A Topic that lists no formulas shows none as cards; moving the other Topics over is done in batches.
+
+## Formula Cards (`FormulaCard` in `src/widgets/library.tsx`, `formula-card-view.tsx`, `check.ts`, issue #64)
+
+**What it does.** A Widget that draws one registered formula: the formula with the symbols' letters, the same formula with the numbers filled in, and a list that names each symbol in plain words with its unit. Each value is coloured by where it came from: teal for the Learner's assumption (a slider), amber for a sourced Case Data figure (with its credit beside it), plain for a fixed number. The result, and values worked out on the way such as the first payment, come only from the formula's calculator, so moving a slider redraws them in the browser with no model call. The Tutor gives the card three small lists: `inputs` (symbol to a `$variable` bound to a Slider), `sourced` (symbol to a Case Data reference, whose latest point is used) and `fixed` (symbol to a number).
+
+**Scenario.** The Tutor writes a Slider for the discount rate and a card for present value with the cash option as a sourced amount and five years fixed. The Learner drags the rate from 5% to 8%: the teal rate, the filled-in formula and the amber-and-plain list all stay put except the result, which falls. If the Tutor instead types the rate as a plain number under `inputs`, or lists `amount` under both `inputs` and `sourced`, or leaves out `years`, the server's Widget check names the problem and the existing correction turn asks the Tutor to rewrite the Widget once.
+
+**Trade-offs.** The check is stricter than the language: it reads the parsed Widget, which is why a card can never show an assumption that no slider controls. The card does not do any arithmetic, so a formula whose calculator fails shows a plain "could not be worked out" message, not a guess. The frozen Widget instructions changed (a new component, a rule and an example), so the next action after deploy starts a new Session; a test checks that the instructions name only components the library has.
+
+## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
+
+**What it does.** A Topic file may carry two or three Connections: short plain-word links from the Topic's idea to other ideas, each naming the outline Topic IDs it links to. At the principle step, and not before, the Tutor's context carries them with the titles of the linked Topics, and the instructions tell the Tutor to give them there. The Learner can still ask a connection question at any time. A Topic without Connections behaves as it did.
+
+**Scenario.** Present value ends with three: a bond's yield is the market's discount rate (so when yields rise, bond prices fall), safe rates usually fall in a recession while the extra return on risky payments can rise, and far-off cash in a business loses the most when rates rise. At the principle step the Tutor sees each one beside "Bond basics and pricing", "GDP, growth and business cycles" or "DCF valuation", and says them in its own words. Had someone typed `bond-prcing`, `npm run course:check` would fail with `Connection 1 links to "bond-prcing", which is not in the outline`.
+
+**Trade-off.** Code checks the links, not the economics: a Connection that names real Topics can still be wrong, so the text is written once and reviewed by the owner. Connections hold no figures (the check rejects digits, `%` and currency signs), so every number the Learner sees still comes from Case Data or a calculator; the price is that a Connection cannot say "by how much". Links may point at Topics still to come, so the course can link forward before those Topics are written.
+
+## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/guided-task-check.ts`, issue #66)
+
+**What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked, saved or sent to the Tutor. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` tries every position of the sliders a task reads in each Topic's explore Widget, and fails on a task no position can reach or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
+
+**Scenario.** Present value's explore Widget has four tasks under the rate slider and the annuity chart: set the rate to 0%, then 2%, then 8%, then find the rate where the payments' worth today comes closest to the cash option. The slider starts at 5%, so none is done. The Learner drags to 8% first: nothing ticks, because task 1 is current. They go to 0%: task 1 ticks. They go to 2%, then 8%: tasks 2 and 3 tick. The fourth ticks at 3.25% or 3.5%, the two positions where the annuity's worth today is nearest the cash option's $877.8 million. If a later edit made task 3 read `$rate == 8.1`, the course check would fail, because the slider moves in steps of 0.25.
+
+**Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Ticks live in the page, so reloading the page starts the stepper again, which suits practice that is never saved. The frozen Widget instructions changed (two components, an example and a rule), so the next action after deploy starts a new Session.
+
+## Weekly refresh of Damodaran's posts (`src/library/refresh.ts`, `src/app/api/cron/library-refresh/route.ts`, `library_refresh_runs`, `vercel.json` crons, IL 16, #73)
+
+**What it does.** Every Monday at 21:30 UTC, Vercel calls a route that adds Damodaran's new or edited blog posts to the Library: the text, the text read from the pictures (the same reader as the laptop backfill), the spreadsheets the posts link to, the embeddings, and a refresh of the keyword statistics. The route sits outside the passcode gate (the gate skips exactly `/api/cron/library-refresh` and nothing else) and answers 401 unless the request carries `Authorization: Bearer <CRON_SECRET>`; with no secret set, nobody gets in. It works for at most 200 seconds of the 300 a function may run, starts no new post, picture or file in the last 40 seconds (kept for embedding and statistics), and takes at most five posts a run, oldest change first.
+
+**The run log.** Each run is a row in `library_refresh_runs`: when it started and ended, what it added (post, title, new or edited, passages, spreadsheet files), everything that failed, and a watermark. The log is also the lock: the database allows only one `running` row, so a second run starting at the same time is refused with 409, and a run still `running` after ten minutes (the function was cut off) is marked failed by the next one. The watermark is how far through the blog's "updated" times the run got; the next run asks Blogger only for posts changed after it. A post that fails is logged and the watermark stops at it, so it is asked for again next week. A failing reindex or vacuum after the posts are in is logged as a problem (step "statistics") and does not undo the run: it still finishes `done` with its watermark.
+
+**Accepted limit.** A post that fails every week (malformed HTML, an over-size sheet) keeps the watermark at itself, and with five posts a run it is retried first each time, so newer posts are reached only while fewer than five older ones fail. We accept this for now: the log shows the failing post by name, and counting failures per post to skip it would need a new store for little gain at this volume. If it ever bites, the fix is to skip a post after N failed runs.
+
+**Scenario.** On Monday Damodaran has published one post with two pictures and a linked valuation spreadsheet, and corrected an older post by adding a paragraph. The run reads the pictures with the model (a few cents), downloads the spreadsheet, and files the new post's passages under its publication date. For the corrected post, any passage whose text is already stored keeps its old date; text that is new is dated by the post's updated day. A Case set between the post and the correction therefore never finds the added paragraph, even though it is "in" a post from before the Case.
+
+**Trade-offs.** Dating by the edit is safe against hindsight but blunt: when an added paragraph is packed into the same passage as older text, that whole passage becomes new text and is hidden from earlier Cases until the edit's date. Pictures are read once: each reading is stored by the picture's address in `library_pictures`, so an edited post, or a post tried again after a failure, reuses the same words and keeps its passages' dates (a second reading would not match word for word and would count as new text). The laptop's `pictures.json` is copied in once with `npm run library:seed-pictures`. Each post and spreadsheet file also gets a row in `library_documents` with its published and updated times as the source gave them. A picture that fails to read is simply read again next week. Five posts a week keeps a run inside its time and the model bill small, and a busy week simply continues next Monday. Without `VOYAGE_API_KEY` the new passages stay keyword-only (the run says so); without `ANTHROPIC_API_KEY` the pictures are left out (it says so too). Setting `CRON_SECRET` in Vercel and the first manual run are done by the owner after deploy. The `xlsx` package is installed from SheetJS's own site (`cdn.sheetjs.com`), not from npm, because SheetJS no longer publishes current versions to npm; the lockfile pins it with an integrity hash, so do not "fix" it to an npm version when bumping dependencies.
+
+## Formula markers and the typed-formula check (`src/finance/formula-markers.ts`, `formula-text.ts`, `raw-formula.ts`, `src/course/formula-check.ts`, `src/widgets/marked-text.tsx`, issue #65)
+
+**What it does.** A Topic's text can name a registry formula and its example numbers in a marker, such as `{{formula:present-value amount=1100 ratePercent=10 years=1}}`. Code does everything else with it. In a quiz or spaced-review explanation the marker is drawn as a small static Formula Card (the numbers plain, no slider, the result from the formula's tested calculator). In what the Tutor is sent, the marker is replaced by plain words: the formula's name, each input in words and the computed result, never the marker itself. A single detector, `rawFormulaHits`, finds a formula typed as symbols or arithmetic (an equals sign, a power, "(1 + r)", spaced division or multiplication) and ignores ratios like P/E and 50/50, dates, rupee figures, links, markers and code fences. Three things use it: `npm run course:check`, a behaviour rule called "typed formula" (graded by code alone, with one direct and one indirect question), and later the model comparison.
+
+**Scenario.** The present value quiz asks for $1,210 received in two years at 10%. After the Learner answers, the explanation says "Two years at 10% means dividing by 1.10 twice" and shows a Formula Card with $1,210, 10% and 2 years filled in and $1,000.00 worked out by code. If someone later writes "PV = 1,210 / 1.21 = 1,000" into present value, the course check fails and names the line. If a Learner asks the Tutor to "write out the present value formula", the behaviour run marks the reply failed when it holds symbols, with no grader model call and no cost.
+
+**Trade-off.** The detector is strict: it also catches worked sums such as "100 / 1.10 = 90.91", so 86 other Topics that type formulas are on a not-yet-converted list (`NOT_YET_CONVERTED`). That list can only shrink: a Topic on it that has become clean must come off, and a Topic off it that types a formula fails. A strict detector means a few false alarms in a converted Topic, which are fixed by rewording into worded steps; it never means a missed formula going out unnoticed. Question Bank items are not scanned yet (they live in the database), so a Topic's quiz that uses a bank item can still show one until its explanation is converted or the item is swapped. A marker is checked when the Course Map loads: it must name a formula on the Topic's own `formulas` list and give exactly that formula's inputs.
+
+## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
+
+**What it does.** A fifth header link, "Notes", opens a page that lists every Topic in course order, each as a Topic Note. When a Topic is passed, code fills in its note with no model call: its Formula Cards drawn with example numbers (the numbers from the first marker in the Topic's own text that names the formula, else the registry's working example, with results from the formula's calculator), the Insight in the Learner's own words (beside the written Insight only when the Tutor had to tell it), the principle, the Connections and the mistakes the Tutor noticed. Nothing of that part is stored: it is built from the current Topic file and the Learner's records every time the page opens. What is stored is only the Learner's own lines, in `note_items` (kind "line"), which they can add, edit and delete on any Topic, passed or not, through `/api/notes` behind the passcode. The table also has empty columns for the saved replies and Widgets of the next ticket. The page prints: the header, buttons and boxes for typing are hidden on paper, a Topic with nothing on it is left out, and the light look is forced onto white.
+
+**Scenario.** The Learner passes present value after being told the Insight. On the Notes page its note shows the Formula Card with $1,100, 10% and 1 year and $1,000.00 worked out, "In your words: just tell me" beside "As written: waiting has a price", the principle, three Connections and the mistake "added the interest instead of dividing". They add the line "divide, do not subtract" and press Print. Before passing bond prices they can already add lines there, but its note says it fills in when they pass.
+
+**Trade-off.** Building on read means a note always follows the latest Topic file: if the owner rewrites a principle, old notes show the new words, and a Learner's printed copy and the screen can differ over time. A stored snapshot would keep the old words but would need a second copy to keep in step. The Insight words and the mistakes come from records that never change once written, so only the course text moves. Own lines are plain text of up to 2,000 characters with no formatting, which keeps the page simple and safe to print.
+
+## Save to notes (`src/learner/saved.ts`, `src/app/save-to-notes.tsx`, `src/app/api/notes/saved/route.ts`, `src/widgets/settings.ts`, table `note_items`, issue #70)
+
+**What it does.** Every finished Tutor reply, every Widget in the panel and the explore Widget has a quiet "Save to notes" button, in the workspace and in old Sessions. Only a pointer is stored in `note_items`: for a reply, the Session and the turn (the seq of the Learner's message that began it); for a Widget, also its number in the reply and the numbers on its sliders at that moment (the explore Widget is number -1 and has no reply). The browser never sends Widget code. The server finds the code in the stored reply, or in the Topic file for the explore Widget, and keeps only the slider numbers for variables the code really declares. The Topic is the last one the Tutor's context named by that turn (so a save from an old Session lands on that Session's Topic), else the Learner's current Topic. On the Topic Note the Notes page then draws a "Saved from lessons" block, straight away, passed or not: a reply is read back from its Session like an old Session, with its sources folded and the as-of rule applied at the moment of reading; a Widget is drawn live from its code with the saved numbers written in place of its starting ones (`applySettings`). "Remove from notes" takes an item off; the Learner's own lines are never touched by it. The "done" event of a turn now carries the Session and turn, so a reply that has just finished can be saved without a reload.
+
+**Scenario.** On the Cash-now-or-later Case the Tutor's reply cites a Damodaran post dated after the Case's as-of date. The Learner saves it. Opening the Notes page before the reveal shows the reply with that source listed as "hidden until the reveal"; after the reveal the same saved reply shows its heading and credit. They also save the explore Widget with the rate slider at 8%; a week later the note shows it at 8%, ready to move again.
+
+**Saving twice.** The table has a unique index over the Topic, kind, Session, turn and Widget number (Learner lines excluded), and a save inserts first and treats a clash as "already there", so a double click or two tabs cannot make two rows; the slider numbers of a repeated Widget save are updated.
+
+**Trade-off.** Storing a pointer instead of a copy means a saved reply always follows today's as-of rule and sources, and cannot go stale or leak an outcome from a frozen copy; but it depends on the Session's messages staying (they are add-only) and a reply saved from a Session cannot be edited. Settings are only slider numbers, so a Widget whose state is anything else reopens at its starting values. A static page render cannot show the slider numbers, because the Widget library fills them in after the first browser render, so the test checks the code the numbers are written into.
+
+## Present value pilot check (`src/tutor/pilot.test.ts`, `src/course/connections-check.ts`, `scripts/browser-check.mjs`, ticket #74)
+
+**What it does.** Three guards that the insight-led Topic works as one piece. (1) One turn test plays present value start to finish with a scripted Tutor and a real in-memory database: story and concept, then explore (a miss that earns hint 1, then the Learner's own words found), the Learner's turn, the Check, the reveal and the principle with its Connections, ending with a passed Topic. It then reads the Topic Note and expects the Learner's words, the Connections and a Formula Card that code works out from the registry's calculator. (2) The course check now fails any Topic that has an Insight but not two or three Connections. (3) A browser script signs in to a local server, seeds a test database with a Learner at the explore step, and takes screenshots at laptop and upright-iPad sizes in light and dark: the explore Widget, Guided Tasks ticking, the live Formula Card, folded sources, Notes and the profile form. It makes no model call.
+
+**Scenario.** Someone edits the Tutor's context so the principle step stops listing Connections: the turn test fails at the principle step. Someone adds a second Insight Topic and forgets its Connections: `npm run course:check` says `Topic "x" has an Insight, so it needs two or three Connections (it has 0)`. Someone changes the Formula Card so the rate slider no longer moves it: the browser script fails with "the Formula Card did not change when the rate slider moved".
+
+**Trade-off.** The turn test proves the wiring and the saved records, not what Opus will actually say; that is the live run's job. The browser script needs a Neon test branch and a local server, so it runs by hand rather than in CI, and it seeds the test branch directly with SQL, so a change to those tables means updating the script.

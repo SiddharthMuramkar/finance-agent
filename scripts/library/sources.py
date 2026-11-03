@@ -2,7 +2,7 @@
 
 Run from the laptop, with a scratch folder OUTSIDE this repo (downloads are cached there):
   python3 -I scripts/library/sources.py <source> <scratch dir> <documents.json>
-where <source> is one of: damodaran-blog, damodaran-papers, yale-econ-251, yale-econ-252, fed-explained,
+where <source> is one of: damodaran-papers, yale-econ-251, yale-econ-252, fed-explained,
 nyfed, sec-anthropic-s1. Each writes a JSON list of documents ({ref, title, url, publishedOn, sections})
 for `npm run library:load`, which cleans, cuts, repairs and checks the text. Nothing extracted is
 written into the repo: the source text lives only in the private database.
@@ -55,7 +55,7 @@ def fetch(url, cache, ua=UA, binary=False):
 # ---------------------------------------------------------------- HTML to blocks
 
 BLOCK = {"p", "div", "br", "li", "ul", "ol", "tr", "table", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6", "section", "article", "pre", "hr"}
-SKIP = {"script", "style", "noscript", "svg", "nav", "footer", "header", "form", "button", "iframe"}
+SKIP = {"script", "style", "noscript", "svg", "nav", "footer", "header", "form", "button", "iframe", "object", "video", "audio"}
 
 
 class Blocks(HTMLParser):
@@ -197,31 +197,6 @@ def vision_pages(pages, max_words=40):
 
 
 # ---------------------------------------------------------------- sources
-
-def damodaran_blog(scratch, out):
-    docs, start = [], 1
-    while True:
-        url = f"https://aswathdamodaran.blogspot.com/feeds/posts/default?max-results=100&start-index={start}&alt=json"
-        feed = json.loads(fetch(url, Path(scratch) / f"blog-{start}.json"))["feed"]
-        entries = feed.get("entry", [])
-        if not entries:
-            break
-        for e in entries:
-            link = next((l["href"] for l in e["link"] if l["rel"] == "alternate"), None)
-            if not link:
-                continue
-            title = e["title"]["$t"] or "Untitled post"
-            blocks = html_blocks(e.get("content", {}).get("$t", ""))
-            sections = sections_from_blocks(blocks)
-            if not sections:
-                continue
-            docs.append({"ref": "post-" + e["id"]["$t"].rsplit("post-", 1)[-1], "title": title, "url": link, "publishedOn": e["published"]["$t"][:10], "sections": sections})
-        start += len(entries)
-        if start > int(feed["openSearch$totalResults"]["$t"]):
-            break
-    Path(out).write_text(json.dumps(docs))
-    print(f"{len(docs)} blog posts, {sum(len(p.split()) for d in docs for s in d['sections'] for p in s['paragraphs'])} words")
-
 
 def yale(course, scratch, out):
     """ECON 251 (Financial Theory, Geanakoplos, 2009) or ECON 252 (Financial Markets, Shiller, 2011): transcripts of every lecture."""
@@ -443,9 +418,7 @@ def layout_pages_to_document(markup, ref, title, url, filed):
 def main():
     source, scratch, out = sys.argv[1:4]
     Path(scratch).mkdir(parents=True, exist_ok=True)
-    if source == "damodaran-blog":
-        damodaran_blog(scratch, out)
-    elif source == "damodaran-papers":
+    if source == "damodaran-papers":
         damodaran_papers(scratch, out)
     elif source == "yale-econ-251":
         yale("251", scratch, out)

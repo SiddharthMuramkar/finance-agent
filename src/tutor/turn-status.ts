@@ -10,6 +10,9 @@ import type { Db } from "@/db/types";
 
 export type Turn = typeof turns.$inferSelect;
 
+/** What the Learner's "Continue" button sends. */
+export const CONTINUE_TEXT = "Continue.";
+
 export const BUSY_MESSAGE = "A turn is in progress, perhaps on another device. Wait for it to finish, then send again.";
 /** A run can't outlive Vercel's 300-second limit, so a turn still marked running after this was killed. */
 export const STALE_RUN_MS = 330_000;

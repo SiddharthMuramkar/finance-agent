@@ -134,6 +134,55 @@
       "when": 1793621672663,
       "tag": "0018_login_failures",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793682422642,
+      "tag": "0019_tutor_default_opus",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793683134254,
+      "tag": "0020_insight_attempts",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793684568224,
+      "tag": "0021_aberrant_lady_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793684975416,
+      "tag": "0022_dear_maginty",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793685422729,
+      "tag": "0023_mighty_cerebro",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793688633540,
+      "tag": "0024_pretty_mole_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793689395752,
+      "tag": "0025_yielding_speedball",
+      "breakpoints": true
     }
   ]
 }

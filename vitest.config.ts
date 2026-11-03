@@ -10,5 +10,7 @@ export default defineConfig({
     setupFiles: ["src/test/setup.ts"],
     // GitHub's free runner has 2 cores and 7 GB; each worker holds several Postgres heaps.
     ...(process.env.CI ? { maxWorkers: 2 } : {}),
+    // Whole-Topic walks on PGlite take about 5 s under load, so the 5 s default timed them out.
+    testTimeout: 30_000,
   },
 });

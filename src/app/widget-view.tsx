@@ -3,6 +3,7 @@
 import { Renderer } from "@openuidev/react-lang";
 import { Component, type ReactNode } from "react";
 import { widgetProblems } from "@/widgets/check";
+import { settingsFrom } from "@/widgets/settings";
 import { WidgetBorderContext, widgetLibrary } from "@/widgets/library";
 
 const FALLBACK = "This widget could not be drawn. The lesson carries on without it.";
@@ -34,13 +35,14 @@ class Contain extends Component<{ code: string; children: ReactNode }, { failed:
  * One generated widget. Controls change state in the browser only: moving a
  * slider never calls the model. A finished widget that fails the check shows a
  * plain fallback instead. `bare` drops the Widget's own border, for a card that already frames it.
+ * `onSettings` hears the numbers on the Widget's sliders each time the Learner moves one (for "Save to notes").
  */
-export function WidgetView({ code, complete, bare = false }: { code: string; complete: boolean; bare?: boolean }) {
+export function WidgetView({ code, complete, bare = false, onSettings }: { code: string; complete: boolean; bare?: boolean; onSettings?: (settings: Record<string, number>) => void }) {
   if (complete && widgetProblems(code).length) return <Fallback />;
   return (
     <Contain code={code}>
       <WidgetBorderContext.Provider value={!bare}>
-        <Renderer response={code} library={widgetLibrary} isStreaming={!complete} />
+        <Renderer response={code} library={widgetLibrary} isStreaming={!complete} onStateUpdate={onSettings && ((state) => onSettings(settingsFrom(state)))} />
       </WidgetBorderContext.Provider>
     </Contain>
   );

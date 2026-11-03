@@ -21,7 +21,18 @@
     "url": "https://aswathdamodaran.blogspot.com/",
     "fetchedOn": "2026-11-02",
     "quoteWords": 60,
-    "fetch": "python3 -I scripts/library/sources.py damodaran-blog <scratch> <scratch>/damodaran-blog.documents.json (Blogger JSON feed, 100 posts a call; post dates come from the feed)"
+    "fetch": "npm run library:blog -- <scratch> (TypeScript reader, src/library/blog.ts: Blogger JSON feed, 100 posts a call, cached in <scratch>; post dates and published/updated times come from the feed; writes <scratch>/damodaran-blog.documents.json and loads it; add --no-load to stop after the file)"
+  },
+  {
+    "id": "damodaran-spreadsheets",
+    "title": "Spreadsheets behind Damodaran's blog posts (NYU Stern)",
+    "kind": "dated",
+    "licence": "Open site: free use for study with acknowledgement, no commercial resale",
+    "licenceUrl": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/guide.html",
+    "credit": "Aswath Damodaran, NYU Stern (pages.stern.nyu.edu/~adamodar), spreadsheets linked from Musings on Markets, used with acknowledgement",
+    "url": "https://pages.stern.nyu.edu/~adamodar/",
+    "fetchedOn": "2026-11-03",
+    "fetch": "npm run library:blog -- <scratch> --no-load (feed cache), then npm run library:sheets -- <scratch> (reads the .xls/.xlsx files his posts link to with SheetJS, saved values only, hidden sheets skipped, at most 12 passages per workbook, dated by the later of post date and file Last-Modified; writes <scratch>/damodaran-spreadsheets.documents.json and loads it; --dry-run N reads N files and writes nothing to the database; his yearly datasets and implied-premium files are excluded)"
   },
   {
     "id": "damodaran-papers",

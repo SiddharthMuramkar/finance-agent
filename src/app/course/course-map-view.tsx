@@ -1,9 +1,10 @@
+import Link from "next/link";
 import type { TopicOverview } from "@/course/navigator";
 import { Card, Eyebrow, KeyValueRow, Pill } from "../ui";
 import { BackToPathButton, JumpButton } from "./jump-button";
 
 const STATUS: Record<TopicOverview["status"], string> = { not_started: "Not started", in_progress: "In progress", passed: "Passed" };
-const STEP: Record<string, string> = { story: "story", concept: "concept", your_turn: "your turn", check: "Check", reveal: "reveal", principle: "principle" };
+const STEP: Record<string, string> = { story: "story", concept: "concept", explore: "explore", your_turn: "your turn", check: "Check", reveal: "reveal", principle: "principle" };
 /** A Topic planned in the outline but not written yet. */
 export type ComingTopic = { id: string; title: string; stage: TopicOverview["stage"] };
 
@@ -116,6 +117,12 @@ export function CourseMapView({ topics, coming = [] }: { topics: TopicOverview[]
 export function ProgressView({ topics }: { topics: TopicOverview[] }) {
   return (
     <div>
+      <p className="mb-4 text-sm leading-5">
+        <Link href="/profile" data-about-you className="underline underline-offset-4 hover:text-[var(--brand)]">
+          About you
+        </Link>{" "}
+        <span className="text-[var(--muted)]">· share a little so the Tutor can pick everyday examples that fit you</span>
+      </p>
       <Eyebrow className="mb-2">Topics</Eyebrow>
       <div>
         {topics.map((t) => (

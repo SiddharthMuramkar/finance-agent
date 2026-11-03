@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
+import { FORMULA_IDS } from "../finance/formula-ids.ts";
+import { markerProblems } from "../finance/formula-markers.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
@@ -75,7 +77,44 @@ const caseSchema = z.object({
   piece: pieceSchema.optional(),
 });
 
+/**
+ * A Topic's Insight (ADR 0001): the surprising consequence of its idea, which the Learner finds at
+ * the explore Teaching Step. The written Insight stays on the server until it is found or told.
+ */
+const insightSchema = z.object({
+  /** What the Tutor asks the Learner to work out. Must not give the Insight away. */
+  question: z.string().min(1),
+  /** The Insight as a sentence. Reaches the Tutor only in a tool result, once found or told. */
+  written: z.string().min(1),
+  /** How the Tutor tells the Learner has found it. */
+  foundWhen: z.string().min(1),
+  /** Hint 1, then hint 2, released one per not-yet attempt. */
+  hints: z.array(z.string().min(1)).min(1).max(2),
+});
+
+/** Where explore sits: after the concept of the named Check, before that Check's your turn. */
+const exploreSchema = z.object({
+  before: id,
+  /** Whether a Learner who already passed the Topic is taken through explore again. */
+  requiredWhenPassed: z.boolean().default(false),
+  /**
+   * The Topic's own explore Widget, in OpenUI code. Code (not the Tutor) puts it in the Widget panel when
+   * explore begins and keeps it there until the Topic is passed. Parsed by the tests; its Case Data
+   * references are checked here.
+   */
+  widget: z.string().min(1).optional(),
+});
+
+export type Insight = z.infer<typeof insightSchema>;
+
 export { STAGES };
+
+/** A link from a Topic's idea to others, given at the principle step. Plain words only: figures belong to the Case Data. */
+const connectionSchema = z.object({
+  text: z.string().min(1),
+  /** Outline Topic IDs (written or still coming) this Connection links to. */
+  topics: z.array(id).min(1),
+});
 
 /**
  * A Topic file. Stage, place and prerequisites belong in `course/outline.yaml`. A file sets them
@@ -90,13 +129,44 @@ const topicSchema = z.object({
   prerequisites: z.array(id).optional(),
   cases: z.array(caseSchema).min(1),
   concept: z.string().min(1),
+  /** The named formulas this Topic teaches, each shown only as a Formula Card (IDs from the formula registry). */
+  formulas: z
+    .array(z.string().refine((f) => (FORMULA_IDS as readonly string[]).includes(f), { message: `Unknown formula; the formula registry has: ${FORMULA_IDS.join(", ")}` }))
+    .default([]),
   principle: z.string().min(1),
+  /** The Topic's Insight and the explore step that leads the Learner to it; both or neither. */
+  insight: insightSchema.optional(),
+  explore: exploreSchema.optional(),
+  /** Two or three Connections the Tutor gives at the principle step. Optional. */
+  connections: z
+    .array(connectionSchema)
+    .max(3)
+    .refine((c) => c.length !== 1, "give two or three Connections, or none")
+    .optional(),
   /** Claude-written quiz questions that this Topic's quiz Checks draw on. */
   questions: z.array(quizQuestion).default([]),
   checks: z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
+}).superRefine((topic, ctx) => {
+  // Formula markers ({{formula:...}}) must name a formula on this Topic's own list and give exactly its inputs.
+  const texts = [
+    ...topic.cases.flatMap((c) => [c.story, c.reveal]),
+    topic.concept,
+    topic.principle,
+    ...(topic.connections ?? []).map((c) => c.text),
+    ...topic.questions.flatMap((q) => [q.prompt, q.explanation, ...q.choices.map((c) => c.text)]),
+    ...topic.checks.flatMap((c) => (c.kind === "conversation" ? [c.prompt, c.passCriteria] : [])),
+  ];
+  for (const text of texts) {
+    for (const problem of markerProblems(text, topic.formulas)) ctx.addIssue({ code: "custom", message: `formula marker ${problem}` });
+  }
 });
 
-export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prerequisites"> & {
+/** A Connection with the titles of its linked Topics filled in by code. */
+export type Connection = { text: string; topics: string[]; titles: string[] };
+
+export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prerequisites" | "connections"> & {
+  /** Empty when the Topic has none. */
+  connections: Connection[];
   stage: (typeof STAGES)[number];
   /** The field a Foundation Topic belongs to (from the outline); none for later Stages. */
   subject?: Subject;
@@ -163,9 +233,12 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
   }
 
   const byId = new Map(topics.map((t) => [t.id, t]));
+  // With an outline a Connection may name any planned Topic, written or coming; without one, written Topics only.
+  const titles = new Map((outline ? outline.topics : topics).map((t) => [t.id, t.title] as const));
   for (const t of topics) {
+    errors.push(...connectionProblems(t, titles));
     if (t.checks.length === 0) errors.push(`Topic "${t.id}" has no Checks`);
-    errors.push(...quizProblems(t));
+    errors.push(...quizProblems(t), ...insightProblems(t));
     for (const p of t.prerequisites) {
       if (!byId.has(p)) errors.push(`Topic "${t.id}" requires "${p}", which is not on the Course Map`);
     }
@@ -199,18 +272,71 @@ function pieceProblems(c: z.infer<typeof caseSchema>): string[] {
   return problems;
 }
 
+/** Connections before their Topic titles are looked up (done once every Topic is read). */
+const unresolved = (file: z.infer<typeof topicSchema>): Connection[] => (file.connections ?? []).map((c) => ({ ...c, titles: [] }));
+
+/** A Connection's or Insight's text may not hold a figure: numbers come only from Case Data and the calculators. */
+const FIGURE = /[0-9%$€£₹]/;
+
+/** Checks each Connection against the known Topic titles, and fills in the titles of the Topics it links to. */
+function connectionProblems(t: Topic, known: Map<string, string>): string[] {
+  const problems: string[] = [];
+  t.connections.forEach((c, i) => {
+    const n = i + 1;
+    if (FIGURE.test(c.text)) problems.push(`Topic "${t.id}" Connection ${n} contains a figure; Connections are written in words`);
+    for (const target of c.topics) {
+      if (target === t.id) problems.push(`Topic "${t.id}" Connection ${n} links to the Topic itself`);
+      else if (!known.has(target)) problems.push(`Topic "${t.id}" Connection ${n} links to "${target}", which is not in the outline`);
+    }
+    c.titles = c.topics.map((x) => known.get(x) ?? x);
+  });
+  return problems;
+}
+
 /** Fills in Stage, place and prerequisites. Returns a problem message when the file and outline disagree. */
 function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | undefined): Topic | string {
   if (!outline) {
     if (file.stage === undefined || file.path === undefined) return "stage and path are required";
-    return { ...file, stage: file.stage, path: file.path, prerequisites: file.prerequisites ?? [] };
+    return { ...file, connections: unresolved(file), stage: file.stage, path: file.path, prerequisites: file.prerequisites ?? [] };
   }
   const planned = outline.topics.find((t) => t.id === file.id);
   if (!planned) return `Topic "${file.id}" is not in the outline`;
   if (file.stage !== undefined || file.path !== undefined || file.prerequisites !== undefined) {
     return `stage, path and prerequisites belong in the outline, not in the Topic file`;
   }
-  return { ...file, stage: planned.stage, subject: planned.subject, path: planned.path, prerequisites: planned.prerequisites };
+  return { ...file, connections: unresolved(file), stage: planned.stage, subject: planned.subject, path: planned.path, prerequisites: planned.prerequisites };
+}
+
+/** A Case Data reference, "caseId/datasetId", written as a string in Widget code. */
+const CASE_DATA_REFERENCE = /"([a-z0-9-]+)\/([a-z0-9-]+)"/g;
+
+/** Case Data references in the explore Widget's code that do not belong to the Topic's own Cases and their datasets. */
+function exploreWidgetReferenceProblems(t: Pick<Topic, "id" | "cases" | "explore">): string[] {
+  const code = t.explore?.widget ?? "";
+  return [...code.matchAll(CASE_DATA_REFERENCE)].flatMap(([, caseId, datasetId]) => {
+    const c = t.cases.find((x) => x.id === caseId);
+    if (!c) return [`Topic "${t.id}" explore Widget reads "${caseId}/${datasetId}", but "${caseId}" is not one of the Topic's Cases`];
+    return c.data.includes(datasetId) ? [] : [`Topic "${t.id}" explore Widget reads "${caseId}/${datasetId}", but Case "${caseId}" does not list dataset "${datasetId}"`];
+  });
+}
+
+/** An Insight is written in words too: a figure would hand the Learner a number to look for. */
+function insightProblems(t: Topic): string[] {
+  const problems: string[] = [];
+  if (t.insight && !t.explore) problems.push(`Topic "${t.id}" has an insight but no explore`);
+  if (t.explore && !t.insight) problems.push(`Topic "${t.id}" has explore but no insight`);
+  if (t.explore && !t.checks.some((c) => c.id === t.explore!.before)) {
+    problems.push(`Topic "${t.id}" explores before Check "${t.explore.before}", which it does not have`);
+  }
+  if (t.explore?.widget) problems.push(...exploreWidgetReferenceProblems(t));
+  if (t.insight) {
+    const { question, written, foundWhen, hints } = t.insight;
+    const fields: [string, string][] = [["question", question], ["written", written], ["foundWhen", foundWhen], ...hints.map((h, i): [string, string] => [`hints.${i}`, h])];
+    for (const [field, text] of fields) {
+      if (FIGURE.test(text)) problems.push(`Topic "${t.id}" has a figure in insight.${field}; write the Insight in words`);
+    }
+  }
+  return problems;
 }
 
 /** The ID prefix of a Question Bank question. Bank questions live in the database, so the file cannot hold them. */

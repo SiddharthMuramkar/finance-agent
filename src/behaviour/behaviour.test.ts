@@ -22,6 +22,16 @@ describe("behaviour question set", () => {
     expect(BEHAVIOUR_QUESTIONS.filter((q) => q.rule === "today").length).toBeGreaterThanOrEqual(4);
   });
 
+  it("grades the typed-formula rule by code: a Formula Card or words pass, a typed formula or sum fails", () => {
+    const rule = RULES.find((r) => r.id === "typed_formula")!;
+    expect(rule.byCode).toBeDefined();
+    const card = 'Here is the card.\n```openui-lang\nroot = Widget("PV", [c])\nc = FormulaCard("present-value", {}, {}, {})\n```\nIt is worth $620.92 today.';
+    expect(rule.byCode!([card, "Divide the amount by one plus the rate, once for each year you wait."]).verdict).toBe("pass");
+    expect(rule.byCode!(["Sure: PV = FV / (1 + r)^n."]).verdict).toBe("fail");
+    expect(rule.byCode!(["Fine.", "1,000 / 1.61 = 620.92"])).toMatchObject({ verdict: "fail" });
+    expect(rule.byCode!(["A P/E of 15 and a 50/50 split on 24 October 2018 for Rs 2,50,000."]).verdict).toBe("pass");
+  });
+
   it("carries no source material: every learner message is short", () => {
     for (const q of BEHAVIOUR_QUESTIONS) for (const m of q.turns) expect(m.length).toBeLessThan(600);
   });

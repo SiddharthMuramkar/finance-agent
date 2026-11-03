@@ -99,6 +99,38 @@ export const misconceptions = pgTable(
 );
 
 /**
+ * Learner Memory: every attempt at a Topic's Insight at the explore step, with the Learner's exact
+ * words. `reported` is what the Tutor judged; `released` is what code did about it (the hint, or
+ * the written Insight). A Topic's Insight is settled once a row is released as found or told.
+ */
+export const insightAttempts = pgTable(
+  "insight_attempts",
+  {
+    id: serial("id").primaryKey(),
+    topicId: text("topic_id").notNull(),
+    reported: text("reported").notNull().$type<"found" | "not_yet" | "asked_to_be_told">(),
+    released: text("released").notNull().$type<"found" | "hint_1" | "hint_2" | "told">(),
+    /** The Learner's words, taken from their message in the turn. */
+    words: text("words").notNull(),
+    /** The model that taught the step. */
+    model: text("model"),
+    /** The turn it happened in. */
+    turnId: integer("turn_id"),
+    /** The tool call that wrote it; a repeated call has no second effect. */
+    toolCallId: text("tool_call_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("insight_attempts_tool_call").on(t.toolCallId),
+    index("insight_attempts_topic").on(t.topicId),
+    // The Insight is settled once: a second "found" or "told" for a Topic is refused by the database.
+    uniqueIndex("insight_attempts_settled_once")
+      .on(t.topicId)
+      .where(sql`${t.released} in ('found', 'told')`),
+  ],
+);
+
+/**
  * What the model cost. One "step" row per Tool Runner loop step and one "turn" row per Tutor turn
  * (the sum of its steps). `turnSeq` is the seq of the Learner's message that began the turn.
  * Kept in SQL so cost history outlives Vercel's short log retention.
@@ -329,6 +361,57 @@ export const libraryPassages = pgTable(
 );
 
 /**
+ * Library: one run of the weekly refresh of Damodaran's posts. The log of what each run added and
+ * what failed, and the lock: only one row may be `running`, and a run that stays `running` for over
+ * ten minutes is marked `failed` by the next run. `watermark` is how far through the blog's
+ * updated times the run got, so the next run asks Blogger only for posts changed after it.
+ */
+export const libraryRefreshRuns = pgTable(
+  "library_refresh_runs",
+  {
+    id: serial("id").primaryKey(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    status: text("status").notNull().$type<"running" | "done" | "failed">(),
+    watermark: text("watermark"),
+    /** Posts added or changed: ref, title, whether it was an edit, passages and spreadsheet files. */
+    added: jsonb("added").notNull().$type<unknown[]>().default(sql`'[]'::jsonb`),
+    /** Everything that went wrong: the step and the message. */
+    failed: jsonb("failed").notNull().$type<unknown[]>().default(sql`'[]'::jsonb`),
+    note: text("note"),
+  },
+  () => [uniqueIndex("library_refresh_one_running").on(sql`(true)`).where(sql`status = 'running'`)],
+);
+
+/**
+ * What the model read from a Library picture, kept by the picture's original-size address so each
+ * picture is read once, ever. `text` is null when the picture has nothing of substance.
+ */
+export const libraryPictures = pgTable("library_pictures", {
+  url: text("url").primaryKey(),
+  text: text("text"),
+  model: text("model").notNull(),
+  stopReason: text("stop_reason"),
+  problems: jsonb("problems").notNull().$type<string[]>().default(sql`'[]'::jsonb`),
+  readAt: timestamp("read_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** A Library document (a blog post or a spreadsheet file) and its published and updated times as the source gave them. */
+export const libraryDocuments = pgTable(
+  "library_documents",
+  {
+    sourceId: text("source_id")
+      .notNull()
+      .references(() => librarySources.id),
+    ref: text("ref").notNull(),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.sourceId, t.ref] })],
+);
+
+/**
  * One run of the model comparison script (npm run compare:models): which models answered, who
  * graded, the written report and the recommendation. Saved from the laptop; the app never reads it.
  */
@@ -451,4 +534,50 @@ export const loginFailures = pgTable(
     at: timestamp("at", { withTimezone: true }).notNull(),
   },
   (t) => [index("login_failures_at").on(t.at)],
+);
+
+/**
+ * Learner Profile: what the Learner chooses to share about their own life. One row (id 1); every field
+ * is optional. It is used only to choose everyday examples. `offerDismissed` is set by "Not now" on the
+ * first-visit card, after which the card is never offered again.
+ */
+export const learnerProfile = pgTable("learner_profile", {
+  id: integer("id").primaryKey(),
+  work: text("work"),
+  location: text("location"),
+  loan: text("loan"),
+  savingFor: text("saving_for"),
+  offerDismissed: boolean("offer_dismissed").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * The Notes page: the Learner's own lines on a Topic Note (kind "line", text only). Saved replies and
+ * Widgets (kinds "reply" and "widget", keyed by Session and turn) use the other columns. A Topic
+ * Note's filled-in part is not stored: code builds it on read from the Topic file and the records.
+ */
+export const noteItems = pgTable(
+  "note_items",
+  {
+    id: serial("id").primaryKey(),
+    topicId: text("topic_id").notNull(),
+    kind: text("kind").notNull().$type<"line" | "reply" | "widget">(),
+    /** The Learner's own line; null for saved replies and Widgets. */
+    text: text("text"),
+    /** A saved reply or Widget: the Session and the turn (the seq of the Learner's message that began it). */
+    sessionId: integer("session_id").references(() => sessions.id),
+    turnSeq: integer("turn_seq"),
+    /** A saved Widget: which Widget of the reply, and the slider values the Learner had. */
+    widgetIndex: integer("widget_index"),
+    widgetState: jsonb("widget_state").$type<Record<string, number>>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("note_items_topic").on(t.topicId),
+    // One saved reply or Widget per place; the Learner's own lines are many per Topic, so they are left out.
+    uniqueIndex("note_items_saved_once")
+      .on(t.topicId, t.kind, sql`coalesce(${t.sessionId}, -1)`, sql`coalesce(${t.turnSeq}, -1)`, sql`coalesce(${t.widgetIndex}, -99)`)
+      .where(sql`${t.kind} <> 'line'`),
+  ],
 );

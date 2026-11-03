@@ -23,18 +23,20 @@ import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
 import type { Db } from "@/db/types";
 import { saveJump, takeJumpEntry } from "@/learner/memory";
+import { saveProfile } from "@/learner/profile";
 import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
 import { costUsd } from "@/tutor/pricing";
-import { fingerprint } from "@/tutor/session-log";
+import { DEFAULT_SETTINGS, fingerprint } from "@/tutor/session-log";
 import { runTutorTurn } from "@/tutor/turn";
 import type { TurnUsage } from "@/tutor/usage";
 import { BEHAVIOUR_QUESTIONS, type BehaviourQuestion } from "./questions";
 import { buildGraderPrompt, GRADER_SYSTEM, parseGrade, renderReport, RULES, type Graded, type Rule } from "./grading";
 
-const TUTOR_MODEL = "claude-sonnet-5-5";
+// Each question's fresh database starts from the default settings, so this is the model the Tutor runs on.
+const TUTOR_MODEL = DEFAULT_SETTINGS.model;
 const GRADER_MODEL = "claude-opus-5-5";
 const OUT = process.env.BEHAVIOUR_OUT ?? join(homedir(), ".claude/projects/-Users-siddharth-Desktop-finance-agent/evidence/18");
 const BUDGET = Number(process.env.BEHAVIOUR_BUDGET_USD ?? "3.5");
@@ -65,6 +67,7 @@ async function ask(
     await saveJump(db, map, QUESTIONS_TOPIC);
     await takeJumpEntry(db);
   }
+  if (q.profile) await saveProfile(db, q.profile);
   const place = await placeLearner(db, map, q.at);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "${place.step}" (before the reveal; the Learner has not seen the outcome).`;
   const replies: string[] = [];
@@ -89,7 +92,15 @@ async function ask(
 /** `own` replaces the rule's rubric and the Reveal text, for a targeted test about one Case. */
 async function grade(q: BehaviourQuestion, replies: string[], stepNote: string, own?: { rule: Rule; reveal: string }) {
   const rule = own?.rule ?? RULES.find((r) => r.id === q.rule)!;
-  const reveal = own ? own.reveal : q.rule === "hindsight" ? map.topics.flatMap((t) => t.cases).map((c) => c.reveal.trim().replace(/\s+/g, " ")).join(" ") : undefined;
+  // Some rules are graded by code alone, with no grader model call.
+  if (rule.byCode) return { grade: rule.byCode(replies), cost: 0 };
+  const reveal = own
+    ? own.reveal
+    : q.rule === "hindsight"
+      ? map.topics.flatMap((t) => t.cases).map((c) => c.reveal.trim().replace(/\s+/g, " ")).join(" ")
+      : q.rule === "insight_early"
+        ? map.topic(QUESTIONS_TOPIC)?.insight?.written.trim().replace(/\s+/g, " ")
+        : undefined;
   const res = await anthropic.messages.create({
     model: GRADER_MODEL,
     max_tokens: 2000,

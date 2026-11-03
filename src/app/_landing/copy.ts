@@ -22,10 +22,11 @@ export const copy = {
   stats: { topics: "Topics written", cases: "Historical Cases", sources: "Library sources" },
   how: {
     eyebrow: "How it works",
-    title: "Every Topic follows the same six Teaching Steps",
+    title: "Every Topic follows the same seven Teaching Steps",
     steps: [
       { name: "Story", line: "A real Case sets the scene: what was known, and what was at stake." },
       { name: "Concept", line: "The idea behind it, in plain words, with the one formula that matters." },
+      { name: "Explore", line: "You try the numbers and look for the idea yourself, before it is named." },
       { name: "Your turn", line: "You work the numbers yourself before anything is explained." },
       { name: "Check", line: "A short question shows whether the idea landed." },
       { name: "Reveal", line: "What actually happened next, and how it compares with your answer." },

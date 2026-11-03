@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { foldText, HIDDEN_SOURCE_TITLE } from "@/tutor/citations";
 import { summariseRows } from "@/tutor/session-summary";
 import { OldSession } from "./old-session";
 import { SessionCard } from "./session-card";
@@ -46,12 +47,31 @@ describe("an old Session page", () => {
     expect(html).not.toContain("|---|");
   });
 
-  it("shows each citation as a small numbered link to its passage and lists the reply's sources as links", () => {
-    const text = "Present value discounts each payment[1](/passages/4?blocks=1-2).\n\nSources:\n\n1. [Present value](/passages/4)\n";
+  it("shows each citation as a small numbered link to its passage and folds the reply's sources into one closed 'N sources' line with heading and credit", () => {
+    const text =
+      "Present value discounts each payment[1](/passages/4?blocks=1-2)." +
+      foldText([
+        { n: 1, title: "Present value", href: "/passages/4", credit: "J. Author, A book (OpenStax), CC BY" },
+        { n: null, title: "30-year yield", href: "https://example.org/y", credit: "US Treasury" },
+      ]);
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text }]} />);
     expect(html).toMatch(/<sup[^>]*><a[^>]*href="\/passages\/4\?blocks=1-2"[^>]*>1<\/a><\/sup>/);
+    expect(html.match(/data-testid="sources-fold"/g)).toHaveLength(1);
+    expect(html).not.toMatch(/<details[^>]*data-testid="sources-fold"[^>]*\sopen/);
+    expect(html).toMatch(/<summary[^>]*>2 sources<\/summary>/);
     expect(html).toMatch(/<a[^>]*href="\/passages\/4"[^>]*>Present value<\/a>/);
+    expect(html).toContain("J. Author, A book (OpenStax), CC BY");
+    expect(html).toContain("US Treasury");
     expect(html).not.toContain("](/passages");
+    expect(html).not.toContain("```");
+  });
+
+  it("lists a hidden passage under its hidden title with no credit", () => {
+    const text = "Claim[1](/passages/9?blocks=1-2)" + foldText([{ n: 1, title: HIDDEN_SOURCE_TITLE, href: "/passages/9", credit: null }]);
+    const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text }]} />);
+    expect(html).toContain(HIDDEN_SOURCE_TITLE);
+    expect(html).toMatch(/<summary[^>]*>1 source<\/summary>/);
+    expect(html).not.toContain(" — ");
   });
 });
 

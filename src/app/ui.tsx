@@ -113,14 +113,14 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
   );
 }
 
-export type HeaderPage = "workspace" | "course" | "progress" | "sessions";
+export type HeaderPage = "workspace" | "course" | "progress" | "sessions" | "notes";
 
-// Notes (#69) goes between Past Sessions and the theme toggle once it lands.
 const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "workspace", href: "/study", label: "Study Workspace" },
   { page: "course", href: "/course", label: "Course Map" },
   { page: "progress", href: "/progress", label: "Progress" },
   { page: "sessions", href: "/sessions", label: "Past Sessions" },
+  { page: "notes", href: "/notes", label: "Notes" },
 ];
 
 const headerLink = `whitespace-nowrap text-sm leading-5 transition-colors duration-200 ${focusRing}`;
@@ -172,7 +172,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
 }
 
 /**
- * Page shell for the reading pages (Course Map, Progress, Past Sessions, Passage): the header sits in the
+ * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Passage): the header sits in the
  * same 6xl box as the workspace's, so the title and nav stay put between pages, and only the content
  * below it uses the narrower reading column.
  */
