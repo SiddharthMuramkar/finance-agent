@@ -1,7 +1,7 @@
 import { createParser, type LibraryJSONSchema } from "@openuidev/lang-core";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 import frozen from "./frozen.generated.json";
-import { guidedTaskProblems, parsedTasks } from "./guided-tasks";
+import { guidedTaskProblems, parsedTasks, walkNodes } from "./guided-tasks";
 import { splitReply } from "./split";
 
 /** Opens the message code sends when a finished widget fails the check. */
@@ -26,27 +26,26 @@ export function widgetProblems(code: string): string[] {
   }
 }
 
-type Node = { typeName?: unknown; statementId?: string; props?: Record<string, unknown> };
-
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const stateRefName = (v: unknown): string | undefined => (isRecord(v) && v.k === "StateRef" && typeof v.n === "string" ? v.n : undefined);
 
 /**
  * Problems in the widget's Formula Cards, which the parser cannot see: an unknown formula or symbol, a
  * card input bound to no Slider, a symbol given under more than one of inputs, sourced and fixed, and a
- * symbol of the formula not given at all. They feed the same correction turn as any other widget problem.
+ * symbol of the formula not given at all. Cards and Sliders are found at any depth (a card in a Stack can
+ * be bound to a Slider in another). They feed the same correction turn as any other widget problem.
  */
 function formulaCardProblems(children: unknown): string[] {
-  const nodes = (Array.isArray(children) ? children : []).filter((c): c is Node => isRecord(c));
-  const sliderVars = new Set(nodes.filter((n) => n.typeName === "Slider").map((n) => stateRefName(n.props?.value)));
+  const nodes = [...walkNodes(children)];
+  const sliderVars = new Set(nodes.filter((n) => n.typeName === "Slider").map((n) => stateRefName(n.props.value)));
   return nodes
     .filter((n) => n.typeName === "FormulaCard")
     .flatMap((card) => {
       const where = card.statementId ?? "FormulaCard";
-      const formula = typeof card.props?.formula === "string" ? formulaById(card.props.formula) : undefined;
+      const formula = typeof card.props.formula === "string" ? formulaById(card.props.formula) : undefined;
       if (!formula) return [`${where}: formula is not in the formula registry. Use one of: ${FORMULAS.map((f) => f.id).join(", ")}.`];
       const maps = (["inputs", "sourced", "fixed"] as const).map(
-        (name) => [name, isRecord(card.props?.[name]) ? (card.props[name] as Record<string, unknown>) : {}] as const,
+        (name) => [name, isRecord(card.props[name]) ? (card.props[name] as Record<string, unknown>) : {}] as const,
       );
       const problems: string[] = [];
       const known = new Set(formula.symbols.map((s) => s.key));
