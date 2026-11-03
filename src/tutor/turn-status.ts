@@ -24,28 +24,49 @@ export const OPENER_PREFIX = "Opener by code:";
  */
 export const NEXT_PREFIX = "Next by code:";
 
+/**
+ * The fixed prefix of the note code writes when the Learner presses Finish this reply under a reply cut off at
+ * its length limit: the Tutor finishes it. Like the others, it is never drawn as a Learner bubble.
+ */
+export const FINISH_PREFIX = "Finish by code:";
+
+/** The note a Finish this reply turn sends, and sends again on Retry. */
+export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this reply, and has written nothing. Your last reply was cut short at its length limit. Finish it from where it stopped, without repeating what you already wrote, then stop and wait for the Learner.`;
+
+/**
+ * The fixed prefix of the note code writes for a quiz follow-up: the turn the page starts by itself after the Learner
+ * misses a quiz, in which the Tutor goes over the missed questions. Never drawn as a Learner bubble.
+ */
+export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
+
 /** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
-export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX] as const;
+export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX] as const;
 
 /**
  * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
- * that more simply, Show me in a widget), an opener the page started, or the Learner's Next (no Learner message for either).
+ * that more simply, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, or
+ * the quiz follow-up after a missed quiz (no Learner message for the last four).
  */
-export type TurnKind = "message" | "chip" | "opener" | "next";
+export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(OPENER_PREFIX)) return "opener";
   if (turn.input?.startsWith(NEXT_PREFIX)) return "next";
+  if (turn.input?.startsWith(FINISH_PREFIX)) return "finish";
+  if (turn.input?.startsWith(QUIZ_FOLLOW_UP_PREFIX)) return "quiz_follow_up";
   if (turn.input && isChipMessage(turn.input)) return "chip";
   return "message";
 }
 
-/** Whether a stored user message is a note code wrote (an opener's or a Next's), not the Learner's words. */
+/** Whether a stored user message is a note code wrote (an opener's, a Next's, a Finish this reply's or a quiz follow-up's), not the Learner's words. */
 export const isCodeWritten = (text: string) => CODE_WRITTEN_PREFIXES.some((p) => text.startsWith(p));
 
-/** What the Learner's "Continue" button sends. */
-export const CONTINUE_TEXT = "Continue.";
+/**
+ * What the old Continue button stored as if the Learner typed it. Nothing sends or stores it now: old Sessions
+ * still hold it, and the thread draws each one as a "→ next step" divider.
+ */
+export const OLD_CONTINUE_TEXT = "Continue.";
 
 export const BUSY_MESSAGE = "A turn is in progress, perhaps on another device. Wait for it to finish, then send again.";
 /** A run can't outlive Vercel's 300-second limit, so a turn still marked running after this was killed. */

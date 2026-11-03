@@ -12,7 +12,6 @@ const history = `root = Widget("Long-term interest rates around the draw", [hist
 history = HistoryChart("mega-millions-2018/treasury-30-year")`;
 
 export const SAMPLE_LINES: Line[] = [
-  { role: "user", text: "Continue." },
   {
     role: "assistant",
     text: `On 23 October 2018 one ticket in South Carolina matched all six numbers. The advertised jackpot was **$1.537 billion**, paid as 30 yearly instalments that grow 5% a year. Or the winner could take a single cash payment today.

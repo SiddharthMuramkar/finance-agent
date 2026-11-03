@@ -32,6 +32,7 @@ function Column({ given }: { given: Given }) {
     passage: null,
     setPassage: () => {},
     send: async () => {},
+    appendItem: () => {},
     ...given,
     runtime,
   };
@@ -62,6 +63,24 @@ describe("the Next chip and the turn's state", () => {
     expect(chip(column({ messages: replied, running: true }))).toBe(false);
     expect(chip(column({ messages: replied, refreshing: true }))).toBe(false);
     expect(chip(column({ messages: replied, canRetry: true, error: "The Tutor could not answer (500)." }))).toBe(false);
+  });
+});
+
+describe("a reply cut off at its length limit", () => {
+  const cut: ThreadLine[] = [
+    { id: "u", role: "user", text: "Why discount?" },
+    { id: "a", role: "assistant", text: "A rupee today is worth" },
+  ];
+
+  it("offers Finish this reply, and the word Continue appears nowhere", () => {
+    const html = column({ messages: cut, cutShort: true });
+    expect(text(html)).toContain("The reply was cut short.");
+    expect(html).toMatch(/<button[^>]*data-testid="finish-reply"[^>]*>Finish this reply<\/button>/);
+    expect(html).not.toMatch(/Continue/);
+  });
+
+  it("offers nothing to finish while the turn runs", () => {
+    expect(column({ messages: cut, cutShort: true, running: true })).not.toContain("finish-reply");
   });
 });
 

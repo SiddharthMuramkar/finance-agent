@@ -108,7 +108,7 @@ export function stepContext(
     } else {
       lines.push(
         "",
-        `Check: quiz ${check.id}. Code shows the questions on the right, in the Check tab, and marks the answers; the Learner answers there. Do not write quiz questions, help with them, hint at answers or mark anything yourself, but do answer questions unrelated to the quiz. Code will send you the result with the Learner's next message.`,
+        `Check: quiz ${check.id}. Code shows the questions on the right, in the Check tab, and marks the answers; the Learner answers there. Do not write quiz questions, help with them, hint at answers or mark anything yourself, but do answer questions unrelated to the quiz. Code sends you the result in your next turn: after a miss, code starts that turn itself so you can go over what was missed.`,
       );
     }
   }
@@ -176,7 +176,7 @@ function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widget
   }
   lines.push(
     explore?.hints.length ? `Hints released so far: ${explore.hints.map((h, i) => `hint ${i + 1}: ${h.trim()}`).join(" ")}` : "No hint has been released yet.",
-    "Put the question to the Learner, then wait for their own words. Do not state, paraphrase or hint at the Insight yourself, and do not draw a conclusion for them. When they answer, call record_insight_attempt with outcome found, not_yet or asked_to_be_told (when they ask you to just tell them), and their words copied exactly from their message this turn. Pressing Continue is not an attempt. Code replies with the hint or the written Insight; write your confirmation or hint after that result, as the final text of your reply.",
+    "Put the question to the Learner, then wait for their own words. Do not state, paraphrase or hint at the Insight yourself, and do not draw a conclusion for them. When they answer, call record_insight_attempt with outcome found, not_yet or asked_to_be_told (when they ask you to just tell them), and their words copied exactly from their message this turn. A turn code started when the Learner pressed a button (Next, Finish this reply), with no words of theirs, is not an attempt. Code replies with the hint or the written Insight; write your confirmation or hint after that result, as the final text of your reply.",
   );
   if ((explore?.idleTurns ?? 0) >= IDLE_TURNS_BEFORE_REMINDER) {
     lines.push(`Reminder: the Learner has not yet tried the question after ${explore!.idleTurns} turns at explore. Put the Insight question to them now, point them to the Widget, and invite their own words.`);

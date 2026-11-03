@@ -739,7 +739,7 @@ under the Widget: "This chart's data could not be loaded: …". There is one lin
 as soon as that Query's next call works: the slider moves back, or a Select picks a dataset the server
 has. The browser does not say which Query a call answers, so code matches each call to its Query by
 the arguments the Widget writes out (`failedQueries` in `widget-view.tsx`). A correction reply that is cut off by
-the length limit or declined is handled like any other reply: the Learner gets Continue or the
+the length limit or declined is handled like any other reply: the Learner gets Finish this reply or the
 refusal message, and a tool call it was cut off in is never run.
 
 **Trade-off.** We gain rich, interactive pictures for almost any idea, with honest numbers. We give
@@ -768,8 +768,8 @@ the production check waits on a deploy. OpenUI stays.
 asks a Learner might make for a chart, graph, table or picture, across four Topics, go through the
 real Tutor Turn on production's settings (Opus 5.5, medium effort), each on a fresh throwaway
 database with its Topic's Case Data, so nothing touches the real learning history. One is the exact
-ask that failed on 2 November 2026: after "Continue." in the 1994 Fed Topic, "can you generate a
-chart to explain it", which got "I don't have a chart type that fits this idea" and a table. Code
+ask that failed on 2 November 2026: after the story of the 1994 Fed Topic (then reached with the old
+Continue, now with the opener the page starts), "can you generate a chart to explain it", which got "I don't have a chart type that fits this idea" and a table. Code
 reads each reply as the browser would, a correction turn included, and the run passes when at least
 7 of the 8 chart replies hold a complete Widget, no Widget fails the server check, and no Widget
 without tools or our code-backed parts types chart numbers unless its title starts "Illustration:".
@@ -1141,8 +1141,9 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
 - **Only code marks a quiz.** The Tutor's verdict tool refuses a quiz Check ("it is marked by code
   from the Learner's answers"), so a Learner who asks to be passed still has to submit the quiz. The
   one exception is a quiz that cannot be shown (above).
-- **The Tutor hears afterwards.** The Learner's result is not sent to the Tutor at once, because
-  the Tutor is not called. On its next call, code puts a note in the history: "Quiz result by code,
+- **The Tutor hears afterwards.** Marking calls no model. After a miss the page starts a quiz
+  follow-up turn at once (see "Check result cards and the quiz follow-up"); after a pass the Tutor
+  hears on its next call, usually the Learner's Next. Either way code puts a note in the history: "Quiz result by code,
   Check ..., attempt 1: 1 of 3 correct (needs 2). Not passed ...", naming each missed question,
   what the Learner chose and the right answer. It goes in the same system message as the
   Course Navigator's context, directly after the Learner's message (the one place the API accepts
@@ -1152,11 +1153,11 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
 **Scenario.** The Learner finishes the concept and "your turn" and the quiz opens in the Check tab on the right. They
 get "$1,210 in two years at 10%" wrong, picking $1,100, and get two right. That is two of three,
 so it passes at once, and the screen explains the miss ("dividing by 1.10 only once discounts for
-one year"). They press Continue and the Tutor opens with a short, informed word about the
-one-year versus two-year slip, then moves on. (They now press the Next chip, "Next: Concept →",
-which teaches Check 2's Concept, a step reached by code and not yet begun.) Had they got only one right, they would have stayed
-at the Check, seen a different set of three questions, and the Tutor would have been told about
-the miss on its next turn.
+one year"). They press the Next chip, "Next: Concept →", and the Tutor opens with a short, informed
+word about the one-year versus two-year slip, then teaches Check 2's Concept, a step reached by code
+and not yet begun. Had they got only one right, they would have stayed
+at the Check, the Tutor would have gone over the miss in a follow-up turn code started, and a different set of three questions
+would open when they pressed Try Check 1 again.
 
 **Trade-off.** Multiple choice is fast, cheap and can't be argued with, but it tests recall and
 recognition, not reasoning; that is what the conversation Check is for. Writing the questions in
@@ -1231,7 +1232,7 @@ numbers (code already sends those, and they use neutral numbers).
   database enforces it. Their second send, from a phone or another tab, gets a plain "turn in
   progress" answer (HTTP 409), and nothing is saved. Another Learner's turn runs alongside.
 - **Stop reasons and failures.** A reply that hits `max_tokens` is kept as sent and the Learner gets
-  a Continue button; a tool call cut off inside it is never run, and is answered "not run". A
+  Finish this reply (see "Finish this reply, and old Continue as a divider"); a tool call cut off inside it is never run, and is answered "not run". A
   `refusal` is discarded, because Claude's docs say to treat a declined reply as incomplete and
   discard it, so it cannot stay in history. Only the declined loop step is discarded: steps before
   it in the same turn, and what their tool calls recorded, are already saved and stay, on screen as
@@ -1309,8 +1310,8 @@ order is held by code, not by a prompt that live runs showed being ignored.
 **What it does.** At explore the Tutor puts the Insight question and the Learner plays with the Widget
 on screen (the Topic's own explore Widget, see below), then says what they noticed. The Tutor reports each attempt with
 `record_insight_attempt` as found, not yet, or asked to be told, quoting the Learner's words. Code
-checks the words are really in the Learner's message in that turn (a Continue press is never an
-attempt), saves them in `insight_attempts` once per tool call ID, and decides what happens next:
+checks the words are really in the Learner's message in that turn (Finish this reply, where the
+Learner wrote nothing, is never an attempt), saves them in `insight_attempts` once per tool call ID, and decides what happens next:
 the first not-yet releases hint 1, the second hint 2, the next the written Insight; "asked to be told"
 releases the Insight at once. The result carries the hint or the written Insight, and tells the Tutor
 to write its confirmation or hint after the result, as the last text of its reply.
@@ -1407,7 +1408,10 @@ first turn after a Due Check reopens a passed Topic's Session (see "Coming back"
 ## Simulated Learner (`scripts/simulated-learner.mjs`)
 
 **What it does.** A script that plays the Learner over HTTP against any running copy of the app: it
-logs in with the passcode, presses Continue, answers the Tutor with a cheap model (`claude-haiku-5-5`),
+logs in with the passcode and drives the app as a Learner does (`src/dev/learner-moves.ts`, tested): it
+chooses the Topic (`POST /api/jump`; the page's opener starts the Session), presses Next when the Tutor
+asked nothing or a quiz was just taken (a refused Next names the step on offer, and it presses that one),
+presses Finish this reply under a reply cut off at its length limit, answers the Tutor with a cheap model (`claude-haiku-5-5`),
 takes the quiz through `GET`/`POST /api/quiz` (code marks it, no model call), and keeps going until the
 Topic is passed. After each turn it reads the step, duration and cost from the `usage` table, and it
 writes a transcript, a per-turn table and a cost summary to a folder you give it (outside the repo,
@@ -1547,7 +1551,7 @@ design tokens; the first two sit under the app header, Login (signed out) has no
 complete: stop here"; it closes the Topic in two sentences and stops. The page refreshes: the thread
 stays, the message box gives way to "Present value is passed." and "Next Topic: Bond prices →". They
 press it: Bond prices' Session is empty, so the opener starts at once and the Tutor tells the Bond
-prices story, with no "Continue" bubble above it. A week later they press Resume on Home: Bond prices
+prices story, with no Learner bubble above it. A week later they press Resume on Home: Bond prices
 opens at the step they reached, and if its Session were new the opener would teach that step afresh.
 
 **Trade-off.** The page, not the server, starts the opener, so a render still makes no Session and no
@@ -1628,8 +1632,8 @@ is skipped. The old Session page draws the divider between the parts too.
   nor after a miss (the Check stays open). The chip is also hidden under the Learner's own message,
   while a turn runs, until the page has re-read the Learner's place after one (`router.refresh` runs in
   a transition, and its pending flag hides the chip), while Retry is offered, and on a passed Topic kept
-  on screen. The old status card and its Continue button are gone (the Topic bar stands there now); the
-  cut-off reply's Continue stays until the next ticket replaces it with Finish this reply.
+  on screen. The old status card and its Continue button are gone (the Topic bar stands there now), and so
+  is the cut-off reply's Continue (see "Finish this reply, and old Continue as a divider").
 - **Pressing Next** sends `{ next: <step> }` (or `"complete"`) and no Learner message. The Tutor Turn
   takes the Learner's lock first, then in one transaction (`takeLearnersNext`): checks the press is the
   Next on offer (`takeNext`: never past a Check without a saved pass, never past an unsettled Explore,
@@ -1653,11 +1657,11 @@ is skipped. The old Session page draws the divider between the parts too.
   the turn row pins: the note tells the Tutor "Topic complete: stop here", no Course Navigator context
   for another Topic is sent and the next Topic is not started. The page then shows the passed Topic with
   What comes next.
-- **Code-written turns.** The opener's note starts "Opener by code:" and Next's "Next by code:"
-  (`CODE_WRITTEN_PREFIXES`). Each is saved as the turn's input and stored as the turn's user message,
+- **Code-written turns.** The opener's note starts "Opener by code:", Next's "Next by code:" and Finish
+  this reply's "Finish by code:" (`CODE_WRITTEN_PREFIXES`). Each is saved as the turn's input and stored as the turn's user message,
   so the model sees it, but the thread never draws it as a bubble, and a reply after it always starts
   its own line rather than running on from the reply before. The turn's kind is read off the prefix
-  (`turnKind`: message, chip, opener or next), and Retry re-runs that kind: a failed Next re-sends its note
+  (`turnKind`: message, chip, opener, next or finish), and Retry re-runs that kind: a failed Next re-sends its note
   without moving the Learner on a second time, because the move was saved once when the turn began.
 - **Fresh pacing.** Next turns and openers are fresh: in that reply the Tutor teaches the step and
   can't finish it, record a Check verdict or record an Insight attempt (the pacing rule's rejections).
@@ -1687,6 +1691,59 @@ latest reply or divider only, none under a Learner message or in an empty thread
 open, during a turn, while the page refreshes or with Retry on offer, Just tell me at Explore, Complete
 this Topic at Principle, and no Continue above the chat.
 
+## Finish this reply, and old Continue as a divider (`turn.ts`, `turn-status.ts`, `tools.ts`, `left-column.tsx`, `thread.tsx`, `src/dev/learner-moves.ts`, spec #119, ticket #134)
+
+**What it does.** The word "Continue" is gone from the app and from everything the Tutor is told.
+- **Finish this reply.** When a reply stops at its length limit (`max_tokens`), the line under it reads
+  "The reply was cut short." with a **Finish this reply** button. Pressing it sends `{ finish: true }`
+  and no Learner message: code writes a note, "Finish by code: the Learner pressed Finish this reply, and
+  has written nothing. Your last reply was cut short …", saves it as the turn's input and stores it as
+  the turn's user message, so the Tutor finishes from where it stopped and the thread draws no bubble
+  (the rest of the reply starts its own line under the cut one). A tab opened before the change still
+  sends `continue`; the route reads it as Finish this reply.
+- **Retry re-sends the turn's own note.** An opener, a Next or a Finish this reply that failed re-sends
+  its note on Retry, never "Continue.". A turn from before the change that saved "Continue." (or nothing)
+  is sent the Finish note instead, so "Continue." is never stored again by any path.
+- **Never an Insight attempt.** Finish this reply's note is code-written, so `record_insight_attempt`
+  refuses it like every note code wrote, and an old "Continue." too (see "Help chips, and which messages
+  count as Insight attempts").
+- **What the Tutor is told.** The instructions, the Insight tool's description, the Course Navigator's
+  explore context and the cut-short notice no longer say Continue; they say a turn code started from a
+  button, with no words of the Learner's, is not an attempt.
+- **Old Continue as a divider.** Old Sessions still hold "Continue." messages. `withNextStepDividers`
+  (`thread.tsx`) draws each one as a small "→ next step" divider, in the Study Workspace's thread and on
+  Past Sessions pages alike; nothing stored changes.
+- **The test tools** drive the app as a Learner now does (`learner-moves.ts`): choosing a Topic (with
+  `saveJump`, which is what the Course Map's choose calls) and then the opener, Next, Finish this reply,
+  or a typed message. The simulated learner, the comparison runner (it finishes a cut-short reply with
+  Finish this reply), the Widget live run (its 2 November ask now starts with the opener) and the
+  browser check (its seeded Session opens with an opener note) send no Continue; the behaviour run never
+  did.
+
+**Scenario.** The Learner asks for the whole history of the 1994 rate rises and the Tutor's long reply
+stops mid-sentence. Under it: "The reply was cut short. Finish this reply". They press it: no bubble
+appears, and the rest of the reply streams in below the cut part. The network drops halfway; Retry sends
+the same Finish note again. In Past Sessions, last month's Present value Session shows "→ next step"
+lines where it once showed "Continue." bubbles, and the Study Workspace draws them the same way.
+
+**Trade-off.** Finish this reply is a new turn, so the finished part sits in its own line under the cut
+one rather than joined to it; joining them would mean rewriting a stored reply. Old "Continue." messages
+are recognised by their exact text when drawn, so a Learner who once typed exactly "Continue." sees a
+divider there too; we keep the stored rows untouched rather than migrate them. Mapping an old saved
+"Continue." to the Finish note on Retry is only right for a cut-off; for a plain failed old turn the
+Tutor is asked to finish a reply that was complete, a one-off that can only happen for turns left
+failed before the deploy.
+
+**How it is tested.** At the Tutor Turn seam (`finish.test.ts`, scripted client on in-memory Postgres):
+Finish this reply runs from the note, stores no Learner message and sends no Continue; Retry of a failed
+Finish, opener and Next re-sends its own note; a saved old "Continue." turn's Retry sends the Finish note;
+no stored message holds "Continue."; the instructions, tool descriptions and explore context never say
+Continue. `explore.test.ts`: Finish this reply is never an Insight attempt. In the workspace render
+(`message-box.test.tsx`, `workspace.test.tsx`): the cut-off reply offers Finish this reply and no
+"Continue" anywhere in the markup, and an old "Continue." draws as "→ next step" between its replies.
+`learner-moves.test.ts`: the test tools' moves are the opener, Finish this reply, Next (re-pressed on the
+step a refusal names) or a message, and never Continue.
+
 ## Help chips, and which messages count as Insight attempts (`src/tutor/chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-status.ts`, `record_insight_attempt` in `tools.ts`, spec #119, ticket #135)
 
 **What it does.**
@@ -1701,9 +1758,9 @@ this Topic at Principle, and no Continue above the chat.
   Tutor Turn read. A turn whose input is exactly a chip's words has the kind **chip** (`turnKind`), read
   off the saved input like the opener's and Next's prefixes, so Retry re-runs it as a chip.
 - **Which messages can count as an Insight attempt.** Only words the Learner typed. The Insight tool
-  refuses, with no row stored: "Continue." (the cut-off reply's button), any note code wrote (every
-  prefix in `CODE_WRITTEN_PREFIXES`: the opener's and Next's today; Finish this reply, quiz follow-up
-  and widget report notes join that list when their tickets add them), and the two help chips. "Just
+  refuses, with no row stored: an old "Continue." (from before Finish this reply), any note code wrote
+  (every prefix in `CODE_WRITTEN_PREFIXES`: the opener's, Next's, Finish this reply's and the quiz
+  follow-up's; widget report notes join that list when their ticket adds them), and the two help chips. "Just
   tell me." is a chip that counts only as asking to be told: whatever outcome the Tutor reports for it,
   code records `asked_to_be_told`, so the Insight is told at once and it is never a not-yet. The order
   of ADR 0001 (hint one, hint two, then the Insight) is unchanged, because only typed not-yets move it.
@@ -1783,6 +1840,46 @@ render: the Picking up and Due Check dividers as centred separators after the la
 box ready, and Passed ✓ with no Resume on a passed Topic. Home's button rule (`landing.test.tsx`) covers
 Resume, Start, New in <Topic>: Check N →, Explore → and Next Topic.
 
+## Check result cards and the quiz follow-up (`src/tutor/check-results.ts`, `record_check_verdict` in `tools.ts`, `checkTabNow` and `retryQuiz` in `src/learner/quiz.ts`, `/api/quiz`, `quiz-panel.tsx`, `conversation.tsx`, `session-item-view.tsx`, spec #119, ticket #141)
+
+**What it does.**
+- **Result cards are Session items.** A Check's result shows in the conversation as a small card, stored in
+  `session_items` (kind `check_result`) after the latest message of the Check's Topic Session, so, like a
+  step divider, it is drawn but never sent to the model.
+  - A quiz's card is stored when the Learner presses Submit answers, in the same transaction as the result,
+    so a repeat submission stores no second card. It is worded from the marking against the Check's pass
+    rule: "2 of 3 — passed ✓", adding "· let's look at question 3" when one was missed, or
+    "1 of 3 — not passed yet · let's look at question 2" (the first missed question).
+  - A conversation Check's card is stored when the Tutor records its verdict: "Check 2 — passed ✓" or
+    "Check 2 — not passed yet". Next stays hidden until then, as at any open Check.
+  - The submit answers with the card, so the page draws it at once; a reload draws it from the table.
+- **After a pass**, nothing runs: the page re-reads the Learner's place, and the Next chip comes back under
+  the card, naming the step the pass reached, which has not begun yet.
+- **After a miss**, the page starts a quiz follow-up turn by itself (once no other turn is running). It is a
+  code-written turn like the opener and Next: its note starts "Quiz follow-up by code:", it draws no Learner
+  bubble, its kind is `quiz_follow_up`, and Retry re-runs it. The Tutor gets the usual "Quiz result by code"
+  note with the missed questions and goes over them. A follow-up with no missed result waiting (another
+  tab already ran it) is refused and nothing is stored.
+- **Try Check k again.** After a miss the Check tab keeps the marking with **Try Check k again →**. The page
+  reads the tab with `checkTabNow`, which returns the missed attempt's marking and makes no new attempt;
+  only the press (`POST /api/quiz` with `{ retry: true }`) makes the next one, with different questions where
+  there are any. (`GET /api/quiz`, which scripts use, still opens the next attempt itself.)
+- **Everything else re-reads.** The submit and every turn end refresh the page, so the Topic bar's strip reads
+  the new result without reloading the Session; the Course Map and Progress read it on their next visit.
+
+**Scenario.** The Learner submits Check 1 of 2 with one of three right. "1 of 3 — not passed yet · let's look at
+question 2" appears under the last reply, and with no message from the Learner the Tutor walks through
+questions 2 and 3. The Check tab still shows the marking. A few minutes later they press Try Check 1 again →, a
+fresh set of three opens, they get two right, and "2 of 3 — passed ✓ · let's look at question 1" appears with
+"Next: Concept →" under it.
+
+**Trade-off.** Storing the card's words rather than working them out at each render means an old card keeps the
+wording of its day; it also means the thread needs no Course Map lookup to draw it. Starting the follow-up from
+the browser keeps it a normal streamed turn with the usual lock, Retry and resume, but a Learner who closes the
+tab the instant they submit gets no follow-up: the Tutor then hears of the miss with their next message, as
+before. Making the next attempt only on Try again means a Learner can read the follow-up with the marking in
+view, at the cost of one more press.
+
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 
 **What it does.** The Tutor writes Markdown (bold, lists, headings, tables). Before, the workspace
@@ -1843,7 +1940,8 @@ header shows the Topic, the date last worked on and **Resume this Topic**, a pla
 that makes it the current Topic and opens the Study Workspace; once the Topic is passed it shows Passed ✓
 instead. An Older session's header shows its date, its Topics (or No Topic) and "Older session · read-only",
 with no Resume. Old stored "Continue." messages, from when moving on posted one as if the Learner typed it,
-draw on these pages as a small "→ next step" divider in their place, never as a Learner bubble; nothing
+draw on these pages (and in the Study Workspace's thread, see "Finish this reply, and old Continue as a
+divider") as a small "→ next step" divider in their place, never as a Learner bubble; nothing
 stored changes. Another Learner's Session id answers 404. No model call anywhere.
 
 **Scenario.** The Learner studied Present value last week, Bond prices yesterday and went back to Present
@@ -2214,7 +2312,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 ## The fixed two-column layout and the Check tab (`workspace-frame.tsx`, `left-column.tsx`, `widget-host.tsx`, `quiz-panel.tsx`, `study/page.tsx`, spec #119, ticket #140)
 
-**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
+**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. After a miss the tab keeps the marking with Try Check k again →, even after a reload, and the next attempt is made only on that press (see "Check result cards and the quiz follow-up"). While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
 
 **Scenario.** The Learner reaches Check 1 of 2 on a 1024 × 640 laptop with three Reviews due. The right panel switches to "Check 1 of 2" with six questions that scroll inside the panel. They open the Review row: it scrolls inside its capped box, while the last Tutor message, the quiz note and the message box all stay on screen and the page stays 640 px tall. They ask "is a basis point a hundredth of a percent?"; the Tutor answers that but won't touch the quiz, and the Check tab is still selected when the reply ends.
 

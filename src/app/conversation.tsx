@@ -1,9 +1,10 @@
 "use client";
 
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
+import { useEffect, useRef, useState } from "react";
 import type { NextOffer, StepSequence } from "@/course/navigator";
 import type { WrittenAhead } from "@/course/written-ahead";
-import type { OpenQuiz } from "@/learner/quiz";
+import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
@@ -32,6 +33,7 @@ export function Conversation({
   initial,
   strip = null,
   quiz,
+  missed = null,
   pending,
   review,
   place = null,
@@ -50,6 +52,8 @@ export function Conversation({
   /** The shown Topic's step sequence (stepSequence), drawn as the Topic bar's progress strip. */
   strip?: StepSequence | null;
   quiz: OpenQuiz | null;
+  /** The quiz Check's last attempt, missed, while no new one is open: the Check tab shows it with Try Check <k> again. */
+  missed?: MissedQuiz | null;
   pending: PendingTurn;
   review: ReviewState;
   place?: Place;
@@ -70,7 +74,29 @@ export function Conversation({
 }) {
   // Each new turn sends the panel back to the newest Widget.
   const turn = useTurnStream({ initial, pending, shown, opener: !passed, onTurnStart: () => host.showNewest() });
-  const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz, writtenAhead });
+  // After a missed quiz, code starts the Tutor's follow-up (no Learner bubble) as soon as no other turn is running.
+  // Misses counted, and how many have had their follow-up started.
+  const [misses, setMisses] = useState(0);
+  const followedUp = useRef(0);
+  const host = useWidgetHost({
+    messages: turn.messages,
+    running: turn.running,
+    explore,
+    quiz,
+    missed,
+    writtenAhead,
+    onQuizSubmitted: ({ passed, item }) => {
+      // The result card goes in the conversation at once, where a reload draws it.
+      if (item) turn.appendItem(item);
+      if (!passed) setMisses((n) => n + 1);
+    },
+  });
+  const { running, send } = turn;
+  useEffect(() => {
+    if (running || followedUp.current >= misses) return;
+    followedUp.current = misses;
+    void send({ quizFollowUp: true });
+  }, [misses, running, send]);
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
