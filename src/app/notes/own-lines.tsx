@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PrimaryButton, SecondaryButton } from "../ui";
+import { useOfferUndo } from "./undo";
 
 export type OwnLine = { id: number; text: string };
 
@@ -21,12 +22,16 @@ export async function send(method: "POST" | "PATCH" | "DELETE", body: object): P
 
 const field = "w-full rounded border border-[var(--border)] bg-[var(--field)] px-2 py-1 text-sm leading-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--brand)]";
 
-/** The Learner's own lines on one Topic Note: add, edit and delete. The controls do not print; the lines do. */
+/**
+ * The Learner's own lines on one Topic Note: add, edit and delete. Delete shows an Undo toast, which adds the line
+ * back in its old place. The controls do not print; the lines do.
+ */
 export function OwnLines({ topicId, initial }: { topicId: string; initial: OwnLine[] }) {
   const [lines, setLines] = useState(initial);
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState<{ id: number; text: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const offerUndo = useOfferUndo();
 
   const add = async () => {
     const r = await send("POST", { topicId, text: draft });
@@ -43,11 +48,21 @@ export function OwnLines({ topicId, initial }: { topicId: string; initial: OwnLi
     setLines((l) => l.map((x) => (x.id === editing.id && r.line ? r.line : x)));
     setEditing(null);
   };
-  const remove = async (id: number) => {
-    const r = await send("DELETE", { id });
+  const remove = async (line: OwnLine) => {
+    const r = await send("DELETE", { id: line.id });
     if (!r.ok) return setError(r.error);
     setError(null);
-    setLines((l) => l.filter((x) => x.id !== id));
+    const at = lines.findIndex((x) => x.id === line.id);
+    setLines((l) => l.filter((x) => x.id !== line.id));
+    offerUndo({
+      message: "Line removed from notes.",
+      undo: async () => {
+        const back = await send("POST", { topicId, text: line.text });
+        if (!back.ok || !back.line) return false;
+        setLines((l) => [...l.slice(0, at), back.line!, ...l.slice(at)]);
+        return true;
+      },
+    });
   };
 
   return (
@@ -86,7 +101,7 @@ export function OwnLines({ topicId, initial }: { topicId: string; initial: OwnLi
                       <button type="button" data-edit-line={line.id} onClick={() => setEditing({ id: line.id, text: line.text })} className="text-[var(--muted)] underline hover:text-[var(--brand)]">
                         Edit
                       </button>
-                      <button type="button" data-delete-line={line.id} onClick={() => void remove(line.id)} className="text-[var(--muted)] underline hover:text-[var(--danger)]">
+                      <button type="button" data-delete-line={line.id} onClick={() => void remove(line)} className="text-[var(--muted)] underline hover:text-[var(--danger)]">
                         Delete
                       </button>
                     </span>

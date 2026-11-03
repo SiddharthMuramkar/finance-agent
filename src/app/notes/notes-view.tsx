@@ -7,6 +7,7 @@ import { MarkedText } from "@/widgets/marked-text";
 import { Card, Eyebrow } from "../ui";
 import { OwnLines } from "./own-lines";
 import { SavedItems } from "./saved-items";
+import { UndoProvider } from "./undo";
 
 const STAGE: Record<TopicNote["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 
@@ -86,33 +87,35 @@ export function NotesView({ notes, showAll = false }: { notes: TopicNote[]; show
   return (
     // One Case Data cache for the page, so saved Widgets drawing the same Case fetch it once.
     <CaseDataProvider>
-      <div>
-        <div className="mb-2 flex items-baseline justify-between gap-4">
-          <h1 className="text-xl font-semibold leading-7">Notes</h1>
-          <Link href={showAll ? "/notes" : "/notes?all=1"} data-show-all={showAll} className="text-sm leading-5 text-[var(--muted)] underline underline-offset-2 hover:text-[var(--ink)] print:hidden">
-            {showAll ? "Show only Topics with notes" : "Show all Topics"}
-          </Link>
-        </div>
-        <p className="mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
-          A note fills in when you pass a Topic. Add lines of your own to any Topic. Print this page for a paper copy.
-        </p>
-        {shown.length === 0 && (
-          <p data-notes-empty className="text-sm leading-5">
-            No notes yet. Pass a Topic, or save a reply while you study, and it shows here. Show all Topics to add a line of your own.
+      <UndoProvider>
+        <div>
+          <div className="mb-2 flex items-baseline justify-between gap-4">
+            <h1 className="text-xl font-semibold leading-7">Notes</h1>
+            <Link href={showAll ? "/notes" : "/notes?all=1"} data-show-all={showAll} className="text-sm leading-5 text-[var(--muted)] underline underline-offset-2 hover:text-[var(--ink)] print:hidden">
+              {showAll ? "Show only Topics with notes" : "Show all Topics"}
+            </Link>
+          </div>
+          <p className="mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
+            A note fills in when you pass a Topic. Add lines of your own to any Topic. Print this page for a paper copy.
           </p>
-        )}
-        <div className="flex flex-col gap-4">
-          {shown.map((note) => (
-            <Card key={note.topicId} id={`note-${note.topicId}`} data-note={note.topicId} data-passed={note.passed} className={note.passed ? "scroll-mt-4" : "scroll-mt-4 print:[&:not(:has([data-line],[data-saved]))]:hidden"}>
-              <Eyebrow>{STAGE[note.stage]}</Eyebrow>
-              <h2 className="text-base font-semibold leading-6">{note.title}</h2>
-              {note.filled ? <FilledPart filled={note.filled} /> : <p className="mt-1 text-sm leading-5 text-[var(--muted)] print:hidden">Fills in when you pass this Topic.</p>}
-              <SavedItems items={note.saved} />
-              <OwnLines topicId={note.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text }))} />
-            </Card>
-          ))}
+          {shown.length === 0 && (
+            <p data-notes-empty className="text-sm leading-5">
+              No notes yet. Pass a Topic, or save a reply while you study, and it shows here. Show all Topics to add a line of your own.
+            </p>
+          )}
+          <div className="flex flex-col gap-4">
+            {shown.map((note) => (
+              <Card key={note.topicId} id={`note-${note.topicId}`} data-note={note.topicId} data-passed={note.passed} className={note.passed ? "scroll-mt-4" : "scroll-mt-4 print:[&:not(:has([data-line],[data-saved]))]:hidden"}>
+                <Eyebrow>{STAGE[note.stage]}</Eyebrow>
+                <h2 className="text-base font-semibold leading-6">{note.title}</h2>
+                {note.filled ? <FilledPart filled={note.filled} /> : <p className="mt-1 text-sm leading-5 text-[var(--muted)] print:hidden">Fills in when you pass this Topic.</p>}
+                <SavedItems items={note.saved} />
+                <OwnLines topicId={note.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text }))} />
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      </UndoProvider>
     </CaseDataProvider>
   );
 }

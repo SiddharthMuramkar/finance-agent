@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { TopicNote } from "@/learner/notes";
 import { applySettings } from "@/widgets/settings";
 import { NotesView } from "./notes-view";
+import { UndoToast } from "./undo";
 
 const now = new Date("2026-11-03T00:00:00Z");
 const notes: TopicNote[] = [
@@ -135,5 +136,24 @@ describe("the Notes filter", () => {
 
   it("gives each note an anchor, so Open notes lands on its Topic", () => {
     expect(renderToStaticMarkup(<NotesView notes={all} />)).toContain('id="note-rates"');
+  });
+});
+
+describe("Undo after a removal", () => {
+  it("shows a toast that says what went and offers Undo", () => {
+    const html = renderToStaticMarkup(<UndoToast message="Removed from notes." onUndo={() => {}} />);
+    expect(html).toMatch(/role="status"/);
+    expect(html).toContain("Removed from notes.");
+    expect(html).toMatch(/<button[^>]*data-undo-remove[^>]*>Undo<\/button>/);
+    expect(html).toContain("print:hidden");
+  });
+
+  it("says so when the Undo itself failed", () => {
+    const html = renderToStaticMarkup(<UndoToast message="Removed from notes." failed onUndo={() => {}} />);
+    expect(html).toContain("Could not undo. Try again.");
+  });
+
+  it("has no toast on the page until something is removed", () => {
+    expect(renderToStaticMarkup(<NotesView notes={notes} />)).not.toContain("data-undo-remove");
   });
 });
