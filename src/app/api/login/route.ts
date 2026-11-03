@@ -1,23 +1,34 @@
 import { NextResponse } from "next/server";
+import { DEFAULT_DESTINATION, safeDestination } from "@/auth/destination";
 import { callerAddress, claimLoginTry, loginFailed, loginSucceeded } from "@/auth/login-guard";
 import { ACCESS_COOKIE, accessToken, passcodeMatches } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 
+/** Back to the login page with its message; a safe `next` is carried on, and with none the query stays exactly `?wrong=1` or `?locked=1`. */
+function backToLogin(request: Request, message: "wrong" | "locked", next: string | null) {
+  const url = new URL("/login", request.url);
+  url.searchParams.set(message, "1");
+  if (next) url.searchParams.set("next", next);
+  return NextResponse.redirect(url, 303);
+}
+
 export async function POST(request: Request) {
   const db = getDb();
   const ip = callerAddress(request);
+  const form = await request.formData();
+  const next = safeDestination(form.get("next")?.toString());
   // The try is claimed before the comparison, so tries sent all at once can't all slip under the limit.
   // Too many wrong guesses lately: refused without even comparing, so a lucky guess can't get through.
   const tryId = await claimLoginTry(db, ip);
-  if (tryId === null) return NextResponse.redirect(new URL("/login?locked=1", request.url), 303);
-  const form = await request.formData();
+  if (tryId === null) return backToLogin(request, "locked", next);
   const passcode = String(form.get("passcode") ?? "");
   if (!passcodeMatches(passcode, process.env.PASSCODE ?? "")) {
     await loginFailed(db);
-    return NextResponse.redirect(new URL("/login?wrong=1", request.url), 303);
+    return backToLogin(request, "wrong", next);
   }
   await loginSucceeded(db, tryId);
-  const response = NextResponse.redirect(new URL("/", request.url), 303);
+  // Only the resolved, safe path is used, never the submitted text, so the redirect can't leave the site.
+  const response = NextResponse.redirect(new URL(next ?? DEFAULT_DESTINATION, request.url), 303);
   response.cookies.set(ACCESS_COOKIE, await accessToken(process.env.SESSION_SECRET ?? ""), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

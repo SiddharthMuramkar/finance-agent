@@ -1,11 +1,19 @@
+import { safeDestination } from "@/auth/destination";
 import { PrimaryButton } from "../ui";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ wrong?: string; locked?: string }> }) {
-  const { wrong, locked } = await searchParams;
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ wrong?: string; locked?: string; next?: string | string[] }>;
+}) {
+  const { wrong, locked, next: requested } = await searchParams;
+  // Only a safe destination is carried through, as its resolved path; anything else means the Study Workspace.
+  const next = safeDestination(typeof requested === "string" ? requested : undefined);
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 p-6">
       <h1 className="text-xl font-semibold">Finance Agent</h1>
       <form action="/api/login" method="post" className="flex flex-col gap-3">
+        {next && <input type="hidden" name="next" value={next} />}
         <label htmlFor="passcode" className="text-sm text-[var(--muted)]">
           Passcode
         </label>

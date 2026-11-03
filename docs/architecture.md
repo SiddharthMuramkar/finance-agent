@@ -46,8 +46,36 @@ public landing page) and image files under `/landing-assets/` (`.png` or `.webp`
 any request carrying a `Next-Action` header (a Server Action call), answers 401. Every other page
 still redirects to `/login`, and every `/api/*` route still answers 401. `/` itself checks the cookie
 again (`isSignedIn()` in `src/auth/session.ts`) before it reads anything, and shows the landing page
-when signed out. The proxy skips `login` and `api/login` only as whole path segments, so
-`/login-anything` is still checked. Signed in, nothing changed.
+when signed out. A GET or HEAD of exactly `/login` (with any query) also gets through; the match is
+exact, because anything looser would send the sign-in page back to itself forever. The proxy skips
+only `api/login`, as a whole path segment, so `/api/login-anything` is still checked; the sign-in page
+itself now goes through the proxy.
+
+**Sign in lands where you meant to go** (`src/auth/destination.ts`). Signed out, a GET or HEAD of any
+other page redirects to `/login?next=<that page>`: its path and query, minus Next.js's internal
+parameters such as `_rsc`. Any other method redirects to `/login` with no `next`, and API routes still
+answer 401 with no `next`. The sign-in page puts the `next` in a hidden form field; the sign-in route
+sends a right passcode there with a 303, or to `/study` when there is none. A wrong passcode goes to
+`/login?wrong=1` and a pause to `/login?locked=1`, each keeping the `next` (with none, those addresses
+are exactly as before). Signed in, a GET or HEAD of `/login` skips the form with a temporary (307)
+redirect to the `next`, or `/study`.
+
+One rule decides whether a `next` is safe, and the proxy, the sign-in page and the sign-in route all
+use it. In order: it starts with `/` but not `//` or `/\`; it holds no whitespace or control
+characters (the URL parser quietly drops tabs and newlines, so `/<tab>/evil.example` would otherwise
+reach another site); resolved as a URL it stays on this site; and the resolved path is neither `/login`
+(or below) nor `/api` (or below), so `/a/../api/turn` can't slip past. The redirect uses the resolved
+path and query, never the submitted text. The value is decoded once, as the framework delivers it, so
+`%2F%2Fevil.example` stays harmless. Anything unsafe counts as no destination.
+
+*Scenario.* Signed out, the Learner opens a link to `/passages/12`. The proxy sends them to
+`/login?next=%2Fpassages%2F12`. They mistype the passcode, land on `/login?wrong=1&next=%2Fpassages%2F12`,
+type it again and open the Passage. A crafted link `/login?next=https://evil.example` signs them in and
+lands them in the Study Workspace instead.
+
+*Trade-off.* Remembering the page costs one shared rule that three places must use; a looser check in
+any of them would turn the sign-in page into a way to send the Learner to another site. The rule only
+allows paths, so a destination can never be another of the owner's own domains, which isn't needed.
 
 **Guessing is limited** (`src/auth/login-guard.ts`, table `login_failures`). Each wrong passcode
 is saved as the caller's address and the time (never the guess). After five wrong guesses from one

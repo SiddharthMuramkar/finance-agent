@@ -44,6 +44,49 @@ describe("The signed-out gate", () => {
     expect((await proxy(request("/api/turn"))).status).toBe(401);
   });
 
+  it("sends /study to the login, remembering it", async () => {
+    for (const method of ["GET", "HEAD"]) {
+      const response = await proxy(request("/study", { method }));
+      expect(redirectedToLogin(response), method).toBe(true);
+      expect(new URL(response.headers.get("location")!).search).toBe("?next=%2Fstudy");
+    }
+  });
+
+  it("remembers any other page with its query, minus Next.js's internal parameters", async () => {
+    const response = await proxy(request("/passages/12?from=map&_rsc=abc123"));
+    expect(redirectedToLogin(response)).toBe(true);
+    expect(new URL(response.headers.get("location")!).searchParams.get("next")).toBe("/passages/12?from=map");
+  });
+
+  it("remembers nothing for a non-GET page request or an API route", async () => {
+    const post = await proxy(request("/course", { method: "POST" }));
+    expect(redirectedToLogin(post)).toBe(true);
+    expect(new URL(post.headers.get("location")!).search).toBe("");
+    const api = await proxy(request("/api/turn"));
+    expect(api.status).toBe(401);
+    expect(api.headers.get("location")).toBeNull();
+  });
+
+  it("lets a signed-out visitor read exactly the login page, so there is no loop", async () => {
+    expect(allowed(await proxy(request("/login")))).toBe(true);
+    expect(allowed(await proxy(request("/login?next=%2Fcourse&wrong=1")))).toBe(true);
+    expect(redirectedToLogin(await proxy(request("/login-anything")))).toBe(true);
+  });
+
+  it("skips the login form when signed in, with a temporary redirect to a safe next or /study", async () => {
+    const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
+    const where = async (path: string) => {
+      const response = await proxy(request(path, { headers: { cookie } }));
+      expect([302, 303, 307]).toContain(response.status);
+      const url = new URL(response.headers.get("location")!);
+      return url.pathname + url.search;
+    };
+    expect(await where("/login")).toBe("/study");
+    expect(await where("/login?next=%2Fcourse%3Ftopic%3D3")).toBe("/course?topic=3");
+    expect(await where("/login?next=https%3A%2F%2Fevil.example")).toBe("/study");
+    expect(await where("/login?next=%2Fapi%2Fturn")).toBe("/study");
+  });
+
   it("lets a signed-in request through", async () => {
     const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
     expect(allowed(await proxy(request("/course", { headers: { cookie } })))).toBe(true);

@@ -8,9 +8,10 @@ const { POST } = await import("@/app/api/login/route");
 
 const PASSCODE = "correct horse battery";
 
-function login(passcode: string, ip = "203.0.113.7") {
+function login(passcode: string, ip = "203.0.113.7", next?: string) {
   const form = new FormData();
   form.set("passcode", passcode);
+  if (next !== undefined) form.set("next", next);
   return POST(new Request("https://app.example/api/login", { method: "POST", body: form, headers: { "x-forwarded-for": ip } }));
 }
 
@@ -65,5 +66,57 @@ describe("Passcode login attempts", () => {
     expect(where(await login(PASSCODE, "198.51.100.8"))).toBe("?locked=1");
     // The owner on a new phone, with the right passcode, signs in.
     expect(signedIn(await login(PASSCODE, "198.51.100.9"))).toBe(true);
+  });
+});
+
+describe("Where the passcode lands", () => {
+  beforeEach(async () => {
+    db = await testDb();
+    vi.stubEnv("PASSCODE", PASSCODE);
+    vi.stubEnv("SESSION_SECRET", "test-secret");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  const landing = (response: Response) => {
+    const url = new URL(response.headers.get("location")!);
+    return url.pathname + url.search;
+  };
+
+  it("goes to the Study Workspace with no next", async () => {
+    const response = await login(PASSCODE);
+    expect(response.status).toBe(303);
+    expect(landing(response)).toBe("/study");
+  });
+
+  it("goes to a safe next", async () => {
+    expect(landing(await login(PASSCODE, undefined, "/passages/12?from=map"))).toBe("/passages/12?from=map");
+  });
+
+  it("ignores every unsafe next in favour of the Study Workspace", async () => {
+    const unsafe = [
+      "https://evil.example/",
+      "//evil.example",
+      "/\\evil.example",
+      "/\t/evil.example",
+      "/\n/evil.example",
+      // "//evil.example" encoded once: it is never decoded a second time, so it doesn't even start with "/".
+      "%2F%2Fevil.example",
+      "/a/../api/turn",
+      "/login",
+      "/api/turn",
+      "javascript:alert(1)",
+    ];
+    for (const next of unsafe) {
+      const response = await login(PASSCODE, "203.0.113.7", next);
+      expect(landing(response), next).toBe("/study");
+      expect(new URL(response.headers.get("location")!).origin, next).toBe("https://app.example");
+    }
+  });
+
+  it("keeps a safe next through a wrong passcode and a pause, and drops an unsafe one", async () => {
+    expect(where(await login("guess", undefined, "/course"))).toBe("?wrong=1&next=%2Fcourse");
+    expect(where(await login("guess", undefined, "//evil.example"))).toBe("?wrong=1");
+    for (let i = 0; i < 3; i++) await login(`guess ${i}`);
+    expect(where(await login(PASSCODE, undefined, "/course"))).toBe("?locked=1&next=%2Fcourse");
   });
 });
