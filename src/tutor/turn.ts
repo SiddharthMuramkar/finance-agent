@@ -41,6 +41,9 @@ import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, 
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, CONTINUE_TEXT, dropTurn, latestTurn, NEXT_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
+import { openWidgetsForTurn, readOpenWidgets } from "./widget-context";
+import { widgetsBlock } from "@/widgets/widget-reading";
+import type { WidgetStates } from "@/widgets/widget-state";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
@@ -177,6 +180,11 @@ export type TurnDeps = {
    * turn is refused unless it is the Learner's current Topic. Left out, nothing is checked (test tools).
    */
   shown?: Shown;
+  /**
+   * What the page's Widgets show as the Learner acts: slider values and ticked Guided Tasks by Widget key (the
+   * page's Widget state). Over what the Session saved, it is what the Tutor is told of the open Widgets.
+   */
+  widgets?: WidgetStates;
 };
 
 /** Thrown when a run reaches its time budget. */
@@ -367,15 +375,21 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(log.messages, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
         : plainContext;
-    const learnerBlocks = [{ type: "text" as const, text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
+    const learnerBlocks: { type: "text"; text: string }[] = [{ type: "text", text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
 
     turnSeq = log.nextSeq;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
+    const drawn = openWidgetsBefore(log, turnSeq);
+    // What the Learner's open Widgets show as they act (an opener is the page's, not theirs): stored with their message, so it replays unchanged.
+    const opener = turnKind(turn) === "opener";
+    const open = opener ? [] : await openWidgetsForTurn(db, map, learnerId, drawn, !completed);
+    const widgetBlock = widgetsBlock((await readOpenWidgets(db, map, learnerId, session.id, open, deps.widgets)).map((r) => r.reading));
+    if (widgetBlock) learnerBlocks.push({ type: "text", text: widgetBlock });
     // The Widgets open in the panel, by title, so the Tutor can update one in place rather than add a near-copy.
-    const widgetsNote = openWidgetsNote(openWidgetsBefore(log, turnSeq).map((w) => w.title));
+    const widgetsNote = openWidgetsNote(drawn.map((w) => w.title));
     const context = widgetsNote ? `${widgetsNote}\n${stepped}` : stepped;
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = completed ? null : await pendingQuizNote(db, map, learnerId, session.topicId);
@@ -396,7 +410,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       const standsChanged = !standsAlreadySent(log.messages, stands);
       const contextChanged = standsChanged || quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
       // Pasted text goes in the Learner's own message, as a marked block after what they typed.
-      await log.append({ role: "user", content: paste ? learnerBlocks : learnerText });
+      await log.append({ role: "user", content: learnerBlocks.length > 1 ? learnerBlocks : learnerText });
       // A completed Topic's note already tells the Tutor to stop: it gets no context for another Topic.
       if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
     }
