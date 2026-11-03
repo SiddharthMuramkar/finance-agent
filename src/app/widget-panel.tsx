@@ -378,7 +378,7 @@ export function WidgetPanel({
       )}
       {shown && !checkShown && elsewhere && (
         <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">
-          The Explore Widget is in the conversation, under the status card.
+          The Explore Widget is in the conversation, under the Topic bar.
         </p>
       )}
       {shown && !checkShown && !elsewhere && (

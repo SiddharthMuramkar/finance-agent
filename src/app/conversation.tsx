@@ -1,7 +1,7 @@
 "use client";
 
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
-import type { NextOffer } from "@/course/navigator";
+import type { NextOffer, StepSequence } from "@/course/navigator";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
@@ -30,7 +30,7 @@ export type { Line, PendingTurn };
  */
 export function Conversation({
   initial,
-  summary,
+  strip = null,
   quiz,
   pending,
   review,
@@ -46,7 +46,8 @@ export function Conversation({
   /** The Next the Course Navigator offers now (nextOfferNow), or null while a Check is open: the chip under the latest reply. */
   next?: NextOffer | null;
   initial: Line[];
-  summary: string;
+  /** The shown Topic's step sequence (stepSequence), drawn as the Topic bar's progress strip. */
+  strip?: StepSequence | null;
   quiz: OpenQuiz | null;
   pending: PendingTurn;
   review: ReviewState;
@@ -80,7 +81,7 @@ export function Conversation({
             {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
             <WidgetReportContext.Provider value={passed ? null : report}>
               <WorkspaceFrame
-                left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
+                left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
             </WidgetReportContext.Provider>
