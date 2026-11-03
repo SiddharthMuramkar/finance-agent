@@ -11,7 +11,8 @@ import { UnderTheHood } from "./under-the-hood";
 import type { WidgetItem } from "./widget-panel";
 
 // How a conversation's messages look, shared by the workspace and the old Session page: the Learner's
-// messages as bubbles on the right, the Tutor's replies as plain text with "Under the hood" beneath.
+// messages as bubbles on the right, the Tutor's replies as plain text under a small navy "Tutor" label,
+// with "Under the hood" beneath.
 
 export type Line = { role: "user" | "assistant"; text: string; usage?: TurnUsage; /** Where a finished reply sits in its Session; it is what "Save to notes" keys on. */ ref?: TurnRef };
 export type ThreadLine = Line & { id: string };
@@ -60,6 +61,7 @@ function AssistantMessage() {
   const ref = refs.get(id);
   return (
     <MessagePrimitive.Root className="text-base leading-[26px]" data-testid="assistant-message">
+      <p data-testid="tutor-label" className="mb-1 text-xs font-semibold leading-4 text-[var(--brand)]">Tutor</p>
       <MessagePrimitive.Parts components={{ Text: Reply }} />
       {ref && (
         <div className="mt-2">
