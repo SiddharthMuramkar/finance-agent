@@ -99,7 +99,7 @@ export function stepContext(
     } else {
       lines.push(
         "",
-        `Check: quiz ${check.id}. Code shows the questions on the right, in the Check tab, and marks the answers; the Learner answers there. Do not write quiz questions, help with them, hint at answers or mark anything yourself, but do answer questions unrelated to the quiz. Code will send you the result with the Learner's next message.`,
+        `Check: quiz ${check.id}. Code shows the questions on the right, in the Check tab, and marks the answers; the Learner answers there. Do not write quiz questions, help with them, hint at answers or mark anything yourself, but do answer questions unrelated to the quiz. Code sends you the result in your next turn: after a miss, code starts that turn itself so you can go over what was missed.`,
       );
     }
   }

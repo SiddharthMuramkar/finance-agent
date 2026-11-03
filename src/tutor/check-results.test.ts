@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { CourseMap } from "@/course/map";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { checkTabNow, retryQuiz, type OpenQuiz } from "@/learner/quiz";

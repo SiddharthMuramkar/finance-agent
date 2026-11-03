@@ -20,7 +20,18 @@ function Divider({ label, testId }: { label: string; testId: string }) {
   );
 }
 
+/** A Check's result in the conversation: a small card with its words, "2 of 3 — passed ✓" or "Check 2 — not passed yet". */
+function ResultCard({ label, passed }: { label: string; passed: boolean }) {
+  return (
+    <div data-testid="check-result-card" className="self-start rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-medium leading-5">
+      <span className={passed ? "text-[var(--you)]" : undefined}>{label}</span>
+    </div>
+  );
+}
+
 const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
+  // A Check's result: a quiz's when it is submitted, a conversation Check's when the Tutor records its verdict.
+  check_result: (data) => (typeof data.label === "string" ? <ResultCard label={data.label} passed={data.passed === true} /> : null),
   // Stored when the Learner moves onto a new Teaching Step.
   step: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="step-divider" /> : null),
   // Coming back after a break, or to a carried-over Topic: "Picking up where you left off · Step 6 of 10 · Concept".

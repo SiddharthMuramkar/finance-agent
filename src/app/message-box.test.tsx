@@ -32,6 +32,7 @@ function Column({ given }: { given: Given }) {
     passage: null,
     setPassage: () => {},
     send: async () => {},
+    appendItem: () => {},
     ...given,
     runtime,
   };
