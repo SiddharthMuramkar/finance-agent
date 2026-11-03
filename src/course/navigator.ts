@@ -315,6 +315,63 @@ export function stepSequence(map: CourseMap, progress: Progress, topicId: string
   return { topicId, dueRun, steps, current, groups };
 }
 
+/** What the Learner's Next chip offers. The arrow is the page's to draw. */
+export type NextOffer =
+  /** Next names a step. `advances` is false for a step not yet begun (reached after a quiz pass): taking it teaches that step without moving on. */
+  | { kind: "next"; step: TeachingStep; label: string; advances: boolean }
+  /** At Principle (or the end of a Due Check run): taking it passes the Topic. */
+  | { kind: "complete"; label: "Complete this Topic" }
+  /** At Explore before the Insight is found or told: the chip posts "Just tell me." as the Learner's message; it is not a Next. */
+  | { kind: "just_tell_me"; label: "Just tell me" };
+
+/** Whether the Learner's current step has begun, i.e. a Tutor turn has taught it. Callers know this; progress does not. */
+export type StepState = { begun: boolean };
+
+/**
+ * The Next the Learner may take now, or null when there is none: while a Check is open (a miss keeps
+ * it open), or once every Topic is passed.
+ */
+export function nextOffer(map: CourseMap, progress: Progress, { begun }: StepState): NextOffer | null {
+  const place = navigate(map, progress);
+  if (!place || place.step === "check") return null;
+  if (!begun) return { kind: "next", step: place.step, label: `Next: ${STEP_NAMES[place.step]}`, advances: false };
+  if (place.step === "explore" && !progress.topics[place.topic.id]?.insight) return { kind: "just_tell_me", label: "Just tell me" };
+  // In a passed Topic the step after the last due step is its old principle: the run is over.
+  if (place.next === "topic_passed" || (place.status === "passed" && place.next === "principle")) return { kind: "complete", label: "Complete this Topic" };
+  return { kind: "next", step: place.next, label: `Next: ${STEP_NAMES[place.next]}`, advances: true };
+}
+
+export type NextMove =
+  /** `teach` is the numbered step the Tutor now teaches; null once the Topic is passed (nothing more is started). */
+  | { ok: true; progress: Progress; teach: StepPosition | null }
+  | { ok: false; reason: string };
+
+/**
+ * The Learner takes Next. `named` is the step the chip named, or "complete". Code checks it is the Next
+ * on offer: never past a Check without a saved pass, never past an unsettled Explore. A step not yet
+ * begun is taught without moving on; otherwise the current step finishes and the following one is taught.
+ */
+export function takeNext(map: CourseMap, progress: Progress, named: TeachingStep | "complete", state: StepState): NextMove {
+  const place = navigate(map, progress);
+  const offer = nextOffer(map, progress, state);
+  if (!place || !offer) {
+    return { ok: false, reason: place?.step === "check" ? "A Check is open: only a saved pass moves past it." : "There is no Next to take." };
+  }
+  if (offer.kind === "just_tell_me") return { ok: false, reason: "Explore is not settled: the Learner has not found the Insight or been told it." };
+  const offered = offer.kind === "complete" ? "complete" : offer.step;
+  if (named !== offered) return { ok: false, reason: `Next names "${offered}", not "${named}".` };
+  if (offer.kind === "next" && !offer.advances) return { ok: true, progress, teach: positionOf(map, progress, place.topic.id) };
+  const moved = finishStep(map, progress, place.step);
+  if (!moved.ok) return moved;
+  return { ok: true, progress: moved.progress, teach: offer.kind === "complete" ? null : positionOf(map, moved.progress, place.topic.id) };
+}
+
+/** The Learner's numbered place in a Topic's step sequence. */
+function positionOf(map: CourseMap, progress: Progress, topicId: string): StepPosition | null {
+  const seq = stepSequence(map, progress, topicId);
+  return seq && seq.current !== null ? seq.steps[seq.current] : null;
+}
+
 export type TopicOverview = {
   id: string;
   title: string;
