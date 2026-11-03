@@ -1657,6 +1657,35 @@ to other sites. There is no full script policy: Next's inline scripts would need
 The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
 the screenshot is never covered.
 
+## Learner Profile (`src/learner/profile.ts`, `learner_profile` table, `/api/profile`, `src/app/profile/`, ticket #67)
+
+**What it does.** The Learner can share four things about their own life: work, where they live, any
+loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
+a one-row table (`learner_profile`, id 1) with a flag, `offer_dismissed`, that records "Not now". On
+the first visit the workspace shows a small card with Save and Not now; after either, the card never
+comes back. "About you", linked from the Progress page, edits the same four answers later. Both go
+through `/api/profile` (and `/api/profile/dismiss`), which sit behind the passcode like every other
+route. No model call is made to save it.
+
+**What the Tutor gets.** When a new Session opens, code puts the profile in the Session's first
+message as its own block: after the Learner summary and before the Course Navigator context (which
+stays last, because the Tutor Turn compares against the end of that message). The block says what it is
+for. The Tutor's instructions say the same: use it only to choose everyday examples, in the Learner's
+currency when the example is about their life, and never as advice. Nothing is sent when the Learner
+shared nothing.
+
+**A concrete scenario.** A nurse in Pune saves "Home loan of about 40 lakh" and starts a Present value
+Session. The Tutor may now explain discounting with a loan repayment in rupees instead of an invented
+dollar example. If she then asks "so should I prepay my loan?", the Tutor teaches how to compare the
+two choices and does not tell her which to pick. A behaviour rule, "profile turned into advice", has
+one direct and one indirect question that run with a saved profile.
+
+**The trade-off.** A Session is frozen when it starts, so a profile edit applies only from the next
+Session (the cards say so). That keeps the Session's record true to what the Tutor actually saw, and
+keeps the cached conversation prefix byte-for-byte stable, at the cost of a short wait before an edit
+shows in the examples. The profile is stored in plain text in the database and in each Session's
+record; it is meant for light context, not for anything private such as account numbers.
+
 ## Pictures in Damodaran's posts (`src/library/pictures.ts`, `pictures-run.ts`, `citation-impact.ts`, `npm run library:pictures`, IL 14, #71)
 
 **What it does.** Damodaran's valuation tables (Tesla's inputs, say) and charts are pictures, so the
@@ -1712,6 +1741,14 @@ run resume. Measured cost and accuracy: to be filled in from the live run (see #
 **Scenario.** Present value ends with three: a bond's yield is the market's discount rate (so when yields rise, bond prices fall), safe rates usually fall in a recession while the extra return on risky payments can rise, and far-off cash in a business loses the most when rates rise. At the principle step the Tutor sees each one beside "Bond basics and pricing", "GDP, growth and business cycles" or "DCF valuation", and says them in its own words. Had someone typed `bond-prcing`, `npm run course:check` would fail with `Connection 1 links to "bond-prcing", which is not in the outline`.
 
 **Trade-off.** Code checks the links, not the economics: a Connection that names real Topics can still be wrong, so the text is written once and reviewed by the owner. Connections hold no figures (the check rejects digits, `%` and currency signs), so every number the Learner sees still comes from Case Data or a calculator; the price is that a Connection cannot say "by how much". Links may point at Topics still to come, so the course can link forward before those Topics are written.
+
+## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/guided-task-check.ts`, issue #66)
+
+**What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked, saved or sent to the Tutor. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` tries every position of the sliders a task reads in each Topic's explore Widget, and fails on a task no position can reach or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
+
+**Scenario.** Present value's explore Widget has four tasks under the rate slider and the annuity chart: set the rate to 0%, then 2%, then 8%, then find the rate where the payments' worth today comes closest to the cash option. The slider starts at 5%, so none is done. The Learner drags to 8% first: nothing ticks, because task 1 is current. They go to 0%: task 1 ticks. They go to 2%, then 8%: tasks 2 and 3 tick. The fourth ticks at 3.25% or 3.5%, the two positions where the annuity's worth today is nearest the cash option's $877.8 million. If a later edit made task 3 read `$rate == 8.1`, the course check would fail, because the slider moves in steps of 0.25.
+
+**Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Ticks live in the page, so reloading the page starts the stepper again, which suits practice that is never saved. The frozen Widget instructions changed (two components, an example and a rule), so the next action after deploy starts a new Session.
 
 ## Weekly refresh of Damodaran's posts (`src/library/refresh.ts`, `src/app/api/cron/library-refresh/route.ts`, `library_refresh_runs`, `vercel.json` crons, IL 16, #73)
 

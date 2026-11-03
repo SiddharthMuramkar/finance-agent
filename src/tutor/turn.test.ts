@@ -19,6 +19,7 @@ import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { presentValueOnly } from "@/test/present-value-map";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, saveJump, saveReturnToDefaultPath, learnerSummary } from "@/learner/memory";
+import { profileInput, saveProfile } from "@/learner/profile";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
@@ -1338,5 +1339,61 @@ describe("surviving cut-offs and failures", () => {
     expect(results.map((r) => r.is_error ?? false)).toEqual([false, false]);
     expect(results[1].content).toEqual(results[0].content);
     expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+  });
+});
+
+describe("Learner Profile in the Tutor Turn", () => {
+  const map = withoutQuizChecks(loadCourseMap());
+  const text = (t: string) => ({ type: "text", text: t });
+  const openingOf = (request: { messages: object[] }) => ((request.messages[0] as { content: { text: string }[] }).content)[0].text;
+
+  it("opens a new Session with the profile after the Learner summary and before the Course Navigator context", async () => {
+    const db = await testDb();
+    await saveProfile(db, profileInput.parse({ work: "Nurse", location: "Pune, India", loan: "Home loan", savingFor: "School fees" }));
+    const { client, requests } = scriptedClient([{ content: [text("Hello.")] }]);
+    await collect(runTutorTurn({ db, client, map }, "Hi"));
+    const opening = openingOf(requests[0]);
+    const profile = opening.indexOf("Learner Profile");
+    expect(opening.indexOf(OPENING_PREFIX)).toBe(0);
+    expect(profile).toBeGreaterThan(0);
+    expect(opening.indexOf("Course Navigator:")).toBeGreaterThan(profile);
+    expect(opening).toContain("- Work: Nurse");
+    expect(opening).toContain("- Where you live: Pune, India");
+    expect(opening).toContain("never as advice");
+    expect((requests[0].messages[0].content as { text: string }[])[1].text).toBe("Hi");
+  });
+
+  it("has no profile block when the Learner shared nothing", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([{ content: [text("Hello.")] }]);
+    await collect(runTutorTurn({ db, client, map }, "Hi"));
+    expect(openingOf(requests[0])).not.toContain("Learner Profile");
+  });
+
+  it("an edit in the middle of a Session takes effect at the next Session, not this one", async () => {
+    const db = await testDb();
+    await saveProfile(db, profileInput.parse({ work: "Nurse" }));
+    let t = Date.parse("2026-11-03T09:00:00Z");
+    const now = () => new Date(t);
+    const { client, requests } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }, { content: [text("Three.")] }]);
+    await collect(runTutorTurn({ db, client, map, now }, "Hi"));
+    await saveProfile(db, profileInput.parse({ work: "Teacher" }));
+    t += 60_000;
+    await collect(runTutorTurn({ db, client, map, now }, "Again"));
+    // The same Session replays the profile it started with.
+    expect(await listSessions(db)).toHaveLength(1);
+    expect(openingOf(requests[1])).toContain("- Work: Nurse");
+    expect(openingOf(requests[1])).not.toContain("Teacher");
+    // A later Session picks up the edit.
+    t += 7 * 3600_000;
+    await collect(runTutorTurn({ db, client, map, now }, "Third"));
+    expect(await listSessions(db)).toHaveLength(2);
+    expect(openingOf(requests[2])).toContain("- Work: Teacher");
+  });
+
+  it("the instructions say the profile is for examples only, never advice", () => {
+    expect(TUTOR_INSTRUCTIONS).toMatch(/Learner Profile/);
+    expect(TUTOR_INSTRUCTIONS).toMatch(/only to choose everyday examples/);
+    expect(TUTOR_INSTRUCTIONS).toMatch(/never advice/i);
   });
 });

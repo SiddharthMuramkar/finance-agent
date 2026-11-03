@@ -23,6 +23,7 @@ import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
 import type { Db } from "@/db/types";
 import { saveJump, takeJumpEntry } from "@/learner/memory";
+import { saveProfile } from "@/learner/profile";
 import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
@@ -65,6 +66,7 @@ async function ask(
     await saveJump(db, map, QUESTIONS_TOPIC);
     await takeJumpEntry(db);
   }
+  if (q.profile) await saveProfile(db, q.profile);
   const place = await placeLearner(db, map, q.at);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "${place.step}" (before the reveal; the Learner has not seen the outcome).`;
   const replies: string[] = [];

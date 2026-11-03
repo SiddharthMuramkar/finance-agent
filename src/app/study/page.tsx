@@ -8,11 +8,13 @@ import { exploreWidgetFor } from "@/course/explore-widget";
 import { courseOverview } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { learnerSummary, loadProgress } from "@/learner/memory";
+import { loadProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { loadCurrentSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "../conversation";
+import { ProfileForm } from "../profile/profile-form";
 import { readTheme } from "../theme-cookie";
 import { AppHeader, SignedInFrame } from "../ui";
 
@@ -52,7 +54,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     );
   }
   const db = getDb();
-  const [summary, initial, quiz, turn, review, progress] = await Promise.all([
+  const [summary, initial, quiz, turn, review, progress, profile] = await Promise.all([
     learnerSummary(db, map),
     loadCurrentSession(db, map),
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
@@ -63,6 +65,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     latestTurn(db),
     reviewState(db, map),
     loadProgress(db),
+    loadProfile(db),
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one.
   const pending: PendingTurn = turn && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
@@ -71,6 +74,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const place = current ? { stage: current.stage, title: current.title } : null;
   return (
     <WorkspaceShell>
+      {shouldOfferProfile(profile) && <ProfileForm mode="card" initial={{ work: "", location: "", loan: "", savingFor: "" }} />}
       <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} place={place} explore={exploreWidgetFor(map, progress)} />
     </WorkspaceShell>
   );
