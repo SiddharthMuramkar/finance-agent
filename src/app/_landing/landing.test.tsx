@@ -50,3 +50,28 @@ describe("Landing page", () => {
     expect(html).toMatch(/<dd[^>]*whitespace-nowrap[^>]*>90 of 95<\/dd>/);
   });
 });
+
+describe("Landing page, signed in", () => {
+  const stats = { topics: "90 of 95", cases: 312, librarySources: 47 };
+  const inHtml = renderToStaticMarkup(<LandingView stats={stats} signedIn />);
+  const inText = inHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+
+  it("is the same page, with the same sections", () => {
+    expect(inHtml).toMatch(/<h1[^>]*>Learn finance from<br\/><span[^>]*>what already happened\.<\/span><\/h1>/);
+    expect(inHtml).toContain("</figure>");
+    expect(inText).toContain("Topics written 90 of 95");
+    expect(inHtml).toContain('id="how"');
+    expect(inText).toContain(copy.sources.title);
+    expect(inText).toContain(copy.footer);
+  });
+
+  it("offers Open Study Workspace in the hero and Study Workspace in the top bar, both to /study", () => {
+    expect(inHtml).toMatch(/<a[^>]*href="\/study"[^>]*>Open Study Workspace<\/a>/);
+    expect(inHtml).toMatch(/<a[^>]*href="\/study"[^>]*>Study Workspace<\/a>/);
+  });
+
+  it("never says Sign in or links to the login", () => {
+    expect(inText).not.toContain("Sign in");
+    expect(inHtml).not.toContain('href="/login"');
+  });
+});

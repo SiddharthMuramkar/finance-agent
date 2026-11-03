@@ -122,7 +122,7 @@ const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
 ];
 
 /**
- * App header (spec §3): h1 "Study Workspace" (a link home except on the workspace), then Course Map ·
+ * App header (spec §3): h1 "Study Workspace" (a link to /study except on the workspace), then Course Map ·
  * Progress · Past Sessions · Dark mode. current = the page showing; theme from readTheme() in theme-cookie.ts.
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
@@ -130,7 +130,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
   return (
     <header className={`flex items-center justify-between gap-4 ${className}`}>
       <h1 className="text-lg font-semibold leading-7">
-        {current === "workspace" ? "Study Workspace" : <Link href="/" className={`hover:text-[var(--brand)] ${focusRing}`}>Study Workspace</Link>}
+        {current === "workspace" ? "Study Workspace" : <Link href="/study" className={`hover:text-[var(--brand)] ${focusRing}`}>Study Workspace</Link>}
       </h1>
       <nav aria-label="Pages" className="flex items-center gap-4">
         {HEADER_LINKS.map(({ page, href, label }) =>

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/login?wrong=1", request.url), 303);
   }
   await loginSucceeded(db, tryId);
-  const response = NextResponse.redirect(new URL("/", request.url), 303);
+  const response = NextResponse.redirect(new URL("/study", request.url), 303);
   response.cookies.set(ACCESS_COOKIE, await accessToken(process.env.SESSION_SECRET ?? ""), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

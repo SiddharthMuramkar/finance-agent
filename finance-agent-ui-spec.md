@@ -64,7 +64,7 @@ Font: system stack (measured): `-apple-system, system-ui, "Segoe UI", Roboto, "H
 
 ## 3. App shell (Study Workspace)
 - Full-height shell (`100dvh`). Container `max-width: 1152px` [max-w-6xl], centered, `padding: 24px 24px 12px`.
-- **Header** (row, space-between, mb 24): h1 "Study Workspace" on the left. On the right, four text links 14px `--muted` with a 16px gap: Course Map · Progress · Past Sessions · Dark mode (the dark-mode toggle is the fourth link). On every page but the workspace, "Study Workspace" links to `/`. Hover is `--ink`. The current page is `--brand` with a 1px underline, offset 4px, and `aria-current="page"`.
+- **Header** (row, space-between, mb 24): h1 "Study Workspace" on the left. On the right, four text links 14px `--muted` with a 16px gap: Course Map · Progress · Past Sessions · Dark mode (the dark-mode toggle is the fourth link). On every page but the workspace, "Study Workspace" links to `/study` (changed in #77; the header is reworked further there). Hover is `--ink`. The current page is `--brand` with a 1px underline, offset 4px, and `aria-current="page"`.
 - **Grid**: `grid-template-columns: 1fr 1fr; gap: 32px; align-items: start`, giving two 536px columns. Both columns start at the same y (76px from the top).
 - **Left column** is a flex column: status card, then the message list (its own scroll, `min-height: 0`), then the composer pinned 12px above the viewport bottom. Add a 24px `--bg`→transparent fade above the composer so text never looks cut off. (The live page currently hides text behind the composer.)
 - **Right column** is the widget panel: `position: sticky; top: 24px; overflow-y: auto`, with its max height capped at the column height (decided in #42: the earlier `calc(100dvh - 48px)` was about 40px too tall). The card hugs its content (live: 536×547).
@@ -166,7 +166,7 @@ Panel states:
 
   Hover: `--brand-line` border and `--brand-tint` bg.
 - **Course Map**: grouped by Stage (four groups in course order, each in default-path order), with no stepper (decided in #42). Each row has a todo/current/passed dot as in §5.6, and Foundation rows carry their Subject pill. Jumps, the prerequisite prompt and "Back to the default path" are unchanged. The workspace status card links here.
-- **Landing** (decided in #42): a public page at `/` when signed out; signed in, `/` is the workspace. Every other page and API route still needs the passcode. It shows no Library text and no Learner data, only counts. It works on phones.
+- **Landing** (decided in #42; superseded by #77: `/` is always Home, signed in or out, and the workspace is at `/study`): a public page at `/` when signed out; signed in, `/` is the workspace. Every other page and API route still needs the passcode. It shows no Library text and no Learner data, only counts. It works on phones.
   - Sticky blurred header.
   - Hero on `--bg` with a faint 40px grid (`--hairline` @40%). In order: brand pill badge, H1 on two lines (line 2 in `--brand`), 18px `--muted` subtext, primary + secondary buttons (16px, padding 12×24, r8).
   - A workspace screenshot in a browser frame (1px `--border`, r12), with a stats card overlapping it: 3 columns, values 28px 700 `--brand`, 12px labels. Real counts from one function: Topics as "written of planned" (e.g. "90 of 95"), every Case in the outline, Library sources.
