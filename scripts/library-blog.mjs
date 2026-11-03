@@ -67,4 +67,6 @@ if (!noLoad) {
   execFileSync(process.execPath, ["scripts/library-load.mjs", "damodaran-blog", out], { stdio: "inherit" });
   // Hand the picture readings to the database too, so the weekly refresh never pays for a picture twice.
   if (existsSync(readingsFile)) execFileSync(process.execPath, ["scripts/library-seed-pictures.mjs", scratch], { stdio: "inherit" });
+  // And note every loaded post in library_documents, so the weekly refresh treats only new or edited posts as work.
+  execFileSync(process.execPath, ["scripts/library-seed-documents.mjs", scratch], { stdio: "inherit" });
 }

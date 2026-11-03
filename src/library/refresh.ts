@@ -140,6 +140,24 @@ export function dateAfterEdit(passages: PreparedPassage[], stored: StoredPassage
   });
 }
 
+/**
+ * The entries not yet recorded at this updated time. A post whose row in library_documents already
+ * holds the feed's updated time (or a later one) was loaded by the backfill or an earlier run, so it
+ * is left alone: only genuinely new or edited posts are worked on.
+ */
+export async function unrecordedEntries<T extends { ref: string; updatedAt: string }>(db: Executor, sourceId: string, entries: T[]): Promise<T[]> {
+  if (!entries.length) return entries;
+  const rows = await rowsOf<{ ref: string; ms: string | number | null }>(
+    db,
+    sql`select ref, extract(epoch from updated_at) * 1000 as ms from library_documents where source_id = ${sourceId} and ref in (${sql.join(entries.map((e) => sql`${e.ref}`), sql`, `)})`,
+  );
+  const recorded = new Map(rows.filter((r) => r.ms !== null).map((r) => [r.ref, Number(r.ms)]));
+  return entries.filter((e) => {
+    const have = recorded.get(e.ref);
+    return have === undefined || Math.floor(have) < new Date(e.updatedAt).getTime();
+  });
+}
+
 // ---- One post ---------------------------------------------------------------------------------
 
 class OutOfTime extends Error {}
@@ -274,9 +292,13 @@ export async function refreshLibrary(deps: RefreshDeps): Promise<RefreshResult> 
     const page = await res.json();
     const raw = ((page as { feed?: { entry?: unknown[] } }).feed?.entry ?? []) as unknown[];
     const parsed = bloggerFeed.parse(page).feed.entry;
-    const entries: Entry[] = parsed
-      .map((e, i) => ({ raw: raw[i], ref: refOf(e.id.$t), updatedAt: e.updated?.$t ?? e.published.$t }))
-      .sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
+    const entries: Entry[] = await unrecordedEntries(
+      deps.db,
+      BLOG_SOURCE,
+      parsed
+        .map((e, i) => ({ raw: raw[i], ref: refOf(e.id.$t), updatedAt: e.updated?.$t ?? e.published.$t }))
+        .sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()),
+    );
 
     const maxPosts = deps.maxPosts ?? MAX_POSTS_PER_RUN;
     let handled = 0;

@@ -8,6 +8,7 @@ import type { Db } from "@/db/types";
 import { sql } from "drizzle-orm";
 import { BLOG_SOURCE, SHEETS_SOURCE, isCronRequest, refreshLibrary, startRun, STALE_AFTER_MS, type RefreshDeps } from "./refresh";
 import { searchPassages } from "./search";
+import { loadReadings, recordDocument, saveReading } from "./picture-cache";
 import type { PictureClient } from "./pictures-run";
 
 const SOURCES: RefreshDeps["sources"] = {
@@ -63,6 +64,12 @@ function network(entries: object[], files: Record<string, { bytes: Uint8Array; l
     return new Response(file.bytes as BodyInit, { headers: file.lastModified ? { "last-modified": file.lastModified } : {} });
   }) as typeof fetch;
   return { fetchFn, asked };
+}
+
+/** Records posts the way the backfill's seed step does: published and updated at the same time. */
+async function importRecorded(db: Db, numbers: number[], at: string) {
+  await db.execute(sql`insert into library_sources (id, title, kind, licence, licence_url, credit, url, fetched_on) values (${BLOG_SOURCE}, 'Musings on Markets', 'dated', 'x', 'https://example.org', 'x', 'https://example.org', '2026-11-03') on conflict do nothing`);
+  for (const n of numbers) await recordDocument(db, BLOG_SOURCE, `post-${n}`, at, at);
 }
 
 const FIXED = new Date("2026-11-09T21:30:00.000Z");
@@ -296,6 +303,40 @@ describe("an edited post", () => {
     expect(after?.published_on).toBe("2019-01-10");
     const docs = (await db.execute(sql`select ref, updated_at from library_documents`)) as unknown as { rows: { ref: string }[] };
     expect(docs.rows.map((d) => d.ref)).toEqual(["post-9"]);
+  });
+
+  it("imports nothing for posts already recorded in library_documents, and works on one that was edited since", async () => {
+    const db = await testDb();
+    const published = "2019-01-10T09:00:00.000Z";
+    await importRecorded(db, [5, 6], published);
+    const calls: string[] = [];
+    const pictures = { messages: { create: async () => (calls.push("call"), { content: [{ type: "text", text: "x" }], stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 } }) } } as unknown as PictureClient;
+    const same = await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(5, { published }), entry(6, { published })]).fetchFn, now: () => FIXED });
+    expect(same).toMatchObject({ status: "done", added: [], moreToDo: false, watermark: FIXED.toISOString() });
+    expect(await stored(db)).toEqual([]);
+    expect(calls).toEqual([]);
+
+    const later = await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(5, { published }), entry(6, { published, updated: "2019-06-01T12:00:00.000Z" })]).fetchFn, now: () => FIXED });
+    expect(later).toMatchObject({ status: "done" });
+    expect((later as { added: { ref: string }[] }).added.map((a) => a.ref)).toEqual(["post-6"]);
+  });
+
+  it("reads a picture again when its stored reading was cut off, once, and keeps the complete reading", async () => {
+    const db = await testDb();
+    const address = "https://blogger.googleusercontent.com/img/a/AVvX/s0/chart.png";
+    await saveReading(db, address, { text: "Cash option\nShare of jackpot | 6", model: "m", stopReason: "max_tokens", problems: ["cut off by the length limit"] });
+    let calls = 0;
+    const pictures = {
+      messages: { create: async () => (calls++, { content: [{ type: "text", text: "Cash option\nShare of jackpot | 60%\nTax | 24%" }], stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 } }) },
+    } as unknown as PictureClient;
+    const html = `<p>${PROSE}</p><img src="https://blogger.googleusercontent.com/img/a/AVvX/s320/chart.png" width="600" height="400">`;
+    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(11, { html })]).fetchFn, now: () => FIXED });
+    expect(calls).toBe(1);
+    expect((await stored(db)).map((p) => p.text).join("\n")).toContain("Tax | 24%");
+    expect((await loadReadings(db, [address]))[address]).toMatchObject({ stopReason: "end_turn" });
+
+    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(11, { html, updated: "2019-06-01T12:00:00.000Z" })]).fetchFn, now: () => new Date(FIXED.getTime() + 7 * 86_400_000) });
+    expect(calls).toBe(1);
   });
 
   it("keeps an unchanged passage's date and embedding when only a later passage is added", async () => {
