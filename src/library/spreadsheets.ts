@@ -107,6 +107,22 @@ export type PostRef = { ref: string; title: string; publishedOn: string };
 const fileName = (url: string) => decodeURIComponent(url.split("/").pop() ?? url);
 const slugOf = (name: string) => name.toLowerCase().replace(/\.xlsx?$/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+/** The Library document ref of one (post, file): the post's ref plus the file's name, so a file linked twice from a post (even by two different URLs) is the same document. */
+export function documentRef(post: PostRef, url: string): string {
+  return `${post.ref}-${slugOf(fileName(url))}`;
+}
+
+/** Keeps the first of any (post, file) pairs that share a document ref, so no document ref is repeated. */
+export function dedupeByDocument<T extends { post: PostRef; url: string }>(pairs: T[]): T[] {
+  const seen = new Set<string>();
+  return pairs.filter((p) => {
+    const ref = documentRef(p.post, p.url);
+    if (seen.has(ref)) return false;
+    seen.add(ref);
+    return true;
+  });
+}
+
 /**
  * One workbook as a Library document: each section is one passage of up to ~240 words of a sheet's
  * rows, opening with a sentence that names the post, the file and the sheet. At most 12 passages.
@@ -139,7 +155,7 @@ export function workbookDocument(input: { post: PostRef; url: string; lastModifi
   }
   if (!sections.length) return null;
   return {
-    ref: `${post.ref}-${slugOf(file)}`,
+    ref: documentRef(post, url),
     title: `Spreadsheet ${file} (from the post "${post.title}")`,
     url,
     publishedOn: passageDate(post.publishedOn, input.lastModified),

@@ -5,8 +5,11 @@ import {
   defineComponent,
   reactive,
   useStateField,
+  type ComponentGroup,
   type ComponentRenderProps,
+  type PromptOptions,
 } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { createContext, useContext, useEffect, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
@@ -16,11 +19,13 @@ import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-d
 import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { advanceReached } from "./guided-tasks";
 import { GuidedTasksFigure } from "./guided-tasks-view";
+import { WIDGET_TOOL_SPECS } from "./tool-specs";
 
-// The OpenUI component library the Tutor writes widgets with. Charts take only
-// inputs to a tested Finance Calculations formula, or a Case Data reference
-// ("caseId/datasetId") fetched through the server's as-of rule; no component
-// accepts a series of numbers typed by the model.
+// The OpenUI component library the Tutor writes widgets with: OpenUI's ready-made kit (charts,
+// tables, tabs, callouts) beside our own code-backed parts (Slider, Calculator, AnnuityChart,
+// HistoryChart, FormulaCard, GuidedTasks). Real figures reach a widget only through our parts or
+// the Widget tools (tool-specs.ts), which work them out or fetch them in the browser; typed numbers
+// are only for an Illustration, whose title says so.
 
 const UNITS = ["percent", "years", "usd", "inr"] as const;
 type Unit = (typeof UNITS)[number];
@@ -330,12 +335,94 @@ const GuidedTasks = defineComponent({
   component: GuidedTasksView,
 });
 
+/**
+ * Kit parts the Tutor may not use: images (it could invent links), code and markdown blocks (they show
+ * typed formulas, which ADR 0002 forbids), forms, inputs, buttons, modals, carousels and the card building
+ * blocks. They go in one call: removing one at a time throws while a parent still names it. Icon stays,
+ * as the only type a ChipItem's icon takes.
+ */
+const DROPPED_KIT_PARTS = [
+  "Image",
+  "ImageBlock",
+  "ImageGallery",
+  "CodeBlock",
+  "MarkDownRenderer",
+  "EditableTable",
+  "Form",
+  "Input",
+  "TextArea",
+  "DatePicker",
+  "CheckBoxGroup",
+  "CheckBoxItem",
+  "RadioGroup",
+  "RadioItem",
+  "OptionCard",
+  "OptionCards",
+  "Button",
+  "Buttons",
+  "IconButton",
+  "Carousel",
+  "Modal",
+  "ListBlock",
+  "ListItem",
+  "Text",
+  "BoldText",
+  "IconText",
+  "ImageText",
+  "ImageTextLarge",
+  "MetricIndicatorInline",
+  "MetricIndicatorWithStrikethrough",
+  "SnippetCardItem",
+  "SnippetCardBlock",
+  "OverviewCardItem",
+  "OverviewCardBlock",
+  "ContextCardItem",
+  "ContextCardBlock",
+  "CompositeCardItem",
+  "CompositeCardBlock",
+  "VisualCardItem",
+  "VisualCardBlock",
+];
+
+/** Our parts the kit's containers list as their content; Stack already takes any part. */
+const OUR_PARTS = [AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks];
+
+/**
+ * OpenUI's kit with our parts in its containers. Our Slider replaces the kit's (same name), so every slider
+ * keeps its "Your assumption" tag and saved settings. Made once, at module scope: parsers are cached per library.
+ */
+const kit = openuiLibrary.extend({
+  components: {
+    remove: DROPPED_KIT_PARTS,
+    override: [Slider],
+    add: [...OUR_PARTS.map((component) => ({ component, slots: ["Card.children", "TabItem.content", "AccordionItem.content"] })), GuidedTask],
+  },
+});
+
+/** A part of the composed kit by name, as the kit rebuilt it; throws on a name it does not have. */
+function kitPart(name: string) {
+  const part = kit.components[name];
+  if (!part) throw new Error(`The widget library has no part called ${name}.`);
+  return part;
+}
+
+/** What a Widget holds directly: our parts, then the kit's. Sub-parts (TabItem, Series, Col, SelectItem…) go inside these. */
+const WIDGET_PARTS = [
+  ...["Slider", ...OUR_PARTS.map((c) => c.name)],
+  ...["Stack", "Tabs", "Accordion", "Steps", "Separator"],
+  ...["Card", "CardHeader", "TextContent", "Callout", "TextCallout", "InlineHeader"],
+  "Table",
+  ...["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "PieChart", "RadialChart", "SingleStackedBarChart", "ScatterChart"],
+  ...["FormControl", "Label", "Select", "SwitchGroup", "Chips"],
+  ...["Tag", "TagBlock", "EntityList"],
+];
+
 const Widget = defineComponent({
   name: "Widget",
-  description: "The widget's frame: a short title above its controls and charts, in order.",
+  description: 'The widget\'s frame: a short title above its parts, in order. The title of a widget drawn from made-up numbers starts with "Illustration:".',
   props: z.object({
     title: z.string(),
-    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref, FormulaCard.ref, GuidedTasks.ref])),
+    children: z.array(z.union(WIDGET_PARTS.map((name) => kitPart(name).ref))),
   }),
   component: WidgetFrame,
 });
@@ -353,15 +440,80 @@ function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string
   );
 }
 
-export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks, GuidedTask], root: "Widget" });
+/**
+ * How the widget instructions group the parts, with our own notes (not the kit's, which teach forms,
+ * modals and writes). Every part of the library is in one group, so none is listed under "Other".
+ */
+export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
+  {
+    name: "Widget",
+    components: ["Widget"],
+    notes: [
+      '- Widget("Title", [parts]) is the root of every widget. The panel already frames it, so lay its parts out with Stack (Stack([a, b], "row") puts two side by side), never with an outer Card.',
+    ],
+  },
+  {
+    name: "Our parts: numbers from code",
+    components: ["Slider", "Calculator", "AnnuityChart", "HistoryChart", "FormulaCard", "GuidedTasks", "GuidedTask"],
+    notes: ["- These work out or fetch their own numbers: give them inputs, a formula ID or a Case Data reference, never a result."],
+  },
+  {
+    name: "Layout",
+    components: ["Stack", "Tabs", "TabItem", "Accordion", "AccordionItem", "Steps", "StepsItem", "Separator"],
+    notes: [
+      '- Use Tabs for two views of the same numbers, such as a chart and a table: Tabs([TabItem("chart", "Chart", [chart]), TabItem("table", "Table", [table])]). Keep Sliders above the Tabs, so one slider moves both views.',
+      "- Steps lists the stages of a method in words; it works nothing out.",
+    ],
+  },
+  {
+    name: "Content",
+    components: ["Card", "CardHeader", "TextContent", "Callout", "TextCallout", "InlineHeader"],
+    notes: [
+      "- Card groups parts inside the Widget, for example two Cards side by side in a row Stack.",
+      "- Keep text short. A number in TextContent or a Callout comes from a tool result (r.rows.text) or an expression the widget works out, such as (5.5 - 5) * 100.",
+    ],
+  },
+  {
+    name: "Tables",
+    components: ["Table", "Col"],
+    notes: ['- Table is column by column: Table([Col("Year", s.rows.label), Col("Payment", s.rows.payment, "number")]). A tool result\'s rows.text holds each number written in its unit.'],
+  },
+  {
+    name: "Charts",
+    components: ["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "Series", "PieChart", "RadialChart", "SingleStackedBarChart", "Slice", "ScatterChart", "ScatterSeries", "Point"],
+    notes: [
+      "- Chart labels must be strings: use a tool result's rows.label or rows.date, never rows.x. The values come from rows.value, or another number column such as rows.payment.",
+      '- Pluck a column from a tool result with dot access: d.rows.value is every row\'s value, as in LineChart(d.rows.date, [Series("Close", d.rows.value)]).',
+      "- Line and area charts show change over time or across a range; bar charts compare a few cases; PieChart shows only the shares of one whole.",
+    ],
+  },
+  {
+    name: "Controls",
+    components: ["FormControl", "Label", "Select", "SelectItem", "SwitchGroup", "SwitchItem", "Chips", "ChipItem"],
+    notes: [
+      '- A number the Learner changes is always a Slider. Select, SwitchGroup and Chips choose between named options: a Select\'s $variable holds text, so compare it ($view == "real") rather than pass it to a tool as a number.',
+    ],
+  },
+  {
+    name: "Data display",
+    components: ["Tag", "TagBlock", "EntityList", "Icon"],
+  },
+];
 
-/** Options for the widget instructions frozen into the Tutor's instructions. */
+export const widgetLibrary = createLibrary({ root: "Widget", componentGroups: WIDGET_COMPONENT_GROUPS, components: [Widget, ...Object.values(kit.components)] });
+
+/**
+ * Options for the widget instructions frozen into the Tutor's instructions. With tools set, OpenUI prints
+ * both `examples` (our parts) and `toolExamples` (widgets whose numbers come from the Widget tools).
+ */
 export const WIDGET_PROMPT_OPTIONS = {
   preamble:
     "Widgets: you can put one interactive widget beside the conversation by writing it in openui-lang, a small UI language, inside a fenced block. Everything outside the fence is your ordinary prose to the Learner.",
   inlineMode: true,
+  tools: WIDGET_TOOL_SPECS,
+  toolCalls: true,
   bindings: true,
-  builtinFunctions: false,
+  builtinFunctions: true,
   examples: [
     `root = Widget("What the annuity is worth today", [rate, chart])
 $rate = 3
@@ -387,16 +539,116 @@ steps = GuidedTasks([low, high])
 low = GuidedTask("Set the rate to 6%", $rate == 6)
 high = GuidedTask("Now set it to 12%", $rate == 12)`,
   ],
+  toolExamples: [
+    `root = Widget("The Sensex at its milestones", [tabs])
+sensex = Query("case_data", {dataset: "sensex-1992/sensex-close"}, {rows: []})
+tabs = Tabs([chartTab, tableTab])
+chartTab = TabItem("chart", "Chart", [line])
+tableTab = TabItem("table", "Table", [table])
+line = LineChart(sensex.rows.date, [Series("Sensex close", sensex.rows.value)], "linear", "Date", "Index points")
+table = Table([Col("Date", sensex.rows.date), Col("Close", sensex.rows.text)])`,
+    `root = Widget("How 1 lakh grows at your rate", [rate, growth])
+$rate = 8
+rate = Slider("ratePercent", "Yearly return", 1, 15, 0.5, $rate, "percent")
+values = Query("calculate_range", {calculator: "future_value", inputs: {amount: 100000, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: 30, step: 1, currency: "inr"}, {rows: []})
+growth = AreaChart(values.rows.label, [Series("Value of 1 lakh", values.rows.value)], "natural", "Years", "Rupees")`,
+    `root = Widget("A 50 lakh home loan, by its length", [rate, line, table])
+$rate = 8.5
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+byLength = Query("calculate_range", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}, vary: "years", from: 5, to: 30, step: 5, output: "Monthly instalment"}, {rows: []})
+today = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}}, {rows: []})
+line = LineChart(byLength.rows.label, [Series("Monthly instalment", byLength.rows.value)], "linear", "Loan length", "Rupees a month")
+table = Table([Col("Over 20 years", today.rows.label), Col("Amount", today.rows.text)])`,
+    `root = Widget("Each payment, and what it is worth today", [rate, bars, total])
+$rate = 3
+rate = Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")
+schedule = Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: $rate}, {rows: []})
+bars = BarChart(schedule.rows.label, [Series("Payment", schedule.rows.payment), Series("Worth today", schedule.rows.presentValue)], "grouped", "Payment", "Dollars")
+total = TextContent("Worth today, all 30 payments together: " + schedule.presentValueText, "large-heavy")`,
+    `root = Widget("Illustration: a rate moving from 5% to 5.5%", [bars, note])
+bars = BarChart(["Before", "After"], [Series("Rate in percent", [5, 5.5])])
+note = TextContent("It rose by " + (5.5 - 5) + " percentage points, which is " + (5.5 - 5) * 100 + " basis points. As a share of the old rate, it rose " + (5.5 - 5) / 5 * 100 + "%.")`,
+  ],
   additionalRules: [
-    "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
-    "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
+    "Widgets are how this Workspace shows things. Build one whenever a picture, a chart, a table or something to play with makes the idea clearer, which is most Teaching Steps. When the Learner asks for a chart, graph, diagram, table, comparison, picture or anything to see, always build one in that reply. At most one widget per reply, so make it rich: a slider or two, a chart, and a small table or callout, inside one Widget.",
     "Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.",
-    "Widgets are optional. Add one only when playing with numbers helps the current Teaching Step, and at most one per reply.",
-    "Use Calculator for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",
-    "Charts never take data series. Give a chart the inputs to its formula, or a Case Data reference from the list code sent you; never type historical figures you were not given.",
-    "If no Case Data covers what the Learner wants to see, draw no chart for it and say plainly that the data is not available.",
+    'Real numbers come from code. Historical figures reach a widget only through Query("case_data", {dataset: "caseId/datasetId"}, {rows: []}) or HistoryChart, with references from the Case Data list code sent you. Finance results come only from Query("calculate" | "calculate_range" | "annuity_schedule", …), Calculator, AnnuityChart or FormulaCard. Never type a historical figure or a computed result into a widget.',
+    'Made-up teaching examples are the exception. You may type their numbers into a chart or table when the example is plainly hypothetical: start the Widget\'s title with "Illustration:". Before the reveal they must never match the Case\'s real outcome. For their arithmetic, write the expression (e.g. (5.5 - 5) * 100) and let the widget compute it; never type a result you worked out.',
+    "Bind Sliders to $variables and pass them into Query arguments, so moving a slider recomputes the chart in the browser with no model call.",
+    "Widgets only read: never use Mutation() or @Run.",
+    "Use a Calculator, or a chart from calculate_range, for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",
+    "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
+    "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
+    "If no Case Data covers what the Learner wants, say plainly that the data is not available here, and still show what code can compute, or a clearly labelled Illustration of the idea.",
     "Starting numbers you put in a Slider or chart must come from the Case material code sent you.",
     "Before the reveal step, never put a Case's outcome in a widget.",
     "After the widget, keep teaching in plain prose: the Learner sees the widget beside the conversation.",
   ],
-};
+} satisfies PromptOptions;
+
+/**
+ * Sections of OpenUI's generic prompt that contradict the Workspace, each cut up to the next heading of its
+ * level or higher: answering a question with text only (here a picture often answers it best), writing with
+ * Mutation (widgets only read), Forms (not in the library), and its data workflow (call a tool first, then
+ * type its results as Query defaults).
+ */
+export const OPENUI_SECTIONS_CUT = ["### 2. Text-only response", "## Mutation — Write Operations", "## Forms", "## Data Workflow"];
+
+/**
+ * Exact text of OpenUI's generic prompt that contradicts the Workspace, with what replaces it ("" cuts it):
+ * code only when asked to change the UI, patches of changed lines, text-only answers, refresh Buttons, a
+ * binding rule that is wrong for our Slider, a tools line that offers writes, "realistic mock data" where
+ * no tool fits, forms for input, and a last check that every filter feeds a Query (a Slider that feeds a
+ * Calculator or an AnnuityChart needs none, and the check could make the Tutor add one it does not need).
+ */
+export const OPENUI_TEXT_REPLACED: readonly (readonly [openui: string, ours: string])[] = [
+  ["You can respond in two ways:", "Your reply is prose, and it can hold one widget:"],
+  ["### 1. Code response (when the user wants to CREATE or CHANGE the UI)", "### A widget in a reply"],
+  ["\n- When the user asks for changes, output ONLY the changed/new statements in a fenced block", ""],
+  ["\n- When the user asks a question, respond with text only — NO code. The dashboard stays unchanged.", ""],
+  ['\n- Manual refresh: `Button("Refresh", Action([@Run(query1), @Run(query2)]), "secondary")` — re-fetches the listed queries', ""],
+  ["\n- Refresh all queries: create Action with @Run for each query", ""],
+  ["\n- $variables must be bound to a Select/Input component via the value argument (last positional arg) to be interactive", ""],
+  [
+    "Use these with Query() for read operations or Mutation() for write operations. The LLM decides which is appropriate based on the tool's purpose.",
+    "These Widget tools are our code, run in the browser when a widget's Query(...) needs them, and again whenever a $variable in its arguments changes. Use them only inside a widget: they are not tools you call yourself, even where a name matches one of yours (calculate).",
+  ],
+  [" If the user asks for functionality that doesn't match any available tool, use realistic mock data instead of fabricating a tool call.", ""],
+  ["forms for input, etc.", "sliders for numbers the Learner changes, etc."],
+  [
+    "5. Every visible filter $binding appears in at least one Query args object.",
+    "5. Every Slider's $variable feeds a part or a Query's arguments, so moving the slider changes the widget.",
+  ],
+];
+
+/** Fails the freeze loudly when OpenUI no longer writes a passage we cut, instead of silently keeping the rest. */
+function missing(passage: string): Error {
+  return new Error(`OpenUI's prompt no longer contains ${JSON.stringify(passage.trim())}. Review the cuts in widgetInstructions().`);
+}
+
+/** Cuts the section under `heading` (a line that starts with it) up to the next heading of the same level or higher. */
+function cutSection(prompt: string, heading: string): string {
+  const start = prompt.indexOf(`\n${heading}`);
+  if (start < 0) throw missing(heading);
+  const level = heading.match(/^#+/)?.[0].length ?? 1;
+  const next = prompt.slice(start + 1).search(new RegExp(`\\n#{1,${level}} `));
+  return prompt.slice(0, start) + (next < 0 ? "" : prompt.slice(start + 1 + next));
+}
+
+/** OpenUI's prompt with the passages that contradict the Workspace cut or replaced; throws if one is gone. */
+export function withoutContradictions(prompt: string): string {
+  let text = OPENUI_SECTIONS_CUT.reduce(cutSection, prompt);
+  for (const [openui, ours] of OPENUI_TEXT_REPLACED) {
+    if (!text.includes(openui)) throw missing(openui);
+    text = text.replace(openui, () => ours);
+  }
+  return text;
+}
+
+/**
+ * The widget instructions frozen into the Tutor's instructions (`npm run widgets:freeze`): OpenUI's prompt
+ * for this library and these options, without its generic advice that contradicts the Workspace.
+ */
+export function widgetInstructions(): string {
+  return withoutContradictions(widgetLibrary.prompt(WIDGET_PROMPT_OPTIONS));
+}
