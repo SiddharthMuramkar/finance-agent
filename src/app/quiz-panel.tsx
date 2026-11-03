@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Marking } from "@/course/quiz";
 import type { OpenQuiz } from "@/learner/quiz";
+import { MarkedText } from "@/widgets/marked-text";
 import { PrimaryButton } from "./ui";
 import { FoldedRow } from "./workspace-parts";
 
@@ -67,7 +68,7 @@ export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
                   {" – "}
                   right answer: {q.choices.find((c) => c.id === q.answer)?.text}
                 </p>
-                <p className="text-[var(--muted)]">{q.explanation}</p>
+                <MarkedText text={q.explanation} className="text-[var(--muted)]" />
                 {q.credit && (
                   <p className="text-xs leading-4 text-[var(--muted)]">
                     Question: {q.credit}.{q.verified ? "" : " The answer key has not been checked by a person yet."}
