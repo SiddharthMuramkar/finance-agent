@@ -1,6 +1,7 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import type { Insight, Piece } from "@/course/map";
+import { plainFormulaText as plain } from "@/finance/formula-text";
 import type { ExploreInfo } from "@/learner/insight";
 import { formulaById, formulaGuide } from "@/finance/formulas";
 import { TEACHING_STEPS, type Place } from "@/course/navigator";
@@ -46,22 +47,22 @@ export function stepContext(
   }
   if (place.unmetPrerequisites.length) lines.push(`Prerequisites not yet passed: ${place.unmetPrerequisites.join(", ")}.`);
   for (const c of topic.cases) {
-    lines.push("", `Case: ${c.title}, as of ${c.asOf}.`, `Story (only what was known on ${c.asOf}): ${c.story.trim()}`);
+    lines.push("", `Case: ${c.title}, as of ${c.asOf}.`, `Story (only what was known on ${c.asOf}): ${plain(c.story.trim())}`);
     if (c.piece) lines.push(...pieceLines(c.piece, pastes));
-    if (revealed) lines.push(`Reveal (what happened): ${c.reveal.trim()}`);
+    if (revealed) lines.push(`Reveal (what happened): ${plain(c.reveal.trim())}`);
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
-  if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${topic.concept.trim()}`);
+  if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
   if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
     if (check.kind === "conversation") {
-      lines.push("", `Check prompt: ${check.prompt.trim()}`, `Pass criteria: ${check.passCriteria.trim()}`);
+      lines.push("", `Check prompt: ${plain(check.prompt.trim())}`, `Pass criteria: ${plain(check.passCriteria.trim())}`);
     } else if (quizUnavailable) {
       lines.push(
         "",
         `Check: quiz ${check.id}, but the quiz for this Check cannot be shown: too few of its questions can be found, so the Learner sees no quiz panel. Check the Learner in conversation instead: ask them to explain the Concept below in their own words and apply it to a small example of your own, and question their reasoning. Do not mention a quiz panel.`,
-        `Concept: ${topic.concept.trim()}`,
+        `Concept: ${plain(topic.concept.trim())}`,
       );
     } else {
       lines.push(
@@ -71,7 +72,7 @@ export function stepContext(
     }
   }
   if (step === "principle") {
-    lines.push("", `Principle: ${topic.principle.trim()}`);
+    lines.push("", `Principle: ${plain(topic.principle.trim())}`);
     if (topic.insight && explore?.words) {
       lines.push(`The Learner's own words about the Insight (${explore.settled === "told" ? "after being told it" : "found by themselves"}): "${explore.words}". Tie the principle back to them.`);
     }
@@ -79,7 +80,7 @@ export function stepContext(
       lines.push(
         "",
         "Connections: after the principle, give the Learner these links from this Topic's idea to others, in your own words and in this order. Link each to its Course Map Topic by title, and add no figures of your own.",
-        ...topic.connections.map((c, i) => `${i + 1}. ${c.text.trim()} (links to: ${c.titles.join("; ")})`),
+        ...topic.connections.map((c, i) => `${i + 1}. ${plain(c.text.trim())} (links to: ${c.titles.join("; ")})`),
       );
     }
   }

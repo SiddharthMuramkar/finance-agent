@@ -28,8 +28,9 @@ cases:
 concept: >
   Money available today is worth more than the same amount later, because today's money
   can be invested to grow. Present value turns a future amount into today's money by
-  discounting it: PV = amount / (1 + r)^n, where r is the yearly interest rate and n the
-  number of years. A stream of payments is worth the sum of each payment's present value.
+  discounting it: for each year you wait, the amount is divided by one plus the yearly
+  interest rate. For example, {{formula:present-value amount=1000 ratePercent=10 years=5}}
+  A stream of payments is worth the sum of each payment's present value.
   The higher the rate or the more years until the payment arrives, the less a future payment is worth today.
 
 # The named formulas this Topic teaches; the Tutor shows them only as Formula Cards (see src/finance/formulas.ts).
@@ -109,7 +110,7 @@ questions:
       - { id: d, text: "$1,100" }
     answer: a
     explanation: >
-      PV = 1,100 / (1 + 0.10)^1 = 1,000.
+      Waiting one year at 10% means dividing by 1.10 once. {{formula:present-value amount=1100 ratePercent=10 years=1}}
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
@@ -123,7 +124,7 @@ questions:
       - { id: d, text: "$990" }
     answer: b
     explanation: >
-      PV = 1,210 / (1 + 0.10)^2 = 1,210 / 1.21 = 1,000. Dividing by 1.10 only once ($1,100) discounts for one year instead of two.
+      Two years at 10% means dividing by 1.10 twice. {{formula:present-value amount=1210 ratePercent=10 years=2}} Dividing by 1.10 only once ($1,100) discounts for one year instead of two.
     source: >
       CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
 
@@ -137,7 +138,7 @@ questions:
       - { id: d, text: "It depends only on the size of the payment" }
     answer: b
     explanation: >
-      The rate sits in the denominator, (1 + r)^n. A higher r makes the denominator bigger and the present value smaller.
+      Each year of waiting divides the payment by one plus the rate. A higher rate means a bigger divisor every year, so the present value is smaller.
     source: >
       CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
 
@@ -164,7 +165,7 @@ questions:
       - { id: d, text: "$5,500" }
     answer: c
     explanation: >
-      PV = 5,000 / (1.05)^2 = 5,000 / 1.1025 = 4,535.15. $4,762 discounts for one year only.
+      Two years at 5% means dividing by 1.05 twice. {{formula:present-value amount=5000 ratePercent=5 years=2}} $4,762 discounts for one year only.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
