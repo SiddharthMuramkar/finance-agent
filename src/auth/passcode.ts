@@ -9,6 +9,9 @@ export const ACCESS_COOKIE_OPTIONS = {
   path: "/",
 } as const;
 
+/** How long a sign-in lasts in the browser: 90 days, from sign-in or Start over. */
+export const ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24 * 90;
+
 /** The name the owner's Learner has; while only the old single passcode is set, it signs in as this name. */
 export const OWNER_NAME = "owner";
 

@@ -125,6 +125,18 @@ describe("the workspace's left column", () => {
   it("has a composer that asks the Tutor", () => {
     expect(workspace()).toContain('placeholder="Ask the Tutor"');
   });
+
+  it("hides Under the hood by default, and shows it under each Tutor reply when Show developer details is on", () => {
+    const usage = { model: "claude-opus-5-5", inputTokens: 1200, outputTokens: 300, cacheReadTokens: 0, cacheWriteTokens: 0, thinkingTokens: null, durationMs: 2500, costUsd: 0.05, tools: [], steps: [] };
+    const initial: Line[] = [
+      { role: "user", text: "What is present value?" },
+      { role: "assistant", text: "Today's worth of money paid later.", usage },
+    ];
+    expect(text(workspace({ initial }))).not.toContain("Under the hood");
+    const shown = text(workspace({ initial, developerDetails: true }));
+    expect(shown).toContain("Under the hood: 0 steps, 1,200 tokens in, 300 out");
+    expect(shown.indexOf("Under the hood")).toBeGreaterThan(shown.indexOf("Today's worth"));
+  });
 });
 
 describe("the fixed two-column layout", () => {

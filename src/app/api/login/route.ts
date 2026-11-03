@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { destinationOrDefault, safeDestination } from "@/auth/destination";
 import { callerAddress, claimLoginTry, loginFailed, loginSucceeded } from "@/auth/login-guard";
 import { signInAs } from "@/auth/learners";
-import { ACCESS_COOKIE, ACCESS_COOKIE_OPTIONS, learnerToken, nameForPasscode, passcodeList } from "@/auth/passcode";
+import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, learnerToken, nameForPasscode, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 
 /** Back to the login page with its message; a safe `next` is carried on, and with none the query stays exactly `?wrong=1` or `?locked=1`. */
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   const response = NextResponse.redirect(new URL(destinationOrDefault(next), request.url), 303);
   response.cookies.set(ACCESS_COOKIE, await learnerToken(learner.id, process.env.SESSION_SECRET ?? ""), {
     ...ACCESS_COOKIE_OPTIONS,
-    maxAge: 60 * 60 * 24 * 90,
+    maxAge: ACCESS_COOKIE_MAX_AGE,
   });
   return response;
 }

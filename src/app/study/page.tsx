@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { currentLearnerId, isSignedIn } from "@/auth/session";
+import { currentLearner } from "@/auth/session";
 import { DEMO_SUMMARY, isDemoMode } from "../_landing/demo-mode";
 import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
@@ -39,7 +39,8 @@ async function WorkspaceShell({ children }: { children: ReactNode }) {
 
 export default async function WorkspacePage({ searchParams }: { searchParams: Promise<{ demo?: string | string[] }> }) {
   // The proxy already sends a signed-out visitor to the login; this check also comes before any Learner data is read.
-  if (!(await isSignedIn())) redirect("/login");
+  const learner = await currentLearner();
+  if (!learner) redirect("/login");
   const map = loadCourseMap();
   // Demo mode (local only, at /study?demo=1, for Home's screenshot): a sample conversation, no Learner data read.
   if (isDemoMode(await searchParams)) {
@@ -58,7 +59,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     );
   }
   const db = getDb();
-  const learnerId = await currentLearnerId();
+  const learnerId = learner.id;
   // The current Topic's own Session (ADR 0004), or the Topic alone before its first turn: rendering makes no Session.
   const shown = await shownNow(db, map, learnerId);
   const [summary, initial, quiz, turn, review, progress, profile, widgetStates] = await Promise.all([
@@ -102,6 +103,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         revealed={revealedCases(map, progress)}
         shown={shown}
         widgetStates={widgetStates}
+        developerDetails={learner.showDeveloperDetails}
       />
     </WorkspaceShell>
   );

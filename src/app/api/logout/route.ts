@@ -1,16 +1,6 @@
 import { NextResponse } from "next/server";
 import { ACCESS_COOKIE, ACCESS_COOKIE_OPTIONS } from "@/auth/passcode";
-
-/**
- * True only for a request this site's own pages sent. Sec-Fetch-Site decides when present; otherwise the
- * Origin header must equal the origin the request was sent to (never a hard-coded domain).
- */
-function sameOrigin(request: Request) {
-  const fetchSite = request.headers.get("sec-fetch-site");
-  if (fetchSite !== null) return fetchSite === "same-origin";
-  const origin = request.headers.get("origin");
-  return origin !== null && origin === new URL(request.url).origin;
-}
+import { sameOrigin } from "@/auth/same-origin";
 
 /**
  * Sign out: expires this browser's passcode cookie and sends the Learner to Home with a 303. Changes no
