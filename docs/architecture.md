@@ -414,7 +414,7 @@ ones.
 **Layout.** The conversation runs on assistant-ui's external-store runtime: our code owns the
 messages and streaming, assistant-ui draws them (`src/app/thread.tsx` holds the message look, shared
 with the old Session page). As a reply streams in, code splits it into prose and widget blocks. The
-prose stays on the left with a "Widget 1 →" chip where the widget belongs; widgets are never drawn
+prose stays on the left with an "Open: <widget title> →" chip where the widget belongs; widgets are never drawn
 inside the conversation. Old Sessions rebuild their widgets from the stored text, with controls back
 at their starting values.
 
@@ -428,13 +428,14 @@ the widget uses): an AnnuityChart or the `annuity_schedule` tool is "Present val
 "Formula", a kit chart or table with no tool and none of our code-backed parts "Illustration", and
 anything else the current Topic's title. A finished widget the check refuses shows only the fallback
 note, so its eyebrow is the Topic's title too, never "Illustration". The newest widget shows on its own, including when a new
-turn brings one. With two or more widgets a row of chips (one per widget title) sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
+turn brings one. With two or more widgets a row of tabs, each named by its widget's title (never a number; "Untitled Widget" when the Tutor gave none), sits above the card on one line that scrolls sideways instead of wrapping; a long title is cut short with an ellipsis and shown in full on hover. Picking a tab, or an "Open: <title> →" chip in the chat, shows that widget, fades it in over 200ms,
 flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
 box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier
 and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
-"Long-term interest rates" chip and the chart fades in under "Case Data". Trade-off: one widget at a
+"Long-term interest rates" tab and the chart fades in under "Case Data". With eight widgets open the
+tabs still take one line; the Learner scrolls the row sideways to reach the older ones. Trade-off: one widget at a
 time keeps the panel calm and the sliders roomy, but comparing two widgets means switching between
-them.
+them; and a single scrolling row hides the far tabs until scrolled, where wrapping would push the card down.
 
 **The Sourced strip and readable Case Data charts.** Under a Widget that calls `case_data`, one thin
 amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit; before the reveal
@@ -1094,7 +1095,7 @@ never flashes up as code. Old Sessions now use the same assistant-ui thread, rea
 composer and no model call.
 
 **Scenario.** The Tutor replies "**Late bars:** each payment is divided by (1+r)^n" followed by a
-three-item list and an annuity chart. The Learner sees bold text, a bulleted list, and a "Widget 2 →"
+three-item list and an annuity chart. The Learner sees bold text, a bulleted list, and an "Open: What the annuity is worth today →"
 marker between the list and the next paragraph; the chart is in the right pane.
 
 **Trade-off.** One more package (small, by the same authors as assistant-ui, MIT). The text is no
@@ -1109,12 +1110,12 @@ plain text on purpose.
 Widget count. The database has no Topic column, so code reads the "Topic: ..." lines the Tutor
 context left in the saved messages, in one query for all Sessions, and counts the Widget blocks
 (minus the ones a correction replaced). With no Topic found the title falls back to "Session 3".
-A card opens the old Session page: the workspace's two columns, read-only, with "Widget N →" chips,
+A card opens the old Session page: the workspace's two columns, read-only, with "Open: <title> →" chips,
 the Widget panel (controls at their starting values) and a "Back to the workspace" button where
 the composer would be. No model call anywhere.
 
 **Scenario.** The Learner opens Past Sessions, sees "Present value, 24 Oct 2026" with "2 Widgets",
-opens it, clicks "Widget 2 →" to see that chart again, then goes back to the workspace to carry on.
+opens it, clicks "Open: What the annuity is worth today →" to see that chart again, then goes back to the workspace to carry on.
 
 **Trade-off.** Topics come from reading saved text, not a stored column, so a Session whose
 messages were compacted away shows the number title. Adding a column would be exact but needs a
