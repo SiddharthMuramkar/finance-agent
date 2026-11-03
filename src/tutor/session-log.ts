@@ -82,6 +82,16 @@ export async function shownInWorkspace(db: Db, map: CourseMap, learnerId: number
   return saved ? { sessionId: saved.id } : shownNow(db, map, learnerId);
 }
 
+/**
+ * The Topic of the shown Session when it is no longer the Learner's current Topic: one passed in a turn,
+ * kept on screen until the Learner chooses where to go. Null while the shown Session is the current Topic's.
+ */
+export async function passedTopicShown(db: Db, map: CourseMap, learnerId: number, shown: Shown): Promise<string | null> {
+  if (!("sessionId" in shown) || (await showsCurrentTopic(db, map, learnerId, shown))) return null;
+  const [session] = await db.select({ topicId: sessions.topicId }).from(sessions).where(and(eq(sessions.id, shown.sessionId), eq(sessions.learnerId, learnerId)));
+  return session?.topicId ?? null;
+}
+
 /** Saves the Learner's shown Session (null: their current Topic, before its first turn). */
 export async function saveShownSession(db: Db, learnerId: number, sessionId: number | null): Promise<void> {
   await db

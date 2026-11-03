@@ -283,7 +283,7 @@ export function WidgetPanel({
 }) {
   const laptop = useLaptopWidth();
   if (!shown && !check) {
-    return <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">Widgets the Tutor builds appear here.</p>;
+    return <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">Widgets for this Topic will appear here.</p>;
   }
   const checkShown = !!check && (check.selected || !shown);
   // Below the laptop breakpoint the explore Widget stands in the conversation column instead (PinnedExplore),

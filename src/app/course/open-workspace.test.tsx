@@ -9,7 +9,7 @@ vi.mock("react", async (original) => ({
   useEffect: () => {},
 }));
 
-const { BackToPathButton, JumpButton } = await import("./jump-button");
+const { BackToPathButton, JumpButton, WhatComesNextButton } = await import("./jump-button");
 
 const assign = vi.fn();
 vi.stubGlobal("window", { location: { assign } });
@@ -32,5 +32,11 @@ describe("Choosing a Topic on the Course Map", () => {
   it("Study this Topic opens the Study Workspace at /study", async () => {
     await clickOf(JumpButton({ topicId: "bonds", title: "Bonds", unmet: [] }))();
     await vi.waitFor(() => expect(assign).toHaveBeenCalledWith("/study"));
+  });
+
+  it("What comes next chooses the current Topic and opens the Study Workspace at /study", async () => {
+    await clickOf(WhatComesNextButton({ label: "Next Topic: Bond prices" }))();
+    expect(fetch).toHaveBeenLastCalledWith("/api/jump", expect.objectContaining({ body: JSON.stringify({ next: true }) }));
+    expect(assign).toHaveBeenCalledWith("/study");
   });
 });

@@ -38,6 +38,12 @@ export async function latestTurn(db: Db, learnerId = OWNER_LEARNER_ID): Promise<
   return row;
 }
 
+/** Whether one of the Learner's turns is running now (one older than any function can live is not). Choosing a Topic waits for it. */
+export async function turnRunning(db: Db, now: Date, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
+  const turn = await latestTurn(db, learnerId);
+  return turn?.status === "running" && now.getTime() - turn.startedAt.getTime() < STALE_RUN_MS;
+}
+
 /** The same Learner's turn before this one, if any. */
 export async function turnBefore(db: Db, id: number, learnerId = OWNER_LEARNER_ID): Promise<Turn | undefined> {
   const [row] = await db

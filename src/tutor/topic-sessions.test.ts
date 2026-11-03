@@ -13,7 +13,7 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
-import { shownInWorkspace, type Shown } from "./session-log";
+import { passedTopicShown, shownInWorkspace, type Shown } from "./session-log";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
 
@@ -332,10 +332,14 @@ describe("a Topic passed in a turn", () => {
     expect(done.shown).toEqual({ sessionId: done.ref.sessionId });
     expect(await shownInWorkspace(db, twoTopics, OWNER_LEARNER_ID)).toEqual({ sessionId: done.ref.sessionId });
     expect((await loadSession(db, done.ref.sessionId, twoTopics)).map((l) => l.text)).toEqual(["Hi", "Hello.", "So money today is worth more.", "Exactly.\n\nWell done."]);
+    expect(await passedTopicShown(db, twoTopics, OWNER_LEARNER_ID, done.shown)).toBe("present-value");
+    // Its page can send no more turns there: the Learner's current Topic has moved on.
+    expect((await turn(db, "And now?", [say("Should not run.")], twoTopics, done.shown)).events.map((e) => e.type)).toEqual(["stale"]);
 
     // Choosing where to go shows that Topic: here, what comes next (Bond prices), before its first turn.
     await openCurrentTopic(db);
     expect(await shownInWorkspace(db, twoTopics, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
+    expect(await passedTopicShown(db, twoTopics, OWNER_LEARNER_ID, { topicId: "bonds" })).toBeNull();
   });
 });
 

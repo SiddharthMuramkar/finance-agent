@@ -9,6 +9,12 @@ const STAGE_NAMES: Record<Topic["stage"], string> = { foundation: "Foundation", 
 /** Where the Learner is on the Course Map: their current Topic and its Stage. Null before any Topic. */
 export type Place = { stage: Topic["stage"]; title: string } | null;
 
+/**
+ * A Topic passed in a turn, whose Session stays on screen until the Learner chooses where to go: its title,
+ * and What comes next's label (null once every Topic is passed). Null while the shown Session is the current Topic's.
+ */
+export type PassedTopic = { title: string; next: string | null } | null;
+
 /** The status card: "Course Map · Stage · Topic", the plain summary, and Continue (which starts a turn). */
 export function StatusCard({ place, summary, onContinue, disabled }: { place: Place; summary: string; onContinue: () => void; disabled: boolean }) {
   const eyebrow = ["Course Map", place && STAGE_NAMES[place.stage], place?.title].filter(Boolean).join(" · ");
