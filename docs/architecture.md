@@ -237,7 +237,7 @@ learning goes through it.
   attempt numbers are unique per (Learner, Check); the Insight is settled once per Learner; one turn
   may run per Learner; one place on the Course Map and one Learner Profile per Learner (their `id`
   is the Learner's id, the owner's is 1); and a Review card per (Learner, question) and a saved note
-  item once per Learner and place, ready for the ticket that scopes Reviews and Notes.
+  item once per Learner and place (used by the next section).
 
 **Scenario.** The owner and a friend both study present value at once. The owner's reply is still
 streaming when the friend sends a message: the friend's turn runs at once, because the lock is per
@@ -251,6 +251,38 @@ cost is a longer argument list, and, until the contract step drops the owner def
 forgets the Learner silently gets the owner's data rather than an error. One more cost: the code
 live before this change upserts Topic progress on its old one-column key, so between applying the
 migration and the new code's deploy such a write fails, and the Learner is told it was not saved.
+
+## Reviews, Topic Notes, the Learner Profile and pasted passages are Learner-owned, and other Learners' ids answer 404 (`src/learner/review.ts`, `notes.ts`, `saved.ts`, `profile.ts`, `src/tutor/pasted.ts`, spec #119, ticket #126)
+
+**What it does.** The rest of a Learner's own data is now read and written for the current Learner
+only, using the keys migration 0027 already set (no new migration).
+- **Reviews.** A Review card is per (Learner, question). Enrolling reads only this Learner's passed
+  Checks and quiz attempts; the Review panel offers only their cards; the daily cap counts only their
+  Reviews in the last 24 hours; and a rating is written to their card and their Review log.
+- **Topic Notes.** A note is built from this Learner's pass, settled Insight and mistakes, and shows
+  only their own lines and saved items. Saving is once per Learner and place, so two Learners can
+  each save the same explore Widget.
+- **The Learner Profile.** One row per Learner (its id is the Learner's id). The About you page, the
+  first-visit card, "Not now" and the profile block in a new Session's opening message all use the
+  current Learner's row.
+- **Pasted passages.** A paste is saved with the Learner who sent it, and listed and counted for that
+  Learner only.
+- **The 404 rule for foreign ids.** Any id the browser sends must belong to the signed-in Learner.
+  A Session page, a quiz attempt (`/api/quiz`), a note line (`/api/notes` edit or delete), a saved
+  item (`/api/notes/saved` delete) and a Session to save from (`/api/notes/saved`) of another
+  Learner are treated as if they did not exist: the answer is 404, and nothing is read or changed.
+
+**Scenario.** A friend signs in beside the owner and guesses that `/sessions/12` is the owner's
+Session, then sends the owner's quiz attempt 40 and note line 7 to the API. Each answers 404, the
+same as an id that was never used, so the friend learns nothing, and the owner's Session, attempt and
+line are unchanged. Both of them passed the present value quiz: the owner does his Review of the day,
+and the friend's own card for the same question is still due, with her own daily cap untouched.
+
+**Trade-off.** Each reader filters by the Learner in its own query, rather than the database checking
+ownership for every row (row-level security). That keeps the code plain and testable with two Learners
+side by side, but a new query that forgets the Learner is not caught by the database; until the
+contract step drops the owner defaults it quietly reads the owner's rows. A foreign id answers 404
+rather than 403, so a guess cannot tell "someone else's" from "does not exist".
 
 ## Tutor Turn (`src/tutor/turn.ts`, `session-log.ts`, `transcript.ts`, `context.ts`)
 
@@ -1312,7 +1344,7 @@ migration and a backfill.
 question gets a review schedule once its quiz Check is passed. Its first rating comes from the
 Learner's answers in that Check: right counts as "Good", wrong as "Again". The schedule is worked
 out by the `ts-fsrs` library (the FSRS method), set to whole-day gaps, and kept per question in
-SQL (`review_cards`, plus `review_log` for every rating). At the top of the Study Workspace, above
+SQL (`review_cards`, one card per Learner and question, plus `review_log` for every rating). At the top of the Study Workspace, above
 "Where you stand" and the current Teaching Step, a review panel shows one due question at a time,
 most overdue first. Code marks the answer, shows the right one with its explanation and
 reschedules the question. No model is called, to open the page or to answer.
@@ -1328,7 +1360,7 @@ holiday shows as "40 due, up to 10 a day", not as a pile to clear.
 **Rules in code.** The Course Navigator's `reviewsDue` is a pure function: cards, the time and
 the number done in the last 24 hours in; the overdue cards to offer out, capped. The cap is the
 `review_cap` setting (default 10), changeable in SQL without a rebuild. The count is a rolling 24
-hours read from `review_log`; it never looks at when a Session began or at the idle window, because
+hours read from the Learner's own rows in `review_log`; it never looks at when a Session began or at the idle window, because
 with one Session per Topic (ADR 0004) a Session can last for days and a new one starts with every
 Topic. A review never writes to Topic progress: a missed review cannot unpass a Topic (a test pins
 this).
@@ -2069,7 +2101,7 @@ the screenshot is never covered.
 
 **What it does.** The Learner can share four things about their own life: work, where they live, any
 loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
-a one-row table (`learner_profile`, id 1) with a flag, `offer_dismissed`, that records "Not now". On
+one row per Learner (`learner_profile`, whose id is the Learner's; the owner's is 1) with a flag, `offer_dismissed`, that records "Not now". On
 the first visit the workspace shows a small card with Save and Not now; after either, the card never
 comes back. "About you", linked from the Progress page, edits the same four answers later. Both go
 through `/api/profile` (and `/api/profile/dismiss`), which sit behind the passcode like every other
