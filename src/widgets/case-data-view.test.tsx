@@ -18,6 +18,34 @@ const yields: CaseDataset = {
 };
 const cash: CaseDataset = { ...yields, id: "cash-option", label: "Cash option", unit: "USD", source: "CNBC, 24 October 2018", points: [{ date: "2018-10-23", value: 877_800_000 }] };
 
+const sensex: CaseDataset = {
+  id: "sensex-close",
+  label: "BSE Sensex, milestone closing levels",
+  unit: "index points",
+  source: "BSE, Sensex milestones",
+  sourceUrl: "https://www.bseindia.com/example",
+  checkedOn: "2026-11-02",
+  points: [
+    { date: "1979-04-01", value: 100 },
+    { date: "1990-07-25", value: 1000 },
+    { date: "1992-01-15", value: 2000 },
+    { date: "1992-02-29", value: 3000 },
+    { date: "1992-03-30", value: 4467.32 },
+  ],
+};
+
+/** A daily percentage series of `days` points from 2 July 2018, rising by a quarter point a day. */
+function daily(days: number): CaseDataset {
+  return { ...yields, points: Array.from({ length: days }, (_, i) => ({ date: new Date(Date.UTC(2018, 6, 2 + i)).toISOString().slice(0, 10), value: 3 + i * 0.25 })) };
+}
+
+const draw = (dataset: CaseDataset) => renderToStaticMarkup(<HistoryFigure dataset={dataset} revealed={false} asOf="2018-10-24" />);
+
+/** The text of each element with this data-testid in server-rendered markup, in order. */
+function texts(html: string, testid: string): string[] {
+  return [...html.matchAll(new RegExp(`data-testid="${testid}"[^>]*>([^<]*)<`, "g"))].map((m) => m[1]);
+}
+
 /** The text inside each element marked data-kind="…" in server-rendered markup, in order. */
 function marked(html: string, kind: "sourced" | "assumption"): string[] {
   return [...html.matchAll(new RegExp(`<(\\w+)[^>]*data-kind="${kind}"[^>]*>`, "g"))].map((m) => {
@@ -42,6 +70,69 @@ describe("a history chart drawn from a Case Data dataset", () => {
       "Data after 2018-10-24 is withheld until the reveal.",
     );
     expect(renderToStaticMarkup(<HistoryFigure dataset={yields} revealed asOf="2018-10-24" />)).not.toContain("withheld");
+  });
+});
+
+describe("a history chart the Learner can read", () => {
+  it("labels the values at the left (lowest, middle, highest) and the dates below (first, middle, last), naming the unit once", () => {
+    const html = draw(sensex);
+    expect(texts(html, "history-y-label")).toEqual(["100", "2,284", "4,467"]);
+    expect(texts(html, "history-x-label")).toEqual(["1979-04-01", "1992-01-15", "1992-03-30"]);
+    expect(html).toContain(">index points<");
+  });
+
+  it("labels a percentage axis in percent without naming the unit again", () => {
+    const html = draw(yields);
+    const labels = texts(html, "history-y-label");
+    expect([labels[0], labels.at(-1)]).toEqual(["3.33%", "3.38%"]);
+    expect(html).not.toContain(">percent<");
+  });
+
+  it("gives money short labels and the full figure when a point is read", () => {
+    const prizes: CaseDataset = { ...cash, label: "Prize sizes", points: [{ date: "2018-10-23", value: 877_800_000 }, { date: "2019-03-04", value: 1_537_000_000 }] };
+    const html = draw(prizes);
+    expect(texts(html, "history-y-label")).toEqual(["$877.8m", "$1.21bn", "$1.54bn"]);
+    expect(texts(html, "history-x-label")).toEqual(["2018-10-23", "2019-03-04"]);
+    expect(html).toContain('aria-label="2018-10-23: $877.8 million"');
+  });
+
+  it("keeps the minus sign on losses", () => {
+    const losses: CaseDataset = { ...sensex, unit: "USD million", points: [{ date: "1999", value: -144.6 }, { date: "2000", value: -453.3 }, { date: "2001", value: -12 }] };
+    const html = draw(losses);
+    expect(texts(html, "history-y-label")).toEqual(["-453.3", "-232.7", "-12"]);
+    expect(texts(html, "history-value")).toEqual(["-144.6", "-453.3", "-12"]);
+    expect(html).toContain(">USD million<");
+  });
+
+  it("prints each value above its point when there are 12 or fewer, and none on a longer line", () => {
+    expect(texts(draw(yields), "history-value")).toEqual(["3.38%", "3.37%", "3.33%"]);
+    expect(texts(draw(daily(12)), "history-value")).toHaveLength(12);
+    expect(texts(draw(daily(13)), "history-value")).toEqual([]);
+  });
+
+  it("draws one point per value however long the line", () => {
+    for (const days of [1, 3, 30, 31, 166]) expect(draw(daily(days)).match(/data-testid="history-point"/g)).toHaveLength(days);
+  });
+
+  it('makes each of a few points a tab stop that reads "<date>: <value>", and a long line one stop read with the arrow keys', () => {
+    const few = draw(yields);
+    expect(few.match(/tabindex="0"/g)).toHaveLength(3);
+    expect(few).toContain('aria-label="2018-10-22: 3.38%"');
+    const long = draw(daily(166));
+    expect(long.match(/tabindex="0"/g)).toHaveLength(1);
+    expect(long).toMatch(/role="slider"[^>]*aria-valuetext="2018-12-14: 44\.25%"/);
+  });
+
+  it("reads no point until one is hovered, tapped or focused, and says how", () => {
+    const html = draw(yields);
+    expect(html).toMatch(/data-testid="history-readout"[^>]*><span[^>]*>Hover over or tap the chart to read a value\.<\/span>/);
+  });
+
+  it("keeps the credit and the sourced marking on a long line too", () => {
+    const html = draw(daily(166));
+    expect(html.match(/data-testid="credit"/g)).toHaveLength(1);
+    expect(marked(html, "sourced").join(" ")).toContain("Sourced history");
+    expect(marked(html, "assumption")).toEqual([]);
   });
 });
 
