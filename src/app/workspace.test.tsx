@@ -226,6 +226,43 @@ describe("the Next chip", () => {
   });
 });
 
+describe("the help chips", () => {
+  const conversation: Line[] = [
+    { role: "user", text: "Hi" },
+    { role: "assistant", text: "Once, a lottery winner had a choice." },
+    { role: "user", text: "Go on." },
+    { role: "assistant", text: "Which would you take?" },
+  ];
+  const toConcept = { kind: "next", step: "concept", label: "Next: Concept", advances: true } as const;
+  const help = (html: string) => html.match(/<button[^>]*data-testid="help-chip"[^>]*>[^<]*<\/button>/g) ?? [];
+
+  it("offers Explain that more simply and Show me in a widget beside Next, under the latest Tutor reply only", () => {
+    const html = workspace({ initial: conversation, next: toConcept });
+    expect(help(html).map((b) => b.replace(/<[^>]+>/g, ""))).toEqual(["Explain that more simply", "Show me in a widget"]);
+    const plain = text(html);
+    expect(plain.indexOf("Explain that more simply")).toBeGreaterThan(plain.indexOf("Which would you take?"));
+    expect(plain.indexOf("Explain that more simply")).toBeGreaterThan(plain.indexOf("Next: Concept →"));
+    expect(help(workspace({ initial: [...conversation, { role: "user", text: "Wait" }], next: toConcept }))).toHaveLength(0);
+    expect(help(workspace({ initial: [], next: toConcept }))).toHaveLength(0);
+  });
+
+  it("stay while a quiz Check is open, with no Next", () => {
+    const html = workspace({ initial: conversation, next: null, quiz });
+    expect(help(html)).toHaveLength(2);
+    expect(html).not.toContain('data-testid="next-chip"');
+  });
+
+  it("stay while a conversation Check is open, with no Next", () => {
+    const html = workspace({ initial: conversation, next: null });
+    expect(help(html)).toHaveLength(2);
+    expect(html).not.toContain('data-testid="next-chip"');
+  });
+
+  it("are not offered on a passed Topic kept on screen", () => {
+    expect(help(workspace({ initial: conversation, next: toConcept, passed: { title: "Present value", next: null } }))).toHaveLength(0);
+  });
+});
+
 describe("a Topic passed in a turn", () => {
   const passedTopic = { title: "Present value", next: "Next Topic: Bond prices" };
   const initial: Line[] = [

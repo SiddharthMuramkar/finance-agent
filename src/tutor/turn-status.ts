@@ -1,6 +1,7 @@
 import { and, desc, eq, lt } from "drizzle-orm";
 import { OWNER_LEARNER_ID, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { isChipMessage } from "./chips";
 
 /**
  * A turn's saved status, which is also the one-turn lock: the database lets
@@ -26,13 +27,17 @@ export const NEXT_PREFIX = "Next by code:";
 /** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
 export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX] as const;
 
-/** What started a turn: the Learner's own message, an opener the page started, or the Learner's Next (no Learner message for either). */
-export type TurnKind = "message" | "opener" | "next";
+/**
+ * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
+ * that more simply, Show me in a widget), an opener the page started, or the Learner's Next (no Learner message for either).
+ */
+export type TurnKind = "message" | "chip" | "opener" | "next";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(OPENER_PREFIX)) return "opener";
   if (turn.input?.startsWith(NEXT_PREFIX)) return "next";
+  if (turn.input && isChipMessage(turn.input)) return "chip";
   return "message";
 }
 

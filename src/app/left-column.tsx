@@ -10,13 +10,13 @@ import { ThreadMessages } from "./thread";
 import type { TurnStream } from "./turn-stream";
 import { SecondaryButton } from "./ui";
 import { exploreItem, PinnedExplore } from "./widget-panel";
-import { JUST_TELL_ME, NextChip, TopicBar, type PassedTopic, type Place } from "./workspace-parts";
+import { Chips, TopicBar, type PassedTopic, type Place } from "./workspace-parts";
 import type { NextOffer, StepSequence } from "@/course/navigator";
 import { TOPIC_START } from "@/course/topic-start";
 
 /**
  * The Study Workspace's left column, top to bottom: the Topic bar, the pinned explore Widget, the folded
- * review, the thread with the Next chip under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
+ * review, the thread with the Next and help chips under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
  * itself is in the right panel's Check tab), and the message box with the writing indicator and Attach a passage.
  * A Topic passed in a turn stays on screen with no message box: What comes next and the Course Map instead.
  * It shows the turn stream's state and starts turns through it; Widget chips come from the Widget host's `slot`.
@@ -45,12 +45,13 @@ export function LeftColumn({
   passed?: PassedTopic;
 }) {
   const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
-  // The Next chip stands only under the latest Tutor reply or card: never under the Learner's own message, during a
-  // turn, before the page has re-read the Learner's place after one, with Retry on offer, or on a passed Topic. Under
-  // the Topic Start card alone there is none either: the Tutor's opener starts by itself.
+  // The chips stand only under the latest Tutor reply or card: never under the Learner's own message, during a
+  // turn, before the page has re-read the Learner's place after one, with Retry on offer, or on a passed Topic.
+  // While a Check is open there is no Next, and the two help chips stay. Under the Topic Start card alone there
+  // are none: the Tutor's opener starts by itself.
   const latest = messages.at(-1);
   const opening = latest?.role === "item" && latest.kind === TOPIC_START;
-  const chip = next && !passed && latest && latest.role !== "user" && !opening && !running && !refreshing && !canRetry ? next : null;
+  const chips = !passed && latest && latest.role !== "user" && !opening && !running && !refreshing && !canRetry;
   // The steps whose divider ("step" items) is in the thread: the strip scrolls back to those.
   const marked = new Set(messages.flatMap((m) => (m.role === "item" && m.kind === "step" && typeof m.data.number === "number" ? [m.data.number] : [])));
   return (
@@ -65,7 +66,7 @@ export function LeftColumn({
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />
         </div>
-        {chip && <NextChip offer={chip} onNext={(named) => void send({ next: named })} onJustTellMe={() => void send({ message: JUST_TELL_ME }, JUST_TELL_ME)} />}
+        {chips && <Chips offer={next} onNext={(named) => void send({ next: named })} onSay={(words) => void send({ message: words }, words)} />}
         {fixing && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Fixing the widget…</p>}
         {notice && (
           <p className="my-3 text-sm leading-5 text-[var(--muted)]" data-testid="turn-notice">
