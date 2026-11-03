@@ -181,22 +181,33 @@ export function replaceBrokenWidgets(text: string, correction: string): string {
   return text.replace(FENCE, (block) => (broken.has(index++) && fixes.length ? fixes.shift()! : block));
 }
 
+/** What a widget is made of; see widgetParts. */
+export type WidgetParts = { title: string | null; components: string[]; tools: WidgetToolName[]; datasets: string[] };
+
 /**
- * What a widget is made of, read by the parser (not by matching text): its title and the names of the
- * components inside it, e.g. { title: "What the annuity is worth today", components: ["Slider", "AnnuityChart"] }.
+ * What a widget is made of, read by the parser (not by matching text): its title; the names of the components
+ * inside it, deep through Stacks, Cards and Tabs, in the order written (a GuidedTasks' own tasks are read by
+ * widgetTaskTexts instead); the Widget tools its Queries call; and the Case Data references its
+ * Query("case_data") calls read. E.g. { title: "What the annuity is worth today", components: ["Slider",
+ * "AnnuityChart"], tools: [], datasets: [] }.
  */
-export function widgetParts(code: string): { title: string | null; components: string[] } {
+export function widgetParts(code: string): WidgetParts {
   try {
-    const root = parser.parse(code).root;
+    const result = parser.parse(code);
+    const root = result.root;
     const title = typeof root?.props.title === "string" ? root.props.title : null;
-    const children: unknown[] = Array.isArray(root?.props.children) ? root.props.children : [];
-    const components = children.flatMap((c) => {
-      const name = c && typeof c === "object" ? (c as { typeName?: unknown }).typeName : undefined;
-      return typeof name === "string" ? [name] : [];
+    const components = [...walkNodes(root?.props.children)].map((n) => n.typeName).filter((name) => name !== "GuidedTask");
+    const calls = result.queryStatements.flatMap((q) => {
+      const tool = q.toolAST?.k === "Str" ? q.toolAST.v : undefined;
+      return isWidgetToolName(tool) ? [{ tool, args: literalValue(q.argsAST) }] : [];
     });
-    return { title, components };
+    const datasets = calls.flatMap(({ tool, args }) => {
+      const dataset = tool === "case_data" && isRecord(args) ? args.dataset : undefined;
+      return typeof dataset === "string" && CASE_DATA_REFERENCE.test(dataset) ? [dataset] : [];
+    });
+    return { title, components, tools: [...new Set(calls.map((c) => c.tool))], datasets: [...new Set(datasets)] };
   } catch {
-    return { title: null, components: [] };
+    return { title: null, components: [], tools: [], datasets: [] };
   }
 }
 

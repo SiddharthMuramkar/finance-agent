@@ -62,12 +62,24 @@ export function useExploreAnchor(explore: unknown, tutorWidgetCount: number): nu
   return anchor ?? tutorWidgetCount;
 }
 
-/** What a Widget's components show, for the card's eyebrow: read by the parser, else the current Topic's title. */
+/** OpenUI's ready-made charts and table, which draw whatever numbers they are given. */
+const KIT_FIGURES = new Set(["Table", "BarChart", "LineChart", "AreaChart", "HorizontalBarChart", "RadarChart", "PieChart", "RadialChart", "SingleStackedBarChart", "ScatterChart"]);
+
+/**
+ * What a Widget shows, for the card's eyebrow, read by the parser: the code its numbers come from (a component or
+ * Widget tool of ours: Present value, Case Data, Calculator, Formula); else "Illustration", for a ready-made chart
+ * or table whose numbers none of our code supplies, so the Tutor typed them as a made-up example; else the
+ * current Topic's title.
+ */
 export function widgetConcept(code: string, topicTitle: string | undefined): string {
-  const { components } = widgetParts(code);
-  if (components.includes("AnnuityChart")) return "Present value";
-  if (components.includes("HistoryChart")) return "Case Data";
-  if (components.includes("Calculator")) return "Calculator";
+  const { components, tools } = widgetParts(code);
+  const parts = new Set<string>([...components, ...tools]);
+  const uses = (...names: string[]) => names.some((name) => parts.has(name));
+  if (uses("AnnuityChart", "annuity_schedule")) return "Present value";
+  if (uses("HistoryChart", "case_data")) return "Case Data";
+  if (uses("Calculator", "calculate", "calculate_range")) return "Calculator";
+  if (uses("FormulaCard")) return "Formula";
+  if (components.some((name) => KIT_FIGURES.has(name))) return "Illustration";
   return topicTitle ?? "Widget";
 }
 
