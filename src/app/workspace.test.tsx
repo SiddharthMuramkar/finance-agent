@@ -26,7 +26,7 @@ const choices = [
   { id: "a", text: "Twenty-five" },
   { id: "b", text: "Zero point two five" },
 ];
-const quiz = { attemptId: 1, checkId: "c", attemptNo: 0, questions: [{ id: "q", prompt: "How many basis points?", choices }] };
+const quiz = { attemptId: 1, checkId: "c", checkNumber: 1, checkCount: 2, attemptNo: 0, questions: [{ id: "q", prompt: "How many basis points?", choices }] };
 
 function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
   return renderToStaticMarkup(
@@ -66,11 +66,12 @@ describe("the workspace's left column", () => {
     expect(text(workspace())).not.toContain("Spaced review");
   });
 
-  it("folds an open quiz into one row, and leaves it out when there is none", () => {
-    const open = text(workspace({ quiz }));
-    expect(open).toContain("Quiz Check open");
-    expect(open).toContain("Submit answers");
-    expect(text(workspace())).not.toContain("Quiz Check");
+  it("has no folded quiz bar: an open quiz is not in the left column", () => {
+    const html = workspace({ quiz });
+    const left = text(html.slice(0, html.indexOf('data-testid="widget-pane"')));
+    expect(left).not.toContain("Quiz Check open");
+    expect(left).not.toContain("How many basis points?");
+    expect(left).not.toContain("Submit answers");
   });
 
   it("puts a Widget chip where a Widget belongs in a reply, never the Widget itself", () => {
@@ -98,6 +99,42 @@ describe("the workspace's left column", () => {
 
   it("has a composer that asks the Tutor", () => {
     expect(workspace()).toContain('placeholder="Ask the Tutor"');
+  });
+});
+
+describe("a quiz Check in the right panel", () => {
+  const pane = (html: string) => html.slice(html.indexOf('data-testid="widget-pane"'));
+
+  it("opens as a tab named Check k of N, selected automatically, showing the questions", () => {
+    const html = pane(workspace({ quiz }));
+    expect(html).toMatch(/<button[^>]*aria-pressed="true"[^>]*>(<[^>]+>)*Check 1 of 2</);
+    expect(text(html)).toContain("How many basis points?");
+    expect(text(html)).toContain("Submit answers");
+  });
+
+  it("stays the selected tab when the Tutor has drawn Widgets, which keep their own tabs", () => {
+    const initial: Line[] = [{ role: "assistant", text: fence(ANNUITY) }];
+    const html = pane(workspace({ quiz, initial }));
+    expect(html).toMatch(/<button[^>]*aria-pressed="true"[^>]*>(<[^>]+>)*Check 1 of 2</);
+    expect(html).toMatch(/<button[^>]*aria-pressed="false"[^>]*title="What the annuity is worth today"/);
+    expect(text(html)).toContain("How many basis points?");
+    expect(text(html)).not.toContain("Discount rate");
+  });
+
+  it("puts the quiz rule above the message box while the quiz is open, and the box stays usable", () => {
+    const note = "Quiz open: the Tutor will help with these questions after you submit.";
+    const html = workspace({ quiz });
+    const left = html.slice(0, html.indexOf('data-testid="widget-pane"'));
+    expect(text(left)).toContain(note);
+    // Above the box: after the thread and the paste panel, before the box itself.
+    expect(left.indexOf(note)).toBeGreaterThan(left.indexOf('data-testid="paste-panel"'));
+    expect(left.indexOf(note)).toBeLessThan(left.indexOf('placeholder="Ask the Tutor"'));
+    expect(left.match(/<textarea[^>]*placeholder="Ask the Tutor"[^>]*>/)?.[0]).not.toMatch(/\bdisabled\b/);
+    expect(text(workspace())).not.toContain(note);
+  });
+
+  it("has no Check tab when no quiz is open", () => {
+    expect(text(workspace())).not.toMatch(/Check \d of \d/);
   });
 });
 

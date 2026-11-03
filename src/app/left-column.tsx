@@ -1,10 +1,8 @@
 "use client";
 
 import { ThreadPrimitive } from "@assistant-ui/react";
-import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import { MessageBox, PastePanel, pastePreview } from "./message-box";
-import { QuizPanel } from "./quiz-panel";
 import type { WidgetSlot } from "./reply-markdown";
 import { ReviewPanel } from "./review-panel";
 import { ThreadMessages } from "./thread";
@@ -15,7 +13,8 @@ import { StatusCard, type Place } from "./workspace-parts";
 
 /**
  * The Study Workspace's left column, top to bottom: the status card, the pinned explore Widget, the folded
- * review and quiz, the thread with the turn's notices, error and Retry, the paste panel, and the message box.
+ * review, the thread with the turn's notices, error and Retry, the paste panel, the quiz note while a quiz is
+ * open (the quiz itself is in the right panel's Check tab), and the message box.
  * It shows the turn stream's state and starts turns through it; Widget chips come from the Widget host's `slot`.
  */
 export function LeftColumn({
@@ -24,7 +23,7 @@ export function LeftColumn({
   summary,
   place,
   review,
-  quiz,
+  quizOpen,
   explore,
 }: {
   turn: TurnStream;
@@ -32,7 +31,7 @@ export function LeftColumn({
   summary: string;
   place: Place;
   review: ReviewState;
-  quiz: OpenQuiz | null;
+  quizOpen: boolean;
   explore: { code: string } | null;
 }) {
   const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, send } = turn;
@@ -42,7 +41,6 @@ export function LeftColumn({
         <StatusCard place={place} summary={summary} onContinue={() => void send({ continue: true }, "Continue.")} disabled={running} />
         {explore && <PinnedExplore item={exploreItem(explore.code)} />}
         <ReviewPanel review={review} />
-        <QuizPanel quiz={quiz} />
       </div>
       <ThreadPrimitive.Viewport className="min-h-0 flex-1 overflow-y-auto pb-6">
         <div className="flex flex-col gap-4">
@@ -75,6 +73,12 @@ export function LeftColumn({
       <p role="status" aria-live="polite" className="sr-only" data-testid="turn-status">
         {announcement}
       </p>
+      {quizOpen && (
+        // The box stays usable: the Learner can still ask about anything else while the quiz is open.
+        <p className="mb-2 text-xs leading-4 text-[var(--muted)]" data-testid="quiz-note">
+          Quiz open: the Tutor will help with these questions after you submit.
+        </p>
+      )}
       <MessageBox />
     </ThreadPrimitive.Root>
   );
