@@ -5,6 +5,9 @@ import { ACCESS_COOKIE, hasAccess } from "@/auth/passcode";
 /** The only files a signed-out visitor may fetch besides Home: its screenshots. */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
+/** Signing out works signed in or out, so a Learner already signed out in another tab still lands on Home. */
+const SIGN_OUT = "/api/logout";
+
 /** Next.js's own query parameters (such as `_rsc`), never part of a page the Learner meant to open. */
 const isInternalParam = (key: string) => key === "_rsc" || key.startsWith("__next");
 
@@ -17,7 +20,7 @@ function rememberedPage(url: URL): string | null {
 /**
  * Every page and API route needs the passcode cookie.
  * Signed out, only a plain GET or HEAD of "/" (Home), its images and exactly the
- * login page get through. Other pages redirect to the login, remembering a GET or HEAD's page as `next`.
+ * login page get through, and a POST to exactly the sign-out route. Other pages redirect to the login, remembering a GET or HEAD's page as `next`.
  * Signed in, a GET or HEAD of the login page skips the form and goes to the safe `next`, or /study.
  */
 export async function proxy(request: NextRequest) {
@@ -38,6 +41,7 @@ export async function proxy(request: NextRequest) {
   }
   // The login page must match exactly: anything looser and the final redirect below would loop.
   if (read && (pathname === "/" || pathname === "/login" || LANDING_ASSET.test(pathname))) return NextResponse.next();
+  if (request.method === "POST" && pathname === SIGN_OUT) return NextResponse.next();
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Passcode required" }, { status: 401 });
   }

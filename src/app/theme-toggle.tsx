@@ -17,7 +17,7 @@ export function ThemeToggle({ initial }: { initial: Theme }) {
     <button
       type="button"
       onClick={toggle}
-      className="py-2 text-sm leading-5 text-[var(--muted)] transition-colors duration-200 hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+      className="whitespace-nowrap py-2 text-sm leading-5 text-[var(--muted)] transition-colors duration-200 hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
       aria-label="Switch dark or light mode"
     >
       {theme === "dark" ? "Light mode" : "Dark mode"}

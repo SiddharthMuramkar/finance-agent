@@ -57,6 +57,12 @@ describe("Landing page", () => {
     expect(text).toContain(copy.footer);
   });
 
+  it("offers no Sign out when signed out", () => {
+    const html = renderToStaticMarkup(<LandingView stats={{ topics: "1 of 2", cases: 1, librarySources: 1 }} />);
+    expect(html).not.toContain("Sign out");
+    expect(html).not.toContain("/api/logout");
+  });
+
   it("puts the stats after the screenshot, so they never cover it", () => {
     expect(html.indexOf("</figure>")).toBeGreaterThan(0);
     expect(html.indexOf("</figure>")).toBeLessThan(html.indexOf("<dl"));
@@ -84,6 +90,11 @@ describe("Landing page, signed in", () => {
   it("offers Open Study Workspace in the hero and Study Workspace in the top bar, both to /study", () => {
     expect(inHtml).toMatch(/<a[^>]*href="\/study"[^>]*>Open Study Workspace<\/a>/);
     expect(inHtml).toMatch(/<a[^>]*href="\/study"[^>]*>Study Workspace<\/a>/);
+  });
+
+  it("offers Sign out beside Study Workspace in the top bar, as a form posting to the sign-out route", () => {
+    const topBar = inHtml.slice(inHtml.indexOf("<header"), inHtml.indexOf("</header>"));
+    expect(topBar).toMatch(/href="\/study"[^>]*>Study Workspace<\/a><form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
   });
 
   it("never says Sign in or links to the login", () => {

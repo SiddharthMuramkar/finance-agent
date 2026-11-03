@@ -77,6 +77,27 @@ lands them in the Study Workspace instead.
 any of them would turn the sign-in page into a way to send the Learner to another site. The rule only
 allows paths, so a destination can never be another of the owner's own domains, which isn't needed.
 
+**The sign-out door** (`src/app/api/logout/route.ts`). Signed in or out, a POST to exactly
+`/api/logout` gets through the proxy; a GET, or a path that merely starts with it (`/api/logout/x`,
+`/api/logoutx`), still answers 401, and the Server Action refusal still runs first. The route itself
+signs out only a request this site sent: if the browser sends `Sec-Fetch-Site`, only `same-origin`
+counts; if not, the `Origin` header must equal the address the request was sent to (scheme, host and
+port, read from the request, never a hard-coded domain). Anything else, including `Origin: null` or
+no `Origin` at all, gets a short 403 and the cookie is left alone. A same-origin POST gets the
+passcode cookie back with an empty value, an expiry in 1970, path `/`, no Domain and the same flags
+the sign-in route uses, then a 303 to `/`. A GET or HEAD answers 405. It never touches the database.
+
+*Scenario.* The Learner presses Sign out in the header. The browser posts the form, the cookie is
+expired, and the 303 reloads Home with "Sign in". If they had already signed out in another tab, the
+same thing happens rather than an error. A hostile page that auto-submits a form to `/api/logout`
+arrives as `cross-site` and gets 403, so the Learner stays signed in.
+
+*Trade-off.* Sign out is a button in a plain HTML form, never a link, so prefetching or a crawler
+can't sign anyone out, and it works without JavaScript. It clears only this browser's cookie: every
+device holds the same token, so other devices stay signed in, and changing `SESSION_SECRET` is still
+how to sign out everywhere. The apex address redirects to www, so a POST sent to the apex is refused;
+real sign-outs always come from www pages.
+
 **Guessing is limited** (`src/auth/login-guard.ts`, table `login_failures`). Each wrong passcode
 is saved as the caller's address and the time (never the guess). After five wrong guesses from one
 address in 15 minutes, that address is refused, even with the right passcode, until the window
@@ -393,7 +414,13 @@ eyebrow, pills, chips, buttons, card, callout, key/value row, the app header, th
 and the phone-note frame. The reading-page shell (Course Map, Progress, Past Sessions, Passage) puts
 the header in the same wide box as the workspace, so the title and links never shift between pages,
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
-those pages. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
+those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
+Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Dark mode ·
+Sign out. The current page's link is marked (`aria-current`), the Study Workspace included, and no
+other link points at `/`. Sign out (`SignOutButton`) is a plain form posting to `/api/logout`, styled
+like the links; Home's signed-in top bar uses the same button. The gaps shrink below 1024px so the
+row stays on one line from 768px, with room for the Notes link (#69) between Past Sessions and the
+theme toggle. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
 group that moves focus to "Go ahead" (Escape or "Not now" gives focus back), the cited sentence on a
 Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
@@ -1414,7 +1441,9 @@ Study Workspace is: a headline, a screenshot, three counts (Topics written of pl
 the outline, Library sources), the six Teaching Steps and "Every number has a source". Signed out, the
 hero and the top bar say "Sign in" (to `/login`). Signed in, it is the same page, but the hero button
 names the Learner's place and the top bar says "Study Workspace"; every one of them opens `/study`, where
-the Study Workspace now lives (demo mode with it: `/study?demo=1`). Signed out, the page reads no
+the Study Workspace now lives (demo mode with it: `/study?demo=1`). Beside the top bar's link sits Sign
+out, the same form as the app header's; on a phone it is the only Sign out, since signed-in pages
+there show only the bigger-screen note. Signed out, the page reads no
 Learner data and no Library text, only counts. All its words live in `copy.ts`, marked DRAFT, and a
 small "Draft" pill
 shows near the headline until the owner rewrites them.

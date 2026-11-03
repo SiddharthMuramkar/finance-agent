@@ -46,6 +46,16 @@ describe("The signed-out gate", () => {
     expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
   });
 
+  it("lets a signed-out POST reach exactly the sign-out route", async () => {
+    expect(allowed(await proxy(request("/api/logout", { method: "POST" })))).toBe(true);
+    expect((await proxy(request("/api/logout"))).status).toBe(401);
+    expect((await proxy(request("/api/logout", { method: "HEAD" }))).status).toBe(401);
+    for (const path of ["/api/logout/x", "/api/logoutx", "/api/logout/"]) {
+      expect((await proxy(request(path, { method: "POST" }))).status, path).toBe(401);
+    }
+    expect((await proxy(request("/api/logout", { method: "POST", headers: { "Next-Action": "abc" } }))).status).toBe(401);
+  });
+
   it("answers 401 on API routes", async () => {
     expect((await proxy(request("/api/turn", { method: "POST" }))).status).toBe(401);
     expect((await proxy(request("/api/turn"))).status).toBe(401);

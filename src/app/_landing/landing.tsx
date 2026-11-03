@@ -2,11 +2,13 @@ import { loadCourseMap } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
-import { Eyebrow, Pill } from "../ui";
+import { Eyebrow, Pill, SignOutButton } from "../ui";
 import { copy, DRAFT } from "./copy";
 import { landingStats, type LandingStats } from "./stats";
 
 const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
+
+const topBarLink = "text-sm text-[var(--muted)] hover:text-[var(--ink)]";
 
 /** The signed-in Learner's main button: what it says and, for Resume and Start, which Topic. Every one opens /study. */
 export type HomeButton = { kind: "resume" | "start"; topic: string } | { kind: "open" };
@@ -25,7 +27,7 @@ const buttonLabel = (b: HomeButton) => (b.kind === "open" ? copy.openStudyWorksp
 
 /**
  * Home, at "/". It shows counts only: no Learner data, no Library text. Signed out, the top bar and hero offer
- * Sign in; signed in (a `button` is given), the top bar links the Study Workspace and the hero button is `button`'s label.
+ * Sign in; signed in (a `button` is given), the top bar links the Study Workspace beside Sign out, and the hero button is `button`'s label.
  */
 export function LandingView({ stats, button }: { stats: LandingStats; button?: HomeButton }) {
   const signedIn = button !== undefined;
@@ -39,9 +41,18 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <span className="text-base font-semibold">{copy.brand}</span>
-          <a href={signedIn ? "/study" : "/login"} className="text-sm text-[var(--muted)] hover:text-[var(--ink)]">
-            {signedIn ? copy.studyWorkspace : copy.signIn}
-          </a>
+          {signedIn ? (
+            <div className="flex items-center gap-4">
+              <a href="/study" className={topBarLink}>
+                {copy.studyWorkspace}
+              </a>
+              <SignOutButton className={topBarLink}>{copy.signOut}</SignOutButton>
+            </div>
+          ) : (
+            <a href="/login" className={topBarLink}>
+              {copy.signIn}
+            </a>
+          )}
         </div>
       </header>
 
