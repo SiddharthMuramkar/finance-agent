@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import type { WidgetSlot } from "./reply-markdown";
 import { DeveloperDetails, readOnlyLines, ReadOnlyThread, widgetsIn, withNextStepDividers, type Line } from "./thread";
+import type { WrittenAhead } from "@/course/written-ahead";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { primaryButtonClass } from "./ui";
 import { exploreItem, PinnedExplore, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
@@ -15,23 +16,28 @@ export type OldLine = Line;
  * the Widget panel on the right (controls at their starting values). A Session that reached the explore step shows the Topic's Explore Widget too. Where the composer would be there is a link
  * back to the workspace. No composer and no model call.
  */
+const NO_WRITTEN_AHEAD: readonly WrittenAhead[] = [];
+
 export function OldSession({
   lines: stored,
   topicTitle,
   explore = null,
+  writtenAhead = NO_WRITTEN_AHEAD,
   revealed = [],
   developerDetails = false,
 }: {
   lines: OldLine[];
   topicTitle?: string;
   explore?: { code: string } | null;
+  /** The Topic's written-ahead Widgets (loadWrittenAhead): one the Tutor opened in this Session is drawn from these. */
+  writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen, for the page's shared Case Data cache. */
   revealed?: readonly string[];
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
 }) {
   const lines = useMemo(() => withNextStepDividers(stored), [stored]);
-  const tutorWidgets = useMemo(() => widgetsIn(readOnlyLines(lines)), [lines]);
+  const tutorWidgets = useMemo(() => widgetsIn(readOnlyLines(lines), false, writtenAhead), [lines, writtenAhead]);
   const sessionId = lines.flatMap((l) => (l.role !== "item" && l.ref ? [l.ref.sessionId] : []))[0];
   const widgets = useMemo(() => withExplore(tutorWidgets, explore, tutorWidgets.length, sessionId), [tutorWidgets, explore, sessionId]);
   const picker = useWidgetPicker(widgets);

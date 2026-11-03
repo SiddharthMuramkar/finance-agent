@@ -2,6 +2,7 @@
 
 import { AssistantRuntimeProvider, MessagePrimitive, ThreadPrimitive, useAuiState, useExternalStoreRuntime, type ThreadMessageLike } from "@assistant-ui/react";
 import { createContext, useContext, type ReactNode } from "react";
+import { WIDGET_OPENED, type WrittenAhead } from "@/course/written-ahead";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import { SaveToNotes } from "./save-to-notes";
@@ -38,13 +39,22 @@ export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)
   return lines.map((l) => (l.role === "user" && l.text.trim() === "Continue." ? { role: "item", kind: "next_step", data: {} } : l));
 }
 
-/** Every Widget in the conversation, numbered in order. Keys match the slot's `${messageId}:${index}`. */
-export function widgetsIn(messages: ThreadLine[], running = false): WidgetItem[] {
+/**
+ * Every Widget in the conversation, numbered in order. Keys match the slot's `${messageId}:${index}`. A written-ahead
+ * Widget the Tutor opened (a WIDGET_OPENED item) is drawn with its code from `writtenAhead`, under the item's own key
+ * (`${itemId}:0`); one the Topic no longer has is left out.
+ */
+export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead: readonly WrittenAhead[] = []): WidgetItem[] {
   const out: WidgetItem[] = [];
   // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them for Save to notes.
   let inReply = 0;
   let continues = false;
   messages.forEach((m, i) => {
+    if (m.role === "item" && m.kind === WIDGET_OPENED) {
+      const widget = writtenAhead.find((w) => w.id === m.data.id);
+      if (widget) out.push({ key: `${m.id}:0`, number: out.length + 1, code: widget.code, complete: true, writtenAhead: widget.id });
+      return;
+    }
     if (m.role !== "assistant") return;
     const streaming = running && i === messages.length - 1;
     if (!continues) inReply = 0;
@@ -85,7 +95,10 @@ const ThreadContext = createContext<{ slot: WidgetSlot; usages: Map<string, Turn
 /** A Session item, which assistant-ui carries as a system message: drawn by its kind, with no label or bubble. */
 function ItemMessage() {
   const id = useAuiState((s) => s.message.id);
-  const item = useContext(ThreadContext).items.get(id);
+  const { items, slot } = useContext(ThreadContext);
+  const item = items.get(id);
+  // A written-ahead Widget the Tutor opened stands where it was opened as its chip, as a Widget in a reply does.
+  if (item?.kind === WIDGET_OPENED) return slot({ messageId: id, index: 0, code: "", complete: true });
   return item ? <SessionItemView item={item} /> : null;
 }
 

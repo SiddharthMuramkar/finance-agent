@@ -25,6 +25,8 @@ export type WidgetItem = {
   code: string;
   complete: boolean;
   explore?: true;
+  /** A written-ahead Widget the Tutor opened: its id in the Topic file, which is its Widget key. */
+  writtenAhead?: string;
   save?: SaveTarget & { kind: "widget" };
   /** The keys of earlier Widgets with the same title that this one updated in place (see updatedInPlace). */
   replaces?: string[];
@@ -169,7 +171,7 @@ export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?:
   const loadCase = useCaseLoad();
   const store = useWidgetStore();
   // Only a finished Widget has a key: a streaming one's title may not be complete yet.
-  const key = store && item.complete ? widgetKey(widgetParts(item.code).title, item.explore) : undefined;
+  const key = store && item.complete ? (item.writtenAhead ?? widgetKey(widgetParts(item.code).title, item.explore)) : undefined;
   // What it starts from is read once, as it mounts: later saves come from the Widget itself.
   const [start] = useState(() => (key ? store?.saved(key) : undefined));
   // The ticked Guided Tasks so far, kept here too, so Tell the Tutor what I found shows the moment the last one ticks.

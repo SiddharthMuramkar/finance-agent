@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { TOPIC_START } from "@/course/topic-start";
 import type { NextName } from "@/tutor/next";
-import { replaceBrokenWidgets } from "@/widgets/check";
+import { replaceBrokenWidgets, withoutLeftOut } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
@@ -130,11 +130,22 @@ export function useTurnStream({
       return [...m, { id: firstId, role: "assistant", text: "" }];
     });
     const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId && x.role !== "item" ? { ...x, text: f(x.text) } : x)));
-    /** Draws a Session item where the reply has got to: before the reply if it has no text yet, else between two parts of it. */
-    const addItem = (item: SessionItemData) => {
+    /**
+     * Draws a Session item where the reply has got to: before the reply if it has no text yet, else between two parts of
+     * it. `after`: straight after the reply part, which carries on unsplit (a correction's item; its text never shows).
+     */
+    const addItem = (item: SessionItemData, after = false) => {
       const at = replyId;
       const part = `${firstId}-${partIds.length}`;
       const itemLine: ThreadLine = { id: `${part}-item`, role: "item", ...item };
+      if (after) {
+        partIds.push(part);
+        setMessages((m) => {
+          const i = m.findIndex((x) => x.id === at);
+          return i < 0 ? [...m, itemLine] : [...m.slice(0, i + 1), itemLine, ...m.slice(i + 1)];
+        });
+        return;
+      }
       setMessages((m) => {
         const i = m.findIndex((x) => x.id === at);
         const current = m[i];
@@ -201,6 +212,8 @@ export function useTurnStream({
         let correction: string | null = null;
         // Which of the reply's widgets the correction replaces, as the server named them.
         let flagged: number[] | undefined;
+        // False when the correction only leaves widgets out: no corrected block replaces anything then.
+        let replaces = true;
         const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
         let buffer = "";
         for (;;) {
@@ -217,10 +230,17 @@ export function useTurnStream({
             if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
             else if (event.type === "text") correction += event.text;
             else if (event.type === "replay") replaceReply(event.text);
-            else if (event.type === "item" && event.item) addItem(event.item as SessionItemData);
+            // An item the correction stores (a written-ahead Widget opened instead) stands after the reply it corrects.
+            else if (event.type === "item" && event.item) addItem(event.item as SessionItemData, correction !== null);
             else if (event.type === "correction") {
               correction = "";
-              flagged = Array.isArray(event.widgets) ? (event.widgets as number[]) : undefined;
+              const named = Array.isArray(event.widgets) ? (event.widgets as number[]) : undefined;
+              const leaveOut = Array.isArray(event.leaveOut) ? (event.leaveOut as number[]) : [];
+              // Widgets a written-ahead Widget covers leave the reply now; the corrected block replaces the others.
+              const after = withoutLeftOut("", named ?? [], leaveOut);
+              flagged = named && after.flagged;
+              replaces = after.left;
+              if (leaveOut.length) updateReply((t) => withoutLeftOut(t, named ?? [], leaveOut).text);
               setFixing(true);
             } else if (event.type === "done") {
               finished = true;
@@ -249,7 +269,7 @@ export function useTurnStream({
           }
         }
         // The corrected widget replaces the broken one on screen; history keeps both.
-        if (correction !== null) {
+        if (correction !== null && replaces) {
           const fix = correction;
           updateReply((t) => replaceBrokenWidgets(t, fix, flagged));
         }

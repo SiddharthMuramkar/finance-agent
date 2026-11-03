@@ -1,9 +1,11 @@
 import { createParser, type ASTNode, type LibraryJSONSchema, type ParseResult } from "@openuidev/lang-core";
 import { CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
+import type { CoveredParts } from "@/course/written-ahead";
 // The frozen schema alone: the browser draws widgets with this check, and needs none of the instructions' text.
 import frozenSchema from "./frozen-schema.generated.json";
 import { guidedTaskProblems, parsedTasks, walkNodes, type ParsedNode } from "./guided-tasks";
+import { sliderStep } from "./slider-steps";
 import { splitReply } from "./split";
 import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NAMES, type WidgetToolName } from "./tool-specs";
 
@@ -233,19 +235,87 @@ export function widgetRuleProblems(code: string, open: readonly string[] = []): 
 }
 
 /**
- * Everything wrong with each finished Widget of the reply being written, by widget position: what stops it
- * drawing, then the Widget rules (widgetRuleProblems). Each Widget is compared with the Widgets open before
- * the reply (`open`, their code) and with those earlier in the same reply. Widgets with no problem are left out.
+ * Everything a parsed Widget uses, for the written-ahead rule: the names of its components, the Widget tools its
+ * Queries call, and the calculators it runs (a Calculator's, or a calculate or calculate_range Query's).
  */
-export function newReplyWidgetProblems(text: string, open: readonly string[] = []): { index: number; problems: string[] }[] {
+function partsUsed(result: ParseResult): Set<string> {
+  const nodes = [...walkNodes(result.root?.props.children)];
+  const queries = writtenQueries(result);
+  const calculators = [
+    ...nodes.flatMap((n) => (n.typeName === "Calculator" && typeof n.props.calculator === "string" ? [n.props.calculator] : [])),
+    ...queries.flatMap(({ args }) => (isRecord(args) && typeof args.calculator === "string" ? [args.calculator] : [])),
+  ];
+  return new Set([...nodes.map((n) => n.typeName), ...queries.map((q) => q.tool), ...calculators]);
+}
+
+/** A part as the correction message names it: "the Compound annual growth rate calculator (cagr)", or the part's own name. */
+function partName(part: string): string {
+  const calculator = CALCULATORS.find((c) => c.id === part);
+  return calculator ? `the ${calculator.title} calculator (${part})` : part;
+}
+
+/**
+ * Ends each correction line for a Widget the Tutor drew of its own that a written-ahead Widget covers: such a Widget is
+ * left out of the reply (droppedWidgets), not replaced, and the Tutor opens the written-ahead one instead.
+ */
+export const LEAVE_OUT = "leave this widget out of your reply";
+
+/**
+ * The written-ahead rule (spec #119, "Code-backed Widget checks"): a Widget the Tutor draws may not use the parts a
+ * written-ahead Widget of the Topic covers (Percent: a growth-rate calculator; Present value: the annuity chart or
+ * schedule). The problem names the written-ahead Widget to open instead.
+ */
+export function writtenAheadPartProblems(code: string, covered: readonly CoveredParts[]): string[] {
+  if (!covered.length) return [];
+  let used: Set<string>;
+  let title: string | undefined;
+  try {
+    const result = parser.parse(code);
+    used = partsUsed(result);
+    title = typeof result.root?.props.title === "string" ? result.root.props.title.trim() : undefined;
+  } catch {
+    return [];
+  }
+  return covered.flatMap((w) => {
+    const shared = w.parts.filter((p) => used.has(p));
+    const open = `Never draw your own version: call open_widget with id "${w.id}" and ${LEAVE_OUT}.`;
+    if (shared.length) return [`this Widget uses ${shared.map(partName).join(" and ")}, which the written-ahead Widget "${w.title}" covers. ${open}`];
+    // Its own title would take the written-ahead Widget's tab, as an update in place does.
+    if (title === w.title) return [`this Widget has the title of the written-ahead Widget "${w.title}". ${open}`];
+    return [];
+  });
+}
+
+/**
+ * Everything wrong with each finished Widget of the reply being written, by widget position: what stops it
+ * drawing, then the Widget rules (widgetRuleProblems) and the written-ahead rule for the Topic's written-ahead
+ * Widgets (`covered`). Each Widget is compared with the Widgets open before the reply (`open`, their code) and with
+ * those earlier in the same reply. Widgets with no problem are left out.
+ */
+export function newReplyWidgetProblems(text: string, open: readonly string[] = [], covered: readonly CoveredParts[] = []): { index: number; problems: string[] }[] {
   const seen = [...open];
   return splitReply(text)
     .filter((s) => s.type === "widget")
     .flatMap((s, index) => {
-      const problems = [...widgetProblems(s.code), ...widgetRuleProblems(s.code, seen)];
+      const problems = [...widgetProblems(s.code), ...widgetRuleProblems(s.code, seen), ...writtenAheadPartProblems(s.code, covered)];
       seen.push(s.code);
       return problems.length ? [{ index, problems }] : [];
     });
+}
+
+/**
+ * The correction message code sends for the reply's flagged Widgets. When some are to be left out (the written-ahead
+ * rule), the Tutor writes no block for those; the others it writes again in full, in order.
+ */
+export function widgetCheckMessage(broken: readonly { index: number; problems: string[] }[]): string {
+  const problems = broken.flatMap((b) => b.problems.map((p) => `- Widget ${b.index + 1}: ${p}`));
+  const leaveOut = problems.some((p) => p.includes(LEAVE_OUT));
+  const close = !leaveOut
+    ? "Reply with only the corrected openui-lang block, written in full. Write no prose."
+    : broken.every((b) => b.problems.some((p) => p.includes(LEAVE_OUT)))
+      ? "Call open_widget as each line says. Write no openui-lang block and no prose."
+      : "Call open_widget as each line says, and write no block for a Widget to leave out. For each other Widget named, reply with only its corrected openui-lang block, written in full, in order. Write no prose.";
+  return `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn or breaks a Widget rule.\n${problems.join("\n")}\n${close}`;
 }
 
 const FENCE = /```openui-lang\n[\s\S]*?\n```/g;
@@ -256,6 +326,30 @@ const FENCE = /```openui-lang\n[\s\S]*?\n```/g;
  */
 export function flaggedWidgets(checkMessage: string): number[] {
   return [...new Set([...checkMessage.matchAll(/^- Widget (\d+):/gm)].map((m) => Number(m[1]) - 1))];
+}
+
+/** The widget positions (from 0) a correction message says to leave out of the reply: written-ahead Widgets cover them. */
+export function droppedWidgets(checkMessage: string): number[] {
+  return [...new Set([...checkMessage.matchAll(/^- Widget (\d+):.*$/gm)].filter((m) => m[0].includes(LEAVE_OUT)).map((m) => Number(m[1]) - 1))];
+}
+
+/**
+ * Takes the widgets a correction message leaves out (droppedWidgets) out of `text`, and gives the positions of the
+ * other flagged widgets as they stand after: those a correction reply then replaces (replaceBrokenWidgets). `left` is
+ * false when the message flagged only widgets to leave out, so no correction reply replaces anything.
+ */
+export function leaveOutWidgets(text: string, checkMessage: string): { text: string; flagged: number[]; left: boolean } {
+  return withoutLeftOut(text, flaggedWidgets(checkMessage), droppedWidgets(checkMessage));
+}
+
+/** leaveOutWidgets, given the flagged widgets and those of them to leave out (as the turn stream's correction event names them). */
+export function withoutLeftOut(text: string, flagged: readonly number[], leaveOut: readonly number[]): { text: string; flagged: number[]; left: boolean } {
+  const dropped = new Set(leaveOut);
+  if (!dropped.size) return { text, flagged: [...flagged], left: true };
+  let index = 0;
+  const kept = text.replace(FENCE, (block) => (dropped.has(index++) ? "" : block));
+  const remaining = flagged.filter((i) => !dropped.has(i)).map((i) => i - [...dropped].filter((d) => d < i).length);
+  return { text: kept, flagged: remaining, left: remaining.length > 0 };
 }
 
 /**
@@ -335,6 +429,28 @@ export function widgetParts(code: string): WidgetParts {
     return { title, components, tools: [...new Set(calls.map((c) => c.tool))], datasets: [...new Set(datasets)] };
   } catch {
     return { title: null, components: [], tools: [], datasets: [] };
+  }
+}
+
+/**
+ * What the Tutor is told about a Widget code opened for it: each slider's $variable, label, range, the step it
+ * moves by and its starting value, e.g. "$old (Old rate): 0 to 10 in steps of 0.01, starting at 5", then each Guided
+ * Task. Read by the parser, so it says only what the Widget can show.
+ */
+export function widgetControls(code: string): { sliders: string[]; tasks: string[] } {
+  try {
+    const result = parser.parse(code);
+    const start = result.stateDeclarations as Record<string, unknown>;
+    const sliders = [...walkNodes(result.root?.props.children)].flatMap((n) => {
+      const { label, min, max, step, unit } = n.props;
+      const variable = stateRefName(n.props.value);
+      if (n.typeName !== "Slider" || !variable || typeof min !== "number" || typeof max !== "number" || typeof step !== "number") return [];
+      const moves = sliderStep({ min, max, step, unit: typeof unit === "string" ? unit : undefined });
+      return [`${variable} (${typeof label === "string" ? label : variable}): ${min} to ${max} in steps of ${moves}, starting at ${start[variable]}`];
+    });
+    return { sliders, tasks: parsedTasks(result.root?.props.children).map((t) => t.text) };
+  } catch {
+    return { sliders: [], tasks: [] };
   }
 }
 

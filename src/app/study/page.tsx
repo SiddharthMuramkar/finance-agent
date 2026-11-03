@@ -19,6 +19,7 @@ import { comingBackItems } from "@/tutor/coming-back";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 import { loadThread } from "@/tutor/transcript";
 import { nextOfferNow } from "@/tutor/next";
+import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readTheme } from "../theme-cookie";
@@ -95,6 +96,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const place = current ? { stage: current.stage, title: current.title } : null;
   // The Topic Start card opens the Topic's conversation: worked out from course data now, never stored.
   const start = current ? topicStart(map, progress, current.id) : null;
+  // The shown Topic's written-ahead Widgets, as the Learner sees them now: those the Tutor opened are drawn from these.
+  const writtenAhead = await loadWrittenAhead(db, map, progress, current?.id);
   // A passed Topic on screen sends no turns: What comes next (from the Course Navigator's place) and the Course Map instead.
   const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
   const initial: Line[] = [
@@ -120,6 +123,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         review={review}
         place={place}
         explore={passed ? null : exploreWidgetFor(map, progress)}
+        writtenAhead={writtenAhead}
         revealed={revealedCases(map, progress)}
         shown={shown}
         widgetStates={widgetStates}

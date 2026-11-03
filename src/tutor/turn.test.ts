@@ -87,6 +87,7 @@ describe("Tutor Turn", () => {
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
+        { name: "open_widget" },
         { name: "calculate" },
         { name: "code_execution" },
       ]);

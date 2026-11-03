@@ -1,7 +1,7 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { flaggedWidgets, replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { leaveOutWidgets, replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { WIDGETS_PREFIX } from "@/widgets/widget-reading";
 import type { CaseDataset } from "@/case-data/case-data";
 import { loadCourseMap, type CourseMap } from "@/course/map";
@@ -34,17 +34,34 @@ export async function turnText(rows: Row[], turnSeq: number, deps: SourceDeps & 
   const ctx = await sourcesFor(deps, rows.filter((r) => r.seq > turnSeq && r.role === "assistant").map((r) => r.content));
   const marks = new CitationMarks();
   let text = "";
-  // The widgets the last correction message named, while its corrected reply is awaited.
-  let correcting: number[] | null = null;
+  // After a correction message: the widgets it names that a corrected block replaces, until one has.
+  let correcting: Correcting = undefined;
   for (const r of rows.filter((r) => r.seq > turnSeq)) {
-    if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) correcting = flaggedWidgets(textOf(r.content));
+    if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) {
+      // Widgets a written-ahead Widget covers leave the reply at once; the Tutor opens that one instead.
+      const out = leaveOutWidgets(text, textOf(r.content));
+      text = out.text;
+      correcting = out.left ? { flagged: out.flagged } : "done";
+    }
     if (r.role !== "assistant") continue;
     const added = displayText(r.content, correcting ? new CitationMarks() : marks);
-    text = correcting ? replaceBrokenWidgets(text, added, correcting) : text && added ? text + PARAGRAPH + added : text + added;
-    correcting = null;
+    if (correcting === undefined) text = text && added ? text + PARAGRAPH + added : text + added;
+    else if (correcting !== "done" && hasWidgetBlock(added)) {
+      text = replaceBrokenWidgets(text, added, correcting.flagged);
+      correcting = "done";
+    }
   }
   return text ? text + replyFold(marks, text, ctx) : text;
 }
+
+/**
+ * Where a turn's widget correction stands: no correction message yet (undefined), the widgets it named that its
+ * corrected block replaces (positions from 0, after any left out), or done. Everything the Tutor writes after a
+ * correction message is the correction: only its widget blocks are used, never its prose.
+ */
+type Correcting = { flagged: number[] } | "done" | undefined;
+
+const hasWidgetBlock = (text: string) => text.includes("```openui-lang\n");
 
 /** Which Session and turn a reply belongs to (the turn is the seq of the Learner's message that began it): what "Save to notes" keys on. */
 export type TurnRef = { sessionId: number; turnSeq: number };
@@ -111,8 +128,8 @@ async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefi
   const lines: (Line & { turnSeq?: number; marks?: CitationMarks; topic?: string })[] = [];
   // The Topic the Tutor's context named by each reply: its Case Data credits follow that Topic, not today's.
   let topic: string | undefined;
-  // The widgets the last correction message named, while its corrected reply is awaited.
-  let correcting: number[] | null = null;
+  // After a correction message: the widgets it named that its corrected block replaces, until one has.
+  let correcting: Correcting = undefined;
   let turnSeq = 0;
   // The last row drawn-or-skipped was a code-written note, so the next reply starts its own line.
   let newTurn = false;
@@ -136,31 +153,36 @@ async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefi
   for (const m of rows as (Message & { seq: number })[]) {
     while (nextItem < items.length && items[nextItem].afterSeq < m.seq) waiting.push(nextItem++);
     topic = topicTitleIn(m.content) ?? topic;
-    const fix = correcting !== null && m.role === "assistant";
+    const fix = correcting !== undefined && m.role === "assistant";
     // A reply is shown with its citation markers; its sources are added once the reply is complete.
     const marks = fix ? new CitationMarks() : (lines.at(-1)?.role === "assistant" ? lines.at(-1)!.marks : undefined) ?? new CitationMarks();
     const text = m.role === "assistant" ? displayText(m.content, marks) : textOf(m.content);
     if (!text || m.role === "system") continue;
+    const target = lines.findLast((l) => l.role === "assistant");
     if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
-      correcting = flaggedWidgets(text);
+      // Widgets a written-ahead Widget covers leave the reply at once; the Tutor opens that one instead.
+      const out = leaveOutWidgets(target?.text ?? "", text);
+      if (target) target.text = out.text;
+      correcting = out.left ? { flagged: out.flagged } : "done";
       continue;
     }
+    if (m.role === "user") correcting = undefined;
     // A note code wrote (an opener's, a Next's) is not the Learner's: it starts the turn but is never drawn as a bubble.
     if (m.role === "user" && isCodeWritten(text)) {
       turnSeq = m.seq;
       newTurn = true;
       continue;
     }
-    const flagged = correcting ?? undefined;
-    correcting = null;
     const last = lines.at(-1);
     // A reply after a code-written note is a new turn's: it never carries on the reply before the note.
     const continues = !newTurn;
     newTurn = false;
     if (fix) {
-      const target = lines.findLast((l) => l.role === "assistant");
-      if (target) target.text = replaceBrokenWidgets(target.text, text, flagged);
+      // Everything after a correction message is the correction: its first widget block replaces the flagged widgets.
+      if (correcting === "done" || !hasWidgetBlock(text)) continue;
+      if (target) target.text = replaceBrokenWidgets(target.text, text, correcting?.flagged);
       else push({ role: m.role, text, turnSeq, marks });
+      correcting = "done";
     } else if (m.role === "assistant" && last?.role === "assistant" && continues) {
       // Items waiting here fall inside this reply: marked in its text, which is cut there once the reply is complete.
       last.text += (waiting.length ? waiting.splice(0).map(itemMark).join("") : PARAGRAPH) + text;

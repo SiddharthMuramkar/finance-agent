@@ -95,6 +95,10 @@ _Avoid_: Landing page, dashboard, start page
 An interactive picture beside the conversation, either written ahead for a Topic or built by the Tutor: charts, tables, sliders and calculators whose numbers come from code, or a labelled Illustration. A Widget in the Study Workspace belongs to one Topic's Session. With each message, chip and Next the Tutor is told what the open Widgets show (their slider values, ticked Guided Tasks and readouts worked out by code), and once all of a Widget's Guided Tasks are ticked the Learner can press Tell the Tutor what I found, which posts a message code writes (a widget report).
 _Avoid_: artifact, card (on its own)
 
+**Written-ahead Widget**:
+A Widget written in a Topic's file, such as Percent's "One rate change, said three ways". The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.
+_Avoid_: template, preset Widget
+
 **Widget tool**:
 A small piece of our code a Widget calls in the browser to get real numbers (Case Data, a calculator, a range of answers, an annuity schedule), so moving a slider redraws without asking the Tutor.
 _Avoid_: API, query

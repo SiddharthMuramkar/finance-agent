@@ -6,7 +6,10 @@ import { loadCaseData } from "@/case-data/case-data";
 import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
-import { OWNER_LEARNER_ID, toolCalls, turns } from "@/db/schema";
+import { WIDGET_OPENED } from "@/course/written-ahead";
+import { OWNER_LEARNER_ID, sessions, toolCalls, turns } from "@/db/schema";
+import { widgetControls } from "@/widgets/check";
+import { loadWrittenAhead } from "./written-ahead";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
@@ -174,6 +177,7 @@ export function toolCode(
     return outcome.text;
   }
 
+  const openInput = z.object({ id: z.string().min(1) });
   const calculateInput = z.object({ calculator: z.string(), inputs: z.unknown(), currency: z.enum(["usd", "inr"]).optional() });
 
   return {
@@ -273,6 +277,29 @@ export function toolCode(
             ok: true,
             text: `Recorded by code: not yet (hint ${n}). ${quoted}\nHint ${n} for the Learner: ${saved.hint!.trim()}\nGive this hint in your own words, point to what to try in the Widget, and do not state the Insight. ${WRITE_AFTER}`,
           };
+        }),
+    },
+    open_widget: {
+      parse: (input) => openInput.parse(input),
+      run: ({ id }, context) =>
+        once(context?.toolUse.id, "open_widget", async (tx) => {
+          // The Topic of the Session this turn runs in: its written-ahead Widgets are the ones that can be opened.
+          const [row] = await tx.select({ sessionId: turns.sessionId, topicId: sessions.topicId }).from(turns).leftJoin(sessions, eq(sessions.id, turns.sessionId)).where(eq(turns.id, turnId));
+          const topicId = row?.topicId ?? navigate(map, await loadProgress(tx, learnerId))?.topic.id;
+          const widgets = await loadWrittenAhead(tx, map, await loadProgress(tx, learnerId), topicId);
+          const widget = widgets.find((w) => w.id === id);
+          if (!widget || row?.sessionId == null) {
+            return { ok: false, text: `Not opened: this Topic has no written-ahead Widget "${id}". Its written-ahead Widgets: ${widgets.map((w) => w.id).join(", ") || "none"}.` };
+          }
+          const item = { kind: WIDGET_OPENED, data: { id: widget.id, title: widget.title } };
+          await saveItemAfterLatest(tx, learnerId, row.sessionId, item, now());
+          const { sliders, tasks } = widgetControls(widget.code);
+          const lines = [
+            `Opened by code: "${widget.title}" is in the Widget panel, with a chip where you opened it. Point the Learner to it; do not draw a Widget of your own for the same idea. Ask only for numbers its sliders can show.`,
+            ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
+            ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
+          ];
+          return { ok: true, text: lines.join("\n"), item };
         }),
     },
     finish_teaching_step: {

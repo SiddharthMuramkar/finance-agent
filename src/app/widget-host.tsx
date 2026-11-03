@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { WrittenAhead } from "@/course/written-ahead";
 import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import { checkTabName, QuizPanel, type QuizSubmitted } from "./quiz-panel";
 import type { WidgetSlot } from "./reply-markdown";
@@ -9,6 +10,8 @@ import { holdsKey, updatedInPlace, useExploreAnchor, useWidgetPicker, WidgetChip
 
 /** The picker's key for the Check tab; no Widget's key looks like it (theirs are `${messageId}:${index}` or "explore"). */
 const CHECK_KEY = "check";
+
+const NONE: readonly WrittenAhead[] = [];
 
 /**
  * The host for the Study Workspace's Widget panel: which Widgets the conversation holds (the Tutor's, plus the
@@ -27,6 +30,7 @@ export function useWidgetHost({
   running,
   explore,
   quiz = null,
+  writtenAhead = NONE,
   missed = null,
   onQuizSubmitted,
 }: {
@@ -34,11 +38,13 @@ export function useWidgetHost({
   running: boolean;
   explore: { code: string } | null;
   quiz?: OpenQuiz | null;
+  /** The Topic's written-ahead Widgets as the Learner sees them now; those the Tutor opened are drawn. */
+  writtenAhead?: readonly WrittenAhead[];
   missed?: MissedQuiz | null;
   /** A quiz was marked: the conversation draws its result card, and after a miss starts the Tutor's follow-up. */
   onQuizSubmitted?: (submitted: QuizSubmitted) => void;
 }) {
-  const tutorWidgets = useMemo(() => widgetsIn(messages, running), [messages, running]);
+  const tutorWidgets = useMemo(() => widgetsIn(messages, running, writtenAhead), [messages, running, writtenAhead]);
   const exploreAnchor = useExploreAnchor(explore, tutorWidgets.length);
   // In drawing order; a Widget the Tutor draws again under the same title then takes the earlier one's tab.
   const drawn = useMemo(() => withExplore(tutorWidgets, explore, exploreAnchor), [tutorWidgets, explore, exploreAnchor]);

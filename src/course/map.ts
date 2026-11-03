@@ -5,6 +5,7 @@ import { z } from "zod";
 import { FORMULA_IDS } from "../finance/formula-ids.ts";
 import { markerProblems } from "../finance/formula-markers.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
+import { widgetCodeTitle } from "./written-ahead.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
 // can run it directly with Node's type stripping.
@@ -107,6 +108,39 @@ const exploreSchema = z.object({
 
 export type Insight = z.infer<typeof insightSchema>;
 
+/**
+ * A written-ahead Widget (spec #119, "Widgets › Written-ahead Widgets"): a Widget written in the Topic file,
+ * which the Tutor opens by id with its open_widget tool and never draws a version of its own.
+ * See src/course/written-ahead.ts.
+ */
+const writtenAheadSchema = z.object({
+  id,
+  /** The Widget in OpenUI code; its title is the one its root Widget("...") gives. */
+  code: z.string().min(1),
+  /**
+   * What a Widget the Tutor draws may not use in this Topic, because this Widget covers it: one of our parts
+   * ("AnnuityChart"), a Widget tool ("annuity_schedule") or a calculator id ("cagr").
+   */
+  parts: z.array(z.string().min(1)).default([]),
+  /**
+   * A Guided Task that joins the Widget's GuidedTasks once the Case's reveal has been shown, with the move its
+   * dataset made across the Case's as-of date: {before} is the last value on or before it, {after} the first after.
+   * Before the reveal the as-of rule withholds the "after" value, so the task does not appear.
+   */
+  revealTask: z
+    .object({
+      case: id,
+      dataset: id,
+      /** The task's words, e.g. "Set the move of February 1994: from {before}% to {after}%". */
+      text: z.string().min(1),
+      /** Its condition in OpenUI code, e.g. "$old == {before} && $new == {after}". */
+      done: z.string().min(1),
+    })
+    .optional(),
+});
+
+export type WrittenAheadSpec = z.infer<typeof writtenAheadSchema>;
+
 export { STAGES };
 
 /** A link from a Topic's idea to others, given at the principle step. Plain words only: figures belong to the Case Data. */
@@ -143,6 +177,8 @@ const topicSchema = z.object({
   /** The Topic's Insight and the explore step that leads the Learner to it; both or neither. */
   insight: insightSchema.optional(),
   explore: exploreSchema.optional(),
+  /** The Topic's written-ahead Widgets, which the Tutor opens by id (src/course/written-ahead.ts). */
+  widgets: z.array(writtenAheadSchema).default([]),
   /** Two or three Connections the Tutor gives at the principle step. Optional. */
   connections: z
     .array(connectionSchema)
@@ -244,7 +280,7 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
   for (const t of topics) {
     errors.push(...connectionProblems(t, titles));
     if (t.checks.length === 0) errors.push(`Topic "${t.id}" has no Checks`);
-    errors.push(...quizProblems(t), ...insightProblems(t));
+    errors.push(...quizProblems(t), ...insightProblems(t), ...writtenAheadProblems(t));
     for (const p of t.prerequisites) {
       if (!byId.has(p)) errors.push(`Topic "${t.id}" requires "${p}", which is not on the Course Map`);
     }
@@ -316,14 +352,42 @@ function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | unde
 /** A Case Data reference, "caseId/datasetId", written as a string in Widget code. */
 const CASE_DATA_REFERENCE = /"([a-z0-9-]+)\/([a-z0-9-]+)"/g;
 
-/** Case Data references in the explore Widget's code that do not belong to the Topic's own Cases and their datasets. */
-function exploreWidgetReferenceProblems(t: Pick<Topic, "id" | "cases" | "explore">): string[] {
-  const code = t.explore?.widget ?? "";
+/** Case Data references in a Topic Widget's code that do not belong to the Topic's own Cases and their datasets. */
+function widgetReferenceProblems(t: Pick<Topic, "id" | "cases">, code: string, where: string): string[] {
   return [...code.matchAll(CASE_DATA_REFERENCE)].flatMap(([, caseId, datasetId]) => {
     const c = t.cases.find((x) => x.id === caseId);
-    if (!c) return [`Topic "${t.id}" explore Widget reads "${caseId}/${datasetId}", but "${caseId}" is not one of the Topic's Cases`];
-    return c.data.includes(datasetId) ? [] : [`Topic "${t.id}" explore Widget reads "${caseId}/${datasetId}", but Case "${caseId}" does not list dataset "${datasetId}"`];
+    if (!c) return [`${where} reads "${caseId}/${datasetId}", but "${caseId}" is not one of the Topic's Cases`];
+    return c.data.includes(datasetId) ? [] : [`${where} reads "${caseId}/${datasetId}", but Case "${caseId}" does not list dataset "${datasetId}"`];
   });
+}
+
+/** Case Data references in the explore Widget's code that do not belong to the Topic's own Cases and their datasets. */
+function exploreWidgetReferenceProblems(t: Pick<Topic, "id" | "cases" | "explore">): string[] {
+  return widgetReferenceProblems(t, t.explore?.widget ?? "", `Topic "${t.id}" explore Widget`);
+}
+
+/** Problems in a Topic's written-ahead Widgets that the file alone shows; whether each draws is the course check's job. */
+function writtenAheadProblems(t: Topic): string[] {
+  const problems: string[] = [];
+  const ids = new Set<string>();
+  const titles = new Set<string>();
+  for (const w of t.widgets) {
+    const where = `Topic "${t.id}" written-ahead Widget "${w.id}"`;
+    if (ids.has(w.id)) problems.push(`${where} repeats its id`);
+    ids.add(w.id);
+    const title = widgetCodeTitle(w.code);
+    if (!title) problems.push(`${where} has no root = Widget("Title", [...]) line`);
+    else if (titles.has(title)) problems.push(`${where} repeats the title "${title}"`);
+    if (title) titles.add(title);
+    problems.push(...widgetReferenceProblems(t, w.code, where));
+    const task = w.revealTask;
+    if (!task) continue;
+    const c = t.cases.find((x) => x.id === task.case);
+    if (!c) problems.push(`${where} reads its reveal task from "${task.case}", which is not one of the Topic's Cases`);
+    else if (!c.data.includes(task.dataset)) problems.push(`${where} reads its reveal task from dataset "${task.dataset}", which Case "${task.case}" does not list`);
+    if ((w.code.match(/GuidedTasks\(\[/g) ?? []).length !== 1) problems.push(`${where} has a reveal task, so it needs exactly one GuidedTasks([...]) for it to join`);
+  }
+  return problems;
 }
 
 /** An Insight is written in words too: a figure would hand the Learner a number to look for. */

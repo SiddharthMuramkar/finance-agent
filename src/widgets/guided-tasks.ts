@@ -51,17 +51,17 @@ export function stateRefs(node: unknown): string[] {
   return Object.values(node).flatMap(stateRefs);
 }
 
-/** A Slider in a Widget, as parsed: the $variable it is bound to and its range. */
-export type ParsedSlider = { variable: string; min: number; max: number; step: number };
+/** A Slider in a Widget, as parsed: the $variable it is bound to, its range and its unit ("percent" moves in 0.01 steps). */
+export type ParsedSlider = { variable: string; min: number; max: number; step: number; unit?: string };
 
 /** Every Slider in a Widget's children, at any depth (inside a Stack, a Card or a TabItem too), in order. */
 export function parsedSliders(children: unknown): ParsedSlider[] {
   return [...walkNodes(children)].flatMap((n) => {
     if (n.typeName !== "Slider") return [];
-    const { value, min, max, step } = n.props;
+    const { value, min, max, step, unit } = n.props;
     if (!isRecord(value) || value.k !== "StateRef" || typeof value.n !== "string") return [];
     if (typeof min !== "number" || typeof max !== "number" || typeof step !== "number") return [];
-    return [{ variable: value.n, min, max, step }];
+    return [{ variable: value.n, min, max, step, ...(typeof unit === "string" && { unit }) }];
   });
 }
 

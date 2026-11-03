@@ -40,6 +40,32 @@ principle: >
   relative (percent of the old rate), and they differ by a lot. Name the base every time, and
   state rate changes in basis points to avoid mixing them up.
 
+# Written-ahead Widgets: the Tutor opens them by id (open_widget) and never draws its own version.
+# The practice moves are made up: none is a quiz question's move or the Case's outcome. After the
+# reveal, a task for February 1994's move joins them, its rates read from Case Data.
+widgets:
+  - id: rate-change-three-ways
+    # The Tutor may not draw a growth-rate calculator here: this Widget is the clear version.
+    parts: [cagr]
+    code: |
+      root = Widget("One rate change, said three ways", [old, new, points, bps, change, steps])
+      $old = 5
+      $new = 5.2
+      old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")
+      new = Slider("new", "New rate", 0, 10, 0.01, $new, "percent")
+      points = TextContent("In percentage points: " + @Round($new - $old, 2) + " points")
+      bps = TextContent("In basis points: " + @Round(($new - $old) * 100, 0) + " bp")
+      change = TextContent("As a percent change of the old rate: " + ($old == 0 ? "none, because the old rate is 0%" : @Round(($new - $old) / $old * 100, 2) + "%"))
+      steps = GuidedTasks([rise, cut, low])
+      rise = GuidedTask("Set a rise from 6% to 6.4%", $old == 6 && $new == 6.4)
+      cut = GuidedTask("Now a cut from 8% to 7.1%", $old == 8 && $new == 7.1)
+      low = GuidedTask("Now a rise from 0.5% to 0.9%, and compare its percent change with the first rise", $old == 0.5 && $new == 0.9)
+    revealTask:
+      case: fed-hike-1994
+      dataset: fed-funds-target
+      text: "Set the Fed's move of February 1994: from {before}% to {after}%"
+      done: "$old == {before} && $new == {after}"
+
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
   - "Tell a change in percentage points from a change in percent."

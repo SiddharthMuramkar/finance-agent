@@ -809,8 +809,11 @@ describe("the Topic Start card", () => {
   it("says a starting Topic needs nothing first, and leaves out You'll use when the Topic has no written-ahead Widgets", () => {
     const shown = text(startCard(card("num-percent-bps")));
     expect(shown).toContain("Nothing — this is a starting Topic.");
-    expect(shown).not.toContain("You’ll use");
     expect(text(startCard(card("present-value")))).not.toContain("You’ll use");
+  });
+
+  it("lists You'll use with the Topic's written-ahead Widget titles", () => {
+    expect(text(startCard(card("num-percent-bps")))).toContain("You’ll use: One rate change, said three ways");
   });
 
   it("names the Stage of a Topic with no Subject", () => {

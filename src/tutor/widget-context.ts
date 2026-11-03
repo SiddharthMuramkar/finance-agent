@@ -12,6 +12,9 @@ import { currentTopicId, liveSession, openLog } from "./session-log";
 import { caseDataFor } from "./tools";
 import { textOf } from "./transcript";
 import { WIDGET_REPORT_PREFIX } from "./turn-status";
+import { loadSessionItems } from "./session-items";
+import { loadWrittenAhead } from "./written-ahead";
+import { WIDGET_OPENED } from "@/course/written-ahead";
 
 /**
  * The Widgets open for a Tutor Turn, read for the Tutor (spec #119, "Widgets › What the Tutor sees"): the Widgets
@@ -33,14 +36,28 @@ export function cleanSentWidgets(raw: unknown): WidgetStates {
   return Object.fromEntries(entries.slice(0, 20));
 }
 
-/** The Widgets open in the panel: those the Session's replies drew (`drawn`), then the explore Widget if the Learner has it. */
-export async function openWidgetsForTurn(db: Db, map: CourseMap, learnerId: number, drawn: readonly OpenWidget[], withExplore: boolean): Promise<KeyedWidget[]> {
+/**
+ * The Widgets open in the panel: those the Session's replies drew (`drawn`), the written-ahead Widgets the Tutor opened
+ * in the Session (`session`, keyed by id, with their code as the Learner sees it now), then the explore Widget if the
+ * Learner has it.
+ */
+export async function openWidgetsForTurn(
+  db: Db,
+  map: CourseMap,
+  learnerId: number,
+  drawn: readonly OpenWidget[],
+  withExplore: boolean,
+  session?: { id: number; topicId: string | null },
+): Promise<KeyedWidget[]> {
   const tutors = drawn.flatMap((w) => {
     const key = widgetKey(w.title);
     return key ? [{ key, code: w.code, explore: false }] : [];
   });
-  const explore = withExplore ? exploreWidgetFor(map, await loadProgress(db, learnerId)) : null;
-  return explore ? [...tutors, { key: EXPLORE_WIDGET_KEY, code: explore.code, explore: true }] : tutors;
+  const progress = await loadProgress(db, learnerId);
+  const opened = session ? new Set((await loadSessionItems(db, session.id, learnerId)).flatMap((i) => (i.kind === WIDGET_OPENED ? [i.data.id] : []))) : new Set();
+  const ahead = opened.size ? (await loadWrittenAhead(db, map, progress, session?.topicId)).filter((w) => opened.has(w.id)).map((w) => ({ key: w.id, code: w.code, explore: false })) : [];
+  const explore = withExplore ? exploreWidgetFor(map, progress) : null;
+  return [...tutors, ...ahead, ...(explore ? [{ key: EXPLORE_WIDGET_KEY, code: explore.code, explore: true }] : [])];
 }
 
 /** Reads a "caseId/datasetId" reference's latest point from the Case Data allowed now. */
@@ -91,7 +108,7 @@ export async function widgetReportNote(
   if (!session) return { ok: false, reason: REPORT_NOT_READY };
   const log = await openLog(db, session.id, () => new Date());
   const drawn = openWidgetsIn(log.rows.filter((r) => r.role === "assistant").map((r) => textOf(r.content)));
-  const open = (await openWidgetsForTurn(db, map, learnerId, drawn, true)).filter((w) => w.key === key);
+  const open = (await openWidgetsForTurn(db, map, learnerId, drawn, true, session)).filter((w) => w.key === key);
   const [read] = await readOpenWidgets(db, map, learnerId, session.id, open, sent);
   if (!read || !read.reading.tasks.length || !read.reading.tasks.every((t) => t.ticked)) return { ok: false, reason: REPORT_NOT_READY };
   return {
