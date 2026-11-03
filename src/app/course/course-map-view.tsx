@@ -112,10 +112,20 @@ export function CourseMapView({ topics, coming = [] }: { topics: TopicOverview[]
   );
 }
 
-/** The progress view: each Topic's status and how many of its Checks are passed, as label/value rows. */
-export function ProgressView({ topics }: { topics: TopicOverview[] }) {
+/**
+ * The Progress page's body: a title, a one-line summary ("<n> in progress · <n> passed · Next: <title>",
+ * Next being What comes next's Topic), then each Topic's status and how many of its Checks are passed.
+ * Every row's title opens its Topic: a plain form post to /api/open, so it works without scripts.
+ */
+export function ProgressView({ topics, next = null }: { topics: TopicOverview[]; next?: string | null }) {
+  const count = (status: TopicOverview["status"]) => topics.filter((t) => t.status === status).length;
+  const summary = [`${count("in_progress")} in progress`, `${count("passed")} passed`, ...(next ? [`Next: ${next}`] : [])].join(" · ");
   return (
     <div>
+      <h1 className="text-xl font-semibold leading-7">Progress</h1>
+      <p data-progress-summary className="mb-6 mt-1 text-sm leading-5 text-[var(--muted)]">
+        {summary}
+      </p>
       <Eyebrow className="mb-2">Topics</Eyebrow>
       <div>
         {topics.map((t) => (
@@ -123,7 +133,11 @@ export function ProgressView({ topics }: { topics: TopicOverview[] }) {
             key={t.id}
             label={
               <>
-                <span className="text-[var(--ink)]">{t.title}</span> <span className="text-xs">· {STAGE[t.stage]}</span>
+                <form method="post" action="/api/open" className="inline">
+                  <input type="hidden" name="topic" value={t.id} />
+                  <button type="submit" data-open-topic={t.id} className="text-left text-[var(--ink)] underline decoration-[var(--hairline)] underline-offset-4 hover:text-[var(--brand)] hover:decoration-current">{t.title}</button>
+                </form>{" "}
+                <span className="text-xs">· {STAGE[t.stage]}</span>
               </>
             }
             value={
