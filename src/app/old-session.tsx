@@ -11,12 +11,19 @@ import { exploreItem, PinnedExplore, useWidgetPicker, WidgetChip, WidgetPanel, w
 export type OldLine = Line;
 
 /**
+ * Before Next replaced it, moving on posted a "Continue." message as if the Learner typed it. On a Past
+ * Sessions page each one draws as a small "→ next step" divider in its place, never as a Learner bubble.
+ */
+const withNextStepDividers = (lines: OldLine[]): OldLine[] =>
+  lines.map((l) => (l.role === "user" && l.text.trim() === "Continue." ? { role: "item", kind: "next_step", data: {} } : l));
+
+/**
  * An old Session, read-only, in the workspace's two columns: the conversation with "Open: <title> →" chips on the left,
  * the Widget panel on the right (controls at their starting values). A Session that reached the explore step shows the Topic's Explore Widget too. Where the composer would be there is a link
  * back to the workspace. No composer and no model call.
  */
 export function OldSession({
-  lines,
+  lines: stored,
   topicTitle,
   explore = null,
   revealed = [],
@@ -30,6 +37,7 @@ export function OldSession({
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
 }) {
+  const lines = useMemo(() => withNextStepDividers(stored), [stored]);
   const tutorWidgets = useMemo(() => widgetsIn(readOnlyLines(lines)), [lines]);
   const sessionId = lines.flatMap((l) => (l.role !== "item" && l.ref ? [l.ref.sessionId] : []))[0];
   const widgets = useMemo(() => withExplore(tutorWidgets, explore, tutorWidgets.length, sessionId), [tutorWidgets, explore, sessionId]);

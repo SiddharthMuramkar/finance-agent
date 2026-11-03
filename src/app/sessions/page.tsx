@@ -1,37 +1,21 @@
 import { cookies } from "next/headers";
 import { currentLearnerId } from "@/auth/session";
+import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
-import { listSessions } from "@/tutor/transcript";
-import { loadSessionSummaries } from "@/tutor/session-summary";
-import { SessionCard } from "../session-card";
+import { loadPastSessions } from "@/tutor/past-sessions";
+import { PastSessionsList } from "../past-sessions";
 import { ReadingPage, SignedInFrame } from "../ui";
 
 export const dynamic = "force-dynamic";
 
-/** Every Session, newest first. Old Sessions stay readable. */
+/** Past Sessions: one row per Topic Session, the most recently worked on first, then the Older sessions. No model call. */
 export default async function SessionsPage() {
-  const db = getDb();
   const learnerId = await currentLearnerId();
-  const [sessions, summaries, jar] = await Promise.all([listSessions(db, learnerId), loadSessionSummaries(db, learnerId), cookies()]);
-  // Numbered by order started, so the oldest is Session 1 whatever the ids.
-  const numberOf = new Map([...sessions].reverse().map((s, i) => [s.id, i + 1]));
+  const [past, jar] = await Promise.all([loadPastSessions(getDb(), loadCourseMap(), learnerId), cookies()]);
   return (
     <SignedInFrame>
       <ReadingPage current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"}>
-        {sessions.length === 0 ? (
-          <p className="text-sm leading-5 text-[var(--muted)]">No Sessions yet.</p>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {sessions.map((s) => {
-              const sum = summaries.get(s.id);
-              return (
-                <li key={s.id}>
-                  <SessionCard id={s.id} number={numberOf.get(s.id)!} createdAt={s.createdAt} topics={sum?.topics ?? []} widgets={sum?.widgets ?? 0} />
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <PastSessionsList past={past} />
       </ReadingPage>
     </SignedInFrame>
   );
