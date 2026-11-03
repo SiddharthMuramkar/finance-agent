@@ -1,6 +1,6 @@
 import type { CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { insightAttempts } from "@/db/schema";
+import { insightAttempts, OWNER_LEARNER_ID } from "@/db/schema";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import type { Db } from "@/db/types";
 
@@ -16,7 +16,7 @@ export async function placeLearner(db: Db, map: CourseMap, at: "story" | "explor
     else {
       // Explore only finishes once the Insight is settled, so walking past it records it as told.
       if (place.step === "explore") {
-        await db.insert(insightAttempts).values({ topicId: place.topic.id, reported: "asked_to_be_told", released: "told", words: "", toolCallId: `placement-${place.topic.id}` });
+        await db.insert(insightAttempts).values({ learnerId: OWNER_LEARNER_ID, topicId: place.topic.id, reported: "asked_to_be_told", released: "told", words: "", toolCallId: `placement-${place.topic.id}` });
       }
       await saveFinishedStep(db, map, place.step);
     }

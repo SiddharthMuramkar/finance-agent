@@ -53,7 +53,7 @@ const fence = (code: string) => ["```openui-lang", code, "```"].join("\n");
 
 /** A Session whose one turn (user at seq 0, reply at seq 1) was taught under the Topic "PV". */
 async function session(db: Db, replyContent: unknown, topicTitle = "PV"): Promise<number> {
-  const [s] = await db.insert(sessions).values({ instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f" }).returning();
+  const [s] = await db.insert(sessions).values({ learnerId: OWNER_LEARNER_ID, instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f" }).returning();
   await db.insert(messages).values([
     { sessionId: s.id, seq: 0, role: "user", content: [{ type: "text", text: `Topic: ${topicTitle} (Foundation Stage).\nTeaching Step: concept` }, { type: "text", text: "Explain it." }] },
     { sessionId: s.id, seq: 1, role: "assistant", content: replyContent },
@@ -102,7 +102,7 @@ checks:
     });
     const two = parseCourseMap([topicYaml("pv", "PV", 1), topicYaml("fv", "FV", 2)]).map!;
     const db = await testDb();
-    const [s] = await db.insert(sessions).values({ instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f" }).returning();
+    const [s] = await db.insert(sessions).values({ learnerId: OWNER_LEARNER_ID, instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f" }).returning();
     await db.insert(messages).values([
       { sessionId: s.id, seq: 0, role: "user", content: [{ type: "text", text: "Topic: PV (Foundation Stage).\nTeaching Step: concept" }, { type: "text", text: "Hi." }] },
       { sessionId: s.id, seq: 1, role: "assistant", content: textReply("About PV.") },

@@ -166,7 +166,7 @@ describe("database expand: Learners", () => {
   it("allows one live Session per Learner and Topic, but leaves Older Sessions and Sessions with no Topic unconstrained", async () => {
     const db = await testDb();
     const session = (values: Partial<typeof sessions.$inferInsert>) =>
-      db.insert(sessions).values({ instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f", ...values });
+      db.insert(sessions).values({ learnerId: OWNER_LEARNER_ID, instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f", ...values });
 
     await session({ topicId: "percent", older: false });
     await expect(session({ topicId: "percent", older: false })).rejects.toThrow();
@@ -191,24 +191,24 @@ describe("database expand: Learners", () => {
 
   it("stores display-only Session items in order and one Widget state per Session and Widget key", async () => {
     const db = await testDb();
-    const [s] = await db.insert(sessions).values({ instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f", topicId: "percent", older: false }).returning();
+    const [s] = await db.insert(sessions).values({ learnerId: OWNER_LEARNER_ID, instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f", topicId: "percent", older: false }).returning();
 
     await db.insert(sessionItems).values([
-      { sessionId: s.id, afterSeq: 3, kind: "step_divider", data: { step: "concept" } },
-      { sessionId: s.id, afterSeq: 1, kind: "check_result", data: { passed: true } },
+      { learnerId: OWNER_LEARNER_ID, sessionId: s.id, afterSeq: 3, kind: "step_divider", data: { step: "concept" } },
+      { learnerId: OWNER_LEARNER_ID, sessionId: s.id, afterSeq: 1, kind: "check_result", data: { passed: true } },
     ]);
     expect(await db.select({ learnerId: sessionItems.learnerId, afterSeq: sessionItems.afterSeq, kind: sessionItems.kind }).from(sessionItems).orderBy(sessionItems.afterSeq)).toEqual([
       { learnerId: OWNER_LEARNER_ID, afterSeq: 1, kind: "check_result" },
       { learnerId: OWNER_LEARNER_ID, afterSeq: 3, kind: "step_divider" },
     ]);
 
-    await db.insert(widgetState).values({ sessionId: s.id, widgetKey: "pv-annuity", values: { rate: 3.33 }, ticked: ["zero"] });
-    await expect(db.insert(widgetState).values({ sessionId: s.id, widgetKey: "pv-annuity", values: {}, ticked: [] })).rejects.toThrow();
+    await db.insert(widgetState).values({ learnerId: OWNER_LEARNER_ID, sessionId: s.id, widgetKey: "pv-annuity", values: { rate: 3.33 }, ticked: ["zero"] });
+    await expect(db.insert(widgetState).values({ learnerId: OWNER_LEARNER_ID, sessionId: s.id, widgetKey: "pv-annuity", values: {}, ticked: [] })).rejects.toThrow();
     expect(await db.select().from(widgetState)).toEqual([
       { sessionId: s.id, widgetKey: "pv-annuity", learnerId: OWNER_LEARNER_ID, values: { rate: 3.33 }, ticked: ["zero"], updatedAt: expect.any(Date) },
     ]);
 
-    await db.insert(learnerState).values({ id: 1, shownSessionId: s.id }).onConflictDoUpdate({ target: learnerState.id, set: { shownSessionId: s.id } });
+    await db.insert(learnerState).values({ learnerId: OWNER_LEARNER_ID, id: 1, shownSessionId: s.id }).onConflictDoUpdate({ target: learnerState.id, set: { shownSessionId: s.id } });
     expect(await db.select({ shown: learnerState.shownSessionId, learnerId: learnerState.learnerId }).from(learnerState)).toEqual([{ shown: s.id, learnerId: OWNER_LEARNER_ID }]);
   });
 });

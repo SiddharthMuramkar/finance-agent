@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { messages, sessions } from "@/db/schema";
+import { messages, sessions, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { citationsAtRisk } from "./citation-impact";
@@ -17,7 +17,7 @@ async function idsByRef(db: Db) {
 }
 
 async function cite(db: Db, seq: number, passageId: number) {
-  const [{ id: sessionId }] = await db.insert(sessions).values({ instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: `f${seq}` }).returning({ id: sessions.id });
+  const [{ id: sessionId }] = await db.insert(sessions).values({ learnerId: OWNER_LEARNER_ID, instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: `f${seq}` }).returning({ id: sessions.id });
   await db.insert(messages).values({ sessionId, seq, role: "assistant", content: [{ type: "text", text: "Claim.", citations: [{ type: "search_result_location", source: `/passages/${passageId}`, start_block_index: 1, end_block_index: 2 }] }] });
   return sessionId;
 }

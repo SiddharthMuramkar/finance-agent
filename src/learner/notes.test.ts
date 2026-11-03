@@ -10,17 +10,17 @@ const topic = map.topic("present-value")!;
 const insight = topic.insight!;
 
 async function pass(db: Db) {
-  await db.insert(topicProgress).values({ topicId: topic.id, step: "principle", status: "passed" });
+  await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, step: "principle", status: "passed" });
 }
 async function settle(db: Db, released: "found" | "told", words: string) {
-  await db.insert(insightAttempts).values({ topicId: topic.id, reported: released === "found" ? "found" : "asked_to_be_told", released, words, toolCallId: `t-${released}` });
+  await db.insert(insightAttempts).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, reported: released === "found" ? "found" : "asked_to_be_told", released, words, toolCallId: `t-${released}` });
 }
 const note = async (db: Db) => (await loadNotes(db, map)).find((n) => n.topicId === topic.id)!;
 
 describe("a Topic Note", () => {
   it("lists every Topic in course order and fills in nothing before the Topic is passed", async () => {
     const db = await testDb();
-    await db.insert(topicProgress).values({ topicId: topic.id, step: "concept", status: "in_progress" });
+    await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, step: "concept", status: "in_progress" });
     await settle(db, "found", "Waiting makes it worth less");
     const notes = await loadNotes(db, map);
     expect(notes.map((n) => n.topicId)).toEqual(map.topics.map((t) => t.id));
@@ -31,7 +31,7 @@ describe("a Topic Note", () => {
   it("is filled in by code once the Topic is passed: Formula Cards with example numbers, principle, Connections and mistakes", async () => {
     const db = await testDb();
     await pass(db);
-    await db.insert(misconceptions).values({ topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
+    await db.insert(misconceptions).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
     const filled = (await note(db)).filled!;
     expect(filled.formulas.map((f) => f.formulaId)).toEqual(topic.formulas);
     expect(filled.formulas.length).toBeGreaterThan(0);
@@ -108,7 +108,7 @@ describe("Topic Notes for two Learners", () => {
     const second = row.id;
     await pass(db);
     await settle(db, "found", "Waiting makes it worth less");
-    await db.insert(misconceptions).values({ topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
+    await db.insert(misconceptions).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
     await addLine(db, map, topic.id, "The owner's line");
     await addLine(db, map, topic.id, "The second Learner's line", new Date(), second);
 

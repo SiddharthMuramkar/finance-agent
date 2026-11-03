@@ -75,22 +75,22 @@ async function seed(passed) {
     await pool.query("delete from topic_progress where topic_id = 'present-value'");
     await pool.query("delete from learner_profile");
     await pool.query(
-      `insert into topic_progress (topic_id, step, reveal_shown, status) values ('present-value', $1, $2, $3)`,
+      `insert into topic_progress (learner_id, topic_id, step, reveal_shown, status) values (1, 'present-value', $1, $2, $3)`,
       passed ? ["principle", true, "passed"] : ["explore", false, "in_progress"],
     );
     await pool.query(
-      `insert into learner_state (id, current_topic_id) values (1, 'present-value')
+      `insert into learner_state (id, learner_id, current_topic_id) values (1, 1, 'present-value')
        on conflict (id) do update set current_topic_id = excluded.current_topic_id, entered_by_jump = false`,
     );
     if (passed) {
       await pool.query(
-        `insert into insight_attempts (topic_id, reported, released, words, tool_call_id) values ('present-value', 'found', 'found', $1, $2)`,
+        `insert into insight_attempts (learner_id, topic_id, reported, released, words, tool_call_id) values (1, 'present-value', 'found', 'found', $1, $2)`,
         ["A high rate shrinks later payments, so cash now can beat more later.", `browser-check-${Date.now()}`],
       );
       return;
     }
     const { rows } = await pool.query(
-      `insert into sessions (instructions, tools, model, effort, fingerprint) values ('browser check', '[]'::jsonb, 'claude-opus-5-5', 'high', $1) returning id`,
+      `insert into sessions (learner_id, instructions, tools, model, effort, fingerprint) values (1, 'browser check', '[]'::jsonb, 'claude-opus-5-5', 'high', $1) returning id`,
       [`browser-check-${Date.now()}`],
     );
     const id = rows[0].id;
