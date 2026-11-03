@@ -70,8 +70,11 @@ export async function quizUnavailable(db: Db, map: CourseMap, check: QuizCheck):
 
 export type QuizResult =
   | ({ ok: true } & Marking & { attemptNo: number; checkId: string })
-  /** `saveFailed`: a database error; nothing was saved and the Learner can submit again. */
-  | { ok: false; reason: string; saveFailed?: true };
+  /**
+   * `saveFailed`: a database error; nothing was saved and the Learner can submit again.
+   * `notFound`: no quiz attempt of this Learner has that id (another Learner's attempt included).
+   */
+  | { ok: false; reason: string; saveFailed?: true; notFound?: true };
 
 /** What the Learner sees when the quiz result could not be saved. */
 export const QUIZ_SAVE_FAILED = "Your answers could not be saved just now, so nothing was recorded. Please submit again.";
@@ -94,7 +97,7 @@ export async function submitQuiz(
     .from(quizAttempts)
     .where(and(eq(quizAttempts.id, attemptId), eq(quizAttempts.learnerId, learnerId)));
   const check = attempt && map.check(attempt.checkId);
-  if (!attempt || !check || check.kind !== "quiz") return { ok: false, reason: "No such quiz attempt." };
+  if (!attempt || !check || check.kind !== "quiz") return { ok: false, reason: "No such quiz attempt.", notFound: true };
   const given = attempt.submittedAt && attempt.answers ? attempt.answers : answers;
   const marking = markAttempt(await questionLookup(db, map, attempt.questionIds), check as QuizCheck, attempt.questionIds, given);
   if (!attempt.submittedAt) {

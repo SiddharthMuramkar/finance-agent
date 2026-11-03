@@ -129,7 +129,7 @@ describe("two Learners in the Tutor Turn", () => {
     const right = Object.fromEntries(ownerQuiz.questions.map((q) => [q.id, map.question(q.id)!.answer]));
     expect(await submitQuiz(db, map, ownerQuiz.attemptId, right, new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: true, passed: true });
     // One Learner can't submit another's attempt.
-    expect(await submitQuiz(db, map, ownerQuiz.attemptId, right, new Date(), second)).toEqual({ ok: false, reason: "No such quiz attempt." });
+    expect(await submitQuiz(db, map, ownerQuiz.attemptId, right, new Date(), second)).toEqual({ ok: false, reason: "No such quiz attempt.", notFound: true });
     expect(await openQuiz(db, map, new Date(), second)).toMatchObject({ attemptId: secondQuiz.attemptId, attemptNo: 0 });
 
     const secondTurn = turnFor(db, second, "Is my quiz done?", [say("Not yet.")], { map });
