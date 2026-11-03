@@ -5,14 +5,15 @@ import type { CourseMap, QuizCheck } from "@/course/map";
 import { publicQuestions, type PublicQuestion } from "@/course/quiz";
 import type { State } from "ts-fsrs";
 import { newCard, rate, type ReviewCardState } from "@/course/review";
-import { checkResults, quizAttempts, reviewCards, reviewLog } from "@/db/schema";
+import { checkResults, OWNER_LEARNER_ID, quizAttempts, reviewCards, reviewLog } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { readSettings } from "@/tutor/session-log";
 
 /**
  * Spaced review in Learner Memory. Quiz questions only; the Course Navigator says which are due,
  * `ts-fsrs` (course/review.ts) schedules them, and this file keeps each question's card in SQL.
- * No model is involved, and nothing here touches a Topic's progress.
+ * No model is involved, and nothing here touches a Topic's progress. Every card and Review belongs to
+ * one Learner: each Learner has their own card per question, and their own daily cap.
  */
 
 type CardRow = typeof reviewCards.$inferSelect;
@@ -29,7 +30,8 @@ const toState = (row: CardRow): ReviewCardState => ({
   last_review: row.lastReview ?? undefined,
 });
 
-const toRow = (questionId: string, c: ReviewCardState): Omit<CardRow, "learnerId"> => ({
+const toRow = (learnerId: number, questionId: string, c: ReviewCardState): CardRow => ({
+  learnerId,
   questionId,
   due: c.due,
   stability: c.stability,
@@ -46,19 +48,22 @@ const toRow = (questionId: string, c: ReviewCardState): Omit<CardRow, "learnerId
 /**
  * Gives a card to every question shown in a passed quiz Check that has none yet. The card is built
  * by replaying the Learner's answers to that question in the Check's attempts: correct is Good,
- * incorrect is Again. Safe to call any number of times.
+ * incorrect is Again. Only this Learner's passes, attempts and cards count. Safe to call any number of times.
  */
-export async function enrollPassedQuestions(db: Db, map: CourseMap): Promise<void> {
-  const passed = await db.select({ checkId: checkResults.checkId }).from(checkResults).where(eq(checkResults.passed, true));
+export async function enrollPassedQuestions(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<void> {
+  const passed = await db
+    .select({ checkId: checkResults.checkId })
+    .from(checkResults)
+    .where(and(eq(checkResults.learnerId, learnerId), eq(checkResults.passed, true)));
   const checkIds = [...new Set(passed.map((p) => p.checkId))].filter((id) => map.check(id)?.kind === "quiz");
   if (!checkIds.length) return;
   const attempts = await db
     .select()
     .from(quizAttempts)
-    .where(inArray(quizAttempts.checkId, checkIds))
+    .where(and(eq(quizAttempts.learnerId, learnerId), inArray(quizAttempts.checkId, checkIds)))
     .orderBy(asc(quizAttempts.id));
   const lookup = await questionLookup(db, map, attempts.flatMap((a) => a.questionIds));
-  const have = new Set((await db.select({ id: reviewCards.questionId }).from(reviewCards)).map((r) => r.id));
+  const have = new Set((await db.select({ id: reviewCards.questionId }).from(reviewCards).where(eq(reviewCards.learnerId, learnerId))).map((r) => r.id));
   const events = new Map<string, { at: Date; correct: boolean }[]>();
   for (const attempt of attempts) {
     if (!attempt.submittedAt || !attempt.answers) continue;
@@ -72,8 +77,8 @@ export async function enrollPassedQuestions(db: Db, map: CourseMap): Promise<voi
   for (const [questionId, list] of events) {
     let card = newCard(list[0].at);
     for (const e of list) card = rate(card, e.correct, e.at);
-    const inserted = await db.insert(reviewCards).values(toRow(questionId, card)).onConflictDoNothing().returning({ id: reviewCards.questionId });
-    if (inserted.length) await db.insert(reviewLog).values(list.map((e) => ({ questionId, rating: e.correct ? 3 : 1, source: "quiz" as const, reviewedAt: e.at })));
+    const inserted = await db.insert(reviewCards).values(toRow(learnerId, questionId, card)).onConflictDoNothing().returning({ id: reviewCards.questionId });
+    if (inserted.length) await db.insert(reviewLog).values(list.map((e) => ({ learnerId, questionId, rating: e.correct ? 3 : 1, source: "quiz" as const, reviewedAt: e.at })));
   }
 }
 
@@ -90,16 +95,23 @@ export type ReviewState = {
   cap: number;
 };
 
-async function doneLastDay(db: Db, now: Date): Promise<number> {
+async function doneLastDay(db: Db, now: Date, learnerId: number): Promise<number> {
   const since = new Date(now.getTime() - CAP_WINDOW_MS);
-  const rows = await db.select({ id: reviewLog.id }).from(reviewLog).where(and(eq(reviewLog.source, "review"), gt(reviewLog.reviewedAt, since)));
+  const rows = await db
+    .select({ id: reviewLog.id })
+    .from(reviewLog)
+    .where(and(eq(reviewLog.learnerId, learnerId), eq(reviewLog.source, "review"), gt(reviewLog.reviewedAt, since)));
   return rows.length;
 }
 
-/** What the fixed review page shows: the next review, if any. Opening it makes no model call. */
-export async function reviewState(db: Db, map: CourseMap, now = new Date()): Promise<ReviewState> {
-  await enrollPassedQuestions(db, map);
-  const [cards, done, settings] = await Promise.all([db.select().from(reviewCards), doneLastDay(db, now), readSettings(db)]);
+/** What the fixed review page shows this Learner: their next review, if any. Opening it makes no model call. */
+export async function reviewState(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<ReviewState> {
+  await enrollPassedQuestions(db, map, learnerId);
+  const [cards, done, settings] = await Promise.all([
+    db.select().from(reviewCards).where(eq(reviewCards.learnerId, learnerId)),
+    doneLastDay(db, now, learnerId),
+    readSettings(db),
+  ]);
   const cap = Number.isFinite(settings.reviewCap) ? settings.reviewCap : DEFAULT_REVIEW_CAP;
   const lookup = await questionLookup(db, map, cards.map((c) => c.questionId));
   const { offered, dueCount } = reviewsDue(lookup, cards, now, done, cap);
@@ -110,19 +122,20 @@ export type ReviewAnswer =
   | { ok: true; correct: boolean; answer: string; explanation: string; choices: { id: string; text: string }[]; chosen: string | null; nextDue: Date; credit?: string; verified: boolean }
   | { ok: false; reason: string };
 
-/** Marks a review on the server and reschedules the question. Only the question currently offered is accepted. */
-export async function answerReview(db: Db, map: CourseMap, questionId: string, choiceId: string, now = new Date()): Promise<ReviewAnswer> {
-  const state = await reviewState(db, map, now);
+/** Marks a review on the server and reschedules this Learner's card. Only the question currently offered them is accepted. */
+export async function answerReview(db: Db, map: CourseMap, questionId: string, choiceId: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<ReviewAnswer> {
+  const state = await reviewState(db, map, now, learnerId);
   const question = (await questionLookup(db, map, [questionId])).question(questionId);
   if (!question || state.question?.id !== questionId) return { ok: false, reason: "That question is not up for review right now." };
-  const [row] = await db.select().from(reviewCards).where(eq(reviewCards.questionId, questionId));
+  const thisCard = and(eq(reviewCards.learnerId, learnerId), eq(reviewCards.questionId, questionId));
+  const [row] = await db.select().from(reviewCards).where(thisCard);
   const chosen = question.choices.some((c) => c.id === choiceId) ? choiceId : null;
   const correct = chosen === question.answer;
   const card = rate(toState(row), correct, now);
   await db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
-    await tx.update(reviewCards).set(toRow(questionId, card)).where(eq(reviewCards.questionId, questionId));
-    await tx.insert(reviewLog).values({ questionId, rating: correct ? 3 : 1, source: "review", reviewedAt: now });
+    await tx.update(reviewCards).set(toRow(learnerId, questionId, card)).where(thisCard);
+    await tx.insert(reviewLog).values({ learnerId, questionId, rating: correct ? 3 : 1, source: "review", reviewedAt: now });
   });
   return { ok: true, correct, answer: question.answer, explanation: question.explanation, choices: question.choices.map(({ id, text }) => ({ id, text })), chosen, nextDue: card.due, ...(question.credit ? { credit: question.credit } : {}), verified: question.verified ?? true };
 }

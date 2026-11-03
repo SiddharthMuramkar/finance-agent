@@ -66,7 +66,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
       return null;
     }),
     latestTurn(db, learnerId),
-    reviewState(db, map),
+    reviewState(db, map, new Date(), learnerId),
     loadProgress(db, learnerId),
     loadProfile(db),
   ]);
