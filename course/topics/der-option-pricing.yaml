@@ -55,6 +55,12 @@ principle: >
   which input you cannot observe, which assumption you depend on, and what happens to your
   hedge when the assumption fails.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Price an option as the cost of building its payoff from shares and borrowing."
+  - "See which inputs raise an option's value, and why no forecast of the share's return is needed."
+  - "Know which assumption a pricing model depends on and what happens to a hedge when it fails."
+
 questions:
   - id: ox-q-binomial-value
     prompt: >
