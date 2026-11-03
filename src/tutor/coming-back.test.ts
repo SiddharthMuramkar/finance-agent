@@ -7,6 +7,8 @@ import { comingBackItems } from "./coming-back";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import type { Db } from "@/db/types";
 import type { CourseMap } from "@/course/map";
+import { OWNER_LEARNER_ID } from "@/db/schema";
+import { ensureTopicStarted, saveFinishedStep } from "@/learner/memory";
 
 /**
  * Seam 1, Tutor Turn: coming back after a break. The "Picking up where you left off" divider is worked out
@@ -40,8 +42,8 @@ describe("coming back after a break", () => {
 
     // Seven hours later (the idle setting is six), the page works out the divider: nothing is stored.
     const label = "Picking up where you left off · Step 1 of 6 · Story";
-    expect(await comingBackItems(db, map, 1, at(7))).toEqual([{ kind: "picking_up", data: expect.objectContaining({ label }) }]);
-    expect(await comingBackItems(db, map, 1, at(7))).toHaveLength(1);
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(7))).toEqual([{ kind: "picking_up", data: expect.objectContaining({ label }) }]);
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(7))).toHaveLength(1);
     expect(items(await loadThread(db, sessionId, map))).toEqual([]);
 
     const back = await turn(db, "I'm back.", at(7), [say("Welcome back. Where were we?")]);
@@ -56,13 +58,33 @@ describe("coming back after a break", () => {
     // Display-only: the model is never sent it.
     expect(JSON.stringify(back.requests[0].messages)).not.toContain("Picking up");
     // The action closed the gap: nothing more is drawn or stored.
-    expect(await comingBackItems(db, map, 1, at(7.5))).toEqual([]);
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(7.5))).toEqual([]);
+  });
+
+  it("gives a Topic carried over at the switch-over the same divider, stored by its opener before the Tutor's reply", async () => {
+    const db = await testDb();
+    // Started (and moved on) before one Session per Topic: progress, but no message in a Session of its own.
+    await ensureTopicStarted(db, map, at(0));
+    expect((await saveFinishedStep(db, map, "story", at(0))).ok).toBe(true);
+
+    const label = "Picking up where you left off · Step 2 of 6 · Concept";
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(1))).toEqual([{ kind: "picking_up", data: expect.objectContaining({ label }) }]);
+    const opened = await turn(db, { opener: true }, at(1), [say("Last time we met the lottery winner. Now, the concept.")]);
+    expect(seen(await loadThread(db, opened.sessionId, map))).toEqual([pickingUp(label), { role: "assistant", text: "Last time we met the lottery winner. Now, the concept." }]);
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(1))).toEqual([]);
+  });
+
+  it("gives a Topic not yet started no divider: its Story simply begins", async () => {
+    const db = await testDb();
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(0))).toEqual([]);
+    const opened = await turn(db, { opener: true }, at(0), [say("Once, a lottery winner had a choice.")]);
+    expect(items(await loadThread(db, opened.sessionId, map))).toEqual([]);
   });
 
   it("draws nothing after a gap shorter than the idle setting", async () => {
     const db = await testDb();
     const { sessionId } = await turn(db, "Hi", at(0), [say("Once upon a time.")]);
-    expect(await comingBackItems(db, map, 1, at(5))).toEqual([]);
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(5))).toEqual([]);
     await turn(db, "Go on.", at(5), [say("And then.")]);
     expect(items(await loadThread(db, sessionId, map))).toEqual([]);
   });
