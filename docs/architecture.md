@@ -1151,6 +1151,28 @@ longer animated word by word as it streams (`smooth` off): the animation would p
 behind the real text, and widget markers are matched against the real text. Learner messages stay
 plain text on purpose.
 
+### The Tutor's voice, and one word: Topic (`thread.tsx`, `.md` in `globals.css`, spec #119, ticket #156)
+
+**What it does.** Every Tutor reply starts with a small navy **Tutor** label (`data-testid="tutor-label"`);
+the Learner's own messages have none, since their grey bubble on the right already marks them. Inside a
+reply, bold key terms and step headings take the button navy (`--brand`), while paragraphs stay
+near-black (`--ink`). No new colours: both come from existing tokens, and `--brand` already switches to a
+lighter blue in dark mode, so the label and headings stay readable there. The same thread is used by old
+Sessions, so they carry the label too.
+
+The screen also uses one word for a unit of study: **Topic**. "Lesson" appears nowhere a Learner can see
+it: the Widget fallback reads "This widget could not be drawn. The Topic carries on without it.", and the
+saved-items heading on a Topic Note reads "Saved from Topics". Render tests guard it: the Study Workspace
+markup, the Widget fallback and Notes must not contain "lesson".
+
+**Scenario.** The Learner asks "What is present value?". Their question sits in a grey bubble; under it the
+reply opens with a small navy "Tutor", then "Present value is **today's worth** of money paid later", with
+"today's worth" in navy and the rest of the sentence in near-black.
+
+**Trade-off.** Colouring only bold words and headings keeps a reply calm (a whole navy body would be a wall
+of blue), but the Tutor has to bold sparingly for the navy to mean "key term". The "never lesson" rule is
+held by tests on the screens we render, not by a site-wide scan, so a new screen needs its own check.
+
 ## Past Sessions (`src/app/sessions/`, `session-card.tsx`, `old-session.tsx`, `src/tutor/session-summary.ts`)
 
 **What it does.** Past Sessions is a list of cards, one per Session, newest first. Each card shows
