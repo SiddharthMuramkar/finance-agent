@@ -41,6 +41,14 @@ passcode with `PASSCODE` and, if it matches, sets a cookie signed with `SESSION_
 **Scenario.** Someone finds the URL and posts to `/api/turn`. The proxy answers 401 before any
 Claude call happens, so no credits are spent.
 
+**The one public door.** Signed out, the proxy lets through only a plain GET or HEAD of `/` (the
+public landing page) and image files under `/landing-assets/` (`.png` or `.webp`). A POST to `/`, or
+any request carrying a `Next-Action` header (a Server Action call), answers 401. Every other page
+still redirects to `/login`, and every `/api/*` route still answers 401. `/` itself checks the cookie
+again (`isSignedIn()` in `src/auth/session.ts`) before it reads anything, and shows the landing page
+when signed out. The proxy skips `login` and `api/login` only as whole path segments, so
+`/login-anything` is still checked. Signed in, nothing changed.
+
 **Guessing is limited** (`src/auth/login-guard.ts`, table `login_failures`). Each wrong passcode
 is saved as the caller's address and the time (never the guess). After five wrong guesses from one
 address in 15 minutes, that address is refused, even with the right passcode, until the window
@@ -1269,3 +1277,26 @@ and separate the argument's facts, inferences and forecasts.
 **Concrete scenario.** A Learner on the valuation Topic is told only what was public on 1 February 2000: Amazon's revenue, losses, debt, cash, options and the 6.5% Treasury yield. They write down their own growth, margin and discount rate, use the dcf calculator for a quick version, and find that the long-run margin moves their value most. Only after all the Checks does the Tutor reveal Damodaran's $35.08 against the $84 price and the actual 2000 results, and say that a value and a price are two estimates to compare as questions. A second Case does the same for a lesser-known company, Webvan on the evening of 4 November 1999: from its prospectus alone the Learner builds a value out of how many distribution centres open, how full each one gets, the margin, the cash from the share sale and the options, and only at the reveal sees the underwriter's own projections, the 2000 results and the closure in July 2001.
 
 **Trade-off.** The dcf calculator takes one flat discount rate, while the valuation lets the rate fall as the firm matures, so the Learner's quick version is a little low and the Topic says so. Amazon, WeWork, Anthropic and the Forbes debate are well-known; Yes Bank and Webvan are less known, but Webvan's Check makes the valuation Topic two full valuations long, and a lesser-known company in the who-pays-whom Topic is left for a later Case. The Anthropic commitments Case discounts the filing's schedule only: the larger later figures have no dates, so they are shown as a scope question, not a number. The Forbes debate is also the Case of the market efficiency Topic, with a different question and Case ID.
+
+## Public landing page (`src/app/_landing/`, `src/auth/session.ts`)
+
+**What it does.** Signed out, `/` shows a public page that says what the Study Workspace is: a
+headline, a screenshot, three counts (Topics written of planned, every Case in the outline, Library
+sources), the six Teaching Steps and "Every number has a source". Signed in, `/` is the workspace as
+before. The page reads no Learner data and no Library text, only counts. All its words live in
+`copy.ts`, marked DRAFT, and a small "Draft" pill shows near the headline until the owner rewrites them.
+
+**Scenario.** A friend opens the link on a phone. The proxy lets the GET of `/` through; the page
+checks the cookie first, finds none, and renders the landing page without touching the Learner's
+Sessions. Tapping "Sign in" goes to `/login`. Trying `/course` still lands on the login.
+
+**Trade-off.** One URL now serves two very different things, so the cookie check at the top of the
+workspace page is load-bearing: anything added above it would run for strangers too. The proxy
+backs it up by allowing only reads of `/`, so no Server Action or POST can run signed out. The
+screenshots are static files that are not in the repo yet; until they are added the frame shows
+alt text.
+
+**Why the stats are cached.** The Topic and Case counts come from files on disk and cost nothing.
+The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate
+86400): bots crawling the public page would otherwise wake Neon on every visit. A new source shows
+up on the page within a day.

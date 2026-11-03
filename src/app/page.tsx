@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+import { isSignedIn } from "@/auth/session";
+import { LandingPage } from "./_landing/landing";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { learnerSummary } from "@/learner/memory";
@@ -13,6 +15,8 @@ import { AppHeader } from "./ui";
 export const dynamic = "force-dynamic";
 
 export default async function WorkspacePage() {
+  // Signed out, "/" is the public landing page: decided before any Learner data is read.
+  if (!(await isSignedIn())) return <LandingPage />;
   const db = getDb();
   const map = loadCourseMap();
   const [summary, initial, jar, quiz, turn, review] = await Promise.all([
