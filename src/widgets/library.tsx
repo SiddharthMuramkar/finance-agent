@@ -530,7 +530,7 @@ function SliderStart({ slider, resets }: { slider: SliderNode; resets: Map<strin
 function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string; children: unknown }>) {
   const bordered = useContext(WidgetBorderContext);
   const sliders = widgetSliders(props.children);
-  const resets = useRef(new Map<string, () => void>()).current;
+  const [resets] = useState(() => new Map<string, () => void>());
   return (
     <section className={bordered ? "rounded-lg border border-[var(--border)] p-4" : ""}>
       <div className="mb-2 flex items-baseline justify-between gap-3">
