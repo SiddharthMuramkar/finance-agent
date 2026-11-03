@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
 import type { CaseData } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
+import { annuitySchedule } from "@/finance/present-value";
+import { formatUsd } from "./case-data-view";
 import { EMPTY_RESULTS, MAX_RANGE_POINTS, WIDGET_TOOL_ARGS, type RangeRow, type WidgetToolName, type WidgetToolResults } from "./tool-specs";
 
 // The Widget tools as the browser runs them. A widget's Query("tool", {...}, {rows: []}) calls one
@@ -170,6 +172,25 @@ export function createWidgetTools(options: WidgetToolOptions = {}): WidgetToolPr
       }
     },
 
-    annuity_schedule: notBuilt("annuity_schedule"),
+    async annuity_schedule(args) {
+      try {
+        const schema = WIDGET_TOOL_ARGS.annuity_schedule;
+        const parsed = schema.safeParse(withNumbers(args, schema.shape));
+        if (!parsed.success) return fail("annuity_schedule", argumentProblem("annuity_schedule", parsed.error));
+        // 1 to 60 yearly payments, as the AnnuityChart draws them.
+        const payments = Math.max(1, Math.min(60, Math.round(parsed.data.payments)));
+        const schedule = annuitySchedule({ ...parsed.data, payments });
+        const values = [schedule.presentValue, ...schedule.rows.flatMap((r) => [r.payment, r.presentValue])];
+        if (!values.every(Number.isFinite)) return fail("annuity_schedule", "These inputs give no finite schedule: keep ratePercent and growthPercent above -100.");
+        return {
+          // year counts from now, as the formula discounts it (the first payment is paid today); the label counts payments from 1.
+          rows: schedule.rows.map((r) => ({ year: r.year, label: `Year ${r.year + 1}`, payment: r.payment, presentValue: r.presentValue })),
+          presentValue: schedule.presentValue,
+          presentValueText: formatUsd(schedule.presentValue),
+        };
+      } catch (error) {
+        return crashed("annuity_schedule", error);
+      }
+    },
   };
 }
