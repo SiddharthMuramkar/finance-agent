@@ -18,6 +18,15 @@ export const JUMP_NOTE =
   "The Learner chose this Topic on the Course Map (or went back to the default path), so this is where they are now. Pick up at the Teaching Step below and teach it afresh; nothing of it has been taught in this conversation yet.";
 
 /**
+ * The line that tells the Tutor which Widgets are open in the panel, by title, and how to update one in place:
+ * code replaces a Widget written again under the same title in its own tab. Null when none is open.
+ */
+export function openWidgetsNote(titles: readonly string[]): string | null {
+  if (!titles.length) return null;
+  return `Open Widgets (tabs in the Widget panel): ${titles.map((t) => `"${t}"`).join(", ")}. To change one, write it again in full under exactly the same title: code replaces it in its tab. Draw a new Widget only for a new idea, never a near-copy under a new title, and never draw the same Case Data as an open Widget.`;
+}
+
+/**
  * The Teaching Step context code sends the Tutor as an appended message. The
  * Case's outcome is included only from the reveal on, so hindsight is withheld
  * by code as well as by instructions.

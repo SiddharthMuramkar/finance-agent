@@ -776,8 +776,26 @@ describe("Tutor Turn", () => {
   });
 
   describe("widgets", () => {
-    const good = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
+    const good =
+      '```openui-lang\nroot = Widget("PV", [rate, chart, steps])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\nsteps = GuidedTasks([zero])\nzero = GuidedTask("Set the rate to 0%", $rate == 0)\n```';
     const bad = '```openui-lang\nroot = Widget("PV", [chart])\nchart = LineChart([1, 2, 3])\n```';
+    /** The correction request's text, or undefined when the reply needed none. */
+    const correctionAsked = (requests: { messages: { role: string; content?: unknown }[] }[]) =>
+      requests.length > 1 ? String(requests[1].messages.at(-1)!.content) : undefined;
+
+    it("sends a new Widget with a slider and no Guided Task back for one correction turn", async () => {
+      const noTasks = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Try it.\n${noTasks}` }] }, { content: [{ type: "text", text: good }] }]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      expect(correctionAsked(requests)).toMatch(/slider.*Guided Task/i);
+      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+      // On reload the corrected Widget stands where the first one was.
+      expect(noUsage(await loadCurrentSession(db))).toEqual([
+        { role: "user", text: "Show me" },
+        { role: "assistant", text: `Try it.\n${good}` },
+      ]);
+    });
 
     it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
       const db = await testDb();
