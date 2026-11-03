@@ -23,6 +23,12 @@ describe("price table", () => {
     expect(costUsd("claude-opus-5-5", { inputTokens: 1000, outputTokens: 200, cacheReadTokens: 5000, cacheWriteTokens: 4000 })).toBeCloseTo(0.029, 6);
   });
 
+  it("prices Fable 5.1 at $10 and $50 per million, reading the cache at $0.25 and writing at $12.50", () => {
+    expect(costUsd("claude-fable-5-1", { ...none, inputTokens: 1_000_000, outputTokens: 1_000_000 })).toBeCloseTo(60, 6);
+    expect(costUsd("claude-fable-5-1", { ...none, cacheReadTokens: 1_000_000 })).toBeCloseTo(0.25, 6);
+    expect(costUsd("claude-fable-5-1", { ...none, cacheWriteTokens: 1_000_000 })).toBeCloseTo(12.5, 6);
+  });
+
   it("returns null for a model that is not in the table, never a made-up price", () => {
     expect(costUsd("claude-unknown-9", { ...none, inputTokens: 5 })).toBeNull();
   });
