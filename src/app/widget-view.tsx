@@ -2,6 +2,7 @@
 
 import { Renderer } from "@openuidev/react-lang";
 import { Component, useMemo, useState, type ReactNode } from "react";
+import type { CaseLoad } from "@/widgets/case-data-client";
 import { widgetProblems } from "@/widgets/check";
 import { GenuiTheme } from "@/widgets/genui-theme";
 import { WidgetBorderContext, widgetLibrary } from "@/widgets/library";
@@ -47,9 +48,12 @@ function queryKey(tool: WidgetToolName, args: Record<string, unknown>): string {
   return JSON.stringify([tool, args.dataset, args.calculator, args.vary, args.output]);
 }
 
-/** The Widget tools, each reporting how its call went: its error in plain words, or undefined when it worked. */
-function reportingTools(report: (query: string, error: string | undefined) => void): WidgetToolProvider {
-  const tools = createWidgetTools();
+/**
+ * The Widget tools, each reporting how its call went: its error in plain words, or undefined when it worked.
+ * `loadCase` is the widget's shared Case loads, if it has some.
+ */
+function reportingTools(loadCase: CaseLoad | undefined, report: (query: string, error: string | undefined) => void): WidgetToolProvider {
+  const tools = createWidgetTools({ fetchCaseData: loadCase });
   const reporting =
     <K extends WidgetToolName>(name: K) =>
     async (args: Record<string, unknown>) => {
@@ -70,11 +74,21 @@ function reportingTools(report: (query: string, error: string | undefined) => vo
  * (three Queries on one Case make one request). Under a finished widget, each query whose latest call
  * failed says why in one quiet line; moving a slider back to numbers the query can use clears it.
  */
-function DrawnWidget({ code, complete, onSettings }: { code: string; complete: boolean; onSettings?: (settings: Record<string, number>) => void }) {
+function DrawnWidget({
+  code,
+  complete,
+  onSettings,
+  loadCase,
+}: {
+  code: string;
+  complete: boolean;
+  onSettings?: (settings: Record<string, number>) => void;
+  loadCase?: CaseLoad;
+}) {
   const [failed, setFailed] = useState<Record<string, string>>({});
   const tools = useMemo(
     () =>
-      reportingTools((query, error) =>
+      reportingTools(loadCase, (query, error) =>
         setFailed((now) => {
           if (now[query] === error) return now;
           const next = { ...now };
@@ -83,7 +97,7 @@ function DrawnWidget({ code, complete, onSettings }: { code: string; complete: b
           return next;
         }),
       ),
-    [],
+    [loadCase],
   );
   const messages = complete ? [...new Set(Object.values(failed))] : [];
   return (
@@ -125,14 +139,27 @@ function useWidgetNumber(code: string): number {
  * and a Query re-runs one of our Widget tools. A finished widget that fails the check shows a
  * plain fallback instead. `bare` drops the Widget's own border, for a card that already frames it.
  * `onSettings` hears the numbers on the Widget's sliders each time the Learner moves one (for "Save to notes").
+ * `loadCase` shares the Widget's Case Data loads with whatever else reads them beside it (its Sourced strip).
  */
-export function WidgetView({ code, complete, bare = false, onSettings }: { code: string; complete: boolean; bare?: boolean; onSettings?: (settings: Record<string, number>) => void }) {
+export function WidgetView({
+  code,
+  complete,
+  bare = false,
+  onSettings,
+  loadCase,
+}: {
+  code: string;
+  complete: boolean;
+  bare?: boolean;
+  onSettings?: (settings: Record<string, number>) => void;
+  loadCase?: CaseLoad;
+}) {
   const number = useWidgetNumber(code);
   if (complete && widgetProblems(code).length) return <Fallback />;
   return (
     <Contain code={code}>
       <WidgetBorderContext.Provider value={!bare}>
-        <DrawnWidget key={number} code={code} complete={complete} onSettings={onSettings} />
+        <DrawnWidget key={number} code={code} complete={complete} onSettings={onSettings} loadCase={loadCase} />
       </WidgetBorderContext.Provider>
     </Contain>
   );

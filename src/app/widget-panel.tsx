@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CaseData } from "@/case-data/case-data";
-import { fetchCaseData, splitReference } from "@/widgets/case-data-client";
+import { caseLoader, fetchCaseData, splitReference, type CaseLoad } from "@/widgets/case-data-client";
 import { Credit, SourcedTag } from "@/widgets/case-data-view";
 import { widgetParts, widgetProblems } from "@/widgets/check";
 import { Chip, Eyebrow } from "./ui";
@@ -32,59 +32,54 @@ export const exploreItem = (code: string, sessionId?: number): WidgetItem => ({
 export type SourcedCases = Record<string, CaseData | null>;
 
 /**
- * Fetches each Case the references read, once each, through the server's as-of rule (nothing dated after the
- * Case's as-of date until its reveal has been shown). Never rejects. Tests pass a fake `fetchImpl`.
+ * Loads each Case the references read, once each, through the server's as-of rule (nothing dated after the
+ * Case's as-of date until its reveal has been shown). Never rejects. `loadCase` defaults to the browser fetch.
  */
-export async function loadSourcedCases(datasets: readonly string[], fetchImpl?: typeof fetch): Promise<SourcedCases> {
+export async function loadSourcedCases(datasets: readonly string[], loadCase: CaseLoad = (caseId) => fetchCaseData(caseId)): Promise<SourcedCases> {
   const caseIds = [...new Set(datasets.flatMap((ref) => splitReference(ref)?.caseId ?? []))];
-  const cases = await Promise.all(caseIds.map((caseId) => fetchCaseData(caseId, fetchImpl)));
+  const cases = await Promise.all(caseIds.map((caseId) => loadCase(caseId)));
   return Object.fromEntries(caseIds.map((caseId, i) => [caseId, cases[i]]));
 }
 
-/** The Cases a Widget's Case Data references read, fetched once per mount; undefined while they load. */
-function useSourcedCases(datasets: readonly string[]): SourcedCases | undefined {
+/** The Cases a Widget's Case Data references read, through the Widget's own Case loads; undefined while they load. */
+function useSourcedCases(datasets: readonly string[], loadCase: CaseLoad): SourcedCases | undefined {
   const wanted = datasets.join(" ");
   const [loaded, setLoaded] = useState<{ wanted: string; cases: SourcedCases }>();
   useEffect(() => {
     if (!wanted) return;
     let live = true;
-    loadSourcedCases(wanted.split(" ")).then((cases) => {
+    loadSourcedCases(wanted.split(" "), loadCase).then((cases) => {
       if (live) setLoaded({ wanted, cases });
     });
     return () => {
       live = false;
     };
-  }, [wanted]);
+  }, [wanted, loadCase]);
   return loaded?.wanted === wanted ? loaded.cases : undefined;
 }
 
 /**
  * The thin amber strip under a Widget that draws Case Data through Query("case_data"): a line per dataset with the
  * Sourced tag, its label and its ⓘ credit, plus what stays withheld until the reveal. Nothing while the data
- * loads; a quiet note for a dataset the server does not have, or withholds.
+ * loads, and no line for a dataset the server does not have or withholds: the Widget's own line under the chart
+ * already says its data could not be loaded, and why.
  */
 export function SourcedStrip({ datasets, cases }: { datasets: readonly string[]; cases: SourcedCases | undefined }) {
-  if (!cases || !datasets.length) return null;
+  const lines = datasets.flatMap((ref) => {
+    const parts = splitReference(ref);
+    const data = parts && cases?.[parts.caseId];
+    const dataset = data?.datasets.find((d) => d.id === parts?.datasetId);
+    return data && dataset ? [{ ref, data, dataset }] : [];
+  });
+  if (!lines.length) return null;
   return (
     <div className="mt-2 space-y-1" data-testid="sourced-strip">
-      {datasets.map((ref) => {
-        const parts = splitReference(ref);
-        const data = parts ? cases[parts.caseId] : null;
-        const dataset = data?.datasets.find((d) => d.id === parts?.datasetId);
-        if (!data || !dataset) {
-          return (
-            <p key={ref} className="text-sm text-[var(--muted)]">
-              No sourced data for {ref}.
-            </p>
-          );
-        }
-        return (
-          <div key={ref} data-kind="sourced" className="rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] px-2 py-1 text-sm">
-            <SourcedTag /> {dataset.label} <Credit dataset={dataset} />
-            {!data.revealed && <span className="block text-xs text-[var(--muted)]">Data after {data.asOf} is withheld until the reveal.</span>}
-          </div>
-        );
-      })}
+      {lines.map(({ ref, data, dataset }) => (
+        <div key={ref} data-kind="sourced" className="rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] px-2 py-1 text-sm">
+          <SourcedTag /> {dataset.label} <Credit dataset={dataset} />
+          {!data.revealed && <span className="block text-xs text-[var(--muted)]">Data after {data.asOf} is withheld until the reveal.</span>}
+        </div>
+      ))}
     </div>
   );
 }
@@ -92,16 +87,18 @@ export function SourcedStrip({ datasets, cases }: { datasets: readonly string[];
 /**
  * A Widget with the Sourced strip for the Case Data it draws through Query("case_data"), and its quiet "Save to
  * notes" beneath it. The numbers on its sliders are kept as the Learner moves them, so a saved Widget reopens as
- * they left it. Mount it with a key per Widget: its sliders start afresh then, and its Case Data is fetched once.
+ * they left it. Mount it with a key per Widget: its sliders start afresh then, and each Case it reads is fetched
+ * once, for its Queries and its strip together.
  */
 export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?: boolean }) {
   const settings = useRef<Record<string, number>>({});
+  const [loadCase] = useState(() => caseLoader());
   // Only a finished Widget that passes the check is drawn, so only its Case Data gets the strip.
   const datasets = useMemo(() => (item.complete && !widgetProblems(item.code).length ? widgetParts(item.code).datasets : []), [item.code, item.complete]);
-  const cases = useSourcedCases(datasets);
+  const cases = useSourcedCases(datasets, loadCase);
   return (
     <>
-      <WidgetView code={item.code} complete={item.complete} bare={bare} onSettings={(s) => (settings.current = s)} />
+      <WidgetView code={item.code} complete={item.complete} bare={bare} onSettings={(s) => (settings.current = s)} loadCase={loadCase} />
       <SourcedStrip datasets={datasets} cases={cases} />
       {item.save && item.complete && (
         <div className="mt-2">

@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { CaseData } from "@/case-data/case-data";
+import { caseLoader, fetchCaseData } from "@/widgets/case-data-client";
+import { createWidgetTools } from "@/widgets/tools";
 import { Conversation, type Line } from "./conversation";
 import { loadSourcedCases, SourcedStrip, WidgetPanel, widgetConcept, type SourcedCases, type WidgetItem } from "./widget-panel";
 
@@ -182,19 +184,33 @@ describe("the Sourced strip under a Widget that draws Case Data", () => {
     expect(text(strip(["sensex-1992/sensex-closes"], { "sensex-1992": { ...sensex, revealed: true } }))).not.toContain("withheld");
   });
 
-  it("shows nothing while the data loads, and a quiet note for a dataset the server does not have", () => {
+  // A dataset the server does not have, or withholds, already gets the Widget's own line under the chart
+  // ("This chart's data could not be loaded: No sourced data for …"), so the strip does not say it twice.
+  it("shows nothing while the data loads, and no line for a dataset the server does not have", () => {
     expect(strip(["sensex-1992/sensex-closes"], undefined)).toBe("");
-    const missing = strip(["sensex-1992/sensex-highs", "fed-hike-1994/fed-funds-rate"], { "sensex-1992": sensex, "fed-hike-1994": null });
-    expect(text(missing)).toContain("No sourced data for sensex-1992/sensex-highs.");
-    expect(text(missing)).toContain("No sourced data for fed-hike-1994/fed-funds-rate.");
-    expect(missing).not.toContain('data-kind="sourced"');
+    expect(strip(["sensex-1992/sensex-highs", "fed-hike-1994/fed-funds-rate"], { "sensex-1992": sensex, "fed-hike-1994": null })).toBe("");
+    const some = strip(["sensex-1992/sensex-closes", "fed-hike-1994/fed-funds-rate"], { "sensex-1992": sensex, "fed-hike-1994": null });
+    expect(some.match(/data-kind="sourced"/g)).toHaveLength(1);
+    expect(text(some)).toContain("Sourced Sensex closing values");
+    expect(text(some)).not.toContain("fed-funds-rate");
   });
 
   it("fetches each Case once, through the server's as-of route, and marks one it cannot fetch", async () => {
     const fetchImpl = vi.fn(async (url: string) => (url === "/api/case-data/sensex-1992" ? Response.json(sensex) : new Response("Not found", { status: 404 })));
-    const cases = await loadSourcedCases(["sensex-1992/sensex-closes", "sensex-1992/sensex-highs", "fed-hike-1994/fed-funds-rate"], fetchImpl as unknown as typeof fetch);
+    const loadCase = (caseId: string) => fetchCaseData(caseId, fetchImpl as unknown as typeof fetch);
+    const cases = await loadSourcedCases(["sensex-1992/sensex-closes", "sensex-1992/sensex-highs", "fed-hike-1994/fed-funds-rate"], loadCase);
     expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual(["/api/case-data/sensex-1992", "/api/case-data/fed-hike-1994"]);
     expect(cases).toEqual({ "sensex-1992": sensex, "fed-hike-1994": null });
+  });
+
+  it("shares one request per Case with the Widget's own Queries, as the Widget panel gives both one loader", async () => {
+    const load = vi.fn(async (caseId: string) => (caseId === "sensex-1992" ? sensex : null));
+    const loadCase = caseLoader(load);
+    const tools = createWidgetTools({ fetchCaseData: loadCase });
+    const [, query] = await Promise.all([loadSourcedCases(["sensex-1992/sensex-closes"], loadCase), tools.case_data({ dataset: "sensex-1992/sensex-closes" })]);
+    await tools.case_data({ dataset: "sensex-1992/sensex-closes" });
+    expect(query.rows).toEqual([{ date: "1992-01-02", value: 1900, text: "1,900 points" }]);
+    expect(load).toHaveBeenCalledTimes(1);
   });
 
   it("is not drawn on the server, where the data has not loaded yet", () => {
