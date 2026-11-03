@@ -4,6 +4,7 @@ import {
   createLibrary,
   defineComponent,
   reactive,
+  useIsStreaming,
   useStateField,
   type ComponentGroup,
   type ComponentRenderProps,
@@ -12,14 +13,15 @@ import {
 // The package root, not "/genui-lib": that entry bundles its own theme context, so GenuiTheme's
 // colours would never reach its charts.
 import { openuiLibrary } from "@openuidev/react-ui";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
-import { advanceReached } from "./guided-tasks";
+import { advanceReached, walkNodes } from "./guided-tasks";
+import { readingValue, settledValue, sliderStep, snappedValue, steppedValue, typedValue, type SliderRange } from "./slider-steps";
 import { GuidedTasksFigure } from "./guided-tasks-view";
 import { WIDGET_TOOL_SPECS } from "./tool-specs";
 
@@ -51,29 +53,80 @@ const sliderProps = z.object({
   unit: z.enum(UNITS),
 });
 
+const stepButton =
+  "h-7 w-7 shrink-0 rounded border border-[var(--border)] text-sm leading-none hover:bg-[var(--field)] disabled:opacity-40";
+
+/**
+ * A slider with a number box and −/+ buttons, so the Learner can set an exact value. The rules for what
+ * values it takes live in slider-steps.ts. The number box keeps what is being typed until Enter or leaving
+ * the box, so typing 3.38 never passes through 3 and 3.3 (which could tick a Guided Task on the way).
+ */
 function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>) {
   const field = useStateField(props.name, props.value);
+  const [draft, setDraft] = useState<string | null>(null);
   const value = Number(field.value ?? props.min);
+  const set = (next: number) => field.setValue(settledValue(next, props));
+  const commit = () => {
+    if (draft === null) return;
+    const typed = typedValue(draft, props);
+    if (typed !== null) field.setValue(typed);
+    setDraft(null);
+  };
   return (
-    <label className="block py-2">
-      <span className="flex items-baseline justify-between text-sm">
+    <div className="py-2">
+      <div className="flex items-baseline justify-between gap-3 text-sm">
         <span>
           <AssumptionTag />
           {props.label}
-        </span>
-        <output className="font-medium tabular-nums">{formatUnit(value, props.unit)}</output>
-      </span>
-      <input
-        type="range"
-        aria-label={props.label}
-        min={props.min}
-        max={props.max}
-        step={props.step}
-        value={value}
-        onChange={(e) => field.setValue(Number(e.target.value))}
-        className="mt-2 w-full accent-[var(--you)]"
-      />
-    </label>
+        </span>{" "}
+        <output className="font-medium tabular-nums">{formatUnit(readingValue(value), props.unit)}</output>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          type="button"
+          aria-label={`Decrease ${props.label} by one step`}
+          disabled={value <= props.min}
+          onClick={() => field.setValue(steppedValue(value, -1, props))}
+          className={stepButton}
+        >
+          −
+        </button>
+        <input
+          type="range"
+          aria-label={props.label}
+          min={props.min}
+          max={props.max}
+          step={sliderStep(props)}
+          value={value}
+          onChange={(e) => set(Number(e.target.value))}
+          className="min-w-0 flex-1 accent-[var(--you)]"
+        />
+        <button
+          type="button"
+          aria-label={`Increase ${props.label} by one step`}
+          disabled={value >= props.max}
+          onClick={() => field.setValue(steppedValue(value, 1, props))}
+          className={stepButton}
+        >
+          +
+        </button>
+        <input
+          type="number"
+          inputMode="decimal"
+          aria-label={`${props.label}, exact value`}
+          min={props.min}
+          max={props.max}
+          step="any"
+          value={draft ?? String(readingValue(value))}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+          }}
+          className="w-20 shrink-0 rounded border border-[var(--border)] bg-[var(--field)] px-1.5 py-0.5 text-right text-sm tabular-nums"
+        />
+      </div>
+    </div>
   );
 }
 
@@ -432,11 +485,70 @@ const Widget = defineComponent({
 /** False inside a card that already draws the frame (the Widget panel), so the Widget adds no second border. */
 export const WidgetBorderContext = createContext(true);
 
+type SliderNode = SliderRange & { name: string; value: unknown; target: string };
+
+/** The Widget's sliders at any depth (in a Stack, a Card or a tab not showing), one per bound $variable. */
+function widgetSliders(children: unknown): SliderNode[] {
+  const byTarget = new Map<string, SliderNode>();
+  for (const node of walkNodes(children)) {
+    if (node.typeName !== "Slider") continue;
+    const { name, value, min, max, step, unit } = node.props;
+    const target = (value as { target?: unknown } | null)?.target;
+    if (typeof target !== "string" || typeof name !== "string") continue;
+    if (typeof min !== "number" || typeof max !== "number" || typeof step !== "number") continue;
+    if (!byTarget.has(target)) byTarget.set(target, { name, value, min, max, step, unit: typeof unit === "string" ? unit : undefined, target });
+  }
+  return [...byTarget.values()];
+}
+
+/**
+ * Remembers one slider's starting value once the finished Widget sets it, moved onto a step, and offers a
+ * way back to it for Reset. Drawn by the frame rather than the slider, so a slider in a tab not showing
+ * still resets.
+ */
+function SliderStart({ slider, resets }: { slider: SliderNode; resets: Map<string, () => void> }) {
+  const field = useStateField(slider.name, slider.value);
+  const streaming = useIsStreaming();
+  const start = useRef<number | null>(null);
+  const current = field.value;
+  useEffect(() => {
+    if (streaming || start.current !== null || typeof current !== "number" || !Number.isFinite(current)) return;
+    start.current = snappedValue(current, slider);
+    if (start.current !== current) field.setValue(start.current);
+  });
+  useEffect(() => {
+    resets.set(slider.target, () => {
+      if (start.current !== null) field.setValue(start.current);
+    });
+    return () => {
+      resets.delete(slider.target);
+    };
+  });
+  return null;
+}
+
 function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string; children: unknown }>) {
   const bordered = useContext(WidgetBorderContext);
+  const sliders = widgetSliders(props.children);
+  const [resets] = useState(() => new Map<string, () => void>());
   return (
     <section className={bordered ? "rounded-lg border border-[var(--border)] p-4" : ""}>
-      <h3 className="mb-2 font-medium">{props.title}</h3>
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <h3 className="font-medium">{props.title}</h3>
+        {sliders.length > 0 && (
+          <button
+            type="button"
+            title="Put every slider back to its starting value"
+            onClick={() => resets.forEach((reset) => reset())}
+            className="shrink-0 rounded border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--muted)] hover:bg-[var(--field)]"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+      {sliders.map((slider) => (
+        <SliderStart key={slider.target} slider={slider} resets={resets} />
+      ))}
       {renderNode(props.children)}
     </section>
   );
