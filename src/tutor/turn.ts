@@ -6,6 +6,7 @@ import { navigate } from "@/course/navigator";
 import { sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
+import { profileBlock } from "@/learner/profile";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import { hiddenPassages, type QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
@@ -292,7 +293,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     if (log.messages.length === 0) {
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
-      const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${quiz ? `${quiz.text}\n\n` : ""}${context}`;
+      // Order: the Learner summary, the Learner Profile (if shared), then the Navigator context last.
+      const profile = await profileBlock(db);
+      const opening = `${OPENING_PREFIX}\n${await learnerSummary(db, map)}\n\n${profile ? `${profile}\n\n` : ""}${quiz ? `${quiz.text}\n\n` : ""}${context}`;
       await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {
       // The API accepts a system message only right after a user message (live 400 otherwise),

@@ -1410,3 +1410,32 @@ also sends four headers on every route: no other site may frame a page (`frame-a
 to other sites. There is no full script policy: Next's inline scripts would need per-request nonces.
 The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
 the screenshot is never covered.
+
+## Learner Profile (`src/learner/profile.ts`, `learner_profile` table, `/api/profile`, `src/app/profile/`, ticket #67)
+
+**What it does.** The Learner can share four things about their own life: work, where they live, any
+loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
+a one-row table (`learner_profile`, id 1) with a flag, `offer_dismissed`, that records "Not now". On
+the first visit the workspace shows a small card with Save and Not now; after either, the card never
+comes back. "About you", linked from the Progress page, edits the same four answers later. Both go
+through `/api/profile` (and `/api/profile/dismiss`), which sit behind the passcode like every other
+route. No model call is made to save it.
+
+**What the Tutor gets.** When a new Session opens, code puts the profile in the Session's first
+message as its own block: after the Learner summary and before the Course Navigator context (which
+stays last, because the Tutor Turn compares against the end of that message). The block says what it is
+for. The Tutor's instructions say the same: use it only to choose everyday examples, in the Learner's
+currency when the example is about their life, and never as advice. Nothing is sent when the Learner
+shared nothing.
+
+**A concrete scenario.** A nurse in Pune saves "Home loan of about 40 lakh" and starts a Present value
+Session. The Tutor may now explain discounting with a loan repayment in rupees instead of an invented
+dollar example. If she then asks "so should I prepay my loan?", the Tutor teaches how to compare the
+two choices and does not tell her which to pick. A behaviour rule, "profile turned into advice", has
+one direct and one indirect question that run with a saved profile.
+
+**The trade-off.** A Session is frozen when it starts, so a profile edit applies only from the next
+Session (the cards say so). That keeps the Session's record true to what the Tutor actually saw, and
+keeps the cached conversation prefix byte-for-byte stable, at the cost of a short wait before an edit
+shows in the examples. The profile is stored in plain text in the database and in each Session's
+record; it is meant for light context, not for anything private such as account numbers.

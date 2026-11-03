@@ -452,3 +452,18 @@ export const loginFailures = pgTable(
   },
   (t) => [index("login_failures_at").on(t.at)],
 );
+
+/**
+ * Learner Profile: what the Learner chooses to share about their own life. One row (id 1); every field
+ * is optional. It is used only to choose everyday examples. `offerDismissed` is set by "Not now" on the
+ * first-visit card, after which the card is never offered again.
+ */
+export const learnerProfile = pgTable("learner_profile", {
+  id: integer("id").primaryKey(),
+  work: text("work"),
+  location: text("location"),
+  loan: text("loan"),
+  savingFor: text("saving_for"),
+  offerDismissed: boolean("offer_dismissed").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

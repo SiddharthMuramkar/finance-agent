@@ -7,11 +7,13 @@ import { loadCourseMap } from "@/course/map";
 import { courseOverview } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { learnerSummary, loadProgress } from "@/learner/memory";
+import { loadProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { loadCurrentSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "./conversation";
+import { ProfileForm } from "./profile/profile-form";
 import { AppHeader, SignedInFrame } from "./ui";
 
 // Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
@@ -42,7 +44,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     );
   }
   const db = getDb();
-  const [summary, initial, jar, quiz, turn, review, progress] = await Promise.all([
+  const [summary, initial, jar, quiz, turn, review, progress, profile] = await Promise.all([
     learnerSummary(db, map),
     loadCurrentSession(db, map),
     cookies(),
@@ -54,6 +56,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     latestTurn(db),
     reviewState(db, map),
     loadProgress(db),
+    loadProfile(db),
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one.
   const pending: PendingTurn = turn && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
@@ -64,6 +67,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     <SignedInFrame>
       <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
         <AppHeader current="workspace" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
+        {shouldOfferProfile(profile) && <ProfileForm mode="card" initial={{ work: "", location: "", loan: "", savingFor: "" }} />}
         <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} place={place} />
       </main>
     </SignedInFrame>
