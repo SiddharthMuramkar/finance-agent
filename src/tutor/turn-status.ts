@@ -11,6 +11,20 @@ import type { Db } from "@/db/types";
 
 export type Turn = typeof turns.$inferSelect;
 
+/**
+ * The fixed prefix of the note code writes for an opener: the turn the page starts by itself when the
+ * Session it shows has no messages. The note is the turn's saved input, so a Retry sends it again.
+ */
+export const OPENER_PREFIX = "Opener by code:";
+
+/** What started a turn: the Learner's own message, or an opener the page started (no Learner message). */
+export type TurnKind = "message" | "opener";
+
+/** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. */
+export function turnKind(turn: Pick<Turn, "input">): TurnKind {
+  return turn.input?.startsWith(OPENER_PREFIX) ? "opener" : "message";
+}
+
 /** What the Learner's "Continue" button sends. */
 export const CONTINUE_TEXT = "Continue.";
 
@@ -22,6 +36,12 @@ export const STALE_RUN_MS = 330_000;
 export async function latestTurn(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Turn | undefined> {
   const [row] = await db.select().from(turns).where(eq(turns.learnerId, learnerId)).orderBy(desc(turns.id)).limit(1);
   return row;
+}
+
+/** Whether one of the Learner's turns is running now (one older than any function can live is not). Choosing a Topic waits for it. */
+export async function turnRunning(db: Db, now: Date, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
+  const turn = await latestTurn(db, learnerId);
+  return turn?.status === "running" && now.getTime() - turn.startedAt.getTime() < STALE_RUN_MS;
 }
 
 /** The same Learner's turn before this one, if any. */

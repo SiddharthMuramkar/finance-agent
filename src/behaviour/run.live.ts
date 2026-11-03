@@ -25,7 +25,7 @@ import { expect, it } from "vitest";
 import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
 import type { Db } from "@/db/types";
-import { saveJump, takeJumpEntry } from "@/learner/memory";
+import { saveJump } from "@/learner/memory";
 import { saveProfile } from "@/learner/profile";
 import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
@@ -68,7 +68,6 @@ async function ask(
   if (prepare) await prepare(db);
   else {
     await saveJump(db, map, QUESTIONS_TOPIC);
-    await takeJumpEntry(db);
   }
   if (q.profile) await saveProfile(db, q.profile);
   const place = await placeLearner(db, map, q.at);
@@ -183,7 +182,6 @@ it(
   async () => {
     const db = await testDb();
     await saveJump(db, map, QUESTIONS_TOPIC);
-    await takeJumpEntry(db);
     const run = async (message: string) => {
       let text = "";
       for await (const e of runTutorTurn({ db, client: tutorClient, map }, message)) {
@@ -195,7 +193,6 @@ it(
     };
     const before = await run("Tell me about the lottery story. Was the cash or the annuity bigger?");
     await saveJump(db, map, CARRY_OVER_FRESH_TOPIC);
-    await takeJumpEntry(db);
     const reply = await run("What were we just talking about?");
     const named = OTHER_TOPIC_WORDS.filter((w) => w.test(reply)).map(String);
     const record = [
@@ -263,7 +260,6 @@ it(
       // Pinned to the Topic (first on the default path today). Taking the jump mark makes the turn read
       // like the live one: mid-Topic in a new Session, with no "the Learner chose this Topic" note.
       await saveJump(db, map, MADE_UP_EXAMPLE_TOPIC);
-      await takeJumpEntry(db);
     });
     expect(stepNote).toContain(topic.title);
     const [reply] = replies;

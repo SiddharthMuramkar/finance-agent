@@ -11,7 +11,7 @@ const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 
 
 const topBarLink = "text-sm text-[var(--muted)] hover:text-[var(--ink)]";
 
-/** The signed-in Learner's main button: what it says and, for Resume and Start, which Topic. Every one opens /study. */
+/** The signed-in Learner's main button: what it says and, for Resume and Start, which Topic. Resume and Start open it (through /api/open); every one lands on /study. */
 export type HomeButton = { kind: "resume" | "start"; topic: string } | { kind: "open" };
 
 /**
@@ -33,11 +33,21 @@ const buttonLabel = (b: HomeButton) => (b.kind === "open" ? copy.openStudyWorksp
 export function LandingView({ stats, button }: { stats: LandingStats; button?: HomeButton }) {
   // Signed out, the main button is Start learning, to the passcode page; signed in, the Learner's own button.
   const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.startLearning };
-  const mainButton = (
-    <a href={hero.href} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
-      {hero.label}
-    </a>
-  );
+  const heroClass = `${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`;
+  // Resume and Start choose the Learner's current Topic, so its Session shows at once (a passed Topic left on
+  // screen gives way): a form posting to /api/open, which goes on to /study.
+  const mainButton =
+    button && button.kind !== "open" ? (
+      <form action="/api/open" method="post" className="contents">
+        <button type="submit" className={heroClass}>
+          {hero.label}
+        </button>
+      </form>
+    ) : (
+      <a href={hero.href} className={heroClass}>
+        {hero.label}
+      </a>
+    );
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">

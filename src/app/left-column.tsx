@@ -2,6 +2,7 @@
 
 import { ThreadPrimitive } from "@assistant-ui/react";
 import type { ReviewState } from "@/learner/review";
+import { WhatComesNextButton } from "./course/jump-button";
 import { MessageBox } from "./message-box";
 import type { WidgetSlot } from "./reply-markdown";
 import { ReviewPanel } from "./review-panel";
@@ -9,12 +10,13 @@ import { ThreadMessages } from "./thread";
 import type { TurnStream } from "./turn-stream";
 import { SecondaryButton } from "./ui";
 import { exploreItem, PinnedExplore } from "./widget-panel";
-import { StatusCard, type Place } from "./workspace-parts";
+import { StatusCard, type PassedTopic, type Place } from "./workspace-parts";
 
 /**
  * The Study Workspace's left column, top to bottom: the status card, the pinned explore Widget, the folded
  * review, the thread with the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
  * itself is in the right panel's Check tab), and the message box with the writing indicator and Attach a passage.
+ * A Topic passed in a turn stays on screen with no message box: What comes next and the Course Map instead.
  * It shows the turn stream's state and starts turns through it; Widget chips come from the Widget host's `slot`.
  */
 export function LeftColumn({
@@ -25,6 +27,7 @@ export function LeftColumn({
   review,
   quizOpen,
   explore,
+  passed = null,
 }: {
   turn: TurnStream;
   slot: WidgetSlot;
@@ -33,13 +36,14 @@ export function LeftColumn({
   review: ReviewState;
   quizOpen: boolean;
   explore: { code: string } | null;
+  passed?: PassedTopic;
 }) {
   const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
       {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a long summary, a Review) can squeeze the chat. */}
       <div data-testid="above-thread" className="mb-6 flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
-        <StatusCard place={place} summary={summary} onContinue={() => void send({ continue: true }, "Continue.")} disabled={running} />
+        <StatusCard place={place} summary={summary} onContinue={() => void send({ continue: true }, "Continue.")} disabled={running || passed !== null} />
         {explore && <PinnedExplore item={exploreItem(explore.code)} />}
         <ReviewPanel review={review} />
       </div>
@@ -73,13 +77,25 @@ export function LeftColumn({
       <p role="status" aria-live="polite" className="sr-only" data-testid="turn-status">
         {announcement}
       </p>
-      {quizOpen && (
-        // The box stays usable: the Learner can still ask about anything else while the quiz is open.
-        <p className="mb-2 text-xs leading-4 text-[var(--muted)]" data-testid="quiz-note">
-          Quiz open: the Tutor will help with these questions after you submit.
-        </p>
+      {passed ? (
+        <section aria-label="Topic passed" data-testid="topic-passed" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)] p-4">
+          <p className="text-sm leading-5">{passed.title} is passed.</p>
+          {passed.next && <WhatComesNextButton label={passed.next} />}
+          <a href="/course" className="text-sm leading-5 underline">
+            Course Map
+          </a>
+        </section>
+      ) : (
+        <>
+          {quizOpen && (
+            // The box stays usable: the Learner can still ask about anything else while the quiz is open.
+            <p className="mb-2 text-xs leading-4 text-[var(--muted)]" data-testid="quiz-note">
+              Quiz open: the Tutor will help with these questions after you submit.
+            </p>
+          )}
+          <MessageBox waiting={waiting} passage={passage} onPassage={setPassage} />
+        </>
       )}
-      <MessageBox waiting={waiting} passage={passage} onPassage={setPassage} />
     </ThreadPrimitive.Root>
   );
 }

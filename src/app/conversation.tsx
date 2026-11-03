@@ -10,7 +10,7 @@ import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
 import { WorkspaceFrame } from "./workspace-frame";
-import type { Place } from "./workspace-parts";
+import type { PassedTopic, Place } from "./workspace-parts";
 
 export type { Line, PendingTurn };
 
@@ -34,6 +34,7 @@ export function Conversation({
   explore = null,
   revealed = [],
   shown,
+  passed = null,
   developerDetails = false,
 }: {
   initial: Line[];
@@ -48,11 +49,13 @@ export function Conversation({
   revealed?: readonly string[];
   /** What the page shows (its Topic's Session, or the Topic before its first turn), carried by every turn request. */
   shown?: Shown;
+  /** A Topic passed in a turn, kept on screen until the Learner chooses where to go; its page sends no turns. */
+  passed?: PassedTopic;
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
 }) {
   // Each new turn sends the panel back to the newest Widget.
-  const turn = useTurnStream({ initial, pending, shown, onTurnStart: () => host.showNewest() });
+  const turn = useTurnStream({ initial, pending, shown, opener: !passed, onTurnStart: () => host.showNewest() });
   const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz });
 
   return (
@@ -61,7 +64,7 @@ export function Conversation({
       <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
         <DeveloperDetails on={developerDetails}>
           <WorkspaceFrame
-            left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} />}
+            left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} />}
             right={<WidgetHost host={host} topicTitle={place?.title} />}
           />
         </DeveloperDetails>

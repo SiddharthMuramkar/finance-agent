@@ -333,14 +333,16 @@ deploy, so a Course Map jump carried one Topic's talk into the next.
   Topic (`sessionForTurn`). The Topic's first turn makes it, inserted with on-conflict so two tabs
   never make two; rendering a page never makes one. With every Topic passed, the Learner talks in one
   Session with no Topic.
-- **What the page shows.** The Study Workspace shows the current Topic's live Session, or an empty
-  thread before its first turn. Coming back to a Topic shows its whole thread as it was left.
+- **What the page shows.** The Study Workspace shows the Learner's shown Session: the current Topic's
+  live Session, or an empty thread before its first turn (the page then starts the opener), or a
+  Topic just passed, until the Learner chooses where to go (see "Choosing and opening a Topic").
+  Coming back to a Topic shows its whole thread as it was left.
 - **One page, one Session.** Every turn request carries what the page shows: its Session, or for a
   Topic's first turn the Topic. If that is not the Learner's current Topic (they chose another one in
   another tab), the turn is refused before anything is saved: "This Topic changed in another tab.
-  Reload to carry on." Each finished turn tells the page what to carry next, so after a turn that
-  passes a Topic the next message goes to the next Topic's Session. The test tools send nothing and
-  are not checked.
+  Reload to carry on." Each finished turn tells the page what to carry next. After a turn that passes
+  a Topic, the page keeps showing that Topic and sends no more turns there; the Learner chooses where
+  to go. The test tools send nothing and are not checked.
 - **No restarts.** Idle time never starts a Session; the idle setting stays only to tell a break.
   After a deploy that changes the instructions or tools, the next new turn (never a resume) refreezes
   the instructions, tools, model and effort inside the same Session and records where
@@ -373,9 +375,7 @@ without their thinking blocks. A second tab still showing Bond prices gets the r
 model is sent in check. Leaving thinking out after a refreeze costs one full prompt-cache write per
 Session after such a deploy, and the Tutor loses its earlier reasoning (not its words). Leaving a
 refused turn out whole means the Tutor never sees the Learner's declined message, even the harmless
-parts of it. Until the next tickets land, Course Map jumps still work as before (a page load, then
-the Learner presses Continue or types), and the Learner still sees the passed Topic's thread until a
-reload after a Topic is passed.
+parts of it.
 
 **How it is tested.** At the Tutor Turn seam with the scripted client and in-memory Postgres
 (`topic-sessions.test.ts`): A → B → A shows only each Topic's messages and B's request holds nothing
@@ -660,7 +660,7 @@ anything else the current Topic's title. A finished widget the check refuses sho
 note, so its eyebrow is the Topic's title too, never "Illustration". The newest widget shows on its own, including when a new
 turn brings one. With two or more widgets a row of tabs, each named by its widget's title (never a number; "Untitled Widget" when the Tutor gave none), sits above the card on one line that scrolls sideways instead of wrapping; a long title is cut short with an ellipsis and shown in full on hover. Picking a tab, or an "Open: <title> →" chip in the chat, shows that widget, fades it in over 200ms,
 flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
-box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier
+box says "Widgets for this Topic will appear here." Scenario: the Learner has a rate chart from earlier
 and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
 "Long-term interest rates" tab and the chart fades in under "Case Data". With eight widgets open the
 tabs still take one line; the Learner scrolls the row sideways to reach the older ones. Trade-off: one widget at a
@@ -1303,9 +1303,9 @@ each step. The rule lives in code, not in the prompt, because a prompt-only rule
 A turn also puts text written after a tool call on a new paragraph, since a reply can now hold
 the end of one step and the start of the next.
 
-The fresh-step flag is also set by a jump: the first turn after the Learner chose a Topic on the
-Course Map page, or went back to the default path, cannot finish the step it lands on, because
-nothing of that step has been taught in this conversation (see "Course Map page and jumps").
+The fresh-step flag is also set by the opener: the turn the page starts when a Topic's Session has
+no messages cannot finish the step it teaches, because nothing of that step has been taught in this
+Session (see "Choosing and opening a Topic").
 
 ## Simulated Learner (`scripts/simulated-learner.mjs`)
 
@@ -1348,19 +1348,19 @@ function, `courseOverview`, so what the page shows and what the Tutor is told ca
 Each Topic not yet passed has a "Study this Topic" button. If the Topic has prerequisites the
 Learner hasn't passed, the button first asks: "Bond prices builds on Present value, which you have
 not passed yet. You can fill the gap first, or go ahead anyway." Going ahead calls `/api/jump`,
-which saves only the current Topic (`learner_state.current_topic_id`). Every other Topic keeps its
-step and passes untouched. After the jump, both buttons do a full page load of `/study`, the Study
-Workspace. A "Back to the default path" button clears the choice. Passing the chosen Topic also
+which saves only the current Topic (`learner_state.current_topic_id`) and shows its Session at once
+(see "Choosing and opening a Topic"). Every other Topic keeps its step and passes untouched. After the
+jump, both buttons do a full page load of `/study`, the Study Workspace. A "Back to the default path"
+button clears the choice. Passing the chosen Topic also
 returns the Learner to the default path (that rule was already in the Navigator). Asking an off-map
 question changes nothing: the place is always computed from saved progress, and only tools and jumps
 write it. A jump is refused while a turn is running, so the Tutor's tools never act on a Topic that
 changed under them.
 
-A jump sets `learner_state.entered_by_jump`. The next turn takes that mark (once), copies it to the
-turn row, and: (1) puts a short note before the context ("The Learner chose this Topic on the Course
-Map ... teach it afresh"), and (2) sets the turn's fresh-step flag, so the pacing rule stops the Tutor
-from finishing the landing step before teaching it. A retry of that turn still knows, because the
-mark is kept on the turn row.
+The old pending switch is gone: a jump used to set `learner_state.entered_by_jump`, and the next turn
+carried a note about it. Now the chosen Topic's Session shows at once, and if it has no messages the
+page starts the opener, which teaches the saved step afresh. The two `entered_by_jump` columns are no
+longer written or read; a later contract migration can drop them.
 
 **Course Map edits.** Tested in the Navigator: an inserted Check becomes the place if it comes
 first without a pass; an inserted Topic appears as not started without moving the Learner; a removed
@@ -1371,9 +1371,9 @@ in the jump prompt.
 
 **Scenario.** The Learner is halfway through Present value (at Check 2's concept) and is curious about
 bonds. On the Course Map they press "Study this Topic" on Bond prices, see the prerequisite prompt,
-and go ahead. The workspace's next turn tells the Tutor about the jump; the Tutor tells the Bond
-prices story. Two days later they press "Back to the default path": Present value is still at Check
-2's concept, and the Tutor re-teaches that concept before moving on.
+and go ahead. The workspace opens Bond prices' own (empty) Session and the opener starts by itself:
+the Tutor tells the Bond prices story. Two days later they press "Back to the default path": Present
+value's thread shows at once, still at Check 2's concept.
 
 **Trade-off.** The warning is a prompt, not a block: the Learner may study out of order, at the cost
 of meeting ideas before their foundations (the Tutor sees the unmet prerequisites in its context). A
@@ -1382,6 +1382,58 @@ review will bring back its questions. The page groups Topics under four Stage he
 Follow, Judge, Analyse), each a list in default-path order with a dot for not started, current or
 passed; Foundation rows also show their Subject. Progress, the Passage view and Login use the same
 design tokens; the first two sit under the app header, Login (signed out) has none.
+
+## Choosing and opening a Topic: the shown Session, the opener and turn kinds (`/api/jump`, `/api/open`, `session-log.ts`, `context.ts`, `tools.ts`, `turn-stream.ts`, spec #119, ticket #131)
+
+**What it does.**
+- **Choosing a Topic** sets the current Topic and shows its Session at once. The ways in today: the
+  Course Map's Study this Topic and Back to the default path, What comes next (on a passed Topic, see
+  below), and Home's Resume and Start (a plain form posting to `/api/open`, which goes on to `/study`).
+  Study X first, Progress rows and the Welcome will use the same routes. While a turn is running,
+  `/api/jump` answers "A turn is in progress…" and changes nothing; `/api/open` then just opens the
+  Study Workspace, which says the same.
+- **The shown Session** (`learner_state.shown_session_id`) is what the Study Workspace renders
+  (`shownInWorkspace`). A turn saves the Session it runs in; choosing clears it, which means "the
+  current Topic's own Session, or that Topic before its first turn".
+- **The opener.** When the shown Session has no messages (and no turn is unfinished), the page starts a
+  turn by itself (`{ opener: true }`). Code writes its note, starting "Opener by code:", and no Learner
+  bubble is drawn. The note teaches the saved step: the Story in a Topic not yet started; otherwise the
+  step reached, which nothing in this Session has taught yet. At an open quiz, the Check tab is already
+  selected on the right and the note tells the Tutor to point the Learner to it. An opener is a fresh
+  turn (the pacing rule), and a second opener for a Session that already has messages (another tab got
+  there first) gets the reload message.
+- **Turn kinds.** A turn records its kind (`turnKind`): a code-written turn saves its note, with its
+  fixed prefix, as the turn's input, so "opener" is read off the turn row and a Retry sends the same
+  note again. Every other turn is a "message".
+- **A Topic passed in a turn** (its Principle finished, or its last Due Check passed): the tool result
+  tells the Tutor "Topic complete: stop here" and gives no context for another Topic, and the next
+  Topic is not started. The Learner's current Topic moves on, but the shown Session stays: the
+  Workspace keeps the passed Topic's thread on screen, and in place of the message box shows
+  "<Topic> is passed." with What comes next ("Next Topic: Bond prices →") and the Course Map.
+- **The empty right panel** reads "Widgets for this Topic will appear here."
+
+**Scenario.** The Learner finishes Present value's principle. The Tutor's tool result says "Topic
+complete: stop here"; it closes the Topic in two sentences and stops. The page refreshes: the thread
+stays, the message box gives way to "Present value is passed." and "Next Topic: Bond prices →". They
+press it: Bond prices' Session is empty, so the opener starts at once and the Tutor tells the Bond
+prices story, with no "Continue" bubble above it. A week later they press Resume on Home: Bond prices
+opens at the step they reached, and if its Session were new the opener would teach that step afresh.
+
+**Trade-off.** The page, not the server, starts the opener, so a render still makes no Session and no
+model call; the price is one extra request on opening an empty Topic, and a tab closed before it starts
+just starts it next time. The kind lives in the note's prefix rather than its own column (this ticket
+adds no migration), which is enough while each code-written turn has its own fixed prefix. A passed
+Topic waits for the Learner rather than flowing on: one more click, but the Tutor never starts the next
+Topic inside the last one's conversation.
+
+**How it is tested.** At the Tutor Turn seam (`topic-sessions.test.ts`): the opener stores no Learner
+message, is recorded as an opener, teaches the Story of a new Topic and the saved step of a started
+one, points to the Check tab at an open quiz, runs once per Session, and retries as an opener; a passed
+Topic gets "Topic complete", starts nothing, stays shown and refuses further turns until What comes
+next. Through the routes (`api/jump/route.test.ts`): each way of choosing shows its Topic at once,
+and each answers "turn in progress" while a turn runs. In the workspace render: the passed Topic's
+bar with no message box, and the empty panel's words. The jump tests in `turn.test.ts` now use the
+opener.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 
