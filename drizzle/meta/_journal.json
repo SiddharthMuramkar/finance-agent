@@ -183,6 +183,13 @@
       "when": 1793689395752,
       "tag": "0025_yielding_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793709698471,
+      "tag": "0026_learners_expand",
+      "breakpoints": true
     }
   ]
 }

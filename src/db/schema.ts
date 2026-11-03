@@ -7,19 +7,70 @@ export const settings = pgTable("settings", {
   value: text("value").notNull(),
 });
 
+/** The owner's Learner, made by the expand migration; every row written without a Learner id belongs to it. */
+export const OWNER_LEARNER_ID = 1;
+
+/**
+ * One Learner: a person with their own Learner Profile, progress, Notes, Sessions and Widget state.
+ * A name (from the passcode list) signs in as its one active Learner; Start over archives that
+ * Learner and makes a fresh one under the same name, so at most one per name is not archived.
+ */
+export const learners = pgTable(
+  "learners",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    /** Set by Start over; an archived Learner is kept whole but can no longer sign in. */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /** Settings > Show developer details: "Under the hood" under each reply. Off by default. */
+    showDeveloperDetails: boolean("show_developer_details").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("learners_one_active_per_name").on(t.name).where(sql`${t.archivedAt} is null`)],
+);
+
+/**
+ * The Learner a row belongs to. Until every read and write names a Learner (the contract step of
+ * spec #119), a row written without one belongs to the owner.
+ */
+const learnerId = () =>
+  integer("learner_id")
+    .notNull()
+    .default(OWNER_LEARNER_ID)
+    .references(() => learners.id);
+
 /**
  * One Session: the instructions, tool definitions, model and effort frozen at
  * Session start. Every request in the Session replays these exact values.
+ *
+ * A Topic Session (ADR 0004) has its Topic and is live (`older` false): at most one live Session
+ * per Learner and Topic. Every Session from before one Session per Topic is Older: read-only, and
+ * possibly holding several Topics. `older` defaults to true so a Session made by code that doesn't
+ * know about Topics is Older too; code that makes a Topic Session sets it to false.
  */
-export const sessions = pgTable("sessions", {
-  id: serial("id").primaryKey(),
-  instructions: text("instructions").notNull(),
-  tools: jsonb("tools").notNull().$type<unknown[]>(),
-  model: text("model").notNull(),
-  effort: text("effort").notNull(),
-  fingerprint: text("fingerprint").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: serial("id").primaryKey(),
+    learnerId: learnerId(),
+    instructions: text("instructions").notNull(),
+    tools: jsonb("tools").notNull().$type<unknown[]>(),
+    model: text("model").notNull(),
+    effort: text("effort").notNull(),
+    fingerprint: text("fingerprint").notNull(),
+    /** The Topic this Session teaches; null for an Older Session and for the every-Topic-passed Session. */
+    topicId: text("topic_id"),
+    older: boolean("older").notNull().default(true),
+    /** The seq of the first message after the instructions were last refrozen on a deploy; null if never. */
+    refrozenAtSeq: integer("refrozen_at_seq"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("sessions_one_live_per_topic")
+      .on(t.learnerId, t.topicId)
+      .where(sql`${t.older} = false and ${t.topicId} is not null`),
+  ],
+);
 
 /** Add-only history. Content is stored exactly as sent or received. */
 export const messages = pgTable(
@@ -43,7 +94,10 @@ export const messages = pgTable(
  */
 export const learnerState = pgTable("learner_state", {
   id: integer("id").primaryKey(),
+  learnerId: learnerId(),
   currentTopicId: text("current_topic_id"),
+  /** The Session the Study Workspace shows (a passed Topic's stays shown until the Learner chooses where to go). */
+  shownSessionId: integer("shown_session_id").references(() => sessions.id),
   /**
    * True when the Learner entered a Topic by choosing it on the Course Map page or by going back
    * to the default path, and no turn has started since. The next turn tells the Tutor and treats
@@ -56,6 +110,7 @@ export const learnerState = pgTable("learner_state", {
 /** Learner Memory: one row per Topic the Learner has started. */
 export const topicProgress = pgTable("topic_progress", {
   topicId: text("topic_id").primaryKey(),
+  learnerId: learnerId(),
   step: text("step").notNull(),
   revealShown: boolean("reveal_shown").notNull().default(false),
   status: text("status").notNull().$type<"in_progress" | "passed">(),
@@ -68,6 +123,7 @@ export const checkResults = pgTable(
   "check_results",
   {
     id: serial("id").primaryKey(),
+    learnerId: learnerId(),
     topicId: text("topic_id").notNull(),
     checkId: text("check_id").notNull(),
     passed: boolean("passed").notNull(),
@@ -87,6 +143,7 @@ export const misconceptions = pgTable(
   "misconceptions",
   {
     id: serial("id").primaryKey(),
+    learnerId: learnerId(),
     topicId: text("topic_id").notNull(),
     checkId: text("check_id"),
     description: text("description").notNull(),
@@ -107,6 +164,7 @@ export const insightAttempts = pgTable(
   "insight_attempts",
   {
     id: serial("id").primaryKey(),
+    learnerId: learnerId(),
     topicId: text("topic_id").notNull(),
     reported: text("reported").notNull().$type<"found" | "not_yet" | "asked_to_be_told">(),
     released: text("released").notNull().$type<"found" | "hint_1" | "hint_2" | "told">(),
@@ -172,6 +230,7 @@ export const quizAttempts = pgTable(
   "quiz_attempts",
   {
     id: serial("id").primaryKey(),
+    learnerId: learnerId(),
     checkId: text("check_id").notNull(),
     /** 0 for the first attempt at the Check. */
     attemptNo: integer("attempt_no").notNull(),
@@ -230,6 +289,7 @@ export const turns = pgTable(
   "turns",
   {
     id: serial("id").primaryKey(),
+    learnerId: learnerId(),
     sessionId: integer("session_id").references(() => sessions.id),
     turnSeq: integer("turn_seq"),
     status: text("status").notNull().$type<"running" | "cut_off" | "finished" | "failed">(),
@@ -278,6 +338,7 @@ export const toolCalls = pgTable("tool_calls", {
  */
 export const reviewCards = pgTable("review_cards", {
   questionId: text("question_id").primaryKey(),
+  learnerId: learnerId(),
   due: timestamp("due", { withTimezone: true }).notNull(),
   stability: doublePrecision("stability").notNull(),
   difficulty: doublePrecision("difficulty").notNull(),
@@ -294,6 +355,7 @@ export const reviewCards = pgTable("review_cards", {
 /** Every rating given to a question. `source` "review" rows are the ones the per-Session cap counts. */
 export const reviewLog = pgTable("review_log", {
   id: serial("id").primaryKey(),
+  learnerId: learnerId(),
   questionId: text("question_id").notNull(),
   /** 1 Again, 3 Good. */
   rating: integer("rating").notNull(),
@@ -509,6 +571,7 @@ export const pastedTexts = pgTable(
   "pasted_texts",
   {
     id: serial("id").primaryKey(),
+    learnerId: learnerId(),
     /** The turn that sent it; one paste per turn, so a retry reuses it. */
     turnId: integer("turn_id")
       .notNull()
@@ -543,6 +606,7 @@ export const loginFailures = pgTable(
  */
 export const learnerProfile = pgTable("learner_profile", {
   id: integer("id").primaryKey(),
+  learnerId: learnerId(),
   work: text("work"),
   location: text("location"),
   loan: text("loan"),
@@ -560,6 +624,7 @@ export const noteItems = pgTable(
   "note_items",
   {
     id: serial("id").primaryKey(),
+    learnerId: learnerId(),
     topicId: text("topic_id").notNull(),
     kind: text("kind").notNull().$type<"line" | "reply" | "widget">(),
     /** The Learner's own line; null for saved replies and Widgets. */
@@ -580,4 +645,45 @@ export const noteItems = pgTable(
       .on(t.topicId, t.kind, sql`coalesce(${t.sessionId}, -1)`, sql`coalesce(${t.turnSeq}, -1)`, sql`coalesce(${t.widgetIndex}, -99)`)
       .where(sql`${t.kind} <> 'line'`),
   ],
+);
+
+/**
+ * What the Study Workspace draws between messages and never sends to the model: step dividers,
+ * "Picking up where you left off" and Due Check dividers, Check result cards and Topic complete
+ * cards. Each sits after the message with seq `afterSeq` in its Session (-1: before the first).
+ */
+export const sessionItems = pgTable(
+  "session_items",
+  {
+    id: serial("id").primaryKey(),
+    learnerId: learnerId(),
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => sessions.id),
+    afterSeq: integer("after_seq").notNull(),
+    kind: text("kind").notNull(),
+    data: jsonb("data").notNull().$type<Record<string, unknown>>().default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("session_items_session").on(t.sessionId, t.afterSeq)],
+);
+
+/**
+ * A Widget's saved work in one Session: its slider values and ticked Guided Tasks, restored on
+ * reload and tab switch. The Widget key is the written-ahead Widget's id, or the title of a Widget
+ * the Tutor drew.
+ */
+export const widgetState = pgTable(
+  "widget_state",
+  {
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => sessions.id),
+    widgetKey: text("widget_key").notNull(),
+    learnerId: learnerId(),
+    values: jsonb("values").notNull().$type<Record<string, number>>().default(sql`'{}'::jsonb`),
+    ticked: jsonb("ticked").notNull().$type<string[]>().default(sql`'[]'::jsonb`),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.sessionId, t.widgetKey] })],
 );
