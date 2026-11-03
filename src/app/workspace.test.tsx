@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import type { CaseData } from "@/case-data/case-data";
 import { Conversation, type Line } from "./conversation";
-import { WidgetPanel, widgetConcept, type WidgetItem } from "./widget-panel";
+import { loadSourcedCases, SourcedStrip, WidgetPanel, widgetConcept, type SourcedCases, type WidgetItem } from "./widget-panel";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
@@ -126,5 +127,80 @@ describe("the Widget panel", () => {
   it("shows the dashed empty state before the Tutor builds any Widget", () => {
     expect(text(renderToStaticMarkup(<WidgetPanel widgets={[]} shown={undefined} onPick={() => {}} />))).toContain("Widgets the Tutor builds appear here.");
     expect(text(workspace())).toContain("Widgets the Tutor builds appear here.");
+  });
+
+  it("names the concept from the Widget tools its Queries call, and a Formula Card's Widget Formula", () => {
+    const calling = (query: string) => `root = Widget("T", [])\nq = ${query}`;
+    expect(widgetConcept(calling('Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: 3}, {rows: []})'), "Bonds")).toBe("Present value");
+    expect(widgetConcept(calling('Query("case_data", {dataset: "sensex-1992/sensex-closes"}, {rows: []})'), "Bonds")).toBe("Case Data");
+    expect(widgetConcept(calling('Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: 8.5, years: 20}}, {rows: []})'), "Bonds")).toBe("Calculator");
+    expect(
+      widgetConcept(calling('Query("calculate_range", {calculator: "future_value", inputs: {amount: 100000, ratePercent: 8, years: 1}, vary: "years", from: 1, to: 30, step: 1}, {rows: []})'), "Bonds"),
+    ).toBe("Calculator");
+    expect(widgetConcept('root = Widget("PV", [card])\ncard = FormulaCard("present-value", {}, {}, {amount: 1000, ratePercent: 10, years: 5})', "Bonds")).toBe("Formula");
+  });
+
+  // These need OpenUI's kit (Stack, BarChart, Table, AreaChart) in the frozen schema.
+  it("says Illustration for a ready-made chart or table whose numbers none of our code supplies", () => {
+    const bars = `root = Widget("Illustration: a rate moving from 5% to 5.5%", [box])
+box = Stack([chart])
+chart = BarChart(["Before", "After"], [Series("Rate (%)", [5, 5.5])])`;
+    expect(widgetConcept(bars, "Bonds")).toBe("Illustration");
+    expect(widgetConcept('root = Widget("Illustration: two rates", [t])\nt = Table([Col("Rate", ["5%", "5.5%"])])', "Bonds")).toBe("Illustration");
+  });
+
+  it("names the code behind a kit chart's numbers, deep in the layout, rather than Illustration", () => {
+    const grow = `root = Widget("How 1 lakh grows at your rate", [box])
+$rate = 8
+box = Stack([rate, chart])
+rate = Slider("ratePercent", "Yearly return", 1, 15, 0.5, $rate, "percent")
+chart = AreaChart(g.rows.label, [Series(g.output, g.rows.value)])
+g = Query("calculate_range", {calculator: "future_value", inputs: {amount: 100000, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: 30, step: 1}, {rows: []})`;
+    expect(widgetConcept(grow, "Bonds")).toBe("Calculator");
+    expect(widgetConcept(`root = Widget("Rates", [box])\nbox = Stack([history])\nhistory = HistoryChart("mega-millions-2018/treasury-30-year")`, "Bonds")).toBe("Case Data");
+  });
+});
+
+describe("the Sourced strip under a Widget that draws Case Data", () => {
+  const sensex: CaseData = {
+    caseId: "sensex-1992",
+    asOf: "1992-04-29",
+    revealed: false,
+    datasets: [
+      { id: "sensex-closes", label: "Sensex closing values", unit: "points", source: "BSE", sourceUrl: "https://example.com/bse", checkedOn: "2026-10-01", points: [{ date: "1992-01-02", value: 1900 }] },
+    ],
+  };
+  const strip = (datasets: string[], cases: SourcedCases | undefined) => renderToStaticMarkup(<SourcedStrip datasets={datasets} cases={cases} />);
+
+  it("shows an amber Sourced line per dataset, with its label and ⓘ credit, and what stays withheld until the reveal", () => {
+    const html = strip(["sensex-1992/sensex-closes"], { "sensex-1992": sensex });
+    expect(html.match(/data-kind="sourced"/g)).toHaveLength(1);
+    expect(text(html)).toContain("Sourced Sensex closing values");
+    expect(html).toContain('data-testid="credit"');
+    expect(html).toContain("ⓘ");
+    expect(text(html)).toContain("Data after 1992-04-29 is withheld until the reveal.");
+    expect(text(strip(["sensex-1992/sensex-closes"], { "sensex-1992": { ...sensex, revealed: true } }))).not.toContain("withheld");
+  });
+
+  it("shows nothing while the data loads, and a quiet note for a dataset the server does not have", () => {
+    expect(strip(["sensex-1992/sensex-closes"], undefined)).toBe("");
+    const missing = strip(["sensex-1992/sensex-highs", "fed-hike-1994/fed-funds-rate"], { "sensex-1992": sensex, "fed-hike-1994": null });
+    expect(text(missing)).toContain("No sourced data for sensex-1992/sensex-highs.");
+    expect(text(missing)).toContain("No sourced data for fed-hike-1994/fed-funds-rate.");
+    expect(missing).not.toContain('data-kind="sourced"');
+  });
+
+  it("fetches each Case once, through the server's as-of route, and marks one it cannot fetch", async () => {
+    const fetchImpl = vi.fn(async (url: string) => (url === "/api/case-data/sensex-1992" ? Response.json(sensex) : new Response("Not found", { status: 404 })));
+    const cases = await loadSourcedCases(["sensex-1992/sensex-closes", "sensex-1992/sensex-highs", "fed-hike-1994/fed-funds-rate"], fetchImpl as unknown as typeof fetch);
+    expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual(["/api/case-data/sensex-1992", "/api/case-data/fed-hike-1994"]);
+    expect(cases).toEqual({ "sensex-1992": sensex, "fed-hike-1994": null });
+  });
+
+  it("is not drawn on the server, where the data has not loaded yet", () => {
+    const item: WidgetItem = { key: "a:0", number: 1, code: 'root = Widget("Sensex milestones", [])\nd = Query("case_data", {dataset: "sensex-1992/sensex-closes"}, {rows: []})', complete: true };
+    const html = renderToStaticMarkup(<WidgetPanel widgets={[item]} shown={item} onPick={() => {}} />);
+    expect(text(html)).toContain("Sensex milestones");
+    expect(html).not.toContain("sourced-strip");
   });
 });

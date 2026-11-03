@@ -20,9 +20,28 @@ export function taskStates(count: number, reached: number): TaskState[] {
   return Array.from({ length: count }, (_, i) => (i < reached ? "done" : i === reached ? "current" : "todo"));
 }
 
-type Node = { typeName?: unknown; statementId?: string; props?: Record<string, unknown> };
+/** One component of a parsed Widget, as the parser hands it over: its name, its statement (if it has one) and its props. */
+export type ParsedNode = { typeName: string; statementId?: string; props: Record<string, unknown> };
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const isNode = (v: unknown): v is ParsedNode => isRecord(v) && typeof v.typeName === "string" && isRecord(v.props);
+
+/**
+ * Every component in a parsed value, depth first in the order it is written: the value itself when it is one,
+ * then everything inside its props, lists and nested children. A Slider in a Stack inside a TabItem is found
+ * like one at the top of the Widget. Expressions ($rate, a Query's result) hold no finished components, so
+ * they add nothing.
+ */
+export function* walkNodes(value: unknown): Generator<ParsedNode> {
+  if (Array.isArray(value)) {
+    for (const item of value) yield* walkNodes(item);
+  } else if (isNode(value)) {
+    yield value;
+    yield* walkNodes(Object.values(value.props));
+  } else if (isRecord(value)) {
+    yield* walkNodes(Object.values(value));
+  }
+}
 
 /** Every $variable a parsed expression reads, e.g. `$rate >= 3 && $rate <= 4` reads ["$rate"]. */
 export function stateRefs(node: unknown): string[] {
@@ -32,15 +51,14 @@ export function stateRefs(node: unknown): string[] {
   return Object.values(node).flatMap(stateRefs);
 }
 
-const nodesOf = (children: unknown): Node[] => (Array.isArray(children) ? children : []).filter(isRecord) as Node[];
-
-/** A Slider among a Widget's children, as parsed: the $variable it is bound to and its range. */
+/** A Slider in a Widget, as parsed: the $variable it is bound to and its range. */
 export type ParsedSlider = { variable: string; min: number; max: number; step: number };
 
+/** Every Slider in a Widget's children, at any depth (inside a Stack, a Card or a TabItem too), in order. */
 export function parsedSliders(children: unknown): ParsedSlider[] {
-  return nodesOf(children).flatMap((n) => {
+  return [...walkNodes(children)].flatMap((n) => {
     if (n.typeName !== "Slider") return [];
-    const { value, min, max, step } = n.props ?? {};
+    const { value, min, max, step } = n.props;
     if (!isRecord(value) || value.k !== "StateRef" || typeof value.n !== "string") return [];
     if (typeof min !== "number" || typeof max !== "number" || typeof step !== "number") return [];
     return [{ variable: value.n, min, max, step }];
@@ -50,14 +68,14 @@ export function parsedSliders(children: unknown): ParsedSlider[] {
 /** One Guided Task as parsed: its text and its condition (an expression node, left as parsed). */
 export type ParsedTask = { id: string; text: string; condition: unknown };
 
-/** The Guided Tasks of a Widget's children, in order, across every GuidedTasks among them. */
+/** The Guided Tasks of a Widget's children, in order, across every GuidedTasks among them at any depth. */
 export function parsedTasks(children: unknown): ParsedTask[] {
-  return nodesOf(children)
+  return [...walkNodes(children)]
     .filter((n) => n.typeName === "GuidedTasks")
-    .flatMap((group) => (Array.isArray(group.props?.tasks) ? (group.props.tasks as unknown[]) : []))
+    .flatMap((group) => (Array.isArray(group.props.tasks) ? (group.props.tasks as unknown[]) : []))
     .map((t, i): ParsedTask => {
-      const task = (isRecord(t) ? t : {}) as Node;
-      return { id: task.statementId ?? `task ${i + 1}`, text: typeof task.props?.text === "string" ? task.props.text : "", condition: task.props?.done };
+      const task = isNode(t) ? t : undefined;
+      return { id: task?.statementId ?? `task ${i + 1}`, text: typeof task?.props.text === "string" ? task.props.text : "", condition: task?.props.done };
     });
 }
 

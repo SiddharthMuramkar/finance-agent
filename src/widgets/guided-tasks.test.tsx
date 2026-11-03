@@ -7,7 +7,7 @@ import { annuitySchedule } from "@/finance/present-value";
 import { presentValueOnly } from "@/test/present-value-map";
 import { widgetParts, widgetProblems, widgetTaskTexts } from "./check";
 import frozen from "./frozen.generated.json";
-import { advanceReached, parsedTasks, taskStates } from "./guided-tasks";
+import { advanceReached, guidedTaskProblems, parsedSliders, parsedTasks, taskStates, walkNodes } from "./guided-tasks";
 import { GuidedTasksFigure } from "./guided-tasks-view";
 import { WIDGET_PROMPT_OPTIONS, widgetLibrary } from "./library";
 
@@ -145,6 +145,54 @@ describe("the course check for Guided Tasks", () => {
 
   it("names the Topic and the task", () => {
     expect(check("$rate > 10")[0]).toContain('Topic "pv" Guided Task "Task 1"');
+  });
+});
+
+describe("finding Sliders and Guided Tasks at any depth", () => {
+  // Parsed components as the parser hands them over: a Stack holding the slider and Tabs whose second tab holds the tasks.
+  const element = (typeName: string, props: Record<string, unknown>, statementId?: string) => ({ type: "element", typeName, props, partial: false, statementId });
+  const rate = element("Slider", { name: "rate", label: "Rate", min: 0, max: 10, step: 0.5, value: { k: "StateRef", n: "$rate" }, unit: "percent" }, "rate");
+  const done = { k: "BinOp", op: "==", left: { k: "StateRef", n: "$rate" }, right: { k: "Num", v: 0 } };
+  const steps = element("GuidedTasks", { tasks: [element("GuidedTask", { text: "Set 0%", done }, "t0")] }, "steps");
+  // A component inside an expression is drawn by the browser; the walk leaves it alone.
+  const choice = { k: "Ternary", cond: { k: "StateRef", n: "$rate" }, then: { k: "Comp", name: "Slider", args: [], mappedProps: {} }, else: { k: "Null" } };
+  const tabs = element("Tabs", { items: [element("TabItem", { value: "a", trigger: "A", content: [choice] }), element("TabItem", { value: "b", trigger: "B", content: [steps] })] });
+  const children = [element("Stack", { children: [rate, tabs] }, "box")];
+
+  it("walks every component depth first, in the order written", () => {
+    expect([...walkNodes(children)].map((n) => n.typeName)).toEqual(["Stack", "Slider", "Tabs", "TabItem", "TabItem", "GuidedTasks", "GuidedTask"]);
+    expect([...walkNodes(undefined)]).toEqual([]);
+  });
+
+  it("finds a Slider and Guided Tasks nested in a Stack and a tab, so the tasks pass", () => {
+    expect(parsedSliders(children)).toEqual([{ variable: "$rate", min: 0, max: 10, step: 0.5 }]);
+    expect(parsedTasks(children)).toEqual([{ id: "t0", text: "Set 0%", condition: done }]);
+    expect(guidedTaskProblems(children)).toEqual([]);
+  });
+});
+
+// These need OpenUI's kit (Stack) in the frozen schema.
+describe("Guided Tasks inside a Stack", () => {
+  const nested = (...tasks: string[]) =>
+    [
+      'root = Widget("Rates", [box])',
+      "$rate = 5",
+      "box = Stack([rate, steps])",
+      'rate = Slider("rate", "Interest rate", 0, 10, 0.25, $rate, "percent")',
+      `steps = GuidedTasks([${tasks.map((_, i) => `t${i}`).join(", ")}])`,
+      ...tasks.map((condition, i) => `t${i} = GuidedTask("Task ${i + 1}", ${condition})`),
+    ].join("\n");
+
+  it("pass the server's check when they read the Stack's Slider, which still names a task that reads none", () => {
+    expect(widgetProblems(nested("$rate == 0", "$rate == 2"))).toEqual([]);
+    expect(widgetProblems(nested("$rate == 0", "true")).join("\n")).toMatch(/^t1: the condition reads no value bound to a Slider/m);
+    expect(widgetTaskTexts(nested("$rate == 0", "$rate == 2"))).toEqual(["Task 1", "Task 2"]);
+  });
+
+  it("are tried on their Slider by the course check", () => {
+    expect(guidedTaskCheck("pv", nested("$rate == 0", "$rate > 9.5"))).toEqual([]);
+    expect(guidedTaskCheck("pv", nested("$rate == 2.1")).join("\n")).toMatch(/can never be reached/);
+    expect(guidedTaskCheck("pv", nested("$rate == 5")).join("\n")).toMatch(/already done at the start/);
   });
 });
 
