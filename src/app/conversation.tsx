@@ -1,114 +1,27 @@
 "use client";
 
-import {
-  AssistantRuntimeProvider,
-  ComposerPrimitive,
-  MessagePrimitive,
-  ThreadPrimitive,
-  useAuiState,
-  useExternalStoreRuntime,
-  type AppendMessage,
-  type TextMessagePartComponent,
-  type ThreadMessageLike,
-} from "@assistant-ui/react";
+import { AssistantRuntimeProvider, ComposerPrimitive, ThreadPrimitive, useExternalStoreRuntime, type AppendMessage } from "@assistant-ui/react";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { replaceBrokenWidgets } from "@/widgets/check";
-import { splitReply, type Segment } from "@/widgets/split";
 import type { TurnUsage } from "@/tutor/usage";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import { QuizPanel } from "./quiz-panel";
 import { ReviewPanel } from "./review-panel";
-import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
-import { UnderTheHood } from "./under-the-hood";
-import { WidgetView } from "./widget-view";
+import type { WidgetSlot } from "./reply-markdown";
+import { convertMessage, ThreadMessages, widgetsIn, type Line, type ThreadLine } from "./thread";
+import { PrimaryButton, SecondaryButton } from "./ui";
+import { useWidgetPicker, WidgetChip, WidgetPanel } from "./widget-panel";
+import { StatusCard, type Place } from "./workspace-parts";
 
-export type Line = { role: "user" | "assistant"; text: string; usage?: TurnUsage };
-type Message = Line & { id: string };
-type WidgetRef = { key: string; number: number; code: string; complete: boolean };
-
-/** Splits every reply into prose and widget blocks; widgets are numbered across the conversation. */
-function layout(messages: Message[], running: boolean) {
-  const segments = new Map<string, (Segment & { key?: string; number?: number })[]>();
-  const widgets: WidgetRef[] = [];
-  messages.forEach((m, i) => {
-    if (m.role !== "assistant") return;
-    const streaming = running && i === messages.length - 1;
-    let k = 0;
-    segments.set(
-      m.id,
-      splitReply(m.text, { streaming }).map((s) => {
-        if (s.type !== "widget") return s;
-        const ref = { key: `${m.id}:${k++}`, number: widgets.length + 1, code: s.code, complete: s.complete };
-        widgets.push(ref);
-        return { ...s, key: ref.key, number: ref.number };
-      }),
-    );
-  });
-  return { segments, widgets };
-}
-
-type Layout = ReturnType<typeof layout> & { shown?: string; show(key: string): void; usages: Map<string, TurnUsage> };
-const LayoutContext = createContext<Layout | null>(null);
-
-/** Where a widget belongs in the prose: a small marker that shows it in the right pane. On a phone the widget sits in the conversation. */
-function WidgetMarker({ messageId, index, code, complete }: Parameters<WidgetSlot>[0]) {
-  const ctx = useContext(LayoutContext)!;
-  const ref = ctx.segments.get(messageId)?.filter((s) => s.type === "widget")[index];
-  return (
-    <span className="my-2 block">
-      {ref?.key && (
-        <button
-          onClick={() => ctx.show(ref.key!)}
-          data-testid="widget-marker"
-          className={`hidden rounded border px-2 py-0.5 text-xs lg:inline-block ${
-            ctx.shown === ref.key ? "border-teal-700 text-teal-800 dark:border-teal-400 dark:text-teal-300" : "border-stone-300 text-stone-500 dark:border-stone-700"
-          }`}
-        >
-          Widget {ref.number} {complete ? "→" : "(drawing…)"}
-        </button>
-      )}
-      <span className="block lg:hidden">
-        <WidgetView code={code} complete={complete} />
-      </span>
-    </span>
-  );
-}
-const widgetMarker: WidgetSlot = (widget) => <WidgetMarker {...widget} />;
-
-/** A reply's prose as formatted Markdown, with a marker where each widget belongs. */
-const ReplyText: TextMessagePartComponent = () => <ReplyMarkdown slot={widgetMarker} />;
-
-function UserMessage() {
-  return (
-    <MessagePrimitive.Root className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-stone-200 px-3 py-2 dark:bg-stone-800">
-        <MessagePrimitive.Parts />
-      </div>
-    </MessagePrimitive.Root>
-  );
-}
-
-function AssistantMessage() {
-  const ctx = useContext(LayoutContext)!;
-  const id = useAuiState((s) => s.message.id);
-  const usage = ctx.usages.get(id);
-  return (
-    <MessagePrimitive.Root className="max-w-[95%]" data-testid="assistant-message">
-      <MessagePrimitive.Parts components={{ Text: ReplyText }} />
-      {usage && <UnderTheHood usage={usage} />}
-    </MessagePrimitive.Root>
-  );
-}
-
-const convertMessage = (m: Message): ThreadMessageLike => ({ id: m.id, role: m.role, content: [{ type: "text", text: m.text }] });
+export type { Line };
+type Message = ThreadLine;
 
 /**
- * The Study Workspace: the conversation on the left and the latest generated
- * widget on the right, under a plain-text summary and one Continue button.
- * Replies stream in through assistant-ui's external-store runtime; widget
- * blocks are pulled out of the prose as they arrive.
+ * The Study Workspace: the status card, folded review and quiz, and the conversation on the left; the
+ * Widget panel on the right. Replies stream in through assistant-ui's external-store runtime; widget
+ * blocks are pulled out of the prose as they arrive, and a chip stands where each belongs.
  */
 /** The latest turn's saved status, as the page found it. */
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
@@ -123,7 +36,21 @@ const MAX_RESUMES = 10;
 const BUSY_WAIT_MS = 3000;
 const MAX_BUSY_WAITS = 60;
 
-export function Conversation({ initial, summary, quiz, pending, review }: { initial: Line[]; summary: string; quiz: OpenQuiz | null; pending: PendingTurn; review: ReviewState }) {
+export function Conversation({
+  initial,
+  summary,
+  quiz,
+  pending,
+  review,
+  place = null,
+}: {
+  initial: Line[];
+  summary: string;
+  quiz: OpenQuiz | null;
+  pending: PendingTurn;
+  review: ReviewState;
+  place?: Place;
+}) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
@@ -132,7 +59,8 @@ export function Conversation({ initial, summary, quiz, pending, review }: { init
   const [notice, setNotice] = useState<string | null>(pending?.status === "running" ? "A turn is in progress, perhaps on another device." : null);
   const [canRetry, setCanRetry] = useState(pending?.status === "failed");
   const [cutShort, setCutShort] = useState(false);
-  const [shown, setShown] = useState<string>();
+  const widgets = useMemo(() => widgetsIn(messages, running), [messages, running]);
+  const picker = useWidgetPicker(widgets);
 
   /**
    * Sends a message, Continue, or a resume, and streams the reply. When the stream ends
@@ -146,7 +74,7 @@ export function Conversation({ initial, summary, quiz, pending, review }: { init
     setCanRetry(false);
     setCutShort(false);
     setRunning(true);
-    setShown(undefined);
+    picker.clear();
     const stamp = Date.now();
     const replyId = `a-${stamp}`;
     setMessages((m) => {
@@ -257,85 +185,70 @@ export function Conversation({ initial, summary, quiz, pending, review }: { init
   };
   const runtime = useExternalStoreRuntime({ messages, isRunning: running, convertMessage, onNew });
 
-  const laidOut = useMemo(() => layout(messages, running), [messages, running]);
-  const current = laidOut.widgets.find((w) => w.key === shown) ?? laidOut.widgets.at(-1);
-  const usages = useMemo(() => new Map(messages.flatMap((m) => (m.usage ? [[m.id, m.usage] as const] : []))), [messages]);
-  const ctx: Layout = { ...laidOut, shown: current?.key, show: setShown, usages };
+  // Where a Widget belongs in a reply: a chip that shows it in the panel. Widgets are never drawn in the chat.
+  const slot: WidgetSlot = ({ messageId, index }) => {
+    const item = widgets.find((w) => w.key === `${messageId}:${index}`);
+    return item ? <WidgetChip item={item} active={item.key === picker.shown?.key} onPick={picker.pick} /> : null;
+  };
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <LayoutContext.Provider value={ctx}>
-        <div className="grid flex-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <div className="flex min-w-0 flex-col">
+      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] items-start gap-6 lg:gap-8">
+        <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
+          <div className="mb-6 flex flex-col gap-3">
+            <StatusCard place={place} summary={summary} onContinue={() => void send({ continue: true }, "Continue.")} disabled={running} />
             <ReviewPanel review={review} />
-            <section aria-label="Where you stand" className="mb-6 rounded-lg border border-stone-300 p-4 dark:border-stone-700">
-              <p className="whitespace-pre-line text-sm leading-relaxed">{summary}</p>
-              <button
-                onClick={() => void send({ continue: true }, "Continue.")}
-                disabled={running}
-                className="mt-3 rounded bg-stone-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900"
-              >
-                Continue
-              </button>
-            </section>
             <QuizPanel quiz={quiz} />
-            <ThreadPrimitive.Root className="flex flex-1 flex-col">
-              <ThreadPrimitive.Viewport className="flex flex-1 flex-col gap-4">
-                <ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
-              </ThreadPrimitive.Viewport>
-              {fixing && <p className="mt-2 text-xs text-stone-500">Fixing the widget…</p>}
-              {notice && (
-                <p className="my-3 text-sm text-stone-600 dark:text-stone-400" data-testid="turn-notice">
-                  {notice}
-                </p>
-              )}
-              {error && (
-                <p className="my-3 text-sm text-red-700 dark:text-red-400" data-testid="turn-error">
-                  {error}
-                </p>
-              )}
-              {(canRetry || cutShort) && !running && (
-                <div className="my-2 flex gap-2">
-                  {canRetry && (
-                    <button onClick={() => void send({ resume: true })} className="rounded border border-stone-400 px-3 py-1 text-sm dark:border-stone-600">
-                      Retry
-                    </button>
-                  )}
-                  {cutShort && (
-                    <>
-                      <span className="text-sm text-stone-600 dark:text-stone-400">The reply was cut short.</span>
-                      <button onClick={() => void send({ continue: true }, "Continue.")} className="rounded border border-stone-400 px-3 py-1 text-sm dark:border-stone-600">
-                        Continue
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-              <PastePanel disabled={running} onSend={(message, paste) => void send({ message, paste }, `${message}\n\n${pastePreview(paste)}`)} />
-              <ComposerPrimitive.Root className="sticky bottom-0 mt-2 flex gap-2 bg-stone-50 py-3 dark:bg-stone-950">
-                <ComposerPrimitive.Input
-                  placeholder="Ask the Tutor"
-                  aria-label="Message"
-                  rows={1}
-                  className="flex-1 resize-none rounded border border-stone-300 bg-white px-3 py-2 dark:border-stone-700 dark:bg-stone-900"
-                />
-                <ComposerPrimitive.Send className="rounded bg-stone-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900">
-                  Send
-                </ComposerPrimitive.Send>
-              </ComposerPrimitive.Root>
-            </ThreadPrimitive.Root>
           </div>
-          <aside aria-label="Widgets" data-testid="widget-pane" className="hidden lg:block">
-            <div className="sticky top-6">
-              {current ? (
-                <WidgetView key={current.key} code={current.code} complete={current.complete} />
-              ) : (
-                <p className="text-sm text-stone-500 dark:text-stone-400">Charts and calculators the Tutor makes appear here.</p>
-              )}
+          <ThreadPrimitive.Viewport className="min-h-0 flex-1 overflow-y-auto pb-6">
+            <div className="flex flex-col gap-4">
+              <ThreadMessages lines={messages} slot={slot} />
             </div>
-          </aside>
-        </div>
-      </LayoutContext.Provider>
+            {fixing && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Fixing the widget…</p>}
+            {notice && (
+              <p className="my-3 text-sm leading-5 text-[var(--muted)]" data-testid="turn-notice">
+                {notice}
+              </p>
+            )}
+            {error && (
+              <p className="my-3 text-sm leading-5 text-[var(--danger)]" data-testid="turn-error">
+                {error}
+              </p>
+            )}
+            {(canRetry || cutShort) && !running && (
+              <div className="my-2 flex items-center gap-2">
+                {canRetry && <SecondaryButton onClick={() => void send({ resume: true })}>Retry</SecondaryButton>}
+                {cutShort && (
+                  <>
+                    <span className="text-sm leading-5 text-[var(--muted)]">The reply was cut short.</span>
+                    <SecondaryButton onClick={() => void send({ continue: true }, "Continue.")}>Continue</SecondaryButton>
+                  </>
+                )}
+              </div>
+            )}
+            <PastePanel disabled={running} onSend={(message, paste) => void send({ message, paste }, `${message}\n\n${pastePreview(paste)}`)} />
+          </ThreadPrimitive.Viewport>
+          <div className="relative">
+            <div aria-hidden className="fade-above pointer-events-none absolute inset-x-0 -top-6 h-6" />
+            <ComposerPrimitive.Root className="flex gap-2">
+              <ComposerPrimitive.Input
+                placeholder="Ask the Tutor"
+                aria-label="Message"
+                minRows={1}
+                maxRows={6}
+                className="flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-base leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+              />
+              <ComposerPrimitive.Send className="rounded bg-[var(--brand)] px-4 text-base text-[var(--brand-ink)] transition-colors duration-200 hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:hover:bg-[var(--brand)]">
+                Send
+              </ComposerPrimitive.Send>
+            </ComposerPrimitive.Root>
+          </div>
+        </ThreadPrimitive.Root>
+        {/* Capped at the column, so the panel is never taller than the space under the header. */}
+        <aside aria-label="Widget panel" data-testid="widget-pane" className="sticky top-6 max-h-[min(100%,calc(100dvh-48px))] min-w-0 overflow-y-auto">
+          <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={place?.title} />
+        </aside>
+      </div>
     </AssistantRuntimeProvider>
   );
 }
@@ -356,9 +269,9 @@ function PastePanel({ disabled, onSend }: { disabled: boolean; onSend: (message:
   const [note, setNote] = useState("");
   const [open, setOpen] = useState(false);
   return (
-    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="mt-6 rounded border border-stone-300 p-3 text-sm dark:border-stone-700" data-testid="paste-panel">
+    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="mt-6 rounded-lg border border-[var(--border)] p-3 text-sm leading-5" data-testid="paste-panel">
       <summary className="cursor-pointer select-none">Paste a passage</summary>
-      <p className="mt-2 text-xs text-stone-600 dark:text-stone-400">
+      <p className="mt-2 text-xs leading-4 text-[var(--muted)]">
         Paste the part of the piece you are studying. It is kept privately with this Session and is never added to the Library. The Tutor works only from what you paste.
       </p>
       <textarea
@@ -366,16 +279,16 @@ function PastePanel({ disabled, onSend }: { disabled: boolean; onSend: (message:
         onChange={(e) => setPaste(e.target.value)}
         aria-label="Passage to paste"
         rows={6}
-        className="mt-2 w-full rounded border border-stone-300 bg-white px-3 py-2 dark:border-stone-700 dark:bg-stone-900"
+        className="mt-2 w-full rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2"
       />
       <input
         value={note}
         onChange={(e) => setNote(e.target.value)}
         aria-label="Message with the passage"
         placeholder="Optional: what you want to ask about it"
-        className="mt-2 w-full rounded border border-stone-300 bg-white px-3 py-2 dark:border-stone-700 dark:bg-stone-900"
+        className="mt-2 w-full rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2"
       />
-      <button
+      <PrimaryButton
         disabled={disabled || !paste.trim()}
         onClick={() => {
           onSend(note.trim() || "Here is the passage we are studying.", paste.trim());
@@ -383,10 +296,10 @@ function PastePanel({ disabled, onSend }: { disabled: boolean; onSend: (message:
           setNote("");
           setOpen(false);
         }}
-        className="mt-2 min-h-11 rounded bg-stone-900 px-4 py-2 text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900"
+        className="mt-2"
       >
         Send passage
-      </button>
+      </PrimaryButton>
     </details>
   );
 }

@@ -4,12 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Marking } from "@/course/quiz";
 import type { OpenQuiz } from "@/learner/quiz";
+import { PrimaryButton } from "./ui";
+import { FoldedRow } from "./workspace-parts";
 
 type Result = Marking & { attemptNo: number };
 
 /**
- * The quiz the Course Navigator calls for. Code wrote this page's questions, and the server marks
- * them: the browser holds only prompts and choices until an answer has been submitted.
+ * The quiz the Course Navigator calls for, folded into one row ("Quiz Check open"). Code wrote this
+ * page's questions, and the server marks them: the browser holds only prompts and choices until an
+ * answer has been submitted.
  */
 export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
   const router = useRouter();
@@ -48,59 +51,63 @@ export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
 
   if (result) {
     return (
-      <section aria-label="Quiz result" data-testid="quiz-result" className="mb-6 rounded-lg border border-stone-300 p-4 dark:border-stone-700">
-        <p className="font-medium">
-          {result.correctCount} of {result.shown} correct. {result.passed ? "Passed." : `Not yet: you need ${result.needed}. Try again with different questions where there are any.`}
-        </p>
-        <ol className="mt-3 flex flex-col gap-3 text-sm">
-          {result.questions.map((q) => (
-            <li key={q.id}>
-              <p>{q.prompt}</p>
-              <p className={q.correct ? "text-teal-800 dark:text-teal-300" : "text-red-700 dark:text-red-400"}>
-                {q.correct ? "Correct" : `Your answer: ${q.choices.find((c) => c.id === q.chosen)?.text ?? "none"}`}
-                {" – "}
-                right answer: {q.choices.find((c) => c.id === q.answer)?.text}
-              </p>
-              <p className="text-stone-600 dark:text-stone-400">{q.explanation}</p>
-              {q.credit && (
-                <p className="text-xs text-stone-500">
-                  Question: {q.credit}.{q.verified ? "" : " The answer key has not been checked by a person yet."}
+      <FoldedRow label="Quiz Check marked" open data-testid="quiz-result">
+        <section aria-label="Quiz result">
+          <p className="text-sm font-medium leading-5">
+            {result.correctCount} of {result.shown} correct. {result.passed ? "Passed." : `Not yet: you need ${result.needed}. Try again with different questions where there are any.`}
+          </p>
+          <ol className="mt-3 flex flex-col gap-3 text-sm leading-5">
+            {result.questions.map((q) => (
+              <li key={q.id}>
+                <p>{q.prompt}</p>
+                <p className={q.correct ? "text-[var(--you)]" : "text-[var(--danger)]"}>
+                  {q.correct ? "Correct" : `Your answer: ${q.choices.find((c) => c.id === q.chosen)?.text ?? "none"}`}
+                  {" – "}
+                  right answer: {q.choices.find((c) => c.id === q.answer)?.text}
                 </p>
-              )}
-            </li>
-          ))}
-        </ol>
-        <button onClick={dismiss} className="mt-3 rounded bg-stone-900 px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-stone-900">
-          {result.passed ? "Done" : "Try again"}
-        </button>
-        {result.passed && <p className="mt-2 text-xs text-stone-500">Press Continue to tell the Tutor.</p>}
-      </section>
+                <p className="text-[var(--muted)]">{q.explanation}</p>
+                {q.credit && (
+                  <p className="text-xs leading-4 text-[var(--muted)]">
+                    Question: {q.credit}.{q.verified ? "" : " The answer key has not been checked by a person yet."}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ol>
+          <PrimaryButton onClick={dismiss} className="mt-3">
+            {result.passed ? "Done" : "Try again"}
+          </PrimaryButton>
+          {result.passed && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Press Continue to tell the Tutor.</p>}
+        </section>
+      </FoldedRow>
     );
   }
   if (!quiz) return null;
   const complete = quiz.questions.every((q) => picked[q.id]);
   return (
-    <section aria-label="Quiz" data-testid="quiz" className="mb-6 rounded-lg border border-stone-300 p-4 dark:border-stone-700">
-      <p className="mb-3 text-sm font-medium">Quiz{quiz.attemptNo > 0 ? ` (attempt ${quiz.attemptNo + 1})` : ""}</p>
-      <ol className="flex flex-col gap-4">
-        {quiz.questions.map((q) => (
-          <li key={q.id}>
-            <fieldset>
-              <legend className="mb-1 text-sm">{q.prompt}</legend>
-              {q.choices.map((c) => (
-                <label key={c.id} className="flex min-h-11 items-center gap-3 py-1 text-sm">
-                  <input type="radio" className="size-5 shrink-0" name={`${quiz.attemptId}-${q.id}`} checked={picked[q.id] === c.id} onChange={() => setPicked({ ...picked, [q.id]: c.id })} />
-                  {c.text}
-                </label>
-              ))}
-            </fieldset>
-          </li>
-        ))}
-      </ol>
-      {error && <p className="mt-2 text-sm text-red-700 dark:text-red-400">{error}</p>}
-      <button onClick={() => void submit()} disabled={!complete || busy} className="mt-3 rounded bg-stone-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900">
-        Submit answers
-      </button>
-    </section>
+    <FoldedRow label="Quiz Check open" data-testid="quiz">
+      <section aria-label="Quiz">
+        {quiz.attemptNo > 0 && <p className="mb-3 text-xs leading-4 text-[var(--muted)]">Attempt {quiz.attemptNo + 1}</p>}
+        <ol className="flex flex-col gap-4">
+          {quiz.questions.map((q) => (
+            <li key={q.id}>
+              <fieldset>
+                <legend className="mb-1 text-sm leading-5">{q.prompt}</legend>
+                {q.choices.map((c) => (
+                  <label key={c.id} className="flex items-center gap-2 py-1 text-sm leading-5">
+                    <input type="radio" className="accent-[var(--brand)]" name={`${quiz.attemptId}-${q.id}`} checked={picked[q.id] === c.id} onChange={() => setPicked({ ...picked, [q.id]: c.id })} />
+                    {c.text}
+                  </label>
+                ))}
+              </fieldset>
+            </li>
+          ))}
+        </ol>
+        {error && <p className="mt-2 text-sm leading-5 text-[var(--danger)]">{error}</p>}
+        <PrimaryButton onClick={() => void submit()} disabled={!complete || busy} className="mt-3">
+          Submit answers
+        </PrimaryButton>
+      </section>
+    </FoldedRow>
   );
 }
