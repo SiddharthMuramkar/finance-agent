@@ -148,6 +148,20 @@
       "when": 1793683134254,
       "tag": "0020_insight_attempts",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793684568224,
+      "tag": "0021_aberrant_lady_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793684975416,
+      "tag": "0022_dear_maginty",
+      "breakpoints": true
     }
   ]
 }
