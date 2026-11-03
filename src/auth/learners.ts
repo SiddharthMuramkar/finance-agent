@@ -20,6 +20,14 @@ export async function signInAs(db: Db, name: string): Promise<Learner> {
   return winner;
 }
 
+/** What Settings' confirmed Start over form sends as `confirm`; a post without it changes nothing. */
+export const START_OVER_CONFIRM = "start-over";
+
+/** Settings > Show developer details: kept on the Learner, so it follows them to every device. */
+export async function setShowDeveloperDetails(db: Db, learnerId: number, on: boolean): Promise<void> {
+  await db.update(learners).set({ showDeveloperDetails: on }).where(eq(learners.id, learnerId));
+}
+
 /**
  * Start over: archives the Learner and makes a fresh, empty, active Learner under the same name, in
  * one transaction. Nothing is deleted or changed in the old Learner's rows; an archived Learner can

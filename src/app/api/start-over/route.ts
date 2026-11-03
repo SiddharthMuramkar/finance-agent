@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
-import { startOver } from "@/auth/learners";
+import { START_OVER_CONFIRM, startOver } from "@/auth/learners";
 import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, learnerToken } from "@/auth/passcode";
 import { sameOrigin } from "@/auth/same-origin";
 import { currentLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 
 export const runtime = "nodejs";
-
-/** What Settings' confirmed Start over form sends as `confirm`; anything else changes nothing. */
-export const START_OVER_CONFIRM = "start-over";
 
 /** Where a fresh Learner lands: the Welcome route. Until the Welcome is built it is the Study Workspace. */
 const WELCOME_PATH = "/study";

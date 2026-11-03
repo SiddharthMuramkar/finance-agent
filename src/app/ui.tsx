@@ -113,7 +113,7 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
   );
 }
 
-export type HeaderPage = "workspace" | "course" | "progress" | "sessions" | "notes";
+export type HeaderPage = "workspace" | "course" | "progress" | "sessions" | "notes" | "settings";
 
 const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "workspace", href: "/study", label: "Study Workspace" },
@@ -121,6 +121,7 @@ const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "progress", href: "/progress", label: "Progress" },
   { page: "sessions", href: "/sessions", label: "Past Sessions" },
   { page: "notes", href: "/notes", label: "Notes" },
+  { page: "settings", href: "/settings", label: "Settings" },
 ];
 
 const headerLink = `whitespace-nowrap text-sm leading-5 transition-colors duration-200 ${focusRing}`;
@@ -141,18 +142,18 @@ export function SignOutButton({ className = "", children = "Sign out" }: { class
 }
 
 /**
- * App header (spec #77): h1 "Finance Agent" linking to Home, the page links, Dark mode, Sign out. current = the page
- * showing (aria-current); theme from readTheme(). Gaps tighten below 1024px to keep one line from 768px.
+ * App header (spec #77): h1 "Finance Agent" linking to Home, the page links (Settings last), Dark mode, Sign out. current = the
+ * page showing (aria-current); theme from readTheme(). Gaps tighten to 8px below 1024px to keep one line from 768px.
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
   // The two buttons share the links' look, with the padding that gives them the same height.
   const mutedButton = `py-2 ${mutedLink}`;
   return (
-    <header className={`flex items-center justify-between gap-3 lg:gap-4 ${className}`}>
+    <header className={`flex items-center justify-between gap-2 lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
         <Link href="/" className={`hover:text-[var(--brand)] ${focusRing}`}>Finance Agent</Link>
       </h1>
-      <nav aria-label="Pages" className="flex items-center gap-3 lg:gap-4">
+      <nav aria-label="Pages" className="flex items-center gap-2 lg:gap-4">
         {HEADER_LINKS.map(({ page, href, label }) =>
           page === current ? (
             <Link key={href} href={href} aria-current="page" className={`${headerLink} text-[var(--brand)] underline decoration-1 underline-offset-4`}>
@@ -172,7 +173,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
 }
 
 /**
- * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Passage): the header sits in the
+ * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Settings, Passage): the header sits in the
  * same 6xl box as the workspace's, so the title and nav stay put between pages, and only the content
  * below it uses the narrower reading column.
  */

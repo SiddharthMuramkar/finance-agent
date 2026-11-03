@@ -57,6 +57,8 @@ const quizRoute = await import("@/app/api/quiz/route");
 const reviewRoute = await import("@/app/api/review/route");
 const turnRoute = await import("@/app/api/turn/route");
 const startOverRoute = await import("@/app/api/start-over/route");
+const settingsRoute = await import("@/app/api/settings/route");
+const { default: SettingsPage } = await import("@/app/settings/page");
 
 const OWNER_PASSCODE = "correct horse battery";
 const TEST_PASSCODE = "staple gun";
@@ -207,7 +209,7 @@ describe("The owner and a second Learner", () => {
     expect(await html(NotesPage())).not.toContain("The owner&#x27;s own note line");
     expect(await html(SessionsPage())).toContain("No Sessions yet.");
     expect(await html(ProgressPage())).not.toMatch(/In progress/i);
-    expect(await html(ProfilePage())).not.toContain("Mumbai");
+    expect(await html(SettingsPage())).not.toContain("Mumbai");
     const study = await html(StudyPage({ searchParams: Promise.resolve({}) }));
     expect(study).not.toContain("The owner&#x27;s reply");
     expect(study).not.toContain("The owner&#x27;s question");
@@ -231,6 +233,47 @@ describe("The owner and a second Learner", () => {
     const owners = await html(StudyPage({ searchParams: Promise.resolve({}) }));
     expect(owners).toContain("The owner&#x27;s reply about the annuity.");
     expect(owners).not.toContain("Welcome. Let&#x27;s start with a story.");
+  });
+});
+
+describe("Settings", () => {
+  beforeEach(() => {
+    vi.stubEnv("PASSCODES", `owner:${OWNER_PASSCODE}, test:${TEST_PASSCODE}`);
+    vi.spyOn(console, "info").mockImplementation(() => {});
+  });
+
+  /** Turns Show developer details on or off, as the Settings switch does. */
+  const developerDetails = (on: unknown) =>
+    settingsRoute.PUT(new Request("https://app.example/api/settings", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ showDeveloperDetails: on }) }));
+
+  it("holds About you, Show developer details and Start over, and the old About you address goes to Settings", async () => {
+    await signIn(TEST_PASSCODE);
+    const page = await html(SettingsPage());
+    for (const heading of ["About you", "Show developer details", "Start over"]) expect(page).toContain(heading);
+    await expect(ProfilePage()).rejects.toMatchObject({ digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/settings[#;]/) });
+  });
+
+  it("Show developer details is off for a new Learner, is kept per Learner, and shows Under the hood under replies only when on", async () => {
+    await ownersRows();
+    await signIn(TEST_PASSCODE);
+    expect(await html(SettingsPage())).not.toMatch(/<input[^>]*checked/);
+    const { client } = scriptedClient([text("The test Learner's reply.")]);
+    await drain(runTutorTurn({ db: as.db, client, map: as.map!, learnerId: await session.currentLearnerId() }, "A question"));
+    const study = () => html(StudyPage({ searchParams: Promise.resolve({}) }));
+    expect(await study()).toContain("The test Learner&#x27;s reply.");
+    expect(await study()).not.toContain("Under the hood");
+
+    expect((await developerDetails(true)).status).toBe(200);
+    expect(await html(SettingsPage())).toMatch(/<input[^>]*checked/);
+    expect(await study()).toContain("Under the hood");
+
+    // The owner's choice is their own: still off.
+    await signIn(OWNER_PASSCODE);
+    expect(await study()).not.toContain("Under the hood");
+    await signIn(TEST_PASSCODE);
+    expect((await developerDetails(false)).status).toBe(200);
+    expect(await study()).not.toContain("Under the hood");
+    expect((await developerDetails("yes")).status).toBe(400);
   });
 });
 
