@@ -4,6 +4,7 @@ import { useAuiState, useMessagePartText } from "@assistant-ui/react";
 import { MarkdownTextPrimitive, type SyntaxHighlighterProps } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
 import { createContext, useCallback, useContext, type ComponentProps, type ReactNode } from "react";
+import { parseFold, SOURCES_FENCE, type SourceEntry } from "@/tutor/citations";
 import { findWidget, markdownSource, splitReply } from "@/widgets/split";
 
 /** What stands where a widget belongs in the prose: a marker in the workspace, the widget itself in an old Session. */
@@ -44,8 +45,43 @@ function ReplyLink({ href, children, node, ...rest }: ComponentProps<"a"> & { no
 }
 const COMPONENTS = { a: ReplyLink };
 
+/**
+ * A reply's sources, folded: one small "N sources" line that opens on click to the numbered list, each
+ * entry with its passage heading and credit line. A passage the as-of rule hides keeps its hidden
+ * title and has no credit; a Case Data source has no number, since no marker points to it.
+ */
+export function SourcesFold({ entries }: { entries: SourceEntry[] }) {
+  if (!entries.length) return null;
+  return (
+    <details data-testid="sources-fold" className="sources-fold mt-3 text-sm text-[var(--muted)]">
+      <summary className="cursor-pointer select-none">
+        {entries.length} {entries.length === 1 ? "source" : "sources"}
+      </summary>
+      <div className="mt-1 space-y-1">
+        {entries.map((e, i) => (
+          <p key={i}>
+            {e.n !== null && <span className="mr-1 tabular-nums">{e.n}.</span>}
+            <a href={e.href} target="_blank" rel="noopener" className="underline">
+              {e.title}
+            </a>
+            {e.credit && <span>{` — ${e.credit}`}</span>}
+          </p>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+/** Rendered by the Markdown renderer for the ```sources fence that ends a reply. */
+function SourcesFence({ code }: SyntaxHighlighterProps) {
+  return <SourcesFold entries={parseFold(code)} />;
+}
+
 const NoHeader = () => null;
-const BY_LANGUAGE = { "openui-lang": { SyntaxHighlighter: WidgetFence, CodeHeader: NoHeader } };
+const BY_LANGUAGE = {
+  "openui-lang": { SyntaxHighlighter: WidgetFence, CodeHeader: NoHeader },
+  [SOURCES_FENCE]: { SyntaxHighlighter: SourcesFence, CodeHeader: NoHeader },
+};
 
 /**
  * A Tutor reply as formatted Markdown (bold, lists, headings, tables), rendered by assistant-ui's

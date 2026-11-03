@@ -3,8 +3,8 @@ import { messages, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import type { CourseMap } from "@/course/map";
-import { hiddenPassages } from "@/library/library";
-import { citedPassageIds, displayText } from "./citations";
+import { CitationMarks, citedPassageIds, displayText } from "./citations";
+import { replyFold, sourceContext } from "./sources";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentSession, type Message, type Row } from "./session-log";
@@ -16,26 +16,28 @@ import { loadTurnUsages, type TurnUsage } from "./usage";
 export const PARAGRAPH = "\n\n";
 
 /**
- * The as-of rule for what these stored replies cite: the passages whose headings the Sources lists withhold now.
+ * What a reply's sources need: each cited passage's credit, the passages the as-of rule hides now, and the Case Data allowed now.
  * Without the Course Map nothing is withheld, so every page that shows replies passes it.
  */
-async function hiddenIn(db: Db, map: CourseMap | undefined, contents: unknown[]): Promise<Set<number>> {
-  return map ? hiddenPassages({ db, map }, citedPassageIds(contents)) : new Set();
-}
+const sourcesFor = (db: Db, map: CourseMap | undefined, contents: unknown[]) => sourceContext({ db, map }, citedPassageIds(contents));
 
-/** The reply text a turn has saved so far, with any widget correction swapped in, as the browser shows it. */
+/**
+ * The reply text a turn has saved so far, with any widget correction swapped in, as the browser shows it:
+ * the text of every loop step, then one folded list of the reply's sources.
+ */
 export async function turnText(rows: Row[], turnSeq: number, { db, map }: { db: Db; map: CourseMap }): Promise<string> {
-  const hidden = await hiddenIn(db, map, rows.filter((r) => r.seq > turnSeq && r.role === "assistant").map((r) => r.content));
+  const ctx = await sourcesFor(db, map, rows.filter((r) => r.seq > turnSeq && r.role === "assistant").map((r) => r.content));
+  const marks = new CitationMarks();
   let text = "";
   let correcting = false;
   for (const r of rows.filter((r) => r.seq > turnSeq)) {
     if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) correcting = true;
     if (r.role !== "assistant") continue;
-    const added = displayText(r.content, hidden);
+    const added = displayText(r.content, correcting ? new CitationMarks() : marks);
     text = correcting ? replaceBrokenWidgets(text, added) : text && added ? text + PARAGRAPH + added : text + added;
     correcting = false;
   }
-  return text;
+  return text ? text + replyFold(marks, text, ctx) : text;
 }
 
 export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage };
@@ -57,7 +59,8 @@ export async function listSessions(db: Db): Promise<{ id: number; createdAt: Dat
  * passage the as-of rule hides now is listed without its heading.
  */
 export async function loadSession(db: Db, sessionId: number, map?: CourseMap): Promise<Line[]> {
-  const lines: (Line & { turnSeq?: number })[] = [];
+  // A turn's loop steps make one reply: one line, whose citation numbers run through all its steps and whose sources fold at its end.
+  const lines: (Line & { turnSeq?: number; marks?: CitationMarks })[] = [];
   let correcting = false;
   let turnSeq = 0;
   const rows = await db
@@ -65,23 +68,30 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap): P
     .from(messages)
     .where(eq(messages.sessionId, sessionId))
     .orderBy(asc(messages.seq));
-  const hidden = await hiddenIn(db, map, rows.filter((m) => m.role === "assistant").map((m) => m.content));
+  const ctx = await sourcesFor(db, map, rows.filter((m) => m.role === "assistant").map((m) => m.content));
   for (const m of rows as (Message & { seq: number })[]) {
-    // A reply is shown with its citation markers and sources.
-    const text = m.role === "assistant" ? displayText(m.content, hidden) : textOf(m.content);
+    const fix = correcting && m.role === "assistant";
+    // A reply is shown with its citation markers; its sources are added once the reply is complete.
+    const marks = fix ? new CitationMarks() : (lines.at(-1)?.role === "assistant" ? lines.at(-1)!.marks : undefined) ?? new CitationMarks();
+    const text = m.role === "assistant" ? displayText(m.content, marks) : textOf(m.content);
     if (!text || m.role === "system") continue;
     if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
       correcting = true;
       continue;
     }
-    const target = correcting && m.role === "assistant" ? lines.findLast((l) => l.role === "assistant") : undefined;
     correcting = false;
-    if (target) target.text = replaceBrokenWidgets(target.text, text);
+    const last = lines.at(-1);
+    if (fix) {
+      const target = lines.findLast((l) => l.role === "assistant");
+      if (target) target.text = replaceBrokenWidgets(target.text, text);
+      else lines.push({ role: m.role, text, turnSeq, marks });
+    } else if (m.role === "assistant" && last?.role === "assistant") last.text += PARAGRAPH + text;
     else {
       if (m.role === "user") turnSeq = m.seq;
-      lines.push({ role: m.role, text, turnSeq });
+      lines.push({ role: m.role, text, turnSeq, ...(m.role === "assistant" && { marks }) });
     }
   }
+  for (const l of lines) if (l.marks) l.text += replyFold(l.marks, l.text, ctx);
   // The panel hangs off the last reply of each turn.
   for (const [seq, usage] of await loadTurnUsages(db, sessionId)) {
     const last = lines.findLast((l) => l.role === "assistant" && l.turnSeq === seq);

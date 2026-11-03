@@ -848,7 +848,7 @@ source (title, licence, credit line, link, and whether it is **dated**, like a b
 up to about 300 words, each with its own heading, link, publication date, licence and credit. The
 Tutor has one new tool, `search_library`. Code runs the search and hands back the best five
 passages, each with its credit line, licence, date and link, and the Tutor's instructions say to
-name the source in plain text whenever it quotes or draws on one, and to keep quotes short.
+keep quotes short; code adds the citation and credit (the Tutor does not name sources in its sentences).
 
 **How search works.** Two rankings are combined in one SQL query. The keyword ranking is BM25, the
 standard search-engine scoring, through Neon's `lakebase_text` extension (confirmed working on the
@@ -980,8 +980,8 @@ built-in citations switched on. The passage is cut into one block per sentence, 
 with its credit line, licence, date, link and any quote limit, so a citation names the sentences
 it used. Claude then returns its reply split into text pieces, and a piece that rests on a passage
 carries a citation naming the passage (`/passages/<id>`) and the sentences. Code turns those into
-what the Learner sees: a small raised number after the claim, and a "Sources" list at the end of
-the reply. Clicking a number opens the passage view in a new tab: the stored passage, the cited
+what the Learner sees: a small raised number after the claim, and one folded "N sources" line at the
+end of the reply (see "Sources folded away" below). Clicking a number opens the passage view in a new tab: the stored passage, the cited
 sentences highlighted, the credit, licence and a link to the original. The stored reply is never
 changed; the numbers are worked out the same way while the reply streams and when it is read back,
 so the workspace, a reload and old Sessions all show the same thing.
@@ -993,17 +993,42 @@ future cash flows falls...")¹ and draws a slider widget in the same reply. The 
 credit "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax), CC BY-NC-SA 4.0".
 Live run, 2 Nov 2026: 3 citations, 2 sources, 2 widgets drawn without a correction turn, $0.089.
 
-**The source's terms still hold.** The Tutor still names the source in plain text when it quotes
-(its instructions are unchanged), and still gets each source's quote limit with the passage. The
+**The source's terms still hold.** The Tutor still gets each source's quote limit with the passage,
+and the credit still travels with the reply (now in the fold, no longer in the Tutor's sentences). The
 passage view respects the same limit: for a source with one (Damodaran's blog, 60 words) it shows
 only the cited sentences, cut to 60 words, says it was shortened and points to the original. A
 passage the as-of rule hides from search is hidden in the passage view too: during the 1994 Fed
 Case, a 2026 Damodaran post shows "hidden until the reveal" instead of its text. Its heading is
-withheld from the Sources list as well. A reply can cite a passage found by a search made earlier in
-the Session, before the Learner reached the Case; the Sources list then shows "Library passage
+withheld from the folded sources as well, and it gets no credit line there. A reply can cite a passage found by a search made earlier in
+the Session, before the Learner reached the Case; the fold then shows "Library passage
 (hidden until the reveal)" instead of a heading like "How Lehman's 2008 failure froze credit", live
 and after a reload, and shows the real heading again once the reveal is shown. Live run with
 Damodaran's blog, 2 Nov 2026: 5 citations to 3 posts, each passage view at most 60 words, $0.034.
+
+**Sources folded away (`src/tutor/sources.ts`).** Sources stay out of the reading. Citation numbers
+stay tiny; the reply ends with one small "3 sources" line that opens on click to the numbered list,
+each entry with its passage heading and credit line. One fold and one numbering serve the whole reply,
+however many loop steps (searches, tool calls) it took, so two different "1"s never meet. The stored
+reply is still never changed, and the same code builds the fold while the reply streams and when it
+is read back, old Sessions included (where a turn's steps now read as one reply, as they stream). The
+fold travels as a `sources` Markdown fence at the end of the reply text, which the reply renderer
+draws as the small line. A passage the as-of rule hides keeps its hidden title and gets no credit. A
+Case Data figure the text quotes (code looks for each allowed point's value written out whole,
+outside citation links and widget code) adds that dataset's credit, unnumbered. In Widgets, a sourced
+figure's credit sits behind a small ⓘ, and the amber still marks it as real data. The Tutor's
+instructions stop it naming sources in its sentences ("according to CNBC..."), except when the writer
+is the subject (Follow Topics) or the Learner asks where something comes from; a behaviour rule,
+"source named in the text", checks it.
+
+**Scenario.** The Learner asks why a higher rate lowers present value. The Tutor searches twice, cites
+OpenStax in each step and says it plainly, with no "as OpenStax puts it". The Learner reads the
+explanation with two tiny numbers and "2 sources" beneath; opening it shows both headings with their
+credit lines.
+
+**Trade-off.** Spotting a quoted Case Data figure is matching on the number's text, so it can miss a
+figure the Tutor rounds or rewords, or catch a coincidence; a miss costs a missing credit line in the
+fold (the widget keeps its own ⓘ either way). The fold appears when the reply ends, not while it
+streams.
 
 **Citations and widgets together.** The spec chose OpenUI's inline mode (widgets written in the
 reply's text) before knowing whether citations would combine with it. They do: the citation split

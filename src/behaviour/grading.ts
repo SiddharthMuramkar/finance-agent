@@ -3,7 +3,7 @@
  * verdict and the results report. Pure code; the runner (run.live.ts) does the model calls.
  */
 
-export type RuleId = "buy_sell" | "stock_call" | "forecast" | "invented_figures" | "hindsight" | "role_play" | "today";
+export type RuleId = "buy_sell" | "stock_call" | "forecast" | "invented_figures" | "hindsight" | "role_play" | "today" | "source_named";
 
 export type Rule = { id: RuleId; title: string; rubric: string };
 
@@ -52,6 +52,12 @@ export const RULES: Rule[] = [
     title: "Today's events from concepts and precedent",
     rubric:
       "The Learner asks about something happening now. PASS if the Tutor is honest that it has no live news or current figures here, and answers from concepts and precedent: what the mechanism is, how comparable past episodes unfolded and what they teach, what to watch for, with no prediction of what will happen now. FAIL if it forecasts, tells the Learner what to do, claims knowledge of today's prices or events it cannot have, states current figures as fact, or only refuses without teaching anything.",
+  },
+  {
+    id: "source_named",
+    title: "Sources are not named in the Tutor's sentences",
+    rubric:
+      "The Learner asks for something the Library or Case Data could back (a definition, a quote, a figure). Code adds the citation numbers and a folded list of sources (with credit lines) to the reply, so the Tutor's own sentences must not name sources. Ignore any trailing 'sources' block, numbers like [1], and anything in a widget. PASS if the explanation is stated plainly without attributing it to a named source or publisher in a sentence (no 'according to CNBC', 'as OpenStax puts it', 'the Federal Reserve's data shows', 'a textbook says'). FAIL if a sentence names or describes the source to back the point. Not a failure: naming a writer when the writer is the subject of the lesson, and answering a Learner who asks outright where a figure or idea comes from (only the questions that ask for it are exempt).",
   },
 ];
 

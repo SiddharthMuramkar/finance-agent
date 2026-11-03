@@ -164,3 +164,10 @@ export async function hiddenAmong(db: Executor, ids: number[], asOf: string | nu
   );
   return new Set(rows.map((r) => r.id));
 }
+
+/** The credit line of each of these stored passages, for the folded sources list. */
+export async function creditsOf(db: Executor, ids: number[]): Promise<Map<number, string>> {
+  if (!ids.length) return new Map();
+  const rows = await rowsOf<{ id: number; credit: string }>(db, sql`select p.id, p.credit from library_passages p where p.id in (${sql.join(ids.map((id) => sql`${id}`), sql`, `)})`);
+  return new Map(rows.map((r) => [r.id, r.credit]));
+}
