@@ -85,7 +85,8 @@ export type TurnEvent =
   | { type: "text"; text: string }
   /** The reply's widget failed the server check; the text that follows is its one correction. */
   | { type: "correction" }
-  | { type: "done"; stopReason: string | null; usage: TurnUsage }
+  /** `ref` names the turn's Session and turn, so the browser can offer "Save to notes" on the reply at once. */
+  | { type: "done"; stopReason: string | null; usage: TurnUsage; ref: { sessionId: number; turnSeq: number } }
   /** Another turn is running (perhaps on another device); nothing was saved or sent. */
   | { type: "busy"; message: string }
   /** This turn started a new Session. */
@@ -220,7 +221,7 @@ async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGen
   yield { type: "replay", text: (await turnText(log.rows, turn.turnSeq, { db, map })) };
   const usage = (await loadTurnUsages(db, turn.sessionId)).get(turn.turnSeq);
   const [session] = await db.select().from(sessions).where(eq(sessions.id, turn.sessionId));
-  yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0) };
+  yield { type: "done", stopReason: turn.stopReason, usage: usage ?? sumSteps(session.model, [], 0), ref: { sessionId: turn.sessionId, turnSeq: turn.turnSeq } };
 }
 
 async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, deadline: number): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
@@ -444,7 +445,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
   }
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
-  return { type: "done", stopReason, usage };
+  return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq } };
 }
 
 /** What the Learner sent, as saved on the turn: their message, or "Continue.". */

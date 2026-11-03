@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { widgetParts } from "@/widgets/check";
 import { Chip, Eyebrow } from "./ui";
+import { SaveToNotes, type SaveTarget } from "./save-to-notes";
 import { WidgetView } from "./widget-view";
 import { FoldedRow } from "./workspace-parts";
 
@@ -10,19 +11,44 @@ import { FoldedRow } from "./workspace-parts";
  * One Widget in the conversation. key is `${messageId}:${index}`; number counts Widgets across the conversation from 1.
  * The Topic's own explore Widget (shown by code, never written in a reply) has key "explore", number 0 and `explore` set.
  */
-export type WidgetItem = { key: string; number: number; code: string; complete: boolean; explore?: true };
+export type WidgetItem = { key: string; number: number; code: string; complete: boolean; explore?: true; save?: SaveTarget & { kind: "widget" } };
 
 export const EXPLORE_KEY = "explore";
 
-/** The Topic's explore Widget as a panel item. */
-export const exploreItem = (code: string): WidgetItem => ({ key: EXPLORE_KEY, number: 0, code, complete: true, explore: true });
+/** The Topic's explore Widget as a panel item. In an old Session, `sessionId` tells the server which Topic it was played under. */
+export const exploreItem = (code: string, sessionId?: number): WidgetItem => ({
+  key: EXPLORE_KEY,
+  number: 0,
+  code,
+  complete: true,
+  explore: true,
+  save: { kind: "widget", widgetIndex: -1, ...(sessionId !== undefined && { sessionId }) },
+});
+
+/**
+ * A Widget with its quiet "Save to notes" beneath it. The numbers on its sliders are kept as the Learner
+ * moves them, so a saved Widget reopens as they left it. Mount it with a key per Widget: its sliders start afresh then.
+ */
+export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?: boolean }) {
+  const settings = useRef<Record<string, number>>({});
+  return (
+    <>
+      <WidgetView code={item.code} complete={item.complete} bare={bare} onSettings={(s) => (settings.current = s)} />
+      {item.save && item.complete && (
+        <div className="mt-2">
+          <SaveToNotes target={item.save} getSettings={() => settings.current} what="Widget" />
+        </div>
+      )}
+    </>
+  );
+}
 
 /**
  * The Tutor's Widgets with the explore Widget among them, standing after the first `after` of them (those
  * drawn before explore began), so a newer Widget from the Tutor still opens on its own after it.
  */
-export function withExplore(widgets: WidgetItem[], explore: { code: string } | null | undefined, after: number): WidgetItem[] {
-  return explore ? [...widgets.slice(0, after), exploreItem(explore.code), ...widgets.slice(after)] : widgets;
+export function withExplore(widgets: WidgetItem[], explore: { code: string } | null | undefined, after: number, sessionId?: number): WidgetItem[] {
+  return explore ? [...widgets.slice(0, after), exploreItem(explore.code, sessionId), ...widgets.slice(after)] : widgets;
 }
 
 /**
@@ -119,7 +145,7 @@ export function WidgetPanel({
         {/* Remounts per Widget, so each one fades in over 200ms. */}
         <div key={shown.key} className="transition-opacity duration-200 starting:opacity-0">
           <Eyebrow className="mb-1">{shown.explore ? "Explore" : widgetConcept(shown.code, topicTitle)}</Eyebrow>
-          <WidgetView code={shown.code} complete={shown.complete} bare />
+          <WidgetWithSave item={shown} />
         </div>
       </section>
     </>
@@ -134,7 +160,7 @@ export function PinnedExplore({ item }: { item: WidgetItem }) {
   return (
     <div className="lg:hidden" data-testid="explore-card">
       <FoldedRow label={`Explore · ${widgetParts(item.code).title ?? "Widget"}`} open>
-        <WidgetView code={item.code} complete bare />
+        <WidgetWithSave item={item} />
       </FoldedRow>
     </div>
   );

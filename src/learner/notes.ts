@@ -4,6 +4,7 @@ import { insightAttempts, misconceptions, noteItems, topicProgress } from "@/db/
 import type { Db } from "@/db/types";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
+import { loadSaved, type SavedItem } from "./saved";
 
 /**
  * Topic Notes. The filled-in part of a note is built on read, by code with no model call, from the
@@ -40,6 +41,8 @@ export type TopicNote = {
   /** Present only once the Topic is passed. */
   filled?: FilledNote;
   lines: NoteLine[];
+  /** Replies and Widgets the Learner saved from a lesson; shown whether or not the Topic is passed. */
+  saved: SavedItem[];
 };
 
 export type NoteLine = { id: number; text: string; createdAt: Date; updatedAt: Date };
@@ -78,11 +81,12 @@ export function buildFilledNote(topic: Topic, records: NoteRecords): FilledNote 
 
 /** Every Topic in course order with its note: the filled-in part for a passed Topic, and the Learner's own lines. */
 export async function loadNotes(db: Db, map: CourseMap): Promise<TopicNote[]> {
-  const [progress, attempts, noticed, items] = await Promise.all([
+  const [progress, attempts, noticed, items, saved] = await Promise.all([
     db.select().from(topicProgress),
     db.select().from(insightAttempts).where(inArray(insightAttempts.released, ["found", "told"])).orderBy(asc(insightAttempts.id)),
     db.select().from(misconceptions).orderBy(asc(misconceptions.id)),
     db.select().from(noteItems).where(eq(noteItems.kind, "line")).orderBy(asc(noteItems.id)),
+    loadSaved(db, map),
   ]);
   return map.topics.map((topic) => {
     const passed = progress.find((p) => p.topicId === topic.id)?.status === "passed";
@@ -101,6 +105,7 @@ export async function loadNotes(db: Db, map: CourseMap): Promise<TopicNote[]> {
       lines: items
         .filter((i) => i.topicId === topic.id && i.text !== null)
         .map((i) => ({ id: i.id, text: i.text as string, createdAt: i.createdAt, updatedAt: i.updatedAt })),
+      saved: saved.get(topic.id) ?? [],
     };
   });
 }

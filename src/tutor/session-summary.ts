@@ -33,6 +33,13 @@ export function summariseRows(rows: { role: string; content: unknown }[]): Sessi
   return { topics, widgets: Math.max(0, fences - corrections) };
 }
 
+/** The title of the last Topic the Tutor's context named in these messages, or undefined. */
+export function lastTopicTitle(rows: { content: unknown }[]): string | undefined {
+  let last: string | undefined;
+  for (const r of rows) for (const m of stringsIn(r.content).join("\n").matchAll(TOPIC_LINE)) last = m[1];
+  return last;
+}
+
 /** Every Session's summary in one query, keyed by Session id. */
 export async function loadSessionSummaries(db: Db): Promise<Map<number, SessionSummary>> {
   const rows = await db
