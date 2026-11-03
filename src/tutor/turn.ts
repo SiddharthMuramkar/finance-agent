@@ -39,8 +39,9 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, CONTINUE_TEXT, dropTurn, latestTurn, NEXT_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, CONTINUE_TEXT, dropTurn, latestTurn, NEXT_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
+import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, widgetReportNote } from "./widget-context";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
@@ -158,10 +159,11 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 /**
  * A new message, Continue (the cut-off reply's button), the opener (the page starts it when the Session it
  * shows has no messages; code writes its note), the Learner's Next (naming the step on its chip, or
- * "complete"; code writes its note), a widget report (Tell the Tutor what I found under the open Widget with this
- * Widget key; code writes its note), or a resume of the last turn after a cut-off or failure (Retry).
+ * "complete"; code writes its note), the quiz follow-up the page starts after a missed quiz (code writes its note),
+ * a widget report (Tell the Tutor what I found under the open Widget with this Widget key; code writes its note),
+ * or a resume of the last turn after a cut-off or failure (Retry).
  */
-export type TurnInput = string | { continue: true } | { opener: true } | { next: NextName } | { widgetReport: string } | { resume: true } | PastedInput;
+export type TurnInput = string | { continue: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { widgetReport: string } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -248,6 +250,9 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   } else if (typeof input === "object" && "next" in input) {
     // Code writes the Next's note once it has taken the move, inside the lock.
     started = NEXT_PREFIX;
+  } else if (typeof input === "object" && "quizFollowUp" in input) {
+    // Code writes the follow-up's note inside the lock, once it has found the missed quiz to go over.
+    started = QUIZ_FOLLOW_UP_PREFIX;
   } else if (!resuming) started = learnerTextOf(input);
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) {
@@ -266,6 +271,17 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
     turn = { ...turn, input: taken.note, sessionId: taken.sessionId, freshStep: true };
     // The dividers come before the reply that teaches the step.
     for (const item of taken.items) yield { type: "item", item };
+  }
+  if (typeof input === "object" && "quizFollowUp" in input) {
+    const note = await quizFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId);
+    if (note === null) {
+      // Already gone over (another tab), or nothing was missed: nothing ran, and the lock is free again.
+      await dropTurn(db, turn.id);
+      yield { type: "not_allowed", message: NO_MISSED_QUIZ };
+      return;
+    }
+    await updateTurn(db, turn.id, { input: note });
+    turn = { ...turn, input: note };
   }
   // Saved with the turn before anything else, so a retry still has it.
   if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now(), learnerId);
@@ -355,7 +371,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // that turn is run again from the message saved on it.
     // An opener sends the note code wrote for it, which its turn saved.
     const learnerText =
-      typeof input === "object" && ("resume" in input || "opener" in input || "next" in input || "widgetReport" in input) ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
+      typeof input === "object" && ("resume" in input || "opener" in input || "next" in input || "quizFollowUp" in input || "widgetReport" in input)
+        ? (turn.input ?? CONTINUE_TEXT)
+        : learnerTextOf(input);
     // Complete this Topic passed the Topic its Next pinned: the turn closes it in that Session, and starts nothing else.
     const completed = await completedSession(db, map, turn);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
@@ -593,7 +611,7 @@ async function completedSession(db: Db, map: CourseMap, turn: Turn): Promise<Ses
 }
 
 /** What the Learner sent, as saved on the turn: their message, or "Continue.". */
-function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true } | { next: NextName } | { widgetReport: string }>): string {
+function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { widgetReport: string }>): string {
   if (typeof input === "string") return input;
   return "paste" in input ? input.message : CONTINUE_TEXT;
 }

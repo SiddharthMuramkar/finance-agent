@@ -31,9 +31,16 @@ export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: str
 /**
  * What a turn request carries: a message (with an optional pasted passage), Continue (the cut-off reply's), the
  * opener, the Learner's Next (naming the step on its chip, or "complete"), a widget report (Tell the Tutor what I
- * found, naming the Widget's key), or a resume.
+ * found, naming the Widget's key), the quiz follow-up after a missed quiz, or a resume.
  */
-export type TurnBody = { message: string; paste?: string } | { continue: true } | { opener: true } | { next: NextName } | { widgetReport: string } | { resume: true };
+export type TurnBody =
+  | { message: string; paste?: string }
+  | { continue: true }
+  | { opener: true }
+  | { next: NextName }
+  | { widgetReport: string }
+  | { quizFollowUp: true }
+  | { resume: true };
 
 /** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
 export const SLOW_AFTER_MS = 8000;
@@ -291,5 +298,8 @@ export function useTurnStream({
   };
   const runtime = useExternalStoreRuntime({ messages, isRunning: running, convertMessage, onNew });
 
-  return { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, runtime };
+  /** Draws a Session item stored outside a turn (a quiz's result card) at the end of the conversation, as a reload would. */
+  const appendItem = (item: SessionItemData) => setMessages((m) => [...m, { id: `item-${Date.now()}-${m.length}`, role: "item", ...item }]);
+
+  return { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, appendItem, runtime };
 }

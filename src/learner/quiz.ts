@@ -1,4 +1,4 @@
-import { and, asc, count, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import type { CourseMap, QuizCheck } from "@/course/map";
 import { markAttempt, publicQuestions, selectQuestions, type Marking, type PublicQuestion } from "@/course/quiz";
 import { navigate } from "@/course/navigator";
@@ -59,6 +59,43 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date(), learner
 }
 
 /**
+ * The Learner's last attempt at a quiz Check, marked and missed, while no new attempt is open: the Check tab shows
+ * its marking with Try Check <k> again, and the next attempt is made only when the Learner presses it (`retryQuiz`).
+ */
+export type MissedQuiz = Omit<OpenQuiz, "questions"> & { result: Marking };
+
+/** What the Check tab shows now: the open attempt, or the last one's marking after a miss. Neither while no quiz Check is current. */
+export type CheckTab = { quiz: OpenQuiz | null; missed: MissedQuiz | null };
+
+/**
+ * What the Study Workspace's Check tab shows now. At a quiz Check whose last attempt was missed, that attempt's
+ * marking, and no new attempt is made; otherwise the open quiz, its first attempt made the first time it is shown.
+ */
+export async function checkTabNow(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<CheckTab> {
+  const place = navigate(map, await loadProgress(db, learnerId));
+  const check = place?.step === "check" ? place.check : null;
+  if (!place || !check || check.kind !== "quiz") return { quiz: null, missed: null };
+  const [last] = await db
+    .select()
+    .from(quizAttempts)
+    .where(and(eq(quizAttempts.learnerId, learnerId), eq(quizAttempts.checkId, check.id)))
+    .orderBy(desc(quizAttempts.id))
+    .limit(1);
+  if (last?.submittedAt && last.passed === false) {
+    const lookup = await questionLookup(db, map, last.questionIds);
+    // Re-marked from the saved answers; a question removed since is left out, the saved score and verdict stand.
+    const marking = markAttempt(lookup, check, last.questionIds.filter((id) => lookup.question(id)), last.answers ?? {});
+    const result = { ...marking, correctCount: last.correctCount ?? marking.correctCount, shown: last.questionIds.length, passed: false };
+    const missed = { attemptId: last.id, checkId: check.id, checkNumber: place.topic.checks.indexOf(check) + 1, checkCount: place.topic.checks.length, attemptNo: last.attemptNo, result };
+    return { quiz: null, missed };
+  }
+  return { quiz: await openQuiz(db, map, now, learnerId), missed: null };
+}
+
+/** Try Check <k> again: makes the next attempt at the current quiz Check (different questions where there are any) and opens it. */
+export const retryQuiz = openQuiz;
+
+/**
  * Whether this quiz Check cannot be shown: fewer of its questions can be found (on the Course Map or in the
  * Question Bank) than its pass rule needs. Then no Check tab opens, and the Tutor checks the Learner in
  * conversation and records a verdict, so the Learner is never stuck at a Check nobody can mark.
@@ -91,6 +128,8 @@ export async function submitQuiz(
   answers: Record<string, string>,
   now = new Date(),
   learnerId = OWNER_LEARNER_ID,
+  /** Runs inside the transaction that saves a first submission (never a repeat), so what it stores goes with the result or not at all. */
+  onSaved?: (tx: Db, saved: { checkId: string; marking: Marking }) => Promise<void>,
 ): Promise<QuizResult> {
   const [attempt] = await db
     .select()
@@ -111,6 +150,7 @@ export async function submitQuiz(
           .update(quizAttempts)
           .set({ answers: given, correctCount: marking.correctCount, passed: marking.passed, submittedAt: now })
           .where(eq(quizAttempts.id, attempt.id));
+        await onSaved?.(tx, { checkId: check.id, marking });
         return result;
       });
       if (!saved.ok) return saved;

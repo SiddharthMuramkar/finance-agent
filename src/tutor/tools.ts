@@ -13,6 +13,7 @@ import { loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
 import { quizUnavailable } from "@/learner/quiz";
 import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library/library";
 import { stepContext, topicCompleteContext } from "./context";
+import { verdictCard } from "./check-results";
 import { pasteSummary } from "./pasted";
 import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import type { ToolDefinition } from "./instructions";
@@ -143,7 +144,11 @@ export function toolCode(
   async function storeStepDivider(tx: Db, before: Place | null, progress: Progress): Promise<SessionItem | null> {
     const after = navigate(map, progress);
     if (!before || after?.topic.id !== before.topic.id) return null;
-    const item = stepDivider(map, progress, after.topic.id);
+    return storeAfterLatest(tx, stepDivider(map, progress, after.topic.id));
+  }
+
+  /** Stores a Session item after the latest message of the turn's Session; null when there is no item or no Session yet. */
+  async function storeAfterLatest(tx: Db, item: SessionItem | null): Promise<SessionItem | null> {
     const [turn] = await tx.select({ sessionId: turns.sessionId }).from(turns).where(eq(turns.id, turnId));
     if (!item || turn?.sessionId == null) return null;
     await saveItemAfterLatest(tx, learnerId, turn.sessionId, item, now());
@@ -224,7 +229,9 @@ export function toolCode(
           const recorded = passed
             ? `Recorded by code: pass for Check ${check_id}.`
             : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
-          return { ok: true, began: passed, text: `${recorded}\n\n${await contextAfterMove(tx, before)}` };
+          // The Learner sees the result in the conversation: a card after the reply that recorded it, never sent to the model.
+          const card = await storeAfterLatest(tx, verdictCard(map, check_id, passed));
+          return { ok: true, began: passed, text: `${recorded}\n\n${await contextAfterMove(tx, before)}`, ...(card && { item: card }) };
         }),
     },
     record_insight_attempt: {

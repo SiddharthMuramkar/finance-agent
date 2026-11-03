@@ -29,7 +29,8 @@ function nextOf(value: unknown): NextName | undefined {
 }
 
 /**
- * Runs one Tutor turn (a message, Next, a widget report, Continue, or the opener the page starts for a Session with no messages), or resumes the last one, and streams its events as
+ * Runs one Tutor turn (a message, Next, a widget report, Continue, the opener the page starts for a Session with no
+ * messages, or the quiz follow-up it starts after a missed quiz), or resumes the last one, and streams its events as
  * newline-delimited JSON. A send while another turn runs gets a 409, and so does a send from a tab
  * whose Topic is no longer the Learner's current one (`stale`).
  */
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
     opener?: boolean;
     next?: unknown;
     widgetReport?: unknown;
+    quizFollowUp?: boolean;
     resume?: boolean;
     shown?: unknown;
     widgets?: unknown;
@@ -58,6 +60,8 @@ export async function POST(request: Request) {
         ? { next }
         : widgetReport
           ? { widgetReport }
+          : body.quizFollowUp
+            ? { quizFollowUp: true }
           : body.continue
           ? { continue: true }
           : message && paste

@@ -10,7 +10,7 @@ import { topicStart } from "@/course/topic-start";
 import { revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
-import { openQuiz } from "@/learner/quiz";
+import { checkTabNow } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { showsWelcome } from "@/learner/welcome";
 import { loadWidgetStates } from "@/learner/widget-state";
@@ -69,12 +69,13 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [thread, quiz, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
+  const [thread, checkTab, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
     "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
+    // The Check tab: the open quiz, or after a miss its marking with Try again (the next attempt is made only on that press).
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
-    openQuiz(db, map, new Date(), learnerId).catch((error) => {
+    checkTabNow(db, map, new Date(), learnerId).catch((error) => {
       console.error("The open quiz could not be loaded", error);
-      return null;
+      return { quiz: null, missed: null };
     }),
     latestTurn(db, learnerId),
     reviewState(db, map, new Date(), learnerId),
@@ -111,7 +112,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         // The Topic bar's strip: the shown Topic's steps, grouped by Check, with the Learner's place.
         strip={current ? stepSequence(map, progress, current.id) : null}
         // The quiz and explore Widget belong to the current Topic, not the passed one on screen.
-        quiz={passed ? null : quiz}
+        quiz={passed ? null : checkTab.quiz}
+        missed={passed ? null : checkTab.missed}
         pending={pending}
         review={review}
         place={place}
