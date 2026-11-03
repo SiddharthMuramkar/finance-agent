@@ -59,7 +59,7 @@ export async function submitQuizAnswers(
   learnerId: number,
 ): Promise<QuizResult & { item?: SessionItem; complete?: SessionItem }> {
   let item: SessionItem | undefined;
-  let complete: SessionItem | null = null;
+  let complete = null as SessionItem | null;
   const result = await submitQuiz(db, map, attemptId, answers, now, learnerId, async (tx, { checkId, marking }) => {
     const check = map.check(checkId);
     const n = checkNumber(map, checkId);
@@ -70,7 +70,7 @@ export async function submitQuizAnswers(
     // A pass of the last Due Check passes the Topic again: its Topic complete card follows the result card.
     complete = await storeTopicComplete(tx, map, learnerId, session.id, now);
   });
-  return result.ok && item ? { ...result, item, ...(complete && { complete }) } : result;
+  return result.ok && item ? { ...result, item, ...(complete ? { complete } : {}) } : result;
 }
 
 /** What the turn says when there is no missed quiz to go over (it was gone over already, or the quiz was passed). */

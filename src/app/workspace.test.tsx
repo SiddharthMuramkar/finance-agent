@@ -292,6 +292,43 @@ describe("a Topic passed in a turn", () => {
   });
 });
 
+describe("the Topic complete card", () => {
+  const closing: Line[] = [
+    { role: "user", text: "So money today is worth more." },
+    { role: "assistant", text: "Exactly. That closes the Topic." },
+  ];
+  const principle = "An advertised total that adds up payments made at different times overstates their value.";
+  const complete = (next: string | null): Line => ({ role: "item", kind: "topic_complete", data: { topicId: "present-value", title: "Present value", principle, next } });
+  const cardOf = (html: string) => html.match(/<section[^>]*data-testid="topic-complete-card"[^>]*>.*?<\/section>/)?.[0] ?? "";
+
+  it("ends the conversation with the principle, Saved to your Notes ✓, Next Topic and the Course Map", () => {
+    const html = workspace({ initial: [...closing, complete("Next Topic: Bond prices")], passed: { title: "Present value", next: "Next Topic: Bond prices" } });
+    const card = cardOf(html);
+    expect(text(card)).toContain("Topic complete");
+    expect(text(card)).toContain(principle);
+    expect(text(card)).toContain("Saved to your Notes ✓");
+    expect(card).toMatch(/<button[^>]*data-what-comes-next[^>]*>Next Topic: Bond prices →<\/button>/);
+    expect(card).toMatch(/<a[^>]*href="\/course"[^>]*>Course Map<\/a>/);
+    expect(html.indexOf("topic-complete-card")).toBeGreaterThan(html.indexOf("That closes the Topic."));
+    // The card carries the buttons: they are not repeated under the thread, and there is no message box or chip.
+    expect(html.match(/data-what-comes-next/g)).toHaveLength(1);
+    expect(html.match(/href="\/course"/g)).toHaveLength(1);
+    expect(html).not.toContain('placeholder="Ask the Tutor"');
+    expect(html).not.toContain('data-testid="next-chip"');
+  });
+
+  it("names a Due Check: New in <Topic>: Check N →, or New in <Topic>: Explore →", () => {
+    expect(cardOf(workspace({ initial: [...closing, complete("New in Percent: Check 3")] }))).toMatch(/<button[^>]*data-what-comes-next[^>]*>New in Percent: Check 3 →<\/button>/);
+    expect(cardOf(workspace({ initial: [...closing, complete("New in Present value: Explore")] }))).toMatch(/<button[^>]*data-what-comes-next[^>]*>New in Present value: Explore →<\/button>/);
+  });
+
+  it("with every Topic passed, offers only the Course Map", () => {
+    const card = cardOf(workspace({ initial: [...closing, complete(null)] }));
+    expect(card).not.toContain("data-what-comes-next");
+    expect(card).toMatch(/<a[^>]*href="\/course"[^>]*>Course Map<\/a>/);
+  });
+});
+
 describe("coming back to a Topic", () => {
   const initial: Line[] = [
     { role: "user", text: "Why is money today worth more?" },

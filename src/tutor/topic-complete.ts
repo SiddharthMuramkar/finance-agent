@@ -6,6 +6,9 @@ import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { DUE_CHECK } from "./coming-back";
 import { saveItemAfterLatest, type SessionItem } from "./session-items";
+import { principleLine, TOPIC_COMPLETE, type TopicCompleteData } from "./topic-complete-card";
+
+export { TOPIC_COMPLETE, type TopicCompleteData } from "./topic-complete-card";
 
 /**
  * The Topic complete card: a display-only Session item stored at the end of a Topic's conversation when the
@@ -13,18 +16,6 @@ import { saveItemAfterLatest, type SessionItem } from "./session-items";
  * two, "Saved to your Notes ✓", What comes next and the Course Map; the model never sees it. It is stored by
  * the turn that passed the Topic, after its closing reply, or with a quiz result that passed the last Due Check.
  */
-
-/** The kind of a Topic complete card. */
-export const TOPIC_COMPLETE = "topic_complete";
-
-/** The card's data: the passed Topic, its principle's first sentence, and What comes next's label when it was stored (null: every Topic passed). */
-export type TopicCompleteData = { topicId: string; title: string; principle: string; next: string | null };
-
-/** The principle in one or two lines: its first sentence. */
-export function principleLine(principle: string): string {
-  const flat = principle.replace(/\s+/g, " ").trim();
-  return flat.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? flat;
-}
 
 /**
  * Stores the Topic complete card after the Session's latest message when its Topic is passed and the card is
