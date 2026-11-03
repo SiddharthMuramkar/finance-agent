@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadCourseMap } from "@/course/map";
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadPassageView } from "@/library/library";
 import { MACHINE_READ_NOTE } from "@/library/pictures";
@@ -32,7 +33,7 @@ export default async function PassagePage({
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
   const view = await loadPassageView(
-    { db: getDb(), map: loadCourseMap() },
+    { db: getDb(), map: loadCourseMap(), learnerId: await currentLearnerId() },
     id,
     blockRange((await searchParams).blocks),
   );

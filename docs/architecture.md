@@ -212,6 +212,46 @@ rows show up in the owner's Older sessions, as every Session from before the cha
 but for a while a row written without a Learner silently belongs to the owner rather than failing.
 The contract step closes that gap by dropping the defaults once every write names a Learner.
 
+## The current Learner, and Learner Memory, Sessions and turns scoped by it (`currentLearnerId` in `src/auth/session.ts`, `drizzle/0027_learners_keys.sql`, spec #119, ticket #125)
+
+**What it does.** Every request now has a current Learner, and every read and write of their
+learning goes through it.
+- **The current Learner.** `currentLearnerId()` answers whose request this is. Until each person
+  signs in with their own passcode it is always the owner, so the live site behaves exactly as
+  before. Every page and route asks it once and passes the Learner on: the Study Workspace, the
+  Course Map, Progress, Past Sessions and a Session page, the Passage view, Home's Resume, and the
+  turn, jump (Course Map), quiz and Case Data routes.
+- **Learner Memory** (`src/learner/memory.ts`, `quiz.ts`, `insight.ts`): the place on the Course
+  Map, Topic progress, Check results, misconceptions, Insight attempts and quiz attempts are read
+  and written for one Learner. A quiz attempt of another Learner's is "no such quiz attempt".
+- **Sessions and turns** (`session-log.ts`, `turn-status.ts`, `transcript.ts`, `session-summary.ts`):
+  a Learner's latest Session, their latest turn and its resume, the turn before it, the Course Map's
+  turn-in-progress check and the explore idle-turn count read only that Learner's rows. Past
+  Sessions lists only theirs, and another Learner's Session reads as empty.
+- **The Tutor Turn** takes the Learner (`learnerId` in its dependencies) and passes it to every tool:
+  the turn row, the Session it starts, the context, the quiz results it reports and every write.
+- **The as-of rule takes the Learner.** Library search, hidden Citations, the Passage view, the
+  sources under replies, the Tutor's Case Data context and the Case Data route all ask whether
+  *this* Learner has seen the reveal.
+- **The per-Learner keys** (migration 0027): Topic progress is keyed by (Learner, Topic); quiz
+  attempt numbers are unique per (Learner, Check); the Insight is settled once per Learner; one turn
+  may run per Learner; one place on the Course Map and one Learner Profile per Learner (their `id`
+  is the Learner's id, the owner's is 1); and a Review card per (Learner, question) and a saved note
+  item once per Learner and place, ready for the ticket that scopes Reviews and Notes.
+
+**Scenario.** The owner and a friend both study present value at once. The owner's reply is still
+streaming when the friend sends a message: the friend's turn runs at once, because the lock is per
+Learner, while the owner's own second tab still gets "turn in progress". Both reach the first Check
+and each gets quiz attempt 1 (attempt number 0). The owner passes and reaches the reveal; the
+friend's Tutor context, Case Data and Library search still stop at 24 October 2018.
+
+**Trade-off.** The Learner is passed by hand as an argument, not taken from a hidden per-request
+store, so every reader says whose data it reads and tests can run two Learners side by side. The
+cost is a longer argument list, and, until the contract step drops the owner defaults, a caller that
+forgets the Learner silently gets the owner's data rather than an error. One more cost: the code
+live before this change upserts Topic progress on its old one-column key, so between applying the
+migration and the new code's deploy such a write fails, and the Learner is told it was not saved.
+
 ## Tutor Turn (`src/tutor/turn.ts`, `session-log.ts`, `transcript.ts`, `context.ts`)
 
 **What it does.** Runs one exchange with Claude. It saves the Learner's message, builds the
@@ -392,7 +432,8 @@ the module free of Session state but means each caller must pass it honestly.
 Topic), `topic_progress` (each started Topic's Teaching Step, whether the reveal has been shown,
 and whether it is passed) and `check_results` (every Check result, kept even if the Check is
 later removed). Progress is saved when a Topic starts and at every Teaching Step change. It also
-turns the records into a short plain-text summary.
+turns the records into a short plain-text summary. Every record belongs to one Learner (see "The
+current Learner" above).
 
 Since the conversation Check landed (below), a Check result also keeps the Tutor's reasons as
 evidence and the model that taught it, and a fourth table, `misconceptions`, keeps what the Tutor
@@ -954,9 +995,9 @@ numbers (code already sends those, and they use neutral numbers).
   A repeat of the same call returns the saved result and changes nothing. A tool call that was
   saved without its result (the cut came between the two) is re-run under its own ID before Claude
   is called again, so it gets its result without a second effect.
-- **One turn at a time.** Only one `turns` row may be running; the database enforces it. A second
-  send, from a phone or another tab, gets a plain "turn in progress" answer (HTTP 409), and nothing
-  is saved.
+- **One turn at a time, per Learner.** Only one of a Learner's `turns` rows may be running; the
+  database enforces it. Their second send, from a phone or another tab, gets a plain "turn in
+  progress" answer (HTTP 409), and nothing is saved. Another Learner's turn runs alongside.
 - **Stop reasons and failures.** A reply that hits `max_tokens` is kept as sent and the Learner gets
   a Continue button; a tool call cut off inside it is never run, and is answered "not run". A
   `refusal` is discarded, because Claude's docs say to treat a declined reply as incomplete and
@@ -1049,7 +1090,7 @@ the question. Telling the Insight marks the step as begun this turn, so the paci
 Tutor finishing explore in the same turn. At the principle step the context carries the Learner's own
 words, saved at the attempt that settled it, and says whether they found it or were told.
 
-The "settled once" rule is also held by the database: a unique index allows only one `found` or `told` row per Topic in `insight_attempts`, and the insert ignores a clash, so a second settling attempt (or a repeated tool call) is refused even if two turns ever ran at once.
+The "settled once" rule is also held by the database: a unique index allows only one `found` or `told` row per Learner and Topic in `insight_attempts`, and the insert ignores a clash, so a second settling attempt (or a repeated tool call) is refused even if two turns ever ran at once.
 
 **A concrete scenario.** The Learner writes "the bars get smaller". The Tutor records a not-yet, and
 code replies with hint 1. After the same again, hint 2. After a third not-yet the result contains the

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { listSessions } from "@/tutor/transcript";
 import { loadSessionSummaries } from "@/tutor/session-summary";
@@ -10,7 +11,8 @@ export const dynamic = "force-dynamic";
 /** Every Session, newest first. Old Sessions stay readable. */
 export default async function SessionsPage() {
   const db = getDb();
-  const [sessions, summaries, jar] = await Promise.all([listSessions(db), loadSessionSummaries(db), cookies()]);
+  const learnerId = await currentLearnerId();
+  const [sessions, summaries, jar] = await Promise.all([listSessions(db, learnerId), loadSessionSummaries(db, learnerId), cookies()]);
   // Numbered by order started, so the oldest is Session 1 whatever the ids.
   const numberOf = new Map([...sessions].reverse().map((s, i) => [s.id, i + 1]));
   return (

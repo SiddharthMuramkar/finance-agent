@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { exploreWidgetInSession, type ExploreWidget } from "@/course/explore-widget";
 import type { CourseMap } from "@/course/map";
-import { messages } from "@/db/schema";
+import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
 
@@ -63,11 +63,13 @@ export function rowsThroughTurn<T extends { seq: number; role: string; content: 
   return rows.filter((r) => r.seq <= turnSeq || !end || r.seq < end.seq);
 }
 
-/** Every Session's summary in one query, keyed by Session id. */
-export async function loadSessionSummaries(db: Db): Promise<Map<number, SessionSummary>> {
+/** Every one of the Learner's Sessions' summaries in one query, keyed by Session id. */
+export async function loadSessionSummaries(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Map<number, SessionSummary>> {
   const rows = await db
     .select({ sessionId: messages.sessionId, role: messages.role, content: messages.content })
     .from(messages)
+    .innerJoin(sessions, eq(sessions.id, messages.sessionId))
+    .where(eq(sessions.learnerId, learnerId))
     .orderBy(asc(messages.sessionId), asc(messages.seq));
   const bySession = new Map<number, { role: string; content: unknown }[]>();
   for (const r of rows) {

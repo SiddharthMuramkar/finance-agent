@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, lt, count } from "drizzle-orm";
 import type { CourseMap, Insight } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
-import { insightAttempts, topicProgress, turns } from "@/db/schema";
+import { insightAttempts, OWNER_LEARNER_ID, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "./memory";
 
@@ -45,8 +45,14 @@ export type InsightAttemptResult =
   | { ok: false; reason: string };
 
 /** Saves one attempt if the Course Navigator is at the explore step and the Learner's words are really theirs. */
-export async function saveInsightAttempt(db: Db, map: CourseMap, input: InsightAttemptInput, now = new Date()): Promise<InsightAttemptResult> {
-  const progress = await loadProgress(db);
+export async function saveInsightAttempt(
+  db: Db,
+  map: CourseMap,
+  input: InsightAttemptInput,
+  now = new Date(),
+  learnerId = OWNER_LEARNER_ID,
+): Promise<InsightAttemptResult> {
+  const progress = await loadProgress(db, learnerId);
   const place = navigate(map, progress);
   if (!place || place.step !== "explore") {
     return { ok: false, reason: `No Insight is being explored; the current Teaching Step is "${place?.step ?? "none"}".` };
@@ -72,13 +78,14 @@ export async function saveInsightAttempt(db: Db, map: CourseMap, input: InsightA
     const [{ n }] = await db
       .select({ n: count() })
       .from(insightAttempts)
-      .where(and(eq(insightAttempts.topicId, topic.id), eq(insightAttempts.reported, "not_yet")));
+      .where(and(eq(insightAttempts.learnerId, learnerId), eq(insightAttempts.topicId, topic.id), eq(insightAttempts.reported, "not_yet")));
     const attempt = n + 1;
     released = attempt === 1 && insight.hints.length >= 1 ? "hint_1" : attempt === 2 && insight.hints.length >= 2 ? "hint_2" : "told";
   }
   const inserted = await db
     .insert(insightAttempts)
     .values({
+    learnerId,
     topicId: topic.id,
     reported: input.reported,
     released,
@@ -93,7 +100,10 @@ export async function saveInsightAttempt(db: Db, map: CourseMap, input: InsightA
     .returning({ id: insightAttempts.id });
   if (!inserted.length) return { ok: false, reason: "That attempt was already recorded, or the Insight is already settled for this Topic. Finish the explore step." };
   // Saved as the step, so a passed Topic taken back through explore stays at it until the Tutor finishes it.
-  await db.update(topicProgress).set({ step: "explore" }).where(eq(topicProgress.topicId, topic.id));
+  await db
+    .update(topicProgress)
+    .set({ step: "explore" })
+    .where(and(eq(topicProgress.learnerId, learnerId), eq(topicProgress.topicId, topic.id)));
   return { ok: true, released, topicId: topic.id, insight, words, hint: released === "hint_1" ? insight.hints[0] : released === "hint_2" ? insight.hints[1] : undefined };
 }
 
@@ -109,20 +119,28 @@ export type ExploreInfo = {
   idleTurns: number;
 };
 
-export async function loadExploreInfo(db: Db, place: Place | null, turnId?: number): Promise<ExploreInfo | undefined> {
+/** The Learner's attempts at their place's Insight, as the context tells them. */
+export async function loadExploreInfo(db: Db, place: Place | null, turnId?: number, learnerId = OWNER_LEARNER_ID): Promise<ExploreInfo | undefined> {
   const insight = place?.topic.insight;
   if (!place || !insight || (place.step !== "explore" && place.step !== "principle")) return undefined;
-  const rows = await db.select().from(insightAttempts).where(eq(insightAttempts.topicId, place.topic.id)).orderBy(asc(insightAttempts.id));
+  const rows = await db
+    .select()
+    .from(insightAttempts)
+    .where(and(eq(insightAttempts.learnerId, learnerId), eq(insightAttempts.topicId, place.topic.id)))
+    .orderBy(asc(insightAttempts.id));
   const settledRow = rows.find((r) => r.released === "found" || r.released === "told");
   const hints = rows.flatMap((r) => (r.released === "hint_1" ? [insight.hints[0]] : r.released === "hint_2" ? [insight.hints[1]] : []));
   let idleTurns = 0;
   if (place.step === "explore" && rows.length === 0 && turnId !== undefined) {
-    const [progress] = await db.select().from(topicProgress).where(eq(topicProgress.topicId, place.topic.id));
+    const [progress] = await db
+      .select()
+      .from(topicProgress)
+      .where(and(eq(topicProgress.learnerId, learnerId), eq(topicProgress.topicId, place.topic.id)));
     if (progress) {
       const [{ n }] = await db
         .select({ n: count() })
         .from(turns)
-        .where(and(lt(turns.id, turnId), gte(turns.startedAt, progress.updatedAt)));
+        .where(and(eq(turns.learnerId, learnerId), lt(turns.id, turnId), gte(turns.startedAt, progress.updatedAt)));
       idleTurns = n;
     }
   }

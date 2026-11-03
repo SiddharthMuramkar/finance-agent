@@ -1,3 +1,4 @@
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { voyageQueryEmbedder } from "@/library/voyage";
 import { anthropicTutorClient } from "@/tutor/anthropic";
@@ -26,7 +27,8 @@ export async function POST(request: Request) {
   const timeBudgetMs = Number(process.env.TURN_TIME_BUDGET_MS) || undefined;
   // Without a Voyage key, Library search uses keyword results only and tells the Tutor so.
   const embedQuery = process.env.VOYAGE_API_KEY ? voyageQueryEmbedder({ apiKey: process.env.VOYAGE_API_KEY }) : undefined;
-  const turn = runTutorTurn({ db: getDb(), client: anthropicTutorClient(), timeBudgetMs, embedQuery }, input);
+  const learnerId = await currentLearnerId();
+  const turn = runTutorTurn({ db: getDb(), client: anthropicTutorClient(), learnerId, timeBudgetMs, embedQuery }, input);
   const first = await turn.next();
   if (!first.done && first.value.type === "busy") return Response.json({ error: first.value.message }, { status: 409 });
 

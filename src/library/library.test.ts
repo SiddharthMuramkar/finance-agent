@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { parseCourseMap } from "@/course/map";
+import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { importLibrary, passagesToEmbed, saveEmbeddings, type LibraryFile } from "./ingest";
-import { loadPassageView, NO_VOYAGE_KEY, searchLibrary, searchResultText, VOYAGE_DOWN } from "./library";
+import { hiddenPassages, loadPassageView, NO_VOYAGE_KEY, searchLibrary, searchResultText, VOYAGE_DOWN } from "./library";
 
 const map = parseCourseMap([
   {
@@ -325,6 +326,23 @@ describe("passage view (where a citation leads)", () => {
 
     expect(await loadPassageView({ db: fresh, map }, id)).toEqual({ status: "hidden", asOf: "2018-10-24" });
     expect((await loadPassageView({ db, map }, id)).status).toBe("shown");
+  });
+
+  it("reads the given Learner's progress: one Learner's reveal shows another nothing extra in search, citations or the passage view", async () => {
+    const db = await libraryDb();
+    await passRevealOf(db); // the owner's reveal
+    const [second] = await db.insert(learners).values({ name: "second" }).returning();
+    const id = await idOf(db, "after");
+
+    const ownerSearch = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity");
+    const secondSearch = await searchLibrary({ db, map, learnerId: second.id }, "jackpot cash option annuity");
+    expect(ownerSearch.results.map((r) => r.ref)).toContain("after");
+    expect(secondSearch.asOf).toBe("2018-10-24");
+    expect(secondSearch.results.map((r) => r.ref)).not.toContain("after");
+    expect([...(await hiddenPassages({ db, map, learnerId: second.id }, [id]))]).toEqual([id]);
+    expect([...(await hiddenPassages({ db, map, learnerId: OWNER_LEARNER_ID }, [id]))]).toEqual([]);
+    expect(await loadPassageView({ db, map, learnerId: second.id }, id)).toEqual({ status: "hidden", asOf: "2018-10-24" });
+    expect((await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, id)).status).toBe("shown");
   });
 
   it("says a passage that does not exist is missing", async () => {

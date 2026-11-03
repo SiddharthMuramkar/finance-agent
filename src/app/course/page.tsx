@@ -1,5 +1,6 @@
 import { loadCourseMap } from "@/course/map";
 import { courseOverview } from "@/course/navigator";
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { readTheme } from "../theme-cookie";
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 /** The Course Map: Topics grouped by Stage, Checks along the way, and the Learner's place. */
 export default async function CourseMapPage() {
   const map = loadCourseMap();
-  const topics = courseOverview(map, await loadProgress(getDb()));
+  const topics = courseOverview(map, await loadProgress(getDb(), await currentLearnerId()));
   const theme = await readTheme();
   return (
     <SignedInFrame>

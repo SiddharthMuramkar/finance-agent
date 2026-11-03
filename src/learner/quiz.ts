@@ -3,32 +3,33 @@ import type { CourseMap, QuizCheck } from "@/course/map";
 import { markAttempt, publicQuestions, selectQuestions, type Marking, type PublicQuestion } from "@/course/quiz";
 import { navigate } from "@/course/navigator";
 import { questionLookup } from "@/bank/lookup";
-import { quizAttempts } from "@/db/schema";
+import { OWNER_LEARNER_ID, quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult } from "./memory";
 
 /**
  * Quiz Checks in Learner Memory. Code picks the questions, shows them, marks the
  * answers and saves the result; no model is involved at any point. The Tutor
- * hears the result later, in its next message (see `pendingQuizNote`).
+ * hears the result later, in its next message (see `pendingQuizNote`). Every attempt
+ * belongs to one Learner, and attempt numbers count that Learner's own attempts.
  */
 
 /** `checkNumber` of `checkCount`: where this Check stands among its Topic's Checks, for the "Check 1 of 2" tab. */
 export type OpenQuiz = { attemptId: number; checkId: string; checkNumber: number; checkCount: number; attemptNo: number; questions: PublicQuestion[] };
 
 /** The quiz to show now: the current Check, if it is a quiz at its Check step. Creates the attempt the first time. */
-export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promise<OpenQuiz | null> {
-  const place = navigate(map, await loadProgress(db));
+export async function openQuiz(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<OpenQuiz | null> {
+  const place = navigate(map, await loadProgress(db, learnerId));
   const check = place?.step === "check" ? place.check : null;
   if (!check || check.kind !== "quiz") return null;
-  const open = async () =>
-    (await db.select().from(quizAttempts).where(and(eq(quizAttempts.checkId, check.id), isNull(quizAttempts.submittedAt))).orderBy(asc(quizAttempts.id)))[0];
+  const ofThisCheck = and(eq(quizAttempts.learnerId, learnerId), eq(quizAttempts.checkId, check.id));
+  const open = async () => (await db.select().from(quizAttempts).where(and(ofThisCheck, isNull(quizAttempts.submittedAt))).orderBy(asc(quizAttempts.id)))[0];
   let attempt = await open();
   if (!attempt) {
-    const [{ n }] = await db.select({ n: count() }).from(quizAttempts).where(eq(quizAttempts.checkId, check.id));
+    const [{ n }] = await db.select({ n: count() }).from(quizAttempts).where(ofThisCheck);
     await db
       .insert(quizAttempts)
-      .values({ checkId: check.id, attemptNo: n, questionIds: selectQuestions(check, n), createdAt: now })
+      .values({ learnerId, checkId: check.id, attemptNo: n, questionIds: selectQuestions(check, n), createdAt: now })
       .onConflictDoNothing();
     attempt = (await open())!;
   }
@@ -78,10 +79,20 @@ export const QUIZ_SAVE_FAILED = "Your answers could not be saved just now, so no
 /**
  * Marks an attempt on the server and saves the Check result through Learner Memory, which
  * accepts it only for the current Check. Only questions the attempt showed count. A repeat
- * submission returns the first marking and changes nothing.
+ * submission returns the first marking and changes nothing. Another Learner's attempt is no such attempt.
  */
-export async function submitQuiz(db: Db, map: CourseMap, attemptId: number, answers: Record<string, string>, now = new Date()): Promise<QuizResult> {
-  const [attempt] = await db.select().from(quizAttempts).where(eq(quizAttempts.id, attemptId));
+export async function submitQuiz(
+  db: Db,
+  map: CourseMap,
+  attemptId: number,
+  answers: Record<string, string>,
+  now = new Date(),
+  learnerId = OWNER_LEARNER_ID,
+): Promise<QuizResult> {
+  const [attempt] = await db
+    .select()
+    .from(quizAttempts)
+    .where(and(eq(quizAttempts.id, attemptId), eq(quizAttempts.learnerId, learnerId)));
   const check = attempt && map.check(attempt.checkId);
   if (!attempt || !check || check.kind !== "quiz") return { ok: false, reason: "No such quiz attempt." };
   const given = attempt.submittedAt && attempt.answers ? attempt.answers : answers;
@@ -91,7 +102,7 @@ export async function submitQuiz(db: Db, map: CourseMap, attemptId: number, answ
     try {
       const saved = await db.transaction(async (transaction) => {
         const tx = transaction as unknown as Db;
-        const result = await saveCheckResult(tx, map, { checkId: check.id, passed: marking.passed, toolCallId: `quiz-attempt-${attempt.id}` }, now);
+        const result = await saveCheckResult(tx, map, { checkId: check.id, passed: marking.passed, toolCallId: `quiz-attempt-${attempt.id}` }, now, learnerId);
         if (!result.ok) return result;
         await tx
           .update(quizAttempts)
@@ -109,14 +120,18 @@ export async function submitQuiz(db: Db, map: CourseMap, attemptId: number, answ
 }
 
 /**
- * The note that tells the Tutor about quiz results it has not heard yet, or null. Code adds it
- * to the Tutor's history on the next call, then calls `markQuizReported`.
+ * The note that tells the Tutor about the Learner's quiz results it has not heard yet, or null. Code
+ * adds it to the Tutor's history on the Learner's next call, then calls `markQuizReported`.
  */
-export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: string; attemptIds: number[]; /** Any of them passed, so the Learner moved on. */ passed: boolean } | null> {
+export async function pendingQuizNote(
+  db: Db,
+  map: CourseMap,
+  learnerId = OWNER_LEARNER_ID,
+): Promise<{ text: string; attemptIds: number[]; /** Any of them passed, so the Learner moved on. */ passed: boolean } | null> {
   const rows = await db
     .select()
     .from(quizAttempts)
-    .where(and(isNotNull(quizAttempts.submittedAt), isNull(quizAttempts.reportedAt)))
+    .where(and(eq(quizAttempts.learnerId, learnerId), isNotNull(quizAttempts.submittedAt), isNull(quizAttempts.reportedAt)))
     .orderBy(asc(quizAttempts.id));
   if (!rows.length) return null;
   const lookup = await questionLookup(db, map, rows.flatMap((r) => r.questionIds));
@@ -145,7 +160,12 @@ export async function pendingQuizNote(db: Db, map: CourseMap): Promise<{ text: s
   return { text: notes.join("\n\n"), attemptIds: rows.map((r) => r.id), passed: rows.some((r) => r.passed === true) };
 }
 
-/** Marks results as told to the Tutor, so each one reaches it once. */
-export async function markQuizReported(db: Db, attemptIds: number[], now = new Date()) {
-  for (const id of attemptIds) await db.update(quizAttempts).set({ reportedAt: now }).where(eq(quizAttempts.id, id));
+/** Marks the Learner's results as told to the Tutor, so each one reaches it once. */
+export async function markQuizReported(db: Db, attemptIds: number[], now = new Date(), learnerId = OWNER_LEARNER_ID) {
+  for (const id of attemptIds) {
+    await db
+      .update(quizAttempts)
+      .set({ reportedAt: now })
+      .where(and(eq(quizAttempts.id, id), eq(quizAttempts.learnerId, learnerId)));
+  }
 }

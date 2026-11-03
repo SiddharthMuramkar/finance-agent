@@ -89,34 +89,42 @@ export const messages = pgTable(
 );
 
 /**
- * Learner Memory: the Learner's place. One row (id 1) holding the current Topic;
- * null means "follow the default path".
+ * Learner Memory: the Learner's place on the Course Map. One row per Learner, holding the current
+ * Topic; null means "follow the default path". `id` is the Learner's id (the owner's row is id 1).
  */
-export const learnerState = pgTable("learner_state", {
-  id: integer("id").primaryKey(),
-  learnerId: learnerId(),
-  currentTopicId: text("current_topic_id"),
-  /** The Session the Study Workspace shows (a passed Topic's stays shown until the Learner chooses where to go). */
-  shownSessionId: integer("shown_session_id").references(() => sessions.id),
-  /**
-   * True when the Learner entered a Topic by choosing it on the Course Map page or by going back
-   * to the default path, and no turn has started since. The next turn tells the Tutor and treats
-   * the step as fresh (the pacing rule), because nothing of it has been taught in this conversation.
-   */
-  enteredByJump: boolean("entered_by_jump").notNull().default(false),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const learnerState = pgTable(
+  "learner_state",
+  {
+    id: integer("id").primaryKey(),
+    learnerId: learnerId(),
+    currentTopicId: text("current_topic_id"),
+    /** The Session the Study Workspace shows (a passed Topic's stays shown until the Learner chooses where to go). */
+    shownSessionId: integer("shown_session_id").references(() => sessions.id),
+    /**
+     * True when the Learner entered a Topic by choosing it on the Course Map page or by going back
+     * to the default path, and no turn has started since. The next turn tells the Tutor and treats
+     * the step as fresh (the pacing rule), because nothing of it has been taught in this conversation.
+     */
+    enteredByJump: boolean("entered_by_jump").notNull().default(false),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("learner_state_one_per_learner").on(t.learnerId)],
+);
 
-/** Learner Memory: one row per Topic the Learner has started. */
-export const topicProgress = pgTable("topic_progress", {
-  topicId: text("topic_id").primaryKey(),
-  learnerId: learnerId(),
-  step: text("step").notNull(),
-  revealShown: boolean("reveal_shown").notNull().default(false),
-  status: text("status").notNull().$type<"in_progress" | "passed">(),
-  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+/** Learner Memory: one row per Learner and Topic the Learner has started. */
+export const topicProgress = pgTable(
+  "topic_progress",
+  {
+    topicId: text("topic_id").notNull(),
+    learnerId: learnerId(),
+    step: text("step").notNull(),
+    revealShown: boolean("reveal_shown").notNull().default(false),
+    status: text("status").notNull().$type<"in_progress" | "passed">(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.learnerId, t.topicId] })],
+);
 
 /** Learner Memory: every Check result, kept even if the Check is later removed from the Course Map. */
 export const checkResults = pgTable(
@@ -180,10 +188,10 @@ export const insightAttempts = pgTable(
   },
   (t) => [
     uniqueIndex("insight_attempts_tool_call").on(t.toolCallId),
-    index("insight_attempts_topic").on(t.topicId),
-    // The Insight is settled once: a second "found" or "told" for a Topic is refused by the database.
+    index("insight_attempts_topic").on(t.learnerId, t.topicId),
+    // The Insight is settled once per Learner: their second "found" or "told" for a Topic is refused by the database.
     uniqueIndex("insight_attempts_settled_once")
-      .on(t.topicId)
+      .on(t.learnerId, t.topicId)
       .where(sql`${t.released} in ('found', 'told')`),
   ],
 );
@@ -242,7 +250,8 @@ export const quizAttempts = pgTable(
     reportedAt: timestamp("reported_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("quiz_attempts_check_no").on(t.checkId, t.attemptNo)],
+  // Attempt numbers count each Learner's own attempts at a Check.
+  (t) => [uniqueIndex("quiz_attempts_check_no").on(t.learnerId, t.checkId, t.attemptNo)],
 );
 
 /**
@@ -279,8 +288,9 @@ export const caseDataPoints = pgTable(
 );
 
 /**
- * One Tutor turn and its saved status. `running` doubles as the lock: at most one row can be
- * running at a time (a partial unique index), so a second send, from any device, is turned away.
+ * One Tutor turn and its saved status. `running` doubles as the lock: at most one row per Learner
+ * can be running at a time (a partial unique index), so the same Learner's second send, from any
+ * device, is turned away, while another Learner's turn runs alongside.
  * A turn cut off by the time limit is `cut_off` and the browser resumes it; `failed` (an API
  * error) is resumed by the Learner's Retry. `sessionId` and `turnSeq` are filled in once the
  * turn knows its Session; `turnSeq` is the seq of the Learner's message that began it.
@@ -312,7 +322,7 @@ export const turns = pgTable(
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
   },
-  () => [uniqueIndex("turns_one_running").on(sql`(true)`).where(sql`status = 'running'`)],
+  (t) => [uniqueIndex("turns_one_running").on(t.learnerId).where(sql`status = 'running'`)],
 );
 
 /**
@@ -335,22 +345,27 @@ export const toolCalls = pgTable("tool_calls", {
 /**
  * Spaced review: one FSRS card per quiz question (`ts-fsrs` fields, stored as columns). A question
  * gets its card once its Check is passed. Reviews touch only these tables, never a Topic's status.
+ * Each Learner has their own card per question.
  */
-export const reviewCards = pgTable("review_cards", {
-  questionId: text("question_id").primaryKey(),
-  learnerId: learnerId(),
-  due: timestamp("due", { withTimezone: true }).notNull(),
-  stability: doublePrecision("stability").notNull(),
-  difficulty: doublePrecision("difficulty").notNull(),
-  elapsedDays: integer("elapsed_days").notNull(),
-  scheduledDays: integer("scheduled_days").notNull(),
-  reps: integer("reps").notNull(),
-  lapses: integer("lapses").notNull(),
-  learningSteps: integer("learning_steps").notNull(),
-  /** The `ts-fsrs` State number (0 new, 1 learning, 2 review, 3 relearning). */
-  state: integer("state").notNull(),
-  lastReview: timestamp("last_review", { withTimezone: true }),
-});
+export const reviewCards = pgTable(
+  "review_cards",
+  {
+    questionId: text("question_id").notNull(),
+    learnerId: learnerId(),
+    due: timestamp("due", { withTimezone: true }).notNull(),
+    stability: doublePrecision("stability").notNull(),
+    difficulty: doublePrecision("difficulty").notNull(),
+    elapsedDays: integer("elapsed_days").notNull(),
+    scheduledDays: integer("scheduled_days").notNull(),
+    reps: integer("reps").notNull(),
+    lapses: integer("lapses").notNull(),
+    learningSteps: integer("learning_steps").notNull(),
+    /** The `ts-fsrs` State number (0 new, 1 learning, 2 review, 3 relearning). */
+    state: integer("state").notNull(),
+    lastReview: timestamp("last_review", { withTimezone: true }),
+  },
+  (t) => [primaryKey({ columns: [t.learnerId, t.questionId] })],
+);
 
 /** Every rating given to a question. `source` "review" rows are the ones the per-Session cap counts. */
 export const reviewLog = pgTable("review_log", {
@@ -600,20 +615,24 @@ export const loginFailures = pgTable(
 );
 
 /**
- * Learner Profile: what the Learner chooses to share about their own life. One row (id 1); every field
- * is optional. It is used only to choose everyday examples. `offerDismissed` is set by "Not now" on the
- * first-visit card, after which the card is never offered again.
+ * Learner Profile: what the Learner chooses to share about their own life. One row per Learner (the
+ * owner's is id 1); every field is optional. It is used only to choose everyday examples. `offerDismissed`
+ * is set by "Not now" on the first-visit card, after which the card is never offered again.
  */
-export const learnerProfile = pgTable("learner_profile", {
-  id: integer("id").primaryKey(),
-  learnerId: learnerId(),
-  work: text("work"),
-  location: text("location"),
-  loan: text("loan"),
-  savingFor: text("saving_for"),
-  offerDismissed: boolean("offer_dismissed").notNull().default(false),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const learnerProfile = pgTable(
+  "learner_profile",
+  {
+    id: integer("id").primaryKey(),
+    learnerId: learnerId(),
+    work: text("work"),
+    location: text("location"),
+    loan: text("loan"),
+    savingFor: text("saving_for"),
+    offerDismissed: boolean("offer_dismissed").notNull().default(false),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("learner_profile_one_per_learner").on(t.learnerId)],
+);
 
 /**
  * The Notes page: the Learner's own lines on a Topic Note (kind "line", text only). Saved replies and
@@ -640,9 +659,9 @@ export const noteItems = pgTable(
   },
   (t) => [
     index("note_items_topic").on(t.topicId),
-    // One saved reply or Widget per place; the Learner's own lines are many per Topic, so they are left out.
+    // One saved reply or Widget per Learner and place; the Learner's own lines are many per Topic, so they are left out.
     uniqueIndex("note_items_saved_once")
-      .on(t.topicId, t.kind, sql`coalesce(${t.sessionId}, -1)`, sql`coalesce(${t.turnSeq}, -1)`, sql`coalesce(${t.widgetIndex}, -99)`)
+      .on(t.learnerId, t.topicId, t.kind, sql`coalesce(${t.sessionId}, -1)`, sql`coalesce(${t.turnSeq}, -1)`, sql`coalesce(${t.widgetIndex}, -99)`)
       .where(sql`${t.kind} <> 'line'`),
   ],
 );

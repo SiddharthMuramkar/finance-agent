@@ -1,11 +1,11 @@
-import { asc, desc, eq } from "drizzle-orm";
-import { messages, sessions } from "@/db/schema";
+import { and, asc, desc, eq } from "drizzle-orm";
+import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import type { CaseDataset } from "@/case-data/case-data";
 import type { CourseMap } from "@/course/map";
 import { CitationMarks, citedPassageIds, displayText } from "./citations";
-import { replyFold, sourceContext, topicDatasets } from "./sources";
+import { replyFold, sourceContext, topicDatasets, type SourceDeps } from "./sources";
 import { topicTitleIn } from "./session-summary";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
@@ -21,14 +21,14 @@ export const PARAGRAPH = "\n\n";
  * What a reply's sources need: each cited passage's credit, the passages the as-of rule hides now, and the Case Data allowed now.
  * Without the Course Map nothing is withheld, so every page that shows replies passes it.
  */
-const sourcesFor = (db: Db, map: CourseMap | undefined, contents: unknown[]) => sourceContext({ db, map }, citedPassageIds(contents));
+const sourcesFor = (deps: SourceDeps, contents: unknown[]) => sourceContext(deps, citedPassageIds(contents));
 
 /**
  * The reply text a turn has saved so far, with any widget correction swapped in, as the browser shows it:
- * the text of every loop step, then one folded list of the reply's sources.
+ * the text of every loop step, then one folded list of the reply's sources (under the as-of rule for the Learner).
  */
-export async function turnText(rows: Row[], turnSeq: number, { db, map }: { db: Db; map: CourseMap }): Promise<string> {
-  const ctx = await sourcesFor(db, map, rows.filter((r) => r.seq > turnSeq && r.role === "assistant").map((r) => r.content));
+export async function turnText(rows: Row[], turnSeq: number, deps: SourceDeps & { map: CourseMap }): Promise<string> {
+  const ctx = await sourcesFor(deps, rows.filter((r) => r.seq > turnSeq && r.role === "assistant").map((r) => r.content));
   const marks = new CitationMarks();
   let text = "";
   let correcting = false;
@@ -47,23 +47,27 @@ export type TurnRef = { sessionId: number; turnSeq: number };
 
 export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage; /** On a reply: where it sits in its Session. */ ref?: TurnRef };
 
-/** The latest Session as plain text lines, for showing after a reload. No model call. */
-export async function loadCurrentSession(db: Db, map?: CourseMap): Promise<Line[]> {
-  const session = await currentSession(db);
-  return session ? loadSession(db, session.id, map) : [];
+/** The Learner's latest Session as plain text lines, for showing after a reload. No model call. */
+export async function loadCurrentSession(db: Db, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<Line[]> {
+  const session = await currentSession(db, learnerId);
+  return session ? loadSession(db, session.id, map, learnerId) : [];
 }
 
-/** Every Session, newest first, for reading old ones. */
-export async function listSessions(db: Db): Promise<{ id: number; createdAt: Date }[]> {
-  return db.select({ id: sessions.id, createdAt: sessions.createdAt }).from(sessions).orderBy(desc(sessions.id));
+/** Every Session of the Learner's, newest first, for reading old ones. */
+export async function listSessions(db: Db, learnerId = OWNER_LEARNER_ID): Promise<{ id: number; createdAt: Date }[]> {
+  return db
+    .select({ id: sessions.id, createdAt: sessions.createdAt })
+    .from(sessions)
+    .where(eq(sessions.learnerId, learnerId))
+    .orderBy(desc(sessions.id));
 }
 
 /**
- * One Session's conversation as plain text lines. No model call. A widget
- * correction is shown in place of the broken widget it replaced. Given the Course Map, a cited
- * passage the as-of rule hides now is listed without its heading.
+ * One of the Learner's Sessions as plain text lines; another Learner's Session has none. No model call.
+ * A widget correction is shown in place of the broken widget it replaced. Given the Course Map, a cited
+ * passage the as-of rule hides now (for this Learner) is listed without its heading.
  */
-export async function loadSession(db: Db, sessionId: number, map?: CourseMap): Promise<Line[]> {
+export async function loadSession(db: Db, sessionId: number, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<Line[]> {
   // A turn's loop steps make one reply: one line, whose citation numbers run through all its steps and whose sources fold at its end.
   const lines: (Line & { turnSeq?: number; marks?: CitationMarks; topic?: string })[] = [];
   // The Topic the Tutor's context named by each reply: its Case Data credits follow that Topic, not today's.
@@ -73,9 +77,11 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap): P
   const rows = await db
     .select({ seq: messages.seq, role: messages.role, content: messages.content })
     .from(messages)
-    .where(eq(messages.sessionId, sessionId))
+    .innerJoin(sessions, eq(sessions.id, messages.sessionId))
+    .where(and(eq(messages.sessionId, sessionId), eq(sessions.learnerId, learnerId)))
     .orderBy(asc(messages.seq));
-  const ctx = await sourcesFor(db, map, rows.filter((m) => m.role === "assistant").map((m) => m.content));
+  const deps = { db, map, learnerId };
+  const ctx = await sourcesFor(deps, rows.filter((m) => m.role === "assistant").map((m) => m.content));
   for (const m of rows as (Message & { seq: number })[]) {
     topic = topicTitleIn(m.content) ?? topic;
     const fix = correcting && m.role === "assistant";
@@ -104,7 +110,7 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap): P
   const datasetsByTopic = new Map<string | undefined, CaseDataset[]>();
   for (const l of lines) {
     if (!l.marks) continue;
-    if (map && !datasetsByTopic.has(l.topic)) datasetsByTopic.set(l.topic, await topicDatasets({ db, map }, l.topic));
+    if (map && !datasetsByTopic.has(l.topic)) datasetsByTopic.set(l.topic, await topicDatasets({ ...deps, map }, l.topic));
     l.text += replyFold(l.marks, l.text, map ? { ...ctx, datasets: datasetsByTopic.get(l.topic) ?? [] } : ctx);
   }
   // The panel hangs off the last reply of each turn.
