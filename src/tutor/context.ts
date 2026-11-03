@@ -183,7 +183,7 @@ function caseDataLines(data: CaseData | undefined): string[] {
   const missing = "If the Learner asks for data that is not listed, say plainly that it is not available here; never estimate or recall historical figures.";
   if (!data?.datasets.length) return [`Case Data: none is available for this Case. ${missing}`];
   return [
-    "Case Data you can show, by reference only (checked, sourced datasets):",
+    'Case Data you can show, in widgets through Query("case_data", …) or HistoryChart (checked, sourced datasets):',
     ...data.datasets.map((d) => describeDataset(data.caseId, d)),
     `These are the only historical figures you have for this Case. ${missing}`,
   ];
