@@ -484,7 +484,7 @@ describe("Tutor Turn", () => {
         const twoChecks = parseCourseMap([
           {
             name: "pv.yaml",
-            text: stringify({ ...parse(yaml), stage: "foundation", path: 1, questions: undefined, checks: [...parse(yaml).checks.filter((c: { kind: string }) => c.kind === "conversation"), second] }),
+            text: stringify({ ...parse(yaml), stage: "foundation", path: 1, connections: undefined, questions: undefined, checks: [...parse(yaml).checks.filter((c: { kind: string }) => c.kind === "conversation"), second] }),
           },
         ]).map!;
         const first = twoChecks.topic("present-value")!.checks[0];
