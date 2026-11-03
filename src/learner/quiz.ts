@@ -51,7 +51,7 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date()): Promis
 
 /**
  * Whether this quiz Check cannot be shown: fewer of its questions can be found (on the Course Map or in the
- * Question Bank) than its pass rule needs. Then no quiz panel appears, and the Tutor checks the Learner in
+ * Question Bank) than its pass rule needs. Then no Check tab opens, and the Tutor checks the Learner in
  * conversation and records a verdict, so the Learner is never stuck at a Check nobody can mark.
  */
 export async function quizUnavailable(db: Db, map: CourseMap, check: QuizCheck): Promise<boolean> {
