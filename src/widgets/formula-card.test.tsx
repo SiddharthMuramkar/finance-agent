@@ -114,3 +114,27 @@ describe("the server's Widget check for Formula Cards", () => {
     expect(widgetProblems(widget('"present-value", {ratePercent: $rate}, {}, {amount: 1, years: 5, bogus: 2}')).join("\n")).toMatch(/"bogus" under fixed is not a symbol/);
   });
 });
+
+// These need OpenUI's kit (Stack) in the frozen schema.
+describe("the server's Widget check for Formula Cards inside a layout", () => {
+  const slider = 'rate = Slider("rate", "Discount rate", 0, 15, 0.5, $rate, "percent")';
+  const card = (args: string) => `card = FormulaCard(${args})`;
+  const good = '"present-value", {ratePercent: $rate}, {}, {amount: 1000, years: 5}';
+
+  it("accepts a card in a Stack bound to the Slider beside it", () => {
+    expect(widgetProblems(`root = Widget("PV", [box])\n$rate = 5\nbox = Stack([rate, card])\n${slider}\n${card(good)}`)).toEqual([]);
+  });
+
+  it("accepts a card two Stacks deep bound to a Slider at the top of the Widget", () => {
+    expect(widgetProblems(`root = Widget("PV", [rate, outer])\n$rate = 5\n${slider}\nouter = Stack([inner])\ninner = Stack([card])\n${card(good)}`)).toEqual([]);
+  });
+
+  it("still checks a nested card: an input bound to no Slider, a missing symbol, an unknown formula", () => {
+    const nested = (args: string) => `root = Widget("PV", [box])\n$rate = 5\n$other = 2\nbox = Stack([rate, inner])\n${slider}\ninner = Stack([card])\n${card(args)}`;
+    expect(widgetProblems(nested('"present-value", {ratePercent: $other}, {}, {amount: 1000, years: 5}'))).toEqual([
+      'card: input "ratePercent" is bound to no Slider. Bind it to a $variable that a Slider in this widget uses, or move it under fixed.',
+    ]);
+    expect(widgetProblems(nested('"present-value", {ratePercent: $rate}, {}, {years: 5}')).join("\n")).toMatch(/card: symbol "amount" \(Amount you receive later\) is missing/);
+    expect(widgetProblems(nested('"wacc", {ratePercent: $rate}, {}, {}')).join("\n")).toMatch(/card: formula is not in the formula registry/);
+  });
+});
