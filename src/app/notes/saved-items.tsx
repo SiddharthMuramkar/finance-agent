@@ -19,7 +19,7 @@ async function remove(id: number): Promise<boolean> {
 }
 
 /**
- * What the Learner saved from lessons, on one Topic Note: a reply drawn like an old Session (sources
+ * What the Learner saved while studying a Topic, on one Topic Note: a reply drawn like an old Session (sources
  * folded, the as-of rule already applied by the server) or a Widget that reopens with its saved settings.
  * "Remove" does not print.
  */
@@ -30,7 +30,7 @@ export function SavedItems({ items }: { items: SavedItem[] }) {
   if (!shown.length) return null;
   return (
     <div data-saved className="mt-4">
-      <h3 className="text-xs font-semibold uppercase leading-4 tracking-wide text-[var(--muted)]">Saved from lessons</h3>
+      <h3 className="text-xs font-semibold uppercase leading-4 tracking-wide text-[var(--muted)]">Saved from Topics</h3>
       <ul className="mt-1 flex flex-col gap-3">
         {shown.map((item) => (
           <li key={item.id} data-saved-item={item.kind} className="break-inside-avoid rounded-lg border border-[var(--border)] p-3 text-sm leading-6">

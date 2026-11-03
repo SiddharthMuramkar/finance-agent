@@ -41,7 +41,7 @@ export type TopicNote = {
   /** Present only once the Topic is passed. */
   filled?: FilledNote;
   lines: NoteLine[];
-  /** Replies and Widgets the Learner saved from a lesson; shown whether or not the Topic is passed. */
+  /** Replies and Widgets the Learner saved while studying a Topic; shown whether or not the Topic is passed. */
   saved: SavedItem[];
 };
 
