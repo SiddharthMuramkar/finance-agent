@@ -8,6 +8,7 @@ import { replaceBrokenWidgets } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
+import type { WidgetStates } from "@/widgets/widget-state";
 import type { SessionItemData } from "./session-item-view";
 import { convertMessage, type Line, type ThreadLine } from "./thread";
 
@@ -28,9 +29,10 @@ export function pastePreview(paste: string): string {
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
 /**
  * What a turn request carries: a message (with an optional pasted passage), Continue (the cut-off reply's), the
- * opener, the Learner's Next (naming the step on its chip, or "complete"), or a resume.
+ * opener, the Learner's Next (naming the step on its chip, or "complete"), a widget report (Tell the Tutor what I
+ * found, naming the Widget's key), or a resume.
  */
-export type TurnBody = { message: string; paste?: string } | { continue: true } | { opener: true } | { next: NextName } | { resume: true };
+export type TurnBody = { message: string; paste?: string } | { continue: true } | { opener: true } | { next: NextName } | { widgetReport: string } | { resume: true };
 
 /** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
 export const SLOW_AFTER_MS = 8000;
@@ -57,12 +59,15 @@ export function useTurnStream({
   onTurnStart,
   shown,
   opener = false,
+  widgets,
 }: {
   initial: Line[];
   pending: PendingTurn;
   onTurnStart: () => void;
   shown?: Shown;
   opener?: boolean;
+  /** What the page's Widgets show now (slider values and ticks by Widget key): every turn request carries it for the Tutor. */
+  widgets?: () => WidgetStates;
 }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
@@ -112,7 +117,7 @@ export function useTurnStream({
       // A resume continues the reply on screen, or starts one after the Learner's last message.
       const last = m[m.length - 1];
       if ("resume" in body && last?.role === "assistant") return [...m.slice(0, -1), { ...last, id: firstId }];
-      // A Next (or the opener) is a new turn with no Learner bubble: its reply starts below what is on screen.
+      // A Next, a widget report or the opener is a new turn with no Learner bubble: its reply starts below what is on screen.
       return [...m, { id: firstId, role: "assistant", text: "" }];
     });
     const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId && x.role !== "item" ? { ...x, text: f(x.text) } : x)));
@@ -159,7 +164,7 @@ export function useTurnStream({
         const res = await fetch("/api/turn", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...request, ...(shownRef.current && { shown: shownRef.current }) }),
+          body: JSON.stringify({ ...request, ...(shownRef.current && { shown: shownRef.current }), ...(widgets && { widgets: widgets() }) }),
         });
         if (res.status === 409) {
           const { error: busy, stale } = (await res.json()) as { error: string; stale?: boolean };

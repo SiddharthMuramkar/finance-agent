@@ -11,7 +11,8 @@ import { LeftColumn } from "./left-column";
 import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
-import { WidgetStatesProvider } from "./widget-states";
+import { WidgetReportContext, type WidgetReport } from "./widget-panel";
+import { useWidgetStates, WidgetStatesProvider } from "./widget-states";
 import { WorkspaceFrame } from "./workspace-frame";
 import type { PassedTopic, Place } from "./workspace-parts";
 
@@ -63,21 +64,26 @@ export function Conversation({
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
 }) {
+  // The Widgets' saved work in the shown Session, kept across tab switches and saved for a reload; each turn request carries it.
+  const widgetStore = useWidgetStates(shown && "sessionId" in shown ? shown.sessionId : undefined, widgetStates);
   // Each new turn sends the panel back to the newest Widget.
-  const turn = useTurnStream({ initial, pending, shown, opener: !passed, onTurnStart: () => host.showNewest() });
+  const turn = useTurnStream({ initial, pending, shown, opener: !passed, onTurnStart: () => host.showNewest(), widgets: widgetStore.all });
   const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz });
+  const report: WidgetReport = { tell: (key) => void turn.send({ widgetReport: key }), busy: turn.running };
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
       {/* One Case Data cache for the page, cleared as each turn ends. */}
       <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
         <DeveloperDetails on={developerDetails}>
-          {/* The Widgets' saved work in the shown Session, kept across tab switches and saved for a reload. */}
-          <WidgetStatesProvider sessionId={shown && "sessionId" in shown ? shown.sessionId : undefined} initial={widgetStates}>
-            <WorkspaceFrame
-              left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
-              right={<WidgetHost host={host} topicTitle={place?.title} />}
-            />
+          <WidgetStatesProvider store={widgetStore}>
+            {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
+            <WidgetReportContext.Provider value={passed ? null : report}>
+              <WorkspaceFrame
+                left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
+                right={<WidgetHost host={host} topicTitle={place?.title} />}
+              />
+            </WidgetReportContext.Provider>
           </WidgetStatesProvider>
         </DeveloperDetails>
       </CaseDataProvider>

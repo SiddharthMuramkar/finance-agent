@@ -38,14 +38,21 @@ const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
 let root: Root;
 let host: HTMLElement;
 let posts: unknown[];
+/** The turn requests the page sent, each answered at once with a finished turn. */
+let turns: Record<string, unknown>[];
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
   posts = [];
+  turns = [];
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       if (url === "/api/widget-state") posts.push(JSON.parse(String(init?.body)));
+      if (url === "/api/turn") {
+        turns.push(JSON.parse(String(init?.body)));
+        return new Response(`${JSON.stringify({ type: "text", text: "Noted." })}\n${JSON.stringify({ type: "done", stopReason: "end_turn" })}\n`, { status: 200 });
+      }
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     }),
   );
@@ -171,5 +178,29 @@ describe("the Learner's work on a Widget", () => {
     await open(TWO_WIDGETS, undefined, 9);
     await afterSaving();
     expect(posts.at(-1)).toEqual({ sessionId: 9, widgetKey: "Second rates", values: { $rate: 3 }, ticked: ["Set the rate to 3%"] });
+  });
+});
+
+describe("what the Tutor is sent of the Widgets", () => {
+  const tellButton = () => host.querySelector<HTMLButtonElement>('[data-testid="tell-the-tutor"]');
+
+  it("goes with a chip's message: the slider values and ticks the page has now, before any save", async () => {
+    await open(TWO_WIDGETS);
+    await setRate(3);
+    const chip = [...host.querySelectorAll<HTMLButtonElement>('[data-testid="help-chip"]')][0];
+    await click(chip);
+    expect(turns.at(-1)).toMatchObject({ message: "Explain that more simply.", widgets: { "Second rates": { values: { $rate: 3 }, ticked: ["Set the rate to 3%"] } } });
+  });
+
+  it("offers Tell the Tutor what I found the moment the last Guided Task ticks, and pressing it sends a widget report", async () => {
+    await open(TWO_WIDGETS);
+    await setRate(3);
+    expect(tellButton()).toBeNull();
+    await setRate(8);
+    expect(tellButton()?.textContent).toBe("Tell the Tutor what I found →");
+    await click(tellButton()!);
+    expect(turns.at(-1)).toMatchObject({ widgetReport: "Second rates", widgets: { "Second rates": { values: { $rate: 8 } } } });
+    // Code writes the message: no Learner bubble is drawn for it.
+    expect(host.textContent).not.toContain("I set");
   });
 });
