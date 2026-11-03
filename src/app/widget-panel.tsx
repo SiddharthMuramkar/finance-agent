@@ -15,7 +15,35 @@ import { FoldedRow } from "./workspace-parts";
  * One Widget in the conversation. key is `${messageId}:${index}`; number counts Widgets across the conversation from 1.
  * The Topic's own explore Widget (shown by code, never written in a reply) has key "explore", number 0 and `explore` set.
  */
-export type WidgetItem = { key: string; number: number; code: string; complete: boolean; explore?: true; save?: SaveTarget & { kind: "widget" } };
+export type WidgetItem = {
+  key: string;
+  number: number;
+  code: string;
+  complete: boolean;
+  explore?: true;
+  save?: SaveTarget & { kind: "widget" };
+  /** The keys of earlier Widgets with the same title that this one updated in place (see updatedInPlace). */
+  replaces?: string[];
+};
+
+/** True when the Widget is the one `key` names: its own key, or that of an earlier Widget it updated in place. */
+export const holdsKey = (item: WidgetItem, key: string | undefined): boolean => key !== undefined && (item.key === key || !!item.replaces?.includes(key));
+
+/**
+ * The Widgets with each update made in place: a Tutor Widget with the same title as an earlier one takes that
+ * one's tab (its place in the list) instead of adding a tab, and keeps the earlier keys, so the earlier reply's
+ * chip opens it too. The explore Widget is never matched.
+ */
+export function updatedInPlace(widgets: readonly WidgetItem[]): WidgetItem[] {
+  const out: { item: WidgetItem; title: string | undefined }[] = [];
+  for (const item of widgets) {
+    const title = item.explore ? undefined : widgetParts(item.code).title?.trim() || undefined;
+    const at = title ? out.findIndex((o) => o.title === title) : -1;
+    if (at === -1) out.push({ item, title });
+    else out[at] = { item: { ...item, replaces: [...(out[at].item.replaces ?? []), out[at].item.key] }, title };
+  }
+  return out.map((o) => o.item);
+}
 
 export const EXPLORE_KEY = "explore";
 
@@ -188,10 +216,11 @@ function eyebrowFor(item: WidgetItem, topicTitle: string | undefined): string {
 }
 
 /**
- * Which Widget the panel shows: the one picked, else the newest. Picking flashes the card border for 1s.
+ * Which Widget the panel shows: the one picked, else the newest (`newest` names it by key when it is not last,
+ * as when it updated an earlier tab in place). Picking flashes the card border for 1s.
  * `clear` forgets the pick, so a new turn's Widget shows on its own.
  */
-export function useWidgetPicker(widgets: WidgetItem[]) {
+export function useWidgetPicker(widgets: WidgetItem[], newest?: string) {
   const [picked, setPicked] = useState<string>();
   const [flashing, setFlashing] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -202,7 +231,7 @@ export function useWidgetPicker(widgets: WidgetItem[]) {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setFlashing(false), 1000);
   };
-  const shown = widgets.find((w) => w.key === picked) ?? widgets.at(-1);
+  const shown = widgets.find((w) => holdsKey(w, picked)) ?? widgets.find((w) => holdsKey(w, newest)) ?? widgets.at(-1);
   return { shown, picked, pick, flashing, clear: () => setPicked(undefined) };
 }
 

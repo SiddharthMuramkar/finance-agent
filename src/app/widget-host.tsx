@@ -5,7 +5,7 @@ import type { OpenQuiz } from "@/learner/quiz";
 import { checkTabName, QuizPanel } from "./quiz-panel";
 import type { WidgetSlot } from "./reply-markdown";
 import { widgetsIn, type ThreadLine } from "./thread";
-import { useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
+import { holdsKey, updatedInPlace, useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
 
 /** The picker's key for the Check tab; no Widget's key looks like it (theirs are `${messageId}:${index}` or "explore"). */
 const CHECK_KEY = "check";
@@ -24,13 +24,15 @@ export type WidgetHostState = ReturnType<typeof useWidgetHost>;
 export function useWidgetHost({ messages, running, explore, quiz = null }: { messages: ThreadLine[]; running: boolean; explore: { code: string } | null; quiz?: OpenQuiz | null }) {
   const tutorWidgets = useMemo(() => widgetsIn(messages, running), [messages, running]);
   const exploreAnchor = useExploreAnchor(explore, tutorWidgets.length);
-  const widgets = useMemo(() => withExplore(tutorWidgets, explore, exploreAnchor), [tutorWidgets, explore, exploreAnchor]);
-  const picker = useWidgetPicker(widgets);
+  // In drawing order; a Widget the Tutor draws again under the same title then takes the earlier one's tab.
+  const drawn = useMemo(() => withExplore(tutorWidgets, explore, exploreAnchor), [tutorWidgets, explore, exploreAnchor]);
+  const widgets = useMemo(() => updatedInPlace(drawn), [drawn]);
+  const picker = useWidgetPicker(widgets, drawn.at(-1)?.key);
 
   // The quiz the Check tab holds: the open one, or the last one while its marking is still on screen.
   const [held, setHeld] = useState<OpenQuiz | null>(quiz);
   if (quiz && quiz.attemptId !== held?.attemptId) setHeld(quiz);
-  const checkSelected = !!held && (picker.picked === CHECK_KEY || !widgets.some((w) => w.key === picker.picked));
+  const checkSelected = !!held && (picker.picked === CHECK_KEY || !widgets.some((w) => holdsKey(w, picker.picked)));
   const check = held
     ? {
         name: checkTabName(held),
@@ -43,7 +45,7 @@ export function useWidgetHost({ messages, running, explore, quiz = null }: { mes
 
   // Where a Widget belongs in a reply: a chip that shows it in the panel. Widgets are never drawn in the chat.
   const slot: WidgetSlot = ({ messageId, index }) => {
-    const item = widgets.find((w) => w.key === `${messageId}:${index}`);
+    const item = widgets.find((w) => holdsKey(w, `${messageId}:${index}`));
     return item ? <WidgetChip item={item} active={!checkSelected && item.key === picker.shown?.key} onPick={picker.pick} /> : null;
   };
 

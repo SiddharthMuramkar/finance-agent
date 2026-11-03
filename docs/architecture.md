@@ -708,6 +708,43 @@ cost) goes to the evidence folder. A run costs a dollar or two by estimate and s
 `WIDGETS_LIVE_BUDGET_USD` (default $4) is spent; `ONLY=id,id` runs some asks again. Like the behaviour
 tests, it is not part of `npm run check`, because it spends money and needs the network.
 
+### Widget rules for the Tutor, and updating in place (`widgetRuleProblems`, `newReplyWidgetProblems`, `openWidgetsIn` in `check.ts`; `openWidgetsNote` in `src/tutor/context.ts`; `updatedInPlace` in `widget-panel.tsx`; spec #119, ticket #146)
+
+**What it does.** Three things keep the Tutor's Widgets few, usable and honest.
+
+- *Updating in place.* Code's context message (sent whenever it changes) starts with the titles of the Widgets open in
+  the panel (the Session's earlier replies, one per title) and says to change one by writing it again
+  in full under exactly the same title. In the browser, a Widget with the title of an earlier one takes
+  that one's tab instead of adding a tab, shows the newest drawing, and the older reply's
+  "Open: <title> →" chip opens it too.
+- *Code-backed Widget rules.* Beyond "can it be drawn", the server holds the reply being written to
+  three rules, and a break feeds the same one correction turn: a Widget with a slider has at least one
+  Guided Task; a kit chart with axes (line, area, bar, horizontal bar, scatter) has both axis labels;
+  and a new Widget (one not reusing an open title) does not draw the same Case Data, through
+  `Query("case_data")` or a HistoryChart, as an open Widget or an earlier one in the same reply. The
+  correction message names the widgets it flags ("- Widget 2: …"), and the browser, a reload and the
+  turn stream swap the corrected block into exactly those places, so a Widget that drew but broke a
+  rule is replaced too.
+- *The Widget instructions* give the Slider's argument order (min, max, step), say any percent slider
+  moves in 0.01 steps, ask for only numbers a Widget can show (inside min to max and on a step), ask for
+  Guided Tasks on every slider Widget, axis labels on every kit chart, and updates by title. Every rate
+  example uses 0.01 steps, and every example passes the rules (a test checks this). The frozen copy is
+  regenerated with `npm run widgets:freeze`.
+
+**Scenario.** The Tutor has drawn "Long-term interest rates" (a HistoryChart of the 30-year Treasury).
+The Learner asks for it as a line. If the Tutor draws "Rates around the draw" from the same dataset,
+the check sends it back once: "draws the same Case Data … as the open Widget "Long-term interest
+rates". Update that Widget instead". It redraws under the old title, and the panel keeps one tab, now
+showing the line. A later rate Widget with a slider but no Guided Task, or a bar chart with no axis
+labels, is sent back the same way.
+
+**Trade-off.** The rules run only on the reply being written, never on stored Widgets, so Older
+sessions and Notes draw exactly as before, even where an old Widget breaks a rule; the price is that
+old Sessions can still show near-copies. Update in place goes by exact title, which is simple and
+visible to the Tutor, but a Tutor that renames a Widget while changing it makes a new tab (the
+same-Case-Data rule catches the common case). The Old session page keeps every Widget as drawn. The
+rule for written-ahead Widgets' parts comes with ticket #160.
+
 ### Widget tools (`src/widgets/tools.ts`, `src/widgets/tool-specs.ts`)
 
 **What they are.** Four small functions of ours that run in the browser when a Widget asks for

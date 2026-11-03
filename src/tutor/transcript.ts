@@ -1,7 +1,7 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { flaggedWidgets, replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import type { CaseDataset } from "@/case-data/case-data";
 import type { CourseMap } from "@/course/map";
 import { CitationMarks, citedPassageIds, displayText } from "./citations";
@@ -31,13 +31,14 @@ export async function turnText(rows: Row[], turnSeq: number, deps: SourceDeps & 
   const ctx = await sourcesFor(deps, rows.filter((r) => r.seq > turnSeq && r.role === "assistant").map((r) => r.content));
   const marks = new CitationMarks();
   let text = "";
-  let correcting = false;
+  // The widgets the last correction message named, while its corrected reply is awaited.
+  let correcting: number[] | null = null;
   for (const r of rows.filter((r) => r.seq > turnSeq)) {
-    if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) correcting = true;
+    if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) correcting = flaggedWidgets(textOf(r.content));
     if (r.role !== "assistant") continue;
     const added = displayText(r.content, correcting ? new CitationMarks() : marks);
-    text = correcting ? replaceBrokenWidgets(text, added) : text && added ? text + PARAGRAPH + added : text + added;
-    correcting = false;
+    text = correcting ? replaceBrokenWidgets(text, added, correcting) : text && added ? text + PARAGRAPH + added : text + added;
+    correcting = null;
   }
   return text ? text + replyFold(marks, text, ctx) : text;
 }
@@ -72,7 +73,8 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap, le
   const lines: (Line & { turnSeq?: number; marks?: CitationMarks; topic?: string })[] = [];
   // The Topic the Tutor's context named by each reply: its Case Data credits follow that Topic, not today's.
   let topic: string | undefined;
-  let correcting = false;
+  // The widgets the last correction message named, while its corrected reply is awaited.
+  let correcting: number[] | null = null;
   let turnSeq = 0;
   const rows = await db
     .select({ seq: messages.seq, role: messages.role, content: messages.content })
@@ -84,20 +86,21 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap, le
   const ctx = await sourcesFor(deps, rows.filter((m) => m.role === "assistant").map((m) => m.content));
   for (const m of rows as (Message & { seq: number })[]) {
     topic = topicTitleIn(m.content) ?? topic;
-    const fix = correcting && m.role === "assistant";
+    const fix = correcting !== null && m.role === "assistant";
     // A reply is shown with its citation markers; its sources are added once the reply is complete.
     const marks = fix ? new CitationMarks() : (lines.at(-1)?.role === "assistant" ? lines.at(-1)!.marks : undefined) ?? new CitationMarks();
     const text = m.role === "assistant" ? displayText(m.content, marks) : textOf(m.content);
     if (!text || m.role === "system") continue;
     if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
-      correcting = true;
+      correcting = flaggedWidgets(text);
       continue;
     }
-    correcting = false;
+    const flagged = correcting ?? undefined;
+    correcting = null;
     const last = lines.at(-1);
     if (fix) {
       const target = lines.findLast((l) => l.role === "assistant");
-      if (target) target.text = replaceBrokenWidgets(target.text, text);
+      if (target) target.text = replaceBrokenWidgets(target.text, text, flagged);
       else lines.push({ role: m.role, text, turnSeq, marks });
     } else if (m.role === "assistant" && last?.role === "assistant") {
       last.text += PARAGRAPH + text;
