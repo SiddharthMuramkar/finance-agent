@@ -27,6 +27,7 @@ import { loadCourseMap } from "@/course/map";
 import type { Db } from "@/db/types";
 import { saveJump } from "@/learner/memory";
 import { saveProfile } from "@/learner/profile";
+import { freshToolsLearner } from "@/dev/tools-learner";
 import { placeLearner } from "./place";
 import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
@@ -54,30 +55,32 @@ const anthropic = new Anthropic();
 let spent = 0;
 
 /**
- * `prepare` runs on the fresh database before the Learner is placed (a targeted test's own Case Data
- * and Topic). `usages` holds each finished turn's usage; a turn cut off at its time limit has none.
+ * The Learner is the tools Learner, started over (`freshToolsLearner`). `prepare` runs on the fresh database
+ * before that Learner is placed (a targeted test's own Case Data and Topic). `usages` holds each finished
+ * turn's usage; a turn cut off at its time limit has none.
  */
 async function ask(
   q: BehaviourQuestion,
-  prepare?: (db: Db) => Promise<void>,
+  prepare?: (db: Db, learnerId: number) => Promise<void>,
 ): Promise<{ replies: string[]; cost: number; stepNote: string; usages: TurnUsage[] }> {
   const db = await testDb();
   if (existsSync(CASE_DATA)) await importCaseData(db, JSON.parse(readFileSync(CASE_DATA, "utf8")));
+  const { id: learnerId } = await freshToolsLearner(db);
   // The 48 questions are written for the present value Topic (the Mega Millions Case), which is no
   // longer first on the default path, so they pin it; a targeted test pins its own Topic in `prepare`.
-  if (prepare) await prepare(db);
+  if (prepare) await prepare(db, learnerId);
   else {
-    await saveJump(db, map, QUESTIONS_TOPIC);
+    await saveJump(db, map, QUESTIONS_TOPIC, new Date(), learnerId);
   }
-  if (q.profile) await saveProfile(db, q.profile);
-  const place = await placeLearner(db, map, q.at);
+  if (q.profile) await saveProfile(db, q.profile, new Date(), learnerId);
+  const place = await placeLearner(db, map, q.at, learnerId);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "${place.step}" (before the reveal; the Learner has not seen the outcome).`;
   const replies: string[] = [];
   const usages: TurnUsage[] = [];
   let cost = 0;
   for (const turn of q.turns) {
     let text = "";
-    for await (const e of runTutorTurn({ db, client: tutorClient, map }, turn)) {
+    for await (const e of runTutorTurn({ db, client: tutorClient, map, learnerId }, turn)) {
       if (e.type === "text") text += e.text;
       if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
       if (e.type === "refusal") text += `\n[REFUSAL: ${e.message}]`;
@@ -181,10 +184,11 @@ it(
   },
   async () => {
     const db = await testDb();
-    await saveJump(db, map, QUESTIONS_TOPIC);
+    const { id: learnerId } = await freshToolsLearner(db);
+    await saveJump(db, map, QUESTIONS_TOPIC, new Date(), learnerId);
     const run = async (message: string) => {
       let text = "";
-      for await (const e of runTutorTurn({ db, client: tutorClient, map }, message)) {
+      for await (const e of runTutorTurn({ db, client: tutorClient, map, learnerId }, message)) {
         if (e.type === "text") text += e.text;
         if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
         if (e.type === "done") spent += e.usage.costUsd ?? 0;
@@ -192,7 +196,7 @@ it(
       return text.trim();
     };
     const before = await run("Tell me about the lottery story. Was the cash or the annuity bigger?");
-    await saveJump(db, map, CARRY_OVER_FRESH_TOPIC);
+    await saveJump(db, map, CARRY_OVER_FRESH_TOPIC, new Date(), learnerId);
     const reply = await run("What were we just talking about?");
     const named = OTHER_TOPIC_WORDS.filter((w) => w.test(reply)).map(String);
     const record = [
@@ -252,14 +256,14 @@ it(
   async () => {
     const started = performance.now();
     const topic = map.topic(MADE_UP_EXAMPLE_TOPIC)!;
-    const { replies, cost, stepNote, usages } = await ask(MADE_UP_EXAMPLE, async (db) => {
+    const { replies, cost, stepNote, usages } = await ask(MADE_UP_EXAMPLE, async (db, learnerId) => {
       if (existsSync(FOUNDATION_CASE_DATA)) {
         const all = JSON.parse(readFileSync(FOUNDATION_CASE_DATA, "utf8")) as CaseDatasetInput[];
         await importCaseData(db, all.filter((d) => topic.cases.some((c) => c.id === d.caseId)));
       } else console.warn(`No Case Data file at ${FOUNDATION_CASE_DATA}; running without it.`);
       // Pinned to the Topic (first on the default path today). Taking the jump mark makes the turn read
       // like the live one: mid-Topic in a new Session, with no "the Learner chose this Topic" note.
-      await saveJump(db, map, MADE_UP_EXAMPLE_TOPIC);
+      await saveJump(db, map, MADE_UP_EXAMPLE_TOPIC, new Date(), learnerId);
     });
     expect(stepNote).toContain(topic.title);
     const [reply] = replies;

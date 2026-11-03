@@ -15,6 +15,12 @@ export const ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24 * 90;
 /** The name the owner's Learner has; while only the old single passcode is set, it signs in as this name. */
 export const OWNER_NAME = "owner";
 
+/**
+ * The name the test tools sign in under (the simulated learner, the browser check, and the comparison and
+ * behaviour runs), so they never touch the owner's Learner or the owner's test Learner.
+ */
+export const TOOLS_NAME = "tools";
+
 const encoder = new TextEncoder();
 
 function equalBytes(a: Uint8Array, b: Uint8Array) {

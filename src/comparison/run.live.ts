@@ -23,6 +23,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { it } from "vitest";
 import { placeLearner } from "@/behaviour/place";
+import { freshToolsLearner } from "@/dev/tools-learner";
 import { importCaseData } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
 import { settings } from "@/db/schema";
@@ -76,8 +77,10 @@ async function ask(q: TeachingQuestion, model: string) {
   const db: Db = await testDb();
   await db.insert(settings).values({ key: "model", value: model });
   if (existsSync(CASE_DATA)) await importCaseData(db, JSON.parse(readFileSync(CASE_DATA, "utf8")));
-  await saveJump(db, map, TOPIC);
-  const place = await placeLearner(db, map, "explore");
+  // The tools Learner, started over: the run never plays the owner or the owner's test Learner.
+  const { id: learnerId } = await freshToolsLearner(db);
+  await saveJump(db, map, TOPIC, new Date(), learnerId);
+  const place = await placeLearner(db, map, "explore", learnerId);
   if (place.topic.id !== TOPIC || place.step !== "explore") throw new Error(`Learner is at ${place.topic.id}/${place.step}, not ${TOPIC}/explore`);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "explore" (the Learner has not yet tried the Widget; the Insight is still hidden).`;
   const replies: string[] = [];
@@ -85,7 +88,7 @@ async function ask(q: TeachingQuestion, model: string) {
   let failed = "";
   let resumes = 0;
   for (const turn of q.turns) {
-    const t = await takeWholeTurn((input) => runTutorTurn({ db, client: tutorClient, map }, input), turn);
+    const t = await takeWholeTurn((input) => runTutorTurn({ db, client: tutorClient, map, learnerId }, input), turn);
     replies.push(t.text.trim());
     for (const k of Object.keys(total) as (keyof typeof total)[]) total[k] += t.usage[k];
     resumes += t.resumes;

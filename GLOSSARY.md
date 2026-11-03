@@ -5,7 +5,7 @@ An AI tutor that teaches an adult learner finance and economics seriously, from 
 ## Language
 
 **Learner**:
-A person the Tutor teaches, signed in with their own passcode. Each Learner's Learner Profile, progress, Topic Notes and Sessions are theirs alone. Starting over archives a Learner and gives their passcode a fresh one; nothing is deleted.
+A person the Tutor teaches, signed in with their own passcode. Each Learner's Learner Profile, progress, Topic Notes and Sessions are theirs alone. Starting over archives a Learner and gives their passcode a fresh one; nothing is deleted. The owner's test tools play their own Learner, the tools Learner, started over before each run.
 _Avoid_: User, student, account
 
 **Learner Profile**:
