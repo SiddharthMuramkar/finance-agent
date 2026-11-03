@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { destinationOrDefault, safeDestination } from "@/auth/destination";
-import { ACCESS_COOKIE, hasAccess } from "@/auth/passcode";
+import { learnerFromCookie } from "@/auth/learners";
+import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
+import { getDb } from "@/db/client";
 
 /** The only files a signed-out visitor may fetch besides Home: its screenshots. */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
@@ -18,14 +20,25 @@ function rememberedPage(url: URL): string | null {
 }
 
 /**
- * Every page and API route needs the passcode cookie. Signed out, only a GET or HEAD of "/" (Home), its images and
+ * True when the request carries a sign-in cookie for an active, listed Learner. The signature is
+ * checked first, so only a correctly signed cookie costs a database read; an old cookie (no Learner),
+ * an archived Learner or a name taken off the passcode list counts as signed out.
+ */
+async function signedIn(request: NextRequest) {
+  const cookie = request.cookies.get(ACCESS_COOKIE)?.value;
+  if (!cookie) return false;
+  return (await learnerFromCookie(getDb(), cookie, process.env.SESSION_SECRET ?? "", passcodeList())) !== null;
+}
+
+/**
+ * Every page and API route needs a sign-in cookie for an active, listed Learner. Signed out, only a GET or HEAD of "/" (Home), its images and
  * the login page, and a POST to the sign-out route, get through; other pages redirect to the login, remembering a
  * GET or HEAD's page as `next`. Signed in, the login page skips its form and goes to the safe `next` or /study.
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const read = request.method === "GET" || request.method === "HEAD";
-  const ok = await hasAccess(request.cookies.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "");
+  const ok = await signedIn(request);
   if (ok) {
     if (read && pathname === "/login") {
       const next = destinationOrDefault(request.nextUrl.searchParams.get("next"));

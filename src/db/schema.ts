@@ -7,7 +7,7 @@ export const settings = pgTable("settings", {
   value: text("value").notNull(),
 });
 
-/** The owner's Learner, made by the expand migration; every row written without a Learner id belongs to it. */
+/** The owner's Learner, made by the expand migration, which gave it every row from before Learners. */
 export const OWNER_LEARNER_ID = 1;
 
 /**
@@ -30,13 +30,12 @@ export const learners = pgTable(
 );
 
 /**
- * The Learner a row belongs to. Until every read and write names a Learner (the contract step of
- * spec #119), a row written without one belongs to the owner.
+ * The Learner a row belongs to. It has no default (the contract step of spec #119 dropped the
+ * owner's), so a row written without a Learner is refused by the database.
  */
 const learnerId = () =>
   integer("learner_id")
     .notNull()
-    .default(OWNER_LEARNER_ID)
     .references(() => learners.id);
 
 /**

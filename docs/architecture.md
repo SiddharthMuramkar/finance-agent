@@ -35,8 +35,9 @@ ceiling: one request may run for at most 300 seconds, streaming included.
 ## Passcode gate (`src/proxy.ts`)
 
 **What it does.** Every page and API route checks for a signed cookie before doing anything.
-Without it, pages redirect to `/login` and API routes answer 401. The login form compares the
-passcode with `PASSCODE` and, if it matches, sets a cookie signed with `SESSION_SECRET`.
+Without it, pages redirect to `/login` and API routes answer 401. The login form looks the passcode
+up in the passcode list and, if it matches, sets a cookie carrying that name's Learner id, signed
+with `SESSION_SECRET` (see "Own passcodes" at the end of this note).
 
 **Scenario.** Someone finds the URL and posts to `/api/turn`. The proxy answers 401 before any
 Claude call happens, so no credits are spent.
@@ -115,8 +116,8 @@ same thing happens rather than an error. A hostile page that auto-submits a form
 arrives as `cross-site` and gets 403, so the Learner stays signed in.
 
 *Trade-off.* Sign out is a button in a plain HTML form, never a link, so prefetching or a crawler
-can't sign anyone out, and it works without JavaScript. It clears only this browser's cookie: every
-device holds the same token, so other devices stay signed in, and changing `SESSION_SECRET` is still
+can't sign anyone out, and it works without JavaScript. It clears only this browser's cookie: the
+Learner's other devices hold their own copy and stay signed in, and changing `SESSION_SECRET` is still
 how to sign out everywhere. The apex address redirects to www, so a POST sent to the apex is
 refused; real sign-outs always come from www pages.
 
@@ -133,8 +134,9 @@ others, and removed again if the try is refused or the passcode was right. So gu
 once (say 1,000 parallel requests from one address) each see the ones before them, and at most five
 are compared, not all of them.
 
-**Trade-off.** One shared passcode is simple and enough for one private Learner. It is not a
-user account system. Changing `SESSION_SECRET` signs every device out. The overall cap no longer
+**Trade-off.** A passcode per name, kept in an environment value, is simple and enough for a few
+people the owner knows. It is not a user account system: there is no sign-up and no reset by email.
+Changing `SESSION_SECRET` signs every device out. The overall cap no longer
 locks everyone out, because a determined guesser could keep that lock on forever with fifty guesses an
 hour. Instead it slows every address to one try per 15 minutes: an attacker with many addresses still
 gets one guess per address in each window, and the owner who mistypes on a new device waits 15 minutes.
@@ -158,7 +160,7 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
   the one-turn lock, and the saved result of every tool call, keyed by its tool call ID (below).
 - `login_failures`: wrong passcodes by address and time, for the login's guessing limit (Passcode gate, above).
 - `learners`, `session_items`, `widget_state`: Learners, the display-only items between messages,
-  and saved Widget work (next section). Nothing reads them yet.
+  and saved Widget work (next section). Every Learner-owned table has a `learner_id` with no default.
 
 The app uses Neon's pooled connection (`DATABASE_URL`), over WebSockets rather than HTTP, because
 only WebSockets allow the transactions the Tutor's tools need (see "Surviving cut-offs and failures"). Schema changes are migration files in
@@ -211,15 +213,15 @@ rows show up in the owner's Older sessions, as every Session from before the cha
 
 **Trade-off.** Defaults that point at the owner keep the old code working without a single change,
 but for a while a row written without a Learner silently belongs to the owner rather than failing.
-The contract step closes that gap by dropping the defaults once every write names a Learner.
+The contract step (migration 0028, ticket #127) has since closed that gap: the defaults are gone.
 
 ## The current Learner, and Learner Memory, Sessions and turns scoped by it (`currentLearnerId` in `src/auth/session.ts`, `drizzle/0027_learners_keys.sql`, spec #119, ticket #125)
 
 **What it does.** Every request now has a current Learner, and every read and write of their
 learning goes through it.
-- **The current Learner.** `currentLearnerId()` answers whose request this is. Until each person
-  signs in with their own passcode it is always the owner, so the live site behaves exactly as
-  before. Every page and route asks it once and passes the Learner on: the Study Workspace, the
+- **The current Learner.** `currentLearnerId()` answers whose request this is: the Learner the
+  sign-in cookie carries (see "Own passcodes" at the end of this note). Every page and route asks
+  it once and passes the Learner on: the Study Workspace, the
   Course Map, Progress, Past Sessions and a Session page, the Passage view, Home's Resume, and the
   turn, jump (Course Map), quiz and Case Data routes.
 - **Learner Memory** (`src/learner/memory.ts`, `quiz.ts`, `insight.ts`): the place on the Course
@@ -248,8 +250,8 @@ friend's Tutor context, Case Data and Library search still stop at 24 October 20
 
 **Trade-off.** The Learner is passed by hand as an argument, not taken from a hidden per-request
 store, so every reader says whose data it reads and tests can run two Learners side by side. The
-cost is a longer argument list, and, until the contract step drops the owner defaults, a caller that
-forgets the Learner silently gets the owner's data rather than an error. One more cost: the code
+cost is a longer argument list, and a reader that forgets the Learner is not caught by the database
+(a writer is: since the contract step a row without a Learner is refused). One more cost: the code
 live before this change upserts Topic progress on its old one-column key, so between applying the
 migration and the new code's deploy such a write fails, and the Learner is told it was not saved.
 
@@ -281,8 +283,8 @@ and the friend's own card for the same question is still due, with her own daily
 
 **Trade-off.** Each reader filters by the Learner in its own query, rather than the database checking
 ownership for every row (row-level security). That keeps the code plain and testable with two Learners
-side by side, but a new query that forgets the Learner is not caught by the database; until the
-contract step drops the owner defaults it quietly reads the owner's rows. A foreign id answers 404
+side by side, but a new query that forgets to filter by the Learner is not caught by the database
+(only a write without a Learner is). A foreign id answers 404
 rather than 403, so a guess cannot tell "someone else's" from "does not exist".
 
 ## Tutor Turn (`src/tutor/turn.ts`, `session-log.ts`, `transcript.ts`, `context.ts`)
@@ -2379,3 +2381,42 @@ backfill reload places the corrected readings.
 **Scenario.** Someone edits the Tutor's context so the principle step stops listing Connections: the turn test fails at the principle step. Someone adds a second Insight Topic and forgets its Connections: `npm run course:check` says `Topic "x" has an Insight, so it needs two or three Connections (it has 0)`. Someone changes the Formula Card so the rate slider no longer moves it: the browser script fails with "the Formula Card did not change when the rate slider moved".
 
 **Trade-off.** The turn test proves the wiring and the saved records, not what Opus will actually say; that is the live run's job. The browser script needs a Neon test branch and a local server, so it runs by hand rather than in CI, and it seeds the test branch directly with SQL, so a change to those tables means updating the script.
+
+## Own passcodes, the Learner-carrying cookie and the dropped owner defaults (`src/auth/passcode.ts`, `learners.ts`, `session.ts`, `src/proxy.ts`, `drizzle/0028_learners_contract.sql`, spec #119, ticket #127)
+
+**What it does.** Each person signs in with their own passcode and lands in their own Learner.
+- **The passcode list.** The environment value `PASSCODES` lists `name:passcode` pairs, separated by
+  commas or new lines, for example `owner:…, test:…, tools:…`. A name has no colon and a passcode
+  has no comma. The owner's name must be `owner`, the Learner the expand migration gave every old
+  row to. While `PASSCODES` is unset or empty, the old single `PASSCODE` still signs in as the owner;
+  once `PASSCODES` is set, `PASSCODE` no longer signs anyone in. Every listed passcode is compared, so
+  timing doesn't hint which one nearly matched.
+- **Signing in** (`/api/login`). A right passcode signs in as its name's active Learner, and the first
+  sign-in under a name makes that Learner (empty: no Learner Profile, progress, Notes or Sessions).
+  Two first sign-ins at once still make one, because the database keeps one active Learner per name.
+  Each sign-in logs which Learner it opened ("Sign-in: opened Learner 4 (test)") in Vercel's logs.
+- **The cookie** carries `<Learner id>.<signature>`, the signature an HMAC of the id under
+  `SESSION_SECRET`. Changing the id breaks the signature. The old cookie, a signature with no Learner,
+  is refused, so everyone signs in once more after this change.
+- **Checked on every request.** The proxy checks the signature and then loads the Learner, and every
+  page and route does the same again (`currentLearner()` in `src/auth/session.ts`). A Learner that is
+  archived (Start over) or whose name was taken off the list counts as signed out: pages go to the
+  login, API routes answer 401, and the login page shows its form. A signed-in Learner who opens the
+  login still goes straight to the Study Workspace or the safe `next`.
+- **The dropped owner defaults** (migration 0028, the contract step). Every `learner_id` column lost its
+  default, so a write that forgets the Learner fails in the database instead of quietly giving the
+  row to the owner.
+
+**Scenario.** The owner sets `PASSCODES` to `owner:<his old passcode>, test:<a new one>` in Vercel and
+redeploys. His laptop's old cookie is refused, so he signs in again with the same passcode and finds
+his Topics, Notes and Sessions as he left them. He gives a friend nothing yet, but signs in as `test`
+in a private window: a new, empty Learner, with no Learner Profile, so the Tutor no longer calls him
+"a student in Mumbai". Later he removes `test` from the list; that window is signed out at its next
+click.
+
+**Trade-off.** Checking the Learner in the proxy costs one small database read per signed-in request
+(only after the signature checks out, so a forged cookie costs nothing). In return an archived or
+removed Learner is signed out at once, everywhere, and the login page can never bounce between itself
+and the Study Workspace. Passcodes live in an environment value, so adding a person means editing it
+and redeploying, and a passcode can't contain a comma. Dropping the defaults means any forgotten
+Learner id is an error the Learner sees, rather than a silent leak into the owner's data.

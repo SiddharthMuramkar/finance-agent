@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { importBank } from "@/bank/ingest";
 import type { BankQuestion } from "@/bank/normalise";
-import { questionBank, quizAttempts } from "@/db/schema";
+import { questionBank, quizAttempts, OWNER_LEARNER_ID } from "@/db/schema";
 import { testDb } from "@/test/pglite";
 import { ensureTopicStarted, loadCheckResults, loadProgress, saveFinishedStep } from "./memory";
 import { markQuizReported, openQuiz, pendingQuizNote, submitQuiz } from "./quiz";
@@ -151,7 +151,7 @@ describe("quiz Check flow", () => {
   it("rejects an attempt once its Check is no longer the current one", async () => {
     const { db, map } = await atQuiz();
     const quiz = (await openQuiz(db, map))!;
-    const [stale] = await db.insert(quizAttempts).values({ checkId: "quiz", attemptNo: 5, questionIds: ["q1", "q2"] }).returning();
+    const [stale] = await db.insert(quizAttempts).values({ learnerId: OWNER_LEARNER_ID, checkId: "quiz", attemptNo: 5, questionIds: ["q1", "q2"] }).returning();
     await submitQuiz(db, map, quiz.attemptId, { q1: "a", q2: "a" });
     const result = await submitQuiz(db, map, stale.id, { q1: "a", q2: "a" });
     expect(result.ok).toBe(false);

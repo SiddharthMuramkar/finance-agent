@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
-import { messages, sessions as sessionsTable, settings, turns } from "@/db/schema";
+import { messages, sessions as sessionsTable, settings, turns, OWNER_LEARNER_ID } from "@/db/schema";
 import { APIError } from "@anthropic-ai/sdk";
 import { sql } from "drizzle-orm";
 import { describeFailure } from "./failures";
@@ -1220,7 +1220,7 @@ describe("surviving cut-offs and failures", () => {
     const db = await testDb();
     let t = Date.parse("2026-11-02T09:00:00Z");
     const now = () => new Date(t);
-    await db.insert(turns).values({ status: "running", startedAt: now() });
+    await db.insert(turns).values({ learnerId: OWNER_LEARNER_ID, status: "running", startedAt: now() });
     t += 6 * 60_000;
     const { client } = scriptedClient([{ content: [text("Here.")] }]);
     expect((await collect(runTutorTurn({ db, client, map, now }, "Hello"))).at(-1)).toMatchObject({ type: "done" });
