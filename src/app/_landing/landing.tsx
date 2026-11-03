@@ -1,11 +1,36 @@
-import { Eyebrow, Pill } from "../ui";
+import { loadCourseMap } from "@/course/map";
+import { navigate, type Place } from "@/course/navigator";
+import { getDb } from "@/db/client";
+import { loadProgress } from "@/learner/memory";
+import { Eyebrow, Pill, SignOutButton } from "../ui";
 import { copy, DRAFT } from "./copy";
 import { landingStats, type LandingStats } from "./stats";
 
 const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
 
-/** The public page at "/" for a signed-out visitor. It shows counts only: no Learner data, no Library text. */
-export function LandingView({ stats }: { stats: LandingStats }) {
+const topBarLink = "text-sm text-[var(--muted)] hover:text-[var(--ink)]";
+
+/** The signed-in Learner's main button: what it says and, for Resume and Start, which Topic. Every one opens /study. */
+export type HomeButton = { kind: "resume" | "start"; topic: string } | { kind: "open" };
+
+/**
+ * The button rule, from the place the Course Navigator returns: no place (every Topic passed, no Check due)
+ * opens the workspace; a Topic not started is Start; any other place is Resume, which includes a passed Topic
+ * with a required Check due.
+ */
+export function homeButton(place: Place | null): HomeButton {
+  if (!place) return { kind: "open" };
+  return { kind: place.status === "not_started" ? "start" : "resume", topic: place.topic.title };
+}
+
+const buttonLabel = (b: HomeButton) => (b.kind === "open" ? copy.openStudyWorkspace : `${b.kind === "resume" ? copy.resume : copy.start} ${b.topic}`);
+
+/**
+ * Home, at "/": counts only, no Learner data or Library text. With no `button` (signed out) the top bar and hero offer
+ * Sign in; with one, the top bar links the Study Workspace beside Sign out and the hero button shows its label.
+ */
+export function LandingView({ stats, button }: { stats: LandingStats; button?: HomeButton }) {
+  const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.signIn };
   const columns = [
     { value: stats.topics, label: copy.stats.topics },
     { value: String(stats.cases), label: copy.stats.cases },
@@ -16,9 +41,18 @@ export function LandingView({ stats }: { stats: LandingStats }) {
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <span className="text-base font-semibold">{copy.brand}</span>
-          <a href="/login" className="text-sm text-[var(--muted)] hover:text-[var(--ink)]">
-            {copy.signIn}
-          </a>
+          {button ? (
+            <div className="flex items-center gap-4">
+              <a href="/study" className={topBarLink}>
+                {copy.studyWorkspace}
+              </a>
+              <SignOutButton className={topBarLink}>{copy.signOut}</SignOutButton>
+            </div>
+          ) : (
+            <a href="/login" className={topBarLink}>
+              {copy.signIn}
+            </a>
+          )}
         </div>
       </header>
 
@@ -38,8 +72,8 @@ export function LandingView({ stats }: { stats: LandingStats }) {
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-7 text-[var(--muted)]">{copy.subtext}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="/login" className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
-                {copy.signIn}
+              <a href={hero.href} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
+                {hero.label}
               </a>
               <a href="#how" className={`${bigButton} border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--hairline)]`}>
                 {copy.howItWorks}
@@ -113,7 +147,17 @@ export function LandingView({ stats }: { stats: LandingStats }) {
   );
 }
 
-/** Loads the counts (the database part cached for a day) and renders the landing page. */
-export async function LandingPage() {
-  return <LandingView stats={await landingStats()} />;
+/** The signed-in Learner's button, from saved progress. Read-only; if progress can't be loaded it logs and falls back to Open. */
+export async function loadHomeButton(): Promise<HomeButton> {
+  try {
+    return homeButton(navigate(loadCourseMap(), await loadProgress(getDb())));
+  } catch (error) {
+    console.error("Home could not load the Learner's place", error);
+    return { kind: "open" };
+  }
+}
+
+/** Loads the counts (the database part cached for a day) and renders Home; with no `button`, no Learner data is read. */
+export async function LandingPage({ button }: { button?: HomeButton }) {
+  return <LandingView stats={await landingStats()} button={button} />;
 }

@@ -4,8 +4,8 @@ import { useState } from "react";
 
 export type Theme = "light" | "dark";
 
-/** Switches dark and light mode and remembers the choice in a cookie for a year. Styled as a quiet header link. */
-export function ThemeToggle({ initial }: { initial: Theme }) {
+/** Switches dark and light mode and remembers the choice in a cookie for a year. className styles the button. */
+export function ThemeToggle({ initial, className = "" }: { initial: Theme; className?: string }) {
   const [theme, setTheme] = useState<Theme>(initial);
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -17,7 +17,7 @@ export function ThemeToggle({ initial }: { initial: Theme }) {
     <button
       type="button"
       onClick={toggle}
-      className="py-2 text-sm leading-5 text-[var(--muted)] transition-colors duration-200 hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+      className={className}
       aria-label="Switch dark or light mode"
     >
       {theme === "dark" ? "Light mode" : "Dark mode"}

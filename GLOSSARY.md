@@ -63,6 +63,10 @@ _Avoid_: Checkpoint, test, exam
 The main product: a conversation with the Tutor beside charts and calculators the Learner can play with, the sources behind each answer, and what has been learned so far.
 _Avoid_: Dashboard
 
+**Home**:
+The page at the site's main address, where every visit starts. Signed out, it introduces the Tutor and offers Sign in; signed in, it offers to Resume the Learner's current Topic.
+_Avoid_: Landing page, dashboard, start page
+
 **Widget**:
 An interactive chart or calculator the Tutor puts beside the conversation, whose assumptions the Learner can change at no cost.
 _Avoid_: artifact, card

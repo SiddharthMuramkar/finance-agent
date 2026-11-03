@@ -1,4 +1,4 @@
-// DRAFT: every word on the public landing page lives here, so the owner can rewrite it in one place.
+// DRAFT: every word on Home (the page at "/") lives here, so the owner can rewrite it in one place.
 // Serious and grounded: finance taught through what already happened. No hype, no buy or sell, no forecasts.
 
 export const DRAFT = true;
@@ -10,6 +10,13 @@ export const copy = {
   subtext:
     "A Tutor that teaches valuation, statements and markets through real historical Cases: the numbers, the documents and the decisions people made at the time.",
   signIn: "Sign in",
+  // Shown instead of "Sign in" when the Learner is already signed in. Both open /study.
+  studyWorkspace: "Study Workspace",
+  openStudyWorkspace: "Open Study Workspace",
+  // Signed-in hero button: "Resume: [Topic]" or "Start: [Topic]". All three open /study.
+  resume: "Resume:",
+  start: "Start:",
+  signOut: "Sign out",
   howItWorks: "How it works",
   screenshotAlt: "The Study Workspace: a Tutor conversation on the left and a worked widget on the right.",
   stats: { topics: "Topics written", cases: "Historical Cases", sources: "Library sources" },
