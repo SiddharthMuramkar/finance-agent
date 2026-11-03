@@ -143,10 +143,11 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
 ## Database (Neon Postgres through Drizzle)
 
 **What it does.** Neon is the only store. Thirteen tables so far:
-- `settings`: the Tutor's model (`claude-opus-5-5`), effort (`medium`) and the idle hours before
-  a new Session starts, editable without a rebuild.
-- `sessions`: one row per Session, with the exact instructions, tool definitions, model and
-  effort frozen when it started, plus a fingerprint of the instructions and tools.
+- `settings`: the Tutor's model (`claude-opus-5-5`), effort (`medium`) and the idle hours that
+  count as a break (they no longer start a Session), editable without a rebuild.
+- `sessions`: one row per Session (one Learner's conversation about one Topic), with the exact
+  instructions, tool definitions, model and effort frozen at its first turn (refrozen after a deploy
+  that changes them), plus a fingerprint of the instructions and tools.
 - `messages`: the Session's history, add-only, each message stored exactly as sent or received.
 - `learner_state`, `topic_progress`, `check_results`, `misconceptions`, `quiz_attempts`, `insight_attempts`: Learner Memory (below; the last is described under "Insight recording").
 - `usage`: what each turn and each step of it cost (below).
@@ -164,8 +165,8 @@ only WebSockets allow the transactions the Tutor's tools need (see "Surviving cu
 `drizzle/`, applied with `npm run db:migrate`, which uses the direct connection
 (`DATABASE_URL_UNPOOLED`).
 
-**Scenario.** The Learner reloads the page mid-conversation. The page reads the current Session's
-messages from Neon and shows them again, without calling Claude.
+**Scenario.** The Learner reloads the page mid-conversation. The page reads the current Topic's
+Session's messages from Neon and shows them again, without calling Claude.
 
 **Trade-off.** Storing raw message content as JSON keeps it byte-for-byte replayable, which
 Claude's thinking rules need, but makes it less convenient to query than neat columns.
@@ -182,11 +183,11 @@ changes the database only; no code reads or writes the new parts yet, so nothing
   `review_cards`, `review_log`, `note_items`, `learner_profile`, `pasted_texts`, `sessions`, `turns`,
   and the two new stores below. The column defaults to the owner, which gave every existing row to
   the owner, and also gives the owner every row written by today's code, which never names a Learner.
-- **On Sessions**: the Topic (empty for now), an Older flag and the position where the Session's
-  instructions were last refrozen after a deploy. Every existing Session is Older. The flag defaults
-  to Older, so a Session started by today's code is Older too, until the code that makes Topic
-  Sessions sets it to live. A database rule allows one live Session per Learner and Topic; Older
-  Sessions and Sessions with no Topic are not limited.
+- **On Sessions**: the Topic, an Older flag and the position where the Session's instructions were
+  last refrozen after a deploy. Every existing Session is Older. The flag defaults to Older; the
+  Tutor Turn now makes live Topic Sessions (see "One Session per Topic" below). A database rule
+  allows one live Session per Learner and Topic; Older Sessions and Sessions with no Topic are not
+  limited.
 - **Session items** (`session_items`): what the Study Workspace will draw between messages and never
   send to the model: step dividers, "Picking up where you left off" and Due Check dividers, Check
   result cards and Topic complete cards. Each has its Learner, Session, the message it follows
@@ -225,7 +226,7 @@ learning goes through it.
   Map, Topic progress, Check results, misconceptions, Insight attempts and quiz attempts are read
   and written for one Learner. A quiz attempt of another Learner's is "no such quiz attempt".
 - **Sessions and turns** (`session-log.ts`, `turn-status.ts`, `transcript.ts`, `session-summary.ts`):
-  a Learner's latest Session, their latest turn and its resume, the turn before it, the Course Map's
+  a Learner's live Session for a Topic, their latest turn and its resume, the Course Map's
   turn-in-progress check and the explore idle-turn count read only that Learner's rows. Past
   Sessions lists only theirs, and another Learner's Session reads as empty.
 - **The Tutor Turn** takes the Learner (`learnerId` in its dependencies) and passes it to every tool:
@@ -259,14 +260,14 @@ request only from what the Session saved (never from today's code or settings), 
 through the Anthropic SDK's Tool Runner with streaming. Text is forwarded to the browser as it
 arrives. When each step of the loop finishes, the reply is saved unchanged, thinking blocks
 included. The Tutor runs on Opus 5.5 at medium effort (the stored default; each Session keeps the
-model it started with). No request forces a tool or sends sampling settings such as temperature.
+model it was last frozen with). No request forces a tool or sends sampling settings such as temperature.
 The Tool Runner is in beta, so the SDK version is pinned exactly (`1.3.0`).
 
 **Scenario.** On the third message of a Session, the request contains the first two exchanges
 exactly as they happened, including Claude's signed thinking blocks, followed by the new
 message. Because nothing earlier was edited, Claude accepts the thinking and no 400 error occurs.
-If the owner switches the model setting to Haiku meanwhile, this Session keeps Opus; the next
-Session picks up Haiku. The default is Opus 5.5 at medium effort; a data migration moved the stored
+If the owner switches the model setting to Haiku meanwhile, this Session keeps Opus; a new Topic's
+Session, or this one after the next deploy that changes the instructions, picks up Haiku. The default is Opus 5.5 at medium effort; a data migration moved the stored
 setting from the old Sonnet default to Opus only where it still held that default, so a model the
 owner chose by hand is never overwritten.
 
@@ -275,8 +276,9 @@ step) must be sent as a new message rather than by editing the instructions. Tha
 more code, but editing would break Claude's thinking on this model.
 
 **Where the code lives.** `turn.ts` runs the turn itself: the lock, the loop with cut-off,
-compaction, refusal and widget correction. `session-log.ts` holds the stored settings, the choice
-of which Session the next action continues, and the add-only message log. `context.ts` builds the
+compaction, refusal and widget correction. `session-log.ts` holds the stored settings, which
+Session a turn runs in (one per Learner and Topic), the refreeze after a deploy, and the add-only
+message log with what of it is sent. `context.ts` builds the
 Course Navigator's context and works out which context the Tutor last saw. `transcript.ts` turns a
 Session into plain lines for the screen (after a reload, on old Session pages, in a replay). Each
 changes for its own reason, so a change to how Sessions are shown no longer touches the turn loop.
@@ -287,6 +289,68 @@ secrets and spends no credits.
 
 **Measured.** The longest real turn so far took 11.9 seconds, about 4% of the 300-second limit
 (plain conversation, no tools yet).
+
+## One Session per Topic (`session-log.ts`, `turn.ts`, `context.ts`, `src/app/study/page.tsx`, `turn-stream.ts`, ADR 0004, spec #119, ticket #130)
+
+**What it does.** A Session is now the whole conversation between one Learner and the Tutor about
+one Topic. It used to be one conversation across any Topics, replaced after six idle hours or a
+deploy, so a Course Map jump carried one Topic's talk into the next.
+- **Which Session.** A turn runs in the Learner's live Session for the Course Navigator's current
+  Topic (`sessionForTurn`). The Topic's first turn makes it, inserted with on-conflict so two tabs
+  never make two; rendering a page never makes one. With every Topic passed, the Learner talks in one
+  Session with no Topic.
+- **What the page shows.** The Study Workspace shows the current Topic's live Session, or an empty
+  thread before its first turn. Coming back to a Topic shows its whole thread as it was left.
+- **One page, one Session.** Every turn request carries what the page shows: its Session, or for a
+  Topic's first turn the Topic. If that is not the Learner's current Topic (they chose another one in
+  another tab), the turn is refused before anything is saved: "This Topic changed in another tab.
+  Reload to carry on." Each finished turn tells the page what to carry next, so after a turn that
+  passes a Topic the next message goes to the next Topic's Session. The test tools send nothing and
+  are not checked.
+- **No restarts.** Idle time never starts a Session; the idle setting stays only to tell a break.
+  After a deploy that changes the instructions or tools, the next new turn (never a resume) refreezes
+  the instructions, tools, model and effort inside the same Session and records where
+  (`refrozen_at_seq`). From then on the thinking blocks of earlier messages are left out of every
+  request; their text, tool calls and results replay unchanged. The "The Tutor was updated…" notice
+  is gone.
+- **What the model is sent.** This Session's compaction summary (if any) and its messages since:
+  only this Topic's. The "Where the Learner stands" block (code's summary and the Learner Profile)
+  opens the Session and is sent again as a new message, with the Course Navigator context, whenever
+  it changes; nothing already sent is rebuilt. The Tutor's instructions say to go by the latest
+  Where the Learner stands block.
+- **Refused turns.** A refused turn stays on screen, but every row of it (the Learner's message,
+  context and any kept loop steps) is left out of later requests, worked out from the turn's place in
+  the Session. The refusal reads "The Tutor declined to answer that message. Nothing was changed, and
+  your place is the same. Try asking another way."
+- **Quiz results** reach only their own Topic's Session; a result waits until the Learner is back in
+  that Topic.
+- **Older Sessions.** Every Session from before this change is Older: never continued and never
+  shown in the Study Workspace, still readable in Past Sessions. Each Topic starts a fresh Session,
+  and its steps, passes and any open quiz carry on.
+
+**Scenario.** The Learner studies Present value, chooses Bond prices on the Course Map, asks "what
+were we just talking about?", and the Tutor, sent only Bond prices' messages, has nothing of the
+lottery to repeat. Back in Present value the thread is exactly as left. That night a deploy changes
+the Tutor's instructions; next morning the Learner's message goes into the same Present value
+Session, which is refrozen on the new instructions, and the request carries yesterday's replies
+without their thinking blocks. A second tab still showing Bond prices gets the reload message.
+
+**Trade-off.** A Session can now last weeks, so compaction rather than an idle window keeps what the
+model is sent in check. Leaving thinking out after a refreeze costs one full prompt-cache write per
+Session after such a deploy, and the Tutor loses its earlier reasoning (not its words). Leaving a
+refused turn out whole means the Tutor never sees the Learner's declined message, even the harmless
+parts of it. Until the next tickets land, Course Map jumps still work as before (a page load, then
+the Learner presses Continue or types), and the Learner still sees the passed Topic's thread until a
+reload after a Topic is passed.
+
+**How it is tested.** At the Tutor Turn seam with the scripted client and in-memory Postgres
+(`topic-sessions.test.ts`): A → B → A shows only each Topic's messages and B's request holds nothing
+of A; the stale tab; the stands block re-sent only when it changes; refused turns left out whole;
+the refreeze with earlier thinking left out and later thinking replayed; Older Sessions never
+continued; the every-Topic-passed Session; quiz results reaching only their own Topic; and the B7
+regression (a pass, A → B → A, a deploy, a reload, and the pass still there). The live behaviour
+run asks "what were we just talking about?" in a fresh Topic and checks by code that the answer names
+nothing of the other Topic.
 
 ## Course Map outline (`course/outline.yaml`, `src/course/outline.ts`, `docs/course-map.md`)
 
@@ -456,17 +520,15 @@ a tool, `finish_teaching_step`; when it calls it, code asks the Navigator, saves
 is legal and replies with the next step's material, or replies with an error if it isn't.
 
 **Sessions.** Opening the workspace makes no model call: the page reads the summary and the
-latest Session from SQL and shows a Continue button. A new Session starts on the next action
-(Continue or a message) if the last message is more than six hours old. The six hours is the
-`session_idle_hours` setting in SQL, so it can be changed without a deploy. A new Session also
-starts if the instructions or tools changed since the last one was frozen. A new Session opens
-with the summary and context as the first block of its first message. (Claude's API rejects a
+current Topic's Session from SQL and shows a Continue button. Each Topic has its own Session (see
+"One Session per Topic"), which a break never ends. A Session opens with the Where the Learner
+stands block and the context as the first block of its first message. (Claude's API rejects a
 "system" message in first place, which a live run showed; later context messages can be "system"
-messages.) Old Sessions stay readable at `/sessions`.
+messages.) Older Sessions stay readable at `/sessions`.
 
-**Scenario.** The Learner returns after a weekend. The page shows the summary at no cost. They
-click Continue; the old Session is past six hours, so a new one starts, its first message tells
-the Tutor where the Learner stands, and teaching picks up at the same Teaching Step.
+**Scenario.** The Learner returns after a weekend. The page shows the summary and the Topic's
+thread at no cost. They click Continue; the same Session carries on, a new Where the Learner stands
+block tells the Tutor anything that changed, and teaching picks up at the same Teaching Step.
 
 **Trade-off.** Context goes in as appended messages rather than edits to the instructions, which
 keeps Claude's thinking valid but repeats some text in long Sessions.
@@ -647,8 +709,8 @@ computed by our code. Measured on 3 November 2026, the kit roughly doubles what 
 first: 998 kB of JavaScript (gzipped), up from 487 kB, and 47 kB of CSS, up from 7 kB, because the
 kit's whole library and stylesheet come with the page, the parts we leave out included. Loading the
 widget drawing only when the first widget appears, or building the library from the kit's kept parts
-alone, would win most of that back. Changing the frozen instructions means the next action after a deploy starts a
-new Session. Widgets inside the prose (OpenUI's inline mode) keep one simple reply format, stream
+alone, would win most of that back. Changing the frozen instructions means each Session is refrozen at its next new turn after
+a deploy. Widgets inside the prose (OpenUI's inline mode) keep one simple reply format, stream
 naturally and work with Claude's citations (see Citations below), but the model can write invalid
 code, which is why the server check and one correction turn exist. The fallback, if OpenUI ever has
 to go, is one plain tool per widget.
@@ -841,7 +903,7 @@ a tool called `record_check_verdict`. Code, not the Tutor, decides what the verd
   moves them on (to the next Check or the reveal).
 - **No verdict.** If a turn ends at a Check without a verdict (the Tutor has just asked the
   question, or is still probing), the Learner stays put and the next context message opens with
-  "No verdict was recorded for Check ...", including the first message of a new Session.
+  "No verdict was recorded for Check ...", even after a break.
 - **Misconceptions.** When the Tutor notices a real misunderstanding, it calls
   `record_misconception`, and code saves it in `misconceptions` with the Topic, the Check in play
   and the model.
@@ -849,7 +911,8 @@ a tool called `record_check_verdict`. Code, not the Tutor, decides what the verd
   (a retry, a resumed turn), the second has no effect.
 
 **The summary.** Code builds a short plain-text summary from SQL, with no model call, and sends
-it as the first message of every new Session (the workspace shows the same text on opening). It
+it in the Where the Learner stands block: in a Session's first message, and again whenever it
+changes (the workspace shows the same text on opening). It
 says the Topic and Teaching Step, the unmastered prerequisites (the Topic's prerequisites, and
 theirs, that are not passed, with "not started" or "in progress"), the last eight misconceptions
 noted in those Topics, and the last "not yet" verdict at the current Check with its reasons.
@@ -857,8 +920,9 @@ noted in those Topics, and the last "not yet" verdict at the current Check with 
 **Scenario.** At the jackpot Check the Learner says "$1.537 billion is bigger than $877.8 million,
 so take the annuity." The Tutor saves "not yet" with the reason "compared undiscounted totals" and
 notes the misconception "compares payments at different dates without discounting". The Learner
-stays at the Check. They come back two days later: the new Session's first message tells the
-Tutor about that misconception and the last verdict, so it picks up the real gap. A live run of
+stays at the Check. They come back two days later: the Session carries on, and the latest Where
+the Learner stands block tells the Tutor about that misconception and the last verdict, so it picks
+up the real gap. A live run of
 exactly this, against the real API with a throwaway database, cost about $0.04 for three turns.
 
 **Trade-off.** The Tutor judges the reasoning, which a quiz key can't, but its judgement is only
@@ -916,7 +980,8 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
   Check ..., attempt 1: 1 of 3 correct (needs 2). Not passed ...", naming each missed question,
   what the Learner chose and the right answer. It goes in the same system message as the
   Course Navigator's context, directly after the Learner's message (the one place the API accepts
-  a system message), or at the top of the opening message of a new Session. A note is sent once.
+  a system message), or in the opening message of the Topic's Session. A note is sent once, and only
+  to the Session of the quiz's own Topic.
 
 **Scenario.** The Learner finishes the concept and "your turn" and the quiz opens in the Check tab on the right. They
 get "$1,210 in two years at 10%" wrong, picking $1,100, and get two right. That is two of three,
@@ -1004,8 +1069,9 @@ numbers (code already sends those, and they use neutral numbers).
   discard it, so it cannot stay in history. Only the declined loop step is discarded: steps before
   it in the same turn, and what their tool calls recorded, are already saved and stay, on screen as
   well as in SQL. The Learner sees a plain message that says which: "Nothing was changed" when no
-  earlier step recorded anything, or that what was already written and recorded is kept. The next
-  message starts a new Session from SQL rather than editing history. An API
+  earlier step recorded anything, or that what was already written and recorded is kept. The
+  Session carries on: every row of the refused turn stays on screen but is left out of later
+  requests (see "One Session per Topic"), so history is never edited. An API
   error says why in plain words (credits run out or spend limit, rate limit, Claude busy, no
   connection), keeps everything saved, and offers Retry, which resumes the same turn rather than
   sending the Learner's message again (this fixes the repeated Learner messages seen in #6). What
@@ -1040,7 +1106,7 @@ HTTP queries. Compaction loses detail from early in a long Session; the summary 
 **How it is tested.** At the Tutor Turn seam with the scripted client: a cut-off and resume that
 repeats no write (a finished step and a verdict), the replayed text, a resume whose reply was already
 saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credits error with Retry,
-a database write that fails (a test trigger refuses the write), a changed fingerprint, a misconception
+a database write that fails (a test trigger refuses the write), a changed fingerprint (refrozen in the same Session), a misconception
 with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
 
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
@@ -1100,8 +1166,8 @@ Insight would have come at once. All three messages sit in `insight_attempts` ex
 **Trade-off.** Judging whether the Learner found the Insight stays with the model, because only a
 model can read free words; code controls everything around that judgement (the count, the hints, the
 withholding, the order). A Tutor that says "found" too readily is checked by the behaviour set, not by
-code. Sessions that started before this change keep their frozen tools and have no way to record an
-attempt, so the app starts a new Session when the tools change.
+code. Sessions that started before this change kept their frozen tools and had no way to record an
+attempt; today a change of tools refreezes each Session at its next new turn.
 
 ## The explore Widget (`explore.widget` in `course/topics/*.yaml`, `src/course/explore-widget.ts`, `src/app/widget-panel.tsx`)
 
@@ -1176,16 +1242,15 @@ takes the quiz through `GET`/`POST /api/quiz` (code marks it, no model call), an
 Topic is passed. After each turn it reads the step, duration and cost from the `usage` table, and it
 writes a transcript, a per-turn table and a cost summary to a folder you give it (outside the repo,
 because transcripts hold source-derived text). `--reset` archives the Topic's saved progress first (rows
-are renamed, nothing is deleted) so a run starts at the story. By default it forces one new Session in the
-middle of the Topic, by setting `session_idle_hours` to 0 for a single turn, to prove that closing the app
-and returning resumes at the right place. The saved value is put back after that turn, and also if you
-press Ctrl-C or the script is killed during it: otherwise the live app would be left opening a new Session
-on every message. `--reset` clears the Learner's current Topic only when it is the Topic being reset, so a
+are renamed, nothing is deleted) so a run starts at the story. It still sets `session_idle_hours` to 0
+for one turn in the middle of the Topic, a leftover from when that forced a new Session; since one Session
+per Topic (ADR 0004) idle time never starts a Session, so that turn carries on the same Session (removing
+it is ticket #158's). The saved value is put back after that turn, and also if you press Ctrl-C or the
+script is killed during it. `--reset` clears the Learner's current Topic only when it is the Topic being reset, so a
 Topic you chose on the Course Map page is kept.
 
 **Scenario.** After a deploy, run it against the production URL: fourteen turns later you have a
-transcript of a whole Topic, the cost per turn, the longest turn, and proof that a new Session carried on
-at the same step.
+transcript of a whole Topic, the cost per turn and the longest turn.
 
 **Trade-off.** It talks to the real Tutor and the real database, so each run costs about a quarter of a
 dollar and changes the saved progress (hence `--reset`). The Learner is a model, so it is polite and
@@ -1621,8 +1686,8 @@ dividend and DCF cases had no values and were replaced by hand-worked ones. Noth
 project is copied as code. Rupee and lakh/crore formatting has its own tests, including the
 rounding edge where 99.999 lakh must read as a crore.
 
-**Trade-offs.** Adding the two tools changes the Tutor's tool list and instructions, so the next
-action after deploy starts a new Session (the existing Session is not edited). The Calculator
+**Trade-offs.** Adding the two tools changed the Tutor's tool list and instructions, so each Session
+is refrozen at its next new turn after the deploy (earlier messages are not edited). The Calculator
 widget takes its inputs by name, so the Tutor has to use the names in the `calculate` tool's
 description; a wrong name shows a plain "could not run" message in place of a number. A server-side
 render shows "Working it out…" until the browser sets the slider values. Hosted code execution
@@ -2075,9 +2140,10 @@ comes back. "About you", linked from the Progress page, edits the same four answ
 through `/api/profile` (and `/api/profile/dismiss`), which sit behind the passcode like every other
 route. No model call is made to save it.
 
-**What the Tutor gets.** When a new Session opens, code puts the profile in the Session's first
-message as its own block: after the Learner summary and before the Course Navigator context (which
-stays last, because the Tutor Turn compares against the end of that message). The block says what it is
+**What the Tutor gets.** Code puts the profile in the Where the Learner stands block: in the
+Session's first message, after the Learner summary and before the Course Navigator context (which
+stays last, because the Tutor Turn compares against the end of that message), and again as a new
+block at the next turn after the Learner changes it. The block says what it is
 for. The Tutor's instructions say the same: use it only to choose everyday examples, in the Learner's
 currency when the example is about their life, and never as advice. Nothing is sent when the Learner
 shared nothing.
@@ -2157,7 +2223,7 @@ backfill reload places the corrected readings.
 
 **Scenario.** The Tutor writes a Slider for the discount rate and a card for present value with the cash option as a sourced amount and five years fixed. The Learner drags the rate from 5% to 8%: the teal rate, the filled-in formula and the amber-and-plain list all stay put except the result, which falls. If the Tutor instead types the rate as a plain number under `inputs`, or lists `amount` under both `inputs` and `sourced`, or leaves out `years`, the server's Widget check names the problem and the existing correction turn asks the Tutor to rewrite the Widget once.
 
-**Trade-offs.** The check is stricter than the language: it reads the parsed Widget, which is why a card can never show an assumption that no slider controls. The card does not do any arithmetic, so a formula whose calculator fails shows a plain "could not be worked out" message, not a guess. The frozen Widget instructions changed (a new component, a rule and an example), so the next action after deploy starts a new Session; a test checks that the instructions name only components the library has.
+**Trade-offs.** The check is stricter than the language: it reads the parsed Widget, which is why a card can never show an assumption that no slider controls. The card does not do any arithmetic, so a formula whose calculator fails shows a plain "could not be worked out" message, not a guess. The frozen Widget instructions changed (a new component, a rule and an example), so each Session is refrozen at its next new turn after the deploy; a test checks that the instructions name only components the library has.
 
 ## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
 
@@ -2181,7 +2247,7 @@ backfill reload places the corrected readings.
 
 **Scenario.** Present value's explore Widget has four tasks under the rate slider and the annuity chart: set the rate to 0%, then 2%, then 8%, then find the rate where the payments' worth today comes closest to the cash option. The slider starts at 5%, so none is done. The Learner drags to 8% first: nothing ticks, because task 1 is current. They go to 0%: task 1 ticks. They go to 2%, then 8%: tasks 2 and 3 tick. The fourth ticks at 3.25% or 3.5%, the two positions where the annuity's worth today is nearest the cash option's $877.8 million. If a later edit made task 3 read `$rate == 8.1`, the course check would fail, because it still tries the slider's written steps of 0.25 (in the browser a percent slider now moves in 0.01 steps, so the check is stricter than the page; see "Exact slider values").
 
-**Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Ticks live in the page, so reloading the page starts the stepper again, which suits practice that is never saved. The frozen Widget instructions changed (two components, an example and a rule), so the next action after deploy starts a new Session.
+**Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Ticks live in the page, so reloading the page starts the stepper again, which suits practice that is never saved. The frozen Widget instructions changed (two components, an example and a rule), so each Session is refrozen at its next new turn after the deploy.
 
 ## Exact slider values (`SliderView` and `WidgetFrame` in `src/widgets/library.tsx`, `src/widgets/slider-steps.ts`, issue #143)
 
