@@ -3,6 +3,7 @@
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
+import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { LeftColumn } from "./left-column";
 import type { Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
@@ -17,7 +18,8 @@ export type { Line, PendingTurn };
  * - turn streaming and its state (`useTurnStream`, turn-stream.ts);
  * - the Widget panel host (`useWidgetHost` and `WidgetHost`, widget-host.tsx);
  * - the left column with the thread and the message box (`LeftColumn`, left-column.tsx; message-box.tsx);
- * - the frame and layout (`WorkspaceFrame`, workspace-frame.tsx).
+ * - the frame and layout (`WorkspaceFrame`, workspace-frame.tsx);
+ * - the page's shared Case Data cache (`CaseDataProvider`, widgets/case-data-provider.tsx).
  * Replies stream in through assistant-ui's external-store runtime; widget blocks are pulled out of the
  * prose as they arrive, and a chip stands where each belongs.
  */
@@ -29,6 +31,7 @@ export function Conversation({
   review,
   place = null,
   explore = null,
+  revealed = [],
 }: {
   initial: Line[];
   summary: string;
@@ -38,6 +41,8 @@ export function Conversation({
   place?: Place;
   /** The Topic's own explore Widget while the Learner has it (see exploreWidgetFor); shown by code, not drawn by the Tutor. */
   explore?: { code: string } | null;
+  /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
+  revealed?: readonly string[];
 }) {
   // Each new turn sends the panel back to the newest Widget.
   const turn = useTurnStream({ initial, pending, onTurnStart: () => host.showNewest() });
@@ -45,10 +50,13 @@ export function Conversation({
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
-      <WorkspaceFrame
-        left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} />}
-        right={<WidgetHost host={host} topicTitle={place?.title} />}
-      />
+      {/* One Case Data cache for the page, cleared as each turn ends. */}
+      <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
+        <WorkspaceFrame
+          left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} />}
+          right={<WidgetHost host={host} topicTitle={place?.title} />}
+        />
+      </CaseDataProvider>
     </AssistantRuntimeProvider>
   );
 }

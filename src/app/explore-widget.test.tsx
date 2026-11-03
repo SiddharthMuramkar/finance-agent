@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { Conversation, type Line } from "./conversation";
 import { OldSession } from "./old-session";
-import { exploreItem, withExplore, type WidgetItem } from "./widget-panel";
+import { exploreItem, NarrowScreen, withExplore, type WidgetItem } from "./widget-panel";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
@@ -17,11 +17,15 @@ calc = Calculator("emi", {principal: 5000000, ratePercent: 8.5, years: 20})`;
 const fence = (code: string) => ["```openui-lang", code, "```"].join("\n");
 const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
 
-function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
-  return renderToStaticMarkup(
-    <Conversation initial={[]} summary="You are learning present value." quiz={null} pending={null} review={noReview} place={{ stage: "foundation", title: "Present value" }} {...over} />,
+function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}, narrow = false) {
+  const page = (
+    <Conversation initial={[]} summary="You are learning present value." quiz={null} pending={null} review={noReview} place={{ stage: "foundation", title: "Present value" }} {...over} />
   );
+  return renderToStaticMarkup(narrow ? <NarrowScreen>{page}</NarrowScreen> : page);
 }
+
+/** How many times the explore Widget is drawn on the page: one slider per copy. */
+const copies = (html: string) => html.split('aria-label="Interest rate (discount rate)"').length - 1;
 
 const paneStart = (html: string) => html.indexOf('data-testid="widget-pane"');
 
@@ -41,17 +45,23 @@ describe("the explore Widget in the workspace", () => {
     expect(html).not.toContain("explore-chip");
   });
 
-  it("at an upright-iPad width (below the laptop breakpoint) is a card in the conversation column, and the panel steps aside", () => {
+  it("is mounted once at a laptop width: in the panel, with no hidden copy in the conversation column", () => {
     const html = workspace({ explore: EXPLORE });
+    expect(copies(html)).toBe(1);
+    expect(html).not.toContain("explore-card");
+    expect(copies(html.slice(paneStart(html)))).toBe(1);
+  });
+
+  it("at an upright-iPad width (below the laptop breakpoint) is a card in the conversation column, and the panel steps aside", () => {
+    const html = workspace({ explore: EXPLORE }, true);
+    expect(copies(html)).toBe(1);
     const column = html.slice(0, paneStart(html));
-    const card = column.match(/<div class="[^"]*" data-testid="explore-card">/)![0];
-    // Shown below lg only, and above the conversation, in the column rather than the panel.
-    expect(card).toMatch(/\blg:hidden\b/);
+    expect(column).toContain('data-testid="explore-card"');
     expect(column).toContain("Explore · Cash now or 30 yearly payments");
     expect(column).toContain("Interest rate (discount rate)");
     const pane = html.slice(paneStart(html));
-    // The panel's own copy and chip are hidden below lg, with a line saying where it went.
-    expect(pane).toMatch(/data-testid="widget-card" class="[^"]*\bmax-lg:hidden\b/);
+    // The panel draws no copy of its own and says where it went; its chip is hidden below lg.
+    expect(pane).not.toContain("Interest rate (discount rate)");
     expect(pane).toMatch(/class="[^"]*max-lg:hidden[^"]*"[^>]*data-testid="explore-chip"|data-testid="explore-chip"[^>]*max-lg:hidden/);
     expect(pane).toContain("The Explore Widget is in the conversation");
   });
@@ -91,11 +101,17 @@ describe("which Widget the panel shows first", () => {
 describe("the explore Widget in an old Session", () => {
   const lines: Line[] = [{ role: "assistant", text: "Let us explore." }];
 
-  it("shows the same chip and card as the workspace", () => {
+  it("shows the same chip as the workspace, and the Widget once, in the panel or (below the laptop width) as a card", () => {
     const html = renderToStaticMarkup(<OldSession lines={lines} explore={EXPLORE} />);
     expect(html).toContain('data-testid="explore-chip"');
-    expect(html).toContain('data-testid="explore-card"');
-    expect(html).toContain("Interest rate (discount rate)");
+    expect(copies(html)).toBe(1);
+    const narrow = renderToStaticMarkup(
+      <NarrowScreen>
+        <OldSession lines={lines} explore={EXPLORE} />
+      </NarrowScreen>,
+    );
+    expect(narrow).toContain('data-testid="explore-card"');
+    expect(copies(narrow)).toBe(1);
   });
 
   it("shows neither for a Session that never reached explore", () => {

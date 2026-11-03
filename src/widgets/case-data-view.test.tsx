@@ -209,3 +209,32 @@ describe("sourced history and the Learner's assumptions are visibly separate", (
     expect(marked(html, "assumption").length).toBeGreaterThan(0);
   });
 });
+
+describe("every chart our own parts draw can be read", () => {
+  const annuity = () => renderToStaticMarkup(<AnnuityFigure inputs={{ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: 3 }} sourced={cash} />);
+
+  it("the annuity chart labels both axes: dollars up the side, payments along the bottom", () => {
+    const html = annuity();
+    expect(texts(html, "chart-y-label")).toEqual(["$0", "$47.61m", "$95.22m"]);
+    expect(texts(html, "chart-x-label")).toEqual(["Payment 1", "Payment 15", "Payment 30"]);
+    expect(texts(html, "chart-y-name")).toEqual(["Dollars per payment"]);
+    expect(texts(html, "chart-x-name")).toEqual(["Payment number (the first is paid now)"]);
+  });
+
+  // Payment 1 is $1.537bn × 0.05 / (1.05^30 − 1) ≈ $23.1m, paid now; payment 30 is that × 1.05^29 ≈ $95.2m, and ÷ 1.03^29 ≈ $40.4m today.
+  it("the annuity chart reads a payment's value on hover, tap or focus", () => {
+    const html = annuity();
+    expect(html).toContain('aria-label="Payment 1: $23.1 million paid, worth $23.1 million today"');
+    expect(html).toContain('aria-label="Payment 30: $95.2 million paid, worth $40.4 million today"');
+    expect(html.match(/<rect[^>]*tabindex="0"[^>]*aria-label="Payment \d+:/g)).toHaveLength(30);
+    expect(html).toContain("Hover over or tap the chart to read a value.");
+  });
+
+  it("the history chart labels both axes and reads a value on hover, tap or focus", () => {
+    const html = renderToStaticMarkup(<HistoryFigure dataset={yields} revealed={false} asOf="2018-10-24" />);
+    expect(texts(html, "history-y-label").length).toBeGreaterThan(0);
+    expect(texts(html, "history-x-label")).toContain("2018-10-22");
+    expect(html).toMatch(/tabindex="0"[^>]*aria-label="2018-10-22: 3\.\d\d%"/);
+    expect(html).toContain("Hover over or tap the chart to read a value.");
+  });
+});

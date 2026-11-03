@@ -1,6 +1,7 @@
 import type { CaseDataset } from "@/case-data/case-data";
 import { annuitySchedule, type AnnuityInputs } from "@/finance/present-value";
 import { Tag } from "@/app/ui";
+import { AnnuityPlot } from "./annuity-plot";
 import { HistoryPlot } from "./history-plot";
 
 // Pure drawings for the widget components. Anything drawn from Case Data carries a "Sourced"
@@ -100,29 +101,17 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
   const payments = Math.max(1, Math.min(60, Math.round(inputs.payments)));
   const { rows, presentValue } = annuitySchedule({ ...inputs, payments });
   const maxPayment = Math.max(...rows.map((r) => r.payment));
-  const w = 600;
-  const h = 180;
-  const bar = w / rows.length;
-  const y = (v: number) => h - (v / maxPayment) * (h - 10);
+  const ticks = [0, maxPayment / 2, maxPayment].map((value) => ({ value, text: shortValue(value, "USD") }));
+  const bars = rows.map((r) => ({
+    payment: r.payment,
+    presentValue: r.presentValue,
+    read: `Payment ${r.year + 1}: ${formatUsd(r.payment)} paid, worth ${formatUsd(r.presentValue)} today`,
+  }));
   const figure = sourced?.points.at(-1);
   const scale = Math.max(inputs.total, figure?.value ?? 0);
   return (
     <figure className="py-2">
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Annuity payments and their present value" className="w-full">
-        {rows.map((r) => (
-          <g key={r.year}>
-            <rect x={r.year * bar + 1} y={y(r.payment)} width={bar - 2} height={h - y(r.payment)} className="fill-[var(--data)]" />
-            <rect
-              data-testid="pv-bar"
-              x={r.year * bar + 1}
-              y={y(r.presentValue)}
-              width={bar - 2}
-              height={h - y(r.presentValue)}
-              className="fill-[var(--you)] transition-all duration-150 "
-            />
-          </g>
-        ))}
-      </svg>
+      <AnnuityPlot bars={bars} ticks={ticks} />
       <figcaption className="mt-2 space-y-2 text-sm">
         <p className="flex flex-wrap gap-x-4 text-xs text-[var(--muted)]">
           <span>

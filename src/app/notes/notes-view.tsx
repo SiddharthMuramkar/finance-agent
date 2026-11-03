@@ -1,5 +1,6 @@
 import type { TopicNote } from "@/learner/notes";
 import { formulaById } from "@/finance/formulas";
+import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { FormulaFigure, type CardValue } from "@/widgets/formula-card-view";
 import { MarkedText } from "@/widgets/marked-text";
 import { Card, Eyebrow } from "../ui";
@@ -77,21 +78,24 @@ function FilledPart({ filled }: { filled: NonNullable<TopicNote["filled"]> }) {
  */
 export function NotesView({ notes }: { notes: TopicNote[] }) {
   return (
-    <div>
-      <p className="mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
-        A note fills in when you pass a Topic. Add lines of your own to any Topic. Print this page for a paper copy.
-      </p>
-      <div className="flex flex-col gap-4">
-        {notes.map((note) => (
-          <Card key={note.topicId} data-note={note.topicId} data-passed={note.passed} className={note.passed ? "" : "print:[&:not(:has([data-line],[data-saved]))]:hidden"}>
-            <Eyebrow>{STAGE[note.stage]}</Eyebrow>
-            <h2 className="text-base font-semibold leading-6">{note.title}</h2>
-            {note.filled ? <FilledPart filled={note.filled} /> : <p className="mt-1 text-sm leading-5 text-[var(--muted)] print:hidden">Fills in when you pass this Topic.</p>}
-            <SavedItems items={note.saved} />
-            <OwnLines topicId={note.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text }))} />
-          </Card>
-        ))}
+    // One Case Data cache for the page, so saved Widgets drawing the same Case fetch it once.
+    <CaseDataProvider>
+      <div>
+        <p className="mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
+          A note fills in when you pass a Topic. Add lines of your own to any Topic. Print this page for a paper copy.
+        </p>
+        <div className="flex flex-col gap-4">
+          {notes.map((note) => (
+            <Card key={note.topicId} data-note={note.topicId} data-passed={note.passed} className={note.passed ? "" : "print:[&:not(:has([data-line],[data-saved]))]:hidden"}>
+              <Eyebrow>{STAGE[note.stage]}</Eyebrow>
+              <h2 className="text-base font-semibold leading-6">{note.title}</h2>
+              {note.filled ? <FilledPart filled={note.filled} /> : <p className="mt-1 text-sm leading-5 text-[var(--muted)] print:hidden">Fills in when you pass this Topic.</p>}
+              <SavedItems items={note.saved} />
+              <OwnLines topicId={note.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text }))} />
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </CaseDataProvider>
   );
 }

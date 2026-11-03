@@ -4,6 +4,7 @@ import { defineComponent, Renderer, type ComponentRenderProps } from "@openuidev
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@openuidev/react-ui";
 import { Component, useMemo, useState, type ReactNode } from "react";
 import type { CaseLoad } from "@/widgets/case-data-client";
+import { useCaseLoad } from "@/widgets/case-data-provider";
 import { answers, widgetProblems, widgetQueries, type WrittenQuery } from "@/widgets/check";
 import { GenuiTheme } from "@/widgets/genui-theme";
 import { WidgetBorderContext, widgetLibrary } from "@/widgets/library";
@@ -218,6 +219,9 @@ export function WidgetView({
   loadCase?: CaseLoad;
 }) {
   const number = useWidgetNumber(code);
+  // Without a loader of its own, the Widget's tools read the page's shared Case Data cache.
+  const pageLoad = useCaseLoad();
+  loadCase ??= pageLoad;
   if (complete && widgetProblems(code).length) return <Fallback />;
   return (
     <Contain code={code}>
