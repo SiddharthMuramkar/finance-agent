@@ -37,8 +37,11 @@ One continuous conversation between the Learner and the Tutor. Returning after a
 _Avoid_: Login, thread, chat
 
 **Stage**:
-One of the three levels the course takes the Learner through: Follow (understand what a writer argues), Judge (spot where an argument is weak) and Analyse (reach an own view from the numbers).
+One of the four levels the course takes the Learner through: Foundation (groundwork), then Follow (understand what a writer argues), Judge (spot where an argument is weak) and Analyse (reach an own view from the numbers).
 _Avoid_: Level, tier
+
+**Subject**:
+The field of finance or economics a Foundation Topic belongs to. _Avoid_: area, module, unit, track.
 
 **Library**:
 The private collection of source material the Tutor searches for quotes and context.

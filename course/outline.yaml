@@ -6,6 +6,7 @@ topics:
   - id: num-percent-bps
     title: "Percent, percentage points and basis points"
     stage: foundation
+    subject: "Numbers & time value"
     prerequisites: []
     cases:
       - title: "The Federal Reserve meets in February 1994"
@@ -21,6 +22,7 @@ topics:
   - id: num-compounding
     title: "Growth, compounding and logs"
     stage: foundation
+    subject: "Numbers & time value"
     prerequisites: [num-percent-bps]
     cases:
       - title: "The Sensex from base 100 (1979) to 1992"
@@ -35,6 +37,7 @@ topics:
   - id: num-probability
     title: "Probability and expected value"
     stage: foundation
+    subject: "Numbers & time value"
     prerequisites: [num-percent-bps]
     cases:
       - title: "Long-Term Capital Management, before the loss"
@@ -49,6 +52,7 @@ topics:
   - id: present-value
     title: "Time value and present value"
     stage: foundation
+    subject: "Numbers & time value"
     prerequisites: [num-compounding]
     cases:
       - title: "The $1.537 billion Mega Millions jackpot"
@@ -64,6 +68,7 @@ topics:
   - id: fs-income
     title: "The income statement"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [num-percent-bps]
     cases:
       - title: "WeWork's S-1"
@@ -78,6 +83,7 @@ topics:
   - id: fs-balance
     title: "The balance sheet"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-income]
     cases:
       - title: "Satyam's balance sheet"
@@ -91,6 +97,7 @@ topics:
   - id: fs-cashflow
     title: "The cash flow statement"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-balance]
     cases:
       - title: "Webvan's cash burn"
@@ -107,6 +114,7 @@ topics:
   - id: fs-links
     title: "How the three statements link (accrual accounting)"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-cashflow]
     cases:
       - title: "Satyam's forged invoices and bank statements"
@@ -119,6 +127,7 @@ topics:
   - id: fs-ratios
     title: "Ratios, return on equity and DuPont"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-links]
     cases:
       - title: "Coffee Day Enterprises at its IPO"
@@ -133,6 +142,7 @@ topics:
   - id: fs-revenue-runrate
     title: "Revenue recognition, run rates, gross vs net"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-links]
     cases:
       - title: "WeWork's run-rate boast"
@@ -147,6 +157,7 @@ topics:
   - id: fs-capex-dep
     title: "Capex, depreciation, amortisation and EBITDA"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-links]
     cases:
       - title: "Webvan's warehouse and fleet build-out"
@@ -165,6 +176,7 @@ topics:
   - id: fs-leases-debt
     title: "Leases, commitments and debt-like items"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-links, present-value]
     cases:
       - title: "WeWork's lease obligations"
@@ -180,6 +192,7 @@ topics:
   - id: fs-filings
     title: "Reading filings: S-1, 10-K, Indian annual report and Ind AS"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-ratios]
     cases:
       - title: "WeWork's governance clause"
@@ -193,6 +206,7 @@ topics:
   - id: fs-earnings-quality
     title: "Earnings quality and accounting fraud"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-ratios, fs-capex-dep]
     cases:
       - title: "Satyam, the day before the confession"
@@ -207,6 +221,7 @@ topics:
   - id: fs-tax
     title: "Corporate tax and after-tax cash flows"
     stage: foundation
+    subject: "Financial statements"
     prerequisites: [fs-links]
     cases:
       - title: "India cuts corporate tax to 22%"
@@ -221,6 +236,7 @@ topics:
   - id: num-statistics
     title: "Statistics: mean, variance, correlation, regression"
     stage: foundation
+    subject: "Numbers & time value"
     prerequisites: [num-probability]
     cases:
       - title: "The 1987 crash"
@@ -233,6 +249,7 @@ topics:
   - id: eco-supply-demand
     title: "Supply, demand and prices"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [num-percent-bps]
     cases:
       - title: "India's onion price shock"
@@ -249,6 +266,7 @@ topics:
   - id: eco-micro-competition
     title: "Competition, market structure and pricing power"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-supply-demand]
     cases:
       - title: "Reliance Jio's free launch"
@@ -265,6 +283,7 @@ topics:
   - id: eco-money-banking
     title: "Money, banks and credit creation"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [fs-balance, eco-supply-demand]
     cases:
       - title: "The 1992 securities scam"
@@ -281,6 +300,7 @@ topics:
   - id: eco-central-banks
     title: "Central banks and monetary policy"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-money-banking]
     cases:
       - title: "The 1994 Fed tightening"
@@ -295,6 +315,7 @@ topics:
   - id: eco-inflation-real
     title: "Inflation, nominal vs real rates"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-central-banks, num-compounding]
     cases:
       - title: "India's near double-digit inflation"
@@ -307,6 +328,7 @@ topics:
   - id: eco-gdp-cycles
     title: "GDP, growth and business cycles"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-supply-demand]
     cases:
       - title: "India before the 1991 crisis"
@@ -319,6 +341,7 @@ topics:
   - id: eco-fiscal-debt
     title: "Fiscal policy and government debt"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-gdp-cycles]
     cases:
       - title: "The UK mini-budget and gilt crisis"
@@ -331,6 +354,7 @@ topics:
   - id: num-econometrics
     title: "Reading empirical claims: causation, data and spreadsheet errors"
     stage: foundation
+    subject: "Numbers & time value"
     prerequisites: [num-statistics, eco-fiscal-debt]
     cases:
       - title: "Reinhart and Rogoff's 90% debt threshold"
@@ -344,6 +368,7 @@ topics:
   - id: in-rbi-policy
     title: "India: RBI, repo rate, liquidity and inflation targeting"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-central-banks, eco-inflation-real]
     cases:
       - title: "The RBI's package of 4 September 2013"
@@ -357,6 +382,7 @@ topics:
   - id: bond-pricing
     title: "Bond basics and pricing"
     stage: foundation
+    subject: "Bonds & credit"
     prerequisites: [present-value, eco-inflation-real]
     cases:
       - title: "The 1994 bond sell-off"
@@ -371,6 +397,7 @@ topics:
   - id: bond-yield
     title: "Yield to maturity, coupon and current yield"
     stage: foundation
+    subject: "Bonds & credit"
     prerequisites: [bond-pricing]
     cases:
       - title: "Orange County's leveraged pool"
@@ -385,6 +412,7 @@ topics:
   - id: bond-yield-curve
     title: "Yield curve and term structure"
     stage: foundation
+    subject: "Bonds & credit"
     prerequisites: [bond-yield]
     cases:
       - title: "The 1994 curve flattening"
@@ -398,6 +426,7 @@ topics:
   - id: bond-duration
     title: "Duration and convexity"
     stage: foundation
+    subject: "Bonds & credit"
     prerequisites: [bond-yield]
     cases:
       - title: "Silicon Valley Bank's securities portfolio"
@@ -411,6 +440,7 @@ topics:
   - id: bond-credit-spreads
     title: "Credit spreads, ratings and default"
     stage: foundation
+    subject: "Bonds & credit"
     prerequisites: [bond-yield, fs-leases-debt]
     cases:
       - title: "LTCM's spread trades"
@@ -423,6 +453,7 @@ topics:
   - id: in-gsec
     title: "India: G-secs, T-bills, SDLs and the corporate bond market"
     stage: foundation
+    subject: "Bonds & credit"
     prerequisites: [bond-yield-curve, in-rbi-policy]
     cases:
       - title: "The securities scam's missing government securities"
@@ -439,6 +470,7 @@ topics:
   - id: fx-basics
     title: "Exchange rates and parity"
     stage: foundation
+    subject: "Currencies & countries"
     prerequisites: [eco-inflation-real]
     cases:
       - title: "The 1991 rupee devaluation"
@@ -453,6 +485,7 @@ topics:
   - id: eco-trade
     title: "Trade and globalisation"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-supply-demand, fx-basics]
     cases:
       - title: "India's import controls in 1991-92"
@@ -465,6 +498,7 @@ topics:
   - id: fx-bop
     title: "Balance of payments and capital flows"
     stage: foundation
+    subject: "Currencies & countries"
     prerequisites: [fx-basics, eco-gdp-cycles]
     cases:
       - title: "India's external accounts at the end of 1990-91"
@@ -477,6 +511,7 @@ topics:
   - id: in-economy
     title: "India's economy and the 1991 reforms"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-gdp-cycles, fx-bop]
     cases:
       - title: "The weeks around 1 July 1991"
@@ -491,6 +526,7 @@ topics:
   - id: fx-regimes-crises
     title: "Exchange-rate regimes and currency crises"
     stage: foundation
+    subject: "Currencies & countries"
     prerequisites: [fx-bop, eco-central-banks]
     cases:
       - title: "Thailand's baht on 1 July 1997"
@@ -505,6 +541,7 @@ topics:
   - id: sov-default-country-risk
     title: "Sovereign default and country risk"
     stage: foundation
+    subject: "Currencies & countries"
     prerequisites: [bond-credit-spreads, fx-regimes-crises]
     cases:
       - title: "Argentina on 1 December 2001"
@@ -519,6 +556,7 @@ topics:
   - id: eq-markets
     title: "Equity markets, exchanges, SEBI, NSE and BSE"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [fs-balance]
     cases:
       - title: "SEBI's first months, April 1992"
@@ -536,6 +574,7 @@ topics:
   - id: eq-history
     title: "Market history and long-run returns"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [num-statistics, eq-markets]
     cases:
       - title: "The Sensex at the end of March 1992"
@@ -550,6 +589,7 @@ topics:
   - id: risk-portfolio
     title: "Risk, diversification and portfolio theory"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [num-statistics, eq-history]
     cases:
       - title: "Portfolio insurance on Friday 16 October 1987"
@@ -562,6 +602,7 @@ topics:
   - id: risk-capm
     title: "CAPM, beta and factor models"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [risk-portfolio]
     cases:
       - title: "What return should Amazon's shareholders require? (February 2000)"
@@ -575,6 +616,7 @@ topics:
   - id: mkt-efficiency
     title: "Market efficiency"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [risk-capm]
     cases:
       - title: "Blodget versus Grantham on the dot-com valuations"
@@ -590,6 +632,7 @@ topics:
   - id: mkt-behavioural
     title: "Behavioural finance and bubbles"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [mkt-efficiency]
     cases:
       - title: "Webvan's first day as a public company"
@@ -608,6 +651,7 @@ topics:
   - id: cf-capital-budgeting
     title: "NPV, IRR and capital budgeting"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [present-value, fs-cashflow]
     cases:
       - title: "Webvan's plan for 26 more distribution centres"
@@ -623,6 +667,7 @@ topics:
   - id: cf-wacc
     title: "Cost of capital and WACC"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [risk-capm, bond-credit-spreads, cf-capital-budgeting]
     cases:
       - title: "Eurotunnel's financing cost"
@@ -637,6 +682,7 @@ topics:
   - id: cf-capital-structure
     title: "Capital structure and Modigliani-Miller"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [cf-wacc]
     cases:
       - title: "The Coffee Day group's debt"
@@ -652,6 +698,7 @@ topics:
   - id: cf-payout
     title: "Dividends and buybacks"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [cf-capital-structure]
     cases:
       - title: "What should Microsoft do with its cash?"
@@ -665,6 +712,7 @@ topics:
   - id: credit-analysis
     title: "Corporate credit analysis"
     stage: foundation
+    subject: "Bonds & credit"
     prerequisites: [bond-credit-spreads, fs-ratios, fs-leases-debt]
     cases:
       - title: "IL&FS, rated AAA"
@@ -679,6 +727,7 @@ topics:
   - id: val-dcf
     title: "DCF valuation"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [cf-wacc, fs-cashflow, fs-capex-dep]
     cases:
       - title: "Damodaran values Amazon.com"
@@ -692,6 +741,7 @@ topics:
   - id: val-multiples
     title: "Relative valuation and multiples"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [val-dcf, fs-ratios]
     cases:
       - title: "WeWork at $47 billion against IWG"
@@ -709,6 +759,7 @@ topics:
   - id: val-young
     title: "Valuing young, loss-making companies"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [val-dcf, val-multiples, fs-revenue-runrate]
     cases:
       - title: "Uber, Damodaran against venture capital"
@@ -724,6 +775,7 @@ topics:
   - id: val-banks
     title: "Valuing banks and financial firms"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [val-dcf, eco-money-banking]
     cases:
       - title: "Yes Bank in February 2020"
@@ -740,6 +792,7 @@ topics:
   - id: val-distress
     title: "Valuing distressed firms"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [val-dcf, credit-analysis]
     cases:
       - title: "Coffee Day Enterprises in July 2019"
@@ -755,6 +808,7 @@ topics:
   - id: val-implied-erp
     title: "Implied equity risk premium and market-level valuation"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [val-dcf, mkt-efficiency, bond-yield]
     cases:
       - title: "The implied equity risk premium at the end of 2007"
@@ -767,6 +821,7 @@ topics:
   - id: val-india
     title: "Valuing Indian companies, currency and country risk"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [val-dcf, sov-default-country-risk, in-gsec]
     cases:
       - title: "Coffee Day's IPO, in rupees and in dollars"
@@ -785,6 +840,7 @@ topics:
   - id: cf-venture
     title: "Venture finance and private rounds"
     stage: foundation
+    subject: "Valuation & corporate finance"
     prerequisites: [val-young, cf-capital-structure]
     cases:
       - title: "WeWork's $47 billion private round"
@@ -800,6 +856,7 @@ topics:
   - id: mkt-ipo-float
     title: "IPOs, book building and float"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [cf-venture, eq-markets]
     cases:
       - title: "How Coffee Day sold its shares to the public"
@@ -815,6 +872,7 @@ topics:
   - id: der-forwards
     title: "Forwards and futures"
     stage: foundation
+    subject: "Derivatives"
     prerequisites: [bond-pricing, fx-basics, eq-markets]
     cases:
       - title: "Metallgesellschaft's stack-and-roll hedge"
@@ -831,6 +889,7 @@ topics:
   - id: der-options
     title: "Options and payoffs"
     stage: foundation
+    subject: "Derivatives"
     prerequisites: [der-forwards, num-probability]
     cases:
       - title: "Portfolio insurance as a home-made put"
@@ -843,6 +902,7 @@ topics:
   - id: der-option-pricing
     title: "Binomial and Black-Scholes"
     stage: foundation
+    subject: "Derivatives"
     prerequisites: [der-options, num-statistics]
     cases:
       - title: "LTCM and the men who priced options"
@@ -858,6 +918,7 @@ topics:
   - id: der-rates-fx
     title: "Interest-rate and currency derivatives, swaps"
     stage: foundation
+    subject: "Derivatives"
     prerequisites: [der-forwards, bond-duration]
     cases:
       - title: "The RBI's FCNR(B) swap window"
@@ -871,6 +932,7 @@ topics:
   - id: der-hedging
     title: "Hedging and risk management"
     stage: foundation
+    subject: "Derivatives"
     prerequisites: [der-option-pricing, der-rates-fx, cf-capital-structure]
     cases:
       - title: "Orange County's investment pool, a hedge or a bet?"
@@ -883,6 +945,7 @@ topics:
   - id: bank-regulation
     title: "Bank regulation, capital and liquidity"
     stage: foundation
+    subject: "Banks, crises & the system"
     prerequisites: [eco-money-banking, fs-ratios]
     cases:
       - title: "Silicon Valley Bank, passing every test"
@@ -897,6 +960,7 @@ topics:
   - id: crisis-bank-runs
     title: "Bank runs and interest-rate risk in banks"
     stage: foundation
+    subject: "Banks, crises & the system"
     prerequisites: [bank-regulation, bond-duration]
     cases:
       - title: "Silicon Valley Bank on 8 March 2023"
@@ -910,6 +974,7 @@ topics:
   - id: struct-securitisation
     title: "Securitisation, MBS and CDOs"
     stage: foundation
+    subject: "Banks, crises & the system"
     prerequisites: [bond-credit-spreads, bank-regulation]
     cases:
       - title: "From a subprime loan to a AAA tranche"
@@ -923,6 +988,7 @@ topics:
   - id: private-credit
     title: "Shadow banks, private credit and SPVs"
     stage: foundation
+    subject: "Banks, crises & the system"
     prerequisites: [struct-securitisation, credit-analysis]
     cases:
       - title: "IL&FS and the mutual funds that held its debt"
@@ -936,6 +1002,7 @@ topics:
   - id: funds-passive
     title: "Mutual funds, ETFs and passive investing (incl. India AIFs)"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [risk-portfolio, mkt-efficiency]
     cases:
       - title: "Warren Buffett bets an index fund against hedge funds"
@@ -949,6 +1016,7 @@ topics:
   - id: ins-risk-transfer
     title: "Insurance and risk transfer"
     stage: foundation
+    subject: "Banks, crises & the system"
     prerequisites: [fs-balance, num-probability]
     cases:
       - title: "AIG and the credit protection it sold"
@@ -963,6 +1031,7 @@ topics:
   - id: real-assets
     title: "Real estate and commodities"
     stage: foundation
+    subject: "Markets & investing"
     prerequisites: [present-value, eq-markets]
     cases:
       - title: "Seven years of rising US house prices"
@@ -976,6 +1045,7 @@ topics:
   - id: hist-macro-regimes
     title: "Inflation regimes and stagflation"
     stage: foundation
+    subject: "Economics & policy"
     prerequisites: [eco-inflation-real, eco-fiscal-debt]
     cases:
       - title: "The Saturday meeting of 6 October 1979"
@@ -989,6 +1059,7 @@ topics:
   - id: gov-ethics
     title: "Governance, ethics and fraud"
     stage: foundation
+    subject: "Banks, crises & the system"
     prerequisites: [fs-earnings-quality, eq-markets]
     cases:
       - title: "A software company's board approves a deal with the chairman's family firms"
@@ -1005,6 +1076,7 @@ topics:
   - id: crisis-leverage
     title: "Leverage, liquidity spirals and systemic risk"
     stage: foundation
+    subject: "Banks, crises & the system"
     prerequisites: [struct-securitisation, der-hedging, crisis-bank-runs]
     cases:
       - title: "The lenders to a heavily borrowed fund"

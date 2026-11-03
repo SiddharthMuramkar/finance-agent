@@ -148,6 +148,24 @@ reorderable before any Topic text exists, at the price of a second file to keep 
 generated document is checked rather than hand-edited, so it cannot drift. Cases marked unverified are
 research candidates, not yet teachable facts.
 
+## Subjects in the Course Map outline (`subject` in `course/outline.yaml`, `SUBJECTS` in `src/course/outline.ts`)
+
+**What it does.** Each Foundation Topic names one Subject, the field it belongs to, from a fixed list
+of nine: Numbers & time value, Financial statements, Economics & policy, Currencies & countries,
+Bonds & credit, Markets & investing, Valuation & corporate finance, Derivatives, and Banks, crises &
+the system. The outline check fails when a Foundation Topic has no Subject, when a Subject is not
+one of the nine, or when a Follow, Judge or Analyse Topic has one. The Subject travels from the
+outline to the Topic and to `courseOverview`, and shows as a pill on Foundation rows of the Course Map
+and in `docs/course-map.md`.
+
+**Scenario.** The owner adds a Foundation Topic on swaps and forgets the Subject: `npm run course:check`
+fails with `Foundation Topic "der-swaps" has no Subject`. They add `subject: "Derivatives"`, and the
+Course Map shows the pill beside the Topic.
+
+**Trade-off.** A fixed list of nine keeps the Course Map scannable and a typo cannot invent a tenth
+field, at the price of editing the list in code when a genuinely new field is needed. A Subject is a
+label for finding things, not a teaching order: the default path still decides what comes next.
+
 ## Course Map (`course/topics/*.yaml`, `src/course/map.ts`)
 
 **What it does.** The course is a folder of plain text files, one per Topic. Each file holds the
@@ -683,8 +701,10 @@ prices story. Two days later they press "Back to the default path": Present valu
 **Trade-off.** The warning is a prompt, not a block: the Learner may study out of order, at the cost
 of meeting ideas before their foundations (the Tutor sees the unmet prerequisites in its context). A
 passed Topic can't be chosen again as a jump; looking back is what old Sessions are for, and spaced
-review will bring back its questions. Today the real Course Map has one Topic, so the page has one
-stop; it grows as Topics are added.
+review will bring back its questions. The page groups Topics under four Stage headings (Foundation,
+Follow, Judge, Analyse), each a list in default-path order with a dot for not started, current or
+passed; Foundation rows also show their Subject. Progress, the Passage view and Login use the same
+design tokens; the first two sit under the app header, Login (signed out) has none.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PrimaryButton, SecondaryButton } from "../ui";
 
 /** A full page load, so the workspace's server page re-reads the saved place. */
 function openWorkspace() {
@@ -27,29 +28,25 @@ export function JumpButton({ topicId, title, unmet }: { topicId: string; title: 
   return (
     <div className="mt-2 text-sm">
       {!asking ? (
-        <button
-          data-jump={topicId}
-          onClick={() => (unmet.length ? setAsking(true) : void go())}
-          className="mt-1 rounded border border-stone-400 px-2 py-0.5 text-xs hover:bg-stone-100 dark:border-stone-600 dark:hover:bg-stone-900"
-        >
+        <SecondaryButton data-jump={topicId} onClick={() => (unmet.length ? setAsking(true) : void go())} className="mt-1 !px-2 !py-0.5 text-xs">
           Study this Topic
-        </button>
+        </SecondaryButton>
       ) : (
-        <div role="alertdialog" aria-label={`Prerequisites for ${title}`} className="mt-2 rounded border border-amber-600 p-3 text-xs dark:border-amber-500">
+        <div role="alertdialog" aria-label={`Prerequisites for ${title}`} className="mt-2 rounded border border-[var(--src-line)] bg-[var(--src-tint)] p-3 text-xs leading-4">
           <p>
             {title} builds on {unmet.join(", ")}, which you have not passed yet. You can fill the gap first, or go ahead anyway.
           </p>
           <div className="mt-2 flex gap-2">
-            <button data-confirm-jump={topicId} onClick={() => void go()} className="rounded bg-stone-900 px-2 py-1 text-white dark:bg-stone-100 dark:text-stone-900">
+            <PrimaryButton data-confirm-jump={topicId} onClick={() => void go()} className="!px-2 !py-1 text-xs">
               Go ahead
-            </button>
-            <button onClick={() => setAsking(false)} className="rounded border border-stone-400 px-2 py-1 dark:border-stone-600">
+            </PrimaryButton>
+            <SecondaryButton onClick={() => setAsking(false)} className="!px-2 !py-1 text-xs">
               Not now
-            </button>
+            </SecondaryButton>
           </div>
         </div>
       )}
-      {error && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-1 text-xs text-[var(--danger)]">{error}</p>}
     </div>
   );
 }
@@ -59,18 +56,18 @@ export function BackToPathButton() {
   const [error, setError] = useState<string | null>(null);
   return (
     <>
-      <button
+      <SecondaryButton
         data-back-to-path
         onClick={async () => {
           const failed = await post(null);
           if (failed) setError(failed);
           else openWorkspace();
         }}
-        className="mt-2 rounded border border-stone-400 px-2 py-1 text-xs dark:border-stone-600"
+        className="mt-2 !px-2 !py-1 text-xs"
       >
         Back to the default path
-      </button>
-      {error && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error}</p>}
+      </SecondaryButton>
+      {error && <p className="mt-1 text-xs text-[var(--danger)]">{error}</p>}
     </>
   );
 }

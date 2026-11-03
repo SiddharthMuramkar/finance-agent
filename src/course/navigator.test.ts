@@ -213,6 +213,11 @@ describe("Course Navigator", () => {
       expect(view[0].onDefaultPath).toBe(true);
     });
 
+    it("carries each Topic's Subject, or null when it has none", () => {
+      const withSubject = { ...twoChecks, topics: twoChecks.topics.map((t) => (t.id === "pv" ? { ...t, subject: "Numbers & time value" as const } : t)) };
+      expect(courseOverview(withSubject, empty).map((t) => t.subject)).toEqual([null, "Numbers & time value", null]);
+    });
+
     it("marks a passed Topic as passed and the next default-path Topic as the place once the chosen Topic is passed", () => {
       const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
       const view = courseOverview(twoChecks, done);
