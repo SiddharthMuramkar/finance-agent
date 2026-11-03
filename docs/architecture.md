@@ -1732,7 +1732,24 @@ by number.
 and only a sample is re-read (the code checks cover the rest). Reading by address means we never
 download or store the pictures, but a picture Blogger later removes cannot be re-read (its cached
 text stays). Batches are slow (up to a day) but half price, and the saved batch id lets a stopped
-run resume. Measured cost and accuracy: to be filled in from the live run (see #71).
+run resume.
+
+**Measured results of the first live backfill, and the fix.** 2836 pictures were read by Haiku.
+830 of them (about 29%, and 41% of readings were flagged by the code checks in all) stopped at the
+1500-token limit, so a long table was cut off mid-row. Opus re-read 40 samples and its numbers
+agreed with Haiku's on only 7 of 40, mostly because Opus transcribed more table rows than the
+cut-off Haiku readings held. The fix: the limit is now 4000 tokens (`READ_MAX_TOKENS`), and a stored
+reading whose stop reason is `max_tokens` counts as unread everywhere (`plan`, `submit`, `collect`,
+the weekly refresh), so only the cut-off ones are read again and paid for; a complete reading
+replaces the cut-off one in `library_pictures`, and a complete reading is never replaced. The
+verify sample is re-read after the fix to measure the agreement again.
+
+**Which posts the weekly refresh treats as new.** The backfill records every loaded post in
+`library_documents` (`library:blog` does it after loading; `npm run library:seed-documents --
+<scratch>` does it alone, and is safe to repeat). The refresh skips a post whose recorded updated
+time is the same as the feed's or later, so a week's run works only on posts that are really new
+or edited. Trade-off: a post whose pictures were cut off is not re-read by the refresh; the
+backfill reload places the corrected readings.
 
 ## Formula registry (`src/finance/formulas.ts`, `formula-ids.ts`, ADR 0002, issue #64)
 

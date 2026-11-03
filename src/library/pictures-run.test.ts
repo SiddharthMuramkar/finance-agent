@@ -107,6 +107,19 @@ describe("the Batches run and its resume", () => {
     expect(calls.batches).toEqual([["https://x/a"]]);
   });
 
+  it("sends only the cut-off readings again, and a complete reading replaces the cut-off one", async () => {
+    const { client, calls } = scripted({ "https://x/a": "Rev | 100", "https://x/b": "Rev | 7" });
+    const readings: PictureReadings = {
+      "https://x/a": toReading(reply("Rev | 1", "max_tokens"), "m"),
+      "https://x/b": toReading(reply("Rev | 7"), "m"),
+    };
+    const batch = await submitBatch(client, Object.keys(readings), readings);
+    expect(calls.batches).toEqual([["https://x/a"]]);
+    await collectBatch(client, batch!, readings);
+    expect(readings["https://x/a"]).toMatchObject({ text: "Rev | 100", stopReason: "end_turn" });
+    expect(await submitBatch(client, Object.keys(readings), readings)).toBeNull();
+  });
+
   it("runs the code checks on every reading it caches", async () => {
     const { client } = scripted({ "https://x/a": "A | B\n1 | 2 | 9\n3 | 4\n5 | 6\n7 | 8" });
     const readings: PictureReadings = {};

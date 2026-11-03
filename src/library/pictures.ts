@@ -20,8 +20,11 @@ export const MACHINE_READ_NOTE =
 /** The model that reads every picture, and the stronger one that re-reads a sample to check it. */
 export const READER_MODEL = "claude-haiku-5-5";
 export const CHECKER_MODEL = "claude-opus-5-5";
-/** The most tokens one reading may use. */
-export const READ_MAX_TOKENS = 1500;
+/**
+ * The most tokens one reading may use. At 1500 a dense table (Damodaran's industry tables run to
+ * dozens of rows) was cut off mid-row: 830 of the first 2857 readings stopped at the limit.
+ */
+export const READ_MAX_TOKENS = 4000;
 /** How many readings the stronger model re-reads. */
 export const SAMPLE_SIZE = 40;
 
@@ -101,9 +104,12 @@ export type PictureReading = { text: string | null; model: string; stopReason: s
 /** The reading cache: original-size picture address to its reading. Nothing is paid for twice. */
 export type PictureReadings = Record<string, PictureReading>;
 
-/** The pictures still to read, in order, each once. */
+/** A reading that stopped at the length limit is only the top of the picture: it counts as unread. */
+export const isCutOff = (reading: PictureReading | undefined): boolean => reading?.stopReason === "max_tokens";
+
+/** The pictures still to read, in order, each once: never read, or read but cut off by the length limit. */
 export function unreadPictures(urls: string[], readings: PictureReadings): string[] {
-  return [...new Set(urls)].filter((u) => !readings[u]);
+  return [...new Set(urls)].filter((u) => !readings[u] || isCutOff(readings[u]));
 }
 
 /** The lines a post gets for a picture, or undefined when it is unread or has nothing of substance. */
@@ -118,7 +124,7 @@ export function readingLines(readings: PictureReadings | undefined, url: string)
 const BATCH_DISCOUNT = 0.5;
 
 /** Assumed tokens per picture: a typical one (a mid-size table or chart) and a worst case (a full-size picture, the longest reading allowed). */
-const TYPICAL = { input: 1100, output: 450 };
+const TYPICAL = { input: 1100, output: 700 };
 const WORST = { input: 1800, output: READ_MAX_TOKENS };
 
 function priced(model: string, count: number, tokens: { input: number; output: number }, discount: number): number {
