@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/db/client", () => ({ getDb: () => ({}) }));
 vi.mock("@/course/map", () => ({ loadCourseMap: () => ({}) }));
 vi.mock("../../theme-cookie", () => ({ readTheme: async () => "light" }));
+// The owner is signed in (signing in itself is tested in src/auth/sign-in.test.ts).
+vi.mock("@/auth/session", () => ({ currentLearnerId: async () => 1, isSignedIn: async () => true }));
 vi.mock("@/library/library", () => ({
   loadPassageView: async () => ({ status: "hidden", asOf: "2008-09-15" }),
 }));

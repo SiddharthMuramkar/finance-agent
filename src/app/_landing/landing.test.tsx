@@ -16,6 +16,8 @@ vi.mock("@/course/map", async (orig) => {
   return { ...real, loadCourseMap: loadMap };
 });
 vi.mock("./stats", () => ({ landingStats: async () => ({ topics: 1, cases: 1, librarySources: 1 }) }));
+// The owner is signed in (signing in itself is tested in src/auth/sign-in.test.ts).
+vi.mock("@/auth/session", () => ({ currentLearnerId: async () => 1, isSignedIn: async () => true }));
 const { LandingPage, LandingView, homeButton, loadHomeButton } = await import("./landing");
 type HomeButton = import("./landing").HomeButton;
 

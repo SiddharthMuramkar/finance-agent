@@ -1,18 +1,31 @@
 import { cookies } from "next/headers";
-import { OWNER_LEARNER_ID } from "@/db/schema";
-import { ACCESS_COOKIE, hasAccess } from "./passcode";
+import { redirect } from "next/navigation";
+import { getDb } from "@/db/client";
+import { type Learner, learnerFromCookie } from "./learners";
+import { ACCESS_COOKIE, passcodeList } from "./passcode";
 
-/** True when this request carries the passcode cookie. Pages call it before reading any Learner data. */
-export async function isSignedIn() {
+/**
+ * The signed-in Learner of this request, or null when it counts as signed out. The proxy has already
+ * checked the cookie; every page and route checks it again here before reading any Learner data,
+ * so an archived Learner, or a name taken off the passcode list, is signed out everywhere at once.
+ */
+export async function currentLearner(): Promise<Learner | null> {
   const jar = await cookies();
-  return hasAccess(jar.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "");
+  return learnerFromCookie(getDb(), jar.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "", passcodeList());
+}
+
+/** True when this request carries a cookie for an active, listed Learner. */
+export async function isSignedIn() {
+  return (await currentLearner()) !== null;
 }
 
 /**
- * The current Learner of this request: the one whose Learner Memory, Sessions and turns every page and
- * route reads and writes. Until each person signs in with their own passcode, the one passcode signs in
- * as the owner, so every signed-in request is the owner's.
+ * The current Learner's id: the one whose Learner Memory, Sessions and turns every page and route
+ * reads and writes. A signed-out request is sent to the login instead (the proxy normally does that
+ * first; this is the check behind it).
  */
 export async function currentLearnerId(): Promise<number> {
-  return OWNER_LEARNER_ID;
+  const learner = await currentLearner();
+  if (!learner) redirect("/login");
+  return learner.id;
 }
