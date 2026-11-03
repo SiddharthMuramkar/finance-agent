@@ -40,4 +40,13 @@ describe("Landing page", () => {
     }
     expect(text).toContain(copy.footer);
   });
+
+  it("puts the stats after the screenshot, so they never cover it", () => {
+    expect(html.indexOf("</figure>")).toBeGreaterThan(0);
+    expect(html.indexOf("</figure>")).toBeLessThan(html.indexOf("<dl"));
+  });
+
+  it("keeps a figure such as 90 of 95 on one line", () => {
+    expect(html).toMatch(/<dd[^>]*whitespace-nowrap[^>]*>90 of 95<\/dd>/);
+  });
 });
