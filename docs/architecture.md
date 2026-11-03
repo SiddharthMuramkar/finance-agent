@@ -1386,13 +1386,24 @@ and separate the argument's facts, inferences and forecasts.
 Study Workspace is: a headline, a screenshot, three counts (Topics written of planned, every Case in
 the outline, Library sources), the six Teaching Steps and "Every number has a source". Signed out, the
 hero and the top bar say "Sign in" (to `/login`). Signed in, it is the same page, but the hero button
-says "Open Study Workspace" and the top bar says "Study Workspace", both opening `/study`, where the
-Study Workspace now lives (demo mode with it: `/study?demo=1`). The page reads no Learner data and no
-Library text, only counts. All its words live in `copy.ts`, marked DRAFT, and a small "Draft" pill
+names the Learner's place and the top bar says "Study Workspace"; every one of them opens `/study`, where
+the Study Workspace now lives (demo mode with it: `/study?demo=1`). Signed out, the page reads no
+Learner data and no Library text, only counts. All its words live in `copy.ts`, marked DRAFT, and a
+small "Draft" pill
 shows near the headline until the owner rewrites them.
 
+**The button rule.** Signed in, Home reads saved progress (`loadProgress`) and asks the Course
+Navigator's `navigate` for the place, then `homeButton` in `landing.tsx` picks the label: no place
+(every Topic passed, no Check due) is "Open Study Workspace"; a place whose Topic is not started is
+"Start: [Topic]"; any other place is "Resume: [Topic]", which includes a Topic chosen on the Course Map
+that was begun before and a passed Topic with a required Check due. Home only reads: no model call, and
+it never uses `ensureTopicStarted`, so a fresh database shows "Start: [first Topic]" and stays empty. If
+progress can't be loaded, the error is logged and the button says "Open Study Workspace", so the front
+door never breaks. The signed-out check still comes first, so strangers trigger no read at all.
+
 **Scenario.** The owner has saved the passcode in Edge. They open the site and see Home, as on any
-website, instead of landing in the middle of a Topic. They press "Open Study Workspace" when ready. A
+website, instead of landing in the middle of a Topic, with a button reading "Resume: Present value".
+They press it when ready. A
 friend opens the same link on a phone: the proxy lets the GET of `/` through, the page checks the
 cookie first, finds none, and renders Home with "Sign in" without touching the Learner's Sessions.
 Trying `/course` or `/study` still lands on the login.
@@ -1401,6 +1412,7 @@ Trying `/course` or `/study` still lands on the login.
 is never cached as a page: `export const dynamic = "force-dynamic"` plus an explicit private, no-store
 `Cache-Control` for `/` in `next.config.ts`, so neither a CDN nor the browser can hand a signed-out copy
 to a signed-in visitor or the reverse. Only Home's statistics keep their day-long data cache. The
+signed-in button costs one small database read per visit (it was a free page before). The
 cookie check at the top of the page is load-bearing: anything added above it would run for strangers
 too. The proxy backs it up by allowing only reads of `/`, so no Server Action or POST can run signed
 out. The screenshots are static files in `public/landing-assets/`, taken from the demo Study Workspace
