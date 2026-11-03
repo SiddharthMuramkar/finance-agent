@@ -3,7 +3,8 @@ import { importLibrary, type LibraryFile } from "@/library/ingest";
 import { scriptedClient } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
-import { HIDDEN_SOURCE_TITLE } from "./citations";
+import { importCaseData } from "@/case-data/import";
+import { foldText, HIDDEN_SOURCE_TITLE } from "./citations";
 import { loadCurrentSession } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 
@@ -62,7 +63,7 @@ describe("Tutor replies cite Library passages", () => {
 
     const expected =
       "As A textbook by B. Author puts it, present value discounts each payment back to today[1](/passages/1?blocks=1-2), and a higher rate lowers it[1](/passages/1?blocks=2-3)." +
-      "\n\nSources:\n\n1. [Present value](/passages/1)\n";
+      foldText([{ n: 1, title: "Present value", href: "/passages/1", credit: book.source.credit }]);
     expect(streamed(events)).toBe(expected);
     const lines = await loadCurrentSession(db);
     expect(lines.at(-1)?.text).toBe(expected);
@@ -82,7 +83,11 @@ describe("Tutor replies cite Library passages", () => {
     const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
 
     expect(streamed(events)).toBe(
-      "One[1](/passages/7?blocks=1-2) two[2](/passages/3?blocks=1-3)[1](/passages/7?blocks=2-3)\n\nSources:\n\n1. [Bonds](/passages/7)\n2. [Stocks](/passages/3)\n",
+      "One[1](/passages/7?blocks=1-2) two[2](/passages/3?blocks=1-3)[1](/passages/7?blocks=2-3)" +
+        foldText([
+          { n: 1, title: "Bonds", href: "/passages/7", credit: null },
+          { n: 2, title: "Stocks", href: "/passages/3", credit: null },
+        ]),
     );
   });
 
@@ -102,7 +107,7 @@ describe("Tutor replies cite Library passages", () => {
 
     const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
 
-    expect(streamed(events)).toBe(`Prose[1](/passages/2?blocks=1-2)\n\n${widget}\n\nAfter.\n\nSources:\n\n1. [PV](/passages/2)\n`);
+    expect(streamed(events)).toBe(`Prose[1](/passages/2?blocks=1-2)\n\n${widget}\n\nAfter.${foldText([{ n: 1, title: "PV", href: "/passages/2", credit: null }])}`);
   });
 
   it("never shows the heading of a cited passage the as-of rule hides now, live or after a reload", async () => {
@@ -126,9 +131,65 @@ describe("Tutor replies cite Library passages", () => {
 
     const expected =
       "Timeless[1](/passages/1?blocks=1-2) and later[2](/passages/2?blocks=1-2)" +
-      `\n\nSources:\n\n1. [Present value](/passages/1)\n2. [${HIDDEN_SOURCE_TITLE}](/passages/2)\n`;
+      foldText([
+        { n: 1, title: "Present value", href: "/passages/1", credit: book.source.credit },
+        { n: 2, title: HIDDEN_SOURCE_TITLE, href: "/passages/2", credit: null },
+      ]);
     expect(streamed(events)).toBe(expected);
     expect((await loadCurrentSession(db, presentValueOnly())).at(-1)?.text).toBe(expected);
+  });
+
+  it("folds a reply that cites in two loop steps into one list with one numbering, live and after a reload", async () => {
+    const db = await testDb();
+    await importLibrary(db, book);
+    await importLibrary(db, { source: { ...book.source, id: "other-book", title: "Other", credit: "C. Other, Other book" }, passages: [{ ref: "x", heading: "Rates", url: "https://example.org/x", text: "Rates move." }] });
+    const { client } = scriptedClient([
+      { content: [{ type: "text", text: "First", citations: [cite("/passages/1", "Present value", 1, 2, "x")] }, { type: "tool_use", id: "search-1", name: "search_library", input: { query: "rates" } }] },
+      {
+        content: [
+          { type: "text", text: "Second", citations: [cite("/passages/2", "Rates", 1, 1, "y")] },
+          { type: "text", text: " third", citations: [cite("/passages/1", "Present value", 2, 3, "z")] },
+        ],
+      },
+    ]);
+
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+
+    const expected =
+      "First[1](/passages/1?blocks=1-2)\n\nSecond[2](/passages/2?blocks=1-1) third[1](/passages/1?blocks=2-3)" +
+      foldText([
+        { n: 1, title: "Present value", href: "/passages/1", credit: book.source.credit },
+        { n: 2, title: "Rates", href: "/passages/2", credit: "C. Other, Other book" },
+      ]);
+    expect(streamed(events)).toBe(expected);
+    const lines = (await loadCurrentSession(db, presentValueOnly())).filter((l) => l.role === "assistant");
+    expect(lines.map((l) => l.text)).toEqual([expected]);
+    expect(expected.match(/```sources/g)).toHaveLength(1);
+  });
+
+  it("adds the credit of a Case Data figure quoted in the text to the fold, and of none that is not quoted", async () => {
+    const db = await testDb();
+    const map = presentValueOnly();
+    const caseId = map.topic("present-value")!.cases[0].id;
+    const data = (id: string, source: string, value: number) => ({
+      caseId,
+      id,
+      label: `Label ${id}`,
+      unit: "percent",
+      source,
+      sourceUrl: `https://example.org/${id}`,
+      checkedOn: "2026-11-02",
+      checkNote: "Checked.",
+      points: [{ date: "2018-10-23", value }],
+    });
+    await importCaseData(db, [data("long-yield", "US Treasury, par yield curve", 3.37), data("other", "Another source", 2.11)]);
+    const { client } = scriptedClient([{ content: [{ type: "text", text: "The 30-year yield was 3.37% that day." }] }]);
+
+    const events = await collect(runTutorTurn({ db, client, map }, "Hi"));
+
+    const expected = "The 30-year yield was 3.37% that day." + foldText([{ n: null, title: "Label long-yield", href: "https://example.org/long-yield", credit: "US Treasury, par yield curve" }]);
+    expect(streamed(events)).toBe(expected);
+    expect((await loadCurrentSession(db, map)).at(-1)?.text).toBe(expected);
   });
 
   it("leaves a reply with no citations, or citations of something other than a Library passage, unchanged", async () => {
