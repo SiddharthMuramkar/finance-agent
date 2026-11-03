@@ -105,6 +105,14 @@ export function topicTexts(topic: Topic): { where: string; text: string }[] {
     ]),
     { where: "concept", text: topic.concept },
     { where: "principle", text: topic.principle },
+    ...(topic.insight
+      ? [
+          { where: "insight question", text: topic.insight.question },
+          { where: "insight written", text: topic.insight.written },
+          { where: "insight foundWhen", text: topic.insight.foundWhen },
+          ...topic.insight.hints.map((h, i) => ({ where: `insight hint ${i + 1}`, text: h })),
+        ]
+      : []),
     ...topic.connections.map((c, i) => ({ where: `connection ${i + 1}`, text: c.text })),
     ...topic.questions.flatMap((q) => [
       { where: `question ${q.id} prompt`, text: q.prompt },

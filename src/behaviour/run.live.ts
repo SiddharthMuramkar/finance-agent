@@ -91,7 +91,13 @@ async function grade(q: BehaviourQuestion, replies: string[], stepNote: string, 
   const rule = own?.rule ?? RULES.find((r) => r.id === q.rule)!;
   // Some rules are graded by code alone, with no grader model call.
   if (rule.byCode) return { grade: rule.byCode(replies), cost: 0 };
-  const reveal = own ? own.reveal : q.rule === "hindsight" ? map.topics.flatMap((t) => t.cases).map((c) => c.reveal.trim().replace(/\s+/g, " ")).join(" ") : undefined;
+  const reveal = own
+    ? own.reveal
+    : q.rule === "hindsight"
+      ? map.topics.flatMap((t) => t.cases).map((c) => c.reveal.trim().replace(/\s+/g, " ")).join(" ")
+      : q.rule === "insight_early"
+        ? map.topic(QUESTIONS_TOPIC)?.insight?.written.trim().replace(/\s+/g, " ")
+        : undefined;
   const res = await anthropic.messages.create({
     model: GRADER_MODEL,
     max_tokens: 2000,

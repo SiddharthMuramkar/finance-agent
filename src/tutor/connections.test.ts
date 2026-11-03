@@ -23,7 +23,7 @@ const contexts = (request: Request) =>
   });
 
 describe("Connections at the principle step", () => {
-  const map = presentValueOnly({ withoutQuiz: true, withConnections: true });
+  const map = presentValueOnly({ withoutQuiz: true, withoutInsight: true, withConnections: true });
   const pv = map.topic("present-value")!;
 
   it("carries present value's three Connections, with the titles of the Topics they link to", () => {
@@ -69,7 +69,7 @@ describe("Connections at the principle step", () => {
 
   it("leaves a Topic without Connections as it was", async () => {
     const db = await testDb();
-    const bare = presentValueOnly({ withoutQuiz: true });
+    const bare = presentValueOnly({ withoutQuiz: true, withoutInsight: true });
     expect(bare.topic("present-value")!.connections).toEqual([]);
     for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, bare, step);
     await saveCheckResult(db, bare, { checkId: bare.topic("present-value")!.checks[0].id, passed: true });

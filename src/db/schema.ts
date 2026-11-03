@@ -99,6 +99,31 @@ export const misconceptions = pgTable(
 );
 
 /**
+ * Learner Memory: every attempt at a Topic's Insight at the explore step, with the Learner's exact
+ * words. `reported` is what the Tutor judged; `released` is what code did about it (the hint, or
+ * the written Insight). A Topic's Insight is settled once a row is released as found or told.
+ */
+export const insightAttempts = pgTable(
+  "insight_attempts",
+  {
+    id: serial("id").primaryKey(),
+    topicId: text("topic_id").notNull(),
+    reported: text("reported").notNull().$type<"found" | "not_yet" | "asked_to_be_told">(),
+    released: text("released").notNull().$type<"found" | "hint_1" | "hint_2" | "told">(),
+    /** The Learner's words, taken from their message in the turn. */
+    words: text("words").notNull(),
+    /** The model that taught the step. */
+    model: text("model"),
+    /** The turn it happened in. */
+    turnId: integer("turn_id"),
+    /** The tool call that wrote it; a repeated call has no second effect. */
+    toolCallId: text("tool_call_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("insight_attempts_tool_call").on(t.toolCallId), index("insight_attempts_topic").on(t.topicId)],
+);
+
+/**
  * What the model cost. One "step" row per Tool Runner loop step and one "turn" row per Tutor turn
  * (the sum of its steps). `turnSeq` is the seq of the Learner's message that began the turn.
  * Kept in SQL so cost history outlives Vercel's short log retention.
