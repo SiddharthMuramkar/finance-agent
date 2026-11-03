@@ -6,7 +6,7 @@ import { loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memor
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
-import { runTutorTurn, type TurnEvent } from "./turn";
+import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { latestTurn, turnKind } from "./turn-status";
 
 /** Tutor Turn tests for the explore step and Insight recording (ADR 0001), with a scripted Anthropic client and the real migrations. */
@@ -39,7 +39,7 @@ const toolResults = (request: Request) =>
   );
 const everything = (request: Request) => JSON.stringify(request.messages);
 
-async function turn(db: Awaited<ReturnType<typeof testDb>>, message: string, replies: ScriptedReply[]) {
+async function turn(db: Awaited<ReturnType<typeof testDb>>, message: TurnInput, replies: ScriptedReply[]) {
   const { client, requests } = scriptedClient(replies);
   await collect(runTutorTurn({ db, client, map }, message));
   return requests;
@@ -161,12 +161,13 @@ describe("explore step in the Tutor Turn", () => {
     expect(await db.select().from(insightAttempts)).toEqual([]);
   });
 
-  it("never counts Continue as an attempt", async () => {
+  it("never counts Finish this reply as an attempt: its note is code-written", async () => {
     const db = await atExplore();
-    const requests = await turn(db, "Continue.", [attempt("t1", "not_yet", "Continue."), say("Have a play with the Widget.")]);
+    const requests = await turn(db, { finish: true }, [attempt("t1", "not_yet", "Finish"), say("Have a play with the Widget.")]);
     const result = toolResults(requests[1])[0];
     expect(result.is_error).toBe(true);
-    expect(result.content).toContain("Continue");
+    expect(result.content).toContain("a note code wrote");
+    expect(result.content).not.toMatch(/Continue/);
     expect(await db.select().from(insightAttempts)).toEqual([]);
   });
 

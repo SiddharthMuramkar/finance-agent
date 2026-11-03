@@ -143,7 +143,7 @@ describe("database expand: Learners", () => {
 
     await run("Hello");
     for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
-    await run({ continue: true });
+    await run("Go on.");
     const quiz = (await openQuiz(db, map))!;
     await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])));
     await reviewState(db, map); // the Review panel enrolls the passed questions

@@ -29,8 +29,8 @@ function nextOf(value: unknown): NextName | undefined {
 }
 
 /**
- * Runs one Tutor turn (a message, Next, a widget report, Continue, the opener the page starts for a Session with no
- * messages, or the quiz follow-up it starts after a missed quiz), or resumes the last one, and streams its events as
+ * Runs one Tutor turn (a message, Next, a widget report, Finish this reply, the opener the page starts for a Session
+ * with no messages, or the quiz follow-up it starts after a missed quiz), or resumes the last one, and streams its events as
  * newline-delimited JSON. A send while another turn runs gets a 409, and so does a send from a tab
  * whose Topic is no longer the Learner's current one (`stale`).
  */
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     message?: string;
     paste?: string;
+    finish?: boolean;
     continue?: boolean;
     opener?: boolean;
     next?: unknown;
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
   const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);
   const next = nextOf(body.next);
   const widgetReport = typeof body.widgetReport === "string" && body.widgetReport.trim() ? body.widgetReport : undefined;
+  // A tab opened before Finish this reply replaced the cut-off reply's Continue still sends `continue`: it means the same.
   const input: TurnInput | undefined = body.resume
     ? { resume: true }
     : body.opener
@@ -62,11 +64,11 @@ export async function POST(request: Request) {
           ? { widgetReport }
           : body.quizFollowUp
             ? { quizFollowUp: true }
-          : body.continue
-          ? { continue: true }
-          : message && paste
-            ? { message, paste }
-            : message;
+            : body.finish || body.continue
+              ? { finish: true }
+              : message && paste
+                ? { message, paste }
+                : message;
   if (!input) return Response.json({ error: "Empty message" }, { status: 400 });
 
   const started = Date.now();

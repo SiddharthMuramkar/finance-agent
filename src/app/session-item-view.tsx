@@ -44,7 +44,7 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   picking_up: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="picking-up-divider" /> : null),
   // A Due Check reopened a passed Topic's Session: "New Check · Check 3", or "New step · Explore".
   due_check: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="due-check-divider" /> : null),
-  // Never stored: an old "Continue." message, drawn on Past Sessions pages as where the next step began.
+  // Never stored: an old "Continue." message, drawn in the thread and on Past Sessions pages as where the next step began.
   next_step: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Never stored: the Topic Start card, worked out from course data on each render as the conversation's first item.
   [TOPIC_START]: (data) => (typeof data.title === "string" ? <TopicStartCard card={data as TopicStartData} /> : null),

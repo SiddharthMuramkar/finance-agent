@@ -165,13 +165,14 @@ type TurnRecord = {
 };
 
 /** One Learner message through the real Tutor Turn, read the way the browser reads it (conversation.tsx). */
-async function takeTurn(db: Db, client: TutorClient, learner: string): Promise<TurnRecord> {
+async function takeTurn(db: Db, client: TutorClient, input: GenuiAsk["turns"][number]): Promise<TurnRecord> {
+  const learner = typeof input === "string" ? input : "(chose the Topic; the page started the opener)";
   let draft = "";
   let correction: string | null = null;
   let status: TurnRecord["status"] = "finished";
   let note = "";
   let usage: TurnUsage | null = null;
-  for await (const e of runTutorTurn({ db, client, map }, learner)) {
+  for await (const e of runTutorTurn({ db, client, map }, input)) {
     if (e.type === "text") {
       if (correction === null) draft += e.text;
       else correction += e.text;
@@ -247,8 +248,7 @@ async function runAsk(ask: GenuiAsk, client: TutorClient): Promise<AskRecord> {
       if (datasets.length) await importCaseData(db, datasets);
       record.caseData.push(`${c.id}: ${note}`);
     }
-    // Pinned by a jump, as the behaviour run does; taking the jump mark makes the turn read like a
-    // Learner mid-Topic in a new Session, with no "the Learner chose this Topic" note.
+    // Chosen on the Course Map, as a Learner does (and as the behaviour run does); its Session shows at once.
     await saveJump(db, map, ask.topic);
     const place = await placeLearner(db, map, ask.at);
     if (place.topic.id !== ask.topic) throw new Error(`The Learner was placed in ${place.topic.id}, not ${ask.topic}.`);

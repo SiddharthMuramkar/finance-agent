@@ -29,6 +29,15 @@ export type ItemLine = { role: "item" } & SessionItemData;
 export type Line = MessageLine | ItemLine;
 export type ThreadLine = Line & { id: string };
 
+/**
+ * Before Next and Finish this reply replaced it, moving on posted a "Continue." message as if the Learner typed it.
+ * Old Sessions still hold them: in the Study Workspace and on Past Sessions pages each one draws as a small
+ * "→ next step" divider in its place, never as a Learner bubble.
+ */
+export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)[] {
+  return lines.map((l) => (l.role === "user" && l.text.trim() === "Continue." ? { role: "item", kind: "next_step", data: {} } : l));
+}
+
 /** Every Widget in the conversation, numbered in order. Keys match the slot's `${messageId}:${index}`. */
 export function widgetsIn(messages: ThreadLine[], running = false): WidgetItem[] {
   const out: WidgetItem[] = [];

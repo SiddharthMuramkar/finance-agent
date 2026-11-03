@@ -11,7 +11,7 @@ import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import type { WidgetStates } from "@/widgets/widget-state";
 import type { SessionItemData } from "./session-item-view";
-import { convertMessage, type Line, type ThreadLine } from "./thread";
+import { convertMessage, withNextStepDividers, type Line, type ThreadLine } from "./thread";
 
 /** How an attached passage shows in the thread: a short label, as the saved transcript shows it. */
 export function pastePreview(paste: string): string {
@@ -29,13 +29,13 @@ export function pastePreview(paste: string): string {
 /** The latest turn's saved status, as the page found it. */
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
 /**
- * What a turn request carries: a message (with an optional pasted passage), Continue (the cut-off reply's), the
- * opener, the Learner's Next (naming the step on its chip, or "complete"), a widget report (Tell the Tutor what I
- * found, naming the Widget's key), the quiz follow-up after a missed quiz, or a resume.
+ * What a turn request carries: a message (with an optional pasted passage), Finish this reply (offered under a reply
+ * cut off at its length limit), the opener, the Learner's Next (naming the step on its chip, or "complete"), a widget
+ * report (Tell the Tutor what I found, naming the Widget's key), the quiz follow-up after a missed quiz, or a resume.
  */
 export type TurnBody =
   | { message: string; paste?: string }
-  | { continue: true }
+  | { finish: true }
   | { opener: true }
   | { next: NextName }
   | { widgetReport: string }
@@ -80,7 +80,8 @@ export function useTurnStream({
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
   const shownRef = useRef(shown);
-  const [messages, setMessages] = useState<ThreadLine[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
+  // An old stored "Continue." draws as a "→ next step" divider, never as a Learner bubble.
+  const [messages, setMessages] = useState<ThreadLine[]>(() => withNextStepDividers(initial).map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const [fixing, setFixing] = useState(false);
@@ -93,7 +94,7 @@ export function useTurnStream({
   const [passage, setPassage] = useState<string | null>(null);
 
   /**
-   * Sends a message, Continue, or a resume, and streams the reply. When the stream ends
+   * Sends a message, Finish this reply, a Next, the opener or a resume, and streams the reply. When the stream ends
    * without "done" (the turn was cut off by the time limit or the connection dropped),
    * it resumes on its own from the last saved loop step; the saved text replaces what
    * was on screen.
@@ -125,7 +126,7 @@ export function useTurnStream({
       // A resume continues the reply on screen, or starts one after the Learner's last message.
       const last = m[m.length - 1];
       if ("resume" in body && last?.role === "assistant") return [...m.slice(0, -1), { ...last, id: firstId }];
-      // A Next, a widget report or the opener is a new turn with no Learner bubble: its reply starts below what is on screen.
+      // A Next, Finish this reply, a widget report or the opener is a new turn with no Learner bubble: its reply starts below what is on screen.
       return [...m, { id: firstId, role: "assistant", text: "" }];
     });
     const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId && x.role !== "item" ? { ...x, text: f(x.text) } : x)));
