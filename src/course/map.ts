@@ -96,6 +96,12 @@ const exploreSchema = z.object({
   before: id,
   /** Whether a Learner who already passed the Topic is taken through explore again. */
   requiredWhenPassed: z.boolean().default(false),
+  /**
+   * The Topic's own explore Widget, in OpenUI code. Code (not the Tutor) puts it in the Widget panel when
+   * explore begins and keeps it there until the Topic is passed. Parsed by the tests; its Case Data
+   * references are checked here.
+   */
+  widget: z.string().min(1).optional(),
 });
 
 export type Insight = z.infer<typeof insightSchema>;
@@ -287,6 +293,19 @@ function resolveTopic(file: z.infer<typeof topicSchema>, outline: Outline | unde
   return { ...file, connections: unresolved(file), stage: planned.stage, subject: planned.subject, path: planned.path, prerequisites: planned.prerequisites };
 }
 
+/** A Case Data reference, "caseId/datasetId", written as a string in Widget code. */
+const CASE_DATA_REFERENCE = /"([a-z0-9-]+)\/([a-z0-9-]+)"/g;
+
+/** Case Data references in the explore Widget's code that do not belong to the Topic's own Cases and their datasets. */
+function exploreWidgetReferenceProblems(t: Pick<Topic, "id" | "cases" | "explore">): string[] {
+  const code = t.explore?.widget ?? "";
+  return [...code.matchAll(CASE_DATA_REFERENCE)].flatMap(([, caseId, datasetId]) => {
+    const c = t.cases.find((x) => x.id === caseId);
+    if (!c) return [`Topic "${t.id}" explore Widget reads "${caseId}/${datasetId}", but "${caseId}" is not one of the Topic's Cases`];
+    return c.data.includes(datasetId) ? [] : [`Topic "${t.id}" explore Widget reads "${caseId}/${datasetId}", but Case "${caseId}" does not list dataset "${datasetId}"`];
+  });
+}
+
 /** An Insight is written in words too: a figure would hand the Learner a number to look for. */
 function insightProblems(t: Topic): string[] {
   const problems: string[] = [];
@@ -295,6 +314,7 @@ function insightProblems(t: Topic): string[] {
   if (t.explore && !t.checks.some((c) => c.id === t.explore!.before)) {
     problems.push(`Topic "${t.id}" explores before Check "${t.explore.before}", which it does not have`);
   }
+  if (t.explore?.widget) problems.push(...exploreWidgetReferenceProblems(t));
   if (t.insight) {
     const { question, written, foundWhen, hints } = t.insight;
     const fields: [string, string][] = [["question", question], ["written", written], ["foundWhen", foundWhen], ...hints.map((h, i): [string, string] => [`hints.${i}`, h])];

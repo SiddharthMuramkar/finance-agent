@@ -59,6 +59,17 @@ describe("explore step in the Tutor Turn", () => {
     expect(sent).toContain("cannot finish explore yet");
   });
 
+  it("tells the Tutor the Topic's own Explore Widget is already on screen, and not to draw it", async () => {
+    const db = await atExplore();
+    const [request] = await turn(db, "Ready.", [say("Here is a question.")]);
+    const sent = everything(request);
+    expect(sent).toContain("Explore Widget. Code has put it on screen already");
+    expect(sent).toContain("Do not draw it yourself");
+    expect(sent).not.toContain("the Widget you drew at the concept step");
+    // The Widget's code itself is not sent: it only draws, and the Tutor needs no copy of it.
+    expect(sent).not.toContain("AnnuityChart(");
+  });
+
   it("goes hint 1, hint 2, then tells the Insight, saving the Learner's exact words each time", async () => {
     const db = await atExplore();
     const first = await turn(db, "The bars get smaller", [attempt("t1", "not_yet", "the bars get smaller"), say("Try the far bars.")]);

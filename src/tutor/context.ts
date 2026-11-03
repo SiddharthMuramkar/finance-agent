@@ -52,7 +52,7 @@ export function stepContext(
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
   if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${topic.concept.trim()}`);
-  if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore));
+  if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, Boolean(topic.explore?.widget)));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
     if (check.kind === "conversation") {
@@ -103,10 +103,12 @@ export function stepContext(
  * The explore step's lines. The written Insight appears only once it is settled (found or told);
  * until then the Tutor has the question, how to tell it is found, and the hints already released.
  */
-function exploreLines(insight: Insight, explore: ExploreInfo | undefined): string[] {
+function exploreLines(insight: Insight, explore: ExploreInfo | undefined, widgetOnScreen: boolean): string[] {
   const lines = [
     "",
-    "Explore: the Learner finds this Topic's Insight by playing with the Widget you drew at the concept step (keep it available), then says what they noticed in their own words.",
+    widgetOnScreen
+      ? "Explore: the Learner finds this Topic's Insight by playing with the Topic's own Explore Widget. Code has put it on screen already, in the Widget panel as an \"Explore\" chip (and in the conversation column on a narrow screen), and keeps it there until the Topic is passed. It has an interest-rate slider and the sourced figures. Do not draw it yourself; point the Learner to it, then they say what they noticed in their own words."
+      : "Explore: the Learner finds this Topic's Insight by playing with the Widget you drew at the concept step (keep it available), then says what they noticed in their own words.",
     `Insight question: ${insight.question.trim()}`,
     `The Insight is found when: ${insight.foundWhen.trim()}`,
   ];
