@@ -30,7 +30,7 @@ concept: >
   can be invested to grow. Present value turns a future amount into today's money by
   discounting it: PV = amount / (1 + r)^n, where r is the yearly interest rate and n the
   number of years. A stream of payments is worth the sum of each payment's present value.
-  The higher the rate or the longer the wait, the less a future payment is worth today.
+  The higher the rate or the more years until the payment arrives, the less a future payment is worth today.
 
 principle: >
   An advertised total that adds up payments made at different times overstates their value.

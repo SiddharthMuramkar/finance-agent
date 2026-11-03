@@ -134,6 +134,13 @@
       "when": 1793621672663,
       "tag": "0018_login_failures",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793682422642,
+      "tag": "0019_tutor_default_opus",
+      "breakpoints": true
     }
   ]
 }
