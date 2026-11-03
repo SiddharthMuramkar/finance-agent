@@ -4,7 +4,7 @@ import { testDb } from "@/test/pglite";
 import { importLibrary, type LibraryFile } from "./ingest";
 import { prepareDocuments } from "./prepare";
 import { searchPassages } from "./search";
-import { crossCheck, fetchSpreadsheet, normaliseSpreadsheetUrl, orderSheets, passageDate, readWorkbook, spreadsheetLinks, workbookDocument } from "./spreadsheets";
+import { crossCheck, dedupeByDocument, fetchSpreadsheet, normaliseSpreadsheetUrl, orderSheets, passageDate, readWorkbook, spreadsheetLinks, workbookDocument } from "./spreadsheets";
 
 const sample = (name: string) => new Uint8Array(readFileSync(new URL(`./fixtures/${name}`, import.meta.url)));
 const post = { ref: "post-777", title: "Valuing a lottery", publishedOn: "2018-10-20" };
@@ -121,5 +121,28 @@ describe("the picture-versus-spreadsheet cross-check", () => {
     const result = crossCheck("Revenues 1,000 | Value per share 17.25 | Beta 1.320", "Revenues in last year | 1000\nValue per share | 17.25");
     expect(result.shared).toEqual(["1000", "17.25"]);
     expect(result.pictureOnly).toEqual(["1.32"]);
+  });
+});
+
+describe("one document per post and file", () => {
+  it("keeps a spreadsheet linked twice from one post (by two URLs) as one document, so no passage ref repeats", () => {
+    const html = `<a href="https://pages.stern.nyu.edu/~adamodar/pc/blog/lottery.xlsx">a</a>
+      <a href="https://pages.stern.nyu.edu/~adamodar/pc/other/Lottery.xlsx">b</a>
+      <a href="https://pages.stern.nyu.edu/~adamodar/pc/blog/lottery.xls">c</a>`;
+    const pairs = spreadsheetLinks(html).map((url) => ({ post, url }));
+    expect(pairs).toHaveLength(3);
+    const deduped = dedupeByDocument(pairs);
+    expect(deduped).toEqual([pairs[0]]);
+    const sheets = [{ name: "Inputs", lines: ["Price | 100"] }];
+    const docs = deduped.map(({ url }) => workbookDocument({ post, url, lastModified: null, sheets })!);
+    const prepared = prepareDocuments(docs);
+    expect(new Set(docs.map((d) => d.ref)).size).toBe(docs.length);
+    expect(new Set(prepared.passages.map((p) => p.ref)).size).toBe(prepared.passages.length);
+  });
+
+  it("keeps the same file name under a different post as its own document", () => {
+    const other = { ...post, ref: "post-888" };
+    const url = URL_XLSX;
+    expect(dedupeByDocument([{ post, url }, { post: other, url }])).toHaveLength(2);
   });
 });

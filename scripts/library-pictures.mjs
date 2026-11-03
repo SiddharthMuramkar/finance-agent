@@ -56,7 +56,8 @@ if (step === "plan") {
   const todo = unreadPictures(urls, readings).length;
   const batch = estimateReadCost(todo);
   const check = estimateCheckCost(SAMPLE_SIZE);
-  console.log(`${found.length} pictures in ${new Set(found.map((p) => p.ref)).size} posts, ${urls.length} different; ${urls.length - todo} already read, ${todo} to read.`);
+  const cutOff = urls.filter((u) => readings[u]?.stopReason === "max_tokens").length;
+  console.log(`${found.length} pictures in ${new Set(found.map((p) => p.ref)).size} posts, ${urls.length} different; ${urls.length - todo} already read, ${todo} to read (${cutOff} of them cut off by the length limit earlier).`);
   console.log(`Reading ${todo} through the Batches API: about ${dollars(batch.expected)}, worst case ${dollars(batch.worst)}.`);
   console.log(`Stronger-model re-read of ${SAMPLE_SIZE}: about ${dollars(check.expected)}, worst case ${dollars(check.worst)}.`);
 } else if (step === "dry-run") {

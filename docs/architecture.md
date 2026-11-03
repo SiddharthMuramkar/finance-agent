@@ -1855,7 +1855,24 @@ by number.
 and only a sample is re-read (the code checks cover the rest). Reading by address means we never
 download or store the pictures, but a picture Blogger later removes cannot be re-read (its cached
 text stays). Batches are slow (up to a day) but half price, and the saved batch id lets a stopped
-run resume. Measured cost and accuracy: to be filled in from the live run (see #71).
+run resume.
+
+**Measured results of the first live backfill, and the fix.** 2836 pictures were read by Haiku.
+830 of them (about 29%, and 41% of readings were flagged by the code checks in all) stopped at the
+1500-token limit, so a long table was cut off mid-row. Opus re-read 40 samples and its numbers
+agreed with Haiku's on only 7 of 40, mostly because Opus transcribed more table rows than the
+cut-off Haiku readings held. The fix: the limit is now 4000 tokens (`READ_MAX_TOKENS`), and a stored
+reading whose stop reason is `max_tokens` counts as unread everywhere (`plan`, `submit`, `collect`,
+the weekly refresh), so only the cut-off ones are read again and paid for; a complete reading
+replaces the cut-off one in `library_pictures`, and a complete reading is never replaced. The
+verify sample is re-read after the fix to measure the agreement again.
+
+**Which posts the weekly refresh treats as new.** The backfill records every loaded post in
+`library_documents` (`library:blog` does it after loading; `npm run library:seed-documents --
+<scratch>` does it alone, and is safe to repeat). The refresh skips a post whose recorded updated
+time is the same as the feed's or later, so a week's run works only on posts that are really new
+or edited. Trade-off: a post whose pictures were cut off is not re-read by the refresh; the
+backfill reload places the corrected readings.
 
 ## Formula registry (`src/finance/formulas.ts`, `formula-ids.ts`, ADR 0002, issue #64)
 
@@ -1891,7 +1908,7 @@ run resume. Measured cost and accuracy: to be filled in from the live run (see #
 
 ## Weekly refresh of Damodaran's posts (`src/library/refresh.ts`, `src/app/api/cron/library-refresh/route.ts`, `library_refresh_runs`, `vercel.json` crons, IL 16, #73)
 
-**What it does.** Every Monday at 21:30 UTC, Vercel calls a route that adds Damodaran's new or edited blog posts to the Library: the text, the text read from the pictures (the same reader as the laptop backfill), the spreadsheets the posts link to, the embeddings, and a refresh of the keyword statistics. The route sits outside the passcode gate (the gate skips exactly `/api/cron/library-refresh` and nothing else) and answers 401 unless the request carries `Authorization: Bearer <CRON_SECRET>`; with no secret set, nobody gets in. It works for at most 200 seconds of the 300 a function may run, starts no new post, picture or file in the last 40 seconds (kept for embedding and statistics), and takes at most five posts a run, oldest change first.
+**What it does.** Every Monday at 21:30 UTC, Vercel calls a route that adds Damodaran's new or edited blog posts to the Library: the text, the spreadsheets the posts link to, the embeddings, and a refresh of the keyword statistics. The route sits outside the passcode gate (the gate skips exactly `/api/cron/library-refresh` and nothing else) and answers 401 unless the request carries `Authorization: Bearer <CRON_SECRET>`; with no secret set, nobody gets in. It works for at most 200 seconds of the 300 a function may run, starts no new post, picture or file in the last 40 seconds (kept for embedding and statistics), and takes at most five posts a run, oldest change first.
 
 **The run log.** Each run is a row in `library_refresh_runs`: when it started and ended, what it added (post, title, new or edited, passages, spreadsheet files), everything that failed, and a watermark. The log is also the lock: the database allows only one `running` row, so a second run starting at the same time is refused with 409, and a run still `running` after ten minutes (the function was cut off) is marked failed by the next one. The watermark is how far through the blog's "updated" times the run got; the next run asks Blogger only for posts changed after it. A post that fails is logged and the watermark stops at it, so it is asked for again next week. A failing reindex or vacuum after the posts are in is logged as a problem (step "statistics") and does not undo the run: it still finishes `done` with its watermark.
 
@@ -1899,7 +1916,7 @@ run resume. Measured cost and accuracy: to be filled in from the live run (see #
 
 **Scenario.** On Monday Damodaran has published one post with two pictures and a linked valuation spreadsheet, and corrected an older post by adding a paragraph. The run reads the pictures with the model (a few cents), downloads the spreadsheet, and files the new post's passages under its publication date. For the corrected post, any passage whose text is already stored keeps its old date; text that is new is dated by the post's updated day. A Case set between the post and the correction therefore never finds the added paragraph, even though it is "in" a post from before the Case.
 
-**Trade-offs.** Dating by the edit is safe against hindsight but blunt: when an added paragraph is packed into the same passage as older text, that whole passage becomes new text and is hidden from earlier Cases until the edit's date. Pictures are read once: each reading is stored by the picture's address in `library_pictures`, so an edited post, or a post tried again after a failure, reuses the same words and keeps its passages' dates (a second reading would not match word for word and would count as new text). The laptop's `pictures.json` is copied in once with `npm run library:seed-pictures`. Each post and spreadsheet file also gets a row in `library_documents` with its published and updated times as the source gave them. A picture that fails to read is simply read again next week. Five posts a week keeps a run inside its time and the model bill small, and a busy week simply continues next Monday. Without `VOYAGE_API_KEY` the new passages stay keyword-only (the run says so); without `ANTHROPIC_API_KEY` the pictures are left out (it says so too). Setting `CRON_SECRET` in Vercel and the first manual run are done by the owner after deploy. The `xlsx` package is installed from SheetJS's own site (`cdn.sheetjs.com`), not from npm, because SheetJS no longer publishes current versions to npm; the lockfile pins it with an integrity hash, so do not "fix" it to an npm version when bumping dependencies.
+**Trade-offs.** Dating by the edit is safe against hindsight but blunt: when an added paragraph is packed into the same passage as older text, that whole passage becomes new text and is hidden from earlier Cases until the edit's date. Picture text is not placed yet: the pictures are read and stored (the same reader as the laptop backfill), but `PLACE_PICTURE_TEXT` stays off until the owner decides in #108, because the readings' numbers agreed with an Opus re-read in only 7 of 40. Pictures are read once: each reading is stored by the picture's address in `library_pictures`, so an edited post, or a post tried again after a failure, reuses the same words and keeps its passages' dates (a second reading would not match word for word and would count as new text). The laptop's `pictures.json` is copied in once with `npm run library:seed-pictures`. Each post and spreadsheet file also gets a row in `library_documents` with its published and updated times as the source gave them. A picture that fails to read is simply read again next week. Five posts a week keeps a run inside its time and the model bill small, and a busy week simply continues next Monday. Without `VOYAGE_API_KEY` the new passages stay keyword-only (the run says so); without `ANTHROPIC_API_KEY` the pictures are left out (it says so too). Setting `CRON_SECRET` in Vercel and the first manual run are done by the owner after deploy. The `xlsx` package is installed from SheetJS's own site (`cdn.sheetjs.com`), not from npm, because SheetJS no longer publishes current versions to npm; the lockfile pins it with an integrity hash, so do not "fix" it to an npm version when bumping dependencies.
 
 ## Formula markers and the typed-formula check (`src/finance/formula-markers.ts`, `formula-text.ts`, `raw-formula.ts`, `src/course/formula-check.ts`, `src/widgets/marked-text.tsx`, issue #65)
 

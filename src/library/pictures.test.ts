@@ -12,6 +12,7 @@ import {
   pickSamples,
   pictureId,
   PICTURE_TAG,
+  READ_MAX_TOKENS,
   unreadPictures,
   type PictureReadings,
 } from "./pictures";
@@ -117,7 +118,7 @@ describe("the cost of reading", () => {
 
     expect(batch.expected).toBeCloseTo(single.expected / 2, 6);
     expect(batch.worst).toBeGreaterThan(batch.expected);
-    expect(batch.worst).toBeLessThan(2);
+    expect(batch.worst).toBeLessThan(3);
     expect(estimateReadCost(0)).toEqual({ expected: 0, worst: 0 });
   });
 
@@ -129,6 +130,19 @@ describe("the cost of reading", () => {
   it("skips pictures already read, and counts a picture used twice once", () => {
     const readings: PictureReadings = { a: { text: null, model: "m", stopReason: null, problems: [] } };
     expect(unreadPictures(["a", "b", "b", "c"], readings)).toEqual(["b", "c"]);
+  });
+
+  it("treats a reading cut off by the length limit as unread, and a complete one as done", () => {
+    const readings: PictureReadings = {
+      a: { text: "Revenue | 5", model: "m", stopReason: "max_tokens", problems: ["cut off by the length limit"] },
+      b: { text: "Revenue | 5", model: "m", stopReason: "end_turn", problems: [] },
+    };
+    expect(unreadPictures(["a", "b"], readings)).toEqual(["a"]);
+  });
+
+  it("allows 4000 tokens per reading and prices the worst case on it", () => {
+    expect(READ_MAX_TOKENS).toBe(4000);
+    expect(estimateReadCost(1).worst).toBeGreaterThan(estimateReadCost(1).expected);
   });
 
   it("gives a request id of letters and digits that stays the same for the same address", () => {
