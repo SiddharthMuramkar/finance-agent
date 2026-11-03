@@ -31,8 +31,8 @@ rate = Slider("rate", "Interest rate", 0, 10, 0.25, $rate, "percent")`;
 
 describe("saved replies and Widgets on a Topic Note", () => {
   const saved: TopicNote["saved"] = [
-    { id: 1, kind: "reply", text: "Discounting is **the price of waiting**.\n\n```sources\n[{\"n\":1,\"title\":\"Library passage (hidden until the reveal)\",\"href\":\"/passages/9\",\"credit\":null}]\n```", savedAt: now },
-    { id: 2, kind: "widget", code: applySettings(PLAY, { $rate: 8 }), title: "Cash now or later", savedAt: now },
+    { id: 1, kind: "reply", text: "Discounting is **the price of waiting**.\n\n```sources\n[{\"n\":1,\"title\":\"Library passage (hidden until the reveal)\",\"href\":\"/passages/9\",\"credit\":null}]\n```", savedAt: now, again: { kind: "reply", sessionId: 3, turnSeq: 0 } },
+    { id: 2, kind: "widget", code: applySettings(PLAY, { $rate: 8 }), title: "Cash now or later", savedAt: now, again: { kind: "widget", widgetIndex: -1, settings: { $rate: 8 } } },
   ];
   const html = renderToStaticMarkup(<NotesView notes={[{ ...notes[1], saved }]} />);
 
