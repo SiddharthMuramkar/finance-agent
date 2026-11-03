@@ -1,6 +1,7 @@
 import { and, desc, eq, lt } from "drizzle-orm";
 import { OWNER_LEARNER_ID, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { isChipMessage } from "./chips";
 
 /**
  * A turn's saved status, which is also the one-turn lock: the database lets
@@ -33,16 +34,18 @@ export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
 export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, QUIZ_FOLLOW_UP_PREFIX] as const;
 
 /**
- * What started a turn: the Learner's own message, an opener the page started, the Learner's Next, or the quiz
- * follow-up after a missed quiz (no Learner message for any but the first).
+ * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
+ * that more simply, Show me in a widget), an opener the page started, the Learner's Next, or the quiz follow-up
+ * after a missed quiz (no Learner message for the last three).
  */
-export type TurnKind = "message" | "opener" | "next" | "quiz_follow_up";
+export type TurnKind = "message" | "chip" | "opener" | "next" | "quiz_follow_up";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(OPENER_PREFIX)) return "opener";
   if (turn.input?.startsWith(NEXT_PREFIX)) return "next";
   if (turn.input?.startsWith(QUIZ_FOLLOW_UP_PREFIX)) return "quiz_follow_up";
+  if (turn.input && isChipMessage(turn.input)) return "chip";
   return "message";
 }
 
