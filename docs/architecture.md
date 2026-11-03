@@ -730,7 +730,8 @@ its top row), and for the tools: a tool name that does not exist, any `Mutation(
 read), written-out arguments that fail the tool's own checks, a calculator we do not have or an input
 it does not take, or a malformed Case Data reference. Arguments that take a slider's value are
 checked for their written-out parts only. If a widget fails, code sends the Tutor one correction
-request listing the problems, and the corrected widget replaces the broken one on screen. History keeps both, unchanged. If the
+request listing the problems, and the corrected widget replaces the broken one on screen (a Widget a written-ahead
+Widget covers is left out instead; see "Written-ahead Widgets and open_widget"). History keeps both, unchanged. If the
 correction is broken too, the browser shows a plain "This widget could not be drawn" note and the
 lesson carries on. A widget that crashes while drawing is caught the same way. A tool that cannot run
 (a withheld dataset, an input a calculator does not take) leaves its chart empty, with a muted line
@@ -812,13 +813,65 @@ sessions and Notes draw exactly as before, even where an old Widget breaks a rul
 old Sessions can still show near-copies. Update in place goes by exact title, which is simple and
 visible to the Tutor, but a Tutor that renames a Widget while changing it makes a new tab (the
 same-Case-Data rule catches the common case). The Old session page keeps every Widget as drawn. The
-rule for written-ahead Widgets' parts comes with ticket #160.
+rule for written-ahead Widgets' parts is in the next section.
+
+### Written-ahead Widgets and open_widget (`widgets` in `course/topics/*.yaml`, `src/course/written-ahead.ts`, `written-ahead-check.ts`, `open_widget` in `src/tutor/tools.ts`, `src/tutor/written-ahead.ts`, `writtenAheadPartProblems` in `src/widgets/check.ts`, spec #119, ticket #160)
+
+**What it does.** A Topic file can list Widgets written ahead for it (`widgets:`), each with an id, its OpenUI
+code, the `parts` a Widget of the Tutor's own may not use in that Topic because this one covers them (one of our
+parts such as `AnnuityChart`, a Widget tool such as `annuity_schedule`, or a calculator id such as `cagr`), and an
+optional `revealTask`. The Tutor is told them in a "Written-ahead Widgets" line of code's context (title and id) and
+opens one with a new tool, `open_widget`, by id. The call stores a Session item (`widget_opened`, with the id and
+title) after the latest message and streams it, so an "Open: <title> →" chip stands where it was opened, the
+Widget opens in the panel, and a reload draws both again from the stored item. The tool's result tells the Tutor
+each slider's range, step and starting value and each Guided Task, so it asks only for numbers the Widget can show;
+an id the Topic does not have is refused and stores nothing. The code is never stored: on each render the page (and
+the old Session page) reads the shown Topic's written-ahead Widgets from the Topic file (`loadWrittenAhead`), and a
+`revealTask` joins the Widget's Guided Tasks only once its Case's reveal has been shown, with the move its dataset
+made across the Case's as-of date (the last value on or before it, the first after) read from Case Data under the
+as-of rule. Before the reveal that value is withheld, so the task, and every number of it, is left out. A written-
+ahead Widget's work is saved under its id (Widget state below). The Tutor never draws its own version: on the reply
+being written, the server check sends back a Widget of the Tutor's that uses a written-ahead Widget's parts, or
+takes its title, through the one correction turn, naming the Widget to open ("call open_widget with id … and leave
+this widget out of your reply"). Such a Widget is left out of the reply (on screen at once, on a reload and in a
+replay), not replaced; anything else the correction names is replaced as before. The Topic Start card's You'll use
+line lists the Topic's written-ahead Widget titles.
+
+**The course check** (`writtenAheadCheckErrors`, run by `npm run course:check`) holds every written-ahead Widget
+to: it can be drawn; each slider's default sits inside its range and on a step (0.01 for a percent slider); and each
+Guided Task reads a slider, is not done at the start, and can be reached. A task is tried with the numbers it names
+plus each slider's min, max and default (every combination over the sliders it reads), not every position, so
+sliders in 0.01 steps stay checkable. A Widget with a reveal task is checked again with it added, its slider's min and
+max standing in for the Case Data. The Topic file check also refuses a repeated id or title, a reveal task whose Case
+or dataset the Topic does not have, and Case Data references outside the Topic's Cases.
+
+**Percent's "One rate change, said three ways"** (`rate-change-three-ways`): old and new rate, 0 to 10% in 0.01
+steps with number boxes, starting at 5% and 5.2%; readouts in percentage points, basis points and percent change of
+the old rate (worked out by the Widget, "none" when the old rate is 0%). Its three Guided Tasks are made-up moves
+(6% to 6.4%, 8% to 7.1%, 0.5% to 0.9%) that tick on no Percent quiz question's move and never on the Case's outcome
+(a test checks both). After the reveal a fourth appears: "Set the Fed's move of February 1994: from 3% to 3.25%",
+its rates from the `fed-funds-target` dataset. A growth-rate calculator (`cagr`) drawn by the Tutor in Percent is
+sent back, so the Learner never sees a CAGR box there.
+
+**Scenario.** At Percent's concept step the Learner asks to try a move. The Tutor calls `open_widget` with
+`rate-change-three-ways`; the chip appears under its first sentence and the Widget opens on the right at 5% and
+5.2% (20 bp, 4%). The Learner ticks the 6% to 6.4% task. Later the Tutor draws a CAGR box of its own; the check
+sends it back, the Tutor opens the written-ahead Widget instead, and the box never reaches the screen. After the
+reveal the page draws the Widget with the February 1994 task; before it, nothing in the Widget mentions 1994.
+
+**Trade-off.** Written-ahead Widgets are fixed text that cost no tokens and can be checked before they ship, but they
+cannot adapt to a Learner the way a Tutor Widget can, and only Percent has one so far (the annuity Widget comes with
+ticket #161). Reading the code from the Topic file on every render keeps the reveal task honest and lets a Topic
+file fix reach old Sessions, but a Widget removed from a Topic file vanishes from Sessions that opened it (its chip
+draws nothing). The parts rule goes by named parts, so a Tutor Widget that does the same sum another way (typed
+expressions) is not caught. A written-ahead Widget has no Save to notes yet. A correction that only leaves Widgets
+out drops the Tutor's prose in the correction reply, as every correction does.
 
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
 Guided Tasks it has ticked. Each is stored as one row of `widget_state` per (Session, Widget key). The Widget
-key is the written-ahead Widget's id (for now only the explore Widget, saved as "explore"), or the title of a
+key is the written-ahead Widget's id (the explore Widget is saved as "explore"), or the title of a
 Widget the Tutor drew, so a Widget the Tutor updates in place under the same title keeps the Learner's work. The
 Study Workspace page reads the shown Session's rows with the Session and hands them to the page; a Widget then
 starts from its saved values (OpenUI's `initialState`, which wins over the starting numbers in its code) and its
@@ -832,10 +885,11 @@ never unticks, but it starts from the saved ticks and reports new ones. Save to 
 and the server keeps the values saved under that key in that Session (the browser's numbers only when nothing is
 saved yet). Notes, Older sessions and Home draw Widgets with no store, so there nothing is saved, as before.
 
-**Scenario.** In Percent, the Tutor draws "One rate change, said three ways". The Learner sets the old rate to
-3.25%, which ticks the first Guided Task, then opens the "Rates around the draw" tab and comes back: the slider
-is still at 3.25% and the task still ticked. They reload the page: the same. They then save the Widget to notes,
-and the note shows it at 3.25%.
+**Scenario.** In Percent, the Tutor opens "One rate change, said three ways" (saved under its id,
+`rate-change-three-ways`). The Learner sets the old rate to 6% and the new to 6.4%, which ticks the first Guided
+Task, then opens another Widget's tab and comes back: the sliders are still at 6% and 6.4% and the task still
+ticked. They reload the page: the same. A Widget the Tutor drew, saved to notes, keeps the values saved under its
+title in the same way.
 
 **Trade-off.** Keying by title is simple and is what the Tutor already uses to update in place, but a Widget
 redrawn under the same title starts from the Learner's old numbers, not the Tutor's new starting ones, and an
@@ -2152,7 +2206,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **What it does.** Two pieces tell the Learner where they are in a Topic.
 - **The Topic bar** is a slim bar above the chat that stays for the whole Topic, in place of the old status card (its "Course Map · Stage · Topic" eyebrow, its plain summary and its Continue are gone). It shows the Topic's title and a progress strip drawn from the Course Navigator's `stepSequence`: the steps in plain words, grouped by Check ("Story · Check 1: Concept, Your turn, Check · Check 2: Concept, Explore, Your turn, Check · Reveal · Principle"), with the current step highlighted. A finished step is a button that scrolls the chat back to where it began: the Story to the Topic Start card, any other step to its "Step k of N" divider, which now carries the anchor `step-k`. A finished step whose divider is not in this Session (one passed before dividers existed) is shown done but can't be pressed. The page works the strip out on every render, so it always reads the saved place; a passed Topic kept on screen shows every step as done.
-- **The Topic Start card** is the first item of a Topic's conversation and scrolls with the chat. It shows the title and the Subject (or the Stage, for a Topic with none); the You'll learn bullets; Before this, each prerequisite with "✓ passed" or "not passed yet · Study it first" (the link chooses that Topic and opens it, as the Course Map's "Do first" link does), or "Nothing — this is a starting Topic."; You'll use, the written-ahead Widget titles, left out while the Topic has none (always, until written-ahead Widgets exist); and "N Checks". `topicStart` builds it from course data and progress, and the page puts it in front of the Session's lines. It is never stored and never reaches the model: it travels as a display-only item like a divider, so the opener still starts by itself (the thread has no messages yet), and no Next chip stands under the card alone. A replayed reply (a resume or a refusal) replaces the reply and the items inside it but never the card.
+- **The Topic Start card** is the first item of a Topic's conversation and scrolls with the chat. It shows the title and the Subject (or the Stage, for a Topic with none); the You'll learn bullets; Before this, each prerequisite with "✓ passed" or "not passed yet · Study it first" (the link chooses that Topic and opens it, as the Course Map's "Do first" link does), or "Nothing — this is a starting Topic."; You'll use, the written-ahead Widget titles, left out while the Topic has none (Percent lists "One rate change, said three ways"); and "N Checks". `topicStart` builds it from course data and progress, and the page puts it in front of the Session's lines. It is never stored and never reaches the model: it travels as a display-only item like a divider, so the opener still starts by itself (the thread has no messages yet), and no Next chip stands under the card alone. A replayed reply (a resume or a refusal) replaces the reply and the items inside it but never the card.
 
 **Scenario.** A Learner chooses Present value without having passed Growth, compounding and logs. The conversation opens with the card: "Present value", "Numbers & time value", three You'll learn bullets, "Growth, compounding and logs not passed yet · Study it first" and "2 Checks"; the Tutor's Story streams in under it. Later, at Explore, the bar reads Story · Check 1: Concept, Your turn, Check · Check 2: Concept, **Explore**, … They press Check 2's Concept on the strip and the chat scrolls up to "Step 5 of 10 · Concept".
 
