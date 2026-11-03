@@ -4,7 +4,7 @@ import { AppHeader, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
 
 describe("ReadingPage", () => {
   it("puts the header in the same wide box on every reading page and narrows only the content", () => {
-    const pages = (["course", "progress", "sessions", undefined] as const).map((current) =>
+    const pages = (["course", "progress", "sessions", "notes", undefined] as const).map((current) =>
       renderToStaticMarkup(
         <ReadingPage current={current} theme="light">
           <p>content</p>
@@ -21,12 +21,13 @@ describe("ReadingPage", () => {
 });
 
 describe("AppHeader", () => {
-  it("shows the four links with their addresses and marks the current page", () => {
+  it("shows the five links with their addresses and marks the current page", () => {
     const html = renderToStaticMarkup(<AppHeader current="progress" theme="light" />);
     expect(html).toContain("Study Workspace");
     expect(html).toMatch(/href="\/course"[^>]*>Course Map</);
     expect(html).toMatch(/<a aria-current="page"[^>]*href="\/progress"[^>]*>Progress</);
     expect(html).toMatch(/href="\/sessions"[^>]*>Past Sessions</);
+    expect(html).toMatch(/href="\/notes"[^>]*>Notes</);
     expect(html).toContain("Dark mode");
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
     expect(html).toMatch(/href="\/"[^>]*>Study Workspace</);

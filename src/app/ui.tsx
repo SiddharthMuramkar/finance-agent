@@ -113,22 +113,23 @@ export function KeyValueRow({ label, value, tag }: { label: ReactNode; value: Re
   );
 }
 
-export type HeaderPage = "workspace" | "course" | "progress" | "sessions";
+export type HeaderPage = "workspace" | "course" | "progress" | "sessions" | "notes";
 
 const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "course", href: "/course", label: "Course Map" },
   { page: "progress", href: "/progress", label: "Progress" },
   { page: "sessions", href: "/sessions", label: "Past Sessions" },
+  { page: "notes", href: "/notes", label: "Notes" },
 ];
 
 /**
  * App header (spec §3): h1 "Study Workspace" (a link home except on the workspace), then Course Map ·
- * Progress · Past Sessions · Dark mode. current = the page showing; theme from readTheme() in theme-cookie.ts.
+ * Progress · Past Sessions · Notes · Dark mode. current = the page showing; theme from readTheme() in theme-cookie.ts.
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
   const link = `text-sm leading-5 transition-colors duration-200 ${focusRing}`;
   return (
-    <header className={`flex items-center justify-between gap-4 ${className}`}>
+    <header className={`flex items-center justify-between gap-4 print:hidden ${className}`}>
       <h1 className="text-lg font-semibold leading-7">
         {current === "workspace" ? "Study Workspace" : <Link href="/" className={`hover:text-[var(--brand)] ${focusRing}`}>Study Workspace</Link>}
       </h1>
@@ -151,7 +152,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
 }
 
 /**
- * Page shell for the reading pages (Course Map, Progress, Past Sessions, Passage): the header sits in the
+ * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Passage): the header sits in the
  * same 6xl box as the workspace's, so the title and nav stay put between pages, and only the content
  * below it uses the narrower reading column.
  */
