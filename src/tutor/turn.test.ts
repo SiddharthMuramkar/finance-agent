@@ -53,12 +53,15 @@ describe("Tutor Turn", () => {
     expect(events).toEqual([
       { type: "text", text: "Present value " },
       { type: "text", text: "starts with a story." },
-      { type: "done", stopReason: "end_turn", usage: expect.any(Object) },
+      { type: "done", stopReason: "end_turn", usage: expect.any(Object), ref: { sessionId: expect.any(Number), turnSeq: 0 } },
     ]);
     expect(noUsage(await loadCurrentSession(db))).toEqual([
       { role: "user", text: "What is present value?" },
       { role: "assistant", text: "Present value starts with a story." },
     ]);
+    // The finished reply says where it sits, so it can be saved to notes.
+    const line = (await loadCurrentSession(db)).at(-1)!;
+    expect(line.ref).toEqual((events.at(-1) as { ref: unknown }).ref);
   });
 
   it("uses claude-opus-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {

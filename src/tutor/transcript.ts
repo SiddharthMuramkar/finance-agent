@@ -40,7 +40,10 @@ export async function turnText(rows: Row[], turnSeq: number, { db, map }: { db: 
   return text ? text + replyFold(marks, text, ctx) : text;
 }
 
-export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage };
+/** Which Session and turn a reply belongs to (the turn is the seq of the Learner's message that began it): what "Save to notes" keys on. */
+export type TurnRef = { sessionId: number; turnSeq: number };
+
+export type Line = { role: "user" | "assistant"; text: string; /** On a turn's last reply: what the turn cost. */ usage?: TurnUsage; /** On a reply: where it sits in its Session. */ ref?: TurnRef };
 
 /** The latest Session as plain text lines, for showing after a reload. No model call. */
 export async function loadCurrentSession(db: Db, map?: CourseMap): Promise<Line[]> {
@@ -97,7 +100,7 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap): P
     const last = lines.findLast((l) => l.role === "assistant" && l.turnSeq === seq);
     if (last) last.usage = usage;
   }
-  return lines.map((l) => ({ role: l.role, text: l.text, ...(l.usage && { usage: l.usage }) }));
+  return lines.map((l) => ({ role: l.role, text: l.text, ...(l.usage && { usage: l.usage }), ...(l.role === "assistant" && { ref: { sessionId, turnSeq: l.turnSeq! } }) }));
 }
 
 export function textOf(content: unknown): string {

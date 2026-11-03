@@ -2,7 +2,9 @@
 
 import { AssistantRuntimeProvider, MessagePrimitive, ThreadPrimitive, useAuiState, useExternalStoreRuntime, type ThreadMessageLike } from "@assistant-ui/react";
 import { createContext, useContext, type ReactNode } from "react";
+import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
+import { SaveToNotes } from "./save-to-notes";
 import { splitReply } from "@/widgets/split";
 import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
 import { UnderTheHood } from "./under-the-hood";
@@ -11,7 +13,7 @@ import type { WidgetItem } from "./widget-panel";
 // How a conversation's messages look, shared by the workspace and the old Session page: the Learner's
 // messages as bubbles on the right, the Tutor's replies as plain text with "Under the hood" beneath.
 
-export type Line = { role: "user" | "assistant"; text: string; usage?: TurnUsage };
+export type Line = { role: "user" | "assistant"; text: string; usage?: TurnUsage; /** Where a finished reply sits in its Session; it is what "Save to notes" keys on. */ ref?: TurnRef };
 export type ThreadLine = Line & { id: string };
 
 /** Every Widget in the conversation, numbered in order. Keys match the slot's `${messageId}:${index}`. */
@@ -22,13 +24,22 @@ export function widgetsIn(messages: ThreadLine[], running = false): WidgetItem[]
     const streaming = running && i === messages.length - 1;
     let k = 0;
     for (const s of splitReply(m.text, { streaming })) {
-      if (s.type === "widget") out.push({ key: `${m.id}:${k++}`, number: out.length + 1, code: s.code, complete: s.complete });
+      if (s.type === "widget") {
+        const widgetIndex = k++;
+        out.push({
+          key: `${m.id}:${widgetIndex}`,
+          number: out.length + 1,
+          code: s.code,
+          complete: s.complete,
+          ...(m.ref && !streaming && { save: { kind: "widget" as const, ...m.ref, widgetIndex } }),
+        });
+      }
     }
   });
   return out;
 }
 
-const ThreadContext = createContext<{ slot: WidgetSlot; usages: Map<string, TurnUsage> }>({ slot: () => null, usages: new Map() });
+const ThreadContext = createContext<{ slot: WidgetSlot; usages: Map<string, TurnUsage>; refs: Map<string, TurnRef> }>({ slot: () => null, usages: new Map(), refs: new Map() });
 
 function UserMessage() {
   return (
@@ -44,10 +55,17 @@ const Reply = () => <ReplyMarkdown slot={useContext(ThreadContext).slot} />;
 
 function AssistantMessage() {
   const id = useAuiState((s) => s.message.id);
-  const usage = useContext(ThreadContext).usages.get(id);
+  const { usages, refs } = useContext(ThreadContext);
+  const usage = usages.get(id);
+  const ref = refs.get(id);
   return (
     <MessagePrimitive.Root className="text-base leading-[26px]" data-testid="assistant-message">
       <MessagePrimitive.Parts components={{ Text: Reply }} />
+      {ref && (
+        <div className="mt-2">
+          <SaveToNotes target={{ kind: "reply", ...ref }} what="reply" />
+        </div>
+      )}
       {usage && <UnderTheHood usage={usage} />}
     </MessagePrimitive.Root>
   );
@@ -61,8 +79,9 @@ const MESSAGE_COMPONENTS = { UserMessage, AssistantMessage };
  */
 export function ThreadMessages({ lines, slot }: { lines: ThreadLine[]; slot: WidgetSlot }) {
   const usages = new Map(lines.flatMap((m) => (m.usage ? [[m.id, m.usage] as const] : [])));
+  const refs = new Map(lines.flatMap((m) => (m.ref && m.role === "assistant" ? [[m.id, m.ref] as const] : [])));
   return (
-    <ThreadContext.Provider value={{ slot, usages }}>
+    <ThreadContext.Provider value={{ slot, usages, refs }}>
       <ThreadPrimitive.Messages components={MESSAGE_COMPONENTS} />
     </ThreadContext.Provider>
   );
