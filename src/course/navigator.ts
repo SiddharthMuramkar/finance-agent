@@ -220,6 +220,185 @@ export function returnToDefaultPath(progress: Progress): Progress {
   return { ...progress, currentTopicId: null };
 }
 
+/** Each Teaching Step's name in plain words, as dividers, the strip and the Next chip show it. */
+export const STEP_NAMES: Record<TeachingStep, string> = {
+  story: "Story",
+  concept: "Concept",
+  explore: "Explore",
+  your_turn: "Your turn",
+  check: "Check",
+  reveal: "Reveal",
+  principle: "Principle",
+};
+
+/** A Check as the Learner sees it: its id and its number in the Topic's current order (Check 1, Check 2…). */
+export type NumberedCheck = { id: string; number: number };
+
+/** One numbered position in a Topic's step sequence. */
+export type StepPosition = {
+  step: TeachingStep;
+  /** The Check this step belongs to on the strip; null for story, reveal, principle and an explore not tied to a Check. */
+  check: NumberedCheck | null;
+  /** 1-based position in the sequence. */
+  number: number;
+  /** "Step k of N · <step>", as a divider shows it. */
+  label: string;
+};
+
+export type StepSequence = {
+  topicId: string;
+  /** True for a passed Topic's Due Check run, which lists only its due steps. */
+  dueRun: boolean;
+  steps: StepPosition[];
+  /** Index in `steps` of the Learner's place; null in a passed Topic with nothing due. */
+  current: number | null;
+  /** The steps grouped for the strip: one group per Check, and ungrouped runs (check null) before and after. */
+  groups: { check: NumberedCheck | null; steps: StepPosition[] }[];
+};
+
+/**
+ * Whether explore sits just before the reveal: the Learner passed the Check that tests the Insight
+ * before the Insight existed, so it was never taught after that Check's concept. Once that late explore
+ * is settled and finished, the record no longer tells the two apart and explore is listed in its usual place.
+ */
+function lateExplore(topic: Topic, record: TopicProgress): boolean {
+  return Boolean(topic.explore) && record.passedChecks.includes(topic.explore!.before) && (!record.insight || record.step === "explore");
+}
+
+/**
+ * The numbered Teaching Steps of a Topic for this Learner's record: story; concept, your turn and Check
+ * for each Check; explore once (only with an Insight), after the concept of the Check that tests it, or
+ * just before the reveal for a Learner who passed that Check before the Insight existed; then reveal and
+ * principle. A passed Topic with a Due Check (or a due explore) lists only the due steps. Null for a
+ * Topic not on the Course Map.
+ */
+export function stepSequence(map: CourseMap, progress: Progress, topicId: string): StepSequence | null {
+  const topic = map.topic(topicId);
+  if (!topic) return null;
+  const record = progress.topics[topicId] ?? FRESH;
+  const numbered = (c: Check): NumberedCheck => ({ id: c.id, number: topic.checks.indexOf(c) + 1 });
+  const due = dueIn(topic, record);
+  const dueRun = due.length > 0 || exploreDue(topic, record);
+  const late = lateExplore(topic, record);
+
+  const raw: { step: TeachingStep; check: NumberedCheck | null }[] = [];
+  const perCheck = (c: Check, withExplore: boolean) => {
+    const check = numbered(c);
+    raw.push({ step: "concept", check });
+    if (withExplore) raw.push({ step: "explore", check });
+    raw.push({ step: "your_turn", check }, { step: "check", check });
+  };
+  if (dueRun) {
+    if (exploreDue(topic, record)) raw.push({ step: "explore", check: null });
+    for (const c of due) perCheck(c, false);
+  } else {
+    raw.push({ step: "story", check: null });
+    for (const c of topic.checks) perCheck(c, !late && c.id === topic.explore?.before);
+    if (late) raw.push({ step: "explore", check: null });
+    raw.push({ step: "reveal", check: null }, { step: "principle", check: null });
+  }
+
+  const steps = raw.map((s, i) => ({ ...s, number: i + 1, label: `Step ${i + 1} of ${raw.length} · ${STEP_NAMES[s.step]}` }));
+  const groups: StepSequence["groups"] = [];
+  for (const s of steps) {
+    const last = groups[groups.length - 1];
+    if (last && last.check?.id === s.check?.id) last.steps.push(s);
+    else groups.push({ check: s.check, steps: [s] });
+  }
+
+  let current: number | null = null;
+  if (record.status !== "passed" || dueRun) {
+    const place = placeIn(topic, record);
+    const index = steps.findIndex((s) => s.step === place.step && (s.step === "explore" || (s.check?.id ?? null) === (place.check?.id ?? null)));
+    current = index >= 0 ? index : null;
+  }
+  return { topicId, dueRun, steps, current, groups };
+}
+
+/** What the Learner's Next chip offers. The arrow is the page's to draw. */
+export type NextOffer =
+  /** Next names a step. `advances` is false for a step not yet begun (reached after a quiz pass): taking it teaches that step without moving on. */
+  | { kind: "next"; step: TeachingStep; label: string; advances: boolean }
+  /** At Principle (or the end of a Due Check run): taking it passes the Topic. */
+  | { kind: "complete"; label: "Complete this Topic" }
+  /** At Explore before the Insight is found or told: the chip posts "Just tell me." as the Learner's message; it is not a Next. */
+  | { kind: "just_tell_me"; label: "Just tell me" };
+
+/** Whether the Learner's current step has begun, i.e. a Tutor turn has taught it. Callers know this; progress does not. */
+export type StepState = { begun: boolean };
+
+/**
+ * The Next the Learner may take now, or null when there is none: while a Check is open (a miss keeps
+ * it open), or once every Topic is passed.
+ */
+export function nextOffer(map: CourseMap, progress: Progress, { begun }: StepState): NextOffer | null {
+  const place = navigate(map, progress);
+  if (!place || place.step === "check") return null;
+  if (!begun) return { kind: "next", step: place.step, label: `Next: ${STEP_NAMES[place.step]}`, advances: false };
+  if (place.step === "explore" && !progress.topics[place.topic.id]?.insight) return { kind: "just_tell_me", label: "Just tell me" };
+  // In a passed Topic the step after the last due step is its old principle: the run is over.
+  if (place.next === "topic_passed" || (place.status === "passed" && place.next === "principle")) return { kind: "complete", label: "Complete this Topic" };
+  return { kind: "next", step: place.next, label: `Next: ${STEP_NAMES[place.next]}`, advances: true };
+}
+
+export type NextMove =
+  /** `teach` is the numbered step the Tutor now teaches; null once the Topic is passed (nothing more is started). */
+  | { ok: true; progress: Progress; teach: StepPosition | null }
+  | { ok: false; reason: string };
+
+/**
+ * The Learner takes Next. `named` is the step the chip named, or "complete". Code checks it is the Next
+ * on offer: never past a Check without a saved pass, never past an unsettled Explore. A step not yet
+ * begun is taught without moving on; otherwise the current step finishes and the following one is taught.
+ */
+export function takeNext(map: CourseMap, progress: Progress, named: TeachingStep | "complete", state: StepState): NextMove {
+  const place = navigate(map, progress);
+  const offer = nextOffer(map, progress, state);
+  if (!place || !offer) {
+    return { ok: false, reason: place?.step === "check" ? "A Check is open: only a saved pass moves past it." : "There is no Next to take." };
+  }
+  if (offer.kind === "just_tell_me") return { ok: false, reason: "Explore is not settled: the Learner has not found the Insight or been told it." };
+  const offered = offer.kind === "complete" ? "complete" : offer.step;
+  if (named !== offered) return { ok: false, reason: `Next names "${offered}", not "${named}".` };
+  if (offer.kind === "next" && !offer.advances) return { ok: true, progress, teach: positionOf(map, progress, place.topic.id) };
+  const moved = finishStep(map, progress, place.step);
+  if (!moved.ok) return moved;
+  return { ok: true, progress: moved.progress, teach: offer.kind === "complete" ? null : positionOf(map, moved.progress, place.topic.id) };
+}
+
+/** The Learner's numbered place in a Topic's step sequence. */
+function positionOf(map: CourseMap, progress: Progress, topicId: string): StepPosition | null {
+  const seq = stepSequence(map, progress, topicId);
+  return seq && seq.current !== null ? seq.steps[seq.current] : null;
+}
+
+/** Where the Learner goes from Home, the Recommended next card and the Topic complete card. The arrow is the page's to draw. */
+export type ComingNext =
+  /** The Topic the Learner chose (or started) and has not passed. */
+  | { kind: "chosen"; topic: Topic; label: string }
+  /** A passed Topic's Due Check, or its due Explore (check null). */
+  | { kind: "due"; topic: Topic; check: NumberedCheck | null; label: string }
+  /** The next unpassed Topic on the default path. */
+  | { kind: "next_topic"; topic: Topic; label: string };
+
+/**
+ * What comes next, in order: a chosen Topic not yet passed; else a Due Check ("New in <Topic>: Check N",
+ * or "New in <Topic>: Explore", which a Due Check run takes first); else the next unpassed Topic on the
+ * default path ("Next Topic: <title>"). Null once every Topic is passed.
+ */
+export function whatComesNext(map: CourseMap, progress: Progress): ComingNext | null {
+  const chosen = progress.currentTopicId ? map.topic(progress.currentTopicId) : undefined;
+  if (chosen && !isPassed(progress, chosen.id)) return { kind: "chosen", topic: chosen, label: `Resume: ${chosen.title}` };
+  const place = navigate(map, progress);
+  if (!place) return null;
+  const record = progress.topics[place.topic.id];
+  if (place.status !== "passed" || !record) return { kind: "next_topic", topic: place.topic, label: `Next Topic: ${place.topic.title}` };
+  if (exploreDue(place.topic, record)) return { kind: "due", topic: place.topic, check: null, label: `New in ${place.topic.title}: Explore` };
+  const due = dueIn(place.topic, record)[0];
+  const check = { id: due.id, number: place.topic.checks.indexOf(due) + 1 };
+  return { kind: "due", topic: place.topic, check, label: `New in ${place.topic.title}: Check ${check.number}` };
+}
+
 export type TopicOverview = {
   id: string;
   title: string;

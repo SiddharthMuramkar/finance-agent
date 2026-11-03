@@ -1,9 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { parseCourseMap, type CourseMap } from "./map";
-import { courseOverview, finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, reviewsDue, type Progress, type TopicProgress } from "./navigator";
+import { loadCourseMap, parseCourseMap, type CourseMap } from "./map";
+import {
+  courseOverview,
+  finishStep,
+  jumpTo,
+  navigate,
+  recordCheckResult,
+  returnToDefaultPath,
+  reviewsDue,
+  nextOffer,
+  stepSequence,
+  takeNext,
+  whatComesNext,
+  type Progress,
+  type TopicProgress,
+} from "./navigator";
 
-function topicFile(id: string, path: number, checks: { id: string; required?: boolean }[], prerequisites: string[] = []) {
-  const text = [
+function topicFile(
+  id: string,
+  path: number,
+  checks: { id: string; required?: boolean }[],
+  prerequisites: string[] = [],
+  explore?: { before: string; requiredWhenPassed?: boolean },
+) {
+  const lines = [
     `id: ${id}`,
     `title: Topic ${id}`,
     "stage: foundation",
@@ -17,8 +37,20 @@ function topicFile(id: string, path: number, checks: { id: string; required?: bo
     ...checks.map(
       (c) => `  - { id: ${c.id}, kind: conversation, prompt: Q, passCriteria: A, required: ${c.required ?? false} }`,
     ),
-  ].join("\n");
-  return { name: `${id}.yaml`, text };
+  ];
+  if (explore) {
+    lines.push(
+      "insight:",
+      "  question: What do you notice?",
+      "  written: Later payments shrink.",
+      "  foundWhen: The Learner says later payments shrink.",
+      "  hints: [Look at the far bars., Compare now with later.]",
+      "explore:",
+      `  before: ${explore.before}`,
+      `  requiredWhenPassed: ${explore.requiredWhenPassed ?? false}`,
+    );
+  }
+  return { name: `${id}.yaml`, text: lines.join("\n") };
 }
 
 function courseMap(...files: ReturnType<typeof topicFile>[]): CourseMap {
@@ -335,6 +367,219 @@ describe("Course Navigator", () => {
       const edited = courseMap(topicFile("pv", 20, [{ id: "pv-1" }, { id: "pv-2" }], ["compounding"]), topicFile("compounding", 10, [{ id: "co-1" }]));
       expect(navigate(edited, halfway)).toMatchObject({ topic: { id: "pv" }, unmetPrerequisites: ["compounding"] });
     });
+  });
+});
+
+describe("Teaching Steps: the step sequence", () => {
+  const labels = (map: CourseMap, progress: Progress, topicId: string) => stepSequence(map, progress, topicId)!.steps.map((s) => s.label);
+
+  it("numbers Percent's nine steps, with Step 2 of 9 · Concept second", () => {
+    const course = loadCourseMap();
+    expect(labels(course, empty, "num-percent-bps")).toEqual([
+      "Step 1 of 9 · Story",
+      "Step 2 of 9 · Concept",
+      "Step 3 of 9 · Your turn",
+      "Step 4 of 9 · Check",
+      "Step 5 of 9 · Concept",
+      "Step 6 of 9 · Your turn",
+      "Step 7 of 9 · Check",
+      "Step 8 of 9 · Reveal",
+      "Step 9 of 9 · Principle",
+    ]);
+  });
+
+  const insightMap = courseMap(
+    topicFile("plain", 10, [{ id: "pl-1" }]),
+    topicFile("annuity", 20, [{ id: "an-1" }, { id: "an-2" }], [], { before: "an-2" }),
+  );
+
+  it("puts Explore once, only in a Topic with an Insight, after the Concept of the Check that tests it", () => {
+    expect(labels(insightMap, empty, "plain")).toEqual([
+      "Step 1 of 6 · Story",
+      "Step 2 of 6 · Concept",
+      "Step 3 of 6 · Your turn",
+      "Step 4 of 6 · Check",
+      "Step 5 of 6 · Reveal",
+      "Step 6 of 6 · Principle",
+    ]);
+    expect(labels(insightMap, empty, "annuity")).toEqual([
+      "Step 1 of 10 · Story",
+      "Step 2 of 10 · Concept",
+      "Step 3 of 10 · Your turn",
+      "Step 4 of 10 · Check",
+      "Step 5 of 10 · Concept",
+      "Step 6 of 10 · Explore",
+      "Step 7 of 10 · Your turn",
+      "Step 8 of 10 · Check",
+      "Step 9 of 10 · Reveal",
+      "Step 10 of 10 · Principle",
+    ]);
+  });
+
+  it("groups the steps by Check for the strip", () => {
+    const groups = stepSequence(insightMap, empty, "annuity")!.groups.map((g) => [g.check ? `Check ${g.check.number}` : null, g.steps.map((s) => s.step)]);
+    expect(groups).toEqual([
+      [null, ["story"]],
+      ["Check 1", ["concept", "your_turn", "check"]],
+      ["Check 2", ["concept", "explore", "your_turn", "check"]],
+      [null, ["reveal", "principle"]],
+    ]);
+  });
+
+  it("marks the Learner's place, which moves along as steps finish", () => {
+    const start = { currentTopicId: "annuity", topics: {} };
+    expect(stepSequence(insightMap, start, "annuity")!.current).toBe(0);
+    const atExplore = play(insightMap, start, ["story", "concept", "your_turn", { pass: "an-1" }, "concept"]);
+    const seq = stepSequence(insightMap, atExplore, "annuity")!;
+    expect(seq.steps[seq.current!].label).toBe("Step 6 of 10 · Explore");
+  });
+
+  it("for a Learner who passed the Insight's Check before the Insight existed, puts Explore just before Reveal", () => {
+    // Before the Insight was written, the Checks were in the other order and the Learner passed an-2 first.
+    const before = courseMap(topicFile("plain", 10, [{ id: "pl-1" }]), topicFile("annuity", 20, [{ id: "an-2" }, { id: "an-1" }]));
+    const pastAnchor = play(before, { currentTopicId: "annuity", topics: {} }, ["story", "concept", "your_turn", { pass: "an-2" }]);
+    const seq = stepSequence(insightMap, pastAnchor, "annuity")!;
+    expect(seq.steps.map((s) => s.step)).toEqual(["story", "concept", "your_turn", "check", "concept", "your_turn", "check", "explore", "reveal", "principle"]);
+    expect(seq.groups.at(-1)!.steps.map((s) => s.step)).toEqual(["explore", "reveal", "principle"]);
+    expect(seq.steps[seq.current!]).toMatchObject({ step: "concept", check: { number: 1 } });
+    const atLateExplore = play(insightMap, pastAnchor, ["concept", "your_turn", { pass: "an-1" }]);
+    const late = stepSequence(insightMap, atLateExplore, "annuity")!;
+    expect(late.steps[late.current!].label).toBe("Step 8 of 10 · Explore");
+  });
+
+  it("lists only the due steps in a Due Check run", () => {
+    const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+    const required = courseMap(topicFile("compounding", 10, [{ id: "co-1" }, { id: "co-2", required: true }]), topicFile("pv", 20, [{ id: "pv-1" }]));
+    const run = stepSequence(required, done, "compounding")!;
+    expect(run).toMatchObject({ dueRun: true, current: 0 });
+    expect(run.steps.map((s) => s.label)).toEqual(["Step 1 of 3 · Concept", "Step 2 of 3 · Your turn", "Step 3 of 3 · Check"]);
+    expect(run.groups).toEqual([{ check: { id: "co-2", number: 2 }, steps: run.steps }]);
+
+    const exploreAdded = courseMap(topicFile("compounding", 10, [{ id: "co-1" }], [], { before: "co-1", requiredWhenPassed: true }), topicFile("pv", 20, [{ id: "pv-1" }]));
+    expect(stepSequence(exploreAdded, done, "compounding")!.steps.map((s) => s.label)).toEqual(["Step 1 of 1 · Explore"]);
+  });
+
+  it("lists a passed Topic with nothing due in full, with no place in it", () => {
+    const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+    expect(stepSequence(twoChecks, done, "compounding")).toMatchObject({ dueRun: false, current: null });
+    expect(stepSequence(twoChecks, done, "compounding")!.steps).toHaveLength(6);
+    expect(stepSequence(twoChecks, done, "nowhere")).toBeNull();
+  });
+});
+
+describe("Teaching Steps: the Learner's Next", () => {
+  const insightMap = courseMap(topicFile("annuity", 10, [{ id: "an-1" }, { id: "an-2" }], [], { before: "an-2" }));
+  const start: Progress = { currentTopicId: "annuity", topics: {} };
+  const begun = { begun: true };
+
+  it("names the step that follows the one being taught", () => {
+    expect(nextOffer(insightMap, start, begun)).toEqual({ kind: "next", step: "concept", label: "Next: Concept", advances: true });
+    const atYourTurn = play(insightMap, start, ["story", "concept"]);
+    expect(nextOffer(insightMap, atYourTurn, begun)).toMatchObject({ kind: "next", step: "check", label: "Next: Check" });
+  });
+
+  it("reads Complete this Topic at Principle", () => {
+    const atPrinciple = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal"]);
+    expect(nextOffer(twoChecks, atPrinciple, begun)).toEqual({ kind: "complete", label: "Complete this Topic" });
+  });
+
+  it("reads Just tell me at Explore until the Insight is settled, then names Your turn", () => {
+    const atExplore = play(insightMap, start, ["story", "concept", "your_turn", { pass: "an-1" }, "concept"]);
+    expect(nextOffer(insightMap, atExplore, begun)).toEqual({ kind: "just_tell_me", label: "Just tell me" });
+    const settled: Progress = { ...atExplore, topics: { annuity: { ...atExplore.topics.annuity, insight: "told" } } };
+    expect(nextOffer(insightMap, settled, begun)).toMatchObject({ kind: "next", step: "your_turn", label: "Next: Your turn" });
+  });
+
+  it("offers no Next while a Check is open, nor after a miss", () => {
+    const atCheck = play(insightMap, start, ["story", "concept", "your_turn"]);
+    expect(nextOffer(insightMap, atCheck, begun)).toBeNull();
+    expect(nextOffer(insightMap, atCheck, { begun: false })).toBeNull();
+    const missed = play(insightMap, atCheck, [{ fail: "an-1" }]);
+    expect(nextOffer(insightMap, missed, begun)).toBeNull();
+  });
+
+  it("after a quiz pass, names the step not yet begun, and taking it teaches that step without moving on", () => {
+    const passed = play(insightMap, start, ["story", "concept", "your_turn", { pass: "an-1" }]);
+    expect(nextOffer(insightMap, passed, { begun: false })).toEqual({ kind: "next", step: "concept", label: "Next: Concept", advances: false });
+    const taken = takeNext(insightMap, passed, "concept", { begun: false });
+    expect(taken).toMatchObject({ ok: true, teach: { step: "concept", label: "Step 5 of 10 · Concept" } });
+    if (taken.ok) expect(taken.progress).toEqual(passed);
+  });
+
+  it("taking Next moves on one step and says which numbered step to teach", () => {
+    const taken = takeNext(insightMap, start, "concept", begun);
+    expect(taken).toMatchObject({ ok: true, teach: { step: "concept", label: "Step 2 of 10 · Concept" } });
+    if (taken.ok) expect(navigate(insightMap, taken.progress)?.step).toBe("concept");
+  });
+
+  it("taking Complete this Topic passes the Topic and teaches nothing more", () => {
+    const atPrinciple = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal"]);
+    const taken = takeNext(twoChecks, atPrinciple, "complete", begun);
+    expect(taken).toMatchObject({ ok: true, teach: null });
+    if (taken.ok) expect(taken.progress.topics.compounding.status).toBe("passed");
+  });
+
+  it("ends a Due Check run of Explore alone with Complete this Topic, leaving the Topic passed", () => {
+    const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+    const exploreAdded = courseMap(topicFile("compounding", 10, [{ id: "co-1" }], [], { before: "co-1", requiredWhenPassed: true }), topicFile("pv", 20, [{ id: "pv-1" }]));
+    expect(nextOffer(exploreAdded, done, begun)).toEqual({ kind: "just_tell_me", label: "Just tell me" });
+    const settled: Progress = { ...done, topics: { compounding: { ...done.topics.compounding, insight: "found", step: "explore" } } };
+    expect(nextOffer(exploreAdded, settled, begun)).toEqual({ kind: "complete", label: "Complete this Topic" });
+    const taken = takeNext(exploreAdded, settled, "complete", begun);
+    expect(taken).toMatchObject({ ok: true, teach: null });
+    if (taken.ok) expect(navigate(exploreAdded, taken.progress)).toMatchObject({ topic: { id: "pv" }, dueChecks: [] });
+  });
+
+  it("never lets Next past a Check without a saved pass, past an unsettled Explore, or onto a step it does not name", () => {
+    const atCheck = play(insightMap, start, ["story", "concept", "your_turn"]);
+    expect(takeNext(insightMap, atCheck, "concept", begun)).toEqual({ ok: false, reason: "A Check is open: only a saved pass moves past it." });
+    const missed = play(insightMap, atCheck, [{ fail: "an-1" }]);
+    expect(takeNext(insightMap, missed, "concept", begun)).toMatchObject({ ok: false });
+    const atExplore = play(insightMap, start, ["story", "concept", "your_turn", { pass: "an-1" }, "concept"]);
+    expect(takeNext(insightMap, atExplore, "your_turn", begun)).toEqual({
+      ok: false,
+      reason: "Explore is not settled: the Learner has not found the Insight or been told it.",
+    });
+    expect(takeNext(insightMap, start, "reveal", begun)).toEqual({ ok: false, reason: 'Next names "concept", not "reveal".' });
+  });
+});
+
+describe("What comes next", () => {
+  const passedCompounding = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+  const dueCheck = courseMap(
+    topicFile("compounding", 10, [{ id: "co-1" }, { id: "co-2", required: true }]),
+    topicFile("pv", 20, [{ id: "pv-1" }]),
+    topicFile("statements", 30, [{ id: "st-1" }]),
+  );
+
+  it("is a chosen Topic the Learner has not passed, first of all", () => {
+    const jump = jumpTo(dueCheck, passedCompounding, "statements");
+    if (!jump.ok) throw new Error(jump.reason);
+    expect(whatComesNext(dueCheck, jump.progress)).toMatchObject({ kind: "chosen", topic: { id: "statements" }, label: "Resume: Topic statements" });
+  });
+
+  it("else a Due Check, named by its Topic and number", () => {
+    expect(whatComesNext(dueCheck, passedCompounding)).toMatchObject({
+      kind: "due",
+      topic: { id: "compounding" },
+      check: { id: "co-2", number: 2 },
+      label: "New in Topic compounding: Check 2",
+    });
+  });
+
+  it("else a due Explore, named as such", () => {
+    const exploreAdded = courseMap(topicFile("compounding", 10, [{ id: "co-1" }], [], { before: "co-1", requiredWhenPassed: true }), topicFile("pv", 20, [{ id: "pv-1" }]));
+    expect(whatComesNext(exploreAdded, passedCompounding)).toMatchObject({ kind: "due", check: null, label: "New in Topic compounding: Explore" });
+  });
+
+  it("else the next unpassed Topic on the default path", () => {
+    expect(whatComesNext(twoChecks, passedCompounding)).toMatchObject({ kind: "next_topic", topic: { id: "pv" }, label: "Next Topic: Topic pv" });
+    expect(whatComesNext(twoChecks, empty)).toMatchObject({ kind: "next_topic", topic: { id: "compounding" } });
+  });
+
+  it("is nothing once every Topic is passed", () => {
+    const passed: TopicProgress = { step: "principle", passedChecks: [], revealShown: true, status: "passed" };
+    expect(whatComesNext(twoChecks, { currentTopicId: null, topics: { pv: passed, statements: passed, compounding: passed } })).toBeNull();
   });
 });
 
