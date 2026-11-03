@@ -28,7 +28,7 @@ export function OldSession({
 }: {
   lines: OldLine[];
   topicTitle?: string;
-  explore?: { code: string } | null;
+  explore?: { code: string; id?: string } | null;
   /** The Topic's written-ahead Widgets (loadWrittenAhead): one the Tutor opened in this Session is drawn from these. */
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen, for the page's shared Case Data cache. */
@@ -49,7 +49,7 @@ export function OldSession({
     <CaseDataProvider revealed={revealed}>
       <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] items-start gap-6 lg:gap-8" data-testid="old-session">
         <div className="flex min-h-0 min-w-0 flex-col gap-4">
-          {explore && <PinnedExplore item={exploreItem(explore.code, sessionId)} />}
+          {explore && <PinnedExplore item={exploreItem(explore.code, sessionId, explore.id)} />}
           <div className="min-h-0 flex-1 overflow-y-auto">
             <DeveloperDetails on={developerDetails}>
               <ReadOnlyThread lines={lines} slot={slot} />

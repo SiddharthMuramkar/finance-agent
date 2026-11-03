@@ -38,15 +38,22 @@ export const holdsKey = (item: WidgetItem, key: string | undefined): boolean => 
 /**
  * The Widgets with each update made in place: a Tutor Widget with the same title as an earlier one takes that
  * one's tab (its place in the list) instead of adding a tab, and keeps the earlier keys, so the earlier reply's
- * chip opens it too. The explore Widget is never matched.
+ * chip opens it too. The explore Widget is never matched by title, but it is one Widget with the written-ahead
+ * Widget it is: when the Tutor opens that one too, the two share one tab, the explore Widget's, and its chip opens it.
  */
 export function updatedInPlace(widgets: readonly WidgetItem[]): WidgetItem[] {
   const out: { item: WidgetItem; title: string | undefined }[] = [];
   for (const item of widgets) {
     const title = item.explore ? undefined : widgetParts(item.code).title?.trim() || undefined;
-    const at = title ? out.findIndex((o) => o.title === title) : -1;
-    if (at === -1) out.push({ item, title });
-    else out[at] = { item: { ...item, replaces: [...(out[at].item.replaces ?? []), out[at].item.key] }, title };
+    const at = out.findIndex((o) => (title && o.title === title) || (!!item.writtenAhead && o.item.writtenAhead === item.writtenAhead));
+    if (at === -1) {
+      out.push({ item, title });
+      continue;
+    }
+    const earlier = out[at].item;
+    const kept = earlier.explore && !item.explore ? earlier : item;
+    const other = kept === item ? earlier : item;
+    out[at] = { item: { ...kept, replaces: [...new Set([...(earlier.replaces ?? []), ...(item.replaces ?? []), other.key])] }, title: out[at].title ?? title };
   }
   return out.map((o) => o.item);
 }
@@ -79,13 +86,17 @@ function useLaptopWidth(): boolean {
   return useSyncExternalStore(watchWidth, () => window.matchMedia(LAPTOP).matches, () => server);
 }
 
-/** The Topic's explore Widget as a panel item. In an old Session, `sessionId` tells the server which Topic it was played under. */
-export const exploreItem = (code: string, sessionId?: number): WidgetItem => ({
+/**
+ * The Topic's explore Widget as a panel item: a written-ahead Widget (`id`), so its work is saved under that id. In an
+ * old Session, `sessionId` tells the server which Topic it was played under.
+ */
+export const exploreItem = (code: string, sessionId?: number, id?: string): WidgetItem => ({
   key: EXPLORE_KEY,
   number: 0,
   code,
   complete: true,
   explore: true,
+  ...(id && { writtenAhead: id }),
   save: { kind: "widget", widgetIndex: -1, ...(sessionId !== undefined && { sessionId }) },
 });
 
@@ -228,8 +239,8 @@ export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?:
  * The Tutor's Widgets with the explore Widget among them, standing after the first `after` of them (those
  * drawn before explore began), so a newer Widget from the Tutor still opens on its own after it.
  */
-export function withExplore(widgets: WidgetItem[], explore: { code: string } | null | undefined, after: number, sessionId?: number): WidgetItem[] {
-  return explore ? [...widgets.slice(0, after), exploreItem(explore.code, sessionId), ...widgets.slice(after)] : widgets;
+export function withExplore(widgets: WidgetItem[], explore: { code: string; id?: string } | null | undefined, after: number, sessionId?: number): WidgetItem[] {
+  return explore ? [...widgets.slice(0, after), exploreItem(explore.code, sessionId, explore.id), ...widgets.slice(after)] : widgets;
 }
 
 /**
@@ -303,7 +314,8 @@ export function widgetName(item: WidgetItem): string {
 
 /** The chip standing where a Widget belongs in a reply: "Open: <title> →"; it shows that Widget in the panel. */
 export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active: boolean; onPick: (key: string) => void }) {
-  const name = widgetName(item);
+  // A chip the Tutor's open_widget left names the Widget by title, even when it is the explore Widget's tab.
+  const name = (item.writtenAhead && widgetParts(item.code).title?.trim()) || widgetName(item);
   return (
     <span className="my-3 block">
       <Chip active={active} onClick={() => onPick(item.key)} data-testid="widget-chip" className="max-w-full" title={name}>

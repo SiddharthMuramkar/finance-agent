@@ -4,7 +4,7 @@ import { currentLearner } from "@/auth/session";
 import { DEMO_PROGRESS, isDemoMode } from "../_landing/demo-mode";
 import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
-import { exploreWidgetFor } from "@/course/explore-widget";
+import { exploreAsSeen, exploreWidgetFor } from "@/course/explore-widget";
 import { courseOverview, stepSequence, whatComesNext } from "@/course/navigator";
 import { topicStart } from "@/course/topic-start";
 import { revealedCases } from "@/case-data/case-data";
@@ -122,7 +122,10 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         pending={pending}
         review={review}
         place={place}
-        explore={passed ? null : exploreWidgetFor(map, progress)}
+        // The explore Widget is one of the written-ahead Widgets: drawn as the Learner sees it now, saved under its id.
+        explore={passed ? null : exploreAsSeen(exploreWidgetFor(map, progress), writtenAhead)}
+        // Until the shown Topic's Insight is settled, its Widgets hold back what would give it away.
+        insightSettled={!!current && progress.topics[current.id]?.insight !== undefined}
         writtenAhead={writtenAhead}
         revealed={revealedCases(map, progress)}
         shown={shown}

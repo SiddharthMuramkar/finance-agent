@@ -141,13 +141,25 @@ describe("the readouts code works out for the Tutor", () => {
       },
     ]);
     await atExplore(db);
-    const asked = await turn(db, "Which is better?", [say("Look at the Widget.")], { widgets: { explore: { values: { $rate: 3.5 }, ticked: [] } } }, withInsight);
+    const asked = await turn(db, "Which is better?", [say("Look at the Widget.")], { widgets: { "annuity-worth-today": { values: { $rate: 3.5 }, ticked: [] } } }, withInsight);
     const request = sent(asked.requests[0]);
     expect(request).toContain("(the Topic's explore Widget)");
     expect(request).toContain("Interest rate (discount rate): 3.5%");
     expect(request).toContain("Sum of payments: $1.537 billion");
     expect(request).toContain("Worth today at 3.5%: $861.7 million");
     expect(request).toContain("Cash option: $877.8 million (sourced, 2018-10-23)");
+  });
+
+  it("lists the annuity Widget once when the Tutor reopens it at explore: it is the explore Widget, under one key", async () => {
+    const db = await testDb();
+    await atExplore(db);
+    const open = { content: [{ type: "tool_use", id: "toolu_open", name: "open_widget", input: { id: "annuity-worth-today" } }] } as ScriptedReply;
+    await turn(db, "Show me the annuity again.", [open, say("It is on the right.")], {}, withInsight);
+    const asked = await turn(db, "What rate is set?", [say("4%.")], { widgets: { "annuity-worth-today": { values: { $rate: 4 }, ticked: [] } } }, withInsight);
+    const request = sent(asked.requests[0]);
+    const block = request.slice(request.lastIndexOf("Widgets by code:"));
+    expect(block.split('\\"What the annuity is worth today\\"').length - 1).toBe(1);
+    expect(block).toContain("Interest rate (discount rate): 4%");
   });
 
   it("gives a Calculator's and a Formula Card's results at the slider's value", async () => {
