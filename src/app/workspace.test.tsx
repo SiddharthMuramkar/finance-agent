@@ -211,6 +211,26 @@ describe("the Widget panel", () => {
     expect(panel).not.toContain("Loan amount");
   });
 
+  it("replaces a Widget in its own tab when the Tutor draws one with the same title, adding no new tab", () => {
+    const updated = SLIDER_ONLY.replace('"Discount rate"', '"Loan rate"');
+    const initial: Line[] = [
+      { role: "assistant", text: fence(SLIDER_ONLY) },
+      { role: "assistant", text: fence(CALC) },
+      { role: "assistant", text: `Here it is again.\n\n${fence(updated)}` },
+    ];
+    const html = workspace({ initial });
+    const panel = html.slice(html.indexOf('data-testid="widget-pane"'));
+    const row = panel.slice(panel.indexOf('aria-label="Widgets in this Session"'), panel.indexOf("</div>", panel.indexOf('aria-label="Widgets in this Session"')));
+    // Two tabs, the updated Widget still first, where "Pick a rate" was.
+    expect([...row.matchAll(/<button[^>]*title="([^"]*)"/g)].map((m) => m[1])).toEqual(["Pick a rate", "What a home loan costs"]);
+    // The newest drawing shows, in the updated Widget's tab.
+    expect(text(panel)).toContain("Loan rate");
+    expect(text(panel)).not.toContain("Discount rate");
+    // Both replies' chips open the one Widget.
+    const chat = text(html.slice(0, html.indexOf('data-testid="widget-pane"')));
+    expect(chat.match(/Open: Pick a rate →/g)).toHaveLength(2);
+  });
+
   it("shows a chip per Widget title only once there are two or more", () => {
     const two = text(renderToStaticMarkup(<WidgetPanel widgets={items} shown={items[1]} onPick={() => {}} />));
     expect(two).toContain("Long-term interest rates");
