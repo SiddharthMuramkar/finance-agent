@@ -10,7 +10,7 @@ import { topicTitleIn } from "./session-summary";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentTopicId, liveSession, type Message, type Row } from "./session-log";
-import { OPENER_PREFIX } from "./turn-status";
+import { isCodeWritten } from "./turn-status";
 import { loadTurnUsages, type TurnUsage } from "./usage";
 import { loadSessionItems, type StoredItem } from "./session-items";
 
@@ -113,6 +113,8 @@ async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefi
   // The widgets the last correction message named, while its corrected reply is awaited.
   let correcting: number[] | null = null;
   let turnSeq = 0;
+  // The last row drawn-or-skipped was a code-written note, so the next reply starts its own line.
+  let newTurn = false;
   const rows = await db
     .select({ seq: messages.seq, role: messages.role, content: messages.content })
     .from(messages)
@@ -142,19 +144,23 @@ async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefi
       correcting = flaggedWidgets(text);
       continue;
     }
-    // An opener's note is written by code, not the Learner: it starts the turn but is never drawn as a bubble.
-    if (m.role === "user" && text.startsWith(OPENER_PREFIX)) {
+    // A note code wrote (an opener's, a Next's) is not the Learner's: it starts the turn but is never drawn as a bubble.
+    if (m.role === "user" && isCodeWritten(text)) {
       turnSeq = m.seq;
+      newTurn = true;
       continue;
     }
     const flagged = correcting ?? undefined;
     correcting = null;
     const last = lines.at(-1);
+    // A reply after a code-written note is a new turn's: it never carries on the reply before the note.
+    const continues = !newTurn;
+    newTurn = false;
     if (fix) {
       const target = lines.findLast((l) => l.role === "assistant");
       if (target) target.text = replaceBrokenWidgets(target.text, text, flagged);
       else push({ role: m.role, text, turnSeq, marks });
-    } else if (m.role === "assistant" && last?.role === "assistant") {
+    } else if (m.role === "assistant" && last?.role === "assistant" && continues) {
       // Items waiting here fall inside this reply: marked in its text, which is cut there once the reply is complete.
       last.text += (waiting.length ? waiting.splice(0).map(itemMark).join("") : PARAGRAPH) + text;
       last.topic = topic;

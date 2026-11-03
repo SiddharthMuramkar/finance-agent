@@ -17,13 +17,27 @@ export type Turn = typeof turns.$inferSelect;
  */
 export const OPENER_PREFIX = "Opener by code:";
 
-/** What started a turn: the Learner's own message, or an opener the page started (no Learner message). */
-export type TurnKind = "message" | "opener";
+/**
+ * The fixed prefix of the note code writes when the Learner presses Next (or Complete this Topic): the
+ * turn teaches the step code moved them on to. Like the opener's, it is never drawn as a Learner bubble.
+ */
+export const NEXT_PREFIX = "Next by code:";
 
-/** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. */
+/** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
+export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX] as const;
+
+/** What started a turn: the Learner's own message, an opener the page started, or the Learner's Next (no Learner message for either). */
+export type TurnKind = "message" | "opener" | "next";
+
+/** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
-  return turn.input?.startsWith(OPENER_PREFIX) ? "opener" : "message";
+  if (turn.input?.startsWith(OPENER_PREFIX)) return "opener";
+  if (turn.input?.startsWith(NEXT_PREFIX)) return "next";
+  return "message";
 }
+
+/** Whether a stored user message is a note code wrote (an opener's or a Next's), not the Learner's words. */
+export const isCodeWritten = (text: string) => CODE_WRITTEN_PREFIXES.some((p) => text.startsWith(p));
 
 /** What the Learner's "Continue" button sends. */
 export const CONTINUE_TEXT = "Continue.";
@@ -97,4 +111,9 @@ export async function resumeTurn(db: Db, now: Date, learnerId = OWNER_LEARNER_ID
 
 export async function updateTurn(db: Db, id: number, set: Partial<Turn>) {
   await db.update(turns).set(set).where(eq(turns.id, id));
+}
+
+/** Removes a turn that did nothing (a refused Next), which releases the Learner's lock as if it never ran. */
+export async function dropTurn(db: Db, id: number) {
+  await db.delete(turns).where(eq(turns.id, id));
 }
