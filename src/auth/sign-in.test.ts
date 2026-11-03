@@ -168,7 +168,7 @@ describe("Cookies that no longer sign in", () => {
     await as.db.update(learners).set({ archivedAt: new Date() }).where(eq(learners.id, test));
     expect(await session.isSignedIn()).toBe(false);
     await expect(session.currentLearnerId()).rejects.toMatchObject(toLogin);
-    await expect(NotesPage()).rejects.toMatchObject(toLogin);
+    await expect(NotesPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(toLogin);
   });
 
   it("a cookie for a name taken off the list is treated as signed out", async () => {
@@ -195,7 +195,7 @@ describe("The owner and a second Learner", () => {
     await ownersRows();
     await signIn(OWNER_PASSCODE);
 
-    expect(await html(NotesPage())).toContain("The owner&#x27;s own note line");
+    expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s own note line");
     expect(await html(SessionsPage())).not.toContain("No Sessions yet.");
     expect(await html(ProgressPage())).toMatch(/In progress/i);
     expect(await html(StudyPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s reply about the annuity.");
@@ -206,7 +206,7 @@ describe("The owner and a second Learner", () => {
     await ownersRows();
     await signIn(TEST_PASSCODE);
 
-    expect(await html(NotesPage())).not.toContain("The owner&#x27;s own note line");
+    expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).not.toContain("The owner&#x27;s own note line");
     expect(await html(SessionsPage())).toContain("No Sessions yet.");
     expect(await html(ProgressPage())).not.toMatch(/In progress/i);
     expect(await html(SettingsPage())).not.toContain("Mumbai");
