@@ -1,0 +1,22 @@
+import { getDb } from "@/db/client";
+import { loadProfile, profileInput, saveProfile } from "@/learner/profile";
+
+export const runtime = "nodejs";
+
+/** The saved Learner Profile. No model call. The passcode check is the proxy's. */
+export async function GET() {
+  return Response.json(await loadProfile(getDb()), { headers: { "Cache-Control": "no-store" } });
+}
+
+/**
+ * Saves the Learner Profile (all four answers; an empty one means "not shared"). A Session already
+ * open keeps the profile it started with: a change applies from the next Session.
+ */
+export async function PUT(request: Request) {
+  const parsed = profileInput.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.issues[0]?.message ?? "Send work, location, loan and savingFor as text." }, { status: 400 });
+  }
+  await saveProfile(getDb(), parsed.data);
+  return Response.json({ ok: true });
+}

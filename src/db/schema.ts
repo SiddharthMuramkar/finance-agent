@@ -502,6 +502,21 @@ export const loginFailures = pgTable(
 );
 
 /**
+ * Learner Profile: what the Learner chooses to share about their own life. One row (id 1); every field
+ * is optional. It is used only to choose everyday examples. `offerDismissed` is set by "Not now" on the
+ * first-visit card, after which the card is never offered again.
+ */
+export const learnerProfile = pgTable("learner_profile", {
+  id: integer("id").primaryKey(),
+  work: text("work"),
+  location: text("location"),
+  loan: text("loan"),
+  savingFor: text("saving_for"),
+  offerDismissed: boolean("offer_dismissed").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * The Notes page: the Learner's own lines on a Topic Note (kind "line", text only). Saved replies and
  * Widgets (kinds "reply" and "widget", keyed by Session and turn) use the other columns. A Topic
  * Note's filled-in part is not stored: code builds it on read from the Topic file and the records.
