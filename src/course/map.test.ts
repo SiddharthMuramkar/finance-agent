@@ -69,6 +69,18 @@ describe("Course Map validator", () => {
     expect(errors).toEqual(['Topic "a" has no Checks']);
   });
 
+  it("accepts a Topic that lists registered formulas, and none by default", () => {
+    const { map, errors } = parseCourseMap([topic("a", "formulas: [present-value]"), topic("b")]);
+    expect(errors).toEqual([]);
+    expect(map?.topic("a")?.formulas).toEqual(["present-value"]);
+    expect(map?.topic("b")?.formulas).toEqual([]);
+  });
+
+  it("rejects a Topic that lists a formula the registry does not have", () => {
+    const { errors } = parseCourseMap([topic("a", "formulas: [wacc]")]);
+    expect(errors.join()).toMatch(/a\.yaml: formulas\.0: Unknown formula; the formula registry has: present-value/);
+  });
+
   it("rejects a malformed file with its name", () => {
     const { errors } = parseCourseMap([{ name: "bad.yaml", text: "id: bad\nstage: someday\n" }]);
     expect(errors[0]).toMatch(/^bad\.yaml: /);
@@ -79,6 +91,7 @@ describe("Course Map validator", () => {
     const pv = map.topic("present-value");
     expect(pv?.stage).toBe("foundation");
     expect(pv?.checks.length).toBeGreaterThanOrEqual(1);
+    expect(pv?.formulas).toEqual(["present-value", "annuity-present-value", "growing-annuity-present-value"]);
     expect(pv?.cases[0].asOf).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
