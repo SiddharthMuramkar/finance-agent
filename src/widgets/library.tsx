@@ -5,8 +5,10 @@ import {
   defineComponent,
   reactive,
   useStateField,
+  type ComponentGroup,
   type ComponentRenderProps,
 } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { createContext, useContext, useEffect, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
@@ -17,10 +19,11 @@ import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { advanceReached } from "./guided-tasks";
 import { GuidedTasksFigure } from "./guided-tasks-view";
 
-// The OpenUI component library the Tutor writes widgets with. Charts take only
-// inputs to a tested Finance Calculations formula, or a Case Data reference
-// ("caseId/datasetId") fetched through the server's as-of rule; no component
-// accepts a series of numbers typed by the model.
+// The OpenUI component library the Tutor writes widgets with: OpenUI's ready-made kit (charts,
+// tables, tabs, callouts) beside our own code-backed parts (Slider, Calculator, AnnuityChart,
+// HistoryChart, FormulaCard, GuidedTasks). Real figures reach a widget only through our parts or
+// the Widget tools (tool-specs.ts), which work them out or fetch them in the browser; typed numbers
+// are only for an Illustration, whose title says so.
 
 const UNITS = ["percent", "years", "usd", "inr"] as const;
 type Unit = (typeof UNITS)[number];
@@ -330,12 +333,94 @@ const GuidedTasks = defineComponent({
   component: GuidedTasksView,
 });
 
+/**
+ * Kit parts the Tutor may not use: images (it could invent links), code and markdown blocks (they show
+ * typed formulas, which ADR 0002 forbids), forms, inputs, buttons, modals, carousels and the card building
+ * blocks. They go in one call: removing one at a time throws while a parent still names it. Icon stays,
+ * as the only type a ChipItem's icon takes.
+ */
+const DROPPED_KIT_PARTS = [
+  "Image",
+  "ImageBlock",
+  "ImageGallery",
+  "CodeBlock",
+  "MarkDownRenderer",
+  "EditableTable",
+  "Form",
+  "Input",
+  "TextArea",
+  "DatePicker",
+  "CheckBoxGroup",
+  "CheckBoxItem",
+  "RadioGroup",
+  "RadioItem",
+  "OptionCard",
+  "OptionCards",
+  "Button",
+  "Buttons",
+  "IconButton",
+  "Carousel",
+  "Modal",
+  "ListBlock",
+  "ListItem",
+  "Text",
+  "BoldText",
+  "IconText",
+  "ImageText",
+  "ImageTextLarge",
+  "MetricIndicatorInline",
+  "MetricIndicatorWithStrikethrough",
+  "SnippetCardItem",
+  "SnippetCardBlock",
+  "OverviewCardItem",
+  "OverviewCardBlock",
+  "ContextCardItem",
+  "ContextCardBlock",
+  "CompositeCardItem",
+  "CompositeCardBlock",
+  "VisualCardItem",
+  "VisualCardBlock",
+];
+
+/** Our parts the kit's containers list as their content; Stack already takes any part. */
+const OUR_PARTS = [AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks];
+
+/**
+ * OpenUI's kit with our parts in its containers. Our Slider replaces the kit's (same name), so every slider
+ * keeps its "Your assumption" tag and saved settings. Made once, at module scope: parsers are cached per library.
+ */
+const kit = openuiLibrary.extend({
+  components: {
+    remove: DROPPED_KIT_PARTS,
+    override: [Slider],
+    add: [...OUR_PARTS.map((component) => ({ component, slots: ["Card.children", "TabItem.content", "AccordionItem.content"] })), GuidedTask],
+  },
+});
+
+/** A part of the composed kit by name, as the kit rebuilt it; throws on a name it does not have. */
+function kitPart(name: string) {
+  const part = kit.components[name];
+  if (!part) throw new Error(`The widget library has no part called ${name}.`);
+  return part;
+}
+
+/** What a Widget holds directly: our parts, then the kit's. Sub-parts (TabItem, Series, Col, SelectItem…) go inside these. */
+const WIDGET_PARTS = [
+  ...["Slider", ...OUR_PARTS.map((c) => c.name)],
+  ...["Stack", "Tabs", "Accordion", "Steps", "Separator"],
+  ...["Card", "CardHeader", "TextContent", "Callout", "TextCallout", "InlineHeader"],
+  "Table",
+  ...["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "PieChart", "RadialChart", "SingleStackedBarChart", "ScatterChart"],
+  ...["FormControl", "Label", "Select", "SwitchGroup", "Chips"],
+  ...["Tag", "TagBlock", "EntityList"],
+];
+
 const Widget = defineComponent({
   name: "Widget",
-  description: "The widget's frame: a short title above its controls and charts, in order.",
+  description: 'The widget\'s frame: a short title above its parts, in order. The title of a widget drawn from made-up numbers starts with "Illustration:".',
   props: z.object({
     title: z.string(),
-    children: z.array(z.union([Slider.ref, AnnuityChart.ref, HistoryChart.ref, Calculator.ref, FormulaCard.ref, GuidedTasks.ref])),
+    children: z.array(z.union(WIDGET_PARTS.map((name) => kitPart(name).ref))),
   }),
   component: WidgetFrame,
 });
@@ -353,7 +438,67 @@ function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string
   );
 }
 
-export const widgetLibrary = createLibrary({ components: [Widget, Slider, AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks, GuidedTask], root: "Widget" });
+/**
+ * How the widget instructions group the parts, with our own notes (not the kit's, which teach forms,
+ * modals and writes). Every part of the library is in one group, so none is listed under "Other".
+ */
+export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
+  {
+    name: "Widget",
+    components: ["Widget"],
+    notes: [
+      '- Widget("Title", [parts]) is the root of every widget. The panel already frames it, so lay its parts out with Stack (Stack([a, b], "row") puts two side by side), never with an outer Card.',
+    ],
+  },
+  {
+    name: "Our parts: numbers from code",
+    components: ["Slider", "Calculator", "AnnuityChart", "HistoryChart", "FormulaCard", "GuidedTasks", "GuidedTask"],
+    notes: ["- These work out or fetch their own numbers: give them inputs, a formula ID or a Case Data reference, never a result."],
+  },
+  {
+    name: "Layout",
+    components: ["Stack", "Tabs", "TabItem", "Accordion", "AccordionItem", "Steps", "StepsItem", "Separator"],
+    notes: [
+      '- Use Tabs for two views of the same numbers, such as a chart and a table: Tabs([TabItem("chart", "Chart", [chart]), TabItem("table", "Table", [table])]). Keep Sliders above the Tabs, so one slider moves both views.',
+      "- Steps lists the stages of a method in words; it works nothing out.",
+    ],
+  },
+  {
+    name: "Content",
+    components: ["Card", "CardHeader", "TextContent", "Callout", "TextCallout", "InlineHeader"],
+    notes: [
+      "- Card groups parts inside the Widget, for example two Cards side by side in a row Stack.",
+      "- Keep text short. A number in TextContent or a Callout comes from a tool result (r.rows.text) or an expression the widget works out, such as (5.5 - 5) * 100.",
+    ],
+  },
+  {
+    name: "Tables",
+    components: ["Table", "Col"],
+    notes: ['- Table is column by column: Table([Col("Year", s.rows.label), Col("Payment", s.rows.payment, "number")]). A tool result\'s rows.text holds each number written in its unit.'],
+  },
+  {
+    name: "Charts",
+    components: ["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "Series", "PieChart", "RadialChart", "SingleStackedBarChart", "Slice", "ScatterChart", "ScatterSeries", "Point"],
+    notes: [
+      "- Chart labels must be strings: use a tool result's rows.label or rows.date, never rows.x. The values come from rows.value, or another number column such as rows.payment.",
+      '- Pluck a column from a tool result with dot access: d.rows.value is every row\'s value, as in LineChart(d.rows.date, [Series("Close", d.rows.value)]).',
+      "- Line and area charts show change over time or across a range; bar charts compare a few cases; PieChart shows only the shares of one whole.",
+    ],
+  },
+  {
+    name: "Controls",
+    components: ["FormControl", "Label", "Select", "SelectItem", "SwitchGroup", "SwitchItem", "Chips", "ChipItem"],
+    notes: [
+      '- A number the Learner changes is always a Slider. Select, SwitchGroup and Chips choose between named options: a Select\'s $variable holds text, so compare it ($view == "real") rather than pass it to a tool as a number.',
+    ],
+  },
+  {
+    name: "Data display",
+    components: ["Tag", "TagBlock", "EntityList", "Icon"],
+  },
+];
+
+export const widgetLibrary = createLibrary({ root: "Widget", componentGroups: WIDGET_COMPONENT_GROUPS, components: [Widget, ...Object.values(kit.components)] });
 
 /** Options for the widget instructions frozen into the Tutor's instructions. */
 export const WIDGET_PROMPT_OPTIONS = {
