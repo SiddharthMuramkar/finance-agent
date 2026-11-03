@@ -9,7 +9,8 @@ import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
-import { loadCurrentSession } from "./transcript";
+import { listSessions, loadCurrentSession, loadSession } from "./transcript";
+import { loadSessionSummaries } from "./session-summary";
 
 /**
  * Tutor Turn tests for two Learners using the app at once (spec #119, "Learners and sign-in"): each
@@ -60,6 +61,21 @@ describe("two Learners in the Tutor Turn", () => {
     expect((await owner.events).at(-1)).toMatchObject({ type: "done" });
     expect((await loadCurrentSession(db, plain, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Owner's message", "Owner's slow reply."]);
     expect((await loadCurrentSession(db, plain, second)).map((l) => l.text)).toEqual(["Second's message", "Second's reply."]);
+  });
+
+  it("each Learner's Sessions are their own: listed, read and summarised only for them", async () => {
+    const db = await testDb();
+    const second = await secondLearner(db);
+    await turnFor(db, OWNER_LEARNER_ID, "Owner's question", [say("Owner's answer.")]).events;
+    await turnFor(db, second, "Second's question", [say("Second's answer.")]).events;
+
+    const [ownerSession] = await listSessions(db, OWNER_LEARNER_ID);
+    const [secondSession] = await listSessions(db, second);
+    expect(ownerSession.id).not.toBe(secondSession.id);
+    expect((await listSessions(db, second)).map((s) => s.id)).toEqual([secondSession.id]);
+    expect(await loadSession(db, ownerSession.id, plain, second)).toEqual([]);
+    expect((await loadSession(db, ownerSession.id, plain, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Owner's question", "Owner's answer."]);
+    expect([...(await loadSessionSummaries(db, second)).keys()]).toEqual([secondSession.id]);
   });
 
   it("a second Learner's resume never picks up the first Learner's cut-off turn, which the first Learner can still resume", async () => {

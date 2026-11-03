@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { parseCourseMap } from "@/course/map";
 import type { Progress } from "@/course/navigator";
+import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
@@ -125,6 +126,22 @@ describe("the Case Data route", () => {
     const after = await (await caseDataResponse(db, map, "jackpot")).json();
     expect(after.revealed).toBe(true);
     expect(after.datasets.map((d: { id: string }) => d.id)).toEqual(["winner-choice", "yield"]);
+  });
+
+  it("answers under the given Learner's progress: one Learner's reveal shows another nothing after the as-of date", async () => {
+    const db = await testDb();
+    await importCaseData(db, [dataset("yield", [["2018-10-23", 3.37], ["2018-11-01", 3.4]], { unit: "percent" }), dataset("winner-choice", [["2019-03-04", 877_784_124]])]);
+    const [second] = await db.insert(learners).values({ name: "second" }).returning();
+    const now = new Date("2026-11-02T10:00:00Z");
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, now, OWNER_LEARNER_ID);
+    await saveCheckResult(db, map, { checkId: "pv-check", passed: true }, now, OWNER_LEARNER_ID);
+
+    const owner = await (await caseDataResponse(db, map, "jackpot", OWNER_LEARNER_ID)).json();
+    const other = await (await caseDataResponse(db, map, "jackpot", second.id)).json();
+    expect(owner.revealed).toBe(true);
+    expect(other.revealed).toBe(false);
+    expect(other.datasets.map((d: { id: string }) => d.id)).toEqual(["yield"]);
+    expect(other.datasets[0].points.map((p: { date: string }) => p.date)).toEqual(["2018-10-23"]);
   });
 
   it("answers 404 for an unknown Case", async () => {
