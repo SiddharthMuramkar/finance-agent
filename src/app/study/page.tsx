@@ -66,9 +66,9 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
       return null;
     }),
     latestTurn(db, learnerId),
-    reviewState(db, map),
+    reviewState(db, map, new Date(), learnerId),
     loadProgress(db, learnerId),
-    loadProfile(db),
+    loadProfile(db, learnerId),
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one.
   const pending: PendingTurn = turn && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;

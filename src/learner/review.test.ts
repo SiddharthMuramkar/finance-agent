@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { importBank } from "@/bank/ingest";
 import type { BankQuestion } from "@/bank/normalise";
 import { parseCourseMap, type CourseMap } from "@/course/map";
-import { messages, reviewCards, reviewLog, settings } from "@/db/schema";
+import { learners, messages, OWNER_LEARNER_ID, reviewCards, reviewLog, settings } from "@/db/schema";
+import type { Db } from "@/db/types";
 import { startSession } from "@/tutor/session-log";
 import { testDb } from "@/test/pglite";
 import { ensureTopicStarted, loadProgress, saveFinishedStep } from "./memory";
@@ -170,6 +171,47 @@ describe("spaced review", () => {
     const state = await reviewState(db, map, new Date(first.getTime() + day + 60_000));
     expect(state).toMatchObject({ done: 0 });
     expect(state.question).not.toBeNull();
+  });
+});
+
+describe("spaced review for two Learners", () => {
+  /** A second Learner beside the owner, who takes the same quiz the same way: q1 and q2 right, q3 wrong. */
+  async function secondPasses(db: Db, map: CourseMap, passAt: Date): Promise<number> {
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    await ensureTopicStarted(db, map, passAt, row.id);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, passAt, row.id);
+    const quiz = (await openQuiz(db, map, passAt, row.id))!;
+    await submitQuiz(db, map, quiz.attemptId, { q1: "a", q2: "a", q3: "b" }, passAt, row.id);
+    return row.id;
+  }
+
+  it("each Learner has their own card for the same question, and the daily cap counts only their own Reviews", async () => {
+    const passAt = new Date("2026-03-01T10:00:00Z");
+    const { db, map } = await passedQuiz(passAt);
+    const second = await secondPasses(db, map, passAt);
+    await db.insert(settings).values({ key: "review_cap", value: "1" });
+    const now = new Date(passAt.getTime() + 60 * day);
+
+    // The owner reviews q3 and reaches the cap of one.
+    expect(await reviewState(db, map, now, OWNER_LEARNER_ID)).toMatchObject({ question: { id: "q3" }, done: 0 });
+    expect(await answerReview(db, map, "q3", "a", now, OWNER_LEARNER_ID)).toMatchObject({ ok: true, correct: true });
+    expect(await reviewState(db, map, now, OWNER_LEARNER_ID)).toMatchObject({ question: null, done: 1 });
+
+    // The second Learner's own q3 card is still due, and the owner's Review doesn't count toward their cap.
+    expect(await reviewState(db, map, now, second)).toMatchObject({ question: { id: "q3" }, done: 0, dueCount: 3 });
+    expect(await answerReview(db, map, "q3", "b", now, second)).toMatchObject({ ok: true, correct: false });
+    expect(await reviewState(db, map, now, second)).toMatchObject({ question: null, done: 1 });
+    expect(await reviewState(db, map, now, OWNER_LEARNER_ID)).toMatchObject({ question: null, done: 1 });
+  });
+
+  it("a Learner who hasn't passed the Check has no cards, whatever another Learner passed", async () => {
+    const passAt = new Date("2026-03-01T10:00:00Z");
+    const { db, map } = await passedQuiz(passAt);
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    const now = new Date(passAt.getTime() + 60 * day);
+    expect(await reviewState(db, map, now, row.id)).toMatchObject({ question: null, dueCount: 0, done: 0 });
+    expect(await answerReview(db, map, "q3", "a", now, row.id)).toMatchObject({ ok: false });
+    expect((await reviewState(db, map, now, OWNER_LEARNER_ID)).dueCount).toBe(3);
   });
 });
 

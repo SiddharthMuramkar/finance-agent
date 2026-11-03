@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { learnerProfile } from "@/db/schema";
+import { learnerProfile, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 /**
  * Learner Profile: what the Learner chooses to share about their own life. The Tutor gets it
- * when a Session opens and uses it only to choose everyday examples, never as advice.
+ * when a Session opens and uses it only to choose everyday examples, never as advice. One row per
+ * Learner: its id is the Learner's id (the owner's is 1), and every read and write names the Learner.
  */
 
 export const PROFILE_MAX_CHARS = 200;
@@ -35,23 +36,23 @@ export type ProfileInput = z.output<typeof profileInput>;
 
 const EMPTY: Profile = { work: null, location: null, loan: null, savingFor: null, offerDismissed: false };
 
-export async function loadProfile(db: Db): Promise<Profile> {
-  const [row] = await db.select().from(learnerProfile).where(eq(learnerProfile.id, 1));
+export async function loadProfile(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Profile> {
+  const [row] = await db.select().from(learnerProfile).where(eq(learnerProfile.learnerId, learnerId));
   if (!row) return EMPTY;
   return { work: row.work, location: row.location, loan: row.loan, savingFor: row.savingFor, offerDismissed: row.offerDismissed };
 }
 
 /** Saves all four answers. Saving also ends the first-visit offer, even if every answer was cleared. */
-export async function saveProfile(db: Db, input: ProfileInput, now: Date = new Date()): Promise<void> {
+export async function saveProfile(db: Db, input: ProfileInput, now: Date = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
   const values = { ...input, offerDismissed: true, updatedAt: now };
-  await db.insert(learnerProfile).values({ id: 1, ...values }).onConflictDoUpdate({ target: learnerProfile.id, set: values });
+  await db.insert(learnerProfile).values({ id: learnerId, learnerId, ...values }).onConflictDoUpdate({ target: learnerProfile.id, set: values });
 }
 
 /** "Not now" on the first-visit card: the card is never offered again. Answers already saved are kept. */
-export async function dismissProfileOffer(db: Db, now: Date = new Date()): Promise<void> {
+export async function dismissProfileOffer(db: Db, now: Date = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
   await db
     .insert(learnerProfile)
-    .values({ id: 1, offerDismissed: true, updatedAt: now })
+    .values({ id: learnerId, learnerId, offerDismissed: true, updatedAt: now })
     .onConflictDoUpdate({ target: learnerProfile.id, set: { offerDismissed: true, updatedAt: now } });
 }
 
@@ -67,9 +68,9 @@ export function shouldOfferProfile(p: Profile): boolean {
 export const PROFILE_BLOCK_HEADING =
   "Learner Profile (shared by the Learner; use it only to choose everyday examples, in the Learner's currency when an example is about their life, and never as advice):";
 
-/** The Tutor's own block in a Session's opening message; null when the Learner has shared nothing. */
-export async function profileBlock(db: Db): Promise<string | null> {
-  const p = await loadProfile(db);
+/** The Tutor's own block in a Session's opening message, from this Learner's profile; null when they have shared nothing. */
+export async function profileBlock(db: Db, learnerId = OWNER_LEARNER_ID): Promise<string | null> {
+  const p = await loadProfile(db, learnerId);
   if (!hasProfile(p)) return null;
   const lines = PROFILE_FIELDS.filter((f) => p[f.key] !== null).map((f) => `- ${f.label}: ${p[f.key]}`);
   return [PROFILE_BLOCK_HEADING, ...lines].join("\n");

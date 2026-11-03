@@ -145,7 +145,7 @@ describe("quiz Check flow", () => {
     const quiz = (await openQuiz(db, map))!;
     const result = await submitQuiz(db, map, quiz.attemptId, { q1: "a", q3: "a" });
     expect(result).toMatchObject({ ok: true, correctCount: 1, passed: false });
-    expect(await submitQuiz(db, map, 999, {})).toEqual({ ok: false, reason: "No such quiz attempt." });
+    expect(await submitQuiz(db, map, 999, {})).toEqual({ ok: false, reason: "No such quiz attempt.", notFound: true });
   });
 
   it("rejects an attempt once its Check is no longer the current one", async () => {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProfile } from "@/learner/profile";
 import { readTheme } from "../theme-cookie";
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /** "About you": edit the Learner Profile. No model call. */
 export default async function ProfilePage() {
-  const p = await loadProfile(getDb());
+  const p = await loadProfile(getDb(), await currentLearnerId());
   const theme = await readTheme();
   return (
     <SignedInFrame>

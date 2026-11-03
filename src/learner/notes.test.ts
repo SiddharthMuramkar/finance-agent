@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { insightAttempts, misconceptions, topicProgress } from "@/db/schema";
+import { insightAttempts, learners, misconceptions, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
@@ -98,6 +98,39 @@ describe("the Learner's own lines", () => {
     if (!added.ok) throw new Error("not added");
     expect((await editLine(db, added.line.id, "")).ok).toBe(false);
     expect((await note(db)).lines.map((l) => l.text)).toEqual(["keep"]);
+  });
+});
+
+describe("Topic Notes for two Learners", () => {
+  it("each Learner's note shows only their own pass, Insight, mistakes and lines", async () => {
+    const db = await testDb();
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    const second = row.id;
+    await pass(db);
+    await settle(db, "found", "Waiting makes it worth less");
+    await db.insert(misconceptions).values({ topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
+    await addLine(db, map, topic.id, "The owner's line");
+    await addLine(db, map, topic.id, "The second Learner's line", new Date(), second);
+
+    const owners = (await loadNotes(db, map, OWNER_LEARNER_ID)).find((n) => n.topicId === topic.id)!;
+    expect(owners.passed).toBe(true);
+    expect(owners.filled).toMatchObject({ insight: { ownWords: "Waiting makes it worth less" }, mistakes: ["Added the interest instead of dividing"] });
+    expect(owners.lines.map((l) => l.text)).toEqual(["The owner's line"]);
+
+    const theirs = (await loadNotes(db, map, second)).find((n) => n.topicId === topic.id)!;
+    expect(theirs.passed).toBe(false);
+    expect(theirs.filled).toBeUndefined();
+    expect(theirs.lines.map((l) => l.text)).toEqual(["The second Learner's line"]);
+  });
+
+  it("another Learner's line is no such line: editing or deleting it answers 404 and leaves it alone", async () => {
+    const db = await testDb();
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    const owners = await addLine(db, map, topic.id, "Mine");
+    if (!owners.ok) throw new Error("not added");
+    expect(await editLine(db, owners.line.id, "Changed", new Date(), row.id)).toMatchObject({ ok: false, status: 404 });
+    expect(await removeLine(db, owners.line.id, row.id)).toBe(false);
+    expect((await note(db)).lines.map((l) => l.text)).toEqual(["Mine"]);
   });
 });
 
