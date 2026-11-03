@@ -598,7 +598,8 @@ export const OPENUI_SECTIONS_CUT = ["### 2. Text-only response", "## Mutation â€
  * Exact text of OpenUI's generic prompt that contradicts the Workspace, with what replaces it ("" cuts it):
  * code only when asked to change the UI, patches of changed lines, text-only answers, refresh Buttons, a
  * binding rule that is wrong for our Slider, a tools line that offers writes, "realistic mock data" where
- * no tool fits, and forms for input.
+ * no tool fits, forms for input, and a last check that every filter feeds a Query (a Slider that feeds a
+ * Calculator or an AnnuityChart needs none, and the check could make the Tutor add one it does not need).
  */
 export const OPENUI_TEXT_REPLACED: readonly (readonly [openui: string, ours: string])[] = [
   ["You can respond in two ways:", "Your reply is prose, and it can hold one widget:"],
@@ -614,6 +615,10 @@ export const OPENUI_TEXT_REPLACED: readonly (readonly [openui: string, ours: str
   ],
   [" If the user asks for functionality that doesn't match any available tool, use realistic mock data instead of fabricating a tool call.", ""],
   ["forms for input, etc.", "sliders for numbers the Learner changes, etc."],
+  [
+    "5. Every visible filter $binding appears in at least one Query args object.",
+    "5. Every Slider's $variable feeds a part or a Query's arguments, so moving the slider changes the widget.",
+  ],
 ];
 
 /** Fails the freeze loudly when OpenUI no longer writes a passage we cut, instead of silently keeping the rest. */
