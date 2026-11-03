@@ -14,6 +14,7 @@ import { newReplyWidgetProblems, openWidgetsIn, WIDGET_CHECK_PREFIX, type OpenWi
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
+import type { SessionItem } from "./session-items";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -98,6 +99,11 @@ export type TurnEvent =
    * `shown` is what the page's next turn request says it shows: this Session, or the next Topic if the turn moved the Learner on.
    */
   | { type: "done"; stopReason: string | null; usage: TurnUsage; ref: { sessionId: number; turnSeq: number }; shown: Shown }
+  /**
+   * A tool stored a Session item (a step divider) after the reply so far: the browser draws it there, and the
+   * text that follows starts a new part of the reply. A reload draws it in the same place.
+   */
+  | { type: "item"; item: SessionItem }
   /** Another turn is running (perhaps on another device); nothing was saved or sent. */
   | { type: "busy"; message: string }
   /** The request came from a tab showing another Topic than the Learner's current one; nothing was saved or sent. */
@@ -288,7 +294,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   const map = deps.map ?? loadCourseMap();
   const now = deps.now ?? (() => new Date());
   const runStart = performance.now();
-  const effects: ToolEffects = { saveFailed: false };
+  const effects: ToolEffects = { saveFailed: false, items: [] };
 
   let session: Session;
   let log: Log;
@@ -376,10 +382,17 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   }
 
   let saveFailureReported = false;
+  // An item was reported since the reply's last text: the text after it starts a new part, with no paragraph break.
+  let itemSinceText = false;
+  /** Tells the browser of a failed progress write once, and of each Session item the tools stored since the last report. */
   async function* reportSaveFailure(): AsyncGenerator<TurnEvent> {
     if (effects.saveFailed && !saveFailureReported) {
       saveFailureReported = true;
       yield { type: "save_failed", message: SAVE_FAILED_MESSAGE };
+    }
+    for (const item of effects.items?.splice(0) ?? []) {
+      itemSinceText = true;
+      yield { type: "item", item };
     }
   }
 
@@ -420,9 +433,10 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         const cited = new Map<number, Citation[]>();
         const show = (shown: string): TurnEvent[] => {
           if (!shown) return [];
-          // Text after a tool call is a new loop step: start it on a new paragraph.
-          const out: TurnEvent[] = !stepHasText && text ? [{ type: "text", text: PARAGRAPH }] : [];
+          // Text after a tool call is a new loop step: start it on a new paragraph, unless an item began a new part.
+          const out: TurnEvent[] = !stepHasText && text && !itemSinceText ? [{ type: "text", text: PARAGRAPH }] : [];
           stepHasText = true;
+          itemSinceText = false;
           shownText += (out.length ? PARAGRAPH : "") + shown;
           return [...out, { type: "text", text: shown }];
         };
