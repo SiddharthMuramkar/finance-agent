@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CaseData } from "@/case-data/case-data";
-import { caseLoader, fetchCaseData, splitReference, type CaseLoad } from "@/widgets/case-data-client";
+import { fetchCaseData, splitReference, type CaseLoad } from "@/widgets/case-data-client";
+import { useCaseLoad } from "@/widgets/case-data-provider";
 import { Credit, SourcedTag } from "@/widgets/case-data-view";
 import { widgetParts, widgetProblems } from "@/widgets/check";
 import { Chip, Eyebrow } from "./ui";
@@ -41,7 +42,7 @@ export async function loadSourcedCases(datasets: readonly string[], loadCase: Ca
   return Object.fromEntries(caseIds.map((caseId, i) => [caseId, cases[i]]));
 }
 
-/** The Cases a Widget's Case Data references read, through the Widget's own Case loads; undefined while they load. */
+/** The Cases a Widget's Case Data references read, through the page's shared Case loads; undefined while they load. */
 function useSourcedCases(datasets: readonly string[], loadCase: CaseLoad): SourcedCases | undefined {
   const wanted = datasets.join(" ");
   const [loaded, setLoaded] = useState<{ wanted: string; cases: SourcedCases }>();
@@ -87,12 +88,12 @@ export function SourcedStrip({ datasets, cases }: { datasets: readonly string[];
 /**
  * A Widget with the Sourced strip for the Case Data it draws through Query("case_data"), and its quiet "Save to
  * notes" beneath it. The numbers on its sliders are kept as the Learner moves them, so a saved Widget reopens as
- * they left it. Mount it with a key per Widget: its sliders start afresh then, and each Case it reads is fetched
- * once, for its Queries and its strip together.
+ * they left it. Mount it with a key per Widget: its sliders start afresh then. Each Case it reads comes from the
+ * page's shared Case Data cache, for its Queries, its charts and its strip together.
  */
 export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?: boolean }) {
   const settings = useRef<Record<string, number>>({});
-  const [loadCase] = useState(() => caseLoader());
+  const loadCase = useCaseLoad();
   // Only a finished Widget that passes the check is drawn, so only its Case Data gets the strip.
   const datasets = useMemo(() => (item.complete && !widgetProblems(item.code).length ? widgetParts(item.code).datasets : []), [item.code, item.complete]);
   const cases = useSourcedCases(datasets, loadCase);

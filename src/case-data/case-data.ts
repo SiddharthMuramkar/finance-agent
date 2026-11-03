@@ -18,6 +18,14 @@ export type CaseDataset = {
   points: CasePoint[];
 };
 
+/**
+ * The Cases whose Topic's reveal the Learner has seen: the reveal state the page's Case Data cache keys on
+ * (case-data-cache.ts), so data fetched before a reveal is never served after it, nor the other way.
+ */
+export function revealedCases(map: CourseMap, progress: Progress): string[] {
+  return map.topics.filter((t) => progress.topics[t.id]?.revealShown).flatMap((t) => t.cases.map((c) => c.id));
+}
+
 /** What a Case's data request returns: `revealed` is false while hindsight is withheld. */
 export type CaseData = { caseId: string; asOf: string; revealed: boolean; datasets: CaseDataset[] };
 

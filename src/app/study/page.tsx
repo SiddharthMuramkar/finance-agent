@@ -6,6 +6,7 @@ import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
 import { exploreWidgetFor } from "@/course/explore-widget";
 import { courseOverview } from "@/course/navigator";
+import { revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
 import { learnerSummary, loadProgress } from "@/learner/memory";
 import { loadProfile, shouldOfferProfile } from "@/learner/profile";
@@ -75,7 +76,16 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   return (
     <WorkspaceShell>
       {shouldOfferProfile(profile) && <ProfileForm mode="card" initial={{ work: "", location: "", loan: "", savingFor: "" }} />}
-      <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} place={place} explore={exploreWidgetFor(map, progress)} />
+      <Conversation
+        initial={initial}
+        summary={summary}
+        quiz={quiz}
+        pending={pending}
+        review={review}
+        place={place}
+        explore={exploreWidgetFor(map, progress)}
+        revealed={revealedCases(map, progress)}
+      />
     </WorkspaceShell>
   );
 }

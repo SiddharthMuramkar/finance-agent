@@ -19,6 +19,7 @@ import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
+import { useCaseLoad } from "./case-data-provider";
 import { advanceReached } from "./guided-tasks";
 import { GuidedTasksFigure } from "./guided-tasks-view";
 import { WIDGET_TOOL_SPECS } from "./tool-specs";
@@ -90,27 +91,23 @@ type Loaded = { data: CaseData; dataset: CaseDataset } | null | undefined;
 /**
  * Fetches one Case Data dataset, written "caseId/datasetId", through the server's as-of rule.
  * Undefined while loading; null when there is no such dataset (or it is withheld until the reveal).
- * Fetched on each mount, so a widget drawn after the reveal gets the full data.
+ * Read through the page's shared Case Data cache: one request per Case, made afresh after each Tutor turn.
  */
 function useCaseDataset(reference: string | undefined): Loaded {
+  const loadCase = useCaseLoad();
   const [loaded, setLoaded] = useState<Loaded>(undefined);
   useEffect(() => {
     if (!reference) return;
     const [caseId, datasetId] = reference.split("/");
     let live = true;
-    fetch(`/api/case-data/${encodeURIComponent(caseId)}`)
-      .then((r) => (r.ok ? (r.json() as Promise<CaseData>) : null))
-      .then(
-        (data) => {
-          const dataset = data?.datasets.find((d) => d.id === datasetId);
-          if (live) setLoaded(data && dataset ? { data, dataset } : null);
-        },
-        () => live && setLoaded(null),
-      );
+    void loadCase(caseId).then((data) => {
+      const dataset = data?.datasets.find((d) => d.id === datasetId);
+      if (live) setLoaded(data && dataset ? { data, dataset } : null);
+    });
     return () => {
       live = false;
     };
-  }, [reference]);
+  }, [reference, loadCase]);
   return reference ? loaded : null;
 }
 
@@ -237,6 +234,7 @@ type SourcedValues = Record<string, CardValue | null> | undefined;
  * Undefined while loading; a key is null when its dataset is missing or withheld until the reveal.
  */
 function useSourcedValues(refs: Record<string, string>): SourcedValues {
+  const loadCase = useCaseLoad();
   const wanted = JSON.stringify(refs);
   const [loaded, setLoaded] = useState<{ wanted: string; values: Record<string, CardValue | null> } | undefined>(undefined);
   useEffect(() => {
@@ -244,13 +242,7 @@ function useSourcedValues(refs: Record<string, string>): SourcedValues {
     if (!entries.length) return;
     let live = true;
     const caseIds = [...new Set(entries.map(([, ref]) => ref.split("/")[0]))];
-    Promise.all(
-      caseIds.map((caseId) =>
-        fetch(`/api/case-data/${encodeURIComponent(caseId)}`)
-          .then((r) => (r.ok ? (r.json() as Promise<CaseData>) : null))
-          .catch(() => null),
-      ),
-    ).then((cases) => {
+    void Promise.all(caseIds.map((caseId) => loadCase(caseId))).then((cases) => {
       if (!live) return;
       const values = Object.fromEntries(
         entries.map(([key, ref]): [string, CardValue | null] => {
@@ -266,7 +258,7 @@ function useSourcedValues(refs: Record<string, string>): SourcedValues {
     return () => {
       live = false;
     };
-  }, [wanted]);
+  }, [wanted, loadCase]);
   return Object.keys(refs).length === 0 ? {} : loaded?.wanted === wanted ? loaded.values : undefined;
 }
 
