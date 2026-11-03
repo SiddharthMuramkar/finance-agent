@@ -15,13 +15,14 @@ describe("the Learner Profile form", () => {
     expect(html).toContain("data-profile-card");
   });
 
-  it("says it is private, when the Tutor gets it, where it is kept, and that changes apply from the next Session", () => {
+  it("says it is private, that the Tutor uses it only for examples, and no longer that changes wait for the next Session", () => {
     expect(PROFILE_PRIVACY).toMatch(/private/);
-    expect(PROFILE_PRIVACY).toMatch(/when a Session starts/);
-    expect(PROFILE_PRIVACY).toMatch(/kept in that Session's record/);
-    expect(PROFILE_PRIVACY).toMatch(/next Session/);
     expect(PROFILE_PRIVACY).toMatch(/never as advice/);
-    expect(renderToStaticMarkup(<ProfileForm mode="card" initial={empty} />)).toMatch(/kept in that Session(&#x27;|')s record/);
+    const card = renderToStaticMarkup(<ProfileForm mode="card" initial={empty} />);
+    expect(card).toContain("This is private.");
+    expect(card).not.toMatch(/next Session/i);
+    expect(renderToStaticMarkup(<ProfileForm mode="page" initial={empty} />)).not.toMatch(/next Session/i);
+    expect(PROFILE_PRIVACY).not.toMatch(/next Session/i);
   });
 
   it("the edit page has Save only, filled with what was saved", () => {
@@ -31,7 +32,9 @@ describe("the Learner Profile form", () => {
     expect(html).not.toContain("Not now");
   });
 
-  it("the Progress page links to About you", () => {
-    expect(renderToStaticMarkup(<ProgressView topics={[]} />)).toMatch(/href="\/profile"[^>]*>About you|data-about-you[^>]*>About you/);
+  it("the Progress page no longer links to About you, which lives on Settings", () => {
+    const html = renderToStaticMarkup(<ProgressView topics={[]} />);
+    expect(html).not.toContain("About you");
+    expect(html).not.toContain('href="/profile"');
   });
 });
