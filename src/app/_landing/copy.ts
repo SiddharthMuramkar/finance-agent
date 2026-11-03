@@ -20,6 +20,11 @@ export const copy = {
   signOut: "Sign out",
   howItWorks: "How it works",
   screenshotAlt: "The Study Workspace: a Tutor conversation on the left and a worked widget on the right.",
+  // Home's live annuity Widget: its one Guided Task, and the link under it (signed out only), to the passcode page.
+  widget: {
+    task: "Drag to 0%. Why does it match the advertised jackpot?",
+    signIn: "Sign in to learn why →",
+  },
   // The stats line, every number worked out by code: "95 Topics · 103 historical cases · 8 sources".
   stats: (s: { topics: number; cases: number; librarySources: number }) =>
     `${s.topics} Topics · ${s.cases} historical cases · ${s.librarySources} sources`,
