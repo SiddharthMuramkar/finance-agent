@@ -40,6 +40,12 @@ principle: >
   relative (percent of the old rate), and they differ by a lot. Name the base every time, and
   state rate changes in basis points to avoid mixing them up.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a change in percentage points from a change in percent."
+  - "Read rate moves in basis points, the way bond traders quote them."
+  - "Name the base of every change so its size is never mixed up."
+
 questions:
   - id: pb-q-bp-definition
     prompt: >

@@ -45,6 +45,12 @@ principle: >
   Profit is an opinion and cash is a fact. When profit, cash and behaviour do not tell the same
   story, believe the cash and ask why.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Ask whether reported profit is real, repeatable and backed by cash."
+  - "Recognise the warning signs that come before accounting fraud."
+  - "Check a company's figures against evidence from outside it."
+
 questions:
   - id: eq-q-cash-share
     prompt: >

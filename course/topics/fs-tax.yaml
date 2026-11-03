@@ -40,6 +40,12 @@ principle: >
   Always use after-tax cash flows, and know which tax rate applies. A change in the rate moves
   every project's value, so tax policy is a valuation input, not a footnote.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how tax falls on profit, and how interest and depreciation lower it."
+  - "Turn a project's profit into the cash left after tax."
+  - "Treat a change in the tax rate as a change in value."
+
 questions:
   - id: tx-q-after-tax-profit
     prompt: >

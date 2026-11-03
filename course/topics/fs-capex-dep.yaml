@@ -49,6 +49,12 @@ principle: >
   an asset-heavy business by what it earns after the cost of the assets it needs, and whether the
   assets will be filled with customers before the cash runs out.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how spending on lasting assets is spread over their life."
+  - "Know what EBITDA leaves out and why that matters."
+  - "Judge an asset-heavy business after the cost of the assets it needs."
+
 questions:
   - id: cx-q-straight-line
     prompt: >

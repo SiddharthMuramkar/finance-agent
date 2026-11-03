@@ -46,6 +46,12 @@ principle: >
   company whose losses keep pace with its revenue growth is not getting closer to profit, and
   a run rate or an adjusted figure is not a substitute for the audited bottom line.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read an income statement from revenue down to the bottom line."
+  - "Judge whether a company is moving toward profit as it grows."
+  - "Keep run rates and adjusted figures apart from audited profit."
+
 questions:
   - id: fi-q-net-result
     prompt: >

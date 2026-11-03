@@ -43,6 +43,12 @@ principle: >
   The numbers are the company's version of its results; the notes, the related-party sections and
   the share-class terms show who controls it and who gets paid. Read the document for both.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Find your way around a prospectus, an annual report and their Indian equivalents."
+  - "Read a filing in layers, from the summary to the notes."
+  - "See who controls a company and who gets paid, beyond the headline numbers."
+
 questions:
   - id: fl-q-s1
     prompt: >

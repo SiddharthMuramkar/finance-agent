@@ -45,6 +45,12 @@ principle: >
   Compare cash flows only after moving them to the same date, and ask which interest rate
   makes two offers equal.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why money later is worth less than money now."
+  - "Move payments made at different dates to one date before comparing them."
+  - "Find the interest rate at which two offers are worth the same."
+
 # The Insight (ADR 0001): found by the Learner at the explore step, before the jackpot conversation Check.
 # The text uses no figures. The written Insight reaches the Tutor only once it is found or told.
 insight:

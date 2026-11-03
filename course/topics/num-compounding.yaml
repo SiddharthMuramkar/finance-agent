@@ -42,6 +42,12 @@ principle: >
   And ask whether the pace was steady: a long-run compound rate can hide a short, much faster,
   more fragile final stretch.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how growth earned on growth builds up over the years."
+  - "Find the one steady yearly rate between a start and an end value."
+  - "Spot a long-run average that hides a short, fragile final spurt."
+
 questions:
   - id: cp-q-doubling-rate
     prompt: >

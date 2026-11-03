@@ -49,6 +49,12 @@ principle: >
   A quoted yield is what you earn if you can hold to the end. Ask what could force you to
   sell sooner, and how much borrowing sits behind the yield.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell the coupon rate, current yield and yield to maturity apart."
+  - "Know what yield to maturity promises, and to whom."
+  - "Ask what borrowing and a forced sale would do to a quoted yield."
+
 questions:
   - id: by-q-current-yield
     prompt: >

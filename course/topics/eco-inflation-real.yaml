@@ -37,6 +37,12 @@ principle: >
   Never judge a return, a rate or a loan by its headline figure alone. Subtract inflation first, because
   what you can buy later, not how many rupees you hold, is what counts.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a nominal interest rate from a real one."
+  - "See who gains and who loses when inflation runs above interest rates."
+  - "Judge a return by what it will buy, not by its headline figure."
+
 questions:
   - id: ir-q-approx
     prompt: >

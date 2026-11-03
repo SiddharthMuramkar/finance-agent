@@ -50,6 +50,12 @@ principle: >
   collateral they rely on really exists; an asset market funded by borrowed money is only as sound as
   the paper behind the loans.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how a bank loan creates a new deposit, and so new money."
+  - "Know how reserves limit what banks can lend."
+  - "Ask what backs a boom built on borrowed money."
+
 questions:
   - id: mb-q-multiplier
     prompt: >

@@ -47,6 +47,12 @@ principle: >
   bonds still lose value when rates rise: the risk is the price, not the payments. The
   longer the wait for the money, the larger that loss.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See a bond's price as the value today of its promised payments."
+  - "Know why bond prices fall when market yields rise."
+  - "See why longer bonds lose more when rates move up."
+
 questions:
   - id: bp-q-inverse
     prompt: >

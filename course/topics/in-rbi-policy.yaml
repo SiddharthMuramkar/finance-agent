@@ -49,6 +49,12 @@ principle: >
   liquidity tools for short-term money markets, and swaps and flow rules for the currency. In a currency
   crisis it matters who carries the exchange-rate risk and who is paid to carry it.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Know how the RBI steers short-term rates through repos and liquidity tools."
+  - "See how its inflation target guides the policy rate."
+  - "Match each central bank tool to the problem it is meant for."
+
 questions:
   - id: rbi-q-repo
     prompt: >

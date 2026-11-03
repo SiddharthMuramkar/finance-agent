@@ -52,6 +52,12 @@ principle: >
   exports earn and what foreign debts weigh, all at once. Always say which currency's value you
   are measuring and in which direction.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read an exchange rate quoted either way round."
+  - "Tell appreciation from depreciation, and measure each from the right base."
+  - "Know why currencies drift toward the same price for the same goods over time."
+
 questions:
   - id: fx-q-invert
     prompt: >

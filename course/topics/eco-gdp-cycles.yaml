@@ -49,6 +49,12 @@ principle: >
   Read growth together with its financing. Ask who is borrowing, from whom and in which currency; a
   boom paid for with deficits and foreign debt looks the same as a healthy one until the lenders stop.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Know what GDP measures and how real growth differs from nominal."
+  - "Read the business cycle and the indicators that lead or lag it."
+  - "Ask how growth is being financed, and by whom."
+
 questions:
   - id: gdp-q-components
     prompt: >
