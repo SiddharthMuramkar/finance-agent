@@ -25,7 +25,8 @@ export const dynamic = "force-dynamic";
 async function WorkspaceShell({ children }: { children: ReactNode }) {
   return (
     <SignedInFrame>
-      <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
+      {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
+      <main className="mx-auto flex h-dvh max-w-6xl flex-col overflow-hidden px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
         <AppHeader current="workspace" theme={await readTheme()} className="mb-6" />
         {children}
       </main>
@@ -74,7 +75,12 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const place = current ? { stage: current.stage, title: current.title } : null;
   return (
     <WorkspaceShell>
-      {shouldOfferProfile(profile) && <ProfileForm mode="card" initial={{ work: "", location: "", loan: "", savingFor: "" }} />}
+      {shouldOfferProfile(profile) && (
+        // Capped and scrolling inside itself, like everything above the chat, so the card cannot squeeze the columns.
+        <div className="max-h-[40%] shrink-0 overflow-y-auto">
+          <ProfileForm mode="card" initial={{ work: "", location: "", loan: "", savingFor: "" }} />
+        </div>
+      )}
       <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} place={place} explore={exploreWidgetFor(map, progress)} />
     </WorkspaceShell>
   );

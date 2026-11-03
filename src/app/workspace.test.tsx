@@ -102,6 +102,36 @@ describe("the workspace's left column", () => {
   });
 });
 
+describe("the fixed two-column layout", () => {
+  const tag = (html: string, testid: string) => html.match(new RegExp(`<[^>]*data-testid="${testid}"[^>]*>`))?.[0] ?? "";
+  const review = { question: { id: "q", prompt: "How many basis points?", choices }, dueCount: 2, done: 0, cap: 5 };
+
+  it("fills the height it is given, never more, with both columns scrolling inside themselves", () => {
+    const html = workspace({ quiz, review });
+    const frame = tag(html, "workspace-frame");
+    expect(frame).toMatch(/\bflex-1\b/);
+    expect(frame).toMatch(/\bmin-h-0\b/);
+    expect(frame).toMatch(/\boverflow-hidden\b/);
+    const pane = tag(html, "widget-pane");
+    expect(pane).toMatch(/\boverflow-y-auto\b/);
+    expect(pane).toMatch(/\bmin-h-0\b/);
+    expect(pane).not.toMatch(/\bsticky\b/);
+    const thread = tag(html, "thread-viewport");
+    expect(thread).toMatch(/\boverflow-y-auto\b/);
+    expect(thread).toMatch(/\bmin-h-0\b/);
+  });
+
+  it("caps what stands above the chat (status card, Review) and scrolls it inside itself, so the chat keeps its height", () => {
+    const html = workspace({ review });
+    const above = tag(html, "above-thread");
+    expect(above).toMatch(/\bmax-h-/);
+    expect(above).toMatch(/\boverflow-y-auto\b/);
+    const inside = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
+    expect(text(inside)).toContain("Spaced review · 2 due");
+    expect(inside).toContain('aria-label="Where you stand"');
+  });
+});
+
 describe("a quiz Check in the right panel", () => {
   const pane = (html: string) => html.slice(html.indexOf('data-testid="widget-pane"'));
 

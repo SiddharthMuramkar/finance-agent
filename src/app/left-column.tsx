@@ -37,12 +37,13 @@ export function LeftColumn({
   const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, send } = turn;
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
-      <div className="mb-6 flex flex-col gap-3">
+      {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a long summary, a Review) can squeeze the chat. */}
+      <div data-testid="above-thread" className="mb-6 flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
         <StatusCard place={place} summary={summary} onContinue={() => void send({ continue: true }, "Continue.")} disabled={running} />
         {explore && <PinnedExplore item={exploreItem(explore.code)} />}
         <ReviewPanel review={review} />
       </div>
-      <ThreadPrimitive.Viewport className="min-h-0 flex-1 overflow-y-auto pb-6">
+      <ThreadPrimitive.Viewport data-testid="thread-viewport" className="min-h-0 flex-1 overflow-y-auto pb-6">
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />
         </div>
