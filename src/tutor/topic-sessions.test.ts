@@ -13,7 +13,7 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
-import { passedTopicShown, shownInWorkspace, type Shown } from "./session-log";
+import { passedTopicShown, shownInWorkspace, topicSessions, type Shown } from "./session-log";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
 
@@ -371,5 +371,23 @@ describe("a deploy that changes the Tutor's instructions", () => {
     expect(four.requests[0].messages).toContainEqual({ role: "assistant", content: [thinking(3), { type: "text", text: "Reply 3." }] });
     // No notice: the Learner carries on in the same Session.
     expect([...three.events, ...four.events].map((e) => e.type)).not.toContain("session");
+  });
+});
+
+describe("the Course Map's passed rows", () => {
+  it("find each Topic's own Session, never an Older one, so a passed row opens the right conversation", async () => {
+    const db = await testDb();
+    await db
+      .insert(sessionsTable)
+      .values({ learnerId: OWNER_LEARNER_ID, instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "bonds" });
+    await saveJump(db, twoTopics, "present-value");
+    await turn(db, "Tell me about the lottery.", [say("Picture October 2018.")]);
+    await saveJump(db, twoTopics, "bonds");
+    await turn(db, "And bonds?", [say("Prices fall when rates rise.")]);
+
+    const ids = await topicSessions(db, OWNER_LEARNER_ID);
+    expect(Object.keys(ids).sort()).toEqual(["bonds", "present-value"]);
+    expect((await loadSession(db, ids["present-value"], twoTopics)).map((l) => l.text)).toEqual(["Tell me about the lottery.", "Picture October 2018."]);
+    expect((await loadSession(db, ids.bonds, twoTopics)).map((l) => l.text)).toEqual(["And bonds?", "Prices fall when rates rise."]);
   });
 });

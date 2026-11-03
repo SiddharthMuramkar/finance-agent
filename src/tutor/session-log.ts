@@ -126,6 +126,21 @@ export async function liveSession(db: Db, learnerId: number, topicId: string | n
 }
 
 /**
+ * Each Topic's live Session for the Learner, by Topic id: what a passed row on the Course Map opens,
+ * read-only. Older Sessions and the every-Topic-passed Session are left out.
+ */
+export async function topicSessions(db: Db, learnerId: number): Promise<Record<string, number>> {
+  const rows = await db
+    .select({ id: sessions.id, topicId: sessions.topicId })
+    .from(sessions)
+    .where(and(eq(sessions.learnerId, learnerId), eq(sessions.older, false), isNotNull(sessions.topicId)))
+    .orderBy(asc(sessions.id));
+  const byTopic: Record<string, number> = {};
+  for (const r of rows) if (r.topicId && !(r.topicId in byTopic)) byTopic[r.topicId] = r.id;
+  return byTopic;
+}
+
+/**
  * The Session a new turn runs in: the Learner's live Session for the Topic, made by this turn if it
  * is the Topic's first. Made with on-conflict, so two tabs never make two for one Topic.
  */
