@@ -56,6 +56,12 @@ principle: >
   exposure it covers. Ask what the hedge costs to keep, and whether you can fund its daily
   cash calls until the exposure it protects actually pays.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a private forward from an exchange-traded future that settles every day."
+  - "See how a forward price follows from the spot price and the interest rate."
+  - "Ask what a hedge costs to keep and whether you can fund its daily cash calls."
+
 questions:
   - id: fw-q-fair-forward
     prompt: >

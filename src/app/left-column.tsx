@@ -2,7 +2,7 @@
 
 import { ThreadPrimitive } from "@assistant-ui/react";
 import type { ReviewState } from "@/learner/review";
-import { MessageBox, PastePanel, pastePreview } from "./message-box";
+import { MessageBox } from "./message-box";
 import type { WidgetSlot } from "./reply-markdown";
 import { ReviewPanel } from "./review-panel";
 import { ThreadMessages } from "./thread";
@@ -13,8 +13,8 @@ import { StatusCard, type Place } from "./workspace-parts";
 
 /**
  * The Study Workspace's left column, top to bottom: the status card, the pinned explore Widget, the folded
- * review, the thread with the turn's notices, error and Retry, the paste panel, the quiz note while a quiz is
- * open (the quiz itself is in the right panel's Check tab), and the message box.
+ * review, the thread with the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
+ * itself is in the right panel's Check tab), and the message box with the writing indicator and Attach a passage.
  * It shows the turn stream's state and starts turns through it; Widget chips come from the Widget host's `slot`.
  */
 export function LeftColumn({
@@ -34,7 +34,7 @@ export function LeftColumn({
   quizOpen: boolean;
   explore: { code: string } | null;
 }) {
-  const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, send } = turn;
+  const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
       {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a long summary, a Review) can squeeze the chat. */}
@@ -69,7 +69,6 @@ export function LeftColumn({
             )}
           </div>
         )}
-        <PastePanel disabled={running} onSend={(message, paste) => void send({ message, paste }, `${message}\n\n${pastePreview(paste)}`)} />
       </ThreadPrimitive.Viewport>
       <p role="status" aria-live="polite" className="sr-only" data-testid="turn-status">
         {announcement}
@@ -80,7 +79,7 @@ export function LeftColumn({
           Quiz open: the Tutor will help with these questions after you submit.
         </p>
       )}
-      <MessageBox />
+      <MessageBox waiting={waiting} passage={passage} onPassage={setPassage} />
     </ThreadPrimitive.Root>
   );
 }

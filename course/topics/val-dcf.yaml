@@ -54,6 +54,12 @@ principle: >
   assumptions, so state them, see which ones drive the value, and compare the result with the price
   as a question rather than a verdict.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Value a business as the cash it will produce, brought back to today."
+  - "Turn the value of the whole business into a value per share."
+  - "Find which assumptions drive the value, and treat the gap to the price as a question."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: dcf-q-pv

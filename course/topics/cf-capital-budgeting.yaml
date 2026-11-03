@@ -55,6 +55,12 @@ principle: >
   matches its risk. A payback claim is a story about timing; an NPV makes you say how much cash
   and when.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Judge a project by the cash it adds after the money it ties up, at a rate that matches its risk."
+  - "See when net present value and the internal rate of return disagree, and why net present value wins."
+  - "Count only the cash a decision changes, leaving out sunk costs and fixed overhead."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: cb-q-npv-calc

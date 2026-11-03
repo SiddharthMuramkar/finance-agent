@@ -50,6 +50,12 @@ principle: >
   check that each number follows from it. A value is only as good as the story is plausible, and a
   story should be revised when the facts arrive.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Turn a story about a young company into valuation inputs."
+  - "Find the difference in story behind two values that sit far apart."
+  - "Check that each number follows from the story it claims to tell."
+
 questions:
   - id: fu-q-revenue-chain
     prompt: >

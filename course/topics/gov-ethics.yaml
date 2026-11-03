@@ -62,6 +62,12 @@ principle: >
   moves company cash toward the insiders is a governance question before it is a
   strategy question.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Name the agency problem between a company's owners and the people who run it."
+  - "Spot a related-party deal and ask who sits on both sides of it."
+  - "Judge whether independent directors and minority owners could really say no."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: ge-q-agency-problem

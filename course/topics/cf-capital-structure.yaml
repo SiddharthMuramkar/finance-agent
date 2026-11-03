@@ -52,6 +52,12 @@ principle: >
   must be weighed against the cost of being unable to pay. Ask what happens to the firm, and to its
   owners, in a bad year.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why, in a perfect market, the split between debt and equity leaves a firm's value unchanged."
+  - "Weigh the tax saving on debt against the cost of being unable to pay."
+  - "Ask what heavy debt or pledged shares do to a firm and its owners in a bad year."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: cs-q-tax-shield

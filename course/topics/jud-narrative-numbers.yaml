@@ -108,6 +108,12 @@ principle: >
   between a writer's number and a filing's is a reason to ask whether the two measure the same
   thing, before it is a reason to call the writer wrong.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Sort each number by origin: reported, second-hand or assumed."
+  - "Match the measure and the period before setting two figures side by side."
+  - "Say what a filing can test and what it cannot settle."
+
 questions:
   - id: jn-q-recompute-slice
     prompt: >

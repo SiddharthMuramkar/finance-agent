@@ -1156,6 +1156,28 @@ longer animated word by word as it streams (`smooth` off): the animation would p
 behind the real text, and widget markers are matched against the real text. Learner messages stay
 plain text on purpose.
 
+### The Tutor's voice, and one word: Topic (`thread.tsx`, `.md` in `globals.css`, spec #119, ticket #156)
+
+**What it does.** Every Tutor reply starts with a small navy **Tutor** label (`data-testid="tutor-label"`);
+the Learner's own messages have none, since their grey bubble on the right already marks them. Inside a
+reply, bold key terms and step headings take the button navy (`--brand`), while paragraphs stay
+near-black (`--ink`). No new colours: both come from existing tokens, and `--brand` already switches to a
+lighter blue in dark mode, so the label and headings stay readable there. The same thread is used by old
+Sessions, so they carry the label too.
+
+The screen also uses one word for a unit of study: **Topic**. "Lesson" appears nowhere a Learner can see
+it: the Widget fallback reads "This widget could not be drawn. The Topic carries on without it.", and the
+saved-items heading on a Topic Note reads "Saved from Topics". Render tests guard it: the Study Workspace
+markup, the Widget fallback and Notes must not contain "lesson".
+
+**Scenario.** The Learner asks "What is present value?". Their question sits in a grey bubble; under it the
+reply opens with a small navy "Tutor", then "Present value is **today's worth** of money paid later", with
+"today's worth" in navy and the rest of the sentence in near-black.
+
+**Trade-off.** Colouring only bold words and headings keeps a reply calm (a whole navy body would be a wall
+of blue), but the Tutor has to bold sparingly for the navy to mean "key term". The "never lesson" rule is
+held by tests on the screens we render, not by a site-wide scan, so a new screen needs its own check.
+
 ## Past Sessions (`src/app/sessions/`, `session-card.tsx`, `old-session.tsx`, `src/tutor/session-summary.ts`)
 
 **What it does.** Past Sessions is a list of cards, one per Session, newest first. Each card shows
@@ -1501,7 +1523,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **What it does.** The Study Workspace used to be one 330-line component. It is now four parts, and `Conversation` only puts them together:
 - **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
-- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box and the paste panel in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review, the thread, the turn's notices and Retry, the quiz note while a quiz is open, and the box. Every button that starts a turn calls the turn stream's `send`.
+- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review, the thread, the turn's notices and Retry, the quiz note while a quiz is open, and the box. Every button that starts a turn calls the turn stream's `send`.
 - **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid, fixed to the space under the header, and the right column's scrolling.
 - **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), the open quiz's Check tab, which of them the panel shows, and the "Open: <title> →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget, or to the Check tab while a quiz is open.
 
@@ -1526,6 +1548,17 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 **Scenario.** The Learner reaches Check 1 of 2 on a 1024 × 640 laptop with three Reviews due. The right panel switches to "Check 1 of 2" with six questions that scroll inside the panel. They open the Review row: it scrolls inside its capped box, while the last Tutor message, the quiz note and the message box all stay on screen and the page stays 640 px tall. They ask "is a basis point a hundredth of a percent?"; the Tutor answers that but won't touch the quiz, and the Check tab is still selected when the reply ends.
 
 **Trade-off.** Fixing everything to the viewport means nothing can push the chat away, at the price of several small scroll areas (the box above the chat, the conversation, the panel) instead of one page scroll; a long Review question has to be scrolled inside its box. Putting the quiz in the right panel means it and a Widget can't be seen together: the Learner switches tabs to look at a Widget mid-quiz.
+
+## The message box: writing indicator, drafting and Attach a passage (`src/app/message-box.tsx`, `turn-stream.ts`, spec #119, ticket #155)
+
+**What it does.** Three things around the message box at the bottom of the left column.
+- **Writing indicator.** The turn stream keeps a small `waiting` state: "writing" from the moment the Learner presses Send, "slow" if no words have arrived 8 seconds later, and nothing once the first text of the reply (or a saved replay) arrives or the turn ends. The message box shows it above itself as "Tutor is writing…" or "Still working on it…".
+- **Drafting during a turn.** The box stays editable while the Tutor writes, so the Learner can type the next message; the draft stays in the box when the turn ends. Send is off during a turn and while the box is empty, and Enter is ignored during a turn. These rules are assistant-ui's own composer rules (its Send and Enter check `isRunning` and an empty box), so there is no code of ours for them, only render tests.
+- **Attach a passage.** A button beside the box opens a small passage box above it (it reads "Remove passage" while open). The passage lives in the turn stream (`passage`, null while closed). When the Learner presses the one Send, the turn stream sends the message with the passage as `paste`, shows the message in the thread with the passage's short label ("(Pasted passage, 41 words: …)"), and closes the box. The server side is unchanged: the passage is saved privately with the Session in `pasted_texts` and reaches the Tutor as before (see "Follow Topics"). The old in-thread "Paste a passage" panel with its own "Send passage" button is gone, so there is one Send on screen.
+
+**Scenario.** The Learner on a Zitron Topic presses Attach a passage, pastes two paragraphs, types "Does the $430 billion tie out?" and presses Send. The thread shows the question and "(Pasted passage, 112 words: …)", and "Tutor is writing…" appears. The Tutor calls a tool first and nothing streams for 9 seconds, so the line changes to "Still working on it…"; meanwhile the Learner starts typing a follow-up. The reply streams in, the line disappears, and when the turn ends the follow-up is still in the box, ready to send.
+
+**Trade-off.** A message must have text: a passage on its own can't be sent (the old panel filled in "Here is the passage we are studying."), because one Send that is off for an empty box is simpler to read. The 8-second timer runs in the browser, so it measures the wait as the Learner sees it, not the server's own time. The indicator stays on through a Widget correction or tool call only until the first words arrive; after that the streaming text is the sign of life.
 
 ## Phone note (`SignedInFrame` in `src/app/ui.tsx`, issue #48)
 
@@ -2030,7 +2063,7 @@ backfill reload places the corrected readings.
 
 **Scenario.** Percent shows "Tell a change in percentage points from a change in percent.", "Read rate moves in basis points, the way bond traders quote them." and "Name the base of every change so its size is never mixed up." If someone rewords the second to "Read a move of 25 basis points", the course check fails with `Topic num-percent-bps has a figure in You'll learn bullet 2; write it in words`. If someone pastes present value's Insight in as a bullet (or the same words in a new order), the check fails with `bullet 3 repeats its Insight`, because the bullets are on screen before the Learner has found it.
 
-**Trade-off.** "Repeats the Insight" is a word-overlap test (the Insight held whole, or three in five of the two texts' meaningful words shared), so it catches pasting and light rewording but not a bullet that gives the Insight away in quite different words; the owner's review is the guard for that. The figure rule is strict: a bullet cannot say "two" as "2", and cannot name a Case's year, which keeps every number the Learner sees in Case Data or a calculator. The first third of the default path (Percent to Exchange rates, 32 Topics) is filled; tickets #138 and #139 fill the rest and empty the list, after which every Topic must have bullets.
+**Trade-off.** "Repeats the Insight" is a word-overlap test (the Insight held whole, or three in five of the two texts' meaningful words shared), so it catches pasting and light rewording but not a bullet that gives the Insight away in quite different words; the owner's review is the guard for that. The figure rule is strict: a bullet cannot say "two" as "2", and cannot name a Case's year, which keeps every number the Learner sees in Case Data or a calculator. Every Topic is now filled (the first third by #137, the middle third, Trade and globalisation to Bank runs, by #138, and the last third by #139), so the not-yet-filled list is empty and the course check requires bullets on every Topic, including any Topic written later.
 
 ## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/guided-task-check.ts`, issue #66)
 

@@ -137,6 +137,12 @@ principle: >
   the company makes about its own margin or capacity), and compare your value with the price and
   with other analysts' inputs as questions, never as verdicts.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Build a valuation as of a past date using only what was known then."
+  - "Write every input down before computing: revenue, margin, reinvestment and discount rate."
+  - "Find which input moves the value most with sensitivity tests."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: abv-q-revenue

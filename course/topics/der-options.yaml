@@ -53,6 +53,12 @@ principle: >
   trades. A bought option is a contract with a seller who carries the risk; a copied option is a
   promise to keep trading, and it fails when many people try to do it at once.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Draw the payoff of a call and a put at expiry."
+  - "See why an option's buyer can lose at most the premium while its seller can lose far more."
+  - "Tell a bought floor from one copied by trading, which needs a market willing to trade."
+
 questions:
   - id: op-q-call-profit
     prompt: >

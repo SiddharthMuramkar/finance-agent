@@ -59,6 +59,12 @@ principle: >
   A bank can pass every ratio and still be fragile. Ask what each requirement counts, what it leaves
   out, and which of the bank's risks fall in the gap.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why banks that borrow short and lend long need cushions of capital and liquid assets."
+  - "Read capital ratios, the leverage ratio and liquidity rules for what each one counts."
+  - "Ask which of a bank's risks fall in the gaps the rules leave out."
+
 questions:
   - id: br-q-cet1
     prompt: >

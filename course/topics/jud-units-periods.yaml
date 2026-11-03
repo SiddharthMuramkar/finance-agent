@@ -123,6 +123,12 @@ principle: >
   does not decide whether the thesis is right, so say exactly what is wrong, how large, and what
   still stands.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Check a number's unit, period and label before trusting it."
+  - "Tell apart saying one figure is several times another, more than it, or a share of it."
+  - "Look a definition up at the body that publishes it, not in memory."
+
 questions:
   - id: ju-q-pct-more
     prompt: >

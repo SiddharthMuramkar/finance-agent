@@ -97,6 +97,31 @@ describe("the workspace's left column", () => {
     expect(html).not.toMatch(/Widget \d/);
   });
 
+  it("labels every Tutor reply \"Tutor\" in navy, and no Learner message", () => {
+    const initial: Line[] = [
+      { role: "user", text: "What is present value?" },
+      { role: "assistant", text: "Present value is **today's worth** of money paid later." },
+      { role: "user", text: "And discounting?" },
+      { role: "assistant", text: "### Step one\n\nDiscounting is the reverse of compounding." },
+    ];
+    const html = workspace({ initial });
+    const labels = html.match(/<[^>]*data-testid="tutor-label"[^>]*>Tutor</g) ?? [];
+    expect(labels).toHaveLength(2);
+    for (const label of labels) expect(label).toContain("text-[var(--brand)]");
+    const firstReply = html.indexOf("today");
+    expect(html.indexOf("tutor-label")).toBeGreaterThan(html.indexOf("What is present value?"));
+    expect(html.indexOf("tutor-label")).toBeLessThan(firstReply);
+  });
+
+  it("never says \"lesson\" anywhere in the Study Workspace markup", () => {
+    const initial: Line[] = [
+      { role: "user", text: "Show me" },
+      { role: "assistant", text: `Here it is.\n\n${fence(ANNUITY)}` },
+    ];
+    expect(workspace({ initial }).toLowerCase()).not.toContain("lesson");
+    expect(workspace({ quiz, review: { ...noReview, dueCount: 2 } }).toLowerCase()).not.toContain("lesson");
+  });
+
   it("has a composer that asks the Tutor", () => {
     expect(workspace()).toContain('placeholder="Ask the Tutor"');
   });
@@ -156,8 +181,8 @@ describe("a quiz Check in the right panel", () => {
     const html = workspace({ quiz });
     const left = html.slice(0, html.indexOf('data-testid="widget-pane"'));
     expect(text(left)).toContain(note);
-    // Above the box: after the thread and the paste panel, before the box itself.
-    expect(left.indexOf(note)).toBeGreaterThan(left.indexOf('data-testid="paste-panel"'));
+    // Above the box: after the thread, before the box itself.
+    expect(left.indexOf(note)).toBeGreaterThan(left.indexOf('data-testid="thread-viewport"'));
     expect(left.indexOf(note)).toBeLessThan(left.indexOf('placeholder="Ask the Tutor"'));
     expect(left.match(/<textarea[^>]*placeholder="Ask the Tutor"[^>]*>/)?.[0]).not.toMatch(/\bdisabled\b/);
     expect(text(workspace())).not.toContain(note);

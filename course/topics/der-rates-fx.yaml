@@ -57,6 +57,12 @@ principle: >
   A derivative moves a risk, it does not remove it. Always ask who now holds the risk, what they are
   paid for holding it, and in which states of the world they win or lose.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tie a currency forward to the interest rates in the two currencies."
+  - "See how an interest-rate swap trades a fixed stream for a floating one on an amount never exchanged."
+  - "Ask who holds a risk after a derivative moves it, and when they win or lose."
+
 questions:
   - id: rx-q-cip
     prompt: >

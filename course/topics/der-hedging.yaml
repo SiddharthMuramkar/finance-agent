@@ -54,6 +54,12 @@ principle: >
   Judge a position by what it does to total risk, not by what it is called. If every leg of a
   strategy loses when one thing happens, it is one large bet, however safe each leg looks.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a hedge from a bet by what the whole position does when the risk moves."
+  - "Size a hedge and name the basis risk it leaves behind."
+  - "See how leverage multiplies a position's sensitivity and why funding through a bad period matters."
+
 questions:
   - id: hr-q-hedge-defn
     prompt: >

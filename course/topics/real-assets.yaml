@@ -60,6 +60,12 @@ principle: >
   fall into a loss of the buyer's own money and a risk to the lender. An asset with no cash
   flow, such as gold, has a price but no value that discounting can supply.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Value a building from the rent it earns before looking at its price."
+  - "See how borrowing turns a modest price fall into a loss of the buyer's own money."
+  - "Tell why an asset with no cash flow has a price but no value from discounting."
+
 questions:
   - id: ra-q-rent-value
     prompt: >

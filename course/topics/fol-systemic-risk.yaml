@@ -57,6 +57,12 @@ principle: >
   what conditions. Then follow each dependency one link at a time, and keep what the writer states
   as fact apart from what they infer and what they predict.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Test whether a company is systemic by following the money one link at a time."
+  - "Treat a headline funding number as an announcement until you know its terms."
+  - "Keep a writer's facts apart from their inferences and forecasts."
+
 questions:
   - id: fsr-q-cash-received
     prompt: >
