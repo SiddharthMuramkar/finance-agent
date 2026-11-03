@@ -70,5 +70,5 @@ export type CoveredParts = { id: string; title: string; parts: string[] };
 
 /** What each of the Topic's written-ahead Widgets covers, so a Widget the Tutor draws may not use those parts. */
 export function coveredParts(topic: Pick<Topic, "widgets">): CoveredParts[] {
-  return topic.widgets.filter((w) => w.parts.length).map((w) => ({ id: w.id, title: widgetCodeTitle(w.code) ?? w.id, parts: w.parts }));
+  return topic.widgets.map((w) => ({ id: w.id, title: widgetCodeTitle(w.code) ?? w.id, parts: w.parts }));
 }

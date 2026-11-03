@@ -87,6 +87,22 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     expect(thread.filter((e) => e.role === "item").map((e) => e.role === "item" && e.kind)).toEqual([WIDGET_OPENED]);
   });
 
+  it("sends back a Widget the Tutor draws under a written-ahead Widget's title, its own version of it", async () => {
+    const own = fence(
+      [
+        'root = Widget("One rate change, said three ways", [old, steps])',
+        "$old = 4",
+        'old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")',
+        "steps = GuidedTasks([up])",
+        'up = GuidedTask("Set it to 5%", $old == 5)',
+      ].join("\n"),
+    );
+    const db = await testDb();
+    const { client, requests } = scriptedClient([text(own), open("rate-change-three-ways", "toolu_fix"), text("")]);
+    await collect(runTutorTurn({ db, client }, "Show me"));
+    expect(String(requests[1].messages.at(-1)!.content)).toMatch(/- Widget 1: this Widget has the title of the written-ahead Widget "One rate change, said three ways"\. Never draw your own version: call open_widget/);
+  });
+
   it("lets the Tutor draw a calculator the Topic's written-ahead Widgets do not cover", async () => {
     const emi = fence(
       [

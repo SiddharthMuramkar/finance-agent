@@ -268,17 +268,21 @@ export const LEAVE_OUT = "leave this widget out of your reply";
 export function writtenAheadPartProblems(code: string, covered: readonly CoveredParts[]): string[] {
   if (!covered.length) return [];
   let used: Set<string>;
+  let title: string | undefined;
   try {
-    used = partsUsed(parser.parse(code));
+    const result = parser.parse(code);
+    used = partsUsed(result);
+    title = typeof result.root?.props.title === "string" ? result.root.props.title.trim() : undefined;
   } catch {
     return [];
   }
   return covered.flatMap((w) => {
     const shared = w.parts.filter((p) => used.has(p));
-    if (!shared.length) return [];
-    return [
-      `this Widget uses ${shared.map(partName).join(" and ")}, which the written-ahead Widget "${w.title}" covers. Never draw your own version: call open_widget with id "${w.id}" and ${LEAVE_OUT}.`,
-    ];
+    const open = `Never draw your own version: call open_widget with id "${w.id}" and ${LEAVE_OUT}.`;
+    if (shared.length) return [`this Widget uses ${shared.map(partName).join(" and ")}, which the written-ahead Widget "${w.title}" covers. ${open}`];
+    // Its own title would take the written-ahead Widget's tab, as an update in place does.
+    if (title === w.title) return [`this Widget has the title of the written-ahead Widget "${w.title}". ${open}`];
+    return [];
   });
 }
 
