@@ -23,6 +23,7 @@
     "library:load": "node --env-file=.env scripts/library-load.mjs",
     "library:blog": "node --env-file=.env scripts/library-blog.mjs",
     "library:pictures": "node --env-file=.env scripts/library-pictures.mjs",
+    "library:seed-documents": "node --env-file=.env scripts/library-seed-documents.mjs",
     "library:seed-pictures": "node --env-file=.env scripts/library-seed-pictures.mjs",
     "library:sheets": "node --env-file=.env scripts/library-sheets.mjs",
     "library:embed": "node --env-file=.env scripts/library-embed.mjs",

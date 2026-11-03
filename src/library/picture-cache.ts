@@ -24,12 +24,18 @@ export async function loadReadings(db: Executor, urls: string[]): Promise<Pictur
   return Object.fromEntries(rows.map((r) => [r.url, { text: r.text, model: r.model, stopReason: r.stop_reason, problems: r.problems ?? [] } satisfies PictureReading]));
 }
 
-/** Stores a picture's reading. An address already stored keeps its first reading (a second reading would not be word for word the same). */
+/**
+ * Stores a picture's reading. An address already stored keeps its first reading (a second reading
+ * would not be word for word the same), unless that reading was cut off by the length limit: a
+ * complete reading then replaces it.
+ */
 export async function saveReading(db: Executor, url: string, reading: PictureReading): Promise<void> {
   await db.execute(sql`
     insert into library_pictures (url, text, model, stop_reason, problems)
     values (${url}, ${reading.text}, ${reading.model}, ${reading.stopReason}, ${JSON.stringify(reading.problems)}::jsonb)
-    on conflict (url) do nothing`);
+    on conflict (url) do update set text = excluded.text, model = excluded.model, stop_reason = excluded.stop_reason,
+      problems = excluded.problems, read_at = now()
+      where library_pictures.stop_reason = 'max_tokens'`);
 }
 
 /** Notes a document's published and updated times, as the weekly refresh and the backfill saw them. */
