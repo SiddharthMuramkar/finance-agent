@@ -13,6 +13,9 @@
  * A second, targeted test (made-up examples before the reveal) asserts its grade and writes a short
  * record (made-up-example-<time>.md) to the report folder. Run it alone with
  * -t "made-up example before the reveal".
+ *
+ * A third (ONLY=topic-carry-over) asks "what were we just talking about?" in a fresh Topic after a
+ * conversation in Present value, and checks by code that the answer names nothing of that Topic.
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -159,6 +162,65 @@ it("Tutor behaviour test set", { timeout: 3_600_000 }, async () => {
   writeFileSync(join(OUT, `behaviour-results-${stamp}.json`), JSON.stringify(results, null, 2));
   console.log(`Total spend $${spent.toFixed(3)}; report in ${OUT}`);
 });
+
+/**
+ * One Session per Topic (ADR 0004, fix file B1 and B2): a live Tutor once said "The Sensex story stays
+ * where we left it" in the middle of another Topic. The Learner talks about the lottery in Present
+ * value, chooses a fresh Topic, and asks what they were just talking about: the answer must name
+ * nothing of the other Topic, because the new Topic's Session holds none of it. Graded by code.
+ */
+const CARRY_OVER_ID = "topic-carry-over";
+const CARRY_OVER_FRESH_TOPIC = "num-percent-bps";
+/** Words only the Present value conversation (the Mega Millions Case) would bring up. */
+const OTHER_TOPIC_WORDS = [/present value/i, /lottery/i, /mega millions/i, /jackpot/i, /annuity/i, /lump sum/i];
+
+it(
+  "what were we just talking about? in a fresh Topic names no other Topic",
+  {
+    timeout: 600_000,
+    skip: Boolean((process.env.ONLY && !process.env.ONLY.split(",").includes(CARRY_OVER_ID)) || process.env.RULE),
+  },
+  async () => {
+    const db = await testDb();
+    await saveJump(db, map, QUESTIONS_TOPIC);
+    await takeJumpEntry(db);
+    const run = async (message: string) => {
+      let text = "";
+      for await (const e of runTutorTurn({ db, client: tutorClient, map }, message)) {
+        if (e.type === "text") text += e.text;
+        if (e.type === "error") text += `\n[ERROR: ${e.message}]`;
+        if (e.type === "done") spent += e.usage.costUsd ?? 0;
+      }
+      return text.trim();
+    };
+    const before = await run("Tell me about the lottery story. Was the cash or the annuity bigger?");
+    await saveJump(db, map, CARRY_OVER_FRESH_TOPIC);
+    await takeJumpEntry(db);
+    const reply = await run("What were we just talking about?");
+    const named = OTHER_TOPIC_WORDS.filter((w) => w.test(reply)).map(String);
+    const record = [
+      `# What were we just talking about?, ${new Date().toISOString()}`,
+      "",
+      `${named.length ? "FAIL" : "PASS"}: ${named.length ? `the reply names the other Topic (${named.join(", ")})` : "the reply names nothing of the other Topic"}.`,
+      `Instruction fingerprint: ${fingerprint(TUTOR_INSTRUCTIONS, TUTOR_TOOLS)}.`,
+      "",
+      `Present value, Learner: Tell me about the lottery story. Was the cash or the annuity bigger?`,
+      "",
+      ...before.split("\n").map((l) => `> ${l}`),
+      "",
+      `${map.topic(CARRY_OVER_FRESH_TOPIC)?.title}, Learner: What were we just talking about?`,
+      "",
+      ...reply.split("\n").map((l) => `> ${l}`),
+      "",
+    ].join("\n");
+    mkdirSync(OUT, { recursive: true });
+    writeFileSync(join(OUT, `topic-carry-over-${new Date().toISOString().replace(/[:.]/g, "-")}.md`), record);
+    console.log(record);
+    expect(reply).not.toBe("");
+    expect(reply).not.toMatch(/\[ERROR:/);
+    expect(named, reply).toEqual([]);
+  },
+);
 
 /**
  * A leak found in a live run (evidence/24/prod, turn 4). At the your-turn step of the percent and
