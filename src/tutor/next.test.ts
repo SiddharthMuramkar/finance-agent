@@ -12,7 +12,7 @@ import { turnKind } from "./turn-status";
 import { nextOfferNow, type NextName } from "./next";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { OWNER_LEARNER_ID } from "@/db/schema";
-import { INSIGHT_PACING_REJECTION, PACING_REJECTION, VERDICT_PACING_REJECTION } from "./tools";
+import { NOT_THE_LEARNERS_ATTEMPT, PACING_REJECTION, VERDICT_PACING_REJECTION } from "./tools";
 
 /**
  * Seam 1, Tutor Turn: the Learner's Next. Code checks the move is allowed, advances the Course Navigator,
@@ -155,7 +155,8 @@ describe("the Learner's Next", () => {
     await saveSteps(other, map, ["story"]);
     await turn(other, "Go on.", [say("The concept.")], map);
     const attempt = await turn(other, { next: "explore" }, [tool("record_insight_attempt", { outcome: "found", learner_words: "Rates matter." }), say("Try the Widget.")], map);
-    expect(resultOf(attempt.requests)).toContain(INSIGHT_PACING_REJECTION);
+    // A Next's note is written by code, so it is never an attempt, before pacing is even asked.
+    expect(resultOf(attempt.requests)).toContain(NOT_THE_LEARNERS_ATTEMPT);
     expect((await loadProgress(other)).topics["present-value"].insight).toBeUndefined();
   });
 
