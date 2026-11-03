@@ -59,7 +59,7 @@ describe("Tutor Turn", () => {
     ]);
   });
 
-  it("uses claude-sonnet-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {
+  it("uses claude-opus-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: "First." }] },
@@ -72,7 +72,8 @@ describe("Tutor Turn", () => {
     await collect(runTutorTurn({ db, client }, "And again"));
 
     for (const request of requests) {
-      expect(request.model).toBe("claude-sonnet-5-5");
+      expect(request.model).toBe("claude-opus-5-5");
+      for (const banned of ["tool_choice", "temperature", "top_p", "top_k"]) expect(request).not.toHaveProperty(banned);
       expect(request.output_config).toEqual({ effort: "medium" });
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
       expect(request.tools).toEqual([
@@ -86,6 +87,47 @@ describe("Tutor Turn", () => {
       expect(request.thinking).toEqual({ type: "adaptive" });
       expect(request.cache_control).toEqual({ type: "ephemeral" });
     }
+  });
+
+  it("keeps a Session on the model it started with, and the next new Session uses the stored default", async () => {
+    const db = await testDb();
+    let t = Date.parse("2026-11-03T09:00:00Z");
+    const now = () => new Date(t);
+    const { client, requests } = scriptedClient([
+      { content: [{ type: "text", text: "One." }] },
+      { content: [{ type: "text", text: "Two." }] },
+      { content: [{ type: "text", text: "Three." }] },
+    ]);
+
+    await collect(runTutorTurn({ db, client, now }, "Hello"));
+    await db.update(settings).set({ value: "claude-sonnet-5-5" }).where(eq(settings.key, "model"));
+    t += 60_000;
+    await collect(runTutorTurn({ db, client, now }, "Same Session"));
+    t += 7 * 3600_000;
+    await collect(runTutorTurn({ db, client, now }, "New Session"));
+
+    expect(requests.map((r) => r.model)).toEqual(["claude-opus-5-5", "claude-opus-5-5", "claude-sonnet-5-5"]);
+  });
+
+  it("shows text written before a tool call to the Learner and saves it in the reply", async () => {
+    const db = await testDb();
+    const { client } = scriptedClient([
+      {
+        content: [
+          { type: "text", text: "You found it: a higher rate shrinks later money." },
+          { type: "tool_use", id: "toolu_t1", name: "calculate", input: { expression: "100 / 1.08" } },
+        ],
+        stop_reason: "tool_use",
+      },
+      { content: [{ type: "text", text: "On to the Check." }] },
+    ]);
+
+    const events = await collect(runTutorTurn({ db, client }, "I think higher rates make later money worth less"));
+
+    const shown = events.filter((e) => e.type === "text").map((e) => (e as { text: string }).text);
+    expect(shown.join("")).toContain("You found it: a higher rate shrinks later money.");
+    const lines = await loadCurrentSession(db);
+    expect(lines.filter((l) => l.role === "assistant").map((l) => l.text).join("\n")).toContain("You found it: a higher rate shrinks later money.");
   });
 
   it("stores assistant content unchanged, thinking blocks included, and replays history add-only", async () => {
@@ -593,7 +635,7 @@ describe("Tutor Turn", () => {
             topicId: "present-value",
             passed: false,
             evidence: "Added the payments without discounting.",
-            model: "claude-sonnet-5-5",
+            model: "claude-opus-5-5",
           }),
         ]);
       });
