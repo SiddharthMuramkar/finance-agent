@@ -65,7 +65,7 @@ describe("Simulated Learner database helpers", () => {
   it("--reset leaves the Learner's current Topic alone when it is a different Topic", async () => {
     const db = await testDb();
     const query = queryOf(db);
-    await db.execute(sql`insert into learner_state (id, current_topic_id) values (1, 'bond-prices') on conflict (id) do update set current_topic_id = 'bond-prices'`);
+    await db.execute(sql`insert into learner_state (id, learner_id, current_topic_id) values (1, 1, 'bond-prices') on conflict (id) do update set current_topic_id = 'bond-prices'`);
     await archiveTopic(query, "present-value", ["pv-check"], "archived-test");
     const [state] = await query("select current_topic_id from learner_state where id = 1");
     expect(state.current_topic_id).toBe("bond-prices");
@@ -74,7 +74,7 @@ describe("Simulated Learner database helpers", () => {
   it("--reset clears the current Topic when it is the Topic being reset, so the app starts it afresh", async () => {
     const db = await testDb();
     const query = queryOf(db);
-    await db.execute(sql`insert into learner_state (id, current_topic_id) values (1, 'present-value') on conflict (id) do update set current_topic_id = 'present-value'`);
+    await db.execute(sql`insert into learner_state (id, learner_id, current_topic_id) values (1, 1, 'present-value') on conflict (id) do update set current_topic_id = 'present-value'`);
     await archiveTopic(query, "present-value", ["pv-check"], "archived-test");
     const [state] = await query("select current_topic_id from learner_state where id = 1");
     expect(state.current_topic_id).toBeNull();
