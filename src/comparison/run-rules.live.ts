@@ -21,6 +21,7 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { it } from "vitest";
 import { placeLearner } from "@/behaviour/place";
+import { freshToolsLearner } from "@/dev/tools-learner";
 import { importCaseData } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
 import { settings } from "@/db/schema";
@@ -71,14 +72,16 @@ async function ask(q: ComparisonQuestion, model: string) {
   const db = await testDb();
   await db.insert(settings).values({ key: "model", value: model });
   if (existsSync(CASE_DATA)) await importCaseData(db, JSON.parse(readFileSync(CASE_DATA, "utf8")));
-  const place = await placeLearner(db, map, q.at);
+  // The tools Learner, started over: the run never plays the owner or the owner's test Learner.
+  const { id: learnerId } = await freshToolsLearner(db);
+  const place = await placeLearner(db, map, q.at, learnerId);
   const stepNote = `Topic "${place.topic.title}", Teaching Step "${place.step}" (before the reveal; the Learner has not seen the outcome).`;
   const replies: string[] = [];
   const t = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0, durationMs: 0 };
   let failed = "";
   for (const turn of q.turns) {
     let text = "";
-    for await (const e of runTutorTurn({ db, client: tutorClient, map }, turn)) {
+    for await (const e of runTutorTurn({ db, client: tutorClient, map, learnerId }, turn)) {
       if (e.type === "text") text += e.text;
       if (e.type === "error") failed = e.message;
       if (e.type === "refusal") failed = `refusal: ${e.message}`;
