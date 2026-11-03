@@ -1,5 +1,5 @@
 import type { CaseData } from "@/case-data/case-data";
-import { exploreWidgetFor } from "@/course/explore-widget";
+import { exploreAsSeen, exploreWidgetFor } from "@/course/explore-widget";
 import type { CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
 import type { Db } from "@/db/types";
@@ -7,7 +7,7 @@ import { loadProgress } from "@/learner/memory";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { openWidgetsIn, type OpenWidget } from "@/widgets/check";
 import { foundText, readWidget, type SourcedLookup, type WidgetReading } from "@/widgets/widget-reading";
-import { cleanSavedWidget, EXPLORE_WIDGET_KEY, MAX_WIDGET_KEY, widgetKey, type WidgetStates } from "@/widgets/widget-state";
+import { cleanSavedWidget, MAX_WIDGET_KEY, widgetKey, type WidgetStates } from "@/widgets/widget-state";
 import { currentTopicId, liveSession, openLog } from "./session-log";
 import { caseDataFor } from "./tools";
 import { textOf } from "./transcript";
@@ -23,7 +23,7 @@ import { WIDGET_OPENED } from "@/course/written-ahead";
  * by code from the Case Data the as-of rule allows the Learner now.
  */
 
-/** A Widget open in the panel, by its Widget key (the title, or "explore" for the explore Widget). */
+/** A Widget open in the panel, by its Widget key (the title, or the written-ahead id, which the explore Widget has too). */
 export type KeyedWidget = { key: string; code: string; explore: boolean };
 
 /** What the page sent as its Widgets' state, cleaned: only well-formed entries, at most 20 of them. */
@@ -55,9 +55,13 @@ export async function openWidgetsForTurn(
   });
   const progress = await loadProgress(db, learnerId);
   const opened = session ? new Set((await loadSessionItems(db, session.id, learnerId)).flatMap((i) => (i.kind === WIDGET_OPENED ? [i.data.id] : []))) : new Set();
-  const ahead = opened.size ? (await loadWrittenAhead(db, map, progress, session?.topicId)).filter((w) => opened.has(w.id)).map((w) => ({ key: w.id, code: w.code, explore: false })) : [];
-  const explore = withExplore ? exploreWidgetFor(map, progress) : null;
-  return [...tutors, ...ahead, ...(explore ? [{ key: EXPLORE_WIDGET_KEY, code: explore.code, explore: true }] : [])];
+  const found = withExplore ? exploreWidgetFor(map, progress) : null;
+  // The explore Widget is a written-ahead Widget: read as the Learner sees it now (reveal task and all), under its id.
+  const explore = found && exploreAsSeen(found, await loadWrittenAhead(db, map, progress, found.topicId));
+  const ahead = opened.size
+    ? (await loadWrittenAhead(db, map, progress, session?.topicId)).filter((w) => opened.has(w.id) && w.id !== explore?.id).map((w) => ({ key: w.id, code: w.code, explore: false }))
+    : [];
+  return [...tutors, ...ahead, ...(explore ? [{ key: explore.id, code: explore.code, explore: true }] : [])];
 }
 
 /** Reads a "caseId/datasetId" reference's latest point from the Case Data allowed now. */

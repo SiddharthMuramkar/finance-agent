@@ -8,6 +8,7 @@ import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
+import { InsightSettledContext } from "@/widgets/insight-settled";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { LeftColumn } from "./left-column";
 import { DeveloperDetails, type Line } from "./thread";
@@ -39,6 +40,7 @@ export function Conversation({
   review,
   place = null,
   explore = null,
+  insightSettled = false,
   writtenAhead,
   revealed = [],
   shown,
@@ -59,7 +61,9 @@ export function Conversation({
   review: ReviewState;
   place?: Place;
   /** The Topic's own explore Widget while the Learner has it (see exploreWidgetFor); shown by code, not drawn by the Tutor. */
-  explore?: { code: string } | null;
+  explore?: { code: string; id?: string } | null;
+  /** Whether the shown Topic's Insight is settled (found or told): until then Widgets hold back what gives it away. */
+  insightSettled?: boolean;
   /** The Topic's written-ahead Widgets as the Learner sees them now (writtenAheadFor); those the Tutor opened are drawn. */
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
@@ -109,6 +113,7 @@ export function Conversation({
       <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
         <DeveloperDetails on={developerDetails}>
           <WidgetStatesProvider store={widgetStore}>
+            <InsightSettledContext.Provider value={insightSettled}>
             {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
             <WidgetReportContext.Provider value={passed ? null : report}>
               <WorkspaceFrame
@@ -116,6 +121,7 @@ export function Conversation({
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
             </WidgetReportContext.Provider>
+            </InsightSettledContext.Provider>
           </WidgetStatesProvider>
         </DeveloperDetails>
       </CaseDataProvider>

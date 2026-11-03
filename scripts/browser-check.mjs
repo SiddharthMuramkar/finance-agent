@@ -201,15 +201,15 @@ async function studyShots(browser, learner, size, theme) {
       await tasks.waitFor({ state: "visible", timeout: 15_000 });
       const count = await tasks.locator("li").count();
       if (count < 2) throw new Error(`expected several Guided Tasks, found ${count}`);
-      // The present value Topic's tasks are: rate 0%, then 2%, then 8%, then the rate near the cash option.
+      // The present value annuity Widget's tasks are: rate 0%, then the rate where the annuity equals the cash (about 3.38%).
       let n = 0;
-      for (const rate of [0, 2, 8, 3.25]) {
+      for (const rate of [0, 3.38]) {
         await setSlider(page, explore, rate);
         n += 1;
         await shot(page, `${tag}-3-guided-tasks-${n}-rate-${String(rate).replace(".", "_")}`);
       }
       const done = await tasks.locator('li[data-state="done"]').count();
-      if (done < 3) throw new Error(`expected at least 3 Guided Tasks ticked after the sliders moved, saw ${done}`);
+      if (done < 2) throw new Error(`expected at least 2 Guided Tasks ticked after the sliders moved, saw ${done}`);
     });
 
     await step(`${tag}: live Formula Card`, async () => {
@@ -260,11 +260,12 @@ async function keptAfterReloadAndTabSwitch(browser, learner) {
       await page.goto(`${BASE}/study`, { waitUntil: "networkidle" });
       await exploreState(page);
       for (const rate of [0, 2]) await setSlider(page, '[data-testid="widget-card"]', rate);
+      // 0% ticks the first task; 2% is not the break-even, so it ticks nothing more.
       // The Widget's state is posted a moment after the last move.
       await page.waitForTimeout(1_500);
       moved = await exploreState(page);
       if (moved.value !== "2") throw new Error(`the slider shows ${moved.value} after it was set to 2`);
-      if (moved.ticked < 2) throw new Error(`expected the 0% and 2% Guided Tasks ticked, saw ${moved.ticked}`);
+      if (moved.ticked < 1) throw new Error(`expected the 0% Guided Task ticked, saw ${moved.ticked}`);
       await shot(page, "kept-1-before-reload");
     });
     if (!moved) return;

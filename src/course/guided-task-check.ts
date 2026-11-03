@@ -54,7 +54,10 @@ export function guidedTaskCheck(topicId: string, code: string): string[] {
   });
 }
 
-/** Problems in the Guided Tasks of every Topic's explore Widget. */
-export function guidedTaskCheckErrors(topics: readonly Pick<Topic, "id" | "explore">[]): string[] {
-  return topics.flatMap((t) => (t.explore?.widget ? guidedTaskCheck(t.id, t.explore.widget) : []));
+/** Problems in the Guided Tasks of every Topic's explore Widget (one of its written-ahead Widgets, as written). */
+export function guidedTaskCheckErrors(topics: readonly Pick<Topic, "id" | "explore" | "widgets">[]): string[] {
+  return topics.flatMap((t) => {
+    const code = t.widgets.find((w) => w.id === t.explore?.widget)?.code;
+    return code ? guidedTaskCheck(t.id, code) : [];
+  });
 }

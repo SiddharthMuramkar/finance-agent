@@ -1,8 +1,19 @@
-import type { CourseMap } from "./map";
+import type { CourseMap, Topic } from "./map";
 import { navigate, type Progress } from "./navigator";
 
-/** The Topic's own explore Widget, which code puts in the Widget panel (the Tutor does not draw it). */
-export type ExploreWidget = { topicId: string; code: string };
+/**
+ * The Topic's own explore Widget, which code puts in the Widget panel (the Tutor does not draw it): one of the Topic's
+ * written-ahead Widgets, by its id (which is its Widget key), with its code as written in the Topic file. A page that
+ * knows the Learner's Case Data swaps in the code as the Learner sees it now (writtenAheadFor), reveal task and all.
+ */
+export type ExploreWidget = { topicId: string; id: string; code: string };
+
+/** The Topic's explore Widget as written, or null when it has none (or names a written-ahead Widget it lacks). */
+export function exploreWidgetOf(topic: Pick<Topic, "id" | "explore" | "widgets">): ExploreWidget | null {
+  const id = topic.explore?.widget;
+  const widget = id ? topic.widgets.find((w) => w.id === id) : undefined;
+  return widget ? { topicId: topic.id, id: widget.id, code: widget.code } : null;
+}
 
 /**
  * The explore Widget the Learner has now, or null. It appears when the explore step begins and stays
@@ -11,11 +22,18 @@ export type ExploreWidget = { topicId: string; code: string };
  */
 export function exploreWidgetFor(map: CourseMap, progress: Progress): ExploreWidget | null {
   const place = navigate(map, progress);
-  const code = place?.topic.explore?.widget;
-  if (!place || !code) return null;
+  const widget = place ? exploreWidgetOf(place.topic) : null;
+  if (!place || !widget) return null;
   const settled = progress.topics[place.topic.id]?.insight !== undefined;
   const shown = place.step === "explore" || (place.status !== "passed" && settled);
-  return shown ? { topicId: place.topic.id, code } : null;
+  return shown ? widget : null;
+}
+
+/** The explore Widget with its code as the Learner sees it now, from the Topic's written-ahead Widgets worked out for them. */
+export function exploreAsSeen(explore: ExploreWidget | null, writtenAhead: readonly { id: string; code: string }[]): ExploreWidget | null {
+  if (!explore) return null;
+  const seen = writtenAhead.find((w) => w.id === explore.id);
+  return seen ? { ...explore, code: seen.code } : explore;
 }
 
 /** The Topic title and Teaching Step of each Course Navigator context in a Session's saved text, in order. */
@@ -29,7 +47,8 @@ export function exploreWidgetInSession(map: CourseMap, savedText: string): Explo
   for (const [, title, step] of savedText.matchAll(CONTEXT)) {
     if (step !== "explore") continue;
     const topic = map.topics.find((t) => t.title === title);
-    if (topic?.explore?.widget) return { topicId: topic.id, code: topic.explore.widget };
+    const widget = topic ? exploreWidgetOf(topic) : null;
+    if (widget) return widget;
   }
   return null;
 }

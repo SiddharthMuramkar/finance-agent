@@ -860,8 +860,8 @@ sends it back, the Tutor opens the written-ahead Widget instead, and the box nev
 reveal the page draws the Widget with the February 1994 task; before it, nothing in the Widget mentions 1994.
 
 **Trade-off.** Written-ahead Widgets are fixed text that cost no tokens and can be checked before they ship, but they
-cannot adapt to a Learner the way a Tutor Widget can, and only Percent has one so far (the annuity Widget comes with
-ticket #161). Reading the code from the Topic file on every render keeps the reveal task honest and lets a Topic
+cannot adapt to a Learner the way a Tutor Widget can, and only Percent and Present value have them (the annuity Widget,
+ticket #161, which is also Present value's explore Widget). Reading the code from the Topic file on every render keeps the reveal task honest and lets a Topic
 file fix reach old Sessions, but a Widget removed from a Topic file vanishes from Sessions that opened it (its chip
 draws nothing). The parts rule goes by named parts, so a Tutor Widget that does the same sum another way (typed
 expressions) is not caught. A written-ahead Widget has no Save to notes yet. A correction that only leaves Widgets
@@ -871,7 +871,7 @@ out drops the Tutor's prose in the correction reply, as every correction does.
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
 Guided Tasks it has ticked. Each is stored as one row of `widget_state` per (Session, Widget key). The Widget
-key is the written-ahead Widget's id (the explore Widget is saved as "explore"), or the title of a
+key is the written-ahead Widget's id (the explore Widget is a written-ahead Widget, saved under its id), or the title of a
 Widget the Tutor drew, so a Widget the Tutor updates in place under the same title keeps the Learner's work. The
 Study Workspace page reads the shown Session's rows with the Session and hands them to the page; a Widget then
 starts from its saved values (OpenUI's `initialState`, which wins over the starting numbers in its code) and its
@@ -1387,37 +1387,80 @@ attempt; today a change of tools refreezes each Session at its next new turn.
 
 ## The explore Widget (`explore.widget` in `course/topics/*.yaml`, `src/course/explore-widget.ts`, `src/app/widget-panel.tsx`)
 
-**What it does.** A Topic with an explore step can carry its own Widget, written in the Topic file as
-OpenUI code beside the Insight. Code, not the Tutor, shows it. From the moment the explore step begins it
+**What it does.** A Topic with an explore step can name one of its written-ahead Widgets (`explore.widget`
+is that Widget's id, since ticket #161) as its explore Widget. Code, not the Tutor, shows it. From the moment the explore step begins it
 opens by itself in the Widget panel as an "Explore" chip, and it stays there until the Topic is passed, so
 the Learner can keep playing during their turn and the Check. It is chosen from saved progress alone
 (`exploreWidgetFor`), so a page reload shows it exactly the same, and an old Session page shows it too when
 that Session reached the explore step (read from the Course Navigator context saved in the Session). A
 newer Widget from the Tutor still opens on its own, because the explore Widget is placed after only the
 Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells it the Widget is already on
-screen, so it points to it and does not draw its own. It is mounted once: the page measures its width
+screen, so it points to it and does not draw its own. Because it is a written-ahead Widget, the Tutor can open it
+again later with `open_widget`: the panel then keeps one tab (the Explore one), the Tutor's "Open: <title> →" chip
+opens it, its work is saved under the written-ahead id in both places, and the Tutor is told of it once
+(`updatedInPlace` in `widget-panel.tsx`, `openWidgetsForTurn` in `src/tutor/widget-context.ts`). The page draws it
+with the code as the Learner sees it now (`exploreAsSeen`), so a reveal task joins it after the reveal. It is mounted once: the page measures its width
 (`useLaptopWidth`, a media query on Tailwind's lg breakpoint) and draws the Widget in one place only. Below
 the laptop breakpoint (an upright iPad) a folded card, open to start, stands in the conversation column
 under the Topic bar and the panel says where it went; at laptop width only the panel draws it. The
 server, which measures nothing, assumes a laptop (the layout is desktop-first), so on a narrow screen the
 card appears just after the page loads.
 
-**Rules the course check holds.** The `widget` text is optional, but every `"caseId/datasetId"` it names must
-be one of the Topic's own Cases and a dataset that Case lists in `data`. A test parses every real explore
-Widget with the same checker as Tutor Widgets. Case Data still goes through the as-of rule on the server, so
+**Rules the course check holds.** The `widget` id is optional, but it must name one of the Topic's written-ahead
+Widgets, whose code the written-ahead rules check (Case Data references inside the Topic's own Cases, drawable,
+Guided Tasks reachable and not done at the start). Case Data still goes through the as-of rule on the server, so
 the Widget cannot draw anything dated after the Case's as-of date before the reveal.
 
-**A concrete scenario.** Present value's explore Widget is an interest-rate slider and the annuity chart
-set against the sourced cash option (the one figure dated on or before 24 October 2018). The Learner
-finishes the jackpot Check's concept step; the next reply ends, the page refreshes and the "Explore" chip is
-already open with the slider at 5%. They ask a question, the Tutor draws a calculator, and that newer Widget
-takes the panel; the Explore chip stays beside it. After the Learner passes the Topic the chip is gone. The
-winner's payment and the 30-year Treasury chart are left out on purpose, so playing leads nowhere near the reveal.
+**A concrete scenario.** Present value's explore Widget is its annuity Widget, "What the annuity is worth today"
+(see "Present value's annuity Widget" below), set against the sourced cash option (the one figure dated on or
+before 24 October 2018). The Learner finishes the jackpot Check's concept step; the next reply ends, the page
+refreshes and the "Explore" chip is already open with the slider at 5%. They ask a question, the Tutor draws a
+calculator, and that newer Widget takes the panel; the Explore chip stays beside it. At the Check the Tutor calls
+`open_widget` for the annuity Widget: its chip opens the Explore tab, at the rate the Learner left it. After the
+Learner passes the Topic the Explore chip is gone, but the Tutor can still open the Widget. The winner's payment and
+the 30-year Treasury chart are left out on purpose, so playing leads nowhere near the reveal.
 
 **Trade-off.** The Widget is fixed text in the Topic file, so it cannot adapt to a Learner the way a Tutor
 Widget can, and it costs nothing in tokens. Drawing it in one place keeps one set of sliders and one
 Case Data read, but crossing the laptop breakpoint while resizing moves it, which resets the slider. An old Session is matched to the Topic by the
-title in its saved context, so a Topic renamed later loses its chip on old Session pages.
+title in its saved context, so a Topic renamed later loses its chip on old Session pages. Work saved under the old
+explore Widget's key ("explore") is not carried over to the annuity Widget's id: those Sessions open it at 5%.
+
+### Present value's annuity Widget (`annuity-worth-today` in `course/topics/present-value.yaml`, `AnnuityChart` and `Slider` in `src/widgets/library.tsx`, `AnnuityFigure` in `case-data-view.tsx`, `annuityBreakEven` in `src/finance/present-value.ts`, `InsightSettledContext` in `src/widgets/insight-settled.ts`, spec #119, ticket #161)
+
+**What it does.** Present value has one annuity Widget, "What the annuity is worth today" (the owner's Part 5). It
+replaced the old explore Widget: code shows it at explore and the Tutor reopens it later with `open_widget`. The
+Learner sets a 0–10% rate in 0.01 steps (starting at 5%, Reset back to 5%, a number box, −/+ and a **0%** quick
+button; quick buttons are a new optional list on `Slider`). The chart draws the 30 payments by year, 2018 to 2047,
+labelled every 5 years on a $ millions axis (`AnnuityChart`'s new optional `firstYear`), and a hover or tap reads a
+bar as "Payment in 2029: $X paid → worth $Y today". Under it: Sum of payments; worth today in teal (the Learner's
+assumption); the Cash option in amber (sourced, from Case Data); and two named bars on one scale, "Annuity, worth
+today: $884.1M" and "Cash option: $877.8M". Its Guided Tasks: set 0% (it equals the advertised $1.537B); find where
+the annuity equals the cash (ticks within 0.02 points of the break-even); and, after the reveal, set the 30-year
+Treasury yield of 24 Oct 2018.
+
+**What it holds back.** Until the Topic's Insight is settled (found or told; the Study Workspace passes it through
+`InsightSettledContext`), the chart shows no verdict and no break-even, so the Learner finds the idea first. After
+it, a verdict line worked out by code reads "At 3.33%, the annuity is worth $6.3M more than the cash", flipping to
+"less" above the break-even, and "At about 3.38%, the annuity and the cash are worth the same." shows when the rate is
+within 0.02 points of the break-even (`annuityBreakEven`, found by halving the range), or on **Show me**, offered
+once the Learner has tried a rate other than the one the chart opened at. Until the reveal the "3.33% (30-yr
+Treasury, 24 Oct 2018)" quick button and its task are left out: the Widget's `revealTask` adds both once the reveal
+has been shown, the rate read from the `treasury-30-year` dataset under the as-of rule (its new `quick` field names
+the slider and the note). Home, Notes and Older sessions draw it as before the Insight.
+
+**Scenario.** At explore the Learner opens the Widget at 5% ($694.0M worth today against the $877.8M cash). They
+press 0%: the worth today is the full $1.537B and task 1 ticks. They type 3.33: no verdict shows. They say the far
+payments shrink most, so money now can beat a bigger total later; the Tutor records the Insight as found. Back in the
+Widget, 3.33 now reads "the annuity is worth $6.3M more than the cash"; typing 3.38 flips it to "less", the
+break-even line appears and task 2 ticks. After the reveal the Treasury button appears; pressing it sets 3.33% and
+ticks the last task.
+
+**Trade-off.** The break-even task's range (3.36 to 3.39) is written in the Topic file, because a Guided Task's
+condition is plain OpenUI code the course check evaluates without Case Data; a test holds it to the break-even code
+works out against the cash option, so a changed cash figure fails the test rather than drifting. The verdict and the
+break-even are features of every `AnnuityChart` compared with a sourced dollar figure (it reads that figure as "the
+cash"), shown only where a page says the Insight is settled; only the Study Workspace says so today.
 
 ## Pacing rule (`src/tutor/tools.ts`, `src/tutor/instructions.ts`)
 
@@ -3033,7 +3076,7 @@ backfill reload places the corrected readings.
 
 **What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked. In the Study Workspace the ticks are saved with the Session (see "Widget state"), so they survive a reload and a tab switch. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` tries every position of the sliders a task reads in each Topic's explore Widget, and fails on a task no position can reach or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
 
-**Scenario.** Present value's explore Widget has four tasks under the rate slider and the annuity chart: set the rate to 0%, then 2%, then 8%, then find the rate where the payments' worth today comes closest to the cash option. The slider starts at 5%, so none is done. The Learner drags to 8% first: nothing ticks, because task 1 is current. They go to 0%: task 1 ticks. They go to 2%, then 8%: tasks 2 and 3 tick. The fourth ticks at 3.25% or 3.5%, the two positions where the annuity's worth today is nearest the cash option's $877.8 million. If a later edit made task 3 read `$rate == 8.1`, the course check would fail, because it still tries the slider's written steps of 0.25 (in the browser a percent slider now moves in 0.01 steps, so the check is stricter than the page; see "Exact slider values").
+**Scenario.** Present value's annuity Widget has two tasks under the rate slider and the annuity chart before the reveal: set the rate to 0%, then find the rate where the annuity is worth the same as the cash. The slider starts at 5%, so none is done. The Learner types 3.38 first: nothing ticks, because task 1 is current. They press 0%: task 1 ticks. They type 3.36: task 2 ticks, as it does anywhere from 3.36 to 3.39, within 0.02 points of the break-even (about 3.38%). If a later edit made task 2 read `$rate >= 10.5`, the course check would fail, because no slider position reaches it.
 
 **Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Since spec #119 the ticks are saved with the Session as Widget state; on Notes, Older sessions and Home they still live in the page only, so a reload there starts the stepper again. The frozen Widget instructions changed (two components, an example and a rule), so each Session is refrozen at its next new turn after the deploy.
 

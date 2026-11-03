@@ -72,21 +72,35 @@ insight:
     - >
       Compare the total of the shrunken bars with a single sum arriving today. At a high rate, which
       one would you rather have, and why?
-# The explore Widget is shown by code, not by the Tutor. It draws only the cash option's dataset (dated on or before the as-of date)
-# and leaves out the 30-year Treasury chart and the winner's payment, so nothing leads the Learner to the reveal.
+# The explore Widget is the annuity Widget below, shown by code at explore (not by the Tutor); the Tutor reopens it
+# later with open_widget. It draws only the cash option's dataset (dated on or before the as-of date) and leaves out
+# the 30-year Treasury chart and the winner's payment, so nothing leads the Learner to the reveal.
 explore:
   before: pv-jackpot-choice
   requiredWhenPassed: false
-  widget: |
-    root = Widget("Cash now or 30 yearly payments: what the rate decides", [rate, chart, steps])
-    $rate = 5
-    rate = Slider("rate", "Interest rate (discount rate)", 0, 10, 0.25, $rate, "percent")
-    chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")
-    steps = GuidedTasks([zero, two, eight, closest])
-    zero = GuidedTask("Set the interest rate to 0%", $rate == 0)
-    two = GuidedTask("Now set it to 2%", $rate == 2)
-    eight = GuidedTask("Now set it to 8%", $rate == 8)
-    closest = GuidedTask("Find the rate where the payments' worth today comes closest to the cash option", $rate >= 3.25 && $rate <= 3.5)
+  widget: annuity-worth-today
+
+# The owner's Part 5 annuity Widget. Until the Insight is settled the chart hides its verdict and break-even (code
+# works both out); until the reveal the 30-year Treasury quick button and task stay out. The break-even task ticks
+# within 0.02% of the break-even code works out (about 3.38%); a test holds the two together.
+widgets:
+  - id: annuity-worth-today
+    # The Tutor may not draw an annuity chart or schedule of its own here: this Widget is the one.
+    parts: [AnnuityChart, annuity_schedule]
+    code: |
+      root = Widget("What the annuity is worth today", [rate, chart, steps])
+      $rate = 5
+      rate = Slider("rate", "Interest rate (discount rate)", 0, 10, 0.01, $rate, "percent", [{value: 0}])
+      chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option", 2018)
+      steps = GuidedTasks([zero, even])
+      zero = GuidedTask("Set the rate to 0%: the payments are worth the advertised $1.537B", $rate == 0)
+      even = GuidedTask("Find the rate where the annuity is worth the same as the cash", $rate >= 3.36 && $rate <= 3.39)
+    revealTask:
+      case: mega-millions-2018
+      dataset: treasury-30-year
+      text: "Set the 30-year Treasury yield of 24 Oct 2018: {before}%"
+      done: "$rate == {before}"
+      quick: { slider: rate, note: "30-yr Treasury, 24 Oct 2018" }
 
 # Given by the Tutor at the principle step. Written in words (no figures); each names outline Topic IDs, checked by `npm run course:check`.
 connections:

@@ -99,11 +99,11 @@ const exploreSchema = z.object({
   /** Whether a Learner who already passed the Topic is taken through explore again. */
   requiredWhenPassed: z.boolean().default(false),
   /**
-   * The Topic's own explore Widget, in OpenUI code. Code (not the Tutor) puts it in the Widget panel when
-   * explore begins and keeps it there until the Topic is passed. Parsed by the tests; its Case Data
-   * references are checked here.
+   * The id of the Topic's written-ahead Widget (under `widgets`) that is its explore Widget. Code (not the Tutor)
+   * puts it in the Widget panel when explore begins and keeps it there until the Topic is passed; the Tutor can
+   * reopen the same Widget later with open_widget. See src/course/explore-widget.ts.
    */
-  widget: z.string().min(1).optional(),
+  widget: id.optional(),
 });
 
 export type Insight = z.infer<typeof insightSchema>;
@@ -135,6 +135,11 @@ const writtenAheadSchema = z.object({
       text: z.string().min(1),
       /** Its condition in OpenUI code, e.g. "$old == {before} && $new == {after}". */
       done: z.string().min(1),
+      /**
+       * A quick button that joins a slider with the task, setting it to the move's {before} value: the slider by its
+       * name, and the note after the value on the button, e.g. "3.33% (30-yr Treasury, 24 Oct 2018)".
+       */
+      quick: z.object({ slider: z.string().min(1), note: z.string().min(1) }).optional(),
     })
     .optional(),
 });
@@ -361,9 +366,11 @@ function widgetReferenceProblems(t: Pick<Topic, "id" | "cases">, code: string, w
   });
 }
 
-/** Case Data references in the explore Widget's code that do not belong to the Topic's own Cases and their datasets. */
-function exploreWidgetReferenceProblems(t: Pick<Topic, "id" | "cases" | "explore">): string[] {
-  return widgetReferenceProblems(t, t.explore?.widget ?? "", `Topic "${t.id}" explore Widget`);
+/** The explore Widget names one of the Topic's written-ahead Widgets, whose code the written-ahead rules check. */
+function exploreWidgetProblems(t: Pick<Topic, "id" | "explore" | "widgets">): string[] {
+  const id = t.explore?.widget;
+  if (!id || t.widgets.some((w) => w.id === id)) return [];
+  return [`Topic "${t.id}" explore Widget "${id}" is not one of the Topic's written-ahead Widgets (under widgets:)`];
 }
 
 /** Problems in a Topic's written-ahead Widgets that the file alone shows; whether each draws is the course check's job. */
@@ -386,6 +393,7 @@ function writtenAheadProblems(t: Topic): string[] {
     if (!c) problems.push(`${where} reads its reveal task from "${task.case}", which is not one of the Topic's Cases`);
     else if (!c.data.includes(task.dataset)) problems.push(`${where} reads its reveal task from dataset "${task.dataset}", which Case "${task.case}" does not list`);
     if ((w.code.match(/GuidedTasks\(\[/g) ?? []).length !== 1) problems.push(`${where} has a reveal task, so it needs exactly one GuidedTasks([...]) for it to join`);
+    if (task.quick && !w.code.includes(`Slider("${task.quick.slider}",`)) problems.push(`${where} has a reveal quick button for slider "${task.quick.slider}", which it does not have`);
   }
   return problems;
 }
@@ -398,7 +406,7 @@ function insightProblems(t: Topic): string[] {
   if (t.explore && !t.checks.some((c) => c.id === t.explore!.before)) {
     problems.push(`Topic "${t.id}" explores before Check "${t.explore.before}", which it does not have`);
   }
-  if (t.explore?.widget) problems.push(...exploreWidgetReferenceProblems(t));
+  problems.push(...exploreWidgetProblems(t));
   if (t.insight) {
     const { question, written, foundWhen, hints } = t.insight;
     const fields: [string, string][] = [["question", question], ["written", written], ["foundWhen", foundWhen], ...hints.map((h, i): [string, string] => [`hints.${i}`, h])];

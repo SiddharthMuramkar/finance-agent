@@ -42,7 +42,7 @@ export function LeftColumn({
   place: Place;
   review: ReviewState;
   quizOpen: boolean;
-  explore: { code: string } | null;
+  explore: { code: string; id?: string } | null;
   passed?: PassedTopic;
 }) {
   const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
@@ -62,7 +62,7 @@ export function LeftColumn({
       {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a pinned Widget, a Review) can squeeze the chat. */}
       <div data-testid="above-thread" className="mb-6 flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
         {place && <TopicBar title={place.title} strip={strip} marked={marked} />}
-        {explore && <PinnedExplore item={exploreItem(explore.code)} />}
+        {explore && <PinnedExplore item={exploreItem(explore.code, undefined, explore.id)} />}
         <ReviewPanel review={review} />
       </div>
       <ThreadPrimitive.Viewport data-testid="thread-viewport" className="min-h-0 flex-1 overflow-y-auto pb-6">
