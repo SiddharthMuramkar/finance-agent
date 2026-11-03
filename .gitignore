@@ -13,8 +13,9 @@ __pycache__/
 # Scratch output from web tools
 .firecrawl/
 
-# Personal Claude Code settings
+# Personal Claude Code settings, and worktrees made for Claude Code's parallel agents
 .claude/settings.local.json
+.claude/worktrees/
 
 # Build and type caches
 *.tsbuildinfo
