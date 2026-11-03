@@ -9,7 +9,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 1. Percent, percentage points and basis points
 
-- ID: `num-percent-bps` · Written
+- ID: `num-percent-bps` · Written · Subject: Numbers & time value
 - Needs first: nothing
 - Case: **The Federal Reserve meets in February 1994** (as of 1994-02-03)
   - Outcome: The Fed tightened on 4 Feb 1994 but announced no numeric target; its statement spoke only of 'a slight increase in the degree of pressure on reserve positions', and the funds rate went from about 3.00% to 3.25%, which markets read as 25 bp. The 10-year Treasury par yield went from 5.81% (3 Feb) to 5.94% (4 Feb), 6.15% (28 Feb) and 7.49% (9 May), about 168 bp, while the Fed's own increase by early May was 75 bp.
@@ -18,7 +18,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 2. Growth, compounding and logs
 
-- ID: `num-compounding` · Written
+- ID: `num-compounding` · Written · Subject: Numbers & time value
 - Needs first: Percent, percentage points and basis points
 - Case: **The Sensex from base 100 (1979) to 1992** (as of 1992-03-31)
   - Outcome: The Sensex peaked with a close of 4,467 in April 1992. On 28 Apr 1992, as the Harshad Mehta securities scam came to light, it fell 12.77% in a day, the largest one-day percentage fall in its history outside the Covid crash; it lost 5% in April and 23% in May, and by April 1993 stood at about 1,980, about 56% below the peak. From base 100 the long-run rate was about 33% a year compound (own arithmetic).
@@ -27,7 +27,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 3. Probability and expected value
 
-- ID: `num-probability` · Written
+- ID: `num-probability` · Written · Subject: Numbers & time value
 - Needs first: Percent, percentage points and basis points
 - Case: **Long-Term Capital Management, before the loss** (as of 1998-08-01)
   - Outcome: LTCM lost 44% of its value in August 1998 alone. On 23 Sep 1998 fourteen banks and brokerage firms put in $3.625bn for 90% of the fund, an arrangement the Fed facilitated without lending its own money; the original partners and investors kept 10%. With about $30 of debt per $1 of capital, a fall of only about 3% in the value of its assets was enough to wipe out all its capital.
@@ -36,7 +36,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 4. Time value and present value
 
-- ID: `present-value` · Written
+- ID: `present-value` · Written · Subject: Numbers & time value
 - Needs first: Growth, compounding and logs
 - Case: **The $1.537 billion Mega Millions jackpot** (as of 2018-10-24)
   - Outcome: The winner stayed anonymous until 4 Mar 2019, then took the cash option: a one-time $877,784,124 before tax, roughly the present value of the 30 annuity payments at the interest rates of the time.
@@ -45,7 +45,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 5. The income statement
 
-- ID: `fs-income` · Written
+- ID: `fs-income` · Written · Subject: Financial statements
 - Needs first: Percent, percentage points and basis points
 - Case: **WeWork's S-1** (as of 2019-08-14)
   - Outcome: The share sale did not go ahead: co-founder and chief executive Adam Neumann stepped down on 24 Sep 2019 and WeWork asked on 30 Sep 2019 to withdraw its prospectus. It listed through a different route in 2021 and on 6 Nov 2023 filed for Chapter 11 with nearly $19bn of liabilities against about $15bn of assets. The 2019 income statement already showed the problem: first-half revenue of $1.54bn against a net loss of about $905m, a net margin of about minus 59%.
@@ -53,7 +53,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 6. The balance sheet
 
-- ID: `fs-balance` · Written
+- ID: `fs-balance` · Written · Subject: Financial statements
 - Needs first: The income statement
 - Case: **Satyam's balance sheet** (as of 2008-09-30)
   - Outcome: On 7 Jan 2009 chairman B. Ramalinga Raju wrote to the board admitting that the accounts had been falsified for years. Of the Rs 5,361 crore of cash and bank balances in the books, Rs 5,040 crore did not exist; debtors were overstated by Rs 490 crore (Rs 2,651 crore in the books); Rs 376 crore of accrued interest did not exist; and a Rs 1,230 crore liability for funds he had arranged was left out. The SEC later put the fictitious cash at more than $1bn, about half of total assets.
@@ -62,7 +62,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 7. The cash flow statement
 
-- ID: `fs-cashflow` · Written
+- ID: `fs-cashflow` · Written · Subject: Financial statements
 - Needs first: The balance sheet
 - Case: **Webvan's cash burn** (as of 2001-04-02)
   - Outcome: On 9 Jul 2001 Webvan shut all seven of its markets, which served about 750,000 customers, and said it would file for bankruptcy protection; it filed for Chapter 11 on 13 Jul 2001. Its accumulated deficit was $829.7m at 31 Mar 2001. The cash flow statement had already shown it: $263.1m used in operations in 2000 (up from $58.8m in 1999) and $259.8m spent on property and equipment, paid for from money raised from investors in 1999. TIME's cash burn of $480m is a press estimate, not a filing figure.
@@ -70,7 +70,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 8. How the three statements link (accrual accounting)
 
-- ID: `fs-links` · Written
+- ID: `fs-links` · Written · Subject: Financial statements
 - Needs first: The cash flow statement
 - Case: **Satyam's forged invoices and bank statements** (as of 2008-12-31)
   - Outcome: On 7 Jan 2009 Raju wrote that for the September 2008 quarter Satyam had reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (24%) against actual revenue of Rs 2,112 crore and operating profit of Rs 61 crore (3%); the Rs 588 crore difference showed up as 'artificial cash and bank balances'. The SEC later said managers created more than 6,000 phony invoices and bogus bank statements, giving more than $1bn of fictitious cash, about half of total assets; Satyam paid a $10m penalty to settle. The false profit had to appear in the general ledger and the financial statements.
@@ -78,7 +78,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 9. Ratios, return on equity and DuPont
 
-- ID: `fs-ratios` · Written
+- ID: `fs-ratios` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
 - Case: **Coffee Day Enterprises at its IPO** (as of 2015-10-13)
   - Outcome: The IPO was priced at Rs 328, the top of the Rs 316-328 band, and subscribed 1.64 times. Shares listed on 2 Nov 2015 at Rs 313 on the BSE, below the issue price, and closed at Rs 270.15, 17.63% below it. In July 2019 founder V. G. Siddhartha was found dead after a letter dated 27 Jul citing lender pressure; the 2015 prospectus had warned that he had given personal guarantees and share pledges for group loans and that lenders could take the pledged shares.
@@ -86,7 +86,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 10. Revenue recognition, run rates, gross vs net
 
-- ID: `fs-revenue-runrate` · Written
+- ID: `fs-revenue-runrate` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
 - Case: **WeWork's run-rate boast** (as of 2019-08-14)
   - Outcome: The listing never happened: WeWork filed to withdraw its IPO on 30 Sep 2019, after co-founder and chief executive Adam Neumann stepped down on 24 Sep. SoftBank's rescue in Oct 2019 valued the company at about $8bn, against $47bn in January. The S-1's run-rate revenue (the last month's revenue times 12) was $3.3bn at 30 Jun 2019, but first-half revenue was $1.54bn and the net loss about $905m, roughly 59 cents lost on every dollar of revenue.
@@ -94,7 +94,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 11. Capex, depreciation, amortisation and EBITDA
 
-- ID: `fs-capex-dep` · Written
+- ID: `fs-capex-dep` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
 - Case: **Webvan's warehouse and fleet build-out** (as of 1999-11-05)
   - Outcome: Webvan's shares rose on the first day, closing at $24.875 and valuing it at about $7.9bn. It then bought its rival HomeGrocer, and net loss grew from $144.6m in 1999 to $453.3m in 2000, when auditors voiced substantial doubt about its ability to continue. In early 2001 its operating costs alone (marketing, development, administration) were $143 for every $100 of sales, on top of $72 of food cost (the Chicago Tribune's reading of its quarterly report). On 9 Jul 2001, with the shares at 6 cents, it shut down and said it would file for bankruptcy protection; it filed on 13 Jul 2001.
@@ -103,7 +103,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 12. Leases, commitments and debt-like items
 
-- ID: `fs-leases-debt` · Written
+- ID: `fs-leases-debt` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting), Time value and present value
 - Case: **WeWork's lease obligations** (as of 2019-08-14)
   - Outcome: The IPO was withdrawn on 30 Sep 2019. WeWork filed for Chapter 11 on 6 Nov 2023, listing nearly $19bn of liabilities, and in the restructuring rejected leases it could not afford. At 30 Jun 2019 the S-1 had shown $17.9bn of long-term lease obligations on the balance sheet and $47.2bn of undiscounted future minimum lease payments, including $13.1bn on signed leases not yet started.
@@ -112,7 +112,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 13. Reading filings: S-1, 10-K, Indian annual report and Ind AS
 
-- ID: `fs-filings` · Written
+- ID: `fs-filings` · Written · Subject: Financial statements
 - Needs first: Ratios, return on equity and DuPont
 - Case: **WeWork's governance clause** (as of 2019-08-14)
   - Outcome: The IPO did not go ahead: Adam Neumann stepped down as chief executive on 24 Sep 2019 and WeWork filed to withdraw its IPO on 30 Sep. The S-1 had shown his profits interests vesting only when public market value reached $50bn, $72bn and $90bn (performance thresholds, not a cap), a $362m loan from the company for exercising options, and $236.6m of minimum lease payments on buildings in which he had interests.
@@ -120,7 +120,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 14. Earnings quality and accounting fraud
 
-- ID: `fs-earnings-quality` · Written
+- ID: `fs-earnings-quality` · Written · Subject: Financial statements
 - Needs first: Ratios, return on equity and DuPont, Capex, depreciation, amortisation and EBITDA
 - Case: **Satyam, the day before the confession** (as of 2009-01-06)
   - Outcome: On 7 Jan 2009 Raju wrote to the board and the regulators and resigned. He said Rs 5,040 crore of the Rs 5,361 crore of cash and bank balances on the 30 Sep 2008 balance sheet did not exist, Rs 376 crore of accrued interest was non-existent and receivables were overstated by Rs 490 crore (of Rs 2,651 crore). For the September quarter the reported revenue of Rs 2,700 crore and operating margin of Rs 649 crore (24%) compared with actual figures of Rs 2,112 crore and Rs 61 crore (3%). The shares fell to Rs 39.95 in Mumbai that day. The SEC later alleged that officials used false invoices and forged bank statements to inflate results.
@@ -128,7 +128,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 15. Corporate tax and after-tax cash flows
 
-- ID: `fs-tax` · Written
+- ID: `fs-tax` · Written · Subject: Financial statements
 - Needs first: How the three statements link (accrual accounting)
 - Case: **India cuts corporate tax to 22%** (as of 2019-09-19)
   - Outcome: On 20 Sep 2019 Finance Minister Nirmala Sitharaman cut the base corporate tax rate for domestic companies from 30% to 22% for those that give up exemptions and incentives (25.17% effective with a 10% surcharge and 4% cess, down from 34.94%), with no Minimum Alternate Tax. New manufacturing companies incorporated on or after 1 Oct 2019 and starting production by 31 Mar 2023 could choose 15% (17.01% effective). The cut was estimated to cost Rs 1.45 lakh crore of revenue, and the Sensex rose 1,921 points (5.32%) in a day, its biggest single-day gain in over a decade.
@@ -137,7 +137,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 16. Statistics: mean, variance, correlation, regression
 
-- ID: `num-statistics` · Written
+- ID: `num-statistics` · Written · Subject: Numbers & time value
 - Needs first: Probability and expected value
 - Case: **The 1987 crash** (as of 1987-10-16)
   - Outcome: On Monday 19 Oct 1987 the S&P 500 fell about 20% in a single day, the other major US indices fell between 18% and 23%, and S&P 500 futures fell 29%. A fall that size is effectively impossible in a normal distribution fitted to ordinary days. Portfolio insurance, which sells index futures as prices fall, amplified it when the insurers sold together.
@@ -145,7 +145,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 17. Supply, demand and prices
 
-- ID: `eco-supply-demand` · Written
+- ID: `eco-supply-demand` · Written · Subject: Economics & policy
 - Needs first: Percent, percentage points and basis points
 - Case: **India's onion price shock** (as of 2019-09-01)
   - Outcome: Prices climbed every month after the as-of date: the all-India average retail price was Rs 38.30 a kg in Sep 2019, Rs 47.02 in Oct, Rs 61.08 in Nov and Rs 82.17 in early Dec, and the daily average reached Rs 101.35 on 10 Dec, five times a year earlier. Untimely, prolonged rain in Sep and Oct damaged the kharif crop (combined production estimated at 54.73 lakh tonnes against 69.91 lakh tonnes, about 22% lower). The government set a minimum export price of $850 a tonne on 13 Sep, banned exports from 29 Sep, put stock limits on traders and approved imports; the ban pushed prices up in Bangladesh, Nepal and Sri Lanka.
@@ -154,7 +154,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 18. Competition, market structure and pricing power
 
-- ID: `eco-micro-competition` · Written
+- ID: `eco-micro-competition` · Written · Subject: Economics & policy
 - Needs first: Supply, demand and prices
 - Case: **Reliance Jio's free launch** (as of 2016-09-01)
   - Outcome: Within hours on 1 Sep 2016 Idea Cellular fell 9% to Rs 85 and Bharti Airtel 8.99% to Rs 302; by the close Idea was down about 10% and Airtel about 6% (the BBC put Airtel's loss of market value at about $1.3bn and Idea's at over $500m). Jio launched officially on 5 Sep 2016 with free voice and data to 31 Dec. Analysts were split between customers as the winners of a price war and the risk of a monopoly; incumbents' pricing power had rested on a few rivals who all wanted profits.
@@ -163,7 +163,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 19. Money, banks and credit creation
 
-- ID: `eco-money-banking` · Written
+- ID: `eco-money-banking` · Written · Subject: Economics & policy
 - Needs first: The balance sheet, Supply, demand and prices
 - Case: **The 1992 securities scam** (as of 1992-02-01)
   - Outcome: The scam came to light in late April 1992 when the State Bank of India reported a shortfall of government securities, about Rs 500 crore missing from its books. Mehta had obtained fake bank receipts through officials of the Bank of Karad and the Metropolitan Cooperative Bank; lenders handed over cash against receipts backed by no securities, and the broker put it into shares. Size is disputed by source: about Rs 1,000 crore siphoned and Rs 3,500 crore manipulated (Forbes India), nearly Rs 4,000 crore (India Today). The Sensex had gone from 1,194 to 4,467 (+274%) between April 1991 and April 1992; it fell 12.77% in a day on 28 Apr 1992 (BSE), the largest one-day percentage fall in its history outside the Covid crash, and to about 1,980 by April 1993, down 56% (Mint, a secondary source). The CBI arrested Mehta in Nov 1992.
@@ -172,7 +172,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 20. Central banks and monetary policy
 
-- ID: `eco-central-banks` · Written
+- ID: `eco-central-banks` · Written · Subject: Economics & policy
 - Needs first: Money, banks and credit creation
 - Case: **The 1994 Fed tightening** (as of 1994-02-03)
   - Outcome: On 4 Feb 1994 the FOMC tightened. Its statement spoke only of 'a slight increase in the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%; markets were surprised. Monthly averages from the Fed's H.15 release: the 10-year Treasury yield went from 5.75% in Jan 1994 to a peak of 7.96% in Nov (+221 bp) and the 2-year from 4.14% to 7.59%, so the 10s-2s gap shrank from 1.61 to 0.22 points; the funds rate averaged 3.05% in Jan and 5.45% in Dec. A Fed study contrasts 2004, when the Fed issued a statement after each meeting and signalled a 'measured pace', and the 10-year yield fell 8 bp on the day of the first increase.
@@ -180,7 +180,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 21. Inflation, nominal vs real rates
 
-- ID: `eco-inflation-real` · Written
+- ID: `eco-inflation-real` · Written · Subject: Economics & policy
 - Needs first: Central banks and monetary policy, Growth, compounding and logs
 - Case: **India's near double-digit inflation** (as of 2014-01-27)
   - Outcome: On 28 Jan 2014 the RBI raised the repo rate by another 25 bp, to 8.0%, still below CPI inflation of close to 10%, so the policy rate stayed negative in real terms. A saver in a 9% deposit earned a real return of roughly -1%: Rs 10 lakh grew to Rs 10.9 lakh but, at 10% inflation, could buy only about Rs 9.9 lakh of today's goods.
@@ -188,7 +188,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 22. GDP, growth and business cycles
 
-- ID: `eco-gdp-cycles` · Written
+- ID: `eco-gdp-cycles` · Written · Subject: Economics & policy
 - Needs first: Supply, demand and prices
 - Case: **India before the 1991 crisis** (as of 1990-06-30)
   - Outcome: It did not last. Iraq invaded Kuwait in Aug 1990, oil prices jumped and Gulf remittances fell. The planned cut in the fiscal deficit did not happen (9.4% of GDP in 1990-91), the current account deficit widened to about 3.0% of GDP and inflation rose to 12.0%. Growth had averaged 7.6% a year over the three years to 1990-91, fuelled by expansionary fiscal policy. By end-March 1991 gross official reserves were $5.8bn, 1.3 months of imports. The rupee was devalued on 1 and 3 Jul 1991 (about 18% in dollar terms, RBI), and the IMF approved a stand-by of SDR 1,656m on 31 Oct 1991.
@@ -196,7 +196,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 23. Fiscal policy and government debt
 
-- ID: `eco-fiscal-debt` · Written
+- ID: `eco-fiscal-debt` · Written · Subject: Economics & policy
 - Needs first: GDP, growth and business cycles
 - Case: **The UK mini-budget and gilt crisis** (as of 2022-09-23)
   - Outcome: Markets rejected the plan. On Monday 26 Sep 2022 the pound fell nearly 5% at one point to $1.0327, its lowest since decimalisation in 1971, and gilt yields rose sharply. Some long-dated bonds held by pension funds lost around half their value in days; liability-driven investment funds got margin calls and sold gilts, pushing prices down further. On 28 Sep the Bank of England announced temporary purchases of long-dated gilts of up to 65bn pounds (up to 5bn a day until 14 Oct) and postponed its gilt sales, with the Treasury covering any losses.
@@ -204,7 +204,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 24. Reading empirical claims: causation, data and spreadsheet errors
 
-- ID: `num-econometrics` · Written
+- ID: `num-econometrics` · Written · Subject: Numbers & time value
 - Needs first: Statistics: mean, variance, correlation, regression, Fiscal policy and government debt
 - Case: **Reinhart and Rogoff's 90% debt threshold** (as of 2010-05-01)
   - Outcome: In Apr 2013 Herndon, Ash and Pollin re-examined the spreadsheet and found three problems: a coding error that averaged rows 30-44 instead of 30-49 and so left out five countries (Australia, Austria, Belgium, Canada, Denmark); the exclusion of available years for Australia (1946-50), New Zealand (1946-49) and Canada (1946-50); and unconventional weighting, under which New Zealand's single high-debt year (1951, growth -7.6%) counted as much as the UK's 19 years. The corrected average real GDP growth for debt above 90% of GDP was 2.2%, not -0.1%. Reinhart and Rogoff acknowledged a 'regrettable slip' but said it did not affect the central message of their paper.
@@ -213,7 +213,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 25. India: RBI, repo rate, liquidity and inflation targeting
 
-- ID: `in-rbi-policy` · Written
+- ID: `in-rbi-policy` · Written · Subject: Economics & policy
 - Needs first: Central banks and monetary policy, Inflation, nominal vs real rates
 - Case: **The RBI's package of 4 September 2013** (as of 2013-09-03)
   - Outcome: On 4 Sep 2013 Governor Raghuram Rajan announced a package with two swap windows: banks could swap dollars from new three-year FCNR(B) deposits, and dollars from overseas borrowing, with the RBI at a concessional rate, so the RBI carried the exchange-rate risk. The FCNR(B) route drew in about $26bn and press estimates put the two windows together at roughly $34bn. The rupee stabilised and forward dollar cover became cheaper. The RBI also raised the repo rate by 25 bp on 20 Sep (to 7.5%) and on 29 Oct 2013 (to 7.75%) and cut the marginal standing facility rate from 9.0% to 8.75%. One analyst noted that much of the FCNR(B) inflow was overseas bank money routed through the scheme, not new savings.
@@ -222,7 +222,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 26. Bond basics and pricing
 
-- ID: `bond-pricing` · Written
+- ID: `bond-pricing` · Written · Subject: Bonds & credit
 - Needs first: Time value and present value, Inflation, nominal vs real rates
 - Case: **The 1994 bond sell-off** (as of 1994-01-31)
   - Outcome: On 4 Feb 1994 the Fed began tightening: its statement spoke only of 'a slight increase in the degree of pressure on reserve positions' and the funds rate moved from about 3.00% to 3.25%. The 10-year Treasury par yield went from 5.81% (3 Feb) to 5.94% (4 Feb), 6.15% (28 Feb) and 7.49% (9 May); as a monthly average it went from 5.75% in Jan to 7.96% in Nov 1994 (daily peak 8.05% on 7 Nov), a rise of 221 bp. A 5.70% ten-year bond bought at par in January and valued at a 7.96% yield is worth about $846 per $1,000 of face value, a loss of about 15%, though every promised payment was still safe.
@@ -230,7 +230,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 27. Yield to maturity, coupon and current yield
 
-- ID: `bond-yield` · Written
+- ID: `bond-yield` · Written · Subject: Bonds & credit
 - Needs first: Bond basics and pricing
 - Case: **Orange County's leveraged pool** (as of 1994-06-30)
   - Outcome: In early Dec 1994 the county announced that the pool's $20.6bn portfolio had lost about $1.5bn in market value (SEC administrative order). The rise in rates during 1994 had brought market losses and collateral calls on the borrowing, and on 6 Dec 1994 Orange County filed for protection under Chapter 9 of the US Bankruptcy Code. The Treasurer's yield was real only if every bond could be held to maturity; the borrowing meant the pool could be pressed to give up collateral or sell.
@@ -239,7 +239,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 28. Yield curve and term structure
 
-- ID: `bond-yield-curve` · Written
+- ID: `bond-yield-curve` · Written · Subject: Bonds & credit
 - Needs first: Yield to maturity, coupon and current yield
 - Case: **The 1994 curve flattening** (as of 1994-02-03)
   - Outcome: On 4 Feb 1994 the Fed began raising the overnight rate, from about 3.00% to 3.25%, the first of a series (it averaged 5.45% in Dec 1994). The 2-year monthly average went from 4.14% in Jan to 7.59% in Dec and the 3-month from 3.04% to 5.76%, while the 10-year rose less, from 5.75% to 7.81%, so the 10s-2s gap shrank from 1.61 points to 0.22. On 30 Dec 1994 the Treasury par yields were 5.68% for 3 months, 7.69% for 2 years, 7.84% for 10 years and 7.89% for 30 years: an almost flat curve.
@@ -247,7 +247,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 29. Duration and convexity
 
-- ID: `bond-duration` · Written
+- ID: `bond-duration` · Written · Subject: Bonds & credit
 - Needs first: Yield to maturity, coupon and current yield
 - Case: **Silicon Valley Bank's securities portfolio** (as of 2022-12-31)
   - Outcome: In early 2023 deposit outflows quickened. On 8 Mar 2023 SVB Financial Group announced that it had sold $21bn of available-for-sale securities at an after-tax loss of $1.8bn and planned to raise $2.25bn of equity. On 9 Mar depositors withdrew over $40bn, and management expected over $100bn more on 10 Mar. A bank cannot repay deposits from securities it carries at cost without selling them at market prices, so the unrecognised loss became real; regulators closed SVB on 10 Mar 2023. The Fed's April 2023 review describes a mismatch between long-duration securities and short-duration deposits.
@@ -255,7 +255,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 30. Credit spreads, ratings and default
 
-- ID: `bond-credit-spreads` · Written
+- ID: `bond-credit-spreads` · Written · Subject: Bonds & credit
 - Needs first: Yield to maturity, coupon and current yield, Leases, commitments and debt-like items
 - Case: **LTCM's spread trades** (as of 1998-08-01)
   - Outcome: In Aug 1998 Russia devalued its currency and stopped payments on part of its debt, investors rushed to safer and more liquid assets, and the spreads LTCM had bet on narrowing widened almost everywhere. The fund lost 44% of its value in August alone. On 23 Sep 1998 fourteen banks and brokerage firms put up $3.625bn for 90% of the fund; the Fed arranged the meeting but lent nothing. The partners and other investors lost heavily, the fund sold its positions, and the last of the group's $3.6bn was returned by the end of 1999.
@@ -263,7 +263,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 31. India: G-secs, T-bills, SDLs and the corporate bond market
 
-- ID: `in-gsec` · Written
+- ID: `in-gsec` · Written · Subject: Bonds & credit
 - Needs first: Yield curve and term structure, India: RBI, repo rate, liquidity and inflation targeting
 - Case: **The securities scam's missing government securities** (as of 1992-04-01) **to verify**
   - Outcome: In April 1992 the first press report appeared of a shortfall in the government securities held by the State Bank of India; the missing SGL holding at the RBI's Public Debt Office was first reported as Rs 500 crore, and SBI found Rs 574 crore. The Bank of Karad and the Metropolitan Cooperative Bank had issued bank receipts not backed by securities, and larger banks lent to them in ready forward deals; the money went to the stock market. Barua and Varma estimated that over Rs 3,500 crore was diverted from the banking system between April 1991 and May 1992 (Mint says over Rs 4,000 crore). On 28 Apr 1992 the Sensex fell 12.77% in a day, and a further 23% in May.
@@ -272,7 +272,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 32. Exchange rates and parity
 
-- ID: `fx-basics` · Written
+- ID: `fx-basics` · Written · Subject: Currencies & countries
 - Needs first: Inflation, nominal vs real rates
 - Case: **The 1991 rupee devaluation** (as of 1991-06-30)
   - Outcome: On 1 Jul 1991 the RBI cut the rupee's value by about 9% and on 3 Jul by a further 11%. The RBI puts the cumulative devaluation at about 18% in US dollar terms; the IMF says 19% (0.91 x 0.89 = 0.81, a fall of 19%). The plan, code-named 'hop, skip and jump', was always for two stages (C. Rangarajan); after the first step the market grew nervous and expected a larger fall, so the second was brought forward. A dual exchange rate began in March 1992 and the two rates were unified in March 1993.
@@ -280,7 +280,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 33. Trade and globalisation
 
-- ID: `eco-trade` · Written
+- ID: `eco-trade` · Written · Subject: Economics & policy
 - Needs first: Supply, demand and prices, Exchange rates and parity
 - Case: **India's import controls in 1991-92** (as of 1991-07-31)
   - Outcome: The squeeze did its job on the balance of payments: the IMF estimates that tighter import restrictions and the lower rupee cut import intensity by over 1.5% of GDP in 1991. But the restrictions fell heavily on intermediate inputs; with tighter budgets and credit, domestic demand fell 2.5% in 1991/92, growth slowed to about 1% and industry contracted. Import liberalisation began in July 1991 (tradable Exim scrips for exporters) and a dual exchange rate began on 1 Mar 1992. Growth recovered to nearly 4.5% a year in the following two years.
@@ -288,7 +288,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 34. Balance of payments and capital flows
 
-- ID: `fx-bop` · Written
+- ID: `fx-bop` · Written · Subject: Currencies & countries
 - Needs first: Exchange rates and parity, GDP, growth and business cycles
 - Case: **India's external accounts at the end of 1990-91** (as of 1991-03-31)
   - Outcome: The year's numbers, as the RBI reported them, were worse than 1989-90 on almost every line: exports US$18,477m, imports US$27,914m, a trade deficit of US$9,437m (up 26.5%), invisibles of minus US$242m and a current account deficit of US$9,680m (3.0% of GDP). The capital account brought in US$7,188m (non-resident Indian deposits fell from US$2,403m to US$1,536m); the overall deficit of US$2,492m was met from reserves and US$1,214m drawn from the IMF. The IMF approved a stand-by of SDR 1,656m on 31 Oct 1991 and the rupee was devalued. In 1991-92 imports were cut to US$21,064m, the trade deficit shrank to US$2,798m and the current account deficit to US$1,178m (0.3% of GDP); reserves rose from US$5,834m to US$9,220m.
@@ -296,7 +296,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 35. India's economy and the 1991 reforms
 
-- ID: `in-economy` · Written
+- ID: `in-economy` · Written · Subject: Economics & policy
 - Needs first: GDP, growth and business cycles, Balance of payments and capital flows
 - Case: **The weeks around 1 July 1991** (as of 1991-07-01)
   - Outcome: On 1 and 3 Jul 1991 the RBI cut the rupee in two steps, about 18% in dollar terms. July brought a liberalised industrial policy, an investment policy opening sectors to foreign investment and a trade policy replacing import licences with tradable Exim scrips. The 24 Jul Budget ended industrial licensing for most industries (all but 18 in the RBI's account), raised the foreign equity limit to 51% in priority industries and announced stake sales in public enterprises. The IMF approved a stand-by of SDR 1,656m on 31 Oct 1991. The Narasimham Committee reported in Nov 1991; the dual exchange rate began in Mar 1992, a unified rate in 1993 and current-account convertibility in Aug 1994. SEBI framed insider-trading rules in 1992, and the NSE began operating in 1994 (its wholesale debt market in June, equity trading in November).
@@ -304,7 +304,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 36. Exchange-rate regimes and currency crises
 
-- ID: `fx-regimes-crises` · Written
+- ID: `fx-regimes-crises` · Written · Subject: Currencies & countries
 - Needs first: Balance of payments and capital flows, Central banks and monetary policy
 - Case: **Thailand's baht on 1 July 1997** (as of 1997-07-01)
   - Outcome: On 2 Jul 1997 the Bank of Thailand gave up the peg and floated the baht, which fell 15-20% (ADST) and about 20% during July (IMF). The central bank had spent about US$24bn of the US$38.7bn of reserves it held in 1996 defending the rate. On 11 Aug an IMF-convened meeting in Tokyo gathered pledges of US$12.7bn beside the IMF's own money, and on 20 Aug the IMF approved a stand-by credit of SDR 2.9bn (about US$3.9bn), requiring a tighter budget, a floating baht and the closure of weak finance companies. Within about six months the baht fell from about 25 to a low near 56 per dollar, and the crisis spread to Indonesia, Korea and other Asian economies.
@@ -313,7 +313,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 37. Sovereign default and country risk
 
-- ID: `sov-default-country-risk` · Written
+- ID: `sov-default-country-risk` · Written · Subject: Currencies & countries
 - Needs first: Credit spreads, ratings and default, Exchange-rate regimes and currency crises
 - Case: **Argentina on 1 December 2001** (as of 2001-12-01)
   - Outcome: On 6 Dec 2001 the IMF withheld the next US$1.24bn of its loan; riots followed (at least 29 dead) and President de la Rua resigned on 20 Dec. On 23 Dec the caretaker president, Adolfo Rodriguez Saa, told Congress that Argentina would suspend payments on its foreign debt, the largest sovereign default to that date. The debt in default is US$88bn (US State Department), about US$100bn (Wall Street Journal), US$132bn (New York Times) or US$141bn (Yale Journal of Financial Crises). On 6 Jan 2002 Congress ended convertibility; dollar deposits were converted at 1.4 pesos per dollar. In Feb 2005 holders of 76% of the defaulted principal accepted an offer worth roughly 30 cents on the dollar; the economy grew 8.7% in 2003 and 9.0% in 2004.
@@ -321,7 +321,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 38. Equity markets, exchanges, SEBI, NSE and BSE
 
-- ID: `eq-markets` · Written
+- ID: `eq-markets` · Written · Subject: Markets & investing
 - Needs first: The balance sheet
 - Case: **SEBI's first months, April 1992** (as of 1992-04-30)
   - Outcome: SEBI in 1992 had the duty to protect investors and regulate the market, but limited powers to act quickly. Parliament widened them in the Securities Laws (Amendment) Act, 1995: the SEBI Act's footnotes show the directions power (Section 11B) was inserted by Act 9 of 1995 with effect from 25 Jan 1995, and the powers to order investigations and to call for bank records were added by the 2002 amendment. Press accounts link the scam to the 1995 amendment, but the order of events is the safer fact: SEBI gained statutory status on 30 Jan 1992, three months before the scam surfaced, and its powers were widened three years after. The NSE was incorporated in 1992, recognised by SEBI in April 1993 and began operating in 1994, with dematerialised trading from 1995-96; SEBI framed insider-trading rules in 1992.
@@ -329,7 +329,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 39. Market history and long-run returns
 
-- ID: `eq-history` · Written
+- ID: `eq-history` · Written · Subject: Markets & investing
 - Needs first: Statistics: mean, variance, correlation, regression, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **The Sensex at the end of March 1992** (as of 1992-03-31)
   - Outcome: The Sensex reached its high close of 4,467 in April 1992 (Forbes India: +274% from 1,194 in April 1991). On 28 Apr it fell 12.77% in a day as the securities scam came to light, and it fell 5% over April and 23% in May. It ended 1992 at 2,615, about 41% below the April high though 37% up on the calendar year, then rose 28% in 1993 (3,346) and 17% in 1994 (3,927) before falling 21% in 1995 (3,110). BSE's white paper counts positive returns in 75% of the last 40 calendar years. In the US, over 1981-2020, large company stocks returned 12.64% a year on average against 8.21% for ten-year Treasury bonds and 3.94% for bills, with bigger swings.
@@ -337,7 +337,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 40. Risk, diversification and portfolio theory
 
-- ID: `risk-portfolio` · Written
+- ID: `risk-portfolio` · Written · Subject: Markets & investing
 - Needs first: Statistics: mean, variance, correlation, regression, Market history and long-run returns
 - Case: **Portfolio insurance on Friday 16 October 1987** (as of 1987-10-16)
   - Outcome: On Monday 19 Oct 1987 the Dow, the S&P 500 and the Wilshire 5000 fell between 18% and 23% in a day, and S&P 500 futures fell 29% (Fed). The ten largest sellers made up half of non-market-maker futures volume and many were portfolio insurers; Wells Fargo alone sold $1.6bn of futures. Futures fell faster than stocks, so the insurers' orders pushed prices down and triggered more selling by the models. The Brady task force blamed the insurers as a main cause; the estimated $80bn of insured assets shrank by about two-thirds afterwards. Diversification across 500 shares did not help, because the shares fell together.
@@ -345,7 +345,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 41. CAPM, beta and factor models
 
-- ID: `risk-capm` · Written
+- ID: `risk-capm` · Written · Subject: Markets & investing
 - Needs first: Risk, diversification and portfolio theory
 - Case: **What return should Amazon's shareholders require? (February 2000)** (as of 2000-02-01)
   - Outcome: Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00); the regression beta of 2.29 would have implied 15.66%. His cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, against the $84 price. Amazon's 10-K shows 2000 quarterly highs and lows of $91.50 and $58.44, $68.63 and $32.47, $49.63 and $27.88, and $40.88 and $14.88: a high of $91.50 and a low of $14.88 for the year. The cost of equity says what return to demand, not what the price will do in the next year.
@@ -354,7 +354,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 42. Market efficiency
 
-- ID: `mkt-efficiency` · Written
+- ID: `mkt-efficiency` · Written · Subject: Markets & investing
 - Needs first: CAPM, beta and factor models
 - Case: **Blodget versus Grantham on the dot-com valuations** (as of 2000-05-01)
   - Outcome: The Nasdaq kept falling: it closed at 1,114.11 on 9 Oct 2002, 78% below its record close of 5,048.62 on 10 Mar 2000, and did not close above that record again until April 2015. The S&P 500 went from its record close of 1,527.46 on 24 Mar 2000 to a closing low of 776.76 on 9 Oct 2002, a fall of about 49%. Grantham's calls of a 50% fall for the S&P 500 and 70% for the Nasdaq were close to the eventual declines, though they took two and a half years, and Blodget's warning that most of the new companies would not survive was also borne out.
@@ -363,7 +363,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 43. Behavioural finance and bubbles
 
-- ID: `mkt-behavioural` · Written
+- ID: `mkt-behavioural` · Written · Subject: Markets & investing
 - Needs first: Market efficiency
 - Case: **Webvan's first day as a public company** (as of 1999-11-04)
   - Outcome: On 5 Nov 1999 the shares traded as high as $34 and closed at $24.875, 65% above the $15 offer price, valuing Webvan at $7.9bn. The company lost $453.3m in 2000. On 9 Jul 2001, about 20 months later, it shut down and said it would file for bankruptcy protection; it filed on 13 Jul 2001. The pattern came back with WeWork. Valued at $47bn in a private round in Jan 2019, with bankers having talked of $65bn for its share sale, it was reported by Bloomberg on 6 Sep 2019 to be weighing an IPO valuation of about $20bn, and by Reuters on 13 Sep to be weighing as little as $10-12bn. The sale was withdrawn on 30 Sep, and SoftBank's rescue in Oct 2019 valued the company at about $8bn.
@@ -371,7 +371,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 44. NPV, IRR and capital budgeting
 
-- ID: `cf-capital-budgeting` · Written
+- ID: `cf-capital-budgeting` · Written · Subject: Valuation & corporate finance
 - Needs first: Time value and present value, The cash flow statement
 - Case: **Webvan's plan for 26 more distribution centres** (as of 2000-03-30)
   - Outcome: Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8m on equipment and buildings that year against a plan of $300m to $350m, and cut its 2001 spending plan to $10m to $15m. Its net loss in 2000 was $453.3m. On 9 Jul 2001 it shut down and said it would file for bankruptcy protection, and it filed on 13 Jul 2001. The investment case rested on a centre reaching high volumes and an average order far above the one it had, and its payback claim was an EBITDA figure, before tax, upkeep and head-office costs, that ignored the time value of money.
@@ -380,7 +380,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 45. Cost of capital and WACC
 
-- ID: `cf-wacc` · Written
+- ID: `cf-wacc` · Written · Subject: Valuation & corporate finance
 - Needs first: CAPM, beta and factor models, Credit spreads, ratings and default, NPV, IRR and capital budgeting
 - Case: **Eurotunnel's financing cost** (as of 2006-09-01)
   - Outcome: Creditors approved a rescue plan in Paris on 27 Nov 2006 by a single vote, 28 of 53 creditors. The plan cut the debt from 6.2bn to 2.84bn pounds, backed by the Paris commercial court on 15 Jan 2007. Shareholders were left with 13% of the new company, and bank lenders received a mixture of cash and a hybrid note of 1.3bn pounds convertible into 87% of it. The cost of capital had been set by the borrowing, not by the tunnel's earnings: the business could not earn the return that the debt required.
@@ -389,7 +389,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 46. Capital structure and Modigliani-Miller
 
-- ID: `cf-capital-structure` · Written
+- ID: `cf-capital-structure` · Written · Subject: Valuation & corporate finance
 - Needs first: Cost of capital and WACC
 - Case: **The Coffee Day group's debt** (as of 2019-07-26)
   - Outcome: The founder's letter, dated 27 Jul 2019, said he could not take any more pressure from one of the company's private equity partners to buy back shares and referred to pressure from lenders and a serious liquidity crunch. He was found dead on 31 Jul 2019, and the shares fell by the 20% limit on two successive days. On 17 Aug the company disclosed that the group's debt on 31 Jul was Rs 4,970 crore, of which Rs 4,796 crore was secured, including Rs 1,622 crore in Tanglin Developments, Rs 1,488 crore in Sical and Rs 1,097 crore in Coffee Day Global; the sale of the Global Village Tech Park to Blackstone would cut it by about Rs 2,400 crore. The promoters' stake fell from 54% in Jul 2019 to 17% by Jan 2020 as lenders enforced the pledges.
@@ -397,7 +397,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 47. Dividends and buybacks
 
-- ID: `cf-payout` · Written
+- ID: `cf-payout` · Written · Subject: Valuation & corporate finance
 - Needs first: Capital structure and Modigliani-Miller
 - Case: **What should Microsoft do with its cash?** (as of 2004-07-19)
   - Outcome: On 20 Jul 2004 Microsoft announced that it would double its regular quarterly dividend to 8 cents a share, buy back up to $30bn of its stock over four years, and pay a one-time special dividend of $3.00 a share, about $32bn (together up to $75bn over four years). The special dividend of $32.64bn was paid on 2 Dec 2004. Dividends paid rose from $1.7bn in fiscal 2004 to $36.1bn in fiscal 2005, buybacks from $3.4bn to $8.1bn, and cash and short-term investments fell from $60.6bn on 30 Jun 2004 to $37.8bn on 30 Jun 2005.
@@ -406,7 +406,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 48. Corporate credit analysis
 
-- ID: `credit-analysis` · Written
+- ID: `credit-analysis` · Written · Subject: Bonds & credit
 - Needs first: Credit spreads, ratings and default, Ratios, return on equity and DuPont, Leases, commitments and debt-like items
 - Case: **IL&FS, rated AAA** (as of 2018-08-15)
   - Outcome: On 16 Aug 2018 a group company defaulted on a payment to SIDBI. ICRA and CARE cut the rating in mid-August by one notch and then, within a month, to default grade: ICRA to BB on 8 Sep and CARE the same on 9 Sep. On 1 Oct 2018 the government moved to replace the board, saying the group had 169 companies and about Rs 91,000 crore of debt against assets above Rs 1,15,000 crore, over Rs 20,000 crore of intangible assets, about half of revenue stuck in litigation and arbitration, and negative operating cash flow of Rs 7,020 crore in 2017-18. The FY2018 consolidated figures quoted later showed a loss of Rs 1,887 crore and a leverage ratio of 10.99. Reuters noted that all three agencies had rated it AAA and moved to default within a month.
@@ -415,7 +415,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 49. DCF valuation
 
-- ID: `val-dcf` · Written
+- ID: `val-dcf` · Written · Subject: Valuation & corporate finance
 - Needs first: Cost of capital and WACC, The cash flow statement, Capex, depreciation, amortisation and EBITDA
 - Case: **Damodaran values Amazon.com** (as of 2000-02-01)
   - Outcome: Damodaran's terminal value was $52,148m, and the present value of all the cash flows was $15,170m for the operations. Adding cash and subtracting debt gave equity of $14,847m; after deducting $2,892m for the options, the common stock was worth $11,955m, or $35.08 a share on 340.79m shares, against the $84 price. The price did not fall at once: in the first quarter of 2000 the shares traded as high as $91.50, then fell through the year to a low of $14.88 in the fourth quarter. More than the whole value came from years after year 10, since the early cash flows were negative.
@@ -424,7 +424,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 50. Relative valuation and multiples
 
-- ID: `val-multiples` · Written
+- ID: `val-multiples` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Ratios, return on equity and DuPont
 - Case: **WeWork at $47 billion against IWG** (as of 2019-08-20)
   - Outcome: The market did not pay the multiple. By late September advisers were telling WeWork it would probably fetch about a quarter of $47bn, and reports put the IPO valuation as low as $10bn. Adam Neumann stepped down as chief executive on 24 Sep 2019 and the IPO was withdrawn on 30 Sep. On 22 Oct 2019 SoftBank agreed a rescue that valued WeWork at less than $8bn, a cut of more than 80% from January: about 2.6 times first-half revenue doubled (about $3.1bn), still above the roughly 1.4 times at which IWG's shares stood in August, but far below 26 times 2018 revenue.
@@ -433,7 +433,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 51. Valuing young, loss-making companies
 
-- ID: `val-young` · Written
+- ID: `val-young` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Relative valuation and multiples, Revenue recognition, run rates, gross vs net
 - Case: **Uber, Damodaran against venture capital** (as of 2014-12-02)
   - Outcome: Uber went public on 9 May 2019 at $45 a share, near the bottom of its $44-50 range, which valued it at $82.4bn once options and restricted stock were counted (about $75bn on shares outstanding): above the $76bn of its last private round in Aug 2018 and below the $100bn it had forecast to some investors. On its first day of trading the shares closed at $41.57, down 7.6% from the offer price. The 2014 estimates, from $6bn to $40bn and more, were each a story about the Uber of 2014; what the market paid in 2019 followed the story it then chose to believe about market size, margins and survival.
@@ -442,7 +442,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 52. Valuing banks and financial firms
 
-- ID: `val-banks` · Written
+- ID: `val-banks` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Money, banks and credit creation
 - Case: **Yes Bank in February 2020** (as of 2020-02-28)
   - Outcome: On 5 Mar 2020 the RBI superseded the board of Yes Bank for 30 days, citing a serious deterioration in the bank's financial position and its inability to raise capital, and imposed a moratorium until 3 Apr under which depositors could withdraw at most Rs 50,000. The shares closed at Rs 16.20 on 6 Mar, down 56% in a day. The draft rescue plan of 6 Mar had the State Bank of India buy up to 49% at Rs 10 a share; on 12 Mar SBI said it would put in Rs 7,250 crore for 725 crore shares at that price. The Cabinet approved the plan on 13 Mar and the moratorium ended at 6 p.m. on 18 Mar 2020.
@@ -451,7 +451,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 53. Valuing distressed firms
 
-- ID: `val-distress` · Written
+- ID: `val-distress` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Corporate credit analysis
 - Case: **Coffee Day Enterprises in July 2019** (as of 2019-07-29)
   - Outcome: On the evening of 29 Jul 2019 the founder, V. G. Siddhartha, went missing, and his body was found on 31 Jul. A letter attributed to him, dated 27 Jul, spoke of pressure from a private equity partner to buy back shares, pressure from lenders and a serious liquidity crunch. The shares fell by the 20% daily limit on 30 and on 31 Jul, to Rs 123.25, taking market value from Rs 4,067.65 crore on 29 Jul to Rs 3,254.33 crore and then Rs 2,603.68 crore, down 37% in two days. On 17 Aug the company disclosed group debt of Rs 4,970 crore on 31 Jul (Rs 3,472 crore for Coffee Day Enterprises without Sical); selling the Global Village Tech Park to Blackstone for Rs 2,600-3,000 crore could take it to about Rs 2,570 crore. By Jan 2020 the promoter group's holding had fallen from 54% to 17% as lenders invoked the pledges.
@@ -459,7 +459,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 54. Implied equity risk premium and market-level valuation
 
-- ID: `val-implied-erp` · Written
+- ID: `val-implied-erp` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Market efficiency, Yield to maturity, coupon and current yield
 - Case: **The implied equity risk premium at the end of 2007** (as of 2007-12-31)
   - Outcome: A year later, on 31 Dec 2008, the S&P 500 stood at 903.25, down 38.5%; the Treasury bond rate had fallen to 2.21% and the dividend yield risen to 3.11%. Damodaran's implied premium for the start of 2009 was 6.43%, the highest of the period (against 4.37% a year earlier). It fell back to 4.36% a year later, with the index at 1,115.10, and was 5.20% a year after that. The premium moved with prices and expectations rather than being a fixed property of stocks.
@@ -467,7 +467,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 55. Valuing Indian companies, currency and country risk
 
-- ID: `val-india` · Written
+- ID: `val-india` · Written · Subject: Valuation & corporate finance
 - Needs first: DCF valuation, Sovereign default and country risk, India: G-secs, T-bills, SDLs and the corporate bond market
 - Case: **Coffee Day's IPO, in rupees and in dollars** (as of 2015-10-22)
   - Outcome: The shares listed on 2 Nov 2015 at Rs 313 on the BSE and Rs 317 on the NSE, below the Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6%. The gap between the two bond yields (1.0758 / 1.0204, about 5.4% a year) pointed to a rupee falling from 65.12 to roughly 68.7 to the dollar within a year; by 20 Jan 2016 it was about 68. In his Jan 2016 update Damodaran gave India a Baa3 default spread of 2.44%, multiplied it by 1.34 for a country risk premium of 3.28%, and added it to a mature market premium of 6%.
@@ -475,7 +475,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 56. Venture finance and private rounds
 
-- ID: `cf-venture` · Written
+- ID: `cf-venture` · Written · Subject: Valuation & corporate finance
 - Needs first: Valuing young, loss-making companies, Capital structure and Modigliani-Miller
 - Case: **WeWork's $47 billion private round** (as of 2019-01-08)
   - Outcome: In Aug 2019 WeWork's parent filed to go public and its private valuation was tested: by late September advisers said it would fetch about a quarter of $47bn and reports put the IPO valuation as low as $10bn. WeWork withdrew its IPO filing on 30 Sep. On 22 Oct 2019 SoftBank agreed a rescue that took its stake to about 80% and valued WeWork at less than $8bn, a fall of more than 80% from January; SoftBank, which had committed more than $13bn in equity, held a company now worth a fraction of what it had paid in. The $47bn had been the price of the newest shares times every share in the company, never a price at which the whole company could be sold for cash.
@@ -483,7 +483,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 57. IPOs, book building and float
 
-- ID: `mkt-ipo-float` · Written
+- ID: `mkt-ipo-float` · Written · Subject: Markets & investing
 - Needs first: Venture finance and private rounds, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **How Coffee Day sold its shares to the public** (as of 2015-10-21)
   - Outcome: The shares began trading on 2 Nov 2015, opening at Rs 313 on the BSE and Rs 317 on the NSE against the Rs 328 issue price, and closed at Rs 270.15 and Rs 270.45, down 17.6%. At the NSE close the company was worth about Rs 5,571 crore against Rs 6,757 crore at the issue price. Only the 17.02% sold in the issue could be traded in the following days; most of the company, including the promoters' 52.56%, was locked in. The issue price had been set by book building before trading began; the first day showed what the open market, with its small float, would pay.
@@ -491,7 +491,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 58. Forwards and futures
 
-- ID: `der-forwards` · Written
+- ID: `der-forwards` · Written · Subject: Derivatives
 - Needs first: Bond basics and pricing, Exchange rates and parity, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **Metallgesellschaft's stack-and-roll hedge** (as of 1993-09-30)
   - Outcome: In late 1993 OPEC members could not agree on production quotas and the oil price fell. The market moved from backwardation to contango, so rolling the futures now cost money; daily margin calls had to be paid in cash, while the gains on the customers' fixed prices would arrive only as oil was delivered over ten years. In Dec 1993 MG disclosed that its energy business had lost about $1.5bn (other sources say $1.3bn); Deutsche Bank ousted the chief executive and cut off the credit line. More than 100 creditor banks mounted a rescue of about $1.9bn ($2.2bn in some accounts) in 1994, and in Jul 1995 MG agreed to a $2.25m fine to the CFTC.
@@ -500,7 +500,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 59. Options and payoffs
 
-- ID: `der-options` · Written
+- ID: `der-options` · Written · Subject: Derivatives
 - Needs first: Forwards and futures, Probability and expected value
 - Case: **Portfolio insurance as a home-made put** (as of 1987-10-16)
   - Outcome: On Monday 19 Oct 1987 the S&P 500 fell about 20% in a single day and the S&P 500 futures contract fell 29%, so futures traded at a deep discount to the shares they track. Roughly 40% of futures sales by traders other than market-makers came from portfolio insurers; one large institution sold thirteen instalments of just under $100m each ($1.1bn in all), and Wells Fargo alone sold $1.6bn of futures. The Fed said on 20 Oct that it was ready to supply liquidity. The Fed paper says the insurers' selling 'may have contributed' to the futures discount; because the models sell more as prices fall, the selling could feed on itself.
@@ -508,7 +508,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 60. Binomial and Black-Scholes
 
-- ID: `der-option-pricing` · Written
+- ID: `der-option-pricing` · Written · Subject: Derivatives
 - Needs first: Options and payoffs, Statistics: mean, variance, correlation, regression
 - Case: **LTCM and the men who priced options** (as of 1998-08-01)
   - Outcome: By the end of Aug 1998 LTCM had lost about half its capital: the Fed History essay says it lost 44% of its value in August alone, and the President's Working Group reports capital of $4.1bn on 31 Jul falling to $2.3bn during August. The losses came in markets all over the world at once, far beyond what the fund's risk models, estimated in calm periods, said was probable; the report concluded that LTCM's models underestimated the risk. On 23 Sep 1998 fourteen banks and brokerages put in $3.625bn for 90% of the fund, an arrangement the New York Fed organised without lending its own money.
@@ -516,7 +516,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 61. Interest-rate and currency derivatives, swaps
 
-- ID: `der-rates-fx` · Written
+- ID: `der-rates-fx` · Written · Subject: Derivatives
 - Needs first: Forwards and futures, Duration and convexity
 - Case: **The RBI's FCNR(B) swap window** (as of 2013-09-03)
   - Outcome: On the afternoon of 4 Sep 2013 the RBI announced a package that included the swap window; its circular of 6 Sep set the terms: a dollar-rupee swap for fresh FCNR(B) deposits of three years or more, open from 10 Sep to 30 Nov 2013, at a fixed rate of 3.5% a year. The scheme drew in $26bn, more than anyone expected. Confidence returned, the rupee kept strengthening (partly because global investor mood and Indian election forecasts also changed) and the RBI covered its forward promises cheaply. Rajan said three years later: 'We are fully covered for outflows today and have made money on the deal', adding that the scheme was 'a measured risk'.
@@ -525,7 +525,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 62. Hedging and risk management
 
-- ID: `der-hedging` · Written
+- ID: `der-hedging` · Written · Subject: Derivatives
 - Needs first: Binomial and Black-Scholes, Interest-rate and currency derivatives, swaps, Capital structure and Modigliani-Miller
 - Case: **Orange County's investment pool, a hedge or a bet?** (as of 1994-09-30)
   - Outcome: In early Dec 1994 the county announced that the pool's $20.6bn portfolio had lost about $1.5bn in market value; it was built on only $7.6bn of deposits, so the leverage multiplied the loss. On 6 Dec 1994 the county filed for Chapter 9 protection. After the portfolio was sold, the county realised a loss of about $600m on its own investment and lost a further $157m of expected interest earnings. In Jan 1996 the SEC found that the official statements for the county's bond offerings had material misstatements and omissions about the risks of the pools. The structure raised, rather than reduced, the pool's exposure to a rise in interest rates, while reports to the Board of Supervisors said there was no risk of losing principal.
@@ -533,7 +533,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 63. Bank regulation, capital and liquidity
 
-- ID: `bank-regulation` · Written
+- ID: `bank-regulation` · Written · Subject: Banks, crises & the system
 - Needs first: Money, banks and credit creation, Ratios, return on equity and DuPont
 - Case: **Silicon Valley Bank, passing every test** (as of 2022-12-31)
   - Outcome: SVB was closed by regulators on 10 Mar 2023. The Fed's review of 28 Apr 2023 found that SVBFG had 31 open supervisory findings when it failed, about triple the number at peer firms, in areas such as governance and risk management, liquidity and interest-rate risk. It had met its capital requirements every year from 2017 to 2022, but the requirements did not cover what failed: under the pre-2019 rules it would have had a shortfall of about 9% in high-quality liquid assets in Dec 2022 (about 17% in Feb 2023), and counting its AFS losses would have cut regulatory capital by $1.9bn, taking the CET1 ratio from 12.1% to 10.4%. The Fed concluded that the tailoring approach 'impeded effective supervision'.
@@ -542,7 +542,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 64. Bank runs and interest-rate risk in banks
 
-- ID: `crisis-bank-runs` · Written
+- ID: `crisis-bank-runs` · Written · Subject: Banks, crises & the system
 - Needs first: Bank regulation, capital and liquidity, Duration and convexity
 - Case: **Silicon Valley Bank on 8 March 2023** (as of 2023-03-08)
   - Outcome: Uninsured depositors read the 8 Mar announcement as a sign of distress. On 9 Mar SVB lost over $40bn of deposits in a day, and management told supervisors it expected to lose over $100bn more on 10 Mar, roughly 85% of its deposit base; for scale, Wachovia lost about $10bn over eight days in 2008 and Washington Mutual $19bn over 16 days. SVB did not have enough cash or collateral to meet the outflows and had not tested its ability to borrow at the Fed's discount window in 2022. The California regulator closed the bank on the morning of 10 Mar 2023 and appointed the FDIC as receiver.
@@ -550,7 +550,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 65. Securitisation, MBS and CDOs
 
-- ID: `struct-securitisation` · Written
+- ID: `struct-securitisation` · Written · Subject: Banks, crises & the system
 - Needs first: Credit spreads, ratings and default, Bank regulation, capital and liquidity
 - Case: **From a subprime loan to a AAA tranche** (as of 2006-12-31)
   - Outcome: The Philadelphia Fed counted 727 publicly traded structured-finance CDOs issued between 1999 and 2007, worth $641bn, and estimated write-downs of $420bn, 65% of the issuance; $64bn of BBB-rated subprime bonds became $140bn of CDO collateral. A-rated subprime bonds had on average only 8% of subordination, so subprime losses of 8% would wipe out the BBB layer; with consensus losses of 3-5% in early 2007, losses needed to reach only about 1.5 to 2.5 times the expected level for mezzanine CDOs to become worthless, against 5 to 8 times for AAA subprime bonds to lose anything. The senior CDO layers' ratings assumed the BBB bonds would not all go wrong at once; they all depended on US house prices. The FCIC published its report on 27 Jan 2011.
@@ -559,7 +559,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 66. Shadow banks, private credit and SPVs
 
-- ID: `private-credit` · Written
+- ID: `private-credit` · Written · Subject: Banks, crises & the system
 - Needs first: Securitisation, MBS and CDOs, Corporate credit analysis
 - Case: **IL&FS and the mutual funds that held its debt** (as of 2018-09-12)
   - Outcome: In Sep 2018 mutual fund industry assets fell 12.5%, to Rs 22 lakh crore from Rs 25.2 lakh crore, with a net outflow of Rs 2.3 lakh crore (liquid funds Rs 2.1 lakh crore, income funds Rs 30,504 crore). Not all of it was fear (advance tax and GST payments, one large SBI redemption), but fund officials said the IL&FS default led to redemptions. The Rs 2,800 crore of IL&FS paper was only about 0.11% of industry assets. On 1 Oct 2018 the government asked the NCLT to replace IL&FS's board, saying the defaults caused 'redemption pressure on the mutual funds', quality papers sold at steep discounts and a sell-off in non-bank lenders' shares.
@@ -567,7 +567,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 67. Mutual funds, ETFs and passive investing (incl. India AIFs)
 
-- ID: `funds-passive` · Written
+- ID: `funds-passive` · Written · Subject: Markets & investing
 - Needs first: Risk, diversification and portfolio theory, Market efficiency
 - Case: **Warren Buffett bets an index fund against hedge funds** (as of 2007-12-19)
   - Outcome: Berkshire's 2017 letter gives the result. Over the ten years the index fund gained 125.8% (8.5% a year); the five funds of funds gained 21.7, 42.3, 87.7, 2.8 and 27.0% (2.0, 3.6, 6.5, 0.3 and 2.4% a year), an average of about 36% (own arithmetic from the letter's table). Each beat the index fund in 2008 (it fell 37%, they fell 16.5% to 30.1%), but the average of the five trailed it in each of the next nine years. Buffett puts the fixed fees at about 2.5% of assets a year. In 2012 the two sides had swapped the bonds for Berkshire B shares, and the charity, Girls Inc. of Omaha, received $2,222,279.
@@ -576,7 +576,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 68. Insurance and risk transfer
 
-- ID: `ins-risk-transfer` · Written
+- ID: `ins-risk-transfer` · Written · Subject: Banks, crises & the system
 - Needs first: The balance sheet, Probability and expected value
 - Case: **AIG and the credit protection it sold** (as of 2008-09-12)
   - Outcome: On Monday 15 Sep 2008 all three rating agencies cut AIG (to A- at S&P, A2 at Moody's, A at Fitch). Collateral calls on the multi-sector swaps jumped by $8.6bn in a day, to $32.0bn, and the gap between calls and what AIG had posted peaked at $12.4bn. On 16 Sep the Fed authorised the New York Fed to lend AIG up to $85bn in return for a 79.9% equity interest held for the Treasury; the US government's total commitment later came to $182.3bn. AIG lost $99.3bn in 2008. By Dec 2012 the Treasury and the Fed had recovered the whole $182.3bn plus an additional $22.7bn, so taxpayers ended with a profit.
@@ -585,7 +585,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 69. Real estate and commodities
 
-- ID: `real-assets` · Written
+- ID: `real-assets` · Written · Subject: Markets & investing
 - Needs first: Time value and present value, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **Seven years of rising US house prices** (as of 2006-12-31)
   - Outcome: The FHFA purchase-only index (Jan 1991 = 100) peaked in April 2007 at 224.47, only about 0.8% above its Dec 2006 level of 222.68, then fell for four years to 176.67 in May 2011, 21.3% below the peak though still above its Jan 2000 level of 136.89; it was 199.86 in Dec 2013. With 3% down, a fall of just 3% in the house price wipes out the buyer's deposit, and a fall of 21% leaves the loan larger than the house.
@@ -594,7 +594,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 70. Inflation regimes and stagflation
 
-- ID: `hist-macro-regimes` · Written
+- ID: `hist-macro-regimes` · Written · Subject: Economics & policy
 - Needs first: Inflation, nominal vs real rates, Fiscal policy and government debt
 - Case: **The Saturday meeting of 6 October 1979** (as of 1979-10-06)
   - Outcome: The funds rate, which averaged 13.77% in Oct 1979, climbed to 17.19% in Mar 1980 and 19.10% in Jun 1981, the highest monthly average in the data shown (the Fed History essay says it reached a record of about 20% in late 1980). The 10-year Treasury yield rose from 10.30% in Oct 1979 to 15.32% in Sep 1981. Inflation first rose further, peaking at 11.6% in Mar 1980. The economy fell into recession from Jul 1981 to Nov 1982 and unemployment reached 10.8% in late 1982; by Oct 1982 inflation had fallen to about 5%, and the funds rate was 12.37% in Dec 1981 and 9.20% in Nov 1982.
@@ -602,7 +602,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 71. Governance, ethics and fraud
 
-- ID: `gov-ethics` · Written
+- ID: `gov-ethics` · Written · Subject: Banks, crises & the system
 - Needs first: Earnings quality and accounting fraud, Equity markets, exchanges, SEBI, NSE and BSE
 - Case: **A software company's board approves a deal with the chairman's family firms** (as of 2008-12-16)
   - Outcome: Satyam's American shares fell $6.85, or 55%, to $5.70 on the NYSE that day, the biggest percentage fall on the exchange, and late the same day Satyam called the deal off. The board minutes reported a month later showed that the five independent directors had voiced concerns about the valuation, the related-party nature of the deal and the board being used as a 'rubber stamp', yet the resolution passed unanimously. On 7 Jan 2009 Raju wrote that Satyam's accounts had been inflated for years and that the Maytas deal was 'the last attempt to fill the fictitious assets with real ones'. The SEC later said the company had overstated cash and revenue by more than $1bn, and Satyam paid a $10m penalty.
@@ -610,7 +610,7 @@ A Case marked **to verify** has facts that must be checked against a source befo
 
 ### 72. Leverage, liquidity spirals and systemic risk
 
-- ID: `crisis-leverage` · Written
+- ID: `crisis-leverage` · Written · Subject: Banks, crises & the system
 - Needs first: Securitisation, MBS and CDOs, Hedging and risk management, Bank runs and interest-rate risk in banks
 - Case: **The lenders to a heavily borrowed fund** (as of 1998-09-01)
   - Outcome: In Aug 1998 the fund lost $1.8bn, bringing its loss of capital for the year to over 50% and its capital to $2.3bn. It told its investors on 2 Sep and began seeking new capital, but found selling hard while firms across the market were pulling back from risk. On 23 Sep 1998 fourteen banks and brokerage firms put up $3.625bn for 90% of the fund; the Fed arranged the meeting but lent nothing, worried that a fire sale by LTCM's many counterparties could harm the wider economy. The same chain ran on a far larger scale a decade later: the Philadelphia Fed counted 727 subprime-linked CDOs ($641bn issued) with $420bn of write-downs (65%), and in Mar 2008 the Fed lent to help JPMorgan Chase buy Bear Stearns.
