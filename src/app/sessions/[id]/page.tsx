@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { revealedCases } from "@/case-data/case-data";
 import { loadCourseMap } from "@/course/map";
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { loadSessionExplore, loadSessionSummaries } from "@/tutor/session-summary";
@@ -16,13 +17,14 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
   const db = getDb();
+  const learnerId = await currentLearnerId();
   const map = loadCourseMap();
   const [lines, summaries, jar, explore, progress] = await Promise.all([
-    loadSession(db, id, map),
-    loadSessionSummaries(db),
+    loadSession(db, id, map, learnerId),
+    loadSessionSummaries(db, learnerId),
     cookies(),
     loadSessionExplore(db, id, map),
-    loadProgress(db),
+    loadProgress(db, learnerId),
   ]);
   if (lines.length === 0) notFound();
   return (

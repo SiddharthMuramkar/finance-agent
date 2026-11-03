@@ -1,5 +1,6 @@
 import { loadCourseMap } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { Eyebrow, Pill, SignOutButton } from "../ui";
@@ -142,7 +143,7 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
 /** The signed-in Learner's button, from saved progress. Read-only; if progress can't be loaded it logs and falls back to Open. */
 export async function loadHomeButton(): Promise<HomeButton> {
   try {
-    return homeButton(navigate(loadCourseMap(), await loadProgress(getDb())));
+    return homeButton(navigate(loadCourseMap(), await loadProgress(getDb(), await currentLearnerId())));
   } catch (error) {
     console.error("Home could not load the Learner's place", error);
     return { kind: "open" };

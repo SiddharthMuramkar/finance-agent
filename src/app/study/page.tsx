@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { isSignedIn } from "@/auth/session";
+import { currentLearnerId, isSignedIn } from "@/auth/session";
 import { DEMO_SUMMARY, isDemoMode } from "../_landing/demo-mode";
 import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
@@ -56,17 +56,18 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     );
   }
   const db = getDb();
+  const learnerId = await currentLearnerId();
   const [summary, initial, quiz, turn, review, progress, profile] = await Promise.all([
-    learnerSummary(db, map),
-    loadCurrentSession(db, map),
+    learnerSummary(db, map, learnerId),
+    loadCurrentSession(db, map, learnerId),
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
-    openQuiz(db, map).catch((error) => {
+    openQuiz(db, map, new Date(), learnerId).catch((error) => {
       console.error("The open quiz could not be loaded", error);
       return null;
     }),
-    latestTurn(db),
+    latestTurn(db, learnerId),
     reviewState(db, map),
-    loadProgress(db),
+    loadProgress(db, learnerId),
     loadProfile(db),
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one.

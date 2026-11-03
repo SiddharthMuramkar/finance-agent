@@ -1,5 +1,6 @@
 import { loadCourseMap } from "@/course/map";
 import { courseOverview } from "@/course/navigator";
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { ProgressView } from "../course/course-map-view";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 /** Each Topic's status: not started, in progress or passed. No model call. */
 export default async function ProgressPage() {
-  const topics = courseOverview(loadCourseMap(), await loadProgress(getDb()));
+  const topics = courseOverview(loadCourseMap(), await loadProgress(getDb(), await currentLearnerId()));
   const theme = await readTheme();
   return (
     <SignedInFrame>
