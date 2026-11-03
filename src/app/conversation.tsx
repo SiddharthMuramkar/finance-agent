@@ -6,7 +6,7 @@ import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { LeftColumn } from "./left-column";
-import type { Line } from "./thread";
+import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
 import { WorkspaceFrame } from "./workspace-frame";
@@ -34,6 +34,7 @@ export function Conversation({
   explore = null,
   revealed = [],
   shown,
+  developerDetails = false,
 }: {
   initial: Line[];
   summary: string;
@@ -47,6 +48,8 @@ export function Conversation({
   revealed?: readonly string[];
   /** What the page shows (its Topic's Session, or the Topic before its first turn), carried by every turn request. */
   shown?: Shown;
+  /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
+  developerDetails?: boolean;
 }) {
   // Each new turn sends the panel back to the newest Widget.
   const turn = useTurnStream({ initial, pending, shown, onTurnStart: () => host.showNewest() });
@@ -56,10 +59,12 @@ export function Conversation({
     <AssistantRuntimeProvider runtime={turn.runtime}>
       {/* One Case Data cache for the page, cleared as each turn ends. */}
       <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
-        <WorkspaceFrame
-          left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} />}
-          right={<WidgetHost host={host} topicTitle={place?.title} />}
-        />
+        <DeveloperDetails on={developerDetails}>
+          <WorkspaceFrame
+            left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} />}
+            right={<WidgetHost host={host} topicTitle={place?.title} />}
+          />
+        </DeveloperDetails>
       </CaseDataProvider>
     </AssistantRuntimeProvider>
   );

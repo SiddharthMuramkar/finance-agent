@@ -22,7 +22,10 @@ import { runTutorTurn } from "@/tutor/turn";
 const as = vi.hoisted(() => ({ db: undefined as unknown as Db, map: undefined as CourseMap | undefined, learnerId: 1 }));
 
 vi.mock("@/db/client", () => ({ getDb: () => as.db }));
-vi.mock("@/auth/session", () => ({ currentLearnerId: async () => as.learnerId, isSignedIn: async () => true }));
+vi.mock("@/auth/session", () => {
+  const learner = async () => ({ id: as.learnerId, name: `learner-${as.learnerId}`, archivedAt: null, showDeveloperDetails: false, createdAt: new Date() });
+  return { currentLearnerId: async () => as.learnerId, isSignedIn: async () => true, currentLearner: learner, signedInLearner: learner };
+});
 vi.mock("@/course/map", async (original) => {
   const real = await original<typeof import("@/course/map")>();
   return { ...real, loadCourseMap: () => as.map ?? real.loadCourseMap() };

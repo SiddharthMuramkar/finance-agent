@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { revealedCases } from "@/case-data/case-data";
 import { loadCourseMap } from "@/course/map";
-import { currentLearnerId } from "@/auth/session";
+import { signedInLearner } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { loadSessionExplore, loadSessionSummaries } from "@/tutor/session-summary";
@@ -17,7 +17,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
   const db = getDb();
-  const learnerId = await currentLearnerId();
+  const learner = await signedInLearner();
+  const learnerId = learner.id;
   const map = loadCourseMap();
   const [lines, summaries, jar, explore, progress] = await Promise.all([
     loadSession(db, id, map, learnerId),
@@ -31,7 +32,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     <SignedInFrame>
       <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-4 pt-4 lg:px-6 lg:pt-6">
         <AppHeader current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
-        <OldSession lines={lines} topicTitle={summaries.get(id)?.topics[0]} explore={explore} revealed={revealedCases(map, progress)} />
+        <OldSession lines={lines} topicTitle={summaries.get(id)?.topics[0]} explore={explore} revealed={revealedCases(map, progress)} developerDetails={learner.showDeveloperDetails} />
       </main>
     </SignedInFrame>
   );

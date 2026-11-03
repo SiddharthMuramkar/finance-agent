@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { stringify } from "yaml";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
-import { messages, sessions as sessionsTable, settings, topicProgress } from "@/db/schema";
+import { messages, OWNER_LEARNER_ID, sessions as sessionsTable, settings, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { learnerSummary, loadCheckResults, loadProgress, saveFinishedStep, saveJump } from "@/learner/memory";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
@@ -180,7 +180,7 @@ describe("one Session per Topic", () => {
     // As the expand migration left it: a Session that may hold several Topics, Older by default.
     const [old] = await db
       .insert(sessionsTable)
-      .values({ instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "present-value" })
+      .values({ learnerId: OWNER_LEARNER_ID, instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "present-value" })
       .returning();
     await db.insert(messages).values({ sessionId: old.id, seq: 0, role: "user", content: "An old question about the Sensex." });
     expect(await texts(db)).toEqual([]);
@@ -193,7 +193,7 @@ describe("one Session per Topic", () => {
 
   it("with every Topic passed, the Learner talks to the Tutor in one Session with no Topic", async () => {
     const db = await testDb();
-    for (const topicId of ["present-value", "bonds"]) await db.insert(topicProgress).values({ topicId, step: "principle", status: "passed" });
+    for (const topicId of ["present-value", "bonds"]) await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId, step: "principle", status: "passed" });
     await turn(db, "What next?", [say("Every Topic is passed.")]);
     const again = await turn(db, "Tell me more.", [say("Ask me anything.")]);
     expect(sent(again.requests[0])).toContain("What next?");

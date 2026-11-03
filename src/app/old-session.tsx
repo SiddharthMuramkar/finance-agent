@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { WidgetSlot } from "./reply-markdown";
-import { readOnlyLines, ReadOnlyThread, widgetsIn, type Line } from "./thread";
+import { DeveloperDetails, readOnlyLines, ReadOnlyThread, widgetsIn, type Line } from "./thread";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { primaryButtonClass } from "./ui";
 import { exploreItem, PinnedExplore, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
@@ -20,12 +20,15 @@ export function OldSession({
   topicTitle,
   explore = null,
   revealed = [],
+  developerDetails = false,
 }: {
   lines: OldLine[];
   topicTitle?: string;
   explore?: { code: string } | null;
   /** The Cases whose reveal the Learner has seen, for the page's shared Case Data cache. */
   revealed?: readonly string[];
+  /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
+  developerDetails?: boolean;
 }) {
   const tutorWidgets = useMemo(() => widgetsIn(readOnlyLines(lines)), [lines]);
   const sessionId = lines.find((l) => l.ref)?.ref?.sessionId;
@@ -41,7 +44,9 @@ export function OldSession({
         <div className="flex min-h-0 min-w-0 flex-col gap-4">
           {explore && <PinnedExplore item={exploreItem(explore.code, sessionId)} />}
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <ReadOnlyThread lines={lines} slot={slot} />
+            <DeveloperDetails on={developerDetails}>
+              <ReadOnlyThread lines={lines} slot={slot} />
+            </DeveloperDetails>
           </div>
           <Link href="/study" className={`${primaryButtonClass} self-start`}>
             Back to the workspace
