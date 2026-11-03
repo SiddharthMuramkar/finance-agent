@@ -60,6 +60,19 @@ describe("sourced history and the Learner's assumptions are visibly separate", (
     expect(sourced).not.toContain("Your assumption");
   });
 
+  it("folds each credit line behind a small ⓘ that is closed to start with, and keeps the amber sourced marking around it", () => {
+    for (const html of [
+      renderToStaticMarkup(<AnnuityFigure inputs={{ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: 3 }} sourced={cash} />),
+      renderToStaticMarkup(<HistoryFigure dataset={yields} revealed={false} asOf="2018-10-24" />),
+    ]) {
+      expect(html.match(/data-testid="credit"/g)).toHaveLength(1);
+      expect(html).not.toMatch(/<details[^>]*data-testid="credit"[^>]*\sopen/);
+      expect(html).toMatch(/<summary[^>]*aria-label="Where this figure comes from"[^>]*>\s*ⓘ\s*<\/summary>/);
+      expect(html).toMatch(/Source:\s*<a[^>]*href="https:\/\/home\.treasury\.gov\/example"|Source:\s*<a[^>]*>CNBC, 24 October 2018<\/a>/);
+      expect(html).toContain('data-kind="sourced"');
+    }
+  });
+
   it("without a sourced figure, the chart shows only the Learner's assumption", () => {
     const html = renderToStaticMarkup(<AnnuityFigure inputs={{ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: 3 }} />);
     expect(marked(html, "sourced")).toEqual([]);

@@ -852,7 +852,7 @@ source (title, licence, credit line, link, and whether it is **dated**, like a b
 up to about 300 words, each with its own heading, link, publication date, licence and credit. The
 Tutor has one new tool, `search_library`. Code runs the search and hands back the best five
 passages, each with its credit line, licence, date and link, and the Tutor's instructions say to
-name the source in plain text whenever it quotes or draws on one, and to keep quotes short.
+keep quotes short; code adds the citation and credit (the Tutor does not name sources in its sentences).
 
 **How search works.** Two rankings are combined in one SQL query. The keyword ranking is BM25, the
 standard search-engine scoring, through Neon's `lakebase_text` extension (confirmed working on the
@@ -1001,8 +1001,8 @@ built-in citations switched on. The passage is cut into one block per sentence, 
 with its credit line, licence, date, link and any quote limit, so a citation names the sentences
 it used. Claude then returns its reply split into text pieces, and a piece that rests on a passage
 carries a citation naming the passage (`/passages/<id>`) and the sentences. Code turns those into
-what the Learner sees: a small raised number after the claim, and a "Sources" list at the end of
-the reply. Clicking a number opens the passage view in a new tab: the stored passage, the cited
+what the Learner sees: a small raised number after the claim, and one folded "N sources" line at the
+end of the reply (see "Sources folded away" below). Clicking a number opens the passage view in a new tab: the stored passage, the cited
 sentences highlighted, the credit, licence and a link to the original. The stored reply is never
 changed; the numbers are worked out the same way while the reply streams and when it is read back,
 so the workspace, a reload and old Sessions all show the same thing.
@@ -1014,17 +1014,42 @@ future cash flows falls...")¹ and draws a slider widget in the same reply. The 
 credit "Julie Dahlquist and Rainford Knight, Principles of Finance 2e (OpenStax), CC BY-NC-SA 4.0".
 Live run, 2 Nov 2026: 3 citations, 2 sources, 2 widgets drawn without a correction turn, $0.089.
 
-**The source's terms still hold.** The Tutor still names the source in plain text when it quotes
-(its instructions are unchanged), and still gets each source's quote limit with the passage. The
+**The source's terms still hold.** The Tutor still gets each source's quote limit with the passage,
+and the credit still travels with the reply (now in the fold, no longer in the Tutor's sentences). The
 passage view respects the same limit: for a source with one (Damodaran's blog, 60 words) it shows
 only the cited sentences, cut to 60 words, says it was shortened and points to the original. A
 passage the as-of rule hides from search is hidden in the passage view too: during the 1994 Fed
 Case, a 2026 Damodaran post shows "hidden until the reveal" instead of its text. Its heading is
-withheld from the Sources list as well. A reply can cite a passage found by a search made earlier in
-the Session, before the Learner reached the Case; the Sources list then shows "Library passage
+withheld from the folded sources as well, and it gets no credit line there. A reply can cite a passage found by a search made earlier in
+the Session, before the Learner reached the Case; the fold then shows "Library passage
 (hidden until the reveal)" instead of a heading like "How Lehman's 2008 failure froze credit", live
 and after a reload, and shows the real heading again once the reveal is shown. Live run with
 Damodaran's blog, 2 Nov 2026: 5 citations to 3 posts, each passage view at most 60 words, $0.034.
+
+**Sources folded away (`src/tutor/sources.ts`).** Sources stay out of the reading. Citation numbers
+stay tiny; the reply ends with one small "3 sources" line that opens on click to the numbered list,
+each entry with its passage heading and credit line. One fold and one numbering serve the whole reply,
+however many loop steps (searches, tool calls) it took, so two different "1"s never meet. The stored
+reply is still never changed, and the same code builds the fold while the reply streams and when it
+is read back, old Sessions included (where a turn's steps now read as one reply, as they stream). The
+fold travels as a `sources` Markdown fence at the end of the reply text, which the reply renderer
+draws as the small line. A passage the as-of rule hides keeps its hidden title and gets no credit. A
+Case Data figure the text quotes (code looks for each allowed point's value written out whole,
+outside citation links and widget code) adds that dataset's credit, unnumbered. In Widgets, a sourced
+figure's credit sits behind a small ⓘ, and the amber still marks it as real data. The Tutor's
+instructions stop it naming sources in its sentences ("according to CNBC..."), except when the writer
+is the subject (Follow Topics) or the Learner asks where something comes from; a behaviour rule,
+"source named in the text", checks it.
+
+**Scenario.** The Learner asks why a higher rate lowers present value. The Tutor searches twice, cites
+OpenStax in each step and says it plainly, with no "as OpenStax puts it". The Learner reads the
+explanation with two tiny numbers and "2 sources" beneath; opening it shows both headings with their
+credit lines.
+
+**Trade-off.** Spotting a quoted Case Data figure is matching on the number's text, so it can miss a
+figure the Tutor rounds or rewords, or catch a coincidence; a miss costs a missing credit line in the
+fold (the widget keeps its own ⓘ either way). The fold appears when the reply ends, not while it
+streams.
 
 **Citations and widgets together.** The spec chose OpenUI's inline mode (widgets written in the
 reply's text) before knowing whether citations would combine with it. They do: the citation split
@@ -1460,6 +1485,22 @@ Session (the cards say so). That keeps the Session's record true to what the Tut
 keeps the cached conversation prefix byte-for-byte stable, at the cost of a short wait before an edit
 shows in the examples. The profile is stored in plain text in the database and in each Session's
 record; it is meant for light context, not for anything private such as account numbers.
+
+## Formula registry (`src/finance/formulas.ts`, `formula-ids.ts`, ADR 0002, issue #64)
+
+**What it does.** A list of every named formula the Tutor may show: its plain-word title, the calculator that works it out, each symbol with its letter, plain-word name and unit, the value worked out last (and any worked out on the way), and the formula's lines. Present value starts with three: one future payment, equal yearly payments, and growing yearly payments (the jackpot annuity, which got a new tested calculator, `growing_annuity_present_value`). Each Topic file lists the formulas it teaches (`formulas:` in its YAML). `npm run course:check` fails on a name the registry does not have, which is why the bare list of names sits in `formula-ids.ts` with no imports: the check runs under plain Node.
+
+**Scenario.** The present value Topic lists `growing-annuity-present-value`. When the Learner reaches it, code adds one line to what the Tutor is sent: the formulas this Topic teaches, with the keys each Formula Card takes. The Tutor is told to show those only as Formula Cards and to describe any other formula in words. A Topic that wanted WACC could not list it until WACC had a calculator and a registry entry.
+
+**Trade-off.** A formula costs a tested calculator before it can be taught, which is slower than typing it. In return the Tutor cannot show a formula that code cannot work out, and every symbol's name is written once by us, not improvised by the model each time. A Topic that lists no formulas shows none as cards; moving the other Topics over is done in batches.
+
+## Formula Cards (`FormulaCard` in `src/widgets/library.tsx`, `formula-card-view.tsx`, `check.ts`, issue #64)
+
+**What it does.** A Widget that draws one registered formula: the formula with the symbols' letters, the same formula with the numbers filled in, and a list that names each symbol in plain words with its unit. Each value is coloured by where it came from: teal for the Learner's assumption (a slider), amber for a sourced Case Data figure (with its credit beside it), plain for a fixed number. The result, and values worked out on the way such as the first payment, come only from the formula's calculator, so moving a slider redraws them in the browser with no model call. The Tutor gives the card three small lists: `inputs` (symbol to a `$variable` bound to a Slider), `sourced` (symbol to a Case Data reference, whose latest point is used) and `fixed` (symbol to a number).
+
+**Scenario.** The Tutor writes a Slider for the discount rate and a card for present value with the cash option as a sourced amount and five years fixed. The Learner drags the rate from 5% to 8%: the teal rate, the filled-in formula and the amber-and-plain list all stay put except the result, which falls. If the Tutor instead types the rate as a plain number under `inputs`, or lists `amount` under both `inputs` and `sourced`, or leaves out `years`, the server's Widget check names the problem and the existing correction turn asks the Tutor to rewrite the Widget once.
+
+**Trade-offs.** The check is stricter than the language: it reads the parsed Widget, which is why a card can never show an assumption that no slider controls. The card does not do any arithmetic, so a formula whose calculator fails shows a plain "could not be worked out" message, not a guess. The frozen Widget instructions changed (a new component, a rule and an example), so the next action after deploy starts a new Session; a test checks that the instructions name only components the library has.
 
 ## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
 

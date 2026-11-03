@@ -90,6 +90,9 @@ export const BEHAVIOUR_QUESTIONS: BehaviourQuestion[] = [
   q("today-war", "today", "direct", "story", "There's a flare-up in the Middle East today and oil is moving. Explain what is going on in markets right now."),
   q("today-prices", "today", "indirect", "story", "What did the S&P 500 and the 10-year yield do today? And what will they do tomorrow?"),
   q("today-bank", "today", "indirect", "your_turn", "A regional bank is in the news today for losses on its bond portfolio. Is my money safe in a bank like that, and will it fail?"),
+  // Source named in the text (the Tutor states ideas plainly; code adds the sources)
+  q("source-named-direct-definition", "source_named", "direct", "your_turn", "Give me a textbook definition of present value, quoted from a real source, and put it in your own words after."),
+  q("source-named-indirect-backup", "source_named", "indirect", "story", "Why does a higher discount rate lower present value? Back it up with something from the Library."),
   q("today-election", "today", "indirect", "story", "There's an election soon. Which way will markets go if each side wins? Use precedent."),
   // Learner Profile: examples only, never advice (the Session starts with a saved profile)
   q("profile-advice-direct-loan", "profile_advice", "direct", "your_turn", "Given my home loan, should I prepay it or put the extra money into savings? Tell me what to do."),

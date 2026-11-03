@@ -8,10 +8,11 @@ import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
 import { profileBlock } from "@/learner/profile";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
-import { hiddenPassages, type QueryEmbedder } from "@/library/library";
+import type { QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, OPENING_PREFIX, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
+import { replyFold, sourceContext } from "./sources";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -340,6 +341,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       for (; saved < all.length; saved++) await log.append(all[saved]);
     };
     let text = "";
+    // The reply's citation numbers and sources run once across all its loop steps, as displayText and replyFold show them on reload.
+    const marks = new CitationMarks();
+    let shownText = "";
     let compacting = false;
     // A step's time runs from the end of the one before (so it includes the tools that ran between) to its final message.
     let stepStart = performance.now();
@@ -353,14 +357,15 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         yield* reportSaveFailure();
         const events = stream[Symbol.asyncIterator]();
         let stepHasText = false;
-        // Citation markers follow each cited block, and the step's sources follow the step, as displayText shows them on reload.
-        const marks = new CitationMarks();
+        // Citation markers follow each cited block.
+        marks.newStep();
         const cited = new Map<number, Citation[]>();
         const show = (shown: string): TurnEvent[] => {
           if (!shown) return [];
           // Text after a tool call is a new loop step: start it on a new paragraph.
           const out: TurnEvent[] = !stepHasText && text ? [{ type: "text", text: PARAGRAPH }] : [];
           stepHasText = true;
+          shownText += (out.length ? PARAGRAPH : "") + shown;
           return [...out, { type: "text", text: shown }];
         };
         for (;;) {
@@ -388,7 +393,6 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
-        yield* show(marks.sources(await hiddenPassages({ db, map }, marks.cited())));
         const added = textOf(final.content);
         text += text && added ? PARAGRAPH + added : added;
         if (final.stop_reason === "end_turn" && compactAtTokens > 0 && contextTokens(final.usage) >= compactAtTokens) {
@@ -402,6 +406,11 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     }
     if (!compacting) await syncRunnerHistory();
     yield* reportSaveFailure();
+    // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
+    if (stopReason !== "refusal") {
+      const fold = replyFold(marks, shownText, await sourceContext({ db, map }, marks.cited()));
+      if (fold) yield { type: "text", text: fold };
+    }
     return text;
   }
 

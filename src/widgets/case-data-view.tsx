@@ -29,14 +29,20 @@ export function SourcedTag({ children = "Sourced" }: { children?: string }) {
   return <Tag kind="src">{children}</Tag>;
 }
 
+/** A sourced figure's credit, folded behind a small ⓘ that opens on click; the amber around it still marks the data as real. */
 function Credit({ dataset }: { dataset: CaseDataset }) {
   return (
-    <span className="text-xs text-[var(--muted)]">
-      Source:{" "}
-      <a href={dataset.sourceUrl} target="_blank" rel="noreferrer" className="underline">
-        {dataset.source}
-      </a>
-    </span>
+    <details data-testid="credit" className="inline-block align-baseline text-xs text-[var(--muted)]">
+      <summary aria-label="Where this figure comes from" className="inline-block cursor-pointer select-none rounded px-1 text-sm leading-none">
+        ⓘ
+      </summary>
+      <span className="mt-1 block">
+        Source:{" "}
+        <a href={dataset.sourceUrl} target="_blank" rel="noreferrer" className="underline">
+          {dataset.source}
+        </a>
+      </span>
+    </details>
   );
 }
 
@@ -56,7 +62,7 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
   return (
     <figure data-kind="sourced" className="my-2 rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] p-3">
       <p className="mb-1 text-sm">
-        <SourcedTag>Sourced history</SourcedTag> {dataset.label}
+        <SourcedTag>Sourced history</SourcedTag> {dataset.label} <Credit dataset={dataset} />
       </p>
       <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${dataset.label}, ${first.date} to ${last.date}`} className="w-full">
         <polyline
@@ -84,7 +90,6 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
           Range {formatValue(lo, dataset.unit)} to {formatValue(hi, dataset.unit)}.
           {!revealed && ` Data after ${asOf} is withheld until the reveal.`}
         </p>
-        <Credit dataset={dataset} />
       </figcaption>
     </figure>
   );
@@ -147,9 +152,8 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
             <p>
               <SourcedTag />
               {sourced.label}: <strong className="tabular-nums">{formatValue(figure.value, sourced.unit)}</strong>{" "}
-              <span className="text-xs text-[var(--muted)]">({figure.date})</span>
+              <span className="text-xs text-[var(--muted)]">({figure.date})</span> <Credit dataset={sourced} />
             </p>
-            <Credit dataset={sourced} />
           </div>
         )}
         {sourced && figure && sourced.unit === "USD" && (

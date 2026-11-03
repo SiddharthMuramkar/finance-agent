@@ -23,6 +23,21 @@ describe("widget instructions", () => {
   });
 });
 
+describe("instruction guard", () => {
+  const defs = (frozen.schema as unknown as { $defs: Record<string, unknown> }).$defs;
+
+  it("names only components the Widget library has, and teaches the Formula Card rule", () => {
+    // Our own examples and rules (not the language's syntax lesson, which uses placeholder names).
+    const ours = [WIDGET_PROMPT_OPTIONS.preamble, ...WIDGET_PROMPT_OPTIONS.examples, ...WIDGET_PROMPT_OPTIONS.additionalRules].join("\n");
+    const named = new Set([...ours.matchAll(/\b([A-Z][A-Za-z]+)\(/g)].map((m) => m[1]));
+    expect(named.size).toBeGreaterThan(0);
+    for (const name of named) expect(Object.keys(defs), `the instructions name ${name}(...)`).toContain(name);
+    expect(frozen.instructions).toContain("FormulaCard(");
+    expect(frozen.instructions).toContain("only as a FormulaCard");
+    expect(frozen.instructions).toContain("Describe any other formula in words");
+  });
+});
+
 describe("checking a finished widget on the server", () => {
   it("accepts the example widget", () => {
     expect(widgetProblems(WIDGET_PROMPT_OPTIONS.examples[0])).toEqual([]);

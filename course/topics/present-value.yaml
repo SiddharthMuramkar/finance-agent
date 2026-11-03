@@ -32,6 +32,12 @@ concept: >
   number of years. A stream of payments is worth the sum of each payment's present value.
   The higher the rate or the more years until the payment arrives, the less a future payment is worth today.
 
+# The named formulas this Topic teaches; the Tutor shows them only as Formula Cards (see src/finance/formulas.ts).
+formulas:
+  - present-value
+  - annuity-present-value
+  - growing-annuity-present-value
+
 principle: >
   An advertised total that adds up payments made at different times overstates their value.
   Compare cash flows only after moving them to the same date, and ask which interest rate
