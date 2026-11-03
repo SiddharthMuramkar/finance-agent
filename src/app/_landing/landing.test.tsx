@@ -129,14 +129,15 @@ describe("Home, the signed-in button", () => {
   const stats = { topics: 95, cases: 103, librarySources: 8 };
   const hero = (button: HomeButton) => {
     const h = renderToStaticMarkup(<LandingView stats={stats} button={button} />);
-    return h.match(/<a[^>]*href="\/study"[^>]*>(Resume|Start|Open)[^<]*<\/a>/)?.[0] ?? "";
+    return h.match(/<a[^>]*href="\/study"[^>]*>(Resume|Start|Open)[^<]*<\/a>|<form[^>]*>(?:(?!<\/form>).)*(Resume|Start)[^<]*<\/button><\/form>/)?.[0] ?? "";
   };
 
-  it("Resume names the Topic and opens /study", () => {
-    expect(hero({ kind: "resume", topic: "Present value" })).toContain(">Resume: Present value</a>");
+  // Resume and Start choose the Topic (it shows at once), so they post to /api/open, which goes on to /study.
+  it("Resume names the Topic and opens it, as a form posting to /api/open", () => {
+    expect(hero({ kind: "resume", topic: "Present value" })).toMatch(/^<form[^>]*action="\/api\/open"[^>]*method="post"[^>]*><button type="submit"[^>]*>Resume: Present value<\/button><\/form>$/);
   });
-  it("Start names the Topic and opens /study", () => {
-    expect(hero({ kind: "start", topic: "Present value" })).toContain(">Start: Present value</a>");
+  it("Start names the Topic and opens it, as a form posting to /api/open", () => {
+    expect(hero({ kind: "start", topic: "Present value" })).toMatch(/^<form[^>]*action="\/api\/open"[^>]*method="post"[^>]*><button type="submit"[^>]*>Start: Present value<\/button><\/form>$/);
   });
   it("Open Study Workspace opens /study", () => {
     expect(hero({ kind: "open" })).toContain(">Open Study Workspace</a>");

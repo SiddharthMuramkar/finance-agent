@@ -5,7 +5,7 @@ import { DEMO_SUMMARY, isDemoMode } from "../_landing/demo-mode";
 import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
 import { exploreWidgetFor } from "@/course/explore-widget";
-import { courseOverview } from "@/course/navigator";
+import { courseOverview, whatComesNext } from "@/course/navigator";
 import { revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
 import { learnerSummary, loadProgress } from "@/learner/memory";
@@ -13,7 +13,7 @@ import { loadProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { loadWidgetStates } from "@/learner/widget-state";
-import { shownNow } from "@/tutor/session-log";
+import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
 import { loadSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type PendingTurn } from "../conversation";
@@ -60,8 +60,11 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   }
   const db = getDb();
   const learnerId = learner.id;
-  // The current Topic's own Session (ADR 0004), or the Topic alone before its first turn: rendering makes no Session.
-  const shown = await shownNow(db, map, learnerId);
+  // The Learner's shown Session: the current Topic's own (ADR 0004), or the Topic alone before its first turn (the page
+  // then starts the opener); a Topic passed in a turn stays shown until the Learner chooses. Rendering makes no Session.
+  const shown = await shownInWorkspace(db, map, learnerId);
+  const passedId = await passedTopicShown(db, map, learnerId, shown);
+  const passedTopic = passedId ? map.topic(passedId) : undefined;
   const [summary, initial, quiz, turn, review, progress, profile, widgetStates] = await Promise.all([
     learnerSummary(db, map, learnerId),
     "sessionId" in shown ? loadSession(db, shown.sessionId, map, learnerId) : [],
@@ -81,9 +84,11 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
   const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
-  // The current Topic and its Stage, for the status card's eyebrow.
-  const current = courseOverview(map, progress).find((t) => t.current);
+  // The shown Topic and its Stage, for the status card's eyebrow: a passed Topic still on screen, else the current Topic.
+  const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
   const place = current ? { stage: current.stage, title: current.title } : null;
+  // A passed Topic on screen sends no turns: What comes next (from the Course Navigator's place) and the Course Map instead.
+  const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
   return (
     <WorkspaceShell>
       {shouldOfferProfile(profile) && (
@@ -94,15 +99,17 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
       )}
       <Conversation
         initial={initial}
-        summary={summary}
-        quiz={quiz}
+        summary={passed ? `${passed.title} is passed. Choose where to go next.` : summary}
+        // The quiz and explore Widget belong to the current Topic, not the passed one on screen.
+        quiz={passed ? null : quiz}
         pending={pending}
         review={review}
         place={place}
-        explore={exploreWidgetFor(map, progress)}
+        explore={passed ? null : exploreWidgetFor(map, progress)}
         revealed={revealedCases(map, progress)}
         shown={shown}
         widgetStates={widgetStates}
+        passed={passed}
         developerDetails={learner.showDeveloperDetails}
       />
     </WorkspaceShell>

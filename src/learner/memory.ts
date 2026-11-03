@@ -60,37 +60,39 @@ async function saveProgress(db: Db, progress: Progress, now: Date, learnerId: nu
   }
 }
 
-/** Saves a new current Topic; marks the entry for the next turn when the Learner's Topic actually changes. */
-async function saveCurrentTopic(db: Db, map: CourseMap, before: Progress, after: Progress, now: Date, learnerId: number) {
-  const changed = navigate(map, before)?.topic.id !== navigate(map, after)?.topic.id;
-  await saveState(db, learnerId, { currentTopicId: after.currentTopicId, updatedAt: now, ...(changed ? { enteredByJump: true } : {}) });
+/**
+ * Choosing a Topic: saves the new current Topic and shows its Session at once. The shown Session is
+ * cleared, so the Study Workspace shows the current Topic's own Session, or the Topic before its first
+ * turn (the opener). Nothing waits for the next turn.
+ */
+async function saveCurrentTopic(db: Db, after: Progress, now: Date, learnerId: number) {
+  await saveState(db, learnerId, { currentTopicId: after.currentTopicId, updatedAt: now, shownSessionId: null });
 }
 
 /**
- * The Learner chose a Topic on the Course Map page (after any prompt about unmet prerequisites).
- * Only the current Topic changes; every Topic keeps its progress.
+ * The Learner chose a Topic (on the Course Map, after any prompt about unmet prerequisites). Only the
+ * current Topic changes; every Topic keeps its progress. Its Session shows at once.
  */
 export async function saveJump(db: Db, map: CourseMap, topicId: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Jump> {
   const progress = await loadProgress(db, learnerId);
   const jump = jumpTo(map, progress, topicId);
-  if (jump.ok) await saveCurrentTopic(db, map, progress, jump.progress, now, learnerId);
+  if (jump.ok) await saveCurrentTopic(db, jump.progress, now, learnerId);
   return jump;
 }
 
-/** The Learner goes back to the default path; the Topic they leave keeps its progress. */
+/** The Learner goes back to the default path; the Topic they leave keeps its progress. Its Session shows at once. */
 export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
   const progress = await loadProgress(db, learnerId);
-  await saveCurrentTopic(db, map, progress, returnToDefaultPath(progress), now, learnerId);
+  await saveCurrentTopic(db, returnToDefaultPath(progress), now, learnerId);
 }
 
-/** Whether the Learner entered a Topic by a jump since their last turn; clears the mark, so only one turn sees it. */
-export async function takeJumpEntry(db: Db, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
-  const [row] = await db
-    .update(learnerState)
-    .set({ enteredByJump: false })
-    .where(and(eq(learnerState.learnerId, learnerId), eq(learnerState.enteredByJump, true)))
-    .returning();
-  return Boolean(row);
+/**
+ * What comes next, and Resume: the Learner opens their current Topic (the Course Navigator's place, which
+ * is what comes next), whose Session shows at once. After a Topic passed in a turn, this is how the
+ * Learner leaves it: until then the Study Workspace keeps showing the passed Topic's Session.
+ */
+export async function openCurrentTopic(db: Db, learnerId = OWNER_LEARNER_ID): Promise<void> {
+  await saveState(db, learnerId, { shownSessionId: null });
 }
 
 /** Saves the start of the current Topic the first time the Learner reaches it. */

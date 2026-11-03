@@ -393,20 +393,20 @@ describe("Tutor Turn", () => {
           Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
         );
 
-      it("a jump warns of unmet prerequisites, then the next turn teaches the chosen Topic and tells the Tutor the Learner chose it", async () => {
+      it("a jump warns of unmet prerequisites, then the opener teaches the chosen Topic", async () => {
         const db = await testDb();
         await ensureTopicStarted(db, twoTopics);
         expect(await saveJump(db, twoTopics, "bonds")).toMatchObject({ ok: true, unmetPrerequisites: ["present-value"] });
         const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Bonds, then." }] }]);
-        await collect(runTutorTurn({ db, client, map: twoTopics }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map: twoTopics }, { opener: true }));
         const [context] = systemTexts(requests[0]);
         expect(context).toContain("Topic: Bond prices");
         expect(context).toContain("Prerequisites not yet passed: present-value.");
-        expect(context).toContain("The Learner chose this Topic on the Course Map");
+        expect(JSON.stringify(requests[0].messages)).toContain("Opener by code:");
         expect(await learnerSummary(db, twoTopics)).toContain("Bond prices");
       });
 
-      it("a step entered by a jump into a part-finished Topic cannot be finished in that turn", async () => {
+      it("a step reached in a part-finished Topic the Learner chose cannot be finished in its opener", async () => {
         const db = await testDb();
         await ensureTopicStarted(db, twoTopics);
         await saveFinishedStep(db, twoTopics, "story"); // present value is at its concept step
@@ -419,18 +419,18 @@ describe("Tutor Turn", () => {
           { content: [finish("concept", "toolu_concept_later")] },
           { content: [{ type: "text", text: "Your turn." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map: twoTopics }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map: twoTopics }, { opener: true }));
         expect(toolResults(requests[1])[0]).toMatchObject({ is_error: true });
         expect(String(toolResults(requests[1])[0].content)).toContain("began during this turn");
         expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: concept");
 
-        // The next turn has taught it, so the step can now finish; the jump note is not repeated.
+        // The next turn has taught it, so the step can now finish; the opener's note is sent once only.
         await collect(runTutorTurn({ db, client, map: twoTopics }, "Understood."));
         expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: your turn");
-        expect(systemTexts(requests[2]).filter((t) => t.includes("chose this Topic"))).toHaveLength(1);
+        expect(JSON.stringify(requests[2].messages).match(/Opener by code:/g)).toHaveLength(1);
       });
 
-      it("going back to the default path is also a fresh entry, and the Topic left keeps its progress", async () => {
+      it("going back to the default path opens its Topic afresh, and the Topic left keeps its progress", async () => {
         const db = await testDb();
         await ensureTopicStarted(db, twoTopics);
         await saveFinishedStep(db, twoTopics, "story");
@@ -439,7 +439,7 @@ describe("Tutor Turn", () => {
         await saveFinishedStep(db, twoTopics, "story"); // bonds at concept
         await saveReturnToDefaultPath(db, twoTopics);
         const { client, requests } = scriptedClient([{ content: [finish("concept")] }, { content: [{ type: "text", text: "Back to present value." }] }]);
-        await collect(runTutorTurn({ db, client, map: twoTopics }, { continue: true }));
+        await collect(runTutorTurn({ db, client, map: twoTopics }, { opener: true }));
         expect(toolResults(requests[1])[0]).toMatchObject({ is_error: true });
         expect(String(systemTexts(requests[0]).at(-1))).toContain("Topic: Present value");
         await saveJump(db, twoTopics, "bonds");

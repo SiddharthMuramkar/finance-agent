@@ -139,6 +139,29 @@ describe("the workspace's left column", () => {
   });
 });
 
+describe("a Topic passed in a turn", () => {
+  const passedTopic = { title: "Present value", next: "Next Topic: Bond prices" };
+  const initial: Line[] = [
+    { role: "user", text: "So money today is worth more." },
+    { role: "assistant", text: "Exactly. Topic complete." },
+  ];
+
+  it("keeps its Session on screen, offers What comes next and the Course Map, and has no message box", () => {
+    const html = workspace({ initial, passed: passedTopic });
+    expect(text(html)).toContain("Exactly. Topic complete.");
+    expect(text(html)).toContain("Present value is passed.");
+    expect(html).toMatch(/<button[^>]*data-what-comes-next[^>]*>Next Topic: Bond prices →<\/button>/);
+    expect(html).toMatch(/<a[^>]*href="\/course"[^>]*>Course Map<\/a>/);
+    expect(html).not.toContain('placeholder="Ask the Tutor"');
+  });
+
+  it("with every Topic passed, offers only the Course Map", () => {
+    const html = workspace({ initial, passed: { title: "Present value", next: null } });
+    expect(html).not.toContain("data-what-comes-next");
+    expect(html).toMatch(/<a[^>]*href="\/course"[^>]*>Course Map<\/a>/);
+  });
+});
+
 describe("the fixed two-column layout", () => {
   const tag = (html: string, testid: string) => html.match(new RegExp(`<[^>]*data-testid="${testid}"[^>]*>`))?.[0] ?? "";
   const review = { question: { id: "q", prompt: "How many basis points?", choices }, dueCount: 2, done: 0, cap: 5 };
@@ -277,9 +300,9 @@ history = HistoryChart("mega-millions-2018/treasury-30-year")`;
     expect(card).toContain("Present value");
   });
 
-  it("shows the dashed empty state before the Tutor builds any Widget", () => {
-    expect(text(renderToStaticMarkup(<WidgetPanel widgets={[]} shown={undefined} onPick={() => {}} />))).toContain("Widgets the Tutor builds appear here.");
-    expect(text(workspace())).toContain("Widgets the Tutor builds appear here.");
+  it("says \"Widgets for this Topic will appear here.\" before the Tutor builds any Widget", () => {
+    expect(text(renderToStaticMarkup(<WidgetPanel widgets={[]} shown={undefined} onPick={() => {}} />))).toContain("Widgets for this Topic will appear here.");
+    expect(text(workspace())).toContain("Widgets for this Topic will appear here.");
   });
 
   it("names the concept from the Widget tools its Queries call, and a Formula Card's Widget Formula", () => {

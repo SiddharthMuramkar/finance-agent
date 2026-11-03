@@ -24,8 +24,8 @@ export function pastePreview(paste: string): string {
 
 /** The latest turn's saved status, as the page found it. */
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
-/** What a turn request carries: a message (with an optional pasted passage), Continue, or a resume. */
-export type TurnBody = { message: string; paste?: string } | { continue: true } | { resume: true };
+/** What a turn request carries: a message (with an optional pasted passage), Continue, the opener, or a resume. */
+export type TurnBody = { message: string; paste?: string } | { continue: true } | { opener: true } | { resume: true };
 
 /** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
 export const SLOW_AFTER_MS = 8000;
@@ -43,9 +43,22 @@ export type TurnStream = ReturnType<typeof useTurnStream>;
  * The conversation and its turn state. `onTurnStart` runs as each turn starts (the Widget host uses it to
  * go back to showing the newest Widget). `shown` is what the page shows (its Topic's Session, or the Topic
  * before its first turn): every turn request carries it, so a tab left on another Topic is refused, and
- * each finished turn says what the next request should carry.
+ * each finished turn says what the next request should carry. With `opener`, a page whose Session has no
+ * messages (and no unfinished turn) starts the opener by itself: a Tutor turn with no Learner bubble.
  */
-export function useTurnStream({ initial, pending, onTurnStart, shown }: { initial: Line[]; pending: PendingTurn; onTurnStart: () => void; shown?: Shown }) {
+export function useTurnStream({
+  initial,
+  pending,
+  onTurnStart,
+  shown,
+  opener = false,
+}: {
+  initial: Line[];
+  pending: PendingTurn;
+  onTurnStart: () => void;
+  shown?: Shown;
+  opener?: boolean;
+}) {
   const router = useRouter();
   const shownRef = useRef(shown);
   const [messages, setMessages] = useState<ThreadLine[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
@@ -201,12 +214,14 @@ export function useTurnStream({ initial, pending, onTurnStart, shown }: { initia
     }
   }
 
-  // A turn cut off while the page was closed resumes as soon as the page opens.
+  // A turn cut off while the page was closed resumes as soon as the page opens; an empty Session starts its opener.
   const resumedOnOpen = useRef(false);
   useEffect(() => {
-    if (pending?.status !== "cut_off" || resumedOnOpen.current) return;
+    const start: TurnBody | null =
+      pending?.status === "cut_off" ? { resume: true } : opener && shown && pending === null && initial.length === 0 ? { opener: true } : null;
+    if (!start || resumedOnOpen.current) return;
     resumedOnOpen.current = true;
-    void send({ resume: true });
+    void send(start);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

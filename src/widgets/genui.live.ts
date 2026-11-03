@@ -28,7 +28,7 @@ import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
 import { settings } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { saveJump, takeJumpEntry } from "@/learner/memory";
+import { saveJump } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
@@ -250,7 +250,6 @@ async function runAsk(ask: GenuiAsk, client: TutorClient): Promise<AskRecord> {
     // Pinned by a jump, as the behaviour run does; taking the jump mark makes the turn read like a
     // Learner mid-Topic in a new Session, with no "the Learner chose this Topic" note.
     await saveJump(db, map, ask.topic);
-    await takeJumpEntry(db);
     const place = await placeLearner(db, map, ask.at);
     if (place.topic.id !== ask.topic) throw new Error(`The Learner was placed in ${place.topic.id}, not ${ask.topic}.`);
     record.place = `Topic "${place.topic.title}" (${place.topic.id}), Teaching Step "${place.step}"${place.check ? ` of Check ${place.check.id}` : ""}, before the reveal`;

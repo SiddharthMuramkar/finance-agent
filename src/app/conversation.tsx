@@ -12,7 +12,7 @@ import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
 import { WidgetStatesProvider } from "./widget-states";
 import { WorkspaceFrame } from "./workspace-frame";
-import type { Place } from "./workspace-parts";
+import type { PassedTopic, Place } from "./workspace-parts";
 
 export type { Line, PendingTurn };
 
@@ -37,6 +37,7 @@ export function Conversation({
   revealed = [],
   shown,
   widgetStates,
+  passed = null,
   developerDetails = false,
 }: {
   initial: Line[];
@@ -53,11 +54,13 @@ export function Conversation({
   shown?: Shown;
   /** The shown Session's saved Widget state, by Widget key (loadWidgetStates): slider values and ticked Guided Tasks. */
   widgetStates?: WidgetStates;
+  /** A Topic passed in a turn, kept on screen until the Learner chooses where to go; its page sends no turns. */
+  passed?: PassedTopic;
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
 }) {
   // Each new turn sends the panel back to the newest Widget.
-  const turn = useTurnStream({ initial, pending, shown, onTurnStart: () => host.showNewest() });
+  const turn = useTurnStream({ initial, pending, shown, opener: !passed, onTurnStart: () => host.showNewest() });
   const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz });
 
   return (
@@ -68,7 +71,7 @@ export function Conversation({
           {/* The Widgets' saved work in the shown Session, kept across tab switches and saved for a reload. */}
           <WidgetStatesProvider sessionId={shown && "sessionId" in shown ? shown.sessionId : undefined} initial={widgetStates}>
             <WorkspaceFrame
-              left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} />}
+              left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} />}
               right={<WidgetHost host={host} topicTitle={place?.title} />}
             />
           </WidgetStatesProvider>

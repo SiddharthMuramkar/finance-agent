@@ -10,6 +10,7 @@ import { topicTitleIn } from "./session-summary";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentTopicId, liveSession, type Message, type Row } from "./session-log";
+import { OPENER_PREFIX } from "./turn-status";
 import { loadTurnUsages, type TurnUsage } from "./usage";
 
 /** A Session turned into plain lines for display: the workspace after a reload, old Session pages, a replayed reply. No model call. */
@@ -101,6 +102,11 @@ export async function loadSession(db: Db, sessionId: number, map?: CourseMap, le
     if (!text || m.role === "system") continue;
     if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
       correcting = flaggedWidgets(text);
+      continue;
+    }
+    // An opener's note is written by code, not the Learner: it starts the turn but is never drawn as a bubble.
+    if (m.role === "user" && text.startsWith(OPENER_PREFIX)) {
+      turnSeq = m.seq;
       continue;
     }
     const flagged = correcting ?? undefined;

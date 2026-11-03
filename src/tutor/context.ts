@@ -8,15 +8,37 @@ import { TEACHING_STEPS, type Place } from "@/course/navigator";
 import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
 import { PROFILE_BLOCK_HEADING } from "@/learner/profile";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
+import { OPENER_PREFIX } from "./turn-status";
 
 /** Turns at explore with no attempt before the context reminds the Tutor to put the question. */
 export const IDLE_TURNS_BEFORE_REMINDER = 2;
 
 const AFTER_REVEAL =TEACHING_STEPS.indexOf("reveal");
 
-/** Prefixed to the context in the first turn after the Learner chose a Topic on the Course Map page or went back to the default path. */
-export const JUMP_NOTE =
-  "The Learner chose this Topic on the Course Map (or went back to the default path), so this is where they are now. Pick up at the Teaching Step below and teach it afresh; nothing of it has been taught in this conversation yet.";
+/**
+ * The note code writes for an opener (no Learner message comes with it): teach the Learner's saved step.
+ * The Story in a Topic not yet started; otherwise the step reached, which nothing in this Session has
+ * taught yet; at an open quiz, point the Learner to the Check tab, where it already shows.
+ */
+export function openerNote(place: Place | null, { quizOpen }: { quizOpen: boolean }): string {
+  const lead = `${OPENER_PREFIX} the Learner has just opened this Topic, and this turn was started by the page; the Learner has written nothing yet.`;
+  if (!place) return `${OPENER_PREFIX} the Learner has passed every Topic on the Course Map and opened the Study Workspace; they have written nothing yet. Greet them in a sentence or two and invite their questions.`;
+  if (place.status === "not_started") return `${lead} They have not started it. Teach the Story step now: open the Topic with its Case's story.`;
+  const at = place.check ? `Check ${place.topic.checks.indexOf(place.check) + 1} of ${place.topic.checks.length}` : null;
+  const resumed = `${lead} They had already started it and are at the ${place.step.replace("_", " ")} step${at ? `, for ${at}` : ""}. Nothing of this step has been taught in this Session yet.`;
+  if (quizOpen && at) {
+    return `${resumed} The quiz for ${at} is open on the right, in the Check tab. Point the Learner to it in a sentence or two, and say you will help with its questions after they submit. Do not teach or hint at its questions.`;
+  }
+  return `${resumed} Teach this step afresh.`;
+}
+
+/**
+ * What the Tutor is told when a move passed the Topic (its Principle, or its last Due Check): stop. It has
+ * no context for another Topic, and code starts none; the Learner chooses where to go next.
+ */
+export function topicCompleteContext(title: string): string {
+  return `Topic complete: stop here. Code has recorded ${title} as passed. Close the Topic in a sentence or two. Do not start, teach or preview another Topic: the Learner chooses where to go next.`;
+}
 
 /**
  * The line that tells the Tutor which Widgets are open in the panel, by title, and how to update one in place:

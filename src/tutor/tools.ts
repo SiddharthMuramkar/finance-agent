@@ -8,11 +8,11 @@ import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
 import { OWNER_LEARNER_ID, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
+import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
 import { quizUnavailable } from "@/learner/quiz";
 import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library/library";
-import { stepContext } from "./context";
+import { stepContext, topicCompleteContext } from "./context";
 import { pasteSummary } from "./pasted";
 import type { ToolDefinition } from "./instructions";
 import { CONTINUE_TEXT } from "./turn-status";
@@ -111,6 +111,18 @@ export function toolCode(
     return Boolean(began || thisTurn?.freshStep);
   }
 
+  /**
+   * The context after a step finished or a Check was recorded. When the move passed the Topic the Learner
+   * was in (its Principle, or its last Due Check), the Tutor is told to stop there, with no context for
+   * another Topic, and nothing more is started: the Learner chooses where to go. Otherwise, the new place's.
+   */
+  async function contextAfterMove(tx: Db, before: Place | null): Promise<string> {
+    const progress = await loadProgress(tx, learnerId);
+    const after = navigate(map, progress);
+    if (before && progress.topics[before.topic.id]?.status === "passed" && after?.topic.id !== before.topic.id) return topicCompleteContext(before.topic.title);
+    return navigatorContext(tx, map, after, turnId, learnerId);
+  }
+
   async function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
     if (!toolCallId) throw new Error("Missing tool call ID.");
     let outcome: Outcome;
@@ -177,13 +189,13 @@ export function toolCode(
           const at = navigate(map, await loadProgress(tx, learnerId));
           if (at?.step === "check" && at.check?.id === check_id && (await stepBeganThisTurn(tx))) return { ok: false, text: VERDICT_PACING_REJECTION };
           const passed = verdict === "pass";
+          const before = navigate(map, await loadProgress(tx, learnerId));
           const saved = await saveCheckResult(tx, map, { checkId: check_id, passed, evidence: reasons, model, toolCallId: context!.toolUse.id }, now(), learnerId);
           if (!saved.ok) return { ok: false, text: saved.reason };
-          const place = await ensureTopicStarted(tx, map, now(), learnerId);
           const recorded = passed
             ? `Recorded by code: pass for Check ${check_id}.`
             : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
-          return { ok: true, began: passed, text: `${recorded}\n\n${await navigatorContext(tx, map, place, turnId, learnerId)}` };
+          return { ok: true, began: passed, text: `${recorded}\n\n${await contextAfterMove(tx, before)}` };
         }),
     },
     record_insight_attempt: {
@@ -232,9 +244,10 @@ export function toolCode(
       run: ({ step }, context) =>
         once(context?.toolUse.id, "finish_teaching_step", async (tx) => {
           if (await stepBeganThisTurn(tx)) return { ok: false, text: PACING_REJECTION };
+          const before = navigate(map, await loadProgress(tx, learnerId));
           const move = await saveFinishedStep(tx, map, step, now(), learnerId);
           if (!move.ok) return { ok: false, text: move.reason };
-          return { ok: true, began: true, text: await navigatorContext(tx, map, await ensureTopicStarted(tx, map, now(), learnerId), turnId, learnerId) };
+          return { ok: true, began: true, text: await contextAfterMove(tx, before) };
         }),
     },
   };

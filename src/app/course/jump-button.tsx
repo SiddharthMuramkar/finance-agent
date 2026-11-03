@@ -9,8 +9,9 @@ function openWorkspace() {
   window.location.assign("/study");
 }
 
-async function post(topicId: string | null): Promise<string | null> {
-  const res = await fetch("/api/jump", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ topicId }) });
+/** Chooses a Topic (null: back to the default path), or what comes next. Null when it worked, else what went wrong. */
+async function post(choice: { topicId: string | null } | { next: true }): Promise<string | null> {
+  const res = await fetch("/api/jump", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(choice) });
   if (res.ok) return null;
   const { error } = (await res.json().catch(() => ({ error: null }))) as { error: string | null };
   return error ?? `Could not change Topic (${res.status}).`;
@@ -52,7 +53,7 @@ export function JumpButton({ topicId, title, unmet }: { topicId: string; title: 
     wasAsking.current = asking;
   }, [asking]);
   const go = async () => {
-    const failed = await post(topicId);
+    const failed = await post({ topicId });
     if (failed) setError(failed);
     else openWorkspace();
   };
@@ -78,7 +79,7 @@ export function BackToPathButton() {
       <SecondaryButton
         data-back-to-path
         onClick={async () => {
-          const failed = await post(null);
+          const failed = await post({ topicId: null });
           if (failed) setError(failed);
           else openWorkspace();
         }}
@@ -86,6 +87,29 @@ export function BackToPathButton() {
       >
         Back to the default path
       </SecondaryButton>
+      {error && <p className="mt-1 text-xs text-[var(--danger)]">{error}</p>}
+    </>
+  );
+}
+
+/**
+ * What comes next: opens the Learner's current Topic (the Course Navigator's place), whose Session shows at
+ * once. After a Topic passed in a turn, this is how the Learner leaves it. Refused while a turn is running.
+ */
+export function WhatComesNextButton({ label }: { label: string }) {
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <>
+      <PrimaryButton
+        data-what-comes-next
+        onClick={async () => {
+          const failed = await post({ next: true });
+          if (failed) setError(failed);
+          else openWorkspace();
+        }}
+      >
+        {label} →
+      </PrimaryButton>
       {error && <p className="mt-1 text-xs text-[var(--danger)]">{error}</p>}
     </>
   );

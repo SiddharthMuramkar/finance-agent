@@ -3,28 +3,31 @@ import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { and, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { OWNER_LEARNER_ID, sessions, toolCalls, turns } from "@/db/schema";
+import { OWNER_LEARNER_ID, sessions, toolCalls } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
+import { ensureTopicStarted, learnerSummary, loadProgress } from "@/learner/memory";
 import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
 import { newReplyWidgetProblems, openWidgetsIn, WIDGET_CHECK_PREFIX, type OpenWidget } from "@/widgets/check";
-import { endedAtCheckWithoutVerdict, JUMP_NOTE, lastContextSent, noVerdictContext, openWidgetsNote, standsAlreadySent, standsBlock, stepContext } from "./context";
+import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
 import {
+  currentTopicId,
   isCompaction,
+  liveSession,
   openLog,
   readSettings,
   refreezeIfChanged,
+  saveShownSession,
   sessionForTurn,
   showsCurrentTopic,
-  shownNow,
+  shownInWorkspace,
   STALE_TAB_MESSAGE,
   type Effort,
   type Log,
@@ -34,7 +37,7 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, CONTINUE_TEXT, latestTurn, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, CONTINUE_TEXT, latestTurn, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
@@ -139,8 +142,11 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
   };
 }
 
-/** A new message, the Continue button, or a resume of the last turn after a cut-off or failure (Retry). */
-export type TurnInput = string | { continue: true } | { resume: true } | PastedInput;
+/**
+ * A new message, the Continue button, the opener (the page starts it when the Session it shows has no
+ * messages; code writes its note), or a resume of the last turn after a cut-off or failure (Retry).
+ */
+export type TurnInput = string | { continue: true } | { opener: true } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -202,7 +208,17 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       return;
     }
   }
-  const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), learnerTextOf(input), learnerId), alreadyFinished: false };
+  let started = "";
+  if (typeof input === "object" && "opener" in input) {
+    const note = await openerFor(db, deps.map ?? loadCourseMap(), learnerId);
+    // Another tab already opened this Topic: a reload shows its Session.
+    if (note === null) {
+      yield { type: "stale", message: STALE_TAB_MESSAGE };
+      return;
+    }
+    started = note;
+  } else if (!resuming) started = learnerTextOf(input);
+  const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) {
     yield { type: "busy", message: BUSY_MESSAGE };
     return;
@@ -250,8 +266,20 @@ async function* finishedTurnReplay(db: Db, map: CourseMap, turn: Turn): AsyncGen
     stopReason: turn.stopReason,
     usage: usage ?? sumSteps(session.model, [], 0),
     ref: { sessionId: turn.sessionId, turnSeq: turn.turnSeq },
-    shown: await shownNow(db, map, turn.learnerId),
+    shown: await shownInWorkspace(db, map, turn.learnerId),
   };
+}
+
+/**
+ * The opener's note for the Learner's current Topic, written by code from their saved step, or null when
+ * that Topic's Session already has messages (another tab opened it first).
+ */
+async function openerFor(db: Db, map: CourseMap, learnerId: number): Promise<string | null> {
+  const live = await liveSession(db, learnerId, await currentTopicId(db, map, learnerId));
+  if (live && (await openLog(db, live.id, () => new Date())).rows.length) return null;
+  const place = navigate(map, await loadProgress(db, learnerId));
+  const quizOpen = place?.step === "check" && place.check?.kind === "quiz" && !(await quizUnavailable(db, map, place.check));
+  return openerNote(place, { quizOpen });
 }
 
 async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, deadline: number): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
@@ -282,17 +310,18 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   } else {
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
     // that turn is run again from the message saved on it.
-    const learnerText = typeof input === "object" && "resume" in input ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
+    // An opener sends the note code wrote for it, which its turn saved.
+    const learnerText = typeof input === "object" && ("resume" in input || "opener" in input) ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
     // Saved before the Topic starts, so a retry after a failure in between still knows.
     if (navigate(map, await loadProgress(db, learnerId))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
-    // A Topic entered by a jump (or by going back to the default path) has not been taught in this conversation either.
-    // The mark is taken once and kept on the turn, so a retry still knows.
-    if (await takeJumpEntry(db, learnerId)) await updateTurn(db, turn.id, { freshStep: true, enteredByJump: true });
-    const jumped = (await db.select({ j: turns.enteredByJump }).from(turns).where(eq(turns.id, turn.id)))[0]?.j ?? false;
+    // An opener teaches the saved step afresh: nothing of it has been taught in this Session yet.
+    if (turnKind(turn) === "opener") await updateTurn(db, turn.id, { freshStep: true });
     const place = await ensureTopicStarted(db, map, now(), learnerId);
     // The live Session for the current Topic (made by its first turn), refrozen if a deploy changed the instructions.
     session = await refreezeIfChanged(db, await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));
+    // The Study Workspace shows the Session the Learner's turns go to, and keeps showing it after a pass until they choose.
+    await saveShownSession(db, learnerId, session.id);
     log = await openLog(db, session.id, now);
     // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
     const paste = await pasteForTurn(db, turn.id, session.id, learnerId);
@@ -304,7 +333,6 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(log.messages, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
         : plainContext;
-    const navigatorContext = jumped ? `${JUMP_NOTE}\n${stepped}` : stepped;
     const learnerBlocks = [{ type: "text" as const, text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
@@ -314,7 +342,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
     // The Widgets open in the panel, by title, so the Tutor can update one in place rather than add a near-copy.
     const widgetsNote = openWidgetsNote(openWidgetsBefore(log, turnSeq).map((w) => w.title));
-    const context = widgetsNote ? `${widgetsNote}\n${navigatorContext}` : navigatorContext;
+    const context = widgetsNote ? `${widgetsNote}\n${stepped}` : stepped;
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = await pendingQuizNote(db, map, learnerId, session.topicId);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
@@ -479,7 +507,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
   }
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
-  return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq }, shown: await shownNow(db, map, learnerId) };
+  return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq }, shown: await shownInWorkspace(db, map, learnerId) };
 }
 
 /** The Widgets open in the panel before the turn at `turnSeq`: those its Session's earlier replies drew. */
@@ -488,7 +516,7 @@ function openWidgetsBefore(log: Log, turnSeq: number): OpenWidget[] {
 }
 
 /** What the Learner sent, as saved on the turn: their message, or "Continue.". */
-function learnerTextOf(input: Exclude<TurnInput, { resume: true }>): string {
+function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true }>): string {
   if (typeof input === "string") return input;
   return "paste" in input ? input.message : CONTINUE_TEXT;
 }
