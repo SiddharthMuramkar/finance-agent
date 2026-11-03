@@ -498,7 +498,8 @@ caller must load and save progress around every decision.
 ### Step numbering, Next and What comes next (spec #119)
 
 **What it does.** Three more pure answers, so dividers, the progress strip, the Next chip and
-Home's button all come from one tested place. Nothing on screen calls them yet; later tickets do.
+Home's button all come from one tested place. The Next chip and the Learner's Next use `nextOffer`
+and `takeNext` (see "The Learner's Next and code-written turns"); the strip and Home come later.
 
 - `stepSequence` lists a Topic's Teaching Steps for this Learner's record and numbers them
   "Step k of N · <step>" with plain-word names (Story, Concept, Explore, Your turn, Check,
@@ -540,7 +541,7 @@ noticed the Learner getting wrong.
 
 **Scenario.** The Learner reaches the reveal, closes the laptop and comes back the next day.
 The workspace shows "Present value (foundation Stage). Teaching Step: reveal. The reveal has
-been shown." with a Continue button, read straight from SQL.
+been shown." with the Next chip under the last reply, read straight from SQL.
 
 **Trade-off.** Hand-written tables and a summary in code instead of a memory framework: less to
 learn and nothing hidden, but each new kind of memory is new code.
@@ -555,14 +556,14 @@ a tool, `finish_teaching_step`; when it calls it, code asks the Navigator, saves
 is legal and replies with the next step's material, or replies with an error if it isn't.
 
 **Sessions.** Opening the workspace makes no model call: the page reads the summary and the
-current Topic's Session from SQL and shows a Continue button. Each Topic has its own Session (see
+current Topic's Session from SQL and shows the Next chip under its last reply. Each Topic has its own Session (see
 "One Session per Topic"), which a break never ends. A Session opens with the Where the Learner
 stands block and the context as the first block of its first message. (Claude's API rejects a
 "system" message in first place, which a live run showed; later context messages can be "system"
 messages.) Older Sessions stay readable at `/sessions`.
 
 **Scenario.** The Learner returns after a weekend. The page shows the summary and the Topic's
-thread at no cost. They click Continue; the same Session carries on, a new Where the Learner stands
+thread at no cost. They press Next or type; the same Session carries on, a new Where the Learner stands
 block tells the Tutor anything that changed, and teaching picks up at the same Teaching Step.
 
 **Trade-off.** Context goes in as appended messages rather than edits to the instructions, which
@@ -1095,7 +1096,8 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
 get "$1,210 in two years at 10%" wrong, picking $1,100, and get two right. That is two of three,
 so it passes at once, and the screen explains the miss ("dividing by 1.10 only once discounts for
 one year"). They press Continue and the Tutor opens with a short, informed word about the
-one-year versus two-year slip, then moves on. Had they got only one right, they would have stayed
+one-year versus two-year slip, then moves on. (They now press the Next chip, "Next: Concept →",
+which teaches Check 2's Concept, a step reached by code and not yet begun.) Had they got only one right, they would have stayed
 at the Check, seen a different set of three questions, and the Tutor would have been told about
 the miss on its next turn.
 
@@ -1340,7 +1342,11 @@ the end of one step and the start of the next.
 
 The fresh-step flag is also set by the opener: the turn the page starts when a Topic's Session has
 no messages cannot finish the step it teaches, because nothing of that step has been taught in this
-Session (see "Choosing and opening a Topic").
+Session (see "Choosing and opening a Topic"). The Learner's Next sets it too: the turn it runs teaches
+the step code just moved them on to, so in that reply the Tutor can't finish the step, record a Check
+verdict or record an Insight attempt (see "The Learner's Next and code-written turns"). The first turn
+after a Due Check reopens a passed Topic's Session is not yet marked fresh; the ticket that reopens it
+(#136) adds that.
 
 ## Simulated Learner (`scripts/simulated-learner.mjs`)
 
@@ -1452,8 +1458,8 @@ design tokens; the first two sit under the app header, Login (signed out) has no
   turn (the pacing rule), and a second opener for a Session that already has messages (another tab got
   there first) gets the reload message.
 - **Turn kinds.** A turn records its kind (`turnKind`): a code-written turn saves its note, with its
-  fixed prefix, as the turn's input, so "opener" is read off the turn row and a Retry sends the same
-  note again. Every other turn is a "message".
+  fixed prefix, as the turn's input, so "opener" (and, since the Learner's Next, "next") is read off
+  the turn row and a Retry sends the same note again. Every other turn is a "message".
 - **A Topic passed in a turn** (its Principle finished, or its last Due Check passed): the tool result
   tells the Tutor "Topic complete: stop here" and gives no context for another Topic, and the next
   Topic is not started. The Learner's current Topic moves on, but the shown Session stays: the
@@ -1535,6 +1541,71 @@ from it; a reply that moves on before writing anything has the divider before it
 and a finish that passes the Topic store none. In the workspace render: the divider is a small centred
 separator between the parts, with one Save to notes; Widget chips stay in each part; an unknown kind
 is skipped. The old Session page draws the divider between the parts too.
+
+## The Learner's Next and code-written turns (`src/tutor/next.ts`, `turn.ts`, `turn-status.ts`, `transcript.ts`, `NextChip` in `workspace-parts.tsx`, `left-column.tsx`, `turn-stream.ts`, spec #119, ticket #133)
+
+**What it does.**
+- **The Next chip.** Under the latest Tutor reply or card (a step divider ending the thread counts), the
+  Learner sees one chip from the Course Navigator's offer (`nextOfferNow`, which the page reads on every
+  render): "Next: <step> →", "Complete this Topic →" at the Principle, or "Just tell me →" at an Explore
+  whose Insight is not yet found or told. There is no Next while a quiz or conversation Check is open,
+  nor after a miss (the Check stays open). The chip is also hidden under the Learner's own message,
+  while a turn runs, until the page has re-read the Learner's place after one (`router.refresh` runs in
+  a transition, and its pending flag hides the chip), while Retry is offered, and on a passed Topic kept
+  on screen. The status card's Continue button is gone; the cut-off reply's Continue stays until the
+  next ticket replaces it with Finish this reply.
+- **Pressing Next** sends `{ next: <step> }` (or `"complete"`) and no Learner message. The Tutor Turn
+  takes the Learner's lock first, then in one transaction (`takeLearnersNext`): checks the press is the
+  Next on offer (`takeNext`: never past a Check without a saved pass, never past an unsettled Explore,
+  and it must name the step on offer), advances with `saveFinishedStep`, stores the step divider after
+  the Session's latest message, and saves the turn's note, its Session and the fresh-step flag on the
+  turn row. A refused Next deletes its just-made turn row, stores and sends nothing, and the route
+  answers 409 with the reason, which the page shows in place of the reply. A taken one streams the
+  divider first, then runs the turn from the note, so the reply that teaches the step follows the line.
+- **Just tell me** is not a Next: it posts "Just tell me." as the Learner's own message, and the Tutor
+  records it as asking to be told.
+- **Steps not yet begun.** A step reached outside a Tutor turn has not begun (`stepBegun`): today, the
+  step a quiz pass moved the Learner to, until a turn tells the Tutor of that pass. Its chip names that
+  step ("Next: Concept →" for Check 2's Concept), and pressing it stores its divider and teaches it
+  without moving on. Once taught, the chip names the step after it again.
+- **Complete this Topic** passes the Topic (the Principle, or the end of a Due Check run), stores no
+  divider (the Topic complete card will mark it), and runs the turn in that Topic's own Session, which
+  the turn row pins: the note tells the Tutor "Topic complete: stop here", no Course Navigator context
+  for another Topic is sent and the next Topic is not started. The page then shows the passed Topic with
+  What comes next.
+- **Code-written turns.** The opener's note starts "Opener by code:" and Next's "Next by code:"
+  (`CODE_WRITTEN_PREFIXES`). Each is saved as the turn's input and stored as the turn's user message,
+  so the model sees it, but the thread never draws it as a bubble, and a reply after it always starts
+  its own line rather than running on from the reply before. The turn's kind is read off the prefix
+  (`turnKind`: message, opener or next), and Retry re-runs that kind: a failed Next re-sends its note
+  without moving the Learner on a second time, because the move was saved once when the turn began.
+- **Fresh pacing.** Next turns and openers are fresh: in that reply the Tutor teaches the step and
+  can't finish it, record a Check verdict or record an Insight attempt (the pacing rule's rejections).
+
+**Scenario.** In Present value the Tutor finishes the Story. Under its reply the Learner sees "Next:
+Concept →" and presses it. No bubble appears; a thin line reads "Step 2 of 10 · Concept" and the Tutor
+teaches the Concept under it, stopping with a question. Later they pass the quiz for Check 1 in the
+Check tab; the chip reads "Next: Concept →" again, now for Check 2's Concept, which code reached but the
+Tutor has not taught, so pressing it draws "Step 5 of 10 · Concept" without skipping it. At the Explore
+the chip reads "Just tell me →" until they find the Insight; at the Principle it reads "Complete this
+Topic →", and pressing it passes the Topic and the Tutor closes it in two sentences.
+
+**Trade-off.** Whether a step has begun is worked out from what is stored (an unreported quiz pass)
+rather than its own column, since this ticket adds no migration: enough for the one way a step is
+reached outside a turn today, and the Due Check reopening adds its own. The move is saved before the
+model is called, so a Next whose turn then fails leaves the Learner on the new step with Retry on offer,
+rather than undoing the move. A refused Next costs a lock round-trip but can never race a second tab.
+
+**How it is tested.** At the Tutor Turn seam (`next.test.ts`, scripted client on in-memory Postgres):
+Next advances, streams and stores the divider, stores no Learner message and sends the note; it is
+refused (nothing stored, sent or locked) at an open Check, after a miss, at an unsettled Explore and
+when it names another step; after a quiz pass it teaches the step not yet begun without moving on; its
+turn is fresh for finishing, verdicts and Insight attempts; a failed Next's Retry re-sends the note
+without a second move; Complete this Topic passes the Topic and closes it, on Retry too, in the same
+Session. In the workspace render (`workspace.test.tsx`, `message-box.test.tsx`): one chip under the
+latest reply or divider only, none under a Learner message or in an empty thread, none while a Check is
+open, during a turn, while the page refreshes or with Retry on offer, Just tell me at Explore, Complete
+this Topic at Principle, and no Continue on the status card.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 
@@ -1936,7 +2007,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 ## Workspace left column (`src/app/left-column.tsx`, `message-box.tsx`, `workspace-parts.tsx`, `thread.tsx`, issue #44)
 
-**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic", the plain summary, a navy Continue that starts a turn), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the conversation in its own scroll area, the quiz note while a quiz is open, and the composer pinned at the bottom with a 24px fade above it. The status card and the review sit in one box capped at two fifths of the column that scrolls inside itself. The open quiz is no longer folded here: it is the right panel's Check tab (see "The fixed two-column layout and the Check tab"). The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume and the Widget correction turn live in the turn stream (see "How the Study Workspace is split"); the left column only shows its state. The look is in small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`, `MessageBox`) that tests render on their own.
+**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic" and the plain summary; its Continue button is gone, see "The Learner's Next and code-written turns"), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the conversation in its own scroll area with the Next chip under its latest reply, the quiz note while a quiz is open, and the composer pinned at the bottom with a 24px fade above it. The status card and the review sit in one box capped at two fifths of the column that scrolls inside itself. The open quiz is no longer folded here: it is the right panel's Check tab (see "The fixed two-column layout and the Check tab"). The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume and the Widget correction turn live in the turn stream (see "How the Study Workspace is split"); the left column only shows its state. The look is in small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`, `MessageBox`) that tests render on their own.
 
 **Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
