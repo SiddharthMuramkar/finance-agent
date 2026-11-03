@@ -98,7 +98,8 @@ body {
   }
 }
 
-/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight. */
+/* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight.
+   Bold key terms and step headings take the button navy (--brand, lighter in dark mode); paragraphs stay --ink. */
 .md {
   @apply leading-relaxed break-words;
 }
@@ -106,17 +107,17 @@ body {
   @apply mt-3;
 }
 .md h1 {
-  @apply text-lg font-semibold;
+  @apply text-lg font-semibold text-[var(--brand)];
 }
 .md h2 {
-  @apply text-base font-semibold;
+  @apply text-base font-semibold text-[var(--brand)];
 }
 .md h3,
 .md h4 {
-  @apply font-semibold;
+  @apply font-semibold text-[var(--brand)];
 }
 .md strong {
-  @apply font-semibold;
+  @apply font-semibold text-[var(--brand)];
 }
 .md ul {
   @apply list-disc pl-6;
