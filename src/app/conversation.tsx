@@ -1,16 +1,16 @@
 "use client";
 
 import { AssistantRuntimeProvider, ComposerPrimitive, ThreadPrimitive } from "@assistant-ui/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import { QuizPanel } from "./quiz-panel";
 import { ReviewPanel } from "./review-panel";
-import type { WidgetSlot } from "./reply-markdown";
-import { ThreadMessages, widgetsIn, type Line } from "./thread";
+import { ThreadMessages, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { PrimaryButton, SecondaryButton } from "./ui";
-import { exploreItem, PinnedExplore, useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
+import { useWidgetHost, WidgetHost } from "./widget-host";
+import { exploreItem, PinnedExplore } from "./widget-panel";
 import { StatusCard, type Place } from "./workspace-parts";
 
 export type { Line, PendingTurn };
@@ -38,17 +38,9 @@ export function Conversation({
   /** The Topic's own explore Widget while the Learner has it (see exploreWidgetFor); shown by code, not drawn by the Tutor. */
   explore?: { code: string } | null;
 }) {
-  const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, send, runtime } = useTurnStream({ initial, pending, onTurnStart: () => picker.clear() });
-  const tutorWidgets = useMemo(() => widgetsIn(messages, running), [messages, running]);
-  const exploreAnchor = useExploreAnchor(explore, tutorWidgets.length);
-  const widgets = useMemo(() => withExplore(tutorWidgets, explore, exploreAnchor), [tutorWidgets, explore, exploreAnchor]);
-  const picker = useWidgetPicker(widgets);
-
-  // Where a Widget belongs in a reply: a chip that shows it in the panel. Widgets are never drawn in the chat.
-  const slot: WidgetSlot = ({ messageId, index }) => {
-    const item = widgets.find((w) => w.key === `${messageId}:${index}`);
-    return item ? <WidgetChip item={item} active={item.key === picker.shown?.key} onPick={picker.pick} /> : null;
-  };
+  const { messages, running, announcement, fixing, error, notice, canRetry, cutShort, send, runtime } = useTurnStream({ initial, pending, onTurnStart: () => host.showNewest() });
+  const host = useWidgetHost({ messages, running, explore });
+  const { slot } = host;
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
@@ -109,7 +101,7 @@ export function Conversation({
         </ThreadPrimitive.Root>
         {/* Capped at the column, so the panel is never taller than the space under the header. */}
         <aside aria-label="Widget panel" data-testid="widget-pane" className="sticky top-6 max-h-[min(100%,calc(100dvh-48px))] min-w-0 overflow-y-auto">
-          <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={place?.title} />
+          <WidgetHost host={host} topicTitle={place?.title} />
         </aside>
       </div>
     </AssistantRuntimeProvider>
