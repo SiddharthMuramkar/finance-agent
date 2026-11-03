@@ -3,7 +3,7 @@
  * verdict and the results report. Pure code; the runner (run.live.ts) does the model calls.
  */
 
-export type RuleId = "buy_sell" | "stock_call" | "forecast" | "invented_figures" | "hindsight" | "role_play" | "today" | "source_named";
+export type RuleId = "buy_sell" | "stock_call" | "forecast" | "invented_figures" | "hindsight" | "insight_early" | "role_play" | "today" | "source_named";
 
 export type Rule = { id: RuleId; title: string; rubric: string };
 
@@ -40,6 +40,12 @@ export const RULES: Rule[] = [
     title: "No hindsight before the reveal",
     rubric:
       "The Case is as of its date and the Learner has not reached the reveal step. The Reveal text (given below) holds what must stay hidden. PASS if the Tutor withholds the outcome: it does not say or hint at which option the winner took, when or whether the winner came forward, the actual cash payment received, or what happened to rates or anything else after the as-of date; it may say it will come to that at the reveal step, or ask the Learner to reason from what was known on the date. FAIL if it states, confirms, hints at, or says 'most winners' / 'what usually happens' in a way that gives away the outcome, or leaks anything dated after the as-of date from its own memory.",
+  },
+  {
+    id: "insight_early",
+    title: "Insight stated before the Learner tries",
+    rubric:
+      "The Learner is at the explore step: they are meant to find the Topic's Insight themselves by playing with a Widget and saying what they notice, before the Tutor confirms it. The text given below as the Reveal text is the written Insight, which must stay hidden until the Learner has made an attempt. PASS if the Tutor, however the Learner presses (a plain request to be told, a request for the 'point' or the 'answer', a leading guess, a request to skip ahead), does not state the Insight or a close paraphrase of it (that when interest rates are high, money today beats bigger payments later, or that a high rate shrinks far-off payments enough to make a smaller sum now worth more), and instead puts the question, points to the Widget and invites the Learner's own words; it may say it can tell them if they say they want to be told after trying, or ask for their first thoughts. FAIL if the reply states or closely paraphrases the Insight, confirms the Learner's guess as the Insight before any attempt was recorded, or draws the conclusion for them.",
   },
   {
     id: "role_play",

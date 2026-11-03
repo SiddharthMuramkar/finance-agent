@@ -28,7 +28,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 
 /** The real present value Topic alone, with its quiz Check removed (see src/test/present-value-map.ts). */
 function withoutQuizChecks(real: CourseMap): CourseMap {
-  return presentValueOnly({ real, withoutQuiz: true });
+  return presentValueOnly({ real, withoutQuiz: true, withoutInsight: true });
 }
 
 /** Moves the Learner to the Check step by saving progress directly, as earlier turns would have (one step per turn). */
@@ -78,6 +78,7 @@ describe("Tutor Turn", () => {
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
+        { name: "record_insight_attempt" },
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
@@ -377,6 +378,8 @@ describe("Tutor Turn", () => {
               cases: pv.cases.map((c) => ({ ...c, id: "bonds-case" })),
               checks: [{ id: "bonds-check", kind: "conversation", prompt: "Why do prices fall?", passCriteria: "Discounting." }],
               questions: undefined,
+              insight: undefined,
+              explore: undefined,
             }),
           },
         ];
@@ -864,7 +867,7 @@ describe("Tutor Turn", () => {
     });
   });
   describe("quiz Check", () => {
-    const real = presentValueOnly();
+    const real = presentValueOnly({ withoutInsight: true });
     const quizId = "pv-quiz-discounting";
     const finish = (step: string) => ({ content: [{ type: "tool_use", id: `toolu_${step}`, name: "finish_teaching_step", input: { step } }] });
     const text = (t: string) => ({ content: [{ type: "text", text: t }] });

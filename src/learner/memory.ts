@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Jump, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
-import { checkResults, learnerState, misconceptions, topicProgress } from "@/db/schema";
+import { checkResults, insightAttempts, learnerState, misconceptions, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 /**
@@ -13,6 +13,7 @@ export async function loadProgress(db: Db): Promise<Progress> {
   const [state] = await db.select().from(learnerState).where(eq(learnerState.id, 1));
   const topics = await db.select().from(topicProgress);
   const passes = await db.select().from(checkResults).where(eq(checkResults.passed, true));
+  const settled = await db.select().from(insightAttempts).where(inArray(insightAttempts.released, ["found", "told"])).orderBy(asc(insightAttempts.id));
   return {
     currentTopicId: state?.currentTopicId ?? null,
     topics: Object.fromEntries(
@@ -23,6 +24,7 @@ export async function loadProgress(db: Db): Promise<Progress> {
           revealShown: t.revealShown,
           status: t.status,
           passedChecks: passes.filter((p) => p.topicId === t.topicId).map((p) => p.checkId),
+          insight: settled.find((a) => a.topicId === t.topicId)?.released as "found" | "told" | undefined,
         },
       ]),
     ),
