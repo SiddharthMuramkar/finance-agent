@@ -361,9 +361,11 @@ OpenUI's free, open-source renderer from two sets of parts:
 The instructions that teach the Tutor this language are generated once from those parts, with our
 own notes and worked examples (`npm run widgets:freeze`), checked in, and frozen into each Session
 with the rest of the Tutor's instructions, so they never change under a running conversation.
-OpenUI's stock text for widgets written inside a reply contradicted our rules in three places (send
-only the changed lines; answer a question with text only); code cuts those lines out, and the freeze
-fails loudly if OpenUI ever rewords them.
+OpenUI's stock instructions contradict our rules in several places: send only the changed lines,
+answer a question with text only, write data with Mutations, forms and refresh buttons, type a tool's
+data into the widget by hand, and use realistic mock data when no tool fits. Code cuts or rewrites
+those passages (`withoutContradictions` in `library.tsx`), and the freeze fails loudly if OpenUI ever
+rewords one.
 
 **No Thesys key needed.** OpenUI's makers, Thesys, also sell a hosted model, their Gateway, that
 writes the interface itself. `THESYS_API_KEY` is only for that service, and this app does not use
@@ -454,10 +456,10 @@ same colours as fixed hex values for each mode, copied from `globals.css`.
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
 Formula Card input or Guided Task bound to no slider (looked for anywhere in the Widget, not only in
 its top row), and for the tools: a tool name that does not exist, any `Mutation()` (widgets only
-read), written-out arguments that fail the tool's own checks, a calculator we do not have, or a
-malformed Case Data reference. Arguments that take a slider's value are checked for their written-out
-parts only. If a widget fails, code sends the Tutor one correction request listing the problems, and
-the corrected widget replaces the broken one on screen. History keeps both, unchanged. If the
+read), written-out arguments that fail the tool's own checks, a calculator we do not have or an input
+it does not take, or a malformed Case Data reference. Arguments that take a slider's value are
+checked for their written-out parts only. If a widget fails, code sends the Tutor one correction
+request listing the problems, and the corrected widget replaces the broken one on screen. History keeps both, unchanged. If the
 correction is broken too, the browser shows a plain "This widget could not be drawn" note and the
 lesson carries on. A widget that crashes while drawing is caught the same way. A tool that cannot run
 (a withheld dataset, an input a calculator does not take) leaves its chart empty, with a muted line
@@ -504,19 +506,23 @@ numbers with `Query("tool", {...}, {rows: []})`. This is OpenUI's own pattern fo
 the `{rows: []}` is what the chart draws until the answer arrives.
 - `case_data` fetches one Case Data dataset by its reference, `caseId/datasetId`, from
   `/api/case-data/<case>` under the as-of rule, with its label, unit, source and as-of date. Several
-  Queries on one Case make one request.
+  Queries on one Case in a widget make one request.
 - `calculate` runs one of our tested calculators and gives one row per result line.
 - `calculate_range` runs a calculator across a range of one of its inputs, at most 200 points, and
-  gives one row per point with a text label for the chart's axis: the points of a chart.
+  gives one row per point with a text label for the chart's axis ("8.5%" for a rate, "10 y" for a
+  number of years): the points of a chart.
 - `annuity_schedule` gives a growing annuity's yearly payments and what each is worth today, by the
   same tested formula as `AnnuityChart`.
 
 A Slider bound to a `$variable` that a Query's arguments use makes OpenUI run that tool again when it
 moves, and the chart redraws with no model call. Every row field is a plain name, so a chart takes a
-column as `d.rows.value`, and its category labels are text (`d.rows.label` or `d.rows.date`). A tool
-never throws: on bad arguments it gives no rows and a plain-words error that names the fix (for
-example, that `vary` must be one of the calculator's inputs), which the Widget shows as the muted
-line described above. Widgets only read; nothing they call can change anything.
+column as `d.rows.value`, and its category labels are text (`d.rows.label` or `d.rows.date`). A
+number written as text, as a Select's value always is, counts as that number. A tool never throws: on
+bad arguments it gives no rows and a plain-words error that names the fix (for example, that `vary`
+must be one of the calculator's inputs, or "emi has no input named rate. Its inputs are: principal,
+ratePercent, years."), which the Widget shows as the muted line described above. An input the
+calculator does not take is an error rather than ignored, because a slider bound to it would move
+nothing. Widgets only read; nothing they call can change anything.
 
 **Scenario.** The Learner asks for a 50 lakh home loan's EMI by loan length. The Widget holds a rate
 slider, a `calculate_range` Query of `emi` over 5 to 30 years and a `calculate` Query for the loan as
@@ -524,10 +530,12 @@ it stands, drawn as a line chart and a small table. Moving the rate from 8.5% to
 Queries again in the browser, and both redraw from the tested EMI formula.
 
 **Trade-off.** The tools are a second way to reach the calculators, beside the Tutor's own
-`calculate` tool, but both read the same registry, so they cannot disagree. A tool is only as good as
-its arguments: a wrong input name gives a quiet error line instead of a chart, which is why the
-server check reads the written-out arguments first. The tools' names and argument rules sit in one
-file with no React (`tool-specs.ts`), because the server check reads them too.
+`calculate` tool, but both read the same registry, so they cannot disagree. Because one name is
+shared, the instructions tell the Tutor that the Widget tools run only inside a widget and are not
+tools it calls itself. A tool is only as good as its arguments: a wrong input name gives a quiet error
+line instead of a chart, which is why the server check reads the written-out arguments first. The
+tools' names and argument rules sit in one file with no React (`tool-specs.ts`), because the server
+check reads them too.
 
 ## Dark and light modes (`src/app/theme-toggle.tsx`)
 
