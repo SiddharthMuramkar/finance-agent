@@ -12,6 +12,7 @@ import { learnerSummary, loadProgress } from "@/learner/memory";
 import { loadProfile, shouldOfferProfile } from "@/learner/profile";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
+import { loadWidgetStates } from "@/learner/widget-state";
 import { shownNow } from "@/tutor/session-log";
 import { loadSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
@@ -60,7 +61,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const learnerId = await currentLearnerId();
   // The current Topic's own Session (ADR 0004), or the Topic alone before its first turn: rendering makes no Session.
   const shown = await shownNow(db, map, learnerId);
-  const [summary, initial, quiz, turn, review, progress, profile] = await Promise.all([
+  const [summary, initial, quiz, turn, review, progress, profile, widgetStates] = await Promise.all([
     learnerSummary(db, map, learnerId),
     "sessionId" in shown ? loadSession(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
@@ -72,6 +73,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     reviewState(db, map, new Date(), learnerId),
     loadProgress(db, learnerId),
     loadProfile(db, learnerId),
+    // The Widgets' saved work in this Session (slider values and ticks), so a reload draws them as they were left.
+    "sessionId" in shown ? loadWidgetStates(db, shown.sessionId, learnerId) : {},
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
@@ -98,6 +101,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         explore={exploreWidgetFor(map, progress)}
         revealed={revealedCases(map, progress)}
         shown={shown}
+        widgetStates={widgetStates}
       />
     </WorkspaceShell>
   );

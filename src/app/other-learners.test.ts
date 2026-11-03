@@ -32,6 +32,7 @@ vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined })
 const notes = await import("./api/notes/route");
 const saved = await import("./api/notes/saved/route");
 const quiz = await import("./api/quiz/route");
+const widgetState = await import("./api/widget-state/route");
 const { default: SessionPage } = await import("./sessions/[id]/page");
 
 const json = (method: string, body: unknown) => new Request("https://app.example/api", { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -60,7 +61,7 @@ describe("another Learner's ids answer 404", () => {
     as.map = presentValueOnly();
   });
 
-  it("the owner's Session page, quiz attempt, note line, saved item and Session to save from", async () => {
+  it("the owner's Session page, quiz attempt, note line, saved item, Session to save from and Widget state", async () => {
     const owners = await ownersThings();
     expect(owners.lineId).toEqual(expect.any(Number));
     expect(owners.itemId).toEqual(expect.any(Number));
@@ -74,6 +75,8 @@ describe("another Learner's ids answer 404", () => {
     expect((await saved.DELETE(json("DELETE", { id: owners.itemId }))).status).toBe(404);
     expect((await saved.POST(json("POST", { kind: "reply", sessionId: owners.sessionId, turnSeq: 0 }))).status).toBe(404);
     expect((await saved.POST(json("POST", { kind: "widget", sessionId: owners.sessionId, widgetIndex: -1 }))).status).toBe(404);
+    const rates = { sessionId: owners.sessionId, widgetKey: "Rates", values: { $rate: 3 }, ticked: [] };
+    expect((await widgetState.POST(json("POST", rates))).status).toBe(404);
 
     // The owner still has every one of them, unchanged.
     as.learnerId = OWNER_LEARNER_ID;
@@ -81,5 +84,6 @@ describe("another Learner's ids answer 404", () => {
     expect((await notes.PATCH(json("PATCH", { id: owners.lineId, text: "Still mine" }))).status).toBe(200);
     expect((await saved.DELETE(json("DELETE", { id: owners.itemId }))).status).toBe(200);
     expect((await quiz.POST(json("POST", { attemptId: owners.attemptId, answers: {} }))).status).toBe(200);
+    expect((await widgetState.POST(json("POST", rates))).status).toBe(200);
   });
 });
