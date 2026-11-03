@@ -14,9 +14,10 @@ import { reviewState } from "@/learner/review";
 import { showsWelcome } from "@/learner/welcome";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
+import { comingBackItems } from "@/tutor/coming-back";
 import { loadThread } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
-import { Conversation, type PendingTurn } from "../conversation";
+import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readTheme } from "../theme-cookie";
 import { AppHeader, SignedInFrame } from "../ui";
 
@@ -66,7 +67,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [summary, initial, quiz, turn, review, progress, widgetStates] = await Promise.all([
+  const [summary, thread, quiz, turn, review, progress, widgetStates, comingBack] = await Promise.all([
     learnerSummary(db, map, learnerId),
     "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
@@ -79,7 +80,12 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     loadProgress(db, learnerId),
     // The Widgets' saved work in this Session (slider values and ticks), so a reload draws them as they were left.
     "sessionId" in shown ? loadWidgetStates(db, shown.sessionId, learnerId) : {},
+    // Coming back after a break, to a carried-over Topic, or for a Due Check: the divider is drawn at the end of the
+    // thread now, worked out by code, and stored only with the Learner's next turn, so this render adds no rows.
+    // A passed Topic on screen is read-only: nothing to pick up.
+    passedTopic ? [] : comingBackItems(db, map, learnerId, new Date()),
   ]);
+  const initial: Line[] = [...thread, ...comingBack.map((item) => ({ role: "item" as const, ...item }))];
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
   const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
