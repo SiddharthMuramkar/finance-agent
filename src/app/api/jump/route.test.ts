@@ -100,6 +100,32 @@ describe("choosing a Topic", () => {
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
   });
 
+  const openTopic = (topic: string) => {
+    const form = new FormData();
+    form.set("topic", topic);
+    return open(new Request("https://app.example/api/open", { method: "POST", body: form }));
+  };
+
+  it("a Progress row opens its Topic: an unpassed one becomes the current Topic and shows at once", async () => {
+    await setUp();
+    const res = await openTopic("bonds");
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("https://app.example/study");
+    expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
+    expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
+  });
+
+  it("a Progress row for a passed Topic shows that Topic's own Session, leaving the current Topic as it was", async () => {
+    const pv = await setUp();
+    await as.db.update(topicProgress).set({ status: "passed", step: "principle" });
+    await saveJump(as.db, as.map!, "bonds");
+    await as.db.execute(`update learner_state set shown_session_id = null`);
+    const res = await openTopic("present-value");
+    expect(res.headers.get("location")).toBe("https://app.example/study");
+    expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual(pv);
+    expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
+  });
+
   it("while a turn is running, every way of choosing answers \"turn in progress\" and changes nothing", async () => {
     const pv = await setUp();
     await startTurn(as.db, new Date(), "Still thinking.");
@@ -110,6 +136,7 @@ describe("choosing a Topic", () => {
     }
     // Resume goes to the Study Workspace, which shows the turn in progress; nothing was chosen.
     expect((await open(new Request("https://app.example/api/open", { method: "POST" }))).status).toBe(303);
+    expect((await openTopic("bonds")).status).toBe(303);
     expect((await loadProgress(as.db)).currentTopicId).toBe("present-value");
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual(pv);
   });
