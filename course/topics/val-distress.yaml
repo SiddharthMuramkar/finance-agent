@@ -66,6 +66,12 @@ principle: >
   forced to sell, not only on today's earnings. Equity is an option on what is left after debt,
   and a fall in the price can itself raise the chance of failure.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Weigh a firm's value if it survives against what its assets would fetch in a forced sale."
+  - "See why shareholders' equity behaves like an option on what is left after debt."
+  - "Spot how a falling price can itself raise the chance of failure."
+
 questions:
   - id: vd-q-going-liquidation
     prompt: >

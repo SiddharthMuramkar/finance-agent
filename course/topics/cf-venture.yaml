@@ -63,6 +63,12 @@ principle: >
   of one negotiation. Look beyond the headline to how much money went in, who got which rights,
   and what the rest of the owners kept.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a pre-money valuation from a post-money one, and work out what a new investor owns."
+  - "Follow how a new round dilutes the founders and earlier investors."
+  - "Look past a headline valuation to the money that went in and the rights each investor got."
+
 questions:
   - id: cv-q-ownership
     prompt: >

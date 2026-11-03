@@ -70,6 +70,12 @@ principle: >
   market size, share, margin, reinvestment and survival for a price to hold, and then ask whether
   you believe it.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Build the value of a young company from a story about market size, share and margin."
+  - "Allow for reinvestment and for the chance the company does not survive."
+  - "Ask what you must believe for a price to hold, and whether you believe it."
+
 questions:
   - id: vy-q-revenue-path
     prompt: >
