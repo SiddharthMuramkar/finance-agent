@@ -11,7 +11,7 @@ stands, tells Claude (with the **Case Data** the as-of rule allows), and streams
 If the reply holds a **widget**, the browser draws it, fetching any sourced data through the same
 rule and working its numbers out with our tested formulas, and the Learner plays with it at no cost. Everything is saved in the **database**, and
 the **usage** layer records what the turn cost, which the "under the hood" panel shows under
-the reply.
+the reply when the Learner has turned on Show developer details in Settings.
 
 The rule behind the whole design: **code decides what happens next, and the model teaches.**
 The Course Navigator, the saved progress, the numbers in charts and the price table are all
@@ -265,7 +265,7 @@ only, using the keys migration 0027 already set (no new migration).
 - **Topic Notes.** A note is built from this Learner's pass, settled Insight and mistakes, and shows
   only their own lines and saved items. Saving is once per Learner and place, so two Learners can
   each save the same explore Widget.
-- **The Learner Profile.** One row per Learner (its id is the Learner's id). The About you page, the
+- **The Learner Profile.** One row per Learner (its id is the Learner's id). About you on Settings, the
   first-visit card, "Not now" and the profile block in a new Session's opening message all use the
   current Learner's row.
 - **Pasted passages.** A paste is saved with the Learner who sent it, and listed and counted for that
@@ -866,16 +866,16 @@ the teal `--you` set for the Learner's assumptions, the amber `--src` set for so
 few more) defined once in `globals.css`, with a light value and a dark value. Every screen paints
 with these names instead of raw colours. `ui.tsx` holds the shared look pieces built on them: tags,
 eyebrow, pills, chips, buttons, card, callout, key/value row, the app header, the reading-page shell
-and the phone-note frame. The reading-page shell (Course Map, Progress, Past Sessions, Passage) puts
+and the phone-note frame. The reading-page shell (Course Map, Progress, Past Sessions, Notes, Settings, Passage) puts
 the header in the same wide box as the workspace, so the title and links never shift between pages,
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
 those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
-Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Dark mode ·
-Sign out. The current page's link is marked (`aria-current`), the Study Workspace included, and no
+Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Notes ·
+Settings · Dark mode · Sign out. The current page's link is marked (`aria-current`), the Study Workspace included, and no
 other link points at `/`. Sign out (`SignOutButton`) is a plain form posting to `/api/logout`, styled
-like the links; Home's signed-in top bar uses the same button. The gaps shrink below 1024px so the
-row stays on one line from 768px, with room for the Notes link (#69) between Past Sessions and the
-theme toggle. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
+like the links; Home's signed-in top bar uses the same button. The gaps shrink to 8px below 1024px so the
+row stays on one line from 768px, with room for the Notes link (#69) and the Settings link (#129)
+before the theme toggle (measured in the system font at 14px: about 720px of the 736px there is). Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
 group that moves focus to "Go ahead" (Escape or "Not now" gives focus back), the cited sentence on a
 Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
@@ -901,7 +901,9 @@ as "unpriced", never given a guessed price.
 
 Under each Tutor reply, a collapsed "Under the hood" line gives the step count, tokens, cost and
 time. Opening it shows a table, one row per step, with a total row. The same panel appears when
-reading an old Session, because it is read back from SQL.
+reading an old Session, because it is read back from SQL. It shows only when the Learner has turned
+on **Show developer details** in Settings (off for every Learner at first; see "Settings" below):
+usage is still recorded for every turn, and the switch only decides whether the line is drawn.
 
 **Scenario.** The Learner asks one plain question. The panel reads: 1 step, 9,643 tokens in, 55
 out, $0.025, 2.9 s. Nearly all of the tokens are the Tutor's frozen instructions being written to
@@ -2207,7 +2209,8 @@ the screenshot is never covered.
 loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
 one row per Learner (`learner_profile`, whose id is the Learner's; the owner's is 1) with a flag, `offer_dismissed`, that records "Not now". On
 the first visit the workspace shows a small card with Save and Not now; after either, the card never
-comes back. "About you", linked from the Progress page, edits the same four answers later. Both go
+comes back. About you, the first section of the Settings page, edits the same four answers later
+(the old `/profile` address redirects there, and Progress no longer links to it). Both go
 through `/api/profile` (and `/api/profile/dismiss`), which sit behind the passcode like every other
 route. No model call is made to save it.
 
@@ -2225,11 +2228,44 @@ dollar example. If she then asks "so should I prepay my loan?", the Tutor teache
 two choices and does not tell her which to pick. A behaviour rule, "profile turned into advice", has
 one direct and one indirect question that run with a saved profile.
 
-**The trade-off.** A Session is frozen when it starts, so a profile edit applies only from the next
-Session (the cards say so). That keeps the Session's record true to what the Tutor actually saw, and
-keeps the cached conversation prefix byte-for-byte stable, at the cost of a short wait before an edit
-shows in the examples. The profile is stored in plain text in the database and in each Session's
+**The trade-off.** An edit reaches the Tutor with the Learner's next message, as a new block added
+after what was already sent, so the forms no longer tell the Learner to wait for a new Session.
+Earlier messages stay exactly as the Tutor saw them, which keeps the Session's record true and the
+cached conversation prefix byte-for-byte stable, at the cost of a few repeated lines each time the
+profile changes. The profile is stored in plain text in the database and in each Session's
 record; it is meant for light context, not for anything private such as account numbers.
+
+## Settings: About you, Show developer details and Start over (`src/app/settings/`, `/api/settings`, `/api/start-over`, `src/auth/learners.ts`, spec #119, ticket #129)
+
+**What it does.** A Settings link, last in the menu, opens one page with three things that belong to
+the signed-in Learner. Dark mode stays in the header.
+- **About you.** The Learner Profile form, moved here from its own page. The old `/profile` address
+  redirects to Settings, and Progress no longer links to it.
+- **Show developer details.** A switch kept on the Learner's own row (`learners.show_developer_details`),
+  off for every new Learner, saved at once through `/api/settings`. Only when it is on does each Tutor
+  reply, in the Study Workspace and in old Sessions, show its "Under the hood" line. Because it lives on
+  the Learner, not in the browser, it follows the Learner to every device.
+- **Start over.** A button that first asks "Start over as a new learner?". Confirming posts a plain form
+  to `/api/start-over`, which, in one database transaction, archives the Learner and makes a fresh,
+  empty Learner under the same name; sets the new Learner's cookie in the same response; and sends the
+  browser to the Welcome route. Until the Welcome is built that route is the Study Workspace. Nothing is
+  deleted: every row of the old Learner stays as it was, under the old Learner's id. Any other device
+  still holding the old cookie is signed out at its next click, because an archived Learner no longer
+  signs in. The route accepts only a post from this site carrying the confirmation, so a link, a
+  crawler or another site can't start anyone over.
+
+**Scenario.** The owner signs in with the test passcode and wants to walk the new-Learner journey
+again. On Settings he presses Start over as a new learner, reads the confirmation and presses Yes,
+start over. The page reloads on an empty Study Workspace (later, the Welcome) as a new `test` Learner,
+with no Sessions, Notes, progress or About you. His other browser, still signed in as the old `test`
+Learner, lands on the login at its next click. Signing in there with the test passcode opens the new
+Learner. The old Learner's Sessions are still in the database, archived, for anyone who needs them.
+
+**Trade-off.** Archiving instead of deleting means a mistaken Start over loses nothing and the old
+progress can still be inspected, but it also means the database keeps growing with archived Learners,
+and there is no button to go back: restoring one is a manual job. The switch is per Learner rather
+than per browser, so it costs a database write on each change, but it never surprises the Learner by
+being on in one place and off in another.
 
 ## Pictures in Damodaran's posts (`src/library/pictures.ts`, `pictures-run.ts`, `citation-impact.ts`, `npm run library:pictures`, IL 14, #71)
 
