@@ -1455,6 +1455,14 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **Trade-off.** One layout for laptop and iPad keeps the code small and lets the Widget panel sit beside the conversation always. The price is that quizzes and spaced reviews no longer work on a phone: a review that falls due waits until the Learner is at a bigger screen.
 
+## Branded not-found page (`src/app/not-found.tsx`, spec #119, ticket #154)
+
+**What it does.** Next.js shows this one page for every address that matches no page and for every page that answers "not found" with `notFound()`, such as a Session page for an id that is missing or belongs to another Learner. It uses the reading-page shell, so the usual menu (with Dark mode and Sign out) sits on top, and the root layout's `theme` cookie keeps dark or light mode. Below it are a short plain message, a **Back to your Topic** button that opens the Study Workspace at `/study`, and a **Course Map** button. A signed-out visitor never reaches it: the passcode gate sends them to the login first, so the menu's Sign out always makes sense.
+
+**Scenario.** The Learner types `/sesions/12` by mistake, or opens an old link to a Session that is not theirs. Instead of the framework's bare "404" they see the site's header and "This page isn't here", press Back to your Topic, and are in the Study Workspace on the Topic they were on.
+
+**Trade-off.** One root page covers every not-found case, so the wording can't say what exactly was missing (a Session, a passage, a mistyped address). That keeps the page simple and never confirms whether another Learner's id exists.
+
 ## Tutor behaviour tests (`src/behaviour/`, `npm run behaviour`)
 
 **What it does.** A repeatable set of 48 test questions checks that the Tutor keeps its rules. The questions live in `src/behaviour/questions.ts` (only the Learner's wording, no source material). Each rule has direct and indirect attempts to break it: buy, sell or hold calls; requests for stock picks (which must be turned back into analysis); forecasts; invented figures; hindsight leaks before a Case's reveal (asked at the story, your-turn and Check steps); role-play and "ignore your rules" tricks; and questions about today's events (which must be answered from concepts and precedent, with no forecast). Some are two-step: a polite first question, then pressure.
