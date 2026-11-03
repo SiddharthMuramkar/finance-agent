@@ -27,5 +27,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // `login` and `api/login` skip the proxy only as whole path segments, so "/login-anything" is still checked.
-  matcher: ["/((?!login(?:/|$)|api/login(?:/|$)|_next/static|_next/image|favicon.ico|icon.svg).*)"],
+  // `api/cron/library-refresh` (exactly) skips it too: Vercel Cron has no passcode cookie, and the route checks CRON_SECRET itself.
+  matcher: ["/((?!login(?:/|$)|api/login(?:/|$)|api/cron/library-refresh$|_next/static|_next/image|favicon.ico|icon.svg).*)"],
 };
