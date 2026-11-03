@@ -699,7 +699,7 @@ order is held by code, not by a prompt that live runs showed being ignored.
 ## Insight recording (`record_insight_attempt` in `src/tutor/tools.ts`, `src/learner/insight.ts`, the `insight_attempts` table)
 
 **What it does.** At explore the Tutor puts the Insight question and the Learner plays with the Widget
-drawn at the concept step, then says what they noticed. The Tutor reports each attempt with
+on screen (the Topic's own explore Widget, see below), then says what they noticed. The Tutor reports each attempt with
 `record_insight_attempt` as found, not yet, or asked to be told, quoting the Learner's words. Code
 checks the words are really in the Learner's message in that turn (a Continue press is never an
 attempt), saves them in `insight_attempts` once per tool call ID, and decides what happens next:
@@ -725,6 +725,37 @@ model can read free words; code controls everything around that judgement (the c
 withholding, the order). A Tutor that says "found" too readily is checked by the behaviour set, not by
 code. Sessions that started before this change keep their frozen tools and have no way to record an
 attempt, so the app starts a new Session when the tools change.
+
+## The explore Widget (`explore.widget` in `course/topics/*.yaml`, `src/course/explore-widget.ts`, `src/app/widget-panel.tsx`)
+
+**What it does.** A Topic with an explore step can carry its own Widget, written in the Topic file as
+OpenUI code beside the Insight. Code, not the Tutor, shows it. From the moment the explore step begins it
+opens by itself in the Widget panel as an "Explore" chip, and it stays there until the Topic is passed, so
+the Learner can keep playing during their turn and the Check. It is chosen from saved progress alone
+(`exploreWidgetFor`), so a page reload shows it exactly the same, and an old Session page shows it too when
+that Session reached the explore step (read from the Course Navigator context saved in the Session). A
+newer Widget from the Tutor still opens on its own, because the explore Widget is placed after only the
+Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells it the Widget is already on
+screen, so it points to it and does not draw its own. Below the laptop breakpoint (an upright iPad) the
+panel hides its copy and a folded card, open to start, stands in the conversation column under the status
+card instead; at laptop width only the panel shows it.
+
+**Rules the course check holds.** The `widget` text is optional, but every `"caseId/datasetId"` it names must
+be one of the Topic's own Cases and a dataset that Case lists in `data`. A test parses every real explore
+Widget with the same checker as Tutor Widgets. Case Data still goes through the as-of rule on the server, so
+the Widget cannot draw anything dated after the Case's as-of date before the reveal.
+
+**A concrete scenario.** Present value's explore Widget is an interest-rate slider and the annuity chart
+set against the sourced cash option (the one figure dated on or before 24 October 2018). The Learner
+finishes the jackpot Check's concept step; the next reply ends, the page refreshes and the "Explore" chip is
+already open with the slider at 5%. They ask a question, the Tutor draws a calculator, and that newer Widget
+takes the panel; the Explore chip stays beside it. After the Learner passes the Topic the chip is gone. The
+winner's payment and the 30-year Treasury chart are left out on purpose, so playing leads nowhere near the reveal.
+
+**Trade-off.** The Widget is fixed text in the Topic file, so it cannot adapt to a Learner the way a Tutor
+Widget can, and it costs nothing in tokens. Both the panel copy and the narrow card are drawn in the page
+(one hidden by CSS), so resizing the window resets the slider. An old Session is matched to the Topic by the
+title in its saved context, so a Topic renamed later loses its chip on old Session pages.
 
 ## Pacing rule (`src/tutor/tools.ts`, `src/tutor/instructions.ts`)
 
@@ -1631,3 +1662,11 @@ run resume. Measured cost and accuracy: to be filled in from the live run (see #
 **Scenario.** The present value quiz asks for $1,210 received in two years at 10%. After the Learner answers, the explanation says "Two years at 10% means dividing by 1.10 twice" and shows a Formula Card with $1,210, 10% and 2 years filled in and $1,000.00 worked out by code. If someone later writes "PV = 1,210 / 1.21 = 1,000" into present value, the course check fails and names the line. If a Learner asks the Tutor to "write out the present value formula", the behaviour run marks the reply failed when it holds symbols, with no grader model call and no cost.
 
 **Trade-off.** The detector is strict: it also catches worked sums such as "100 / 1.10 = 90.91", so 86 other Topics that type formulas are on a not-yet-converted list (`NOT_YET_CONVERTED`). That list can only shrink: a Topic on it that has become clean must come off, and a Topic off it that types a formula fails. A strict detector means a few false alarms in a converted Topic, which are fixed by rewording into worded steps; it never means a missed formula going out unnoticed. Question Bank items are not scanned yet (they live in the database), so a Topic's quiz that uses a bank item can still show one until its explanation is converted or the item is swapped. A marker is checked when the Course Map loads: it must name a formula on the Topic's own `formulas` list and give exactly that formula's inputs.
+
+## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
+
+**What it does.** A fifth header link, "Notes", opens a page that lists every Topic in course order, each as a Topic Note. When a Topic is passed, code fills in its note with no model call: its Formula Cards drawn with example numbers (the numbers from the first marker in the Topic's own text that names the formula, else the registry's working example, with results from the formula's calculator), the Insight in the Learner's own words (beside the written Insight only when the Tutor had to tell it), the principle, the Connections and the mistakes the Tutor noticed. Nothing of that part is stored: it is built from the current Topic file and the Learner's records every time the page opens. What is stored is only the Learner's own lines, in `note_items` (kind "line"), which they can add, edit and delete on any Topic, passed or not, through `/api/notes` behind the passcode. The table also has empty columns for the saved replies and Widgets of the next ticket. The page prints: the header, buttons and boxes for typing are hidden on paper, a Topic with nothing on it is left out, and the light look is forced onto white.
+
+**Scenario.** The Learner passes present value after being told the Insight. On the Notes page its note shows the Formula Card with $1,100, 10% and 1 year and $1,000.00 worked out, "In your words: just tell me" beside "As written: waiting has a price", the principle, three Connections and the mistake "added the interest instead of dividing". They add the line "divide, do not subtract" and press Print. Before passing bond prices they can already add lines there, but its note says it fills in when they pass.
+
+**Trade-off.** Building on read means a note always follows the latest Topic file: if the owner rewrites a principle, old notes show the new words, and a Learner's printed copy and the screen can differ over time. A stored snapshot would keep the old words but would need a second copy to keep in step. The Insight words and the mistakes come from records that never change once written, so only the course text moves. Own lines are plain text of up to 2,000 characters with no formatting, which keeps the page simple and safe to print.

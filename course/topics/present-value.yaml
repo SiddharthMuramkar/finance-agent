@@ -8,6 +8,7 @@ cases:
   - id: mega-millions-2018
     title: The $1.537 billion Mega Millions jackpot
     asOf: 2018-10-24
+    data: [advertised-annuity, cash-option, treasury-30-year, winner-cash-payment]
     story: >
       On 23 October 2018 a single ticket sold in Simpsonville, South Carolina matched all
       six numbers in the US Mega Millions lottery. The advertised jackpot was $1.537 billion,
@@ -65,9 +66,16 @@ insight:
     - >
       Compare the total of the shrunken bars with a single sum arriving today. At a high rate, which
       one would you rather have, and why?
+# The explore Widget is shown by code, not by the Tutor. It draws only the cash option's dataset (dated on or before the as-of date)
+# and leaves out the 30-year Treasury chart and the winner's payment, so nothing leads the Learner to the reveal.
 explore:
   before: pv-jackpot-choice
   requiredWhenPassed: false
+  widget: |
+    root = Widget("Cash now or 30 yearly payments: what the rate decides", [rate, chart])
+    $rate = 5
+    rate = Slider("rate", "Interest rate (discount rate)", 0, 10, 0.25, $rate, "percent")
+    chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")
 
 # Given by the Tutor at the principle step. Written in words (no figures); each names outline Topic IDs, checked by `npm run course:check`.
 connections:

@@ -4,6 +4,7 @@ import { DEMO_SUMMARY, isDemoMode } from "./_landing/demo-mode";
 import { SAMPLE_LINES } from "./_landing/demo-session";
 import { LandingPage } from "./_landing/landing";
 import { loadCourseMap } from "@/course/map";
+import { exploreWidgetFor } from "@/course/explore-widget";
 import { courseOverview } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { learnerSummary, loadProgress } from "@/learner/memory";
@@ -68,7 +69,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
       <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
         <AppHeader current="workspace" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
         {shouldOfferProfile(profile) && <ProfileForm mode="card" initial={{ work: "", location: "", loan: "", savingFor: "" }} />}
-        <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} place={place} />
+        <Conversation initial={initial} summary={summary} quiz={quiz} pending={pending} review={review} place={place} explore={exploreWidgetFor(map, progress)} />
       </main>
     </SignedInFrame>
   );
