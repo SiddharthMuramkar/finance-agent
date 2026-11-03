@@ -16,6 +16,7 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
   const router = useRouter();
   const [picked, setPicked] = useState<string>();
   const [result, setResult] = useState<Answered | null>(null);
+  const [continued, setContinued] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +41,7 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
   }
 
   function next() {
+    setContinued(true);
     setResult(null);
     setPicked(undefined);
     router.refresh();
@@ -68,7 +70,7 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
   if (!review.question) return null;
   const q = review.question;
   return (
-    <FoldedRow label={`Spaced review · ${review.dueCount} due`} data-testid="review">
+    <FoldedRow label={`Spaced review · ${review.dueCount} due`} open={continued || undefined} data-testid="review">
       <section aria-label="Review">
         <p className="mb-3 text-xs leading-4 text-[var(--muted)]">
           Up to {review.cap} per Session; {review.done} done so far.

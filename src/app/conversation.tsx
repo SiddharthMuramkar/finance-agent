@@ -54,6 +54,7 @@ export function Conversation({
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const [fixing, setFixing] = useState(false);
   const [error, setError] = useState<string | null>(pending?.status === "failed" ? pending.error : null);
   const [notice, setNotice] = useState<string | null>(pending?.status === "running" ? "A turn is in progress, perhaps on another device." : null);
@@ -69,7 +70,14 @@ export function Conversation({
    * was on screen.
    */
   async function send(body: Body, userText?: string) {
-    setError(null);
+    // One short spoken status per turn (WCAG 4.1.3), never the streaming text itself.
+    let problem: string | null = null;
+    const fail = (message: string | null) => {
+      if (message) problem = message;
+      setError(message);
+    };
+    fail(null);
+    setAnnouncement("Tutor is replying");
     setNotice(null);
     setCanRetry(false);
     setCutShort(false);
@@ -95,7 +103,7 @@ export function Conversation({
           if (!("resume" in request)) {
             // Nothing was saved: take the message back off the screen.
             setMessages((m) => m.filter((x) => x.id !== `u-${stamp}` && x.id !== replyId));
-            setError(busy);
+            fail(busy);
             return;
           }
           // The turn is still running elsewhere (for example, the connection dropped): wait for it.
@@ -137,10 +145,10 @@ export function Conversation({
               updateReply(() => event.text ?? "");
               setNotice(event.message);
             } else if (event.type === "cut_short") setCutShort(true);
-            else if (event.type === "save_failed") setError(event.message);
+            else if (event.type === "save_failed") fail(event.message);
             else if (event.type === "error") {
               failed = true;
-              setError(event.message);
+              fail(event.message);
               setCanRetry(true);
             }
           }
@@ -153,16 +161,17 @@ export function Conversation({
         if (finished || failed) return;
         // No "done": the turn was cut off. Resume from the last saved loop step.
         if (++resumes > MAX_RESUMES) {
-          setError("The turn keeps being cut off. Press Retry to try again.");
+          fail("The turn keeps being cut off. Press Retry to try again.");
           setCanRetry(true);
           return;
         }
         request = { resume: true };
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "The turn failed.");
+      fail(err instanceof Error ? err.message : "The turn failed.");
       setCanRetry(true);
     } finally {
+      setAnnouncement(problem ?? "Reply ready");
       setRunning(false);
       setFixing(false);
       // Re-reads the summary, since the Tutor may have finished a Teaching Step.
@@ -228,6 +237,9 @@ export function Conversation({
             )}
             <PastePanel disabled={running} onSend={(message, paste) => void send({ message, paste }, `${message}\n\n${pastePreview(paste)}`)} />
           </ThreadPrimitive.Viewport>
+          <p role="status" aria-live="polite" className="sr-only" data-testid="turn-status">
+            {announcement}
+          </p>
           <div className="relative">
             <div aria-hidden className="fade-above pointer-events-none absolute inset-x-0 -top-6 h-6" />
             <ComposerPrimitive.Root className="flex gap-2">
@@ -236,7 +248,7 @@ export function Conversation({
                 aria-label="Message"
                 minRows={1}
                 maxRows={6}
-                className="flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-base leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+                className="flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-base leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-hidden focus:ring-1 focus:ring-[var(--brand)]"
               />
               <ComposerPrimitive.Send className="rounded bg-[var(--brand)] px-4 text-base text-[var(--brand-ink)] transition-colors duration-200 hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:hover:bg-[var(--brand)]">
                 Send

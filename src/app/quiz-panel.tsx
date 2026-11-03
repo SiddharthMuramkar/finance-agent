@@ -18,6 +18,7 @@ export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
   const router = useRouter();
   const [picked, setPicked] = useState<Record<string, string>>({});
   const [result, setResult] = useState<Result | null>(null);
+  const [continued, setContinued] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +45,7 @@ export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
   }
 
   function dismiss() {
+    setContinued(true);
     setResult(null);
     setPicked({});
     router.refresh();
@@ -85,7 +87,7 @@ export function QuizPanel({ quiz }: { quiz: OpenQuiz | null }) {
   if (!quiz) return null;
   const complete = quiz.questions.every((q) => picked[q.id]);
   return (
-    <FoldedRow label="Quiz Check open" data-testid="quiz">
+    <FoldedRow label="Quiz Check open" open={continued || undefined} data-testid="quiz">
       <section aria-label="Quiz">
         {quiz.attemptNo > 0 && <p className="mb-3 text-xs leading-4 text-[var(--muted)]">Attempt {quiz.attemptNo + 1}</p>}
         <ol className="flex flex-col gap-4">
