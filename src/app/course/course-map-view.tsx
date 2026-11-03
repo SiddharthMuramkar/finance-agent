@@ -62,7 +62,7 @@ export function CourseMapView({ topics, coming = [] }: { topics: TopicOverview[]
                       {t.subject && <Pill brand>{t.subject}</Pill>}
                       <span className="text-xs leading-4 text-[var(--muted)]">
                         {STATUS[t.status]}
-                        {t.step && t.status === "in_progress" ? ` · at the ${STEP[t.step]} step` : ""}
+                        {t.step && t.status === "in_progress" ? ` · Teaching Step: ${STEP[t.step]}` : ""}
                       </span>
                       {t.current && <Pill>You are here</Pill>}
                     </div>

@@ -361,7 +361,13 @@ it ignores the computer's own dark-mode setting until the Learner first toggles.
 the teal `--you` set for the Learner's assumptions, the amber `--src` set for sourced facts, and a
 few more) defined once in `globals.css`, with a light value and a dark value. Every screen paints
 with these names instead of raw colours. `ui.tsx` holds the shared look pieces built on them: tags,
-eyebrow, pills, chips, buttons, card, callout, key/value row, the app header and the phone-note frame.
+eyebrow, pills, chips, buttons, card, callout, key/value row, the app header, the reading-page shell
+and the phone-note frame. The reading-page shell (Course Map, Progress, Past Sessions, Passage) puts
+the header in the same wide box as the workspace, so the title and links never shift between pages,
+and narrows only the content below it. The trade-off: the header is wider than the text under it on
+those pages. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
+group that moves focus to "Go ahead" (Escape or "Not now" gives focus back), the cited sentence on a
+Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
 **Scenario.** The Learner switches to dark mode. The toggle puts a `dark` class on the page, the
 token values swap (navy buttons become light navy with dark text, the teal and amber tags darken),

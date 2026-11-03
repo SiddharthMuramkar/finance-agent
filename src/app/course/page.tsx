@@ -3,7 +3,7 @@ import { courseOverview } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { readTheme } from "../theme-cookie";
-import { AppHeader, SignedInFrame } from "../ui";
+import { ReadingPage, SignedInFrame } from "../ui";
 import { CourseMapView } from "./course-map-view";
 
 // Reads saved progress on every visit. No model call.
@@ -16,10 +16,9 @@ export default async function CourseMapPage() {
   const theme = await readTheme();
   return (
     <SignedInFrame>
-      <main className="mx-auto max-w-2xl p-4 sm:p-6">
-        <AppHeader current="course" theme={theme} className="mb-6" />
+      <ReadingPage current="course" theme={theme}>
         <CourseMapView topics={topics} coming={map.coming} />
-      </main>
+      </ReadingPage>
     </SignedInFrame>
   );
 }

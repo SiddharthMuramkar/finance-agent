@@ -4,7 +4,7 @@ import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { ProgressView } from "../course/course-map-view";
 import { readTheme } from "../theme-cookie";
-import { AppHeader, SignedInFrame } from "../ui";
+import { ReadingPage, SignedInFrame } from "../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +14,9 @@ export default async function ProgressPage() {
   const theme = await readTheme();
   return (
     <SignedInFrame>
-      <main className="mx-auto max-w-2xl p-4 sm:p-6">
-        <AppHeader current="progress" theme={theme} className="mb-6" />
+      <ReadingPage current="progress" theme={theme}>
         <ProgressView topics={topics} />
-      </main>
+      </ReadingPage>
     </SignedInFrame>
   );
 }

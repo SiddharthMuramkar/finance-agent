@@ -1,6 +1,24 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { AppHeader, PHONE_NOTE, SignedInFrame, Tag } from "./ui";
+import { AppHeader, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
+
+describe("ReadingPage", () => {
+  it("puts the header in the same wide box on every reading page and narrows only the content", () => {
+    const pages = (["course", "progress", "sessions", undefined] as const).map((current) =>
+      renderToStaticMarkup(
+        <ReadingPage current={current} theme="light">
+          <p>content</p>
+        </ReadingPage>,
+      ),
+    );
+    for (const html of pages) {
+      expect(html).toMatch(/<main[^>]*max-w-6xl/);
+      expect(html.indexOf("<header")).toBeLessThan(html.indexOf('data-testid="reading-column"'));
+      expect(html).toContain("Study Workspace");
+    }
+    expect(new Set(pages.map((h) => h.match(/<main[^>]*>/)![0])).size).toBe(1);
+  });
+});
 
 describe("AppHeader", () => {
   it("shows the four links with their addresses and marks the current page", () => {

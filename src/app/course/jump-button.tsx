@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PrimaryButton, SecondaryButton } from "../ui";
 
 /** A full page load, so the workspace's server page re-reads the saved place. */
@@ -16,10 +16,41 @@ async function post(topicId: string | null): Promise<string | null> {
   return error ?? `Could not change Topic (${res.status}).`;
 }
 
+/** The prerequisite confirm. It is a labelled group, not a modal dialog: focus moves to "Go ahead" when it appears, and Escape cancels. */
+export function PrerequisiteConfirm({ topicId, title, unmet, onGo, onCancel }: { topicId: string; title: string; unmet: string[]; onGo: () => void; onCancel: () => void }) {
+  return (
+    <div
+      role="group"
+      aria-label={`Prerequisites for ${title}`}
+      onKeyDown={(e) => e.key === "Escape" && onCancel()}
+      className="mt-2 rounded border border-[var(--src-line)] bg-[var(--src-tint)] p-3 text-xs leading-4"
+    >
+      <p>
+        {title} builds on {unmet.join(", ")}, which you have not passed yet. You can fill the gap first, or go ahead anyway.
+      </p>
+      <div className="mt-2 flex gap-2">
+        <PrimaryButton autoFocus data-confirm-jump={topicId} onClick={onGo} className="!px-2 !py-1 text-xs">
+          Go ahead
+        </PrimaryButton>
+        <SecondaryButton onClick={onCancel} className="!px-2 !py-1 text-xs">
+          Not now
+        </SecondaryButton>
+      </div>
+    </div>
+  );
+}
+
 /** Chooses a Topic. With unmet prerequisites, it first asks the Learner to confirm. Then it opens the workspace. */
 export function JumpButton({ topicId, title, unmet }: { topicId: string; title: string; unmet: string[] }) {
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const wasAsking = useRef(false);
+  // Keyboard and screen-reader users keep their place: when the confirm closes, focus goes back to the button.
+  useEffect(() => {
+    if (wasAsking.current && !asking) trigger.current?.focus();
+    wasAsking.current = asking;
+  }, [asking]);
   const go = async () => {
     const failed = await post(topicId);
     if (failed) setError(failed);
@@ -28,23 +59,11 @@ export function JumpButton({ topicId, title, unmet }: { topicId: string; title: 
   return (
     <div className="mt-2 text-sm">
       {!asking ? (
-        <SecondaryButton data-jump={topicId} onClick={() => (unmet.length ? setAsking(true) : void go())} className="mt-1 !px-2 !py-0.5 text-xs">
+        <SecondaryButton ref={trigger} data-jump={topicId} onClick={() => (unmet.length ? setAsking(true) : void go())} className="mt-1 !px-2 !py-0.5 text-xs">
           Study this Topic
         </SecondaryButton>
       ) : (
-        <div role="alertdialog" aria-label={`Prerequisites for ${title}`} className="mt-2 rounded border border-[var(--src-line)] bg-[var(--src-tint)] p-3 text-xs leading-4">
-          <p>
-            {title} builds on {unmet.join(", ")}, which you have not passed yet. You can fill the gap first, or go ahead anyway.
-          </p>
-          <div className="mt-2 flex gap-2">
-            <PrimaryButton data-confirm-jump={topicId} onClick={() => void go()} className="!px-2 !py-1 text-xs">
-              Go ahead
-            </PrimaryButton>
-            <SecondaryButton onClick={() => setAsking(false)} className="!px-2 !py-1 text-xs">
-              Not now
-            </SecondaryButton>
-          </div>
-        </div>
+        <PrerequisiteConfirm topicId={topicId} title={title} unmet={unmet} onGo={() => void go()} onCancel={() => setAsking(false)} />
       )}
       {error && <p className="mt-1 text-xs text-[var(--danger)]">{error}</p>}
     </div>
