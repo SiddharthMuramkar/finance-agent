@@ -82,6 +82,22 @@ only allows paths, so a destination can never be another of the owner's own doma
 needed. An encoded slash inside a query (`?q=a%2Fb`) is refused too; no page links that way, and the
 cost is only landing in the Study Workspace.
 
+**The passcode page** (`src/app/login/page.tsx`). A heading, "Enter your passcode", the passcode
+field, an **Enter** button and a "← Back to home" link to `/`. The field (`passcode-field.tsx`, the
+page's one client piece) starts hidden; an eye button beside it switches it between hidden and
+visible, labelled "Show passcode" or "Hide passcode" for what it will do next. `?wrong=1` shows
+"That passcode didn't work. Check it and try again." directly under the field, and `?locked=1`
+shows the pause message instead. The page only shows things: the form posts to the same sign-in
+route as before, so the lock-out and the safe redirect are untouched.
+
+*Scenario.* The Learner types a long passcode on a phone, gets "That passcode didn't work…", taps
+the eye, sees a typo, fixes it and presses Enter. Someone who arrived by mistake taps "← Back to
+home".
+
+*Trade-off.* The eye makes the field a client component, a little script on an otherwise
+server-only page; without it a mistyped passcode can only be retyped blind. A shown passcode is
+visible to anyone looking at the screen, so it is hidden again on every page load.
+
 **The sign-out door** (`src/app/api/logout/route.ts`). Signed in or out, a POST to exactly
 `/api/logout` gets through the proxy; a GET, or a path that merely starts with it (`/api/logout/x`,
 `/api/logoutx`), still answers 401, and the Server Action refusal still runs first. The route itself
@@ -415,7 +431,7 @@ ones.
 **Layout.** The conversation runs on assistant-ui's external-store runtime: our code owns the
 messages and streaming, assistant-ui draws them (`src/app/thread.tsx` holds the message look, shared
 with the old Session page). As a reply streams in, code splits it into prose and widget blocks. The
-prose stays on the left with a "Widget 1 →" chip where the widget belongs; widgets are never drawn
+prose stays on the left with an "Open: <widget title> →" chip where the widget belongs; widgets are never drawn
 inside the conversation. Old Sessions rebuild their widgets from the stored text, with controls back
 at their starting values.
 
@@ -429,13 +445,14 @@ the widget uses): an AnnuityChart or the `annuity_schedule` tool is "Present val
 "Formula", a kit chart or table with no tool and none of our code-backed parts "Illustration", and
 anything else the current Topic's title. A finished widget the check refuses shows only the fallback
 note, so its eyebrow is the Topic's title too, never "Illustration". The newest widget shows on its own, including when a new
-turn brings one. With two or more widgets a row of chips (one per widget title) sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
+turn brings one. With two or more widgets a row of tabs, each named by its widget's title (never a number; "Untitled Widget" when the Tutor gave none), sits above the card on one line that scrolls sideways instead of wrapping; a long title is cut short with an ellipsis and shown in full on hover. Picking a tab, or an "Open: <title> →" chip in the chat, shows that widget, fades it in over 200ms,
 flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
 box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier
 and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
-"Long-term interest rates" chip and the chart fades in under "Case Data". Trade-off: one widget at a
+"Long-term interest rates" tab and the chart fades in under "Case Data". With eight widgets open the
+tabs still take one line; the Learner scrolls the row sideways to reach the older ones. Trade-off: one widget at a
 time keeps the panel calm and the sliders roomy, but comparing two widgets means switching between
-them.
+them; and a single scrolling row hides the far tabs until scrolled, where wrapping would push the card down.
 
 **The Sourced strip and readable Case Data charts.** Under a Widget that calls `case_data`, one thin
 amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit; before the reveal
@@ -1095,7 +1112,7 @@ never flashes up as code. Old Sessions now use the same assistant-ui thread, rea
 composer and no model call.
 
 **Scenario.** The Tutor replies "**Late bars:** each payment is divided by (1+r)^n" followed by a
-three-item list and an annuity chart. The Learner sees bold text, a bulleted list, and a "Widget 2 →"
+three-item list and an annuity chart. The Learner sees bold text, a bulleted list, and an "Open: What the annuity is worth today →"
 marker between the list and the next paragraph; the chart is in the right pane.
 
 **Trade-off.** One more package (small, by the same authors as assistant-ui, MIT). The text is no
@@ -1110,12 +1127,12 @@ plain text on purpose.
 Widget count. The database has no Topic column, so code reads the "Topic: ..." lines the Tutor
 context left in the saved messages, in one query for all Sessions, and counts the Widget blocks
 (minus the ones a correction replaced). With no Topic found the title falls back to "Session 3".
-A card opens the old Session page: the workspace's two columns, read-only, with "Widget N →" chips,
+A card opens the old Session page: the workspace's two columns, read-only, with "Open: <title> →" chips,
 the Widget panel (controls at their starting values) and a "Back to the workspace" button where
 the composer would be. No model call anywhere.
 
 **Scenario.** The Learner opens Past Sessions, sees "Present value, 24 Oct 2026" with "2 Widgets",
-opens it, clicks "Widget 2 →" to see that chart again, then goes back to the workspace to carry on.
+opens it, clicks "Open: What the annuity is worth today →" to see that chart again, then goes back to the workspace to carry on.
 
 **Trade-off.** Topics come from reading saved text, not a stored column, so a Session whose
 messages were compacted away shows the number title. Adding a column would be exact but needs a
@@ -1135,22 +1152,26 @@ reschedules the question. No model is called, to open the page or to answer.
 **A concrete scenario.** The Learner passes the present value quiz on Monday, getting two of
 three right. The wrong one is due again in about a day, the right ones in a few days. Three weeks
 later they open the app: all three are overdue, and the panel offers the one missed first. Answering
-it right pushes it out by weeks; answering it wrong brings it back soon. After 10 reviews in the
-Session the panel stops, even if 40 are due, and the rest wait for the next Session. A long
-holiday shows as "40 due, 10 per Session", not as a pile to clear.
+it right pushes it out by weeks; answering it wrong brings it back soon. After 10 reviews in 24
+hours the panel stops, even if 40 are due, and the rest wait until the oldest of those 10 is more
+than 24 hours old. Opening another Topic, and so another Session, does not reset the count. A long
+holiday shows as "40 due, up to 10 a day", not as a pile to clear.
 
 **Rules in code.** The Course Navigator's `reviewsDue` is a pure function: cards, the time and
-the number done this Session in; the overdue cards to offer out, capped. The cap is the
-`review_cap` setting (default 10), changeable in SQL without a rebuild. "This Session" is counted
-from when the Session began. A Session that begins after an idle gap counts from that gap, so
-reviews done before its first message still count against it. A review never writes to Topic
-progress: a missed review cannot unpass a Topic (a test pins this).
+the number done in the last 24 hours in; the overdue cards to offer out, capped. The cap is the
+`review_cap` setting (default 10), changeable in SQL without a rebuild. The count is a rolling 24
+hours read from `review_log`; it never looks at when a Session began or at the idle window, because
+with one Session per Topic (ADR 0004) a Session can last for days and a new one starts with every
+Topic. A review never writes to Topic progress: a missed review cannot unpass a Topic (a test pins
+this).
 
 **Trade-offs.** Cards are built from saved quiz attempts the first time the review state is read,
 so no change to the quiz code was needed and it can be re-run safely. The cost is that a card can
 appear a moment after the pass rather than at it. Whole-day scheduling suits "open the app once a
 day" study but cannot do same-day repeats of a missed question. Only questions still on the Course
-Map are offered, so deleting a question quietly retires its card.
+Map are offered, so deleting a question quietly retires its card. A rolling 24 hours rather than a
+calendar day means no time zone is needed and midnight never frees a second batch, at the price
+that the next review returns at a time of day the Learner may not expect.
 
 ## Library (`src/library/`, `search_library` tool, `npm run library:load`, `library:embed`, `library:score`)
 
@@ -1455,6 +1476,14 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 **Scenario.** On the train the Learner opens the app on a phone and sees the note. At home they open it on an iPad held upright and get both columns: the conversation on the left, the Widget panel on the right.
 
 **Trade-off.** One layout for laptop and iPad keeps the code small and lets the Widget panel sit beside the conversation always. The price is that quizzes and spaced reviews no longer work on a phone: a review that falls due waits until the Learner is at a bigger screen.
+
+## Branded not-found page (`src/app/not-found.tsx`, spec #119, ticket #154)
+
+**What it does.** Next.js shows this one page for every address that matches no page and for every page that answers "not found" with `notFound()`, such as a Session page for an id that is missing or belongs to another Learner. It uses the reading-page shell, so the usual menu (with Dark mode and Sign out) sits on top, and the root layout's `theme` cookie keeps dark or light mode. Below it are a short plain message, a **Back to your Topic** button that opens the Study Workspace at `/study`, and a **Course Map** button. A signed-out visitor never reaches it: the passcode gate sends them to the login first, so the menu's Sign out always makes sense.
+
+**Scenario.** The Learner types `/sesions/12` by mistake, or opens an old link to a Session that is not theirs. Instead of the framework's bare "404" they see the site's header and "This page isn't here", press Back to your Topic, and are in the Study Workspace on the Topic they were on.
+
+**Trade-off.** One root page covers every not-found case, so the wording can't say what exactly was missing (a Session, a passage, a mistyped address). That keeps the page simple and never confirms whether another Learner's id exists.
 
 ## Tutor behaviour tests (`src/behaviour/`, `npm run behaviour`)
 
@@ -1774,15 +1803,19 @@ and separate the argument's facts, inferences and forecasts.
 ## Home (`src/app/page.tsx`, `src/app/_landing/`, `src/auth/session.ts`)
 
 **What it does.** The main address, `/`, always shows Home, signed in or out. Home says what the
-Study Workspace is: a headline, a screenshot, three counts (Topics written of planned, every Case in
-the outline, Library sources), the seven Teaching Steps and "Every number has a source". Signed out,
-the hero and the top bar say "Sign in" (to `/login`). Signed in, it is the same page, but the hero
-button names the Learner's place and the top bar says "Study Workspace"; every one of them opens
+Study Workspace is: a headline, a screenshot, one stats line worked out by code ("95 Topics · 103
+historical cases · 8 sources": Topics written, every Case in the outline, Library sources), the
+seven Teaching Steps and "Every number has a source". Signed out, the main button is "Start
+learning", once in the hero and again after "Every number has a source", and the top bar says
+"Sign in"; all three go to the passcode page (`/login`). Signed in, it is the same page, but both
+main buttons name the Learner's place and the top bar says "Study Workspace"; every one of them opens
 `/study`, where the Study Workspace now lives (demo mode with it: `/study?demo=1`). Beside the top
 bar's link sits Sign out, the same form as the app header's; on a phone it is the only Sign out,
 since signed-in pages there show only the bigger-screen note. Signed out, the page reads no Learner
-data and no Library text, only counts. All its words live in `copy.ts`, marked DRAFT, and a small
-"Draft" pill shows near the headline until the owner rewrites them.
+data and no Library text, only counts. All its words live in `copy.ts`, so the owner can rewrite
+them in one place. There is no Draft badge: a visitor sees facts, not the owner's notes. Explore
+("move the sliders on a live Widget and spot the pattern") and Your turn ("answer a worked question
+on your own") are worded as two different steps, and the Principle line says Topic, not lesson.
 
 **The button rule.** Signed in, `page.tsx` has `loadHomeButton` read saved progress (`loadProgress`)
 and ask the Course Navigator's `navigate` for the place, then `homeButton` in `landing.tsx` picks
@@ -1798,8 +1831,9 @@ strangers trigger no read at all.
 **Scenario.** The owner has saved the passcode in Edge. They open the site and see Home, as on any
 website, instead of landing in the middle of a Topic, with a button reading "Resume: Present value".
 They press it when ready. A friend opens the same link on a phone: the proxy lets the GET of `/`
-through, the page checks the cookie first, finds none, and renders Home with "Sign in" without
-touching the Learner's Sessions. Trying `/course` or `/study` still lands on the login.
+through, the page checks the cookie first, finds none, and renders Home with "Start learning" without
+touching the Learner's Sessions. The friend reads down to "Every number has a source", finds a
+second "Start learning" there, and lands on the passcode page without scrolling back up. Trying `/course` or `/study` still lands on the login.
 
 **Trade-off.** One address now serves two versions of one page, told apart only by the cookie. So
 Home is never cached as a page: `export const dynamic = "force-dynamic"` plus an explicit private,
@@ -1816,7 +1850,9 @@ Millions conversation instead of the Learner's own.
 **Why the stats are cached.** The Topic and Case counts come from files on disk and cost nothing.
 The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate
 86400): bots crawling the public page would otherwise wake Neon on every visit. A new source shows
-up on the page within a day.
+up on the page within a day. The stats line shows only plain counts: an earlier "90 of 95" read like
+a progress note, so the planned-but-unwritten Topics are no longer shown; the trade-off is that a
+visitor can't see how much more is coming.
 
 **Shared links and headers.** Because `/` is public, the site's metadata (`src/app/site-metadata.ts`,
 used by the root layout) is public copy from `copy.ts`: title, description and an Open Graph card with

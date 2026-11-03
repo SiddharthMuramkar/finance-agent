@@ -10,7 +10,7 @@ import { exploreItem, PinnedExplore, useWidgetPicker, WidgetChip, WidgetPanel, w
 export type OldLine = Line;
 
 /**
- * An old Session, read-only, in the workspace's two columns: the conversation with "Widget N →" chips on the left,
+ * An old Session, read-only, in the workspace's two columns: the conversation with "Open: <title> →" chips on the left,
  * the Widget panel on the right (controls at their starting values). A Session that reached the explore step shows the Topic's Explore Widget too. Where the composer would be there is a link
  * back to the workspace. No composer and no model call.
  */

@@ -268,13 +268,13 @@ export type DueCard = { questionId: string; due: Date };
 
 /**
  * Reviews to offer at `now`: cards that have fallen due and whose question is still on the Course
- * Map, most overdue first, at most `cap` minus the reviews already done since the Session started.
+ * Map, most overdue first, at most `cap` minus the reviews already done in the last 24 hours.
  * `dueCount` is how many are due in all, so a long break shows as a count, not a pile. Reviews come
  * before the current Teaching Step and never touch Progress, so a missed one cannot unpass a Topic.
  */
-export function reviewsDue<C extends DueCard>(map: QuestionLookup, cards: C[], now: Date, doneThisSession: number, cap = DEFAULT_REVIEW_CAP): { offered: C[]; dueCount: number } {
+export function reviewsDue<C extends DueCard>(map: QuestionLookup, cards: C[], now: Date, doneLastDay: number, cap = DEFAULT_REVIEW_CAP): { offered: C[]; dueCount: number } {
   const due = cards
     .filter((c) => c.due.getTime() <= now.getTime() && map.question(c.questionId))
     .sort((a, b) => a.due.getTime() - b.due.getTime() || a.questionId.localeCompare(b.questionId));
-  return { offered: due.slice(0, Math.max(0, cap - doneThisSession)), dueCount: due.length };
+  return { offered: due.slice(0, Math.max(0, cap - doneLastDay)), dueCount: due.length };
 }

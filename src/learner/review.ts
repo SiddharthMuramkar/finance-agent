@@ -1,13 +1,13 @@
-import { and, asc, desc, eq, gte, inArray, max } from "drizzle-orm";
+import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { questionLookup } from "@/bank/lookup";
 import { DEFAULT_REVIEW_CAP, reviewsDue } from "@/course/navigator";
 import type { CourseMap, QuizCheck } from "@/course/map";
 import { publicQuestions, type PublicQuestion } from "@/course/quiz";
 import type { State } from "ts-fsrs";
 import { newCard, rate, type ReviewCardState } from "@/course/review";
-import { checkResults, messages, quizAttempts, reviewCards, reviewLog, sessions } from "@/db/schema";
+import { checkResults, quizAttempts, reviewCards, reviewLog } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { readSettings, type Session } from "@/tutor/session-log";
+import { readSettings } from "@/tutor/session-log";
 
 /**
  * Spaced review in Learner Memory. Quiz questions only; the Course Navigator says which are due,
@@ -77,46 +77,29 @@ export async function enrollPassedQuestions(db: Db, map: CourseMap): Promise<voi
   }
 }
 
-async function lastActive(db: Db, session: Session): Promise<Date> {
-  const [{ last }] = await db.select({ last: max(messages.createdAt) }).from(messages).where(eq(messages.sessionId, session.id));
-  return last ?? session.createdAt;
-}
-
-/**
- * When the current Session began, for counting reviews against the cap. If the latest Session has
- * gone idle, the next one begins at the moment it went idle; a Session that began after an idle gap
- * counts from that gap, so reviews done before its first message still belong to it.
- */
-export async function sessionStart(db: Db, now: Date): Promise<Date> {
-  const [latest, previous] = await db.select().from(sessions).orderBy(desc(sessions.id)).limit(2);
-  if (!latest) return new Date(0);
-  const { idleHours } = await readSettings(db);
-  const idleAfter = async (s: Session) => new Date((await lastActive(db, s)).getTime() + idleHours * 3600_000);
-  const boundary = await idleAfter(latest);
-  if (now.getTime() > boundary.getTime()) return boundary;
-  return previous ? new Date(Math.min(latest.createdAt.getTime(), (await idleAfter(previous)).getTime())) : latest.createdAt;
-}
+/** The Review cap counts Reviews done over this rolling window, whatever the Sessions did. */
+const CAP_WINDOW_MS = 24 * 3600_000;
 
 export type ReviewState = {
   /** The review to show now (most overdue first), or null when none is due or the cap is reached. */
   question: PublicQuestion | null;
   /** All reviews due, including those past the cap. */
   dueCount: number;
-  /** Reviews done since the Session started. */
+  /** Reviews done in the last 24 hours. */
   done: number;
   cap: number;
 };
 
-async function doneThisSession(db: Db, now: Date): Promise<number> {
-  const since = await sessionStart(db, now);
-  const rows = await db.select({ id: reviewLog.id }).from(reviewLog).where(and(eq(reviewLog.source, "review"), gte(reviewLog.reviewedAt, since)));
+async function doneLastDay(db: Db, now: Date): Promise<number> {
+  const since = new Date(now.getTime() - CAP_WINDOW_MS);
+  const rows = await db.select({ id: reviewLog.id }).from(reviewLog).where(and(eq(reviewLog.source, "review"), gt(reviewLog.reviewedAt, since)));
   return rows.length;
 }
 
 /** What the fixed review page shows: the next review, if any. Opening it makes no model call. */
 export async function reviewState(db: Db, map: CourseMap, now = new Date()): Promise<ReviewState> {
   await enrollPassedQuestions(db, map);
-  const [cards, done, settings] = await Promise.all([db.select().from(reviewCards), doneThisSession(db, now), readSettings(db)]);
+  const [cards, done, settings] = await Promise.all([db.select().from(reviewCards), doneLastDay(db, now), readSettings(db)]);
   const cap = Number.isFinite(settings.reviewCap) ? settings.reviewCap : DEFAULT_REVIEW_CAP;
   const lookup = await questionLookup(db, map, cards.map((c) => c.questionId));
   const { offered, dueCount } = reviewsDue(lookup, cards, now, done, cap);

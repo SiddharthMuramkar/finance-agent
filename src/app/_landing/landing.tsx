@@ -3,7 +3,7 @@ import { navigate, type Place } from "@/course/navigator";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { Eyebrow, Pill, SignOutButton } from "../ui";
-import { copy, DRAFT } from "./copy";
+import { copy } from "./copy";
 import { landingStats, type LandingStats } from "./stats";
 
 const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
@@ -30,12 +30,13 @@ const buttonLabel = (b: HomeButton) => (b.kind === "open" ? copy.openStudyWorksp
  * Sign in; with one, the top bar links the Study Workspace beside Sign out and the hero button shows its label.
  */
 export function LandingView({ stats, button }: { stats: LandingStats; button?: HomeButton }) {
-  const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.signIn };
-  const columns = [
-    { value: stats.topics, label: copy.stats.topics },
-    { value: String(stats.cases), label: copy.stats.cases },
-    { value: String(stats.librarySources), label: copy.stats.sources },
-  ];
+  // Signed out, the main button is Start learning, to the passcode page; signed in, the Learner's own button.
+  const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.startLearning };
+  const mainButton = (
+    <a href={hero.href} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
+      {hero.label}
+    </a>
+  );
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">
@@ -63,7 +64,6 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
           <div className="mx-auto max-w-6xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20">
             <div className="flex flex-wrap items-center gap-2">
               <Pill brand>{copy.badge}</Pill>
-              {DRAFT && <Pill>Draft</Pill>}
             </div>
             <h1 className="mt-6 text-4xl font-bold leading-[44px] tracking-[-1px] sm:text-[56px] sm:leading-[60px] sm:tracking-[-1.5px]">
               {copy.headline[0]}
@@ -72,9 +72,7 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-7 text-[var(--muted)]">{copy.subtext}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={hero.href} className={`${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
-                {hero.label}
-              </a>
+              {mainButton}
               <a href="#how" className={`${bigButton} border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--hairline)]`}>
                 {copy.howItWorks}
               </a>
@@ -93,14 +91,7 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
                 <img src="/landing-assets/workspace-dark.png" alt={copy.screenshotAlt} width={1280} height={800} className="hidden h-auto w-full dark:block" />
               </figure>
               {/* Below the screenshot, not over it, so the Tutor's composer row stays visible at every width. */}
-              <dl className="mt-4 grid grid-cols-3 gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-4 sm:ml-auto sm:max-w-[440px] sm:gap-4">
-                {columns.map((c) => (
-                  <div key={c.label} className="flex flex-col-reverse">
-                    <dt className="text-xs leading-4 text-[var(--muted)]">{c.label}</dt>
-                    <dd className="whitespace-nowrap text-xl font-bold leading-8 text-[var(--brand)] sm:text-[28px] sm:leading-9">{c.value}</dd>
-                  </div>
-                ))}
-              </dl>
+              <p className="mt-4 text-base font-semibold leading-6 text-[var(--brand)] sm:text-right">{copy.stats(stats)}</p>
             </div>
           </div>
         </section>
@@ -136,6 +127,7 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
                 </li>
               ))}
             </ul>
+            <div className="mt-10">{mainButton}</div>
           </div>
         </section>
       </main>

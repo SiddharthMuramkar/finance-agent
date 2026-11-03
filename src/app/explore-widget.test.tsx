@@ -52,7 +52,7 @@ describe("the explore Widget in the workspace", () => {
     const pane = html.slice(paneStart(html));
     // The panel's own copy and chip are hidden below lg, with a line saying where it went.
     expect(pane).toMatch(/data-testid="widget-card" class="[^"]*\bmax-lg:hidden\b/);
-    expect(pane).toMatch(/class="[^"]*max-lg:hidden[^"]*" data-testid="explore-chip"|data-testid="explore-chip"[^>]*max-lg:hidden/);
+    expect(pane).toMatch(/class="[^"]*max-lg:hidden[^"]*"[^>]*data-testid="explore-chip"|data-testid="explore-chip"[^>]*max-lg:hidden/);
     expect(pane).toContain("The Explore Widget is in the conversation");
   });
 
@@ -62,10 +62,10 @@ describe("the explore Widget in the workspace", () => {
     expect(workspace({ explore: EXPLORE, initial })).toContain('data-testid="explore-chip"');
   });
 
-  it("keeps the Tutor's own Widgets numbered from 1 and chipped in the conversation", () => {
+  it("keeps the Tutor's own Widgets chipped by title in the conversation", () => {
     const initial: Line[] = [{ role: "assistant", text: `Here.\n\n${fence(TUTOR)}\n\nTry it.` }];
     const html = workspace({ explore: EXPLORE, initial });
-    expect(html.slice(0, paneStart(html))).toContain("Widget 1 →");
+    expect(html.slice(0, paneStart(html))).toContain("Open: What a home loan costs →");
   });
 });
 

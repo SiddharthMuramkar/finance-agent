@@ -132,12 +132,12 @@ describe("spaced review", () => {
     expect(await loadProgress(db)).toEqual(before);
   });
 
-  it("stops at the cap, a changeable setting, counting reviews since the Session started", async () => {
+  it("stops at the cap, a changeable setting, counting reviews done in the last 24 hours", async () => {
     const passAt = new Date("2026-03-01T10:00:00Z");
     const { db, map } = await passedQuiz(passAt);
     const now = new Date(passAt.getTime() + 60 * day);
-    await db.insert(settings).values({ key: "review_cap", value: "2" });
-    await startSession(db, now);
+    expect((await reviewState(db, map, now)).cap).toBe(10);
+    await db.update(settings).set({ value: "2" }).where(eq(settings.key, "review_cap"));
     expect((await reviewState(db, map, now)).cap).toBe(2);
     await answerReview(db, map, "q3", "a", now);
     await answerReview(db, map, "q1", "a", now);
@@ -146,33 +146,30 @@ describe("spaced review", () => {
     expect(await answerReview(db, map, "q2", "a", now)).toMatchObject({ ok: false });
   });
 
-  it("reviews done in an earlier Session do not count against a new one", async () => {
+  it("a new Session does not reset the cap: reviews in the last 24 hours still count", async () => {
     const passAt = new Date("2026-03-01T10:00:00Z");
     const { db, map } = await passedQuiz(passAt);
     const first = new Date(passAt.getTime() + 60 * day);
     await db.insert(settings).values({ key: "review_cap", value: "1" });
-    const s1 = await startSession(db, first);
-    await db.insert(messages).values({ sessionId: s1.id, seq: 0, role: "user", content: "hi", createdAt: first });
     await answerReview(db, map, "q3", "a", first);
-    expect((await reviewState(db, map, first)).question).toBeNull();
-    // Next day: the old Session has gone idle, so a new one is due and its count starts at zero.
-    const next = new Date(first.getTime() + day);
-    const state = await reviewState(db, map, next);
-    expect(state).toMatchObject({ done: 0 });
-    expect(state.question).not.toBeNull();
+    const later = new Date(first.getTime() + 20 * 3600_000);
+    const s = await startSession(db, later);
+    await db.insert(messages).values({ sessionId: s.id, seq: 0, role: "user", content: "hi", createdAt: later });
+    expect(await reviewState(db, map, later)).toMatchObject({ question: null, done: 1 });
   });
 
-  it("reviews done before the first message of a new Session still count once it starts", async () => {
+  it("a review done more than 24 hours ago no longer counts toward the cap", async () => {
     const passAt = new Date("2026-03-01T10:00:00Z");
     const { db, map } = await passedQuiz(passAt);
     const first = new Date(passAt.getTime() + 60 * day);
     await db.insert(settings).values({ key: "review_cap", value: "1" });
-    const s1 = await startSession(db, first);
-    await db.insert(messages).values({ sessionId: s1.id, seq: 0, role: "user", content: "hi", createdAt: first });
-    const next = new Date(first.getTime() + day);
-    await answerReview(db, map, "q3", "a", next);
-    await startSession(db, new Date(next.getTime() + 60_000)); // the first turn of the new Session
-    expect((await reviewState(db, map, new Date(next.getTime() + 120_000))).question).toBeNull();
+    // One Session, never idle and never restarted: only the clock moves the window.
+    await startSession(db, first);
+    await answerReview(db, map, "q3", "a", first);
+    expect((await reviewState(db, map, new Date(first.getTime() + day - 60_000))).question).toBeNull();
+    const state = await reviewState(db, map, new Date(first.getTime() + day + 60_000));
+    expect(state).toMatchObject({ done: 0 });
+    expect(state.question).not.toBeNull();
   });
 });
 

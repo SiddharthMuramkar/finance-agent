@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { safeDestination } from "@/auth/destination";
 import { PrimaryButton } from "../ui";
+import { PasscodeField } from "./passcode-field";
 
 export default async function LoginPage({
   searchParams,
@@ -11,26 +13,28 @@ export default async function LoginPage({
   const next = safeDestination(requested);
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 p-6">
-      <h1 className="text-xl font-semibold">Finance Agent</h1>
+      <h1 className="text-xl font-semibold">Enter your passcode</h1>
       <form action="/api/login" method="post" className="flex flex-col gap-3">
         {next && <input type="hidden" name="next" value={next} />}
         <label htmlFor="passcode" className="text-sm text-[var(--muted)]">
           Passcode
         </label>
-        <input
-          id="passcode"
-          name="passcode"
-          type="password"
-          autoFocus
-          required
-          className="rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-[var(--ink)]"
-        />
-        {wrong && !locked && <p className="text-sm text-[var(--danger)]">That passcode is not right.</p>}
+        <PasscodeField />
+        {wrong && !locked && (
+          <p role="alert" className="text-sm text-[var(--danger)]">
+            That passcode didn&apos;t work. Check it and try again.
+          </p>
+        )}
         {locked && (
-          <p className="text-sm text-[var(--danger)]">Too many wrong passcodes. Logins from here are paused for 15 minutes; try again later.</p>
+          <p role="alert" className="text-sm text-[var(--danger)]">
+            Too many wrong passcodes. Logins from here are paused for 15 minutes; try again later.
+          </p>
         )}
         <PrimaryButton type="submit">Enter</PrimaryButton>
       </form>
+      <Link href="/" className="text-sm text-[var(--muted)] underline-offset-4 hover:text-[var(--ink)] hover:underline">
+        ← Back to home
+      </Link>
     </main>
   );
 }
