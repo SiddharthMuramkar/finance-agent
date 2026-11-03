@@ -2,12 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { PROFILE_FIELDS, PROFILE_MAX_CHARS, type ProfileField } from "@/learner/profile";
-import { Card, Eyebrow, PrimaryButton, SecondaryButton } from "../ui";
+import Link from "next/link";
+import { PrimaryButton, secondaryButtonClass } from "../ui";
 
 export type ProfileValues = Record<ProfileField, string>;
 
 /**
- * What the Learner is told about the profile, in both the card and Settings. A change reaches the Tutor
+ * What the Learner is told about the profile, on the Welcome and in Settings. A change reaches the Tutor
  * with the Learner's next message (a new Where the Learner stands block), so nothing waits for a new Session.
  */
 export const PROFILE_PRIVACY =
@@ -57,40 +58,38 @@ export async function send(url: string, method: string, body?: unknown): Promise
 }
 
 /**
- * Saves the profile. "card" is the first-visit offer (Save and Not now; it hides itself afterwards);
- * "page" is About you on Settings, which only saves.
+ * Saves the profile. "page" is About you on Settings, which only saves. "welcome" is the Welcome's About you
+ * panel: Next saves the answers and goes on to `next`; Skip, a plain link, goes there too and saves nothing.
  */
-export function ProfileForm({ initial, mode }: { initial: ProfileValues; mode: "card" | "page" }) {
+export function ProfileForm({ initial, mode, next = "/study" }: { initial: ProfileValues; mode: "page" | "welcome"; next?: string }) {
   const [values, setValues] = useState(initial);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "gone">("idle");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setStatus("saving");
     const failed = await send("/api/profile", "PUT", values);
     setError(failed);
-    setStatus(failed ? "idle" : mode === "card" ? "gone" : "saved");
-  };
-  const notNow = async () => {
-    setStatus("saving");
-    const failed = await send("/api/profile/dismiss", "POST");
-    setError(failed);
-    setStatus(failed ? "idle" : "gone");
+    if (!failed && mode === "welcome") {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full load of the next Welcome panel
+      window.location.assign(next);
+      return;
+    }
+    setStatus(failed ? "idle" : "saved");
   };
 
-  if (status === "gone") return null;
-  const form = (
+  return (
     <form onSubmit={save} className="text-sm">
       <ProfileFields values={values} onChange={(key, value) => setValues((v) => ({ ...v, [key]: value }))} idPrefix={`profile-${mode}`} />
-      <div className="mt-4 flex items-center gap-2">
+      <div className={`${mode === "welcome" ? "mt-6" : "mt-4"} flex items-center gap-2`}>
         <PrimaryButton type="submit" disabled={status === "saving"}>
-          Save
+          {mode === "welcome" ? "Next" : "Save"}
         </PrimaryButton>
-        {mode === "card" && (
-          <SecondaryButton onClick={() => void notNow()} disabled={status === "saving"}>
-            Not now
-          </SecondaryButton>
+        {mode === "welcome" && (
+          <Link href={next} className={secondaryButtonClass}>
+            Skip
+          </Link>
         )}
         <p role="status" aria-live="polite" className="text-xs leading-4 text-[var(--muted)]">
           {status === "saved" ? "Saved. The Tutor sees it from your next message." : ""}
@@ -102,14 +101,5 @@ export function ProfileForm({ initial, mode }: { initial: ProfileValues; mode: "
         </p>
       )}
     </form>
-  );
-  if (mode === "page") return form;
-  return (
-    <Card data-profile-card className="mb-4 max-h-[60dvh] overflow-y-auto">
-      <Eyebrow className="mb-1">About you</Eyebrow>
-      <p className="mb-3 text-sm leading-5">Share a little about your life if you like, so the Tutor can pick examples that fit you. Every answer is optional.</p>
-      <p className="mb-3 text-xs leading-4 text-[var(--muted)]">{PROFILE_PRIVACY}</p>
-      {form}
-    </Card>
   );
 }
