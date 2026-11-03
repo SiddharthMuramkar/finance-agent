@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { CourseMap, Topic } from "@/course/map";
-import { insightAttempts, misconceptions, noteItems, topicProgress } from "@/db/schema";
+import { insightAttempts, misconceptions, noteItems, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
@@ -9,7 +9,8 @@ import { loadSaved, type SavedItem } from "./saved";
 /**
  * Topic Notes. The filled-in part of a note is built on read, by code with no model call, from the
  * current Topic file and the Learner's records, and only once the Topic is passed. The Learner's own
- * lines are the only thing stored (table note_items).
+ * lines are the only thing stored (table note_items). Every note is one Learner's: built from their records,
+ * with their own lines and saved items, and another Learner's line is no such line.
  */
 
 export const MAX_LINE_LENGTH = 2000;
@@ -79,14 +80,22 @@ export function buildFilledNote(topic: Topic, records: NoteRecords): FilledNote 
   };
 }
 
-/** Every Topic in course order with its note: the filled-in part for a passed Topic, and the Learner's own lines. */
-export async function loadNotes(db: Db, map: CourseMap): Promise<TopicNote[]> {
+/** Every Topic in course order with this Learner's note: the filled-in part for a Topic they passed, and their own lines. */
+export async function loadNotes(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<TopicNote[]> {
   const [progress, attempts, noticed, items, saved] = await Promise.all([
-    db.select().from(topicProgress),
-    db.select().from(insightAttempts).where(inArray(insightAttempts.released, ["found", "told"])).orderBy(asc(insightAttempts.id)),
-    db.select().from(misconceptions).orderBy(asc(misconceptions.id)),
-    db.select().from(noteItems).where(eq(noteItems.kind, "line")).orderBy(asc(noteItems.id)),
-    loadSaved(db, map),
+    db.select().from(topicProgress).where(eq(topicProgress.learnerId, learnerId)),
+    db
+      .select()
+      .from(insightAttempts)
+      .where(and(eq(insightAttempts.learnerId, learnerId), inArray(insightAttempts.released, ["found", "told"])))
+      .orderBy(asc(insightAttempts.id)),
+    db.select().from(misconceptions).where(eq(misconceptions.learnerId, learnerId)).orderBy(asc(misconceptions.id)),
+    db
+      .select()
+      .from(noteItems)
+      .where(and(eq(noteItems.learnerId, learnerId), eq(noteItems.kind, "line")))
+      .orderBy(asc(noteItems.id)),
+    loadSaved(db, map, learnerId),
   ]);
   return map.topics.map((topic) => {
     const passed = progress.find((p) => p.topicId === topic.id)?.status === "passed";
@@ -120,32 +129,32 @@ function cleanLine(text: string): { ok: true; text: string } | { ok: false; reas
 }
 
 /** Adds the Learner's own line to a Topic's note. Any Topic of the Course Map takes lines, passed or not. */
-export async function addLine(db: Db, map: CourseMap, topicId: string, text: string, now = new Date()): Promise<LineResult> {
+export async function addLine(db: Db, map: CourseMap, topicId: string, text: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<LineResult> {
   if (!map.topic(topicId)) return { ok: false, reason: "That Topic is not on the Course Map.", status: 404 };
   const clean = cleanLine(text);
   if (!clean.ok) return clean;
-  const [row] = await db.insert(noteItems).values({ topicId, kind: "line", text: clean.text, createdAt: now, updatedAt: now }).returning();
+  const [row] = await db.insert(noteItems).values({ learnerId, topicId, kind: "line", text: clean.text, createdAt: now, updatedAt: now }).returning();
   return { ok: true, line: { id: row.id, text: clean.text, createdAt: row.createdAt, updatedAt: row.updatedAt } };
 }
 
-/** Changes the words of one of the Learner's own lines. Only a line can be edited. */
-export async function editLine(db: Db, id: number, text: string, now = new Date()): Promise<LineResult> {
+/** Changes the words of one of this Learner's own lines. Only a line can be edited; another Learner's is not found. */
+export async function editLine(db: Db, id: number, text: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<LineResult> {
   const clean = cleanLine(text);
   if (!clean.ok) return clean;
   const [row] = await db
     .update(noteItems)
     .set({ text: clean.text, updatedAt: now })
-    .where(and(eq(noteItems.id, id), eq(noteItems.kind, "line")))
+    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), eq(noteItems.kind, "line")))
     .returning();
   if (!row) return { ok: false, reason: "That line does not exist.", status: 404 };
   return { ok: true, line: { id: row.id, text: clean.text, createdAt: row.createdAt, updatedAt: row.updatedAt } };
 }
 
-/** Deletes one of the Learner's own lines. Returns false when there was no such line. */
-export async function removeLine(db: Db, id: number): Promise<boolean> {
+/** Deletes one of this Learner's own lines. Returns false when they have no such line. */
+export async function removeLine(db: Db, id: number, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
   const rows = await db
     .delete(noteItems)
-    .where(and(eq(noteItems.id, id), eq(noteItems.kind, "line")))
+    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), eq(noteItems.kind, "line")))
     .returning({ id: noteItems.id });
   return rows.length > 0;
 }

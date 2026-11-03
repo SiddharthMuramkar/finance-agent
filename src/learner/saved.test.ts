@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseCourseMap } from "@/course/map";
-import { libraryPassages, messages, noteItems, sessions } from "@/db/schema";
+import { learners, libraryPassages, messages, noteItems, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { importLibrary, type LibraryFile } from "@/library/ingest";
 import { presentValueOnly } from "@/test/present-value-map";
@@ -209,6 +209,37 @@ describe("taking saved items off a note", () => {
     const note = await noteOf(db);
     expect(note.saved).toEqual([]);
     expect(note.lines.map((l) => l.text)).toEqual(["my own line"]);
+  });
+});
+
+describe("saved items for two Learners", () => {
+  it("another Learner's Session is no Session to save from, and their saved item is no item to remove", async () => {
+    const db = await testDb();
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    const sessionId = await session(db, textReply("The owner's reply."));
+    expect(await saveToNotes(db, map, { kind: "reply", sessionId, turnSeq: 0 }, new Date(), row.id)).toMatchObject({ ok: false, status: 404 });
+    expect(await saveToNotes(db, map, { kind: "widget", sessionId, widgetIndex: EXPLORE_INDEX }, new Date(), row.id)).toMatchObject({ ok: false, status: 404 });
+
+    const owners = await saveToNotes(db, map, { kind: "reply", sessionId, turnSeq: 0 });
+    if (!owners.ok) throw new Error("setup");
+    expect(await removeSaved(db, owners.id, row.id)).toBe(false);
+    expect((await noteOf(db)).saved.map((s) => s.kind === "reply" && s.text)).toEqual(["The owner's reply."]);
+    expect((await loadNotes(db, map, row.id))[0].saved).toEqual([]);
+  });
+
+  it("each Learner saves the same explore Widget once on their own note", async () => {
+    const db = await testDb();
+    const [row] = await db.insert(learners).values({ name: "second" }).returning();
+    const real = presentValueOnly();
+    const mine = await saveToNotes(db, real, { kind: "widget", widgetIndex: EXPLORE_INDEX }, new Date(), OWNER_LEARNER_ID);
+    const theirs = await saveToNotes(db, real, { kind: "widget", widgetIndex: EXPLORE_INDEX }, new Date(), row.id);
+    const again = await saveToNotes(db, real, { kind: "widget", widgetIndex: EXPLORE_INDEX }, new Date(), row.id);
+    expect(mine.ok && theirs.ok && again.ok).toBe(true);
+    if (!mine.ok || !theirs.ok || !again.ok) return;
+    expect(theirs.id).not.toBe(mine.id);
+    expect(again.id).toBe(theirs.id);
+    expect((await loadSaved(db, real, OWNER_LEARNER_ID)).get("present-value")).toHaveLength(1);
+    expect((await loadSaved(db, real, row.id)).get("present-value")).toHaveLength(1);
   });
 });
 

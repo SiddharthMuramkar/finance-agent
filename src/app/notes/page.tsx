@@ -1,3 +1,4 @@
+import { currentLearnerId } from "@/auth/session";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadNotes } from "@/learner/notes";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 /** The Notes page: a Topic Note for every Topic in course order, filled in once the Topic is passed. */
 export default async function NotesPage() {
-  const notes = await loadNotes(getDb(), loadCourseMap());
+  const notes = await loadNotes(getDb(), loadCourseMap(), await currentLearnerId());
   const theme = await readTheme();
   return (
     <SignedInFrame>
