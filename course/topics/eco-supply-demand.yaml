@@ -45,6 +45,12 @@ principle: >
   and sellers are to price. Prices carry information; policies that suppress them move the problem
   rather than remove it.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how a price settles where what buyers want meets what sellers offer."
+  - "Tell a shift in supply from a shift in demand."
+  - "Judge what price controls and export curbs really do."
+
 questions:
   - id: sd-q-retail-rise
     prompt: >

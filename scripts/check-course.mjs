@@ -7,6 +7,7 @@ import { parseCourseMap, readOutlineText, readTopicFiles } from "../src/course/m
 import { formulaCheckErrors } from "../src/course/formula-check.ts";
 import { connectionsCheckErrors } from "../src/course/connections-check.ts";
 import { guidedTaskCheckErrors } from "../src/course/guided-task-check.ts";
+import { youllLearnCheckErrors } from "../src/course/youll-learn-check.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 
 const DOC = "docs/course-map.md";
@@ -28,6 +29,9 @@ if (unreachable.length) fail("Guided Tasks that cannot work", unreachable);
 
 const noConnections = connectionsCheckErrors(map.topics);
 if (noConnections.length) fail("Topics with an Insight need Connections", noConnections);
+
+const youllLearn = youllLearnCheckErrors(map.topics);
+if (youllLearn.length) fail("You'll learn bullets that are missing or break the rules", youllLearn);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 if (process.argv.includes("--write")) {

@@ -134,6 +134,12 @@ const topicSchema = z.object({
     .array(z.string().refine((f) => (FORMULA_IDS as readonly string[]).includes(f), { message: `Unknown formula; the formula registry has: ${FORMULA_IDS.join(", ")}` }))
     .default([]),
   principle: z.string().min(1),
+  /**
+   * You'll learn: two or three short bullets saying what the Topic gives a Learner, shown on the Topic
+   * Start card and the Welcome. Drafted from the concept and principle only, in words (no figures, no
+   * typed formulas, never the Insight); the course check enforces this (src/course/youll-learn-check.ts).
+   */
+  youllLearn: z.array(z.string().trim().min(1)).min(2).max(3).optional(),
   /** The Topic's Insight and the explore step that leads the Learner to it; both or neither. */
   insight: insightSchema.optional(),
   explore: exploreSchema.optional(),

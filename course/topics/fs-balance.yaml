@@ -40,6 +40,12 @@ principle: >
   independent evidence backs the biggest items, and remember the equation: a false asset always
   has a false counterpart on the other side.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read a balance sheet as what a company owns, owes and leaves its owners."
+  - "Use the accounting equation to see where a false number must be hiding."
+  - "Ask what outside evidence backs the biggest items."
+
 questions:
   - id: fb-q-equation
     prompt: >

@@ -45,6 +45,12 @@ principle: >
   paying for the investing, and divide cash on hand by the monthly cash use to see how long the
   money lasts.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read where a company's cash came from and where it went."
+  - "Compare reported profit with the cash the business really produces."
+  - "Work out how long a company's cash will last."
+
 questions:
   - id: fc-q-loss-vs-cash
     prompt: >

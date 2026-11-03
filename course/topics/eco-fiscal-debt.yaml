@@ -46,6 +46,12 @@ principle: >
   A government's room to borrow is a matter of confidence as well as arithmetic. Look at the deficit, the
   debt ratio, and who holds the bonds and how they have financed them.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a government's yearly deficit from its total debt."
+  - "See how the debt ratio moves with growth as well as borrowing."
+  - "Judge a government's room to borrow by confidence as well as arithmetic."
+
 questions:
   - id: fd-q-deficit-debt
     prompt: >

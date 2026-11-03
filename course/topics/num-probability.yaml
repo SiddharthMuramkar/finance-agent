@@ -41,6 +41,12 @@ principle: >
   A positive expected value is not the same as safe. Ask what the worst plausible outcome
   does to the survivor, and how much borrowing sits underneath it, before trusting an average.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Weigh uncertain outcomes by how likely each one is."
+  - "See why a good average can still hide a ruinous outcome."
+  - "Ask how borrowing changes what the worst case does to you."
+
 questions:
   - id: pr-q-expected-value
     prompt: >

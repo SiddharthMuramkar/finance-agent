@@ -49,6 +49,12 @@ principle: >
   surprises, long rates and bond prices reprice the whole expected path at once; a central bank that
   explains itself lets that adjustment happen gradually.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Know the tools a central bank uses to steer interest rates."
+  - "See how rate moves reach spending, inflation and bond prices."
+  - "Understand why the expected path of policy matters as much as today's decision."
+
 questions:
   - id: cb-q-guidance
     prompt: >

@@ -40,6 +40,12 @@ principle: >
   Statistics describe the past sample you fed them. Before trusting one, ask what period it
   covers, what it assumes about extremes, and what could make the relationship change.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Describe a set of returns by its average and its typical spread."
+  - "Read correlation and a fitted line without mistaking them for cause."
+  - "Ask what a statistic assumes about rare extremes."
+
 questions:
   - id: st-q-sd
     prompt: >

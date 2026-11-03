@@ -51,6 +51,12 @@ principle: >
   A spread is the price of risk, and it can widen when everyone wants safety at once. A bet
   that is right on average can still break you if you borrow so much that you cannot wait.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read a credit spread as the extra pay for the risk of default."
+  - "Know what credit ratings say and where investment grade ends."
+  - "See why spreads widen when everyone wants safety at once."
+
 questions:
   - id: cs-q-definition
     prompt: >

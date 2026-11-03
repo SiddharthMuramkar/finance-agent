@@ -43,6 +43,12 @@ principle: >
   The curve is a picture of what the market expects short rates to do. Read its slope as
   a forecast the market is making, then ask what would make the forecast wrong.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read the yield curve and its usual, flat and inverted shapes."
+  - "See how a central bank's moves change the curve's slope."
+  - "Read the curve as a forecast of short rates, and ask what could make it wrong."
+
 questions:
   - id: yc-q-shape
     prompt: >

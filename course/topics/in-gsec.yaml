@@ -59,6 +59,12 @@ principle: >
   paper promises stand in for the asset, the security behind the loan can vanish without
   anyone noticing.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Know India's Treasury bills, dated G-secs and state loans."
+  - "See how banks hold and lend government securities."
+  - "Ask whether the collateral behind a loan really exists."
+
 questions:
   - id: gs-q-tbill
     prompt: >

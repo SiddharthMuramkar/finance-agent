@@ -51,6 +51,12 @@ principle: >
   long-duration assets funded by short-term deposits is a bet that rates and depositors
   will not move, whatever the credit quality of the assets.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Measure how much a bond's price moves when yields change."
+  - "Know why price gains and losses are not the same size."
+  - "See the danger of funding long bonds with short-term money."
+
 questions:
   - id: bd-q-meaning
     prompt: >

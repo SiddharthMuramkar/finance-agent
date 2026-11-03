@@ -45,6 +45,12 @@ principle: >
   earn. A fast-growing run-rate with a loss on every dollar of revenue is growth, not yet a
   business.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Know when a company may count a sale as revenue."
+  - "Tell recorded revenue from an annualised run rate, and gross from net."
+  - "Ask what each unit of revenue cost to earn."
+
 questions:
   - id: rr-q-recorded
     prompt: >

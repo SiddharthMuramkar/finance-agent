@@ -35,6 +35,12 @@ principle: >
   Count every fixed promise to pay as debt in spirit, discount it to today, and compare how long
   the company is committed to pay with how long its customers are committed to stay.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Find the promises to pay that sit outside ordinary loans."
+  - "Value long leases and commitments in today's money."
+  - "Compare how long a company must pay with how long its customers must stay."
+
 questions:
   - id: ls-q-gap
     prompt: >

@@ -47,6 +47,12 @@ principle: >
   built mainly on a high equity multiplier is borrowed, and the same leverage turns a small loss
   into a large negative return on thin equity.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read return on equity as the owners' profit on their own money."
+  - "Split it into margin, asset turnover and leverage."
+  - "Tell a return earned by the business from one borrowed through leverage."
+
 questions:
   - id: fr-q-roe
     prompt: >

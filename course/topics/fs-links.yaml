@@ -44,6 +44,12 @@ principle: >
   agree. A number that appears on one statement and not on the others, or that never turns into
   collected cash, deserves suspicion.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how the income statement, balance sheet and cash flow statement fit together."
+  - "Follow a profit around all three statements."
+  - "Spot a profit that never turns into collected cash."
+
 questions:
   - id: fl-q-credit-sale
     prompt: >

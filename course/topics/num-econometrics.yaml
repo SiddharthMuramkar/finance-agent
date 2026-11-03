@@ -52,6 +52,12 @@ principle: >
   Before quoting a number, ask four things: could someone reproduce it from the data, what was left out,
   what else could explain the pattern, and which way might the cause run.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a correlation from a cause, and spot a hidden third factor."
+  - "Recognise samples and methods that mislead."
+  - "Ask whether a published result could be reproduced from its data."
+
 questions: []
 
 checks:
