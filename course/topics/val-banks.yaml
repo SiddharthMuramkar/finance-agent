@@ -67,6 +67,12 @@ principle: >
   Judge the quality of the loans before you trust book value, and watch for loss of confidence
   that can move faster than any valuation model.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why a bank is valued through its equity rather than the whole business."
+  - "Read a bank's price against its book value in the light of its return on equity."
+  - "Check the quality of the loans before trusting book value."
+
 questions:
   - id: vb-q-debt-raw
     prompt: >

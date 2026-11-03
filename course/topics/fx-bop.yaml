@@ -66,6 +66,12 @@ principle: >
   A current account deficit is a bill that someone has to lend you money to pay. Ask how it is
   financed and how quickly that money can leave.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read a country's dealings with the world as a current account and a capital account that must balance."
+  - "Ask how a current account deficit is financed, and how quickly that money can leave."
+  - "Judge reserves by how many months of imports they could pay for."
+
 questions:
   - id: bop-q-identity
     prompt: >

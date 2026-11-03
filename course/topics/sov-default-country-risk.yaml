@@ -59,6 +59,12 @@ principle: >
   A government's promise to pay is only as good as its ability and its willingness to pay. Country risk shows
   up first in what lenders charge and in what they let you take out.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Measure a government's default risk by the extra yield lenders charge over a default-free bond."
+  - "See why debt in a foreign currency is riskier for a government than debt in its own."
+  - "Carry country risk into what companies and shareholders in that country must earn."
+
 questions:
   - id: sd-q-spread
     prompt: >

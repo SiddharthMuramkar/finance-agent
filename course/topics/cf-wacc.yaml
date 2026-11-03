@@ -46,6 +46,12 @@ principle: >
   Every pound of capital has a price. A project or business is worth funding only if it earns
   more than the average price of the money used, adjusted for its own risk.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Build a firm's average cost of capital from what lenders and shareholders each require."
+  - "See why debt costs less than equity once tax is counted."
+  - "Use a higher rate for a project that is riskier than the firm's usual business."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: wc-q-calc

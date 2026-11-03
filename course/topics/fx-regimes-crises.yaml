@@ -56,6 +56,12 @@ principle: >
   A fixed exchange rate is a promise that lasts only as long as the central bank's reserves and the
   economy's tolerance for high interest rates. The weaker the promise, the more a crisis feeds on itself.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Place a currency on the range from a free float to a hard peg."
+  - "See what a central bank must spend, in reserves or in interest rates, to defend a peg."
+  - "Explain how doubt about a peg can feed on itself and why foreign-currency debt makes the fall hurt."
+
 questions:
   - id: fr-q-hard-peg
     prompt: >

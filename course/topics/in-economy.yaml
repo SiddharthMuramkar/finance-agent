@@ -61,6 +61,12 @@ principle: >
   the emergency measures and the structural reforms apart in your mind, because they work on
   different time scales.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell emergency stabilisation measures from structural reforms that change how an economy works."
+  - "See how a licence system kept prices high and rationed foreign exchange by permission."
+  - "Explain why reforms need sequencing and take years to show up in growth."
+
 questions:
   - id: ie-q-depreciation
     prompt: >

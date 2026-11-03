@@ -66,6 +66,12 @@ principle: >
   growth, margins and risk had to be to earn it, and whether the company you are valuing really
   looks like that.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Price a company by what the market pays for similar ones."
+  - "Match equity measures with share value, and whole-business measures with enterprise value."
+  - "Ask what growth, margins and risk a comparable needed to earn its multiple."
+
 questions:
   - id: vm-q-apply
     prompt: >
