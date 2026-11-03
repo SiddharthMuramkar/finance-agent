@@ -32,7 +32,7 @@ describe("an old Session page", () => {
 
   it("puts a Widget chip where the Tutor put the Widget, the Widget itself in the panel, and never shows its code", () => {
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text: reply }]} />);
-    const chip = html.indexOf("Widget 1 →");
+    const chip = html.indexOf("Open: PV →");
     expect(chip).toBeGreaterThan(html.indexOf("prices rise"));
     expect(chip).toBeLessThan(html.indexOf("Try the slider."));
     expect(html).toContain('data-testid="widget-card"');

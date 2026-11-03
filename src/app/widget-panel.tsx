@@ -179,19 +179,26 @@ export function useWidgetPicker(widgets: WidgetItem[]) {
   return { shown, pick, flashing, clear: () => setPicked(undefined) };
 }
 
-/** The chip standing where a Widget belongs in a reply; it shows that Widget in the panel. */
+/** What a Widget is called on its tab and chip: "Explore" for the explore Widget, else its title, never a number. */
+export function widgetName(item: WidgetItem): string {
+  if (item.explore) return "Explore";
+  return widgetParts(item.code).title?.trim() || "Untitled Widget";
+}
+
+/** The chip standing where a Widget belongs in a reply: "Open: <title> →"; it shows that Widget in the panel. */
 export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active: boolean; onPick: (key: string) => void }) {
+  const name = widgetName(item);
   return (
     <span className="my-3 block">
-      <Chip active={active} onClick={() => onPick(item.key)} data-testid="widget-chip">
-        Widget {item.number} {item.complete ? "→" : "(drawing…)"}
+      <Chip active={active} onClick={() => onPick(item.key)} data-testid="widget-chip" className="max-w-full" title={name}>
+        <span className="min-w-0 truncate">{item.complete ? `Open: ${name} →` : `${name} (drawing…)`}</span>
       </Chip>
     </span>
   );
 }
 
 /**
- * The Widget panel beside the conversation: a chip per Widget (from two on), then one card with a concept
+ * The Widget panel beside the conversation: a tab per Widget, named by title (from two on), then one card with a concept
  * eyebrow and the Widget, or a dashed empty box before the Tutor has built any. Read-only callers can
  * leave out onPick's side effects; the panel never calls the model.
  */
@@ -217,10 +224,18 @@ export function WidgetPanel({
   return (
     <>
       {(widgets.length >= 2 || widgets.some((w) => w.explore)) && (
-        <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Widgets in this Session">
+        // One line of tabs that scrolls sideways, never wrapping; a long title is cut short with an ellipsis (full title on hover).
+        <div className="mb-3 flex flex-nowrap gap-2 overflow-x-auto pb-1" role="group" aria-label="Widgets in this Session">
           {widgets.map((w) => (
-            <Chip key={w.key} active={w.key === shown.key} onClick={() => onPick(w.key)} className={w.explore ? "max-lg:hidden" : ""} data-testid={w.explore ? "explore-chip" : undefined}>
-              {w.explore ? "Explore" : (widgetParts(w.code).title ?? `Widget ${w.number}`)}
+            <Chip
+              key={w.key}
+              active={w.key === shown.key}
+              onClick={() => onPick(w.key)}
+              className={`max-w-56 shrink-0 ${w.explore ? "max-lg:hidden" : ""}`}
+              title={widgetName(w)}
+              data-testid={w.explore ? "explore-chip" : undefined}
+            >
+              <span className="min-w-0 truncate">{widgetName(w)}</span>
             </Chip>
           ))}
         </div>

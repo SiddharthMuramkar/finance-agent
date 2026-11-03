@@ -25,7 +25,7 @@ describe("phone note", () => {
       <Conversation initial={[{ role: "assistant", text: `Try it.\n\n${widget}` }]} summary="" quiz={null} pending={null} review={{ question: null, dueCount: 0, done: 0, cap: 5 }} />,
     );
     const chat = html.slice(0, html.indexOf('data-testid="widget-pane"'));
-    expect(chat).toContain("Widget 1");
+    expect(chat).toContain("Open: Pick a rate →");
     expect(chat).not.toContain("Discount rate");
   });
 });

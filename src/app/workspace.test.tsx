@@ -80,9 +80,20 @@ describe("the workspace's left column", () => {
     ];
     const html = workspace({ initial });
     const chat = html.slice(0, html.indexOf('data-testid="widget-pane"'));
-    expect(text(chat)).toContain("Widget 1 →");
+    expect(text(chat)).toContain("Open: What the annuity is worth today →");
     expect(chat).not.toContain("Discount rate");
     expect(chat).not.toContain("openui-lang");
+  });
+
+  it("never shows a numbered \"Widget N →\" chip anywhere in the workspace", () => {
+    const initial: Line[] = [
+      { role: "assistant", text: fence(HISTORY) },
+      { role: "assistant", text: fence(ANNUITY) },
+    ];
+    const html = text(workspace({ initial }));
+    expect(html).toContain("Open: Long-term interest rates →");
+    expect(html).toContain("Open: What the annuity is worth today →");
+    expect(html).not.toMatch(/Widget \d/);
   });
 
   it("has a composer that asks the Tutor", () => {
@@ -115,6 +126,22 @@ describe("the Widget panel", () => {
     const one = renderToStaticMarkup(<WidgetPanel widgets={[items[1]]} shown={items[1]} onPick={() => {}} />);
     expect(one).not.toContain("Widgets in this Session");
     expect(text(one)).not.toContain("Long-term interest rates");
+  });
+
+  it("keeps its tabs on one line that scrolls sideways, each named by title and shortened when long", () => {
+    const long = `root = Widget("A very long title for a Widget that would never fit on one tab in the right panel", [history])
+history = HistoryChart("mega-millions-2018/treasury-30-year")`;
+    const many: WidgetItem[] = [...items, ...[3, 4, 5, 6].map((n) => ({ key: `m:${n}`, number: n, code: n === 6 ? long : CALC, complete: true }))];
+    const html = renderToStaticMarkup(<WidgetPanel widgets={many} shown={many[0]} onPick={() => {}} />);
+    const row = html.match(/<div[^>]*aria-label="Widgets in this Session"[^>]*>/)?.[0] ?? "";
+    expect(row).toMatch(/\bflex-nowrap\b/);
+    expect(row).toMatch(/\boverflow-x-auto\b/);
+    expect(row).not.toMatch(/\bflex-wrap\b/);
+    const tab = html.match(/<button[^>]*title="A very long title[^"]*"[^>]*>\s*<span[^>]*>/)?.[0] ?? "";
+    expect(tab).toMatch(/\bshrink-0\b/);
+    expect(tab).toMatch(/\bmax-w-/);
+    expect(tab).toMatch(/<span[^>]*\btruncate\b/);
+    expect(text(html)).not.toMatch(/Widget \d/);
   });
 
   it("names the concept from the Widget's components, else the current Topic", () => {
