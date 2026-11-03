@@ -384,6 +384,84 @@ describe("Teaching Steps: the step sequence", () => {
       "Step 9 of 9 · Principle",
     ]);
   });
+
+  const insightMap = courseMap(
+    topicFile("plain", 10, [{ id: "pl-1" }]),
+    topicFile("annuity", 20, [{ id: "an-1" }, { id: "an-2" }], [], { before: "an-2" }),
+  );
+
+  it("puts Explore once, only in a Topic with an Insight, after the Concept of the Check that tests it", () => {
+    expect(labels(insightMap, empty, "plain")).toEqual([
+      "Step 1 of 6 · Story",
+      "Step 2 of 6 · Concept",
+      "Step 3 of 6 · Your turn",
+      "Step 4 of 6 · Check",
+      "Step 5 of 6 · Reveal",
+      "Step 6 of 6 · Principle",
+    ]);
+    expect(labels(insightMap, empty, "annuity")).toEqual([
+      "Step 1 of 10 · Story",
+      "Step 2 of 10 · Concept",
+      "Step 3 of 10 · Your turn",
+      "Step 4 of 10 · Check",
+      "Step 5 of 10 · Concept",
+      "Step 6 of 10 · Explore",
+      "Step 7 of 10 · Your turn",
+      "Step 8 of 10 · Check",
+      "Step 9 of 10 · Reveal",
+      "Step 10 of 10 · Principle",
+    ]);
+  });
+
+  it("groups the steps by Check for the strip", () => {
+    const groups = stepSequence(insightMap, empty, "annuity")!.groups.map((g) => [g.check ? `Check ${g.check.number}` : null, g.steps.map((s) => s.step)]);
+    expect(groups).toEqual([
+      [null, ["story"]],
+      ["Check 1", ["concept", "your_turn", "check"]],
+      ["Check 2", ["concept", "explore", "your_turn", "check"]],
+      [null, ["reveal", "principle"]],
+    ]);
+  });
+
+  it("marks the Learner's place, which moves along as steps finish", () => {
+    const start = { currentTopicId: "annuity", topics: {} };
+    expect(stepSequence(insightMap, start, "annuity")!.current).toBe(0);
+    const atExplore = play(insightMap, start, ["story", "concept", "your_turn", { pass: "an-1" }, "concept"]);
+    const seq = stepSequence(insightMap, atExplore, "annuity")!;
+    expect(seq.steps[seq.current!].label).toBe("Step 6 of 10 · Explore");
+  });
+
+  it("for a Learner who passed the Insight's Check before the Insight existed, puts Explore just before Reveal", () => {
+    // Before the Insight was written, the Checks were in the other order and the Learner passed an-2 first.
+    const before = courseMap(topicFile("plain", 10, [{ id: "pl-1" }]), topicFile("annuity", 20, [{ id: "an-2" }, { id: "an-1" }]));
+    const pastAnchor = play(before, { currentTopicId: "annuity", topics: {} }, ["story", "concept", "your_turn", { pass: "an-2" }]);
+    const seq = stepSequence(insightMap, pastAnchor, "annuity")!;
+    expect(seq.steps.map((s) => s.step)).toEqual(["story", "concept", "your_turn", "check", "concept", "your_turn", "check", "explore", "reveal", "principle"]);
+    expect(seq.groups.at(-1)!.steps.map((s) => s.step)).toEqual(["explore", "reveal", "principle"]);
+    expect(seq.steps[seq.current!]).toMatchObject({ step: "concept", check: { number: 1 } });
+    const atLateExplore = play(insightMap, pastAnchor, ["concept", "your_turn", { pass: "an-1" }]);
+    const late = stepSequence(insightMap, atLateExplore, "annuity")!;
+    expect(late.steps[late.current!].label).toBe("Step 8 of 10 · Explore");
+  });
+
+  it("lists only the due steps in a Due Check run", () => {
+    const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+    const required = courseMap(topicFile("compounding", 10, [{ id: "co-1" }, { id: "co-2", required: true }]), topicFile("pv", 20, [{ id: "pv-1" }]));
+    const run = stepSequence(required, done, "compounding")!;
+    expect(run).toMatchObject({ dueRun: true, current: 0 });
+    expect(run.steps.map((s) => s.label)).toEqual(["Step 1 of 3 · Concept", "Step 2 of 3 · Your turn", "Step 3 of 3 · Check"]);
+    expect(run.groups).toEqual([{ check: { id: "co-2", number: 2 }, steps: run.steps }]);
+
+    const exploreAdded = courseMap(topicFile("compounding", 10, [{ id: "co-1" }], [], { before: "co-1", requiredWhenPassed: true }), topicFile("pv", 20, [{ id: "pv-1" }]));
+    expect(stepSequence(exploreAdded, done, "compounding")!.steps.map((s) => s.label)).toEqual(["Step 1 of 1 · Explore"]);
+  });
+
+  it("lists a passed Topic with nothing due in full, with no place in it", () => {
+    const done = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+    expect(stepSequence(twoChecks, done, "compounding")).toMatchObject({ dueRun: false, current: null });
+    expect(stepSequence(twoChecks, done, "compounding")!.steps).toHaveLength(6);
+    expect(stepSequence(twoChecks, done, "nowhere")).toBeNull();
+  });
 });
 
 describe("reviews due", () => {
