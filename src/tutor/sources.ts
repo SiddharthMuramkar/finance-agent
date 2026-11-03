@@ -28,13 +28,22 @@ export type SourceContext = {
  * Looks up the credit of these cited passages, which of them the as-of rule hides and, given the
  * Course Map, the Case Data allowed now. Without the Course Map nothing is withheld.
  */
-export async function sourceContext({ db, map }: { db: Db; map?: CourseMap }, cited: number[]): Promise<SourceContext> {
+export async function sourceContext({ db, map }: { db: Db; map?: CourseMap }, cited: number[], topicTitle?: string): Promise<SourceContext> {
   const credits = await passageCredits({ db }, cited);
   if (!map) return { credits, hidden: new Set(), datasets: [] };
+  return { credits, hidden: await hiddenPassages({ db, map }, cited), datasets: await topicDatasets({ db, map }, topicTitle) };
+}
+
+/**
+ * The Case Data of a Topic, under the as-of rule as it applies now. `topicTitle` is the Topic a reply was
+ * taught under (an old Session keeps its own Topic's credits); without it, or when the Course Map has no
+ * such Topic, the Learner's current Topic is used.
+ */
+export async function topicDatasets({ db, map }: { db: Db; map: CourseMap }, topicTitle?: string): Promise<CaseDataset[]> {
   const progress = await loadProgress(db);
-  const place = navigate(map, progress);
-  const cases = await Promise.all((place?.topic.cases ?? []).map((c) => loadCaseData(db, map, progress, c.id)));
-  return { credits, hidden: await hiddenPassages({ db, map }, cited), datasets: cases.flatMap((c) => c?.datasets ?? []) };
+  const topic = (topicTitle ? map.topics.find((t) => t.title === topicTitle) : undefined) ?? navigate(map, progress)?.topic;
+  const cases = await Promise.all((topic?.cases ?? []).map((c) => loadCaseData(db, map, progress, c.id)));
+  return cases.flatMap((c) => c?.datasets ?? []);
 }
 
 /** The forms a figure may take in a sentence: as the widgets write it, and as a plain number. */

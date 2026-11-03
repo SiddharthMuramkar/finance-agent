@@ -40,6 +40,11 @@ describe("raw-formula detector", () => {
     expect(hasRawFormula('Answer.\n```sources\n[{"n":1,"title":"a = b"}]\n```')).toBe(false);
   });
 
+  it("ignores the target of a Citation marker and a sources fence in a cited reply", () => {
+    expect(hasRawFormula("Discounting shrinks later cash [1](/passages/12?blocks=3-5) and the rate matters [2](/passages/7?blocks=1-2).")).toBe(false);
+    expect(hasRawFormula('Later cash is worth less [1](/passages/12?blocks=3-5).\n```sources\n[{"n":1,"title":"Damodaran"}]\n```')).toBe(false);
+  });
+
   it("says which sign it found and quotes where", () => {
     const hits = rawFormulaHits("so PV = amount / (1 + r)^n holds");
     expect(hits.length).toBeGreaterThan(1);

@@ -1,9 +1,9 @@
-import { and, asc, eq, isNull, lte, ne } from "drizzle-orm";
+import { and, asc, eq, isNull, ne } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
 import { messages, noteItems, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { lastTopicTitle } from "@/tutor/session-summary";
+import { lastTopicTitle, rowsThroughTurn } from "@/tutor/session-summary";
 import { loadSession, type Line } from "@/tutor/transcript";
 import { widgetParts } from "@/widgets/check";
 import { applySettings, cleanSettings } from "@/widgets/settings";
@@ -40,12 +40,13 @@ const refused = (reason: string): SaveResult => ({ ok: false, reason, status: 40
 /** The Topic a turn was taught under: the last Topic the Tutor's context named by then, else the Learner's current Topic. */
 async function topicOfTurn(db: Db, map: CourseMap, sessionId: number | undefined, turnSeq: number | undefined): Promise<string | undefined> {
   if (sessionId !== undefined) {
-    const rows = await db
-      .select({ content: messages.content })
+    // Up to the end of the turn, not its start: a changed context is stored right after the Learner's message.
+    const all = await db
+      .select({ seq: messages.seq, role: messages.role, content: messages.content })
       .from(messages)
-      .where(turnSeq === undefined ? eq(messages.sessionId, sessionId) : and(eq(messages.sessionId, sessionId), lte(messages.seq, turnSeq)))
+      .where(eq(messages.sessionId, sessionId))
       .orderBy(asc(messages.seq));
-    const title = lastTopicTitle(rows);
+    const title = lastTopicTitle(turnSeq === undefined ? all : rowsThroughTurn(all, turnSeq));
     const topic = title ? map.topics.find((t) => t.title === title) : undefined;
     if (topic) return topic.id;
   }

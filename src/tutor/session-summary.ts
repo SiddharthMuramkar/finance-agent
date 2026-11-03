@@ -36,8 +36,31 @@ export function summariseRows(rows: { role: string; content: unknown }[]): Sessi
 /** The title of the last Topic the Tutor's context named in these messages, or undefined. */
 export function lastTopicTitle(rows: { content: unknown }[]): string | undefined {
   let last: string | undefined;
-  for (const r of rows) for (const m of stringsIn(r.content).join("\n").matchAll(TOPIC_LINE)) last = m[1];
+  for (const r of rows) last = topicTitleIn(r.content) ?? last;
   return last;
+}
+
+/** The title of the last Topic one stored message names, or undefined. */
+export function topicTitleIn(content: unknown): string | undefined {
+  let last: string | undefined;
+  for (const m of stringsIn(content).join("\n").matchAll(TOPIC_LINE)) last = m[1];
+  return last;
+}
+
+/** True for a stored user message that only carries tool results or a widget correction: it continues the turn, it does not begin one. */
+export function continuesTurn(row: { role: string; content: unknown }): boolean {
+  if (row.role !== "user") return false;
+  if (Array.isArray(row.content) && row.content.some((b) => b?.type === "tool_result")) return true;
+  return stringsIn(row.content).some((t) => t.startsWith(WIDGET_CHECK_PREFIX));
+}
+
+/**
+ * The rows up to the end of the turn that began at `turnSeq`: the Learner's message, the context line
+ * stored right after it when the Topic changed, the loop steps and the reply, but not the next turn.
+ */
+export function rowsThroughTurn<T extends { seq: number; role: string; content: unknown }>(rows: T[], turnSeq: number): T[] {
+  const end = rows.find((r) => r.seq > turnSeq && r.role === "user" && !continuesTurn(r));
+  return rows.filter((r) => r.seq <= turnSeq || !end || r.seq < end.seq);
 }
 
 /** Every Session's summary in one query, keyed by Session id. */

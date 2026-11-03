@@ -169,6 +169,13 @@
       "when": 1793685422729,
       "tag": "0023_mighty_cerebro",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793688633540,
+      "tag": "0024_pretty_mole_man",
+      "breakpoints": true
     }
   ]
 }

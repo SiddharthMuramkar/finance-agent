@@ -84,6 +84,38 @@ describe("Save to notes: replies", () => {
     expect((await noteOf(db)).saved.map((i) => i.kind === "reply" && i.text)).toEqual(["An older explanation."]);
   });
 
+  it("saves the first reply after a Course Map jump under the new Topic, whose context line is stored after the Learner's message", async () => {
+    const topicYaml = (id: string, title: string, path: number) => ({
+      name: `${id}.yaml`,
+      text: `
+id: ${id}
+title: ${title}
+stage: foundation
+path: ${path}
+cases:
+  - { id: ${id}-case, title: A case, asOf: 2018-10-24, story: Then., reveal: Later. }
+concept: Idea.
+principle: Lesson.
+checks:
+  - { id: ${id}-check, kind: conversation, prompt: Explain., passCriteria: Explains. }
+`,
+    });
+    const two = parseCourseMap([topicYaml("pv", "PV", 1), topicYaml("fv", "FV", 2)]).map!;
+    const db = await testDb();
+    const [s] = await db.insert(sessions).values({ instructions: "i", tools: [], model: "m", effort: "medium", fingerprint: "f" }).returning();
+    await db.insert(messages).values([
+      { sessionId: s.id, seq: 0, role: "user", content: [{ type: "text", text: "Topic: PV (Foundation Stage).\nTeaching Step: concept" }, { type: "text", text: "Hi." }] },
+      { sessionId: s.id, seq: 1, role: "assistant", content: textReply("About PV.") },
+      { sessionId: s.id, seq: 2, role: "user", content: "Take me to FV." },
+      { sessionId: s.id, seq: 3, role: "system", content: "Topic: FV (Foundation Stage).\nTeaching Step: concept" },
+      { sessionId: s.id, seq: 4, role: "assistant", content: textReply("About FV.") },
+    ]);
+    const saved = await saveToNotes(db, two, { kind: "reply", sessionId: s.id, turnSeq: 2 });
+    expect(saved.ok && saved.topicId).toBe("fv");
+    const first = await saveToNotes(db, two, { kind: "reply", sessionId: s.id, turnSeq: 0 });
+    expect(first.ok && first.topicId).toBe("pv");
+  });
+
   it("refuses a reply that does not exist", async () => {
     const db = await testDb();
     const sessionId = await session(db, textReply("Hello."));

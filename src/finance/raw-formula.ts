@@ -3,8 +3,8 @@
 // later, the model comparison all call it, so there is one definition of "typed formula".
 // No imports, so `scripts/check-course.mjs` can run it under plain Node.
 
-/** What the detector leaves out before it looks: formula markers, code fences (widgets, sources) and links. */
-const IGNORED = [/\{\{formula:[^}]*\}\}/g, /```[\s\S]*?```/g, /https?:\/\/\S+/g];
+/** What the detector leaves out before it looks: formula markers, code fences (widgets, sources), links and Markdown link targets (a Citation marker's `?blocks=3-5`). */
+const IGNORED = [/\{\{formula:[^}]*\}\}/g, /```[\s\S]*?```/g, /https?:\/\/\S+/g, /\]\([^)]*\)/g];
 
 const SIGNS: { name: string; pattern: RegExp }[] = [
   // Any equals sign that is not part of >=, <=, != or ==: "PV = ...", "1,210 / 1.21 = 1,000".
