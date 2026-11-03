@@ -208,7 +208,8 @@ describe("The owner and a second Learner", () => {
 
     expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).not.toContain("The owner&#x27;s own note line");
     expect(await html(SessionsPage())).toContain("No Sessions yet.");
-    expect(await html(ProgressPage())).not.toMatch(/In progress/i);
+    expect(await html(ProgressPage())).toContain("0 in progress · 0 passed");
+    expect(await html(ProgressPage())).not.toContain('data-status="in_progress"');
     expect(await html(SettingsPage())).not.toContain("Mumbai");
     const study = await html(StudyPage({ searchParams: Promise.resolve({}) }));
     expect(study).not.toContain("The owner&#x27;s reply");
@@ -335,7 +336,8 @@ describe("Start over", () => {
     // The fresh Learner starts empty.
     expect(await html(SessionsPage())).toContain("No Sessions yet.");
     expect(await html(NotesPage({ searchParams: Promise.resolve({ all: "1" }) }))).not.toContain("note line");
-    expect(await html(ProgressPage())).not.toMatch(/In progress/i);
+    expect(await html(ProgressPage())).toContain("0 in progress · 0 passed");
+    expect(await html(ProgressPage())).not.toContain('data-status="in_progress"');
     expect(await json(profileRoute.GET())).toMatchObject({ work: null });
     expect(await html(StudyPage({ searchParams: Promise.resolve({}) }))).not.toContain("The test Learner&#x27;s reply.");
 
