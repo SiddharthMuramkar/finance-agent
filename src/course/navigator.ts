@@ -372,6 +372,33 @@ function positionOf(map: CourseMap, progress: Progress, topicId: string): StepPo
   return seq && seq.current !== null ? seq.steps[seq.current] : null;
 }
 
+/** Where the Learner goes from Home, the Recommended next card and the Topic complete card. The arrow is the page's to draw. */
+export type ComingNext =
+  /** The Topic the Learner chose (or started) and has not passed. */
+  | { kind: "chosen"; topic: Topic; label: string }
+  /** A passed Topic's Due Check, or its due Explore (check null). */
+  | { kind: "due"; topic: Topic; check: NumberedCheck | null; label: string }
+  /** The next unpassed Topic on the default path. */
+  | { kind: "next_topic"; topic: Topic; label: string };
+
+/**
+ * What comes next, in order: a chosen Topic not yet passed; else a Due Check ("New in <Topic>: Check N",
+ * or "New in <Topic>: Explore", which a Due Check run takes first); else the next unpassed Topic on the
+ * default path ("Next Topic: <title>"). Null once every Topic is passed.
+ */
+export function whatComesNext(map: CourseMap, progress: Progress): ComingNext | null {
+  const chosen = progress.currentTopicId ? map.topic(progress.currentTopicId) : undefined;
+  if (chosen && !isPassed(progress, chosen.id)) return { kind: "chosen", topic: chosen, label: `Resume: ${chosen.title}` };
+  const place = navigate(map, progress);
+  if (!place) return null;
+  const record = progress.topics[place.topic.id];
+  if (place.status !== "passed" || !record) return { kind: "next_topic", topic: place.topic, label: `Next Topic: ${place.topic.title}` };
+  if (exploreDue(place.topic, record)) return { kind: "due", topic: place.topic, check: null, label: `New in ${place.topic.title}: Explore` };
+  const due = dueIn(place.topic, record)[0];
+  const check = { id: due.id, number: place.topic.checks.indexOf(due) + 1 };
+  return { kind: "due", topic: place.topic, check, label: `New in ${place.topic.title}: Check ${check.number}` };
+}
+
 export type TopicOverview = {
   id: string;
   title: string;

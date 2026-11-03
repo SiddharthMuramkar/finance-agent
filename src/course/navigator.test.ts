@@ -11,6 +11,7 @@ import {
   nextOffer,
   stepSequence,
   takeNext,
+  whatComesNext,
   type Progress,
   type TopicProgress,
 } from "./navigator";
@@ -540,6 +541,45 @@ describe("Teaching Steps: the Learner's Next", () => {
       reason: "Explore is not settled: the Learner has not found the Insight or been told it.",
     });
     expect(takeNext(insightMap, start, "reveal", begun)).toEqual({ ok: false, reason: 'Next names "concept", not "reveal".' });
+  });
+});
+
+describe("What comes next", () => {
+  const passedCompounding = play(twoChecks, empty, ["story", "concept", "your_turn", { pass: "co-1" }, "reveal", "principle"]);
+  const dueCheck = courseMap(
+    topicFile("compounding", 10, [{ id: "co-1" }, { id: "co-2", required: true }]),
+    topicFile("pv", 20, [{ id: "pv-1" }]),
+    topicFile("statements", 30, [{ id: "st-1" }]),
+  );
+
+  it("is a chosen Topic the Learner has not passed, first of all", () => {
+    const jump = jumpTo(dueCheck, passedCompounding, "statements");
+    if (!jump.ok) throw new Error(jump.reason);
+    expect(whatComesNext(dueCheck, jump.progress)).toMatchObject({ kind: "chosen", topic: { id: "statements" }, label: "Resume: Topic statements" });
+  });
+
+  it("else a Due Check, named by its Topic and number", () => {
+    expect(whatComesNext(dueCheck, passedCompounding)).toMatchObject({
+      kind: "due",
+      topic: { id: "compounding" },
+      check: { id: "co-2", number: 2 },
+      label: "New in Topic compounding: Check 2",
+    });
+  });
+
+  it("else a due Explore, named as such", () => {
+    const exploreAdded = courseMap(topicFile("compounding", 10, [{ id: "co-1" }], [], { before: "co-1", requiredWhenPassed: true }), topicFile("pv", 20, [{ id: "pv-1" }]));
+    expect(whatComesNext(exploreAdded, passedCompounding)).toMatchObject({ kind: "due", check: null, label: "New in Topic compounding: Explore" });
+  });
+
+  it("else the next unpassed Topic on the default path", () => {
+    expect(whatComesNext(twoChecks, passedCompounding)).toMatchObject({ kind: "next_topic", topic: { id: "pv" }, label: "Next Topic: Topic pv" });
+    expect(whatComesNext(twoChecks, empty)).toMatchObject({ kind: "next_topic", topic: { id: "compounding" } });
+  });
+
+  it("is nothing once every Topic is passed", () => {
+    const passed: TopicProgress = { step: "principle", passedChecks: [], revealShown: true, status: "passed" };
+    expect(whatComesNext(twoChecks, { currentTopicId: null, topics: { pv: passed, statements: passed, compounding: passed } })).toBeNull();
   });
 });
 
