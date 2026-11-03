@@ -39,7 +39,7 @@ describe("usage per Tutor turn", () => {
     expect(steps).toHaveLength(2);
     expect(turn).toHaveLength(1);
     expect(steps[0]).toMatchObject({
-      model: "claude-sonnet-5-5",
+      model: "claude-opus-5-5",
       inputTokens: 1000,
       outputTokens: 200,
       cacheWriteTokens: 4000,
@@ -48,13 +48,13 @@ describe("usage per Tutor turn", () => {
       tools: ["finish_teaching_step"],
     });
     expect(steps[1]).toMatchObject({ inputTokens: 300, outputTokens: 100, cacheReadTokens: 5000, thinkingTokens: null, tools: [] });
-    // Step 1: (1000*2 + 200*10 + 4000*2.5) / 1e6 = 0.014. Step 2: (300*2 + 100*10 + 5000*0.2) / 1e6 = 0.0026.
-    expect(steps[0].costUsd).toBeCloseTo(0.014, 6);
-    expect(steps[1].costUsd).toBeCloseTo(0.0026, 6);
+    // Opus rates. Step 1: (1000*4 + 200*20 + 4000*5) / 1e6 = 0.028. Step 2: (300*4 + 100*20 + 5000*0.2) / 1e6 = 0.0042.
+    expect(steps[0].costUsd).toBeCloseTo(0.028, 6);
+    expect(steps[1].costUsd).toBeCloseTo(0.0042, 6);
     expect(turn[0]).toMatchObject({ inputTokens: 1300, outputTokens: 300, cacheReadTokens: 5000, cacheWriteTokens: 4000, tools: ["finish_teaching_step"] });
-    expect(turn[0].costUsd).toBeCloseTo(0.0166, 6);
+    expect(turn[0].costUsd).toBeCloseTo(0.0322, 6);
     expect(turn[0].durationMs).toBeGreaterThanOrEqual(0);
-    expect(done).toMatchObject({ type: "done", usage: { costUsd: expect.closeTo(0.0166, 6), steps: [{ step: 1 }, { step: 2 }] } });
+    expect(done).toMatchObject({ type: "done", usage: { costUsd: expect.closeTo(0.0322, 6), steps: [{ step: 1 }, { step: 2 }] } });
   });
 
   it("shows a past turn's usage on its last reply when a Session is reloaded", async () => {

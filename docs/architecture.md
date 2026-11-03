@@ -72,7 +72,7 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
 ## Database (Neon Postgres through Drizzle)
 
 **What it does.** Neon is the only store. Thirteen tables so far:
-- `settings`: the Tutor's model (`claude-sonnet-5-5`), effort (`medium`) and the idle hours before
+- `settings`: the Tutor's model (`claude-opus-5-5`), effort (`medium`) and the idle hours before
   a new Session starts, editable without a rebuild.
 - `sessions`: one row per Session, with the exact instructions, tool definitions, model and
   effort frozen when it started, plus a fingerprint of the instructions and tools.
@@ -103,13 +103,17 @@ Claude's thinking rules need, but makes it less convenient to query than neat co
 request only from what the Session saved (never from today's code or settings), and runs it
 through the Anthropic SDK's Tool Runner with streaming. Text is forwarded to the browser as it
 arrives. When each step of the loop finishes, the reply is saved unchanged, thinking blocks
-included. The Tool Runner is in beta, so the SDK version is pinned exactly (`1.3.0`).
+included. The Tutor runs on Opus 5.5 at medium effort (the stored default; each Session keeps the
+model it started with). No request forces a tool or sends sampling settings such as temperature.
+The Tool Runner is in beta, so the SDK version is pinned exactly (`1.3.0`).
 
 **Scenario.** On the third message of a Session, the request contains the first two exchanges
 exactly as they happened, including Claude's signed thinking blocks, followed by the new
 message. Because nothing earlier was edited, Claude accepts the thinking and no 400 error occurs.
-If the owner switches the model setting to Haiku meanwhile, this Session keeps Sonnet; the next
-Session picks up Haiku.
+If the owner switches the model setting to Haiku meanwhile, this Session keeps Opus; the next
+Session picks up Haiku. The default is Opus 5.5 at medium effort; a data migration moved the stored
+setting from the old Sonnet default to Opus only where it still held that default, so a model the
+owner chose by hand is never overwritten.
 
 **Trade-off.** Add-only history means context that changes (for example, the current teaching
 step) must be sent as a new message rather than by editing the instructions. That is a little
@@ -406,7 +410,7 @@ were saved with). The API does not report thinking tokens on every reply, so tha
 "n/a". A step's time includes the tools that ran just before it, so it is "time since the last step".
 
 **How it is tested.** The price table is checked against worked literals ($12 for a million
-tokens in and out on Sonnet). The turn tests check that scripted replies produce the right rows,
+tokens in and out on Sonnet, and a worked Opus turn at $4 in, $20 out and $0.20 per million cache reads). The turn tests check that scripted replies produce the right rows,
 sums and costs, and that a reloaded Session shows the same panel.
 
 ## Checks before merging (CI) (`.github/workflows/ci.yml`, `vercel.json`, `src/test/setup.ts`)
