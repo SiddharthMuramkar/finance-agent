@@ -63,7 +63,16 @@ export function stepContext(
       );
     }
   }
-  if (step === "principle") lines.push("", `Principle: ${topic.principle.trim()}`);
+  if (step === "principle") {
+    lines.push("", `Principle: ${topic.principle.trim()}`);
+    if (topic.connections.length) {
+      lines.push(
+        "",
+        "Connections: after the principle, give the Learner these links from this Topic's idea to others, in your own words and in this order. Link each to its Course Map Topic by title, and add no figures of your own.",
+        ...topic.connections.map((c, i) => `${i + 1}. ${c.text.trim()} (links to: ${c.titles.join("; ")})`),
+      );
+    }
+  }
   lines.push(
     "",
     step !== "check"
