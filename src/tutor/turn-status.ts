@@ -23,20 +23,30 @@ export const OPENER_PREFIX = "Opener by code:";
  */
 export const NEXT_PREFIX = "Next by code:";
 
-/** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
-export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX] as const;
+/**
+ * The fixed prefix of the note code writes for a quiz follow-up: the turn the page starts by itself after the Learner
+ * misses a quiz, in which the Tutor goes over the missed questions. Never drawn as a Learner bubble.
+ */
+export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
 
-/** What started a turn: the Learner's own message, an opener the page started, or the Learner's Next (no Learner message for either). */
-export type TurnKind = "message" | "opener" | "next";
+/** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
+export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, QUIZ_FOLLOW_UP_PREFIX] as const;
+
+/**
+ * What started a turn: the Learner's own message, an opener the page started, the Learner's Next, or the quiz
+ * follow-up after a missed quiz (no Learner message for any but the first).
+ */
+export type TurnKind = "message" | "opener" | "next" | "quiz_follow_up";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(OPENER_PREFIX)) return "opener";
   if (turn.input?.startsWith(NEXT_PREFIX)) return "next";
+  if (turn.input?.startsWith(QUIZ_FOLLOW_UP_PREFIX)) return "quiz_follow_up";
   return "message";
 }
 
-/** Whether a stored user message is a note code wrote (an opener's or a Next's), not the Learner's words. */
+/** Whether a stored user message is a note code wrote (an opener's, a Next's or a quiz follow-up's), not the Learner's words. */
 export const isCodeWritten = (text: string) => CODE_WRITTEN_PREFIXES.some((p) => text.startsWith(p));
 
 /** What the Learner's "Continue" button sends. */
