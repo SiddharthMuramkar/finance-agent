@@ -4,14 +4,16 @@ import { parseCourseMap, loadCourseMap, type CourseMap } from "@/course/map";
 /**
  * The real present value Topic alone, as a one-Topic course. Several tests were written when it was
  * the only Topic; the foundation Topics written since would otherwise come first on the default path.
- * Pass `withoutQuiz` to drop its quiz Check as well.
+ * Pass `withoutQuiz` to drop its quiz Check as well, and `withoutInsight` to drop its Insight and explore step.
  */
-export function presentValueOnly(options: { withoutQuiz?: boolean; real?: CourseMap } = {}): CourseMap {
+export function presentValueOnly(options: { withoutQuiz?: boolean; withoutInsight?: boolean; real?: CourseMap } = {}): CourseMap {
   const real = options.real ?? loadCourseMap();
   const t = real.topic("present-value")!;
   const text = stringify({
     ...t,
     prerequisites: [],
+    // Tests written before the explore step run the Topic without its Insight, so their steps are unchanged.
+    ...(options.withoutInsight ? { insight: undefined, explore: undefined } : {}),
     ...(options.withoutQuiz ? { checks: t.checks.filter((c) => c.kind !== "quiz"), questions: undefined } : {}),
   });
   const { map, errors } = parseCourseMap([{ name: "present-value.yaml", text }]);

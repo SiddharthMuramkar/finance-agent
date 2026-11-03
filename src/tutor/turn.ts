@@ -6,6 +6,7 @@ import { navigate } from "@/course/navigator";
 import { sessions, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress, takeJumpEntry } from "@/learner/memory";
+import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import { hiddenPassages, type QueryEmbedder } from "@/library/library";
 import { replyWidgetProblems, WIDGET_CHECK_PREFIX } from "@/widgets/check";
@@ -30,7 +31,7 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, CONTINUE_TEXT, resumeTurn, startTurn, updateTurn, type Turn } from "./turn-status";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
@@ -39,7 +40,7 @@ import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage
  * runs the Tool Runner loop with cut-off, compaction, refusal and widget-correction handling.
  */
 
-export { latestTurn, BUSY_MESSAGE } from "./turn-status";
+export { latestTurn, BUSY_MESSAGE, CONTINUE_TEXT } from "./turn-status";
 
 /** Room for adaptive thinking as well as the visible reply. */
 const MAX_TOKENS = 16000;
@@ -133,8 +134,6 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 export type TurnInput = string | { continue: true } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
-/** What the Learner's "Continue" button sends. */
-export const CONTINUE_TEXT = "Continue.";
 
 export type TurnDeps = {
   db: Db;
@@ -270,7 +269,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const pastes = await pasteSummary(db, session.id);
     const caseData = await caseDataFor(db, map, place);
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
-    const plainContext = stepContext(place, caseData, pastes, quizDown);
+    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id));
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(lastTurn, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)

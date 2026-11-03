@@ -9,11 +9,13 @@ import { navigate, TEACHING_STEPS, type Place } from "@/course/navigator";
 import { toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
+import { loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
 import { quizUnavailable } from "@/learner/quiz";
 import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library/library";
 import { stepContext } from "./context";
 import { pasteSummary } from "./pasted";
 import type { ToolDefinition } from "./instructions";
+import { CONTINUE_TEXT } from "./turn-status";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
@@ -35,13 +37,24 @@ export const PACING_REJECTION =
 export const VERDICT_PACING_REJECTION =
   "Cannot record a verdict: this Check step began during this turn, so the Learner has not answered the Check prompt yet. Put the prompt in your reply now, then stop and wait for the Learner's answer; record the verdict in a later turn.";
 
+/** Sent back when the Tutor records an Insight attempt at an explore step it only just reached, before the Learner could try. */
+export const INSIGHT_PACING_REJECTION =
+  "Cannot record an attempt: the explore step began during this turn, so the Learner has not seen the Insight question yet. Put the question in your reply now, then stop and wait for the Learner's own words; record their attempt in a later turn.";
+
+/** Sent back when the Learner only pressed Continue: that is never an attempt. */
+export const CONTINUE_NOT_AN_ATTEMPT =
+  "Not recorded: the Learner only pressed Continue, which is never an attempt at the Insight. Invite them to play with the Widget and say what they notice, in their own words, then wait.";
+
+/** The closing instruction of every Insight result: the reply's last words come after the tool result. */
+const WRITE_AFTER = "Write your reply to the Learner now, after this result, and make it the final text of your reply.";
+
 /** What the Learner sees when a progress write failed. */
 export const SAVE_FAILED_MESSAGE = "Your progress could not be saved just now. The Tutor has been told nothing was recorded.";
 
 /** The Course Navigator's context for a place, with the Case Data the as-of rule allows right now. */
 export async function navigatorContext(db: Db, map: CourseMap, place: Place | null, turnId?: number): Promise<string> {
   const sessionId = turnId === undefined ? null : (await db.select({ s: turns.sessionId }).from(turns).where(eq(turns.id, turnId)))[0]?.s;
-  return stepContext(place, await caseDataFor(db, map, place), await pasteSummary(db, sessionId));
+  return stepContext(place, await caseDataFor(db, map, place), await pasteSummary(db, sessionId), false, await loadExploreInfo(db, place, turnId));
 }
 
 export async function caseDataFor(db: Db, map: CourseMap, place: Place | null) {
@@ -73,6 +86,7 @@ export function toolCode(
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
   const searchInput = z.object({ query: z.string().min(1), source: z.string().optional() });
+  const insightInput = z.object({ outcome: z.enum(["found", "not_yet", "asked_to_be_told"]), learner_words: z.string().min(1) });
 
   /**
    * Pacing rule: whether the Learner's current step began during this turn, so it has not yet been
@@ -159,6 +173,46 @@ export function toolCode(
             ? `Recorded by code: pass for Check ${check_id}.`
             : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
           return { ok: true, began: passed, text: `${recorded}\n\n${await navigatorContext(tx, map, place, turnId)}` };
+        }),
+    },
+    record_insight_attempt: {
+      parse: (input) => insightInput.parse(input),
+      run: ({ outcome, learner_words }, context) =>
+        once(context?.toolUse.id, "record_insight_attempt", async (tx) => {
+          const [turn] = await tx.select().from(turns).where(eq(turns.id, turnId));
+          const message = turn?.input ?? "";
+          // Pressing Continue is never an attempt, whatever words the Tutor offers.
+          if (message.trim() === CONTINUE_TEXT) return { ok: false, text: CONTINUE_NOT_AN_ATTEMPT };
+          // Pacing rule: the Learner must have seen the question before an attempt can count.
+          if (navigate(map, await loadProgress(tx))?.step === "explore" && (await stepBeganThisTurn(tx))) return { ok: false, text: INSIGHT_PACING_REJECTION };
+          const saved = await saveInsightAttempt(
+            tx,
+            map,
+            { reported: outcome, words: learner_words, learnerMessage: message, toolCallId: context!.toolUse.id, model, turnId },
+            now(),
+          );
+          if (!saved.ok) return { ok: false, text: saved.reason };
+          const written = `Written Insight: ${saved.insight.written.trim()}`;
+          const quoted = `The Learner's words, saved: "${saved.words}".`;
+          if (saved.released === "found") {
+            return {
+              ok: true,
+              text: `Recorded by code: the Learner found the Insight. ${quoted}\n${written}\nConfirm it against the Learner's own words: quote what they said, and say plainly what makes it right. You can finish the explore step with finish_teaching_step once you have confirmed. ${WRITE_AFTER}`,
+            };
+          }
+          if (saved.released === "told") {
+            return {
+              ok: true,
+              // Telling the Insight begins a new moment for the Learner, so the pacing rule keeps explore open for the rest of this turn.
+              began: true,
+              text: `Recorded by code: the Insight is told. ${quoted}\n${written}\nTell the Learner the Insight in your own words, kindly and without any sense of failure, and link it to what they tried. You cannot finish the explore step in this turn: wait for the Learner to answer, then finish it. ${WRITE_AFTER}`,
+            };
+          }
+          const n = saved.released === "hint_1" ? 1 : 2;
+          return {
+            ok: true,
+            text: `Recorded by code: not yet (hint ${n}). ${quoted}\nHint ${n} for the Learner: ${saved.hint!.trim()}\nGive this hint in your own words, point to what to try in the Widget, and do not state the Insight. ${WRITE_AFTER}`,
+          };
         }),
     },
     finish_teaching_step: {

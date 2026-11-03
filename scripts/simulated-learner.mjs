@@ -44,7 +44,7 @@ const maxTurns = Number(args["max-turns"] ?? 30);
 const newSessionAt = args["new-session-at"] ?? "your_turn";
 mkdirSync(out, { recursive: true });
 
-const ORDER = ["story", "concept", "your_turn", "check", "reveal", "principle"];
+const ORDER = ["story", "concept", "explore", "your_turn", "check", "reveal", "principle"];
 // Haiku 5.5 price per million tokens, as in src/tutor/pricing.ts.
 const LEARNER_PRICE = { input: 0.1, output: 0.5 };
 

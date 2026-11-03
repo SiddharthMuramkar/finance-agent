@@ -37,6 +37,31 @@ principle: >
   Compare cash flows only after moving them to the same date, and ask which interest rate
   makes two offers equal.
 
+# The Insight (ADR 0001): found by the Learner at the explore step, before the jackpot conversation Check.
+# The text uses no figures. The written Insight reaches the Tutor only once it is found or told.
+insight:
+  question: >
+    Move the interest rate up and down and watch what happens to the payments that come later.
+    What do you notice, and what does it tell you about a smaller sum in your hand now compared
+    with bigger payments spread over many years?
+  written: >
+    When interest rates are high, money today beats bigger payments later: a high rate shrinks
+    far-off payments so much that a smaller sum now can be worth more than a larger total paid out over many years.
+  foundWhen: >
+    The Learner says in their own words that a higher interest rate makes payments that arrive later
+    worth much less today, so a smaller sum now can beat larger payments later. Noticing only that
+    "the bars get smaller" is not yet enough: they must connect it to choosing between now and later.
+  hints:
+    - >
+      Watch the bars for the payments that arrive furthest away as you raise the rate. Which bars
+      shrink the most, and which hardly move?
+    - >
+      Compare the total of the shrunken bars with a single sum arriving today. At a high rate, which
+      one would you rather have, and why?
+explore:
+  before: pv-jackpot-choice
+  requiredWhenPassed: false
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: pv-q-today-vs-later

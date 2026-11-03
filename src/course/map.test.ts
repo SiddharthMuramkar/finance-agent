@@ -155,4 +155,50 @@ ${lines}`;
       expect(errors).toContain('Duplicate ID "q1"');
     });
   });
+
+  describe("Insight and explore", () => {
+    const insight = `insight:
+  question: What do you notice when the rate is high?
+  written: When rates are high, money today beats bigger payments later.
+  foundWhen: The Learner says that a higher rate shrinks the value of later payments.
+  hints:
+    - Look at the bars for the far-off payments.`;
+    const explore = (before = "a-check", extra = "") => `explore:
+  before: ${before}
+${extra}`;
+
+    it("accepts an Insight with explore naming one of the Topic's own Checks", () => {
+      const { map, errors } = parseCourseMap([topic("a", `${insight}\n${explore("a-check", "  requiredWhenPassed: true")}`)]);
+      expect(errors).toEqual([]);
+      expect(map?.topic("a")?.explore).toEqual({ before: "a-check", requiredWhenPassed: true });
+      expect(map?.topic("a")?.insight?.hints).toHaveLength(1);
+    });
+
+    it("needs both an Insight and explore, or neither", () => {
+      expect(parseCourseMap([topic("a", insight)]).errors.join()).toContain("explore");
+      expect(parseCourseMap([topic("a", explore())]).errors.join()).toContain("insight");
+    });
+
+    it("rejects an explore that names a Check the Topic does not have", () => {
+      const { errors } = parseCourseMap([topic("a", `${insight}\n${explore("ghost")}`)]);
+      expect(errors).toEqual(['Topic "a" explores before Check "ghost", which it does not have']);
+    });
+
+    it("rejects figures in the Insight text", () => {
+      const withFigure = insight.replace("money today", "money today (8%)");
+      const { errors } = parseCourseMap([topic("a", `${withFigure}\n${explore()}`)]);
+      expect(errors.join()).toContain("figure");
+    });
+
+    it("allows one or two hints, no more", () => {
+      const three = insight + "\n    - Two.\n    - Three.";
+      expect(parseCourseMap([topic("a", `${three}\n${explore()}`)]).errors).not.toEqual([]);
+    });
+
+    it("loads present value with its Insight and explore anchor", () => {
+      const pv = loadCourseMap().topic("present-value")!;
+      expect(pv.insight?.written).toBeTruthy();
+      expect(pv.explore?.before).toBe("pv-jackpot-choice");
+    });
+  });
 });
