@@ -263,6 +263,54 @@ describe("the opener: the page starts a Topic's first turn by itself", () => {
     // The opener started the Topic.
     expect((await loadProgress(db)).topics["bonds"]).toMatchObject({ step: "story", status: "in_progress" });
   });
+
+  it("in a Topic already started, teaches the step reached, which nothing in this Session has taught yet", async () => {
+    const db = await testDb();
+    await saveJump(db, twoTopics, "present-value");
+    await turn(db, "Hi", [say("Hello.")]);
+    await saveFinishedStep(db, twoTopics, "story");
+    // The Learner went to Bond prices and comes back to a Topic whose Session is new (as after the switch-over).
+    await db.update(sessionsTable).set({ older: true });
+    const opened = await turn(db, { opener: true }, [say("Now the concept.")], twoTopics, { topicId: "present-value" });
+    const request = sent(opened.requests[0]);
+    expect(request).toContain("at the concept step");
+    expect(request).toContain("Nothing of this step has been taught in this Session yet");
+    expect(request).toContain("Teaching Step: concept");
+    expect(request).not.toContain("Teach the Story");
+    expect(await texts(db)).toEqual(["Now the concept."]);
+  });
+
+  it("at an open quiz, points the Learner to the Check tab rather than teaching", async () => {
+    const db = await testDb();
+    const map = withBonds({ quiz: true });
+    await saveJump(db, map, "present-value");
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    const opened = await turn(db, { opener: true }, [say("Your quiz is in the Check tab.")], map, { topicId: "present-value" });
+    const request = sent(opened.requests[0]);
+    expect(request).toContain("is open on the right, in the Check tab. Point the Learner to it");
+    expect(await texts(db, map)).toEqual(["Your quiz is in the Check tab."]);
+  });
+
+  it("is refused once the Session has messages (another tab opened it first), and changes nothing", async () => {
+    const db = await testDb();
+    await saveJump(db, twoTopics, "bonds");
+    await turn(db, { opener: true }, [say("Picture a bond.")], twoTopics, { topicId: "bonds" });
+    const again = await turn(db, { opener: true }, [say("Should not run.")], twoTopics, { topicId: "bonds" });
+    expect(again.events).toEqual([{ type: "stale", message: "This Topic changed in another tab. Reload to carry on." }]);
+    expect(again.requests).toHaveLength(0);
+    expect(await texts(db)).toEqual(["Picture a bond."]);
+  });
+
+  it("a failed opener's Retry sends its note again and is still an opener", async () => {
+    const db = await testDb();
+    await saveJump(db, twoTopics, "bonds");
+    const failed = await turn(db, { opener: true }, [{ error: new Error("overloaded") }], twoTopics, { topicId: "bonds" });
+    expect(failed.events.at(-1)).toMatchObject({ type: "error" });
+    const retried = await turn(db, { resume: true }, [say("Picture a bond.")], twoTopics);
+    expect(sent(retried.requests[0])).toContain("Opener by code:");
+    expect(turnKind((await latestTurn(db))!)).toBe("opener");
+    expect(await texts(db)).toEqual(["Picture a bond."]);
+  });
 });
 
 describe("a deploy that changes the Tutor's instructions", () => {
