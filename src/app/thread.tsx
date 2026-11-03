@@ -12,7 +12,7 @@ import type { WidgetItem } from "./widget-panel";
 
 // How a conversation's messages look, shared by the workspace and the old Session page: the Learner's
 // messages as bubbles on the right, the Tutor's replies as plain text under a small navy "Tutor" label,
-// with "Under the hood" beneath.
+// with "Under the hood" beneath when the Learner has turned on Show developer details (Settings).
 
 export type Line = { role: "user" | "assistant"; text: string; usage?: TurnUsage; /** Where a finished reply sits in its Session; it is what "Save to notes" keys on. */ ref?: TurnRef };
 export type ThreadLine = Line & { id: string };
@@ -40,6 +40,14 @@ export function widgetsIn(messages: ThreadLine[], running = false): WidgetItem[]
   return out;
 }
 
+/** Settings > Show developer details: whether each Tutor reply shows its "Under the hood" line. Off unless a page turns it on. */
+const DeveloperDetailsContext = createContext(false);
+
+/** Shows "Under the hood" under the Tutor replies inside it when `on` (the Learner's Show developer details choice). */
+export function DeveloperDetails({ on, children }: { on: boolean; children: ReactNode }) {
+  return <DeveloperDetailsContext.Provider value={on}>{children}</DeveloperDetailsContext.Provider>;
+}
+
 const ThreadContext = createContext<{ slot: WidgetSlot; usages: Map<string, TurnUsage>; refs: Map<string, TurnRef> }>({ slot: () => null, usages: new Map(), refs: new Map() });
 
 function UserMessage() {
@@ -57,7 +65,7 @@ const Reply = () => <ReplyMarkdown slot={useContext(ThreadContext).slot} />;
 function AssistantMessage() {
   const id = useAuiState((s) => s.message.id);
   const { usages, refs } = useContext(ThreadContext);
-  const usage = usages.get(id);
+  const usage = useContext(DeveloperDetailsContext) ? usages.get(id) : undefined;
   const ref = refs.get(id);
   return (
     <MessagePrimitive.Root className="text-base leading-[26px]" data-testid="assistant-message">

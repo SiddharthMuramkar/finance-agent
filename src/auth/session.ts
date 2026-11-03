@@ -25,7 +25,12 @@ export async function isSignedIn() {
  * first; this is the check behind it).
  */
 export async function currentLearnerId(): Promise<number> {
+  return (await signedInLearner()).id;
+}
+
+/** The signed-in Learner (with its Settings choices); a signed-out request is sent to the login instead. */
+export async function signedInLearner(): Promise<Learner> {
   const learner = await currentLearner();
   if (!learner) redirect("/login");
-  return learner.id;
+  return learner;
 }
