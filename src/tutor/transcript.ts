@@ -2,6 +2,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { leaveOutWidgets, replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { WIDGETS_PREFIX } from "@/widgets/widget-reading";
 import type { CaseDataset } from "@/case-data/case-data";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { CitationMarks, citedPassageIds, displayText } from "./citations";
@@ -225,7 +226,8 @@ export function textOf(content: unknown): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
   return content
-    .filter((b): b is { type: "text"; text: string } => b?.type === "text" && !b.text.startsWith(OPENING_PREFIX))
+    // The opening context and the Widget context are code's, never the Learner's words.
+    .filter((b): b is { type: "text"; text: string } => b?.type === "text" && !b.text.startsWith(OPENING_PREFIX) && !b.text.startsWith(WIDGETS_PREFIX))
     .map((b) => (b.text.startsWith(PASTE_PREFIX) ? `${PARAGRAPH}${pasteLabel(b.text)}` : b.text))
     .join("");
 }

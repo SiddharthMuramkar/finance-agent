@@ -39,15 +39,22 @@ export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this rep
  */
 export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
 
+/**
+ * The fixed prefix of the note code writes when the Learner presses "Tell the Tutor what I found" under a Widget
+ * whose Guided Tasks are all ticked: what the Widget shows, written by code. Never a Learner bubble, never an Insight attempt.
+ */
+export const WIDGET_REPORT_PREFIX = "Widget report by code:";
+
 /** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
-export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX] as const;
+export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX] as const;
 
 /**
  * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
- * that more simply, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, or
- * the quiz follow-up after a missed quiz (no Learner message for the last four).
+ * that more simply, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, the
+ * quiz follow-up after a missed quiz, or a widget report (Tell the Tutor what I found); the last five carry no
+ * Learner message.
  */
-export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up";
+export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up" | "widget_report";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
@@ -55,11 +62,12 @@ export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(NEXT_PREFIX)) return "next";
   if (turn.input?.startsWith(FINISH_PREFIX)) return "finish";
   if (turn.input?.startsWith(QUIZ_FOLLOW_UP_PREFIX)) return "quiz_follow_up";
+  if (turn.input?.startsWith(WIDGET_REPORT_PREFIX)) return "widget_report";
   if (turn.input && isChipMessage(turn.input)) return "chip";
   return "message";
 }
 
-/** Whether a stored user message is a note code wrote (an opener's, a Next's, a Finish this reply's or a quiz follow-up's), not the Learner's words. */
+/** Whether a stored user message is a note code wrote (an opener's, a Next's, a Finish this reply's, a quiz follow-up's or a widget report), not the Learner's words. */
 export const isCodeWritten = (text: string) => CODE_WRITTEN_PREFIXES.some((p) => text.startsWith(p));
 
 /**

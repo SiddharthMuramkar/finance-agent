@@ -675,6 +675,37 @@ describe("the Sourced strip under a Widget that draws Case Data", () => {
   });
 });
 
+describe("Tell the Tutor what I found", () => {
+  const TASKS = `root = Widget("Rates", [rate, steps])
+$rate = 5
+rate = Slider("rate", "Interest rate", 0, 10, 0.01, $rate, "percent")
+steps = GuidedTasks([t1, t2])
+t1 = GuidedTask("Set the rate to 3%", $rate == 3)
+t2 = GuidedTask("Set the rate to 8%", $rate == 8)`;
+  const initial: Line[] = [
+    { role: "user", text: "Show me" },
+    { role: "assistant", text: fence(TASKS) },
+  ];
+  const BUTTON = "Tell the Tutor what I found →";
+  const allTicked = { Rates: { values: { $rate: 8 }, ticked: ["Set the rate to 3%", "Set the rate to 8%"] } };
+
+  it("is hidden under a Widget with a Guided Task not yet ticked", () => {
+    const html = workspace({ initial, shown: { sessionId: 7 }, widgetStates: { Rates: { values: { $rate: 3 }, ticked: ["Set the rate to 3%"] } } });
+    expect(text(html)).toContain("Set the rate to 8%");
+    expect(text(html)).not.toContain(BUTTON);
+  });
+
+  it("shows under the Widget once all its Guided Tasks are ticked", () => {
+    const html = workspace({ initial, shown: { sessionId: 7 }, widgetStates: allTicked });
+    expect(text(html)).toContain(BUTTON);
+  });
+
+  it("is not offered on a passed Topic's page, which sends no turns", () => {
+    const html = workspace({ initial, shown: { sessionId: 7 }, passed: { title: "Present value", next: null }, widgetStates: allTicked });
+    expect(text(html)).not.toContain(BUTTON);
+  });
+});
+
 describe("the Topic bar", () => {
   const map = loadCourseMap();
   // Present value at Explore: Story, Check 1 (concept, your turn, Check) passed, Check 2's concept done.

@@ -61,6 +61,18 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     expect(thread.map((e) => (e.role === "item" ? e.kind : e.role))).toEqual(["user", WIDGET_OPENED, "assistant"]);
   });
 
+  it("shows the Tutor an opened written-ahead Widget's sliders and ticks with the Learner's next message, keyed by its id", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([open("rate-change-three-ways"), text("Try a rise."), text("You set 6% to 6.4%.")]);
+    await collect(runTutorTurn({ db, client }, "Can I play with this?"));
+    const widgets = { "rate-change-three-ways": { values: { $old: 6, $new: 6.4 }, ticked: ["Set a rise from 6% to 6.4%"] } };
+    await collect(runTutorTurn({ db, client, widgets }, "What rates do I have set?"));
+    const asked = JSON.stringify(requests.at(-1)!.messages);
+    expect(asked).toContain("Old rate: 6%");
+    expect(asked).toContain("New rate: 6.4%");
+    expect(asked).toContain("[x] Set a rise from 6% to 6.4%");
+  });
+
   it("refuses an id the Topic does not have, and stores nothing", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([open("annuity-today"), text("Let me draw it instead.")]);
