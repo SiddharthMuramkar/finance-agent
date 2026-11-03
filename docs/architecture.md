@@ -267,7 +267,7 @@ only, using the keys migration 0027 already set (no new migration).
   only their own lines and saved items. Saving is once per Learner and place, so two Learners can
   each save the same explore Widget.
 - **The Learner Profile.** One row per Learner (its id is the Learner's id). About you on Settings, the
-  first-visit card, "Not now" and the profile block in a new Session's opening message all use the
+  Welcome's About you panel and the profile block in a new Session's opening message all use the
   current Learner's row.
 - **Pasted passages.** A paste is saved with the Learner who sent it, and listed and counted for that
   Learner only.
@@ -1437,8 +1437,8 @@ design tokens; the first two sit under the app header, Login (signed out) has no
 - **Choosing a Topic** sets the current Topic and shows its Session at once. The ways in today: the
   Course Map's Study this Topic and Back to the default path, What comes next (on a passed Topic, see
   below), and Home's Resume and Start (a plain form posting to `/api/open`, which goes on to `/study`).
-  Progress rows post a `topic` to `/api/open` (see above). Study X first and the Welcome will use the
-  same routes. While a turn is running,
+  Progress rows post a `topic` to `/api/open` (see above), and the Welcome's Start this Topic uses
+  `/api/jump`. Study X first will use the same routes. While a turn is running,
   `/api/jump` answers "A turn is in progress…" and changes nothing; `/api/open` then just opens the
   Study Workspace, which says the same.
 - **The shown Session** (`learner_state.shown_session_id`) is what the Study Workspace renders
@@ -2360,12 +2360,12 @@ the screenshot is never covered.
 
 **What it does.** The Learner can share four things about their own life: work, where they live, any
 loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
-one row per Learner (`learner_profile`, whose id is the Learner's; the owner's is 1) with a flag, `offer_dismissed`, that records "Not now". On
-the first visit the workspace shows a small card with Save and Not now; after either, the card never
-comes back. About you, the first section of the Settings page, edits the same four answers later
+one row per Learner (`learner_profile`, whose id is the Learner's; the owner's is 1). A new Learner is
+asked on the Welcome's About you panel (Next saves, Skip saves nothing); the old first-visit card, with
+its Save and Not now, is gone, so its `offer_dismissed` flag and `/api/profile/dismiss` are no longer
+used by any page. About you, the first section of the Settings page, edits the same four answers later
 (the old `/profile` address redirects there, and Progress no longer links to it). Both go
-through `/api/profile` (and `/api/profile/dismiss`), which sit behind the passcode like every other
-route. No model call is made to save it.
+through `/api/profile`, which sits behind the passcode like every other route. No model call is made to save it.
 
 **What the Tutor gets.** Code puts the profile in the Where the Learner stands block: in the
 Session's first message, after the Learner summary and before the Course Navigator context (which
@@ -2401,7 +2401,7 @@ the signed-in Learner. Dark mode stays in the header.
 - **Start over.** A button that first asks "Start over as a new learner?". Confirming posts a plain form
   to `/api/start-over`, which, in one database transaction, archives the Learner and makes a fresh,
   empty Learner under the same name; sets the new Learner's cookie in the same response; and sends the
-  browser to the Welcome route. Until the Welcome is built that route is the Study Workspace. Nothing is
+  browser to the Welcome (`/welcome`). Nothing is
   deleted: every row of the old Learner stays as it was, under the old Learner's id. Any other device
   still holding the old cookie is signed out at its next click, because an archived Learner no longer
   signs in. The route accepts only a post from this site carrying the confirmation, so a link, a
@@ -2409,7 +2409,7 @@ the signed-in Learner. Dark mode stays in the header.
 
 **Scenario.** The owner signs in with the test passcode and wants to walk the new-Learner journey
 again. On Settings he presses Start over as a new learner, reads the confirmation and presses Yes,
-start over. The page reloads on an empty Study Workspace (later, the Welcome) as a new `test` Learner,
+start over. The page reloads on the Welcome as a new `test` Learner,
 with no Sessions, Notes, progress or About you. His other browser, still signed in as the old `test`
 Learner, lands on the login at its next click. Signing in there with the test passcode opens the new
 Learner. The old Learner's Sessions are still in the database, archived, for anyone who needs them.
@@ -2419,6 +2419,40 @@ progress can still be inspected, but it also means the database keeps growing wi
 and there is no button to go back: restoring one is a manual job. The switch is per Learner rather
 than per browser, so it costs a database write on each change, but it never surprises the Learner by
 being on in one place and off in another.
+
+## The Welcome (`src/app/welcome/`, `src/learner/welcome.ts`, spec #119, ticket #157)
+
+**What it does.** A new Learner's first page, at `/welcome`. It shows while the Learner has no
+Sessions (Older ones count) and has not yet chosen a Topic (`showsWelcome`). The Study Workspace sends
+such a Learner here, so signing in, Home's Start and Settings' Start over all land on it; the Welcome
+sends anyone else to the Study Workspace. It has three panels, each its own address
+(`/welcome?panel=…`), so Next and Skip are plain links:
+1. **How a Topic works.** The seven kinds of Teaching Step as a strip (Story, Concept, Your turn,
+   Check, Explore, Reveal, Principle), "Concept → Your turn → Check repeats for each Check" and "The
+   Tutor talks on the left. Things you can move and try appear on the right."
+2. **About you.** The same Learner Profile form as Settings, every answer optional. Next saves the
+   answers; Skip saves nothing.
+3. **Your first Topic.** A card for the first Topic on the default path (Percent, percentage points and
+   basis points) with its You'll learn bullets and a big **Start this Topic** button.
+Skip on either of the first two panels goes straight to the Your first Topic card. Start this Topic
+chooses the Topic through `/api/jump`, as the Course Map does, and opens the Study Workspace. That
+Topic has no Session yet, so the page starts the Tutor's opener by itself, with no Learner message;
+the opener's turn makes the first Session, and from then on the Welcome never shows again. It replaces
+the old first-visit About you card above the chat. No model call is made on the Welcome.
+
+**A concrete scenario.** A friend of the owner signs in with her own passcode for the first time. She
+reads how a Topic works, presses Next, types "teacher" and "Pune" in About you and presses Next, then
+presses Start this Topic. The Study Workspace opens on Percent and the Tutor's Story starts within a
+second or two. Next week she signs in again and lands straight in her Percent Session; the Welcome is
+gone for good, even if she later moves to another Topic.
+
+**The trade-off.** "Has no Sessions" alone can't decide it, because a Session is made by the opener's
+first turn, not by choosing a Topic: right after Start this Topic the Learner still has no Session,
+and the Study Workspace would send them back to the Welcome. So the rule also asks whether a Topic has
+been chosen. A new Learner who reaches the Course Map first and chooses a Topic there skips the
+Welcome, which is the right call for someone who already knows where they want to go. Each panel is a
+page load rather than an in-page switch, which costs a moment per click but keeps the panels working
+without scripts and lets a test read where Skip goes straight off the markup.
 
 ## Pictures in Damodaran's posts (`src/library/pictures.ts`, `pictures-run.ts`, `citation-impact.ts`, `npm run library:pictures`, IL 14, #71)
 
