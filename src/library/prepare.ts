@@ -1,4 +1,5 @@
 // Packages only (no "@/" paths): the Library scripts run this from the laptop with Node's type stripping.
+import { isMachineRead } from "./pictures.ts";
 
 /** A source document as an extractor hands it over: titled sections of paragraphs, in reading order. */
 export type SourceDocument = {
@@ -143,6 +144,8 @@ const PROSE = /\b\w+(?:\s+\S+){6,}[a-z)"”']\s*[.!?][)"”']*(\s|$)/;
  * writing itself, so they stay out of the Library.
  */
 export function isFrontMatter(text: string): boolean {
+  // A picture's text is the post's own content, however short: a post that opens with a table keeps it.
+  if (isMachineRead(text)) return false;
   return wordCount(text) < 60 && (!PROSE.test(text) || AUTHOR_LINE.test(text));
 }
 

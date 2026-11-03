@@ -1431,3 +1431,35 @@ also sends four headers on every route: no other site may frame a page (`frame-a
 to other sites. There is no full script policy: Next's inline scripts would need per-request nonces.
 The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
 the screenshot is never covered.
+
+## Pictures in Damodaran's posts (`src/library/pictures.ts`, `pictures-run.ts`, `citation-impact.ts`, `npm run library:pictures`, IL 14, #71)
+
+**What it does.** Damodaran's valuation tables (Tesla's inputs, say) and charts are pictures, so the
+Library could not search them. Each picture on Blogger's own image hosts is now read once by Haiku 5.5
+into text, and that text sits in the post at the picture's position, as lines starting with
+`[picture]`. Pictures are fetched at original size (Blogger serves a resized copy unless the address
+asks for `s0`), and pictures on other sites, icons and tracking pixels are skipped. Readings are cached
+in the scratch folder by picture address, so a re-run or a resumed run never pays twice. Search
+results that hold picture text carry a note in the first result's credit block, and the Passage view
+shows the same note: it was read by a machine, check the numbers against the original.
+
+**A scenario.** A post opens with a table of Tesla's inputs. `library:pictures plan` counts the
+pictures and prints the cost range, `dry-run` reads five for a few cents, `submit` sends the rest as
+one Message Batch (half price), and `collect` is run later, as often as needed, until the batch has
+ended. `verify` has Opus 5.5 re-read 40 spread-out pictures. `library:blog` then places the text in
+the posts, and the table is the post's first passage: the title-page filter ignores any passage with
+picture text, so a post that opens with a picture keeps it. The Learner asks for Tesla's growth
+input, the search finds the table lines, and the reply cites them with the machine-read note beside.
+
+**Accuracy is checked by code, on every reading.** Cut off by the length limit, empty, or a refusal;
+table rows with a different number of cells; a letter standing in a digit; a line repeating; a Total
+row that does not add up its column. Then the stronger model's 40 readings are compared number by
+number with Haiku's, and each disagreement is listed to be fixed or flagged. Before the reload,
+`impact` lists stored Citations whose blog passages will change, because a Citation names sentences
+by number.
+
+**Trade-offs.** Haiku is cheap but can misread a digit, so the machine-read note stays on forever
+and only a sample is re-read (the code checks cover the rest). Reading by address means we never
+download or store the pictures, but a picture Blogger later removes cannot be re-read (its cached
+text stays). Batches are slow (up to a day) but half price, and the saved batch id lets a stopped
+run resume. Measured cost and accuracy: to be filled in from the live run (see #71).
