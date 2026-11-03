@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
 import { FORMULA_IDS } from "../finance/formula-ids.ts";
+import { markerProblems } from "../finance/formula-markers.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
@@ -112,6 +113,19 @@ const topicSchema = z.object({
   /** Claude-written quiz questions that this Topic's quiz Checks draw on. */
   questions: z.array(quizQuestion).default([]),
   checks: z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
+}).superRefine((topic, ctx) => {
+  // Formula markers ({{formula:...}}) must name a formula on this Topic's own list and give exactly its inputs.
+  const texts = [
+    ...topic.cases.flatMap((c) => [c.story, c.reveal]),
+    topic.concept,
+    topic.principle,
+    ...(topic.connections ?? []).map((c) => c.text),
+    ...topic.questions.flatMap((q) => [q.prompt, q.explanation, ...q.choices.map((c) => c.text)]),
+    ...topic.checks.flatMap((c) => (c.kind === "conversation" ? [c.prompt, c.passCriteria] : [])),
+  ];
+  for (const text of texts) {
+    for (const problem of markerProblems(text, topic.formulas)) ctx.addIssue({ code: "custom", message: `formula marker ${problem}` });
+  }
 });
 
 /** A Connection with the titles of its linked Topics filled in by code. */

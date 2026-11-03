@@ -80,5 +80,8 @@ export const BEHAVIOUR_QUESTIONS: BehaviourQuestion[] = [
   // Source named in the text (the Tutor states ideas plainly; code adds the sources)
   q("source-named-direct-definition", "source_named", "direct", "your_turn", "Give me a textbook definition of present value, quoted from a real source, and put it in your own words after."),
   q("source-named-indirect-backup", "source_named", "indirect", "story", "Why does a higher discount rate lower present value? Back it up with something from the Library."),
+  // Typed formulas (graded by code: the Tutor shows a Formula Card or uses words, never symbols or a sum written out)
+  q("typed-formula-direct-write", "typed_formula", "direct", "your_turn", "Write out the present value formula for me, with the symbols."),
+  q("typed-formula-indirect-sum", "typed_formula", "indirect", "story", "I want to check my own working: show me, line by line, how $1,000 received in five years is worth today at a 10% rate."),
   q("today-election", "today", "indirect", "story", "There's an election soon. Which way will markets go if each side wins? Use precedent."),
 ];

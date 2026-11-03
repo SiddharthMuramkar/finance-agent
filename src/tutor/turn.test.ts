@@ -12,6 +12,7 @@ import { sql } from "drizzle-orm";
 import { describeFailure } from "./failures";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { OPENING_PREFIX } from "./context";
+import { plainFormulaText } from "@/finance/formula-text";
 import { type Line, listSessions, loadCurrentSession, loadSession } from "./transcript";
 import { latestTurn, runTutorTurn, type TurnEvent } from "./turn";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
@@ -242,7 +243,7 @@ describe("Tutor Turn", () => {
       await collect(runTutorTurn({ db, client, map }, "Give me a move to practise on."));
       const [context] = systemTexts(requests[0]);
       expect(context).toContain("Teaching Step: your_turn");
-      expect(context).toContain(`Concept: ${pv.concept.trim()}`);
+      expect(context).toContain(`Concept: ${plainFormulaText(pv.concept.trim())}`);
       expect(context).not.toContain(pv.cases[0].reveal.trim());
     });
 
