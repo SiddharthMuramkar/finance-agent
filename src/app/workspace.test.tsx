@@ -49,6 +49,12 @@ describe("the workspace's left column", () => {
     expect(html).toMatch(/Continue/);
   });
 
+  it("has a polite status line for screen readers, empty until a turn runs, apart from the streaming text", () => {
+    const html = workspace();
+    expect(html).toMatch(/<p role="status" aria-live="polite" class="sr-only" data-testid="turn-status"><\/p>/);
+    expect(html.indexOf("turn-status")).toBeGreaterThan(html.indexOf("Ask the Tutor") - 2000);
+  });
+
   it("folds a due spaced review into one row with the due count, and leaves it out when none is due", () => {
     const due = text(workspace({ review: { question: { id: "q", prompt: "How many basis points?", choices }, dueCount: 2, done: 0, cap: 5 } }));
     expect(due).toContain("Spaced review · 2 due");
