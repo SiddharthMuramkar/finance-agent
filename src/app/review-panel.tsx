@@ -74,7 +74,7 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
     <FoldedRow label={`Spaced review · ${review.dueCount} due`} open={continued || undefined} data-testid="review">
       <section aria-label="Review">
         <p className="mb-3 text-xs leading-4 text-[var(--muted)]">
-          Up to {review.cap} per Session; {review.done} done so far.
+          Up to {review.cap} a day; {review.done} done so far.
         </p>
         <fieldset>
           <legend className="mb-1 text-sm leading-5">{q.prompt}</legend>

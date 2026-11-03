@@ -268,7 +268,7 @@ export type DueCard = { questionId: string; due: Date };
 
 /**
  * Reviews to offer at `now`: cards that have fallen due and whose question is still on the Course
- * Map, most overdue first, at most `cap` minus the reviews already done since the Session started.
+ * Map, most overdue first, at most `cap` minus the reviews already done in the last 24 hours.
  * `dueCount` is how many are due in all, so a long break shows as a count, not a pile. Reviews come
  * before the current Teaching Step and never touch Progress, so a missed one cannot unpass a Topic.
  */
