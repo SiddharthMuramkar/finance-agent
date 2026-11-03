@@ -32,19 +32,21 @@ export type ThreadLine = Line & { id: string };
 /** Every Widget in the conversation, numbered in order. Keys match the slot's `${messageId}:${index}`. */
 export function widgetsIn(messages: ThreadLine[], running = false): WidgetItem[] {
   const out: WidgetItem[] = [];
-  // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them.
-  let k = 0;
+  // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them for Save to notes.
+  let inReply = 0;
   let continues = false;
   messages.forEach((m, i) => {
     if (m.role !== "assistant") return;
     const streaming = running && i === messages.length - 1;
-    if (!continues) k = 0;
+    if (!continues) inReply = 0;
     continues = m.more === true;
+    // The slot key counts within this line, as its Markdown finds each fence.
+    let k = 0;
     for (const s of splitReply(m.text, { streaming })) {
       if (s.type === "widget") {
-        const widgetIndex = k++;
+        const widgetIndex = inReply++;
         out.push({
-          key: `${m.id}:${widgetIndex}`,
+          key: `${m.id}:${k++}`,
           number: out.length + 1,
           code: s.code,
           complete: s.complete,

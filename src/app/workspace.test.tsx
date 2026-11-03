@@ -144,6 +144,19 @@ describe("the workspace's left column", () => {
     expect(text(html).indexOf("Save to notes")).toBeGreaterThan(text(html).indexOf("Now the concept"));
   });
 
+  it("puts a Widget chip in each part of a reply a divider cut", () => {
+    const ref = { sessionId: 7, turnSeq: 2 };
+    const initial: Line[] = [
+      { role: "assistant", text: `First.\n\n${fence(HISTORY)}`, ref, more: true },
+      { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },
+      { role: "assistant", text: `Then.\n\n${fence(ANNUITY)}`, ref },
+    ];
+    const html = text(workspace({ initial }));
+    expect(html).toContain("Open: Long-term interest rates →");
+    expect(html).toContain("Open: What the annuity is worth today →");
+    expect(html.indexOf("Open: What the annuity is worth today →")).toBeGreaterThan(html.indexOf("Step 2 of 6 · Concept"));
+  });
+
   it("skips a Session item of a kind it does not know, and draws the rest of the thread", () => {
     const initial: Line[] = [
       { role: "user", text: "Hello" },
