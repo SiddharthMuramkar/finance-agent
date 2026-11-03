@@ -1,6 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { CaseData } from "@/case-data/case-data";
+import { loadCourseMap } from "@/course/map";
+import { stepSequence, type Progress } from "@/course/navigator";
+import { topicStart } from "@/course/topic-start";
 import { caseLoader, fetchCaseData } from "@/widgets/case-data-client";
 import { createWidgetTools } from "@/widgets/tools";
 import { Conversation, type Line } from "./conversation";
@@ -32,7 +35,6 @@ function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
   return renderToStaticMarkup(
     <Conversation
       initial={[]}
-      summary="You are learning present value."
       quiz={null}
       pending={null}
       review={noReview}
@@ -45,13 +47,6 @@ function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the workspace's left column", () => {
-  it("shows the status card: Course Map, Stage and Topic and the summary, with no Continue button", () => {
-    const html = text(workspace());
-    expect(html).toContain("Course Map · Foundation · Present value");
-    expect(html).toContain("You are learning present value.");
-    expect(html).not.toMatch(/Continue/);
-  });
-
   it("draws an old stored Continue. as a → next step divider, and says Continue nowhere", () => {
     const html = workspace({
       initial: [
@@ -225,6 +220,11 @@ describe("the Next chip", () => {
     expect(chips(workspace({ initial: [], next: toConcept }))).toHaveLength(0);
   });
 
+  it("does not stand under the Topic Start card alone, while the Tutor's opener starts by itself", () => {
+    const start = topicStart(loadCourseMap(), { currentTopicId: null, topics: {} }, "present-value")!;
+    expect(chips(workspace({ initial: [{ role: "item", ...start }], next: { ...toConcept, step: "story", label: "Next: Story", advances: false } }))).toHaveLength(0);
+  });
+
   it("is not there while a Check is open (the Course Navigator offers none)", () => {
     const html = workspace({ initial: conversation, next: null, quiz });
     expect(chips(html)).toHaveLength(0);
@@ -350,14 +350,14 @@ describe("the fixed two-column layout", () => {
     expect(thread).toMatch(/\bmin-h-0\b/);
   });
 
-  it("caps what stands above the chat (status card, Review) and scrolls it inside itself, so the chat keeps its height", () => {
+  it("caps what stands above the chat (Topic bar, Review) and scrolls it inside itself, so the chat keeps its height", () => {
     const html = workspace({ review });
     const above = tag(html, "above-thread");
     expect(above).toMatch(/\bmax-h-/);
     expect(above).toMatch(/\boverflow-y-auto\b/);
     const inside = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
     expect(text(inside)).toContain("Spaced review · 2 due");
-    expect(inside).toContain('aria-label="Where you stand"');
+    expect(inside).toContain('data-testid="topic-bar"');
   });
 });
 
@@ -572,5 +572,119 @@ describe("the Sourced strip under a Widget that draws Case Data", () => {
     const html = renderToStaticMarkup(<WidgetPanel widgets={[item]} shown={item} onPick={() => {}} />);
     expect(text(html)).toContain("Sensex milestones");
     expect(html).not.toContain("sourced-strip");
+  });
+});
+
+describe("the Topic bar", () => {
+  const map = loadCourseMap();
+  // Present value at Explore: Story, Check 1 (concept, your turn, Check) passed, Check 2's concept done.
+  const atExplore: Progress = {
+    currentTopicId: "present-value",
+    topics: { "present-value": { step: "explore", passedChecks: ["pv-quiz-discounting"], revealShown: false, status: "in_progress" } },
+  };
+  const strip = stepSequence(map, atExplore, "present-value");
+  const bar = (html: string) => html.match(/<nav[^>]*data-testid="topic-bar"[^>]*>.*?<\/nav>/)?.[0] ?? "";
+  const groups = (html: string) => (bar(html).match(/<li[^>]*data-strip-group[^>]*>.*?<\/ol><\/li>/g) ?? []).map((g) => text(g).trim());
+
+  it("replaces the status card: a slim bar with the Topic title stands above the chat, with no summary", () => {
+    const html = workspace({ strip });
+    const above = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
+    expect(above).toContain('data-testid="topic-bar"');
+    expect(text(bar(html))).toContain("Present value");
+    expect(html).not.toContain('aria-label="Where you stand"');
+    expect(text(html)).not.toContain("Course Map · Foundation");
+    expect(text(html)).not.toMatch(/Continue/);
+  });
+
+  it("groups the Course Navigator's plain step names by Check", () => {
+    expect(groups(workspace({ strip }))).toEqual([
+      "Story",
+      "Check 1: Concept Your turn Check",
+      "Check 2: Concept Explore Your turn Check",
+      "Reveal",
+      "Principle",
+    ]);
+  });
+
+  it("highlights the current step", () => {
+    const current = bar(workspace({ strip })).match(/<[^>]*aria-current="step"[^>]*>[^<]*</g) ?? [];
+    expect(current).toHaveLength(1);
+    expect(current[0]).toContain("Explore");
+    expect(current[0]).toContain('data-step-number="6"');
+  });
+
+  it("makes finished steps scroll the chat back to their divider; the Story goes to the Topic Start card", () => {
+    const initial: Line[] = [
+      { role: "assistant", text: "Once, a lottery winner had a choice." },
+      { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 10 · Concept" } },
+      { role: "assistant", text: "Money today is worth more." },
+      { role: "item", kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 10 · Concept" } },
+      { role: "assistant", text: "Now the jackpot." },
+    ];
+    const html = workspace({ strip, initial });
+    const buttons = bar(html).match(/<button[^>]*data-scroll-to="[^"]*"[^>]*>[^<]*<\/button>/g) ?? [];
+    expect(buttons.map((b) => b.match(/data-scroll-to="([^"]*)"/)![1])).toEqual(["topic-start", "step-2", "step-5"]);
+    // Each target is in the thread: the dividers carry their step's anchor.
+    expect(html).toMatch(/<div[^>]*id="step-2"[^>]*data-testid="step-divider"/);
+    expect(html).toMatch(/<div[^>]*id="step-5"[^>]*data-testid="step-divider"/);
+    // A finished step with no divider in this Session (steps 3 and 4), the current one and those ahead are not buttons.
+    expect(bar(html)).not.toMatch(/<button[^>]*data-step-number="(3|4|6|7|8|9|10)"/);
+  });
+
+  it("is not drawn with no Topic", () => {
+    expect(workspace({ place: null, strip: null })).not.toContain('data-testid="topic-bar"');
+  });
+});
+
+describe("the Topic Start card", () => {
+  const map = loadCourseMap();
+  const fresh: Progress = { currentTopicId: null, topics: {} };
+  const card = (topicId: string, progress: Progress = fresh) => {
+    const item = topicStart(map, progress, topicId);
+    if (!item) throw new Error(`no card for ${topicId}`);
+    return workspace({ initial: [{ role: "item", ...item }] });
+  };
+  const startCard = (html: string) => html.match(/<section[^>]*data-testid="topic-start"[^>]*>.*?<\/section>/)?.[0] ?? "";
+
+  it("opens a new Session's conversation with the title, the Subject, You'll learn and the number of Checks", () => {
+    const html = card("present-value");
+    const shown = text(startCard(html));
+    expect(shown).toContain("Present value");
+    expect(shown).toContain("Numbers &amp; time value");
+    expect(shown).toContain("You’ll learn");
+    expect(shown).toContain("See why money later is worth less than money now.");
+    expect(shown).toContain("Find the interest rate at which two offers are worth the same.");
+    expect(shown).toContain("2 Checks");
+    // The card is the conversation's first item, scrolling with the chat, not something above it.
+    const thread = html.slice(html.indexOf('data-testid="thread-viewport"'));
+    expect(thread).toContain('data-testid="topic-start"');
+  });
+
+  it("lists each prerequisite as not passed yet with Study it first, which opens that Topic", () => {
+    const shown = startCard(card("present-value"));
+    expect(text(shown)).toContain("Before this");
+    expect(text(shown)).toContain("Growth, compounding and logs");
+    expect(text(shown)).toContain("not passed yet · Study it first");
+    expect(shown).toMatch(/<a[^>]*data-jump="num-compounding"[^>]*>Study it first<\/a>/);
+  });
+
+  it("marks a passed prerequisite ✓ passed, with no Study it first", () => {
+    const progress: Progress = { currentTopicId: null, topics: { "num-compounding": { step: "principle", passedChecks: [], revealShown: true, status: "passed" } } };
+    const shown = text(startCard(card("present-value", progress)));
+    expect(shown).toContain("Growth, compounding and logs ✓ passed");
+    expect(shown).not.toContain("Study it first");
+  });
+
+  it("says a starting Topic needs nothing first, and leaves out You'll use when the Topic has no written-ahead Widgets", () => {
+    const shown = text(startCard(card("num-percent-bps")));
+    expect(shown).toContain("Nothing — this is a starting Topic.");
+    expect(shown).not.toContain("You’ll use");
+    expect(text(startCard(card("present-value")))).not.toContain("You’ll use");
+  });
+
+  it("names the Stage of a Topic with no Subject", () => {
+    const later = map.topics.find((t) => t.stage === "follow")!;
+    const shown = text(startCard(card(later.id)));
+    expect(shown).toContain("Follow");
   });
 });

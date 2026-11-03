@@ -500,7 +500,8 @@ caller must load and save progress around every decision.
 
 **What it does.** Three more pure answers, so dividers, the progress strip, the Next chip and
 Home's button all come from one tested place. The Next chip and the Learner's Next use `nextOffer`
-and `takeNext` (see "The Learner's Next and code-written turns"); the strip and Home come later.
+and `takeNext` (see "The Learner's Next and code-written turns"); the Topic bar's strip draws
+`stepSequence` (see "The Topic bar and the Topic Start card").
 
 - `stepSequence` lists a Topic's Teaching Steps for this Learner's record and numbers them
   "Step k of N · <step>" with plain-word names (Story, Concept, Explore, Your turn, Check,
@@ -1294,7 +1295,7 @@ Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells 
 screen, so it points to it and does not draw its own. It is mounted once: the page measures its width
 (`useLaptopWidth`, a media query on Tailwind's lg breakpoint) and draws the Widget in one place only. Below
 the laptop breakpoint (an upright iPad) a folded card, open to start, stands in the conversation column
-under the status card and the panel says where it went; at laptop width only the panel draws it. The
+under the Topic bar and the panel says where it went; at laptop width only the panel draws it. The
 server, which measures nothing, assumes a laptop (the layout is desktop-first), so on a narrow screen the
 card appears just after the page loads.
 
@@ -1576,8 +1577,8 @@ is skipped. The old Session page draws the divider between the parts too.
   nor after a miss (the Check stays open). The chip is also hidden under the Learner's own message,
   while a turn runs, until the page has re-read the Learner's place after one (`router.refresh` runs in
   a transition, and its pending flag hides the chip), while Retry is offered, and on a passed Topic kept
-  on screen. The status card's Continue button is gone, and so is the cut-off reply's (see "Finish this
-  reply, and old Continue as a divider").
+  on screen. The old status card and its Continue button are gone (the Topic bar stands there now), and so
+  is the cut-off reply's Continue (see "Finish this reply, and old Continue as a divider").
 - **Pressing Next** sends `{ next: <step> }` (or `"complete"`) and no Learner message. The Tutor Turn
   takes the Learner's lock first, then in one transaction (`takeLearnersNext`): checks the press is the
   Next on offer (`takeNext`: never past a Check without a saved pass, never past an unsettled Explore,
@@ -1633,7 +1634,7 @@ without a second move; Complete this Topic passes the Topic and closes it, on Re
 Session. In the workspace render (`workspace.test.tsx`, `message-box.test.tsx`): one chip under the
 latest reply or divider only, none under a Learner message or in an empty thread, none while a Check is
 open, during a turn, while the page refreshes or with Retry on offer, Just tell me at Explore, Complete
-this Topic at Principle, and no Continue on the status card.
+this Topic at Principle, and no Continue above the chat.
 
 ## Finish this reply, and old Continue as a divider (`turn.ts`, `turn-status.ts`, `tools.ts`, `left-column.tsx`, `thread.tsx`, `src/dev/learner-moves.ts`, spec #119, ticket #134)
 
@@ -1865,8 +1866,8 @@ exactly as it was sent.
 question gets a review schedule once its quiz Check is passed. Its first rating comes from the
 Learner's answers in that Check: right counts as "Good", wrong as "Again". The schedule is worked
 out by the `ts-fsrs` library (the FSRS method), set to whole-day gaps, and kept per question in
-SQL (`review_cards`, one card per Learner and question, plus `review_log` for every rating). At the top of the Study Workspace, above
-"Where you stand" and the current Teaching Step, a review panel shows one due question at a time,
+SQL (`review_cards`, one card per Learner and question, plus `review_log` for every rating). At the top of the Study Workspace, under
+the Topic bar, a review panel shows one due question at a time,
 most overdue first. Code marks the answer, shows the right one with its explanation and
 reschedules the question. No model is called, to open the page or to answer.
 
@@ -2186,7 +2187,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **What it does.** The Study Workspace used to be one 330-line component. It is now four parts, and `Conversation` only puts them together:
 - **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
-- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review, the thread, the turn's notices and Retry, the quiz note while a quiz is open, and the box. Every button that starts a turn calls the turn stream's `send`.
+- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the Topic bar, the pinned explore Widget, the folded review, the thread, the turn's notices and Retry, the quiz note while a quiz is open, and the box. Every button that starts a turn calls the turn stream's `send`.
 - **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid, fixed to the space under the header, and the right column's scrolling.
 - **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), the open quiz's Check tab, which of them the panel shows, and the "Open: <title> →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget, or to the Check tab while a quiz is open.
 
@@ -2198,15 +2199,25 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 ## Workspace left column (`src/app/left-column.tsx`, `message-box.tsx`, `workspace-parts.tsx`, `thread.tsx`, issue #44)
 
-**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic" and the plain summary; its Continue button is gone, see "The Learner's Next and code-written turns"), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the conversation in its own scroll area with the Next chip under its latest reply, the quiz note while a quiz is open, and the composer pinned at the bottom with a 24px fade above it. The status card and the review sit in one box capped at two fifths of the column that scrolls inside itself. The open quiz is no longer folded here: it is the right panel's Check tab (see "The fixed two-column layout and the Check tab"). The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume and the Widget correction turn live in the turn stream (see "How the Study Workspace is split"); the left column only shows its state. The look is in small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`, `MessageBox`) that tests render on their own.
+**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: the Topic bar (the Topic's title and its progress strip, see "The Topic bar and the Topic Start card"; it replaced the old status card, whose eyebrow, summary and Continue are gone), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the conversation in its own scroll area with the Next chip under its latest reply, the quiz note while a quiz is open, and the composer pinned at the bottom with a 24px fade above it. The Topic bar and the review sit in one box capped at two fifths of the column that scrolls inside itself. The open quiz is no longer folded here: it is the right panel's Check tab (see "The fixed two-column layout and the Check tab"). The page reads the shown Topic with `courseOverview` for the bar's title. Streaming, cut-off resume and the Widget correction turn live in the turn stream (see "How the Study Workspace is split"); the left column only shows its state. The look is in small pieces (`TopicBar`, `FoldedRow`, `ThreadMessages`, `MessageBox`) that tests render on their own.
 
-**Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
+**Scenario.** The Learner opens the workspace with two reviews due. The Topic bar shows where they are in the Topic; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
 **Trade-off.** Folding the review keeps the conversation high on the screen, but a due review is one click away instead of in plain view.
 
+## The Topic bar and the Topic Start card (`src/app/workspace-parts.tsx`, `src/course/topic-start.ts`, `src/app/topic-start-card.tsx`, `session-item-view.tsx`, `study/page.tsx`, spec #119, ticket #159)
+
+**What it does.** Two pieces tell the Learner where they are in a Topic.
+- **The Topic bar** is a slim bar above the chat that stays for the whole Topic, in place of the old status card (its "Course Map · Stage · Topic" eyebrow, its plain summary and its Continue are gone). It shows the Topic's title and a progress strip drawn from the Course Navigator's `stepSequence`: the steps in plain words, grouped by Check ("Story · Check 1: Concept, Your turn, Check · Check 2: Concept, Explore, Your turn, Check · Reveal · Principle"), with the current step highlighted. A finished step is a button that scrolls the chat back to where it began: the Story to the Topic Start card, any other step to its "Step k of N" divider, which now carries the anchor `step-k`. A finished step whose divider is not in this Session (one passed before dividers existed) is shown done but can't be pressed. The page works the strip out on every render, so it always reads the saved place; a passed Topic kept on screen shows every step as done.
+- **The Topic Start card** is the first item of a Topic's conversation and scrolls with the chat. It shows the title and the Subject (or the Stage, for a Topic with none); the You'll learn bullets; Before this, each prerequisite with "✓ passed" or "not passed yet · Study it first" (the link chooses that Topic and opens it, as the Course Map's "Do first" link does), or "Nothing — this is a starting Topic."; You'll use, the written-ahead Widget titles, left out while the Topic has none (always, until written-ahead Widgets exist); and "N Checks". `topicStart` builds it from course data and progress, and the page puts it in front of the Session's lines. It is never stored and never reaches the model: it travels as a display-only item like a divider, so the opener still starts by itself (the thread has no messages yet), and no Next chip stands under the card alone. A replayed reply (a resume or a refusal) replaces the reply and the items inside it but never the card.
+
+**Scenario.** A Learner chooses Present value without having passed Growth, compounding and logs. The conversation opens with the card: "Present value", "Numbers & time value", three You'll learn bullets, "Growth, compounding and logs not passed yet · Study it first" and "2 Checks"; the Tutor's Story streams in under it. Later, at Explore, the bar reads Story · Check 1: Concept, Your turn, Check · Check 2: Concept, **Explore**, … They press Check 2's Concept on the strip and the chat scrolls up to "Step 5 of 10 · Concept".
+
+**Trade-off.** Drawing the card on every render, rather than storing it with the Session, keeps "✓ passed" true when a prerequisite is passed later and costs no rows, but an old Session page doesn't show it (it isn't saved there). The strip can only scroll to steps whose divider is in this Session, so steps from before dividers existed can't be pressed; the bar says they are done rather than pretending to jump.
+
 ## The fixed two-column layout and the Check tab (`workspace-frame.tsx`, `left-column.tsx`, `widget-host.tsx`, `quiz-panel.tsx`, `study/page.tsx`, spec #119, ticket #140)
 
-**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the status card, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
+**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
 
 **Scenario.** The Learner reaches Check 1 of 2 on a 1024 × 640 laptop with three Reviews due. The right panel switches to "Check 1 of 2" with six questions that scroll inside the panel. They open the Review row: it scrolls inside its capped box, while the last Tutor message, the quiz note and the message box all stay on screen and the page stays 640 px tall. They ask "is a basis point a hundredth of a percent?"; the Tutor answers that but won't touch the quiz, and the Check tab is still selected when the reply ends.
 
@@ -2795,7 +2806,7 @@ backfill reload places the corrected readings.
 
 ## You'll learn (`youllLearn` in `course/topics/*.yaml`, `src/course/map.ts`, `src/course/youll-learn-check.ts`, spec #119)
 
-**What it does.** Each Topic file carries two or three short "You'll learn" bullets that tell a Learner what the Topic gives them; the Topic Start card and the Welcome show them (those screens come in later tickets, #159 and #157). Claude drafts them from the concept and principle only, never the Insight, the reveal or the Case's outcome, and they sit in the Topic files for the owner to review and reword. The course parser exposes them as `topic.youllLearn`. `npm run course:check` requires them on every written Topic and rejects a bullet that holds a digit, a currency sign or a percent sign, a typed formula (the same raw-formula detector as ADR 0002), or a repeat of the Topic's written Insight. Topics not yet filled sit on a not-yet-filled list (`NOT_YET_FILLED`) that can only shrink: a Topic on it that gains bullets must come off, and a Topic off it with none fails.
+**What it does.** Each Topic file carries two or three short "You'll learn" bullets that tell a Learner what the Topic gives them; the Topic Start card and the Welcome show them. Claude drafts them from the concept and principle only, never the Insight, the reveal or the Case's outcome, and they sit in the Topic files for the owner to review and reword. The course parser exposes them as `topic.youllLearn`. `npm run course:check` requires them on every written Topic and rejects a bullet that holds a digit, a currency sign or a percent sign, a typed formula (the same raw-formula detector as ADR 0002), or a repeat of the Topic's written Insight. Topics not yet filled sit on a not-yet-filled list (`NOT_YET_FILLED`) that can only shrink: a Topic on it that gains bullets must come off, and a Topic off it with none fails.
 
 **Scenario.** Percent shows "Tell a change in percentage points from a change in percent.", "Read rate moves in basis points, the way bond traders quote them." and "Name the base of every change so its size is never mixed up." If someone rewords the second to "Read a move of 25 basis points", the course check fails with `Topic num-percent-bps has a figure in You'll learn bullet 2; write it in words`. If someone pastes present value's Insight in as a bullet (or the same words in a new order), the check fails with `bullet 3 repeats its Insight`, because the bullets are on screen before the Learner has found it.
 

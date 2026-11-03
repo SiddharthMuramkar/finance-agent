@@ -37,7 +37,7 @@ function Column({ given }: { given: Given }) {
   };
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <LeftColumn turn={turn} slot={() => null} summary="You are learning present value." place={null} review={noReview} quizOpen={false} explore={null} next={NEXT} />
+      <LeftColumn turn={turn} slot={() => null} place={null} review={noReview} quizOpen={false} explore={null} next={NEXT} />
     </AssistantRuntimeProvider>
   );
 }

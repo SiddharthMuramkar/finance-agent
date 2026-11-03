@@ -22,7 +22,7 @@ describe("phone note", () => {
 
   it("shows a chip in the chat and never the Widget body, at any width", () => {
     const html = renderToStaticMarkup(
-      <Conversation initial={[{ role: "assistant", text: `Try it.\n\n${widget}` }]} summary="" quiz={null} pending={null} review={{ question: null, dueCount: 0, done: 0, cap: 5 }} />,
+      <Conversation initial={[{ role: "assistant", text: `Try it.\n\n${widget}` }]} quiz={null} pending={null} review={{ question: null, dueCount: 0, done: 0, cap: 5 }} />,
     );
     const chat = html.slice(0, html.indexOf('data-testid="widget-pane"'));
     expect(chat).toContain("Open: Pick a rate →");
