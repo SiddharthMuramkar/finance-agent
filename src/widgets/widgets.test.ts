@@ -2,34 +2,100 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { widgetProblems } from "./check";
 import frozen from "./frozen.generated.json";
-import { WIDGET_PROMPT_OPTIONS, widgetLibrary } from "./library";
+import {
+  OPENUI_SECTIONS_CUT,
+  OPENUI_TEXT_REPLACED,
+  WIDGET_COMPONENT_GROUPS,
+  WIDGET_PROMPT_OPTIONS,
+  widgetInstructions,
+  widgetLibrary,
+  withoutContradictions,
+} from "./library";
+import { WIDGET_TOOL_NAMES, WIDGET_TOOL_SPECS } from "./tool-specs";
 
 const FROZEN_PATH = new URL("./frozen.generated.json", import.meta.url);
+const EXAMPLES = [...WIDGET_PROMPT_OPTIONS.examples, ...WIDGET_PROMPT_OPTIONS.toolExamples];
 
 describe("widget instructions", () => {
   it("are generated once from the component library and checked in (run `npm run widgets:freeze` after changing it)", () => {
     const generated = {
-      instructions: widgetLibrary.prompt(WIDGET_PROMPT_OPTIONS),
+      instructions: widgetInstructions(),
       schema: widgetLibrary.toJSONSchema(),
     };
     if (process.env.FREEZE) writeFileSync(FROZEN_PATH, JSON.stringify(generated, null, 2) + "\n");
     expect(JSON.parse(readFileSync(FROZEN_PATH, "utf8"))).toEqual(JSON.parse(JSON.stringify(generated)));
   });
 
-  it("teach inline mode and the components, and forbid typed data series", () => {
+  it("teach inline mode, our parts, the kit's charts and tabs, and Query", () => {
     expect(frozen.instructions).toContain("openui-lang");
     expect(frozen.instructions).toContain("AnnuityChart(");
-    expect(frozen.instructions).toContain("Charts never take data series");
+    expect(frozen.instructions).toContain("LineChart(");
+    expect(frozen.instructions).toContain("Tabs(");
+    expect(frozen.instructions).toContain("## Query — Live Data Fetching");
+  });
+
+  it("make widgets the way the Workspace shows things, with real numbers only from code and made-up ones labelled", () => {
+    for (const rule of [
+      "Widgets are how this Workspace shows things.",
+      "When the Learner asks for a chart, graph, diagram, table, comparison, picture or anything to see, always build one in that reply.",
+      "Real numbers come from code.",
+      "Never type a historical figure or a computed result into a widget.",
+      'start the Widget\'s title with "Illustration:"',
+      "Bind Sliders to $variables and pass them into Query arguments",
+      "Widgets only read: never use Mutation() or @Run.",
+      "still show what code can compute, or a clearly labelled Illustration of the idea",
+    ]) {
+      expect(frozen.instructions).toContain(rule);
+    }
+    for (const old of ["Widgets are optional", "Charts never take data series", "draw no chart for it"]) expect(frozen.instructions).not.toContain(old);
+  });
+
+  it("leave out OpenUI's advice that contradicts the Workspace: text-only answers, patches, writes, forms, buttons and mock data", () => {
+    for (const heading of OPENUI_SECTIONS_CUT) expect(frozen.instructions).not.toContain(heading);
+    for (const [openui, ours] of OPENUI_TEXT_REPLACED) {
+      expect(frozen.instructions).not.toContain(openui.trim());
+      if (ours) expect(frozen.instructions).toContain(ours);
+    }
+    expect(frozen.instructions).not.toContain("output ONLY the changed/new statements");
+    expect(frozen.instructions).not.toContain("respond with text only");
+    expect(frozen.instructions).not.toContain("Button(");
+    expect(frozen.instructions).not.toContain('Mutation("');
+    expect(frozen.instructions).not.toContain("realistic mock data");
+  });
+
+  it("fail loudly when OpenUI rewords a passage they leave out, instead of silently keeping it", () => {
+    const raw = widgetLibrary.prompt(WIDGET_PROMPT_OPTIONS);
+    expect(withoutContradictions(raw)).toBe(widgetInstructions());
+    expect(() => withoutContradictions(raw.replace("output ONLY the changed/new statements", "output only the changed statements"))).toThrow(/no longer contains/);
+    expect(() => withoutContradictions(raw.replace("## Mutation — Write Operations", "## Mutations"))).toThrow(/no longer contains/);
+  });
+
+  it("stay within the 12k tokens planned for them (about 4 characters a token)", () => {
+    expect(frozen.instructions.length / 4).toBeLessThanOrEqual(12_000);
+  });
+
+  it("group every part of the library, so none is listed under Other", () => {
+    expect(WIDGET_COMPONENT_GROUPS.flatMap((g) => g.components).sort()).toEqual(Object.keys(widgetLibrary.components).sort());
+    expect(frozen.instructions).not.toContain("### Other");
   });
 });
 
 describe("instruction guard", () => {
   const defs = (frozen.schema as unknown as { $defs: Record<string, unknown> }).$defs;
+  /** The language's own calls, which are not components. Built-ins such as @Each( are not matched, being prefixed with @. */
+  const LANGUAGE_CALLS = ["Query", "Mutation"];
 
   it("names only components the Widget library has, and teaches the Formula Card rule", () => {
-    // Our own examples and rules (not the language's syntax lesson, which uses placeholder names).
-    const ours = [WIDGET_PROMPT_OPTIONS.preamble, ...WIDGET_PROMPT_OPTIONS.examples, ...WIDGET_PROMPT_OPTIONS.additionalRules].join("\n");
-    const named = new Set([...ours.matchAll(/\b([A-Z][A-Za-z]+)\(/g)].map((m) => m[1]));
+    // Our own text (not the language's syntax lesson, which uses placeholder names).
+    const ours = [
+      WIDGET_PROMPT_OPTIONS.preamble,
+      ...EXAMPLES,
+      ...WIDGET_PROMPT_OPTIONS.additionalRules,
+      ...WIDGET_COMPONENT_GROUPS.flatMap((g) => g.notes ?? []),
+      ...WIDGET_TOOL_SPECS.map((t) => t.description ?? ""),
+      ...OPENUI_TEXT_REPLACED.map(([, replacement]) => replacement),
+    ].join("\n");
+    const named = new Set([...ours.matchAll(/(?<![@\w])([A-Z][A-Za-z]+)\(/g)].map((m) => m[1]).filter((name) => !LANGUAGE_CALLS.includes(name)));
     expect(named.size).toBeGreaterThan(0);
     for (const name of named) expect(Object.keys(defs), `the instructions name ${name}(...)`).toContain(name);
     expect(frozen.instructions).toContain("FormulaCard(");
@@ -39,32 +105,62 @@ describe("instruction guard", () => {
 });
 
 describe("checking a finished widget on the server", () => {
-  it("accepts the example widget", () => {
-    expect(widgetProblems(WIDGET_PROMPT_OPTIONS.examples[0])).toEqual([]);
+  it("accepts every example widget", () => {
+    for (const example of EXAMPLES) expect(widgetProblems(example), example).toEqual([]);
   });
 
-  it("reports an unknown component, a missing argument, and code with no root", () => {
-    expect(widgetProblems('root = Widget("T", [c])\nc = LineChart([1, 2, 3])').join("\n")).toMatch(/LineChart/);
+  it("reports an unknown component (such as a kit part we dropped), a missing argument, and code with no root", () => {
+    expect(widgetProblems('root = Widget("T", [b])\nb = Button("Go")').join("\n")).toMatch(/Unknown component "Button"/);
+    expect(widgetProblems('root = Widget("T", [c])\nc = LineChart(["a", "b"])').join("\n")).toMatch(/series/);
     expect(widgetProblems('root = Widget("T", [c])\nc = AnnuityChart(1000)').length).toBeGreaterThan(0);
     expect(widgetProblems("this is not openui-lang").length).toBeGreaterThan(0);
   });
 });
 
-describe("chart components take data only by reference or formula", () => {
+describe("the examples teach the rules", () => {
+  const title = (example: string) => example.match(/^root = Widget\("([^"]*)"/)?.[1] ?? "";
+  /** A Series given typed numbers, e.g. Series("Rate", [5, 5.5]), rather than a tool result's column. */
+  const TYPED_SERIES = /Series\("[^"]*", \[[^\]]*\d/;
+
+  it("never write: no Mutation and no @Run", () => {
+    for (const example of EXAMPLES) expect(example).not.toMatch(/Mutation\(|@Run/);
+  });
+
+  it("type numbers into a chart only in an Illustration, whose title says so", () => {
+    expect(EXAMPLES.filter((e) => TYPED_SERIES.test(e)).length).toBeGreaterThan(0);
+    for (const example of EXAMPLES.filter((e) => TYPED_SERIES.test(e))) expect(title(example), example).toMatch(/^Illustration:/);
+  });
+
+  it("show each Widget tool at work in a Query", () => {
+    for (const name of WIDGET_TOOL_NAMES) expect(WIDGET_PROMPT_OPTIONS.toolExamples.join("\n"), name).toContain(`Query("${name}"`);
+  });
+});
+
+describe("our code-backed parts take references or formula inputs, never results", () => {
   type Prop = { type?: string; items?: Prop & { anyOf?: unknown[]; $ref?: string } };
   const defs = (frozen.schema as unknown as { $defs: Record<string, { properties: Record<string, Prop> }> }).$defs;
+  const OURS = ["Slider", "Calculator", "AnnuityChart", "HistoryChart", "FormulaCard", "GuidedTasks", "GuidedTask"];
 
-  it("no component accepts a list of numbers, so the Tutor cannot type a series", () => {
-    for (const [name, def] of Object.entries(defs)) {
-      for (const [prop, schema] of Object.entries(def.properties)) {
-        const numbers = schema.type === "array" && (schema.items?.type === "number" || schema.items?.type === undefined && !schema.items?.anyOf && !schema.items?.$ref);
+  it("none of them takes a list of numbers, so a Case's figures or a formula's results cannot be typed into them", () => {
+    for (const name of OURS) {
+      for (const [prop, schema] of Object.entries(defs[name].properties)) {
+        const numbers = schema.type === "array" && (schema.items?.type === "number" || (schema.items?.type === undefined && !schema.items?.anyOf && !schema.items?.$ref));
         expect(numbers, `${name}.${prop}`).toBe(false);
       }
     }
   });
 
-  it("the history chart takes a Case Data reference, and the annuity chart formula inputs", () => {
+  it("the history chart takes a Case Data reference, the annuity chart and Formula Card formula inputs, and the Slider is ours", () => {
     expect(defs.HistoryChart.properties.dataset).toEqual({ type: "string" });
     expect(Object.keys(defs.AnnuityChart.properties)).toEqual(["total", "payments", "growthPercent", "ratePercent", "compareTo"]);
+    expect(Object.keys(defs.FormulaCard.properties)).toEqual(["formula", "inputs", "sourced", "fixed"]);
+    expect(Object.keys(defs.Slider.properties)).toEqual(["name", "label", "min", "max", "step", "value", "unit"]);
+  });
+
+  it("the instructions list the four Widget tools, each with a worked Query example", () => {
+    for (const name of WIDGET_TOOL_NAMES) {
+      expect(frozen.instructions).toContain(`- ${name}(`);
+      expect(frozen.instructions).toContain(`Query("${name}"`);
+    }
   });
 });

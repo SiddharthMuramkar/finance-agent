@@ -36,4 +36,15 @@ describe("Calculator widget", () => {
     const code = 'root = Widget("Broken", [calc])\ncalc = Calculator("emi", {principal: 5000000})';
     expect(renderToStaticMarkup(<WidgetView code={code} complete />)).toContain("ratePercent");
   });
+
+  it("draws inside the kit's Stack and Card, so a widget can lay it out beside a chart", () => {
+    const nested = `root = Widget("What a 50 lakh home loan costs", [row])
+row = Stack([card], "row")
+card = Card([calc])
+calc = Calculator("emi", {principal: 5000000, ratePercent: 8.5, years: 20})`;
+    expect(widgetProblems(nested)).toEqual([]);
+    const html = renderToStaticMarkup(<WidgetView code={nested} complete />);
+    expect(html).toContain("₹43,391.16");
+    expect(html).not.toContain("could not be drawn");
+  });
 });
