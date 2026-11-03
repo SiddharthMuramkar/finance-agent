@@ -5,6 +5,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { parseCourseMap, readOutlineText, readTopicFiles } from "../src/course/map.ts";
 import { formulaCheckErrors } from "../src/course/formula-check.ts";
+import { guidedTaskCheckErrors } from "../src/course/guided-task-check.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 
 const DOC = "docs/course-map.md";
@@ -20,6 +21,9 @@ const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
 if (!map) fail("Course Map is invalid", errors);
 const typed = formulaCheckErrors(map.topics);
 if (typed.length) fail("Typed formulas in the Course Map (ADR 0002)", typed);
+
+const unreachable = guidedTaskCheckErrors(map.topics);
+if (unreachable.length) fail("Guided Tasks that cannot work", unreachable);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 if (process.argv.includes("--write")) {

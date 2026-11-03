@@ -72,10 +72,15 @@ explore:
   before: pv-jackpot-choice
   requiredWhenPassed: false
   widget: |
-    root = Widget("Cash now or 30 yearly payments: what the rate decides", [rate, chart])
+    root = Widget("Cash now or 30 yearly payments: what the rate decides", [rate, chart, steps])
     $rate = 5
     rate = Slider("rate", "Interest rate (discount rate)", 0, 10, 0.25, $rate, "percent")
     chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")
+    steps = GuidedTasks([zero, two, eight, closest])
+    zero = GuidedTask("Set the interest rate to 0%", $rate == 0)
+    two = GuidedTask("Now set it to 2%", $rate == 2)
+    eight = GuidedTask("Now set it to 8%", $rate == 8)
+    closest = GuidedTask("Find the rate where the payments' worth today comes closest to the cash option", $rate >= 3.25 && $rate <= 3.5)
 
 # Given by the Tutor at the principle step. Written in words (no figures); each names outline Topic IDs, checked by `npm run course:check`.
 connections:

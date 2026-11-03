@@ -40,9 +40,9 @@ function topicText(widgetLine: string, data = "[cash-option]") {
 }
 
 describe("the explore Widget in a Topic file", () => {
-  it("is present value's: an interest-rate slider and the annuity chart set against the sourced cash option", () => {
+  it("is present value's: an interest-rate slider, the annuity chart set against the sourced cash option, and its Guided Tasks", () => {
     expect(widgetProblems(code)).toEqual([]);
-    expect(widgetParts(code).components).toEqual(["Slider", "AnnuityChart"]);
+    expect(widgetParts(code).components).toEqual(["Slider", "AnnuityChart", "GuidedTasks"]);
     expect(code).toContain('"mega-millions-2018/cash-option"');
   });
 

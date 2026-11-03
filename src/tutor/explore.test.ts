@@ -70,6 +70,17 @@ describe("explore step in the Tutor Turn", () => {
     expect(sent).not.toContain("AnnuityChart(");
   });
 
+  it("lists the Guided Tasks under the Explore Widget as practice, without the Widget's code or their conditions", async () => {
+    const db = await atExplore();
+    const [request] = await turn(db, "Ready.", [say("Here is a question.")]);
+    const sent = everything(request);
+    expect(sent).toContain("Guided Tasks under the Explore Widget");
+    expect(sent).toContain("1. Set the interest rate to 0% 2. Now set it to 2% 3. Now set it to 8% 4. Find the rate where");
+    expect(sent).toContain("do not mark them");
+    expect(sent).not.toContain("$rate");
+    expect(sent).not.toContain("GuidedTask(");
+  });
+
   it("goes hint 1, hint 2, then tells the Insight, saving the Learner's exact words each time", async () => {
     const db = await atExplore();
     const first = await turn(db, "The bars get smaller", [attempt("t1", "not_yet", "the bars get smaller"), say("Try the far bars.")]);
