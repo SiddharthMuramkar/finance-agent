@@ -61,13 +61,13 @@ export function stepContext(
     } else if (quizUnavailable) {
       lines.push(
         "",
-        `Check: quiz ${check.id}, but the quiz for this Check cannot be shown: too few of its questions can be found, so the Learner sees no quiz panel. Check the Learner in conversation instead: ask them to explain the Concept below in their own words and apply it to a small example of your own, and question their reasoning. Do not mention a quiz panel.`,
+        `Check: quiz ${check.id}, but the quiz for this Check cannot be shown: too few of its questions can be found, so the Learner sees no quiz and no Check tab. Check the Learner in conversation instead: ask them to explain the Concept below in their own words and apply it to a small example of your own, and question their reasoning. Do not mention a quiz or a Check tab.`,
         `Concept: ${plain(topic.concept.trim())}`,
       );
     } else {
       lines.push(
         "",
-        `Check: quiz ${check.id}. Code shows the questions in a panel beside the conversation and marks the answers; the Learner answers there. Do not write quiz questions, hint at answers or mark anything yourself. Code will send you the result with the Learner's next message.`,
+        `Check: quiz ${check.id}. Code shows the questions on the right, in the Check tab, and marks the answers; the Learner answers there. Do not write quiz questions, help with them, hint at answers or mark anything yourself, but do answer questions unrelated to the quiz. Code will send you the result with the Learner's next message.`,
       );
     }
   }
@@ -94,7 +94,7 @@ export function stepContext(
         ? `When you can judge whether the Learner understands the Concept, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
         : check?.kind === "conversation"
         ? `Put the Check prompt to the Learner and question their reasoning. When you can judge it against the pass criteria, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
-        : "Code records the quiz result; you cannot finish this step yourself. Never tell the Learner they passed unless code says a pass was recorded. If the Learner asks, point them to the quiz panel.",
+        : "Code records the quiz result; you cannot finish this step yourself. Never tell the Learner they passed unless code says a pass was recorded. If the Learner asks, point them to the quiz on the right, in the Check tab, and say you will help with its questions after they submit.",
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");

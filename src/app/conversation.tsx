@@ -46,14 +46,14 @@ export function Conversation({
 }) {
   // Each new turn sends the panel back to the newest Widget.
   const turn = useTurnStream({ initial, pending, onTurnStart: () => host.showNewest() });
-  const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore });
+  const host = useWidgetHost({ messages: turn.messages, running: turn.running, explore, quiz });
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
       {/* One Case Data cache for the page, cleared as each turn ends. */}
       <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
         <WorkspaceFrame
-          left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quiz={quiz} explore={explore} />}
+          left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} />}
           right={<WidgetHost host={host} topicTitle={place?.title} />}
         />
       </CaseDataProvider>

@@ -82,6 +82,8 @@ describe("quiz Check flow", () => {
     const quiz = await openQuiz(db, map);
     expect(quiz?.questions.map((q) => q.id)).toEqual(["q1", "q2"]);
     expect(quiz?.checkId).toBe("quiz");
+    // Its place among the Topic's Checks, for the "Check 1 of 2" tab.
+    expect(quiz).toMatchObject({ checkNumber: 1, checkCount: 2 });
     const text = JSON.stringify(quiz);
     for (const secret of ["answer", "explanation", "Because", "Source"]) expect(text).not.toContain(secret);
     expect((await openQuiz(db, map))?.attemptId).toBe(quiz?.attemptId);

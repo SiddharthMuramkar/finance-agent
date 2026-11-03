@@ -510,8 +510,9 @@ prose stays on the left with an "Open: <widget title> →" chip where the widget
 inside the conversation. Old Sessions rebuild their widgets from the stored text, with controls back
 at their starting values.
 
-**The Widget panel (`src/app/widget-panel.tsx`, issue #47).** The right column is one sticky panel,
-capped at the column's height so it never runs under the header. It shows one card: an eyebrow naming
+**The Widget panel (`src/app/widget-panel.tsx`, issue #47).** The right column is one panel, fixed to
+the column's height and scrolling inside itself (see "The fixed two-column layout and the Check tab").
+While a quiz is open its "Check k of N" tab comes first in the row and is selected. It shows one card: an eyebrow naming
 the concept, then the widget with its title but without its own border (the card is the only frame).
 The eyebrow is worked out by code from the widget's parts, read with OpenUI's parser (`widgetParts`
 in `check.ts`, which looks through nested layouts and also lists the tools and Case Data references
@@ -839,6 +840,10 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
   numeric ones with our own Finance Calculations, so a wrong key fails `npm run check`.
 - **The pass rule is in the Course Map too.** The present value quiz holds six questions, shows
   three per attempt and needs two right.
+- **Where it shows.** On the right, as the Widget panel's "Check k of N" tab ("Check 1 of 2": the
+  Check's place among its Topic's Checks, which `openQuiz` returns), selected by itself; see "The
+  fixed two-column layout and the Check tab". The Tutor's context says the same: the questions are
+  on the right, in the Check tab, and it must not help with them until the Learner submits.
 - **The key stays on the server.** When the Learner reaches the quiz Check, the page shows only
   the prompts and choices. The right answers and explanations leave the server only in the reply
   to a submitted attempt. A test asserts the page's quiz data contains neither.
@@ -872,7 +877,7 @@ instant and costs no tokens. The present value Topic now has one of each kind: a
   Course Navigator's context, directly after the Learner's message (the one place the API accepts
   a system message), or at the top of the opening message of a new Session. A note is sent once.
 
-**Scenario.** The Learner finishes the concept and "your turn" and the page shows the quiz. They
+**Scenario.** The Learner finishes the concept and "your turn" and the quiz opens in the Check tab on the right. They
 get "$1,210 in two years at 10%" wrong, picking $1,100, and get two right. That is two of three,
 so it passes at once, and the screen explains the miss ("dividing by 1.10 only once discounts for
 one year"). They press Continue and the Tutor opens with a short, informed word about the
@@ -1587,9 +1592,9 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **What it does.** The Study Workspace used to be one 330-line component. It is now four parts, and `Conversation` only puts them together:
 - **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
-- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review and quiz, the thread, the turn's notices and Retry, and the box. Every button that starts a turn calls the turn stream's `send`.
-- **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid and the right column's size and scrolling.
-- **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), which one the panel shows, and the "Widget N →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget.
+- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review, the thread, the turn's notices and Retry, the quiz note while a quiz is open, and the box. Every button that starts a turn calls the turn stream's `send`.
+- **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid, fixed to the space under the header, and the right column's scrolling.
+- **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), the open quiz's Check tab, which of them the panel shows, and the "Open: <title> →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget, or to the Check tab while a quiz is open.
 
 The page (`src/app/study/page.tsx`) still renders `Conversation` with the same props, so nothing the Learner sees changed; the markup is the same as before the split.
 
@@ -1599,11 +1604,19 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 ## Workspace left column (`src/app/left-column.tsx`, `message-box.tsx`, `workspace-parts.tsx`, `thread.tsx`, issue #44)
 
-**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic", the plain summary, a navy Continue that starts a turn), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the open quiz folded into one row ("Quiz Check open · Show"), the conversation in its own scroll area, and the composer pinned at the bottom with a 24px fade above it. The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume and the Widget correction turn live in the turn stream (see "How the Study Workspace is split"); the left column only shows its state. The look is in small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`, `MessageBox`) that tests render on their own.
+**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic", the plain summary, a navy Continue that starts a turn), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the conversation in its own scroll area, the quiz note while a quiz is open, and the composer pinned at the bottom with a 24px fade above it. The status card and the review sit in one box capped at two fifths of the column that scrolls inside itself. The open quiz is no longer folded here: it is the right panel's Check tab (see "The fixed two-column layout and the Check tab"). The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume and the Widget correction turn live in the turn stream (see "How the Study Workspace is split"); the left column only shows its state. The look is in small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`, `MessageBox`) that tests render on their own.
 
 **Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
-**Trade-off.** Folding the review and quiz keeps the conversation high on the screen, but a due review is one click away instead of in plain view.
+**Trade-off.** Folding the review keeps the conversation high on the screen, but a due review is one click away instead of in plain view.
+
+## The fixed two-column layout and the Check tab (`workspace-frame.tsx`, `left-column.tsx`, `widget-host.tsx`, `quiz-panel.tsx`, `study/page.tsx`, spec #119, ticket #140)
+
+**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the status card, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
+
+**Scenario.** The Learner reaches Check 1 of 2 on a 1024 × 640 laptop with three Reviews due. The right panel switches to "Check 1 of 2" with six questions that scroll inside the panel. They open the Review row: it scrolls inside its capped box, while the last Tutor message, the quiz note and the message box all stay on screen and the page stays 640 px tall. They ask "is a basis point a hundredth of a percent?"; the Tutor answers that but won't touch the quiz, and the Check tab is still selected when the reply ends.
+
+**Trade-off.** Fixing everything to the viewport means nothing can push the chat away, at the price of several small scroll areas (the box above the chat, the conversation, the panel) instead of one page scroll; a long Review question has to be scrolled inside its box. Putting the quiz in the right panel means it and a Widget can't be seen together: the Learner switches tabs to look at a Widget mid-quiz.
 
 ## The message box: writing indicator, drafting and Attach a passage (`src/app/message-box.tsx`, `turn-stream.ts`, spec #119, ticket #155)
 

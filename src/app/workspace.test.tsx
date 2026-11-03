@@ -26,7 +26,7 @@ const choices = [
   { id: "a", text: "Twenty-five" },
   { id: "b", text: "Zero point two five" },
 ];
-const quiz = { attemptId: 1, checkId: "c", attemptNo: 0, questions: [{ id: "q", prompt: "How many basis points?", choices }] };
+const quiz = { attemptId: 1, checkId: "c", checkNumber: 1, checkCount: 2, attemptNo: 0, questions: [{ id: "q", prompt: "How many basis points?", choices }] };
 
 function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
   return renderToStaticMarkup(
@@ -66,11 +66,12 @@ describe("the workspace's left column", () => {
     expect(text(workspace())).not.toContain("Spaced review");
   });
 
-  it("folds an open quiz into one row, and leaves it out when there is none", () => {
-    const open = text(workspace({ quiz }));
-    expect(open).toContain("Quiz Check open");
-    expect(open).toContain("Submit answers");
-    expect(text(workspace())).not.toContain("Quiz Check");
+  it("has no folded quiz bar: an open quiz is not in the left column", () => {
+    const html = workspace({ quiz });
+    const left = text(html.slice(0, html.indexOf('data-testid="widget-pane"')));
+    expect(left).not.toContain("Quiz Check open");
+    expect(left).not.toContain("How many basis points?");
+    expect(left).not.toContain("Submit answers");
   });
 
   it("puts a Widget chip where a Widget belongs in a reply, never the Widget itself", () => {
@@ -123,6 +124,72 @@ describe("the workspace's left column", () => {
 
   it("has a composer that asks the Tutor", () => {
     expect(workspace()).toContain('placeholder="Ask the Tutor"');
+  });
+});
+
+describe("the fixed two-column layout", () => {
+  const tag = (html: string, testid: string) => html.match(new RegExp(`<[^>]*data-testid="${testid}"[^>]*>`))?.[0] ?? "";
+  const review = { question: { id: "q", prompt: "How many basis points?", choices }, dueCount: 2, done: 0, cap: 5 };
+
+  it("fills the height it is given, never more, with both columns scrolling inside themselves", () => {
+    const html = workspace({ quiz, review });
+    const frame = tag(html, "workspace-frame");
+    expect(frame).toMatch(/\bflex-1\b/);
+    expect(frame).toMatch(/\bmin-h-0\b/);
+    expect(frame).toMatch(/\boverflow-hidden\b/);
+    const pane = tag(html, "widget-pane");
+    expect(pane).toMatch(/\boverflow-y-auto\b/);
+    expect(pane).toMatch(/\bmin-h-0\b/);
+    expect(pane).not.toMatch(/\bsticky\b/);
+    const thread = tag(html, "thread-viewport");
+    expect(thread).toMatch(/\boverflow-y-auto\b/);
+    expect(thread).toMatch(/\bmin-h-0\b/);
+  });
+
+  it("caps what stands above the chat (status card, Review) and scrolls it inside itself, so the chat keeps its height", () => {
+    const html = workspace({ review });
+    const above = tag(html, "above-thread");
+    expect(above).toMatch(/\bmax-h-/);
+    expect(above).toMatch(/\boverflow-y-auto\b/);
+    const inside = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
+    expect(text(inside)).toContain("Spaced review · 2 due");
+    expect(inside).toContain('aria-label="Where you stand"');
+  });
+});
+
+describe("a quiz Check in the right panel", () => {
+  const pane = (html: string) => html.slice(html.indexOf('data-testid="widget-pane"'));
+
+  it("opens as a tab named Check k of N, selected automatically, showing the questions", () => {
+    const html = pane(workspace({ quiz }));
+    expect(html).toMatch(/<button[^>]*aria-pressed="true"[^>]*>(<[^>]+>)*Check 1 of 2</);
+    expect(text(html)).toContain("How many basis points?");
+    expect(text(html)).toContain("Submit answers");
+  });
+
+  it("stays the selected tab when the Tutor has drawn Widgets, which keep their own tabs", () => {
+    const initial: Line[] = [{ role: "assistant", text: fence(ANNUITY) }];
+    const html = pane(workspace({ quiz, initial }));
+    expect(html).toMatch(/<button[^>]*aria-pressed="true"[^>]*>(<[^>]+>)*Check 1 of 2</);
+    expect(html).toMatch(/<button[^>]*aria-pressed="false"[^>]*title="What the annuity is worth today"/);
+    expect(text(html)).toContain("How many basis points?");
+    expect(text(html)).not.toContain("Discount rate");
+  });
+
+  it("puts the quiz rule above the message box while the quiz is open, and the box stays usable", () => {
+    const note = "Quiz open: the Tutor will help with these questions after you submit.";
+    const html = workspace({ quiz });
+    const left = html.slice(0, html.indexOf('data-testid="widget-pane"'));
+    expect(text(left)).toContain(note);
+    // Above the box: after the thread, before the box itself.
+    expect(left.indexOf(note)).toBeGreaterThan(left.indexOf('data-testid="thread-viewport"'));
+    expect(left.indexOf(note)).toBeLessThan(left.indexOf('placeholder="Ask the Tutor"'));
+    expect(left.match(/<textarea[^>]*placeholder="Ask the Tutor"[^>]*>/)?.[0]).not.toMatch(/\bdisabled\b/);
+    expect(text(workspace())).not.toContain(note);
+  });
+
+  it("has no Check tab when no quiz is open", () => {
+    expect(text(workspace())).not.toMatch(/Check \d of \d/);
   });
 });
 

@@ -892,6 +892,10 @@ describe("Tutor Turn", () => {
       const context = requests.at(-1)!.messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).map((b) => JSON.stringify(b)).join("\n");
       expect(context).toContain(`Check: quiz ${quizId}`);
       expect(context).toContain("Do not write quiz questions");
+      // Where the Learner sees it: on the right, in the Check tab, never "beside the conversation" or "the quiz panel".
+      expect(context).toContain("on the right, in the Check tab");
+      expect(context).not.toContain("panel beside the conversation");
+      expect(context).not.toContain("the quiz panel");
       for (const q of real.topic("present-value")!.questions) {
         expect(context).not.toContain(q.prompt.trim());
         expect(context).not.toContain(q.explanation.trim());

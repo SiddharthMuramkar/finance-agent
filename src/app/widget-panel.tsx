@@ -203,7 +203,7 @@ export function useWidgetPicker(widgets: WidgetItem[]) {
     timer.current = setTimeout(() => setFlashing(false), 1000);
   };
   const shown = widgets.find((w) => w.key === picked) ?? widgets.at(-1);
-  return { shown, pick, flashing, clear: () => setPicked(undefined) };
+  return { shown, picked, pick, flashing, clear: () => setPicked(undefined) };
 }
 
 /** What a Widget is called on its tab and chip: "Explore" for the explore Widget, else its title, never a number. */
@@ -225,9 +225,17 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
 }
 
 /**
+ * A quiz Check in the panel: its own tab, first in the row ("Check 1 of 2"), and the quiz under it. `selected`
+ * shows the quiz instead of a Widget. The quiz stays mounted while another tab is shown, so answers picked
+ * so far, or a marking on screen, survive a look at a Widget.
+ */
+export type CheckTab = { name: string; selected: boolean; onPick: () => void; body: ReactNode };
+
+/**
  * The Widget panel beside the conversation: a tab per Widget, named by title (from two on), then one card with a concept
- * eyebrow and the Widget, or a dashed empty box before the Tutor has built any. Read-only callers can
- * leave out onPick's side effects; the panel never calls the model.
+ * eyebrow and the Widget, or a dashed empty box before the Tutor has built any. With an open quiz Check, its tab
+ * comes first and the row always shows. Read-only callers can leave out onPick's side effects; the panel never
+ * calls the model.
  */
 export function WidgetPanel({
   widgets,
@@ -235,29 +243,37 @@ export function WidgetPanel({
   flashing = false,
   onPick,
   topicTitle,
+  check,
 }: {
   widgets: WidgetItem[];
   shown: WidgetItem | undefined;
   flashing?: boolean;
   onPick: (key: string) => void;
   topicTitle?: string;
+  check?: CheckTab;
 }) {
   const laptop = useLaptopWidth();
-  if (!shown) {
+  if (!shown && !check) {
     return <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">Widgets the Tutor builds appear here.</p>;
   }
+  const checkShown = !!check && (check.selected || !shown);
   // Below the laptop breakpoint the explore Widget stands in the conversation column instead (PinnedExplore),
   // so the panel draws no copy of its own there and says where it went.
-  const elsewhere = shown.explore && !laptop;
+  const elsewhere = shown?.explore && !laptop;
   return (
     <>
-      {(widgets.length >= 2 || widgets.some((w) => w.explore)) && (
+      {(check || widgets.length >= 2 || widgets.some((w) => w.explore)) && (
         // One line of tabs that scrolls sideways, never wrapping; a long title is cut short with an ellipsis (full title on hover).
         <div className="mb-3 flex flex-nowrap gap-2 overflow-x-auto pb-1" role="group" aria-label="Widgets in this Session">
+          {check && (
+            <Chip active={checkShown} onClick={check.onPick} className="shrink-0" data-testid="check-tab">
+              {check.name}
+            </Chip>
+          )}
           {widgets.map((w) => (
             <Chip
               key={w.key}
-              active={w.key === shown.key}
+              active={!checkShown && w.key === shown?.key}
               onClick={() => onPick(w.key)}
               className={`max-w-56 shrink-0 ${w.explore ? "max-lg:hidden" : ""}`}
               title={widgetName(w)}
@@ -268,11 +284,17 @@ export function WidgetPanel({
           ))}
         </div>
       )}
-      {elsewhere ? (
+      {check && (
+        <section aria-label={check.name} data-testid="check-card" hidden={!checkShown} className="rounded-lg border border-[var(--border)] p-4">
+          {check.body}
+        </section>
+      )}
+      {shown && !checkShown && elsewhere && (
         <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">
           The Explore Widget is in the conversation, under the status card.
         </p>
-      ) : (
+      )}
+      {shown && !checkShown && !elsewhere && (
         <section data-testid="widget-card" className={`rounded-lg border p-4 transition-colors duration-200 ${flashing ? "border-[var(--brand)]" : "border-[var(--border)]"}`}>
           {/* Remounts per Widget, so each one fades in over 200ms. */}
           <div key={shown.key} className="transition-opacity duration-200 starting:opacity-0">
