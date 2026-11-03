@@ -457,7 +457,11 @@ from the middle of the list (one series is navy; two are teal and amber; three a
 amber). It follows our
 dark-mode class on the page, not the computer's own setting, so a Widget always matches the rest of
 the page. Charts are SVG, whose colours cannot always read CSS variables, so the theme gives them the
-same colours as fixed hex values for each mode, copied from `globals.css`.
+same colours as fixed hex values for each mode, copied from `globals.css`. Tabs open on their first
+view and stay on the one the Learner picks: the browser draws Widgets with the same library and
+schema, but its own Tabs (`drawingLibrary` in `src/app/widget-view.tsx`), because OpenUI's jump to
+whichever tab's content last grew, so a chart-and-table Widget opened on its table as soon as the
+Query's rows arrived (browser check, 3 Nov 2026), and drew no tab at all on the server.
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a

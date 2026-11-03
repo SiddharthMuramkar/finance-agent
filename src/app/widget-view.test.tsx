@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { widgetProblems, widgetQueries } from "@/widgets/check";
+import { widgetLibrary } from "@/widgets/library";
 import type { WidgetToolName } from "@/widgets/tool-specs";
-import { failedQueries, WidgetView, type ToolOutcome } from "./widget-view";
+import { drawingLibrary, failedQueries, shownTab, WidgetView, type ToolOutcome } from "./widget-view";
 
 // Widgets drawn on the server, as tests and the Notes page draw them: OpenUI's kit (layouts, charts) and our
 // Widget tools beside our own parts. A Query runs only in the browser, so on the server a chart reading one
@@ -53,6 +54,41 @@ describe("a Widget drawn with OpenUI's kit and our Widget tools", () => {
     const html = draw(UNKNOWN_TOOL);
     expect(html).toContain(FALLBACK);
     expect(html).not.toContain("Sensex prices");
+  });
+});
+
+const TWO_VIEWS = `root = Widget("Illustration: one rise, two views", [tabs])
+tabs = Tabs([chartTab, tableTab])
+chartTab = TabItem("chart", "Chart", [bars])
+tableTab = TabItem("table", "Table", [table])
+bars = BarChart(["Before", "After"], [Series("Rate in percent", [5, 5.5])])
+table = Table([Col("When", ["Before", "After"]), Col("Rate", [5, 5.5])])`;
+
+describe("a Widget's Tabs", () => {
+  it("open on the first tab, with its content drawn, even on the server", () => {
+    expect(widgetProblems(TWO_VIEWS)).toEqual([]);
+    const html = draw(TWO_VIEWS);
+    expect(html).toMatch(/role="tab" aria-selected="true"[^>]*>(?:<[^>]+>)*Chart</);
+    expect(html).toMatch(/role="tab" aria-selected="false"[^>]*>(?:<[^>]+>)*Table</);
+    const open = html.match(/<div data-state="active"[^>]*role="tabpanel"[^>]*>/)?.[0];
+    expect(open).toContain("content-chart");
+    expect(open).not.toContain("hidden");
+    expect(html).toContain("Rate in percent");
+    // The Table tab's content is drawn only once it is picked.
+    expect(html).not.toContain("When");
+  });
+
+  it("show the tab the Learner picked while the Widget has it, else the first, whatever data arrives", () => {
+    expect(shownTab(["chart", "table"], undefined)).toBe("chart");
+    expect(shownTab(["chart", "table"], "table")).toBe("table");
+    expect(shownTab(["chart", "table"], "gone")).toBe("chart");
+    expect(shownTab([], undefined)).toBeUndefined();
+  });
+
+  it("are drawn with the very parts and schema the Tutor writes to; only how Tabs pick their tab differs", () => {
+    expect(JSON.stringify(drawingLibrary.toJSONSchema())).toBe(JSON.stringify(widgetLibrary.toJSONSchema()));
+    expect(Object.keys(drawingLibrary.components)).toEqual(Object.keys(widgetLibrary.components));
+    expect(drawingLibrary.components.Tabs.component).not.toBe(widgetLibrary.components.Tabs.component);
   });
 });
 
