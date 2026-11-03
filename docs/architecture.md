@@ -911,6 +911,23 @@ storing its primers in the Library would be. The owner can write to the RBI for 
 then the loader refuses it. The New York Fed's old Fedpoints series has been retired from its site,
 so its current explainer pages stand in.
 
+**The blog is read in TypeScript (IL 3, #60).** Damodaran's blog used to be read by a Python script
+that only ran on the laptop. It is now read by `src/library/blog.ts` (using `htmlparser2`, the
+owner-approved HTML reader), because the weekly refresh that comes later runs on Vercel, which has no
+Python. One reader, shared: `npm run library:blog -- <scratch>` fetches Blogger's feed (cached in the
+scratch folder), turns each post into a document that also records its published and updated times,
+writes the documents file and loads it. The other sources keep their Python extractors, and the
+Python HTML reader stays for them. A parity test runs the same sample HTML through both readers and
+expects identical sections, and on 2 Nov 2026's feed the new reader gave the same 685 posts and the
+same 6,513 passages, text for text, as the old one. Scripts, styles and embedded players (iframes,
+objects, video, audio) leave nothing in the text. Scenario: a post that embeds a YouTube player and a
+table of yields gives its words and the table rows, with no player text. Importing one post
+(`importLibraryDocument`) replaces only that post's passages: an unchanged passage keeps its Voyage
+embedding, an edited one is embedded again, and a passage the post no longer has is removed, so a
+weekly run touches a few posts instead of reloading 6,500 passages. Trade-off: the two readers must
+now agree on HTML by test rather than by being one program, and a post whose HTML is badly broken
+may read slightly differently from before (none of the 685 does).
+
 **Corrupted text, found and repaired.** PDF text breaks in known ways. The loader detects them
 (lost ligatures such as "CreaAon" for "Creation", letters spaced apart, PDF character codes,
 replacement characters) and now also repairs what it safely can: a broken word is mended only when

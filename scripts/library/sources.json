@@ -21,7 +21,7 @@
     "url": "https://aswathdamodaran.blogspot.com/",
     "fetchedOn": "2026-11-02",
     "quoteWords": 60,
-    "fetch": "python3 -I scripts/library/sources.py damodaran-blog <scratch> <scratch>/damodaran-blog.documents.json (Blogger JSON feed, 100 posts a call; post dates come from the feed)"
+    "fetch": "npm run library:blog -- <scratch> (TypeScript reader, src/library/blog.ts: Blogger JSON feed, 100 posts a call, cached in <scratch>; post dates and published/updated times come from the feed; writes <scratch>/damodaran-blog.documents.json and loads it; add --no-load to stop after the file)"
   },
   {
     "id": "damodaran-papers",

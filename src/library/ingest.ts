@@ -79,12 +79,59 @@ const BATCH = 200;
  */
 export async function importLibrary(db: Executor, input: LibraryFile): Promise<{ passages: number; removed: number }> {
   const { source: s, passages } = libraryFile.parse(input);
+  await writeSource(db, s);
+  await writePassages(db, s, passages);
+  const refs = sql.join(
+    passages.map((p) => sql`${p.ref}`),
+    sql`, `,
+  );
+  const removed = await rowsOf<{ id: number }>(db, sql`delete from library_passages where source_id = ${s.id} and ref not in (${refs}) returning id`);
+  return { passages: passages.length, removed: removed.length };
+}
+
+/** A passage ref is `<document ref>#<n>`; this is the document part. */
+export const documentOfRef = (ref: string): string => ref.split("#")[0];
+
+/**
+ * Writes one document of a source (one blog post) and touches nothing else. Only that document's
+ * passages are replaced: an unchanged passage keeps its embedding, a changed one loses it, and one
+ * the document no longer has is removed. Passing no passages removes the document's passages (a
+ * post that is now empty).
+ */
+export async function importLibraryDocument(
+  db: Executor,
+  input: { source: LibraryFile["source"]; document: string; passages: LibraryFile["passages"] },
+): Promise<{ passages: number; removed: number }> {
+  const { document } = input;
+  if (input.passages.some((p) => documentOfRef(p.ref) !== document)) throw new Error(`every passage must belong to document ${document}`);
+  const s = librarySourceInput.parse(input.source);
+  if (isBlockedSource(s)) throw new Error("this source is not allowed in the Library (the spec keeps it out)");
+  const passages = input.passages.length ? libraryFile.parse({ source: s, passages: input.passages }).passages : [];
+  await writeSource(db, s);
+  await writePassages(db, s, passages);
+  const keep = passages.length
+    ? sql`and ref not in (${sql.join(
+        passages.map((p) => sql`${p.ref}`),
+        sql`, `,
+      )})`
+    : sql``;
+  const removed = await rowsOf<{ id: number }>(db, sql`delete from library_passages where source_id = ${s.id} and split_part(ref, '#', 1) = ${document} ${keep} returning id`);
+  return { passages: passages.length, removed: removed.length };
+}
+
+type SourceInput = z.output<typeof librarySourceInput>;
+type PassageInput = z.output<typeof libraryPassageInput>;
+
+async function writeSource(db: Executor, s: SourceInput): Promise<void> {
   await db.execute(sql`
     insert into library_sources (id, title, kind, licence, licence_url, credit, url, fetched_on, quote_words)
     values (${s.id}, ${s.title}, ${s.kind}, ${s.licence}, ${s.licenceUrl}, ${s.credit}, ${s.url}, ${s.fetchedOn}, ${s.quoteWords ?? null})
     on conflict (id) do update set
       title = excluded.title, kind = excluded.kind, licence = excluded.licence, licence_url = excluded.licence_url,
       credit = excluded.credit, url = excluded.url, fetched_on = excluded.fetched_on, quote_words = excluded.quote_words`);
+}
+
+async function writePassages(db: Executor, s: SourceInput, passages: PassageInput[]): Promise<void> {
   for (let i = 0; i < passages.length; i += BATCH) {
     const rows = passages
       .slice(i, i + BATCH)
@@ -99,12 +146,6 @@ export async function importLibrary(db: Executor, input: LibraryFile): Promise<{
         embedded_with = case when library_passages.text = excluded.text then library_passages.embedded_with end,
         text = excluded.text`);
   }
-  const refs = sql.join(
-    passages.map((p) => sql`${p.ref}`),
-    sql`, `,
-  );
-  const removed = await rowsOf<{ id: number }>(db, sql`delete from library_passages where source_id = ${s.id} and ref not in (${refs}) returning id`);
-  return { passages: passages.length, removed: removed.length };
 }
 
 /** Passages with no embedding yet, in load order, for the embedding script. */
