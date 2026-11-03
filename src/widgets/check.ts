@@ -172,12 +172,100 @@ export function replyWidgetProblems(text: string): { index: number; problems: st
     });
 }
 
+/** OpenUI's ready-made charts that have axes, each taking an x-axis and a y-axis label. */
+const AXIS_CHARTS = new Set(["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "ScatterChart"]);
+
+/** True when a parsed argument is given: written text, or anything the browser works out. */
+const labelGiven = (value: unknown) => (typeof value === "string" ? value.trim() !== "" : value !== undefined && value !== null);
+
+/** The Case Data references a parsed Widget draws, through Query("case_data") or a HistoryChart. */
+function caseDataDrawn(result: ParseResult): string[] {
+  const queried = writtenQueries(result).flatMap(({ tool, args }) => (tool === "case_data" && isRecord(args) && typeof args.dataset === "string" ? [args.dataset] : []));
+  const charted = [...walkNodes(result.root?.props.children)].flatMap((n) => (n.typeName === "HistoryChart" && typeof n.props.dataset === "string" ? [n.props.dataset] : []));
+  return [...new Set([...queried, ...charted])].filter((ref) => CASE_DATA_REFERENCE.test(ref));
+}
+
+/**
+ * The Widget rules code holds a new Widget to, beyond drawing (spec #119, "Code-backed Widget checks"): a Widget
+ * with a slider has a Guided Task; a kit chart with axes labels both of them; and a new Widget does not draw the
+ * same Case Data as a Widget already open. `open` is the code of the Widgets open before this one; one with the
+ * same title is the Widget this one updates in place, so it is not compared. Run only on the reply being
+ * written: stored Widgets (Older sessions, Notes) are never held to these rules, and draw as before.
+ */
+export function widgetRuleProblems(code: string, open: readonly string[] = []): string[] {
+  let result: ParseResult;
+  try {
+    result = parser.parse(code);
+  } catch {
+    return [];
+  }
+  const root = result.root;
+  if (!root) return [];
+  const nodes = [...walkNodes(root.props.children)];
+  const problems: string[] = [];
+  if (nodes.some((n) => n.typeName === "Slider") && !parsedTasks(root.props.children).length) {
+    problems.push("this Widget has a slider but no Guided Task. Add GuidedTasks, last in the Widget, with at least one GuidedTask whose condition reads the slider's $variable and names a number the slider can reach.");
+  }
+  for (const chart of nodes.filter((n) => AXIS_CHARTS.has(n.typeName))) {
+    if (!labelGiven(chart.props.xLabel) || !labelGiven(chart.props.yLabel)) {
+      problems.push(`${chart.statementId ?? chart.typeName}: this ${chart.typeName} has no axis labels. Give it both an x-axis and a y-axis label, in plain words with the unit.`);
+    }
+  }
+  const title = typeof root.props.title === "string" ? root.props.title.trim() : null;
+  const drawn = caseDataDrawn(result);
+  for (const other of open) {
+    const parts = widgetParts(other);
+    if (title && parts.title?.trim() === title) continue;
+    let otherResult: ParseResult;
+    try {
+      otherResult = parser.parse(other);
+    } catch {
+      continue;
+    }
+    const shared = caseDataDrawn(otherResult).filter((ref) => drawn.includes(ref));
+    if (shared.length) {
+      problems.push(
+        `this new Widget draws the same Case Data (${shared.join(", ")}) as the open Widget "${parts.title ?? "Untitled"}". Update that Widget instead: write it again in full under the same title, "${parts.title ?? "Untitled"}".`,
+      );
+    }
+  }
+  return problems;
+}
+
+/**
+ * Everything wrong with each finished Widget of the reply being written, by widget position: what stops it
+ * drawing, then the Widget rules (widgetRuleProblems). Each Widget is compared with the Widgets open before
+ * the reply (`open`, their code) and with those earlier in the same reply. Widgets with no problem are left out.
+ */
+export function newReplyWidgetProblems(text: string, open: readonly string[] = []): { index: number; problems: string[] }[] {
+  const seen = [...open];
+  return splitReply(text)
+    .filter((s) => s.type === "widget")
+    .flatMap((s, index) => {
+      const problems = [...widgetProblems(s.code), ...widgetRuleProblems(s.code, seen)];
+      seen.push(s.code);
+      return problems.length ? [{ index, problems }] : [];
+    });
+}
+
 const FENCE = /```openui-lang\n[\s\S]*?\n```/g;
 
-/** Swaps each broken widget block in `text`, in order, for the next block in `correction`. */
-export function replaceBrokenWidgets(text: string, correction: string): string {
+/**
+ * The widget positions (from 0) a correction message from code names: its "- Widget N: …" lines. Empty for a
+ * message that names none.
+ */
+export function flaggedWidgets(checkMessage: string): number[] {
+  return [...new Set([...checkMessage.matchAll(/^- Widget (\d+):/gm)].map((m) => Number(m[1]) - 1))];
+}
+
+/**
+ * Swaps each flagged widget block in `text`, in order, for the next block in `correction`. The flagged
+ * widgets are `flagged` (positions from 0, as the correction message named them), else those that cannot
+ * be drawn.
+ */
+export function replaceBrokenWidgets(text: string, correction: string, flagged?: readonly number[]): string {
   const fixes = correction.match(FENCE) ?? [];
-  const broken = new Set(replyWidgetProblems(text).map((b) => b.index));
+  const broken = new Set(flagged?.length ? flagged : replyWidgetProblems(text).map((b) => b.index));
   let index = 0;
   return text.replace(FENCE, (block) => (broken.has(index++) && fixes.length ? fixes.shift()! : block));
 }
@@ -257,4 +345,24 @@ export function widgetTaskTexts(code: string): string[] {
   } catch {
     return [];
   }
+}
+
+/** A Widget open in the panel: its title and the code it draws now. */
+export type OpenWidget = { title: string; code: string };
+
+/**
+ * The Widgets open in a Session, from its replies' text in order: every finished Widget that draws, one per
+ * title, in the tab order the panel shows. A later Widget with the same title updates the earlier one in
+ * place: it keeps the earlier one's place and takes its code.
+ */
+export function openWidgetsIn(replies: readonly string[]): OpenWidget[] {
+  const byTitle = new Map<string, string>();
+  for (const reply of replies) {
+    for (const s of splitReply(reply)) {
+      if (s.type !== "widget" || !s.complete || widgetProblems(s.code).length) continue;
+      const title = widgetParts(s.code).title?.trim();
+      if (title) byTitle.set(title, s.code);
+    }
+  }
+  return [...byTitle].map(([title, code]) => ({ title, code }));
 }

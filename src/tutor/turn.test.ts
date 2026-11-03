@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
-import { sessions as sessionsTable, settings, turns } from "@/db/schema";
+import { messages, sessions as sessionsTable, settings, turns } from "@/db/schema";
 import { APIError } from "@anthropic-ai/sdk";
 import { sql } from "drizzle-orm";
 import { describeFailure } from "./failures";
@@ -759,14 +759,96 @@ describe("Tutor Turn", () => {
   });
 
   describe("widgets", () => {
-    const good = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
+    const good =
+      '```openui-lang\nroot = Widget("PV", [rate, chart, steps])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\nsteps = GuidedTasks([zero])\nzero = GuidedTask("Set the rate to 0%", $rate == 0)\n```';
     const bad = '```openui-lang\nroot = Widget("PV", [chart])\nchart = LineChart([1, 2, 3])\n```';
+    const text = (t: string) => ({ content: [{ type: "text", text: t }] });
+    /** The correction request's text, or undefined when the reply needed none. */
+    const correctionAsked = (requests: { messages: { role: string; content?: unknown }[] }[]) =>
+      requests.length > 1 ? String(requests[1].messages.at(-1)!.content) : undefined;
+
+    it("sends a new Widget with a slider and no Guided Task back for one correction turn", async () => {
+      const noTasks = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Try it.\n${noTasks}` }] }, { content: [{ type: "text", text: good }] }]);
+      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      expect(correctionAsked(requests)).toMatch(/slider.*Guided Task/i);
+      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+      // On reload the corrected Widget stands where the first one was.
+      expect(noUsage(await loadCurrentSession(db))).toEqual([
+        { role: "user", text: "Show me" },
+        { role: "assistant", text: `Try it.\n${good}` },
+      ]);
+    });
 
     it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hi." }] }]);
       await collect(runTutorTurn({ db, client }, "Hello"));
       expect(requests[0].system[0].text).toContain(frozenWidgets.instructions);
+    });
+
+    it("sends a kit chart with no axis labels back for one correction turn", async () => {
+      const unlabelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])])\n```';
+      const labelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])], "grouped", "When", "Rate in percent")\n```';
+      const db = await testDb();
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: unlabelled }] }, { content: [{ type: "text", text: labelled }] }]);
+      await collect(runTutorTurn({ db, client }, "Show me"));
+      expect(correctionAsked(requests)).toMatch(/bars: this BarChart has no axis labels/);
+
+      const fine = await testDb();
+      const once = scriptedClient([{ content: [{ type: "text", text: labelled }] }]);
+      await collect(runTutorTurn({ db: fine, client: once.client }, "Show me"));
+      expect(correctionAsked(once.requests)).toBeUndefined();
+    });
+
+    describe("with a Widget already open", () => {
+      const history = (title: string) => `\`\`\`openui-lang\nroot = Widget("${title}", [chart])\nchart = HistoryChart("mega-millions-2018/treasury-30-year")\n\`\`\``;
+      const queried = (title: string) =>
+        `\`\`\`openui-lang\nroot = Widget("${title}", [line])\nd = Query("case_data", {dataset: "mega-millions-2018/treasury-30-year"}, {rows: []})\nline = LineChart(d.rows.date, [Series("Yield", d.rows.value)], "linear", "Date", "Percent")\n\`\`\``;
+      const sentText = (request: { messages: { content?: unknown }[] }) => JSON.stringify(request.messages);
+
+      it("tells the Tutor the open Widgets' titles and to update one by reusing its title", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text("Look at the chart.")]);
+        await collect(runTutorTurn({ db, client }, "Show me rates"));
+        expect(sentText(requests[0])).not.toContain("Open Widgets");
+        await collect(runTutorTurn({ db, client }, "And now?"));
+        const context = requests[1].messages.filter((m) => m.role === "system").map((m) => String(m.content)).join("\n");
+        expect(context).toContain('Open Widgets (tabs in the Widget panel): "Long-term interest rates".');
+        expect(context).toMatch(/write it again in full under exactly the same title: code replaces it in its tab/);
+      });
+
+      it("sends a new Widget drawing the same Case Data as an open Widget back for one correction turn", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Rates around the draw")), text(queried("Long-term interest rates"))]);
+        await collect(runTutorTurn({ db, client }, "Show me rates"));
+        const events = await collect(runTutorTurn({ db, client }, "Show them as a line"));
+        expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+        expect(String(requests[2].messages.at(-1)!.content)).toMatch(/same Case Data \(mega-millions-2018\/treasury-30-year\) as the open Widget "Long-term interest rates"/);
+      });
+
+      it("lets the Tutor update an open Widget in place by reusing its title, with no correction turn", async () => {
+        const db = await testDb();
+        const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Long-term interest rates"))]);
+        await collect(runTutorTurn({ db, client }, "Show me rates"));
+        const events = await collect(runTutorTurn({ db, client }, "Show them as a line"));
+        expect(requests).toHaveLength(2);
+        expect(events.some((e) => e.type === "correction")).toBe(false);
+      });
+
+      it("never holds the Widgets already stored to the new rules: a stored slider Widget with no Guided Task reloads unchanged", async () => {
+        const db = await testDb();
+        const old = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
+        // Stored before the rule: written straight to the Session, as an earlier deploy's turn saved it.
+        const { client } = scriptedClient([text("Hello."), text("Still here.")]);
+        await collect(runTutorTurn({ db, client }, "Hi"));
+        const [session] = await db.select().from(sessionsTable);
+        await db.insert(messages).values({ sessionId: session.id, seq: 99, role: "assistant", content: [{ type: "text", text: old }] });
+        expect(noUsage(await loadCurrentSession(db)).at(-1)).toEqual({ role: "assistant", text: `Hello.\n\n${old}` });
+        const events = await collect(runTutorTurn({ db, client }, "Thanks"));
+        expect(events.some((e) => e.type === "correction")).toBe(false);
+      });
     });
 
     it("a valid widget needs no correction turn", async () => {
