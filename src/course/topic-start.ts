@@ -1,5 +1,6 @@
 import type { CourseMap, Topic } from "./map";
 import type { Progress } from "./navigator";
+import { writtenAheadWidgets } from "./written-ahead";
 
 /**
  * The Topic Start card (spec #119, "The Study Workspace › Topic Start card"): the first item of a Topic's
@@ -19,7 +20,7 @@ export type TopicStartData = {
   youllLearn: string[];
   /** Each prerequisite and whether the Learner has passed it; empty for a starting Topic. */
   before: { id: string; title: string; passed: boolean }[];
-  /** The written-ahead Widget titles; empty until written-ahead Widgets exist, and then the line is left out. */
+  /** The written-ahead Widget titles; the line is left out when there are none. */
   uses: string[];
   checks: number;
 };
@@ -33,7 +34,7 @@ export function topicStart(map: CourseMap, progress: Progress, topicId: string):
     where: topic.subject ?? STAGE_NAMES[topic.stage],
     youllLearn: topic.youllLearn ?? [],
     before: topic.prerequisites.map((id) => ({ id, title: map.topic(id)?.title ?? id, passed: progress.topics[id]?.status === "passed" })),
-    uses: [],
+    uses: writtenAheadWidgets(topic).map((w) => w.title),
     checks: topic.checks.length,
   };
   return { kind: TOPIC_START, data };
