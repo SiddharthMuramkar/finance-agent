@@ -72,7 +72,7 @@ export function ProfileForm({ initial, mode, next = "/study" }: { initial: Profi
     const failed = await send("/api/profile", "PUT", values);
     setError(failed);
     if (!failed && mode === "welcome") {
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full load of the next Welcome panel
+      // A full load of the next Welcome panel.
       window.location.assign(next);
       return;
     }
