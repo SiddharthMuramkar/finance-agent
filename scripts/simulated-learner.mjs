@@ -1,6 +1,8 @@
 // Simulated Learner: drives the running app over HTTP, the way a person would, to walk the present value Topic.
 //
-// It logs in with the passcode and drives the app as a Learner does (src/dev/learner-moves.ts): it chooses the
+// It signs in as the tools Learner (never the owner or the owner's test Learner) and starts that Learner over, so
+// every run begins from an empty Learner and touches only its rows; the old tools Learner is archived, never
+// deleted (src/dev/simulated-learner.ts). It then drives the app as a Learner does (src/dev/learner-moves.ts): it chooses the
 // Topic (the page starts the opener), presses Next when there is nothing to answer and Finish this reply under a
 // reply cut off at its length limit, answers the Tutor with a cheap Learner model (claude-haiku-5-5), takes the
 // quiz through /api/quiz, and keeps going until the Topic is passed. After each turn it reads the Tutor's
@@ -11,31 +13,29 @@
 // Usage (secrets come from .env through Node, never the shell):
 //   node --env-file=.env scripts/simulated-learner.mjs --base <url> --out <folder> [options]
 // Options:
-//   --reset                 first archive the present value progress (renames rows, deletes nothing) so the run starts at the story
-//   --new-session-at <step> force a new Session at the first turn that starts at this step (default your_turn); "none" to skip
 //   --max-turns <n>         stop after this many turns (default 30)
 //   --learner-model <id>    model that plays the Learner (default claude-haiku-5-5)
 //   --topic <id>            Topic to walk (default present-value)
 //
-// It needs PASSCODE, DATABASE_URL and ANTHROPIC_API_KEY in the environment. The Tutor's cost is whatever the app
+// It needs PASSCODES (listing a tools:<passcode> pair, the same as the app's), DATABASE_URL and ANTHROPIC_API_KEY in
+// the environment. The Tutor's cost is whatever the app
 // recorded in its usage table, so run it against the same database the app uses.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { neon } from "@neondatabase/serverless";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { parse } from "yaml";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { archiveTopic, withIdleHours } from "../src/dev/simulated-learner.ts";
+import { signInAsToolsLearner, toolsState } from "../src/dev/simulated-learner.ts";
 import { nextMove, nextNamedIn, saysGoOn, turnBody } from "../src/dev/learner-moves.ts";
 
 const args = parseArgs(process.argv.slice(2));
 const base = (args.base ?? "").replace(/\/$/, "");
 const out = args.out;
 if (!base || !out) {
-  console.error("Usage: node --env-file=.env scripts/simulated-learner.mjs --base <url> --out <folder> [--reset] [--new-session-at <step>] [--max-turns <n>]");
+  console.error("Usage: node --env-file=.env scripts/simulated-learner.mjs --base <url> --out <folder> [--max-turns <n>] [--learner-model <id>] [--topic <id>]");
   process.exit(2);
 }
-for (const name of ["PASSCODE", "DATABASE_URL", "ANTHROPIC_API_KEY"]) {
+for (const name of ["PASSCODES", "DATABASE_URL", "ANTHROPIC_API_KEY"]) {
   if (!process.env[name]) {
     console.error(`Missing ${name} in the environment (run with --env-file=.env).`);
     process.exit(2);
@@ -44,7 +44,6 @@ for (const name of ["PASSCODE", "DATABASE_URL", "ANTHROPIC_API_KEY"]) {
 const topicId = args.topic ?? "present-value";
 const learnerModel = args["learner-model"] ?? "claude-haiku-5-5";
 const maxTurns = Number(args["max-turns"] ?? 30);
-const newSessionAt = args["new-session-at"] ?? "your_turn";
 mkdirSync(out, { recursive: true });
 
 const ORDER = ["story", "concept", "explore", "your_turn", "check", "reveal", "principle"];
@@ -77,18 +76,9 @@ function parseArgs(argv) {
   return parsed;
 }
 
+// The tools Learner this run signed in as (fresh from Start over), and its cookie.
 let cookie = "";
-async function login() {
-  const res = await fetch(`${base}/api/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ passcode: process.env.PASSCODE }),
-    redirect: "manual",
-  });
-  const set = res.headers.getSetCookie().map((c) => c.split(";")[0]);
-  cookie = set.find((c) => c.startsWith("fa_access=")) ?? "";
-  if (!cookie) throw new Error(`Login failed (HTTP ${res.status}): no access cookie came back.`);
-}
+let learnerId = 0;
 
 const headers = () => ({ "Content-Type": "application/json", Cookie: cookie });
 
@@ -185,22 +175,12 @@ async function getQuiz() {
   return (await res.json()).quiz;
 }
 
-async function readState() {
-  const [progress] = await query("select step, status, reveal_shown from topic_progress where topic_id = $1", [topicId]);
-  const passes = await query("select check_id from check_results where topic_id = $1 and passed", [topicId]);
-  const [{ n }] = await query("select count(*)::int as n from sessions");
-  return {
-    step: progress?.step ?? "story",
-    status: progress?.status ?? "not_started",
-    revealShown: progress?.reveal_shown ?? false,
-    passedChecks: passes.map((p) => p.check_id),
-    sessions: n,
-  };
-}
+/** Where the tools Learner stands, from its own rows only. */
+const readState = () => toolsState(query, learnerId, topicId);
 
 /** The saved status, duration, cost and tools of the turn that just ended, from the usage table. */
 async function readTurnRecord() {
-  const [turn] = await query("select id, session_id, turn_seq, status, stop_reason, error from turns order by id desc limit 1");
+  const [turn] = await query("select id, session_id, turn_seq, status, stop_reason, error from turns where learner_id = $1 order by id desc limit 1", [learnerId]);
   if (!turn || turn.session_id === null) return { status: turn?.status ?? "unknown" };
   const rows = await query("select kind, step, model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, thinking_tokens, tools, duration_ms, cost_usd from usage where session_id = $1 and turn_seq = $2 order by kind, step", [turn.session_id, turn.turn_seq]);
   const total = rows.find((r) => r.kind === "turn");
@@ -220,14 +200,6 @@ async function readTurnRecord() {
     loopSteps: steps.length,
     tools: steps.flatMap((s) => s.tools),
   };
-}
-
-/** Archives the topic's progress by renaming rows, so a fresh run starts at the story. Deletes nothing. */
-async function resetTopic() {
-  const tag = `archived-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}`;
-  const checkIds = (parse(readFileSync(join("course", "topics", `${topicId}.yaml`), "utf8")).checks ?? []).map((c) => c.id);
-  const done = await archiveTopic(query, topicId, checkIds, tag);
-  say(`Reset: archived ${done.results} Check result(s), ${done.attempts} quiz attempt(s), ${done.notes} misconception(s) under "${tag}"; the Topic will start afresh at the story.`);
 }
 
 // ---------------------------------------------------------------- the simulated Learner
@@ -288,14 +260,12 @@ const turns = [];
 const startedAt = new Date();
 
 try {
-  await login();
-  say(`Logged in to ${base} as the passcode holder.`);
-  if (args.reset) await resetTopic();
+  // Every run starts with Start over on the tools Learner: the old one is archived, nothing is deleted.
+  ({ cookie, learnerId } = await signInAsToolsLearner(base));
+  say(`Signed in to ${base} as the tools Learner and started it over: Learner ${learnerId}, empty.`);
 
   state = await readState();
   say(`Start: step "${state.step}", status "${state.status}", ${state.sessions} Session(s) already.`);
-  let forceNewSession = Boolean(args.reset);
-  let newSessionDone = newSessionAt === "none";
   let afterQuiz = false;
   let cutShort = false;
   let sameStep = 0;
@@ -325,19 +295,14 @@ try {
     if (move.kind === "opener") await chooseTopic();
     afterQuiz = false;
 
-    const newSession = !newSessionDone && state.step === newSessionAt && n > 1;
-    const idleOverride = forceNewSession || newSession;
     const sessionsBefore = state.sessions;
     const wallStart = performance.now();
-    // The setting goes back after the turn, and also on Ctrl-C or a kill in the middle of it.
-    const { body, result } = idleOverride ? await withIdleHours(query, "0", () => takeMove(move)) : await takeMove(move);
+    const { body, result } = await takeMove(move);
     if (body.message === undefined && n > 1) noteAction(`(I ${moveLabel(body).slice(1, -1)}.)`);
     const wallMs = Math.round(performance.now() - wallStart);
     const record = await readTurnRecord();
     state = await readState();
     const sessionEvent = result.events.find((e) => e.type === "session");
-    if (newSession) newSessionDone = true;
-    forceNewSession = false;
     lastTutorText = result.text;
     cutShort = result.events.some((e) => e.type === "cut_short");
 
