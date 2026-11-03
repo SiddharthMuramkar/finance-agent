@@ -487,9 +487,9 @@ them; and a single scrolling row hides the far tabs until scrolled, where wrappi
 
 **The Sourced strip and readable Case Data charts.** Under a Widget that calls `case_data`, one thin
 amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit; before the reveal
-it adds "Data after <as-of date> is withheld until the reveal." The strip and the Widget's Queries
-share one request per Case (`caseLoader` in `case-data-client.ts`), so a Widget with a chart and a
-table of the Sensex asks the server for that Case once. A dataset that is missing or withheld gets no
+it adds "Data after <as-of date> is withheld until the reveal." The strip, the Widget's Queries, its
+charts and its Formula Cards all read through the page's shared Case Data cache (see "The shared Case
+Data cache" below), so a page with a chart and a table of the Sensex asks the server for that Case once. A dataset that is missing or withheld gets no
 line in the strip: the Widget's own line under the chart already says its data could not be loaded
 (see "When a widget is broken"), so the Learner reads it once. `HistoryChart` keeps its own amber
 frame, credit and withheld note, and it is easier to read: numbers on the left axis (lowest, middle,
@@ -497,7 +497,29 @@ highest) and dates along the bottom (first, middle, last), bigger points that ke
 however narrow the panel (an 8px dot and a 7px ring round the point read), a readout ("<date>:
 <value>") when a point is hovered, tapped or reached with the keyboard (a line of more than 30 points
 is one stop, read with the arrow keys), and each value printed above its point when there are 12
-points or fewer. It is still plain SVG, so it draws on the server and in tests too.
+points or fewer. It is still plain SVG, so it draws on the server and in tests too. The annuity chart
+(`AnnuityChart`, drawn by `annuity-plot.tsx`) reads the same way: dollars up the side ($0, half and the
+largest payment, under "Dollars per payment"), payments along the bottom (first, middle, last, under
+"Payment number (the first is paid now)"), and a readout such as "Payment 30: $95.2 million paid, worth
+$40.4 million today" when a bar is hovered, tapped or reached with Tab. Kit charts (OpenUI's own) are
+labelled through the Tutor's instructions and the server's Widget check, not here.
+
+**The shared Case Data cache (`src/widgets/case-data-cache.ts`, `case-data-provider.tsx`).** Each page
+(the Study Workspace, an old Session, Notes) holds one cache of Case Data, and every chart, Formula Card,
+Widget tool and Sourced strip on it reads through it (`useCaseLoad`). What it holds: one answer from
+`/api/case-data/<case>` per Case and reveal state. The page reads on the server which Cases the Learner
+has seen revealed (`revealedCases`) and passes them in, so an answer fetched before a reveal is never
+served after it, nor the other way. When it clears: at the end of every Tutor turn (a turn can open the
+reveal), and whenever the revealed list changes; Widgets already on the page then read again, and a failed
+load is forgotten so the next read retries. Scenario: at the Fed Topic's explore step the panel shows a
+history chart of the funds rate and a Formula Card reading its latest point, while the explore Widget's
+chart compares against the same Case; the page makes one request, not three, and nothing flashes as
+each part loads. The Learner presses Next to the reveal; as the turn ends the cache clears, the next
+read fetches the full series, and a Widget the Tutor draws after the reveal shows February 1994 onwards.
+Trade-off: data stays in the browser for the whole page, so a change made elsewhere (another device
+reaching the reveal) shows only after the next turn or a reload; and the cache refetches after every turn
+even when nothing changed, one small request per Case on the page, which buys never having to work out
+in the browser whether a turn opened a reveal.
 
 **Look and theme (`src/widgets/genui-theme.tsx`, `src/app/globals.css`).** The kit's styles come from
 OpenUI's layered stylesheet, placed in a CSS layer (`openui`) above Tailwind's base layer and below
@@ -1001,9 +1023,12 @@ the Learner can keep playing during their turn and the Check. It is chosen from 
 that Session reached the explore step (read from the Course Navigator context saved in the Session). A
 newer Widget from the Tutor still opens on its own, because the explore Widget is placed after only the
 Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells it the Widget is already on
-screen, so it points to it and does not draw its own. Below the laptop breakpoint (an upright iPad) the
-panel hides its copy and a folded card, open to start, stands in the conversation column under the status
-card instead; at laptop width only the panel shows it.
+screen, so it points to it and does not draw its own. It is mounted once: the page measures its width
+(`useLaptopWidth`, a media query on Tailwind's lg breakpoint) and draws the Widget in one place only. Below
+the laptop breakpoint (an upright iPad) a folded card, open to start, stands in the conversation column
+under the status card and the panel says where it went; at laptop width only the panel draws it. The
+server, which measures nothing, assumes a laptop (the layout is desktop-first), so on a narrow screen the
+card appears just after the page loads.
 
 **Rules the course check holds.** The `widget` text is optional, but every `"caseId/datasetId"` it names must
 be one of the Topic's own Cases and a dataset that Case lists in `data`. A test parses every real explore
@@ -1018,8 +1043,8 @@ takes the panel; the Explore chip stays beside it. After the Learner passes the 
 winner's payment and the 30-year Treasury chart are left out on purpose, so playing leads nowhere near the reveal.
 
 **Trade-off.** The Widget is fixed text in the Topic file, so it cannot adapt to a Learner the way a Tutor
-Widget can, and it costs nothing in tokens. Both the panel copy and the narrow card are drawn in the page
-(one hidden by CSS), so resizing the window resets the slider. An old Session is matched to the Topic by the
+Widget can, and it costs nothing in tokens. Drawing it in one place keeps one set of sliders and one
+Case Data read, but crossing the laptop breakpoint while resizing moves it, which resets the slider. An old Session is matched to the Topic by the
 title in its saved context, so a Topic renamed later loses its chip on old Session pages.
 
 ## Pacing rule (`src/tutor/tools.ts`, `src/tutor/instructions.ts`)

@@ -4,7 +4,7 @@ import type { Progress } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
-import { caseDataResponse, loadCaseData } from "./case-data";
+import { caseDataResponse, loadCaseData, revealedCases } from "./case-data";
 import { importCaseData, type CaseDatasetInput } from "./import";
 
 const map = parseCourseMap([
@@ -129,5 +129,12 @@ describe("the Case Data route", () => {
 
   it("answers 404 for an unknown Case", async () => {
     expect((await caseDataResponse(await testDb(), map, "nope")).status).toBe(404);
+  });
+});
+
+describe("the Cases a page counts as revealed", () => {
+  it("lists a Case once its Topic's reveal has been shown, and none before", () => {
+    expect(revealedCases(map, progress(false))).toEqual([]);
+    expect(revealedCases(map, progress(true))).toEqual(["jackpot"]);
   });
 });

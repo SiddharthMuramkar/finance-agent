@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { Conversation } from "./conversation";
 import { OldSession } from "./old-session";
+import { NarrowScreen } from "./widget-panel";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
@@ -29,8 +30,10 @@ describe("Save to notes in the lesson", () => {
   });
 
   it("is offered on the explore Widget wherever it stands", () => {
-    const html = renderToStaticMarkup(<Conversation initial={[]} summary="s" quiz={null} pending={null} review={noReview} explore={EXPLORE} />);
-    expect(html.match(/aria-label="Save this Widget to notes"/g)).toHaveLength(2);
+    const page = <Conversation initial={[]} summary="s" quiz={null} pending={null} review={noReview} explore={EXPLORE} />;
+    // In the panel at a laptop width, in its card below it: the Widget is mounted once either way.
+    expect(renderToStaticMarkup(page).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);
+    expect(renderToStaticMarkup(<NarrowScreen>{page}</NarrowScreen>).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);
   });
 });
 
