@@ -29,13 +29,14 @@ import { testDb } from "@/test/pglite";
 import { anthropicTutorClient } from "@/tutor/anthropic";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "@/tutor/instructions";
 import { costUsd } from "@/tutor/pricing";
-import { fingerprint } from "@/tutor/session-log";
+import { DEFAULT_SETTINGS, fingerprint } from "@/tutor/session-log";
 import { runTutorTurn } from "@/tutor/turn";
 import type { TurnUsage } from "@/tutor/usage";
 import { BEHAVIOUR_QUESTIONS, type BehaviourQuestion } from "./questions";
 import { buildGraderPrompt, GRADER_SYSTEM, parseGrade, renderReport, RULES, type Graded, type Rule } from "./grading";
 
-const TUTOR_MODEL = "claude-sonnet-5-5";
+// Each question's fresh database starts from the default settings, so this is the model the Tutor runs on.
+const TUTOR_MODEL = DEFAULT_SETTINGS.model;
 const GRADER_MODEL = "claude-opus-5-5";
 const OUT = process.env.BEHAVIOUR_OUT ?? join(homedir(), ".claude/projects/-Users-siddharth-Desktop-finance-agent/evidence/18");
 const BUDGET = Number(process.env.BEHAVIOUR_BUDGET_USD ?? "3.5");
