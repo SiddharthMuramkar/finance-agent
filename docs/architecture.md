@@ -339,7 +339,7 @@ the Tutor where the Learner stands, and teaching picks up at the same Teaching S
 **Trade-off.** Context goes in as appended messages rather than edits to the instructions, which
 keeps Claude's thinking valid but repeats some text in long Sessions.
 
-## Widgets (OpenUI: `src/widgets/`, `src/app/conversation.tsx`, `src/app/widget-view.tsx`, `src/app/widget-panel.tsx`, ADR 0003)
+## Widgets (OpenUI: `src/widgets/`, `src/app/widget-host.tsx`, `src/app/widget-view.tsx`, `src/app/widget-panel.tsx`, ADR 0003)
 
 **What it does.** Widgets are how the Study Workspace shows things. The Tutor builds one beside the
 conversation whenever a picture, a chart, a table or something to play with makes an idea clearer,
@@ -819,7 +819,7 @@ real move. The instructions now say that before the reveal no example or made-up
 the real outcome, and point the Tutor to the Topic's own Concept or Check prompt for hypothetical
 numbers (code already sends those, and they use neutral numbers).
 
-## Surviving cut-offs and failures (`src/tutor/turn.ts`, `turn-status.ts`, `tools.ts`, `failures.ts`, `src/app/conversation.tsx`)
+## Surviving cut-offs and failures (`src/tutor/turn.ts`, `turn-status.ts`, `tools.ts`, `failures.ts`, `src/app/turn-stream.ts`)
 
 **What it does.** Makes a turn safe to interrupt and safe to repeat.
 - **Saved status and resume.** Each turn has a row in `turns`: running, cut off, finished or failed.
@@ -1439,9 +1439,23 @@ render shows "Working it out…" until the browser sets the slider values. Hoste
 costs extra tokens for the code and its output and is optional: the Tutor is told to prefer
 `calculate`. Yearly rates are percentages everywhere (5 means 5%), a deliberate house convention.
 
-## Workspace left column (`src/app/conversation.tsx`, `workspace-parts.tsx`, `thread.tsx`, issue #44)
+## How the Study Workspace is split (`src/app/conversation.tsx`, `turn-stream.ts`, `left-column.tsx`, `message-box.tsx`, `workspace-frame.tsx`, `widget-host.tsx`, ticket #123)
 
-**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic", the plain summary, a navy Continue that starts a turn), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the open quiz folded into one row ("Quiz Check open · Show"), the conversation in its own scroll area, and the composer pinned at the bottom with a 24px fade above it. The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume, Retry, notices, the paste panel and the Widget correction turn are the same code as before; only the look moved into small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`) that tests render on their own.
+**What it does.** The Study Workspace used to be one 330-line component. It is now four parts, and `Conversation` only puts them together:
+- **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
+- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box and the paste panel in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review and quiz, the thread, the turn's notices and Retry, and the box. Every button that starts a turn calls the turn stream's `send`.
+- **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid and the right column's size and scrolling.
+- **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), which one the panel shows, and the "Widget N →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget.
+
+The page (`src/app/study/page.tsx`) still renders `Conversation` with the same props, so nothing the Learner sees changed; the markup is the same as before the split.
+
+**Scenario.** A later ticket adds Next chips under the Tutor's latest reply: it changes the left column only. Another moves the quiz to the right and fixes both columns to the screen: it changes the frame and the Widget host. A third adds "Tutor is writing…": it reads the turn stream's state in the message box. The three can be built at the same time without editing the same file.
+
+**Trade-off.** One screen now spans six files, so following a press of Send means reading the turn stream and the left column together. In return each part is small, and a change to the layout can't break streaming by accident.
+
+## Workspace left column (`src/app/left-column.tsx`, `message-box.tsx`, `workspace-parts.tsx`, `thread.tsx`, issue #44)
+
+**What it does.** The workspace fills the screen in two equal columns. The left one runs top to bottom: a status card ("Course Map · Stage · Topic", the plain summary, a navy Continue that starts a turn), the spaced review folded into one row ("Spaced review · 2 due · Show") when a review is due, the open quiz folded into one row ("Quiz Check open · Show"), the conversation in its own scroll area, and the composer pinned at the bottom with a 24px fade above it. The page reads the current Topic with `courseOverview` for the eyebrow. Streaming, cut-off resume and the Widget correction turn live in the turn stream (see "How the Study Workspace is split"); the left column only shows its state. The look is in small pieces (`StatusCard`, `FoldedRow`, `ThreadMessages`, `MessageBox`) that tests render on their own.
 
 **Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
