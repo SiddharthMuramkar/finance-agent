@@ -4,9 +4,13 @@ import { ACCESS_COOKIE, hasAccess } from "@/auth/passcode";
 /** The only files a signed-out visitor may fetch besides Home: its screenshots. */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
+/** Signing out works signed in or out, so a Learner already signed out in another tab still lands on Home. */
+const SIGN_OUT = "/api/logout";
+
 /**
  * Every page and API route needs the passcode cookie, except the login page itself.
- * Signed out, only a plain GET or HEAD of "/" (Home) and its images get through.
+ * Signed out, only a plain GET or HEAD of "/" (Home) and its images, and a POST to exactly the sign-out
+ * route, get through.
  */
 export async function proxy(request: NextRequest) {
   const ok = await hasAccess(request.cookies.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "");
@@ -19,6 +23,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json({ error: "Passcode required" }, { status: 401 });
   }
   if (read && (pathname === "/" || LANDING_ASSET.test(pathname))) return NextResponse.next();
+  if (request.method === "POST" && pathname === SIGN_OUT) return NextResponse.next();
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Passcode required" }, { status: 401 });
   }

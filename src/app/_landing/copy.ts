@@ -13,6 +13,7 @@ export const copy = {
   // Shown instead of "Sign in" when the Learner is already signed in. Both open /study.
   studyWorkspace: "Study Workspace",
   openStudyWorkspace: "Open Study Workspace",
+  signOut: "Sign out",
   howItWorks: "How it works",
   screenshotAlt: "The Study Workspace: a Tutor conversation on the left and a worked widget on the right.",
   stats: { topics: "Topics written", cases: "Historical Cases", sources: "Library sources" },

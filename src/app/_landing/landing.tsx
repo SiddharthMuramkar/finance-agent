@@ -1,12 +1,14 @@
-import { Eyebrow, Pill } from "../ui";
+import { Eyebrow, Pill, SignOutButton } from "../ui";
 import { copy, DRAFT } from "./copy";
 import { landingStats, type LandingStats } from "./stats";
 
 const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
 
+const topBarLink = "text-sm text-[var(--muted)] hover:text-[var(--ink)]";
+
 /**
  * Home, at "/". It shows counts only: no Learner data, no Library text. Signed out, the top bar and hero offer
- * Sign in; signed in (`signedIn`), they offer the Study Workspace at /study instead.
+ * Sign in; signed in (`signedIn`), they offer the Study Workspace at /study instead, and the top bar adds Sign out.
  */
 export function LandingView({ stats, signedIn = false }: { stats: LandingStats; signedIn?: boolean }) {
   const columns = [
@@ -19,9 +21,18 @@ export function LandingView({ stats, signedIn = false }: { stats: LandingStats; 
       <header className="sticky top-0 z-10 border-b border-[var(--hairline)] bg-[var(--bg)]/90 backdrop-blur-[8px]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <span className="text-base font-semibold">{copy.brand}</span>
-          <a href={signedIn ? "/study" : "/login"} className="text-sm text-[var(--muted)] hover:text-[var(--ink)]">
-            {signedIn ? copy.studyWorkspace : copy.signIn}
-          </a>
+          {signedIn ? (
+            <div className="flex items-center gap-4">
+              <a href="/study" className={topBarLink}>
+                {copy.studyWorkspace}
+              </a>
+              <SignOutButton className={topBarLink}>{copy.signOut}</SignOutButton>
+            </div>
+          ) : (
+            <a href="/login" className={topBarLink}>
+              {copy.signIn}
+            </a>
+          )}
         </div>
       </header>
 
