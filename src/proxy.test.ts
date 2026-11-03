@@ -1,9 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { ACCESS_COOKIE, accessToken } from "@/auth/passcode";
-import { proxy } from "./proxy";
+import { eq } from "drizzle-orm";
+import { ACCESS_COOKIE, learnerToken } from "@/auth/passcode";
+import { learners, OWNER_LEARNER_ID } from "@/db/schema";
+import type { Db } from "@/db/types";
+import { testDb } from "@/test/pglite";
+
+let db: Db;
+vi.mock("@/db/client", () => ({ getDb: () => db }));
+const { proxy } = await import("./proxy");
 
 const SECRET = "test-secret";
+
+/** The owner's sign-in cookie, as the login sets it. */
+const ownersCookie = async () => `${ACCESS_COOKIE}=${await learnerToken(OWNER_LEARNER_ID, SECRET)}`;
 
 function request(path: string, init: { method?: string; headers?: Record<string, string> } = {}) {
   return new NextRequest(new URL(path, "https://app.example"), init);
@@ -14,7 +24,11 @@ const redirectedToLogin = (r: Response) =>
   r.status >= 300 && r.status < 400 && new URL(r.headers.get("location")!).pathname === "/login";
 
 describe("The signed-out gate", () => {
-  beforeEach(() => vi.stubEnv("SESSION_SECRET", SECRET));
+  beforeEach(async () => {
+    db = await testDb();
+    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("PASSCODE", "the passcode");
+  });
   afterEach(() => vi.unstubAllEnvs());
 
   it("lets a signed-out visitor read Home", async () => {
@@ -42,7 +56,7 @@ describe("The signed-out gate", () => {
   it("sends a signed-out visitor from the Study Workspace to the login, and lets a signed-in one in", async () => {
     expect(redirectedToLogin(await proxy(request("/study")))).toBe(true);
     expect(redirectedToLogin(await proxy(request("/study?demo=1")))).toBe(true);
-    const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
+    const cookie = await ownersCookie();
     expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
   });
 
@@ -95,7 +109,7 @@ describe("The signed-out gate", () => {
   });
 
   it("skips the login form when signed in, with a temporary redirect to a safe next or /study", async () => {
-    const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
+    const cookie = await ownersCookie();
     const where = async (path: string) => {
       const response = await proxy(request(path, { headers: { cookie } }));
       expect([302, 303, 307]).toContain(response.status);
@@ -109,14 +123,63 @@ describe("The signed-out gate", () => {
   });
 
   it("lets a signed-in request through", async () => {
-    const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
+    const cookie = await ownersCookie();
     expect(allowed(await proxy(request("/course", { headers: { cookie } })))).toBe(true);
     expect(allowed(await proxy(request("/api/turn", { method: "POST", headers: { cookie } })))).toBe(true);
   });
 
   it("lets a signed-in visitor read Home and sign out", async () => {
-    const cookie = `${ACCESS_COOKIE}=${await accessToken(SECRET)}`;
+    const cookie = await ownersCookie();
     expect(allowed(await proxy(request("/", { headers: { cookie } })))).toBe(true);
     expect(allowed(await proxy(request("/api/logout", { method: "POST", headers: { cookie } })))).toBe(true);
+  });
+});
+
+describe("Cookies the proxy refuses", () => {
+  beforeEach(async () => {
+    db = await testDb();
+    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("PASSCODES", "owner:the passcode, test:another");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  /** Signed out: a page goes to the login, an API route answers 401, and the login page shows its form rather than looping. */
+  async function expectSignedOut(cookie: string) {
+    const headers = { cookie };
+    expect(redirectedToLogin(await proxy(request("/study", { headers })))).toBe(true);
+    expect((await proxy(request("/api/turn", { method: "POST", headers }))).status).toBe(401);
+    expect(allowed(await proxy(request("/login", { headers })))).toBe(true);
+  }
+
+  it("lets the owner's cookie through", async () => {
+    expect(allowed(await proxy(request("/study", { headers: { cookie: await ownersCookie() } })))).toBe(true);
+  });
+
+  it("refuses a tampered signature or Learner id", async () => {
+    const token = await learnerToken(OWNER_LEARNER_ID, SECRET);
+    const [, signature] = token.split(".");
+    const flipped = signature.slice(0, -1) + (signature.endsWith("0") ? "1" : "0");
+    await expectSignedOut(`${ACCESS_COOKIE}=${OWNER_LEARNER_ID}.${flipped}`);
+    const [test] = await db.insert(learners).values({ name: "test" }).returning();
+    await expectSignedOut(`${ACCESS_COOKIE}=${test.id}.${signature}`);
+  });
+
+  it("refuses an old cookie that carries no Learner", async () => {
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("finance-agent-access")));
+    await expectSignedOut(`${ACCESS_COOKIE}=${Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("")}`);
+  });
+
+  it("refuses the cookie of an archived Learner, or of a name taken off the list", async () => {
+    const [test] = await db.insert(learners).values({ name: "test" }).returning();
+    const cookie = `${ACCESS_COOKIE}=${await learnerToken(test.id, SECRET)}`;
+    expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
+
+    vi.stubEnv("PASSCODES", "owner:the passcode");
+    await expectSignedOut(cookie);
+
+    vi.stubEnv("PASSCODES", "owner:the passcode, test:another");
+    await db.update(learners).set({ archivedAt: new Date() }).where(eq(learners.id, test.id));
+    await expectSignedOut(cookie);
   });
 });
