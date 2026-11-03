@@ -500,3 +500,28 @@ export const loginFailures = pgTable(
   },
   (t) => [index("login_failures_at").on(t.at)],
 );
+
+/**
+ * The Notes page: the Learner's own lines on a Topic Note (kind "line", text only). Saved replies and
+ * Widgets (kinds "reply" and "widget", keyed by Session and turn) use the other columns. A Topic
+ * Note's filled-in part is not stored: code builds it on read from the Topic file and the records.
+ */
+export const noteItems = pgTable(
+  "note_items",
+  {
+    id: serial("id").primaryKey(),
+    topicId: text("topic_id").notNull(),
+    kind: text("kind").notNull().$type<"line" | "reply" | "widget">(),
+    /** The Learner's own line; null for saved replies and Widgets. */
+    text: text("text"),
+    /** A saved reply or Widget: the Session and the turn (the seq of the Learner's message that began it). */
+    sessionId: integer("session_id").references(() => sessions.id),
+    turnSeq: integer("turn_seq"),
+    /** A saved Widget: which Widget of the reply, and the slider values the Learner had. */
+    widgetIndex: integer("widget_index"),
+    widgetState: jsonb("widget_state").$type<Record<string, number>>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("note_items_topic").on(t.topicId)],
+);

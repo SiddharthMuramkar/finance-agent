@@ -1,4 +1,6 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
+import { exploreWidgetInSession, type ExploreWidget } from "@/course/explore-widget";
+import type { CourseMap } from "@/course/map";
 import { messages } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
@@ -44,4 +46,10 @@ export async function loadSessionSummaries(db: Db): Promise<Map<number, SessionS
     bySession.set(r.sessionId, list);
   }
   return new Map([...bySession].map(([id, rs]) => [id, summariseRows(rs)]));
+}
+
+/** The explore Widget an old Session showed (the Topic's own, not one the Tutor drew), or null. No model call. */
+export async function loadSessionExplore(db: Db, sessionId: number, map: CourseMap): Promise<ExploreWidget | null> {
+  const rows = await db.select({ content: messages.content }).from(messages).where(eq(messages.sessionId, sessionId)).orderBy(asc(messages.seq));
+  return exploreWidgetInSession(map, rows.flatMap((r) => stringsIn(r.content)).join("\n"));
 }
