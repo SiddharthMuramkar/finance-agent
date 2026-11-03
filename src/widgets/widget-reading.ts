@@ -163,3 +163,15 @@ export function widgetsBlock(readings: readonly WidgetReading[]): string | null 
     ...readings.flatMap(readingLines),
   ].join("\n");
 }
+
+/** "Interest rate" → "the interest rate"; a label that starts with an acronym ("EMI tenure") keeps its capitals. */
+const theLabel = (label: string) => `the ${/^[A-Z][a-z]/.test(label) ? label[0].toLowerCase() + label.slice(1) : label}`;
+
+/**
+ * What the Learner found, written by code from the Widget's values and readouts for "Tell the Tutor what I found":
+ * e.g. "I set the interest rate (discount rate) to 3.38%. Worth today at 3.38%: $877.9 million; Cash option: …".
+ */
+export function foundText(reading: WidgetReading): string {
+  const set = reading.sliders.length ? `I set ${reading.sliders.map((s) => `${theLabel(s.label)} to ${s.text}`).join(" and ")}.` : `I did every task in "${reading.title}".`;
+  return reading.readouts.length ? `${set} ${reading.readouts.join("; ")}.` : set;
+}

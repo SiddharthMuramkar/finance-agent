@@ -4,14 +4,16 @@ import { importCaseData } from "@/case-data/import";
 import type { TeachingStep } from "@/course/navigator";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { saveFinishedStep } from "@/learner/memory";
+import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { saveWidgetState } from "@/learner/widget-state";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { HELP_CHIPS } from "./chips";
 import { listSessions, loadThread } from "./transcript";
-import { runTutorTurn, type TurnDeps, type TurnEvent, type TurnInput } from "./turn";
+import { NOT_THE_LEARNERS_ATTEMPT } from "./tools";
+import { latestTurn, runTutorTurn, type TurnDeps, type TurnEvent, type TurnInput } from "./turn";
+import { turnKind } from "./turn-status";
 
 /**
  * Seam 1, Tutor Turn: what the Tutor sees of the Learner's Widgets (spec #119, "Widgets › What the Tutor sees").
@@ -164,5 +166,52 @@ describe("the readouts code works out for the Tutor", () => {
     const request = sent(asked.requests[0]);
     expect(request).toContain("Present value $620.92");
     expect(request).toContain("Present value of one future payment: Worth today (present value) $620.92");
+  });
+});
+
+describe("Tell the Tutor what I found", () => {
+  const tool = (name: string, input: object): ScriptedReply => ({ content: [{ type: "text", text: "Nice." }, { type: "tool_use", id: `toolu_${name}`, name, input }] });
+  const ticked = { Rates: { values: { $rate: 3 }, ticked: ["Set the rate to 3%"] } };
+
+  it("posts a message code writes from the Widget's values, as a widget report turn that is never a Learner bubble", async () => {
+    const db = await testDb();
+    await turn(db, "Show me a rate.", [say(`Try it.\n\n${fence(RATES)}`)]);
+    const report = await turn(db, { widgetReport: "Rates" }, [say("You found it.")], { widgets: ticked });
+
+    expect(report.events.at(-1)).toMatchObject({ type: "done" });
+    const request = sent(report.requests[0]);
+    expect(request).toContain("Widget report by code:");
+    expect(request).toContain("I set the interest rate to 3%.");
+    expect(turnKind((await latestTurn(db))!)).toBe("widget_report");
+    const thread = await loadThread(db, await sessionId(db), map);
+    expect(thread.filter((e) => e.role === "user").map((e) => e.role === "user" && e.text)).toEqual(["Show me a rate."]);
+    expect(thread.at(-1)).toMatchObject({ role: "assistant", text: "You found it." });
+  });
+
+  it("is refused as an Insight attempt", async () => {
+    const withInsight = presentValueOnly({ withoutQuiz: true });
+    const db = await testDb();
+    await turn(db, "Hi", [say("Once upon a time.")], {}, withInsight);
+    for (const step of ["story", "concept"] as TeachingStep[]) await saveFinishedStep(db, withInsight, step);
+    await turn(db, "Show me.", [say(`Here.\n\n${fence(RATES)}`)], {}, withInsight);
+
+    const report = await turn(
+      db,
+      { widgetReport: "Rates" },
+      [tool("record_insight_attempt", { outcome: "found", learner_words: "I set the interest rate to 3%." }), say("Say it in your words.")],
+      { widgets: ticked },
+      withInsight,
+    );
+    expect(JSON.stringify(report.requests.at(-1)!.messages.at(-1))).toContain(NOT_THE_LEARNERS_ATTEMPT);
+    expect((await loadProgress(db)).topics["present-value"].insight).toBeUndefined();
+  });
+
+  it("is not allowed until every Guided Task under the Widget is ticked, and nothing is stored", async () => {
+    const db = await testDb();
+    await turn(db, "Show me a rate.", [say(`Try it.\n\n${fence(RATES)}`)]);
+    const report = await turn(db, { widgetReport: "Rates" }, [], { widgets: { Rates: { values: { $rate: 3 }, ticked: [] } } });
+    expect(report.events.map((e) => e.type)).toEqual(["not_allowed"]);
+    expect(report.requests).toEqual([]);
+    expect(turnKind((await latestTurn(db))!)).toBe("message");
   });
 });

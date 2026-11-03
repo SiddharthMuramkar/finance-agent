@@ -41,7 +41,7 @@ import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, 
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, CONTINUE_TEXT, dropTurn, latestTurn, NEXT_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
-import { openWidgetsForTurn, readOpenWidgets } from "./widget-context";
+import { openWidgetsForTurn, readOpenWidgets, widgetReportNote } from "./widget-context";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
@@ -158,9 +158,10 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 /**
  * A new message, Continue (the cut-off reply's button), the opener (the page starts it when the Session it
  * shows has no messages; code writes its note), the Learner's Next (naming the step on its chip, or
- * "complete"; code writes its note), or a resume of the last turn after a cut-off or failure (Retry).
+ * "complete"; code writes its note), a widget report (Tell the Tutor what I found under the open Widget with this
+ * Widget key; code writes its note), or a resume of the last turn after a cut-off or failure (Retry).
  */
-export type TurnInput = string | { continue: true } | { opener: true } | { next: NextName } | { resume: true } | PastedInput;
+export type TurnInput = string | { continue: true } | { opener: true } | { next: NextName } | { widgetReport: string } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -236,6 +237,14 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       return;
     }
     started = note;
+  } else if (typeof input === "object" && "widgetReport" in input) {
+    const report = await widgetReportNote(db, deps.map ?? loadCourseMap(), learnerId, input.widgetReport, deps.widgets);
+    // The Widget is not open, or a Guided Task under it is not ticked yet: nothing is saved or sent.
+    if (!report.ok) {
+      yield { type: "not_allowed", message: report.reason };
+      return;
+    }
+    started = report.note;
   } else if (typeof input === "object" && "next" in input) {
     // Code writes the Next's note once it has taken the move, inside the lock.
     started = NEXT_PREFIX;
@@ -345,7 +354,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
     // that turn is run again from the message saved on it.
     // An opener sends the note code wrote for it, which its turn saved.
-    const learnerText = typeof input === "object" && ("resume" in input || "opener" in input || "next" in input) ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
+    const learnerText =
+      typeof input === "object" && ("resume" in input || "opener" in input || "next" in input || "widgetReport" in input) ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
     // Complete this Topic passed the Topic its Next pinned: the turn closes it in that Session, and starts nothing else.
     const completed = await completedSession(db, map, turn);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
@@ -583,7 +593,7 @@ async function completedSession(db: Db, map: CourseMap, turn: Turn): Promise<Ses
 }
 
 /** What the Learner sent, as saved on the turn: their message, or "Continue.". */
-function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true } | { next: NextName }>): string {
+function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true } | { next: NextName } | { widgetReport: string }>): string {
   if (typeof input === "string") return input;
   return "paste" in input ? input.message : CONTINUE_TEXT;
 }
