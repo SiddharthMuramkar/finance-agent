@@ -7,6 +7,7 @@ import {
   useStateField,
   type ComponentGroup,
   type ComponentRenderProps,
+  type PromptOptions,
 } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import { AnnuityFigure, AssumptionTag, formatUsd, HistoryFigure } from "./case-d
 import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { advanceReached } from "./guided-tasks";
 import { GuidedTasksFigure } from "./guided-tasks-view";
+import { WIDGET_TOOL_SPECS } from "./tool-specs";
 
 // The OpenUI component library the Tutor writes widgets with: OpenUI's ready-made kit (charts,
 // tables, tabs, callouts) beside our own code-backed parts (Slider, Calculator, AnnuityChart,
@@ -500,13 +502,18 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
 
 export const widgetLibrary = createLibrary({ root: "Widget", componentGroups: WIDGET_COMPONENT_GROUPS, components: [Widget, ...Object.values(kit.components)] });
 
-/** Options for the widget instructions frozen into the Tutor's instructions. */
+/**
+ * Options for the widget instructions frozen into the Tutor's instructions. With tools set, OpenUI prints
+ * both `examples` (our parts) and `toolExamples` (widgets whose numbers come from the Widget tools).
+ */
 export const WIDGET_PROMPT_OPTIONS = {
   preamble:
     "Widgets: you can put one interactive widget beside the conversation by writing it in openui-lang, a small UI language, inside a fenced block. Everything outside the fence is your ordinary prose to the Learner.",
   inlineMode: true,
+  tools: WIDGET_TOOL_SPECS,
+  toolCalls: true,
   bindings: true,
-  builtinFunctions: false,
+  builtinFunctions: true,
   examples: [
     `root = Widget("What the annuity is worth today", [rate, chart])
 $rate = 3
@@ -532,6 +539,36 @@ steps = GuidedTasks([low, high])
 low = GuidedTask("Set the rate to 6%", $rate == 6)
 high = GuidedTask("Now set it to 12%", $rate == 12)`,
   ],
+  toolExamples: [
+    `root = Widget("The Sensex at its milestones", [tabs])
+sensex = Query("case_data", {dataset: "sensex-1992/sensex-close"}, {rows: []})
+tabs = Tabs([chartTab, tableTab])
+chartTab = TabItem("chart", "Chart", [line])
+tableTab = TabItem("table", "Table", [table])
+line = LineChart(sensex.rows.date, [Series("Sensex close", sensex.rows.value)], "linear", "Date", "Index points")
+table = Table([Col("Date", sensex.rows.date), Col("Close", sensex.rows.text)])`,
+    `root = Widget("How 1 lakh grows at your rate", [rate, growth])
+$rate = 8
+rate = Slider("ratePercent", "Yearly return", 1, 15, 0.5, $rate, "percent")
+values = Query("calculate_range", {calculator: "future_value", inputs: {amount: 100000, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: 30, step: 1, currency: "inr"}, {rows: []})
+growth = AreaChart(values.rows.label, [Series("Value of 1 lakh", values.rows.value)], "natural", "Years", "Rupees")`,
+    `root = Widget("A 50 lakh home loan, by its length", [rate, line, table])
+$rate = 8.5
+rate = Slider("ratePercent", "Interest rate", 5, 14, 0.25, $rate, "percent")
+byLength = Query("calculate_range", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}, vary: "years", from: 5, to: 30, step: 5, output: "Monthly instalment"}, {rows: []})
+today = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}}, {rows: []})
+line = LineChart(byLength.rows.label, [Series("Monthly instalment", byLength.rows.value)], "linear", "Loan length", "Rupees a month")
+table = Table([Col("Over 20 years", today.rows.label), Col("Amount", today.rows.text)])`,
+    `root = Widget("Each payment, and what it is worth today", [rate, bars, total])
+$rate = 3
+rate = Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")
+schedule = Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: $rate}, {rows: []})
+bars = BarChart(schedule.rows.label, [Series("Payment", schedule.rows.payment), Series("Worth today", schedule.rows.presentValue)], "grouped", "Payment", "Dollars")
+total = TextContent("Worth today, all 30 payments together: " + schedule.presentValueText, "large-heavy")`,
+    `root = Widget("Illustration: a rate moving from 5% to 5.5%", [bars, note])
+bars = BarChart(["Before", "After"], [Series("Rate in percent", [5, 5.5])])
+note = TextContent("It rose by " + (5.5 - 5) + " percentage points, which is " + (5.5 - 5) * 100 + " basis points. As a share of the old rate, it rose " + (5.5 - 5) / 5 * 100 + "%.")`,
+  ],
   additionalRules: [
     "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
     "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
@@ -544,4 +581,4 @@ high = GuidedTask("Now set it to 12%", $rate == 12)`,
     "Before the reveal step, never put a Case's outcome in a widget.",
     "After the widget, keep teaching in plain prose: the Learner sees the widget beside the conversation.",
   ],
-};
+} satisfies PromptOptions;
