@@ -1,6 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { CaseData } from "@/case-data/case-data";
+import { loadCourseMap } from "@/course/map";
+import type { Progress } from "@/course/navigator";
+import { topicStart } from "@/course/topic-start";
 import { caseLoader, fetchCaseData } from "@/widgets/case-data-client";
 import { createWidgetTools } from "@/widgets/tools";
 import { Conversation, type Line } from "./conversation";
@@ -208,6 +211,11 @@ describe("the Next chip", () => {
     expect(chips(workspace({ initial: [...conversation, divider], next: toConcept }))).toHaveLength(1);
     expect(chips(workspace({ initial: [...conversation, { role: "user", text: "Wait" }], next: toConcept }))).toHaveLength(0);
     expect(chips(workspace({ initial: [], next: toConcept }))).toHaveLength(0);
+  });
+
+  it("does not stand under the Topic Start card alone, while the Tutor's opener starts by itself", () => {
+    const start = topicStart(loadCourseMap(), { currentTopicId: null, topics: {} }, "present-value")!;
+    expect(chips(workspace({ initial: [{ role: "item", ...start }], next: { ...toConcept, step: "story", label: "Next: Story", advances: false } }))).toHaveLength(0);
   });
 
   it("is not there while a Check is open (the Course Navigator offers none)", () => {
@@ -520,5 +528,58 @@ describe("the Sourced strip under a Widget that draws Case Data", () => {
     const html = renderToStaticMarkup(<WidgetPanel widgets={[item]} shown={item} onPick={() => {}} />);
     expect(text(html)).toContain("Sensex milestones");
     expect(html).not.toContain("sourced-strip");
+  });
+});
+
+describe("the Topic Start card", () => {
+  const map = loadCourseMap();
+  const fresh: Progress = { currentTopicId: null, topics: {} };
+  const card = (topicId: string, progress: Progress = fresh) => {
+    const item = topicStart(map, progress, topicId);
+    if (!item) throw new Error(`no card for ${topicId}`);
+    return workspace({ initial: [{ role: "item", ...item }] });
+  };
+  const startCard = (html: string) => html.match(/<section[^>]*data-testid="topic-start"[^>]*>.*?<\/section>/)?.[0] ?? "";
+
+  it("opens a new Session's conversation with the title, the Subject, You'll learn and the number of Checks", () => {
+    const html = card("present-value");
+    const shown = text(startCard(html));
+    expect(shown).toContain("Present value");
+    expect(shown).toContain("Numbers &amp; time value");
+    expect(shown).toContain("You’ll learn");
+    expect(shown).toContain("See why money later is worth less than money now.");
+    expect(shown).toContain("Find the interest rate at which two offers are worth the same.");
+    expect(shown).toContain("2 Checks");
+    // The card is the conversation's first item, scrolling with the chat, not something above it.
+    const thread = html.slice(html.indexOf('data-testid="thread-viewport"'));
+    expect(thread).toContain('data-testid="topic-start"');
+  });
+
+  it("lists each prerequisite as not passed yet with Study it first, which opens that Topic", () => {
+    const shown = startCard(card("present-value"));
+    expect(text(shown)).toContain("Before this");
+    expect(text(shown)).toContain("Growth, compounding and logs");
+    expect(text(shown)).toContain("not passed yet · Study it first");
+    expect(shown).toMatch(/<a[^>]*data-jump="num-compounding"[^>]*>Study it first<\/a>/);
+  });
+
+  it("marks a passed prerequisite ✓ passed, with no Study it first", () => {
+    const progress: Progress = { currentTopicId: null, topics: { "num-compounding": { step: "principle", passedChecks: [], revealShown: true, status: "passed" } } };
+    const shown = text(startCard(card("present-value", progress)));
+    expect(shown).toContain("Growth, compounding and logs ✓ passed");
+    expect(shown).not.toContain("Study it first");
+  });
+
+  it("says a starting Topic needs nothing first, and leaves out You'll use when the Topic has no written-ahead Widgets", () => {
+    const shown = text(startCard(card("num-percent-bps")));
+    expect(shown).toContain("Nothing — this is a starting Topic.");
+    expect(shown).not.toContain("You’ll use");
+    expect(text(startCard(card("present-value")))).not.toContain("You’ll use");
+  });
+
+  it("names the Stage of a Topic with no Subject", () => {
+    const later = map.topics.find((t) => t.stage === "follow")!;
+    const shown = text(startCard(card(later.id)));
+    expect(shown).toContain("Follow");
   });
 });

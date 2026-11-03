@@ -3,6 +3,7 @@
 import { useExternalStoreRuntime, type AppendMessage } from "@assistant-ui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { TOPIC_START } from "@/course/topic-start";
 import type { NextName } from "@/tutor/next";
 import { replaceBrokenWidgets } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
@@ -144,9 +145,10 @@ export function useTurnStream({
       setMessages((m) => {
         const first = m.findIndex(ours);
         if (first < 0) return m;
-        // Parts of this reply the page loaded before a resume, with their items, go too.
+        // Parts of this reply the page loaded before a resume, with their items, go too; never the Topic Start card,
+        // which opens the conversation and is drawn by the page, not saved with the reply.
         let start = first;
-        const earlierPart = (x: ThreadLine) => x.role === "item" || (x.role === "assistant" && x.more === true);
+        const earlierPart = (x: ThreadLine) => (x.role === "item" && x.kind !== TOPIC_START) || (x.role === "assistant" && x.more === true);
         while (start > 0 && earlierPart(m[start - 1])) start--;
         return [...m.slice(0, start), { id: firstId, role: "assistant", text }, ...m.slice(first).filter((x) => !ours(x))];
       });

@@ -6,6 +6,7 @@ import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
 import { exploreWidgetFor } from "@/course/explore-widget";
 import { courseOverview, whatComesNext } from "@/course/navigator";
+import { topicStart } from "@/course/topic-start";
 import { revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
 import { learnerSummary, loadProgress } from "@/learner/memory";
@@ -88,14 +89,20 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     // The Next chip under the latest reply, from the Course Navigator's place (none while a Check is open).
     nextOfferNow(db, map, learnerId, new Date()),
   ]);
-  const initial: Line[] = [...thread, ...comingBack.map((item) => ({ role: "item" as const, ...item }))];
+  // The shown Topic: a passed Topic still on screen, else the current Topic.
+  const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
+  const place = current ? { stage: current.stage, title: current.title } : null;
+  // The Topic Start card opens the Topic's conversation: worked out from course data now, never stored.
+  const start = current ? topicStart(map, progress, current.id) : null;
+  const initial: Line[] = [
+    ...(start ? [{ role: "item" as const, ...start }] : []),
+    ...thread,
+    ...comingBack.map((item) => ({ role: "item" as const, ...item })),
+  ];
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
   const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
-  // The shown Topic and its Stage, for the status card's eyebrow: a passed Topic still on screen, else the current Topic.
-  const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
-  const place = current ? { stage: current.stage, title: current.title } : null;
   // A passed Topic on screen sends no turns: What comes next (from the Course Navigator's place) and the Course Map instead.
   const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
   return (

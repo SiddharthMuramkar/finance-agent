@@ -12,6 +12,7 @@ import { SecondaryButton } from "./ui";
 import { exploreItem, PinnedExplore } from "./widget-panel";
 import { JUST_TELL_ME, NextChip, StatusCard, type PassedTopic, type Place } from "./workspace-parts";
 import type { NextOffer } from "@/course/navigator";
+import { TOPIC_START } from "@/course/topic-start";
 
 /**
  * The Study Workspace's left column, top to bottom: the status card, the pinned explore Widget, the folded
@@ -44,9 +45,11 @@ export function LeftColumn({
 }) {
   const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
   // The Next chip stands only under the latest Tutor reply or card: never under the Learner's own message, during a
-  // turn, before the page has re-read the Learner's place after one, with Retry on offer, or on a passed Topic.
+  // turn, before the page has re-read the Learner's place after one, with Retry on offer, or on a passed Topic. Under
+  // the Topic Start card alone there is none either: the Tutor's opener starts by itself.
   const latest = messages.at(-1);
-  const chip = next && !passed && latest && latest.role !== "user" && !running && !refreshing && !canRetry ? next : null;
+  const opening = latest?.role === "item" && latest.kind === TOPIC_START;
+  const chip = next && !passed && latest && latest.role !== "user" && !opening && !running && !refreshing && !canRetry ? next : null;
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
       {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a long summary, a Review) can squeeze the chat. */}

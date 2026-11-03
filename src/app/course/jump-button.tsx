@@ -133,8 +133,11 @@ export function TopicRow({
   );
 }
 
-/** "Do first: <title>": a link inside a Topic row that chooses that prerequisite and opens it. */
-export function DoFirstLink({ topicId, title }: { topicId: string; title: string }) {
+/**
+ * "Do first: <title>": a link inside a Topic row that chooses that prerequisite and opens it. The Topic
+ * Start card uses it too, reading `label` ("Study it first") in place of the title.
+ */
+export function DoFirstLink({ topicId, title, label }: { topicId: string; title: string; label?: string }) {
   const [error, setError] = useState<string | null>(null);
   return (
     <>
@@ -147,7 +150,7 @@ export function DoFirstLink({ topicId, title }: { topicId: string; title: string
         }}
         className="relative z-10 text-[var(--brand)] underline"
       >
-        {title}
+        {label ?? title}
       </a>
       {error && <span className="relative z-10 ml-1 text-[var(--danger)]">{error}</span>}
     </>

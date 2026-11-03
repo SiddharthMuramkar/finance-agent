@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
+import { TopicStartCard } from "./topic-start-card";
 
 /**
  * How the thread draws a Session item (src/tutor/session-items.ts), by its kind. Items are display-only: they
@@ -29,6 +31,8 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   due_check: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="due-check-divider" /> : null),
   // Never stored: an old "Continue." message, drawn on Past Sessions pages as where the next step began.
   next_step: () => <Divider label="→ next step" testId="next-step-divider" />,
+  // Never stored: the Topic Start card, worked out from course data on each render as the conversation's first item.
+  [TOPIC_START]: (data) => (typeof data.title === "string" ? <TopicStartCard card={data as TopicStartData} /> : null),
 };
 
 /** The item drawn by its kind; nothing for a kind it does not know. */
