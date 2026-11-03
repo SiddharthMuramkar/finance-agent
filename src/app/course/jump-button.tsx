@@ -6,7 +6,7 @@ import { PrimaryButton, SecondaryButton } from "../ui";
 /** A full page load, so the workspace's server page re-reads the saved place. */
 function openWorkspace() {
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full load is wanted here
-  window.location.assign("/");
+  window.location.assign("/study");
 }
 
 async function post(topicId: string | null): Promise<string | null> {

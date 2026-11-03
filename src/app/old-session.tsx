@@ -30,7 +30,7 @@ export function OldSession({ lines, topicTitle, explore = null }: { lines: OldLi
         <div className="min-h-0 flex-1 overflow-y-auto">
           <ReadOnlyThread lines={lines} slot={slot} />
         </div>
-        <Link href="/" className={`${primaryButtonClass} self-start`}>
+        <Link href="/study" className={`${primaryButtonClass} self-start`}>
           Back to the workspace
         </Link>
       </div>

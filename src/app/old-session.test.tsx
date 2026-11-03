@@ -80,7 +80,7 @@ describe("the read-only layout", () => {
 
   it("has the conversation and the Widget panel side by side, and a way back to the workspace", () => {
     expect(html).toContain('aria-label="Widget panel"');
-    expect(html).toMatch(/<a[^>]*href="\/"[^>]*>Back to the workspace<\/a>/);
+    expect(html).toMatch(/<a[^>]*href="\/study"[^>]*>Back to the workspace<\/a>/);
   });
 
   it("has no composer, no Resume and nothing to send", () => {

@@ -1,4 +1,4 @@
-// Demo mode only (see demo-mode.ts): a sample Mega Millions conversation for the landing page screenshot.
+// Demo mode only (see demo-mode.ts): a sample Mega Millions conversation for the screenshot on Home.
 // It is not Learner data; the real workspace never reads it.
 
 import type { Line } from "../conversation";
