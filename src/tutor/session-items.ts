@@ -6,7 +6,7 @@ import type { Db } from "@/db/types";
 
 /**
  * Session items: what the Study Workspace draws between messages and never sends to the model (step
- * dividers now; "Picking up" and Due Check dividers, Check result cards and Topic complete cards later).
+ * dividers, and "Picking up" and Due Check dividers (coming-back.ts); Check result cards and Topic complete cards later).
  * Each is stored in order, after the message it follows, with a kind and its data; the thread draws
  * each by its kind and skips a kind it does not know. The model's history is read only from the
  * messages table (session-log.ts), so nothing here ever reaches a request.

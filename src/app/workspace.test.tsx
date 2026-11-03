@@ -247,6 +247,36 @@ describe("a Topic passed in a turn", () => {
     expect(html).not.toContain("data-what-comes-next");
     expect(html).toMatch(/<a[^>]*href="\/course"[^>]*>Course Map<\/a>/);
   });
+
+  it("is read-only and shows Passed ✓ instead of Resume", () => {
+    const html = text(workspace({ initial, passed: passedTopic }));
+    expect(html).toContain("Passed ✓");
+    expect(html).not.toContain("Resume");
+  });
+});
+
+describe("coming back to a Topic", () => {
+  const initial: Line[] = [
+    { role: "user", text: "Why is money today worth more?" },
+    { role: "assistant", text: "Because it can earn interest." },
+  ];
+
+  it("draws Picking up where you left off as a centred divider after the last reply, with the message box ready", () => {
+    const label = "Picking up where you left off · Step 6 of 10 · Concept";
+    const html = workspace({ initial: [...initial, { role: "item", kind: "picking_up", data: { step: "concept", number: 6, label } }] });
+    const divider = html.match(/<div[^>]*data-testid="picking-up-divider"[^>]*>.*?<\/div>/)?.[0];
+    expect(divider).toContain('role="separator"');
+    expect(divider).toContain(label);
+    expect(html.indexOf(label)).toBeGreaterThan(html.indexOf("Because it can earn interest."));
+    expect(html).toContain('placeholder="Ask the Tutor"');
+  });
+
+  it("draws a Due Check's New Check divider, and New step · Explore", () => {
+    const check = workspace({ initial: [...initial, { role: "item", kind: "due_check", data: { keys: ["pv-new"], label: "New Check · Check 3" } }] });
+    expect(check).toMatch(/<div[^>]*data-testid="due-check-divider"[^>]*>.*?New Check · Check 3.*?<\/div>/);
+    const explore = workspace({ initial: [...initial, { role: "item", kind: "due_check", data: { keys: ["explore"], label: "New step · Explore" } }] });
+    expect(text(explore)).toContain("New step · Explore");
+  });
 });
 
 describe("the fixed two-column layout", () => {

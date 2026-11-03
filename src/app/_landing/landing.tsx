@@ -1,5 +1,5 @@
-import { loadCourseMap } from "@/course/map";
-import { navigate, type Place } from "@/course/navigator";
+import { loadCourseMap, type CourseMap } from "@/course/map";
+import { whatComesNext, type Progress } from "@/course/navigator";
 import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
@@ -11,20 +11,29 @@ const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 
 
 const topBarLink = "text-sm text-[var(--muted)] hover:text-[var(--ink)]";
 
-/** The signed-in Learner's main button: what it says and, for Resume and Start, which Topic. Resume and Start open it (through /api/open); every one lands on /study. */
-export type HomeButton = { kind: "resume" | "start"; topic: string } | { kind: "open" };
+/**
+ * The signed-in Learner's main button: what it says and, for Resume, Start and What comes next, which Topic it
+ * opens (through /api/open, the Learner's current Topic); every one lands on /study.
+ */
+export type HomeButton = { kind: "resume" | "start"; topic: string } | { kind: "next"; label: string } | { kind: "open" };
 
 /**
- * The button rule, from the place the Course Navigator returns: no place (every Topic passed, no Check due)
- * opens the workspace; a Topic not started is Start; any other place is Resume, which includes a passed Topic
- * with a required Check due.
+ * The button rule: What comes next, from the Course Navigator. The chosen Topic not yet passed is Resume (Start
+ * if not begun); else a Due Check ("New in <Topic>: Check N →" or "New in <Topic>: Explore →"); else the next
+ * Topic on the default path ("Next Topic: <title> →"), which is Start for a Learner who has begun nothing. With
+ * every Topic passed and nothing due it opens the workspace. A passed Topic is never Resume.
  */
-export function homeButton(place: Place | null): HomeButton {
-  if (!place) return { kind: "open" };
-  return { kind: place.status === "not_started" ? "start" : "resume", topic: place.topic.title };
+export function homeButton(map: CourseMap, progress: Progress): HomeButton {
+  const next = whatComesNext(map, progress);
+  if (!next) return { kind: "open" };
+  const begun = progress.topics[next.topic.id] !== undefined;
+  if (next.kind === "chosen") return { kind: begun ? "resume" : "start", topic: next.topic.title };
+  if (next.kind === "next_topic" && Object.keys(progress.topics).length === 0) return { kind: "start", topic: next.topic.title };
+  return { kind: "next", label: `${next.label} →` };
 }
 
-const buttonLabel = (b: HomeButton) => (b.kind === "open" ? copy.openStudyWorkspace : `${b.kind === "resume" ? copy.resume : copy.start} ${b.topic}`);
+const buttonLabel = (b: HomeButton) =>
+  b.kind === "open" ? copy.openStudyWorkspace : b.kind === "next" ? b.label : `${b.kind === "resume" ? copy.resume : copy.start} ${b.topic}`;
 
 /**
  * Home, at "/": counts only, no Learner data or Library text. With no `button` (signed out) the top bar and hero offer
@@ -34,7 +43,7 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
   // Signed out, the main button is Start learning, to the passcode page; signed in, the Learner's own button.
   const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.startLearning };
   const heroClass = `${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`;
-  // Resume and Start choose the Learner's current Topic, so its Session shows at once (a passed Topic left on
+  // Resume, Start and What comes next open the Learner's current Topic, so its Session shows at once (a passed Topic left on
   // screen gives way): a form posting to /api/open, which goes on to /study.
   const mainButton =
     button && button.kind !== "open" ? (
@@ -153,7 +162,7 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
 /** The signed-in Learner's button, from saved progress. Read-only; if progress can't be loaded it logs and falls back to Open. */
 export async function loadHomeButton(): Promise<HomeButton> {
   try {
-    return homeButton(navigate(loadCourseMap(), await loadProgress(getDb(), await currentLearnerId())));
+    return homeButton(loadCourseMap(), await loadProgress(getDb(), await currentLearnerId()));
   } catch (error) {
     console.error("Home could not load the Learner's place", error);
     return { kind: "open" };

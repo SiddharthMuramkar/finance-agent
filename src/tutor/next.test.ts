@@ -30,9 +30,9 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   return out;
 }
 
-async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map: CourseMap = plain) {
+async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map: CourseMap = plain, now?: () => Date) {
   const { client, requests } = scriptedClient(replies);
-  const events = await collect(runTutorTurn({ db, client, map }, input));
+  const events = await collect(runTutorTurn({ db, client, map, now }, input));
   return { events, requests };
 }
 
@@ -116,7 +116,7 @@ describe("the Learner's Next", () => {
     await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])));
 
     // Check 2's Concept, reached by code: the chip names it and does not move on.
-    expect(await nextOfferNow(db, map, OWNER_LEARNER_ID)).toEqual({ kind: "next", step: "concept", label: "Next: Concept", advances: false });
+    expect(await nextOfferNow(db, map, OWNER_LEARNER_ID, new Date())).toEqual({ kind: "next", step: "concept", label: "Next: Concept", advances: false });
     const taught = await turn(db, { next: "concept" }, [say("Now the second concept.")], map);
     expect(taught.events[0]).toEqual({ type: "item", item: { kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 9 · Concept" } } });
     expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ step: "concept" });
@@ -129,7 +129,7 @@ describe("the Learner's Next", () => {
     ]);
 
     // Now taught, the chip moves on again.
-    expect(await nextOfferNow(db, map, OWNER_LEARNER_ID)).toEqual({ kind: "next", step: "your_turn", label: "Next: Your turn", advances: true });
+    expect(await nextOfferNow(db, map, OWNER_LEARNER_ID, new Date())).toEqual({ kind: "next", step: "your_turn", label: "Next: Your turn", advances: true });
   });
 
   it("runs a fresh turn: the Tutor teaches the step and cannot finish it, record a verdict or record an Insight attempt in that reply", async () => {
@@ -182,7 +182,7 @@ describe("the Learner's Next", () => {
     const check = plain.topic("present-value")!.checks[0];
     await saveCheckResult(db, plain, { checkId: check.id, passed: true, evidence: "Explained it." });
     await saveSteps(db, plain, ["reveal"]);
-    expect(await nextOfferNow(db, plain, OWNER_LEARNER_ID)).toEqual({ kind: "complete", label: "Complete this Topic" });
+    expect(await nextOfferNow(db, plain, OWNER_LEARNER_ID, new Date())).toEqual({ kind: "complete", label: "Complete this Topic" });
 
     const failed = await turn(db, { next: "complete" }, [{ error: new Error("overloaded") }]);
     expect(failed.events.map((e) => e.type)).toEqual(["error"]);
@@ -199,6 +199,20 @@ describe("the Learner's Next", () => {
     expect(seen(await loadThread(db, sessionOf(first.events), plain)).slice(-2)).toEqual([
       { role: "assistant", text: "Once upon a time." },
       { role: "assistant", text: "Well done: that is the Topic." },
+    ]);
+  });
+
+  it("after a break, stores the Picking up divider the page drew first, then the step divider", async () => {
+    const db = await testDb();
+    const t0 = new Date("2026-11-01T09:00:00Z");
+    const later = new Date(t0.getTime() + 7 * 3600_000);
+    const first = await turn(db, "Hi", [say("Once upon a time.")], plain, () => t0);
+    const next = await turn(db, { next: "concept" }, [say("Now the concept.")], plain, () => later);
+    expect(next.events.map((e) => e.type)).toEqual(["item", "item", "text", "done"]);
+    expect(seen(await loadThread(db, sessionOf(first.events), plain)).slice(2)).toEqual([
+      { role: "item", kind: "picking_up", data: expect.objectContaining({ label: "Picking up where you left off · Step 1 of 6 · Story" }) },
+      { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },
+      { role: "assistant", text: "Now the concept." },
     ]);
   });
 
