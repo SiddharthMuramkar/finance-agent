@@ -141,7 +141,7 @@ describe("the lock and the run log", () => {
 });
 
 describe("a weekly refresh", () => {
-  it("adds a new post dated by its publication, with pictures read, the run logged and the new passages embedded", async () => {
+  it("adds a new post dated by its publication, with pictures read and stored but their text kept out (#108), the run logged and the new passages embedded", async () => {
     const db = await testDb();
     const html = `<p>${PROSE}</p><img src="https://blogger.googleusercontent.com/img/a/AVvX/s320/chart.png" width="600" height="400">`;
     const asked: string[] = [];
@@ -170,8 +170,10 @@ describe("a weekly refresh", () => {
     expect(asked).toEqual(["https://blogger.googleusercontent.com/img/a/AVvX/s0/chart.png"]);
     const passages = await stored(db);
     expect(passages.every((p) => p.source_id === BLOG_SOURCE && p.published_on === "2019-01-10" && p.embedded)).toBe(true);
-    expect(passages.map((p) => p.text).join("\n")).toContain("[picture] ");
-    expect(passages.map((p) => p.text).join("\n")).toContain("Share of jackpot | 60%");
+    expect(passages.map((p) => p.text).join("\n")).not.toContain("[picture] ");
+    expect(passages.map((p) => p.text).join("\n")).not.toContain("Share of jackpot");
+    const address = "https://blogger.googleusercontent.com/img/a/AVvX/s0/chart.png";
+    expect((await loadReadings(db, [address]))[address]).toMatchObject({ text: expect.stringContaining("Share of jackpot | 60%"), stopReason: "end_turn" });
     expect(embedded.length).toBe(passages.length);
     const [log] = await runs(db);
     expect(log).toMatchObject({ status: "done", watermark: FIXED.toISOString() });
@@ -289,14 +291,14 @@ describe("an edited post", () => {
         },
       },
     } as unknown as PictureClient;
-    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(9, { published, html: `<p>${PROSE}</p>${img}` })]).fetchFn, now: () => FIXED });
+    await refreshLibrary({ db, sources: SOURCES, pictures, placePictureText: true, fetch: network([entry(9, { published, html: `<p>${PROSE}</p>${img}` })]).fetchFn, now: () => FIXED });
     expect(calls).toBe(1);
     const before = (await stored(db)).find((p) => p.text.includes("Share of jackpot"));
     expect(before?.published_on).toBe("2019-01-10");
 
     const edited = entry(9, { published, updated: "2019-06-01T12:00:00.000Z", html: `<p>${PROSE}</p>${img}` });
     const weekLater = new Date(FIXED.getTime() + 7 * 86_400_000);
-    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([edited]).fetchFn, now: () => weekLater });
+    await refreshLibrary({ db, sources: SOURCES, pictures, placePictureText: true, fetch: network([edited]).fetchFn, now: () => weekLater });
     expect(calls).toBe(1);
     const after = (await stored(db)).find((p) => p.text.includes("Share of jackpot"));
     expect(after?.text).toContain("Share of jackpot | 10%");
@@ -330,12 +332,12 @@ describe("an edited post", () => {
       messages: { create: async () => (calls++, { content: [{ type: "text", text: "Cash option\nShare of jackpot | 60%\nTax | 24%" }], stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 } }) },
     } as unknown as PictureClient;
     const html = `<p>${PROSE}</p><img src="https://blogger.googleusercontent.com/img/a/AVvX/s320/chart.png" width="600" height="400">`;
-    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(11, { html })]).fetchFn, now: () => FIXED });
+    await refreshLibrary({ db, sources: SOURCES, pictures, placePictureText: true, fetch: network([entry(11, { html })]).fetchFn, now: () => FIXED });
     expect(calls).toBe(1);
     expect((await stored(db)).map((p) => p.text).join("\n")).toContain("Tax | 24%");
     expect((await loadReadings(db, [address]))[address]).toMatchObject({ stopReason: "end_turn" });
 
-    await refreshLibrary({ db, sources: SOURCES, pictures, fetch: network([entry(11, { html, updated: "2019-06-01T12:00:00.000Z" })]).fetchFn, now: () => new Date(FIXED.getTime() + 7 * 86_400_000) });
+    await refreshLibrary({ db, sources: SOURCES, pictures, placePictureText: true, fetch: network([entry(11, { html, updated: "2019-06-01T12:00:00.000Z" })]).fetchFn, now: () => new Date(FIXED.getTime() + 7 * 86_400_000) });
     expect(calls).toBe(1);
   });
 

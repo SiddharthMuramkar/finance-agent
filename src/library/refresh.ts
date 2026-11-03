@@ -25,6 +25,8 @@ export const MAX_POSTS_PER_RUN = 5;
 export const STALE_AFTER_MS = 10 * 60_000;
 /** The first run, with no earlier one to continue from, looks back this far. */
 export const FIRST_LOOKBACK_DAYS = 8;
+/** Picture text stays out of the Library until the owner decides (#108): its numbers agreed with an Opus re-read in only 7 of 40. Readings are still stored, so placing them later costs nothing. */
+export const PLACE_PICTURE_TEXT = false;
 
 export const BLOG_SOURCE = "damodaran-blog";
 export const SHEETS_SOURCE = "damodaran-spreadsheets";
@@ -44,6 +46,8 @@ export type RefreshDeps = {
   maxPosts?: number;
   /** Reads pictures with the model. Without it, pictures are left out and the run says so. */
   pictures?: PictureClient;
+  /** Places the text read from pictures into the posts; defaults to `PLACE_PICTURE_TEXT`. */
+  placePictureText?: boolean;
   /** Embeds passages with Voyage. Without it, the new passages stay keyword-only and the run says so. */
   embed?: (texts: string[]) => Promise<number[][]>;
 };
@@ -195,7 +199,7 @@ async function processPost(entry: Entry, deps: RefreshDeps, outOfTime: () => boo
     }
   }
 
-  const doc = blogDocuments(page, { readings })[0];
+  const doc = blogDocuments(page, { readings: (deps.placePictureText ?? PLACE_PICTURE_TEXT) ? readings : {} })[0];
   const existed = (await storedPassages(db, BLOG_SOURCE, ref)).length > 0;
   // Text added to an edited post is dated by the edit, not by the post.
   const updatedDay = entry.updatedAt.slice(0, 10);
