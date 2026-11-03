@@ -1394,3 +1394,13 @@ screenshots are static files in `public/landing-assets/`, taken from a demo work
 The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate
 86400): bots crawling the public page would otherwise wake Neon on every visit. A new source shows
 up on the page within a day.
+
+**Shared links and headers.** Because `/` is public, the site's metadata (`src/app/site-metadata.ts`,
+used by the root layout) is public copy from `copy.ts`: title, description and an Open Graph card with
+the light workspace screenshot on `https://www.value-it.xyz`. Pasting the link into a chat shows that
+card. Signed-in pages share the same generic title; nothing in it names the Learner. `next.config.ts`
+also sends four headers on every route: no other site may frame a page (`frame-ancestors 'none'` and
+`X-Frame-Options: DENY`, against clickjacking), `nosniff`, and a referrer that carries only our origin
+to other sites. There is no full script policy: Next's inline scripts would need per-request nonces.
+The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
+the screenshot is never covered.

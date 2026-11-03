@@ -46,7 +46,7 @@ export function LandingView({ stats }: { stats: LandingStats }) {
               </a>
             </div>
 
-            <div className="relative mt-14 pb-20 sm:pb-12">
+            <div className="mt-14">
               <figure className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)]">
                 <div className="flex gap-1.5 border-b border-[var(--hairline)] px-3 py-2" aria-hidden>
                   <span className="size-2.5 rounded-full bg-[var(--border)]" />
@@ -58,11 +58,12 @@ export function LandingView({ stats }: { stats: LandingStats }) {
                 {/* eslint-disable-next-line @next/next/no-img-element -- as above, the dark-mode copy */}
                 <img src="/landing-assets/workspace-dark.png" alt={copy.screenshotAlt} width={1280} height={800} className="hidden h-auto w-full dark:block" />
               </figure>
-              <dl className="absolute inset-x-4 bottom-0 grid grid-cols-3 gap-4 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-4 sm:inset-x-auto sm:right-8 sm:w-[420px]">
+              {/* Below the screenshot, not over it, so the Tutor's composer row stays visible at every width. */}
+              <dl className="mt-4 grid grid-cols-3 gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-4 sm:ml-auto sm:max-w-[440px] sm:gap-4">
                 {columns.map((c) => (
                   <div key={c.label} className="flex flex-col-reverse">
                     <dt className="text-xs leading-4 text-[var(--muted)]">{c.label}</dt>
-                    <dd className="text-[28px] font-bold leading-9 text-[var(--brand)]">{c.value}</dd>
+                    <dd className="whitespace-nowrap text-xl font-bold leading-8 text-[var(--brand)] sm:text-[28px] sm:leading-9">{c.value}</dd>
                   </div>
                 ))}
               </dl>
