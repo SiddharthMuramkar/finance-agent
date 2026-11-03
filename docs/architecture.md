@@ -722,6 +722,24 @@ longer animated word by word as it streams (`smooth` off): the animation would p
 behind the real text, and widget markers are matched against the real text. Learner messages stay
 plain text on purpose.
 
+## Past Sessions (`src/app/sessions/`, `session-card.tsx`, `old-session.tsx`, `src/tutor/session-summary.ts`)
+
+**What it does.** Past Sessions is a list of cards, one per Session, newest first. Each card shows
+"SESSION 3 · 24 OCT 2026", a title (the Session's first Topic and its date), a pill per Topic and a
+Widget count. The database has no Topic column, so code reads the "Topic: ..." lines the Tutor
+context left in the saved messages, in one query for all Sessions, and counts the Widget blocks
+(minus the ones a correction replaced). With no Topic found the title falls back to "Session 3".
+A card opens the old Session page: the workspace's two columns, read-only, with "Widget N →" chips,
+the Widget panel (controls at their starting values) and a "Back to the workspace" button where
+the composer would be. No model call anywhere.
+
+**Scenario.** The Learner opens Past Sessions, sees "Present value, 24 Oct 2026" with "2 Widgets",
+opens it, clicks "Widget 2 →" to see that chart again, then goes back to the workspace to carry on.
+
+**Trade-off.** Topics come from reading saved text, not a stored column, so a Session whose
+messages were compacted away shows the number title. Adding a column would be exact but needs a
+migration and a backfill.
+
 ## Spaced review (`src/course/review.ts`, `reviewsDue` in `navigator.ts`, `src/learner/review.ts`, `/api/review`, `src/app/review-panel.tsx`)
 
 **What it does.** Old quiz questions come back just as the Learner is likely to forget them. A
