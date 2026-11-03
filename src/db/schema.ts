@@ -354,6 +354,29 @@ export const libraryPassages = pgTable(
 );
 
 /**
+ * Library: one run of the weekly refresh of Damodaran's posts. The log of what each run added and
+ * what failed, and the lock: only one row may be `running`, and a run that stays `running` for over
+ * ten minutes is marked `failed` by the next run. `watermark` is how far through the blog's
+ * updated times the run got, so the next run asks Blogger only for posts changed after it.
+ */
+export const libraryRefreshRuns = pgTable(
+  "library_refresh_runs",
+  {
+    id: serial("id").primaryKey(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    status: text("status").notNull().$type<"running" | "done" | "failed">(),
+    watermark: text("watermark"),
+    /** Posts added or changed: ref, title, whether it was an edit, passages and spreadsheet files. */
+    added: jsonb("added").notNull().$type<unknown[]>().default(sql`'[]'::jsonb`),
+    /** Everything that went wrong: the step and the message. */
+    failed: jsonb("failed").notNull().$type<unknown[]>().default(sql`'[]'::jsonb`),
+    note: text("note"),
+  },
+  () => [uniqueIndex("library_refresh_one_running").on(sql`(true)`).where(sql`status = 'running'`)],
+);
+
+/**
  * One run of the model comparison script (npm run compare:models): which models answered, who
  * graded, the written report and the recommendation. Saved from the laptop; the app never reads it.
  */
