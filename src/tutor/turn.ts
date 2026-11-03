@@ -209,7 +209,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   }
   const turn = claim.turn;
   // Saved with the turn before anything else, so a retry still has it.
-  if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now());
+  if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now(), learnerId);
   if (claim.alreadyFinished) {
     // It finished after the browser lost the stream: show the saved reply.
     yield* finishedTurnReplay(db, deps.map ?? loadCourseMap(), turn);
@@ -295,8 +295,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     session = await refreezeIfChanged(db, await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));
     log = await openLog(db, session.id, now);
     // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
-    const paste = await pasteForTurn(db, turn.id, session.id);
-    const pastes = await pasteSummary(db, session.id);
+    const paste = await pasteForTurn(db, turn.id, session.id, learnerId);
+    const pastes = await pasteSummary(db, session.id, learnerId);
     const caseData = await caseDataFor(db, map, place, learnerId);
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
     const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId));
@@ -320,7 +320,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
     if (quiz?.passed) await updateTurn(db, turn.id, { freshStep: true });
     // Where the Learner stands: opens the Session, and is sent again as a new message whenever it changes.
-    const stands = standsBlock(await learnerSummary(db, map, learnerId), await profileBlock(db));
+    const stands = standsBlock(await learnerSummary(db, map, learnerId), await profileBlock(db, learnerId));
     if (log.messages.length === 0) {
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.

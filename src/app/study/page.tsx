@@ -69,9 +69,9 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
       return null;
     }),
     latestTurn(db, learnerId),
-    reviewState(db, map),
+    reviewState(db, map, new Date(), learnerId),
     loadProgress(db, learnerId),
-    loadProfile(db),
+    loadProfile(db, learnerId),
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.

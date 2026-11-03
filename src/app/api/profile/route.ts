@@ -1,11 +1,12 @@
+import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { loadProfile, profileInput, saveProfile } from "@/learner/profile";
 
 export const runtime = "nodejs";
 
-/** The saved Learner Profile. No model call. The passcode check is the proxy's. */
+/** The current Learner's saved Learner Profile. No model call. The passcode check is the proxy's. */
 export async function GET() {
-  return Response.json(await loadProfile(getDb()), { headers: { "Cache-Control": "no-store" } });
+  return Response.json(await loadProfile(getDb(), await currentLearnerId()), { headers: { "Cache-Control": "no-store" } });
 }
 
 /**
@@ -17,6 +18,6 @@ export async function PUT(request: Request) {
   if (!parsed.success) {
     return Response.json({ error: parsed.error.issues[0]?.message ?? "Send work, location, loan and savingFor as text." }, { status: 400 });
   }
-  await saveProfile(getDb(), parsed.data);
+  await saveProfile(getDb(), parsed.data, new Date(), await currentLearnerId());
   return Response.json({ ok: true });
 }
