@@ -43,12 +43,17 @@ async function feedPage(start) {
   }
 }
 
+// Picture text read by `library:pictures` (cached by picture address) is placed in the posts where the pictures are.
+const readingsFile = join(scratch, "pictures.json");
+const readings = existsSync(readingsFile) ? JSON.parse(readFileSync(readingsFile, "utf8")) : {};
+console.log(`${Object.values(readings).filter((r) => r.text).length} picture readings found to place in the posts.`);
+
 const docs = [];
 for (let start = 1; ; ) {
   const page = await feedPage(start);
   const count = feedCount(page);
   if (!count) break;
-  docs.push(...blogDocuments(page));
+  docs.push(...blogDocuments(page, { readings }));
   start += count;
   if (start > feedTotal(page)) break;
 }

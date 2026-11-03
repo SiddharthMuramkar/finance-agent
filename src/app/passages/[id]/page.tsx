@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { loadPassageView } from "@/library/library";
+import { MACHINE_READ_NOTE } from "@/library/pictures";
 import { readTheme } from "../../theme-cookie";
 import { Eyebrow, ReadingPage, SignedInFrame } from "../../ui";
 
@@ -67,6 +68,11 @@ export default async function PassagePage({
                 ),
               )}
             </blockquote>
+            {view.machineRead && (
+              <p data-testid="passage-machine-read" className="mt-3 text-sm text-[var(--muted)]">
+                {MACHINE_READ_NOTE}
+              </p>
+            )}
             {view.shortened && (
               <p className="mt-3 text-sm text-[var(--muted)]">
                 Shortened: this source allows quotes of at most{" "}
