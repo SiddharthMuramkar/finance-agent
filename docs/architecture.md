@@ -82,6 +82,22 @@ only allows paths, so a destination can never be another of the owner's own doma
 needed. An encoded slash inside a query (`?q=a%2Fb`) is refused too; no page links that way, and the
 cost is only landing in the Study Workspace.
 
+**The passcode page** (`src/app/login/page.tsx`). A heading, "Enter your passcode", the passcode
+field, an **Enter** button and a "← Back to home" link to `/`. The field (`passcode-field.tsx`, the
+page's one client piece) starts hidden; an eye button beside it switches it between hidden and
+visible, labelled "Show passcode" or "Hide passcode" for what it will do next. `?wrong=1` shows
+"That passcode didn't work. Check it and try again." directly under the field, and `?locked=1`
+shows the pause message instead. The page only shows things: the form posts to the same sign-in
+route as before, so the lock-out and the safe redirect are untouched.
+
+*Scenario.* The Learner types a long passcode on a phone, gets "That passcode didn't work…", taps
+the eye, sees a typo, fixes it and presses Enter. Someone who arrived by mistake taps "← Back to
+home".
+
+*Trade-off.* The eye makes the field a client component, a little script on an otherwise
+server-only page; without it a mistyped passcode can only be retyped blind. A shown passcode is
+visible to anyone looking at the screen, so it is hidden again on every page load.
+
 **The sign-out door** (`src/app/api/logout/route.ts`). Signed in or out, a POST to exactly
 `/api/logout` gets through the proxy; a GET, or a path that merely starts with it (`/api/logout/x`,
 `/api/logoutx`), still answers 401, and the Server Action refusal still runs first. The route itself
@@ -1485,6 +1501,14 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 **Scenario.** On the train the Learner opens the app on a phone and sees the note. At home they open it on an iPad held upright and get both columns: the conversation on the left, the Widget panel on the right.
 
 **Trade-off.** One layout for laptop and iPad keeps the code small and lets the Widget panel sit beside the conversation always. The price is that quizzes and spaced reviews no longer work on a phone: a review that falls due waits until the Learner is at a bigger screen.
+
+## Branded not-found page (`src/app/not-found.tsx`, spec #119, ticket #154)
+
+**What it does.** Next.js shows this one page for every address that matches no page and for every page that answers "not found" with `notFound()`, such as a Session page for an id that is missing or belongs to another Learner. It uses the reading-page shell, so the usual menu (with Dark mode and Sign out) sits on top, and the root layout's `theme` cookie keeps dark or light mode. Below it are a short plain message, a **Back to your Topic** button that opens the Study Workspace at `/study`, and a **Course Map** button. A signed-out visitor never reaches it: the passcode gate sends them to the login first, so the menu's Sign out always makes sense.
+
+**Scenario.** The Learner types `/sesions/12` by mistake, or opens an old link to a Session that is not theirs. Instead of the framework's bare "404" they see the site's header and "This page isn't here", press Back to your Topic, and are in the Study Workspace on the Topic they were on.
+
+**Trade-off.** One root page covers every not-found case, so the wording can't say what exactly was missing (a Session, a passage, a mistyped address). That keeps the page simple and never confirms whether another Learner's id exists.
 
 ## Tutor behaviour tests (`src/behaviour/`, `npm run behaviour`)
 
