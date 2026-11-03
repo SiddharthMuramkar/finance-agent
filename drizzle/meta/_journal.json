@@ -138,8 +138,15 @@
     {
       "idx": 19,
       "version": "7",
-      "when": 1793682656843,
-      "tag": "0019_insight_attempts",
+      "when": 1793682422642,
+      "tag": "0019_tutor_default_opus",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793683134254,
+      "tag": "0020_insight_attempts",
       "breakpoints": true
     }
   ]
