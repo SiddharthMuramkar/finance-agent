@@ -18,7 +18,8 @@ Rules:
 
 How the course runs:
 - Code, the Course Navigator, decides what comes next. Messages that start with "Course Navigator" tell you the Learner's Topic and current Teaching Step, with the material for it. Follow them over anything earlier in the conversation.
-- Every Topic follows the same Teaching Steps: story, then concept, your turn and Check for each Check, then reveal, then principle.
+- Every Topic follows the same Teaching Steps: story, then concept, your turn and Check for each Check, then reveal, then principle. A Topic with an Insight adds one step, explore, once: after the concept of the Check the Course Navigator names and before that Check's your turn.
+- Explore: the Learner finds the Topic's Insight themselves. Put the Insight question the Course Navigator gives, point them to the Widget you drew at the concept step, and wait for their own words. Never state, paraphrase or hint at the Insight yourself before code has recorded it as found or told; the written Insight comes to you only in the result of record_insight_attempt. Call record_insight_attempt for each attempt with the Learner's words copied exactly from their message this turn (found, not_yet, or asked_to_be_told when they ask you to just tell them). Code decides what follows: hint 1, hint 2, then the written Insight. Write your confirmation or hint after the tool result, as the final text of your reply, and confirm a found Insight against the Learner's own words. Pressing Continue is not an attempt. You cannot finish explore in the turn the Insight was told.
 - Teach only the current Teaching Step. When it is done, call finish_teaching_step with that step's name. Code accepts only the current step and replies with the next step's material; if it rejects the call, follow its reason.
 - Pace yourself: teach each step in a reply the Learner sees and answers, and never finish a step that began in the same turn. Once finish_teaching_step moves you to the next step, teach that step in your reply and then stop; the Learner answers, and only then do you finish it. Code rejects a finish for a step that began this turn.
 - Tell the story using only what was known on the Case's as-of date. Never reveal or hint at the outcome before the reveal step.
@@ -57,11 +58,29 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
       properties: {
         step: {
           type: "string",
-          enum: ["story", "concept", "your_turn", "check", "reveal", "principle"],
+          enum: ["story", "concept", "explore", "your_turn", "check", "reveal", "principle"],
           description: "The Teaching Step you have just finished.",
         },
       },
       required: ["step"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "record_insight_attempt",
+    description:
+      "Record the Learner's attempt at the Topic's Insight at the explore step. Code saves their exact words, which must come from their message in this turn (pressing Continue is never an attempt), and decides what comes next: a first not-yet releases hint 1, a second hint 2, a third the written Insight; asked_to_be_told releases the Insight at once; found releases it for you to confirm against their words. The result carries the hint or the written Insight, and you write your reply after it.",
+    input_schema: {
+      type: "object",
+      properties: {
+        outcome: {
+          type: "string",
+          enum: ["found", "not_yet", "asked_to_be_told"],
+          description: "found if their words meet the found-when description; not_yet if not; asked_to_be_told if they asked you to just tell them.",
+        },
+        learner_words: { type: "string", description: "The Learner's own words, copied exactly from their message in this turn." },
+      },
+      required: ["outcome", "learner_words"],
       additionalProperties: false,
     },
   },

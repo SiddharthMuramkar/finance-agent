@@ -35,7 +35,7 @@ export const LIMIT_STATEMENT =
 export type ComparisonQuestion = {
   id: string;
   source: "own" | "financebench";
-  at: "story" | "your_turn" | "check";
+  at: "story" | "explore" | "your_turn" | "check";
   turns: string[];
   /** What a correct answer says; the grader's only yardstick for correctness. */
   reference?: string;

@@ -4,7 +4,7 @@ import { Card, Eyebrow, KeyValueRow, Pill } from "../ui";
 import { BackToPathButton, JumpButton } from "./jump-button";
 
 const STATUS: Record<TopicOverview["status"], string> = { not_started: "Not started", in_progress: "In progress", passed: "Passed" };
-const STEP: Record<string, string> = { story: "story", concept: "concept", your_turn: "your turn", check: "Check", reveal: "reveal", principle: "principle" };
+const STEP: Record<string, string> = { story: "story", concept: "concept", explore: "explore", your_turn: "your turn", check: "Check", reveal: "reveal", principle: "principle" };
 /** A Topic planned in the outline but not written yet. */
 export type ComingTopic = { id: string; title: string; stage: TopicOverview["stage"] };
 

@@ -1,5 +1,5 @@
 {
-  "id": "5c8f467e-8458-48bc-a468-03abf3424bd7",
+  "id": "f59bff51-f708-45cc-9ca7-c33dd9008432",
   "prevId": "9c8e58b4-a274-4509-a016-57653df67138",
   "version": "7",
   "dialect": "postgresql",
@@ -197,56 +197,98 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.learner_profile": {
-      "name": "learner_profile",
+    "public.insight_attempts": {
+      "name": "insight_attempts",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": true,
           "notNull": true
         },
-        "work": {
-          "name": "work",
+        "topic_id": {
+          "name": "topic_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reported": {
+          "name": "reported",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "released": {
+          "name": "released",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "words": {
+          "name": "words",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "model": {
+          "name": "model",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "location": {
-          "name": "location",
-          "type": "text",
+        "turn_id": {
+          "name": "turn_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
-        "loan": {
-          "name": "loan",
+        "tool_call_id": {
+          "name": "tool_call_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
-        "saving_for": {
-          "name": "saving_for",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "offer_dismissed": {
-          "name": "offer_dismissed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "updated_at": {
-          "name": "updated_at",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "insight_attempts_tool_call": {
+          "name": "insight_attempts_tool_call",
+          "columns": [
+            {
+              "expression": "tool_call_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "insight_attempts_topic": {
+          "name": "insight_attempts_topic",
+          "columns": [
+            {
+              "expression": "topic_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

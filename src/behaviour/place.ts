@@ -4,7 +4,7 @@ import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } f
 import type { Db } from "@/db/types";
 
 /** Puts a fresh Learner at the Teaching Step a test question needs, by saving progress directly. */
-export async function placeLearner(db: Db, map: CourseMap, at: "story" | "your_turn" | "check") {
+export async function placeLearner(db: Db, map: CourseMap, at: "story" | "explore" | "your_turn" | "check") {
   await ensureTopicStarted(db, map);
   for (let i = 0; i < 12; i++) {
     const place = navigate(map, await loadProgress(db));
