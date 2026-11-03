@@ -308,7 +308,14 @@ export async function refreshLibrary(deps: RefreshDeps): Promise<RefreshResult> 
     if (added.length) {
       embedded = await embedMissing(deps, noTimeLeft, problems);
       if (!deps.embed) problems.push({ step: "embedding", message: "No Voyage key is set: the new passages are keyword-only until they are embedded." });
-      if (!noTimeLeft()) await refreshStatistics(deps.db);
+      if (!noTimeLeft()) {
+        // The posts are already in: a failing reindex or vacuum must not throw the run's progress away.
+        try {
+          await refreshStatistics(deps.db);
+        } catch (error) {
+          problems.push({ step: "statistics", message: error instanceof Error ? error.message : String(error) });
+        }
+      }
     }
 
     // Where the next run starts: at the first post that failed or was not reached (a failed one is asked for again),

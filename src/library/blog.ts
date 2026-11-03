@@ -5,7 +5,7 @@ import type { SourceDocument } from "./prepare.ts";
 
 // Damodaran's blog (Musings on Markets) as the Library reads it: Blogger's JSON feed in, documents
 // out. Packages and type-only imports, so the laptop backfill command runs this file with Node's
-// type stripping and the weekly refresh (a later ticket) can import it from the app.
+// type stripping and the weekly refresh (src/library/refresh.ts) uses the same reader from the app.
 
 const BLOCK = new Set(["p", "div", "br", "li", "ul", "ol", "tr", "table", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6", "section", "article", "pre", "hr"]);
 /** Tags whose contents never reach the text: scripts and styles, and embedded players (video iframes, objects, embeds) whose fallback text is not the post's. */

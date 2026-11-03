@@ -33,3 +33,25 @@ describe("Save to notes in the lesson", () => {
     expect(html.match(/aria-label="Save this Widget to notes"/g)).toHaveLength(2);
   });
 });
+
+describe("a sources fence the model wrote itself", () => {
+  it("shows only /passages/ and https: sources as links, anything else as plain text", async () => {
+    const { SourcesFold } = await import("./reply-markdown");
+    const { isSafeHref } = await import("@/tutor/citations");
+    const entries = [
+      { n: 1, title: "Real passage", href: "/passages/12", credit: null },
+      { n: null, title: "Case data", href: "https://example.org/data", credit: null },
+      { n: null, title: "Script link", href: "javascript:alert(1)", credit: null },
+      { n: null, title: "Plain http", href: "http://evil.example", credit: null },
+      { n: null, title: "Protocol-relative", href: "//evil.example", credit: null },
+    ];
+    const html = renderToStaticMarkup(<SourcesFold entries={entries} />);
+    expect(html).toContain('href="/passages/12"');
+    expect(html).toContain('href="https://example.org/data"');
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("evil.example");
+    expect(html).toContain("Script link");
+    expect(isSafeHref("/passages/12?blocks=0-1")).toBe(true);
+    expect(isSafeHref("data:text/html,x")).toBe(false);
+  });
+});

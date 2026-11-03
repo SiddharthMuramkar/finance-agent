@@ -4,7 +4,7 @@ import { useAuiState, useMessagePartText } from "@assistant-ui/react";
 import { MarkdownTextPrimitive, type SyntaxHighlighterProps } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
 import { createContext, useCallback, useContext, type ComponentProps, type ReactNode } from "react";
-import { parseFold, SOURCES_FENCE, type SourceEntry } from "@/tutor/citations";
+import { isSafeHref, parseFold, SOURCES_FENCE, type SourceEntry } from "@/tutor/citations";
 import { findWidget, markdownSource, splitReply } from "@/widgets/split";
 
 /** What stands where a widget belongs in the prose: a marker in the workspace, the widget itself in an old Session. */
@@ -61,9 +61,14 @@ export function SourcesFold({ entries }: { entries: SourceEntry[] }) {
         {entries.map((e, i) => (
           <p key={i}>
             {e.n !== null && <span className="mr-1 tabular-nums">{e.n}.</span>}
-            <a href={e.href} target="_blank" rel="noopener" className="underline">
-              {e.title}
-            </a>
+            {isSafeHref(e.href) ? (
+              <a href={e.href} target="_blank" rel="noopener" className="underline">
+                {e.title}
+              </a>
+            ) : (
+              // A fence the model wrote itself can carry any link: only /passages/ and https: ones are links.
+              <span>{e.title}</span>
+            )}
             {e.credit && <span>{` — ${e.credit}`}</span>}
           </p>
         ))}

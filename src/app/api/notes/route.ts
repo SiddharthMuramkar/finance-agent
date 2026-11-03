@@ -24,7 +24,7 @@ export async function PATCH(request: Request) {
   const parsed = edit.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return bad("Send a line and its new text.");
   const result = await editLine(getDb(), parsed.data.id, parsed.data.text);
-  return result.ok ? Response.json(result.line) : Response.json({ error: result.reason }, { status: result.reason.includes("exist") ? 404 : 400 });
+  return result.ok ? Response.json(result.line) : Response.json({ error: result.reason }, { status: result.status });
 }
 
 /** Deletes one of the Learner's own lines. */

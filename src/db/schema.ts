@@ -120,7 +120,14 @@ export const insightAttempts = pgTable(
     toolCallId: text("tool_call_id").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("insight_attempts_tool_call").on(t.toolCallId), index("insight_attempts_topic").on(t.topicId)],
+  (t) => [
+    uniqueIndex("insight_attempts_tool_call").on(t.toolCallId),
+    index("insight_attempts_topic").on(t.topicId),
+    // The Insight is settled once: a second "found" or "told" for a Topic is refused by the database.
+    uniqueIndex("insight_attempts_settled_once")
+      .on(t.topicId)
+      .where(sql`${t.released} in ('found', 'told')`),
+  ],
 );
 
 /**
@@ -566,5 +573,11 @@ export const noteItems = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("note_items_topic").on(t.topicId)],
+  (t) => [
+    index("note_items_topic").on(t.topicId),
+    // One saved reply or Widget per place; the Learner's own lines are many per Topic, so they are left out.
+    uniqueIndex("note_items_saved_once")
+      .on(t.topicId, t.kind, sql`coalesce(${t.sessionId}, -1)`, sql`coalesce(${t.turnSeq}, -1)`, sql`coalesce(${t.widgetIndex}, -99)`)
+      .where(sql`${t.kind} <> 'line'`),
+  ],
 );

@@ -110,12 +110,12 @@ export async function loadNotes(db: Db, map: CourseMap): Promise<TopicNote[]> {
   });
 }
 
-export type LineResult = { ok: true; line: NoteLine } | { ok: false; reason: string };
+export type LineResult = { ok: true; line: NoteLine } | { ok: false; reason: string; status: 400 | 404 };
 
-function cleanLine(text: string): { ok: true; text: string } | { ok: false; reason: string } {
+function cleanLine(text: string): { ok: true; text: string } | { ok: false; reason: string; status: 400 } {
   const trimmed = text.trim();
-  if (!trimmed) return { ok: false, reason: "Write something first." };
-  if (trimmed.length > MAX_LINE_LENGTH) return { ok: false, reason: `A line can be at most ${MAX_LINE_LENGTH} characters.` };
+  if (!trimmed) return { ok: false, reason: "Write something first.", status: 400 };
+  if (trimmed.length > MAX_LINE_LENGTH) return { ok: false, reason: `A line can be at most ${MAX_LINE_LENGTH} characters.`, status: 400 };
   return { ok: true, text: trimmed };
 }
 
@@ -137,7 +137,7 @@ export async function editLine(db: Db, id: number, text: string, now = new Date(
     .set({ text: clean.text, updatedAt: now })
     .where(and(eq(noteItems.id, id), eq(noteItems.kind, "line")))
     .returning();
-  if (!row) return { ok: false, reason: "That line does not exist." };
+  if (!row) return { ok: false, reason: "That line does not exist.", status: 404 };
   return { ok: true, line: { id: row.id, text: clean.text, createdAt: row.createdAt, updatedAt: row.updatedAt } };
 }
 
