@@ -15,11 +15,11 @@ vi.mock("@/course/map", async (orig) => {
   loadMap.mockImplementation(real.loadCourseMap);
   return { ...real, loadCourseMap: loadMap };
 });
-vi.mock("./stats", () => ({ landingStats: async () => ({ topics: "1 of 1", cases: 1, librarySources: 1 }) }));
+vi.mock("./stats", () => ({ landingStats: async () => ({ topics: 1, cases: 1, librarySources: 1 }) }));
 const { LandingPage, LandingView, homeButton, loadHomeButton } = await import("./landing");
 type HomeButton = import("./landing").HomeButton;
 
-const html = renderToStaticMarkup(<LandingView stats={{ topics: "90 of 95", cases: 312, librarySources: 47 }} />);
+const html = renderToStaticMarkup(<LandingView stats={{ topics: 95, cases: 103, librarySources: 8 }} />);
 const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("Home", () => {
@@ -34,14 +34,33 @@ describe("Home", () => {
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
   });
 
-  it("shows the counts it is given", () => {
-    expect(text).toContain("Topics written 90 of 95");
-    expect(text).toContain("Historical Cases 312");
-    expect(text).toContain("Library sources 47");
+  it("shows the counts it is given as one stats line", () => {
+    expect(text).toContain("95 Topics · 103 historical cases · 8 sources");
   });
 
-  it("marks the copy as a draft", () => {
-    expect(text).toContain("Draft");
+  it("shows no Draft badge", () => {
+    expect(text).not.toContain("Draft");
+  });
+
+  it("offers Start learning in the hero and again after Every number has a source, both to the passcode page", () => {
+    const buttons = [...html.matchAll(/<a[^>]*href="\/login"[^>]*>Start learning<\/a>/g)].map((m) => m.index);
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0]).toBeLessThan(html.indexOf('id="how"'));
+    expect(buttons[1]).toBeGreaterThan(html.indexOf("Every number has a source"));
+  });
+
+  it("words Explore and Your turn as two different steps", () => {
+    const line = (name: string) => copy.how.steps.find((s) => s.name === name)!.line;
+    expect(line("Explore")).toMatch(/Widget/);
+    expect(line("Explore")).not.toMatch(/work the numbers/i);
+    expect(line("Your turn")).toMatch(/question/);
+    expect(line("Your turn")).not.toMatch(/before/);
+  });
+
+  it("says Topic, never lesson, in the Principle line", () => {
+    const principle = copy.how.steps.find((s) => s.name === "Principle")!.line;
+    expect(principle).toContain("Topic");
+    expect(text.toLowerCase()).not.toContain("lesson");
   });
 
   it("links Sign in to the login and How it works to its section", () => {
@@ -58,30 +77,26 @@ describe("Home", () => {
   });
 
   it("offers no Sign out when signed out", () => {
-    const html = renderToStaticMarkup(<LandingView stats={{ topics: "1 of 2", cases: 1, librarySources: 1 }} />);
+    const html = renderToStaticMarkup(<LandingView stats={{ topics: 2, cases: 1, librarySources: 1 }} />);
     expect(html).not.toContain("Sign out");
     expect(html).not.toContain("/api/logout");
   });
 
   it("puts the stats after the screenshot, so they never cover it", () => {
     expect(html.indexOf("</figure>")).toBeGreaterThan(0);
-    expect(html.indexOf("</figure>")).toBeLessThan(html.indexOf("<dl"));
-  });
-
-  it("keeps a figure such as 90 of 95 on one line", () => {
-    expect(html).toMatch(/<dd[^>]*whitespace-nowrap[^>]*>90 of 95<\/dd>/);
+    expect(html.indexOf("</figure>")).toBeLessThan(html.indexOf("95 Topics"));
   });
 });
 
 describe("Home, signed in", () => {
-  const stats = { topics: "90 of 95", cases: 312, librarySources: 47 };
+  const stats = { topics: 95, cases: 103, librarySources: 8 };
   const inHtml = renderToStaticMarkup(<LandingView stats={stats} button={{ kind: "open" }} />);
   const inText = inHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
   it("is the same page, with the same sections", () => {
     expect(inHtml).toMatch(/<h1[^>]*>Learn finance from<br\/><span[^>]*>what already happened\.<\/span><\/h1>/);
     expect(inHtml).toContain("</figure>");
-    expect(inText).toContain("Topics written 90 of 95");
+    expect(inText).toContain("95 Topics · 103 historical cases · 8 sources");
     expect(inHtml).toContain('id="how"');
     expect(inText).toContain(copy.sources.title);
     expect(inText).toContain(copy.footer);
@@ -97,6 +112,11 @@ describe("Home, signed in", () => {
     expect(topBar).toMatch(/href="\/study"[^>]*>Study Workspace<\/a><form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
   });
 
+  it("shows its own button, not Start learning, after Every number has a source", () => {
+    expect(inText).not.toContain("Start learning");
+    expect(inHtml.slice(inHtml.indexOf(copy.sources.title))).toMatch(/<a[^>]*href="\/study"[^>]*>Open Study Workspace<\/a>/);
+  });
+
   it("never says Sign in or links to the login", () => {
     expect(inText).not.toContain("Sign in");
     expect(inHtml).not.toContain('href="/login"');
@@ -104,7 +124,7 @@ describe("Home, signed in", () => {
 });
 
 describe("Home, the signed-in button", () => {
-  const stats = { topics: "90 of 95", cases: 312, librarySources: 47 };
+  const stats = { topics: 95, cases: 103, librarySources: 8 };
   const hero = (button: HomeButton) => {
     const h = renderToStaticMarkup(<LandingView stats={stats} button={button} />);
     return h.match(/<a[^>]*href="\/study"[^>]*>(Resume|Start|Open)[^<]*<\/a>/)?.[0] ?? "";

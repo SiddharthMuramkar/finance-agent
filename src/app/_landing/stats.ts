@@ -6,16 +6,13 @@ import { getDb } from "@/db/client";
 import { librarySources } from "@/db/schema";
 import type { Db } from "@/db/types";
 
-export type LandingStats = { topics: string; cases: number; librarySources: number };
+export type LandingStats = { topics: number; cases: number; librarySources: number };
 
-/** Topics as "written of planned" and every Case in the outline. Read from files, no database. */
+/** The Topics written and every Case in the outline. Read from files, no database. */
 export function courseStats(): Omit<LandingStats, "librarySources"> {
-  const map = loadCourseMap();
-  const written = map.topics.length;
-  const planned = written + map.coming.length;
   const { outline } = parseOutline(readOutlineText());
   const cases = (outline?.topics ?? []).reduce((n, t) => n + t.cases.length, 0);
-  return { topics: `${written} of ${planned}`, cases };
+  return { topics: loadCourseMap().topics.length, cases };
 }
 
 /** How many sources the Library holds. A count only: no passage text is read. */
