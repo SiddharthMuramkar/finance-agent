@@ -570,15 +570,80 @@ bars = BarChart(["Before", "After"], [Series("Rate in percent", [5, 5.5])])
 note = TextContent("It rose by " + (5.5 - 5) + " percentage points, which is " + (5.5 - 5) * 100 + " basis points. As a share of the old rate, it rose " + (5.5 - 5) / 5 * 100 + "%.")`,
   ],
   additionalRules: [
-    "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
-    "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
+    "Widgets are how this Workspace shows things. Build one whenever a picture, a chart, a table or something to play with makes the idea clearer, which is most Teaching Steps. When the Learner asks for a chart, graph, diagram, table, comparison, picture or anything to see, always build one in that reply. At most one widget per reply, so make it rich: a slider or two, a chart, and a small table or callout, inside one Widget.",
     "Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.",
-    "Widgets are optional. Add one only when playing with numbers helps the current Teaching Step, and at most one per reply.",
-    "Use Calculator for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",
-    "Charts never take data series. Give a chart the inputs to its formula, or a Case Data reference from the list code sent you; never type historical figures you were not given.",
-    "If no Case Data covers what the Learner wants to see, draw no chart for it and say plainly that the data is not available.",
+    'Real numbers come from code. Historical figures reach a widget only through Query("case_data", {dataset: "caseId/datasetId"}, {rows: []}) or HistoryChart, with references from the Case Data list code sent you. Finance results come only from Query("calculate" | "calculate_range" | "annuity_schedule", …), Calculator, AnnuityChart or FormulaCard. Never type a historical figure or a computed result into a widget.',
+    'Made-up teaching examples are the exception. You may type their numbers into a chart or table when the example is plainly hypothetical: start the Widget\'s title with "Illustration:". Before the reveal they must never match the Case\'s real outcome. For their arithmetic, write the expression (e.g. (5.5 - 5) * 100) and let the widget compute it; never type a result you worked out.',
+    "Bind Sliders to $variables and pass them into Query arguments, so moving a slider recomputes the chart in the browser with no model call.",
+    "Widgets only read: never use Mutation() or @Run.",
+    "Use a Calculator, or a chart from calculate_range, for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",
+    "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
+    "Guided Tasks: GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
+    "If no Case Data covers what the Learner wants, say plainly that the data is not available here, and still show what code can compute, or a clearly labelled Illustration of the idea.",
     "Starting numbers you put in a Slider or chart must come from the Case material code sent you.",
     "Before the reveal step, never put a Case's outcome in a widget.",
     "After the widget, keep teaching in plain prose: the Learner sees the widget beside the conversation.",
   ],
 } satisfies PromptOptions;
+
+/**
+ * Sections of OpenUI's generic prompt that contradict the Workspace, each cut up to the next heading of its
+ * level or higher: answering a question with text only (here a picture often answers it best), writing with
+ * Mutation (widgets only read), Forms (not in the library), and its data workflow (call a tool first, then
+ * type its results as Query defaults).
+ */
+export const OPENUI_SECTIONS_CUT = ["### 2. Text-only response", "## Mutation — Write Operations", "## Forms", "## Data Workflow"];
+
+/**
+ * Exact text of OpenUI's generic prompt that contradicts the Workspace, with what replaces it ("" cuts it):
+ * code only when asked to change the UI, patches of changed lines, text-only answers, refresh Buttons, a
+ * binding rule that is wrong for our Slider, a tools line that offers writes, "realistic mock data" where
+ * no tool fits, and forms for input.
+ */
+export const OPENUI_TEXT_REPLACED: readonly (readonly [openui: string, ours: string])[] = [
+  ["You can respond in two ways:", "Your reply is prose, and it can hold one widget:"],
+  ["### 1. Code response (when the user wants to CREATE or CHANGE the UI)", "### A widget in a reply"],
+  ["\n- When the user asks for changes, output ONLY the changed/new statements in a fenced block", ""],
+  ["\n- When the user asks a question, respond with text only — NO code. The dashboard stays unchanged.", ""],
+  ['\n- Manual refresh: `Button("Refresh", Action([@Run(query1), @Run(query2)]), "secondary")` — re-fetches the listed queries', ""],
+  ["\n- Refresh all queries: create Action with @Run for each query", ""],
+  ["\n- $variables must be bound to a Select/Input component via the value argument (last positional arg) to be interactive", ""],
+  [
+    "Use these with Query() for read operations or Mutation() for write operations. The LLM decides which is appropriate based on the tool's purpose.",
+    "These Widget tools are our code, run in the browser when a widget's Query(...) needs them, and again whenever a $variable in its arguments changes. Use them only inside a widget: they are not tools you call yourself, even where a name matches one of yours (calculate).",
+  ],
+  [" If the user asks for functionality that doesn't match any available tool, use realistic mock data instead of fabricating a tool call.", ""],
+  ["forms for input, etc.", "sliders for numbers the Learner changes, etc."],
+];
+
+/** Fails the freeze loudly when OpenUI no longer writes a passage we cut, instead of silently keeping the rest. */
+function missing(passage: string): Error {
+  return new Error(`OpenUI's prompt no longer contains ${JSON.stringify(passage.trim())}. Review the cuts in widgetInstructions().`);
+}
+
+/** Cuts the section under `heading` (a line that starts with it) up to the next heading of the same level or higher. */
+function cutSection(prompt: string, heading: string): string {
+  const start = prompt.indexOf(`\n${heading}`);
+  if (start < 0) throw missing(heading);
+  const level = heading.match(/^#+/)?.[0].length ?? 1;
+  const next = prompt.slice(start + 1).search(new RegExp(`\\n#{1,${level}} `));
+  return prompt.slice(0, start) + (next < 0 ? "" : prompt.slice(start + 1 + next));
+}
+
+/** OpenUI's prompt with the passages that contradict the Workspace cut or replaced; throws if one is gone. */
+export function withoutContradictions(prompt: string): string {
+  let text = OPENUI_SECTIONS_CUT.reduce(cutSection, prompt);
+  for (const [openui, ours] of OPENUI_TEXT_REPLACED) {
+    if (!text.includes(openui)) throw missing(openui);
+    text = text.replace(openui, () => ours);
+  }
+  return text;
+}
+
+/**
+ * The widget instructions frozen into the Tutor's instructions (`npm run widgets:freeze`): OpenUI's prompt
+ * for this library and these options, without its generic advice that contradicts the Workspace.
+ */
+export function widgetInstructions(): string {
+  return withoutContradictions(widgetLibrary.prompt(WIDGET_PROMPT_OPTIONS));
+}
