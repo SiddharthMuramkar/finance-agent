@@ -137,6 +137,7 @@ describe("Topics not written yet", () => {
 });
 
 describe("the progress view", () => {
+  const progressTopics = [topics[0], topics[1], topics[3]];
   it("shows each Topic's status as not started, in progress or passed, with Checks passed", () => {
     const html = renderToStaticMarkup(<ProgressView topics={topics.slice(0, 3)} />);
     const rows = [...html.matchAll(/data-status="([^"]+)"[^>]*>([^<]*)</g)].map((m) => [m[1], m[2]]);
@@ -146,5 +147,34 @@ describe("the progress view", () => {
       ["not_started", "Not started"],
     ]);
     expect(html).toContain("1 of 2");
+  });
+
+  it("has a title and a summary of where the Learner stands, with Next from What comes next", () => {
+    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next="Bond prices" />);
+    expect(html).toMatch(/<h1[^>]*>Progress<\/h1>/);
+    expect(html).toContain("1 in progress · 1 passed · Next: Bond prices");
+  });
+
+  it("leaves Next out of the summary when nothing comes next", () => {
+    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next={null} />);
+    expect(html).toContain("1 in progress · 1 passed");
+    expect(html).not.toContain("Next:");
+  });
+
+  it("links every row to its Topic: choosing it opens that Topic in the Study Workspace", () => {
+    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next="Bond prices" />);
+    const rows = [...html.matchAll(/<form[^>]*action="\/api\/open"[^>]*>.*?name="topic" value="([^"]+)".*?<button[^>]*>([^<]*)<\/button>/g)].map((m) => [m[1], m[2]]);
+    expect(rows).toEqual([
+      ["compounding", "Compounding"],
+      ["pv", "Present value"],
+      ["bonds", "Bond prices"],
+    ]);
+    expect(html).toMatch(/<form[^>]*method="post"/);
+  });
+
+  it("has no About you link (About you lives in Settings)", () => {
+    const html = renderToStaticMarkup(<ProgressView topics={progressTopics} next="Bond prices" />);
+    expect(html).not.toContain("About you");
+    expect(html).not.toContain("/profile");
   });
 });

@@ -1389,9 +1389,22 @@ is built to be scanned, not scrolled:
 - **Check pills show only once a Topic is started** (a tick for a pass, a frame round the Check the
   Learner is at), with the status and Teaching Step and a "You are here" label.
 
-The **progress** page (`/progress`) is a table: each Topic's Stage, status (not started,
-in progress or passed) and how many Checks are passed. Both come from one pure Course Navigator
-function, `courseOverview`, so what the page shows and what the Tutor is told can never disagree.
+The **progress** page (`/progress`) has a title and a one-line summary, "2 in progress ·
+1 passed · Next: Bond prices", where Next is What comes next's Topic (`whatComesNext`, the same one
+Home's button shows; left out once every Topic is passed). Below it is a table: each Topic's Stage,
+status (not started, in progress or passed) and how many Checks are passed. Both pages come from one
+pure Course Navigator function, `courseOverview`, so what the page shows and what the Tutor is told can
+never disagree. Progress has no About you link: About you lives in Settings.
+
+Every Progress row's title opens its Topic: a plain form posting `topic` to `/api/open` (no scripts
+needed), which goes on to `/study`. A Topic not yet passed becomes the current Topic, as a jump does,
+with no prerequisite prompt (the Learner picked it from their own record). A passed Topic can't be
+chosen, so its own Session is shown instead (`learner_state.shown_session_id`), read-only with its
+Topic complete card, exactly as after the turn that passed it; the current Topic doesn't move.
+Scenario: Present value is passed and the Learner is in Bond prices; they open Present value from
+Progress, reread its Principle, then press What comes next to go back to Bond prices. Trade-off: a
+passed Topic with no Session of its own (passed before Sessions were per Topic) opens the workspace on
+the current Topic instead; its old Sessions are still under Past Sessions.
 
 If a chosen Topic has prerequisites the Learner hasn't passed, the row first warns: "Bond prices
 builds on Present value, which you have not passed yet. You can fill the gap first, or go ahead
@@ -1443,7 +1456,8 @@ design tokens; the first two sit under the app header, Login (signed out) has no
 - **Choosing a Topic** sets the current Topic and shows its Session at once. The ways in today: the
   Course Map's Topic rows, Do first links, Study X first, Recommended next and Back to the default
   path, What comes next (on a passed Topic, see below), and Home's Resume and Start (a plain form
-  posting to `/api/open`, which goes on to `/study`). Progress rows and the Welcome will use the same routes. While a turn is running,
+  posting to `/api/open`, which goes on to `/study`). Progress rows post a `topic` to `/api/open`
+  (see above). The Welcome will use the same routes. While a turn is running,
   `/api/jump` answers "A turn is in progress…" and changes nothing; `/api/open` then just opens the
   Study Workspace, which says the same.
 - **The shown Session** (`learner_state.shown_session_id`) is what the Study Workspace renders
