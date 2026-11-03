@@ -1,6 +1,7 @@
 "use client";
 
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
+import type { NextOffer } from "@/course/navigator";
 import type { OpenQuiz } from "@/learner/quiz";
 import type { ReviewState } from "@/learner/review";
 import type { Shown } from "@/tutor/session-log";
@@ -39,7 +40,10 @@ export function Conversation({
   widgetStates,
   passed = null,
   developerDetails = false,
+  next = null,
 }: {
+  /** The Next the Course Navigator offers now (nextOfferNow), or null while a Check is open: the chip under the latest reply. */
+  next?: NextOffer | null;
   initial: Line[];
   summary: string;
   quiz: OpenQuiz | null;
@@ -71,7 +75,7 @@ export function Conversation({
           {/* The Widgets' saved work in the shown Session, kept across tab switches and saved for a reload. */}
           <WidgetStatesProvider sessionId={shown && "sessionId" in shown ? shown.sessionId : undefined} initial={widgetStates}>
             <WorkspaceFrame
-              left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} />}
+              left={<LeftColumn turn={turn} slot={host.slot} summary={summary} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
               right={<WidgetHost host={host} topicTitle={place?.title} />}
             />
           </WidgetStatesProvider>

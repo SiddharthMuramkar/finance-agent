@@ -39,7 +39,8 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, CONTINUE_TEXT, latestTurn, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, CONTINUE_TEXT, dropTurn, latestTurn, NEXT_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
+import { takeLearnersNext, type NextName } from "./next";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
@@ -109,6 +110,8 @@ export type TurnEvent =
   | { type: "busy"; message: string }
   /** The request came from a tab showing another Topic than the Learner's current one; nothing was saved or sent. */
   | { type: "stale"; message: string }
+  /** The Learner's Next is not allowed now (a Check is open, after a miss, an unsettled Explore); nothing was saved or sent. */
+  | { type: "not_allowed"; message: string }
   /** A resumed turn: the reply text saved so far, which replaces what the browser showed. */
   | { type: "replay"; text: string }
   /** The turn reached its time limit; saved loop steps are kept and the browser should resume. */
@@ -150,10 +153,11 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
 }
 
 /**
- * A new message, the Continue button, the opener (the page starts it when the Session it shows has no
- * messages; code writes its note), or a resume of the last turn after a cut-off or failure (Retry).
+ * A new message, Continue (the cut-off reply's button), the opener (the page starts it when the Session it
+ * shows has no messages; code writes its note), the Learner's Next (naming the step on its chip, or
+ * "complete"; code writes its note), or a resume of the last turn after a cut-off or failure (Retry).
  */
-export type TurnInput = string | { continue: true } | { opener: true } | { resume: true } | PastedInput;
+export type TurnInput = string | { continue: true } | { opener: true } | { next: NextName } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -224,13 +228,28 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       return;
     }
     started = note;
+  } else if (typeof input === "object" && "next" in input) {
+    // Code writes the Next's note once it has taken the move, inside the lock.
+    started = NEXT_PREFIX;
   } else if (!resuming) started = learnerTextOf(input);
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) {
     yield { type: "busy", message: BUSY_MESSAGE };
     return;
   }
-  const turn = claim.turn;
+  let turn = claim.turn;
+  if (typeof input === "object" && "next" in input) {
+    const taken = await takeLearnersNext(db, deps.map ?? loadCourseMap(), learnerId, turn.id, input.next, now());
+    if (!taken.ok) {
+      // Nothing moved and nothing was stored: the turn goes, so the Learner's lock is free again.
+      await dropTurn(db, turn.id);
+      yield { type: "not_allowed", message: taken.reason };
+      return;
+    }
+    turn = { ...turn, input: taken.note, sessionId: taken.sessionId, freshStep: true };
+    // The dividers come before the reply that teaches the step.
+    for (const item of taken.items) yield { type: "item", item };
+  }
   // Saved with the turn before anything else, so a retry still has it.
   if (typeof input === "object" && "paste" in input) await savePaste(db, turn.id, input.paste, now(), learnerId);
   if (claim.alreadyFinished) {
@@ -318,20 +337,22 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
     // that turn is run again from the message saved on it.
     // An opener sends the note code wrote for it, which its turn saved.
-    const learnerText = typeof input === "object" && ("resume" in input || "opener" in input) ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
+    const learnerText = typeof input === "object" && ("resume" in input || "opener" in input || "next" in input) ? (turn.input ?? CONTINUE_TEXT) : learnerTextOf(input);
+    // Complete this Topic passed the Topic its Next pinned: the turn closes it in that Session, and starts nothing else.
+    const completed = await completedSession(db, map, turn);
     // A Topic started by this turn has shown the Learner nothing yet, so its first step cannot be finished in it.
     // Saved before the Topic starts, so a retry after a failure in between still knows.
-    if (navigate(map, await loadProgress(db, learnerId))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
+    if (!completed && navigate(map, await loadProgress(db, learnerId))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
     // An opener teaches the saved step afresh: nothing of it has been taught in this Session yet.
     if (turnKind(turn) === "opener") await updateTurn(db, turn.id, { freshStep: true });
     // Coming back (after a break, or to a carried-over Topic): the divider the page drew, worked out before this
-    // action changes anything, and stored with it.
-    const comingBack = await comingBackItems(db, map, learnerId, now());
+    // action changes anything, and stored with it. (A Next stored its own when it took the move.)
+    const comingBack = completed ? [] : await comingBackItems(db, map, learnerId, now());
     // The first turn after a Due Check reopens the Session teaches the new step: it cannot finish it as well.
     if (comingBack.some((i) => i.kind === DUE_CHECK)) await updateTurn(db, turn.id, { freshStep: true });
-    const place = await ensureTopicStarted(db, map, now(), learnerId);
+    const place = completed ? null : await ensureTopicStarted(db, map, now(), learnerId);
     // The live Session for the current Topic (made by its first turn), refrozen if a deploy changed the instructions.
-    session = await refreezeIfChanged(db, await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));
+    session = await refreezeIfChanged(db, completed ?? (await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null)));
     // The Study Workspace shows the Session the Learner's turns go to, and keeps showing it after a pass until they choose.
     await saveShownSession(db, learnerId, session.id);
     await storeComingBack(db, learnerId, session.id, comingBack, now());
@@ -357,7 +378,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const widgetsNote = openWidgetsNote(openWidgetsBefore(log, turnSeq).map((w) => w.title));
     const context = widgetsNote ? `${widgetsNote}\n${stepped}` : stepped;
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
-    const quiz = await pendingQuizNote(db, map, learnerId, session.topicId);
+    const quiz = completed ? null : await pendingQuizNote(db, map, learnerId, session.topicId);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
     if (quiz?.passed) await updateTurn(db, turn.id, { freshStep: true });
     // Where the Learner stands: opens the Session, and is sent again as a new message whenever it changes.
@@ -376,7 +397,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       const contextChanged = standsChanged || quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
       // Pasted text goes in the Learner's own message, as a marked block after what they typed.
       await log.append({ role: "user", content: paste ? learnerBlocks : learnerText });
-      if (contextChanged) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
+      // A completed Topic's note already tells the Tutor to stop: it gets no context for another Topic.
+      if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
     }
     if (quiz) await markQuizReported(db, quiz.attemptIds, now(), learnerId);
   }
@@ -536,8 +558,18 @@ function openWidgetsBefore(log: Log, turnSeq: number): OpenWidget[] {
   return openWidgetsIn(log.rows.filter((r) => r.seq < turnSeq && r.role === "assistant").map((r) => textOf(r.content)));
 }
 
+/**
+ * The Session a Next turn pinned when its Complete this Topic passed that Topic (it is no longer the current
+ * Topic's), or undefined. Read from the turn, so a Retry finds it too.
+ */
+async function completedSession(db: Db, map: CourseMap, turn: Turn): Promise<Session | undefined> {
+  if (turnKind(turn) !== "next" || turn.sessionId === null) return undefined;
+  const [pinned] = await db.select().from(sessions).where(and(eq(sessions.id, turn.sessionId), eq(sessions.learnerId, turn.learnerId)));
+  return pinned && pinned.topicId !== (await currentTopicId(db, map, turn.learnerId)) ? pinned : undefined;
+}
+
 /** What the Learner sent, as saved on the turn: their message, or "Continue.". */
-function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true }>): string {
+function learnerTextOf(input: Exclude<TurnInput, { resume: true } | { opener: true } | { next: NextName }>): string {
   if (typeof input === "string") return input;
   return "paste" in input ? input.message : CONTINUE_TEXT;
 }

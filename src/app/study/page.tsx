@@ -16,6 +16,7 @@ import { loadWidgetStates } from "@/learner/widget-state";
 import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
 import { comingBackItems } from "@/tutor/coming-back";
 import { loadThread } from "@/tutor/transcript";
+import { nextOfferNow } from "@/tutor/next";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readTheme } from "../theme-cookie";
@@ -67,7 +68,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [summary, thread, quiz, turn, review, progress, widgetStates, comingBack] = await Promise.all([
+  const [summary, thread, quiz, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
     learnerSummary(db, map, learnerId),
     "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
@@ -84,6 +85,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     // thread now, worked out by code, and stored only with the Learner's next turn, so this render adds no rows.
     // A passed Topic on screen is read-only: nothing to pick up.
     passedTopic ? [] : comingBackItems(db, map, learnerId, new Date()),
+    // The Next chip under the latest reply, from the Course Navigator's place (none while a Check is open).
+    nextOfferNow(db, map, learnerId, new Date()),
   ]);
   const initial: Line[] = [...thread, ...comingBack.map((item) => ({ role: "item" as const, ...item }))];
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
@@ -110,6 +113,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         shown={shown}
         widgetStates={widgetStates}
         passed={passed}
+        // The current Topic's Next belongs to its own Session, never to a passed one kept on screen.
+        next={passed ? null : next}
         developerDetails={learner.showDeveloperDetails}
       />
     </WorkspaceShell>

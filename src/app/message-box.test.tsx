@@ -21,6 +21,7 @@ function Column({ given }: { given: Given }) {
   const turn: TurnStream = {
     messages,
     running,
+    refreshing: false,
     announcement: "",
     fixing: false,
     error: null,
@@ -36,12 +37,33 @@ function Column({ given }: { given: Given }) {
   };
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <LeftColumn turn={turn} slot={() => null} summary="You are learning present value." place={null} review={noReview} quizOpen={false} explore={null} />
+      <LeftColumn turn={turn} slot={() => null} summary="You are learning present value." place={null} review={noReview} quizOpen={false} explore={null} next={NEXT} />
     </AssistantRuntimeProvider>
   );
 }
 
 const column = (given: Given = {}) => renderToStaticMarkup(<Column given={given} />);
+
+/** The Next on offer in every column here; whether its chip shows depends on the turn's state. */
+const NEXT = { kind: "next", step: "concept", label: "Next: Concept", advances: true } as const;
+
+describe("the Next chip and the turn's state", () => {
+  const replied: ThreadLine[] = [
+    { id: "u", role: "user", text: "Hi" },
+    { id: "a", role: "assistant", text: "Once, a lottery winner had a choice." },
+  ];
+  const chip = (html: string) => html.includes('data-testid="next-chip"');
+
+  it("shows under the finished reply once the page has re-read the Learner's place", () => {
+    expect(chip(column({ messages: replied }))).toBe(true);
+  });
+
+  it("is hidden while a turn runs, until the page has the new place after it, and while Retry is offered", () => {
+    expect(chip(column({ messages: replied, running: true }))).toBe(false);
+    expect(chip(column({ messages: replied, refreshing: true }))).toBe(false);
+    expect(chip(column({ messages: replied, canRetry: true, error: "The Tutor could not answer (500)." }))).toBe(false);
+  });
+});
 
 describe("the writing indicator", () => {
   it("says the Tutor is writing from Send until the first words arrive", () => {

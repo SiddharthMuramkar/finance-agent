@@ -2,7 +2,8 @@
 
 import { useExternalStoreRuntime, type AppendMessage } from "@assistant-ui/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import type { NextName } from "@/tutor/next";
 import { replaceBrokenWidgets } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
 import type { TurnRef } from "@/tutor/transcript";
@@ -25,8 +26,11 @@ export function pastePreview(paste: string): string {
 
 /** The latest turn's saved status, as the page found it. */
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
-/** What a turn request carries: a message (with an optional pasted passage), Continue, the opener, or a resume. */
-export type TurnBody = { message: string; paste?: string } | { continue: true } | { opener: true } | { resume: true };
+/**
+ * What a turn request carries: a message (with an optional pasted passage), Continue (the cut-off reply's), the
+ * opener, the Learner's Next (naming the step on its chip, or "complete"), or a resume.
+ */
+export type TurnBody = { message: string; paste?: string } | { continue: true } | { opener: true } | { next: NextName } | { resume: true };
 
 /** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
 export const SLOW_AFTER_MS = 8000;
@@ -61,6 +65,7 @@ export function useTurnStream({
   opener?: boolean;
 }) {
   const router = useRouter();
+  const [refreshing, startRefresh] = useTransition();
   const shownRef = useRef(shown);
   const [messages, setMessages] = useState<ThreadLine[]>(() => initial.map((l, i) => ({ ...l, id: `saved-${i}` })));
   const [running, setRunning] = useState(false);
@@ -106,7 +111,9 @@ export function useTurnStream({
       if (userText !== undefined) return [...m, { id: `u-${stamp}`, role: "user", text: userText }, { id: firstId, role: "assistant", text: "" }];
       // A resume continues the reply on screen, or starts one after the Learner's last message.
       const last = m[m.length - 1];
-      return last?.role === "assistant" ? [...m.slice(0, -1), { ...last, id: firstId }] : [...m, { id: firstId, role: "assistant", text: "" }];
+      if ("resume" in body && last?.role === "assistant") return [...m.slice(0, -1), { ...last, id: firstId }];
+      // A Next (or the opener) is a new turn with no Learner bubble: its reply starts below what is on screen.
+      return [...m, { id: firstId, role: "assistant", text: "" }];
     });
     const updateReply = (f: (text: string) => string) => setMessages((m) => m.map((x) => (x.id === replyId && x.role !== "item" ? { ...x, text: f(x.text) } : x)));
     /** Draws a Session item where the reply has got to: before the reply if it has no text yet, else between two parts of it. */
@@ -249,8 +256,9 @@ export function useTurnStream({
       setWaiting(null);
       setRunning(false);
       setFixing(false);
-      // Re-reads the summary, since the Tutor may have finished a Teaching Step.
-      router.refresh();
+      // Re-reads the summary and the Next on offer, since the Tutor may have finished a Teaching Step; `refreshing`
+      // stays true until the page has them, so a Next chip from before the turn is never offered.
+      startRefresh(() => router.refresh());
     }
   }
 
@@ -276,5 +284,5 @@ export function useTurnStream({
   };
   const runtime = useExternalStoreRuntime({ messages, isRunning: running, convertMessage, onNew });
 
-  return { messages, running, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, runtime };
+  return { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, runtime };
 }
