@@ -10,12 +10,12 @@ import { ThreadMessages } from "./thread";
 import type { TurnStream } from "./turn-stream";
 import { SecondaryButton } from "./ui";
 import { exploreItem, PinnedExplore } from "./widget-panel";
-import { JUST_TELL_ME, NextChip, StatusCard, type PassedTopic, type Place } from "./workspace-parts";
-import type { NextOffer } from "@/course/navigator";
+import { JUST_TELL_ME, NextChip, TopicBar, type PassedTopic, type Place } from "./workspace-parts";
+import type { NextOffer, StepSequence } from "@/course/navigator";
 import { TOPIC_START } from "@/course/topic-start";
 
 /**
- * The Study Workspace's left column, top to bottom: the status card, the pinned explore Widget, the folded
+ * The Study Workspace's left column, top to bottom: the Topic bar, the pinned explore Widget, the folded
  * review, the thread with the Next chip under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
  * itself is in the right panel's Check tab), and the message box with the writing indicator and Attach a passage.
  * A Topic passed in a turn stays on screen with no message box: What comes next and the Course Map instead.
@@ -24,7 +24,7 @@ import { TOPIC_START } from "@/course/topic-start";
 export function LeftColumn({
   turn,
   slot,
-  summary,
+  strip = null,
   place,
   review,
   quizOpen,
@@ -36,7 +36,8 @@ export function LeftColumn({
   next?: NextOffer | null;
   turn: TurnStream;
   slot: WidgetSlot;
-  summary: string;
+  /** The shown Topic's step sequence (Course Navigator), drawn as the Topic bar's strip. */
+  strip?: StepSequence | null;
   place: Place;
   review: ReviewState;
   quizOpen: boolean;
@@ -50,11 +51,13 @@ export function LeftColumn({
   const latest = messages.at(-1);
   const opening = latest?.role === "item" && latest.kind === TOPIC_START;
   const chip = next && !passed && latest && latest.role !== "user" && !opening && !running && !refreshing && !canRetry ? next : null;
+  // The steps whose divider ("step" items) is in the thread: the strip scrolls back to those.
+  const marked = new Set(messages.flatMap((m) => (m.role === "item" && m.kind === "step" && typeof m.data.number === "number" ? [m.data.number] : [])));
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
-      {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a long summary, a Review) can squeeze the chat. */}
+      {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a pinned Widget, a Review) can squeeze the chat. */}
       <div data-testid="above-thread" className="mb-6 flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
-        <StatusCard place={place} summary={summary} />
+        {place && <TopicBar title={place.title} strip={strip} marked={marked} />}
         {explore && <PinnedExplore item={exploreItem(explore.code)} />}
         <ReviewPanel review={review} />
       </div>

@@ -1,15 +1,15 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { currentLearner } from "@/auth/session";
-import { DEMO_SUMMARY, isDemoMode } from "../_landing/demo-mode";
+import { DEMO_PROGRESS, isDemoMode } from "../_landing/demo-mode";
 import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
 import { exploreWidgetFor } from "@/course/explore-widget";
-import { courseOverview, whatComesNext } from "@/course/navigator";
+import { courseOverview, stepSequence, whatComesNext } from "@/course/navigator";
 import { topicStart } from "@/course/topic-start";
 import { revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
-import { learnerSummary, loadProgress } from "@/learner/memory";
+import { loadProgress } from "@/learner/memory";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { showsWelcome } from "@/learner/welcome";
@@ -51,7 +51,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
       <WorkspaceShell>
         <Conversation
           initial={SAMPLE_LINES}
-          summary={DEMO_SUMMARY}
+          strip={stepSequence(map, DEMO_PROGRESS, "present-value")}
           quiz={null}
           pending={null}
           review={{ question: null, dueCount: 0, done: 0, cap: 0 }}
@@ -69,8 +69,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [summary, thread, quiz, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
-    learnerSummary(db, map, learnerId),
+  const [thread, quiz, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
     "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
     openQuiz(db, map, new Date(), learnerId).catch((error) => {
@@ -109,7 +108,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     <WorkspaceShell>
       <Conversation
         initial={initial}
-        summary={passed ? `${passed.title} is passed. Choose where to go next.` : summary}
+        // The Topic bar's strip: the shown Topic's steps, grouped by Check, with the Learner's place.
+        strip={current ? stepSequence(map, progress, current.id) : null}
         // The quiz and explore Widget belong to the current Topic, not the passed one on screen.
         quiz={passed ? null : quiz}
         pending={pending}

@@ -21,7 +21,7 @@ describe("Save to notes in a Topic", () => {
   });
 
   it("is offered under the workspace's replies too", () => {
-    const html = renderToStaticMarkup(<Conversation initial={[reply]} summary="s" quiz={null} pending={null} review={noReview} />);
+    const html = renderToStaticMarkup(<Conversation initial={[reply]} quiz={null} pending={null} review={noReview} />);
     expect(html).toContain('aria-label="Save this reply to notes"');
   });
 
@@ -31,7 +31,7 @@ describe("Save to notes in a Topic", () => {
   });
 
   it("is offered on the explore Widget wherever it stands", () => {
-    const page = <Conversation initial={[]} summary="s" quiz={null} pending={null} review={noReview} explore={EXPLORE} />;
+    const page = <Conversation initial={[]} quiz={null} pending={null} review={noReview} explore={EXPLORE} />;
     // In the panel at a laptop width, in its card below it: the Widget is mounted once either way.
     expect(renderToStaticMarkup(page).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);
     expect(renderToStaticMarkup(<NarrowScreen>{page}</NarrowScreen>).match(/aria-label="Save this Widget to notes"/g)).toHaveLength(1);

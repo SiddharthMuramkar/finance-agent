@@ -66,7 +66,6 @@ async function open(initial: Line[], widgetStates?: WidgetStates, sessionId: num
     root.render(
       <Conversation
         initial={initial}
-        summary="You are learning interest rates."
         quiz={null}
         pending={null}
         review={noReview}

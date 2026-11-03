@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { CaseData } from "@/case-data/case-data";
 import { loadCourseMap } from "@/course/map";
-import type { Progress } from "@/course/navigator";
+import { stepSequence, type Progress } from "@/course/navigator";
 import { topicStart } from "@/course/topic-start";
 import { caseLoader, fetchCaseData } from "@/widgets/case-data-client";
 import { createWidgetTools } from "@/widgets/tools";
@@ -35,7 +35,6 @@ function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
   return renderToStaticMarkup(
     <Conversation
       initial={[]}
-      summary="You are learning present value."
       quiz={null}
       pending={null}
       review={noReview}
@@ -48,13 +47,6 @@ function workspace(over: Partial<Parameters<typeof Conversation>[0]> = {}) {
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the workspace's left column", () => {
-  it("shows the status card: Course Map, Stage and Topic and the summary, with no Continue button", () => {
-    const html = text(workspace());
-    expect(html).toContain("Course Map · Foundation · Present value");
-    expect(html).toContain("You are learning present value.");
-    expect(html).not.toMatch(/Continue/);
-  });
-
   it("has a polite status line for screen readers, empty until a turn runs, apart from the streaming text", () => {
     const html = workspace();
     expect(html).toMatch(/<p role="status" aria-live="polite" class="sr-only" data-testid="turn-status"><\/p>/);
@@ -306,14 +298,14 @@ describe("the fixed two-column layout", () => {
     expect(thread).toMatch(/\bmin-h-0\b/);
   });
 
-  it("caps what stands above the chat (status card, Review) and scrolls it inside itself, so the chat keeps its height", () => {
+  it("caps what stands above the chat (Topic bar, Review) and scrolls it inside itself, so the chat keeps its height", () => {
     const html = workspace({ review });
     const above = tag(html, "above-thread");
     expect(above).toMatch(/\bmax-h-/);
     expect(above).toMatch(/\boverflow-y-auto\b/);
     const inside = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
     expect(text(inside)).toContain("Spaced review · 2 due");
-    expect(inside).toContain('aria-label="Where you stand"');
+    expect(inside).toContain('data-testid="topic-bar"');
   });
 });
 
@@ -528,6 +520,67 @@ describe("the Sourced strip under a Widget that draws Case Data", () => {
     const html = renderToStaticMarkup(<WidgetPanel widgets={[item]} shown={item} onPick={() => {}} />);
     expect(text(html)).toContain("Sensex milestones");
     expect(html).not.toContain("sourced-strip");
+  });
+});
+
+describe("the Topic bar", () => {
+  const map = loadCourseMap();
+  // Present value at Explore: Story, Check 1 (concept, your turn, Check) passed, Check 2's concept done.
+  const atExplore: Progress = {
+    currentTopicId: "present-value",
+    topics: { "present-value": { step: "explore", passedChecks: ["pv-quiz-discounting"], revealShown: false, status: "in_progress" } },
+  };
+  const strip = stepSequence(map, atExplore, "present-value");
+  const bar = (html: string) => html.match(/<nav[^>]*data-testid="topic-bar"[^>]*>.*?<\/nav>/)?.[0] ?? "";
+  const groups = (html: string) => (bar(html).match(/<li[^>]*data-strip-group[^>]*>.*?<\/ol><\/li>/g) ?? []).map((g) => text(g).trim());
+
+  it("replaces the status card: a slim bar with the Topic title stands above the chat, with no summary", () => {
+    const html = workspace({ strip });
+    const above = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
+    expect(above).toContain('data-testid="topic-bar"');
+    expect(text(bar(html))).toContain("Present value");
+    expect(html).not.toContain('aria-label="Where you stand"');
+    expect(text(html)).not.toContain("Course Map · Foundation");
+    expect(text(html)).not.toMatch(/Continue/);
+  });
+
+  it("groups the Course Navigator's plain step names by Check", () => {
+    expect(groups(workspace({ strip }))).toEqual([
+      "Story",
+      "Check 1: Concept Your turn Check",
+      "Check 2: Concept Explore Your turn Check",
+      "Reveal",
+      "Principle",
+    ]);
+  });
+
+  it("highlights the current step", () => {
+    const current = bar(workspace({ strip })).match(/<[^>]*aria-current="step"[^>]*>[^<]*</g) ?? [];
+    expect(current).toHaveLength(1);
+    expect(current[0]).toContain("Explore");
+    expect(current[0]).toContain('data-step-number="6"');
+  });
+
+  it("makes finished steps scroll the chat back to their divider; the Story goes to the Topic Start card", () => {
+    const initial: Line[] = [
+      { role: "assistant", text: "Once, a lottery winner had a choice." },
+      { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 10 · Concept" } },
+      { role: "assistant", text: "Money today is worth more." },
+      { role: "item", kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 10 · Concept" } },
+      { role: "assistant", text: "Now the jackpot." },
+    ];
+    const html = workspace({ strip, initial });
+    const buttons = bar(html).match(/<button[^>]*data-scroll-to="[^"]*"[^>]*>[^<]*<\/button>/g) ?? [];
+    expect(buttons.map((b) => b.match(/data-scroll-to="([^"]*)"/)![1])).toEqual(["topic-start", "step-2", "step-5"]);
+    // Each target is in the thread: the dividers carry their step's anchor.
+    expect(html).toMatch(/<div[^>]*id="step-2"[^>]*data-testid="step-divider"/);
+    expect(html).toMatch(/<div[^>]*id="step-5"[^>]*data-testid="step-divider"/);
+    // A finished step with no divider in this Session (steps 3 and 4), the current one and those ahead are not buttons.
+    expect(bar(html)).not.toMatch(/<button[^>]*data-step-number="(3|4|6|7|8|9|10)"/);
+  });
+
+  it("is not drawn with no Topic", () => {
+    expect(workspace({ place: null, strip: null })).not.toContain('data-testid="topic-bar"');
   });
 });
 

@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
 import type { Topic } from "@/course/map";
-import type { NextOffer } from "@/course/navigator";
+import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from "@/course/navigator";
 import type { NextName } from "@/tutor/next";
-import { Eyebrow, SecondaryButton } from "./ui";
+import { TOPIC_START_ANCHOR } from "./topic-start-card";
+import { SecondaryButton } from "./ui";
 
 // Small presentational pieces of the workspace's left column (issue #44).
-
-const STAGE_NAMES: Record<Topic["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
 
 /** Where the Learner is on the Course Map: their current Topic and its Stage. Null before any Topic. */
 export type Place = { stage: Topic["stage"]; title: string } | null;
@@ -17,14 +16,70 @@ export type Place = { stage: Topic["stage"]; title: string } | null;
  */
 export type PassedTopic = { title: string; next: string | null } | null;
 
-/** The status card: "Course Map · Stage · Topic" and the plain summary. The way forward is the Next chip under the latest reply. */
-export function StatusCard({ place, summary }: { place: Place; summary: string }) {
-  const eyebrow = ["Course Map", place && STAGE_NAMES[place.stage], place?.title].filter(Boolean).join(" · ");
+/** The anchor of a step's divider in the thread, which the Topic bar scrolls to: "step-3". */
+export const stepAnchor = (number: number) => `step-${number}`;
+
+/** Where a finished step on the strip scrolls to: the Story to the Topic Start card, any other to its divider, if this Session has one. */
+function targetOf(step: StepPosition, marked: ReadonlySet<number>): string | null {
+  if (step.step === "story") return TOPIC_START_ANCHOR;
+  return marked.has(step.number) ? stepAnchor(step.number) : null;
+}
+
+/**
+ * The Topic bar: a slim bar above the chat for the whole Topic, with its title and the progress strip from the
+ * Course Navigator's step sequence. Steps are grouped by Check, the current one highlighted; a finished step
+ * scrolls the chat back to where it began (`marked`: the step numbers whose divider is in the thread).
+ */
+export function TopicBar({ title, strip, marked }: { title: string; strip: StepSequence | null; marked: ReadonlySet<number> }) {
+  const finished = (s: StepPosition) => strip !== null && (strip.current === null || s.number - 1 < strip.current);
+  const step = (s: StepPosition) => {
+    const target = finished(s) ? targetOf(s, marked) : null;
+    if (strip?.current === s.number - 1) {
+      return (
+        <span aria-current="step" data-step-number={s.number} title={s.label} className="rounded bg-[var(--brand-tint)] px-1.5 font-semibold text-[var(--brand)]">
+          {STEP_NAMES[s.step]}
+        </span>
+      );
+    }
+    if (target) {
+      return (
+        <button
+          type="button"
+          data-step-number={s.number}
+          data-scroll-to={target}
+          title={`Back to ${s.label}`}
+          onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          className="rounded px-1 underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--brand)]"
+        >
+          {STEP_NAMES[s.step]}
+        </button>
+      );
+    }
+    return (
+      <span data-step-number={s.number} title={s.label} className={finished(s) ? "px-1" : "px-1 text-[var(--muted)]"}>
+        {STEP_NAMES[s.step]}
+      </span>
+    );
+  };
   return (
-    <section aria-label="Where you stand" className="rounded-lg border border-[var(--border)] p-4">
-      <Eyebrow className="mb-1">{eyebrow}</Eyebrow>
-      <p className="whitespace-pre-line text-sm leading-5">{summary}</p>
-    </section>
+    <nav aria-label="Topic progress" data-testid="topic-bar" className="rounded-lg border border-[var(--border)] px-3 py-2">
+      <p className="truncate text-sm font-semibold leading-5">{title}</p>
+      {strip && (
+        <ol aria-label="Steps in this Topic" className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-5">
+          {/* Steps outside any Check (Story, Reveal, Principle) stand alone: "Story · Check 1: Concept, Your turn, Check · … · Reveal · Principle". */}
+          {strip.groups.flatMap((g) => (g.check ? [g] : g.steps.map((s) => ({ check: null, steps: [s] })))).map((g) => (
+            <li key={g.steps[0].number} data-strip-group className="flex items-center gap-0.5">
+              {g.check && <span className="mr-0.5 font-medium text-[var(--muted)]">Check {g.check.number}:</span>}
+              <ol className="flex flex-wrap items-center gap-0.5">
+                {g.steps.map((s) => (
+                  <li key={s.number}>{step(s)}</li>
+                ))}
+              </ol>
+            </li>
+          ))}
+        </ol>
+      )}
+    </nav>
   );
 }
 
