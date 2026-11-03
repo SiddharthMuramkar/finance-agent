@@ -23,6 +23,10 @@ function Divider({ label, testId }: { label: string; testId: string }) {
 const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   // Stored when the Learner moves onto a new Teaching Step.
   step: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="step-divider" /> : null),
+  // Coming back after a break, or to a carried-over Topic: "Picking up where you left off · Step 6 of 10 · Concept".
+  picking_up: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="picking-up-divider" /> : null),
+  // A Due Check reopened a passed Topic's Session: "New Check · Check 3", or "New step · Explore".
+  due_check: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="due-check-divider" /> : null),
 };
 
 /** The item drawn by its kind; nothing for a kind it does not know. */

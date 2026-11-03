@@ -258,7 +258,7 @@ export function useTurnStream({
   const resumedOnOpen = useRef(false);
   useEffect(() => {
     const start: TurnBody | null =
-      pending?.status === "cut_off" ? { resume: true } : opener && shown && pending === null && initial.length === 0 ? { opener: true } : null;
+      pending?.status === "cut_off" ? { resume: true } : opener && shown && pending === null && initial.every((l) => l.role === "item") ? { opener: true } : null;
     if (!start || resumedOnOpen.current) return;
     resumedOnOpen.current = true;
     void send(start);

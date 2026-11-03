@@ -79,6 +79,10 @@ export function LeftColumn({
       </p>
       {passed ? (
         <section aria-label="Topic passed" data-testid="topic-passed" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)] p-4">
+          {/* Read-only: a passed Topic shows Passed ✓, never Resume. */}
+          <span data-testid="passed-mark" className="rounded-full border border-[var(--border)] px-2 py-0.5 text-xs font-medium leading-4">
+            Passed ✓
+          </span>
           <p className="text-sm leading-5">{passed.title} is passed.</p>
           {passed.next && <WhatComesNextButton label={passed.next} />}
           <a href="/course" className="text-sm leading-5 underline">

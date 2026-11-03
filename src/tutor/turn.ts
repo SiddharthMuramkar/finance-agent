@@ -15,6 +15,7 @@ import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNo
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import type { SessionItem } from "./session-items";
+import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -323,11 +324,17 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     if (navigate(map, await loadProgress(db, learnerId))?.status === "not_started") await updateTurn(db, turn.id, { freshStep: true });
     // An opener teaches the saved step afresh: nothing of it has been taught in this Session yet.
     if (turnKind(turn) === "opener") await updateTurn(db, turn.id, { freshStep: true });
+    // Coming back (after a break, or to a carried-over Topic): the divider the page drew, worked out before this
+    // action changes anything, and stored with it.
+    const comingBack = await comingBackItems(db, map, learnerId, now());
+    // The first turn after a Due Check reopens the Session teaches the new step: it cannot finish it as well.
+    if (comingBack.some((i) => i.kind === DUE_CHECK)) await updateTurn(db, turn.id, { freshStep: true });
     const place = await ensureTopicStarted(db, map, now(), learnerId);
     // The live Session for the current Topic (made by its first turn), refrozen if a deploy changed the instructions.
     session = await refreezeIfChanged(db, await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));
     // The Study Workspace shows the Session the Learner's turns go to, and keeps showing it after a pass until they choose.
     await saveShownSession(db, learnerId, session.id);
+    await storeComingBack(db, learnerId, session.id, comingBack, now());
     log = await openLog(db, session.id, now);
     // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
     const paste = await pasteForTurn(db, turn.id, session.id, learnerId);

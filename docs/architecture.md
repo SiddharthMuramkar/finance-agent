@@ -344,7 +344,8 @@ deploy, so a Course Map jump carried one Topic's talk into the next.
   Reload to carry on." Each finished turn tells the page what to carry next. After a turn that passes
   a Topic, the page keeps showing that Topic and sends no more turns there; the Learner chooses where
   to go. The test tools send nothing and are not checked.
-- **No restarts.** Idle time never starts a Session; the idle setting stays only to tell a break.
+- **No restarts.** Idle time never starts a Session; the idle setting stays only to tell a break,
+  which draws "Picking up where you left off" (see "Coming back" below).
   After a deploy that changes the instructions or tools, the next new turn (never a resume) refreezes
   the instructions, tools, model and effort inside the same Session and records where
   (`refrozen_at_seq`). From then on the thinking blocks of earlier messages are left out of every
@@ -562,8 +563,9 @@ stands block and the context as the first block of its first message. (Claude's 
 messages.) Older Sessions stay readable at `/sessions`.
 
 **Scenario.** The Learner returns after a weekend. The page shows the summary and the Topic's
-thread at no cost. They click Continue; the same Session carries on, a new Where the Learner stands
-block tells the Tutor anything that changed, and teaching picks up at the same Teaching Step.
+thread at no cost, ending in a "Picking up where you left off" divider (see "Coming back"). They
+write to the Tutor; the same Session carries on, a new Where the Learner stands block tells the Tutor
+anything that changed, and teaching picks up at the same Teaching Step.
 
 **Trade-off.** Context goes in as appended messages rather than edits to the instructions, which
 keeps Claude's thinking valid but repeats some text in long Sessions.
@@ -1524,8 +1526,8 @@ opener.
   same places. `loadSession` itself still gives one line per reply, which Save to notes keys on.
 - **Drawn by kind.** The thread carries an item as an assistant-ui system message, and
   `SessionItemView` draws it by its kind: a `step` item is a small centred line with its label. A kind
-  it does not know draws nothing, so an item from a later change never breaks the thread. Later
-  dividers and cards (Picking up, Due Check, Check results, Topic complete) add their kind there and
+  it does not know draws nothing, so an item from a later change never breaks the thread. The
+  Picking up and Due Check dividers (`picking_up`, `due_check`, see "Coming back") are drawn the same way; Check results and Topic complete add their kind there and
   store their rows the same way.
 - **Live.** The turn streams `{ type: "item" }` as the tool stores it. The browser ends the reply part
   on screen, draws the divider and streams the rest of the reply into a new part. A replayed reply
@@ -1555,6 +1557,63 @@ from it; a reply that moves on before writing anything has the divider before it
 and a finish that passes the Topic store none. In the workspace render: the divider is a small centred
 separator between the parts, with one Save to notes; Widget chips stay in each part; an unknown kind
 is skipped. The old Session page draws the divider between the parts too.
+
+## Coming back: Picking up where you left off, read-only passed Topics and Due Checks (`src/tutor/coming-back.ts`, `turn.ts`, `src/app/study/page.tsx`, `session-item-view.tsx`, `left-column.tsx`, `_landing/landing.tsx`, spec #119, ticket #136)
+
+**What it does.**
+- **Coming back after a break.** When the Learner's current Topic's Session last had a message longer ago
+  than the idle setting (`session_idle_hours`, default 6), the Study Workspace ends the thread with a
+  centred divider: "Picking up where you left off · Step 6 of 10 · Concept", numbered and named by the
+  Course Navigator. No model call: the Tutor says nothing until the Learner acts.
+- **Worked out, then stored with the next action.** `comingBackItems` works the divider out from the
+  Learner's place and the gap. The page only draws it (appended to the thread, never saved), so viewing a
+  page adds no rows. The Learner's next turn (a message, the opener, anything but a resume) works it out
+  again before changing anything and stores it as a Session item (`picking_up`) after the Session's latest
+  message, so it sits just above what they write next. That closes the gap, so the next page draws no
+  second one. Like every Session item it is never sent to the model.
+- **Carried-over Topics.** A Topic started before one Session per Topic has progress but no message in a
+  Session of its own. Opening it draws the same divider, and the opener (which the page starts for a
+  Session with no messages) stores it first, so the thread reads "Picking up where you left off · Step 4
+  of 9 · Your turn" and then the Tutor teaching that step. A Topic never started gets nothing: its Story
+  just begins.
+- **Passed Topics are read-only.** A passed Topic's Session on screen has no message box and sends no
+  turns; it shows **Passed ✓** and "<Topic> is passed." with What comes next and the Course Map, never
+  Resume.
+- **Due Checks reopen the Topic's own Session.** When a passed Topic gains a required Check (or a required
+  Explore), the Course Navigator takes the Learner back to it before anything new. Its own Session is the
+  current Topic's again, so it opens with its whole old thread, ending in "New Check · Check 3" (or "New
+  step · Explore"), drawn and stored the same way (kind `due_check`). It takes the place of Picking up, and
+  marks a run once: the item records what was due (`keys`), and a later step of the same run draws none.
+  The turn that stores it is fresh (the pacing rule): the Tutor teaches the new step and cannot finish it in
+  the same reply.
+- **Home's button is What comes next** (see "Home"): "Resume: <Topic>" for the chosen Topic, else "New
+  in <Topic>: Check N →" or "New in <Topic>: Explore →", else "Next Topic: <title> →".
+
+**Scenario.** The Learner stops at Present value's Concept on Friday evening and opens the site on
+Monday. Home reads "Resume: Present value". The Study Workspace shows Friday's thread and, under the last
+reply, "Picking up where you left off · Step 6 of 10 · Concept"; nothing has been saved yet, and a
+reload shows the same. They type a question: that turn stores the divider above their message and the
+Tutor answers. A month later the owner adds a required third Check to Percent, which they passed long
+ago. Home now reads "New in Percent: Check 3 →"; pressing it opens Percent's own Session, the old
+conversation intact, ending in "New Check · Check 3".
+
+**Trade-off.** Working the divider out on every render costs a few small reads, but a page view can never
+write. Storing it with the next action means a tab left open across the break (never reloaded) does not
+show the divider until a reload, and a quiz submitted after the break leaves its divider to the next
+turn. The gap is measured per Session, so going back to a Topic untouched for a week gets the divider
+even if the Learner was busy in another Topic an hour ago; that is the point of it. A Due Check run is
+marked by what was due, so a later edit that adds another Check is marked again, as it should be.
+
+**How it is tested.** At the Tutor Turn seam with the scripted client on in-memory Postgres
+(`coming-back.test.ts`): after seven hours the divider is worked out but not stored, the next turn stores
+it before the Learner's message, the model request has nothing of it, and nothing more comes after; a gap
+under six hours draws nothing; a carried-over Topic's opener stores it before the reply, and a new Topic
+gets none; a Due Check reopens the same Session with "New Check · Check 2" stored before the next
+message, the Tutor's finish in that turn is refused, and a break then draws only the Due Check divider;
+a due Explore says "New step · Explore"; a passed Topic with nothing due draws nothing. In the workspace
+render: the Picking up and Due Check dividers as centred separators after the last reply with the message
+box ready, and Passed ✓ with no Resume on a passed Topic. Home's button rule (`landing.test.tsx`) covers
+Resume, Start, New in <Topic>: Check N →, Explore → and Next Topic.
 
 ## Tutor replies as Markdown (`src/app/reply-markdown.tsx`, `src/app/old-session.tsx`)
 
@@ -2330,11 +2389,15 @@ them in one place. There is no Draft badge: a visitor sees facts, not the owner'
 on your own") are worded as two different steps, and the Principle line says Topic, not lesson.
 
 **The button rule.** Signed in, `page.tsx` has `loadHomeButton` read saved progress (`loadProgress`)
-and ask the Course Navigator's `navigate` for the place, then `homeButton` in `landing.tsx` picks
-the label. Home's view takes that button as an optional input, and none means signed out. The label:
-no place (every Topic passed, no Check due) is "Open Study Workspace"; a place whose Topic is not
-started is "Start: [Topic]"; any other place is "Resume: [Topic]", which includes a Topic chosen on
-the Course Map that was begun before and a passed Topic with a required Check due. Home only reads:
+and `homeButton` in `landing.tsx` picks the label from the Course Navigator's What comes next
+(`whatComesNext`), the same answer the Recommended next card and the passed Topic's button give. Home's
+view takes that button as an optional input, and none means signed out. The label, in What comes next's
+order: the chosen Topic not yet passed is "Resume: [Topic]" ("Start: [Topic]" if not begun); else a
+passed Topic with something new is "New in [Topic]: Check N →" or "New in [Topic]: Explore →"; else
+"Next Topic: [title] →" (or "Start: [title]" for a Learner who has begun nothing); with every Topic
+passed and nothing due, "Open Study Workspace". A passed Topic is never "Resume". Every one but Open
+posts to `/api/open`, which shows the Learner's current Topic: the Course Navigator's place, which is
+exactly the Topic What comes next names. Home only reads:
 no model call, and it never uses `ensureTopicStarted`, so a fresh database shows "Start: [first
 Topic]" and stays empty. If progress can't be loaded, the error is logged and the button says "Open
 Study Workspace", so the front door never breaks. The signed-out check still comes first, so

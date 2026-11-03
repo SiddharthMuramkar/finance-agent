@@ -13,7 +13,8 @@ export const copy = {
   // Shown instead of "Sign in" when the Learner is already signed in. Both open /study.
   studyWorkspace: "Study Workspace",
   openStudyWorkspace: "Open Study Workspace",
-  // Signed-in hero button: "Resume: [Topic]" or "Start: [Topic]", which open that Topic (via /api/open); all three land on /study.
+  // Signed-in hero button: "Resume: [Topic]", "Start: [Topic]" or What comes next ("New in [Topic]: Check N →",
+  // "Next Topic: [title] →"), which open that Topic (via /api/open); every one lands on /study.
   resume: "Resume:",
   start: "Start:",
   signOut: "Sign out",
