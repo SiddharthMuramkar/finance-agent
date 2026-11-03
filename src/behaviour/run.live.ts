@@ -89,6 +89,8 @@ async function ask(
 /** `own` replaces the rule's rubric and the Reveal text, for a targeted test about one Case. */
 async function grade(q: BehaviourQuestion, replies: string[], stepNote: string, own?: { rule: Rule; reveal: string }) {
   const rule = own?.rule ?? RULES.find((r) => r.id === q.rule)!;
+  // Some rules are graded by code alone, with no grader model call.
+  if (rule.byCode) return { grade: rule.byCode(replies), cost: 0 };
   const reveal = own
     ? own.reveal
     : q.rule === "hindsight"
