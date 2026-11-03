@@ -110,6 +110,13 @@ describe("a Widget in the Study Workspace with saved Widget state", () => {
     expect(ticks()).toEqual(["done", "current"]);
   });
 
+  it("goes back to the starting values in its code on Reset, not to the saved ones", async () => {
+    await open([{ role: "assistant", text: fence(rates("Rates")) }], { Rates: { values: { $rate: 2.5 }, ticked: [] } });
+    const reset = [...card().querySelectorAll("button")].find((b) => b.textContent === "Reset")!;
+    await click(reset);
+    expect(slider().value).toBe("5");
+  });
+
   it("draws with its starting values and no ticks when nothing is saved under its key", async () => {
     await open([{ role: "assistant", text: fence(rates("Rates")) }], { Other: { values: { $rate: 2.5 }, ticked: ["Set the rate to 3%"] } });
     expect(slider().value).toBe("5");

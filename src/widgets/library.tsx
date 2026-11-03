@@ -488,6 +488,12 @@ const Widget = defineComponent({
 /** False inside a card that already draws the frame (the Widget panel), so the Widget adds no second border. */
 export const WidgetBorderContext = createContext(true);
 
+/**
+ * The starting numbers the Widget's code declares (`$rate = 5`), by `$variable`: what Reset goes back to, even when
+ * the Widget opened at values saved with the Session. Empty where it is not given; Reset then uses the first value.
+ */
+export const StartingValuesContext = createContext<Record<string, number>>({});
+
 type SliderNode = SliderRange & { name: string; value: unknown; target: string };
 
 /** The Widget's sliders at any depth (in a Stack, a Card or a tab not showing), one per bound $variable. */
@@ -506,18 +512,21 @@ function widgetSliders(children: unknown): SliderNode[] {
 
 /**
  * Remembers one slider's starting value once the finished Widget sets it, moved onto a step, and offers a
- * way back to it for Reset. Drawn by the frame rather than the slider, so a slider in a tab not showing
+ * way back to it for Reset. The starting value is the one the code declares, so a Widget that opened at its saved
+ * Widget state still resets to it. Drawn by the frame rather than the slider, so a slider in a tab not showing
  * still resets.
  */
 function SliderStart({ slider, resets }: { slider: SliderNode; resets: Map<string, () => void> }) {
   const field = useStateField(slider.name, slider.value);
   const streaming = useIsStreaming();
+  const declared = useContext(StartingValuesContext)[slider.target];
   const start = useRef<number | null>(null);
   const current = field.value;
   useEffect(() => {
     if (streaming || start.current !== null || typeof current !== "number" || !Number.isFinite(current)) return;
-    start.current = snappedValue(current, slider);
-    if (start.current !== current) field.setValue(start.current);
+    start.current = snappedValue(typeof declared === "number" && Number.isFinite(declared) ? declared : current, slider);
+    const onStep = snappedValue(current, slider);
+    if (onStep !== current) field.setValue(onStep);
   });
   useEffect(() => {
     resets.set(slider.target, () => {

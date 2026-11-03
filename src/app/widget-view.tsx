@@ -7,8 +7,8 @@ import type { CaseLoad } from "@/widgets/case-data-client";
 import { useCaseLoad } from "@/widgets/case-data-provider";
 import { answers, widgetProblems, widgetQueries, type WrittenQuery } from "@/widgets/check";
 import { GenuiTheme } from "@/widgets/genui-theme";
-import { WidgetBorderContext, widgetLibrary } from "@/widgets/library";
-import { settingsFrom } from "@/widgets/settings";
+import { StartingValuesContext, WidgetBorderContext, widgetLibrary } from "@/widgets/library";
+import { declaredSettings, settingsFrom } from "@/widgets/settings";
 import type { WidgetToolName } from "@/widgets/tool-specs";
 import { createWidgetTools, type WidgetToolProvider } from "@/widgets/tools";
 
@@ -228,11 +228,15 @@ export function WidgetView({
   // Without a loader of its own, the Widget's tools read the page's shared Case Data cache.
   const pageLoad = useCaseLoad();
   loadCase ??= pageLoad;
+  // Reset goes back to the numbers the code starts at, whatever saved values the Widget opened at.
+  const starting = useMemo(() => (complete ? declaredSettings(code) : {}), [code, complete]);
   if (complete && widgetProblems(code).length) return <Fallback />;
   return (
     <Contain code={code}>
       <WidgetBorderContext.Provider value={!bare}>
-        <DrawnWidget key={number} code={code} complete={complete} onSettings={onSettings} loadCase={loadCase} initialValues={initialValues} />
+        <StartingValuesContext.Provider value={starting}>
+          <DrawnWidget key={number} code={code} complete={complete} onSettings={onSettings} loadCase={loadCase} initialValues={initialValues} />
+        </StartingValuesContext.Provider>
       </WidgetBorderContext.Provider>
     </Contain>
   );
