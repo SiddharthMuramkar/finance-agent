@@ -1,5 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { z } from "zod/v4";
+import { CALCULATORS } from "@/finance/calculators";
 import { widgetProblems } from "./check";
 import frozen from "./frozen.generated.json";
 import {
@@ -14,6 +16,8 @@ import {
 import { WIDGET_TOOL_NAMES, WIDGET_TOOL_SPECS } from "./tool-specs";
 
 const FROZEN_PATH = new URL("./frozen.generated.json", import.meta.url);
+/** The schema alone, for the widget check: the browser runs it too, and needs none of the instructions' text. */
+const FROZEN_SCHEMA_PATH = new URL("./frozen-schema.generated.json", import.meta.url);
 const EXAMPLES = [...WIDGET_PROMPT_OPTIONS.examples, ...WIDGET_PROMPT_OPTIONS.toolExamples];
 
 describe("widget instructions", () => {
@@ -22,8 +26,12 @@ describe("widget instructions", () => {
       instructions: widgetInstructions(),
       schema: widgetLibrary.toJSONSchema(),
     };
-    if (process.env.FREEZE) writeFileSync(FROZEN_PATH, JSON.stringify(generated, null, 2) + "\n");
+    if (process.env.FREEZE) {
+      writeFileSync(FROZEN_PATH, JSON.stringify(generated, null, 2) + "\n");
+      writeFileSync(FROZEN_SCHEMA_PATH, JSON.stringify(generated.schema, null, 2) + "\n");
+    }
     expect(JSON.parse(readFileSync(FROZEN_PATH, "utf8"))).toEqual(JSON.parse(JSON.stringify(generated)));
+    expect(JSON.parse(readFileSync(FROZEN_SCHEMA_PATH, "utf8"))).toEqual(JSON.parse(JSON.stringify(generated.schema)));
   });
 
   it("teach inline mode, our parts, the kit's charts and tabs, and Query", () => {
@@ -162,5 +170,12 @@ describe("our code-backed parts take references or formula inputs, never results
       expect(frozen.instructions).toContain(`- ${name}(`);
       expect(frozen.instructions).toContain(`Query("${name}"`);
     }
+  });
+
+  it("the instructions name the calculators a widget cannot run, those that take a list, in the calculate tool and the Calculator", () => {
+    const takesList = CALCULATORS.filter((c) => Object.values((c.inputs as unknown as z.ZodObject).shape).some((input) => input instanceof z.ZodArray)).map((c) => c.id);
+    expect(takesList).toEqual(["npv", "irr", "dcf"]);
+    const said = "Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run";
+    expect(frozen.instructions.split(said)).toHaveLength(3);
   });
 });

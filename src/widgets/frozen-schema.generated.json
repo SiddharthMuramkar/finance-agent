@@ -1,0 +1,1963 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "Widget": {
+      "$ref": "#/$defs/Widget"
+    },
+    "Card": {
+      "$ref": "#/$defs/Card"
+    },
+    "CardHeader": {
+      "$ref": "#/$defs/CardHeader"
+    },
+    "TextContent": {
+      "$ref": "#/$defs/TextContent"
+    },
+    "Callout": {
+      "$ref": "#/$defs/Callout"
+    },
+    "TextCallout": {
+      "$ref": "#/$defs/TextCallout"
+    },
+    "InlineHeader": {
+      "$ref": "#/$defs/InlineHeader"
+    },
+    "Table": {
+      "$ref": "#/$defs/Table"
+    },
+    "Col": {
+      "$ref": "#/$defs/Col"
+    },
+    "BarChart": {
+      "$ref": "#/$defs/BarChart"
+    },
+    "LineChart": {
+      "$ref": "#/$defs/LineChart"
+    },
+    "AreaChart": {
+      "$ref": "#/$defs/AreaChart"
+    },
+    "RadarChart": {
+      "$ref": "#/$defs/RadarChart"
+    },
+    "HorizontalBarChart": {
+      "$ref": "#/$defs/HorizontalBarChart"
+    },
+    "Series": {
+      "$ref": "#/$defs/Series"
+    },
+    "PieChart": {
+      "$ref": "#/$defs/PieChart"
+    },
+    "RadialChart": {
+      "$ref": "#/$defs/RadialChart"
+    },
+    "SingleStackedBarChart": {
+      "$ref": "#/$defs/SingleStackedBarChart"
+    },
+    "Slice": {
+      "$ref": "#/$defs/Slice"
+    },
+    "ScatterChart": {
+      "$ref": "#/$defs/ScatterChart"
+    },
+    "ScatterSeries": {
+      "$ref": "#/$defs/ScatterSeries"
+    },
+    "Point": {
+      "$ref": "#/$defs/Point"
+    },
+    "FormControl": {
+      "$ref": "#/$defs/FormControl"
+    },
+    "Label": {
+      "$ref": "#/$defs/Label"
+    },
+    "Select": {
+      "$ref": "#/$defs/Select"
+    },
+    "SelectItem": {
+      "$ref": "#/$defs/SelectItem"
+    },
+    "Slider": {
+      "$ref": "#/$defs/Slider"
+    },
+    "SwitchGroup": {
+      "$ref": "#/$defs/SwitchGroup"
+    },
+    "SwitchItem": {
+      "$ref": "#/$defs/SwitchItem"
+    },
+    "ChipItem": {
+      "$ref": "#/$defs/ChipItem"
+    },
+    "Chips": {
+      "$ref": "#/$defs/Chips"
+    },
+    "Stack": {
+      "$ref": "#/$defs/Stack"
+    },
+    "Tabs": {
+      "$ref": "#/$defs/Tabs"
+    },
+    "TabItem": {
+      "$ref": "#/$defs/TabItem"
+    },
+    "Accordion": {
+      "$ref": "#/$defs/Accordion"
+    },
+    "AccordionItem": {
+      "$ref": "#/$defs/AccordionItem"
+    },
+    "Steps": {
+      "$ref": "#/$defs/Steps"
+    },
+    "StepsItem": {
+      "$ref": "#/$defs/StepsItem"
+    },
+    "Separator": {
+      "$ref": "#/$defs/Separator"
+    },
+    "TagBlock": {
+      "$ref": "#/$defs/TagBlock"
+    },
+    "Tag": {
+      "$ref": "#/$defs/Tag"
+    },
+    "Icon": {
+      "$ref": "#/$defs/Icon"
+    },
+    "EntityList": {
+      "$ref": "#/$defs/EntityList"
+    },
+    "AnnuityChart": {
+      "$ref": "#/$defs/AnnuityChart"
+    },
+    "HistoryChart": {
+      "$ref": "#/$defs/HistoryChart"
+    },
+    "Calculator": {
+      "$ref": "#/$defs/Calculator"
+    },
+    "FormulaCard": {
+      "$ref": "#/$defs/FormulaCard"
+    },
+    "GuidedTasks": {
+      "$ref": "#/$defs/GuidedTasks"
+    },
+    "GuidedTask": {
+      "$ref": "#/$defs/GuidedTask"
+    }
+  },
+  "required": [
+    "Widget",
+    "Card",
+    "CardHeader",
+    "TextContent",
+    "Callout",
+    "TextCallout",
+    "InlineHeader",
+    "Table",
+    "Col",
+    "BarChart",
+    "LineChart",
+    "AreaChart",
+    "RadarChart",
+    "HorizontalBarChart",
+    "Series",
+    "PieChart",
+    "RadialChart",
+    "SingleStackedBarChart",
+    "Slice",
+    "ScatterChart",
+    "ScatterSeries",
+    "Point",
+    "FormControl",
+    "Label",
+    "Select",
+    "SelectItem",
+    "Slider",
+    "SwitchGroup",
+    "SwitchItem",
+    "ChipItem",
+    "Chips",
+    "Stack",
+    "Tabs",
+    "TabItem",
+    "Accordion",
+    "AccordionItem",
+    "Steps",
+    "StepsItem",
+    "Separator",
+    "TagBlock",
+    "Tag",
+    "Icon",
+    "EntityList",
+    "AnnuityChart",
+    "HistoryChart",
+    "Calculator",
+    "FormulaCard",
+    "GuidedTasks",
+    "GuidedTask"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Widget": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Slider"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stack"
+              },
+              {
+                "$ref": "#/$defs/Tabs"
+              },
+              {
+                "$ref": "#/$defs/Accordion"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/Card"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/FormControl"
+              },
+              {
+                "$ref": "#/$defs/Label"
+              },
+              {
+                "$ref": "#/$defs/Select"
+              },
+              {
+                "$ref": "#/$defs/SwitchGroup"
+              },
+              {
+                "$ref": "#/$defs/Chips"
+              },
+              {
+                "$ref": "#/$defs/Tag"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "title",
+        "children"
+      ],
+      "additionalProperties": false,
+      "description": "The widget's frame: a short title above its parts, in order. The title of a widget drawn from made-up numbers starts with \"Illustration:\"."
+    },
+    "Slider": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "percent",
+            "years",
+            "usd",
+            "inr"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "label",
+        "min",
+        "max",
+        "step",
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call."
+    },
+    "AnnuityChart": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "number"
+        },
+        "payments": {
+          "type": "number"
+        },
+        "growthPercent": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "compareTo": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "total",
+        "payments",
+        "growthPercent",
+        "ratePercent"
+      ],
+      "additionalProperties": false,
+      "description": "Bars for each yearly payment of an annuity that grows at a fixed rate (first payment now) and what each is worth today, computed by the tested present value formula from these inputs. `compareTo` optionally shows a sourced Case Data figure (the latest point of a dataset) beside the present value, as a reference \"caseId/datasetId\"."
+    },
+    "HistoryChart": {
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataset"
+      ],
+      "additionalProperties": false,
+      "description": "A line chart of one checked Case Data dataset over its dates, with its source. It takes only the dataset's reference; the values come from the server, which withholds anything dated after the Case's as-of date until the reveal."
+    },
+    "Calculator": {
+      "type": "object",
+      "properties": {
+        "calculator": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "usd",
+            "inr"
+          ]
+        }
+      },
+      "required": [
+        "calculator",
+        "inputs"
+      ],
+      "additionalProperties": false,
+      "description": "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run here."
+    },
+    "FormulaCard": {
+      "type": "object",
+      "properties": {
+        "formula": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "sourced": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "fixed": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "formula",
+        "inputs",
+        "sourced",
+        "fixed"
+      ],
+      "additionalProperties": false,
+      "description": "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers). Never type a formula as text: show it with this card."
+    },
+    "GuidedTasks": {
+      "type": "object",
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GuidedTask"
+          }
+        }
+      },
+      "required": [
+        "tasks"
+      ],
+      "additionalProperties": false,
+      "description": "Guided Tasks under a widget: small practice steps (to do, current, done) that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Practice only: never marked or saved."
+    },
+    "GuidedTask": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "done": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text",
+        "done"
+      ],
+      "additionalProperties": false,
+      "description": "One Guided Task: a short instruction and the condition that completes it. Use it only inside GuidedTasks."
+    },
+    "Stack": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {}
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "row",
+            "column"
+          ]
+        },
+        "gap": {
+          "type": "string",
+          "enum": [
+            "none",
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl",
+            "2xl"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "stretch",
+            "baseline"
+          ]
+        },
+        "justify": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "between",
+            "around",
+            "evenly"
+          ]
+        },
+        "wrap": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "children"
+      ],
+      "additionalProperties": false,
+      "description": "Flex container. direction: \"row\"|\"column\" (default \"column\"). gap: \"none\"|\"xs\"|\"s\"|\"m\"|\"l\"|\"xl\"|\"2xl\" (default \"m\"). align: \"start\"|\"center\"|\"end\"|\"stretch\"|\"baseline\". justify: \"start\"|\"center\"|\"end\"|\"between\"|\"around\"|\"evenly\"."
+    },
+    "Tabs": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TabItem"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Tabbed container"
+    },
+    "TabItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "value",
+        "trigger",
+        "content"
+      ],
+      "additionalProperties": false,
+      "description": "value is unique id, trigger is tab label, content is array of components"
+    },
+    "TextContent": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "small",
+            "default",
+            "large",
+            "small-heavy",
+            "large-heavy"
+          ]
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Text block. Supports markdown. Optional size: \"small\" | \"default\" | \"large\" | \"small-heavy\" | \"large-heavy\"."
+    },
+    "CardHeader": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Header with optional title and subtitle"
+    },
+    "Callout": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "info",
+            "warning",
+            "error",
+            "success",
+            "neutral"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "variant",
+        "title",
+        "description"
+      ],
+      "additionalProperties": false,
+      "description": "Callout banner. Optional visible is a reactive $boolean — auto-dismisses after 3s by setting $visible to false."
+    },
+    "TextCallout": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "neutral",
+            "info",
+            "warning",
+            "success",
+            "danger"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Text callout with variant, title, and description"
+    },
+    "Separator": {
+      "type": "object",
+      "properties": {
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        "decorative": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Visual divider between content sections"
+    },
+    "HorizontalBarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "grouped",
+            "stacked"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Horizontal bars; prefer when category labels are long or for ranked lists"
+    },
+    "Series": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "category",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "One data series"
+    },
+    "RadarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Spider/web chart; use for comparing multiple variables across one or more entities"
+    },
+    "PieChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "pie",
+            "donut"
+          ]
+        },
+        "appearance": {
+          "type": "string",
+          "enum": [
+            "circular",
+            "semiCircular"
+          ]
+        }
+      },
+      "required": [
+        "labels",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "Circular slices; use plucked arrays: PieChart(data.categories, data.values)"
+    },
+    "RadialChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "labels",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "Radial bars; use plucked arrays: RadialChart(data.categories, data.values)"
+    },
+    "SingleStackedBarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "labels",
+        "values"
+      ],
+      "additionalProperties": false,
+      "description": "Single horizontal stacked bar; use plucked arrays: SingleStackedBarChart(data.categories, data.values)"
+    },
+    "ScatterChart": {
+      "type": "object",
+      "properties": {
+        "datasets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScatterSeries"
+          }
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "datasets"
+      ],
+      "additionalProperties": false,
+      "description": "X/Y scatter plot; use for correlations, distributions, and clustering"
+    },
+    "ScatterSeries": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Point"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "points"
+      ],
+      "additionalProperties": false,
+      "description": "Named dataset"
+    },
+    "Point": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false,
+      "description": "Data point with numeric coordinates"
+    },
+    "AreaChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "natural",
+            "step"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        },
+        "height": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Filled area under lines; use for cumulative totals or volume trends over time"
+    },
+    "BarChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "grouped",
+            "stacked"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        },
+        "height": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Vertical bars; use for comparing values across categories with one or more series"
+    },
+    "LineChart": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Series"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "natural",
+            "step"
+          ]
+        },
+        "xLabel": {
+          "type": "string"
+        },
+        "yLabel": {
+          "type": "string"
+        },
+        "height": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "labels",
+        "series"
+      ],
+      "additionalProperties": false,
+      "description": "Lines over categories; use for trends and continuous data over time"
+    },
+    "Table": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Col"
+          }
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "additionalProperties": false,
+      "description": "Data table — column-oriented. Each Col holds its own data array."
+    },
+    "Col": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "data": {},
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "action"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "data"
+      ],
+      "additionalProperties": false,
+      "description": "Column definition — holds label + data array"
+    },
+    "TagBlock": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ]
+        }
+      },
+      "required": [
+        "tags"
+      ],
+      "additionalProperties": false,
+      "description": "tags is an array of strings; optional size sm | md | lg"
+    },
+    "Steps": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepsItem"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Step-by-step guide"
+    },
+    "StepsItem": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "details"
+      ],
+      "additionalProperties": false,
+      "description": "title and details text for one step"
+    },
+    "InlineHeader": {
+      "type": "object",
+      "properties": {
+        "heading": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "heading"
+      ],
+      "additionalProperties": false,
+      "description": "Compact section heading with an optional one-line description, for use inside cards."
+    },
+    "EntityList": {
+      "type": "object",
+      "properties": {
+        "rows": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "left": {
+                "type": "string"
+              },
+              "right": {
+                "type": "string"
+              },
+              "rightVariant": {
+                "default": "text",
+                "type": "string",
+                "enum": [
+                  "text",
+                  "number"
+                ]
+              }
+            },
+            "required": [
+              "left",
+              "right",
+              "rightVariant"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "size": {
+          "default": "default",
+          "type": "string",
+          "enum": [
+            "small",
+            "default"
+          ]
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "left": {
+              "type": "string"
+            },
+            "right": {
+              "type": "string"
+            },
+            "rightVariant": {
+              "default": "text",
+              "type": "string",
+              "enum": [
+                "text",
+                "number"
+              ]
+            }
+          },
+          "required": [
+            "left",
+            "right",
+            "rightVariant"
+          ],
+          "additionalProperties": false
+        },
+        "footer": {
+          "type": "object",
+          "properties": {
+            "left": {
+              "type": "string"
+            },
+            "right": {
+              "type": "string"
+            },
+            "rightVariant": {
+              "default": "text",
+              "type": "string",
+              "enum": [
+                "text",
+                "number"
+              ]
+            }
+          },
+          "required": [
+            "left",
+            "right",
+            "rightVariant"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "rows",
+        "size"
+      ],
+      "additionalProperties": false,
+      "description": "Two-column key/value rows (left label, right value). size 'default' supports optional header and footer rows; rightVariant 'number' uses tabular numbers."
+    },
+    "Accordion": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AccordionItem"
+          }
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Collapsible sections"
+    },
+    "AccordionItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "value",
+        "trigger",
+        "content"
+      ],
+      "additionalProperties": false,
+      "description": "value is unique id, trigger is section title"
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TextContent"
+              },
+              {
+                "$ref": "#/$defs/CardHeader"
+              },
+              {
+                "$ref": "#/$defs/Callout"
+              },
+              {
+                "$ref": "#/$defs/TextCallout"
+              },
+              {
+                "$ref": "#/$defs/Separator"
+              },
+              {
+                "$ref": "#/$defs/HorizontalBarChart"
+              },
+              {
+                "$ref": "#/$defs/RadarChart"
+              },
+              {
+                "$ref": "#/$defs/PieChart"
+              },
+              {
+                "$ref": "#/$defs/RadialChart"
+              },
+              {
+                "$ref": "#/$defs/SingleStackedBarChart"
+              },
+              {
+                "$ref": "#/$defs/ScatterChart"
+              },
+              {
+                "$ref": "#/$defs/AreaChart"
+              },
+              {
+                "$ref": "#/$defs/BarChart"
+              },
+              {
+                "$ref": "#/$defs/LineChart"
+              },
+              {
+                "$ref": "#/$defs/Table"
+              },
+              {
+                "$ref": "#/$defs/TagBlock"
+              },
+              {
+                "$ref": "#/$defs/Steps"
+              },
+              {
+                "$ref": "#/$defs/InlineHeader"
+              },
+              {
+                "$ref": "#/$defs/EntityList"
+              },
+              {
+                "$ref": "#/$defs/Tabs"
+              },
+              {
+                "$ref": "#/$defs/Stack"
+              },
+              {
+                "$ref": "#/$defs/AnnuityChart"
+              },
+              {
+                "$ref": "#/$defs/HistoryChart"
+              },
+              {
+                "$ref": "#/$defs/Calculator"
+              },
+              {
+                "$ref": "#/$defs/FormulaCard"
+              },
+              {
+                "$ref": "#/$defs/GuidedTasks"
+              }
+            ]
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "card",
+            "sunk",
+            "clear"
+          ]
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "row",
+            "column"
+          ]
+        },
+        "gap": {
+          "type": "string",
+          "enum": [
+            "none",
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl",
+            "2xl"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "stretch",
+            "baseline"
+          ]
+        },
+        "justify": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end",
+            "between",
+            "around",
+            "evenly"
+          ]
+        },
+        "wrap": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "children"
+      ],
+      "additionalProperties": false,
+      "description": "Styled container. variant: \"card\" (default, elevated) | \"sunk\" (recessed) | \"clear\" (transparent). Always full width. Accepts all Stack flex params (default: direction \"column\"). Cards flex to share space in row/wrap layouts."
+    },
+    "FormControl": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Select"
+            },
+            {
+              "$ref": "#/$defs/Slider"
+            },
+            {
+              "$ref": "#/$defs/Chips"
+            }
+          ]
+        },
+        "hint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "input"
+      ],
+      "additionalProperties": false,
+      "description": "Field with label, input component, and optional hint text"
+    },
+    "Select": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SelectItem"
+          }
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "email": {
+              "type": "boolean"
+            },
+            "url": {
+              "type": "boolean"
+            },
+            "numeric": {
+              "type": "boolean"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "minLength": {
+              "type": "number"
+            },
+            "maxLength": {
+              "type": "number"
+            },
+            "pattern": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "value": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "small",
+            "medium",
+            "large"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "SelectItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false,
+      "description": "Option for Select"
+    },
+    "Chips": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "default": "multiple",
+          "type": "string",
+          "enum": [
+            "single",
+            "multiple"
+          ]
+        },
+        "items": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChipItem"
+          }
+        },
+        "rules": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "email": {
+              "type": "boolean"
+            },
+            "url": {
+              "type": "boolean"
+            },
+            "numeric": {
+              "type": "boolean"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "minLength": {
+              "type": "number"
+            },
+            "maxLength": {
+              "type": "number"
+            },
+            "pattern": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "defaultValue": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "A form field of compact selectable chips for choosing one or many short options; the selection is stored under `name`."
+    },
+    "ChipItem": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/$defs/Icon"
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false,
+      "description": "A single selectable chip inside a Chips group, with a value, label and optional icon."
+    },
+    "Icon": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "A lucide icon by kebab-case name (e.g. 'circle-check'). Optional category picks a topical fallback when the name doesn't resolve."
+    },
+    "Label": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Text label"
+    },
+    "SwitchGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SwitchItem"
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "clear",
+            "card",
+            "sunk"
+          ]
+        },
+        "value": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "items"
+      ],
+      "additionalProperties": false,
+      "description": "Group of switch toggles"
+    },
+    "SwitchItem": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "defaultChecked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "Individual switch toggle"
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/$defs/Icon"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "neutral",
+            "info",
+            "success",
+            "warning",
+            "danger"
+          ]
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Styled tag/badge with optional Icon and variant"
+    },
+    "Slice": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "category",
+        "value"
+      ],
+      "additionalProperties": false,
+      "description": "One slice with label and numeric value"
+    }
+  }
+}

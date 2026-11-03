@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import type { CaseData } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
 import { annuitySchedule } from "@/finance/present-value";
-import { fetchCaseData, splitReference } from "./case-data-client";
+import { caseLoader, splitReference } from "./case-data-client";
 import { formatUsd, formatValue } from "./case-data-view";
 import { EMPTY_RESULTS, MAX_RANGE_POINTS, WIDGET_TOOL_ARGS, type RangeRow, type WidgetToolName, type WidgetToolResults } from "./tool-specs";
 
@@ -93,23 +93,8 @@ function axisLabel(name: string, x: number): string {
  * the reveal, say) gets its own tools, so it fetches afresh.
  */
 export function createWidgetTools(options: WidgetToolOptions = {}): WidgetToolProvider {
-  const fetchCase = options.fetchCaseData ?? fetchCaseData;
-  const cases = new Map<string, Promise<CaseData | null>>();
-
   /** One Case's data, shared by every Query that reads it; a failed load is forgotten, so a later Query tries again. */
-  function loadCase(caseId: string): Promise<CaseData | null> {
-    const loaded = cases.get(caseId);
-    if (loaded) return loaded;
-    const loading = new Promise<CaseData | null>((resolve) => resolve(fetchCase(caseId))).then(
-      (data) => data ?? null,
-      () => null,
-    );
-    cases.set(caseId, loading);
-    void loading.then((data) => {
-      if (!data && cases.get(caseId) === loading) cases.delete(caseId);
-    });
-    return loading;
-  }
+  const loadCase = caseLoader(options.fetchCaseData);
 
   /** Tells onError, then answers the tool's empty result with the message. */
   function fail<K extends WidgetToolName>(tool: K, message: string): WidgetToolResults[K] {

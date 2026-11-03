@@ -121,7 +121,7 @@ export const WIDGET_TOOL_SPECS: ToolSpec[] = [
   {
     name: "calculate",
     description:
-      'One of our tested finance calculators: the same calculators, input names and answers as your own calculate tool, worked out inside the widget so its inputs can be $variables bound to Sliders. One row per result line: label, value, and text (the value written out). Example: r = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}}, {rows: []}), then Table([Col("Result", r.rows.label), Col("Amount", r.rows.text)]).',
+      'One of our tested finance calculators: the same calculators, input names and answers as your own calculate tool, worked out inside the widget so its inputs can be $variables bound to Sliders. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run in a widget, here or in calculate_range. One row per result line: label, value, and text (the value written out). Example: r = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}}, {rows: []}), then Table([Col("Result", r.rows.label), Col("Amount", r.rows.text)]).',
     inputSchema: jsonSchema(WIDGET_TOOL_ARGS.calculate),
     outputSchema: result({ rows: rowsOf({ label: string, value: number, text: string }), title: string }),
     annotations: { readOnlyHint: true },

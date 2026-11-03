@@ -360,7 +360,9 @@ OpenUI's free, open-source renderer from two sets of parts:
 
 The instructions that teach the Tutor this language are generated once from those parts, with our
 own notes and worked examples (`npm run widgets:freeze`), checked in, and frozen into each Session
-with the rest of the Tutor's instructions, so they never change under a running conversation.
+with the rest of the Tutor's instructions, so they never change under a running conversation. The
+freeze also writes the parts' schema alone (`frozen-schema.generated.json`) for the widget check,
+because the browser runs that check too and has no use for the instructions' 32 KB of text.
 OpenUI's stock instructions contradict our rules in several places: send only the changed lines,
 answer a question with text only, write data with Mutations, forms and refresh buttons, type a tool's
 data into the widget by hand, and use realistic mock data when no tool fits. Code cuts or rewrites
@@ -434,20 +436,25 @@ time keeps the panel calm and the sliders roomy, but comparing two widgets means
 them.
 
 **The Sourced strip and readable Case Data charts.** Under a Widget that calls `case_data`, one thin
-amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit, fetched once when
-the Widget appears; before the reveal it adds "Data after <as-of date> is withheld until the reveal."
-A dataset that is missing or withheld shows a muted "No sourced data for <reference>" note instead.
-`HistoryChart` keeps its own amber frame, credit and withheld note, and it is easier to read: numbers
-on the left axis (lowest, middle, highest) and dates along the bottom (first, middle, last), bigger
-points, a readout ("<date>: <value>") when a point is hovered, tapped or reached with the keyboard,
-and each value printed above its point when there are 12 points or fewer. It is still plain SVG, so
-it draws on the server and in tests too.
+amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit; before the reveal
+it adds "Data after <as-of date> is withheld until the reveal." The strip and the Widget's Queries
+share one request per Case (`caseLoader` in `case-data-client.ts`), so a Widget with a chart and a
+table of the Sensex asks the server for that Case once. A dataset that is missing or withheld gets no
+line in the strip: the Widget's own line under the chart already says its data could not be loaded
+(see "When a widget is broken"), so the Learner reads it once. `HistoryChart` keeps its own amber
+frame, credit and withheld note, and it is easier to read: numbers on the left axis (lowest, middle,
+highest) and dates along the bottom (first, middle, last), bigger points, a readout ("<date>:
+<value>") when a point is hovered, tapped or reached with the keyboard (a line of more than 30 points
+is one stop, read with the arrow keys), and each value printed above its point when there are 12
+points or fewer. It is still plain SVG, so it draws on the server and in tests too.
 
 **Look and theme (`src/widgets/genui-theme.tsx`, `src/app/globals.css`).** The kit's styles come from
 OpenUI's layered stylesheet, placed in a CSS layer (`openui`) above Tailwind's base layer and below
 its utilities, so our own classes still win. `GenuiTheme` wraps every Widget and maps the kit's theme
 onto our design tokens: the navy brand for accents, our ink and muted colours for text, our borders,
-plain or field-coloured surfaces, and chart colours with teal, navy and amber first. It follows our
+plain or field-coloured surfaces, the page's own font, and our chart colours, which the kit hands out
+from the middle of the list (one series is navy; two are teal and amber; three are teal, navy and
+amber). It follows our
 dark-mode class on the page, not the computer's own setting, so a Widget always matches the rest of
 the page. Charts are SVG, whose colours cannot always read CSS variables, so the theme gives them the
 same colours as fixed hex values for each mode, copied from `globals.css`.
@@ -463,14 +470,21 @@ request listing the problems, and the corrected widget replaces the broken one o
 correction is broken too, the browser shows a plain "This widget could not be drawn" note and the
 lesson carries on. A widget that crashes while drawing is caught the same way. A tool that cannot run
 (a withheld dataset, an input a calculator does not take) leaves its chart empty, with a muted line
-under the Widget: "This chart's data could not be loaded: …". A correction reply that is cut off by
+under the Widget: "This chart's data could not be loaded: …". There is one line per Query, and it goes
+as soon as that Query's next call works: the slider moves back, or a Select picks a dataset the server
+has. The browser does not say which Query a call answers, so code matches each call to its Query by
+the arguments the Widget writes out (`failedQueries` in `widget-view.tsx`). A correction reply that is cut off by
 the length limit or declined is handled like any other reply: the Learner gets Continue or the
 refusal message, and a tool call it was cut off in is never run.
 
 **Trade-off.** We gain rich, interactive pictures for almost any idea, with honest numbers. We give
 up a larger frozen instruction prompt (cached, so it adds little to each turn's cost), a heavier
 widget bundle (the kit ships as one bundle), and Illustration numbers that are labelled but not
-computed by our code. Changing the frozen instructions means the next action after a deploy starts a
+computed by our code. Measured on 3 November 2026, the kit roughly doubles what the Study page loads
+first: 998 kB of JavaScript (gzipped), up from 487 kB, and 47 kB of CSS, up from 7 kB, because the
+kit's whole library and stylesheet come with the page, the parts we leave out included. Loading the
+widget drawing only when the first widget appears, or building the library from the kit's kept parts
+alone, would win most of that back. Changing the frozen instructions means the next action after a deploy starts a
 new Session. Widgets inside the prose (OpenUI's inline mode) keep one simple reply format, stream
 naturally and work with Claude's citations (see Citations below), but the model can write invalid
 code, which is why the server check and one correction turn exist. The fallback, if OpenUI ever has
@@ -506,7 +520,7 @@ numbers with `Query("tool", {...}, {rows: []})`. This is OpenUI's own pattern fo
 the `{rows: []}` is what the chart draws until the answer arrives.
 - `case_data` fetches one Case Data dataset by its reference, `caseId/datasetId`, from
   `/api/case-data/<case>` under the as-of rule, with its label, unit, source and as-of date. Several
-  Queries on one Case in a widget make one request.
+  Queries on one Case in a widget make one request, and the Sourced strip shares it.
 - `calculate` runs one of our tested calculators and gives one row per result line.
 - `calculate_range` runs a calculator across a range of one of its inputs, at most 200 points, and
   gives one row per point with a text label for the chart's axis ("8.5%" for a rate, "10 y" for a
@@ -522,7 +536,10 @@ bad arguments it gives no rows and a plain-words error that names the fix (for e
 must be one of the calculator's inputs, or "emi has no input named rate. Its inputs are: principal,
 ratePercent, years."), which the Widget shows as the muted line described above. An input the
 calculator does not take is an error rather than ignored, because a slider bound to it would move
-nothing. Widgets only read; nothing they call can change anything.
+nothing. Inputs are numbers only, the same rule as our own parts (no list of figures can be typed
+in), so `npv`, `irr` and `dcf`, which take a list of cash flows, cannot run in a widget; the
+instructions say so, and a test keeps that sentence in step with the calculators. Widgets only read;
+nothing they call can change anything.
 
 **Scenario.** The Learner asks for a 50 lakh home loan's EMI by loan length. The Widget holds a rate
 slider, a `calculate_range` Query of `emi` over 5 to 30 years and a `calculate` Query for the loan as

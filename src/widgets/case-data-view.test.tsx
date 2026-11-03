@@ -164,6 +164,18 @@ describe("sourced history and the Learner's assumptions are visibly separate", (
     }
   });
 
+  // A paragraph may not hold a <details>: the browser would close the paragraph early, so the page would not
+  // match the server's markup, and React reports that as an error.
+  it("never puts a credit inside a paragraph", () => {
+    for (const html of [
+      renderToStaticMarkup(<AnnuityFigure inputs={{ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: 3 }} sourced={cash} />),
+      renderToStaticMarkup(<HistoryFigure dataset={yields} revealed={false} asOf="2018-10-24" />),
+    ]) {
+      expect(html).toContain("<details");
+      for (const [, paragraph] of html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/g)) expect(paragraph).not.toContain("<details");
+    }
+  });
+
   it("without a sourced figure, the chart shows only the Learner's assumption", () => {
     const html = renderToStaticMarkup(<AnnuityFigure inputs={{ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: 3 }} />);
     expect(marked(html, "sourced")).toEqual([]);

@@ -74,9 +74,10 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
   const ticks = (hi === lo ? [lo] : [lo, (lo + hi) / 2, hi]).map((value) => ({ value, text: shortValue(value, unit) }));
   return (
     <figure data-kind="sourced" className="my-2 rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] p-3">
-      <p className="mb-1 text-sm">
+      {/* A div, not a p: the credit is a <details>, which a paragraph may not hold. */}
+      <div className="mb-1 text-sm">
         <SourcedTag>Sourced history</SourcedTag> {dataset.label} <Credit dataset={dataset} />
-      </p>
+      </div>
       <HistoryPlot
         label={`${dataset.label}, ${points[0].date} to ${points.at(-1)!.date}`}
         // Money and percentages carry their unit in each label; any other unit is named once above the axis.
@@ -145,11 +146,9 @@ export function AnnuityFigure({ inputs, sourced }: { inputs: AnnuityInputs; sour
         </p>
         {sourced && figure && (
           <div data-kind="sourced" className="rounded-md border-l-4 border-[var(--src-line)] bg-[var(--src-tint)] p-2">
-            <p>
-              <SourcedTag />
-              {sourced.label}: <strong className="tabular-nums">{formatValue(figure.value, sourced.unit)}</strong>{" "}
-              <span className="text-xs text-[var(--muted)]">({figure.date})</span> <Credit dataset={sourced} />
-            </p>
+            <SourcedTag />
+            {sourced.label}: <strong className="tabular-nums">{formatValue(figure.value, sourced.unit)}</strong>{" "}
+            <span className="text-xs text-[var(--muted)]">({figure.date})</span> <Credit dataset={sourced} />
           </div>
         )}
         {sourced && figure && sourced.unit === "USD" && (
