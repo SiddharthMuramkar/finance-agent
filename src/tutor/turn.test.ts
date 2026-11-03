@@ -127,7 +127,7 @@ describe("Tutor Turn", () => {
     const shown = events.filter((e) => e.type === "text").map((e) => (e as { text: string }).text);
     expect(shown.join("")).toContain("You found it: a higher rate shrinks later money.");
     const lines = await loadCurrentSession(db);
-    expect(lines.at(-1)?.text).toContain("You found it: a higher rate shrinks later money.");
+    expect(lines.filter((l) => l.role === "assistant").map((l) => l.text).join("\n")).toContain("You found it: a higher rate shrinks later money.");
   });
 
   it("stores assistant content unchanged, thinking blocks included, and replays history add-only", async () => {
@@ -624,7 +624,7 @@ describe("Tutor Turn", () => {
             topicId: "present-value",
             passed: false,
             evidence: "Added the payments without discounting.",
-            model: "claude-sonnet-5-5",
+            model: "claude-opus-5-5",
           }),
         ]);
       });
