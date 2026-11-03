@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { TopicNote } from "@/learner/notes";
 import { applySettings } from "@/widgets/settings";
 import { NotesView } from "./notes-view";
+import { UndoToast } from "./undo";
 
 const now = new Date("2026-11-03T00:00:00Z");
 const notes: TopicNote[] = [
@@ -31,8 +32,8 @@ rate = Slider("rate", "Interest rate", 0, 10, 0.25, $rate, "percent")`;
 
 describe("saved replies and Widgets on a Topic Note", () => {
   const saved: TopicNote["saved"] = [
-    { id: 1, kind: "reply", text: "Discounting is **the price of waiting**.\n\n```sources\n[{\"n\":1,\"title\":\"Library passage (hidden until the reveal)\",\"href\":\"/passages/9\",\"credit\":null}]\n```", savedAt: now },
-    { id: 2, kind: "widget", code: applySettings(PLAY, { $rate: 8 }), title: "Cash now or later", savedAt: now },
+    { id: 1, kind: "reply", text: "Discounting is **the price of waiting**.\n\n```sources\n[{\"n\":1,\"title\":\"Library passage (hidden until the reveal)\",\"href\":\"/passages/9\",\"credit\":null}]\n```", savedAt: now, again: { kind: "reply", sessionId: 3, turnSeq: 0 } },
+    { id: 2, kind: "widget", code: applySettings(PLAY, { $rate: 8 }), title: "Cash now or later", savedAt: now, again: { kind: "widget", widgetIndex: -1, settings: { $rate: 8 } } },
   ];
   const html = renderToStaticMarkup(<NotesView notes={[{ ...notes[1], saved }]} />);
 
@@ -63,7 +64,7 @@ describe("saved replies and Widgets on a Topic Note", () => {
 });
 
 describe("the Notes page", () => {
-  const html = renderToStaticMarkup(<NotesView notes={notes} />);
+  const html = renderToStaticMarkup(<NotesView notes={notes} showAll />);
 
   it("lists Topics in the order given, one note each", () => {
     expect([...html.matchAll(/data-note="([^"]+)"/g)].map((m) => m[1])).toEqual(["pv", "bonds"]);
@@ -100,5 +101,59 @@ describe("the Notes page", () => {
     expect(html).not.toMatch(/data-note="pv"[^>]*print:/);
     const css = readFileSync(new URL("../globals.css", import.meta.url), "utf8");
     expect(css).toMatch(/@media print/);
+  });
+});
+
+describe("the Notes filter", () => {
+  const empty = (topicId: string, title: string): TopicNote => ({ topicId, title, stage: "follow", passed: false, lines: [], saved: [] });
+  const withLine: TopicNote = { ...empty("rates", "Interest rates"), lines: [{ id: 9, text: "Rates move prices", createdAt: now, updatedAt: now }] };
+  const all = [notes[0], empty("bonds", "Bond prices"), withLine, empty("fx", "Currencies")];
+  const shown = (html: string) => [...html.matchAll(/data-note="([^"]+)"/g)].map((m) => m[1]);
+
+  it("has a visible page title", () => {
+    expect(renderToStaticMarkup(<NotesView notes={all} />)).toMatch(/<h1[^>]*>Notes<\/h1>/);
+  });
+
+  it("lists only Topics with a note by default (passed, own lines or saved items), and offers Show all Topics", () => {
+    const html = renderToStaticMarkup(<NotesView notes={all} />);
+    expect(shown(html)).toEqual(["pv", "rates"]);
+    expect(html).toMatch(/<a[^>]*href="\/notes\?all=1"[^>]*>Show all Topics<\/a>/);
+  });
+
+  it("shows every Topic with Show all Topics on, and turning it off goes back to the Topics with notes", () => {
+    const html = renderToStaticMarkup(<NotesView notes={all} showAll />);
+    expect(shown(html)).toEqual(["pv", "bonds", "rates", "fx"]);
+    expect(html).toMatch(/<a[^>]*href="\/notes"[^>]*>Show only Topics with notes<\/a>/);
+  });
+
+  it("gives a Learner with no notes a short line instead of empty cards", () => {
+    const html = renderToStaticMarkup(<NotesView notes={[empty("bonds", "Bond prices"), empty("fx", "Currencies")]} />);
+    expect(shown(html)).toEqual([]);
+    expect(html).toContain("data-notes-empty");
+    expect(html).toContain("No notes yet.");
+    expect(html.toLowerCase()).not.toContain("lesson");
+  });
+
+  it("gives each note an anchor, so Open notes lands on its Topic", () => {
+    expect(renderToStaticMarkup(<NotesView notes={all} />)).toContain('id="note-rates"');
+  });
+});
+
+describe("Undo after a removal", () => {
+  it("shows a toast that says what went and offers Undo", () => {
+    const html = renderToStaticMarkup(<UndoToast message="Removed from notes." onUndo={() => {}} />);
+    expect(html).toMatch(/role="status"/);
+    expect(html).toContain("Removed from notes.");
+    expect(html).toMatch(/<button[^>]*data-undo-remove[^>]*>Undo<\/button>/);
+    expect(html).toContain("print:hidden");
+  });
+
+  it("says so when the Undo itself failed", () => {
+    const html = renderToStaticMarkup(<UndoToast message="Removed from notes." failed onUndo={() => {}} />);
+    expect(html).toContain("Could not undo. Try again.");
+  });
+
+  it("has no toast on the page until something is removed", () => {
+    expect(renderToStaticMarkup(<NotesView notes={notes} />)).not.toContain("data-undo-remove");
   });
 });

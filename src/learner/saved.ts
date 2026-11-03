@@ -31,11 +31,16 @@ export type SaveRequest =
 
 export type SaveResult = { ok: true; id: number; topicId: string } | { ok: false; reason: string; status: 400 | 404 };
 
+/** What saves an item again: the place it came from and, for a Widget, its settings. Undo after a removal sends it back. */
+export type SaveAgain =
+  | { kind: "reply"; sessionId: number; turnSeq: number }
+  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; settings?: Record<string, number> };
+
 /** One saved item on a Topic Note, ready to draw. */
 export type SavedItem =
-  | { id: number; kind: "reply"; text: string; savedAt: Date }
+  | { id: number; kind: "reply"; text: string; savedAt: Date; again: SaveAgain }
   /** `code` already carries the settings the Learner had. */
-  | { id: number; kind: "widget"; code: string; title: string | null; savedAt: Date };
+  | { id: number; kind: "widget"; code: string; title: string | null; savedAt: Date; again: SaveAgain };
 
 const notFound = (reason: string): SaveResult => ({ ok: false, reason, status: 404 });
 const refused = (reason: string): SaveResult => ({ ok: false, reason, status: 400 });
@@ -141,12 +146,20 @@ export async function loadSaved(db: Db, map: CourseMap, learnerId = OWNER_LEARNE
   for (const r of rows) {
     const reply = r.sessionId !== null && r.turnSeq !== null ? replyOf(sessionLines.get(r.sessionId) ?? [], r.turnSeq) : undefined;
     let item: SavedItem | undefined;
-    if (r.kind === "reply" && reply) item = { id: r.id, kind: "reply", text: reply.text, savedAt: r.createdAt };
+    if (r.kind === "reply" && reply && r.sessionId !== null && r.turnSeq !== null)
+      item = { id: r.id, kind: "reply", text: reply.text, savedAt: r.createdAt, again: { kind: "reply", sessionId: r.sessionId, turnSeq: r.turnSeq } };
     else if (r.kind === "widget") {
       const base = r.widgetIndex === EXPLORE_INDEX ? map.topic(r.topicId)?.explore?.widget : reply ? widgetsOf(reply.text)[r.widgetIndex ?? -2] : undefined;
       if (base !== undefined) {
         const code = applySettings(base, r.widgetState);
-        item = { id: r.id, kind: "widget", code, title: widgetParts(code).title ?? null, savedAt: r.createdAt };
+        const again: SaveAgain = {
+          kind: "widget",
+          ...(r.sessionId !== null && { sessionId: r.sessionId }),
+          ...(r.turnSeq !== null && { turnSeq: r.turnSeq }),
+          widgetIndex: r.widgetIndex ?? EXPLORE_INDEX,
+          ...(r.widgetState && { settings: r.widgetState }),
+        };
+        item = { id: r.id, kind: "widget", code, title: widgetParts(code).title ?? null, savedAt: r.createdAt, again };
       }
     }
     if (item) out.set(r.topicId, [...(out.get(r.topicId) ?? []), item]);

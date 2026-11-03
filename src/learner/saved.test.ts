@@ -210,6 +210,21 @@ describe("taking saved items off a note", () => {
     expect(note.saved).toEqual([]);
     expect(note.lines.map((l) => l.text)).toEqual(["my own line"]);
   });
+
+  it("Undo after a removal: each saved item carries what saves it again, so a removed reply or Widget comes back as it was", async () => {
+    const db = await testDb();
+    const sessionId = await session(db, textReply(`Keep me.\n\n${fence(WIDGET)}`));
+    await saveToNotes(db, map, { kind: "reply", sessionId, turnSeq: 0 });
+    await saveToNotes(db, map, { kind: "widget", sessionId, turnSeq: 0, widgetIndex: 0, settings: { $rate: 8 } });
+    const before = (await noteOf(db)).saved;
+    for (const item of before) expect(await removeSaved(db, item.id)).toBe(true);
+    expect((await noteOf(db)).saved).toEqual([]);
+    for (const item of before) expect((await saveToNotes(db, map, item.again)).ok).toBe(true);
+    const after = (await noteOf(db)).saved;
+    expect(after.map((i) => i.kind)).toEqual(["reply", "widget"]);
+    expect(after[0].kind === "reply" && after[0].text).toContain("Keep me.");
+    expect(after[1].kind === "widget" && declaredSettings(after[1].code)).toEqual({ $rate: 8 });
+  });
 });
 
 describe("saved items for two Learners", () => {
