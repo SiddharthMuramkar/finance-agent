@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { annuitySchedule, presentValue } from "./present-value";
+import { formatMillions } from "@/widgets/case-data-view";
+import { annuityBreakEven, annuitySchedule, presentValue } from "./present-value";
 
 describe("Finance Calculations: present value", () => {
   it("discounts one future amount (worked example: $1,000 in 5 years at 10% is $620.92)", () => {
@@ -25,5 +26,26 @@ describe("Finance Calculations: present value", () => {
     const at = (r: number) => annuitySchedule({ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: r }).presentValue;
     expect(at(3)).toBeLessThan(at(1));
     expect(at(6)).toBeLessThan(at(3));
+  });
+
+  // The owner's Part 5 figures for the 2018 Mega Millions annuity against its $877.8 million cash option.
+  const jackpot = { total: 1_537_000_000, payments: 30, growthPercent: 5 };
+  const worth = (ratePercent: number) => formatMillions(annuitySchedule({ ...jackpot, ratePercent }).presentValue);
+
+  it("is worth $894.9M at 3.25%, $884.1M at 3.33%, $861.7M at 3.5% and $382.9M at 10%", () => {
+    expect(worth(3.25)).toBe("$894.9M");
+    expect(worth(3.33)).toBe("$884.1M");
+    expect(worth(3.5)).toBe("$861.7M");
+    expect(worth(10)).toBe("$382.9M");
+  });
+
+  it("equals the $877.8M cash option at a break-even rate of about 3.38%", () => {
+    expect(annuityBreakEven(jackpot, 877_800_000)!.toFixed(2)).toBe("3.38");
+    expect(annuityBreakEven(jackpot, 877_784_124)!.toFixed(2)).toBe("3.38");
+  });
+
+  it("has no break-even when the cash is more than the payments add up to, or nothing", () => {
+    expect(annuityBreakEven(jackpot, 2_000_000_000)).toBeNull();
+    expect(annuityBreakEven(jackpot, 0)).toBeNull();
   });
 });

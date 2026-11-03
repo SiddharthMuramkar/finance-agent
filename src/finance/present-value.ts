@@ -37,3 +37,24 @@ export function annuitySchedule({ total, payments, growthPercent, ratePercent }:
   });
   return { rows, presentValue: rows.reduce((sum, r) => sum + r.presentValue, 0) };
 }
+
+/** Highest rate, in percent, the break-even search tries: far past any rate a Widget offers. */
+const MAX_BREAK_EVEN_RATE = 100;
+
+/**
+ * The discount rate, in percent a year, at which the annuity is worth exactly `amount` today (a cash option, say).
+ * Its present value falls as the rate rises, so the rate is found by halving the range. Null when no rate from 0 to
+ * 100% gives it: the amount is more than the payments add up to, or too small (or not positive).
+ */
+export function annuityBreakEven(annuity: Omit<AnnuityInputs, "ratePercent">, amount: number): number | null {
+  const worth = (ratePercent: number) => annuitySchedule({ ...annuity, ratePercent }).presentValue;
+  let low = 0;
+  let high = MAX_BREAK_EVEN_RATE;
+  if (!(amount > 0) || amount > worth(low) || amount < worth(high)) return null;
+  for (let i = 0; i < 60; i++) {
+    const middle = (low + high) / 2;
+    if (worth(middle) > amount) low = middle;
+    else high = middle;
+  }
+  return (low + high) / 2;
+}

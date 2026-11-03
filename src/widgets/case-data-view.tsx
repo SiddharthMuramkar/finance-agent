@@ -16,6 +16,11 @@ export function formatUsd(value: number): string {
   return `$${Math.round(value).toLocaleString("en-US")}`;
 }
 
+/** Money in millions to one decimal, as the annuity Widget's readouts and bars give it: $884.1M. */
+export function formatMillions(value: number): string {
+  return `${value < 0 ? "-" : ""}$${(Math.abs(value) / 1e6).toFixed(1)}M`;
+}
+
 /** A Case Data value in its dataset's unit. */
 export function formatValue(value: number, unit: string): string {
   if (unit === "USD") return formatUsd(value);
