@@ -9,14 +9,15 @@ import { NotesView } from "./notes-view";
 // Built from saved records and the Topic files on every visit. No model call.
 export const dynamic = "force-dynamic";
 
-/** The Notes page: a Topic Note for every Topic in course order, filled in once the Topic is passed. */
-export default async function NotesPage() {
+/** The Notes page: the Topic Notes in course order, only the Topics with a note unless `?all=1` (Show all Topics). */
+export default async function NotesPage({ searchParams }: { searchParams: Promise<{ all?: string | string[] }> }) {
+  const showAll = (await searchParams).all === "1";
   const notes = await loadNotes(getDb(), loadCourseMap(), await currentLearnerId());
   const theme = await readTheme();
   return (
     <SignedInFrame>
       <ReadingPage current="notes" theme={theme}>
-        <NotesView notes={notes} />
+        <NotesView notes={notes} showAll={showAll} />
       </ReadingPage>
     </SignedInFrame>
   );

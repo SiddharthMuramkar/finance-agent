@@ -63,7 +63,7 @@ describe("saved replies and Widgets on a Topic Note", () => {
 });
 
 describe("the Notes page", () => {
-  const html = renderToStaticMarkup(<NotesView notes={notes} />);
+  const html = renderToStaticMarkup(<NotesView notes={notes} showAll />);
 
   it("lists Topics in the order given, one note each", () => {
     expect([...html.matchAll(/data-note="([^"]+)"/g)].map((m) => m[1])).toEqual(["pv", "bonds"]);
@@ -100,5 +100,40 @@ describe("the Notes page", () => {
     expect(html).not.toMatch(/data-note="pv"[^>]*print:/);
     const css = readFileSync(new URL("../globals.css", import.meta.url), "utf8");
     expect(css).toMatch(/@media print/);
+  });
+});
+
+describe("the Notes filter", () => {
+  const empty = (topicId: string, title: string): TopicNote => ({ topicId, title, stage: "follow", passed: false, lines: [], saved: [] });
+  const withLine: TopicNote = { ...empty("rates", "Interest rates"), lines: [{ id: 9, text: "Rates move prices", createdAt: now, updatedAt: now }] };
+  const all = [notes[0], empty("bonds", "Bond prices"), withLine, empty("fx", "Currencies")];
+  const shown = (html: string) => [...html.matchAll(/data-note="([^"]+)"/g)].map((m) => m[1]);
+
+  it("has a visible page title", () => {
+    expect(renderToStaticMarkup(<NotesView notes={all} />)).toMatch(/<h1[^>]*>Notes<\/h1>/);
+  });
+
+  it("lists only Topics with a note by default (passed, own lines or saved items), and offers Show all Topics", () => {
+    const html = renderToStaticMarkup(<NotesView notes={all} />);
+    expect(shown(html)).toEqual(["pv", "rates"]);
+    expect(html).toMatch(/<a[^>]*href="\/notes\?all=1"[^>]*>Show all Topics<\/a>/);
+  });
+
+  it("shows every Topic with Show all Topics on, and turning it off goes back to the Topics with notes", () => {
+    const html = renderToStaticMarkup(<NotesView notes={all} showAll />);
+    expect(shown(html)).toEqual(["pv", "bonds", "rates", "fx"]);
+    expect(html).toMatch(/<a[^>]*href="\/notes"[^>]*>Show only Topics with notes<\/a>/);
+  });
+
+  it("gives a Learner with no notes a short line instead of empty cards", () => {
+    const html = renderToStaticMarkup(<NotesView notes={[empty("bonds", "Bond prices"), empty("fx", "Currencies")]} />);
+    expect(shown(html)).toEqual([]);
+    expect(html).toContain("data-notes-empty");
+    expect(html).toContain("No notes yet.");
+    expect(html.toLowerCase()).not.toContain("lesson");
+  });
+
+  it("gives each note an anchor, so Open notes lands on its Topic", () => {
+    expect(renderToStaticMarkup(<NotesView notes={all} />)).toContain('id="note-rates"');
   });
 });
