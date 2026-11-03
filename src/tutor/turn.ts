@@ -15,7 +15,7 @@ import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNo
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import type { SessionItem } from "./session-items";
-import { comingBackItems, storeComingBack } from "./coming-back";
+import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { describeFailure, type FailureKind } from "./failures";
 import { pasteBlock, pasteForTurn, pasteSummary, savePaste } from "./pasted";
 import { type ToolDefinition } from "./instructions";
@@ -327,6 +327,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // Coming back (after a break, or to a carried-over Topic): the divider the page drew, worked out before this
     // action changes anything, and stored with it.
     const comingBack = await comingBackItems(db, map, learnerId, now());
+    // The first turn after a Due Check reopens the Session teaches the new step: it cannot finish it as well.
+    if (comingBack.some((i) => i.kind === DUE_CHECK)) await updateTurn(db, turn.id, { freshStep: true });
     const place = await ensureTopicStarted(db, map, now(), learnerId);
     // The live Session for the current Topic (made by its first turn), refrozen if a deploy changed the instructions.
     session = await refreezeIfChanged(db, await sessionForTurn(db, now(), learnerId, place?.topic.id ?? null));

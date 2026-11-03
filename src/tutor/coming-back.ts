@@ -1,6 +1,6 @@
 import { eq, max } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
-import { navigate, stepSequence } from "@/course/navigator";
+import { navigate, stepSequence, STEP_NAMES } from "@/course/navigator";
 import { messages, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
@@ -14,10 +14,16 @@ import { DEFAULT_SETTINGS, liveSession } from "./session-log";
  * drawing a page never adds a row.
  * - "Picking up where you left off · Step k of N · <step>": after a gap longer than the idle setting, or on a
  *   Topic carried over from before one Session per Topic (started, with no message in its own Session yet).
+ * - "New Check · Check N" (or "New step · Explore"): a passed Topic gained a required Check (or a required
+ *   Explore), and the Course Navigator takes the Learner back to it, in the Topic's own Session. It takes the
+ *   place of Picking up, and marks each Due Check run once.
  */
 
 /** The kind of a "Picking up where you left off" divider. */
 export const PICKING_UP = "picking_up";
+
+/** The kind of a "New Check · Check N" or "New step · Explore" divider: a Due Check reopened the passed Topic's Session. */
+export const DUE_CHECK = "due_check";
 
 /** How long a gap counts as a break, read without writing (a page render stores nothing). */
 async function idleHours(db: Db): Promise<number> {
@@ -46,6 +52,16 @@ export async function comingBackItems(db: Db, map: CourseMap, learnerId: number,
         .where(eq(messages.sessionId, session.id))
     : [];
   const stored = session ? await loadSessionItems(db, session.id, learnerId) : [];
+  if (seq.dueRun) {
+    // What is due in this run: a due Explore and each due Check. A run marked once is not marked again.
+    const keys = [...new Set(seq.steps.map((s) => s.check?.id ?? s.step))];
+    const marked = stored.some((i) => i.kind === DUE_CHECK && Array.isArray(i.data.keys) && i.data.keys.some((k) => keys.includes(k as string)));
+    if (!marked) {
+      const first = seq.steps[0];
+      const label = first.check ? `New Check · Check ${first.check.number}` : `New step · ${STEP_NAMES[first.step]}`;
+      return [{ kind: DUE_CHECK, data: { keys, label } }];
+    }
+  }
   if (!session || last?.seq === null || last?.seq === undefined) {
     // A started Topic whose own Session has no message yet: carried over from an Older Session.
     return stored.some((i) => i.kind === PICKING_UP) ? [] : [pickingUp];

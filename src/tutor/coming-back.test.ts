@@ -6,9 +6,11 @@ import { loadThread, type ThreadEntry } from "./transcript";
 import { comingBackItems } from "./coming-back";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import type { Db } from "@/db/types";
-import type { CourseMap } from "@/course/map";
+import { stringify } from "yaml";
+import { parseCourseMap, type CourseMap } from "@/course/map";
 import { OWNER_LEARNER_ID } from "@/db/schema";
-import { ensureTopicStarted, saveFinishedStep } from "@/learner/memory";
+import { navigate } from "@/course/navigator";
+import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
 
 /**
  * Seam 1, Tutor Turn: coming back after a break. The "Picking up where you left off" divider is worked out
@@ -87,5 +89,83 @@ describe("coming back after a break", () => {
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(5))).toEqual([]);
     await turn(db, "Go on.", at(5), [say("And then.")]);
     expect(items(await loadThread(db, sessionId, map))).toEqual([]);
+  });
+});
+
+/** The same course after an edit to the present value Topic (a Check added, an Insight made required). */
+function edited(change: (topic: Record<string, unknown>) => Record<string, unknown>, from = presentValueOnly({ withoutQuiz: true })): CourseMap {
+  const topic = from.topic("present-value")!;
+  const text = stringify(change({ ...topic, connections: undefined, prerequisites: [] }));
+  const { map: m, errors } = parseCourseMap([{ name: "present-value.yaml", text }]);
+  if (!m) throw new Error(errors.join("\n"));
+  return m;
+}
+
+/** Takes the present value Topic to passed, by code, as the Tutor's tools would. */
+async function passTopic(db: Db, m: CourseMap) {
+  await ensureTopicStarted(db, m, at(0));
+  for (const check of m.topic("present-value")!.checks) {
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, m, step, at(0));
+    const saved = await saveCheckResult(db, m, { checkId: check.id, passed: true });
+    if (!saved.ok) throw new Error(saved.reason);
+  }
+  for (const step of ["reveal", "principle"] as const) {
+    const moved = await saveFinishedStep(db, m, step, at(0));
+    if (!moved.ok) throw new Error(moved.reason);
+  }
+  if ((await loadProgress(db)).topics["present-value"].status !== "passed") throw new Error("not passed");
+}
+
+describe("a Due Check reopens the Topic's own Session", () => {
+  const newCheck = { id: "pv-new", kind: "conversation", prompt: "Which would you take at 2%?", passCriteria: "Compares present values.", required: true };
+  const withNewCheck = edited((t) => ({ ...t, checks: [...(t.checks as unknown[]), newCheck] }), map);
+
+  it('stores "New Check · Check N" in the same Session with the next action, and the reopening turn is fresh', async () => {
+    const db = await testDb();
+    const first = await turn(db, "Hi", at(0), [say("Once, a lottery winner had a choice.")]);
+    await passTopic(db, map);
+
+    // A required Check is added to the passed Topic: it comes up, and the page draws why the Learner is back.
+    const label = "New Check · Check 2";
+    expect(await comingBackItems(db, withNewCheck, OWNER_LEARNER_ID, at(1))).toEqual([{ kind: "due_check", data: expect.objectContaining({ label }) }]);
+    expect(items(await loadThread(db, first.sessionId, map))).toEqual([]);
+
+    const finishConcept = { type: "tool_use", id: "toolu_concept", name: "finish_teaching_step", input: { step: "concept" } };
+    const back = await turn(db, "What's new?", at(1), [{ content: [{ type: "text", text: "A new Check." }, finishConcept] }, say("Let's take the concept first.")], withNewCheck);
+    expect(back.sessionId).toBe(first.sessionId);
+    const thread = seen(await loadThread(db, first.sessionId, withNewCheck));
+    expect(thread.slice(0, 4)).toEqual([
+      { role: "user", text: "Hi" },
+      { role: "assistant", text: "Once, a lottery winner had a choice." },
+      { role: "item", kind: "due_check", data: expect.objectContaining({ label }) },
+      { role: "user", text: "What's new?" },
+    ]);
+    // Fresh: the Tutor teaches the new Check's concept and cannot finish it in the same reply.
+    // Its finish was refused, so no step divider follows and the Learner is still at the new Check's concept.
+    expect(items(thread)).toHaveLength(1);
+    expect(navigate(withNewCheck, await loadProgress(db))).toMatchObject({ step: "concept", check: { id: "pv-new" } });
+    expect(await comingBackItems(db, withNewCheck, OWNER_LEARNER_ID, at(1))).toEqual([]);
+  });
+
+  it("after a break as well, draws only the Due Check divider", async () => {
+    const db = await testDb();
+    await turn(db, "Hi", at(0), [say("Once upon a time.")]);
+    await passTopic(db, map);
+    expect(await comingBackItems(db, withNewCheck, OWNER_LEARNER_ID, at(48))).toEqual([{ kind: "due_check", data: expect.objectContaining({ label: "New Check · Check 2" }) }]);
+  });
+
+  it('says "New step · Explore" for a due Explore', async () => {
+    const db = await testDb();
+    await turn(db, "Hi", at(0), [say("Once upon a time.")]);
+    await passTopic(db, map);
+    const exploreDue = edited((t) => ({ ...t, explore: { ...(t.explore as object), requiredWhenPassed: true } }));
+    expect(await comingBackItems(db, exploreDue, OWNER_LEARNER_ID, at(1))).toEqual([{ kind: "due_check", data: expect.objectContaining({ label: "New step · Explore" }) }]);
+  });
+
+  it("draws nothing on a passed Topic with nothing due", async () => {
+    const db = await testDb();
+    await turn(db, "Hi", at(0), [say("Once upon a time.")]);
+    await passTopic(db, map);
+    expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(48))).toEqual([]);
   });
 });
