@@ -39,7 +39,9 @@
     "@formulajs/formulajs": "4.6.1",
     "@neondatabase/serverless": "1.2.0",
     "@openuidev/lang-core": "1.0.2",
+    "@openuidev/react-headless": "0.18.1",
     "@openuidev/react-lang": "1.0.2",
+    "@openuidev/react-ui": "0.18.1",
     "drizzle-orm": "0.45.4",
     "htmlparser2": "12.0.0",
     "next": "16.4.3",
@@ -49,7 +51,8 @@
     "ts-fsrs": "6.0.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "yaml": "2.9.1",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "zustand": "4.5.7"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.14",

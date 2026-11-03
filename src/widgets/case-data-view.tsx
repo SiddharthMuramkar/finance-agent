@@ -30,7 +30,7 @@ export function SourcedTag({ children = "Sourced" }: { children?: string }) {
 }
 
 /** A sourced figure's credit, folded behind a small ⓘ that opens on click; the amber around it still marks the data as real. */
-function Credit({ dataset }: { dataset: CaseDataset }) {
+export function Credit({ dataset }: { dataset: CaseDataset }) {
   return (
     <details data-testid="credit" className="inline-block align-baseline text-xs text-[var(--muted)]">
       <summary aria-label="Where this figure comes from" className="inline-block cursor-pointer select-none rounded px-1 text-sm leading-none">
