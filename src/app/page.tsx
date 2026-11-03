@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 import { isSignedIn } from "@/auth/session";
+import { DEMO_SUMMARY, isDemoMode } from "./_landing/demo-mode";
+import { SAMPLE_LINES } from "./_landing/demo-session";
 import { LandingPage } from "./_landing/landing";
 import { loadCourseMap } from "@/course/map";
 import { courseOverview } from "@/course/navigator";
@@ -15,11 +17,31 @@ import { AppHeader, SignedInFrame } from "./ui";
 // Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
 export const dynamic = "force-dynamic";
 
-export default async function WorkspacePage() {
+export default async function WorkspacePage({ searchParams }: { searchParams: Promise<{ demo?: string | string[] }> }) {
   // Signed out, "/" is the public landing page: decided before any Learner data is read.
   if (!(await isSignedIn())) return <LandingPage />;
-  const db = getDb();
   const map = loadCourseMap();
+  // Demo mode (local only, for the landing page screenshot): a sample conversation, no Learner data read.
+  if (isDemoMode(await searchParams)) {
+    const topic = map.topic("present-value");
+    const jar = await cookies();
+    return (
+      <SignedInFrame>
+        <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
+          <AppHeader current="workspace" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
+          <Conversation
+            initial={SAMPLE_LINES}
+            summary={DEMO_SUMMARY}
+            quiz={null}
+            pending={null}
+            review={{ question: null, dueCount: 0, done: 0, cap: 0 }}
+            place={topic ? { stage: topic.stage, title: topic.title } : null}
+          />
+        </main>
+      </SignedInFrame>
+    );
+  }
+  const db = getDb();
   const [summary, initial, jar, quiz, turn, review, progress] = await Promise.all([
     learnerSummary(db, map),
     loadCurrentSession(db, map),

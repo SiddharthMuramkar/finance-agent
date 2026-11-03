@@ -1354,8 +1354,7 @@ Sessions. Tapping "Sign in" goes to `/login`. Trying `/course` still lands on th
 **Trade-off.** One URL now serves two very different things, so the cookie check at the top of the
 workspace page is load-bearing: anything added above it would run for strangers too. The proxy
 backs it up by allowing only reads of `/`, so no Server Action or POST can run signed out. The
-screenshots are static files that are not in the repo yet; until they are added the frame shows
-alt text.
+screenshots are static files in `public/landing-assets/`, taken from a demo workspace (`/?demo=1`, signed in only, and only when `WORKSPACE_DEMO=1` is set locally, never on Vercel) that shows a sample Mega Millions conversation instead of the Learner's own.
 
 **Why the stats are cached.** The Topic and Case counts come from files on disk and cost nothing.
 The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate
