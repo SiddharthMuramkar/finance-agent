@@ -9,7 +9,10 @@ import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
-import type { NextName } from "./next";
+import { nextOfferNow, type NextName } from "./next";
+import { openQuiz, submitQuiz } from "@/learner/quiz";
+import { OWNER_LEARNER_ID } from "@/db/schema";
+import { INSIGHT_PACING_REJECTION, PACING_REJECTION, VERDICT_PACING_REJECTION } from "./tools";
 
 /**
  * Seam 1, Tutor Turn: the Learner's Next. Code checks the move is allowed, advances the Course Navigator,
@@ -102,6 +105,101 @@ describe("the Learner's Next", () => {
     await turn(db, "Hi", [say("Once upon a time.")], map);
     await saveSteps(db, map, ["story", "concept"]);
     await expectRefused(db, map, "your_turn", "Explore is not settled: the Learner has not found the Insight or been told it.");
+  });
+
+  it("after a quiz pass, the step reached has not begun: Next stores its divider and teaches it without moving on", async () => {
+    const map = presentValueOnly({ withoutInsight: true });
+    const db = await testDb();
+    const first = await turn(db, "Hi", [say("Once upon a time.")], map);
+    await saveSteps(db, map, ["story", "concept", "your_turn"]);
+    const quiz = (await openQuiz(db, map))!;
+    await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])));
+
+    // Check 2's Concept, reached by code: the chip names it and does not move on.
+    expect(await nextOfferNow(db, map, OWNER_LEARNER_ID)).toEqual({ kind: "next", step: "concept", label: "Next: Concept", advances: false });
+    const taught = await turn(db, { next: "concept" }, [say("Now the second concept.")], map);
+    expect(taught.events[0]).toEqual({ type: "item", item: { kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 9 · Concept" } } });
+    expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ step: "concept" });
+    const request = sent(taught.requests[0]);
+    expect(request).toContain("has not begun; code did not move them on");
+    expect(request).toContain("Quiz result by code");
+    expect(seen(await loadThread(db, sessionOf(first.events), map)).slice(-2)).toEqual([
+      { role: "item", kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 9 · Concept" } },
+      { role: "assistant", text: "Now the second concept." },
+    ]);
+
+    // Now taught, the chip moves on again.
+    expect(await nextOfferNow(db, map, OWNER_LEARNER_ID)).toEqual({ kind: "next", step: "your_turn", label: "Next: Your turn", advances: true });
+  });
+
+  it("runs a fresh turn: the Tutor teaches the step and cannot finish it, record a verdict or record an Insight attempt in that reply", async () => {
+    const tool = (name: string, input: object) => ({ content: [{ type: "text", text: "Taught." }, { type: "tool_use", id: `toolu_${name}`, name, input }] });
+    /** The tool result the Tutor got back in the Next turn. */
+    const resultOf = (requests: { messages: unknown[] }[]) => JSON.stringify(requests.at(-1)!.messages.at(-1));
+
+    const db = await testDb();
+    await turn(db, "Hi", [say("Once upon a time.")]);
+    const finish = await turn(db, { next: "concept" }, [tool("finish_teaching_step", { step: "concept" }), say("Over to you.")]);
+    expect(resultOf(finish.requests)).toContain(PACING_REJECTION);
+    expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ step: "concept" });
+
+    const check = plain.topic("present-value")!.checks[0];
+    await saveSteps(db, plain, ["concept"]);
+    const verdict = await turn(db, { next: "check" }, [tool("record_check_verdict", { check_id: check.id, verdict: "pass", reasons: "Said it." }), say("Over to you.")]);
+    expect(resultOf(verdict.requests)).toContain(VERDICT_PACING_REJECTION);
+    expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ step: "check", passedChecks: [] });
+
+    const map = presentValueOnly({ withoutQuiz: true });
+    const other = await testDb();
+    await turn(other, "Hi", [say("Once upon a time.")], map);
+    await saveSteps(other, map, ["story"]);
+    await turn(other, "Go on.", [say("The concept.")], map);
+    const attempt = await turn(other, { next: "explore" }, [tool("record_insight_attempt", { outcome: "found", learner_words: "Rates matter." }), say("Try the Widget.")], map);
+    expect(resultOf(attempt.requests)).toContain(INSIGHT_PACING_REJECTION);
+    expect((await loadProgress(other)).topics["present-value"].insight).toBeUndefined();
+  });
+
+  it("a failed Next's Retry re-runs the Next from its note, without moving on a second time", async () => {
+    const db = await testDb();
+    const first = await turn(db, "Hi", [say("Once upon a time.")]);
+    const failed = await turn(db, { next: "concept" }, [{ error: new Error("overloaded") }]);
+    expect(failed.events.at(-1)).toMatchObject({ type: "error" });
+
+    const retried = await turn(db, { resume: true }, [say("Now the concept.")]);
+    expect(sent(retried.requests[0])).toContain("Next by code: the Learner pressed Next: Concept");
+    expect(turnKind((await latestTurn(db))!)).toBe("next");
+    expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ step: "concept" });
+    expect(seen(await loadThread(db, sessionOf(first.events), plain)).slice(2)).toEqual([
+      { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },
+      { role: "assistant", text: "Now the concept." },
+    ]);
+  });
+
+  it("Complete this Topic passes the Topic at its Principle and closes it in the same Session, with no divider", async () => {
+    const db = await testDb();
+    const first = await turn(db, "Hi", [say("Once upon a time.")]);
+    await saveSteps(db, plain, ["story", "concept", "your_turn"]);
+    const check = plain.topic("present-value")!.checks[0];
+    await saveCheckResult(db, plain, { checkId: check.id, passed: true, evidence: "Explained it." });
+    await saveSteps(db, plain, ["reveal"]);
+    expect(await nextOfferNow(db, plain, OWNER_LEARNER_ID)).toEqual({ kind: "complete", label: "Complete this Topic" });
+
+    const failed = await turn(db, { next: "complete" }, [{ error: new Error("overloaded") }]);
+    expect(failed.events.map((e) => e.type)).toEqual(["error"]);
+    expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ status: "passed" });
+
+    // Its Retry still runs in the passed Topic's Session, told only to stop.
+    const closed = await turn(db, { resume: true }, [say("Well done: that is the Topic.")]);
+    const done = closed.events.at(-1) as Extract<TurnEvent, { type: "done" }>;
+    expect(done.ref.sessionId).toBe(sessionOf(first.events));
+    expect(done.shown).toEqual({ sessionId: sessionOf(first.events) });
+    const request = sent(closed.requests[0]);
+    expect(request).toContain("the Learner pressed Complete this Topic. Topic complete: stop here.");
+    expect(request).not.toContain("every Topic on the Course Map is passed");
+    expect(seen(await loadThread(db, sessionOf(first.events), plain)).slice(-2)).toEqual([
+      { role: "assistant", text: "Once upon a time." },
+      { role: "assistant", text: "Well done: that is the Topic." },
+    ]);
   });
 
   it("is refused when it names a step other than the one on offer", async () => {
