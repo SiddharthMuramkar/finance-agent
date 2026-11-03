@@ -214,7 +214,7 @@ function CalculatorView({ props }: ComponentRenderProps<z.infer<typeof calculato
 const Calculator = defineComponent({
   name: "Calculator",
   description:
-    "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models, DCF), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names.",
+    "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names. Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run here.",
   props: calculatorProps,
   component: CalculatorView,
 });

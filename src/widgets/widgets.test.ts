@@ -1,5 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { z } from "zod/v4";
+import { CALCULATORS } from "@/finance/calculators";
 import { widgetProblems } from "./check";
 import frozen from "./frozen.generated.json";
 import {
@@ -168,5 +170,12 @@ describe("our code-backed parts take references or formula inputs, never results
       expect(frozen.instructions).toContain(`- ${name}(`);
       expect(frozen.instructions).toContain(`Query("${name}"`);
     }
+  });
+
+  it("the instructions name the calculators a widget cannot run, those that take a list, in the calculate tool and the Calculator", () => {
+    const takesList = CALCULATORS.filter((c) => Object.values((c.inputs as unknown as z.ZodObject).shape).some((input) => input instanceof z.ZodArray)).map((c) => c.id);
+    expect(takesList).toEqual(["npv", "irr", "dcf"]);
+    const said = "Inputs are numbers only, so npv, irr and dcf, which take a list of cash flows, cannot run";
+    expect(frozen.instructions.split(said)).toHaveLength(3);
   });
 });
