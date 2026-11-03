@@ -37,6 +37,22 @@ principle: >
   Compare cash flows only after moving them to the same date, and ask which interest rate
   makes two offers equal.
 
+# Given by the Tutor at the principle step. Written in words (no figures); each names outline Topic IDs, checked by `npm run course:check`.
+connections:
+  - text: >
+      A bond's yield is the market's discount rate for its payments. So when yields rise, bond
+      prices fall, and the bonds with the furthest payments fall the most.
+    topics: [bond-pricing, bond-yield]
+  - text: >
+      In a recession safe interest rates usually fall, while the extra return investors demand
+      on risky payments can rise. The discount rate for a risky payment can therefore move
+      either way.
+    topics: [eco-gdp-cycles, eco-central-banks]
+  - text: >
+      When rates rise, cash a business expects far in the future loses the most value. That is
+      why valuing a business that pays off late is so sensitive to the discount rate.
+    topics: [val-dcf]
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: pv-q-today-vs-later

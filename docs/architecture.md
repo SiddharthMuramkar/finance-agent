@@ -911,6 +911,23 @@ storing its primers in the Library would be. The owner can write to the RBI for 
 then the loader refuses it. The New York Fed's old Fedpoints series has been retired from its site,
 so its current explainer pages stand in.
 
+**The blog is read in TypeScript (IL 3, #60).** Damodaran's blog used to be read by a Python script
+that only ran on the laptop. It is now read by `src/library/blog.ts` (using `htmlparser2`, the
+owner-approved HTML reader), because the weekly refresh that comes later runs on Vercel, which has no
+Python. One reader, shared: `npm run library:blog -- <scratch>` fetches Blogger's feed (cached in the
+scratch folder), turns each post into a document that also records its published and updated times,
+writes the documents file and loads it. The other sources keep their Python extractors, and the
+Python HTML reader stays for them. A parity test runs the same sample HTML through both readers and
+expects identical sections, and on 2 Nov 2026's feed the new reader gave the same 685 posts and the
+same 6,513 passages, text for text, as the old one. Scripts, styles and embedded players (iframes,
+objects, video, audio) leave nothing in the text. Scenario: a post that embeds a YouTube player and a
+table of yields gives its words and the table rows, with no player text. Importing one post
+(`importLibraryDocument`) replaces only that post's passages: an unchanged passage keeps its Voyage
+embedding, an edited one is embedded again, and a passage the post no longer has is removed, so a
+weekly run touches a few posts instead of reloading 6,500 passages. Trade-off: the two readers must
+now agree on HTML by test rather than by being one program, and a post whose HTML is badly broken
+may read slightly differently from before (none of the 685 does).
+
 **Corrupted text, found and repaired.** PDF text breaks in known ways. The loader detects them
 (lost ligatures such as "CreaAon" for "Creation", letters spaced apart, PDF character codes,
 replacement characters) and now also repairs what it safely can: a broken word is mended only when
@@ -1443,3 +1460,12 @@ Session (the cards say so). That keeps the Session's record true to what the Tut
 keeps the cached conversation prefix byte-for-byte stable, at the cost of a short wait before an edit
 shows in the examples. The profile is stored in plain text in the database and in each Session's
 record; it is meant for light context, not for anything private such as account numbers.
+=======
+## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
+
+**What it does.** A Topic file may carry two or three Connections: short plain-word links from the Topic's idea to other ideas, each naming the outline Topic IDs it links to. At the principle step, and not before, the Tutor's context carries them with the titles of the linked Topics, and the instructions tell the Tutor to give them there. The Learner can still ask a connection question at any time. A Topic without Connections behaves as it did.
+
+**Scenario.** Present value ends with three: a bond's yield is the market's discount rate (so when yields rise, bond prices fall), safe rates usually fall in a recession while the extra return on risky payments can rise, and far-off cash in a business loses the most when rates rise. At the principle step the Tutor sees each one beside "Bond basics and pricing", "GDP, growth and business cycles" or "DCF valuation", and says them in its own words. Had someone typed `bond-prcing`, `npm run course:check` would fail with `Connection 1 links to "bond-prcing", which is not in the outline`.
+
+**Trade-off.** Code checks the links, not the economics: a Connection that names real Topics can still be wrong, so the text is written once and reviewed by the owner. Connections hold no figures (the check rejects digits, `%` and currency signs), so every number the Learner sees still comes from Case Data or a calculator; the price is that a Connection cannot say "by how much". Links may point at Topics still to come, so the course can link forward before those Topics are written.
+>>>>>>> origin/insight-led
