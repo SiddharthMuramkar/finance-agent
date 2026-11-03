@@ -272,9 +272,9 @@ export type DueCard = { questionId: string; due: Date };
  * `dueCount` is how many are due in all, so a long break shows as a count, not a pile. Reviews come
  * before the current Teaching Step and never touch Progress, so a missed one cannot unpass a Topic.
  */
-export function reviewsDue<C extends DueCard>(map: QuestionLookup, cards: C[], now: Date, doneThisSession: number, cap = DEFAULT_REVIEW_CAP): { offered: C[]; dueCount: number } {
+export function reviewsDue<C extends DueCard>(map: QuestionLookup, cards: C[], now: Date, doneLastDay: number, cap = DEFAULT_REVIEW_CAP): { offered: C[]; dueCount: number } {
   const due = cards
     .filter((c) => c.due.getTime() <= now.getTime() && map.question(c.questionId))
     .sort((a, b) => a.due.getTime() - b.due.getTime() || a.questionId.localeCompare(b.questionId));
-  return { offered: due.slice(0, Math.max(0, cap - doneThisSession)), dueCount: due.length };
+  return { offered: due.slice(0, Math.max(0, cap - doneLastDay)), dueCount: due.length };
 }
