@@ -3,7 +3,7 @@ import { CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 // The frozen schema alone: the browser draws widgets with this check, and needs none of the instructions' text.
 import frozenSchema from "./frozen-schema.generated.json";
-import { guidedTaskProblems, parsedTasks, walkNodes } from "./guided-tasks";
+import { guidedTaskProblems, parsedTasks, walkNodes, type ParsedNode } from "./guided-tasks";
 import { splitReply } from "./split";
 import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NAMES, type WidgetToolName } from "./tool-specs";
 
@@ -335,6 +335,15 @@ export function widgetParts(code: string): WidgetParts {
     return { title, components, tools: [...new Set(calls.map((c) => c.tool))], datasets: [...new Set(datasets)] };
   } catch {
     return { title: null, components: [], tools: [], datasets: [] };
+  }
+}
+
+/** The components of a Widget, read by the parser, deep through Stacks, Cards and Tabs; none when the code does not parse. */
+export function widgetNodes(code: string): ParsedNode[] {
+  try {
+    return [...walkNodes(parser.parse(code).root?.props.children)];
+  } catch {
+    return [];
   }
 }
 

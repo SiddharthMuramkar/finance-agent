@@ -43,6 +43,9 @@ import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
+import { openWidgetsForTurn, readOpenWidgets, widgetReportNote } from "./widget-context";
+import { widgetsBlock } from "@/widgets/widget-reading";
+import type { WidgetStates } from "@/widgets/widget-state";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
 
 /**
@@ -158,10 +161,11 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
  * A new message, Finish this reply (offered under a reply cut off at its length limit; code writes its note),
  * the opener (the page starts it when the Session it shows has no messages; code writes its note), the
  * Learner's Next (naming the step on its chip, or "complete"; code writes its note), the quiz follow-up the page
- * starts after a missed quiz (code writes its note), or a resume of the last turn after a cut-off or failure
+ * starts after a missed quiz (code writes its note), a widget report (Tell the Tutor what I found under the open
+ * Widget with this Widget key; code writes its note), or a resume of the last turn after a cut-off or failure
  * (Retry), which sends again whatever note or message the turn saved.
  */
-export type TurnInput = string | { finish: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { resume: true } | PastedInput;
+export type TurnInput = string | { finish: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { widgetReport: string } | { resume: true } | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -181,6 +185,11 @@ export type TurnDeps = {
    * turn is refused unless it is the Learner's current Topic. Left out, nothing is checked (test tools).
    */
   shown?: Shown;
+  /**
+   * What the page's Widgets show as the Learner acts: slider values and ticked Guided Tasks by Widget key (the
+   * page's Widget state). Over what the Session saved, it is what the Tutor is told of the open Widgets.
+   */
+  widgets?: WidgetStates;
 };
 
 /** Thrown when a run reaches its time budget. */
@@ -232,6 +241,14 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       return;
     }
     started = note;
+  } else if (typeof input === "object" && "widgetReport" in input) {
+    const report = await widgetReportNote(db, deps.map ?? loadCourseMap(), learnerId, input.widgetReport, deps.widgets);
+    // The Widget is not open, or a Guided Task under it is not ticked yet: nothing is saved or sent.
+    if (!report.ok) {
+      yield { type: "not_allowed", message: report.reason };
+      return;
+    }
+    started = report.note;
   } else if (typeof input === "object" && "next" in input) {
     // Code writes the Next's note once it has taken the move, inside the lock.
     started = NEXT_PREFIX;
@@ -357,7 +374,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   } else {
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
     // that turn is run again from the message saved on it.
-    // A code-written turn (opener, Next, Finish this reply, quiz follow-up) sends the note its turn saved, and so does a Retry of any turn.
+    // A code-written turn (opener, Next, Finish this reply, quiz follow-up, widget report) sends the note its turn saved, and so does a Retry of any turn.
     // A turn from before Finish this reply that saved the old "Continue." (or, older still, nothing) is asked to finish instead.
     const saved = turn.input === OLD_CONTINUE_TEXT ? null : turn.input;
     const learnerText = typeof input === "string" || "paste" in input ? learnerTextOf(input) : (saved ?? FINISH_NOTE);
@@ -390,15 +407,21 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(log.messages, place.check.id, plainContext)
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
         : plainContext;
-    const learnerBlocks = [{ type: "text" as const, text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
+    const learnerBlocks: { type: "text"; text: string }[] = [{ type: "text", text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
 
     turnSeq = log.nextSeq;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
+    const drawn = openWidgetsBefore(log, turnSeq);
+    // What the Learner's open Widgets show as they act (an opener is the page's, not theirs): stored with their message, so it replays unchanged.
+    const opener = turnKind(turn) === "opener";
+    const open = opener ? [] : await openWidgetsForTurn(db, map, learnerId, drawn, !completed);
+    const widgetBlock = widgetsBlock((await readOpenWidgets(db, map, learnerId, session.id, open, deps.widgets)).map((r) => r.reading));
+    if (widgetBlock) learnerBlocks.push({ type: "text", text: widgetBlock });
     // The Widgets open in the panel, by title, so the Tutor can update one in place rather than add a near-copy.
-    const widgetsNote = openWidgetsNote(openWidgetsBefore(log, turnSeq).map((w) => w.title));
+    const widgetsNote = openWidgetsNote(drawn.map((w) => w.title));
     const context = widgetsNote ? `${widgetsNote}\n${stepped}` : stepped;
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = completed ? null : await pendingQuizNote(db, map, learnerId, session.topicId);
@@ -419,7 +442,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       const standsChanged = !standsAlreadySent(log.messages, stands);
       const contextChanged = standsChanged || quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
       // Pasted text goes in the Learner's own message, as a marked block after what they typed.
-      await log.append({ role: "user", content: paste ? learnerBlocks : learnerText });
+      await log.append({ role: "user", content: learnerBlocks.length > 1 ? learnerBlocks : learnerText });
       // A completed Topic's note already tells the Tutor to stop: it gets no context for another Topic.
       if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
     }

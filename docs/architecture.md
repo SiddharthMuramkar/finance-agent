@@ -848,6 +848,54 @@ Tutor Widget is in a reply the route would have to find; what is saved is only e
 A static page render cannot show saved values (OpenUI fills in state after the first browser render), so the
 workspace test draws in happy-dom, a browser-like page.
 
+### What the Tutor sees of the Widgets, and Tell the Tutor what I found (`src/widgets/widget-reading.ts`, `src/tutor/widget-context.ts`, `turn.ts`, `/api/turn`, `turn-stream.ts`, `WidgetWithSave` in `widget-panel.tsx`, spec #119, ticket #148)
+
+**What it does.** Every turn request from the Study Workspace carries the page's Widget state (the store above:
+slider values and ticked Guided Tasks by Widget key), as it is at that moment, so a slider moved a second ago
+counts even before its 0.4 s save. For a Learner's message, a chip, Next, Continue or a widget report (not the
+opener, which is the page's), the Tutor Turn reads every Widget open in the panel: the ones the Session's replies
+drew, plus the Topic's explore Widget while the Learner has it. Each is read at the sent values, else the saved
+ones, else the numbers its code starts at, and code writes a "Widgets by code:" block: the Widget's title, its
+sliders ("Interest rate (discount rate): 3.38%"), its Guided Tasks with [x] for each ticked, and the readouts of
+our own parts, worked out with the same tested calculators the Widget draws with. An AnnuityChart gives the sum
+of payments, what they are worth today at the rate set, and the Case Data figure it compares with (only what the
+as-of rule allows the Learner now); a Calculator gives its results; a Formula Card gives its worked-out values.
+The block is a second text block of the Learner's own message, so it is stored with that message and every later
+request replays it unchanged: what the Tutor saw then stays fixed in the Session's history. The thread never draws
+it (`textOf` leaves it out), and no block is added while no Widget is open.
+
+Once every Guided Task under a Widget is ticked, **Tell the Tutor what I found →** appears under it in the
+Study Workspace (never in Notes, Older sessions or Home, and not on a passed Topic's page). Pressing it sends a
+widget report naming the Widget key. Code finds that Widget open in the Learner's current Topic Session, checks
+every one of its tasks is ticked (else the turn is refused, and nothing is saved or sent), and writes the note:
+"Widget report by code: ... Code wrote what the Widget shows: "I set the interest rate (discount rate) to 3.38%.
+Sum of payments: $1.537 billion; Worth today at 3.38%: $877.4 million; Cash option: $877.8 million (sourced,
+2018-10-23)."". Like the opener's and Next's notes it is the turn's saved input (turn kind `widget_report`, so
+Retry sends it again), never drawn as a Learner bubble, and refused as an Insight attempt because code wrote it.
+
+**Scenario.** At Present value's explore step the Learner drags the explore Widget to 3.38% and asks "What rate
+do I have set?". The request carries the store's numbers; the block says "Interest rate (discount rate): 3.38%"
+and the readouts, so the Tutor answers 3.38% without working anything out. When the last task ticks, the button
+appears; they press it, and the Tutor replies to what they found and asks them to say what it means in their own
+words, which is what the Insight tool can record.
+
+**Trade-off.** Code, not the model, does every sum, at the cost of a block in each message while a Widget is
+open (a few hundred tokens, cached with the rest of the history). Readouts cover only our own parts and simple
+`$rate * 2` style arguments; a kit chart's typed numbers and anything a Query works out in the browser are left
+to the slider values. Written-ahead Widgets get readouts the same way, from the parts they are built of. Trusting
+the page's numbers means a tampered request could tell the Tutor a wrong rate, but only about the Learner's own
+Widget, and the readouts are still worked out by code from those numbers. The report's words are code's, so the
+Learner still has to say the Insight themselves.
+
+**How it is tested.** At the Tutor Turn seam (`src/tutor/widget-context.test.ts`, scripted client, in-memory
+Postgres): with a rate saved, "What rate do I have set?"'s request contains it; the sent numbers win over saved
+ones; the block goes with a chip and a Next but not the opener; it replays unchanged in a later request and is
+not drawn; the explore Widget's worth today and the sourced cash option, a Calculator and a Formula Card; the
+widget report's note, turn kind and missing bubble, its refusal as an Insight attempt, and its refusal before
+every task is ticked. In the Study Workspace render (`workspace.test.tsx`): the button hidden with a task
+unticked, shown when all are ticked, absent on a passed Topic. In happy-dom (`widget-state.test.tsx`): a chip's
+request carries the values just set, and the button appears as the last task ticks and sends the report.
+
 ### Widget tools (`src/widgets/tools.ts`, `src/widgets/tool-specs.ts`)
 
 **What they are.** Four small functions of ours that run in the browser when a Widget asks for
@@ -1484,8 +1532,9 @@ design tokens; the first two sit under the app header, Login (signed out) has no
   turn (the pacing rule), and a second opener for a Session that already has messages (another tab got
   there first) gets the reload message.
 - **Turn kinds.** A turn records its kind (`turnKind`): a code-written turn saves its note, with its
-  fixed prefix, as the turn's input, so "opener" (and, since the Learner's Next, "next") is read off
-  the turn row and a Retry sends the same note again. Every other turn is a "message".
+  fixed prefix, as the turn's input, so "opener" (and, since the Learner's Next, "next", and since Tell the
+  Tutor what I found, "widget_report") is read off the turn row and a Retry sends the same note again. Every
+  other turn is a "message" (or a "chip").
 - **A Topic passed in a turn** (its Principle finished, or its last Due Check passed): the tool result
   tells the Tutor "Topic complete: stop here" and gives no context for another Topic, and the next
   Topic is not started. The Learner's current Topic moves on, but the shown Session stays: the
@@ -1603,11 +1652,11 @@ is skipped. The old Session page draws the divider between the parts too.
   the turn row pins: the note tells the Tutor "Topic complete: stop here", no Course Navigator context
   for another Topic is sent and the next Topic is not started. The turn ends at the Topic complete card
   (see "The Topic complete card"), and the page shows the passed Topic with it.
-- **Code-written turns.** The opener's note starts "Opener by code:", Next's "Next by code:" and Finish
-  this reply's "Finish by code:" (`CODE_WRITTEN_PREFIXES`). Each is saved as the turn's input and stored as the turn's user message,
+- **Code-written turns.** The opener's note starts "Opener by code:", Next's "Next by code:", Finish
+  this reply's "Finish by code:" and a widget report's "Widget report by code:" (`CODE_WRITTEN_PREFIXES`). Each is saved as the turn's input and stored as the turn's user message,
   so the model sees it, but the thread never draws it as a bubble, and a reply after it always starts
   its own line rather than running on from the reply before. The turn's kind is read off the prefix
-  (`turnKind`: message, chip, opener, next or finish), and Retry re-runs that kind: a failed Next re-sends its note
+  (`turnKind`: message, chip, opener, next, finish or widget_report), and Retry re-runs that kind: a failed Next re-sends its note
   without moving the Learner on a second time, because the move was saved once when the turn began.
 - **Fresh pacing.** Next turns and openers are fresh: in that reply the Tutor teaches the step and
   can't finish it, record a Check verdict or record an Insight attempt (the pacing rule's rejections).

@@ -15,6 +15,8 @@ export type WidgetStore = {
   saved: (key: string) => SavedWidget | undefined;
   /** Saves new slider values or more ticks (ticks are added, never taken away). */
   save: (key: string, change: Partial<SavedWidget>) => void;
+  /** Every Widget's state as it stands now, by Widget key: what each turn request tells the Tutor of. */
+  all: () => WidgetStates;
 };
 
 const WidgetStatesContext = createContext<WidgetStore | null>(null);
@@ -31,10 +33,11 @@ const sameValues = (a: Record<string, number>, b: Record<string, number>) => {
 };
 
 /**
- * Holds the shown Session's Widget state for the Widgets beneath it. `sessionId` is the Session the page shows;
- * before its first turn there is none, and changes wait until the turn has made it.
+ * The shown Session's Widget state, for WidgetStatesProvider to hand to the Widgets and for each turn request to
+ * carry. `sessionId` is the Session the page shows; before its first turn there is none, and changes wait until the
+ * turn has made it.
  */
-export function WidgetStatesProvider({ sessionId, initial, children }: { sessionId: number | undefined; initial: WidgetStates | undefined; children: ReactNode }) {
+export function useWidgetStates(sessionId: number | undefined, initial: WidgetStates | undefined): WidgetStore {
   const [store] = useState(() => {
     const states = new Map<string, SavedWidget>(Object.entries(initial ?? {}));
     const pending = new Set<string>();
@@ -58,6 +61,7 @@ export function WidgetStatesProvider({ sessionId, initial, children }: { session
     };
     const api: WidgetStore & { flush: () => void; showSession: (id: number | undefined, saved: WidgetStates | undefined) => void } = {
       saved: (key) => states.get(key),
+      all: () => Object.fromEntries(states),
       save: (key, change) => {
         const now = states.get(key) ?? { values: {}, ticked: [] };
         const next = {
@@ -94,5 +98,10 @@ export function WidgetStatesProvider({ sessionId, initial, children }: { session
       leave();
     };
   }, [store]);
+  return store;
+}
+
+/** Holds the shown Session's Widget state (useWidgetStates) for the Widgets beneath it. */
+export function WidgetStatesProvider({ store, children }: { store: WidgetStore; children: ReactNode }) {
   return <WidgetStatesContext.Provider value={store}>{children}</WidgetStatesContext.Provider>;
 }

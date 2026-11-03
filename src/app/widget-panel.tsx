@@ -8,7 +8,8 @@ import { Credit, SourcedTag } from "@/widgets/case-data-view";
 import { widgetParts, widgetProblems } from "@/widgets/check";
 import { SavedTicksContext, type SavedTicks } from "@/widgets/saved-ticks";
 import { widgetKey } from "@/widgets/widget-state";
-import { Chip, Eyebrow } from "./ui";
+import { allTasksTicked } from "@/widgets/widget-reading";
+import { Chip, Eyebrow, SecondaryButton } from "./ui";
 import { SaveToNotes, type SaveTarget } from "./save-to-notes";
 import { useWidgetStore } from "./widget-states";
 import { WidgetView } from "./widget-view";
@@ -143,6 +144,18 @@ export function SourcedStrip({ datasets, cases }: { datasets: readonly string[];
 }
 
 /**
+ * How a Widget tells the Tutor what the Learner found (spec #119, "Tell the Tutor what I found"): `tell` runs a
+ * widget report turn for the Widget key, and `busy` is true while a turn runs. Only the Study Workspace gives it;
+ * elsewhere (Notes, Older sessions, Home) no Widget offers the button.
+ */
+export type WidgetReport = { tell: (key: string) => void; busy: boolean };
+
+export const WidgetReportContext = createContext<WidgetReport | null>(null);
+
+/** The words on the button under a Widget whose Guided Tasks are all ticked. */
+export const TELL_THE_TUTOR = "Tell the Tutor what I found →";
+
+/**
  * A Widget with the Sourced strip for the Case Data it draws through Query("case_data"), and its quiet "Save to
  * notes" beneath it. Each Case it reads comes from the page's shared Case Data cache, for its Queries, its charts
  * and its strip together. Mount it with a key per Widget: its sliders start afresh then.
@@ -159,10 +172,23 @@ export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?:
   const key = store && item.complete ? widgetKey(widgetParts(item.code).title, item.explore) : undefined;
   // What it starts from is read once, as it mounts: later saves come from the Widget itself.
   const [start] = useState(() => (key ? store?.saved(key) : undefined));
+  // The ticked Guided Tasks so far, kept here too, so Tell the Tutor what I found shows the moment the last one ticks.
+  const [ticked, setTicked] = useState<readonly string[]>(() => start?.ticked ?? []);
   const ticks = useMemo<SavedTicks | null>(
-    () => (store && key ? { ticked: start?.ticked ?? [], onTicked: (done) => store.save(key, { ticked: done }) } : null),
+    () =>
+      store && key
+        ? {
+            ticked: start?.ticked ?? [],
+            onTicked: (done) => {
+              store.save(key, { ticked: done });
+              setTicked((now) => [...new Set([...now, ...done])]);
+            },
+          }
+        : null,
     [store, key, start],
   );
+  const report = useContext(WidgetReportContext);
+  const canReport = !!report && !!key && item.complete && allTasksTicked(item.code, ticked);
   const onSettings = (s: Record<string, number>) => {
     settings.current = s;
     if (store && key) store.save(key, { values: s });
@@ -176,6 +202,13 @@ export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?:
         <WidgetView code={item.code} complete={item.complete} bare={bare} onSettings={onSettings} loadCase={loadCase} initialValues={start?.values} />
       </SavedTicksContext.Provider>
       <SourcedStrip datasets={datasets} cases={cases} />
+      {canReport && (
+        <div className="mt-3">
+          <SecondaryButton onClick={() => report.tell(key)} disabled={report.busy} data-testid="tell-the-tutor">
+            {TELL_THE_TUTOR}
+          </SecondaryButton>
+        </div>
+      )}
       {item.save && item.complete && (
         <div className="mt-2">
           <SaveToNotes
