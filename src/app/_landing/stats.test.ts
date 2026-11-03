@@ -16,11 +16,10 @@ const writtenIds = new Set(
 );
 
 describe("Landing stats", () => {
-  it("shows Topics written of planned and every Case in the outline", () => {
-    const planned = outline.topics.length;
+  it("counts the Topics written and every Case in the outline", () => {
     const written = outline.topics.filter((t) => writtenIds.has(t.id)).length;
     const cases = outline.topics.reduce((n, t) => n + t.cases.length, 0);
-    expect(courseStats()).toEqual({ topics: `${written} of ${planned}`, cases });
+    expect(courseStats()).toEqual({ topics: written, cases });
   });
 
   it("counts the Library sources", async () => {
