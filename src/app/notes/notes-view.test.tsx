@@ -51,6 +51,11 @@ describe("saved replies and Widgets on a Topic Note", () => {
     expect(html).toMatch(/<input[^>]*type="range"/);
   });
 
+  it("heads them in Topic words, and never says lesson", () => {
+    expect(html).toContain("Saved from Topics");
+    expect(html.toLowerCase()).not.toContain("lesson");
+  });
+
   it("keeps a Topic with something saved on the printed page, and has no Save button of its own", () => {
     expect(html).toContain("has([data-line],[data-saved])");
     expect(html).not.toContain('data-testid="save-to-notes"');

@@ -64,11 +64,20 @@ describe("the You'll learn course check", () => {
     expect(youllLearnCheckErrors([{ ...topicWith("fresh", good), insight }], [])).toEqual([]);
   });
 
+  it("gives every Follow, Judge and Analyse Topic its You'll learn", () => {
+    const practice = map.topics.filter((t) => /^(fol|jud|ana)-/.test(t.id));
+    expect(practice.length).toBeGreaterThan(0);
+    for (const topic of practice) {
+      expect(topic.youllLearn?.length ?? 0, topic.id).toBeGreaterThanOrEqual(2);
+      expect(topic.youllLearn!.length, topic.id).toBeLessThanOrEqual(3);
+    }
+  });
+
   it("only shrinks: it holds no duplicate and starts from the Topics after the first third", () => {
     expect(new Set(NOT_YET_FILLED).size).toBe(NOT_YET_FILLED.length);
     expect(NOT_YET_FILLED).not.toContain("num-percent-bps");
     expect(NOT_YET_FILLED).not.toContain("present-value");
-    // The ceiling is the list's length after the first third was filled (95 Topics, 32 filled). Lower it as Topics are filled; never raise it.
-    expect(NOT_YET_FILLED.length).toBeLessThanOrEqual(63);
+    // The ceiling is the list's length once the first and last thirds were filled (95 Topics, 63 filled). Lower it as Topics are filled; never raise it.
+    expect(NOT_YET_FILLED.length).toBeLessThanOrEqual(32);
   });
 });

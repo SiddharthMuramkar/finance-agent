@@ -52,6 +52,12 @@ principle: >
   Imports are the price of exports, loans and reserves. When foreign money runs out, the
   squeeze falls on whoever needs imports most, and a country pays for it in output.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why a country gains by making what it gives up least to make, and trading for the rest."
+  - "Weigh who wins and who loses when a tariff, a quota or a licence protects a good."
+  - "Follow where the squeeze falls when a country runs short of foreign money to pay for imports."
+
 questions:
   - id: et-q-comparative
     prompt: >

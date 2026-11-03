@@ -68,6 +68,12 @@ principle: >
   tell good paper from bad. Ask who funds the borrower, how fast those funders can leave,
   and whether the holders can sell without moving the price.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell what a shadow bank does like a bank, and which protections it lacks."
+  - "Spot rollover risk when long loans are funded with short borrowing."
+  - "Size contagion by asking who funds a borrower and how fast they can leave."
+
 questions:
   - id: pc-q-definition
     prompt: >

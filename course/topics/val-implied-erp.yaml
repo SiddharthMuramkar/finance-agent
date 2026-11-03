@@ -58,6 +58,12 @@ principle: >
   expected cash flows, check how sensitive it is to the growth you assume, and use the same
   premium in a valuation as the market prices used in the comparison.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read the market's equity risk premium from today's prices and expected cash flows."
+  - "Check how much the premium moves with the growth you assume."
+  - "Use the same premium in a valuation as the market prices you compare it with."
+
 questions:
   - id: ie-q-implied-return
     prompt: >

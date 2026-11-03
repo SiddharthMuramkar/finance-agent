@@ -156,6 +156,12 @@ principle: >
   that matters. A writer can be careless with figures and still have a sound frame, or exact
   with figures and an untested frame; say which, and stop short of forecasting.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Check each figure's line, label, period and scope in a filing."
+  - "Read a filing's hedged verbs as hedges, not promises."
+  - "Judge framing against precedent, and stop short of a forecast."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: s1r-q-operating-vs-net

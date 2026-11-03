@@ -69,6 +69,12 @@ principle: >
   and book building collects demand before the price is final. Check how much will trade, who
   can sell when, and what the company will do with the money.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Follow how book building collects demand before an issue price is set."
+  - "Measure the float: how much of a company can actually trade, and when locked-in holders can sell."
+  - "See why new issues tend to be priced below where they first trade."
+
 questions:
   - id: ip-q-float
     prompt: >

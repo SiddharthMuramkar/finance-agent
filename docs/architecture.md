@@ -399,9 +399,10 @@ OpenUI's free, open-source renderer from two sets of parts:
   Parts that could mislead, or that a Widget has no use for, are left out: images (the model could
   invent links), code blocks and the kit's Markdown renderer (they would show typed formulas, which
   ADR 0002 rules out), forms, inputs, date pickers, buttons, modals and carousels.
-- **Our own parts**, each backed by tested code: `Widget` (the frame), `Slider` (one of the
-  Learner's assumptions; it takes the kit slider's place under the same name, so the "Your
-  assumption" tag and saved slider settings keep working), `AnnuityChart` (yearly payments and what
+- **Our own parts**, each backed by tested code: `Widget` (the frame, with **Reset** when it has a
+  slider), `Slider` (one of the Learner's assumptions, with a number box and −/+ buttons for exact
+  values; it takes the kit slider's place under the same name, so the "Your assumption" tag and
+  saved slider settings keep working; see "Exact slider values" below), `AnnuityChart` (yearly payments and what
   each is worth today), `HistoryChart` (one Case Data dataset over its dates), `Calculator`,
   `FormulaCard` and Guided Tasks.
 
@@ -1175,6 +1176,28 @@ longer animated word by word as it streams (`smooth` off): the animation would p
 behind the real text, and widget markers are matched against the real text. Learner messages stay
 plain text on purpose.
 
+### The Tutor's voice, and one word: Topic (`thread.tsx`, `.md` in `globals.css`, spec #119, ticket #156)
+
+**What it does.** Every Tutor reply starts with a small navy **Tutor** label (`data-testid="tutor-label"`);
+the Learner's own messages have none, since their grey bubble on the right already marks them. Inside a
+reply, bold key terms and step headings take the button navy (`--brand`), while paragraphs stay
+near-black (`--ink`). No new colours: both come from existing tokens, and `--brand` already switches to a
+lighter blue in dark mode, so the label and headings stay readable there. The same thread is used by old
+Sessions, so they carry the label too.
+
+The screen also uses one word for a unit of study: **Topic**. "Lesson" appears nowhere a Learner can see
+it: the Widget fallback reads "This widget could not be drawn. The Topic carries on without it.", and the
+saved-items heading on a Topic Note reads "Saved from Topics". Render tests guard it: the Study Workspace
+markup, the Widget fallback and Notes must not contain "lesson".
+
+**Scenario.** The Learner asks "What is present value?". Their question sits in a grey bubble; under it the
+reply opens with a small navy "Tutor", then "Present value is **today's worth** of money paid later", with
+"today's worth" in navy and the rest of the sentence in near-black.
+
+**Trade-off.** Colouring only bold words and headings keeps a reply calm (a whole navy body would be a wall
+of blue), but the Tutor has to bold sparingly for the navy to mean "key term". The "never lesson" rule is
+held by tests on the screens we render, not by a site-wide scan, so a new screen needs its own check.
+
 ## Past Sessions (`src/app/sessions/`, `session-card.tsx`, `old-session.tsx`, `src/tutor/session-summary.ts`)
 
 **What it does.** Past Sessions is a list of cards, one per Session, newest first. Each card shows
@@ -1520,7 +1543,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 
 **What it does.** The Study Workspace used to be one 330-line component. It is now four parts, and `Conversation` only puts them together:
 - **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
-- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box and the paste panel in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review and quiz, the thread, the turn's notices and Retry, and the box. Every button that starts a turn calls the turn stream's `send`.
+- **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the status card, the pinned explore Widget, the folded review and quiz, the thread, the turn's notices and Retry, and the box. Every button that starts a turn calls the turn stream's `send`.
 - **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid and the right column's size and scrolling.
 - **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), which one the panel shows, and the "Widget N →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget.
 
@@ -1537,6 +1560,17 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 **Scenario.** The Learner opens the workspace with two reviews due. The status card says where they are; one row says "Spaced review · 2 due"; they open it, answer, and close it, and the conversation below never moved.
 
 **Trade-off.** Folding the review and quiz keeps the conversation high on the screen, but a due review is one click away instead of in plain view.
+
+## The message box: writing indicator, drafting and Attach a passage (`src/app/message-box.tsx`, `turn-stream.ts`, spec #119, ticket #155)
+
+**What it does.** Three things around the message box at the bottom of the left column.
+- **Writing indicator.** The turn stream keeps a small `waiting` state: "writing" from the moment the Learner presses Send, "slow" if no words have arrived 8 seconds later, and nothing once the first text of the reply (or a saved replay) arrives or the turn ends. The message box shows it above itself as "Tutor is writing…" or "Still working on it…".
+- **Drafting during a turn.** The box stays editable while the Tutor writes, so the Learner can type the next message; the draft stays in the box when the turn ends. Send is off during a turn and while the box is empty, and Enter is ignored during a turn. These rules are assistant-ui's own composer rules (its Send and Enter check `isRunning` and an empty box), so there is no code of ours for them, only render tests.
+- **Attach a passage.** A button beside the box opens a small passage box above it (it reads "Remove passage" while open). The passage lives in the turn stream (`passage`, null while closed). When the Learner presses the one Send, the turn stream sends the message with the passage as `paste`, shows the message in the thread with the passage's short label ("(Pasted passage, 41 words: …)"), and closes the box. The server side is unchanged: the passage is saved privately with the Session in `pasted_texts` and reaches the Tutor as before (see "Follow Topics"). The old in-thread "Paste a passage" panel with its own "Send passage" button is gone, so there is one Send on screen.
+
+**Scenario.** The Learner on a Zitron Topic presses Attach a passage, pastes two paragraphs, types "Does the $430 billion tie out?" and presses Send. The thread shows the question and "(Pasted passage, 112 words: …)", and "Tutor is writing…" appears. The Tutor calls a tool first and nothing streams for 9 seconds, so the line changes to "Still working on it…"; meanwhile the Learner starts typing a follow-up. The reply streams in, the line disappears, and when the turn ends the follow-up is still in the box, ready to send.
+
+**Trade-off.** A message must have text: a passage on its own can't be sent (the old panel filled in "Here is the passage we are studying."), because one Send that is off for an empty box is simpler to read. The 8-second timer runs in the browser, so it measures the wait as the Learner sees it, not the server's own time. The indicator stays on through a Widget correction or tool call only until the first words arrive; after that the streaming text is the sign of life.
 
 ## Phone note (`SignedInFrame` in `src/app/ui.tsx`, issue #48)
 
@@ -2041,15 +2075,23 @@ backfill reload places the corrected readings.
 
 **Scenario.** Percent shows "Tell a change in percentage points from a change in percent.", "Read rate moves in basis points, the way bond traders quote them." and "Name the base of every change so its size is never mixed up." If someone rewords the second to "Read a move of 25 basis points", the course check fails with `Topic num-percent-bps has a figure in You'll learn bullet 2; write it in words`. If someone pastes present value's Insight in as a bullet (or the same words in a new order), the check fails with `bullet 3 repeats its Insight`, because the bullets are on screen before the Learner has found it.
 
-**Trade-off.** "Repeats the Insight" is a word-overlap test (the Insight held whole, or three in five of the two texts' meaningful words shared), so it catches pasting and light rewording but not a bullet that gives the Insight away in quite different words; the owner's review is the guard for that. The figure rule is strict: a bullet cannot say "two" as "2", and cannot name a Case's year, which keeps every number the Learner sees in Case Data or a calculator. The first third of the default path (Percent to Exchange rates, 32 Topics) is filled; tickets #138 and #139 fill the rest and empty the list, after which every Topic must have bullets.
+**Trade-off.** "Repeats the Insight" is a word-overlap test (the Insight held whole, or three in five of the two texts' meaningful words shared), so it catches pasting and light rewording but not a bullet that gives the Insight away in quite different words; the owner's review is the guard for that. The figure rule is strict: a bullet cannot say "two" as "2", and cannot name a Case's year, which keeps every number the Learner sees in Case Data or a calculator. Every Topic is now filled (the first third by #137, the middle third, Trade and globalisation to Bank runs, by #138, and the last third by #139), so the not-yet-filled list is empty and the course check requires bullets on every Topic, including any Topic written later.
 
 ## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/guided-task-check.ts`, issue #66)
 
 **What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked, saved or sent to the Tutor. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` tries every position of the sliders a task reads in each Topic's explore Widget, and fails on a task no position can reach or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
 
-**Scenario.** Present value's explore Widget has four tasks under the rate slider and the annuity chart: set the rate to 0%, then 2%, then 8%, then find the rate where the payments' worth today comes closest to the cash option. The slider starts at 5%, so none is done. The Learner drags to 8% first: nothing ticks, because task 1 is current. They go to 0%: task 1 ticks. They go to 2%, then 8%: tasks 2 and 3 tick. The fourth ticks at 3.25% or 3.5%, the two positions where the annuity's worth today is nearest the cash option's $877.8 million. If a later edit made task 3 read `$rate == 8.1`, the course check would fail, because the slider moves in steps of 0.25.
+**Scenario.** Present value's explore Widget has four tasks under the rate slider and the annuity chart: set the rate to 0%, then 2%, then 8%, then find the rate where the payments' worth today comes closest to the cash option. The slider starts at 5%, so none is done. The Learner drags to 8% first: nothing ticks, because task 1 is current. They go to 0%: task 1 ticks. They go to 2%, then 8%: tasks 2 and 3 tick. The fourth ticks at 3.25% or 3.5%, the two positions where the annuity's worth today is nearest the cash option's $877.8 million. If a later edit made task 3 read `$rate == 8.1`, the course check would fail, because it still tries the slider's written steps of 0.25 (in the browser a percent slider now moves in 0.01 steps, so the check is stricter than the page; see "Exact slider values").
 
 **Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Ticks live in the page, so reloading the page starts the stepper again, which suits practice that is never saved. The frozen Widget instructions changed (two components, an example and a rule), so the next action after deploy starts a new Session.
+
+## Exact slider values (`SliderView` and `WidgetFrame` in `src/widgets/library.tsx`, `src/widgets/slider-steps.ts`, issue #143)
+
+**What it does.** Every slider in every Widget has a number box beside it that takes any value from its minimum to its maximum, and − and + buttons that move it by exactly one step and stop at the ends. A percent slider always moves in 0.01 steps, whatever step the Tutor or a Topic file wrote. Every value set is rounded to the step's decimals (so typed percents keep two decimals), and a value outside the range is clamped; text that is no number is ignored. The number box keeps what is being typed until Enter or leaving the box, so typing 3.38 never passes through 3 and 3.3 on the way. When a finished Widget first sets a slider, its starting value is moved onto the nearest step. The readout prints a value at its own precision (3.38 on a 0.25 slider), without float noise, and a space separates label and value, so it reads "Old rate 4%", never "Old rate4%". Any Widget with a slider shows **Reset** beside its title, which puts every slider back to its starting value. The rules live in one small module, `slider-steps.ts`; the frame finds the sliders at any depth (including a tab not showing) and remembers each one's start.
+
+**Scenario.** A Widget is written with `Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")` starting at `$rate = 5`, and a Guided Task `$rate == 3.38`. The Learner types 3.3812 in the number box and presses Enter: the value becomes 3.38, the readout says "Discount rate 3.38%", and the task ticks. They press + twice (3.40%), drag the slider about, then press Reset: the rate is back at 5%.
+
+**Trade-offs.** Rounding to the step's decimals rather than snapping typed values to the step lets a Learner type 3.38 on a 0.25 slider, which an equality task can then match; the price is that a typed value can sit between two positions of the slider's track. Committing typed text only on Enter or leaving the box costs one extra key press but stops half-typed numbers from ticking tasks. Starting values are remembered in the page, so Reset after a reload goes to the code's starting value (saving slider positions with the Session is a later ticket). The course check for Guided Tasks still tries the written steps, so it can only be stricter than the page.
 
 ## Weekly refresh of Damodaran's posts (`src/library/refresh.ts`, `src/app/api/cron/library-refresh/route.ts`, `library_refresh_runs`, `vercel.json` crons, IL 16, #73)
 

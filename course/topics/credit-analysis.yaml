@@ -52,6 +52,12 @@ principle: >
   Do not lend on the rating alone. Read cash flow, the whole group's debt and the funding
   mismatch, and ask what must go right for the loan to be repaid.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Judge whether a borrower can pay from its cash flow, its debt load and its cash on hand."
+  - "Read the whole group's debt, not only the parent's."
+  - "Spot long-term assets funded with short-term borrowing that must keep being refinanced."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: ca-q-cover

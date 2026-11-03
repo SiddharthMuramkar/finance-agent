@@ -48,6 +48,12 @@ principle: >
   The long-run record rewards patience but punishes buying after a spectacular run. Judge a return by its yearly
   rate, its risk and where it started.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Compare returns over many years by their yearly compound rate, not their simple average."
+  - "See why a fall hurts more than an equal rise helps, and why inflation must come out of a return."
+  - "Judge a market's record by its risk, its worst years and the price paid at the start."
+
 questions:
   - id: eh-q-cagr
     prompt: >

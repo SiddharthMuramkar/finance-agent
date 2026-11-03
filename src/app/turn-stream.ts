@@ -8,6 +8,12 @@ import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import { convertMessage, type Line, type ThreadLine } from "./thread";
 
+/** How an attached passage shows in the thread: a short label, as the saved transcript shows it. */
+export function pastePreview(paste: string): string {
+  const words = paste.split(/\s+/).filter(Boolean);
+  return `(Pasted passage, ${words.length} words: "${words.slice(0, 6).join(" ")} …")`;
+}
+
 /**
  * Turn streaming for the Study Workspace: the conversation on screen and the state of the turn being
  * run (running, notices, errors, Retry, cut short). It sends a turn to /api/turn, streams the reply in,
@@ -24,6 +30,11 @@ const NOTICES: Record<string, string> = {
   updated: "The Tutor was updated, so this is a new Session, started from your saved progress.",
   refused: "A new Session started from your saved progress.",
 };
+/** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
+export const SLOW_AFTER_MS = 8000;
+/** What the writing indicator says while a turn waits for its first words: "writing", then "slow" after 8 seconds. */
+export type Waiting = "writing" | "slow" | null;
+
 /** How many cut-offs in a row the browser resumes on its own, and how long it waits for a turn running elsewhere. */
 const MAX_RESUMES = 10;
 const BUSY_WAIT_MS = 3000;
@@ -45,6 +56,9 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
   const [notice, setNotice] = useState<string | null>(pending?.status === "running" ? "A turn is in progress, perhaps on another device." : null);
   const [canRetry, setCanRetry] = useState(pending?.status === "failed");
   const [cutShort, setCutShort] = useState(false);
+  const [waiting, setWaiting] = useState<Waiting>(null);
+  // The passage attached to the next message: null while the Attach a passage box is closed.
+  const [passage, setPassage] = useState<string | null>(null);
 
   /**
    * Sends a message, Continue, or a resume, and streams the reply. When the stream ends
@@ -65,6 +79,9 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
     setCanRetry(false);
     setCutShort(false);
     setRunning(true);
+    setWaiting("writing");
+    // A slow turn never looks frozen: after 8 seconds with no words, the indicator says so.
+    const slow = setTimeout(() => setWaiting((w) => (w === "writing" ? "slow" : w)), SLOW_AFTER_MS);
     onTurnStart();
     const stamp = Date.now();
     const replyId = `a-${stamp}`;
@@ -110,6 +127,8 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
           for (const part of parts) {
             if (!part) continue;
             const event = JSON.parse(part);
+            // The first words of the reply end the writing indicator.
+            if ((event.type === "text" || event.type === "replay") && event.text) setWaiting(null);
             if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
             else if (event.type === "text") correction += event.text;
             else if (event.type === "replay") updateReply(() => event.text);
@@ -160,6 +179,8 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
       setCanRetry(true);
     } finally {
       setAnnouncement(problem ?? "Reply ready");
+      clearTimeout(slow);
+      setWaiting(null);
       setRunning(false);
       setFixing(false);
       // Re-reads the summary, since the Tutor may have finished a Teaching Step.
@@ -178,9 +199,14 @@ export function useTurnStream({ initial, pending, onTurnStart }: { initial: Line
 
   const onNew = async (message: AppendMessage) => {
     const text = message.content.map((c) => (c.type === "text" ? c.text : "")).join("").trim();
-    if (text) await send({ message: text }, text);
+    if (!text) return;
+    // The one Send carries the attached passage too; the thread shows it as its short label.
+    const paste = passage?.trim();
+    if (!paste) return send({ message: text }, text);
+    setPassage(null);
+    await send({ message: text, paste }, `${text}\n\n${pastePreview(paste)}`);
   };
   const runtime = useExternalStoreRuntime({ messages, isRunning: running, convertMessage, onNew });
 
-  return { messages, running, announcement, fixing, error, notice, canRetry, cutShort, send, runtime };
+  return { messages, running, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, runtime };
 }

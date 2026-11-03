@@ -57,6 +57,12 @@ principle: >
   Trust is what an exchange sells. The price discovery, the settlement guarantee and the regulator's
   powers matter as much as the shares traded.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Follow a trade from the order through clearing to settlement."
+  - "Tell the primary market, where shares are issued, from the secondary market, where they change hands."
+  - "See why an exchange needs a regulator with real powers to protect investors."
+
 questions:
   - id: em-q-primary
     prompt: >

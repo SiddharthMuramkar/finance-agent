@@ -96,6 +96,31 @@ describe("the workspace's left column", () => {
     expect(html).not.toMatch(/Widget \d/);
   });
 
+  it("labels every Tutor reply \"Tutor\" in navy, and no Learner message", () => {
+    const initial: Line[] = [
+      { role: "user", text: "What is present value?" },
+      { role: "assistant", text: "Present value is **today's worth** of money paid later." },
+      { role: "user", text: "And discounting?" },
+      { role: "assistant", text: "### Step one\n\nDiscounting is the reverse of compounding." },
+    ];
+    const html = workspace({ initial });
+    const labels = html.match(/<[^>]*data-testid="tutor-label"[^>]*>Tutor</g) ?? [];
+    expect(labels).toHaveLength(2);
+    for (const label of labels) expect(label).toContain("text-[var(--brand)]");
+    const firstReply = html.indexOf("today");
+    expect(html.indexOf("tutor-label")).toBeGreaterThan(html.indexOf("What is present value?"));
+    expect(html.indexOf("tutor-label")).toBeLessThan(firstReply);
+  });
+
+  it("never says \"lesson\" anywhere in the Study Workspace markup", () => {
+    const initial: Line[] = [
+      { role: "user", text: "Show me" },
+      { role: "assistant", text: `Here it is.\n\n${fence(ANNUITY)}` },
+    ];
+    expect(workspace({ initial }).toLowerCase()).not.toContain("lesson");
+    expect(workspace({ quiz, review: { ...noReview, dueCount: 2 } }).toLowerCase()).not.toContain("lesson");
+  });
+
   it("has a composer that asks the Tutor", () => {
     expect(workspace()).toContain('placeholder="Ask the Tutor"');
   });

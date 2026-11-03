@@ -106,6 +106,12 @@ principle: >
   and size, so that small slips are not mistaken for large ones. Then compare the story with what
   followed, and only on what the writer claimed to know, never with hindsight on what he did not.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Sort differences into slips, mislabels, mismatches and overreach, then size each one."
+  - "Read the share counts in a prospectus and match them to the value being divided."
+  - "Judge a forecast only on what the writer claimed, without hindsight."
+
 questions:
   - id: jip-q-ttm
     prompt: >

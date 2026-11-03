@@ -58,6 +58,12 @@ principle: >
   what assets could be turned into cash at what loss, and whether the bank can reach emergency
   funding in hours, not days.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell a bank that is solvent from one that is liquid."
+  - "See how rising interest rates cut the value of a bank's long-term assets."
+  - "Explain why a run can make itself true, and how deposit insurance and emergency lending answer it."
+
 questions:
   - id: bk-q-net-worth
     prompt: >

@@ -55,6 +55,12 @@ principle: >
   Diversify away the risks that are specific to a company, and plan for the risks that hit everything at once.
   A protection that depends on everyone being able to sell is not protection in a panic.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See how holdings that do not move together lower a portfolio's risk."
+  - "Tell risk specific to one company, which diversifies away, from market risk, which does not."
+  - "Ask whether a protection still works when everyone tries to sell at once."
+
 questions:
   - id: rp-q-expected
     prompt: >

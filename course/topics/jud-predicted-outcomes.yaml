@@ -119,6 +119,12 @@ principle: >
   record. A forecast can be right for the wrong reason or wrong with a sound argument, so judge
   the reasoning and the result separately, and say plainly when a claim is too loose to be scored.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Separate facts, numbers, forecasts and forks that cannot lose."
+  - "Decide what record would settle a claim before looking at the outcome."
+  - "Judge the reasoning and the result of a forecast separately."
+
 questions:
   - id: jud-po-q-required-pace
     prompt: >

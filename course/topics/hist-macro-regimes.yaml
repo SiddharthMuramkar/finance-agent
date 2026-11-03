@@ -53,6 +53,12 @@ principle: >
   Judge a monetary stance by the real rate, not the nominal one, and expect bringing inflation down to
   cost output and jobs for a while; the central bank's credibility is what makes the cost worth paying.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Judge how tight or easy money is by the real rate, not the headline rate."
+  - "Explain why stagflation leaves a central bank with no painless remedy."
+  - "See who gains and who loses when inflation runs above what was expected."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: hmr-q-real-rate

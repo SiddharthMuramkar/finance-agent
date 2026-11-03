@@ -68,6 +68,12 @@ principle: >
   seller's own credit, a risk transfer can concentrate danger in the one seller. Ask what the
   seller has set aside, and what cash its contracts can demand.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why pooling many small, independent risks makes the average loss predictable."
+  - "Name adverse selection and moral hazard, and how insurers guard against them."
+  - "Ask what a seller of protection has set aside and what cash its contracts can demand."
+
 questions:
   - id: ins-q-fair-premium
     prompt: >

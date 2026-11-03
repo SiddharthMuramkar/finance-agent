@@ -50,6 +50,12 @@ principle: >
   Cash that a firm cannot invest at more than its cost of capital is worth more in shareholders'
   hands. Compare payout methods on tax, commitment and signal, not on earnings per share.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "See why paying cash out does not by itself make shareholders richer."
+  - "Compare dividends and buybacks on tax, commitment and signal, not on earnings per share."
+  - "Ask whether a firm has projects worth more than its cost of capital before it pays out."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: po-q-ex-div

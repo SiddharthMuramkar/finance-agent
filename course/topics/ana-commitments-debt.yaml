@@ -76,6 +76,12 @@ principle: >
   fixed, what can be cancelled, on what dates, and what rate fits; and when the filing does not
   say, state the assumption rather than invent the schedule.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Treat fixed contractual payments as debt, whatever the accounts call them."
+  - "Separate what is fixed and non-cancelable from what is only an option."
+  - "State the assumption when a filing gives a total without dates."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: cd-q-pv-annuity

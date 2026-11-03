@@ -56,6 +56,12 @@ principle: >
   it. Ask what would have to be true for the price to be right, and what would have to be true
   for a trader to survive until it is corrected.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Tell the weak, semi-strong and strong forms of market efficiency apart."
+  - "Separate the claim that a price is wrong from the claim that anyone could reliably profit from it."
+  - "See why betting against a mispricing can fail before the price corrects."
+
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
 questions:
   - id: ef-q-semi-strong

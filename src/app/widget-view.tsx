@@ -12,7 +12,7 @@ import { settingsFrom } from "@/widgets/settings";
 import type { WidgetToolName } from "@/widgets/tool-specs";
 import { createWidgetTools, type WidgetToolProvider } from "@/widgets/tools";
 
-const FALLBACK = "This widget could not be drawn. The lesson carries on without it.";
+const FALLBACK = "This widget could not be drawn. The Topic carries on without it.";
 
 function Fallback() {
   return (

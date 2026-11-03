@@ -50,6 +50,12 @@ principle: >
   Beta prices only the risk you cannot diversify. The cost of equity is the return you should demand, built from
   the risk-free rate, the premium for market risk and the beta, and the beta is an estimate with error.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Read beta as how much a share moves with the market."
+  - "Build a cost of equity from the risk-free rate, the market risk premium and beta."
+  - "Treat a measured beta as an estimate with error, and know when to borrow one from similar firms."
+
 questions:
   - id: cm-q-capm
     prompt: >

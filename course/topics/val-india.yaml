@@ -65,6 +65,12 @@ principle: >
   so inflation is counted once. Put country risk in one place only, and measure it, rather than
   adding a vague extra percentage.
 
+# You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+youllLearn:
+  - "Match rupee cash flows with a rupee discount rate, and dollar with dollar."
+  - "See how a gap in expected inflation shows up in the expected path of the exchange rate."
+  - "Measure country risk and put it in one place only."
+
 questions:
   - id: vi-q-consistency
     prompt: >
