@@ -1,18 +1,43 @@
 name: CI
 
+# The two job names, "check" and "build", are the required status checks in the ruleset on main.
+# Renaming either one blocks every merge until the ruleset is changed to match.
 on:
   push:
+    branches: [main]
   pull_request:
 
+# A newer push to the same PR or branch cancels the older run. Runs on main are never
+# cancelled, so every merge gets its own full result.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+# No secrets anywhere: tests use PGlite and a scripted Anthropic client, and the build reads no env.
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
-      # No secrets: tests use PGlite and a scripted Anthropic client, never live services.
       - run: npm ci
       - run: npm run check
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build

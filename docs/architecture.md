@@ -347,10 +347,44 @@ were saved with). The API does not report thinking tokens on every reply, so tha
 tokens in and out on Sonnet). The turn tests check that scripted replies produce the right rows,
 sums and costs, and that a reloaded Session shows the same panel.
 
-## Checks before merging (CI)
+## Checks before merging (CI) (`.github/workflows/ci.yml`, `vercel.json`, `src/test/setup.ts`)
 
-`npm run check` runs the type checker, the linter, the Course Map validator and the tests.
-GitHub Actions runs `npm ci && npm run check` on every push with no secrets.
+**What it does.** Nothing reaches `main` or production until two GitHub Actions jobs pass, with no
+secrets in either:
+
+- **`check`** runs `npm ci && npm run check`: the type checker, the linter, the Course Map
+  validator and every test.
+- **`build`** runs `npm ci && npm run build`: the real Next.js production build, so a page that
+  compiles in tests but breaks the build is caught before Vercel sees it. The build reads no
+  environment variables; a module that needs one must read it lazily, when a request arrives.
+
+The two job names are the required checks in the ruleset on `main`. A pull request is opened, both
+checks run, and with auto-merge on, GitHub squash-merges it the moment both are green. The rule is
+not "strict": a branch need not be up to date with `main`, so several pull requests can merge in
+parallel without queueing. Because of that, CI runs again on `main` after each merge. A newer
+push to the same pull request cancels its older run; runs on `main` are never cancelled.
+
+Production deploys from `main` through Vercel's own Git connection, so merging is deploying.
+`vercel.json` (`git.deploymentEnabled`) turns every other branch off, so no previews are built.
+Previews are off for now because there is no preview database: a preview would either point at
+production data or fail at the first query.
+
+**Scenario.** You merge a pull request that renames a function. Its tests pass, but one page still
+imports the old name. `check` is green (tests mock that page), `build` fails, auto-merge waits, and
+nothing deploys. You fix it, push, the old run is cancelled, both go green, it merges, Vercel
+deploys `main`, and CI runs once more on the merge commit.
+
+**The runner crash, and the test databases.** CI used to be cancelled about two minutes in, when
+the runner ran out of memory. Every `testDb()` call starts a whole in-memory Postgres (about
+85 MB), and nothing closed them: one test file makes 60+ of them, so a single worker reached 5 GB.
+`src/test/setup.ts` now closes the clones after each test and everything (including the saved
+template) after each file, and on CI Vitest runs 2 workers (GitHub's free runner has 2 cores and
+7 GB). Measured with 2 workers, total test memory fell from about 10.9 GB to 4.8 GB.
+
+**Trade-off.** Required checks and auto-merge mean a slow or broken CI blocks everything, and
+there is no human review step; a wrong test can ship. Closing databases per test costs a little
+speed, and a test that wants to share one database across tests must create it in `beforeAll`.
+Without previews you only see a change in production after merging.
 
 ## Conversation Check and what the Tutor remembers (`src/tutor/turn.ts`, `src/tutor/context.ts`, `src/learner/memory.ts`)
 
