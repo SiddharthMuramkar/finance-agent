@@ -117,6 +117,13 @@ describe("one Session per Topic", () => {
     expect(fourth.requests[0].messages.filter((m) => m.role === "system")).toHaveLength(1);
   });
 
+  it("the Tutor's instructions point it to the latest Where the Learner stands block, and to this Topic alone", () => {
+    expect(TUTOR_INSTRUCTIONS).toContain("the latest Where the Learner stands block");
+    expect(TUTOR_INSTRUCTIONS).not.toContain("The summary at the start of a Session");
+    expect(TUTOR_INSTRUCTIONS).not.toContain("when the first message holds");
+    expect(TUTOR_INSTRUCTIONS).toContain("This conversation is about one Topic");
+  });
+
   it("a refused turn stays on screen, but every row of it is left out of later requests, in the same Session", async () => {
     const db = await testDb();
     await saveJump(db, twoTopics, "present-value");
