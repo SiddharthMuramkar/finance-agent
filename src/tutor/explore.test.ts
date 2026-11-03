@@ -7,6 +7,7 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { testDb } from "@/test/pglite";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { latestTurn, turnKind } from "./turn-status";
 
 /** Tutor Turn tests for the explore step and Insight recording (ADR 0001), with a scripted Anthropic client and the real migrations. */
 
@@ -167,6 +168,45 @@ describe("explore step in the Tutor Turn", () => {
     expect(result.is_error).toBe(true);
     expect(result.content).toContain("Continue");
     expect(await db.select().from(insightAttempts)).toEqual([]);
+  });
+
+  it("never counts a help chip's message as an attempt, while a typed answer still counts", async () => {
+    const db = await atExplore();
+    for (const words of ["Explain that more simply.", "Show me in a widget."]) {
+      const requests = await turn(db, words, [attempt("c-" + words, "not_yet", words), say("Here it is another way.")]);
+      const result = toolResults(requests[1])[0];
+      expect(result.is_error).toBe(true);
+      expect(result.content).toContain("never an attempt at the Insight");
+      // The chip's exact words are the Learner's message, and the turn records its kind as chip.
+      expect(everything(requests[0])).toContain(JSON.stringify(words).slice(1, -1));
+      expect(turnKind((await latestTurn(db))!)).toBe("chip");
+    }
+    expect(await db.select().from(insightAttempts)).toEqual([]);
+
+    await turn(db, "The far bars shrink most", [attempt("t1", "not_yet", "The far bars shrink most"), say("Try comparing.")]);
+    const rows = await db.select().from(insightAttempts);
+    expect(rows.map((r) => [r.reported, r.released, r.words])).toEqual([["not_yet", "hint_1", "The far bars shrink most"]]);
+  });
+
+  it("never counts a code-written message (an opener's or a Next's note) as an attempt", async () => {
+    const db = await atExplore();
+    // The Tutor quotes some of the opener's note as if the Learner had said it.
+    const { client, requests } = scriptedClient([attempt("o1", "not_yet", "Opener by code"), say("Have a look.")]);
+    await collect(runTutorTurn({ db, client, map }, { opener: true }));
+    const result = toolResults(requests[1])[0];
+    expect(result.is_error).toBe(true);
+    expect(result.content).toContain("never an attempt at the Insight");
+    expect(await db.select().from(insightAttempts)).toEqual([]);
+  });
+
+  it("counts the Just tell me chip only as asking to be told, never as a not-yet attempt", async () => {
+    const db = await atExplore();
+    const requests = await turn(db, "Just tell me.", [attempt("t1", "not_yet", "Just tell me."), say("Here it is.")]);
+    const result = toolResults(requests[1])[0];
+    expect(result.content).toContain("the Insight is told");
+    expect(result.content).toContain(insight.written.trim());
+    const rows = await db.select().from(insightAttempts);
+    expect(rows.map((r) => [r.reported, r.released])).toEqual([["asked_to_be_told", "told"]]);
   });
 
   it("records an attempt once per tool call ID", async () => {
