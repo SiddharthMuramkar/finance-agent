@@ -6,8 +6,11 @@ import { fetchCaseData, splitReference, type CaseLoad } from "@/widgets/case-dat
 import { useCaseLoad } from "@/widgets/case-data-provider";
 import { Credit, SourcedTag } from "@/widgets/case-data-view";
 import { widgetParts, widgetProblems } from "@/widgets/check";
+import { SavedTicksContext, type SavedTicks } from "@/widgets/saved-ticks";
+import { widgetKey } from "@/widgets/widget-state";
 import { Chip, Eyebrow } from "./ui";
 import { SaveToNotes, type SaveTarget } from "./save-to-notes";
+import { useWidgetStore } from "./widget-states";
 import { WidgetView } from "./widget-view";
 import { FoldedRow } from "./workspace-parts";
 
@@ -141,23 +144,45 @@ export function SourcedStrip({ datasets, cases }: { datasets: readonly string[];
 
 /**
  * A Widget with the Sourced strip for the Case Data it draws through Query("case_data"), and its quiet "Save to
- * notes" beneath it. The numbers on its sliders are kept as the Learner moves them, so a saved Widget reopens as
- * they left it. Mount it with a key per Widget: its sliders start afresh then. Each Case it reads comes from the
- * page's shared Case Data cache, for its Queries, its charts and its strip together.
+ * notes" beneath it. Each Case it reads comes from the page's shared Case Data cache, for its Queries, its charts
+ * and its strip together. Mount it with a key per Widget: its sliders start afresh then.
+ *
+ * In the Study Workspace its slider values and ticked Guided Tasks are saved with the Session under its Widget key
+ * (Widget state, see widget-states.tsx), so it draws as the Learner left it after a reload or a tab switch, and
+ * Save to notes keeps the same values under the same key. Elsewhere they are kept only while it is on screen.
  */
 export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?: boolean }) {
   const settings = useRef<Record<string, number>>({});
   const loadCase = useCaseLoad();
+  const store = useWidgetStore();
+  // Only a finished Widget has a key: a streaming one's title may not be complete yet.
+  const key = store && item.complete ? widgetKey(widgetParts(item.code).title, item.explore) : undefined;
+  // What it starts from is read once, as it mounts: later saves come from the Widget itself.
+  const [start] = useState(() => (key ? store?.saved(key) : undefined));
+  const ticks = useMemo<SavedTicks | null>(
+    () => (store && key ? { ticked: start?.ticked ?? [], onTicked: (done) => store.save(key, { ticked: done }) } : null),
+    [store, key, start],
+  );
+  const onSettings = (s: Record<string, number>) => {
+    settings.current = s;
+    if (store && key) store.save(key, { values: s });
+  };
   // Only a finished Widget that passes the check is drawn, so only its Case Data gets the strip.
   const datasets = useMemo(() => (item.complete && !widgetProblems(item.code).length ? widgetParts(item.code).datasets : []), [item.code, item.complete]);
   const cases = useSourcedCases(datasets, loadCase);
   return (
     <>
-      <WidgetView code={item.code} complete={item.complete} bare={bare} onSettings={(s) => (settings.current = s)} loadCase={loadCase} />
+      <SavedTicksContext.Provider value={ticks}>
+        <WidgetView code={item.code} complete={item.complete} bare={bare} onSettings={onSettings} loadCase={loadCase} initialValues={start?.values} />
+      </SavedTicksContext.Provider>
       <SourcedStrip datasets={datasets} cases={cases} />
       {item.save && item.complete && (
         <div className="mt-2">
-          <SaveToNotes target={item.save} getSettings={() => settings.current} what="Widget" />
+          <SaveToNotes
+            target={key ? { ...item.save, widgetKey: key } : item.save}
+            getSettings={() => (key && store?.saved(key)?.values) || settings.current}
+            what="Widget"
+          />
         </div>
       )}
     </>

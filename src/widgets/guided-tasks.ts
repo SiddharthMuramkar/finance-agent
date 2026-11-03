@@ -92,3 +92,14 @@ export function guidedTaskProblems(children: unknown): string[] {
     ];
   });
 }
+
+/**
+ * How many tasks a saved Widget state already has done: the tasks from the first on whose texts it ticked, up to
+ * the first it did not (ticks are in order, so a gap ends them).
+ */
+export function savedReached(texts: readonly string[], ticked: readonly string[]): number {
+  const done = new Set(ticked);
+  let reached = 0;
+  while (reached < texts.length && done.has(texts[reached])) reached++;
+  return reached;
+}

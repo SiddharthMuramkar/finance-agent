@@ -809,6 +809,40 @@ visible to the Tutor, but a Tutor that renames a Widget while changing it makes 
 same-Case-Data rule catches the common case). The Old session page keeps every Widget as drawn. The
 rule for written-ahead Widgets' parts comes with ticket #160.
 
+### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
+
+**What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
+Guided Tasks it has ticked. Each is stored as one row of `widget_state` per (Session, Widget key). The Widget
+key is the written-ahead Widget's id (for now only the explore Widget, saved as "explore"), or the title of a
+Widget the Tutor drew, so a Widget the Tutor updates in place under the same title keeps the Learner's work. The
+Study Workspace page reads the shown Session's rows with the Session and hands them to the page; a Widget then
+starts from its saved values (OpenUI's `initialState`, which wins over the starting numbers in its code) and its
+saved ticks. The page keeps one store of these for every Widget, above any one tab, so a Widget mounted again
+after a tab switch draws as it was left. As the Learner moves a slider or a task ticks, the store posts that
+Widget's whole state to `/api/widget-state` 0.4 s after the last change, and at once when the page is left
+(`keepalive`, so a reload does not lose it). The route checks that the Session is the signed-in Learner's;
+another Learner's Session answers 404. Before the first turn has made the Session, changes wait in the page and
+are saved once the page learns its Session. Ticks moved out of the Guided Tasks part: it still ticks in order and
+never unticks, but it starts from the saved ticks and reports new ones. Save to notes sends the same Widget key,
+and the server keeps the values saved under that key in that Session (the browser's numbers only when nothing is
+saved yet). Notes, Older sessions and Home draw Widgets with no store, so there nothing is saved, as before.
+
+**Scenario.** In Percent, the Tutor draws "One rate change, said three ways". The Learner sets the old rate to
+3.25%, which ticks the first Guided Task, then opens the "Rates around the draw" tab and comes back: the slider
+is still at 3.25% and the task still ticked. They reload the page: the same. They then save the Widget to notes,
+and the note shows it at 3.25%.
+
+**Trade-off.** Keying by title is simple and is what the Tutor already uses to update in place, but a Widget
+redrawn under the same title starts from the Learner's old numbers, not the Tutor's new starting ones, and an
+untitled Widget is not saved at all. Saving a whole Widget's state on each change (after a short pause) is one
+small row write per pause rather than per pixel; the price is that a change made in the last 0.4 s before the
+browser is killed outright (not a reload or a closed tab) can be lost. Ticks are saved by their task text, so a
+redrawn Widget whose task is worded differently starts that task afresh. The server only checks the shape (finite
+numbers on `$variable` names, short task texts, at most 20 of each), not the Widget's code, because the code of a
+Tutor Widget is in a reply the route would have to find; what is saved is only ever read back into that Widget.
+A static page render cannot show saved values (OpenUI fills in state after the first browser render), so the
+workspace test draws in happy-dom, a browser-like page.
+
 ### Widget tools (`src/widgets/tools.ts`, `src/widgets/tool-specs.ts`)
 
 **What they are.** Four small functions of ours that run in the browser when a Widget asks for
@@ -2436,11 +2470,11 @@ backfill reload places the corrected readings.
 
 ## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/guided-task-check.ts`, issue #66)
 
-**What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked, saved or sent to the Tutor. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` tries every position of the sliders a task reads in each Topic's explore Widget, and fails on a task no position can reach or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
+**What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked. In the Study Workspace the ticks are saved with the Session (see "Widget state"), so they survive a reload and a tab switch. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` tries every position of the sliders a task reads in each Topic's explore Widget, and fails on a task no position can reach or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
 
 **Scenario.** Present value's explore Widget has four tasks under the rate slider and the annuity chart: set the rate to 0%, then 2%, then 8%, then find the rate where the payments' worth today comes closest to the cash option. The slider starts at 5%, so none is done. The Learner drags to 8% first: nothing ticks, because task 1 is current. They go to 0%: task 1 ticks. They go to 2%, then 8%: tasks 2 and 3 tick. The fourth ticks at 3.25% or 3.5%, the two positions where the annuity's worth today is nearest the cash option's $877.8 million. If a later edit made task 3 read `$rate == 8.1`, the course check would fail, because it still tries the slider's written steps of 0.25 (in the browser a percent slider now moves in 0.01 steps, so the check is stricter than the page; see "Exact slider values").
 
-**Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Ticks live in the page, so reloading the page starts the stepper again, which suits practice that is never saved. The frozen Widget instructions changed (two components, an example and a rule), so each Session is refrozen at its next new turn after the deploy.
+**Trade-offs.** Conditions are plain expressions on slider values, so a task can only describe a state the sliders reach; it cannot say "watch the far bars". The "closest" range was worked out by us with the tested annuity formula and the cash option's figure, and a test pins it; the course check itself proves only that it can be reached, not that it is the nearest. Since spec #119 the ticks are saved with the Session as Widget state; on Notes, Older sessions and Home they still live in the page only, so a reload there starts the stepper again. The frozen Widget instructions changed (two components, an example and a rule), so each Session is refrozen at its next new turn after the deploy.
 
 ## Exact slider values (`SliderView` and `WidgetFrame` in `src/widgets/library.tsx`, `src/widgets/slider-steps.ts`, issue #143)
 
@@ -2448,7 +2482,7 @@ backfill reload places the corrected readings.
 
 **Scenario.** A Widget is written with `Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")` starting at `$rate = 5`, and a Guided Task `$rate == 3.38`. The Learner types 3.3812 in the number box and presses Enter: the value becomes 3.38, the readout says "Discount rate 3.38%", and the task ticks. They press + twice (3.40%), drag the slider about, then press Reset: the rate is back at 5%.
 
-**Trade-offs.** Rounding to the step's decimals rather than snapping typed values to the step lets a Learner type 3.38 on a 0.25 slider, which an equality task can then match; the price is that a typed value can sit between two positions of the slider's track. Committing typed text only on Enter or leaving the box costs one extra key press but stops half-typed numbers from ticking tasks. Starting values are remembered in the page, so Reset after a reload goes to the code's starting value (saving slider positions with the Session is a later ticket). The course check for Guided Tasks still tries the written steps, so it can only be stricter than the page.
+**Trade-offs.** Rounding to the step's decimals rather than snapping typed values to the step lets a Learner type 3.38 on a 0.25 slider, which an equality task can then match; the price is that a typed value can sit between two positions of the slider's track. Committing typed text only on Enter or leaving the box costs one extra key press but stops half-typed numbers from ticking tasks. Slider positions are saved with the Session (see "Widget state"), and Reset goes back to the code's starting value, not the saved one. The course check for Guided Tasks still tries the written steps, so it can only be stricter than the page.
 
 ## Weekly refresh of Damodaran's posts (`src/library/refresh.ts`, `src/app/api/cron/library-refresh/route.ts`, `library_refresh_runs`, `vercel.json` crons, IL 16, #73)
 
@@ -2486,7 +2520,7 @@ backfill reload places the corrected readings.
 
 **Saving twice.** The table has a unique index over the Topic, kind, Session, turn and Widget number (Learner lines excluded), and a save inserts first and treats a clash as "already there", so a double click or two tabs cannot make two rows; the slider numbers of a repeated Widget save are updated. Since spec #119 the control itself also stops a second save: once saved it reads "Saved ✓ · Undo · Open notes" and has no Save button until Undo.
 
-**Trade-off.** Storing a pointer instead of a copy means a saved reply always follows today's as-of rule and sources, and cannot go stale or leak an outcome from a frozen copy; but it depends on the Session's messages staying (they are add-only) and a reply saved from a Session cannot be edited. Settings are only slider numbers, so a Widget whose state is anything else reopens at its starting values. A static page render cannot show the slider numbers, because the Widget library fills them in after the first browser render, so the test checks the code the numbers are written into.
+**Trade-off.** Storing a pointer instead of a copy means a saved reply always follows today's as-of rule and sources, and cannot go stale or leak an outcome from a frozen copy; but it depends on the Session's messages staying (they are add-only) and a reply saved from a Session cannot be edited. Settings are only slider numbers, so a Widget whose state is anything else reopens at its starting values. Since spec #119 a save from the Study Workspace names the Widget's key too, and the note keeps the values saved under that key with the Session (see "Widget state"). A static page render cannot show the slider numbers, because the Widget library fills them in after the first browser render, so the test checks the code the numbers are written into.
 
 ## The Notes filter and Undo (`src/app/notes/notes-view.tsx`, `src/app/notes/undo.tsx`, `src/app/save-to-notes.tsx`, `src/learner/saved.ts`, spec #119, ticket #152)
 

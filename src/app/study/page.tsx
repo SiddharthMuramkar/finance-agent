@@ -12,6 +12,7 @@ import { learnerSummary, loadProgress } from "@/learner/memory";
 import { openQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { showsWelcome } from "@/learner/welcome";
+import { loadWidgetStates } from "@/learner/widget-state";
 import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
 import { loadSession } from "@/tutor/transcript";
 import { latestTurn } from "@/tutor/turn-status";
@@ -65,7 +66,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [summary, initial, quiz, turn, review, progress] = await Promise.all([
+  const [summary, initial, quiz, turn, review, progress, widgetStates] = await Promise.all([
     learnerSummary(db, map, learnerId),
     "sessionId" in shown ? loadSession(db, shown.sessionId, map, learnerId) : [],
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
@@ -76,6 +77,8 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
     latestTurn(db, learnerId),
     reviewState(db, map, new Date(), learnerId),
     loadProgress(db, learnerId),
+    // The Widgets' saved work in this Session (slider values and ticks), so a reload draws them as they were left.
+    "sessionId" in shown ? loadWidgetStates(db, shown.sessionId, learnerId) : {},
   ]);
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
   // failed turn in another Topic's Session waits for that Topic; one still running blocks every Topic.
@@ -99,6 +102,7 @@ export default async function WorkspacePage({ searchParams }: { searchParams: Pr
         explore={passed ? null : exploreWidgetFor(map, progress)}
         revealed={revealedCases(map, progress)}
         shown={shown}
+        widgetStates={widgetStates}
         passed={passed}
         developerDetails={learner.showDeveloperDetails}
       />
