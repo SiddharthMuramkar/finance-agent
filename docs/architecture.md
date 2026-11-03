@@ -426,7 +426,8 @@ in `check.ts`, which looks through nested layouts and also lists the tools and C
 the widget uses): an AnnuityChart or the `annuity_schedule` tool is "Present value", a HistoryChart or
 `case_data` "Case Data", a Calculator, `calculate` or `calculate_range` "Calculator", a FormulaCard
 "Formula", a kit chart or table with no tool and none of our code-backed parts "Illustration", and
-anything else the current Topic's title. The newest widget shows on its own, including when a new
+anything else the current Topic's title. A finished widget the check refuses shows only the fallback
+note, so its eyebrow is the Topic's title too, never "Illustration". The newest widget shows on its own, including when a new
 turn brings one. With two or more widgets a row of chips (one per widget title) sits above the card; picking a chip there or in the chat shows that widget, fades it in over 200ms,
 flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
 box says "Widgets the Tutor builds appear here." Scenario: the Learner has a rate chart from earlier

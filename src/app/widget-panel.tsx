@@ -150,6 +150,17 @@ export function widgetConcept(code: string, topicTitle: string | undefined): str
 }
 
 /**
+ * The card's eyebrow: "Explore" over the explore Widget; the current Topic's title over a finished Widget the
+ * check refuses, which shows only the fallback note, so nothing is drawn to name; else the concept its parts
+ * show (widgetConcept). A refused Widget with a kit chart would otherwise read "Illustration" over the note.
+ */
+function eyebrowFor(item: WidgetItem, topicTitle: string | undefined): string {
+  if (item.explore) return "Explore";
+  if (item.complete && widgetProblems(item.code).length) return topicTitle ?? "Widget";
+  return widgetConcept(item.code, topicTitle);
+}
+
+/**
  * Which Widget the panel shows: the one picked, else the newest. Picking flashes the card border for 1s.
  * `clear` forgets the pick, so a new turn's Widget shows on its own.
  */
@@ -222,7 +233,7 @@ export function WidgetPanel({
       <section data-testid="widget-card" className={`rounded-lg border p-4 transition-colors duration-200 ${hiddenBelowLaptop} ${flashing ? "border-[var(--brand)]" : "border-[var(--border)]"}`}>
         {/* Remounts per Widget, so each one fades in over 200ms. */}
         <div key={shown.key} className="transition-opacity duration-200 starting:opacity-0">
-          <Eyebrow className="mb-1">{shown.explore ? "Explore" : widgetConcept(shown.code, topicTitle)}</Eyebrow>
+          <Eyebrow className="mb-1">{eyebrowFor(shown, topicTitle)}</Eyebrow>
           <WidgetWithSave item={shown} />
         </div>
       </section>
