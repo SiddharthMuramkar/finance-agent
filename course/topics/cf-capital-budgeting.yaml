@@ -1,0 +1,142 @@
+# NPV, IRR and capital budgeting: a foundation Topic taught through Webvan's distribution-centre plan.
+# Case sources (checked): Webvan Group Form 10-K405 for 1999, filed 30 March 2000 (SEC accession 0000891618-00-001877); Webvan Form 8-K filed 27 July 2001 (SEC accession 0001021408-01-504054) for the bankruptcy filing date.
+id: cf-capital-budgeting
+title: NPV, IRR and capital budgeting
+
+cases:
+  - id: webvan-centre-npv-2000
+    title: Webvan's plan for 26 more distribution centres
+    asOf: 2000-03-30
+    story: >
+      On 30 March 2000 the online grocer Webvan filed its annual report for 1999. The company
+      had sold groceries for about seven months from one distribution centre in Oakland,
+      California, a 336,000 square foot building designed to handle the volume of about 18
+      supermarkets. In 1999 it had net sales of $13.3 million and a net loss of $144.6 million.
+      At 31 December 1999 the Oakland centre was running at less than 25% of its designed
+      capacity. In July 1999 Webvan had signed an agreement with the engineering firm Bechtel to
+      build up to 26 more centres over three years. It had no firm commitment to build them, but
+      estimated spending of about $1.0 billion, or $30 million to $35 million per centre, and
+      expected capital spending of $300 million to $350 million in 2000. The report says that a
+      centre running at its designed capacity seven days a week would sell about $300 million a
+      year, with an average order of about $103 against $77.65 in 1999. It also gives the company's
+      own investment case: if a centre reaches the volume and costs expected at the end of its
+      first year, its earnings before interest, tax, depreciation and amortisation (EBITDA) would
+      be positive and it would produce significant cash from the fifth quarter. If it reaches the
+      volumes and costs expected by the end of the third year, its EBITDA from launch to then would
+      about equal the cost of building and equipping it. Assume the company's cost of capital is
+      15%. Does one centre pass the test of net present value? What would you need to believe?
+    reveal: >
+      Webvan did not build the plan. It bought its rival HomeGrocer in 2000, spent $259.8 million
+      on equipment and buildings that year against a plan of $300 million to $350 million, and cut
+      its 2001 spending plan to $10 million to $15 million. Net loss in 2000 was $453.3 million.
+      On 9 July 2001 it shut down and said it would file for bankruptcy protection, and it filed
+      on 13 July. The investment case rested on a centre reaching high volumes and an average
+      order far above the one it had. Its own payback claim was an EBITDA
+      figure, before tax, upkeep and head-office costs, and said nothing about the time value of
+      money: recovering the cost after three years is worth less than the cost when the discount
+      rate is 15%.
+
+concept: >
+  Capital budgeting decides which long-lived projects a firm should fund. Net present value
+  (NPV) discounts every expected cash flow, including the initial outlay, at the project's
+  required return and adds them up. A positive NPV adds value and a negative one destroys it. The
+  internal rate of return (IRR) is the discount rate at which NPV is zero; accept if it is
+  above the required return. Payback period counts the years to recover the outlay. It is easy to
+  explain but ignores the time value of money and any cash after the payback date. NPV measures
+  the value added in money, so it is the better guide when projects differ in size, when
+  cash-flow signs change more than once (which can give several IRRs), or when the choice is
+  between mutually exclusive projects. Only future cash flows that change with the decision count:
+  money already spent is sunk, and allocated overhead that does not change is not a cash flow. A
+  plan that is attractive only if the volume, price and cost targets are all reached deserves a
+  sensitivity check on each target.
+
+principle: >
+  Judge a project by the cash it adds after the money it ties up, discounted at a rate that
+  matches its risk. A payback claim is a story about timing; an NPV makes you say how much cash
+  and when.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: cb-q-npv-calc
+    prompt: >
+      A project costs $900 today and pays $1,210 in two years. The discount rate is 10% a year. What is its net present value?
+    choices:
+      - { id: a, text: "$100" }
+      - { id: b, text: "$310" }
+      - { id: c, text: "-$100" }
+      - { id: d, text: "$0" }
+    answer: a
+    explanation: >
+      The present value of $1,210 in two years is 1,210 / 1.10^2 = 1,000. Subtracting the cost of $900 gives an NPV of $100. Accept, because it is positive.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 16.2 Net Present Value (NPV) Method: https://openstax.org/books/principles-finance-2e/pages/16-2-net-present-value-npv-method
+
+  - id: cb-q-irr-def
+    prompt: >
+      What is the internal rate of return (IRR) of a project?
+    choices:
+      - { id: a, text: "The discount rate at which the project's net present value is zero" }
+      - { id: b, text: "The average accounting profit divided by the investment" }
+      - { id: c, text: "The firm's cost of capital" }
+      - { id: d, text: "The rate at which the payback period equals one year" }
+    answer: a
+    explanation: >
+      The IRR sets the present value of the inflows equal to the present value of the outflows. Accept the project if the IRR is above the required return.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 16.3 Internal Rate of Return (IRR) Method: https://openstax.org/books/principles-finance-2e/pages/16-3-internal-rate-of-return-irr-method
+
+  - id: cb-q-payback-flaw
+    prompt: >
+      Which is a weakness of the payback period rule?
+    choices:
+      - { id: a, text: "It ignores the time value of money and cash flows after the payback date" }
+      - { id: b, text: "It cannot be calculated for a project with positive cash flows" }
+      - { id: c, text: "It always favours the largest project" }
+      - { id: d, text: "It requires the cost of capital to be known exactly" }
+    answer: a
+    explanation: >
+      Payback counts years to recover the cost. A project that pays back quickly but earns nothing afterwards can look better than one that pays back slower but earns much more, and a dollar recovered in year three counts the same as one recovered in year one.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 16.1 Payback Period Method: https://openstax.org/books/principles-finance-2e/pages/16-1-payback-period-method
+
+  - id: cb-q-sunk
+    prompt: >
+      A firm paid $50,000 last year for a feasibility study of a new plant. It can still choose whether to build. How should the $50,000 enter the decision?
+    choices:
+      - { id: a, text: "Not at all: it is a sunk cost that is the same whether or not the plant is built" }
+      - { id: b, text: "As a cost at time zero" }
+      - { id: c, text: "As a benefit, because the study reduced uncertainty" }
+      - { id: d, text: "Spread over the plant's life as depreciation in the cash flows" }
+    answer: a
+    explanation: >
+      Only cash flows that change with the decision count. The study has been paid for and cannot be recovered, so it should not be counted in the plant's NPV.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 16.2 Net Present Value (NPV) Method: https://openstax.org/books/principles-finance-2e/pages/16-2-net-present-value-npv-method
+
+checks:
+  - id: cb-quiz-npv-irr
+    kind: quiz
+    questions:
+      - cb-q-npv-calc
+      - cb-q-irr-def
+      - cb-q-payback-flaw
+      - cb-q-sunk
+      - bank:eab:MBA-FIN-CF-0011
+      - bank:eab:MBA-FIN-CF-0012
+      - bank:eab:MBA-FIN-CF-0013
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cb-centre-case
+    kind: conversation
+    prompt: >
+      Webvan's report said a distribution centre costing $30 million to $35 million would earn back
+      its cost in EBITDA after about three years. Explain why that is not enough to say the
+      centre is worth building, how you would build its NPV at a 15% cost of capital, and which
+      assumptions you would test first.
+    passCriteria: >
+      The Learner says payback ignores the time value of money and what happens after the payback
+      date, and that EBITDA is before tax, upkeep spending and head-office costs. They describe
+      NPV as the discounted sum of the centre's yearly cash flows less its cost, with forecasts of
+      orders per day, order size, margin and capital cost, and say the volume and average-order
+      assumptions need the most testing because the plan depends on them.

@@ -1,0 +1,132 @@
+# CAPM, beta and factor models: a foundation Topic taught through Damodaran's cost of equity for Amazon in February 2000.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Damodaran, "Valuing Amazon.com" (HighGrow) paper, valuation done February 2000: http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf ; Amazon.com, Form 10-K405 for 2000 (SEC EDGAR 0001032210-01-500087): https://www.sec.gov/Archives/edgar/data/1018724/000103221001500087/d10k405.txt ; OpenStax, Principles of Finance 2e, 15.3.
+# Not covered: an India beta and cost-of-capital input dated before the Case; no past-dated Indian file was found.
+id: risk-capm
+title: CAPM, beta and factor models
+
+cases:
+  - id: amazon-cost-of-equity-2000
+    title: What return should Amazon's shareholders require? (February 2000)
+    data: [amzn-quarterly-high, amzn-quarterly-low]
+    asOf: 2000-02-01
+    story: >
+      In February 2000 Amazon.com, the online retailer, trades at $84 a share,
+      and Aswath Damodaran of New York University is valuing it. He needs the cost of equity: the return
+      shareholders should require for the risk they bear, used to discount the company's future cash flows. The yield on the US Treasury bond, his risk-free rate, is 6.5%. The premium for holding
+      average-risk shares over the risk-free rate (the equity risk premium) he takes as 4%. For beta, the measure of how much
+      a share moves with the market, he has two figures. A regression of two years of weekly Amazon returns on the
+      market (from Bloomberg) gives a beta of 2.29, but with a standard error of 0.50, which is large because the
+      company has a short history. The average beta of internet firms is about 1.60, and of retailers close to
+      1.0. He chooses 1.60 for the first five years, fading to 1.00 by year ten as the company matures. What cost of
+      equity does each beta imply, which would you use, and how much should the choice matter to the value?
+    reveal: >
+      Damodaran used beta 1.60 and a cost of equity of 12.90% for years one to five (6.5% + 1.60 x 4%), falling to 10.50% by year ten (beta 1.00).
+      The regression beta of 2.29 would have implied 15.66%. Combined with forecasts of rapid revenue growth and rising margins,
+      his cost of capital of 12.84% in year one and 9.61% in the stable phase gave a value of $35.08 a share, well under the $84 market
+      price. The shares did not fall in a straight line. Amazon's 10-K shows a first-quarter 2000 high of $91.50, but then quarterly lows of
+      $58.44, $32.47, $27.88 and $14.88 in the year, and the stock traded as high as $91.50 and as low as $14.88
+      in 2000. The cost of equity says what return to demand, not what the price will do in the next year: a
+      beta tells how a share moves with the market, not whether the price is right. The gap between the high
+      and low also shows how weak a short-history beta is as a guide to the actual swings of a young company.
+
+concept: >
+  The capital asset pricing model (CAPM) says investors are rewarded only for systematic risk, the part
+  of a share's risk that cannot be diversified away. A share's beta measures how much it moves with the market:
+  a beta of 1 moves in line, 2 moves twice as much, 0.5 half as much. The expected return is
+  Re = Rf + beta x (Rm - Rf), where Rf is the risk-free rate (usually a government bond yield) and Rm - Rf is the market
+  risk premium (equity risk premium), the extra return investors expect for holding the market instead of the risk-free asset.
+  A share with a beta above 1 should offer a higher expected return than the market and one below 1 a lower return. Beta is
+  estimated by regressing the share's returns on the market's returns, and the estimate depends on the
+  period, the return interval and the market index used, so two providers give different numbers for the same share. For a young
+  company or one with few years of data, the regression beta carries a large standard error (the true beta is roughly
+  within two standard errors either side of the estimate), so analysts often use the average beta of comparable firms instead.
+  Beta also rises with a company's debt, which is why comparable betas are adjusted for leverage. CAPM has one factor,
+  the market; factor models extend it with more, such as company size and value, and are used to explain why
+  some groups of shares have earned more than beta alone would predict. In valuation, the cost of equity is the
+  discount rate for equity cash flows, so the choice of beta and equity risk premium changes the value.
+
+principle: >
+  Beta prices only the risk you cannot diversify. The cost of equity is the return you should demand, built from
+  the risk-free rate, the premium for market risk and the beta, and the beta is an estimate with error.
+
+questions:
+  - id: cm-q-capm
+    prompt: >
+      The risk-free rate is 5%, the market risk premium is 6% and a share has a beta of 1.2. What is the CAPM expected return?
+    choices:
+      - { id: a, text: "12.2%" }
+      - { id: b, text: "7.2%" }
+      - { id: c, text: "11.0%" }
+      - { id: d, text: "13.2%" }
+    answer: a
+    explanation: >
+      Re = 5% + 1.2 x 6% = 5% + 7.2% = 12.2%.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (CAPM equation): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
+
+  - id: cm-q-beta
+    prompt: >
+      A share has a beta of 2. If the market rises 10%, what does the share tend to do?
+    choices:
+      - { id: a, text: "Rise about 20%" }
+      - { id: b, text: "Rise about 5%" }
+      - { id: c, text: "Rise about 10%" }
+      - { id: d, text: "Fall about 20%" }
+    answer: a
+    explanation: >
+      A beta of 2 means the share tends to move twice as far as the market in the same direction: +20% when the market is up 10%, and -10% when the market falls 5%.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (Interpreting Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
+
+  - id: cm-q-differ
+    prompt: >
+      Two data providers report different betas for the same share. Which is a main reason?
+    choices:
+      - { id: a, text: "They use different time periods, return frequencies or market indexes" }
+      - { id: b, text: "One of them has made an arithmetic error that cannot be avoided" }
+      - { id: c, text: "Beta is set by the company and reported differently" }
+      - { id: d, text: "Beta changes each time it is read" }
+    answer: a
+    explanation: >
+      A beta is a regression estimate. Three- and five-year windows, weekly and monthly returns, and different indexes give different slopes.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 15.3 The Capital Asset Pricing Model (Calculating Beta): https://openstax.org/books/principles-finance-2e/pages/15-3-the-capital-asset-pricing-model-capm
+
+  - id: cm-q-stderr
+    prompt: >
+      A regression gives a beta of 1.8 with a standard error of 0.6. Roughly what range, two standard errors either side, is the true beta likely to lie in?
+    choices:
+      - { id: a, text: "0.6 to 3.0" }
+      - { id: b, text: "1.2 to 2.4" }
+      - { id: c, text: "1.8 exactly" }
+      - { id: d, text: "0 to 1.8" }
+    answer: a
+    explanation: >
+      1.8 minus 2 x 0.6 is 0.6, and 1.8 plus 2 x 0.6 is 3.0. A range this wide shows why an estimate from a short history is a weak basis for a cost of equity.
+    source: >
+      Damodaran, Amazon.com valuation paper, section 5 (regression betas for firms with limited history carry substantial error; Amazon's 2.29 beta had a standard error of 0.50): http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
+
+checks:
+  - id: cm-quiz-capm
+    kind: quiz
+    questions:
+      - cm-q-capm
+      - cm-q-beta
+      - cm-q-differ
+      - cm-q-stderr
+      - bank:eab:MBA-FIN-VAL-0037
+      - bank:eab:MBA-FIN-VAL-0046
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cm-choose-beta
+    kind: conversation
+    prompt: >
+      A young company has a regression beta of 2.1 with a large standard error, while the average beta of
+      similar firms is 1.5. With a risk-free rate of 5% and a market risk premium of 5%, work out the
+      cost of equity each beta gives and say which you would use and why.
+    passCriteria: >
+      The Learner calculates 5% + 2.1 x 5% = 15.5% and 5% + 1.5 x 5% = 12.5%. They say the regression
+      beta is imprecise for a company with a short history, so the average beta of comparable firms is a
+      sounder estimate, and note that the choice changes the discount rate and so the value.

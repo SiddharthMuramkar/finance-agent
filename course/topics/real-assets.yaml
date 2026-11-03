@@ -1,0 +1,177 @@
+# Real estate and commodities: a foundation Topic taught through the US house-price index to the end of 2006.
+# Case Data (the FHFA House Price Index, monthly 1999 to 2013) lives in the database; see docs/architecture.md.
+# Case sources (checked 2 Nov 2026): Federal Housing Finance Agency, House Price Index master file (purchase-only, USA, seasonally adjusted; the series is revised, so these are 2026 values): https://www.fhfa.gov/hpi/download/monthly/hpi_master.csv ; Yale ECON 251 (Shiller), Lecture 1, on putting down three percent and leverage of 30:1 or 33:1: https://oyc.yale.edu/economics/econ-251/lecture-1 ; Damodaran, valuation introduction slides (gold, commodities and collectibles): https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
+id: real-assets
+title: Real estate and commodities
+
+cases:
+  - id: us-housing-index-2006
+    title: Seven years of rising US house prices
+    data: [fhfa-hpi-us]
+    asOf: 2006-12-31
+    story: >
+      The Federal Housing Finance Agency (FHFA) publishes a House Price Index for the United
+      States that follows repeat sales of the same houses, so it measures price change without
+      the distortion of which houses happen to be sold. Set so that January 1991 equals 100,
+      the purchase-only, seasonally adjusted index stood at 136.89 in January 2000 and at
+      222.68 in December 2006: a rise of about 63 per cent in under seven years, in nominal
+      dollars, with no adjustment for inflation. In the United States a buyer could then put down
+      a small share of the price and borrow the rest; in his Yale course Robert Shiller gives
+      three per cent down as an example, which means a loan of 97 per cent of the price. A
+      buyer who puts down three dollars on a hundred-dollar house controls 33 dollars of
+      house for every dollar of their own: borrowing to buy, called leverage. As of the end
+      of 2006, a rental investor or a lender has to decide what a house
+      is worth: is the price of a house the present value of what it will earn or save in rent,
+      or is it whatever the next buyer will pay? And what does borrowing 97 per cent of the
+      price do to the risk of whoever lent the money, and of whoever borrowed it?
+    reveal: >
+      The index peaked in April 2007 at 224.47, only about 0.8 per cent above December 2006,
+      then fell for four years. It reached 176.67 in May 2011, 21.3 per cent below the peak
+      and about 21 per cent below its December 2006 level, and was 199.86 in December 2013.
+      (These are the 2026 values of a series FHFA revises; earlier releases gave slightly
+      different percentages.) Even at its low the index was still above its January 2000
+      level of 136.89. The size of the fall matters because of leverage. With 3 per cent down,
+      a fall of just 3 per cent in the house's price wipes out the buyer's whole deposit,
+      and a fall of 21 per cent leaves the loan larger than the house. Lenders who had lent
+      97 per cent of the price on a house that had lost that much value were left with a loan
+      the house no longer covered. A price that depends on the next buyer, financed by
+      borrowing, turns a fall in prices into a loss of the buyer's deposit and a risk to the
+      lender.
+
+concept: >
+  Real assets are physical things with their own use: land and buildings, and commodities such
+  as oil, wheat, copper and gold. Real estate earns cash flows, which are rent paid or rent
+  saved. So its value can be set by discounting them, as in present value. A simple version
+  prices a building as its yearly net rent divided by the yield buyers require (the
+  capitalisation rate): net rent of Rs 6,00,000 a year at a 5 per cent required yield gives
+  Rs 1.2 crore. If the price rises and the rent does not, the rent yield falls, so the buyer
+  must be relying on the price rising further, not on the rent. Because buildings are bought
+  with borrowed money, leverage magnifies everything: the buyer's gain or loss is the change in
+  the price divided by their own deposit, so a small deposit means small price falls erase the
+  buyer's equity. Commodities differ. A commodity such as oil is valued by the demand for its
+  use and the supply, and supply responds slowly (a new mine or well takes years), so prices
+  swing. Gold produces no cash flow, so it cannot be valued by discounting; like a
+  collectible it is priced by scarcity and desirability, and its price is whatever buyers will
+  pay.
+
+principle: >
+  Ask what a real asset earns before asking what it costs. When price runs ahead of rent, the
+  buyer depends on a later buyer paying more, and borrowing against the price turns a modest
+  fall into a loss of the buyer's own money and a risk to the lender. An asset with no cash
+  flow, such as gold, has a price but no value that discounting can supply.
+
+questions:
+  - id: ra-q-rent-value
+    prompt: >
+      A building brings in net rent of Rs 6,00,000 a year, and buyers of similar buildings require a yield of 5 per cent on the price. What price does this simple rent-based method give?
+    choices:
+      - { id: a, text: "Rs 30,00,000" }
+      - { id: b, text: "Rs 1.2 crore" }
+      - { id: c, text: "Rs 1.5 crore" }
+      - { id: d, text: "Rs 12 lakh" }
+    answer: b
+    explanation: >
+      Price = net rent / required yield = Rs 6,00,000 / 0.05 = Rs 1,20,00,000, which is Rs 1.2 crore. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate.
+    source: >
+      Arithmetic from the stated figures, using the present-value principle that an asset's value is the present value of its expected cash flows; Damodaran, valuation introduction slides: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
+
+  - id: ra-q-yield-falls
+    prompt: >
+      A flat rents out for Rs 3,00,000 a year while its price is Rs 50 lakh, a rent yield of 6 per cent. The price rises by half to Rs 75 lakh and the rent does not change. What is the rent yield now?
+    choices:
+      - { id: a, text: "9 per cent" }
+      - { id: b, text: "6 per cent" }
+      - { id: c, text: "4 per cent" }
+      - { id: d, text: "3 per cent" }
+    answer: c
+    explanation: >
+      Yield = Rs 3,00,000 / Rs 75,00,000 = 0.04, or 4 per cent. With the rent unchanged, a higher price means a lower yield; a buyer at the new price is relying more on the price rising than on the rent.
+    source: >
+      Arithmetic from the stated figures; yield as rent divided by price, as in the rent-based valuation in Damodaran, valuation introduction slides: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
+
+  - id: ra-q-leverage-ratio
+    prompt: >
+      A buyer puts down 4 per cent of a house's price and borrows the other 96 per cent. For every rupee of their own money, how many rupees of house do they control?
+    choices:
+      - { id: a, text: "Rs 4" }
+      - { id: b, text: "Rs 25" }
+      - { id: c, text: "Rs 96" }
+      - { id: d, text: "Rs 100" }
+    answer: b
+    explanation: >
+      The house is 100 for every 4 of the buyer's own money: 100 / 4 = 25, so 25 to 1. In his Yale lecture Shiller gives the same sum for three per cent down, 100 / 3, about 33 to 1.
+    source: >
+      Yale ECON 251 (Shiller), Lecture 1, Why Finance? (a hundred-dollar house with three dollars down is leveraged 30:1 or 33:1): https://oyc.yale.edu/economics/econ-251/lecture-1
+
+  - id: ra-q-leverage-gain
+    prompt: >
+      You buy a flat for Rs 1 crore with Rs 5 lakh of your own money and a Rs 95 lakh loan. A year later it is worth Rs 1.1 crore. Ignoring rent, interest and costs, what is your return on your own Rs 5 lakh?
+    choices:
+      - { id: a, text: "10 per cent" }
+      - { id: b, text: "100 per cent" }
+      - { id: c, text: "200 per cent" }
+      - { id: d, text: "20 per cent" }
+    answer: c
+    explanation: >
+      The price rose Rs 10 lakh, all of which belongs to you after repaying the Rs 95 lakh loan. Rs 10 lakh on Rs 5 lakh of your own money is 200 per cent. Leverage multiplies a loss in the same way.
+    source: >
+      Arithmetic from the stated figures; the multiplying effect of leverage is the point of Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
+
+  - id: ra-q-leverage-loss
+    prompt: >
+      You buy a flat for Rs 1 crore with Rs 5 lakh of your own money and a Rs 95 lakh loan. The flat later sells for Rs 90 lakh. Ignoring rent, interest and costs, and after repaying the loan out of the sale, what is left of your Rs 5 lakh?
+    choices:
+      - { id: a, text: "Rs 4.5 lakh: you lose 10 per cent" }
+      - { id: b, text: "Rs 0, and you still owe Rs 5 lakh to the lender" }
+      - { id: c, text: "Rs 0, and the loan is fully repaid" }
+      - { id: d, text: "Rs 5 lakh, because the loan was fixed" }
+    answer: b
+    explanation: >
+      The sale brings Rs 90 lakh but the loan is Rs 95 lakh. Your Rs 5 lakh is gone and a Rs 5 lakh shortfall remains. A fall of 10 per cent in the price took away 100 per cent of the deposit, and the lender is exposed to the shortfall.
+    source: >
+      Arithmetic from the stated figures; leverage as in Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
+
+  - id: ra-q-gold-valuation
+    prompt: >
+      Why can a discounted cash flow valuation not give a value for gold bars held in a vault?
+    choices:
+      - { id: a, text: "Gold has no price in the market" }
+      - { id: b, text: "The bars produce no cash flows to discount, so gold can be priced (by scarcity and desirability) but not valued" }
+      - { id: c, text: "Gold is too risky for any discount rate" }
+      - { id: d, text: "Discounting only works on property" }
+    answer: b
+    explanation: >
+      Discounted cash flow value is the present value of expected cash flows. Gold held in a vault pays no rent, interest or dividend, so there is nothing to discount. Damodaran puts gold with collectibles: it can be priced on scarcity and desirability, but not valued from cash flows.
+    source: >
+      Damodaran, valuation introduction slides (investments that do not generate cash flows, such as gold, currencies and collectibles, cannot be valued; a collectible can be priced based on scarcity and desirability): https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
+
+checks:
+  - id: ra-quiz-real-assets
+    kind: quiz
+    questions:
+      - ra-q-rent-value
+      - ra-q-yield-falls
+      - ra-q-leverage-ratio
+      - ra-q-leverage-gain
+      - ra-q-leverage-loss
+      - ra-q-gold-valuation
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ra-house-price-check
+    kind: conversation
+    prompt: >
+      House prices in a city have risen by about 60 per cent in seven years, and a friend says
+      this proves houses there are worth the new price. Explain what you would compare the price
+      with, how you would tell whether the price rise rests on rent or only on the hope of a
+      higher resale price, and what a 3 per cent deposit does to the buyer's risk and the
+      lender's.
+    passCriteria: >
+      The Learner says that a building's value rests on the rent it earns or saves, so the price
+      should be compared with rent (for example the rent yield, or net rent divided by price, set
+      against what buyers could earn elsewhere). They explain that if the price rises and rent
+      does not, the yield falls and the buyer is relying on a later buyer paying more. They explain
+      leverage: with 3 per cent down the buyer controls about 33 times their own money, so a small
+      fall in the price (3 per cent) erases the deposit and a larger fall leaves the loan bigger
+      than the house, leaving the lender with the shortfall. A strong answer also says that gold or
+      another asset with no cash flow cannot be valued this way and is only priced.

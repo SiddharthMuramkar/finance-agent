@@ -1,0 +1,149 @@
+# Present value: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: present-value
+title: Present value
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: mega-millions-2018
+    title: The $1.537 billion Mega Millions jackpot
+    asOf: 2018-10-24
+    story: >
+      On 23 October 2018 a single ticket sold in Simpsonville, South Carolina matched all
+      six numbers in the US Mega Millions lottery. The advertised jackpot was $1.537 billion,
+      but that figure was the total of an annuity: 30 yearly payments, one now and one each
+      year for the next 29 years. The payments were graduated: each was 5% larger than the
+      one before, starting at about $23.1 million (the 30 payments add up to the $1.537 billion).
+      The same prize was also offered as a single cash payment
+      of about $877.8 million. Both figures were before tax. The winner had 180 days to come
+      forward and choose. As of 24 October 2018 nobody knew who held the ticket or which
+      option they would pick.
+    reveal: >
+      The winner stayed anonymous, came forward on 4 March 2019 and took the cash option, a
+      one-time payment of $877,784,124 before tax. Most large jackpot winners make the same choice.
+      The cash figure was not a discount for impatience invented by the lottery: it was
+      roughly what the lottery would have had to spend on bonds to fund the 30 payments,
+      that is, the present value of the annuity at the interest rates of the time.
+
+concept: >
+  Money available today is worth more than the same amount later, because today's money
+  can be invested to grow. Present value turns a future amount into today's money by
+  discounting it: PV = amount / (1 + r)^n, where r is the yearly interest rate and n the
+  number of years. A stream of payments is worth the sum of each payment's present value.
+  The higher the rate or the longer the wait, the less a future payment is worth today.
+
+principle: >
+  An advertised total that adds up payments made at different times overstates their value.
+  Compare cash flows only after moving them to the same date, and ask which interest rate
+  makes two offers equal.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: pv-q-today-vs-later
+    prompt: >
+      You are offered $1,000 today or $1,000 in five years. If you can earn a positive interest rate, which is worth more to you today?
+    choices:
+      - { id: a, text: "The $1,000 offered today" }
+      - { id: b, text: "The $1,000 offered in five years" }
+      - { id: c, text: "They are worth the same today" }
+    answer: a
+    explanation: >
+      Money you hold today can be invested and grow, so a future amount is worth less today. Discounting expresses exactly that.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-one-year
+    prompt: >
+      What is the present value of $1,100 received in one year, discounted at 10% a year?
+    choices:
+      - { id: a, text: "$1,000" }
+      - { id: b, text: "$990" }
+      - { id: c, text: "$1,010" }
+      - { id: d, text: "$1,100" }
+    answer: a
+    explanation: >
+      PV = 1,100 / (1 + 0.10)^1 = 1,000.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: pv-q-two-years
+    prompt: >
+      What is the present value of $1,210 received in two years, discounted at 10% a year?
+    choices:
+      - { id: a, text: "$1,100" }
+      - { id: b, text: "$1,000" }
+      - { id: c, text: "$1,210" }
+      - { id: d, text: "$990" }
+    answer: b
+    explanation: >
+      PV = 1,210 / (1 + 0.10)^2 = 1,210 / 1.21 = 1,000. Dividing by 1.10 only once ($1,100) discounts for one year instead of two.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-rate-rises
+    prompt: >
+      A payment is due in ten years. If the discount rate rises, what happens to its present value?
+    choices:
+      - { id: a, text: "It rises" }
+      - { id: b, text: "It falls" }
+      - { id: c, text: "It does not change" }
+      - { id: d, text: "It depends only on the size of the payment" }
+    answer: b
+    explanation: >
+      The rate sits in the denominator, (1 + r)^n. A higher r makes the denominator bigger and the present value smaller.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-annuity-total
+    prompt: >
+      A prize is advertised as the total of 30 yearly payments, the first paid today and the others over the next 29 years. At a positive discount rate, how does its present value compare with the advertised total?
+    choices:
+      - { id: a, text: "It is more than the total" }
+      - { id: b, text: "It equals the total" }
+      - { id: c, text: "It is less than the total" }
+    answer: c
+    explanation: >
+      Every payment after the first is discounted, so each is worth less than its face amount today. The present value of the stream is the sum of the discounted payments, which is below the plain sum.
+    source: >
+      CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
+
+  - id: pv-q-five-percent
+    prompt: >
+      What is the present value of $5,000 received in two years, discounted at 5% a year?
+    choices:
+      - { id: a, text: "$4,500" }
+      - { id: b, text: "$4,762" }
+      - { id: c, text: "$4,535" }
+      - { id: d, text: "$5,500" }
+    answer: c
+    explanation: >
+      PV = 5,000 / (1.05)^2 = 5,000 / 1.1025 = 4,535.15. $4,762 discounts for one year only.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+
+checks:
+  - id: pv-quiz-discounting
+    kind: quiz
+    questions:
+      - pv-q-today-vs-later
+      - pv-q-one-year
+      - pv-q-two-years
+      - pv-q-rate-rises
+      - pv-q-annuity-total
+      - pv-q-five-percent
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: pv-jackpot-choice
+    kind: conversation
+    prompt: >
+      The jackpot was advertised as $1.537 billion, yet the cash option was about
+      $877.8 million. Explain, using present value, why the two can describe the same prize,
+      and what would make the annuity the better choice for the winner.
+    passCriteria: >
+      The Learner explains that the $1.537 billion adds up payments spread over 29 years, that
+      each later payment is worth less today once discounted at an interest rate, and that the
+      cash option is roughly the present value of those payments. They identify that the
+      annuity looks better if the winner could only earn a lower return than the rate the
+      lottery used (or values the forced saving), and worse if they could earn more.

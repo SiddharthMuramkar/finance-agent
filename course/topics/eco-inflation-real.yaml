@@ -1,0 +1,124 @@
+# Inflation, nominal vs real rates: a foundation Topic taught through India's near double-digit inflation in 2013.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+id: eco-inflation-real
+title: Inflation, nominal vs real rates
+
+cases:
+  - id: india-inflation-2014
+    title: India's near double-digit inflation
+    asOf: 2014-01-27
+    story: >
+      It is 27 January 2014, the day before the Reserve Bank of India (RBI) announces the Third Quarter
+      Review of its monetary policy. Raghuram Rajan has been Governor since September 2013. Consumer price
+      inflation (CPI) has stayed close to 10 per cent a year, and inflation excluding food and fuel, which
+      is less swayed by vegetable and oil prices, is persistent at 8.0 per cent. Since Rajan took
+      office the RBI has raised its policy repo rate in two steps of 25 basis points, and the rate now
+      stands at 7.75 per cent. A saver puts Rs 10 lakh in a
+      one-year fixed deposit at, say, 9 per cent. A borrower takes a home loan at a rate above that. Prices
+      of vegetables and other food items, which weigh heavily in the consumer price index, keep rising.
+      The question before the RBI is whether the policy rate is high enough, given where inflation is.
+    reveal: >
+      On 28 January 2014 the RBI raised the repo rate by another 25 basis points, to 8.0 per cent. Even
+      at 8.0 per cent the repo rate was below CPI inflation of close to 10 per cent, so the policy rate
+      was still negative in real terms, which is what makes the RBI's decision a test of how far to
+      tighten. A saver in a 9 per cent deposit earned a real return of roughly -1 per cent: Rs 10 lakh
+      grew to Rs 10.9 lakh, but at 10 per cent inflation it could buy only about Rs 9.9 lakh of today's goods.
+
+concept: >
+  Inflation is the yearly rise in the general price level. A nominal interest rate is the rate in rupees;
+  the real interest rate is the rate after inflation, roughly the nominal rate minus inflation. The exact
+  link is (1 + nominal) / (1 + inflation) - 1. When inflation is above the nominal rate, the real rate is
+  negative: lenders and savers lose purchasing power, and borrowers gain. The same idea applies to growth:
+  real growth is roughly nominal growth minus inflation. Headline inflation includes food and fuel; core
+  inflation leaves them out because their prices swing with weather and world markets, so central banks
+  watch both. A central bank judges its stance by the real policy rate, not the nominal one.
+
+principle: >
+  Never judge a return, a rate or a loan by its headline figure alone. Subtract inflation first, because
+  what you can buy later, not how many rupees you hold, is what counts.
+
+questions:
+  - id: ir-q-approx
+    prompt: >
+      A deposit pays a nominal 8% a year while consumer prices rise 10% a year. What is the real interest
+      rate, approximately?
+    choices:
+      - { id: a, text: "About +2%" }
+      - { id: b, text: "About -2%" }
+      - { id: c, text: "About 18%" }
+      - { id: d, text: "8%" }
+    answer: b
+    explanation: >
+      The real rate is approximately the nominal rate minus the inflation rate: 8 - 10 = -2 per cent. The
+      exact value is 1.08 / 1.10 - 1 = -1.8 per cent.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+  - id: ir-q-purchasing-power
+    prompt: >
+      You put Rs 1,00,000 in a one-year deposit at 6%. Consumer prices rise 10% over the year. What is the
+      deposit worth at the end of the year in terms of today's purchasing power?
+    choices:
+      - { id: a, text: "Rs 1,06,000" }
+      - { id: b, text: "Rs 1,00,000" }
+      - { id: c, text: "About Rs 96,400" }
+      - { id: d, text: "Rs 94,000" }
+    answer: c
+    explanation: >
+      The deposit grows to Rs 1,06,000, but prices are 1.10 times higher, so in today's money it is worth
+      1,06,000 / 1.10 = about Rs 96,364. The saver is poorer in real terms despite earning interest.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+  - id: ir-q-real-growth
+    prompt: >
+      An economy's nominal GDP grows 12% in a year while the price level rises 7%. What is real GDP growth,
+      approximately?
+    choices:
+      - { id: a, text: "About 5%" }
+      - { id: b, text: "About 19%" }
+      - { id: c, text: "About 12%" }
+      - { id: d, text: "About 7%" }
+    answer: a
+    explanation: >
+      Real growth is approximately nominal growth minus inflation: 12 - 7 = 5 per cent.
+    source: >
+      OpenStax, Principles of Macroeconomics 3e (CC BY 4.0), 6.2 Adjusting Nominal Values to Real Values: https://openstax.org/books/principles-macroeconomics-3e/pages/6-2-adjusting-nominal-values-to-real-values
+
+  - id: ir-q-real-policy-rate
+    prompt: >
+      In a made-up example, a central bank's policy rate is 6% and consumer price inflation is about 9%. How
+      would you describe its monetary policy in real terms?
+    choices:
+      - { id: a, text: "Tight, because the rate is above 5%" }
+      - { id: b, text: "Loose, because the real policy rate is negative" }
+      - { id: c, text: "Neutral, because inflation will fall anyway" }
+    answer: b
+    explanation: >
+      The real policy rate is roughly 6 - 9 = -3 per cent. Borrowing is cheap once inflation is
+      taken into account, which supports demand rather than restraining it.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+checks:
+  - id: eco-infl-quiz-real
+    kind: quiz
+    questions:
+      - ir-q-approx
+      - ir-q-purchasing-power
+      - ir-q-real-growth
+      - ir-q-real-policy-rate
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-infl-saver-reasoning
+    kind: conversation
+    prompt: >
+      India's consumer inflation was near 10 per cent while a one-year fixed deposit paid about 9 per cent
+      and the repo rate was 7.75 per cent. Who gains and who loses from that gap, and what should the RBI
+      look at when deciding whether policy is tight enough?
+    passCriteria: >
+      The Learner calculates or states that the real return on the deposit is about -1 per cent and the real
+      repo rate about -2 per cent, so savers lose purchasing power and borrowers gain. They say the RBI
+      should judge policy by the real rate, compared with inflation (and expected inflation), not the
+      nominal rate, and may mention core inflation excluding food and fuel.

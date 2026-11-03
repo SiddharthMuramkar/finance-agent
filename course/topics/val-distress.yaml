@@ -1,0 +1,166 @@
+# Valuing distressed firms: a foundation Topic taught through Coffee Day Enterprises in July 2019.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Business Today (31 Jul 2019): https://www.businesstoday.in/markets/company-stock/story/cafe-coffee-day-stock-falls-20-to-hit-historic-low-after-death-of-founder-vg-siddhartha-215792-2019-07-31 ; Hindustan Times / Bloomberg (31 Jul 2019); Business Today (17 Aug 2019, company filing); Times of India (6 Jan 2020); Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+id: val-distress
+title: Valuing distressed firms
+
+cases:
+  - id: coffee-day-distress-2019
+    title: Coffee Day Enterprises in July 2019
+    data:
+      - market-value
+      - share-price-close
+      - promoter-holding
+      - promoter-holding-pledged
+      - loans-march-2019
+      - group-debt-31-july
+      - debt-without-sical
+    asOf: 2019-07-29
+    story: >
+      Coffee Day Enterprises runs Cafe Coffee Day, India's largest coffee chain, and sits on top of
+      a group of companies that includes a logistics business, Sical Logistics. It listed in
+      October 2015 at Rs 328 a share. Its stock market value peaked at Rs 6,678 crore on 19
+      September 2018 and was Rs 4,067.65 crore at the close on Monday 29 July 2019. The group
+      has been borrowing heavily to grow. Data compiled by Bloomberg put its loans at Rs 6,550
+      crore at the end of March 2019, up 29 percent in a year, and Sical Logistics had Rs 1,100
+      crore of debt. To bring debt down, the promoter, V. G. Siddhartha, sold the group's stake in
+      the software company Mindtree to Larsen & Toubro in March and April 2019, for up to Rs
+      3,269 crore. The promoter group owns 53.93 percent of Coffee Day Enterprises, and in June 2019 the company told the
+      exchanges that nearly 76 percent of that holding was pledged to lenders as security for
+      loans. If the share price fell far enough, lenders could take and sell the pledged shares.
+      The 2015 prospectus had already listed the promoter's personal guarantees and pledges as a
+      risk. It is the evening of 29 July 2019. You are
+      asked what the equity of a company like this is worth, and what could go wrong with the
+      value you estimate.
+    reveal: >
+      On the evening of 29 July Siddhartha went missing, and his body was found on 31 July. A
+      letter attributed to him, dated 27 July, spoke of pressure from a private equity partner
+      to buy back shares, pressure from lenders and a serious liquidity crunch. The shares fell
+      by the 20 percent daily limit on 30 and again on 31 July, to Rs 123.25. Stock market value
+      went from Rs 4,067.65 crore on 29 July to Rs 3,254.33 crore and then Rs 2,603.68 crore,
+      down 37 percent in two days. On 17 August the company disclosed that the group's debt on 31
+      July was Rs 4,970 crore, of which Coffee Day Enterprises' own consolidated debt without
+      Sical was Rs 3,472 crore, and that selling the Global Village Tech Park, a business park,
+      to Blackstone for Rs 2,600 to 3,000 crore could take debt down to about Rs 2,570 crore. By
+      January 2020 the promoter group's holding had fallen from 54 percent to 17 percent as
+      lenders invoked the pledges. Debt had not changed on the night of 29 July, yet the
+      value of the equity did: the chance of a forced sale of assets and shares had.
+
+concept: >
+  A distressed firm is one that may not be able to meet its debts. Its value is not a single
+  number. If it survives, it is worth its going-concern value: discounted cash flow on the
+  business. If it fails, assets are sold, often quickly and at a discount, and the proceeds go
+  first to lenders (secured before unsecured) and only then to shareholders. Expected firm value
+  therefore weighs the two outcomes by the chance of each: probability of survival x going
+  concern value + probability of distress x distress sale value. Equity is what is left after
+  debt, so it behaves like an option: if asset value falls below the debt, shareholders lose at
+  most their stake, but if it rises above the debt they keep the gain. That is why shares of a
+  distressed firm can still have value when the assets are worth less than the debt, and why
+  that value is very sensitive to news. Good estimates use the market value of debt, a cost of
+  capital that reflects the distress (not an old regression beta), and an honest view of what
+  assets could fetch in a rush. Pledged shares and loan covenants can turn a price fall into
+  forced selling, which makes failure more likely.
+
+principle: >
+  In distress, value depends on the odds of survival and on what the assets would fetch if
+  forced to sell, not only on today's earnings. Equity is an option on what is left after debt,
+  and a fall in the price can itself raise the chance of failure.
+
+questions:
+  - id: vd-q-going-liquidation
+    prompt: >
+      A firm's assets could be sold for Rs 600 crore today (liquidation value). Run as a going concern, its business is worth Rs 900 crore. It owes lenders Rs 700 crore. What are the equity's values under the two views?
+    choices:
+      - { id: a, text: "Rs 200 crore as a going concern; nothing if liquidated" }
+      - { id: b, text: "Rs 900 crore as a going concern; Rs 600 crore if liquidated" }
+      - { id: c, text: "Rs 200 crore under both views" }
+      - { id: d, text: "Nothing under both views" }
+    answer: a
+    explanation: >
+      Equity is what is left after debt. Going concern: 900 - 700 = Rs 200 crore. Liquidation: the Rs 600 crore of proceeds all goes to lenders, who are still short by Rs 100 crore, so shareholders get nothing.
+    source: >
+      Damodaran, The Value of Distressed Firms (Library), going-concern and distress sale value: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
+
+  - id: vd-q-option
+    prompt: >
+      A firm's assets are worth Rs 80 crore and it owes Rs 100 crore in a year, and its asset value is very uncertain. Why might its shares still be worth more than zero?
+    choices:
+      - { id: a, text: "Shareholders keep the gain if asset value rises above the debt and cannot lose more than their stake, like holding an option" }
+      - { id: b, text: "Debt is always cancelled when assets are worth less than the debt" }
+      - { id: c, text: "Shares are always worth at least their face value" }
+      - { id: d, text: "Lenders must give shareholders part of the assets" }
+    answer: a
+    explanation: >
+      Equity holders have limited liability. If asset value ends up above the Rs 100 crore, they keep the excess. If it ends up below, they lose the shares but no more. The more uncertain the asset value, the more that option is worth.
+    source: >
+      Damodaran, The Value of Distressed Firms (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
+
+  - id: vd-q-expected
+    prompt: >
+      A firm is worth Rs 400 crore if it survives and Rs 100 crore if it is forced into a distress sale. You put the probability of distress at 30 percent. What is its expected value?
+    choices:
+      - { id: a, text: "Rs 250 crore" }
+      - { id: b, text: "Rs 310 crore" }
+      - { id: c, text: "Rs 370 crore" }
+      - { id: d, text: "Rs 400 crore" }
+    answer: b
+    explanation: >
+      Expected value = 0.70 x 400 + 0.30 x 100 = 280 + 30 = Rs 310 crore. Ignoring the chance of distress overstates the value by Rs 90 crore here.
+    source: >
+      Damodaran, The Value of Distressed Firms (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/distresspaper.pdf
+
+  - id: vd-q-enterprise
+    prompt: >
+      A company has a stock market value of Rs 4,000 crore, debt of Rs 6,500 crore and cash of Rs 500 crore. What is its enterprise value?
+    choices:
+      - { id: a, text: "Rs 3,500 crore" }
+      - { id: b, text: "Rs 10,000 crore" }
+      - { id: c, text: "Rs 11,000 crore" }
+      - { id: d, text: "Rs 4,000 crore" }
+    answer: b
+    explanation: >
+      Enterprise value = equity value + debt - cash = 4,000 + 6,500 - 500 = Rs 10,000 crore. In a heavily indebted company, equity is only a small part of the value of the business.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation (enterprise value multiples): https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
+
+  - id: vd-q-pledge
+    prompt: >
+      A promoter has pledged most of his shares in the company to lenders as security for loans. What can happen if the share price falls sharply?
+    choices:
+      - { id: a, text: "Lenders can take ownership of the pledged shares and sell them, which can push the price down further" }
+      - { id: b, text: "The pledge is cancelled automatically" }
+      - { id: c, text: "The company must buy back the shares at the original price" }
+      - { id: d, text: "Nothing, because a pledge does not give lenders any rights over the shares" }
+    answer: a
+    explanation: >
+      A pledge gives lenders a claim on the shares if the loan is not repaid or the security falls short. They may take the shares and sell them, adding supply to a falling market. That is why pledges raise the chance of a spiral in a distressed company.
+    source: >
+      Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), risk factor on the promoter's guarantees and pledges: https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
+
+checks:
+  - id: vd-quiz-distress
+    kind: quiz
+    questions:
+      - vd-q-going-liquidation
+      - vd-q-option
+      - vd-q-expected
+      - vd-q-enterprise
+      - vd-q-pledge
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: vd-coffee-day-equity
+    kind: conversation
+    prompt: >
+      On the evening of 29 July 2019 Coffee Day Enterprises has a stock market value of Rs 4,068
+      crore, loans of about Rs 6,550 crore and a promoter group holding 76 percent pledged. Explain
+      how you would value its shares, why a single discounted cash flow value could mislead, and
+      what the pledge adds to the risk.
+    passCriteria: >
+      The Learner explains that equity is what is left after debt and behaves like an option, so
+      it can be worth something even if asset values are close to or below debt, but that value
+      depends heavily on the chance of survival. They say the valuation should weigh a
+      going-concern value against what assets would fetch in a forced sale, using a probability
+      of distress, and that going-concern DCF alone ignores the failure case. They explain that
+      the pledge lets lenders take and sell shares if the price falls, which can force the price
+      lower and make failure more likely, so the price and the risk affect each other.

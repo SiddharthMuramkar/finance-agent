@@ -1,0 +1,140 @@
+# Capital structure and Modigliani-Miller: a foundation Topic taught through the Coffee Day group's debt.
+# Case sources (checked): Hindustan Times/Bloomberg 31 Jul 2019; Business Today 31 Jul 2019 and 17 Aug 2019.
+id: cf-capital-structure
+title: Capital structure and Modigliani-Miller
+
+cases:
+  - id: coffee-day-leverage-2019
+    title: The Coffee Day group's debt
+    asOf: 2019-07-26
+    story: >
+      Coffee Day Enterprises runs the Cafe Coffee Day chain, with about 1,700 outlets, and belongs
+      to a group founded by V.G. Siddhartha that also holds a logistics company, Sical Logistics,
+      and property. It listed on the stock exchanges in 2015, selling shares at Rs 328 each. By late
+      July 2019 the founder's family and companies (the promoter group) held 53.93% of Coffee Day
+      Enterprises, and exchange filings for June 2019 showed that about 76% of those shares had
+      been pledged as security for loans. Bloomberg data showed Coffee Day's loans at Rs 6,550
+      crore at the end of March 2019, 29% more than a year earlier, and Sical's debt at Rs 1,100
+      crore. The group had been selling assets to repay lenders: in April 2019 it sold a 20% stake in
+      the software firm Mindtree to Larsen and Toubro. The company's market value had peaked at Rs
+      6,678 crore on 19 September 2018. What does it mean for shareholders and lenders that the
+      promoters' shares are pledged? What would Modigliani and Miller say about the mix of debt
+      and equity, and what real-world costs of debt do they leave out?
+    reveal: >
+      The founder wrote a letter dated 27 July 2019 to the board saying he could not take any more
+      pressure from one of the company's private equity partners to buy back shares, and referring
+      to pressure from lenders and a serious liquidity crunch. He was found dead on 31 July 2019. The
+      shares fell by the 20% limit on two successive days. On 17 August the company disclosed that
+      the group's debt on 31 July was Rs 4,970 crore, of which Rs 4,796 crore was secured, with Rs
+      1,622 crore in the property subsidiary Tanglin Developments, Rs 1,488 crore in Sical and Rs
+      1,097 crore in Coffee Day Global, which runs the cafes. It said the sale of the Global Village
+      Tech Park in Bengaluru to Blackstone would reduce the debt by about Rs 2,400 crore. The
+      promoters' stake fell from 54% in July 2019 to 17% by January 2020 as lenders enforced pledges.
+      Borrowing against shares had put the founder's ownership, not only the business's assets,
+      at risk.
+
+concept: >
+  Capital structure is the mix of debt and equity a firm uses. Modigliani and Miller showed that in
+  a perfect market, with no taxes, bankruptcy costs or information gaps, the value of a firm is set
+  by its operating cash flows and risk, not by how they are split between lenders and shareholders.
+  More debt makes equity riskier, so the cost of equity rises exactly enough to leave the weighted
+  average cost of capital unchanged: re = ru + (ru - rd) x D/E. In the real world interest is
+  tax-deductible, which makes debt cheaper, but a heavy debt load raises the chance and cost of
+  financial distress: lost customers and suppliers, forced asset sales, and conflicts between
+  lenders and shareholders. The trade-off theory says a firm should borrow until the extra tax
+  benefit equals the extra expected distress cost. Pledging shares as collateral adds another
+  risk: if the share price falls, lenders can ask for more security or sell the shares, and the
+  borrower can lose control at the worst moment. Measures such as interest cover (EBIT divided by
+  interest) and debt to EBITDA show how much room a firm has.
+
+principle: >
+  Debt does not create value in itself. It shifts risk to shareholders and adds tax savings that
+  must be weighed against the cost of being unable to pay. Ask what happens to the firm, and to its
+  owners, in a bad year.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: cs-q-tax-shield
+    prompt: >
+      A firm has permanent debt of 1,000 at 8% interest and pays tax at 25%. What is the yearly tax saving from the interest?
+    choices:
+      - { id: a, text: "20" }
+      - { id: b, text: "80" }
+      - { id: c, text: "250" }
+      - { id: d, text: "60" }
+    answer: a
+    explanation: >
+      Interest is 1,000 x 8% = 80. It is deducted before tax, so the tax bill falls by 25% of 80, which is 20.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
+
+  - id: cs-q-roe
+    prompt: >
+      A firm earns 10 a year before interest on assets of 100, financed by 40 of debt at 6% interest and 60 of equity. Ignoring tax, what is the return on equity?
+    choices:
+      - { id: a, text: "12.7%" }
+      - { id: b, text: "10.0%" }
+      - { id: c, text: "7.6%" }
+      - { id: d, text: "16.7%" }
+    answer: a
+    explanation: >
+      Interest is 40 x 6% = 2.4, so earnings for shareholders are 10 - 2.4 = 7.6. Return on equity = 7.6 / 60 = 12.7%. Borrowing at less than the return on assets raises the return on equity, and would lower it if the assets earned less than 6%.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.1 The Concept of Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-1-the-concept-of-capital-structure
+
+  - id: cs-q-cover
+    prompt: >
+      A firm earns 50 before interest and tax and pays 25 of interest. What is its interest cover?
+    choices:
+      - { id: a, text: "2.0 times" }
+      - { id: b, text: "0.5 times" }
+      - { id: c, text: "25 times" }
+      - { id: d, text: "75 times" }
+    answer: a
+    explanation: >
+      Interest cover = EBIT / interest = 50 / 25 = 2.0. A fall of half in EBIT would leave nothing for shareholders, so a low cover signals a thin margin of safety.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
+
+  - id: cs-q-pledge
+    prompt: >
+      The main shareholder of a listed company borrows by pledging much of his shares as security. What is the key extra risk?
+    choices:
+      - { id: a, text: "A fall in the share price can force more security or a sale of the pledged shares, costing the owner control" }
+      - { id: b, text: "The interest on the loan becomes taxable twice" }
+      - { id: c, text: "The company must pay a higher dividend" }
+      - { id: d, text: "The shares can no longer be traded" }
+    answer: a
+    explanation: >
+      The lender's security is the share price. If it falls, the lender can demand top-up collateral or sell the shares, which can push the price down further.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure (costs of financial distress): https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure ; the collateral mechanism is standard secured-loan practice.
+
+checks:
+  - id: cs-quiz-structure
+    kind: quiz
+    questions:
+      - cs-q-tax-shield
+      - cs-q-roe
+      - cs-q-cover
+      - cs-q-pledge
+      - bank:eab:MBA-FIN-CF-0034
+      - bank:eab:MBA-FIN-CF-0036
+      - bank:eab:MBA-FIN-CF-0037
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cs-debt-explain
+    kind: conversation
+    prompt: >
+      A group controlled by one family has borrowed heavily, and about three quarters of the
+      family's shares are pledged to lenders. Explain what Modigliani and Miller's result says
+      about the choice of debt versus equity, which real-world costs it leaves out, and why the
+      pledged shares make the position more fragile.
+    passCriteria: >
+      The Learner says that in a perfect market the mix of debt and equity does not change firm
+      value, because the cost of equity rises as debt rises. They say the result leaves out taxes
+      (which favour debt) and costs of financial distress, and name some such costs (forced asset
+      sales, lost suppliers or customers, conflicts with lenders). They explain that a share-price
+      fall can trigger demands for more security or a sale of pledged shares, so owners can lose
+      control and the price can fall further.

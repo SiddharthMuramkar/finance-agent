@@ -1,0 +1,307 @@
+# Judge Topic: a writer's claims about units and periods, taken back to the figures and recomputed.
+# The writer's pieces are pasted by the Learner and never stored; the checkable figures are in each Case, in Case Data or in the sources named in the reveals.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: jud-units-periods
+title: "Judge: units, periods and labels"
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: jud-units-run-rate-2026
+    title: A run rate set against one quarter of revenue
+    asOf: 2026-10-13
+    piece:
+      author: Ed Zitron
+      title: "The Annualized Enron Rate"
+      published: 2026-10-13
+      url: https://www.wheresyoured.at/annualized-enron-rate/
+      from: paste
+    story: >
+      On 13 October 2026 the technology writer Ed Zitron published a piece arguing that the
+      "annualized run rate" numbers reported for AI companies tell readers very little. Anthropic
+      had not yet published audited quarterly figures, so he worked from press reports. He relays
+      the Financial Times' account that Anthropic's run rate is calculated by annualising the
+      prior 28 days of usage-based revenue and adding recurring monthly subscriptions. He gives
+      revenue for the first half of 2026 as $12.4 billion for OpenAI ($5.7 billion in the first
+      quarter and $6.7 billion in the second) and $15.5 billion for Anthropic ($4.6 billion and
+      $10.9 billion), citing The Information, the Wall Street Journal and the Financial Times.
+      Then he writes that Anthropic said it had reached an annualised run rate of $48 billion on
+      28 May, which he calls roughly 430% more than its entire revenue in the second quarter, and
+      that adding up every dollar both companies made in the first two quarters still leaves a
+      gap to that run rate, which he puts at $19.1 billion. The Learner pastes the piece and
+      takes these two claims back to the figures he himself gives.
+    reveal: >
+      Anthropic's registration statement (Form S-1), filed on 26 October 2026, later gave audited
+      quarterly revenue: $4,731 million for the first quarter of 2026 and $11,555 million for the
+      second, $16,286 million for the half. It defines run-rate revenue as the trailing 28 days
+      of usage fees multiplied by 13, plus monthly subscription fees multiplied by 12, and says
+      it is not a substitute for revenue or a forecast. Recomputed from the piece's own numbers,
+      $48 billion is 48 / 10.9 = 4.40 times the second-quarter revenue he gives, which is about
+      340% more, not 430%. Against the S-1's $11,555 million it is 4.15 times, about 315% more.
+      The comparison also sets an annual pace against one quarter: four times the quarter is
+      $43.6 billion on his figure (so $48 billion is about 10% above that) or $46.2 billion on
+      the S-1 figure (about 3.9% above). The second claim has a smaller slip: $12.4 billion plus
+      $15.5 billion is $27.9 billion, and 48 less 27.9 is $20.1 billion, not $19.1 billion. His
+      main point, that a run rate is a pace and not revenue already earned, survives the
+      arithmetic; the stated percentages do not. The OpenAI figures cannot be checked against
+      any filing.
+
+  - id: jud-units-bp-2026
+    title: A basis point defined in a bond sidenote
+    asOf: 2026-09-29
+    data: [ten-year-treasury-par-yield]
+    piece:
+      author: Ed Zitron
+      title: "Dead Money"
+      published: 2026-09-29
+      url: https://www.wheresyoured.at/dead-money/
+      from: paste
+    story: >
+      On 29 September 2026 Ed Zitron published a piece on the cost of debt for AI companies. He
+      says that ten-year US Treasury yields were around 5.24% as he wrote and that rising rates
+      would add billions of dollars in interest to the sector's debt. In a sidenote he explains
+      how bonds are quoted: by yield, or by spread, meaning how many basis points above a
+      comparable US Treasury a bond yields, and he adds a short statement of what one basis
+      point is. He also explains that a bond's price and its yield move in opposite directions.
+      The Case Data shows the daily 10-year Treasury yield through the month. The Learner pastes
+      the piece, checks each statement in the sidenote and the yield he quotes, and recomputes
+      any figure a basis point is used for.
+    reveal: >
+      A basis point is one hundredth of a percentage point: 0.01%, or 0.0001 as a fraction (the
+      SEC's Investor.gov glossary and the European Central Bank both say so). The sidenote gave
+      "0.001", which is ten times too large, 0.1% instead of 0.01%. The rest of the sidenote
+      stands: spreads are quoted in basis points over a Treasury, and price and yield move in
+      opposite directions. His own piece a week later used the unit correctly (6 basis points is
+      0.06%; spreads of 105 to 165 basis points are 1.05% to 1.65%), so the slip was one
+      sentence, not a misunderstanding repeated. The 10-year yield he quoted fits Treasury's
+      data: the par yield closed at 5.24% on 28 September and 5.26% on 29 September, up from
+      4.79% on 1 September, a rise of 47 basis points, and 5.29% on 30 September.
+
+  - id: jud-units-sofr-2026
+    title: SOFR explained as borrowing from the Fed
+    asOf: 2026-10-06
+    piece:
+      author: Ed Zitron
+      title: "The Credit Crunch"
+      published: 2026-10-06
+      url: https://www.wheresyoured.at/credit-crunch/
+      from: paste
+    story: >
+      On 6 October 2026 Ed Zitron published a piece on how AI-related debt is priced when markets
+      become more selective. To show how a strong customer can lift a borrower's terms, he points
+      to the cloud company CoreWeave, which closed an $8.5 billion delayed-draw term loan in March
+      2026 that was rated investment grade, with the customer contract of Meta behind it
+      (CoreWeave's own announcement of 31 March 2026 confirms the size and the rating). The loan's
+      floating rate is a margin over SOFR, and in a parenthesis he describes SOFR as the
+      percentage on overnight borrowing from the Fed for banks. The Learner pastes the piece and
+      checks the parenthesis against the body that publishes the rate.
+    reveal: >
+      The Federal Reserve Bank of New York, which publishes SOFR each business day, describes the
+      Secured Overnight Financing Rate as a broad measure of the cost of borrowing cash overnight
+      collateralised by Treasury securities, calculated from repurchase-agreement (repo)
+      transactions between market participants. It is a private-market rate, so "borrowing from
+      the Fed" mislabels it. Banks that do borrow from the Fed do so at the discount window, at a
+      separate rate priced relative to the Federal Open Market Committee's target range for the
+      federal funds rate. The slip does not change how the loan is priced: a floating rate of
+      SOFR plus a margin is still a market benchmark plus a spread. It changes what a reader
+      believes the benchmark is, and why it moves.
+
+concept: >
+  Before a number can be trusted, say what it measures, over what period, and in which unit. A
+  period mismatch compares a pace with a period: an annual run rate is a yearly pace, while a
+  quarter's revenue covers three months, so a like-for-like comparison scales the quarter to a
+  year first. Percentages have their own traps. "A is 5 times B" means A is 400% more than B, and
+  500% of B; the three phrases are not interchangeable. Units and labels have fixed definitions
+  kept by the bodies that publish them, such as the SEC's investor glossary, the European Central
+  Bank or the New York Fed. Do not rely on memory or on another writer: look the definition up,
+  convert with it, and compare the writer's wording with the publisher's. To judge a claim, take it
+  back to the figures it names, recompute with the writer's own inputs, and separate a slip in a
+  unit or a label from a flaw in the argument.
+
+principle: >
+  Recompute a claim before you judge it: use the writer's own inputs, check the unit and the
+  period, and check each label against the body that defines it. A slip in a number or a label
+  does not decide whether the thesis is right, so say exactly what is wrong, how large, and what
+  still stands.
+
+questions:
+  - id: ju-q-pct-more
+    prompt: >
+      A report says a run rate of $62 billion is "X% more" than a quarter's revenue of $10
+      billion. What is X?
+    choices:
+      - { id: a, text: "520%" }
+      - { id: b, text: "620%" }
+      - { id: c, text: "84%" }
+      - { id: d, text: "6.2%" }
+    answer: a
+    explanation: >
+      62 / 10 = 6.2 times the base. The increase over the base is 6.2 - 1 = 5.2, which is 520% more.
+      620% is the figure as a percentage of the base, not the amount by which it is larger.
+    source: >
+      OpenStax, Prealgebra, 6.2 Solve General Applications of Percent (percent increase is the amount of increase as a percent of the original amount): https://openstax.org/books/prealgebra/pages/6-2-solve-general-applications-of-percent
+
+  - id: ju-q-annualise-quarter
+    prompt: >
+      A company's revenue for one quarter was $10 billion. If every quarter looked the same, what
+      would the yearly pace be?
+    choices:
+      - { id: a, text: "$40 billion" }
+      - { id: b, text: "$30 billion" }
+      - { id: c, text: "$120 billion" }
+      - { id: d, text: "$2.5 billion" }
+    answer: a
+    explanation: >
+      A year has four quarters, so the pace is 4 x 10 = $40 billion. It is a pace, not revenue
+      earned, and it holds only if later quarters look the same.
+    source: >
+      Arithmetic on the run-rate definition in Anthropic, PBC, Form S-1 (filed 26 October 2026), Glossary, "Run-Rate Revenue": https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+
+  - id: ju-q-like-for-like
+    prompt: >
+      A report compares a company's annual run rate with the revenue it earned in one quarter.
+      Which comparison measures the same period on both sides?
+    choices:
+      - { id: a, text: "The annual run rate against the quarter's revenue as it stands" }
+      - { id: b, text: "The annual run rate against four times the quarter's revenue" }
+      - { id: c, text: "The annual run rate against the quarter's revenue divided by four" }
+      - { id: d, text: "The annual run rate against the quarter's revenue plus 12%" }
+    answer: b
+    explanation: >
+      A run rate is a yearly pace, so the quarter has to be scaled to a year (multiplied by four)
+      before the two are compared. Comparing a year with a quarter inflates the gap fourfold.
+    source: >
+      Anthropic, PBC, Form S-1 (filed 26 October 2026), risk factor on Run-Rate Revenue ("it annualizes a short measurement period"): https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm
+
+  - id: ju-q-gap-sum
+    prompt: >
+      A writer says two companies together earned $9.2 billion and $14.1 billion in a half-year,
+      and compares the total with a $41 billion annual pace. How far short of the pace does the
+      total fall, in billions of dollars?
+    choices:
+      - { id: a, text: "$17.7 billion" }
+      - { id: b, text: "$18.7 billion" }
+      - { id: c, text: "$27.8 billion" }
+      - { id: d, text: "$23.3 billion" }
+    answer: a
+    explanation: >
+      9.2 + 14.1 = 23.3, and 41 - 23.3 = 17.7. $18.7 billion is a slip of one in the last step;
+      $23.3 billion is the total, not the gap.
+    source: Arithmetic on the figures stated in the question (hypothetical companies).
+
+  - id: ju-q-bp-fraction
+    prompt: >
+      A loan is priced 150 basis points over its reference rate. Written as a decimal fraction of
+      the rate, what is the margin?
+    choices:
+      - { id: a, text: "0.015" }
+      - { id: b, text: "0.15" }
+      - { id: c, text: "0.0015" }
+      - { id: d, text: "1.5" }
+    answer: a
+    explanation: >
+      One basis point is 0.01% = 0.0001, so 150 basis points is 1.5% = 0.015. In the ECB's own
+      reporting example, 100 basis points is 1% and is entered as 0.01.
+    source: >
+      European Central Bank, AnaCredit question 2020/0002 (a margin of one basis point is 0.01%, reported as 0.0001): https://ecb.europa.eu/stats/ecb_statistics/anacredit/questions/html/ecb.anaq.200131.0002.hr.html ; Investor.gov (US SEC), Basis Point: https://investor.gov/introduction-investing/investing-basics/glossary/basis-point
+
+  - id: ju-q-bp-move
+    prompt: >
+      A bond yield rises from 5.00% to 5.25%. How many basis points is that?
+    choices:
+      - { id: a, text: "25" }
+      - { id: b, text: "2.5" }
+      - { id: c, text: "250" }
+      - { id: d, text: "0.25" }
+    answer: a
+    explanation: >
+      The rise is 0.25 percentage points. A basis point is 0.01 percentage points, so 0.25 / 0.01 = 25.
+    source: >
+      Investor.gov (US SEC), Basis Point glossary entry ("One one-hundredth (.01) of a percentage point"): https://investor.gov/introduction-investing/investing-basics/glossary/basis-point
+
+  - id: ju-q-spread-sum
+    prompt: >
+      A loan pays a floating reference rate plus a margin of 225 basis points. If the reference
+      rate is 4.00%, what is the loan's all-in rate?
+    choices:
+      - { id: a, text: "6.25%" }
+      - { id: b, text: "4.0225%" }
+      - { id: c, text: "4.225%" }
+      - { id: d, text: "6.00%" }
+    answer: a
+    explanation: >
+      225 basis points is 2.25 percentage points, and 4.00 + 2.25 = 6.25%.
+    source: >
+      Investor.gov (US SEC), Basis Point: https://investor.gov/introduction-investing/investing-basics/glossary/basis-point ; ECB AnaCredit question 2020/0002 (a margin over a reference rate): https://ecb.europa.eu/stats/ecb_statistics/anacredit/questions/html/ecb.anaq.200131.0002.hr.html
+
+  - id: ju-q-spread-bp
+    prompt: >
+      A corporate bond yields 6.10% and a Treasury of similar maturity yields 4.85%. How many
+      basis points is the bond's spread over the Treasury?
+    choices:
+      - { id: a, text: "125" }
+      - { id: b, text: "12.5" }
+      - { id: c, text: "1.25" }
+      - { id: d, text: "1,250" }
+    answer: a
+    explanation: >
+      The gap is 6.10 - 4.85 = 1.25 percentage points. One basis point is 0.01 percentage points,
+      so the spread is 1.25 / 0.01 = 125 basis points.
+    source: >
+      Investor.gov (US SEC), Basis Point glossary entry: https://investor.gov/introduction-investing/investing-basics/glossary/basis-point
+
+checks:
+  - id: ju-quiz-units-periods
+    kind: quiz
+    questions:
+      - ju-q-pct-more
+      - ju-q-annualise-quarter
+      - ju-q-like-for-like
+      - ju-q-gap-sum
+      - ju-q-bp-fraction
+      - ju-q-bp-move
+      - ju-q-spread-sum
+      - ju-q-spread-bp
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: ju-recompute-run-rate
+    kind: conversation
+    prompt: >
+      Take the two claims in the pasted piece about the run rate: the percentage by which the
+      run rate exceeds the second quarter's revenue, and the gap left after adding up both
+      companies' first-half revenue. Using only the figures the piece itself gives, recompute each
+      claim, say what your percentage measures, and explain whether an annual run rate can be
+      set against one quarter's revenue as it stands. Then say what, if anything, your
+      recomputation changes about the writer's wider point.
+    passCriteria: >
+      The Learner recomputes both claims from the piece's own figures rather than from memory or
+      a guess: they divide the run rate by the quarter's revenue and convert the ratio to "percent
+      more" (subtracting the base, not stating the ratio as a percentage); they add the four
+      quarterly figures and subtract from the run rate; and they compare each result with what the
+      piece states, naming how large any difference is. They explain that a run rate is a yearly
+      pace while the quarter covers three months, so a like-for-like comparison scales the quarter
+      by four first. They separate a slip in the arithmetic from the writer's wider point, that a
+      run rate is not revenue already earned, and say which survives. The Tutor supplies no
+      figure of its own: every number comes from the Case or from a source the Learner retrieves.
+  - id: ju-recompute-units-labels
+    kind: conversation
+    prompt: >
+      Two statements in the other pasted pieces use a unit or a label. In one, a basis point is
+      given as a number; in the other, SOFR is described in a parenthesis. For the first, use the
+      Case Data to find how many basis points the 10-year Treasury yield rose between 22 and 29
+      September 2026, and show what that is in percentage points and as a fraction. For the
+      second, check the description against how the New York Fed describes SOFR. Say, for each
+      statement, whether it holds, how large any error is, and whether it changes the writer's
+      conclusion.
+    passCriteria: >
+      For the yield move the Learner reads both dates from the Case Data, takes the difference in
+      percentage points, converts it to basis points (multiplying by 100) and expresses it as a
+      fraction (dividing by 10,000), showing the unit conversion rather than only stating it; they
+      then apply the same definition to test the sidenote's basis-point statement and say whether it
+      holds and by what factor any error is out. For SOFR the Learner retrieves the New York Fed's
+      description (the Tutor may help them find it in the Library) and compares the wording with the
+      piece's parenthesis, naming any difference in what the rate measures and how it arises.
+      For both statements they say whether the slip is one of a unit or a label, how much it
+      changes, and that neither alters the pricing arithmetic or the writer's conclusion by itself.
+      They make no forecast and no buy, sell or hold judgement. The Tutor supplies no figure of its
+      own.

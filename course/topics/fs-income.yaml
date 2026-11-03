@@ -1,0 +1,161 @@
+# The income statement: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: fs-income
+title: The income statement
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: wework-s1-2019
+    title: WeWork's S-1
+    data: [revenue-2018, net-loss-2018, revenue-h1-2019, net-loss-h1-2019]
+    asOf: 2019-08-14
+    story: >
+      On 14 August 2019 The We Company, the parent of the office-sharing business WeWork, files
+      its prospectus (a form called the S-1) publicly with the US Securities and Exchange
+      Commission, as the first step to selling shares to the public. Privately it has been valued at 47 billion
+      dollars. The filing shows revenue of 1.54 billion dollars and a net loss of more than 900
+      million dollars for the first six months of 2019. For the whole of 2018, reports put its
+      revenue at about 1.8 billion dollars and its net loss at about 1.9 billion dollars, both
+      about double the year before. The company says it took more than seven years to reach 1
+      billion dollars of run-rate revenue, one more year to reach 2 billion, and six months to
+      reach 3 billion. A run rate is the latest period's revenue scaled up to a year, not revenue
+      that has been earned. As of this date, investors are asking what the income statement
+      really says about the business, and nobody knows if the share sale will go ahead.
+    reveal: >
+      The share sale did not go ahead. After the company's co-founder and chief executive, Adam
+      Neumann, stepped down on 24 September, WeWork asked on 30 September 2019 to withdraw its
+      prospectus. It never became a profitable company: it listed through a different route in
+      2021, and on 6 November 2023 it filed for Chapter 11 bankruptcy protection in the US,
+      listing nearly 19 billion dollars of liabilities against about 15 billion dollars of assets.
+      The 2019 income statement was already showing the
+      problem: for the six months, expenses ran above revenue by more than half of the
+      revenue (a net margin of about minus 59 per cent), and rapid revenue growth had not
+      narrowed the loss.
+
+concept: >
+  The income statement reports a company's performance over a period of time (a quarter, six
+  months, a year), not at a date. It starts with revenue (sales) at the top, subtracts the
+  costs of earning it to get operating profit, then subtracts interest and taxes to reach net
+  income, the bottom line. When expenses exceed revenue the bottom line is a net loss. The net
+  margin, net income divided by revenue, says how many cents of each unit of sales is left as
+  profit; it is negative for a loss. Revenue growing does not make profit grow: profit depends on
+  whether costs grow slower than revenue.
+
+principle: >
+  Read the income statement from top to bottom and compare the bottom line with the top. A
+  company whose losses keep pace with its revenue growth is not getting closer to profit, and
+  a run rate or an adjusted figure is not a substitute for the audited bottom line.
+
+questions:
+  - id: fi-q-net-result
+    prompt: >
+      A company reports revenue of 1,500 and total expenses of 2,400 (in millions) for the period. What is its net result?
+    choices:
+      - { id: a, text: "A profit of 900" }
+      - { id: b, text: "A loss of 900" }
+      - { id: c, text: "A loss of 2,400" }
+      - { id: d, text: "A profit of 1,500" }
+    answer: b
+    explanation: >
+      Net income = revenue - expenses = 1,500 - 2,400 = -900, a net loss of 900 million.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+
+  - id: fi-q-net-margin
+    prompt: >
+      A company has revenue of 1,500 and a net loss of 900 (in millions). What is its net profit margin?
+    choices:
+      - { id: a, text: "Minus 60%" }
+      - { id: b, text: "Plus 60%" }
+      - { id: c, text: "Minus 167%" }
+      - { id: d, text: "Minus 6%" }
+    answer: a
+    explanation: >
+      Net margin = net income / revenue = -900 / 1,500 = -0.60, or minus 60%. The company loses 60 cents on every unit of sales.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method (profit margin = net income / net sales): https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fi-q-operating-to-net
+    prompt: >
+      A company has operating income of 200, interest expense of 120 and income tax of 20. What is its net income?
+    choices:
+      - { id: a, text: "60" }
+      - { id: b, text: "80" }
+      - { id: c, text: "200" }
+      - { id: d, text: "340" }
+    answer: a
+    explanation: >
+      Net income = operating income - interest - tax = 200 - 120 - 20 = 60.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+
+  - id: fi-q-both-doubled
+    prompt: >
+      One year a company has revenue of 900 and a net loss of 950. The next year its revenue and its net loss both double, to 1,800 and 1,900. What happened to its net margin?
+    choices:
+      - { id: a, text: "It improved, because revenue doubled" }
+      - { id: b, text: "It stayed about the same, at roughly minus 106%" }
+      - { id: c, text: "It worsened, because the loss doubled" }
+      - { id: d, text: "It cannot be worked out without the balance sheet" }
+    answer: b
+    explanation: >
+      The margin is -950 / 900 = -105.6% the first year and -1,900 / 1,800 = -105.6% the second. Both sides doubled, so the ratio did not change: growth alone did not move the company toward profit.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+
+  - id: fi-q-not-on-statement
+    prompt: >
+      Which of these items belongs on the balance sheet, not on the income statement?
+    choices:
+      - { id: a, text: "Revenue for the half-year" }
+      - { id: b, text: "Interest expense for the half-year" }
+      - { id: c, text: "Cash on hand at the end of the half-year" }
+      - { id: d, text: "Income tax for the half-year" }
+    answer: c
+    explanation: >
+      The income statement covers a period and holds revenue, expenses and profit. A balance at a date, such as cash on hand, belongs on the balance sheet.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.1 The Income Statement and 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+  - id: fi-q-earned
+    prompt: >
+      A company signs a contract in December but delivers the service in the following March. When does accrual accounting recognise the revenue?
+    choices:
+      - { id: a, text: "In December, when the contract is signed" }
+      - { id: b, text: "In March, when the service is delivered and the revenue is earned" }
+      - { id: c, text: "Whenever the customer's cash arrives, whatever the date" }
+      - { id: d, text: "Evenly over the year" }
+    answer: b
+    explanation: >
+      Under accrual accounting, revenue is recognised when it is earned, which here is on delivery, not when a contract is signed or cash is received.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.3 How Does a Company Recognize a Sale and an Expense: https://openstax.org/books/principles-finance-2e/pages/4-3-how-does-a-company-recognize-a-sale-and-an-expense
+
+checks:
+  - id: fi-quiz-statement
+    kind: quiz
+    questions:
+      - fi-q-net-result
+      - fi-q-net-margin
+      - fi-q-operating-to-net
+      - fi-q-both-doubled
+      - fi-q-not-on-statement
+      - fi-q-earned
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fi-wework-read
+    kind: conversation
+    prompt: >
+      WeWork's filing shows revenue of 1.54 billion dollars and a net loss of more than 900
+      million dollars for the first six months of 2019. Read that income statement in your own
+      words: what is the net margin, what does it say about whether faster revenue growth is
+      bringing the company closer to profit, and what can an income statement not tell you
+      about whether the company can keep going?
+    passCriteria: >
+      The Learner works out a net margin of about minus 59% (accept minus 58% to minus 60%) (loss divided by revenue,
+      roughly minus 0.6), explains that the company spends more than a dollar for every dollar
+      of revenue, and that growth in revenue (for example, revenue and loss both about doubling
+      in 2018) has not narrowed the loss. They note that an income statement covers a period and
+      does not show cash on hand, borrowings, or lease commitments, which sit on the balance
+      sheet and cash flow statement and decide how long the company can keep losing money.

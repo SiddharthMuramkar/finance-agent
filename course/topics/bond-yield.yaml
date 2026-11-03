@@ -1,0 +1,147 @@
+# Yield to maturity, coupon and current yield: a foundation Topic taught through Orange County's investment pool.
+# Case Data (the Treasury yield history) lives in the database; see docs/architecture.md.
+# Case sources (checked): SEC Exchange Act Release 36761, Report of Investigation on County of Orange (24 Jan 1996): https://sec.gov/files/litigation/admin/3436761.txt ; SEC Litigation Release 15160: https://sec.gov/files/litigation/litreleases/lr15160.txt ; US Treasury par yields (Case Data)
+id: bond-yield
+title: Yield to maturity, coupon and current yield
+
+cases:
+  - id: orange-county-1994
+    title: Orange County's leveraged pool
+    data: [treasury-3m, treasury-10y]
+    asOf: 1994-06-30
+    story: >
+      Orange County, California, ran an investment pool for its own money and for the money
+      of local governments and districts. The County Treasurer invested it. In his
+      September 1993 annual statement to the county's Board of Supervisors, the Treasurer
+      reported that the pool's strategy used leverage of about two to one: the pool borrowed
+      short-term by selling securities with a promise to buy them back (reverse repurchase
+      agreements) and used the cash to buy more securities, including longer-term notes
+      and structured securities. He said the strategy was predicated on interest rates
+      staying low over the next three years, and that the borrowing added an extra 2.5% to the
+      pool's yield, which is why its returns beat other local pools. He added that his
+      policy was to hold every security to maturity, and that in his opinion there was no
+      risk of principal loss. In the spring of 1994 his election opponent criticised the
+      strategy as too risky for public funds. By 30 June 1994 market yields had risen:
+      the 10-year Treasury yield averaged 7.10% in June against 5.75% in January, and the
+      3-month yield 4.25% against 3.04%. The pool still reported a high yield. What does that
+      yield measure, and what does it leave out?
+    reveal: >
+      In early December 1994 the county announced that the pool's $20.6 billion portfolio had
+      lost about $1.5 billion in market value (the SEC's administrative order). The SEC records
+      that the rise in rates during 1994 had brought the pool market losses and collateral
+      calls on the borrowing. On 6 December 1994 Orange County filed for protection under
+      Chapter 9 of the US Bankruptcy Code. The Treasurer's
+      yield had been real only if every bond could be held to maturity; the borrowing
+      meant the pool could be pressed to give up collateral or sell before then.
+
+concept: >
+  A bond has three yield measures. The coupon rate is the fixed annual payment as a share of
+  face value. The current yield is the annual coupon divided by today's price. The yield to
+  maturity (YTM) is the single discount rate that makes the present value of all remaining
+  coupons and the face value equal to today's price: it is the annual return from buying at
+  that price and holding to maturity. A bond at par has coupon rate, current yield and YTM
+  all equal. A bond at a discount has YTM above current yield above coupon rate; a bond at a
+  premium has them the other way round. YTM is a promise only to a holder who can keep the
+  bond until it matures. Borrowing to buy more bonds lifts the yield on the owner's own money,
+  and magnifies price losses by the same factor.
+
+principle: >
+  A quoted yield is what you earn if you can hold to the end. Ask what could force you to
+  sell sooner, and how much borrowing sits behind the yield.
+
+questions:
+  - id: by-q-current-yield
+    prompt: >
+      A 10-year bond with an 8% annual coupon on $1,000 face value trades at $900. What is its current yield, to one decimal place?
+    choices:
+      - { id: a, text: "8.9%" }
+      - { id: b, text: "8.0%" }
+      - { id: c, text: "9.6%" }
+      - { id: d, text: "11.1%" }
+    answer: a
+    explanation: >
+      Current yield is the annual coupon divided by the price: $80 / $900 = 8.9%. It ignores the $100 gain the holder gets as the price returns to par at maturity, which is why the yield to maturity (about 9.6% with half-yearly coupons) is higher.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation (yield and coupon definitions): https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: by-q-ytm-order
+    prompt: >
+      A bond trades below its face value. Which statement about its three yield measures is correct?
+    choices:
+      - { id: a, text: "Yield to maturity is higher than the current yield, which is higher than the coupon rate" }
+      - { id: b, text: "The coupon rate is higher than the current yield, which is higher than the yield to maturity" }
+      - { id: c, text: "All three are equal" }
+      - { id: d, text: "The current yield is the highest of the three" }
+    answer: a
+    explanation: >
+      For a discount bond the price is below $1,000, so coupon / price is above the coupon rate. The holder also gains as the price rises to par, so YTM is higher still. Example: a 5-year 6% bond at $950 has a current yield of 6.3% and a YTM of 7.2%.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: by-q-ytm-meaning
+    prompt: >
+      What is a bond's yield to maturity?
+    choices:
+      - { id: a, text: "The discount rate at which the present value of the remaining coupons and face value equals the bond's price" }
+      - { id: b, text: "The annual coupon divided by the face value" }
+      - { id: c, text: "The annual coupon divided by the current price" }
+      - { id: d, text: "The rise in price expected over the next year" }
+    answer: a
+    explanation: >
+      YTM is the return rate a buyer receives on the money lent to the issuer if the bond is held to maturity. Choice b is the coupon rate and c is the current yield.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: by-q-sell-early
+    prompt: >
+      You buy a 10-year bond at par with a 6% coupon, paid yearly. A year later you must sell it because you need cash, and the market yield on 9-year bonds is now 7%. The bond sells for about $935, and you have received the $60 coupon. Roughly what was your return over the year?
+    choices:
+      - { id: a, text: "About -0.5%: the yield to maturity of 6% was not earned" }
+      - { id: b, text: "6%, the yield to maturity you paid for" }
+      - { id: c, text: "About 7%, the new market yield" }
+      - { id: d, text: "About -6.5%" }
+    answer: a
+    explanation: >
+      You end the year with $935 of bond plus $60 of coupon, $995 against the $1,000 you paid: about -0.5%. A yield to maturity of 6% is earned only if you hold to maturity. Selling early after yields rose crystallises the price loss.
+    source: >
+      Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
+
+  - id: by-q-leverage
+    prompt: >
+      A pool has $100 of depositors' money and borrows another $100 through repurchase agreements, then buys $200 of bonds. Bond prices fall 5%. By what percentage does the depositors' $100 fall, before any interest?
+    choices:
+      - { id: a, text: "10%, because the loss on $200 of bonds is $10 and the borrowing must still be repaid in full" }
+      - { id: b, text: "5%" }
+      - { id: c, text: "2.5%" }
+      - { id: d, text: "0%, because the bonds are held to maturity" }
+    answer: a
+    explanation: >
+      $200 of bonds fall by 5%, a loss of $10. The $100 of borrowing is still owed, so the whole loss falls on the depositors' $100, which is now worth $90. Leverage of two to one doubles the percentage loss, just as it doubles the extra yield. Holding to maturity does not erase a loss when the lenders can demand collateral or repayment sooner.
+    source: >
+      Arithmetic of leverage; the effect described in SEC, Report of Investigation in the Matter of County of Orange, California, Exchange Act Release No. 36761 (24 January 1996): https://sec.gov/files/litigation/admin/3436761.txt
+
+checks:
+  - id: by-quiz-yield-measures
+    kind: quiz
+    questions:
+      - by-q-current-yield
+      - by-q-ytm-order
+      - by-q-ytm-meaning
+      - by-q-sell-early
+      - by-q-leverage
+      - bank:eab:MBA-FIN-CF-0030
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: by-orange-county-explain
+    kind: conversation
+    prompt: >
+      Orange County's Treasurer reported a high yield and said there was no risk of principal
+      loss because he held every security to maturity. Explain what the yield told investors,
+      what it left out, and why borrowing to buy more bonds could force a sale before maturity.
+    passCriteria: >
+      The Learner says a yield to maturity is earned only by a holder who keeps the bond until
+      it matures and gets every payment. They point out that the pool borrowed with repurchase
+      agreements, so when rates rose bond prices fell while the borrowing still had to be
+      covered with collateral or repayment, which could force sales at a loss. They note that
+      leverage raised the yield and the size of the loss together.

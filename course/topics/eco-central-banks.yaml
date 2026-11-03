@@ -1,0 +1,121 @@
+# Central banks and monetary policy: a foundation Topic taught through the Federal Reserve's 1994 tightening.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+id: eco-central-banks
+title: Central banks and monetary policy
+
+cases:
+  - id: fed-tightening-1994
+    title: The 1994 Fed tightening
+    asOf: 1994-02-03
+    story: >
+      It is 3 February 1994, the first day of a two-day meeting of the US Federal Open Market Committee
+      (FOMC). The Federal Reserve has held its federal funds rate, the rate at which banks lend reserves
+      to each other overnight, at about 3 per cent for some time, and the 10-year Treasury yield stood near
+      5.75 per cent in January. The economy has been recovering and the Fed's chairman, Alan Greenspan, told
+      Congress's Joint Economic Committee on Monday that monetary policy "must not overstay accommodation"
+      and that the foundations of the expansion were looking increasingly well entrenched. In 1994 the Fed
+      does not publish a statement after its meetings, does not announce changes in its target for the
+      funds rate, and releases its minutes only after the following meeting. Investors must guess what the
+      committee does from the movements of money-market rates. Bond investors who have enjoyed years of
+      falling yields wonder what happens if the Fed starts to raise rates. Nobody outside the room knows
+      the decision.
+    reveal: >
+      On 4 February 1994 the FOMC tightened policy. Its statement spoke only of "a slight increase in the
+      degree of pressure on reserve positions", and the federal funds rate moved from about 3.00 to 3.25 per
+      cent. The markets were surprised. The 10-year Treasury yield rose about 200 basis points over the
+      following nine months. Using monthly averages
+      from the Federal Reserve's H.15 release, the 10-year yield went from 5.75 per cent in January 1994 to
+      a peak of 7.96 per cent in November (a rise of 221 basis points). The funds rate averaged 3.05 per
+      cent in January and 5.45 per cent in December. The 2-year yield rose even more, from 4.14 to 7.59 per
+      cent, so the gap between the 10-year and 2-year yields shrank from 1.61 to 0.22 percentage points: the
+      yield curve flattened. A Federal Reserve
+      study contrasts this with 2004: by then the Fed issued a statement after each meeting and signalled
+      that it would remove accommodation "at a measured pace", and the 10-year yield actually fell 8 basis
+      points on the day of the first increase.
+
+concept: >
+  A central bank sets the price of the safest, shortest loans in the economy, called the policy rate, and
+  steers other rates from it. Its tools are the policy rate itself, open market operations (buying or
+  selling government securities to add or drain bank reserves), reserve requirements and, increasingly,
+  communication about what it will do next. A higher policy rate raises borrowing costs, slows spending
+  and investment and, with a lag of a year or two, eases inflation; a lower rate does the opposite. The
+  effect works partly through expectations: long-term rates reflect the expected path of the short-term
+  rate, so how a move is signalled can matter as much as its size, and a central bank whose targets
+  are believed needs a smaller slowdown to bring inflation down. When interest rates rise, the price of
+  an existing bond falls, and longer bonds fall more.
+
+principle: >
+  Markets react to the path of policy they expect, not only to today's decision. When a central bank
+  surprises, long rates and bond prices reprice the whole expected path at once; a central bank that
+  explains itself lets that adjustment happen gradually.
+
+questions:
+  - id: cb-q-guidance
+    prompt: >
+      Two central banks each raise their policy rate by 25 basis points. Bank A has said for months that
+      rates will rise at a measured pace; Bank B has given no guidance and the move comes as a surprise. In
+      which case are long-term bond yields more likely to jump well beyond the first step, and why?
+    choices:
+      - { id: a, text: "Bank B, because without guidance investors must re-estimate the whole expected path of short rates and may expect more increases" }
+      - { id: b, text: "Bank A, because announcing a plan in advance always unsettles bond markets" }
+      - { id: c, text: "Neither, because long-term yields do not depend on expected policy rates" }
+    answer: a
+    explanation: >
+      Long-term rates reflect the expected path of short-term rates. A move that investors saw coming is
+      already in prices, while a surprise forces them to revise that whole path at once. The comparison is
+      a made-up example; the Federal Reserve's own study of its tightenings is the source of the idea.
+    source: >
+      Federal Reserve Board, FEDS Notes, "The Effects of FOMC Communications before Policy Tightening in 1994 and 2004", 24 September 2015: https://www.federalreserve.gov/econresdata/notes/feds-notes/2015/effects-of-fomc-communications-before-policy-tightening-in-1994-and-2004-20150924.html
+
+  - id: cb-q-bond-price
+    prompt: >
+      Market interest rates rise sharply. What happens to the price of an existing bond with a fixed coupon?
+    choices:
+      - { id: a, text: "It rises" }
+      - { id: b, text: "It falls" }
+      - { id: c, text: "It does not change" }
+    answer: b
+    explanation: >
+      A bond's price is the present value of its fixed payments. When the discount rate rises, that present
+      value falls, so existing bonds lose value.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
+
+  - id: cb-q-basis-points
+    prompt: >
+      In a made-up example, a 10-year government bond yield moves from 4.10% to 6.31%. How many basis
+      points is that?
+    choices:
+      - { id: a, text: "2.21 basis points" }
+      - { id: b, text: "221 basis points" }
+      - { id: c, text: "22 basis points" }
+      - { id: d, text: "2,210 basis points" }
+    answer: b
+    explanation: >
+      6.31 - 4.10 = 2.21 percentage points, and one percentage point is 100 basis points, so 221 basis points.
+    source: >
+      Constructed example with hypothetical yields; a basis point is one hundredth of a percentage point.
+
+checks:
+  - id: eco-cb-quiz-policy
+    kind: quiz
+    questions:
+      - bank:eab:MBA-ECON-0042
+      - bank:eab:MBA-ECON-0045
+      - cb-q-guidance
+      - cb-q-bond-price
+      - cb-q-basis-points
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-cb-surprise-reasoning
+    kind: conversation
+    prompt: >
+      Suppose the Fed decides at this meeting to tighten by a small first step, with no statement and no prior
+      signal that it was coming. How might long-term Treasury yields and bond prices react compared with the
+      size of that first step, and why? What could the Fed do to make the adjustment smoother?
+    passCriteria: >
+      The Learner explains that a surprise with no prior guidance makes markets re-estimate the whole future
+      path of short rates, perhaps expecting further increases, which could push long yields up well beyond
+      the first step and bond prices down. They suggest clearer communication or signalled, gradual
+      tightening to let markets adjust smoothly.

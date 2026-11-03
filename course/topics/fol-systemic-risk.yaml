@@ -1,0 +1,153 @@
+# Follow Topic: Zitron's "OpenAI Is A Systemic Risk To The Tech Industry" (14 Apr 2025), a dated piece taught as a Case.
+# The piece is pasted by the Learner (never stored in the Library or the repo); the Tutor works only from what it has seen.
+id: fol-systemic-risk
+title: "Follow: Zitron, OpenAI Is A Systemic Risk (Apr 2025)"
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fol-sysrisk-zitron-2025
+    title: Zitron maps who depends on whom around one AI company
+    asOf: 2025-04-14
+    piece:
+      author: Ed Zitron
+      title: "OpenAI Is A Systemic Risk To The Tech Industry"
+      published: 2025-04-14
+      url: https://www.wheresyoured.at/openai-is-a-systemic-risk-to-the-tech-industry-2/
+      from: paste
+    story: >
+      On 14 April 2025 Ed Zitron, who writes the newsletter Where's Your Ed At and is a sharp critic
+      of the AI boom, published a long essay arguing that OpenAI, the maker of ChatGPT, had become a
+      single point of failure for a web of other companies. The facts he started from were public
+      at the time: OpenAI had announced a funding round of up to $40 billion at a valuation of $300
+      billion, led by SoftBank, but only the first $10 billion was to come at once and the rest was
+      due later, with part of it tied to OpenAI turning itself into a for-profit company by the end
+      of 2025. SoftBank was reported to be borrowing to pay, and S&P had warned about its finances.
+      OpenAI was also buying computing power from Microsoft, Oracle and CoreWeave, and was a partner
+      in a data-centre programme called Stargate. The essay follows the money from the round, to
+      what OpenAI spends, to the companies that supply it, and asks what would happen to them if
+      OpenAI could not pay. The Learner pastes the part of the essay being studied, and then
+      explains each step of its argument. The Tutor can talk only about what has been pasted.
+    reveal: >
+      The funding condition the essay stressed was met. SoftBank said it completed a further $22.5
+      billion on 26 December 2025, so its commitment to OpenAI was fully funded at $41 billion
+      including $11 billion from other investors, for a stake of about 11% (SoftBank press release,
+      31 December 2025). OpenAI completed its conversion into a for-profit public benefit
+      corporation on 28 October 2025, valued at $500 billion, with Microsoft holding about 27%
+      (CNBC). The first Stargate site, in Abilene, Texas, was running on Oracle's cloud by September
+      2025 (CNBC, 23 September 2025). One of the links in the chain did break: CoreWeave's $9
+      billion purchase of Core Scientific, a data-centre owner it relied on, was voted down by
+      Core Scientific's shareholders and ended on 30 October 2025 (Reuters). That was a failed
+      deal, not a failure to pay. None of this settles the essay's other claims, such as how
+      OpenAI's revenue compares with its commitments or what a failure would do to its suppliers;
+      those were not tested by these events. The exercise is to judge the claims one at a time:
+      which were facts when written, which were inferences, and which were predictions.
+
+concept: >
+  A company is systemic when other companies' health depends on its own: they sell to it, lend to
+  it, lease to it or hold its shares, so its trouble reaches them. To test such a claim, follow the
+  money in a chain. Start with what the company has actually received, which can be less than what
+  was announced when a round is paid in stages or has conditions. Set its cash coming in against
+  the commitments it has signed. Look at who funds it, and how they fund themselves. Then look at
+  how much of each supplier's revenue comes from this one customer, and what fixed promises the
+  suppliers have made in turn, such as leases and debt. A chain is only as strong as its weakest
+  condition, and a careful reader separates facts, inferences from them and forecasts.
+
+principle: >
+  Treat a headline funding number as an announcement until you know how much is paid, when and on
+  what conditions. Then follow each dependency one link at a time, and keep what the writer states
+  as fact apart from what they infer and what they predict.
+
+questions:
+  - id: fsr-q-cash-received
+    prompt: >
+      A start-up announces a $400 million funding round. The terms say $100 million is paid now,
+      $200 million by the end of the year, and the last $100 million only if it completes a
+      restructuring by that date. On the day of the announcement, how much cash has it received?
+    choices:
+      - { id: a, text: "$400 million" }
+      - { id: b, text: "$300 million" }
+      - { id: c, text: "$100 million" }
+      - { id: d, text: "$200 million" }
+    answer: c
+    explanation: >
+      Only the first payment has arrived. The $200 million due later is a promise, and the last
+      $100 million is a promise that depends on a condition. An announced round is the most the
+      company may receive, not the cash it holds.
+    source: Arithmetic on the stated hypothetical terms (staged commitments versus cash received).
+  - id: fsr-q-customer-share
+    prompt: >
+      A computing-services firm had revenue of $2 billion last year. One customer accounted for
+      60% of it and a second for 15%. How much revenue came from those two customers together?
+    choices:
+      - { id: a, text: "$1.5 billion" }
+      - { id: b, text: "$1.2 billion" }
+      - { id: c, text: "$0.3 billion" }
+      - { id: d, text: "$0.75 billion" }
+    answer: a
+    explanation: >
+      60% + 15% = 75%, and 75% of $2 billion is $1.5 billion. When a few customers supply most of
+      a firm's revenue, the firm's results depend on them. US accounting rules require a company
+      to disclose any customer that makes up 10% or more of its revenue so readers can see this.
+    source: >
+      FASB ASC 280-10-50-42 (disclosure of major customers at 10% or more of revenue); arithmetic
+      on the stated hypothetical figures.
+  - id: fsr-q-lease-pv
+    prompt: >
+      A data-centre operator signs a 15-year lease with payments of $100 million at the end of each
+      year. Using a discount rate of 8% a year, which figure is closest to the present value of the
+      payments?
+    choices:
+      - { id: a, text: "$1,500 million" }
+      - { id: b, text: "$1,200 million" }
+      - { id: c, text: "$428 million" }
+      - { id: d, text: "$856 million" }
+    answer: d
+    explanation: >
+      The present value of an annuity is payment x (1 - (1 + r)^-n) / r = 100 x (1 - 1.08^-15) /
+      0.08, about $856 million. The $1,500 million is the undiscounted total. The commitment is
+      still large, and it is owed whether or not the tenant's own customers pay.
+    source: Annuity present-value formula; checked with the calculate tool's present value function.
+  - id: fsr-q-spend-gap
+    prompt: >
+      A company brings in $50 million of revenue a month. It has signed commitments to spend $1.2
+      billion on computing over the next twelve months. If revenue stays at $50 million a month,
+      by how much do the commitments exceed twelve months of revenue?
+    choices:
+      - { id: a, text: "$600 million" }
+      - { id: b, text: "$1,150 million" }
+      - { id: c, text: "$1,200 million" }
+      - { id: d, text: "$550 million" }
+    answer: a
+    explanation: >
+      Twelve months of revenue is 12 x $50 million = $600 million. The commitments are $1,200
+      million, so they exceed it by $600 million. That gap has to be met from cash on hand, new
+      funding or higher revenue, which is why where the cash comes from matters.
+    source: Arithmetic on the stated hypothetical figures (revenue against commitments).
+
+checks:
+  - id: fsr-quiz-follow-the-money
+    kind: quiz
+    questions: [fsr-q-cash-received, fsr-q-customer-share, fsr-q-lease-pv, fsr-q-spend-gap]
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fsr-follow-argument
+    kind: conversation
+    prompt: >
+      You have pasted the part of Ed Zitron's essay on OpenAI that you want to study, as it stood on
+      14 April 2025. Explain, in your own words and in order, each step of his argument: where he
+      starts, what he says about the money OpenAI has raised and the money it owes, how he links its
+      funders and suppliers to it, and what he concludes. Then pick three claims from your passage
+      and say, for each, whether it is a stated fact, an inference or a prediction, and what
+      evidence would settle it.
+    passCriteria: >
+      The Learner explains the steps they pasted, in the essay's order, and says so where they did
+      not paste a part. They describe the opening claim that the announced round is not all cash
+      yet and depends on conditions, the comparison of OpenAI's revenue with its commitments, the
+      chain of funding through SoftBank, and the chain of suppliers (computing, data centres, cloud
+      providers) with how much each depends on OpenAI, ending in the conclusion that a failure at
+      OpenAI would spread to those who depend on it. For their three chosen claims they correctly
+      separate a stated fact from an inference and a prediction, and name the kind of evidence
+      that would test each one (a filing, a company announcement, later results). They do not claim
+      to know how events turned out, and they do not give a view that the stocks of the companies
+      named should be bought or sold.

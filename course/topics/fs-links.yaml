@@ -1,0 +1,145 @@
+# How the three statements link (accrual accounting): a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: fs-links
+title: How the three statements link (accrual accounting)
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: satyam-links-2008
+    title: Satyam's forged invoices and bank statements
+    data: [q2-revenue-reported, q2-operating-profit-reported, q2-revenue-actual, q2-operating-profit-actual]
+    asOf: 2008-12-31
+    story: >
+      Satyam Computer Services, a Hyderabad software services company, reported for the quarter
+      ended 30 September 2008 revenue of Rs 2,700 crore and an operating profit of Rs 649 crore,
+      an operating margin of 24 per cent. Its balance sheet at that date showed cash and bank
+      balances of Rs 5,361 crore and debtors (money owed by customers) of Rs 2,651 crore. In
+      December 2008 investors force it to call off a planned purchase of two construction
+      companies partly owned by its founders. As of 31 December 2008, you are asked a single
+      question: if those profit figures were real, how would they have to show up on all three
+      statements, and where would you look for a mismatch if they were not?
+    reveal: >
+      On 7 January 2009 the chairman, B. Ramalinga Raju, wrote that for the September quarter the
+      company had reported revenue of Rs 2,700 crore and an operating margin of Rs 649 crore (24
+      per cent), against actual revenue of Rs 2,112 crore and an actual operating margin of Rs 61
+      crore (3 per cent). The difference of Rs 588 crore (649 - 61) was shown as cash: "artificial
+      cash and bank balances going up by Rs 588 crore in Q2 alone". The US SEC later said Satyam's
+      managers created more than 6,000 phony invoices and bogus bank statements, giving more than
+      1 billion dollars of fictitious cash, about half of total assets; Satyam paid a 10 million
+      dollar penalty to settle. A single false profit had to appear in the general ledger and the
+      financial statements, which is also why the fraud needed false bank statements to hold it together.
+
+concept: >
+  The three statements are one system. Under accrual accounting, revenue is recorded when it is
+  earned and expenses when they are incurred, whether or not cash moves. A sale on credit raises
+  revenue (income statement) and receivables (balance sheet), and brings no cash until the customer
+  pays. Net income flows into retained earnings in equity on the balance sheet, and it is the first
+  line of the cash flow statement, which then adjusts it for non-cash items (such as depreciation)
+  and changes in receivables, inventory and payables. The ending cash on the cash flow statement
+  must equal the cash on the balance sheet. So a profit has to turn up in more than one place.
+
+principle: >
+  Follow every profit around the loop. If the income statement says money was earned, then
+  receivables or cash must have grown on the balance sheet and the cash flow statement must
+  agree. A number that appears on one statement and not on the others, or that never turns into
+  collected cash, deserves suspicion.
+
+questions:
+  - id: fl-q-credit-sale
+    prompt: >
+      A company makes a sale of Rs 100 crore on credit, to be paid next quarter. What do the statements show this quarter?
+    choices:
+      - { id: a, text: "Revenue up 100 and receivables up 100; operating cash flow unchanged" }
+      - { id: b, text: "Revenue up 100 and cash up 100" }
+      - { id: c, text: "Only the balance sheet changes, with cash up 100" }
+      - { id: d, text: "Nothing, until the customer pays" }
+    answer: a
+    explanation: >
+      Under accrual accounting the sale is revenue now. The customer owes the money, so receivables rise by 100; no cash has arrived, so operating cash flow does not rise.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.1 Cash versus Accrual Accounting: https://openstax.org/books/principles-finance-2e/pages/4-1-cash-versus-accrual-accounting
+
+  - id: fl-q-cash-change
+    prompt: >
+      A company starts the year with cash of 200 and ends it with 260. Operating cash flow was 90 and investing cash flow was minus 70. What was its financing cash flow?
+    choices:
+      - { id: a, text: "Plus 40" }
+      - { id: b, text: "Plus 60" }
+      - { id: c, text: "Minus 40" }
+      - { id: d, text: "Plus 220" }
+    answer: a
+    explanation: >
+      The change in cash is 260 - 200 = 60 = operating + investing + financing = 90 - 70 + financing. So financing = 60 - 20 = 40.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: fl-q-addback
+    prompt: >
+      On the indirect method, which of these is added back to net income to reach operating cash flow?
+    choices:
+      - { id: a, text: "Depreciation expense" }
+      - { id: b, text: "Dividends paid" }
+      - { id: c, text: "Purchases of equipment" }
+      - { id: d, text: "Repayment of a loan" }
+    answer: a
+    explanation: >
+      Depreciation reduced net income but cost no cash in the period, so it is added back. Dividends and loan repayments are financing; equipment purchases are investing.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows, operating activities: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: fl-q-error-all-three
+    prompt: >
+      By mistake, a company books a sale of 100 that never happened, and books the cash receipt of 100 with it. Which statements are wrong as a result?
+    choices:
+      - { id: a, text: "All three: revenue and profit are 100 too high, cash and retained earnings are 100 too high, and operating cash flow is 100 too high" }
+      - { id: b, text: "Only the income statement" }
+      - { id: c, text: "Only the balance sheet" }
+      - { id: d, text: "Only the cash flow statement" }
+    answer: a
+    explanation: >
+      The false revenue raises net income (income statement). That profit flows into retained earnings and the false cash sits in assets (balance sheet). The same cash appears as an operating inflow (cash flow statement). One entry spreads through the whole system.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.3 The Relationship between the Balance Sheet and the Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-3-the-relationship-between-the-balance-sheet-and-the-income-statement
+
+  - id: fl-q-depreciation
+    prompt: >
+      A company pays 600 in cash for a machine with a five-year life and no residual value, using straight-line depreciation. In year 1 (ignoring tax), what is the effect on net income and on operating cash flow?
+    choices:
+      - { id: a, text: "Net income falls by 120; operating cash flow is not reduced by the depreciation; the 600 is an investing outflow" }
+      - { id: b, text: "Net income falls by 600; operating cash flow falls by 600" }
+      - { id: c, text: "Net income falls by 120; operating cash flow falls by 120" }
+      - { id: d, text: "Net income is unchanged; operating cash flow falls by 600" }
+    answer: a
+    explanation: >
+      Straight-line depreciation is 600 / 5 = 120 a year, an expense that lowers net income. It costs no cash in the year, so it is added back in operating cash flow. The cash was paid at purchase and shows under investing activities.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 4.4 When Should a Company Capitalize or Expense an Item: https://openstax.org/books/principles-finance-2e/pages/4-4-when-should-a-company-capitalize-or-expense-an-item and 5.5 The Statement of Cash Flows.
+
+checks:
+  - id: fl-quiz-links
+    kind: quiz
+    questions:
+      - fl-q-credit-sale
+      - fl-q-cash-change
+      - fl-q-addback
+      - fl-q-error-all-three
+      - fl-q-depreciation
+      - bank:eab:MBA-ACC-FA-0024
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fl-satyam-trace
+    kind: conversation
+    prompt: >
+      A company reports an operating profit of Rs 649 crore for a quarter on revenue of Rs 2,700
+      crore. Explain how that profit should appear on the income statement, the balance sheet and
+      the cash flow statement. Then name two places you would look for a mismatch if the profit
+      were not real.
+    passCriteria: >
+      The Learner says the profit is the bottom of the income statement; on the balance sheet it
+      increases retained earnings and shows up as higher cash or higher receivables; and on the
+      cash flow statement net income is the starting line, adjusted for non-cash items and for
+      changes in receivables, with ending cash equal to the balance sheet cash. They name two
+      mismatches, for example: profit not turning into operating cash flow (growing receivables
+      or low cash conversion), ending cash that does not tie across the statements, or profit
+      and balances that independent evidence does not support.

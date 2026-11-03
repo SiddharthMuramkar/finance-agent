@@ -1,0 +1,124 @@
+# Capex, depreciation, amortisation and EBITDA: a foundation Topic taught through Webvan.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+# Case sources (checked): Webvan final prospectus (424B1) dated 4 Nov 1999 (SEC accession 0000891618-99-004914) for the first-half 1999 loss of $35.1 million; Webvan Form 8-K filed 27 Jul 2001 (SEC accession 0001021408-01-504054) for the bankruptcy filing date.
+id: fs-capex-dep
+title: Capex, depreciation, amortisation and EBITDA
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: webvan-build-out-1999
+    title: Webvan's warehouse and fleet build-out
+    asOf: 1999-11-05
+    story: >
+      Webvan, an online grocer based in Foster City, California, sold its shares to the public for
+      the first time in early November 1999. The offering was priced at $15 a share; the base deal
+      of 25 million shares raised $375 million, and trading was due to begin on 5 November. The
+      company then delivered only in the San Francisco Bay Area. In the six months to 30 June 1999
+      it had revenue of $395,000 and a net loss of $35.1 million. It planned to expand into
+      many new markets, and in July 1999 it had agreed with the engineering firm Bechtel to build
+      up to 26 more automated distribution centres over three years, at about $1 billion in all,
+      though with no specific capital commitment. Its Oakland centre alone covered 336,000 square
+      feet. The
+      average order was about $80. Analysts noted that grocers earn thin margins. Goldman Sachs, the
+      lead underwriter, projected revenue of $120 million for 2000 and $518 million for 2001, with
+      losses of $154 million and $302 million.
+    reveal: >
+      Webvan's shares rose on the first day, closing at $24.875 and valuing the company at about
+      $7.9 billion. The plan did not hold. It bought a rival, HomeGrocer, and net losses grew from
+      $144.6 million in 1999 to $453.3 million in 2000, when auditors voiced "substantial doubt"
+      about its ability to continue. In early 2001 its operating costs alone (marketing,
+      development, administration) came to $143 for every $100 of sales, on top of $72 of food
+      cost, on the Chicago Tribune's reading of its quarterly report. On 9 July 2001, with the
+      shares at 6 cents, it shut down and said it would file for bankruptcy protection; it filed
+      on 13 July. The heavy spending on warehouses and trucks had been committed ahead of the
+      customers who would pay for it.
+
+concept: >
+  Capital expenditure (capex) is spending on things that last, such as warehouses, trucks and
+  equipment. It is not an expense when paid. It becomes an asset on the balance sheet and its
+  cost is spread over its useful life as depreciation (for physical assets) or amortisation (for
+  intangibles such as software or licences). Straight-line depreciation divides cost, less any
+  residual value, by the life in years. Cash leaves in the year of purchase, but the profit and
+  loss account shows only a slice each year. EBITDA (earnings before interest, taxes,
+  depreciation and amortisation) adds depreciation and amortisation back, so it leaves out the
+  cost of the very assets the business must keep buying. Compare EBITDA with capex, and with
+  operating cash flow, before treating it as cash.
+
+principle: >
+  EBITDA can look healthy while the business is spending far more on assets than it earns. Judge
+  an asset-heavy business by what it earns after the cost of the assets it needs, and whether the
+  assets will be filled with customers before the cash runs out.
+
+questions:
+  - id: cx-q-straight-line
+    prompt: >
+      A company spends $1,000 million on warehouses and equipment with a 20-year life and no
+      residual value. Using straight-line depreciation, how much depreciation does it record each year?
+    choices:
+      - { id: a, text: "$50 million" }
+      - { id: b, text: "$1,000 million in the first year" }
+      - { id: c, text: "$20 million" }
+      - { id: d, text: "$200 million" }
+    answer: a
+    explanation: >
+      1,000 / 20 = 50. The cash is spent up front, but the profit and loss account bears $50 million a year for 20 years.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+
+  - id: cx-q-ebitda-blind-spot
+    prompt: >
+      EBITDA adds back depreciation and amortisation. What does that mean for a company that spends heavily on equipment?
+    choices:
+      - { id: a, text: "EBITDA leaves out the cost of the equipment, so it can look healthy while cash is going out on capex" }
+      - { id: b, text: "EBITDA includes the full purchase price in the year the equipment is bought" }
+      - { id: c, text: "EBITDA is lower than operating profit" }
+      - { id: d, text: "Heavy spending on equipment has no effect on cash" }
+    answer: a
+    explanation: >
+      EBITDA is profit before depreciation, interest and tax. Because depreciation is added back, the cost of the assets does not appear in it, so it must be read next to capex.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+
+  - id: cx-q-bechtel
+    prompt: >
+      In 1999 Webvan agreed with Bechtel to build distribution centres costing about $1 billion in all. If the centres last 20
+      years with no residual value and are depreciated straight-line, about how much yearly
+      depreciation does that order alone add?
+    choices:
+      - { id: a, text: "$50 million" }
+      - { id: b, text: "$1 billion" }
+      - { id: c, text: "$500 million" }
+      - { id: d, text: "$5 million" }
+    answer: a
+    explanation: >
+      1,000 / 20 = 50. The 20-year life is an assumption for this exercise, not a figure from Webvan's accounts. Against first-half revenue of $395,000, even a fraction of such a charge dwarfs sales.
+    source: >
+      Contract size from Webvan's 10-K405 for 1999, filed 30 March 2000 (EDGAR, accession 0000891618-00-001877); the life is an assumption of the exercise.
+
+checks:
+  - id: cx-quiz-depreciation
+    kind: quiz
+    questions:
+      - cx-q-straight-line
+      - cx-q-ebitda-blind-spot
+      - cx-q-bechtel
+      - bank:eab:MBA-ACC-FA-0030
+      - bank:eab:MBA-ACC-FA-0031
+      - bank:eab:MBA-ACC-FA-0032
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: cx-ebitda-view
+    kind: conversation
+    prompt: >
+      It is 5 November 1999. Webvan has agreed to build distribution centres costing about
+      $1 billion and has revenue of $395,000 for the half year. A banker says "look at EBITDA, not net loss". Explain what
+      depreciation and EBITDA would show for this plan over the next few years, and what you would
+      look at instead to judge whether the build-out can pay for itself.
+    passCriteria: >
+      The Learner explains that the $1 billion is capex: cash goes out up front, appears on the
+      balance sheet as an asset, and is expensed gradually through depreciation. EBITDA adds
+      depreciation back, so it hides the cost of the build-out and flatters an asset-heavy plan.
+      They suggest looking at capex against operating cash flow, how fast each centre can fill
+      with orders (utilisation, orders per day, revenue per centre) and thin grocery margins, or at
+      profit after depreciation, to see whether the assets can earn their cost.

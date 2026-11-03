@@ -1,0 +1,119 @@
+# Supply, demand and prices: a foundation Topic taught through India's 2019 onion price shock.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: eco-supply-demand
+title: Supply, demand and prices
+
+cases:
+  - id: onion-prices-2019
+    title: India's onion price shock
+    asOf: 2019-09-01
+    data:
+      - retail-onion-price
+      - wholesale-onion-price
+    story: >
+      On 1 September 2019 the onion, the most politically sensitive vegetable in India, is already
+      getting dearer. The all-India average retail price in August was Rs 24.82 a kilogram, against
+      Rs 21.60 a year earlier; the average wholesale price was Rs 1,991 a quintal (100 kg). Onions are
+      harvested in two main rounds: the rabi crop in March to June, which is stored, and the kharif
+      (summer-sown) crop from October to December. From July to October the market lives on stored
+      onions, so the new crop is still weeks away. Prices swing a lot from year to year: in 2018 the
+      all-India average retail price fell from Rs 42.69 a kilogram in January to Rs 16.72 in May, low
+      enough to hurt farmers.
+    reveal: >
+      Prices climbed every month: the all-India average retail price was Rs 38.30 a kilogram in
+      September, Rs 47.02 in October, Rs 61.08 in November and Rs 82.17 for the first days of
+      December. On 10 December the daily average reached Rs 101.35 a kilogram, five times the
+      Rs 19.69 of a year earlier. Untimely and prolonged rain in September and October damaged the
+      standing kharif crop and held up transport; combined kharif and late-kharif production was estimated at
+      54.73 lakh tonnes, against 69.91 lakh tonnes the year before, a fall of about 22%. The government
+      set a minimum export price of $850 a tonne on 13 September and banned onion exports altogether
+      from 29 September, put stock limits on traders and approved imports. The ban sent prices up in
+      Bangladesh, Nepal and Sri Lanka, which buy much of India's onion.
+
+concept: >
+  A market's price is where the quantity buyers want (demand) equals the quantity sellers offer
+  (supply). A change in the price of the good itself moves us along a curve; a change in anything
+  else, such as incomes, the price of a substitute, input costs or the weather, shifts the whole
+  curve. A supply shock (a failed harvest) shifts supply left: price rises and quantity falls. How
+  far the price rises depends on elasticity. Demand for a staple with few substitutes is inelastic,
+  meaning quantity barely changes when price does, so a small drop in supply produces a large rise
+  in price. Price controls interfere: a ceiling set below the market price creates a shortage, and a
+  restriction on exports moves supply into the home market, lowering the price there but raising it abroad.
+
+principle: >
+  When a price moves a lot, ask first what shifted, supply or demand, and how sensitive buyers
+  and sellers are to price. Prices carry information; policies that suppress them move the problem
+  rather than remove it.
+
+questions:
+  - id: sd-q-retail-rise
+    prompt: >
+      The all-India average retail price of onions was Rs 21.60 a kilogram in August 2018 and Rs 24.82 in August 2019. About what percentage rise is that?
+    choices:
+      - { id: a, text: "About 15%" }
+      - { id: b, text: "About 13%" }
+      - { id: c, text: "About 3%" }
+      - { id: d, text: "About 115%" }
+    answer: a
+    explanation: >
+      (24.82 - 21.60) / 21.60 = 3.22 / 21.60 = 0.149, so about 15%. The rupee rise of 3.22 is not the percentage rise, and dividing by the newer price (3.22 / 24.82 = 13%) uses the wrong base.
+    source: >
+      Ministry of Consumer Affairs data, in PIB, Rise in Prices of Onions, 6 December 2019: https://pib.gov.in/Pressreleaseshare.aspx?PRID=1595294&lang=2&reg=48
+
+  - id: sd-q-flood
+    prompt: >
+      A drought destroys part of a staple vegetable crop and delays the next harvest, while demand for the vegetable stays the same. What happens to the equilibrium price and quantity sold?
+    choices:
+      - { id: a, text: "Price rises and quantity falls" }
+      - { id: b, text: "Price rises and quantity rises" }
+      - { id: c, text: "Price falls and quantity falls" }
+      - { id: d, text: "Price and quantity do not change" }
+    answer: a
+    explanation: >
+      The supply curve shifts left. With demand unchanged, the new intersection is at a higher price and a lower quantity. Because buyers have few substitutes, the price rise is large.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.1 Microeconomics: https://openstax.org/books/principles-finance-2e/pages/3-1-microeconomics ; and OpenStax Principles of Microeconomics 3e, 3.3 Changes in Equilibrium Price and Quantity: https://openstax.org/books/principles-microeconomics-3e/pages/3-key-concepts-and-summary
+
+  - id: sd-q-ban
+    prompt: >
+      A country that exports a staple vegetable bans exports while its home price is rising. What is the immediate effect the ban aims at, and what happens in the countries that import from it?
+    choices:
+      - { id: a, text: "More onions stayed in the home market, lowering the domestic price; prices rose in countries that import Indian onions" }
+      - { id: b, text: "Domestic demand fell; prices fell abroad" }
+      - { id: c, text: "Domestic supply fell; prices rose at home and abroad" }
+      - { id: d, text: "No effect on either, since exports were a small share of production" }
+    answer: a
+    explanation: >
+      Keeping exports at home raises supply to domestic buyers (aiming to lower the price there) and removes supply from importing countries, where prices tend to rise.
+    source: >
+      OpenStax, Principles of Microeconomics 3e, 3.3 Changes in Equilibrium Price and Quantity: https://openstax.org/books/principles-microeconomics-3e/pages/3-key-concepts-and-summary ; a made-up example of the mechanism.
+
+checks:
+  - id: sd-quiz-prices
+    kind: quiz
+    questions:
+      - sd-q-retail-rise
+      - sd-q-flood
+      - sd-q-ban
+      - bank:eab:MBA-ECON-0001
+      - bank:eab:MBA-ECON-0002
+      - bank:eab:MBA-ECON-0034
+      - bank:eab:MBA-ECON-0037
+    perAttempt: 4
+    passRule:
+      correct: 3
+  - id: sd-onion-view
+    kind: conversation
+    prompt: >
+      It is 1 September 2019 and onion prices are rising while the new crop is still weeks away.
+      Using supply and demand, explain what could push the price up from here, why the size of the
+      move depends on how buyers react to price, and what options the government has to ease
+      prices and what each would do to prices at home and abroad.
+    passCriteria: >
+      The Learner explains that a bad harvest shifts supply left, and that demand for onions is
+      inelastic (a staple with few substitutes, bought in similar quantities whatever the price), so
+      the equilibrium price must rise a lot to ration the smaller quantity. They discuss at least two
+      policy options, for example restricting exports (more supply at home, lower domestic price,
+      higher prices for importing countries), limiting trader stocks (aimed at hoarding), imports or
+      release of government stocks (more supply), and note that price controls can create
+      shortages or hurt farmers. A mention that fresh crop arrivals would ease the price is a plus.

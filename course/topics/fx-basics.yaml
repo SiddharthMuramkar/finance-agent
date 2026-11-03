@@ -1,0 +1,166 @@
+# Exchange rates and parity: a foundation Topic taught through the 1991 rupee devaluation.
+# Case sources (checked): RBI Chronology of Events 1991-2000: https://rbi.org.in/history/Brief_Chro1991to2000.html ; Mint, India's tryst with currency devaluation (2016): https://livemint.com/Money/08f2pqhy1c2Yh2OYTItwDL/Indias-tryst-with-currency-devaluation.html ; IMF, India: Economic Reform and Growth, ch. III: http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+id: fx-basics
+title: Exchange rates and parity
+
+cases:
+  - id: rupee-devaluation-1991
+    title: The 1991 rupee devaluation
+    asOf: 1991-06-30
+    story: >
+      At the end of June 1991 India was in the middle of an external payments crisis. Foreign
+      exchange reserves had fallen to a level that would not pay for even a month of imports.
+      Commercial lenders abroad had almost stopped lending to India since mid-1990, and large
+      amounts of money held by non-resident Indians had been withdrawn. The authorities kept
+      paying their debts only by squeezing imports and by emergency financing from the
+      International Monetary Fund. The rupee was not allowed to float: it was fixed by the RBI
+      against a basket of currencies, and the RBI adjusted the rate in small daily steps.
+      Suppose policymakers decide to cut the rupee's value against other currencies.
+      Consider the rupee price of a dollar. If India lowers the rupee's value, what happens to the
+      rupee price of imported oil, to the dollar price of Indian exports, and to the
+      incentive to send money home or to hold it abroad? How large a cut would be enough?
+    reveal: >
+      On 1 July 1991 the RBI cut the rupee's value by about 9%. Two days later, on 3 July,
+      it cut it by a further 11%. The RBI's own chronology puts the cumulative devaluation at
+      about 18% in US dollar terms; the IMF's account says 19%. The two steps compound:
+      the rupee kept 91% of its dollar value after the first, and 89% of that after the second,
+      which leaves 0.91 x 0.89 = 81% of the original, a fall of 19%. C. Rangarajan, then a
+      deputy governor, later wrote that the plan, code-named "hop, skip and jump", was always for
+      two stages, to test the market with the first dose. After the first step the market grew
+      nervous and expected a larger fall, so the second was brought forward. In March 1992
+      India introduced a dual exchange rate, and in March 1993 the two rates were unified in a
+      system managed by the market.
+
+concept: >
+  An exchange rate is the price of one currency in terms of another, and it can be quoted
+  either way: if one Mexican peso costs $0.0625, one dollar costs 16 pesos. When it takes
+  more dollars to buy a peso the peso has appreciated, and when it takes fewer it has
+  depreciated; one currency's appreciation is the other's depreciation. A devaluation is an
+  official cut in the value of a currency that a government has fixed against others.
+  Percentage changes need care: a rupee that goes from 75 to 80 per dollar has lost 6.25% of its
+  dollar value, while the dollar has gained 6.7% in rupees. Two successive cuts, 10% and then
+  20% of the new value, leave 0.90 x 0.80 = 72% of the original value: a 28% fall, not 30%. Over the long term, a currency's value should tend
+  toward purchasing power parity (PPP): the exchange rate at which the same traded goods cost
+  the same in both countries, since otherwise people would buy where it is cheaper and sell
+  where it is dearer. In the short and medium run exchange rates often stray from PPP. A related
+  relation, covered interest parity, says a currency with the lower interest rate trades at a
+  forward premium that offsets the interest saved, so borrowing abroad and hedging the currency
+  gains nothing.
+
+principle: >
+  A change in an exchange rate is a change in relative prices: it moves what imports cost, what
+  exports earn and what foreign debts weigh, all at once. Always say which currency's value you
+  are measuring and in which direction.
+
+questions:
+  - id: fx-q-invert
+    prompt: >
+      A bank quotes one Mexican peso at $0.0625. What is the price of one US dollar in pesos?
+    choices:
+      - { id: a, text: "16 pesos" }
+      - { id: b, text: "0.0625 pesos" }
+      - { id: c, text: "6.25 pesos" }
+      - { id: d, text: "160 pesos" }
+    answer: a
+    explanation: >
+      Divide both sides of MXN 1 = USD 0.0625 by 0.0625: MXN 16 = USD 1. The quote the other way round is the reciprocal.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-appreciate
+    prompt: >
+      The price of one Mexican peso rises from $0.0625 to $0.0800. What has happened to the peso?
+    choices:
+      - { id: a, text: "It has appreciated" }
+      - { id: b, text: "It has depreciated" }
+      - { id: c, text: "It has been devalued by its government" }
+      - { id: d, text: "Nothing: only the dollar has moved" }
+    answer: a
+    explanation: >
+      It now costs more dollars to buy a peso, so the price of the peso has risen: it has appreciated, and the dollar has depreciated against it. Devaluation applies only when a government deliberately lowers a fixed rate.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-exporter
+    prompt: >
+      A Mexican potter sells goods for $20,000. The exchange rate moves from MXN 16 = USD 1 to MXN 20 = USD 1. How many pesos does the $20,000 buy after the move, and what happened to the peso?
+    choices:
+      - { id: a, text: "400,000 pesos; the peso depreciated" }
+      - { id: b, text: "320,000 pesos; the peso depreciated" }
+      - { id: c, text: "400,000 pesos; the peso appreciated" }
+      - { id: d, text: "250,000 pesos; the peso appreciated" }
+    answer: a
+    explanation: >
+      At 16 per dollar $20,000 buys 320,000 pesos; at 20 per dollar it buys 400,000. More pesos per dollar means each peso is worth fewer dollars: the peso depreciated, and the exporter earns more in pesos.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-percent
+    prompt: >
+      The rupee goes from INR 75 = USD 1 to INR 80 = USD 1. By what percentage has the rupee lost value against the dollar?
+    choices:
+      - { id: a, text: "6.25%" }
+      - { id: b, text: "6.67%" }
+      - { id: c, text: "5%" }
+      - { id: d, text: "7.5%" }
+    answer: a
+    explanation: >
+      One rupee was worth 1/75 = $0.013333 and is now worth 1/80 = $0.0125, a fall of 0.0008333 / 0.013333 = 6.25%. The 6.67% figure (80/75 - 1) is the rise in the rupee price of a dollar, which is the dollar's gain, not the rupee's loss.
+    source: >
+      Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-compound
+    prompt: >
+      A currency is devalued by 15% and then, two days later, by 20% of its new value. What is the total fall in its value, to the nearest whole percent?
+    choices:
+      - { id: a, text: "32%" }
+      - { id: b, text: "35%" }
+      - { id: c, text: "30%" }
+      - { id: d, text: "28%" }
+    answer: a
+    explanation: >
+      After the first cut the currency is worth 85% of its old value; after the second, 80% of that: 0.85 x 0.80 = 0.68, a total fall of 32%. Adding 15 and 20 gives 35%, which overstates it.
+    source: >
+      Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
+
+  - id: fx-q-ppp
+    prompt: >
+      One US dollar is worth 1.30 Canadian dollars. A car sells for $20,000 in the United States. At what Canadian price would purchasing power parity hold for the same car?
+    choices:
+      - { id: a, text: "C$26,000" }
+      - { id: b, text: "C$15,385" }
+      - { id: c, text: "C$20,000" }
+      - { id: d, text: "C$21,300" }
+    answer: a
+    explanation: >
+      At USD 1 = CAD 1.30, a $20,000 car costs 20,000 x 1.30 = C$26,000. If it were much cheaper in Canada, buyers would shift there until prices and exchange rates aligned.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.2 Demand and Supply Shifts in Foreign Exchange Markets: https://openstax.org/books/principles-economics-3e/pages/29-2-demand-and-supply-shifts-in-foreign-exchange-markets
+
+checks:
+  - id: fx-quiz-rates
+    kind: quiz
+    questions:
+      - fx-q-invert
+      - fx-q-appreciate
+      - fx-q-exporter
+      - fx-q-percent
+      - fx-q-compound
+      - fx-q-ppp
+      - bank:eab:MBA-ECON-0050
+      - bank:eab:MBA-ECON-0052
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fx-devaluation-explain
+    kind: conversation
+    prompt: >
+      Suppose a country with a fixed exchange rate cuts its currency's value by 10% and then
+      by a further 20% of the new value. Explain what this does to the price of imports and to
+      the foreign-currency price of exports, why the total fall is 28% and not 30%, and how
+      it could help with a payments crisis like India's in 1991.
+    passCriteria: >
+      The Learner says imports cost more in the home currency and exports cost less in foreign currency, so imports
+      are discouraged and exports encouraged. They say the two cuts multiply (0.90 x 0.80 = 0.72)
+      for a 28% fall in the currency's value. They connect it to the crisis: a cheaper
+      currency improves the trade balance and the incentive to hold the home currency, which helps restore reserves.

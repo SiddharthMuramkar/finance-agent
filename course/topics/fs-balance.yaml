@@ -1,0 +1,156 @@
+# The balance sheet: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: fs-balance
+title: The balance sheet
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: satyam-balance-2008
+    title: Satyam's balance sheet
+    data: [cash-and-bank-reported, debtors-reported, cash-and-bank-actual, debtors-actual]
+    asOf: 2008-09-30
+    story: >
+      Satyam Computer Services, based in Hyderabad, is one of India's largest software services
+      companies. Its balance sheet at 30 September 2008, the end of its half year, shows cash
+      and bank balances of Rs 5,361 crore and debtors (customers who owe it money) of Rs 2,651
+      crore. For the quarter ended that day it reports revenue of Rs 2,700 crore. A balance sheet is a list of what the company owns (assets)
+      against what it owes and what is left for owners (liabilities and equity), at one date.
+      As of this date, you are an analyst looking at those reported figures and deciding what you
+      would want to check before trusting them.
+    reveal: >
+      On 7 January 2009 the chairman, B. Ramalinga Raju, wrote to the board admitting that the
+      accounts had been falsified for years. Of the cash and bank balances of Rs 5,361 crore
+      reflected in the books, Rs 5,040 crore did not exist; debtors were overstated by Rs 490
+      crore (Rs 2,651 crore in the books); there was Rs 376 crore of accrued interest that did
+      not exist; and a liability of Rs 1,230 crore for funds he had arranged was left out. Cash
+      that never existed means equity that never existed. The US SEC later put the fictitious
+      cash at more than 1 billion dollars, about half of the company's total assets.
+
+concept: >
+  The balance sheet shows a company's financial position on one date. Assets are what it owns
+  (cash, money owed by customers, inventory, buildings); liabilities are what it owes; equity is
+  what is left for the owners. The accounting equation always holds: assets = liabilities +
+  equity. Equity grows with profit kept in the business (retained earnings) and shrinks with
+  dividends. Because the equation must balance, an overstated asset means an overstated equity
+  or an understated liability somewhere else. Current assets and liabilities are those due within
+  a year; the others are long term.
+
+principle: >
+  Every number on a balance sheet is a claim that something exists or is owed. Ask what
+  independent evidence backs the biggest items, and remember the equation: a false asset always
+  has a false counterpart on the other side.
+
+questions:
+  - id: fb-q-equation
+    prompt: >
+      A company has total assets of 500 and total liabilities of 320. What is its equity?
+    choices:
+      - { id: a, text: "820" }
+      - { id: b, text: "180" }
+      - { id: c, text: "320" }
+      - { id: d, text: "500" }
+    answer: b
+    explanation: >
+      Assets = liabilities + equity, so equity = 500 - 320 = 180.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet, the accounting equation: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+  - id: fb-q-borrow
+    prompt: >
+      A company borrows 100 in cash from a bank. What happens to its balance sheet?
+    choices:
+      - { id: a, text: "Assets rise by 100 and liabilities rise by 100; equity does not change" }
+      - { id: b, text: "Assets rise by 100 and equity rises by 100" }
+      - { id: c, text: "Liabilities rise by 100 and assets fall by 100" }
+      - { id: d, text: "Nothing changes, because borrowing is not an asset" }
+    answer: a
+    explanation: >
+      Cash, an asset, rises by 100, and a loan, a liability, rises by 100. The equation still balances and equity is unchanged.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+  - id: fb-q-retained-earnings
+    prompt: >
+      A company starts the year with retained earnings of 400, earns a net profit of 150, and pays dividends of 50. What are its retained earnings at the end of the year?
+    choices:
+      - { id: a, text: "500" }
+      - { id: b, text: "600" }
+      - { id: c, text: "550" }
+      - { id: d, text: "200" }
+    answer: a
+    explanation: >
+      Ending retained earnings = opening + net income - dividends = 400 + 150 - 50 = 500.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.4 The Statement of Owner's Equity: https://openstax.org/books/principles-finance-2e/pages/5-4-the-statement-of-owners-equity
+
+  - id: fb-q-current-asset
+    prompt: >
+      Which of these is a current asset?
+    choices:
+      - { id: a, text: "Money owed by customers, due within 30 days" }
+      - { id: b, text: "A factory building" }
+      - { id: c, text: "A five-year bank loan" }
+      - { id: d, text: "The owners' share capital" }
+    answer: a
+    explanation: >
+      Money owed by customers is a receivable expected in cash within a year, so it is a current asset. A building is a long-term asset; a loan is a liability; share capital is equity.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+  - id: fb-q-overstated-receivables
+    prompt: >
+      A company overstates the money owed to it by customers by Rs 200 crore, and its liabilities are right. What else on the balance sheet must be overstated?
+    choices:
+      - { id: a, text: "Nothing: assets can be overstated on their own" }
+      - { id: b, text: "Equity, by Rs 200 crore" }
+      - { id: c, text: "Liabilities, by Rs 200 crore" }
+      - { id: d, text: "Cash, by Rs 200 crore" }
+    answer: b
+    explanation: >
+      The balance sheet must balance. With liabilities correct, assets overstated by 200 means equity is overstated by 200.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet (assets = liabilities + equity): https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+  - id: fb-q-missing-assets
+    prompt: >
+      A company reports assets of 8,000 and liabilities of 3,500. It then turns out that 900 of the assets do not exist, and the liabilities are correct. What is its true equity?
+    choices:
+      - { id: a, text: "4,500" }
+      - { id: b, text: "3,600" }
+      - { id: c, text: "5,700" }
+      - { id: d, text: "900" }
+    answer: b
+    explanation: >
+      Reported equity is 8,000 - 3,500 = 4,500. Remove the 900 that does not exist: true assets 7,100, so true equity = 7,100 - 3,500 = 3,600.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+checks:
+  - id: fb-quiz-equation
+    kind: quiz
+    questions:
+      - fb-q-equation
+      - fb-q-borrow
+      - fb-q-retained-earnings
+      - fb-q-current-asset
+      - fb-q-overstated-receivables
+      - fb-q-missing-assets
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fb-satyam-cash
+    kind: conversation
+    prompt: >
+      Satyam's balance sheet at 30 September 2008 shows cash and bank balances of Rs 5,361 crore,
+      against revenue of Rs 2,700 crore for the quarter. Which line would you want to test first,
+      and how? Say what evidence would convince you that the figure exists, and what you would
+      expect to see elsewhere in the company's accounts if that much cash were really there.
+    passCriteria: >
+      The Learner picks the cash and bank balances (large relative to revenue, about twice a
+      quarter's sales) and says the strongest evidence is independent: a confirmation obtained
+      directly from the bank, not a statement handed over by the company. They say that a cash
+      pile that large should earn interest income of a corresponding size (for example, at 5% a
+      year, about Rs 268 crore) and that the company should have little reason to borrow, so they
+      would compare the interest income and the borrowings with the balance. They may also say
+      that, because the equation must balance, overstated cash would mean overstated equity or
+      understated liabilities.

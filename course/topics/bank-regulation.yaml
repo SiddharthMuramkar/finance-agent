@@ -1,0 +1,159 @@
+# Bank regulation, capital and liquidity: a foundation Topic taught through Silicon Valley Bank's regulatory position.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (Barr, 28 Apr 2023): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; press release of 28 Apr 2023: https://www.federalreserve.gov/newsevents/pressreleases/bcreg20230428a.htm ; SVB Financial Group 2022 Form 10-K (filed 24 Feb 2023), via the SEC XBRL API: https://data.sec.gov/api/xbrl/companyconcept/CIK0000719739/us-gaap/HeldToMaturitySecuritiesAccumulatedUnrecognizedHoldingLoss.json
+# The Fed calls them "open supervisory findings" (the outline said "warnings").
+id: bank-regulation
+title: Bank regulation, capital and liquidity
+
+cases:
+  - id: svb-regulation-2022
+    title: Silicon Valley Bank, passing every test
+    asOf: 2022-12-31
+    story: >
+      At the end of 2022 SVB Financial Group (SVBFG), the parent of Silicon Valley Bank, is a
+      bank holding company with about $212 billion in assets, whose clients are mostly
+      venture-capital-backed companies. It grew past $100 billion in assets in June 2021, which made it a "Category IV"
+      firm under the Federal Reserve's 2019 "tailoring" rules: banks of this size face lighter
+      requirements than the largest banks, and some of the new requirements (supervisory stress
+      tests, the liquidity coverage ratio) are phased in over the next few years. Its common equity
+      tier 1 (CET1) capital is 12.1% of risk-weighted assets. The rules require a minimum of 4.5%
+      plus a 2.5% capital conservation buffer, and the average large US bank holds about 10%. Under
+      the rules SVBFG follows, unrealised losses on its available-for-sale (AFS) securities, about
+      $2.5 billion, are not counted in regulatory capital. Its held-to-maturity (HTM) portfolio of
+      $91.3 billion carries an unrecognised loss of $15.2 billion, against shareholders' equity of
+      $16.0 billion. Securities are 55% of its assets (25% at the average large bank), and 94% of its
+      deposits are uninsured (41% at the average large bank). By the published ratios the bank meets
+      every capital requirement that applies to it. As of 31 December 2022, what do the capital and
+      liquidity rules measure, what do they leave out, and what else would a supervisor want to look at?
+    reveal: >
+      Silicon Valley Bank was closed by regulators on 10 March 2023. The Federal Reserve's own
+      review, published on 28 April 2023, found that SVBFG had 31 open supervisory findings when it
+      failed, about triple the number at peer firms, in areas such as governance and risk
+      management, liquidity and interest-rate risk. The bank had met its capital requirements every
+      year from 2017 to 2022, but the requirements did not cover what failed. The review estimated
+      that, under the pre-2019 rules, SVBFG would have been subject to the full liquidity coverage
+      ratio and would have had a shortfall of about 9% in high-quality liquid assets in December
+      2022 (about 17% in February 2023), and that counting the AFS losses in capital would have cut its
+      reported regulatory capital by $1.9 billion, taking the CET1 ratio from 12.1% to 10.4%. The Fed
+      concluded that supervisors "did not fully appreciate the extent of the vulnerabilities as
+      Silicon Valley Bank grew in size and complexity", and that the Board's tailoring approach
+      "impeded effective supervision by reducing standards, increasing complexity, and promoting a
+      less assertive supervisory approach."
+
+concept: >
+  Banks borrow short from depositors and lend or invest long, so they are fragile: if depositors lose
+  confidence, all of them want their money at once. Regulation tries to keep banks from failing and
+  keep failures from spreading. Deposit insurance reassures small depositors so that they do not run;
+  supervision inspects banks' risks; and prudential rules set minimum cushions. Capital is the
+  loss-absorbing cushion: the CET1 ratio is common equity capital divided by risk-weighted assets
+  (each asset weighted by its riskiness), with a minimum of 4.5% under the Basel III rules plus a
+  2.5% buffer; the leverage ratio divides tier 1 capital by total unweighted assets as a backstop.
+  Liquidity rules require enough cash-like assets to meet outflows: the liquidity coverage ratio
+  (LCR) is the stock of high-quality liquid assets divided by net cash outflows over 30 days and must
+  be at least 100%. Rules differ by size ("tailoring"), and what counts as capital depends on
+  choices such as whether unrealised securities losses are included. Supervisors also issue findings
+  (matters requiring attention) that a bank must fix. Ratios measure what they were built to measure;
+  none is a guarantee against a risk that they leave out.
+
+principle: >
+  A bank can pass every ratio and still be fragile. Ask what each requirement counts, what it leaves
+  out, and which of the bank's risks fall in the gap.
+
+questions:
+  - id: br-q-cet1
+    prompt: >
+      A bank has $9 billion of common equity tier 1 capital and $100 billion of risk-weighted assets. The minimum CET1 ratio is 4.5% plus a 2.5% conservation buffer. What is its CET1 ratio, and does it meet the requirement?
+    choices:
+      - { id: a, text: "9%; it exceeds the 7% requirement" }
+      - { id: b, text: "9%; it falls short of the requirement" }
+      - { id: c, text: "11.1%; it exceeds the requirement" }
+      - { id: d, text: "4.5%; it just meets the requirement" }
+    answer: a
+    explanation: >
+      CET1 ratio = 9 / 100 = 9%. The requirement with the buffer is 4.5% + 2.5% = 7%, so the bank has a 2-point cushion above it. Dividing by capital instead of by risk-weighted assets gives the wrong 11.1%.
+    source: >
+      Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023), capital section (minimum CET1 4.5%, conservation buffer 2.5%): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; ratio calculated
+
+  - id: br-q-aoci
+    prompt: >
+      A bank has CET1 capital of $14 billion and risk-weighted assets of $100 billion. Its available-for-sale securities have an unrealised loss of $2 billion that is not counted in capital. If the rules required the loss to be counted, what would its CET1 ratio be?
+    choices:
+      - { id: a, text: "12%" }
+      - { id: b, text: "14%" }
+      - { id: c, text: "16%" }
+      - { id: d, text: "2%" }
+    answer: a
+    explanation: >
+      Counting the loss cuts capital to 14 - 2 = $12 billion, so the ratio is 12 / 100 = 12% instead of 14%. Which losses count in capital is a rule, not a fact of nature.
+    source: >
+      Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023), section on the AOCI opt-out: https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; example figures are hypothetical
+
+  - id: br-q-lcr
+    prompt: >
+      A bank holds $60 billion of high-quality liquid assets and expects net cash outflows of $50 billion over the next 30 days under the regulator's stress assumptions. What is its liquidity coverage ratio, and does it meet the 100% minimum?
+    choices:
+      - { id: a, text: "120%; it meets the minimum" }
+      - { id: b, text: "83%; it falls short" }
+      - { id: c, text: "110%; it meets the minimum" }
+      - { id: d, text: "60%; it falls short" }
+    answer: a
+    explanation: >
+      LCR = HQLA / net cash outflows over 30 days = 60 / 50 = 120%. Dividing the other way gives 83%, which would fail.
+    source: >
+      Basel Committee on Banking Supervision, Basel III: The Liquidity Coverage Ratio and liquidity risk monitoring tools (January 2013), BIS: https://www.bis.org/publ/bcbs238.htm ; ratio calculated
+
+  - id: br-q-leverage
+    prompt: >
+      A bank has $10 billion of tier 1 capital, $100 billion of risk-weighted assets and $200 billion of total assets. What are its tier 1 risk-based ratio and its leverage ratio?
+    choices:
+      - { id: a, text: "10% and 5%" }
+      - { id: b, text: "5% and 10%" }
+      - { id: c, text: "10% and 10%" }
+      - { id: d, text: "20% and 5%" }
+    answer: a
+    explanation: >
+      The risk-based ratio divides by risk-weighted assets: 10 / 100 = 10%. The leverage ratio divides by total assets with no risk weights: 10 / 200 = 5%. The leverage ratio acts as a backstop when risk weights make assets look safe.
+    source: >
+      Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023), capital section (risk-based and leverage ratios defined): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; ratios calculated
+
+  - id: br-q-deposit-insurance
+    prompt: >
+      What is the main purpose of deposit insurance?
+    choices:
+      - { id: a, text: "To protect depositors up to a limit even if the bank has negative net worth, so they have less reason to run" }
+      - { id: b, text: "To guarantee that a bank will never lose money" }
+      - { id: c, text: "To set the interest rate a bank pays on deposits" }
+      - { id: d, text: "To cover every deposit of any size in full" }
+    answer: a
+    explanation: >
+      Insurance up to a limit makes small depositors safe whatever happens to the bank, removing the reason to rush for the door. It does not protect the bank's shareholders, and balances above the limit stay at risk.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY), 28.2 Bank Regulation: https://openstax.org/books/principles-economics-3e/pages/28-2-bank-regulation
+
+checks:
+  - id: br-quiz-capital
+    kind: quiz
+    questions:
+      - br-q-cet1
+      - br-q-aoci
+      - br-q-lcr
+      - br-q-leverage
+      - br-q-deposit-insurance
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: br-ratios-vs-risk
+    kind: conversation
+    prompt: >
+      A bank reports capital ratios well above the minimums and a size-based exemption from some
+      liquidity rules. Name two ways the bank could still be fragile, and say what a supervisor
+      should check beyond the ratios.
+    passCriteria: >
+      The Learner names at least two gaps: capital ratios depend on what rules count (for example
+      unrealised securities losses that are left out of capital) and on risk weights that treat some
+      assets as safe; liquidity rules that do not apply, or apply only later, do not test whether
+      deposits could leave quickly. They add that the funding mix matters (a high share of uninsured
+      or concentrated deposits can leave at once) and that interest-rate risk sits outside the
+      risk-weighted ratio. A supervisor should look at the actual stress: how fast could deposits
+      leave, what could be sold or borrowed against, how the securities are valued, and whether
+      management and the board respond to supervisory findings.

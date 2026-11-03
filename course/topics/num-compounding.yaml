@@ -1,0 +1,156 @@
+# Growth, compounding and logs: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: num-compounding
+title: Growth, compounding and logs
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: sensex-1992
+    title: The Sensex from base 100 (1979) to 1992
+    data: [sensex-close]
+    asOf: 1992-03-31
+    story: >
+      The Sensex is the index of 30 leading shares on the Bombay Stock Exchange. Its base value
+      was set at 100 in the base year 1978-79, and the BSE has published it since January 1986.
+      It first closed above 1,000 on 25 July 1990. It ended 1991 at 1,908.85, up 82% on the
+      year, after the government's liberalising reforms. On 29 February 1992, Union Budget day,
+      it rose 9.37% to 3,017.68, its first close above 3,000. In March 1992 it closed above
+      4,000 for the first time and ended the month at 4,285. As of 31 March 1992 the index has
+      risen more than fortyfold in 13 years, and commentators are calling it the start of a new
+      era. Nobody knows what comes next.
+    reveal: >
+      The Sensex peaked with a close of 4,467 in April 1992. On 28 April 1992, as the Harshad
+      Mehta securities scam came to light, it fell 12.77 per cent in a day, the largest one-day
+      percentage fall in its history outside the Covid crash. The index lost 5 per cent in April
+      and 23 per cent in May. By April 1993 it stood at about 1,980, down about 56 per cent from
+      the peak (Mint, a secondary source). A 56 per cent fall needs a rise of about 126 per cent to get back to
+      the old high, because the index must double and then some from a smaller base. The long run
+      of about 33 per cent a year was real, but the last stretch had been far faster than that and
+      far less stable.
+
+concept: >
+  Growth compounds: each period's growth is earned on the previous total, not on the starting
+  amount. After n periods at rate g, V_n = V_0 x (1 + g)^n. Turning that around, the compound
+  annual growth rate (CAGR) is (V_n / V_0)^(1/n) - 1; it is the one steady rate that gets from
+  start to end. The rule of 72 says money doubles in about 72 / rate years. Logarithms turn
+  compounding into adding: the log return ln(V_1 / V_0) of separate periods simply adds up,
+  which is why analysts use them. Growth and falls are not symmetric: after a fall of f, the
+  rise needed to recover is 1 / (1 - f) - 1.
+
+principle: >
+  Never average growth by dividing the total gain by the years; use a compound rate or logs.
+  And ask whether the pace was steady: a long-run compound rate can hide a short, much faster,
+  more fragile final stretch.
+
+questions:
+  - id: cp-q-doubling-rate
+    prompt: >
+      An amount grows from 100 to 400 in exactly two years at the same percentage rate each year. What is that yearly rate?
+    choices:
+      - { id: a, text: "50%" }
+      - { id: b, text: "100%" }
+      - { id: c, text: "150%" }
+      - { id: d, text: "200%" }
+    answer: b
+    explanation: >
+      The amount quadruples in two steps, so each step multiplies it by 2 (2 x 2 = 4). A multiplier of 2 is a gain of 100% a year. Simple averaging (300 / 2 = 150%) is the common mistake.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance, compounding interest: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
+
+  - id: cp-q-down-up
+    prompt: >
+      A share price falls 50% and then rises 50%. Compared with where it started, it is now:
+    choices:
+      - { id: a, text: "Back where it started" }
+      - { id: b, text: "25% lower" }
+      - { id: c, text: "25% higher" }
+      - { id: d, text: "12.5% lower" }
+    answer: b
+    explanation: >
+      Start at 100. After a 50% fall it is 50. A 50% rise on 50 adds 25, giving 75, which is 25% below the start. Gains and losses apply to different bases, so they do not cancel.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-rule-72
+    prompt: >
+      Using the rule of 72, about how many years does it take money to double at 8% a year?
+    choices:
+      - { id: a, text: "About 6 years" }
+      - { id: b, text: "About 9 years" }
+      - { id: c, text: "About 12 years" }
+      - { id: d, text: "About 18 years" }
+    answer: b
+    explanation: >
+      72 / 8 = 9 years. The exact figure is ln 2 / ln 1.08 = 9.006 years.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance, the Rule of 72: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Investor.gov (US SEC), What is compound interest: https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/what-compound-interest
+
+  - id: cp-q-three-years
+    prompt: >
+      Rs 1,000 grows 10% a year for three years. What is it worth at the end?
+    choices:
+      - { id: a, text: "Rs 1,300" }
+      - { id: b, text: "Rs 1,331" }
+      - { id: c, text: "Rs 1,100" }
+      - { id: d, text: "Rs 1,030" }
+    answer: b
+    explanation: >
+      1,000 x 1.10^3 = 1,000 x 1.331 = Rs 1,331. Rs 1,300 would be simple interest (10% of the original, three times).
+    source: >
+      Investor.gov (US SEC), What is compound interest ("interest on interest"): https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/what-compound-interest
+
+  - id: cp-q-log-return
+    prompt: >
+      A share price goes from 100 to 150. What is its log (continuously compounded) return, ln(150 / 100)?
+    choices:
+      - { id: a, text: "0.50 (50%)" }
+      - { id: b, text: "0.405 (40.5%)" }
+      - { id: c, text: "0.333 (33.3%)" }
+      - { id: d, text: "0.693 (69.3%)" }
+    answer: b
+    explanation: >
+      ln(1.5) = 0.4055. The ordinary return is 50%, and the log return is smaller. Log returns add across periods, which ordinary returns do not.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-index-rate
+    prompt: >
+      An index rises from 100 to 4,285 in 13 years. Which is the best summary of its yearly growth?
+    choices:
+      - { id: a, text: "About 322% a year, the total gain divided by 13 years and by 100" }
+      - { id: b, text: "About 33% a year, found as the 13th root of 42.85, minus 1" }
+      - { id: c, text: "About 4,285% a year" }
+      - { id: d, text: "About 13% a year" }
+    answer: b
+    explanation: >
+      The index multiplied by 4,285 / 100 = 42.85. The steady yearly rate g solves (1 + g)^13 = 42.85, so g = 42.85^(1/13) - 1 = 0.335, about 33% a year. Dividing the gain by years ignores compounding.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance (solving for the growth rate): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Sensex values: BSE, SENSEX@40 white paper (January 2026), https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
+
+checks:
+  - id: cp-quiz-compounding
+    kind: quiz
+    questions:
+      - cp-q-doubling-rate
+      - cp-q-down-up
+      - cp-q-rule-72
+      - cp-q-three-years
+      - cp-q-log-return
+      - cp-q-index-rate
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: cp-sensex-rate
+    kind: conversation
+    prompt: >
+      The Sensex went from 100 to 4,285 in about 13 years. A friend divides the 4,185-point gain
+      by 100 and by 13 and says it rose about 322% a year. Explain what is wrong with that, and
+      work out roughly what steady yearly rate would take 100 to 4,285 in 13 years. Then use the
+      July 1990 level of about 1,000 to say whether the pace looks steady over those 13 years.
+    passCriteria: >
+      The Learner explains that growth compounds, so the total gain cannot be spread evenly
+      over the years by simple division. They compute a compound rate near 33% a year (accept
+      30% to 36%) using the 13th root of 42.85 or logarithms. They note that going from about
+      1,000 (July 1990) to 4,285 (March 1992) is more than a four-fold rise in under two years,
+      far above 33% a year, so the pace was not steady and the early years must have been slower
+      (about 22% a year by the same method). A rough answer is fine if the method is right.

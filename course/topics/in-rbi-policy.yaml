@@ -1,0 +1,133 @@
+# India: RBI, repo rate, liquidity and inflation targeting, taught through the RBI's package of 4 September 2013.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+id: in-rbi-policy
+title: "India: RBI, repo rate, liquidity and inflation targeting"
+
+cases:
+  - id: rbi-package-2013
+    title: The RBI's package of 4 September 2013
+    asOf: 2013-09-03
+    story: >
+      The Indian rupee is under heavy pressure. After the US Federal Reserve hinted in May 2013 that it might
+      slow its bond purchases, investors pulled money out of emerging markets, and the rupee slid from about
+      Rs 54 to the dollar in May to a record low of nearly Rs 69 in August. India's current account deficit for 2012-13 was a record
+      $88.2 billion, 4.8 per cent of GDP. The government has raised the duty on gold, one of the largest imports,
+      to 10 per cent and banned imports of gold coins and medallions. The RBI's policy repo rate, the rate at
+      which banks borrow overnight from the RBI against government securities, stands at 7.25 per cent. Inflation
+      is high, and the rupee's fall makes imported oil and goods dearer. India has to find dollars from
+      abroad while capital is flowing out. The RBI is expected to respond, but nobody outside knows what it
+      will do.
+    reveal: >
+      On the afternoon of 4 September 2013 Governor Raghuram Rajan announced a package that included two swap
+      windows. Banks could raise new three-year FCNR(B) deposits, dollar deposits from non-resident Indians,
+      and swap the dollars with the RBI for rupees at a concessional rate, so that the RBI, not the banks,
+      bore the exchange-rate risk of returning the dollars three years later. Banks could also swap dollars
+      raised through overseas borrowing. The FCNR(B) route drew in about $26 billion, and press estimates put the two windows
+      together at roughly $34 billion. The rupee stabilised and the cost of buying dollars
+      forward fell. In the following weeks the RBI also raised the repo rate by 25 basis points on 20 September
+      (to 7.5 per cent) and again on 29 October 2013 (to 7.75 per cent), while cutting the marginal standing facility
+      rate, its penal ceiling rate for banks, from 9.0 to 8.75 per cent. One analyst has pointed out that a
+      large part of the FCNR(B) inflow was not savings of non-resident Indians but overseas bank money lent
+      to them and routed through the scheme, so the windows were a way to attract dollars cheaply, not
+      evidence that savers had suddenly regained confidence.
+
+concept: >
+  The Reserve Bank of India steers short-term interest rates through the liquidity adjustment facility
+  (LAF). In a repo, a bank sells government securities to the RBI and agrees to buy them back later, which
+  is a collateralised loan from the RBI at the repo rate. A reverse repo is the mirror image: the RBI takes
+  cash from banks and gives securities, which absorbs liquidity at the reverse repo rate. The marginal
+  standing facility (MSF) lets banks borrow extra at a higher, penal rate. The cash reserve ratio (CRR) and
+  statutory liquidity ratio (SLR) set how much of their deposits banks must hold with the RBI or in government
+  securities. Liquidity is the amount of cash in the banking system; when it is scarce, banks rely on the
+  RBI. The RBI also manages the rupee: it can sell dollars from its reserves or change rules on
+  foreign-currency flows. Since an agreement between the government and the RBI in February
+  2015, the RBI follows flexible inflation targeting, a medium-term consumer inflation
+  goal of 4 per cent with a band of 2 percentage points on either side.
+
+principle: >
+  A central bank has several tools and each aims at a different problem: the policy rate for inflation,
+  liquidity tools for short-term money markets, and swaps and flow rules for the currency. In a currency
+  crisis it matters who carries the exchange-rate risk and who is paid to carry it.
+
+questions:
+  - id: rbi-q-repo
+    prompt: >
+      A bank borrows from the RBI under a repo. What does the bank hand over, and what happens at the end?
+    choices:
+      - { id: a, text: "It sells government securities to the RBI and agrees to buy them back later at a higher price" }
+      - { id: b, text: "It gives the RBI foreign currency and keeps it permanently" }
+      - { id: c, text: "It deposits cash with the RBI and receives securities permanently" }
+    answer: a
+    explanation: >
+      A repo is a collateralised loan: the borrower sells securities now and repurchases them later, and the
+      difference in price is the interest, quoted as the repo rate.
+    source: >
+      Reserve Bank of India, Report of the Technical Group on Repo Market (section on repo and reverse repo): https://www.rbi.org.in/scripts/PublicationReportDetails.aspx?ID=34
+
+  - id: rbi-q-reverse-repo
+    prompt: >
+      Why does the RBI use a reverse repo to drain excess cash from the banking system?
+    choices:
+      - { id: a, text: "In a reverse repo the RBI takes cash from banks and gives them securities, so cash leaves the banking system for a time" }
+      - { id: b, text: "In a reverse repo the RBI lends cash to banks, so cash enters the system" }
+      - { id: c, text: "A reverse repo changes the reserve requirement for banks" }
+    answer: a
+    explanation: >
+      A reverse repo is the mirror image of a repo: the RBI acquires cash against securities with a commitment
+      to sell them back, which absorbs liquidity.
+    source: >
+      Reserve Bank of India, Report of the Technical Group on Repo Market: https://www.rbi.org.in/scripts/PublicationReportDetails.aspx?ID=34
+
+  - id: rbi-q-target
+    prompt: >
+      Under the inflation targeting framework agreed between the government and the RBI in 2015, what is the
+      RBI's medium-term inflation goal?
+    choices:
+      - { id: a, text: "4 per cent, with a band of plus or minus 2 percentage points" }
+      - { id: b, text: "2 per cent, with a band of plus or minus 4 percentage points" }
+      - { id: c, text: "Zero inflation" }
+    answer: a
+    explanation: >
+      The agreement sets the mid-point of the 4 per cent plus or minus 2 per cent band as the target.
+    source: >
+      Reserve Bank of India, press release of 4 March 2015 on the Monetary Policy Framework Agreement: http://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1847POLF040315.pdf
+
+  - id: rbi-q-swap
+    prompt: >
+      Suppose a central bank lets banks raise three-year dollar deposits from non-residents and swap the
+      dollars with the central bank at a forward rate fixed today. What risk does the swap take off the banks?
+    choices:
+      - { id: a, text: "The risk that the rupee would weaken before the dollars had to be returned" }
+      - { id: b, text: "The risk that depositors would withdraw their deposits in rupees" }
+      - { id: c, text: "The risk that the RBI would raise the repo rate" }
+    answer: a
+    explanation: >
+      With the forward rate fixed today, banks know in advance the rupee price at which they can return the
+      dollars after three years, so the exchange-rate risk moves to the central bank.
+    source: >
+      Reserve Bank of India circular RBI/2013-14/234, 6 September 2013, Swap Window for Attracting FCNR(B) Dollar Funds: https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0 ; Raghuram Rajan, "The independence of the central bank", 3 September 2016 (BIS): https://bis.org/review/r160905b.htm
+
+checks:
+  - id: eco-rbi-quiz-tools
+    kind: quiz
+    questions:
+      - rbi-q-repo
+      - rbi-q-reverse-repo
+      - rbi-q-target
+      - rbi-q-swap
+      - bank:eab:MBA-ECON-0042
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-rbi-package-reasoning
+    kind: conversation
+    prompt: >
+      It is 3 September 2013: the rupee is falling and India's current account deficit is large. Suggest what
+      the RBI could do to bring dollars in, who would carry the exchange-rate risk under a scheme that
+      attracts dollar deposits, and whether the repo rate alone could handle both the currency and inflation.
+    passCriteria: >
+      The Learner proposes sensible ways to bring in dollars or ease outflows (for example attracting dollar
+      deposits from non-residents or banks' overseas borrowing, selling reserves, curbing imports) and names who
+      would bear the exchange-rate risk under such a scheme (depositor, bank or central bank) and why that
+      matters. They explain that the repo rate and liquidity tools work on inflation and the cost of money,
+      while currency measures target the exchange rate, so the two are separate instruments.

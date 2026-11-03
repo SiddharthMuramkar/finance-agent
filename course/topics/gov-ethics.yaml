@@ -1,0 +1,182 @@
+# Governance, ethics and fraud: a foundation Topic taught through a short Case.
+id: gov-ethics
+title: Governance, ethics and fraud
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: satyam-maytas-deal-2008
+    title: A software company's board approves a deal with the chairman's family firms
+    asOf: 2008-12-16
+    story: >
+      On the morning of Tuesday 16 December 2008, Satyam Computer Services, India's fourth
+      largest software services company, told investors that its board had approved a move
+      into construction. It would buy all of Maytas Properties, a privately held property
+      developer, and 51 per cent of Maytas Infra, a listed builder of highways, ports and
+      water-treatment projects. Satyam put the total outflow at about $1.6 billion: about
+      $1.3 billion for Maytas Properties and about $300 million for the Maytas Infra stake.
+      For Maytas Infra it would buy 31 per cent from the existing promoters at 475 rupees a
+      share and then make an open offer for a further 20 per cent at 525 rupees a share.
+      The two Maytas companies were promoted by the family of Satyam's chairman, B.
+      Ramalinga Raju. He and other insiders held about 36 per cent of Maytas Infra and about
+      35 per cent of Maytas Properties, so part of Satyam's cash would flow to the
+      chairman's own side of the table. Satyam's own business was software, its balance
+      sheet showed a large pile of cash, and India's construction industry was weak in the
+      global slowdown. How Satyam's shareholders and investors would react to the deal was
+      not yet known.
+    reveal: >
+      The reaction was immediate. Satyam's American shares (ADS) fell $6.85, or 55 per cent,
+      to $5.70 on the New York Stock Exchange that day, the biggest percentage fall on the
+      exchange, and investors in India criticised the deal as well. Late the same day
+      Satyam called it off, with Raju saying the company had been "surprised by the market
+      reaction" but would "in deference to the views expressed by many investors" call off
+      the acquisitions. The board minutes, reported a month later, showed that the five
+      independent directors had voiced concerns about the valuation, the related-party
+      nature of the deal and the board being used as a "rubber stamp", but the resolution
+      had still passed unanimously; the board had approved up to 6,410 crore rupees for
+      Maytas Properties. India's corporate affairs ministry asked for details of possible
+      governance lapses. On 7 January 2009 Raju wrote to the board and to the exchanges
+      that Satyam's accounts had been inflated for years, that the gap was "purely on
+      account of inflated profits over a period of last several years", and that the
+      Maytas deal was "the last attempt to fill the fictitious assets with real ones". The
+      US SEC later said the company had overstated cash and revenue by more than $1
+      billion, and Satyam paid a $10 million penalty. The lesson of the Case is not that
+      the deal was unusual on its face, but that a transaction with the controlling family
+      is the place where a company's governance is tested: the market treated the deal as
+      a warning about the people behind it before anyone knew why.
+
+concept: >
+  Shareholders own a company but managers and directors run it, so their interests can
+  differ; this is the agency problem. The danger is greatest when the people who decide
+  also stand on the other side of the deal, as in a related-party transaction, where a
+  controlling shareholder or manager sells to, or buys from, the company through a firm
+  they own. Governance is the set of checks meant to protect the owners: independent
+  directors who can say no, an audit committee, disclosure, honest accounts and the
+  shareholders' vote. Ethics is what remains when those checks are weak: whether the
+  people in charge act for the owners even when they could profit by not doing so. A
+  related-party deal is judged by asking who gains, who decided, at what price, and
+  whether the price was checked by someone with no stake in it.
+
+principle: >
+  Ask of every large deal: who is on both sides of it, who checked the price, and could
+  the independent directors and minority shareholders actually refuse? A deal that
+  moves company cash toward the insiders is a governance question before it is a
+  strategy question.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: ge-q-agency-problem
+    prompt: >
+      In corporate finance, what is an agency problem?
+    choices:
+      - { id: a, text: "A conflict of interest in which the managers entrusted with running a company act for their own gain rather than the owners'" }
+      - { id: b, text: "A dispute between two companies over the price of a takeover" }
+      - { id: c, text: "A tax charged on the sale of shares" }
+      - { id: d, text: "A rule that every company must hire an outside agency to audit it" }
+    answer: a
+    explanation: >
+      The agent (manager) is entrusted with the owner's interests but may abuse the position to pursue personal goals. The conflict between management and shareholders is the standard example.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
+
+  - id: ge-q-related-party
+    prompt: >
+      A company's chairman owns 40% of a private builder. The company's board proposes to buy the whole builder for cash. Why does this deserve extra scrutiny from outside shareholders?
+    choices:
+      - { id: a, text: "The chairman sits on both sides of the deal, so he gains if the price is set too high" }
+      - { id: b, text: "Companies are never allowed to buy private firms" }
+      - { id: c, text: "A cash purchase always lowers earnings" }
+      - { id: d, text: "The builder's size decides the price, not the owners" }
+    answer: a
+    explanation: >
+      The chairman is a buyer's agent and a seller's owner at the same time, which is the agency problem in its sharpest form. Each rupee above fair value moves company money to him.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
+
+  - id: ge-q-board-role
+    prompt: >
+      Which group is mainly responsible for protecting the interests of shareholders inside a company?
+    choices:
+      - { id: a, text: "The board of directors, which acts as a fiduciary for the shareholders" }
+      - { id: b, text: "The company's bankers" }
+      - { id: c, text: "The company's customers" }
+      - { id: d, text: "The stock exchange's trading staff" }
+    answer: a
+    explanation: >
+      The board hires and fires the chief executive and oversees management as a fiduciary for shareholders. That is why its independence matters.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), Chapter 2 Summary (2.2 and 2.3): https://openstax.org/books/principles-finance/pages/2-summary
+
+  - id: ge-q-incentives
+    prompt: >
+      Which measure is listed as one way to reduce the conflict between managers and shareholders?
+    choices:
+      - { id: a, text: "Awarding managers stock and other long-term pay so their goals match the owners'" }
+      - { id: b, text: "Paying managers only a fixed salary for the current quarter" }
+      - { id: c, text: "Letting managers set their own bonus" }
+      - { id: d, text: "Keeping the company's results secret from shareholders" }
+    answer: a
+    explanation: >
+      Long-term pay such as stock encourages long-term thinking and ties the managers' wealth to the owners'. Penalising poor performance and unethical behaviour is another measure. Letting managers decide their own pay worsens the conflict.
+    source: >
+      OpenStax, Principles of Finance 2e (CC BY 4.0), 2.4 Agency Issues: Shareholders and Corporate Boards: https://openstax.org/books/principles-finance-2e/pages/2-4-agency-issues-shareholders-and-corporate-boards
+
+  - id: ge-q-audit-committee
+    prompt: >
+      What does a strong, independent audit committee of a board do?
+    choices:
+      - { id: a, text: "Reviews audit plans and findings, approves the external accountants and coordinates internal and external reviews of the accounts" }
+      - { id: b, text: "Sets the company's share price" }
+      - { id: c, text: "Approves each customer order" }
+      - { id: d, text: "Decides which employees are promoted" }
+    answer: a
+    explanation: >
+      The audit committee is a subcommittee of the board that handles critical financial matters, including reviewing audit plans and findings and approving the external public accountants.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 2.3 Role of the Board of Directors: https://openstax.org/books/principles-finance/pages/2-3-role-of-the-board-of-directors
+
+  - id: ge-q-minority-vote
+    prompt: >
+      A company's controlling family holds 25% of a builder and proposes that the company buy it for cash. What most clearly protects the other shareholders?
+    choices:
+      - { id: a, text: "Independent directors who can block the deal, or a vote in which shareholders with no stake in the builder decide" }
+      - { id: b, text: "A statement by the chairman that the price is fair" }
+      - { id: c, text: "A press release praising the deal" }
+      - { id: d, text: "Waiting for the next annual report" }
+    answer: a
+    explanation: >
+      Governance protects owners only if those who object have the power to act on it. The word of the interested party does not check the price; a veto by independent directors or a vote by the unconnected shareholders does.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 2.3 Role of the Board of Directors: https://openstax.org/books/principles-finance/pages/2-3-role-of-the-board-of-directors
+
+checks:
+  - id: ge-quiz-agency
+    kind: quiz
+    questions:
+      - ge-q-agency-problem
+      - ge-q-related-party
+      - ge-q-board-role
+      - ge-q-incentives
+      - ge-q-audit-committee
+      - ge-q-minority-vote
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ge-related-party-questions
+    kind: conversation
+    prompt: >
+      Using only what was known on the morning of 16 December 2008, list the questions you
+      would put to Satyam's board and to its chairman before accepting the proposed purchase
+      of Maytas Properties and Maytas Infra. Explain which facts make this a governance
+      question, and what evidence would have to be shown to minority shareholders for the
+      price to be believable.
+    passCriteria: >
+      The Learner identifies that the chairman's family and other insiders held about 35 to
+      36 per cent of both targets, so the people approving the deal stood on the selling side
+      too (a related-party transaction and an agency problem). They notice that the targets
+      were construction businesses far from Satyam's software business and that the price was
+      about $1.6 billion in cash. They ask who valued the targets and whether independent
+      directors or an outside adviser checked the price, whether the independent directors
+      and the audit committee could refuse, whether shareholders unconnected to the Maytas
+      companies would vote, and whether the cash used belongs to the company's owners. They
+      give at least three concrete questions or safeguards. They do not need to know what
+      happened afterwards and must not claim a prediction about the outcome.

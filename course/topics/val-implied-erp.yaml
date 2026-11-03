@@ -1,0 +1,160 @@
+# Implied equity risk premium and market-level valuation: a foundation Topic taught through the S&P 500 at the end of 2007.
+# Case Data (Damodaran's annual table) lives in the database; see docs/architecture.md.
+# Case sources (checked): Aswath Damodaran, Historical Implied Equity Risk Premiums (NYU Stern): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html ; Damodaran, The Equity Risk Premium (ERP): Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
+id: val-implied-erp
+title: Implied equity risk premium and market-level valuation
+
+cases:
+  - id: implied-erp-end-2007
+    title: The implied equity risk premium at the end of 2007
+    data:
+      - sp500-year-end
+      - treasury-bond-rate
+      - implied-erp
+      - dividend-yield
+      - earnings-yield
+      - smoothed-growth
+    asOf: 2007-12-31
+    story: >
+      On 31 December 2007 the S&P 500 index closed at 1,468.36, after 1,418.30 a year earlier and
+      1,248.29 two years before. The US Treasury bond rate, the riskfree rate used to value US
+      stocks, was 4.02 percent. The index's companies had paid dividends of 27.73 index points in
+      2007, a dividend yield of 1.89 percent, and earned 82.54 points, an earnings yield of 5.62
+      percent. Aswath Damodaran estimates what stock prices imply about the premium investors
+      demand for holding stocks instead of Treasury bonds, rather than assuming a historical
+      average. He solves for the return that makes the discounted expected cash flows to
+      shareholders (dividends and buybacks) worth today's index level, using a smoothed growth rate of
+      5.03 percent, and subtracts the Treasury bond rate. For the start
+      of 2008 his answer is 4.37 percent, up from 4.16 percent a year earlier. It is 31 December
+      2007, and you have to value a company that will earn cash for years. You need a premium for
+      the cost of equity: the usual advice is to use one number, taken from history, every time.
+    reveal: >
+      A year later, on 31 December 2008, the S&P 500 stood at 903.25, down 38.5 percent. The
+      Treasury bond rate had fallen to 2.21 percent and the dividend yield had risen to 3.11
+      percent. Damodaran's implied premium for the start of 2009 was 6.43 percent, the highest of
+      the period. It fell back to 4.36 percent a year later, with the index at 1,115.10, and was
+      5.20 percent a year after that. The premium had not been a fixed property of stocks: it moved
+      with prices and expectations, so the right number to put in a valuation on 31 December 2007 was
+      not the right one on 31 December 2008. An analyst who used the same historical premium in
+      both years would have valued the same company at the same cost of equity in a market that
+      had changed from complacent to frightened.
+
+concept: >
+  The equity risk premium (ERP) is the extra return investors expect from stocks as a whole over
+  the riskfree rate. A historical premium averages past returns, with a large standard error. An
+  implied premium reverses the logic of valuation: instead of using a required return to find the
+  price, it takes today's price as given and solves for the return that makes expected cash flows
+  worth that price. In the simplest version, with cash flows that grow at a steady rate g,
+  index = expected cash flow next year / (r - g), so r = expected cash flow yield + g, and the
+  implied ERP = r - riskfree rate. For example, with an index at 1,000, next year's expected
+  dividends of 20 and growth of 5 percent, r = 2% + 5% = 7%, and with a riskfree rate of 4%
+  the ERP is 3%. Fuller versions use cash flow to equity (dividends plus buybacks) and several
+  years of growth. The implied premium depends on the cash flow and growth assumptions, so it is
+  an estimate, but it is consistent with today's price. It changes whenever prices or
+  expectations change, which makes the market-level discount rate time-varying.
+
+principle: >
+  The equity risk premium is not a constant of nature. Read it from today's prices and
+  expected cash flows, check how sensitive it is to the growth you assume, and use the same
+  premium in a valuation as the market prices used in the comparison.
+
+questions:
+  - id: ie-q-implied-return
+    prompt: >
+      A stock index stands at 1,000. Expected dividends next year are 20 (2 percent of the index level) and are expected to grow at 5 percent a year for ever. What expected return does the index price imply?
+    choices:
+      - { id: a, text: "3 percent" }
+      - { id: b, text: "5 percent" }
+      - { id: c, text: "7 percent" }
+      - { id: d, text: "10 percent" }
+    answer: c
+    explanation: >
+      With steady growth, index = dividend / (r - g), so r = dividend / index + g = 20 / 1,000 + 5% = 2% + 5% = 7%.
+    source: >
+      Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library), the implied equity risk premium: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
+
+  - id: ie-q-implied-erp
+    prompt: >
+      The index above implies an expected return of 7 percent and the riskfree rate is 4 percent. What is the implied equity risk premium?
+    choices:
+      - { id: a, text: "3 percent" }
+      - { id: b, text: "4 percent" }
+      - { id: c, text: "7 percent" }
+      - { id: d, text: "11 percent" }
+    answer: a
+    explanation: >
+      Implied ERP = implied expected return - riskfree rate = 7% - 4% = 3%.
+    source: >
+      Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
+
+  - id: ie-q-higher-price
+    prompt: >
+      Suppose instead the index stood at 1,250 with the same expected dividends of 20, the same 5 percent growth and the same 4 percent riskfree rate. What is the implied equity risk premium?
+    choices:
+      - { id: a, text: "2.6 percent" }
+      - { id: b, text: "3.0 percent" }
+      - { id: c, text: "3.4 percent" }
+      - { id: d, text: "6.6 percent" }
+    answer: a
+    explanation: >
+      Dividend yield = 20 / 1,250 = 1.6 percent. r = 1.6% + 5% = 6.6%, so the ERP is 6.6% - 4% = 2.6%. A higher price for the same expected cash flows means investors accept a lower return.
+    source: >
+      Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
+
+  - id: ie-q-growth
+    prompt: >
+      Keep the index at 1,000, dividends next year at 20 and the riskfree rate at 4 percent, but raise the assumed growth rate from 5 percent to 6 percent. What happens to the implied equity risk premium?
+    choices:
+      - { id: a, text: "It rises to 4 percent" }
+      - { id: b, text: "It falls to 2 percent" }
+      - { id: c, text: "It stays at 3 percent" }
+      - { id: d, text: "It becomes negative" }
+    answer: a
+    explanation: >
+      r = 2% + 6% = 8%, so ERP = 8% - 4% = 4%. To justify the same price with faster expected growth, investors must demand a higher return. The implied premium is only as good as the growth assumption.
+    source: >
+      Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
+
+  - id: ie-q-historical
+    prompt: >
+      How does an implied equity risk premium differ from a historical one?
+    choices:
+      - { id: a, text: "It is solved from today's price and expected cash flows, while the historical premium averages past returns" }
+      - { id: b, text: "It averages past returns over a longer period" }
+      - { id: c, text: "It is set by regulators" }
+      - { id: d, text: "It is the same number, estimated twice" }
+    answer: a
+    explanation: >
+      A historical premium looks backward and has a large standard error. An implied premium asks what return the market's current price and expected cash flows promise, so it moves with prices.
+    source: >
+      Damodaran, The Equity Risk Premium: Determinants, Estimation and Implications (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/ERPfull.pdf
+
+checks:
+  - id: ie-quiz-erp
+    kind: quiz
+    questions:
+      - ie-q-implied-return
+      - ie-q-implied-erp
+      - ie-q-higher-price
+      - ie-q-growth
+      - ie-q-historical
+      - bank:eab:MBA-FIN-VAL-0037
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: ie-fixed-or-implied
+    kind: conversation
+    prompt: >
+      One analyst uses the same equity risk premium of 5 percent in every valuation. Another
+      re-estimates it every January from the S&P 500 and expected cash flows; for 31 December
+      2007 the index was 1,468.36, the Treasury bond rate 4.02 percent and the dividend yield
+      1.89 percent. Explain how the second analyst gets a premium, why the two may disagree, and
+      what the second analyst's number depends on.
+    passCriteria: >
+      The Learner explains that an implied premium is found by taking the index price and expected
+      cash flows (dividends and buybacks) and growth, solving for the expected return, and
+      subtracting the riskfree rate. They say that when prices or expectations change the implied
+      premium changes, while a fixed historical number does not, so the two analysts will differ
+      whenever the market has moved. They note that the implied number depends on the growth and
+      cash flow assumptions, so it is an estimate, and that using the premium consistent with
+      current prices keeps valuations in line with the market they are compared to.

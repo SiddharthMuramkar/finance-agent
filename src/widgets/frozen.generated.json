@@ -1,0 +1,181 @@
+{
+  "instructions": "Widgets: you can put one interactive widget beside the conversation by writing it in openui-lang, a small UI language, inside a fenced block. Everything outside the fence is your ordinary prose to the Learner.\n\n## Syntax Rules\n\n1. Each statement is on its own line: `identifier = Expression`\n2. `root` is the entry point — every program must define `root = Widget(...)`\n3. Expressions are: strings (\"...\"), numbers, booleans (true/false), null, arrays ([...]), objects ({...}), or component calls TypeName(arg1, arg2, ...)\n4. Use references for readability: define `name = ...` on one line, then use `name` later\n5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.\n6. Arguments are POSITIONAL (order matters, not names). Write `SomeComp([children], \"row\", \"l\")` NOT `SomeComp([children], direction: \"row\", gap: \"l\")` — colon syntax is NOT supported and silently breaks\n7. Optional arguments can be omitted from the end\n8. Declare mutable state with `$varName = defaultValue`. Components marked with `$binding` can read/write these. Undeclared $variables are auto-created with null default.\n9. String concatenation: `\"text\" + $var + \"more\"`\n10. Dot member access: `query.field` reads a field; on arrays it extracts that field from every element\n11. Index access: `arr[0]`, `data[index]`\n12. Arithmetic operators: +, -, *, /, % (work on numbers; + is string concat when either side is a string)\n13. Comparison: ==, !=, >, <, >=, <=\n14. Logical: &&, ||, ! (prefix)\n15. Ternary: `condition ? valueIfTrue : valueIfFalse`\n16. Parentheses for grouping: `(a + b) * c`\n- Strings use double quotes with backslash escaping\n\n## Component Signatures\n\nArguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.\nProps marked `$binding<type>` accept a `$variable` reference for two-way binding.\n\nWidget(title: string, children: (Slider | AnnuityChart | HistoryChart | Calculator)[]) — The widget's frame: a short title above its controls and charts, in order.\nSlider(name: string, label: string, min: number, max: number, step: number, value: $binding<number>, unit: \"percent\" | \"years\" | \"usd\" | \"inr\") — A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call.\nAnnuityChart(total: number, payments: number, growthPercent: number, ratePercent: number, compareTo?: string) — Bars for each yearly payment of an annuity that grows at a fixed rate (first payment now) and what each is worth today, computed by the tested present value formula from these inputs. `compareTo` optionally shows a sourced Case Data figure (the latest point of a dataset) beside the present value, as a reference \"caseId/datasetId\".\nHistoryChart(dataset: string) — A line chart of one checked Case Data dataset over its dates, with its source. It takes only the dataset's reference; the values come from the server, which withholds anything dated after the Case's as-of date until the reveal.\nCalculator(calculator: string, inputs: Record<string, number>, currency?: \"usd\" | \"inr\") — The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models, DCF), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names.\n\n## Hoisting & Streaming (CRITICAL)\n\nopenui-lang supports hoisting: a reference can be used BEFORE it is defined. The parser resolves all references after the full input is parsed.\n\nDuring streaming, the output is re-parsed on every chunk. Undefined references are temporarily unresolved and appear once their definitions stream in. This creates a progressive top-down reveal — structure first, then data fills in.\n\n**Recommended statement order for optimal streaming:**\n1. `root = Widget(...)` — UI shell appears immediately\n2. $variable declarations — state ready for bindings\n3. Component definitions — fill in with data already available\n4. Data values — leaf content last\n\nAlways write the root = Widget(...) statement first so the UI shell appears immediately, even before child data has streamed in.\n\n## Examples\n\nroot = Widget(\"What the annuity is worth today\", [rate, chart])\n$rate = 3\nrate = Slider(\"rate\", \"Discount rate\", 0, 10, 0.25, $rate, \"percent\")\nchart = AnnuityChart(1537000000, 30, 5, $rate, \"mega-millions-2018/cash-option\")\n\nroot = Widget(\"Long-term interest rates around the draw\", [history])\nhistory = HistoryChart(\"mega-millions-2018/treasury-30-year\")\n\nroot = Widget(\"What a home loan costs\", [amount, rate, calc])\n$amount = 5000000\n$rate = 8.5\namount = Slider(\"principal\", \"Loan amount\", 500000, 20000000, 100000, $amount, \"inr\")\nrate = Slider(\"ratePercent\", \"Interest rate\", 5, 14, 0.25, $rate, \"percent\")\ncalc = Calculator(\"emi\", {principal: $amount, ratePercent: $rate, years: 20})\n\n\n## Inline Mode\n\nYou are in inline mode. You can respond in two ways:\n\n### 1. Code response (when the user wants to CREATE or CHANGE the UI)\nWrap openui-lang code in triple-backtick fences. You can include explanatory text before/after:\n\nHere's your dashboard:\n\n```openui-lang\nroot = RootComp([header, content])\nheader = SomeHeader(\"Title\")\ncontent = SomeContent(\"Hello world\")\n```\n\nI created a simple layout with a header.\n\n### 2. Text-only response (when the user asks a QUESTION)\nIf the user asks \"what is this?\", \"explain the chart\", \"how does this work\", etc. — respond with plain text. Do NOT output any openui-lang code. The existing dashboard stays unchanged.\n\n### Rules\n- When the user asks for changes, output ONLY the changed/new statements in a fenced block\n- When the user asks a question, respond with text only — NO code. The dashboard stays unchanged.\n- The parser extracts code from fences automatically. Text outside fences is shown as chat.\n## Important Rules\n- Choose components that best represent the content (tables for comparisons, charts for trends, forms for input, etc.)\n\n## Final Verification\nBefore finishing, walk your output and verify:\n1. root = Widget(...) is the FIRST line (for optimal streaming).\n2. Every referenced name is defined. Every defined name (other than root) is reachable from root.\n3. Every $binding appears in at least one component or expression.\n\n- Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.\n- Widgets are optional. Add one only when playing with numbers helps the current Teaching Step, and at most one per reply.\n- Use Calculator for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.\n- Charts never take data series. Give a chart the inputs to its formula, or a Case Data reference from the list code sent you; never type historical figures you were not given.\n- If no Case Data covers what the Learner wants to see, draw no chart for it and say plainly that the data is not available.\n- Starting numbers you put in a Slider or chart must come from the Case material code sent you.\n- Before the reveal step, never put a Case's outcome in a widget.\n- After the widget, keep teaching in plain prose: the Learner sees the widget beside the conversation.",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "Widget": {
+        "$ref": "#/$defs/Widget"
+      },
+      "Slider": {
+        "$ref": "#/$defs/Slider"
+      },
+      "AnnuityChart": {
+        "$ref": "#/$defs/AnnuityChart"
+      },
+      "HistoryChart": {
+        "$ref": "#/$defs/HistoryChart"
+      },
+      "Calculator": {
+        "$ref": "#/$defs/Calculator"
+      }
+    },
+    "required": [
+      "Widget",
+      "Slider",
+      "AnnuityChart",
+      "HistoryChart",
+      "Calculator"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+      "Widget": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Slider"
+                },
+                {
+                  "$ref": "#/$defs/AnnuityChart"
+                },
+                {
+                  "$ref": "#/$defs/HistoryChart"
+                },
+                {
+                  "$ref": "#/$defs/Calculator"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "title",
+          "children"
+        ],
+        "additionalProperties": false,
+        "description": "The widget's frame: a short title above its controls and charts, in order."
+      },
+      "Slider": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "step": {
+            "type": "number"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "percent",
+              "years",
+              "usd",
+              "inr"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "min",
+          "max",
+          "step",
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false,
+        "description": "A labelled slider for one of the Learner's assumptions. Bind `value` to a $variable so charts that read it redraw at once, with no model call."
+      },
+      "AnnuityChart": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "payments": {
+            "type": "number"
+          },
+          "growthPercent": {
+            "type": "number"
+          },
+          "ratePercent": {
+            "type": "number"
+          },
+          "compareTo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "total",
+          "payments",
+          "growthPercent",
+          "ratePercent"
+        ],
+        "additionalProperties": false,
+        "description": "Bars for each yearly payment of an annuity that grows at a fixed rate (first payment now) and what each is worth today, computed by the tested present value formula from these inputs. `compareTo` optionally shows a sourced Case Data figure (the latest point of a dataset) beside the present value, as a reference \"caseId/datasetId\"."
+      },
+      "HistoryChart": {
+        "type": "object",
+        "properties": {
+          "dataset": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataset"
+        ],
+        "additionalProperties": false,
+        "description": "A line chart of one checked Case Data dataset over its dates, with its source. It takes only the dataset's reference; the values come from the server, which withholds anything dated after the Case's as-of date until the reveal."
+      },
+      "Calculator": {
+        "type": "object",
+        "properties": {
+          "calculator": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "usd",
+              "inr"
+            ]
+          }
+        },
+        "required": [
+          "calculator",
+          "inputs"
+        ],
+        "additionalProperties": false,
+        "description": "The answer from one of our tested finance calculators (loans, SIP, PPF, deposits, bonds, dividend models, DCF), computed from these inputs by the same code as the calculate tool, in rupees with lakh and crore or dollars. Inputs may be $variables bound to Sliders, whose names must match the calculator's input names."
+      }
+    }
+  }
+}

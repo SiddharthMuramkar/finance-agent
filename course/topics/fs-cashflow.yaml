@@ -1,0 +1,148 @@
+# The cash flow statement: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Webvan Form 10-K for 2000 (SEC accession 0001012870-01-001485); Webvan Form 8-K filed 27 Jul 2001 (SEC accession 0001021408-01-504054) for the bankruptcy filing date.
+id: fs-cashflow
+title: The cash flow statement
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: webvan-cash-2001
+    title: Webvan's cash burn
+    data: [net-loss, operating-cash-flow, capital-spending, cash-burn-reported-later]
+    asOf: 2001-04-02
+    story: >
+      Webvan is an online grocer that delivers to homes from large automated warehouses. It went
+      public in 1999, raising about 402.6 million dollars after costs, and bought its
+      rival HomeGrocer in 2000. On 2 April 2001 it files its annual report for 2000. The report
+      shows net sales of 178.5 million dollars and a net loss of 453.3 million dollars. The cash flow statement shows net cash used in operating activities
+      of 263.1 million dollars, and 259.8 million dollars spent on property, equipment and
+      leasehold improvements, mostly warehouses and vehicles. At 31 December 2000 it holds 40.3
+      million dollars in cash and 171.6 million dollars in marketable securities. As of this date, the question is
+      how long that cash will last and what the three sections of the statement say about the
+      business.
+    reveal: >
+      On 9 July 2001 Webvan shut down all seven of its markets, which served about 750,000
+      customers, and said it would file for bankruptcy protection; it filed for Chapter 11 on 13
+      July. Its accumulated deficit had reached
+      829.7 million dollars by 31 March 2001. (A TIME report put its cash burn at 480 million
+      dollars; that is a press estimate, not a filing figure.) The cash flow statement had already shown it: the business used
+      cash in operations (263.1 million dollars in 2000, up from 58.8 million in 1999), spent
+      almost as much again on warehouses, and was paying for both from money raised from investors
+      in 1999. Once that money was spent, nothing from sales was coming in to replace it.
+
+concept: >
+  The cash flow statement shows where cash came from and where it went over a period, in three
+  sections. Operating activities are cash from running the business, starting from net income
+  and adding back non-cash expenses such as depreciation, with changes in receivables,
+  inventory and payables. Investing activities are cash spent on or received from long-term
+  assets, such as equipment and securities. Financing activities are cash from or to the
+  providers of money: shares, loans and dividends. Free cash flow is operating cash flow minus
+  spending on equipment (capital spending). A company can show a net loss that is larger or
+  smaller than its cash use, and only the cash flow statement says how long its cash lasts.
+
+principle: >
+  Profit is an opinion; cash is a fact. Compare net income with operating cash flow, ask who is
+  paying for the investing, and divide cash on hand by the monthly cash use to see how long the
+  money lasts.
+
+questions:
+  - id: fc-q-loss-vs-cash
+    prompt: >
+      A company has a net loss of 453 million but uses only 263 million of cash in operations. What most likely explains the gap?
+    choices:
+      - { id: a, text: "Non-cash expenses, such as depreciation and share-based pay, reduced profit but not cash" }
+      - { id: b, text: "The company earned 190 million in interest" }
+      - { id: c, text: "The company raised 190 million from investors, which counts as operating cash flow" }
+      - { id: d, text: "The cash flow statement is always lower than the income statement" }
+    answer: a
+    explanation: >
+      Starting from net income, the operating section adds back expenses that cost no cash, such as depreciation (94 million in Webvan's 2000 statement) and share-based pay. Money raised from investors is financing, not operating.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows ; Webvan Group, Form 10-K for 2000, filed 2 April 2001.
+
+  - id: fc-q-sections
+    prompt: >
+      Where do these three cash flows appear on the statement: (1) cash received from customers, (2) cash spent on a new warehouse, (3) cash received from selling new shares?
+    choices:
+      - { id: a, text: "(1) operating, (2) investing, (3) financing" }
+      - { id: b, text: "(1) operating, (2) financing, (3) investing" }
+      - { id: c, text: "(1) investing, (2) operating, (3) financing" }
+      - { id: d, text: "(1) financing, (2) investing, (3) operating" }
+    answer: a
+    explanation: >
+      Customer receipts come from running the business (operating). Buying a long-term asset is investing. Selling shares raises money from owners, which is financing.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: fc-q-free-cash-flow
+    prompt: >
+      A company's operating cash flow is minus 263.1 million and its capital spending is 259.8 million. What is its free cash flow (operating cash flow minus capital spending)?
+    choices:
+      - { id: a, text: "About minus 3.3 million" }
+      - { id: b, text: "About minus 523 million" }
+      - { id: c, text: "About plus 3.3 million" }
+      - { id: d, text: "About plus 523 million" }
+    answer: b
+    explanation: >
+      -263.1 - 259.8 = -522.9, about minus 523 million. Adding the two numbers with opposite signs (the common slip) would give minus 3.3 million.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.6 Operating Cash Flow and Free Cash Flow to the Firm: https://openstax.org/books/principles-finance-2e/pages/5-6-operating-cash-flow-and-free-cash-flow-to-the-firm-fcff ; the figures are Webvan's 2000 annual report.
+
+  - id: fc-q-months
+    prompt: >
+      A company holds 212 million in cash and securities and uses 264 million of cash in operations over a year, at an even pace, before any equipment spending. About how many months do the 212 million cover?
+    choices:
+      - { id: a, text: "About 4 months" }
+      - { id: b, text: "About 10 months" }
+      - { id: c, text: "About 15 months" }
+      - { id: d, text: "About 20 months" }
+    answer: b
+    explanation: >
+      264 / 12 = 22 million a month. 212 / 22 = 9.6, about 10 months, even before counting any equipment spending.
+    source: >
+      Webvan Group, Form 10-K for 2000 (cash 40.3 million, marketable securities 171.6 million, operating cash use 263.1 million); the months calculation is own arithmetic.
+
+  - id: fc-q-profit-no-cash
+    prompt: >
+      A company reports a profit, but its receivables (money owed by customers) rose sharply during the year. What does that tend to do to its operating cash flow compared with net income?
+    choices:
+      - { id: a, text: "Operating cash flow is lower than net income, because sales were recorded but not yet collected" }
+      - { id: b, text: "Operating cash flow is higher than net income" }
+      - { id: c, text: "Operating cash flow is the same as net income" }
+      - { id: d, text: "Receivables only affect the balance sheet and never the cash flow statement" }
+    answer: a
+    explanation: >
+      On the indirect method an increase in receivables is subtracted from net income, because those sales have not yet produced cash.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows, operating activities: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+checks:
+  - id: fc-quiz-cash
+    kind: quiz
+    questions:
+      - fc-q-loss-vs-cash
+      - fc-q-sections
+      - fc-q-free-cash-flow
+      - fc-q-months
+      - fc-q-profit-no-cash
+      - bank:eab:MBA-ACC-FA-0046
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: fc-webvan-cash
+    kind: conversation
+    prompt: >
+      Webvan's 2000 annual report shows a net loss of 453.3 million dollars, net cash used in
+      operations of 263.1 million, equipment spending of 259.8 million, and 212 million in cash and
+      securities at the year end. Explain why the net loss and the operating cash use differ,
+      how Webvan was paying for its equipment, and roughly how long its cash would last if the
+      2000 pace of operating cash use continued. What would you want to know about 2001?
+    passCriteria: >
+      The Learner explains that the gap between the loss and the operating cash use is mostly
+      non-cash expenses added back (depreciation, share-based pay, restructuring charges). They
+      say the equipment was bought with money raised from investors in earlier years (the 1999
+      share sale among it) and from selling securities, not from operating cash.
+      They calculate about 10 months of operating cash use (212 / (263 / 12)), noting it is
+      shorter if equipment spending continues, and say they would ask whether equipment spending
+      would fall, whether sales were rising fast enough to cut the operating cash use,
+      and whether new financing was available.

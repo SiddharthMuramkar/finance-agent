@@ -1,0 +1,171 @@
+# India: G-secs, T-bills, SDLs and the corporate bond market, taught through the 1992 securities scam.
+# Case sources (checked): Barua and Varma, Securities Scam: Genesis, Mechanics and Impact, Vikalpa 18(1), 1993: https://www.jrvarma.in/papers/vik18-1.pdf ; India Today, 20 Oct 2020: https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20 ; Mint on the scale of the scam (notes/case-verification.md); RBI Government Securities Market in India - A Primer: https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
+id: in-gsec
+title: "India: G-secs, T-bills, SDLs and the corporate bond market"
+
+cases:
+  - id: sgl-ready-forward-1992
+    title: The securities scam's missing government securities
+    asOf: 1992-04-01
+    story: >
+      In early 1992 Indian banks held government securities (G-secs) to meet the Statutory
+      Liquidity Ratio, which then required them to keep 38.5% of their deposits and other
+      liabilities in G-secs and certain approved bonds. G-secs are not issued on paper. The
+      Reserve Bank of India's Public Debt Office (PDO) keeps the ownership records as book
+      entries in a ledger called the Subsidiary General Ledger (SGL). To sell, a bank filled
+      in an SGL transfer form, which worked like a cheque: the buyer deposited it and the PDO moved
+      the holding. Banks lent to each other against G-secs through ready forward deals: one
+      bank sold securities to another and agreed to buy them back, typically 15 days later, at
+      a slightly higher price. The price difference was the interest. The market was large,
+      with trades of about Rs 3,000 to 4,000 crore a day, and a dozen brokers approved by the
+      RBI helped banks find each other. Money borrowed in this formal market cost about 18-20%
+      a year. Stock market brokers paid 35-40% for their own short-term finance. The BSE
+      Sensitive Index (the Sensex) had risen from 1,048 at the end of 1990 to 4,285 at the
+      end of March 1992. In practice, banks often used paper "bank receipts" instead of SGL forms,
+      because the PDO was slow to record transfers. A bank receipt confirmed the sale, received
+      the cash and promised to deliver the securities. Who checks that the securities behind a
+      15-day loan exist, and what happens to the lender if they do not?
+    reveal: >
+      In April 1992 the first press report appeared of a shortfall in the government securities
+      held by the State Bank of India. The figure for the missing SGL holding in SBI's account
+      at the RBI's Public Debt Office varies by source: Rs 500 crore was first reported and
+      Rs 574 crore was found by SBI. Investigation showed this was the tip of
+      a scheme in which brokers, passing the payments and delivery between banks, had
+      persuaded some banks to lend against nothing. Two small banks, the Bank of Karad and the
+      Metropolitan Cooperative Bank, issued bank receipts not backed by securities, and larger
+      banks lent to them in ready forward deals. The borrowed money went to the stock market.
+      Barua and Varma estimated that over Rs 3,500 crore was diverted from the banking system
+      between April 1991 and May 1992; Mint, writing later, says over Rs 4,000 crore. On 28 April 1992 the Sensex fell 12.77% in a single day, its
+      largest one-day percentage fall apart from the Covid crash, and it fell a further 23%
+      in May. A secured loan had become an unsecured loan to a broker, because nobody
+      checked the securities against the ledger.
+
+concept: >
+  A government security (G-sec) is a loan to a government. In India the central government
+  issues Treasury bills (T-bills), which are short-term, with original maturities under one year,
+  and dated securities, which are longer. T-bills are zero-coupon: they pay no interest and are
+  sold at a discount to the face value, which they repay at maturity. Dated G-secs pay a fixed
+  coupon on the face value, half-yearly. State governments issue only dated securities, called
+  State Development Loans (SDLs). All are sold by auction run by the RBI. Banks hold G-secs to
+  meet the SLR, and lend them as collateral in repurchase deals (what India called ready
+  forward deals). Corporate bonds are issued by companies, carry more credit risk than government
+  bonds because a company cannot raise taxes, and so pay a higher yield. Holdings of G-secs are
+  recorded in the RBI's books (the SGL), so a bank can only deliver G-secs it actually owns.
+  Rupee amounts are written in lakh (1,00,000) and crore (1,00,00,000), so Rs 100 crore is
+  Rs 1,000 million.
+
+principle: >
+  A loan is only as secure as the check that the collateral exists. When a market lets
+  paper promises stand in for the asset, the security behind the loan can vanish without
+  anyone noticing.
+
+questions:
+  - id: gs-q-tbill
+    prompt: >
+      How does an Indian Treasury bill pay the investor?
+    choices:
+      - { id: a, text: "It is sold below face value and repaid at face value; there is no coupon" }
+      - { id: b, text: "It pays a fixed coupon every six months" }
+      - { id: c, text: "It pays a coupon that changes with the stock market" }
+      - { id: d, text: "It is sold at face value and repaid at a premium" }
+    answer: a
+    explanation: >
+      T-bills are zero-coupon securities. For example, a 91-day T-bill of Rs 100 face value may be issued at Rs 98.20 and is redeemed at Rs 100. The difference is the investor's return.
+    source: >
+      Reserve Bank of India, Government Securities Market in India - A Primer, 1.3: https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
+
+  - id: gs-q-sdl
+    prompt: >
+      Who issues State Development Loans (SDLs)?
+    choices:
+      - { id: a, text: "State governments, as dated securities sold by auction" }
+      - { id: b, text: "The central government, as Treasury bills" }
+      - { id: c, text: "State-owned companies, as corporate bonds" }
+      - { id: d, text: "The RBI, from its own funds" }
+    answer: a
+    explanation: >
+      State governments issue only dated securities, called SDLs, through auctions similar to the central government's. SDLs, like central G-secs, qualify for SLR.
+    source: >
+      Reserve Bank of India, Government Securities Market in India - A Primer, 1.2 and 1.7: https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
+
+  - id: gs-q-coupon
+    prompt: >
+      A dated G-sec of Rs 100 face value has an 8% coupon. What does it pay?
+    choices:
+      - { id: a, text: "Rs 4 every six months, and Rs 100 at maturity" }
+      - { id: b, text: "Rs 8 once, at maturity" }
+      - { id: c, text: "Rs 8 every month" }
+      - { id: d, text: "Rs 100 at maturity only" }
+    answer: a
+    explanation: >
+      Dated G-secs pay a coupon on the face value on a half-yearly basis: 8% of Rs 100 is Rs 8 a year, paid as Rs 4 twice a year, with the face value repaid at maturity.
+    source: >
+      Reserve Bank of India, Government Securities Market in India - A Primer, 1.5: https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
+
+  - id: gs-q-corporate
+    prompt: >
+      Why does a corporate bond usually pay a higher yield than a government bond of the same maturity?
+    choices:
+      - { id: a, text: "It carries more credit risk, because a company cannot raise taxes to meet its payments" }
+      - { id: b, text: "The company is required by law to pay a higher coupon" }
+      - { id: c, text: "Corporate bonds are always longer than government bonds" }
+      - { id: d, text: "Government bonds cannot be sold before maturity" }
+    answer: a
+    explanation: >
+      The risk and return of a corporate bond depend on how creditworthy the company is. Government bonds are considered low credit risk because governments can raise taxes.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 10.1 Characteristics of Bonds: https://openstax.org/books/principles-finance-2e/pages/10-1-characteristics-of-bonds
+
+  - id: gs-q-ready-forward
+    prompt: >
+      What was a ready forward deal between two Indian banks in 1992?
+    choices:
+      - { id: a, text: "A short-term secured loan: one bank sold securities to the other and bought them back later at a slightly higher price" }
+      - { id: b, text: "A permanent sale of securities" }
+      - { id: c, text: "A loan from the RBI to a bank with no security" }
+      - { id: d, text: "A deal to buy shares on the stock exchange at a future date" }
+    answer: a
+    explanation: >
+      A ready forward deal is a secured short-term loan, typically for 15 days, in the form of a sale and repurchase. The price difference is the interest. It is what other countries call a repo.
+    source: >
+      Barua and Varma, Securities Scam: Genesis, Mechanics and Impact, Vikalpa 18(1), 1993: https://www.jrvarma.in/papers/vik18-1.pdf
+
+  - id: gs-q-sgl
+    prompt: >
+      Why is a G-sec held in an SGL account hard to fake, compared with a bank receipt?
+    choices:
+      - { id: a, text: "The RBI's Public Debt Office records who holds it, so a transfer fails if the seller does not hold enough" }
+      - { id: b, text: "The government prints each security on special paper" }
+      - { id: c, text: "A bank receipt is guaranteed by the RBI" }
+      - { id: d, text: "SGL securities can only be bought by individuals" }
+    answer: a
+    explanation: >
+      G-secs exist as book entries in the PDO's Subsidiary General Ledger, and a transfer form can bounce if the seller lacks the holding. A bank receipt is only the issuing bank's promise that it holds the securities, so a fake one is an unsecured loan.
+    source: >
+      Barua and Varma, Securities Scam: Genesis, Mechanics and Impact, Vikalpa 18(1), 1993: https://www.jrvarma.in/papers/vik18-1.pdf
+
+checks:
+  - id: gs-quiz-instruments
+    kind: quiz
+    questions:
+      - gs-q-tbill
+      - gs-q-sdl
+      - gs-q-coupon
+      - gs-q-corporate
+      - gs-q-ready-forward
+      - gs-q-sgl
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: gs-scam-explain
+    kind: conversation
+    prompt: >
+      A ready forward deal is meant to be a safe, secured loan. Suppose banks routinely trade
+      on bank receipts instead of SGL transfers. Explain how a deal could turn into a loan to
+      a broker with nothing behind it, and what check would catch that.
+    passCriteria: >
+      The Learner says the lending bank handed money to or through a broker and accepted a bank
+      receipt, a mere promise to deliver securities, instead of the securities or an SGL transfer.
+      A receipt could be issued by a bank with no securities behind it, so the loan would be
+      unsecured. They name a check such as matching each bank's claimed holdings against the
+      RBI's SGL records, or settling directly between the banks and refusing receipts for G-secs.

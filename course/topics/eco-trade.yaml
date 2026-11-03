@@ -1,0 +1,150 @@
+# Trade and globalisation: a foundation Topic taught through India's import squeeze of 1990-92.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): IMF, India: Economic Reform and Growth (Occasional Paper), ch. III, Chopra and Collyns: http://www.elibrary.imf.org/display/book/9781557755391/ch03.xml
+id: eco-trade
+title: Trade and globalisation
+
+cases:
+  - id: import-squeeze-1991
+    title: India's import controls in 1991-92
+    data: [domestic-demand-growth]
+    asOf: 1991-07-31
+    story: >
+      By mid-1991 India had been through a foreign exchange crisis that brought it to the
+      brink of default. A sharp rise in the cost of imported oil after the 1990 disruption in
+      the Middle East, and lost remittances from workers there, had hurt it. Foreign lenders
+      had almost stopped lending by mid-1990, and usable foreign exchange reserves were
+      negligible. To keep paying its foreign debts, the government had squeezed imports
+      administratively, by controlling what could be bought from abroad, and it had borrowed
+      emergency funds from the IMF. In July the rupee had been devalued. Domestic demand,
+      the spending of households, businesses and the government at home, had grown 4.6% in
+      1989/90 and 6.7% in 1990/91. Think about an economy that can only import what its
+      foreign exchange earnings and loans allow. What would a squeeze on imports do for the
+      country's balance of payments, and what might it cost?
+    reveal: >
+      The squeeze did its job on the balance of payments. The IMF estimates that the tighter
+      import restrictions and the fall in the rupee reduced the economy's import intensity
+      by over 1.5% of GDP in 1991. But the restrictions fell heavily on intermediate inputs,
+      the raw materials, spare parts and components that industry needs. Together with tighter
+      budgets and credit, domestic demand fell 2.5% in 1991/92, and growth slowed to about 1%,
+      and industry contracted. Import liberalisation began in July 1991, with tradable import
+      entitlements (Exim scrips) for exporters, and a dual exchange rate began on 1 March
+      1992. Growth recovered to nearly 4.5% a year in the following two years, helped by
+      industrial deregulation and trade liberalisation, which made imported inputs cheaper
+      and more accessible. In the IMF's account exports gained market share in 1993 and 1994.
+
+concept: >
+  Trade lets a country use other countries' strengths. A country has a comparative
+  advantage in a good when it can make it at a lower opportunity cost, that is, by giving up
+  less of other goods, than another country. Even a country that is better at everything gains
+  by specialising in what it does relatively best and trading for the rest; total output rises.
+  Trade restrictions work against this. A tariff is a tax on imports; a quota limits the quantity;
+  a licence lets only approved imports in. Each raises the price of the protected good at home,
+  which helps domestic producers and the government's revenue (in the case of tariffs) but
+  hurts consumers and domestic firms that use the good as an input, by more than the
+  gain. Countries sometimes restrict imports because they must: a country that runs short of
+  foreign exchange cannot pay for imports it cannot finance, so it has to compress them. The
+  adjustment has a cost in lost output, and the World Trade Organization's rules (including
+  treating all members equally under most-favoured-nation treatment) try to keep trade
+  restrictions limited and predictable.
+
+principle: >
+  Imports are the price of exports, loans and reserves. When foreign money runs out, the
+  squeeze falls on whoever needs imports most, and a country pays for it in output.
+
+questions:
+  - id: et-q-comparative
+    prompt: >
+      What does it mean for a country to have a comparative advantage in a good?
+    choices:
+      - { id: a, text: "It can produce the good at a lower opportunity cost, in terms of other goods, than another country can" }
+      - { id: b, text: "It can produce more of the good than any other country with the same resources" }
+      - { id: c, text: "It sells the good at a lower price in every market" }
+      - { id: d, text: "It does not need to import any inputs to make the good" }
+    answer: a
+    explanation: >
+      Comparative advantage is about opportunity cost, not absolute output. A country with an absolute advantage in everything can still gain from trade by specialising where it gives up least.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 33.1 Absolute and Comparative Advantage: https://openstax.org/books/principles-economics-3e/pages/33-1-absolute-and-comparative-advantage
+
+  - id: et-q-opportunity
+    prompt: >
+      Country A can make 100 bushels of corn or 50 barrels of oil with its resources. What is A's opportunity cost of one barrel of oil?
+    choices:
+      - { id: a, text: "2 bushels of corn" }
+      - { id: b, text: "0.5 bushels of corn" }
+      - { id: c, text: "50 bushels of corn" }
+      - { id: d, text: "100 bushels of corn" }
+    answer: a
+    explanation: >
+      Making 50 barrels means giving up 100 bushels, so each barrel costs 100 / 50 = 2 bushels of corn.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 33.1 Absolute and Comparative Advantage (United States and Saudi Arabia example): https://openstax.org/books/principles-economics-3e/pages/33-1-absolute-and-comparative-advantage
+
+  - id: et-q-protection
+    prompt: >
+      A country restricts imports of a good with a tariff or quota. What is the usual effect on the price of the good at home?
+    choices:
+      - { id: a, text: "The price rises: domestic consumers pay more and domestic producers earn more" }
+      - { id: b, text: "The price falls, because there is less competition" }
+      - { id: c, text: "The price does not change, because world prices set it" }
+      - { id: d, text: "The price rises, and domestic consumers gain" }
+    answer: a
+    explanation: >
+      Protectionism raises the domestic price of the protected good. Consumers lose more than producers gain, so the country's total surplus falls.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
+
+  - id: et-q-compression
+    prompt: >
+      A country with almost no foreign exchange squeezes imports by controlling what may be bought from abroad. Which cost is most likely for its domestic industry?
+    choices:
+      - { id: a, text: "Factories that rely on imported raw materials, spare parts and components may have to cut output" }
+      - { id: b, text: "Domestic firms gain cheaper inputs, because imports compete less with them" }
+      - { id: c, text: "Exports rise at once, because factories no longer need imports" }
+      - { id: d, text: "Output is unchanged, because imports were never needed" }
+    answer: a
+    explanation: >
+      Controls limit the quantity of imports, but industry often needs imported raw materials and parts as inputs. When they are scarce, output falls; a squeeze on imports is paid for in output.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
+
+  - id: et-q-relax
+    prompt: >
+      How does an import quota differ from a tariff?
+    choices:
+      - { id: a, text: "A quota limits the quantity of a good that may be imported; a tariff is a tax on each unit imported" }
+      - { id: b, text: "A quota is a tax on imports; a tariff limits the quantity imported" }
+      - { id: c, text: "Both are subsidies paid to importers" }
+      - { id: d, text: "A quota applies to exports only" }
+    answer: a
+    explanation: >
+      A tariff taxes imports and raises revenue for the government; a quota caps the amount that may come in. Both raise the domestic price of the protected good.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY-NC-SA), 34.1 Protectionism: An Indirect Subsidy from Consumers to Producers: https://openstax.org/books/principles-economics-3e/pages/34-1-protectionism-an-indirect-subsidy-from-consumers-to-producers
+
+checks:
+  - id: et-quiz-trade
+    kind: quiz
+    questions:
+      - et-q-comparative
+      - et-q-opportunity
+      - et-q-protection
+      - et-q-compression
+      - et-q-relax
+      - bank:eab:MBA-ECON-0053
+      - bank:eab:MBA-ECON-0054
+      - bank:eab:MBA-INTL-0018
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: et-import-squeeze-explain
+    kind: conversation
+    prompt: >
+      India squeezed imports in 1990-91 to protect its foreign exchange. Explain how this
+      would help the balance of payments, and what it might cost the economy, especially
+      industry that uses imported inputs.
+    passCriteria: >
+      The Learner says that cutting imports reduces the foreign exchange going out, which eases
+      the payments crisis. They explain that many imports are inputs for factories (raw
+      materials, parts), so fewer inputs and weaker demand would reduce output. They may add that consumers and firms pay for protection through higher prices.

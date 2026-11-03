@@ -1,0 +1,155 @@
+# Hedging and risk management: a foundation Topic taught through the Orange County investment pool.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): US Securities and Exchange Commission, order instituting proceedings against the County of Orange (Exchange Act Release No. 36761, 24 January 1996), findings on the County Pools: https://sec.gov/files/litigation/admin/3436761.txt ; US Treasury, Daily Treasury Par Yield Curve Rates, 1994: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/1994/all?type=daily_treasury_yield_curve&field_tdr_date_value=1994&page&_format=csv ; for the comparison with Metallgesellschaft see der-forwards.
+id: der-hedging
+title: Hedging and risk management
+
+cases:
+  - id: orange-county-1994-hedge-or-bet
+    title: Orange County's investment pool, a hedge or a bet?
+    asOf: 1994-09-30
+    story: >
+      Orange County, California, runs investment pools for its own cash and for the money of
+      various other local governments and districts, the pool participants. The County Treasurer-Tax Collector, Robert Citron, manages it. In September 1993 he told the
+      county's Board of Supervisors that his strategy used leverage of about 2 to 1: the pool
+      borrowed against the securities it held (reverse repurchase agreements, "reverse repos") and
+      used the cash to buy more securities, including structured notes whose payments depend on
+      interest rates. Some of these are inverse floaters, which pay less when short-term rates
+      rise. He said the strategy was "predicated on interest rates remaining low over the next three
+      years", that the reverse repos added two and a half percentage points to the yield, that his
+      policy was to hold securities to maturity, and that there was no risk of loss of principal. In
+      September 1994 he reported that the reverse repos were still adding two points of yield. Since
+      February the US Federal Reserve has raised short-term rates in steps: the 3-month Treasury
+      yield has gone from 3.20% (3 February) to 4.80% (30 September), and the 10-year from 5.81%
+      to 7.62%. As of 30 September 1994, is the pool hedged against interest rates, and if not,
+      what exactly is the bet and who is exposed to it?
+    reveal: >
+      In early December 1994 the County announced that the pool's $20.6 billion investment portfolio
+      had lost about $1.5 billion in market value. The portfolio was built on only $7.6 billion of
+      deposits from the County and the other participants, so the leverage multiplied the loss
+      relative to what depositors had put in. On 6 December 1994 the County filed for protection
+      under Chapter 9 of the US Bankruptcy Code. After the portfolio was sold, the County realised a
+      loss of about $600 million on its own investment in the pool, and lost a further $157 million
+      of interest earnings the pool had been expected to bring in. In January 1996 the SEC found
+      that the official statements for the County's municipal bond offerings had contained material
+      misstatements and omissions about the risks of the pools and the County's finances. The
+      problem was not that derivatives were used; it was that the structure raised, instead of
+      reducing, the pool's exposure to a single risk, a rise in interest rates, while the reports
+      to the Board of Supervisors said there was no risk of losing principal.
+
+concept: >
+  To hedge is to take a position that offsets an existing exposure so that the combined risk is
+  smaller; to speculate is to take a position that adds risk in the hope of a gain. The test is not
+  the instrument but what happens to the whole position when the risk factor moves. A short futures
+  position hedges a crop; the same contract with no crop is a bet. To size a hedge, use the
+  hedge ratio, the amount of hedge per unit of exposure; the minimum-variance ratio is h = rho x
+  (sigma of the exposure / sigma of the hedge), where rho is their correlation. A hedge never removes
+  all risk: basis risk is what is left when the hedge instrument and the exposure do not move
+  together. Leverage multiplies a position's sensitivity: an asset with duration D loses about D x
+  the change in yield in percent of its value, and on the borrower's own money that is multiplied by
+  assets divided by equity. Good risk management also asks whether the position can be funded
+  through a bad period, who bears the loss, and what the people who rely on it have been told.
+
+principle: >
+  Judge a position by what it does to total risk, not by what it is called. If every leg of a
+  strategy loses when one thing happens, it is one large bet, however safe each leg looks.
+
+questions:
+  - id: hr-q-hedge-defn
+    prompt: >
+      Which of these is a hedge?
+    choices:
+      - { id: a, text: "An airline buys fuel futures to fix the price of fuel it will need next year" }
+      - { id: b, text: "A fund buys fuel futures expecting the price to rise, with no use for fuel" }
+      - { id: c, text: "A trader sells shares she does not own, hoping to buy them back cheaper" }
+      - { id: d, text: "A firm borrows more to buy more of the asset it already holds" }
+    answer: a
+    explanation: >
+      The airline already loses when fuel gets dearer, and the futures gain in that case, so the combined risk shrinks. The other three add to or create risk. The same contract can be a hedge or a speculation depending on the position it is combined with.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), Chapter 20 Review Questions (hedging versus speculating with a derivative): https://openstax.org/books/principles-finance/pages/20-review-questions ; Chapter 20 Key Terms (hedging): https://openstax.org/books/principles-finance/pages/20-key-terms
+
+  - id: hr-q-leverage
+    prompt: >
+      An investment pool has $100 million of deposits. It borrows another $100 million and holds $200 million of bonds with a duration of 4 years. Yields rise by 1 percentage point. By roughly what percentage of the depositors' $100 million does the pool lose?
+    choices:
+      - { id: a, text: "About 8%" }
+      - { id: b, text: "About 4%" }
+      - { id: c, text: "About 1%" }
+      - { id: d, text: "About 16%" }
+    answer: a
+    explanation: >
+      The bonds lose about duration x yield change = 4 x 1% = 4% of $200 million = $8 million. The $100 million of borrowing must be repaid in full, so the whole loss falls on the deposits: $8 million out of $100 million is 8%, twice the loss without leverage.
+    source: >
+      Duration rule from OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk ; leveraged loss calculated
+
+  - id: hr-q-inverse-floater
+    prompt: >
+      An inverse floater pays a coupon that falls when short-term interest rates rise. What generally happens to its market price when interest rates rise?
+    choices:
+      - { id: a, text: "It falls, by more than a fixed-rate bond of the same maturity" }
+      - { id: b, text: "It rises, because its coupon is adjusted" }
+      - { id: c, text: "It does not change" }
+      - { id: d, text: "It rises, but only at maturity" }
+    answer: a
+    explanation: >
+      Higher market rates cut the value of the remaining payments, and the lower coupon cuts the payments themselves, so the price falls and the instrument is more sensitive to rates than an ordinary bond. The SEC describes such securities as "negatively affected by a rise in interest rates".
+    source: >
+      US SEC, order against the County of Orange (inverse floaters "that are negatively affected by a rise in interest rates"): https://sec.gov/files/litigation/admin/3436761.txt
+
+  - id: hr-q-basis-risk
+    prompt: >
+      A company hedges its jet-fuel purchases with crude-oil futures because no jet-fuel contract is liquid. The two prices sometimes move differently. What is the risk left over called?
+    choices:
+      - { id: a, text: "Basis risk" }
+      - { id: b, text: "Credit risk" }
+      - { id: c, text: "Translation risk" }
+      - { id: d, text: "Inflation risk" }
+    answer: a
+    explanation: >
+      Basis risk is the risk that the hedge instrument and the exposure do not move together. A cross-hedge like this removes most of the price risk but never all of it.
+    source: >
+      Hull, Options, Futures, and Other Derivatives (Pearson), chapter on hedging strategies using futures (basis risk and cross hedging)
+
+  - id: hr-q-hedge-ratio
+    prompt: >
+      The correlation between a firm's exposure and the hedge instrument is 0.9. The exposure's volatility is 12% and the hedge instrument's is 10%. What is the minimum-variance hedge ratio?
+    choices:
+      - { id: a, text: "1.08" }
+      - { id: b, text: "0.75" }
+      - { id: c, text: "0.90" }
+      - { id: d, text: "1.33" }
+    answer: a
+    explanation: >
+      h = rho x (sigma of exposure / sigma of hedge) = 0.9 x (12 / 10) = 1.08. Hedging one-for-one (1.0) leaves a little risk unhedged because the exposure is more volatile than the hedge instrument.
+    source: >
+      Hull, Options, Futures, and Other Derivatives (Pearson), minimum variance hedge ratio h* = rho x sigma_S / sigma_F; figures calculated
+
+checks:
+  - id: hr-quiz-hedging
+    kind: quiz
+    questions:
+      - hr-q-hedge-defn
+      - hr-q-leverage
+      - hr-q-inverse-floater
+      - hr-q-basis-risk
+      - hr-q-hedge-ratio
+      - bank:eab:MBA-INTL-0006
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: hr-pool-hedge-or-bet
+    kind: conversation
+    prompt: >
+      An investment pool for local governments borrows to double its holdings and buys notes whose
+      payments fall when rates rise. Judge it: is it hedged against interest rates or not, what
+      single risk drives the whole portfolio, and what would a hedge look like?
+    passCriteria: >
+      The Learner says the position is not a hedge because every part of it loses when rates rise:
+      the bonds lose value through duration, the inverse floaters lose more, and the borrowing
+      magnifies the effect on the depositors' money. They identify the one risk as a rise in
+      interest rates, and the leverage as a multiplier on it. They describe a hedge as a position
+      that gains when rates rise (for example selling bond futures, paying fixed in a swap, or holding
+      shorter-duration assets) or simply reducing the leverage. Bonus: they point out that depositors
+      were told that principal was safe, or that hold-to-maturity accounting hides the risk without
+      removing it.

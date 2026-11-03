@@ -1,0 +1,140 @@
+# Money, banks and credit creation: a foundation Topic taught through the 1992 securities scam.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): BSE, SENSEX@40 white paper (January 2026) for the 28 April 1992 fall of 12.77 per cent; Mint for the April 1993 level (secondary source).
+id: eco-money-banking
+title: Money, banks and credit creation
+
+cases:
+  - id: harshad-mehta-1992
+    title: The 1992 securities scam
+    asOf: 1992-02-01
+    story: >
+      Since the economic reforms of mid-1991, the Bombay stock market has been on a run. The Sensex
+      stood at about 1,194 in April 1991 and has passed 2,000 by mid-January 1992, with a few brokers
+      buying heavily. Where is the money coming from? Part of the answer lies in how Indian banks
+      manage their holdings of government bonds. Banks use "ready forward"
+      deals: a secured loan of about 15 days from one bank to another, made against government
+      securities. The borrowing bank sells the securities to the lending bank and buys them back at
+      the end at a slightly higher price. In practice the securities do not always move. Instead the
+      borrowing bank issues a "bank receipt" (BR), a paper that says it holds the securities on the
+      lender's behalf. Brokers sit between the banks and arrange these deals. Banks hold deposits
+      from ordinary people and firms, and each lends most of them out. As of 1 February 1992 nothing
+      is known to be wrong, and the share prices keep rising.
+    reveal: >
+      The scam came to light in late April 1992 when the State Bank of India reported a shortfall in
+      government securities, about Rs 500 crore missing from its books. Mehta had obtained fake bank
+      receipts through officials of the Bank of Karad and the Metropolitan Cooperative Bank. Lenders
+      handed over cash against receipts that were backed by no securities at all, and the broker sent
+      that cash into shares. Estimates of the size differ by source: Forbes India says about
+      Rs 1,000 crore was siphoned out of the banking system and about Rs 3,500 crore manipulated;
+      India Today puts the scam at nearly Rs 4,000 crore. The Sensex had gone from 1,194 to 4,467
+      (up 274 per cent) between April 1991 and April 1992. After the exposure it fell sharply: on
+      28 April 1992 it fell 12.77 per cent in a day, the largest one-day percentage fall in its
+      history outside the Covid crash (BSE). It then dropped from 4,467 to about 1,980 in the year
+      to April 1993, down 56 per cent (Mint, a secondary source). The CBI arrested Mehta in
+      November 1992. The lesson: the share prices were lifted by bank credit that had no real
+      backing.
+
+concept: >
+  Most of what we call money is bank deposits. When a bank lends, it credits the borrower's account,
+  so the loan creates a new deposit. Banks are required to keep only a fraction of deposits as
+  reserves (the reserve ratio), so each rupee of reserves can support several rupees of deposits.
+  Ignoring leakages, the money multiplier is 1 divided by the reserve ratio: a 10 per cent reserve
+  ratio gives a multiplier of 10. The money banks can create from their excess reserves is the
+  multiplier times those excess reserves. Credit is therefore money, and credit that flows into asset
+  markets can push prices up for as long as the lending continues. Banks protect their lending with
+  collateral such as government securities.
+
+principle: >
+  Ask what backs a boom. Prices lifted by credit last only as long as lenders keep lending and the
+  collateral they rely on really exists; an asset market funded by borrowed money is only as sound as
+  the paper behind the loans.
+
+questions:
+  - id: mb-q-multiplier
+    prompt: >
+      Banks must hold 20% of deposits as reserves. Customers deposit Rs 1,000 in a bank that holds no
+      other reserves, so it has Rs 800 of excess reserves. By how much can the banking system increase
+      the money supply by lending out those excess reserves, assuming no cash is held outside banks and
+      all banks lend fully?
+    choices:
+      - { id: a, text: "Rs 800" }
+      - { id: b, text: "Rs 1,000" }
+      - { id: c, text: "Rs 4,000" }
+      - { id: d, text: "Rs 5,000" }
+    answer: c
+    explanation: >
+      The money multiplier is 1 / 0.20 = 5. New money created = multiplier x excess reserves = 5 x Rs 800
+      = Rs 4,000. Rs 5,000 is the total deposits supported by the original Rs 1,000, which includes the
+      Rs 1,000 already there.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY 4.0), 27.4 How Banks Create Money: https://openstax.org/books/principles-economics-3e/pages/27-4-how-banks-create-money
+
+  - id: mb-q-multiplier-ratio
+    prompt: >
+      What is the money multiplier when the reserve ratio is 10%?
+    choices:
+      - { id: a, text: "0.1" }
+      - { id: b, text: "10" }
+      - { id: c, text: "90" }
+      - { id: d, text: "100" }
+    answer: b
+    explanation: >
+      The multiplier is 1 divided by the reserve ratio: 1 / 0.10 = 10.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY 4.0), 27.4 How Banks Create Money: https://openstax.org/books/principles-economics-3e/pages/27-4-how-banks-create-money
+
+  - id: mb-q-loan-creates-deposit
+    prompt: >
+      A bank makes a Rs 5 lakh loan by crediting the borrower's account. What happens to the total of
+      bank deposits in the economy, before the borrower spends anything?
+    choices:
+      - { id: a, text: "It rises by Rs 5 lakh, because the loan created a new deposit" }
+      - { id: b, text: "It is unchanged, because the bank only moved money from its own pocket" }
+      - { id: c, text: "It falls by Rs 5 lakh, because the bank has less to lend" }
+    answer: a
+    explanation: >
+      Because banks keep only a fraction of deposits as reserves, a loan credited to an account adds a
+      new deposit; this is how the banking system creates money. When the borrower spends, the money
+      is re-deposited elsewhere and lent again.
+    source: >
+      OpenStax, Principles of Economics 3e (CC BY 4.0), 27.4 How Banks Create Money: https://openstax.org/books/principles-economics-3e/pages/27-4-how-banks-create-money
+
+  - id: mb-q-bank-receipt
+    prompt: >
+      In a 1992 ready forward deal, the lending bank handed over cash and received a bank receipt (BR) from
+      the borrowing bank. What was the receipt supposed to show?
+    choices:
+      - { id: a, text: "That the borrowing bank held government securities on the lender's behalf as security for the loan" }
+      - { id: b, text: "That the lender had received a share certificate in the broker's company" }
+      - { id: c, text: "That the loan was guaranteed by the Reserve Bank" }
+    answer: a
+    explanation: >
+      A BR stood in for the securities that secured the roughly 15-day loan: the lender relied on the
+      receipt rather than holding the securities itself.
+    source: >
+      India Today, "Lessons unlearnt: The story of big bull Harshad Mehta and bank frauds in India", 20 October 2020: https://www.indiatoday.in/business/story/harshad-mehta-securities-scam-india-legacy-of-bank-fraud-1733374-2020-10-20
+
+checks:
+  - id: eco-money-quiz-credit
+    kind: quiz
+    questions:
+      - mb-q-multiplier
+      - mb-q-multiplier-ratio
+      - mb-q-loan-creates-deposit
+      - mb-q-bank-receipt
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-money-scam-reasoning
+    kind: conversation
+    prompt: >
+      Share prices in early 1992 are climbing fast while a few brokers buy heavily. Using what you know about
+      ready forward deals and bank receipts, suggest how money held in Indian banks could end up funding
+      share purchases, and what would make the price rise fragile.
+    passCriteria: >
+      The Learner explains that banks lend deposits against collateral, that in ready forward deals
+      government securities (or bank receipts standing in for them) are the collateral, and that a broker
+      sitting between the banks could draw cash from them and use it to buy shares if the receipts were
+      not checked against real securities. They say that this credit, which is money, would push share
+      prices up, and that prices would depend on the flow continuing and the collateral being real.

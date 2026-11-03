@@ -1,0 +1,164 @@
+# Analyse: trace who pays whom, practised on WeWork's S-1 of August 2019.
+# Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
+id: ana-who-pays-whom
+title: "Analyse: trace who pays whom"
+
+cases:
+  - id: wework-cash-chain-2019
+    title: Where WeWork's cash came from and where it went
+    asOf: 2019-08-14
+    story: >
+      On 14 August 2019 WeWork published the prospectus for its planned stock market listing,
+      with figures to 30 June 2019. Its business has three sets of payers and payees. Members
+      pay WeWork for desks and offices: revenue for the first half of 2019 was $1.54 billion,
+      and the filing pointed to $4 billion of "committed revenue backlog" from members, whose
+      contracts averaged about 15 months. WeWork pays landlords for the buildings: it had
+      signed leases with $47.2 billion of undiscounted future payments, and its lease cost for
+      the half year, contractually paid or payable, was about $775 million (the income statement
+      expense was higher, because accounting spreads free-rent periods and rent escalations
+      evenly, a non-cash $198 million of location lease cost in the half year). Its net loss for
+      the half year was about $905 million, and it had about $2.5 billion of cash on 30 June.
+      The third payer is the investor. SoftBank, a Japanese investment group, had put money into
+      WeWork through several instruments, and the filing listed these: a $1.0 billion convertible
+      note drawn on 31 August 2018; a "2018 warrant" under which SoftBank entities paid WeWork
+      $1.5 billion in January 2019 and $1.0 billion in April 2019 in exchange for shares; and a
+      "2019 warrant" under which WeWork had the right to receive a further $1.5 billion on 3
+      April 2020 in exchange for shares. The prospectus also warned that WeWork "may require
+      additional financing", depending on how many new locations it opened and how well it kept
+      its members. As of 14 August 2019 the listing had not yet taken place and its price was
+      not set. Trace the money: who pays WeWork, whom does WeWork pay, and what fills the gap?
+    reveal: >
+      The listing did not go ahead: WeWork postponed it and asked to withdraw the filing on 30
+      September 2019, after Adam Neumann stepped down as chief executive on 24 September.
+      In October 2019 SoftBank stepped in with a rescue that was reported at the time as a $5
+      billion loan, the $1.5 billion of equity due in 2020 paid early, and an offer to buy up to
+      $3 billion of shares from existing holders, valuing the company at about $8 billion
+      (WSJ, CNBC and Reuters, 21-23 October 2019). In effect the investor, not the members,
+      kept paying the landlords. WeWork filed for Chapter 11 bankruptcy on 6 November 2023,
+      listing nearly $19 billion of liabilities, and used the process to reject leases it could
+      not afford. The chain held while new money kept arriving, and broke when it stopped.
+
+concept: >
+  To trace who pays whom, draw the money as a chain with an arrow for every payment: customers
+  pay the company, the company pays suppliers, landlords, lenders and staff, and anything the
+  customers do not cover must come from a third group, the people who finance it (owners
+  buying shares, lenders, or the company's own cash pile). Operating cash flow shows whether
+  customers cover costs; financing cash flow shows who made up the difference. Then ask how
+  long each arrow is promised: a lease is a fixed promise to the landlord, discounted it becomes
+  a present value; a customer's commitment may be shorter; an investor's pledge may depend on
+  conditions. The chain is only as strong as its weakest arrow, and the funder at the end of
+  the chain is the one whose willingness to keep paying matters most.
+
+principle: >
+  For any company, list who pays it, whom it pays and who covers the gap, then compare how long
+  each payment is promised. A business whose payments out are fixed for longer than the
+  payments in are promised depends on a financier, and that financier is part of the analysis.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: wpw-q-gap
+    prompt: >
+      A firm collects 100 a year from customers and pays 130 a year in rent, with no other costs
+      and no cash saved up. Where must the missing 30 a year come from?
+    choices:
+      - { id: a, text: "From financing: new shares, borrowing or cash raised earlier" }
+      - { id: b, text: "From the landlord, who is bound to forgive the shortfall" }
+      - { id: c, text: "From customers, automatically" }
+      - { id: d, text: "It does not need to come from anywhere" }
+    answer: a
+    explanation: >
+      Rent is owed whatever the customers pay. If operating cash inflows fall short of payments out, the difference must be financed by owners putting in money, lenders, or cash raised earlier. That is what the financing section of the cash flow statement records.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: wpw-q-warrant
+    prompt: >
+      WeWork's S-1 describes a "2018 warrant" under which SoftBank entities paid $1.5 billion in
+      January 2019 and $1.0 billion in April 2019. Who paid whom, and for what?
+    choices:
+      - { id: a, text: "SoftBank entities paid WeWork, in exchange for shares of WeWork" }
+      - { id: b, text: "WeWork paid SoftBank, in exchange for shares of SoftBank" }
+      - { id: c, text: "WeWork paid SoftBank interest on a loan" }
+      - { id: d, text: "SoftBank paid WeWork's landlords directly, in exchange for a share of the rent" }
+    answer: a
+    explanation: >
+      The S-1 shows the money going into WeWork: SoftBank drew down the warrant with payments of $1.5 billion and $1.0 billion and received shares of WeWork in exchange. This is an owner paying the company, a financing inflow, not repayment of a loan.
+    source: >
+      WeWork Companies Inc., Form S-1 filed 14 August 2019, Liquidity and Capital Resources (Convertible Note and Warrant Agreements): https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
+
+  - id: wpw-q-straight-line
+    prompt: >
+      A company's income statement shows more rent expense for the year than the rent it actually
+      paid in cash. Which of these can explain it?
+    choices:
+      - { id: a, text: "The lease gave free-rent months and rent steps, and accounting spreads the total evenly over the lease" }
+      - { id: b, text: "The company paid its rent twice" }
+      - { id: c, text: "Rent is never an expense" }
+      - { id: d, text: "Accounting expense always equals cash paid" }
+    answer: a
+    explanation: >
+      Under lease accounting the total cost of the lease is spread evenly (straight-line) over its life, so early years with free rent or low rent show an expense above the cash paid. WeWork's S-1 itself separates a non-cash GAAP straight-line lease cost of about $198 million for the half year from the lease cost contractually paid or payable.
+    source: >
+      WeWork Companies Inc., Form S-1 filed 14 August 2019, Selected Historical Consolidated Financial and Operating Information (adjusted lease cost): https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
+
+  - id: wpw-q-pv-rent
+    prompt: >
+      A tenant must pay a landlord 200 at the end of each of the next three years. At a discount
+      rate of 10% a year, what is the present value of the three payments?
+    choices:
+      - { id: a, text: "600.00" }
+      - { id: b, text: "497.37" }
+      - { id: c, text: "545.45" }
+      - { id: d, text: "451.31" }
+    answer: b
+    explanation: >
+      200 / 1.10 = 181.82, 200 / 1.21 = 165.29 and 200 / 1.331 = 150.26, which add to 497.37. The plain sum, 600, ignores the time value of money.
+    source: >
+      OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
+
+  - id: wpw-q-who-owes
+    prompt: >
+      A company leases a building for 15 years and rents desks in it to customers on contracts
+      of about 15 months. If the customers leave after 15 months, who still owes the landlord
+      the rent?
+    choices:
+      - { id: a, text: "The company that signed the lease" }
+      - { id: b, text: "The departed customers" }
+      - { id: c, text: "Nobody, because the lease ends when the customers leave" }
+      - { id: d, text: "The company's bank, automatically" }
+    answer: a
+    explanation: >
+      A lease is a contract between the landlord and the lessee. Under the lessee accounting model the lessee recognises a liability for the present value of its lease payments, whatever happens to its own customers. The customers' contracts are a separate arrow in the chain.
+    source: >
+      IFRS Foundation, IFRS 16 Leases (lessee recognises a liability for the present value of lease payments): https://www.ifrs.org/issued-standards/list-of-standards/ifrs-16-leases/
+
+checks:
+  - id: wpw-quiz-chain
+    kind: quiz
+    questions:
+      - wpw-q-gap
+      - wpw-q-warrant
+      - wpw-q-straight-line
+      - wpw-q-pv-rent
+      - wpw-q-who-owes
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: wpw-trace-chain
+    kind: conversation
+    prompt: >
+      Using only what the S-1 showed on 14 August 2019 (half-year revenue of $1.54 billion, a
+      loss of about $905 million, $47.2 billion of undiscounted lease payments, member contracts
+      of about 15 months, and SoftBank's payments into WeWork), draw the chain of who pays whom.
+      Say which payment is the weakest link and why, and which facts you would still want
+      before judging it. Do not predict what will happen.
+    passCriteria: >
+      The Learner draws the chain correctly: members pay WeWork (revenue), WeWork pays landlords
+      (lease payments) and others, and the shortfall is covered by investors, mainly SoftBank,
+      paying WeWork for shares (financing, not operating cash). They compare how long each
+      arrow is promised: leases of about 15 years with $47.2 billion of fixed payments against
+      member contracts of about 15 months, and investor payments that are scheduled but are not
+      customer revenue (for example the $1.5 billion due in April 2020). They name the dependence on
+      the financier as the weak point and ask for further facts (cash burn, how much of the
+      investor money is still to come and on what conditions, what happens to the leases in a
+      downturn) without forecasting an outcome or giving a buy, sell or hold call.

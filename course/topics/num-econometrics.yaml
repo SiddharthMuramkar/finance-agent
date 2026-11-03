@@ -1,0 +1,81 @@
+# Reading empirical claims: causation, data and spreadsheet errors, taught through Reinhart and Rogoff's 90% debt threshold.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+# Case sources (checked): Herndon, Ash and Pollin, UMass PERI Working Paper 322 (15 April 2013), read in full: coding error, selective exclusion of years, weighting and the 2.2 per cent figure.
+id: num-econometrics
+title: "Reading empirical claims: causation, data and spreadsheet errors"
+
+cases:
+  - id: reinhart-rogoff-2010
+    title: Reinhart and Rogoff's 90% debt threshold
+    asOf: 2010-05-01
+    story: >
+      In 2010 two Harvard economists, Carmen Reinhart and Kenneth Rogoff, publish a study of public debt and
+      economic growth across many countries over many years. Their headline finding: countries whose public
+      debt is above 90 per cent of GDP grow more slowly. Median growth in the high-debt group is roughly one
+      percentage point lower than in the other countries, and average growth is about -0.1 per cent a year,
+      a slight contraction. After the 2008 financial crisis, many governments are running large deficits and
+      deciding whether to cut spending now. A clear number such as "90 per cent" is easy to quote in a
+      budget debate. You are an analyst who has to decide how much weight to give the result. The data are
+      in a spreadsheet that the authors have not published. What questions would you ask before relying on
+      it, and does the finding show that high debt causes slow growth?
+    reveal: >
+      In April 2013 Thomas Herndon, a graduate student at the University of Massachusetts Amherst, and his
+      professors Michael Ash and Robert Pollin published a re-examination after Reinhart and Rogoff gave
+      them the spreadsheet. They found three problems. First, a coding error: the average of growth rates
+      covered rows 30 to 44 instead of 30 to 49, which left out five countries (Australia, Austria, Belgium,
+      Canada and Denmark); that slip alone lowered the average growth in the highest-debt group by 0.3
+      percentage points. Second, selective exclusion of years: Reinhart and Rogoff left out available early
+      years for three countries, Australia (1946 to 1950), New Zealand (1946 to 1949) and Canada (1946 to
+      1950). All four omitted New Zealand years were above the 90 per cent threshold, so New Zealand was left
+      with a single high-debt year, 1951. Third, unconventional weighting: each country's average counted
+      equally, however many years lay behind it, so New Zealand's one year (1951, growth -7.6 per cent)
+      counted as much as the United Kingdom's 19 years (average growth 2.4 per cent). The corrected figure for
+      average real GDP growth in countries with debt above 90 per cent was 2.2 per cent, not -0.1 per cent.
+      Reinhart and Rogoff acknowledged a "regrettable slip" that led to "a notable change in the average growth
+      rate for the over-90-per-cent debt group", but said it did not affect the central message of their paper.
+      The result had been cited in debates about euro-zone austerity. The lesson has two parts: a result needs
+      to be replicated from data, and even a correct correlation between debt and growth does not say which
+      way the cause runs.
+
+concept: >
+  An empirical claim is only as good as its data, its method and its reasoning from association to cause.
+  Correlation measures how two variables move together, not whether one moves the other. A third factor can
+  produce a correlation (confounding), and the cause can run backwards: slow growth can lead to high debt
+  because tax revenue falls and spending rises. Samples can mislead: looking only at survivors (survivorship
+  bias), or at the people who chose to reply to a survey (non-response bias), hides the cases that would
+  contradict the story. Testing many hypotheses finds some false positives by chance, and a model that
+  fits the data it was built on may fail on new data (overfitting). Spreadsheets add risks of their own, so
+  results should be reproducible from the raw data by someone else, and a round-number threshold
+  deserves a look at whether the evidence really shows a sharp break.
+
+principle: >
+  Before quoting a number, ask four things: could someone reproduce it from the data, what was left out,
+  what else could explain the pattern, and which way might the cause run.
+
+questions: []
+
+checks:
+  - id: eco-econ-quiz-claims
+    kind: quiz
+    questions:
+      - bank:eab:MBA-STAT-0029
+      - bank:eab:MBA-STAT-0030
+      - bank:eab:MBA-STAT-0046
+      - bank:eab:MBA-STAT-0047
+      - bank:eab:MBA-STAT-0027
+      - bank:eab:MBA-STAT-0048
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-econ-rr-reasoning
+    kind: conversation
+    prompt: >
+      Reinhart and Rogoff report that average growth was about -0.1 per cent in countries with debt above 90
+      per cent of GDP, using a spreadsheet they have not published. List the checks you would make on this
+      analysis, and explain whether the result, even if correct, would show that high debt causes slow growth.
+    passCriteria: >
+      The Learner names at least two sensible checks, such as reproducing the numbers from the raw data,
+      whether all countries and years were included, how the averages are weighted, and whether results hold
+      for other thresholds. They explain that association does not show causation, with at least one of
+      reverse causality (slow growth raising debt) or a confounding factor, and say that the result should
+      be checked by replication.

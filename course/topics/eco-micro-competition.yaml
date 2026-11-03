@@ -1,0 +1,79 @@
+# Competition, market structure and pricing power: a foundation Topic taught through the Reliance Jio launch.
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+id: eco-micro-competition
+title: Competition, market structure and pricing power
+
+cases:
+  - id: jio-launch-2016
+    title: Reliance Jio's free launch
+    asOf: 2016-09-01
+    story: >
+      On 1 September 2016, at the 42nd annual general meeting of Reliance Industries, chairman
+      Mukesh Ambani announced the tariffs of Reliance Jio, a new 4G mobile network that took six
+      years to build. Voice calls on Jio would be free. Data would cost about Rs 50 a gigabyte,
+      which Ambani called the cheapest in the world. A "free welcome offer" would give every
+      customer free voice and data from 5 September to 31 December 2016, after which there would
+      be just 10 simple plans, from Rs 19 a day for occasional users to Rs 149 a month for light
+      data users and Rs 4,999 a month for heavy users. Jio said it wanted 100 million users as
+      fast as possible. The market it was entering had a handful of large networks, led by Bharti
+      Airtel, Vodafone and Idea Cellular. India had a very large number of mobile users, and the BBC reported that
+      the telecom industry carried a combined debt of over $50 billion. Jio is backed by Reliance, the
+      country's largest private company, and is not expected to make a profit for about five
+      years. As of the afternoon of 1 September 2016 nobody knew how the existing networks would
+      respond or what would happen to their share prices.
+    reveal: >
+      The market answered within hours. On 1 September the shares of Bharti Airtel and Idea
+      Cellular fell by up to 9 per cent: Idea dropped 9 per cent to Rs 85 and Airtel
+      fell 8.99 per cent to Rs 302 during the day. By the close Idea was down about 10 per cent and Airtel
+      about 6 per cent. The BBC put the fall in Airtel's market value
+      at about $1.3 billion and Idea's at more than $500 million. Airtel had already cut its data
+      prices twice in anticipation, and Vodafone argued that its cheapest plans beat Jio's. Jio
+      launched officially on 5 September 2016 with its free offer. Analysts were split: customers
+      were the clear winners of a price war, but one analyst warned that a business group
+      controlling networks, content and start-ups could become a monopoly, and said India needed
+      three to five players for prices to normalise. The lesson is not that the incumbents were
+      foolish. Their pricing power rested on a few rivals who all wanted profits; a new entrant
+      with deep pockets and a different goal (customers first, profit in years) took that away.
+
+concept: >
+  A market's structure decides how much pricing power a firm has. In perfect competition many
+  sellers offer the same product, so each is a price taker. In monopolistic competition many
+  sellers offer slightly different products (a gym with its own classes and location) and each has
+  a little pricing power. In an oligopoly a few large sellers watch one another, and each price move
+  invites a response, which is why such sellers often avoid price wars. A monopoly has no close
+  rival. Pricing power comes from barriers to entry (licences, scale, essential inputs), from
+  differentiation and from switching costs. A threat to fight an entrant with a price war is
+  believable only if fighting really pays the incumbent once the entrant has arrived; a promise
+  that costs the promiser nothing to break does not change what a rational entrant does.
+
+principle: >
+  Before trusting a firm's margins, ask what protects them: who could enter, what they would charge,
+  and whether the incumbent could afford to fight. Pricing power that rests on rivals behaving
+  politely lasts only until someone arrives who is playing a different game.
+
+questions: []
+
+checks:
+  - id: eco-micro-quiz-structure
+    kind: quiz
+    questions:
+      - bank:eab:MBA-ECON-0013
+      - bank:eab:MBA-ECON-0019
+      - bank:eab:MBA-ECON-0020
+      - bank:eab:MBA-ECON-0022
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: eco-micro-jio-reasoning
+    kind: conversation
+    prompt: >
+      Reliance Jio is entering an Indian mobile market of a few large networks with free voice and data
+      at about Rs 50 a gigabyte. Explain what gives Airtel and Idea their pricing power today,
+      how an entrant like Jio could threaten it, and what would have to be true for a price war to stop.
+    passCriteria: >
+      The Learner names the earlier structure as an oligopoly of a few large networks whose pricing
+      power rested on limited competition and high entry barriers (spectrum, network cost). They
+      explain that Jio's backing by a large group and willingness to lose money for years removed
+      that protection, so incumbents would have to cut prices or lose customers. They identify at least
+      one way a price war can end, such as an entrant or incumbent running out of funds, rivals
+      accepting a stable split of customers, or consolidation into fewer players.

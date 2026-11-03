@@ -12,3 +12,10 @@ __pycache__/
 
 # Scratch output from web tools
 .firecrawl/
+
+# Personal Claude Code settings
+.claude/settings.local.json
+
+# Build and type caches
+*.tsbuildinfo
+next-env.d.ts

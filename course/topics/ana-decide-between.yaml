@@ -1,0 +1,259 @@
+# Analyse: decide between writers, taught by sorting the claims in a published two-writer debate.
+# Case sources (checked 2 Nov 2026): Forbes, 12 Jun 2000, 'Henry Blodget Debates Jeremy Grantham' (copy on Damodaran's site);
+# Yahoo! first-quarter 2000 release, 5 Apr 2000 (SEC EDGAR exhibit 99.1); Nasdaq year-end 1999 release; NPR, WSJ and Reuters, 23 Apr 2015;
+# Reuters 21 May 2007 and CNBC 13 Jul 2007 for the S&P 500; SEC press release 2003-56 and Litigation Release 18115.
+# The same debate is also the Case of the foundation Topic mkt-efficiency, which asks a different question (is the market efficient?). This Topic never asks it again.
+# No Case Data: the Case is a set of claims, not a chart.
+id: ana-decide-between
+title: "Analyse: decide between writers, facts versus framing"
+
+cases:
+  - id: forbes-claims-sorted-2000
+    title: Two investors, one market, and what each claim is made of
+    asOf: 2000-06-12
+    story: >
+      On 12 June 2000 Forbes published an edited debate that it had staged in early May between
+      two investors. Henry Blodget, 34, was the lead internet analyst at the investment bank Merrill
+      Lynch. Jeremy Grantham, 61, was at the Boston money manager Grantham, Mayo, Van Otterloo and
+      was described by Forbes as value-oriented. The Nasdaq Composite, the index of mostly technology
+      shares, had closed 1999 at 4,069.31, a rise of 85.59% on the year according to the Nasdaq
+      itself. It had set a record close of 5,048.62 on 10 March 2000 and had fallen sharply since.
+      Here is what each man said, in the order a reader meets it.
+      Blodget. (B1) The Nasdaq rose 83% in 1999 and is still up 40% over the past year.
+      (B2) Valuation matters less while an industry is young and more as it matures, and the
+      internet is maturing. (B3) Probably 75% of the new internet companies will disappear, but the
+      best, such as Yahoo, will keep growing for ten years. (B4) Yahoo is now a $70 billion company
+      selling at 340 times earnings; it was cheap when it listed. (B5) A fund manager measured
+      against the S&P 500 index risks the job by not owning Yahoo and AOL, which have just joined
+      it, so one cannot judge each stock purely on discounted cash flow.
+      Grantham. (G1) At the end of February the combined stock-market value of the internet
+      sector, defined to include Cisco and AOL, was $1.2 trillion against negative earnings of $2.5
+      billion. (G2) The S&P 500 index is at about 30 times earnings, and stories about Yahoo and AOL
+      are used to excuse that price for the whole market, which is a fallacy of composition. (G3) 80%
+      of these companies will cease to exist. (G4) From their highs the S&P 500 will fall 50%, the
+      Nasdaq 70% and the Nasdaq shares without earnings 80%, sooner or later. (G5) Excuses for high
+      prices follow bubbles, not the other way round.
+      Two more facts were public by 12 June. On 5 April 2000 Yahoo reported first-quarter net income
+      of $77.9 million, $0.13 a share diluted, which included a one-off $40.7 million gain from
+      exchanging investments. It also reported a pro forma net income of $63.3 million, $0.10 a
+      share, which leaves out that gain and several charges. Both figures are on 613.1 million
+      diluted shares.
+      Your job today is to decide between the two writers' arguments using only what was known on 12
+      June 2000, never to guess what happened afterwards. Sort B1 to B5 and G1 to G5 into checkable
+      facts, definitions that need pinning down, forecasts, and framing. Check what you can, using
+      the calculator for the arithmetic. Then say which argument is better supported and what you
+      still could not know.
+    reveal: >
+      The Nasdaq Composite closed at 1,114.11 on 9 October 2002 by one count (an intraday low of 1,108.49 is also quoted),
+      more than 75% below its March 2000 record, and did not close above that record again until 23
+      April 2015, when it ended at 5,056.06. The S&P 500 went from its record close of 1,527.46 on 24
+      March 2000 to a closing low of 776.76 on 9 October 2002, a fall of about 49%. So Grantham's sizes
+      (S&P 500 down 50%, Nasdaq down 70%) landed close to the result, and the Nasdaq fell somewhat
+      more than he said; his 'sooner or later' turned out to be two and a half years, not an instant.
+      The reveal does not settle every claim. The share of new internet companies that disappeared (B3,
+      G3) was not counted for this Case, so it stays untested here. Blodget's 83% (B1) was within three points of the
+      Nasdaq's own 85.59%, and his 340 times (B4) could not be reproduced from Yahoo's April release (about 225 times
+      on reported earnings and about 277 times on pro forma earnings, annualised, at $70 billion), so
+      its gap lay in the price date and the earnings definition, which a careful reader could
+      have asked about on the day. B5 was an observation about incentives, which index levels
+      neither prove nor disprove. A separate fact is that on 28 April 2003 Blodget settled SEC and
+      industry charges, without admitting or denying them, that some of his research on other
+      internet companies (the SEC named GoTo.com) expressed views inconsistent with what he said
+      privately; he was barred from the securities industry and paid $4 million. That concerned
+      particular reports, not the Forbes debate, but it shows why a reader asks what a writer's
+      employer gains from a view. The lesson is the order of the work: check the facts and the
+      definitions first, judge the forecasts by their reasoning, notice the framing, and only then
+      let the outcome grade the forecasts, not the whole man.
+
+concept: >
+  Deciding between writers is not picking a side. Take each piece apart into four kinds of
+  statement. A fact can be checked against a named source at a stated date (an index level, a
+  reported profit). A definition says which measure is meant: 'earnings' may be reported, adjusted or
+  pro forma, 'up 40%' depends on the start date, and a 'times earnings' figure depends on both
+  the price date and the earnings used, so the first job is to recompute it with a stated
+  definition. A forecast says what will happen; it cannot be checked today, so judge its reasoning,
+  whether it gives a size and a time, and whether the writer says what would prove them wrong. Framing is
+  the choice of which true facts to show and how: the starting point of a percentage change, a
+  sum shown without its parts, a comparison that flatters one side, and the writer's own
+  incentives (an analyst at a bank that earns fees from the companies covered, or a fund
+  that sells caution, may each lean one way). Professional codes ask exactly this of analysts:
+  to distinguish fact from opinion and to keep independence and objectivity. When two writers
+  disagree, mark where they dispute facts, where they use different definitions, and where they
+  only forecast differently; most of a debate is usually in the last two. Then compare the
+  arguments, not the reputations, and write down what you would need to see to change your mind.
+  Only later does the outcome grade the forecasts, and even then a forecast can be right for the
+  wrong reason or right on size and wrong on time.
+
+principle: >
+  Before choosing between two writers, sort every claim into fact, definition, forecast and
+  framing. Recompute the numbers with a stated definition, judge forecasts by their reasoning,
+  notice what each writer gains from the view, and let the outcome grade the forecasts afterwards,
+  not the writer.
+
+# Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
+questions:
+  - id: adb-q-checkable
+    prompt: >
+      Which of these statements can a reader check against a published source on the day it is made?
+    choices:
+      - { id: a, text: "A company's latest quarterly release states a net income of $50 million" }
+      - { id: b, text: "Most of the companies in this industry will be gone within five years" }
+      - { id: c, text: "Investors who ignore this sector are being reckless" }
+      - { id: d, text: "This index will be lower in three years than it is today" }
+    answer: a
+    explanation: >
+      A reported figure can be looked up in the company's own release. The other three are a forecast, a judgement about people and another forecast: each can be argued about now, but none can be checked against a source on the day.
+    source: >
+      CFA Institute, Code of Ethics and Standards of Professional Conduct, Standard V(B) (distinguish between fact and opinion in the presentation of investment analysis): https://www.cfainstitute.org/standards/professionals/code-ethics-standards/standards-of-practice-v-b
+
+  - id: adb-q-forecast
+    prompt: >
+      A writer says a whole sector will be worth less in fifteen years than it is today, and gives a figure. How should a reader treat this on the day it is written?
+    choices:
+      - { id: a, text: "As a fact, if the writer is well known" }
+      - { id: b, text: "As a forecast: judge the reasoning, the size, the time and what would prove it wrong, and let the outcome grade it later" }
+      - { id: c, text: "As framing only, so ignore it" }
+      - { id: d, text: "As a false statement, because the future cannot be known" }
+    answer: b
+    explanation: >
+      A forecast is an opinion about the future. It cannot be marked true or false on the day, but its reasoning, its specificity and its stated limits can be judged, and later events grade it.
+    source: >
+      CFA Institute, Code of Ethics and Standards of Professional Conduct, Standard V(B) (distinguish between fact and opinion in the presentation of investment analysis): https://www.cfainstitute.org/standards/professionals/code-ethics-standards/standards-of-practice-v-b
+
+  - id: adb-q-pe-arithmetic
+    prompt: >
+      A share sells for $60. The company earned $0.50 per share over the last four quarters. What is the price-to-earnings ratio on those trailing earnings?
+    choices:
+      - { id: a, text: "30 times" }
+      - { id: b, text: "120 times" }
+      - { id: c, text: "12 times" }
+      - { id: d, text: "0.008 times" }
+    answer: b
+    explanation: >
+      P/E is the market price per share divided by earnings per share: 60 / 0.50 = 120.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios: https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
+
+  - id: adb-q-which-earnings
+    prompt: >
+      A share sells for $60. Reported earnings per share were $0.50, but $0.10 of that came from a one-off gain, so a writer quotes 'adjusted' earnings of $0.40. One writer says the stock sells at 120 times earnings and another says 150 times. What explains the difference?
+    choices:
+      - { id: a, text: "One of them has made an arithmetic error" }
+      - { id: b, text: "They divide the same price by different earnings: reported ($0.50) against adjusted ($0.40)" }
+      - { id: c, text: "They use different prices" }
+      - { id: d, text: "150 times is always the correct figure because adjusted earnings are cleaner" }
+    answer: b
+    explanation: >
+      60 / 0.50 = 120 and 60 / 0.40 = 150. Both are correct arithmetic on different definitions of earnings. A reader asks which earnings were used, and why the writer chose them, before comparing two multiples.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios (P/E is market price divided by earnings per share, on trailing or forward earnings): https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
+
+  - id: adb-q-reconcile
+    prompt: >
+      A US public company issues a press release quoting 'adjusted' earnings that leave out certain charges. Under the SEC's Regulation G, which of these must the release also contain?
+    choices:
+      - { id: a, text: "The most directly comparable GAAP measure and a reconciliation of the adjusted figure to it" }
+      - { id: b, text: "An audit opinion on the adjusted figure" }
+      - { id: c, text: "Nothing more, because adjusted figures are exempt" }
+      - { id: d, text: "A forecast of next year's adjusted earnings" }
+    answer: a
+    explanation: >
+      Regulation G requires a public company that releases a non-GAAP measure to present the most directly comparable GAAP measure and a reconciliation of the two. That lets a reader see exactly what was left out.
+    source: >
+      SEC, Conditions for Use of Non-GAAP Financial Measures (Release 33-8176, 2003): https://www.sec.gov/rules-regulations/2003/03/conditions-use-non-gaap-financial-measures
+
+  - id: adb-q-multiple-fall
+    prompt: >
+      A market index sells at 30 times earnings. If earnings stay the same and the multiple falls to 20 times, by what percentage does the index fall?
+    choices:
+      - { id: a, text: "About 33%" }
+      - { id: b, text: "About 50%" }
+      - { id: c, text: "About 10%" }
+      - { id: d, text: "About 67%" }
+    answer: a
+    explanation: >
+      The index level is the multiple times earnings. With earnings fixed, the level falls in proportion to the multiple: 20 / 30 = 0.667, a fall of 33.3%. The other choices come from subtracting 10 points of multiple from 30 points or from reading 20/30 as the fall itself.
+    source: >
+      Own arithmetic on price = P/E x earnings per share; definition of P/E from OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios: https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
+
+  - id: adb-q-multiple-and-earnings
+    prompt: >
+      An index sells at 30 times earnings. A writer argues that the multiple will return to 20 times and, at the same time, that earnings will be 25% lower. If both happen, by what percentage does the index fall?
+    choices:
+      - { id: a, text: "About 58%" }
+      - { id: b, text: "About 50%" }
+      - { id: c, text: "About 33%" }
+      - { id: d, text: "About 25%" }
+    answer: b
+    explanation: >
+      The level is the multiple times earnings, so the two changes multiply: (20 / 30) x 0.75 = 0.667 x 0.75 = 0.50, a fall of 50%. Adding 33% and 25% to get 58% ignores that the second fall applies to a level that is already lower. The example uses round hypothetical numbers.
+    source: >
+      Own arithmetic on price = P/E x earnings per share; definition of P/E from OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios: https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
+
+  - id: adb-q-starting-point
+    prompt: >
+      A market index is up 40% over the last twelve months and down 20% from its highest level of the last two months. One writer says it is 'still up 40%' and another says it is 'down 20%'. What is the best description of their difference?
+    choices:
+      - { id: a, text: "One of them is stating something false" }
+      - { id: b, text: "Both are true and they choose different starting points, which is framing" }
+      - { id: c, text: "The 40% is a forecast and the 20% is a fact" }
+      - { id: d, text: "They must be using different indices" }
+    answer: b
+    explanation: >
+      A percentage change depends on its starting date. Twelve months back and the last peak give different, equally true numbers. A reader asks which start date was chosen and why before treating either as the whole picture.
+    source: >
+      CFA Institute, Code of Ethics and Standards of Professional Conduct, Standard V(B) (use reasonable judgment in identifying the factors that are important and include them in communications): https://www.cfainstitute.org/standards/professionals/code-ethics-standards/standards-of-practice-v-b
+
+  - id: adb-q-incentive
+    prompt: >
+      Two writers disagree about a market. Which question best helps a reader judge the framing of each view, as opposed to its facts?
+    choices:
+      - { id: a, text: "Which writer is more famous?" }
+      - { id: b, text: "What does each writer's job and employer gain from this view, and which true facts would they have left out if the view were wrong?" }
+      - { id: c, text: "Which writer predicts the bigger move?" }
+      - { id: d, text: "Which writer uses more numbers?" }
+    answer: b
+    explanation: >
+      Framing is the selection and presentation of true facts. Asking what a view is worth to its author, and what would count against it, exposes selection. Fame, the size of a forecast and the count of numbers say nothing about it. Professional codes treat independence and objectivity as a duty for this reason.
+    source: >
+      CFA Institute, Code of Ethics and Standards of Professional Conduct, Standard I(B) Independence and Objectivity: https://www.cfainstitute.org/standards/professionals/code-ethics-standards/standards-of-practice-i-b
+
+checks:
+  - id: adb-quiz-sorting
+    kind: quiz
+    questions:
+      - adb-q-checkable
+      - adb-q-forecast
+      - adb-q-pe-arithmetic
+      - adb-q-which-earnings
+      - adb-q-reconcile
+      - adb-q-multiple-fall
+      - adb-q-multiple-and-earnings
+      - adb-q-starting-point
+      - adb-q-incentive
+      - bank:eab:MBA-FIN-VAL-0014
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: adb-writers-sorted
+    kind: conversation
+    prompt: >
+      Take the Forbes debate as it stood on 12 June 2000. Pick one claim from each writer that a
+      reader could check, and say where you would look and what you would calculate (for
+      Yahoo, use the numbers in the story and the calculator). Then name one claim that is a
+      forecast and one that is framing, and say how you would treat each. Finally, say which
+      writer's argument you find better supported on what was known that day, what you still
+      could not know, and what would change your mind. Do not predict what happened next.
+    passCriteria: >
+      The Learner picks at least one checkable fact from each writer (for example the Nasdaq's 1999
+      rise against its published year-end figures, Yahoo's earnings against its April release, or
+      the S&P 500's multiple) and says where it would be checked. They recompute Yahoo's multiple
+      from the story's numbers and see that it depends on the earnings used: about 225 times on
+      reported first-quarter earnings and about 277 times on pro forma earnings, both annualised at
+      $70 billion, neither equal to 340, so the gap needs a stated price date and definition before
+      it can be called an error. They name a forecast (such as the share of companies that disappear
+      or the size of a fall) and judge it by its reasoning, size, time and stated limits, not as a
+      fact. They name a framing device (a starting point for a percentage, the sum of a sector shown
+      without its parts, benchmark pressure or the writer's own incentives). They prefer an argument
+      rather than a person, say what remains unknown, and name evidence that would change their mind.
+      They make no forecast of their own and no buy, sell or hold call.

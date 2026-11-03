@@ -1,0 +1,171 @@
+# Valuing young, loss-making companies: a foundation Topic taught through Uber in December 2014.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Case sources (checked): Aswath Damodaran, Up, Up and Away: The Crowd Valuation of Uber (2 Dec 2014): https://aswathdamodaran.blogspot.com/2014/12/up-up-and-away-crowd-valuation-of-uber.html ; The New York Times (9 and 10 May 2019); WSJ (10 May 2019); CNBC (9 May 2019).
+id: val-young
+title: Valuing young, loss-making companies
+
+cases:
+  - id: uber-vc-narrative-2014
+    title: Uber, Damodaran against venture capital
+    data:
+      - damodaran-valuation-june-2014
+      - venture-capital-value-low
+      - venture-capital-value-high
+      - valuation-talk-december-2014
+      - gross-receipts-2014-assumed
+      - gross-receipts-2015-projected
+      - share-of-gross-receipts-kept
+      - market-urban-car-service
+      - market-all-car-service
+      - market-logistics
+      - market-mobility
+    asOf: 2014-12-02
+    story: >
+      Uber is five years old and still private. It says it operates in 51 countries and about
+      230 cities, and has added carpooling, a service for businesses and a delivery service in
+      New York. Almost nothing about its finances is public. In June 2014 the valuation
+      professor Aswath Damodaran treated it as an urban car service company and valued it at
+      $6 billion. Venture capital investors were then paying prices that implied $17 to $18
+      billion, and by 2 December 2014 estimates of $40 billion and higher are being talked
+      about. Business Insider has reported that Uber projects gross receipts (the fares paid by
+      riders) of $10 billion in 2015, three times 2014, which was itself more than three times
+      2013. Uber originally kept 20 percent of those receipts as its revenue. Damodaran assumes
+      gross receipts of $3.5 billion for 2014, so revenue of about $700 million, and says he
+      cannot tell whether Uber covers its operating costs. On 2 December he publishes a new
+      exercise and invites readers to build their own value. Step one is the size of the
+      market Uber could win: about $100 billion if it is an urban car service company, $150
+      billion with all car services, $205 billion if it also does logistics (moving and local
+      delivery) and $285 billion if it becomes a general mobility company, including mass
+      transit and car sharing. You have to decide what Uber's story is, and what value follows
+      from it.
+    reveal: >
+      Uber went public on 9 May 2019. It priced its shares at $45, near the bottom of its $44 to
+      $50 range, which valued it at $82.4 billion once options and restricted stock were counted
+      (about $75 billion on shares outstanding). That was above the $76 billion of its last
+      private round in August 2018 and below the $100 billion the company had forecast to some
+      investors and the $120 billion some bankers had floated. On its first day of trading the
+      shares fell to a close of $41.57, down 7.6 percent from the offer price, which made it
+      worth about $76.5 billion. The 2014 estimates, from $6 billion to $40 billion and more,
+      were each a story about the Uber of 2014. What the market paid in 2019 followed the story it
+      then chose to believe about market size, margins and survival, and that story kept
+      changing as new facts arrived.
+
+concept: >
+  A young company has little history, often no profit, and sometimes no revenue, so past
+  numbers cannot be projected forward. Discounted cash flow can still be used if value is built
+  from a story, in steps. First, how big is the market the company could serve? Second, what
+  share could it win, which gives revenue in a future year? Third, what operating margin could it
+  earn once it is mature, and how fast would it turn from loss to profit? Fourth, how much must
+  it reinvest to grow (for example, sales per dollar of capital)? Fifth, what is the chance it
+  survives at all? A value that assumes survival can be weighted by that chance against what is
+  left if it fails. Each part of the story maps to a number: a bigger market story raises
+  revenue, a "winner takes most" story raises the share, a "better than rivals" story raises the
+  margin. Multiples such as EV/revenue are used because earnings are negative, but they ignore
+  margins and growth, so peers must be chosen with similar profiles. Venture capital pricing
+  works the other way round: investors estimate the value at exit and discount it at a high target
+  return, then divide the money they put in by the post-money value to get their ownership.
+
+principle: >
+  The value of a young company is a story turned into numbers. Ask what you must believe about
+  market size, share, margin, reinvestment and survival for a price to hold, and then ask whether
+  you believe it.
+
+questions:
+  - id: vy-q-revenue-path
+    prompt: >
+      A start-up believes its market will be $200 billion in ten years and that it can win 5 percent of it. What yearly revenue does that story imply once it reaches that share?
+    choices:
+      - { id: a, text: "$1 billion" }
+      - { id: b, text: "$10 billion" }
+      - { id: c, text: "$100 billion" }
+      - { id: d, text: "$200 billion" }
+    answer: b
+    explanation: >
+      Revenue = market size x share = $200 billion x 0.05 = $10 billion. In a young-company valuation, the market-size and market-share choices set the revenue path.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), steps for estimating revenues: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-margin
+    prompt: >
+      That firm expects revenue of $10 billion and a long-run operating margin of 20 percent. What operating income does the story imply, before tax?
+    choices:
+      - { id: a, text: "$0.2 billion" }
+      - { id: b, text: "$2 billion" }
+      - { id: c, text: "$8 billion" }
+      - { id: d, text: "$20 billion" }
+    answer: b
+    explanation: >
+      Operating income = revenue x operating margin = $10 billion x 0.20 = $2 billion. Margin is the part of the story about how profitable the business becomes when it matures.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-survival
+    prompt: >
+      A discounted cash flow valuation says a young firm is worth $500 million if it survives and $20 million if it fails. You judge the chance of survival at 40 percent. What is its expected value?
+    choices:
+      - { id: a, text: "$212 million" }
+      - { id: b, text: "$260 million" }
+      - { id: c, text: "$500 million" }
+      - { id: d, text: "$20 million" }
+    answer: a
+    explanation: >
+      Expected value = 0.40 x 500 + 0.60 x 20 = 200 + 12 = $212 million. A value that assumes survival overstates a firm that may not survive.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), on survival and failure: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-story-input
+    prompt: >
+      An investor says "this company will expand from taxis into delivery and freight". Which input in a young-company valuation does that story mainly change?
+    choices:
+      - { id: a, text: "The size of the market it can serve" }
+      - { id: b, text: "The tax rate" }
+      - { id: c, text: "The risk-free rate" }
+      - { id: d, text: "The number of shares in a stock split" }
+    answer: a
+    explanation: >
+      Adding delivery and freight widens the market the company could win, so potential revenue rises. Whether the extra revenue is profitable, and whether the company can win it, are separate parts of the story.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library), on defining and sizing the market: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+  - id: vy-q-runway
+    prompt: >
+      A loss-making company has $300 million in cash and loses $100 million a year in cash. If nothing changes, how long can it operate before it needs new money?
+    choices:
+      - { id: a, text: "One year" }
+      - { id: b, text: "Three years" }
+      - { id: c, text: "Five years" }
+      - { id: d, text: "Thirty years" }
+    answer: b
+    explanation: >
+      Runway = cash / yearly cash burn = $300 million / $100 million = 3 years. A young company's survival depends on raising new money before this runs out, which is why survival probability belongs in the valuation.
+    source: >
+      Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
+
+checks:
+  - id: vy-quiz-young
+    kind: quiz
+    questions:
+      - vy-q-revenue-path
+      - vy-q-margin
+      - vy-q-survival
+      - vy-q-story-input
+      - vy-q-runway
+      - bank:eab:MBA-FIN-VAL-0012
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: vy-uber-stories
+    kind: conversation
+    prompt: >
+      In December 2014 one careful analyst values Uber at $6 billion, venture investors pay
+      prices implying $17 to $18 billion, and some people talk of $40 billion and more. They can
+      all be using the same discounted cash flow method. Explain how, and which parts of the
+      story you would need to settle before choosing between them.
+    passCriteria: >
+      The Learner explains that the value of a young company comes from the story behind the
+      inputs, not from the method: the size of the market (urban car service against all
+      transport), the share Uber could win, the operating margin once mature, how much it must
+      reinvest, and the chance it survives. They say a small market, low share or thin margin
+      gives a low value and the opposite gives a high one, so the disagreement is about the
+      story. They name at least three of those inputs and say what evidence would support one
+      story over another (growth in receipts, what Uber keeps of each fare, competition).

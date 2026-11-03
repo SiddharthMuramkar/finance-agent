@@ -1,0 +1,154 @@
+# Percent, percentage points and basis points: a foundation Topic taught through a short Case.
+# Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+id: num-percent-bps
+title: Percent, percentage points and basis points
+# Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+cases:
+  - id: fed-hike-1994
+    title: The Federal Reserve meets in February 1994
+    data: [fed-funds-target]
+    asOf: 1994-02-03
+    story: >
+      On 3 February 1994 the overnight federal funds rate, the interest rate the US Federal
+      Reserve steers, stands at 3%. Short-term rates have been low for some time, many investors
+      have borrowed cheaply to hold long-term bonds, and the Fed's policy committee is about to
+      announce its next decision. If it acts, the move will be reported in three different ways:
+      a bond trader would say it in basis points, a newspaper in fractions of a point, and a
+      headline writer might use percent of the old rate. As of this date nobody knows whether the
+      Fed will move, by how much, or how the market for long-term bonds will react.
+    reveal: >
+      On 4 February 1994 the Fed tightened. It announced no numeric target; its statement spoke
+      only of "a slight increase in the degree of pressure on reserve positions". The federal
+      funds rate went from about 3% to 3.25%, which markets read as 25 basis points. The long end moved far more over the following weeks, as leveraged
+      bondholders sold to limit their losses: the US Treasury's 10-year par yield went from 5.81%
+      on 3 February to 5.94% on 4 February, 6.15% by 28 February and 7.49% by 9 May, a rise of
+      about 168 basis points, while the Fed's total increase by early May was 75 basis points.
+      The same 25 was a quarter of a percentage point of the rate and 8.3% of its old level, and
+      the long-rate rise that followed was several times larger than the step that set it off.
+
+concept: >
+  A percentage point is the plain difference between two percentages: going from 4% to 4.5%
+  is a rise of 0.5 percentage points. A basis point is one hundredth of a percentage point, so
+  0.5 percentage points is 50 basis points (bp), and 1 percentage point is 100 bp. A percent
+  change is relative: it compares the change with the starting level, so 4% to 4.5% is also a
+  rise of 0.5 / 4 = 12.5 percent of the old rate. Rates move in points or basis points; prices
+  and amounts move in percent. Always say which one you mean.
+
+principle: >
+  A change in a rate has two honest sizes, absolute (percentage points or basis points) and
+  relative (percent of the old rate), and they differ by a lot. Name the base every time, and
+  state rate changes in basis points to avoid mixing them up.
+
+questions:
+  - id: pb-q-bp-definition
+    prompt: >
+      How many basis points are there in 0.6 of a percentage point?
+    choices:
+      - { id: a, text: "6" }
+      - { id: b, text: "60" }
+      - { id: c, text: "600" }
+      - { id: d, text: "0.6" }
+    answer: b
+    explanation: >
+      A basis point is one hundredth of a percentage point, so 0.6 x 100 = 60 basis points.
+    source: >
+      Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
+
+  - id: pb-q-wrong-description
+    prompt: >
+      A central bank moves its rate from 4.00% to 4.50%. Which description of this move is wrong?
+    choices:
+      - { id: a, text: "The rate is up 50 basis points" }
+      - { id: b, text: "The rate is up half of a percentage point" }
+      - { id: c, text: "The rate is up 50 percent" }
+      - { id: d, text: "The rate is up 12.5 percent of its old level" }
+    answer: c
+    explanation: >
+      The change is 0.5 percentage points, which is 50 basis points. Relative to the old rate it is 0.5 / 4.00 = 12.5 percent. "Up 50 percent" would mean a new rate of 6.00%.
+    source: >
+      Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm ; the percent figures are the arithmetic 0.5 / 4.00.
+
+  - id: pb-q-bond-140
+    prompt: >
+      A bond yield rises by 120 basis points. How many percentage points is that?
+    choices:
+      - { id: a, text: "12 percentage points" }
+      - { id: b, text: "1.2 percentage points" }
+      - { id: c, text: "0.12 percentage points" }
+      - { id: d, text: "120 percentage points" }
+    answer: b
+    explanation: >
+      Divide basis points by 100: 120 / 100 = 1.2 percentage points.
+    source: >
+      Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
+
+  - id: pb-q-unemployment
+    prompt: >
+      The unemployment rate rises from 4% to 6%. Which statement is correct?
+    choices:
+      - { id: a, text: "Up 2 percentage points, a relative increase of 50%" }
+      - { id: b, text: "Up 50 percentage points, a relative increase of 2%" }
+      - { id: c, text: "Up 2 percentage points, a relative increase of 200%" }
+      - { id: d, text: "Up 4 percentage points, a relative increase of 50%" }
+    answer: a
+    explanation: >
+      The difference is 6 - 4 = 2 percentage points. Relative to the starting 4%, that is 2 / 4 = 50%.
+    source: >
+      Arithmetic from the Federal Reserve Board's definition of a percentage-point scale for rates (Regulatory Reform glossary): https://federalreserve.gov/regreform/reform-glossary.htm
+
+  - id: pb-q-mortgage-rate
+    prompt: >
+      A mortgage rate falls from 7.50% to 7.20%. By how many basis points did it fall?
+    choices:
+      - { id: a, text: "3" }
+      - { id: b, text: "30" }
+      - { id: c, text: "300" }
+      - { id: d, text: "0.3" }
+    answer: b
+    explanation: >
+      7.50 - 7.20 = 0.30 percentage points, and 0.30 x 100 = 30 basis points.
+    source: >
+      Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
+
+  - id: pb-q-newspaper
+    prompt: >
+      An interest rate rises from 2% to 3%. A newspaper writes "rates up 50%". Is that correct?
+    choices:
+      - { id: a, text: "Yes: it is a relative rise of 50%, which is also 1 percentage point or 100 basis points" }
+      - { id: b, text: "No: it should say rates are up 1%" }
+      - { id: c, text: "No: it should say rates are up 100%" }
+      - { id: d, text: "No: rates cannot be described in percent" }
+    answer: a
+    explanation: >
+      The rise is 1 percentage point, which is 100 basis points. Compared with the old 2% it is 1 / 2 = 50%. Both descriptions are true, which is why a careful writer says which one is meant.
+    source: >
+      Federal Reserve Board, Regulatory Reform glossary, Basis point: https://federalreserve.gov/regreform/reform-glossary.htm ; the 50% is the arithmetic 1 / 2.
+
+checks:
+  - id: pb-quiz-language
+    kind: quiz
+    questions:
+      - pb-q-bp-definition
+      - pb-q-wrong-description
+      - pb-q-bond-140
+      - pb-q-unemployment
+      - pb-q-mortgage-rate
+      - pb-q-newspaper
+    perAttempt: 3
+    passRule:
+      correct: 2
+  - id: pb-fed-language
+    kind: conversation
+    prompt: >
+      Three people describe the same central bank move from 4.00% to 4.50%: a trader says "up
+      50", a reporter says "half a point", and a headline says "rates up 12.5 percent". Explain why all
+      three can be right, which phrase is most likely to mislead a reader, and how you would
+      state the move so nobody can misread it.
+    passCriteria: >
+      The Learner explains that "50" means basis points (0.5 percentage points), that "half a
+      point" means 0.5 percentage points, and that "12.5 percent" is the relative change
+      0.5 / 4.00 = 12.5% of the old rate. They identify the relative "percent" phrase (or the
+      bare "50") as the one most likely to be misread, because a reader may take it as 12.5 or 50
+      percentage points, and they propose stating the move in basis points or percentage points
+      with the starting and ending levels.
