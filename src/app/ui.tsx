@@ -124,11 +124,11 @@ const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
 ];
 
 const headerLink = `whitespace-nowrap text-sm leading-5 transition-colors duration-200 ${focusRing}`;
+const mutedLink = `${headerLink} text-[var(--muted)] hover:text-[var(--ink)]`;
 
 /**
- * Sign out: a plain HTML form posting to /api/logout, never a link (a GET could be prefetched) and never
- * next/form (it turns a string action into a GET navigation). Works without JavaScript; the 303 back to Home
- * reloads the whole page. className styles the button; children replace the words "Sign out".
+ * Sign out: a plain form posting to /api/logout (its 303 reloads the page), never a link (a GET could be
+ * prefetched) or next/form (it turns the action into a GET). className styles the button; children replace "Sign out".
  */
 export function SignOutButton({ className = "", children = "Sign out" }: { className?: string; children?: ReactNode }) {
   return (
@@ -141,13 +141,12 @@ export function SignOutButton({ className = "", children = "Sign out" }: { class
 }
 
 /**
- * App header (spec #77, The app header): h1 "Finance Agent" linking to Home at "/", then Study Workspace ·
- * Course Map · Progress · Past Sessions · Dark mode · Sign out. current = the page showing, marked with
- * aria-current; theme from readTheme() in theme-cookie.ts. Gaps tighten below 1024px so it stays on one
- * line from 768px, with room for Notes.
+ * App header (spec #77): h1 "Finance Agent" linking to Home, the page links, Dark mode, Sign out. current = the page
+ * showing (aria-current); theme from readTheme(). Gaps tighten below 1024px to keep one line from 768px.
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
-  const quiet = `${headerLink} text-[var(--muted)] hover:text-[var(--ink)]`;
+  // The two buttons share the links' look, with the padding that gives them the same height.
+  const mutedButton = `py-2 ${mutedLink}`;
   return (
     <header className={`flex items-center justify-between gap-3 lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
@@ -160,13 +159,13 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
               {label}
             </Link>
           ) : (
-            <Link key={href} href={href} className={quiet}>
+            <Link key={href} href={href} className={mutedLink}>
               {label}
             </Link>
           ),
         )}
-        <ThemeToggle initial={theme} />
-        <SignOutButton className={`py-2 ${quiet}`} />
+        <ThemeToggle initial={theme} className={mutedButton} />
+        <SignOutButton className={mutedButton} />
       </nav>
     </header>
   );

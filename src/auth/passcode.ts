@@ -1,6 +1,14 @@
 /** The cookie that proves the passcode was entered. */
 export const ACCESS_COOKIE = "fa_access";
 
+/** The flags sign-in and sign-out both set it with; sign-out must repeat them, with no Domain, or the real cookie would survive. */
+export const ACCESS_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+} as const;
+
 const encoder = new TextEncoder();
 
 function equalBytes(a: Uint8Array, b: Uint8Array) {

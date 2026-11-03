@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ACCESS_COOKIE } from "@/auth/passcode";
+import { ACCESS_COOKIE, ACCESS_COOKIE_OPTIONS } from "@/auth/passcode";
 
 /**
  * True only for a request this site's own pages sent. Sec-Fetch-Site decides when present; otherwise the
@@ -21,14 +21,7 @@ export async function POST(request: Request) {
     return new NextResponse("Sign out must come from this site.", { status: 403, headers: { "content-type": "text/plain" } });
   }
   const response = NextResponse.redirect(new URL("/", request.url), 303);
-  // Same name, path and flags as the sign-in route sets, with no Domain, or the real cookie would survive.
-  response.cookies.set(ACCESS_COOKIE, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(0),
-  });
+  response.cookies.set(ACCESS_COOKIE, "", { ...ACCESS_COOKIE_OPTIONS, expires: new Date(0) });
   return response;
 }
 

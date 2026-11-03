@@ -16,13 +16,13 @@ vi.mock("@/course/map", async (orig) => {
   return { ...real, loadCourseMap: loadMap };
 });
 vi.mock("./stats", () => ({ landingStats: async () => ({ topics: "1 of 1", cases: 1, librarySources: 1 }) }));
-const { LandingPage, LandingView, homeButton } = await import("./landing");
+const { LandingPage, LandingView, homeButton, loadHomeButton } = await import("./landing");
 type HomeButton = import("./landing").HomeButton;
 
 const html = renderToStaticMarkup(<LandingView stats={{ topics: "90 of 95", cases: 312, librarySources: 47 }} />);
 const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
-describe("Landing page", () => {
+describe("Home", () => {
   it("shows the two-line headline", () => {
     expect(html).toMatch(/<h1[^>]*>Learn finance from<br\/><span[^>]*>what already happened\.<\/span><\/h1>/);
   });
@@ -73,7 +73,7 @@ describe("Landing page", () => {
   });
 });
 
-describe("Landing page, signed in", () => {
+describe("Home, signed in", () => {
   const stats = { topics: "90 of 95", cases: 312, librarySources: 47 };
   const inHtml = renderToStaticMarkup(<LandingView stats={stats} button={{ kind: "open" }} />);
   const inText = inHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
@@ -103,7 +103,7 @@ describe("Landing page, signed in", () => {
   });
 });
 
-describe("Landing page, the signed-in button", () => {
+describe("Home, the signed-in button", () => {
   const stats = { topics: "90 of 95", cases: 312, librarySources: 47 };
   const hero = (button: HomeButton) => {
     const h = renderToStaticMarkup(<LandingView stats={stats} button={button} />);
@@ -125,7 +125,7 @@ describe("Landing page, the signed-in button", () => {
   });
 });
 
-describe("Landing page, the button rule", () => {
+describe("Home, the button rule", () => {
   const map = presentValueOnly();
   const title = map.topic("present-value")!.title;
   const place = (status: "not_started" | "in_progress" | "passed", dueChecks: unknown[] = []) =>
@@ -145,7 +145,7 @@ describe("Home's page, signed in", () => {
     db = await testDb();
     loadMap.mockReturnValue(map);
   });
-  const render = async () => renderToStaticMarkup(await LandingPage({ signedIn: true }));
+  const render = async () => renderToStaticMarkup(await LandingPage({ button: await loadHomeButton() }));
   const rows = async () => (await db.select().from(topicProgress)).length + (await db.select().from(learnerState)).length;
 
   it("shows Start: first Topic on a fresh database and writes nothing", async () => {
@@ -171,7 +171,7 @@ describe("Home's page, signed in", () => {
     getDbMock.mockImplementation(() => {
       throw new Error("must not be called");
     });
-    const out = renderToStaticMarkup(await LandingPage({ signedIn: false }));
+    const out = renderToStaticMarkup(await LandingPage({}));
     expect(out).toContain("Sign in");
   });
 });

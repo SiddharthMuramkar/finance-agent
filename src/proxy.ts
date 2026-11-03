@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { DEFAULT_DESTINATION, safeDestination } from "@/auth/destination";
+import { destinationOrDefault, safeDestination } from "@/auth/destination";
 import { ACCESS_COOKIE, hasAccess } from "@/auth/passcode";
 
 /** The only files a signed-out visitor may fetch besides Home: its screenshots. */
@@ -18,10 +18,9 @@ function rememberedPage(url: URL): string | null {
 }
 
 /**
- * Every page and API route needs the passcode cookie.
- * Signed out, only a plain GET or HEAD of "/" (Home), its images and exactly the
- * login page get through, and a POST to exactly the sign-out route. Other pages redirect to the login, remembering a GET or HEAD's page as `next`.
- * Signed in, a GET or HEAD of the login page skips the form and goes to the safe `next`, or /study.
+ * Every page and API route needs the passcode cookie. Signed out, only a GET or HEAD of "/" (Home), its images and
+ * the login page, and a POST to the sign-out route, get through; other pages redirect to the login, remembering a
+ * GET or HEAD's page as `next`. Signed in, the login page skips its form and goes to the safe `next` or /study.
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -29,7 +28,7 @@ export async function proxy(request: NextRequest) {
   const ok = await hasAccess(request.cookies.get(ACCESS_COOKIE)?.value, process.env.SESSION_SECRET ?? "");
   if (ok) {
     if (read && pathname === "/login") {
-      const next = safeDestination(request.nextUrl.searchParams.get("next")) ?? DEFAULT_DESTINATION;
+      const next = destinationOrDefault(request.nextUrl.searchParams.get("next"));
       return NextResponse.redirect(new URL(next, request.url), 307);
     }
     return NextResponse.next();

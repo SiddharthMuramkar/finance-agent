@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { DEFAULT_DESTINATION, safeDestination } from "@/auth/destination";
+import { destinationOrDefault, safeDestination } from "@/auth/destination";
 import { callerAddress, claimLoginTry, loginFailed, loginSucceeded } from "@/auth/login-guard";
-import { ACCESS_COOKIE, accessToken, passcodeMatches } from "@/auth/passcode";
+import { ACCESS_COOKIE, ACCESS_COOKIE_OPTIONS, accessToken, passcodeMatches } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 
 /** Back to the login page with its message; a safe `next` is carried on, and with none the query stays exactly `?wrong=1` or `?locked=1`. */
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const db = getDb();
   const ip = callerAddress(request);
   const form = await request.formData();
-  const next = safeDestination(form.get("next")?.toString());
+  const next = safeDestination(form.get("next"));
   // The try is claimed before the comparison, so tries sent all at once can't all slip under the limit.
   // Too many wrong guesses lately: refused without even comparing, so a lucky guess can't get through.
   const tryId = await claimLoginTry(db, ip);
@@ -28,12 +28,9 @@ export async function POST(request: Request) {
   }
   await loginSucceeded(db, tryId);
   // Only the resolved, safe path is used, never the submitted text, so the redirect can't leave the site.
-  const response = NextResponse.redirect(new URL(next ?? DEFAULT_DESTINATION, request.url), 303);
+  const response = NextResponse.redirect(new URL(destinationOrDefault(next), request.url), 303);
   response.cookies.set(ACCESS_COOKIE, await accessToken(process.env.SESSION_SECRET ?? ""), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
+    ...ACCESS_COOKIE_OPTIONS,
     maxAge: 60 * 60 * 24 * 90,
   });
   return response;
