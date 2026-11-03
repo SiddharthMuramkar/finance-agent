@@ -2,7 +2,8 @@ import { z } from "zod/v4";
 import type { CaseData } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
 import { annuitySchedule } from "@/finance/present-value";
-import { formatUsd } from "./case-data-view";
+import { fetchCaseData, splitReference } from "./case-data-client";
+import { formatUsd, formatValue } from "./case-data-view";
 import { EMPTY_RESULTS, MAX_RANGE_POINTS, WIDGET_TOOL_ARGS, type RangeRow, type WidgetToolName, type WidgetToolResults } from "./tool-specs";
 
 // The Widget tools as the browser runs them. A widget's Query("tool", {...}, {rows: []}) calls one
@@ -86,8 +87,30 @@ function axisLabel(name: string, x: number): string {
   return x.toLocaleString("en-US");
 }
 
-/** The Widget tools for one widget: create them once for each widget drawn. */
+/**
+ * The Widget tools for one widget: create them once for each widget drawn. Each Case's data is
+ * fetched once for the widget, however many of its Queries read it, and a widget drawn later (after
+ * the reveal, say) gets its own tools, so it fetches afresh.
+ */
 export function createWidgetTools(options: WidgetToolOptions = {}): WidgetToolProvider {
+  const fetchCase = options.fetchCaseData ?? fetchCaseData;
+  const cases = new Map<string, Promise<CaseData | null>>();
+
+  /** One Case's data, shared by every Query that reads it; a failed load is forgotten, so a later Query tries again. */
+  function loadCase(caseId: string): Promise<CaseData | null> {
+    const loaded = cases.get(caseId);
+    if (loaded) return loaded;
+    const loading = new Promise<CaseData | null>((resolve) => resolve(fetchCase(caseId))).then(
+      (data) => data ?? null,
+      () => null,
+    );
+    cases.set(caseId, loading);
+    void loading.then((data) => {
+      if (!data && cases.get(caseId) === loading) cases.delete(caseId);
+    });
+    return loading;
+  }
+
   /** Tells onError, then answers the tool's empty result with the message. */
   function fail<K extends WidgetToolName>(tool: K, message: string): WidgetToolResults[K] {
     try {
@@ -103,13 +126,32 @@ export function createWidgetTools(options: WidgetToolOptions = {}): WidgetToolPr
     return fail(tool, `${tool} could not run: ${error instanceof Error ? error.message : String(error)}`);
   }
 
-  const notBuilt =
-    <K extends WidgetToolName>(tool: K) =>
-    async (): Promise<WidgetToolResults[K]> =>
-      fail(tool, "Not built yet");
-
   return {
-    case_data: notBuilt("case_data"),
+    async case_data(args) {
+      try {
+        const parsed = WIDGET_TOOL_ARGS.case_data.safeParse(args);
+        if (!parsed.success) return fail("case_data", argumentProblem("case_data", parsed.error));
+        const reference = parsed.data.dataset;
+        const missing = `No sourced data for ${reference}: it may not exist, or it is withheld until the reveal.`;
+        const parts = splitReference(reference);
+        if (!parts) return fail("case_data", missing);
+        // The server leaves out a dataset with nothing dated by the Case's as-of date, so a withheld one is missing too.
+        const data = await loadCase(parts.caseId);
+        const dataset = data?.datasets.find((d) => d.id === parts.datasetId);
+        if (!data || !dataset) return fail("case_data", missing);
+        return {
+          rows: dataset.points.map((p) => ({ date: p.date, value: p.value, text: formatValue(p.value, dataset.unit) })),
+          label: dataset.label,
+          unit: dataset.unit,
+          source: dataset.source,
+          sourceUrl: dataset.sourceUrl,
+          asOf: data.asOf,
+          revealed: data.revealed,
+        };
+      } catch (error) {
+        return crashed("case_data", error);
+      }
+    },
 
     async calculate(args) {
       try {
