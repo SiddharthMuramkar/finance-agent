@@ -52,6 +52,7 @@ const { default: SessionsPage } = await import("@/app/sessions/page");
 const { default: ProgressPage } = await import("@/app/progress/page");
 const { default: ProfilePage } = await import("@/app/profile/page");
 const { default: StudyPage } = await import("@/app/study/page");
+const { default: WelcomePage } = await import("@/app/welcome/page");
 const profileRoute = await import("@/app/api/profile/route");
 const quizRoute = await import("@/app/api/quiz/route");
 const reviewRoute = await import("@/app/api/review/route");
@@ -84,6 +85,7 @@ const json = async (response: Response | Promise<Response>) => (await response).
 
 /** The redirect to the login a page or route throws when the request is signed out. */
 const toLogin = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/login;/) };
+const toWelcome = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/welcome;/) };
 
 async function drain(events: AsyncIterable<unknown>) {
   for await (const _ of events) void _;
@@ -210,9 +212,11 @@ describe("The owner and a second Learner", () => {
     expect(await html(SessionsPage())).toContain("No Sessions yet.");
     expect(await html(ProgressPage())).not.toMatch(/In progress/i);
     expect(await html(SettingsPage())).not.toContain("Mumbai");
-    const study = await html(StudyPage({ searchParams: Promise.resolve({}) }));
-    expect(study).not.toContain("The owner&#x27;s reply");
-    expect(study).not.toContain("The owner&#x27;s question");
+    // With no Sessions of their own, the second Learner is sent to the Welcome, which holds nothing of the owner's.
+    await expect(StudyPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(toWelcome);
+    const welcome = await html(WelcomePage({ searchParams: Promise.resolve({}) }));
+    expect(welcome).not.toContain("The owner&#x27;s reply");
+    expect(welcome).not.toContain("The owner&#x27;s question");
     expect(await json(profileRoute.GET())).toMatchObject({ work: null });
     expect(await json(quizRoute.GET())).toEqual({ quiz: null });
     expect(await json(reviewRoute.GET())).toMatchObject({ question: null, dueCount: 0, done: 0 });
@@ -322,9 +326,8 @@ describe("Start over", () => {
     const oldCookie = as.cookie;
 
     const response = await startOver();
-    // The Welcome route: the Study Workspace until the Welcome exists.
     expect(response.status).toBe(303);
-    expect(new URL(response.headers.get("location")!).pathname).toBe("/study");
+    expect(new URL(response.headers.get("location")!).pathname).toBe("/welcome");
     const set = /fa_access=([^;]*)/.exec(response.headers.get("set-cookie") ?? "")?.[1];
     expect(set, "the new cookie is set in the same response").toBeTruthy();
     as.cookie = decodeURIComponent(set!);
@@ -337,7 +340,9 @@ describe("Start over", () => {
     expect(await html(NotesPage({ searchParams: Promise.resolve({ all: "1" }) }))).not.toContain("note line");
     expect(await html(ProgressPage())).not.toMatch(/In progress/i);
     expect(await json(profileRoute.GET())).toMatchObject({ work: null });
-    expect(await html(StudyPage({ searchParams: Promise.resolve({}) }))).not.toContain("The test Learner&#x27;s reply.");
+    // With no Sessions, the fresh Learner lands on the Welcome, from the Study Workspace too.
+    await expect(StudyPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(toWelcome);
+    expect(await html(WelcomePage({ searchParams: Promise.resolve({}) }))).toContain("How a Topic works");
 
     // The old Learner is archived, and every row it owned reads back exactly as before.
     const [archived] = await as.db.select().from(learners).where(eq(learners.id, old));

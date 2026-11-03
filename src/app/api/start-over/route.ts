@@ -7,8 +7,8 @@ import { getDb } from "@/db/client";
 
 export const runtime = "nodejs";
 
-/** Where a fresh Learner lands: the Welcome route. Until the Welcome is built it is the Study Workspace. */
-const WELCOME_PATH = "/study";
+/** Where a fresh Learner lands: the Welcome. */
+const WELCOME_PATH = "/welcome";
 
 /**
  * Settings > Start over, after its confirmation: archives the signed-in Learner, makes a fresh empty
