@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { parseCourseMap, type CourseMap } from "./map";
-import { courseOverview, finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, reviewsDue, type Progress, type TopicProgress } from "./navigator";
+import { loadCourseMap, parseCourseMap, type CourseMap } from "./map";
+import {
+  courseOverview,
+  finishStep,
+  jumpTo,
+  navigate,
+  recordCheckResult,
+  returnToDefaultPath,
+  reviewsDue,
+  stepSequence,
+  type Progress,
+  type TopicProgress,
+} from "./navigator";
 
-function topicFile(id: string, path: number, checks: { id: string; required?: boolean }[], prerequisites: string[] = []) {
-  const text = [
+function topicFile(
+  id: string,
+  path: number,
+  checks: { id: string; required?: boolean }[],
+  prerequisites: string[] = [],
+  explore?: { before: string; requiredWhenPassed?: boolean },
+) {
+  const lines = [
     `id: ${id}`,
     `title: Topic ${id}`,
     "stage: foundation",
@@ -17,8 +34,20 @@ function topicFile(id: string, path: number, checks: { id: string; required?: bo
     ...checks.map(
       (c) => `  - { id: ${c.id}, kind: conversation, prompt: Q, passCriteria: A, required: ${c.required ?? false} }`,
     ),
-  ].join("\n");
-  return { name: `${id}.yaml`, text };
+  ];
+  if (explore) {
+    lines.push(
+      "insight:",
+      "  question: What do you notice?",
+      "  written: Later payments shrink.",
+      "  foundWhen: The Learner says later payments shrink.",
+      "  hints: [Look at the far bars., Compare now with later.]",
+      "explore:",
+      `  before: ${explore.before}`,
+      `  requiredWhenPassed: ${explore.requiredWhenPassed ?? false}`,
+    );
+  }
+  return { name: `${id}.yaml`, text: lines.join("\n") };
 }
 
 function courseMap(...files: ReturnType<typeof topicFile>[]): CourseMap {
@@ -335,6 +364,25 @@ describe("Course Navigator", () => {
       const edited = courseMap(topicFile("pv", 20, [{ id: "pv-1" }, { id: "pv-2" }], ["compounding"]), topicFile("compounding", 10, [{ id: "co-1" }]));
       expect(navigate(edited, halfway)).toMatchObject({ topic: { id: "pv" }, unmetPrerequisites: ["compounding"] });
     });
+  });
+});
+
+describe("Teaching Steps: the step sequence", () => {
+  const labels = (map: CourseMap, progress: Progress, topicId: string) => stepSequence(map, progress, topicId)!.steps.map((s) => s.label);
+
+  it("numbers Percent's nine steps, with Step 2 of 9 · Concept second", () => {
+    const course = loadCourseMap();
+    expect(labels(course, empty, "num-percent-bps")).toEqual([
+      "Step 1 of 9 · Story",
+      "Step 2 of 9 · Concept",
+      "Step 3 of 9 · Your turn",
+      "Step 4 of 9 · Check",
+      "Step 5 of 9 · Concept",
+      "Step 6 of 9 · Your turn",
+      "Step 7 of 9 · Check",
+      "Step 8 of 9 · Reveal",
+      "Step 9 of 9 · Principle",
+    ]);
   });
 });
 
