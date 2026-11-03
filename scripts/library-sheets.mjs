@@ -10,7 +10,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join, resolve } from "node:path";
 import { bloggerFeed } from "../src/library/blog.ts";
 import { prepareDocuments } from "../src/library/prepare.ts";
-import { fetchSpreadsheet, readWorkbook, spreadsheetLinks, workbookDocument } from "../src/library/spreadsheets.ts";
+import { dedupeByDocument, fetchSpreadsheet, readWorkbook, spreadsheetLinks, workbookDocument } from "../src/library/spreadsheets.ts";
 
 const args = process.argv.slice(2);
 const dry = args.indexOf("--dry-run");
@@ -42,6 +42,8 @@ for (let i = 0; i < pairs.length; i++) {
   if (first.has(pairs[i].url)) pairs.splice(i--, 1);
   else first.add(pairs[i].url);
 }
+// One document per (post, file): the same file linked twice in a post, by two URLs, is read once.
+pairs.splice(0, pairs.length, ...dedupeByDocument(pairs));
 console.log(`${pairs.length} spreadsheets linked from ${new Set(pairs.map((p) => p.post.ref)).size} posts (datasets and implied-premium files left out).`);
 
 let chosen = pairs;
