@@ -1,0 +1,168 @@
+// @vitest-environment happy-dom
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { WidgetStates } from "@/widgets/widget-state";
+import { Conversation, type Line } from "./conversation";
+
+// Widget state (spec #119, "Widgets › Widget state"): in the Study Workspace a Widget draws with the slider values
+// and ticked Guided Tasks saved for its Widget key in this Session, keeps them across a switch between Widget tabs,
+// and saves what the Learner changes so a reload draws it too. Drawn in a browser-like page (happy-dom), as only
+// the browser sets a Widget's starting values.
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
+
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+const fence = (code: string) => ["```openui-lang", code, "```"].join("\n");
+
+const rates = (title: string) =>
+  [
+    `root = Widget("${title}", [rate, steps])`,
+    "$rate = 5",
+    'rate = Slider("rate", "Interest rate", 0, 10, 0.25, $rate, "percent")',
+    "steps = GuidedTasks([t1, t2])",
+    't1 = GuidedTask("Set the rate to 3%", $rate == 3)',
+    't2 = GuidedTask("Set the rate to 8%", $rate == 8)',
+  ].join("\n");
+
+const TWO_WIDGETS: Line[] = [
+  { role: "user", text: "Show me." },
+  { role: "assistant", text: fence(rates("First rates")) },
+  { role: "user", text: "And another." },
+  { role: "assistant", text: fence(rates("Second rates")) },
+];
+
+const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
+
+let root: Root;
+let host: HTMLElement;
+let posts: unknown[];
+
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  posts = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === "/api/widget-state") posts.push(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }),
+  );
+  host = document.createElement("div");
+  document.body.append(host);
+  root = createRoot(host);
+});
+
+afterEach(() => {
+  act(() => root.unmount());
+  host.remove();
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
+
+async function open(initial: Line[], widgetStates?: WidgetStates, sessionId: number | null = 7) {
+  await act(async () => {
+    root.render(
+      <Conversation
+        initial={initial}
+        summary="You are learning interest rates."
+        quiz={null}
+        pending={null}
+        review={noReview}
+        place={{ stage: "foundation", title: "Percent" }}
+        shown={sessionId === null ? { topicId: "percent" } : { sessionId }}
+        widgetStates={widgetStates}
+      />,
+    );
+  });
+}
+
+const card = () => host.querySelector('[data-testid="widget-card"]')!;
+const slider = () => card().querySelector<HTMLInputElement>('input[type="range"][aria-label="Interest rate"]')!;
+const ticks = () => [...card().querySelectorAll("[data-state]")].map((li) => li.getAttribute("data-state"));
+const title = () => card().querySelector("h3")?.textContent;
+const tab = (name: string) => [...host.querySelectorAll<HTMLButtonElement>('[aria-label="Widgets in this Session"] button')].find((b) => b.textContent === name)!;
+
+async function click(button: HTMLElement) {
+  await act(async () => button.click());
+}
+
+/** Types an exact value into the slider's number box and presses Enter, as a Learner does. */
+async function setRate(value: number) {
+  const box = card().querySelector<HTMLInputElement>('input[type="number"][aria-label="Interest rate, exact value"]')!;
+  await act(async () => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    setter.call(box, String(value));
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await act(async () => box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+}
+
+async function afterSaving() {
+  await act(async () => vi.advanceTimersByTime(1000));
+}
+
+describe("a Widget in the Study Workspace with saved Widget state", () => {
+  it("draws its sliders at the saved values and its saved Guided Tasks ticked", async () => {
+    await open([{ role: "assistant", text: fence(rates("Rates")) }], { Rates: { values: { $rate: 2.5 }, ticked: ["Set the rate to 3%"] } });
+    expect(slider().value).toBe("2.5");
+    expect(ticks()).toEqual(["done", "current"]);
+  });
+
+  it("draws with its starting values and no ticks when nothing is saved under its key", async () => {
+    await open([{ role: "assistant", text: fence(rates("Rates")) }], { Other: { values: { $rate: 2.5 }, ticked: ["Set the rate to 3%"] } });
+    expect(slider().value).toBe("5");
+    expect(ticks()).toEqual(["current", "todo"]);
+  });
+
+  it("keeps two Widgets of a Session apart by their titles", async () => {
+    await open(TWO_WIDGETS, {
+      "First rates": { values: { $rate: 1 }, ticked: [] },
+      "Second rates": { values: { $rate: 8 }, ticked: ["Set the rate to 3%", "Set the rate to 8%"] },
+    });
+    expect(title()).toBe("Second rates");
+    expect(slider().value).toBe("8");
+    expect(ticks()).toEqual(["done", "done"]);
+    await click(tab("First rates"));
+    expect(slider().value).toBe("1");
+    expect(ticks()).toEqual(["current", "todo"]);
+  });
+});
+
+describe("the Learner's work on a Widget", () => {
+  it("is kept when they switch to another Widget's tab and back", async () => {
+    await open(TWO_WIDGETS);
+    await setRate(3);
+    expect(ticks()).toEqual(["done", "current"]);
+    await click(tab("First rates"));
+    expect(title()).toBe("First rates");
+    expect(slider().value).toBe("5");
+    await click(tab("Second rates"));
+    expect(slider().value).toBe("3");
+    expect(ticks()).toEqual(["done", "current"]);
+  });
+
+  it("is saved with the Session under the Widget's title, for a reload to draw", async () => {
+    await open(TWO_WIDGETS);
+    await setRate(3);
+    await afterSaving();
+    expect(posts.at(-1)).toEqual({ sessionId: 7, widgetKey: "Second rates", values: { $rate: 3 }, ticked: ["Set the rate to 3%"] });
+    // A reload draws what was saved.
+    act(() => root.unmount());
+    root = createRoot(host);
+    await open(TWO_WIDGETS, { "Second rates": posts.at(-1) as WidgetStates[string] });
+    expect(slider().value).toBe("3");
+    expect(ticks()).toEqual(["done", "current"]);
+  });
+
+  it("waits for the Session before the first turn has made it, then saves to it", async () => {
+    await open(TWO_WIDGETS, undefined, null);
+    await setRate(3);
+    await afterSaving();
+    expect(posts).toEqual([]);
+    await open(TWO_WIDGETS, undefined, 9);
+    await afterSaving();
+    expect(posts.at(-1)).toEqual({ sessionId: 9, widgetKey: "Second rates", values: { $rate: 3 }, ticked: ["Set the rate to 3%"] });
+  });
+});
