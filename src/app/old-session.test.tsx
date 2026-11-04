@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { foldText, HIDDEN_SOURCE_TITLE } from "@/tutor/citations";
 import { summariseRows } from "@/tutor/session-summary";
+import { WIDGET_OPENED } from "@/course/written-ahead";
 import { OldSession } from "./old-session";
 
 const reply = [
@@ -87,6 +88,36 @@ describe("an old Session page", () => {
     expect(html).toContain(HIDDEN_SOURCE_TITLE);
     expect(html).toMatch(/<summary[^>]*>1 source<\/summary>/);
     expect(html).not.toContain(" — ");
+  });
+});
+
+describe("a read-only Topic Session's Widgets, updated in place", () => {
+  const rates = (start: number) => ["```openui-lang", 'root = Widget("Rates", [rate])', `$rate = ${start}`, 'rate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")', "```"].join("\n");
+  const ANNUITY = 'root = Widget("What the annuity is worth today", [rate])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")';
+  const tabs = (html: string) => {
+    const at = html.indexOf('aria-label="Widgets in this Session"');
+    return at === -1 ? 0 : (html.slice(at, html.indexOf("</div>", at)).match(/<button/g) ?? []).length;
+  };
+
+  it("draws a Widget the Tutor drew again under the same title in one tab", () => {
+    const lines = [
+      { role: "assistant" as const, text: rates(5) },
+      { role: "assistant" as const, text: rates(3) },
+    ];
+    expect(tabs(renderToStaticMarkup(<OldSession lines={lines} inPlace />))).toBe(0);
+  });
+
+  it("draws the explore Widget the Tutor reopened in its one Explore tab", () => {
+    const html = renderToStaticMarkup(
+      <OldSession
+        lines={[{ role: "item", kind: WIDGET_OPENED, data: { id: "annuity-worth-today", title: "What the annuity is worth today" } }, { role: "assistant", text: "Try it." }]}
+        explore={{ id: "annuity-worth-today", code: ANNUITY }}
+        writtenAhead={[{ id: "annuity-worth-today", title: "What the annuity is worth today", code: ANNUITY }]}
+        inPlace
+      />,
+    );
+    expect(tabs(html)).toBe(1);
+    expect(html).toContain("Open: What the annuity is worth today →");
   });
 });
 

@@ -786,7 +786,8 @@ tests, it is not part of `npm run check`, because it spends money and needs the 
   the panel (the Session's earlier replies, one per title) and says to change one by writing it again
   in full under exactly the same title. In the browser, a Widget with the title of an earlier one takes
   that one's tab instead of adding a tab, shows the newest drawing, and the older reply's
-  "Open: <title> →" chip opens it too.
+  "Open: <title> →" chip opens it too. A Topic Session opened read-only (Past Sessions, a passed Course Map row) draws
+  its Widgets the same way (`OldSession` with `inPlace`); an Older session draws them as before, one tab each.
 - *Code-backed Widget rules.* Beyond "can it be drawn", the server holds the reply being written to
   three rules, and a break feeds the same one correction turn: a Widget with a slider has at least one
   Guided Task; a kit chart with axes (line, area, bar, horizontal bar, scatter) has both axis labels;

@@ -42,7 +42,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       <main className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-4 pt-4 lg:px-6 lg:pt-6">
         <AppHeader current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
         <PastSessionHeaderView header={header} />
-        <OldSession lines={lines} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} revealed={revealedCases(map, progress)} developerDetails={learner.showDeveloperDetails} />
+        <OldSession lines={lines} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind === "topic"} revealed={revealedCases(map, progress)} developerDetails={learner.showDeveloperDetails} />
       </main>
     </SignedInFrame>
   );
