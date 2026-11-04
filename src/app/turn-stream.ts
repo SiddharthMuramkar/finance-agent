@@ -90,6 +90,9 @@ export function useTurnStream({
   const [progress, setProgress] = useState<string | null>(null);
   const [stopping, setStopping] = useState(false);
   const runningRef = useRef(false);
+  // Which send is running, and the id of the turn the server says holds the lock: Stop is tied to them, so a late Stop never stops the next turn.
+  const runIdRef = useRef(0);
+  const turnIdRef = useRef<number | null>(null);
   // The passage attached to the next message: null while the Attach a passage box is closed.
   const [passage, setPassage] = useState<string | null>(null);
 
@@ -113,6 +116,8 @@ export function useTurnStream({
     setCutShort(false);
     setRunning(true);
     runningRef.current = true;
+    runIdRef.current += 1;
+    turnIdRef.current = null;
     setStopping(false);
     setProgress(null);
     setWaiting("writing");
@@ -247,6 +252,10 @@ export function useTurnStream({
             }
             // A ping only shows the stream is alive; a progress label replaces the indicator's words.
             if (event.type === "ping") continue;
+            if (event.type === "turn_started") {
+              turnIdRef.current = event.turnId;
+              continue;
+            }
             if (event.type === "progress") {
               setProgress(event.label);
               continue;
@@ -338,9 +347,12 @@ export function useTurnStream({
   async function requestStop() {
     if (!runningRef.current || stopping) return;
     setStopping(true);
-    for (let tries = 0; tries < MAX_STOP_TRIES && runningRef.current; tries++) {
+    // Every ask belongs to the send that was running when Stop was pressed: once another send starts, they end.
+    const run = runIdRef.current;
+    for (let tries = 0; tries < MAX_STOP_TRIES && runningRef.current && runIdRef.current === run; tries++) {
       try {
-        const res = await fetch("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stop: true }) });
+        const turn = turnIdRef.current;
+        const res = await fetch("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(turn === null ? { stop: true } : { stop: true, turn }) });
         const answer = (await res.json()) as { stopping?: boolean };
         if (answer.stopping) return;
       } catch {
@@ -348,8 +360,8 @@ export function useTurnStream({
       }
       await new Promise((r) => setTimeout(r, STOP_RETRY_MS));
     }
-    // Nothing was running to stop (or the turn ended meanwhile): the button comes back.
-    setStopping(false);
+    // Nothing was running to stop (or the turn ended meanwhile): the button comes back, unless another send has begun.
+    if (runIdRef.current === run) setStopping(false);
   }
 
   // A turn cut off while the page was closed resumes as soon as the page opens; an empty Session starts its opener.

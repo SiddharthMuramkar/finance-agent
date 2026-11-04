@@ -32,7 +32,7 @@ const kinds = [
   kind({ resume: z.literal(true) }),
   // Stop: the Learner's running turn ends at its next check (within about half a second) and keeps what it wrote.
   // The route answers it on its own, before any turn runs; it never starts a turn.
-  kind({ stop: z.literal(true) }),
+  kind({ stop: z.literal(true), turn: z.number().int().positive().optional() }),
 ] as const;
 
 /** Every kind, and the `continue` a tab opened before Finish this reply replaced Continue still sends: it means Finish. */

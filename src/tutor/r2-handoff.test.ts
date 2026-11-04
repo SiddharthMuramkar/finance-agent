@@ -9,6 +9,7 @@ import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { finishStepFromWidget } from "./next";
 import { loadThread, textOf } from "./transcript";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
+import { requestStop, resumeTurn, startTurn, STOP_REQUESTED, stopRequested, updateTurn } from "./turn-status";
 
 /** Fixes handed over by the UX run (ticket #248): the Learner's bubble, and a step finished twice from the study page. */
 
@@ -66,6 +67,43 @@ describe("a step finished from a Widget by two renders at once", () => {
     const dividers = (await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item" && e.kind === "step");
     // One divider from the Next into the concept step, one from the finished step.
     expect(dividers).toHaveLength(2);
+  });
+});
+
+describe("Stop is tied to its turn", () => {
+  it("stops only the turn it names, so a late or repeated Stop cannot stop the next one", async () => {
+    const db = await testDb();
+    let id = 0;
+    const never = new Promise<never>(() => {});
+    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Writing" }], holdAfterFirstText: never }]);
+    const run = (async () => {
+      for await (const e of runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID, onTurn: (t) => (id = t) }, "Hello")) void e;
+    })();
+    while (requests.length < 1) await new Promise((r) => setTimeout(r, 5));
+    expect(id).toBeGreaterThan(0);
+    // A Stop for an earlier turn finds nothing to stop here.
+    expect(await requestStop(db, OWNER_LEARNER_ID, id + 1)).toBe(false);
+    expect(await requestStop(db, OWNER_LEARNER_ID, id)).toBe(true);
+    await run;
+  });
+
+  it("a Stop that reached a turn at its deadline is still there when the cut-off turn resumes", async () => {
+    const db = await testDb();
+    const turn = (await startTurn(db, new Date(), "Hello", OWNER_LEARNER_ID))!;
+    expect(await requestStop(db, OWNER_LEARNER_ID, turn.id)).toBe(true);
+    await updateTurn(db, turn.id, { status: "cut_off" });
+    const claim = await resumeTurn(db, new Date(), OWNER_LEARNER_ID);
+    expect(claim.turn?.stopReason).toBe(STOP_REQUESTED);
+    expect(await stopRequested(db, turn.id)).toBe(true);
+  });
+
+  it("a failed turn that is retried does not carry an old Stop", async () => {
+    const db = await testDb();
+    const turn = (await startTurn(db, new Date(), "Hello", OWNER_LEARNER_ID))!;
+    await requestStop(db, OWNER_LEARNER_ID, turn.id);
+    await updateTurn(db, turn.id, { status: "failed" });
+    const claim = await resumeTurn(db, new Date(), OWNER_LEARNER_ID);
+    expect(claim.turn?.stopReason).toBeNull();
   });
 });
 

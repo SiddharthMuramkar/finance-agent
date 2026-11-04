@@ -163,7 +163,7 @@ export type TurnEvent =
   | { type: "widget_state"; widgetKey: string; values: Record<string, number> };
 
 /** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
-export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
+export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | { type: "turn_started"; turnId: number } | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
 
 /** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
 export const NO_QUICK_TRY_FOLLOW_UP = "There is no Quick try answer to go over.";
@@ -242,6 +242,8 @@ export type TurnDeps = {
    * the generator cannot yield while a tool runs or the model thinks. Left out, nothing is sent.
    */
   notify?: (event: ProgressEvent) => void;
+  /** Tells the route the id of the turn that holds the Learner's lock, once it does, so the browser can tie its Stop to that turn. */
+  onTurn?: (turnId: number) => void;
   /** compose_widget's model client (and a test's shorter limit); left out, the real Anthropic client, made on first use. */
   composer?: Composer;
 };
@@ -403,6 +405,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
     return;
   }
   let ended = false;
+  deps.onTurn?.(turn.id);
   const stop = watchForStop(db, turn.id);
   try {
     const done = yield* runLockedTurn(deps, input, turn, deadline, stop.signal);
