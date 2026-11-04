@@ -6,7 +6,7 @@ import { REFERENCE_CASE, REFERENCE_DATASET_IDS } from "../case-data/reference.ts
 import { FORMULA_IDS } from "../finance/formula-ids.ts";
 import { markerProblems } from "../finance/formula-markers.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
-import { widgetCodeTitle } from "./written-ahead.ts";
+import { guidedTaskTexts, widgetCodeTitle } from "./written-ahead.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
 // can run it directly with Node's type stripping.
@@ -152,6 +152,75 @@ const writtenAheadSchema = z.object({
 
 export type WrittenAheadSpec = z.infer<typeof writtenAheadSchema>;
 
+const variableName = z.string().regex(/^\$[A-Za-z_]\w*$/, "A $variable name, e.g. $guess");
+
+/**
+ * A condition on the saved state of one written-ahead Widget: a Guided Task ticked, a $variable that has a saved value
+ * (a Predict's guess locked), or one saved near a target (a Breakeven found). Read from Widget state (src/course/written-ahead.ts).
+ */
+const widgetConditionSchema = z.discriminatedUnion("kind", [
+  /** `task` 1 is the first Guided Task in the Widget's GuidedTasks list. */
+  z.object({ kind: z.literal("ticked"), widget: id, task: z.number().int().min(1) }),
+  z.object({ kind: z.literal("set"), widget: id, variable: variableName }),
+  z.object({ kind: z.literal("near"), widget: id, variable: variableName, value: z.number(), within: z.number().positive() }),
+]);
+
+/** The Teaching Steps a step setting may name (the same words as TEACHING_STEPS in navigator.ts; a test keeps them equal). */
+export const STEP_KEYS = ["story", "concept", "explore", "your_turn", "check", "reveal", "principle"] as const;
+
+/**
+ * What one Teaching Step does by itself. `opens`: the id of a written-ahead Widget that code puts in the Widget panel when
+ * the step begins. `doneWhen`: the step counts as done once the Learner's saved Widget state meets the condition, so the
+ * Learner can go on without the Tutor finishing it. Never on explore or Check: the Insight is settled only by the
+ * Learner's own words (ADR 0001), and a Check only by a saved result. `check` limits the setting to that Check's steps.
+ */
+const stepSettingSchema = z
+  .object({ step: z.enum(STEP_KEYS), check: id.optional(), opens: id.optional(), doneWhen: widgetConditionSchema.optional() })
+  .refine((s) => s.opens !== undefined || s.doneWhen !== undefined, "A step setting needs opens or doneWhen");
+
+/** One line of what the Learner found, shown on Past Sessions and the Topic complete card once `when` holds. `{value}` in `text` is the saved value. */
+const foundSchema = z.object({ when: widgetConditionSchema, text: z.string().trim().min(1) });
+
+export type StepSetting = z.infer<typeof stepSettingSchema>;
+export type FoundSpec = z.infer<typeof foundSchema>;
+
+/** Problems in a Topic's step settings and found lines: Widgets and Checks that do not exist, and conditions that cannot be met. */
+function stepSettingProblems(topic: {
+  steps?: StepSetting[];
+  found?: FoundSpec[];
+  widgets: WrittenAheadSpec[];
+  checks: { id: string }[];
+  explore?: { widget?: string };
+}): string[] {
+  const problems: string[] = [];
+  const widget = (wid: string) => topic.widgets.find((w) => w.id === wid);
+  const condition = (where: string, c: z.infer<typeof widgetConditionSchema>) => {
+    const w = widget(c.widget);
+    if (!w) problems.push(`${where}: no written-ahead Widget "${c.widget}"`);
+    else if (c.kind === "ticked" && c.task > guidedTaskTexts(w.code).length) problems.push(`${where}: Widget "${c.widget}" has no Guided Task ${c.task}`);
+  };
+  (topic.steps ?? []).forEach((s, i) => {
+    const where = `steps.${i} (${s.step})`;
+    if (s.check && !topic.checks.some((c) => c.id === s.check)) problems.push(`${where}: no Check "${s.check}"`);
+    if (s.opens) {
+      if (!widget(s.opens)) problems.push(`${where}: opens "${s.opens}", which is not a written-ahead Widget of this Topic`);
+      else if (topic.explore?.widget === s.opens) problems.push(`${where}: "${s.opens}" is the explore Widget, which code shows by itself when the explore step begins`);
+    }
+    if (s.doneWhen) {
+      if (s.step === "explore" || s.step === "check") {
+        problems.push(`${where}: a ${s.step} step cannot finish from Widget state (the Insight is settled by the Learner's own words, ADR 0001, and a Check by its saved result)`);
+      }
+      if (s.step === "principle") problems.push(`${where}: the Topic is completed by the Learner pressing Complete this Topic`);
+      condition(`${where} doneWhen`, s.doneWhen);
+    }
+  });
+  (topic.found ?? []).forEach((f, i) => {
+    condition(`found.${i}`, f.when);
+    if (f.when.kind === "ticked" && f.text.includes("{value}")) problems.push(`found.${i}: a ticked task has no {value}`);
+  });
+  return problems;
+}
+
 export { STAGES };
 
 /** A link from a Topic's idea to others, given at the principle step. Plain words only: figures belong to the Case Data. */
@@ -173,6 +242,8 @@ const topicSchema = z.object({
   path: z.number().int().optional(),
   prerequisites: z.array(id).optional(),
   cases: z.array(caseSchema).min(1),
+  /** The Topic's goal in one line (what the Learner will be able to do), shown in the Topic bar. Words only, never the Insight. */
+  goal: z.string().trim().min(1).max(120).optional(),
   concept: z.string().min(1),
   /** The named formulas this Topic teaches, each shown only as a Formula Card (IDs from the formula registry). */
   formulas: z
@@ -190,6 +261,10 @@ const topicSchema = z.object({
   explore: exploreSchema.optional(),
   /** The Topic's written-ahead Widgets, which the Tutor opens by id (src/course/written-ahead.ts). */
   widgets: z.array(writtenAheadSchema).default([]),
+  /** What a Teaching Step does by itself: opens a Widget when it begins, and is done once the Learner's Widget state says so. */
+  steps: z.array(stepSettingSchema).optional(),
+  /** What the Learner found, one line each once their saved Widget state shows it (Past Sessions, Topic complete card). */
+  found: z.array(foundSchema).optional(),
   /** Two or three Connections the Tutor gives at the principle step. Optional. */
   connections: z
     .array(connectionSchema)
@@ -212,6 +287,7 @@ const topicSchema = z.object({
   for (const text of texts) {
     for (const problem of markerProblems(text, topic.formulas)) ctx.addIssue({ code: "custom", message: `formula marker ${problem}` });
   }
+  for (const problem of stepSettingProblems(topic)) ctx.addIssue({ code: "custom", message: problem });
 });
 
 /** A Connection with the titles of its linked Topics filled in by code. */

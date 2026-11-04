@@ -1,6 +1,7 @@
-import type { Check, CourseMap, Topic } from "./map";
+import type { Check, CourseMap, StepSetting, Topic } from "./map";
 import type { Subject } from "./outline";
 import type { QuestionLookup } from "./quiz";
+import { conditionValue, type SavedWork } from "./written-ahead";
 
 /**
  * The Course Navigator: a pure decision module. Course Map and the Learner's
@@ -168,6 +169,31 @@ export function finishStep(map: CourseMap, progress: Progress, reported: Teachin
   if (step === "principle") return { ok: true, progress: save(progress, topic, { ...record, status: "passed" }) };
   const following = nextStep(topic, record, step, check) as TeachingStep;
   return { ok: true, progress: save(progress, topic, { ...record, step: following, revealShown: record.revealShown || following === "reveal" }) };
+}
+
+/** The Topic's setting for a step (what it opens, when it is done), for the Check it is about; the first that matches. */
+export function stepSetting(topic: Topic, step: TeachingStep, check: Check | null): StepSetting | undefined {
+  return topic.steps?.find((s) => s.step === step && (!s.check || s.check === check?.id));
+}
+
+/**
+ * Whether the Learner's saved Widget state (`states`, by Widget key, for the Topic's Session) meets the current step's
+ * `doneWhen`. Never for explore, a Check or the principle: the Insight is settled only by the Learner's own words (ADR 0001),
+ * a Check only by a saved result, and the Topic by the Learner pressing Complete this Topic.
+ */
+export function widgetDone(map: CourseMap, progress: Progress, states: Readonly<Record<string, SavedWork>>): boolean {
+  const place = navigate(map, progress);
+  if (!place || place.step === "explore" || place.step === "check" || place.step === "principle") return false;
+  const when = stepSetting(place.topic, place.step, place.check)?.doneWhen;
+  return when !== undefined && conditionValue(place.topic, when, states) !== null;
+}
+
+/** The current step finishes from what the Learner did in a Widget: accepted only when its `doneWhen` is met by the saved Widget state. */
+export function finishFromWidget(map: CourseMap, progress: Progress, states: Readonly<Record<string, SavedWork>>): Move {
+  const place = navigate(map, progress);
+  if (!place) return { ok: false, reason: "Every Topic on the Course Map is passed." };
+  if (!widgetDone(map, progress, states)) return { ok: false, reason: `The "${place.step}" step has no Widget condition that the Learner has met.` };
+  return finishStep(map, progress, place.step);
 }
 
 /** Records a Check result. Only the current Check, at its Check step, is accepted. A pass moves on; anything else stays. */
