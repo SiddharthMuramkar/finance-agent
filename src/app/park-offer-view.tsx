@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { createContext, useContext, useState } from "react";
-import { ONE_MORE_BUTTON, PARK_BUTTON } from "@/tutor/ladder-moves";
-import type { ParkedData, ParkOfferData } from "@/tutor/park-items";
+import { ONE_MORE_BUTTON, PARK_BUTTON, type ParkedData, type ParkOfferData } from "@/tutor/park-items";
 
 /**
  * The park offer and the parked line in the conversation (spec #229, "Parking"; ticket #245). After a third miss in a

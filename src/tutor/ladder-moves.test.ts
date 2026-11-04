@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyAnswer, freshSkillState, LADDER, type Method, type SkillState } from "@/teaching/ladder";
-import { ladderAction, parkedLine, PARK_OFFER_LINE, practiceTitle } from "./ladder-moves";
+import { ladderAction } from "./ladder-moves";
+import { parkedLine, PARK_OFFER_LINE, practiceTitle } from "./park-items";
 
 const miss = { verdict: "wrong" } as const;
 

@@ -1,5 +1,5 @@
 import type { TopicOverview } from "@/course/navigator";
-import { backAt } from "@/tutor/ladder-moves";
+import { backAt } from "@/tutor/park-items";
 import { Card, Eyebrow, KeyValueRow, Pill } from "../ui";
 import { BackToPathButton, DoFirstLink, TopicRow, WhatComesNextButton } from "./jump-button";
 
