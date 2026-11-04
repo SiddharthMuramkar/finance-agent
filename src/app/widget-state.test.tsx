@@ -204,7 +204,7 @@ describe("what the Tutor is sent of the Widgets", () => {
     await setRate(3);
     const chip = [...host.querySelectorAll<HTMLButtonElement>('[data-testid="help-chip"]')][0];
     await click(chip);
-    expect(turns.at(-1)).toMatchObject({ message: "Explain that more simply.", widgets: { "Second rates": { values: { $rate: 3 }, ticked: ["Set the rate to 3%"] } } });
+    expect(turns.at(-1)).toMatchObject({ message: "Go deeper.", widgets: { "Second rates": { values: { $rate: 3 }, ticked: ["Set the rate to 3%"] } } });
   });
 
   it("offers Tell the Tutor what I found the moment the last Guided Task ticks, and pressing it sends a widget report", async () => {
