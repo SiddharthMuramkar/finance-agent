@@ -1,6 +1,6 @@
 # Percent, percentage points and basis points: a foundation Topic taught through a short Case.
 # Case Data (the sourced figures) lives in the database; see docs/architecture.md.
-# Converted (spec #229): three Checks, each with a Concept card and Quick tries. Every sum is said in words (ADR 0002).
+# Converted (spec #229): four Checks (one idea each, #248), each with a Concept card and Quick tries. Every sum is said in words (ADR 0002).
 id: num-percent-bps
 title: Percent, percentage points and basis points
 # One line in the Topic bar: what the Learner can do by the end. Words only, never the Insight.
@@ -72,6 +72,21 @@ cases:
 # Question templates: code draws the numbers and works out the answer. `avoid` keeps the Running example, the Quick
 # tries', the Check questions' and the Case's moves out of every draw.
 templates:
+  # Check 1 tests points too, so its three Quick tries on pts can be shown (review item 0; lesson lint L8).
+  - id: pb-t-points-from-move
+    skill: pts
+    ask: A rate moves from {a}% to {b}%. How many percentage points did it move?
+    params:
+      a: { min: 1, max: 9, step: 0.25 }
+      d: { min: -1.2, max: 1.2, step: 0.05 }
+    derived: { b: "plus(a, d)" }
+    answer: points_between
+    unit: points
+    decimals: 2
+    sign: magnitude
+    mistakes:
+      - { tag: forgot_to_convert, fix: That is basis points. Points are the new rate minus the old rate. }
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9]
   - id: pb-t-bp-from-move
     skill: pts-to-bp
     ask: A rate moves from {a}% to {b}%. How many basis points did it move?
@@ -87,10 +102,10 @@ templates:
       - { tag: stopped_at_points, fix: That is the move in points. Times 100 gives basis points. }
       - { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." }
     halfDone: { shows: "First step, done for you: the move is {points} points.", asks: bp_from_points }
-    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5]
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9]
   - id: pb-t-points-from-bp
     skill: bp-to-pts
-    ask: A bond yield rises by {bp} basis points. How many percentage points is that, to two decimal places?
+    ask: A rate rises by {bp} basis points. How many percentage points is that, to two decimal places?
     params:
       bp: { min: 10, max: 300, step: 5 }
     answer: points_from_bp
@@ -234,11 +249,27 @@ questions:
     source: >
       Federal Reserve Board, Regulatory Reform glossary, Basis point: https://federalreserve.gov/regreform/reform-glossary.htm ; the 50% is the arithmetic of 0.75 points on a start of 1.5%.
 
+  - id: pb-q-up-one-percent
+    skill: wording
+    prompt: >
+      A savings rate goes from 6% to 7%. A headline says "rate up 1%". What is the clearest way to fix it?
+    choices:
+      - { id: a, text: "Say up 1 percentage point, or up 100 basis points" }
+      - { id: b, text: "Leave it: up 1% is exact", mistake: { tag: mixed_percent_points, fix: "Up 1% could mean 1 point, or 1% of the old 6%, which is only 0.06 points. Say points or bp." } }
+      - { id: c, text: "Say up 100%", mistake: { tag: bp_as_percent, fix: "100 is the move in basis points, not a percent. As a percent of the old 6%, the move is about 17%." } }
+      - { id: d, text: "Say up 1 basis point", mistake: { tag: forgot_to_convert, fix: "One point is 100 basis points, so a rise of 1 point is 100 bp, not 1." } }
+    answer: a
+    explanation: >
+      The gap is 1 percentage point, which is 100 basis points. "Up 1%" could be read as 1 point or as
+      1% of the old rate, so a careful writer names the size.
+    source: >
+      Federal Reserve Board, Regulatory Reform glossary, Basis point: https://federalreserve.gov/regreform/reform-glossary.htm ; the 17% is the arithmetic of 1 point on a start of 6%.
+
 checks:
-  # Check 1: points and basis points, typed answers only, with new numbers each attempt.
+  # Check 1: points and basis points, typed answers only, with new numbers each attempt: one of each Skill a try.
   - id: pb-quiz-language
     kind: quiz
-    templates: [pb-t-bp-from-move, pb-t-points-from-bp]
+    templates: [pb-t-points-from-move, pb-t-bp-from-move, pb-t-points-from-bp]
     perAttempt: 3
     passRule:
       correct: 2
@@ -246,9 +277,9 @@ checks:
       title: One move, two ways
       lines:
         - A savings rate goes from 4% to 5%.
-        - "Points: 5 minus 4 is 1 percentage point. That is how far it moved."
-        - "Basis points: 1 point times 100 is 100 bp. Same distance, in small units."
-        - 100 bp make 1 point, as 100 paise make ₹1.
+        - "Points: 5 minus 4 is 1 percentage point, how far it moved. A fall, 5% down to 4%, is the same gap."
+        - "Basis points (bp for short): 1 point times 100 is 100 bp. It is the same move, in units 100 times smaller."
+        - "Going back, bp divided by 100 gives points, as 100 paise make ₹1. So 250 bp is 2.5 points."
       writeDown: Points times 100 give basis points. Basis points divided by 100 give points.
       skills: [pts, pts-to-bp, bp-to-pts]
       widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }
@@ -274,7 +305,7 @@ checks:
           - { answer: 0.5, fix: That is the move in points. Times 100 gives basis points., tag: stopped_at_points }
       - id: pb-try-a3
         skill: pts-to-bp
-        ask: A rate falls from 7.5% to 7.2%. How many basis points did it fall?
+        ask: A rate falls from 7.5% to 7.2%. How many basis points did it fall? Give the size of the fall.
         kind: number
         answer: -30
         unit: bp
@@ -303,7 +334,7 @@ checks:
           - { answer: 40, fix: That is basis points. Points are the new rate minus the old rate., tag: forgot_to_convert }
       - id: pb-try-pts-3
         skill: pts
-        ask: A rate falls from 6.5% to 5.9%. How many points did it fall?
+        ask: A rate falls from 6.5% to 5.9%. How many points did it fall? Give the size of the fall.
         kind: number
         answer: -0.6
         unit: points
@@ -312,24 +343,24 @@ checks:
       - { template: pb-t-points-from-bp }
       - { template: pb-t-bp-from-move, halfDone: true }
 
-  # Check 2: percent change and how a move is worded. A pct_change template plus "Which one is true?" wording items.
+  # Check 2: percent change only. How a move is worded has its own Check (3), with its own card and Quick tries.
   - id: pb-quiz-change
     kind: quiz
-    questions: [pb-q-unemployment, pb-q-newspaper, pb-q-wrong-description]
+    questions: [pb-q-unemployment]
     templates: [pb-t-pct-change]
-    # Four a try, so every attempt shows the three wording questions and one typed percent change with fresh numbers.
-    perAttempt: 4
+    # The fixed question and two typed percent changes with fresh numbers a try.
+    perAttempt: 3
     passRule:
-      correct: 3
+      correct: 2
     card:
       title: Compared with the start
       lines:
-        - "Same move: 4% to 5%."
-        - "Percent change: the move is 1 point. Divide it by the old 4%, then times 100. That gives 25%."
-        - "Why the start matters: ₹10 more on ₹20 is big. ₹10 more on ₹500 is small."
-        - Say up 1 point or up 100 bp. Up 25% is also true. Up 1% is unclear.
+        - "Same move: 4% to 5%. The move is 1 point."
+        - "A percent change compares the move with where the rate started. That start is the base."
+        - "Divide the move by the base: 1 divided by 4 is 0.25. Times 100 is 25%."
+        - "Why the base matters: ₹10 more on ₹20 is big. ₹10 more on ₹500 is small."
       writeDown: Percent change is the move divided by the old rate, times 100.
-      skills: [pct-change, wording]
+      skills: [pct-change]
       widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }
     quickTries:
       - id: pb-try-b1
@@ -351,6 +382,26 @@ checks:
           - { answer: 0.5, fix: "That is the move in points. Divide it by the old rate, then times 100.", tag: mixed_percent_points }
       - { template: pb-t-pct-change, halfDone: true }
       - { template: pb-t-pct-change }
+
+  # Check 3: how a move is worded. "Which one is true?" items on the three sizes of one move.
+  - id: pb-quiz-wording
+    kind: quiz
+    questions: [pb-q-newspaper, pb-q-wrong-description, pb-q-up-one-percent]
+    # One a try from three, so three tries never repeat a question.
+    perAttempt: 1
+    passRule:
+      correct: 1
+    card:
+      title: Say which size you mean
+      lines:
+        - "Same move: 4% to 5%. It is 1 point, 100 bp, and 25% of the old rate."
+        - "All three are true, but they are different sizes."
+        - "Up 1% could mean 1 point, or 1% of the old 4%, which is only 0.04 points. A reader cannot tell."
+        - "So say up 1 point or up 100 bp. Rose 25% always means 25% of the old rate, so say the start with it."
+      writeDown: Say points or bp for the gap itself. Say percent only for a share of the old rate.
+      skills: [wording]
+      widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }
+    quickTries:
       - id: pb-try-b3
         skill: wording
         ask: "A rate goes from 2% to 3%. True or false: rates rose 50%."
@@ -374,7 +425,7 @@ checks:
         mistakes:
           - { answer: false, fix: "The move is 1 point, and 1 point is 100 basis points.", tag: mixed_percent_points }
 
-  # Check 3: the conversation Check, on Skills Cards 1 and 2 already teach, so it needs no Quick tries of its own.
+  # Check 4: the conversation Check, on Skills Cards 1 to 3 already teach, so it needs no Quick tries of its own.
   - id: pb-fed-language
     kind: conversation
     skills: [pts, pts-to-bp, pct-change, wording]
@@ -395,8 +446,8 @@ checks:
       lines:
         - "Give the start and the end: from 4% to 5%."
         - "Then give the move in points or bp: up 1 point, or up 100 bp."
-        - Up 25% is true too, but only next to the start it is measured from.
-        - A bare up 1% can mean either, so do not use it.
+        - "Up 25% is also true, but only if you also say the start, 4%, because 25% is measured from it."
+        - "Never say just up 1%: a reader cannot tell if you mean 1 point or 1% of the old rate."
       writeDown: Say the start, the end, and the move in points or bp.
       skills: [pts, pts-to-bp, wording]
       widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }

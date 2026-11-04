@@ -393,12 +393,12 @@ describe("the fixed two-column layout", () => {
     expect(thread).toMatch(/\bmin-h-0\b/);
   });
 
-  it("caps what stands above the chat (Topic bar, Review) and scrolls it inside itself, so the chat keeps its height", () => {
+  it("caps what stands above the Widget panel (Topic bar, Review) and scrolls it inside itself, so the Widget panel keeps its height", () => {
     const html = workspace({ review });
-    const above = tag(html, "above-thread");
+    const above = tag(html, "above-widgets");
     expect(above).toMatch(/\bmax-h-/);
     expect(above).toMatch(/\boverflow-y-auto\b/);
-    const inside = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
+    const inside = html.slice(html.indexOf('data-testid="above-widgets"'), html.indexOf('data-testid="widget-pane"'));
     expect(text(inside)).toContain("Spaced review · 2 due");
     expect(inside).toContain('data-testid="topic-bar"');
   });
@@ -723,14 +723,26 @@ describe("the Topic bar", () => {
   const bar = (html: string) => html.match(/<nav[^>]*data-testid="topic-bar"[^>]*>.*?<\/nav>/)?.[0] ?? "";
   const groups = (html: string) => (bar(html).match(/<li[^>]*data-strip-group[^>]*>.*?<\/ol><\/li>/g) ?? []).map((g) => text(g).trim());
 
-  it("replaces the status card: a slim bar with the Topic title stands above the chat, with no summary", () => {
+  it("replaces the status card: a slim bar with the Topic title stands at the top of the right column, with no summary", () => {
     const html = workspace({ strip });
-    const above = html.slice(html.indexOf('data-testid="above-thread"'), html.indexOf('data-testid="thread-viewport"'));
+    const above = html.slice(html.indexOf('data-testid="above-widgets"'), html.indexOf('data-testid="widget-pane"'));
     expect(above).toContain('data-testid="topic-bar"');
     expect(text(bar(html))).toContain("Present value");
     expect(html).not.toContain('aria-label="Where you stand"');
     expect(text(html)).not.toContain("Course Map · Foundation");
     expect(text(html)).not.toMatch(/Continue/);
+  });
+
+  it("stands in the right column, not the chat column, and the chat column starts with the thread", () => {
+    const html = workspace({ strip });
+    const frame = html.slice(html.indexOf('data-testid="workspace-frame"'));
+    const right = frame.indexOf('data-testid="above-widgets"');
+    const chat = frame.slice(0, right);
+    expect(chat).toContain('data-testid="thread-viewport"');
+    expect(chat).not.toContain('data-testid="topic-bar"');
+    expect(frame.slice(right)).toContain('data-testid="topic-bar"');
+    // The bar comes before the Widget panel in the right column, and after the chat in tab order.
+    expect(frame.indexOf('data-testid="topic-bar"')).toBeLessThan(frame.indexOf('data-testid="widget-pane"'));
   });
 
   it("groups the Course Navigator's plain step names by Check", () => {
