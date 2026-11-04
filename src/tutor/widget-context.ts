@@ -29,6 +29,16 @@ import { WIDGET_OPENED } from "@/course/written-ahead";
 /** A Widget open in the panel, by its Widget key (the title, or the written-ahead id, which the explore Widget has too). */
 export type KeyedWidget = { key: string; code: string; explore: boolean; /** A written-ahead Widget's rate change, worked out by code. */ rateChange?: RateChangeSliders };
 
+/**
+ * The two sliders of a shown rate_move Widget (spec #229): its RateMove part is given the old and new rates as `$old` and
+ * `$new` (RATE_MOVE_STATE), the way Percent's written-ahead Widget says its rate change, so the Tutor is told the three
+ * readouts by code. Undefined for a Widget with no sliders on the rates (practice mode, or any other Widget).
+ */
+export function rateMoveSliders(code: string): RateChangeSliders | undefined {
+  const m = /RateMove\(\$(\w+),\s*\$(\w+)/.exec(code);
+  return m ? { old: `$${m[1]}`, new: `$${m[2]}` } : undefined;
+}
+
 /** What the page sent as its Widgets' state, cleaned: only well-formed entries, at most 20 of them. */
 export function cleanSentWidgets(raw: unknown): WidgetStates {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
@@ -54,7 +64,8 @@ export async function openWidgetsForTurn(
 ): Promise<KeyedWidget[]> {
   const tutors = drawn.flatMap((w) => {
     const key = widgetKey(w.title);
-    return key ? [{ key, code: w.code, explore: false }] : [];
+    const rateChange = rateMoveSliders(w.code);
+    return key ? [{ key, code: w.code, explore: false, ...(rateChange && { rateChange }) }] : [];
   });
   const progress = await loadProgress(db, learnerId);
   const opened = session ? new Set((await loadSessionItems(db, session.id, learnerId)).flatMap((i) => (i.kind === WIDGET_OPENED ? [i.data.id] : []))) : new Set();

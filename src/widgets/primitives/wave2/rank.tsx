@@ -47,10 +47,19 @@ export function RankView({ prompt, items, correctOrder, reasons, lowLabel, highL
   const id = useId();
   const reduced = usePrefersReducedMotion();
   const problem = rankProblem(items, correctOrder, reasons);
-  const [order, setOrder] = useState(() => (problem ? [] : startOrder(correctOrder)));
   const [held, setHeld] = useState<number | null>(null); // the position of the row picked up by keyboard
   const [dragging, setDragging] = useState<number | null>(null); // the position of the row being dragged
   const [checked, setChecked] = useState(false);
+  const [order, setOrder] = useState<number[]>(() => (problem ? [] : startOrder(correctOrder)));
+  // Streaming hands over partial props first: start again from the full ones, whenever items or the order change.
+  const signature = `${items.join("\u0001")}|${correctOrder.join(",")}`;
+  const [seen, setSeen] = useState(signature);
+  if (seen !== signature) {
+    setSeen(signature);
+    setOrder(problem ? [] : startOrder(correctOrder));
+    setChecked(false);
+    setHeld(null);
+  }
   const [said, setSaid] = useState("");
   const rows = useRef<(HTMLLIElement | null)[]>([]);
 
@@ -191,7 +200,7 @@ export function RankView({ prompt, items, correctOrder, reasons, lowLabel, highL
         ) : (
           <>
             <p role="status" data-testid="rank-result" className="text-sm font-medium">
-              {right === order.length ? "All in the right place." : `${right} of ${order.length} in the right place.`}
+              {order.length > 0 && right === order.length ? "All in the right place." : `${right} of ${order.length} in the right place.`}
             </p>
             <button
               type="button"

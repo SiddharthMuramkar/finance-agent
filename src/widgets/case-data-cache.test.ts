@@ -90,4 +90,20 @@ describe("the page's shared Case Data cache", () => {
       expect(await cache.load("fed-hike-1994")).toEqual(withheld);
     });
   });
+
+  it("refetches the reference Case when its clip changes, and not when the clip stays the same", async () => {
+    const reference: CaseData = { caseId: "reference", asOf: "2026-10-01", revealed: true, datasets: [], clip: null };
+    const load = vi.fn<(caseId: string) => Promise<CaseData | null>>().mockResolvedValue(reference);
+    const cache = createCaseDataCache(load);
+    await cache.load("reference");
+    cache.setReferenceClip(null);
+    await cache.load("reference");
+    expect(load).toHaveBeenCalledTimes(1);
+    cache.setReferenceClip("2008-01-01");
+    await cache.load("reference");
+    expect(load).toHaveBeenCalledTimes(2);
+    cache.setReferenceClip("2008-01-01");
+    await cache.load("reference");
+    expect(load).toHaveBeenCalledTimes(2);
+  });
 });

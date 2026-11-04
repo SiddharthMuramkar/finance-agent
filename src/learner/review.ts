@@ -2,7 +2,7 @@ import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { questionLookup } from "@/bank/lookup";
 import { DEFAULT_REVIEW_CAP, reviewsDue } from "@/course/navigator";
 import type { CourseMap, QuizCheck } from "@/course/map";
-import { publicQuestions, type PublicQuestion } from "@/course/quiz";
+import { parseTemplateInstanceId, publicQuestions, type PublicQuestion } from "@/course/quiz";
 import type { State } from "ts-fsrs";
 import { newCard, rate, type ReviewCardState } from "@/course/review";
 import { checkResults, quizAttempts, reviewCards, reviewLog } from "@/db/schema";
@@ -70,7 +70,8 @@ export async function enrollPassedQuestions(db: Db, map: CourseMap, learnerId: n
     const check = map.check(attempt.checkId) as QuizCheck;
     for (const id of attempt.questionIds) {
       const question = lookup.question(id);
-      if (!question || have.has(id) || !check.questions.includes(id)) continue;
+      // A typed question (a template instance) is never enrolled: its numbers are gone with the attempt, so it cannot come back.
+      if (!question || have.has(id) || parseTemplateInstanceId(id) || !check.questions.includes(id)) continue;
       events.set(id, [...(events.get(id) ?? []), { at: attempt.submittedAt, correct: attempt.answers[id] === question.answer }]);
     }
   }

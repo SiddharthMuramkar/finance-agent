@@ -10,17 +10,21 @@ import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/na
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, WIDGET_OPENED } from "@/course/written-ahead";
 import { messages, practiceAnswers, sessions, toolCalls, turns } from "@/db/schema";
-import { widgetControls, widgetNodes, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
+import { widgetControls, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
 import { declaredSettings } from "@/widgets/settings";
+import { widgetKey } from "@/widgets/widget-state";
 import { ARCHETYPES } from "@/widgets/recipes/define";
-import { RECIPE_IDS, recipeById } from "@/widgets/recipes";
-import { WIDGET_SHOWN, type ComposeTimings, type ShownWidget } from "@/widgets/shown-widget";
+import { recipeById } from "@/widgets/recipes";
+import { shownWidgetOf, WIDGET_SHOWN, type ComposeTimings, type ShownWidget } from "@/widgets/shown-widget";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
 import { anthropicComposeClient, COMPOSE_LABEL, composeLimitMs, composeProgram, fallbackCandidates, type ComposeClient, type Composed } from "./compose";
-import { readSettings } from "./session-log";
+import { readSettings, usesWidgetEngine } from "./session-log";
 import { stepUsage, type StepUsage } from "./usage";
-import { loadWrittenAhead } from "./written-ahead";
+import { loadWrittenAhead, openedItem, saveOpenedState } from "./written-ahead";
+import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, sliderSpecs, TUTOR_RECIPE_IDS } from "./ready-made-widgets";
+import { checkReply, type ReplyWidget } from "./reply-checks";
+import { replyCheckContext, turnFacts } from "./turn-facts";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
 import { exactWords, loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
@@ -159,6 +163,8 @@ export async function navigatorContext(db: Db, map: CourseMap, place: Place | nu
     await pasteSummary(db, sessionId, learnerId),
     false,
     await loadExploreInfo(db, place, turnId, learnerId),
+    // The new place's word limit, currency and blocked numbers, so the Tutor writes this same reply within them.
+    await turnFacts(db, map, learnerId, place),
   );
 }
 
@@ -264,28 +270,97 @@ export function toolCode(
   }
 
   /** The turn's Session, its reply so far and its items: what a shown Widget is checked against. */
-  type ReplyScope = { sessionId: number; turnSeq: number; topicId: string | null; rows: { seq: number; role: string; content: unknown }[]; items: StoredItem[] };
+  type ReplyScope = {
+    sessionId: number;
+    turnSeq: number;
+    topicId: string | null;
+    rows: { seq: number; role: string; content: unknown }[];
+    items: StoredItem[];
+    /** The Session was frozen with the widget engine: ready-made Widgets only, one a reply (ADR 0007). */
+    engine: boolean;
+    /** The turn took Next: the items Next stored (a step's Widget chip) sit just before its message. */
+    next: boolean;
+  };
 
   async function replyScope(tx: Db): Promise<ReplyScope | null> {
     const [row] = await tx
-      .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, topicId: sessions.topicId })
+      .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, input: turns.input, topicId: sessions.topicId, tools: sessions.tools })
       .from(turns)
       .leftJoin(sessions, eq(sessions.id, turns.sessionId))
       .where(eq(turns.id, turnId));
     if (row?.sessionId == null || row.turnSeq == null) return null;
     const rows = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
     const items = await loadSessionItems(tx, row.sessionId, learnerId);
-    return { sessionId: row.sessionId, turnSeq: row.turnSeq, topicId: row.topicId ?? null, rows, items };
+    return {
+      sessionId: row.sessionId,
+      turnSeq: row.turnSeq,
+      topicId: row.topicId ?? null,
+      rows,
+      items,
+      engine: usesWidgetEngine({ tools: row.tools }),
+      next: turnKind({ input: row.input }) === "next",
+    };
+  }
+
+  /** The reply so far, as text: what the Tutor has written in this turn. */
+  const replySoFar = (scope: ReplyScope) => replyTexts(scope.rows.filter((r) => r.seq >= scope.turnSeq)).map((r) => r.text).join("\n");
+
+  /**
+   * The Widgets this reply holds, by Widget key: every Widget item stored for it, whoever stored it (a tool call, or code at
+   * a Next or a step: those sit just before the turn's message), and every fence in the reply so far. `slots` counts them.
+   */
+  async function replyWidgets(tx: Db, scope: ReplyScope): Promise<{ slots: number; keys: Set<string> }> {
+    const keys = new Set<string>();
+    let slots = 0;
+    for (const i of scope.items) {
+      const mine = i.afterSeq >= scope.turnSeq || (scope.next && i.afterSeq === scope.turnSeq - 1);
+      if (!mine) continue;
+      if (i.kind === WIDGET_OPENED && typeof i.data.id === "string") {
+        keys.add(i.data.id);
+        slots++;
+      } else if (i.kind === WIDGET_SHOWN) {
+        const key = widgetKey(shownWidgetOf(i.data)?.title);
+        if (key) keys.add(key);
+        slots++;
+      }
+    }
+    for (const fence of replySoFar(scope).split(FENCE_OPEN).slice(1)) {
+      const key = widgetKey(widgetParts(fence.split("```")[0]).title);
+      if (key) keys.add(key);
+      slots++;
+    }
+    // update_widget on a Widget this reply did not open or show is the reply's Widget too.
+    const updates = await tx.select({ result: toolCalls.result }).from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.name, "update_widget"), eq(toolCalls.isError, false)));
+    const moved = new Set(updates.flatMap((u) => u.result.match(/^Updated by code: "(.*)" now shows/)?.[1] ?? []));
+    for (const key of moved) {
+      if (!keys.has(key)) slots++;
+      keys.add(key);
+    }
+    return { slots, keys };
   }
 
   /** One Widget per reply: the reply so far has drawn one of its own, or code has shown one in it. */
-  function widgetInReply(scope: ReplyScope): boolean {
-    const replySoFar = replyTexts(scope.rows.filter((r) => r.seq >= scope.turnSeq)).map((r) => r.text).join("\n");
-    return replySoFar.includes(FENCE_OPEN) || scope.items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= scope.turnSeq);
+  async function widgetInReply(tx: Db, scope: ReplyScope): Promise<boolean> {
+    if (scope.engine) return (await replyWidgets(tx, scope)).slots > 0;
+    return replySoFar(scope).includes(FENCE_OPEN) || scope.items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= scope.turnSeq);
   }
 
   const ONE_WIDGET = "Not shown: this reply already has a Widget, and a reply shows one Widget. Talk about the one on screen; show another in a later reply if it still helps.";
-  const TALK_ABOUT_IT = "Write no openui-lang block in this reply. Now talk about the Widget on screen in a few sentences: what to look at, and what to move.";
+  const TALK_ABOUT_IT = "Write no openui-lang block in this reply. Say in one sentence what the Widget shows at these numbers; do not ask the Learner to move or set anything.";
+  const GUIDED_TASKS = "Its Guided Tasks (optional play, never set as work; they tick themselves):";
+
+  /**
+   * An open quiz keeps its numbers from the Widgets the Tutor sets (V5 of the reply checks, spec #229): the same rule the
+   * reply check uses, so the tool and the check never disagree. The problems are in words; none when no quiz is open.
+   */
+  async function openQuizProblems(tx: Db, w: ReplyWidget): Promise<string[]> {
+    const place = navigate(map, await loadProgress(tx, learnerId));
+    const facts = await turnFacts(tx, map, learnerId, place);
+    if (!facts.openItems.length) return [];
+    return checkReply({ text: "", widgets: [w] }, replyCheckContext(facts))
+      .filter((p) => p.rule === "V5")
+      .map((p) => p.message);
+  }
 
   /** The Case Data references the as-of rule allows the Learner now (ADR 0003). */
   async function allowedRefs(tx: Db): Promise<Set<string>> {
@@ -311,7 +386,7 @@ export function toolCode(
     const lines = [
       opening,
       ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
-      ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
+      ...(tasks.length ? [GUIDED_TASKS, ...tasks.map((t) => `- ${t}`)] : []),
     ];
     return { ok: true, text: lines.join("\n"), items: [item] };
   }
@@ -323,7 +398,7 @@ export function toolCode(
   async function showComposed(tx: Db, toolCallId: string, input: ComposeInput, composed: Composed | null): Promise<Outcome> {
     const scope = await replyScope(tx);
     if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
-    if (widgetInReply(scope)) return { ok: false, text: ONE_WIDGET };
+    if (await widgetInReply(tx, scope)) return { ok: false, text: ONE_WIDGET };
     if (!composed) return { ok: false, text: "Not shown: the Widget could not be drawn. Teach this in words." };
     if (!composed.ok && composed.reason === "stopped") return { ok: false, text: "Not shown: the Learner pressed Stop." };
     const allowed = await allowedRefs(tx);
@@ -381,17 +456,7 @@ export function toolCode(
     return { ok: false, text: `Not shown: ${why}, and no ready-made Widget fits. Teach this in words.` };
   }
 
-  /** The sliders of a Widget, by $variable, with their ranges; read by the parser. */
-  function sliderRanges(code: string): Map<string, { min: number; max: number }> {
-    const out = new Map<string, { min: number; max: number }>();
-    for (const n of widgetNodes(code)) {
-      const { value, min, max } = n.props as { value?: { k?: string; n?: string }; min?: unknown; max?: unknown };
-      if (n.typeName === "Slider" && value?.k === "StateRef" && typeof value.n === "string" && typeof min === "number" && typeof max === "number") out.set(value.n, { min, max });
-    }
-    return out;
-  }
-
-  const openInput = z.object({ id: z.string().min(1) });
+  const openInput = z.object({ id: z.string().min(1), preset: z.record(z.string(), z.number()).optional() });
   const showInput = z.object({ recipe: z.string(), params: z.unknown() });
   const composeInput = z.object({
     brief: z.string().min(1),
@@ -563,9 +628,10 @@ export function toolCode(
     },
     open_widget: {
       parse: (input) => openInput.parse(input),
-      run: ({ id }, context) =>
+      run: ({ id, preset }, context) =>
         once(context?.toolUse.id, "open_widget", async (tx) => {
           // The Topic of the Session this turn runs in: its written-ahead Widgets are the ones that can be opened.
+          const scope = await replyScope(tx);
           const [row] = await tx.select({ sessionId: turns.sessionId, topicId: sessions.topicId }).from(turns).leftJoin(sessions, eq(sessions.id, turns.sessionId)).where(eq(turns.id, turnId));
           const topicId = row?.topicId ?? navigate(map, await loadProgress(tx, learnerId))?.topic.id;
           const progress = await loadProgress(tx, learnerId);
@@ -579,15 +645,38 @@ export function toolCode(
           if (topic && exploreHeldBack(topic, progress.topics[topic.id]) === widget.id) {
             return { ok: false, text: `Not opened: "${widget.title}" is this Topic's explore Widget, which code shows when the explore step begins. Do not open it or draw your own version before then; teach this in words.` };
           }
-          const item = { kind: WIDGET_OPENED, data: { id: widget.id, title: widget.title } };
+          // One Widget a reply (ADR 0007), in a Session frozen with the widget engine.
+          if (scope?.engine && (await widgetInReply(tx, scope))) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not opened") };
+          // A preset sets its sliders: each must be one of the Widget's, in range and on its step, and none may use an open quiz's numbers.
+          const set = preset && Object.keys(preset).length ? normalizePreset(preset) : undefined;
+          if (set) {
+            const problems = presetProblems(widget.code, set);
+            if (problems.length) {
+              const sliders = widgetControls(widget.code).sliders;
+              return { ok: false, text: `Not opened: ${problems.join(" ")} Its sliders: ${sliders.join("; ") || "none"}. Call open_widget again with a preset that fits, or without one.` };
+            }
+            const blocked = await openQuizProblems(tx, { kind: "written", id: widget.id, params: set });
+            if (blocked.length) return { ok: false, text: `Not opened: ${blocked.join(" ")}` };
+          }
+          const item = openedItem(widget, set);
           await saveItemAfterLatest(tx, learnerId, row.sessionId, item, now());
+          // Opened already set: the preset replaces what the Learner last set, and their ticked Guided Tasks stay.
+          let widgetStates: WidgetStateEvent[] | undefined;
+          if (set) {
+            const saved = await loadWidgetState(tx, row.sessionId, widget.id, learnerId);
+            const ticked = effects.pageWidgets?.[widget.id]?.ticked ?? saved?.ticked ?? [];
+            const result = await saveOpenedState(tx, learnerId, { sessionId: row.sessionId, widgetKey: widget.id, code: widget.code, preset: set, ticked }, now());
+            if (!result.ok) return { ok: false, text: `Not opened: ${result.reason}` };
+            widgetStates = [result.event];
+          }
           const { sliders, tasks } = widgetControls(widget.code);
+          const setTo = set ? ` It is set to ${Object.entries(set).map(([n, v]) => `${n} = ${v}`).join(", ")}.` : "";
           const lines = [
-            `Opened by code: "${widget.title}" is in the Widget panel, with a chip where you opened it. Point the Learner to it; do not draw a Widget of your own for the same idea. Ask only for numbers its sliders can show.`,
+            `Opened by code: "${widget.title}" is in the Widget panel, with a chip where you opened it.${setTo} Point the Learner to it; do not draw a Widget of your own for the same idea. Say in one sentence what it shows at these numbers; do not ask the Learner to move or set anything.`,
             ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
-            ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
+            ...(tasks.length ? [GUIDED_TASKS, ...tasks.map((t) => `- ${t}`)] : []),
           ];
-          return { ok: true, text: lines.join("\n"), items: [item] };
+          return { ok: true, text: lines.join("\n"), items: [item], ...(widgetStates && { widgetStates }) };
         }),
     },
     // The widget engine (ADR 0005): the Tutor chooses a recipe and params, code compiles, checks and stores the Widget.
@@ -596,13 +685,17 @@ export function toolCode(
       parse: (input) => showInput.parse(input),
       run: ({ recipe: id, params }, context) =>
         once(context?.toolUse.id, "show_widget", async (tx) => {
+          if (id === "quick_check") return { ok: false, text: QUICK_CHECK_REFUSAL };
           const recipe = recipeById(id);
-          if (!recipe) return { ok: false, text: `Not shown: there is no Widget recipe "${id}". Recipes: ${RECIPE_IDS.join(", ")}.` };
+          if (!recipe) return { ok: false, text: `Not shown: there is no Widget recipe "${id}". Recipes: ${TUTOR_RECIPE_IDS.join(", ")}.` };
           const built = recipe.build(params);
           if (!built.ok) return { ok: false, text: `Not shown: these params do not fit the ${id} recipe. ${built.error}. Call show_widget again with params that fit, or teach this in words.` };
           const scope = await replyScope(tx);
           if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
-          if (widgetInReply(scope)) return { ok: false, text: ONE_WIDGET };
+          if (await widgetInReply(tx, scope)) return { ok: false, text: ONE_WIDGET };
+          // An Illustration only where no input or Case Data path covers the same number.
+          const covered = illustrationProblems(id, built.params);
+          if (covered.length) return { ok: false, text: `Not shown: ${covered.join(" ")} Call show_widget again without it, or teach this in words.` };
           // Real figures only from Case Data the as-of rule allows the Learner now (ADR 0003).
           const allowed = await allowedRefs(tx);
           const unknown = built.refs.filter((ref) => !allowed.has(ref));
@@ -611,8 +704,17 @@ export function toolCode(
           }
           const problems = await shownProblems(tx, scope, built.code);
           if (problems.length) return { ok: false, text: `Not shown: ${problems.join(" ")}` };
+          // An open quiz keeps its numbers: the recipe's inputs may not use them.
+          const blocked = await openQuizProblems(tx, { kind: "recipe", id, params: built.params });
+          if (blocked.length) return { ok: false, text: `Not shown: ${blocked.join(" ")}` };
           const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe" };
-          return storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${TALK_ABOUT_IT}`);
+          const outcome = await storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${TALK_ABOUT_IT}`);
+          // A title the Learner already has saved state for opens at the recipe's own numbers, not where they last left it.
+          const key = widgetKey(built.title);
+          const had = key ? (effects.pageWidgets?.[key] ?? (await loadWidgetState(tx, scope.sessionId, key, learnerId))) : undefined;
+          if (!key || !had) return outcome;
+          const reset = await saveOpenedState(tx, learnerId, { sessionId: scope.sessionId, widgetKey: key, code: built.code, ticked: had.ticked }, now());
+          return reset.ok ? { ...outcome, widgetStates: [reset.event] } : outcome;
         }),
     },
     // The free-form lane (UX audit ★.4): the compose model writes the Widget within 12 s, outside the transaction, and
@@ -626,7 +728,7 @@ export function toolCode(
         const [done] = await db.select({ id: toolCalls.toolCallId }).from(toolCalls).where(eq(toolCalls.toolCallId, toolCallId));
         let composed: Composed | null = null;
         const scope = done ? null : await replyScope(db);
-        if (scope && !widgetInReply(scope)) {
+        if (scope && !(await widgetInReply(db, scope))) {
           const { composeModel } = await readSettings(db);
           composer ??= { client: anthropicComposeClient() };
           composed = await composeProgram(composer.client, {
@@ -661,7 +763,12 @@ export function toolCode(
           const open = await openWidgetsForTurn(tx, map, learnerId, drawn, false, { id: scope.sessionId, topicId: scope.topicId });
           const widget = open.find((w) => w.key === key.trim());
           if (!widget) return { ok: false, text: `Not updated: no open Widget has the key "${key}". Open Widgets: ${open.map((w) => `"${w.key}"`).join(", ") || "none"}.` };
-          const ranges = sliderRanges(widget.code);
+          // One Widget a reply: this one must be the reply's own, unless the reply has none yet.
+          if (scope.engine) {
+            const { slots, keys } = await replyWidgets(tx, scope);
+            if (slots > 0 && !keys.has(widget.key)) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not updated") };
+          }
+          const ranges = sliderSpecs(widget.code);
           const problems: string[] = [];
           const set: Record<string, number> = {};
           for (const [raw, value] of Object.entries(values)) {
@@ -683,12 +790,15 @@ export function toolCode(
           const merged = { ...Object.fromEntries(Object.entries(current).filter(([n]) => ranges.has(n))), ...set };
           // Ticks stay as they were: Guided Tasks tick themselves from their conditions.
           const ticked = page?.ticked ?? saved?.ticked ?? [];
+          // An open quiz keeps its numbers.
+          const blocked = await openQuizProblems(tx, { kind: "written", id: widget.key, params: set });
+          if (blocked.length) return { ok: false, text: `Not updated: ${blocked.join(" ")}` };
           const result = await saveWidgetState(tx, { sessionId: scope.sessionId, widgetKey: widget.key, values: merged, ticked }, learnerId, now());
           if (!result.ok) return { ok: false, text: `Not updated: ${result.reason}` };
           const moved = Object.entries(set).map(([n, v]) => `${n} = ${v}`).join(", ");
           return {
             ok: true,
-            text: `Updated by code: "${widget.key}" now shows ${moved}. Its Guided Tasks tick themselves from what it shows. Talk about what changed on screen in a few sentences.`,
+            text: `Updated by code: "${widget.key}" now shows ${moved}. Its Guided Tasks are optional play and tick themselves from what it shows. Say in one sentence what changed on screen at these numbers; do not ask the Learner to move or set anything.`,
             widgetStates: [{ type: "widget_state", widgetKey: widget.key, values: merged }],
           };
         }),

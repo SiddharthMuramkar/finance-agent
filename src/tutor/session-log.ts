@@ -6,7 +6,7 @@ import { navigate } from "@/course/navigator";
 import { learnerState, messages, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 
 /**
  * Sessions and their add-only message log: the stored settings a Session is frozen from, which
@@ -16,7 +16,7 @@ import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, typ
 export type Message = BetaMessageParam;
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
-export const DEFAULT_SETTINGS = { model: "claude-opus-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10", widget_engine: "off", widget_compose_model: "claude-sonnet-5-5" };
+export const DEFAULT_SETTINGS = { model: "claude-opus-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10", widget_engine: "on", widget_compose_model: "claude-sonnet-5-5" };
 
 export type Session = typeof sessions.$inferSelect;
 
@@ -190,7 +190,9 @@ export async function frozenNow(db: Db, session?: { tools: unknown }) {
   const { model, effort, widgetEngine } = await readSettings(db);
   const engine = widgetEngine === "on" || usesWidgetEngine(session);
   const instructions = engine ? ENGINE_INSTRUCTIONS : TUTOR_INSTRUCTIONS;
-  const tools: ToolDefinition[] = engine ? ENGINE_TOOLS : TUTOR_TOOLS;
+  // compose_widget is not offered to new Sessions (ADR 0007); a Session whose tools already list it keeps it.
+  const keepsCompose = Array.isArray(session?.tools) && session.tools.some((t) => (t as { name?: unknown })?.name === "compose_widget");
+  const tools: ToolDefinition[] = engine ? (keepsCompose ? ENGINE_TOOLS_WITH_COMPOSE : ENGINE_TOOLS) : TUTOR_TOOLS;
   return { instructions, tools, model, effort, fingerprint: fingerprint(instructions, tools) };
 }
 

@@ -33,7 +33,7 @@ export function domainOf(seen: Seen, opts: { yMin?: number; yMax?: number; ticks
   }
   if (typeof opts.yMin === "number" && Number.isFinite(opts.yMin)) lo = Math.min(lo, opts.yMin);
   if (typeof opts.yMax === "number" && Number.isFinite(opts.yMax)) hi = Math.max(hi, opts.yMax);
-  const ticks = opts.log && lo > 0 ? logTicks(lo, hi) : niceTicks(lo, hi, opts.ticks ?? 5);
+  const ticks = lo === 0 && hi === 0 ? niceTicks(0, 1, opts.ticks ?? 5) : opts.log && lo > 0 ? logTicks(lo, hi) : niceTicks(lo, hi, opts.ticks ?? 5);
   return { min: ticks[0], max: ticks[ticks.length - 1], ticks };
 }
 
