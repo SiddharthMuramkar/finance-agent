@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
-import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, PICKING_UP, STEP_DIVIDER, STOPPED, type SessionItem } from "@/tutor/session-item-kinds";
+import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, OFF_TOPIC, PICKING_UP, STEP_DIVIDER, STOPPED, type OffTopicData, type SessionItem } from "@/tutor/session-item-kinds";
 import { TOPIC_COMPLETE, type TopicCompleteData } from "@/tutor/topic-complete-card";
 import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
+import { TOPIC_START_ANCHOR } from "./topic-start-card";
 import { stepAnchor } from "./workspace-parts";
 
 /**
@@ -37,6 +38,24 @@ function ResultCard({ label, passed }: { label: string; passed: boolean }) {
   );
 }
 
+/** An Off-Topic answer's marker: a quiet line under the answer, with a way back to the Topic's step (or its start). */
+function OffTopicBlock({ data }: { data: OffTopicData }) {
+  const target = typeof data.step === "number" ? stepAnchor(data.step) : TOPIC_START_ANCHOR;
+  return (
+    <div data-testid="off-topic-block" className="flex flex-wrap items-center gap-x-3 border-l-2 border-[var(--border)] pl-3 text-xs leading-5 text-[var(--muted)]">
+      <span>Off-Topic answer</span>
+      <button
+        type="button"
+        data-testid="off-topic-back"
+        onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        className="rounded underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--ink)]"
+      >
+        ↩ Back to {data.title}
+      </button>
+    </div>
+  );
+}
+
 const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   // A Check's result: a quiz's when it is submitted, a conversation Check's when the Tutor records its verdict.
   [CHECK_RESULT]: (data) => (typeof data.label === "string" ? <ResultCard label={data.label} passed={data.passed === true} /> : null),
@@ -55,6 +74,8 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
       Stopped
     </p>
   ),
+  // Stored after a Tutor answer that left the Topic: "Off-Topic answer · ↩ Back to <Topic>".
+  [OFF_TOPIC]: (data) => (typeof data.title === "string" && typeof data.topicId === "string" ? <OffTopicBlock data={data as OffTopicData} /> : null),
   // Never stored: an old "Continue." message, drawn in the thread and on Past Sessions pages as where the next step began.
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.

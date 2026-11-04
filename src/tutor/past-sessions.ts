@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, max } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
-import { messages, sessions } from "@/db/schema";
+import { foundLines } from "@/course/outcome";
+import { messages, sessions, widgetState } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { summariseRows } from "./session-summary";
@@ -16,13 +17,14 @@ import { summariseRows } from "./session-summary";
 /** The title of the every-Topic-passed Session, which has no Topic. */
 export const FREE_QUESTIONS = "Free questions";
 
-export type TopicSessionRow = { id: number; topicId: string | null; title: string; lastActive: Date };
+/** `found` is what the Learner found in the Session, a line each (the Topic's `found` lines that their saved Widget state meets); absent when none. */
+export type TopicSessionRow = { id: number; topicId: string | null; title: string; lastActive: Date; found?: string[] };
 export type OlderSessionRow = { id: number; date: Date; topics: string[] };
 export type PastSessions = { topics: TopicSessionRow[]; older: OlderSessionRow[] };
 
 /** A Past Session page's header: a Topic Session's Topic, last activity and whether it passed, or an Older Session's date and Topics. */
 export type PastSessionHeader =
-  | { kind: "topic"; topicId: string | null; title: string; lastActive: Date; passed: boolean }
+  | { kind: "topic"; topicId: string | null; title: string; lastActive: Date; passed: boolean; found?: string[] }
   | { kind: "older"; date: Date; topics: string[] };
 
 const titleOf = (map: CourseMap, topicId: string | null) => (topicId === null ? FREE_QUESTIONS : (map.topic(topicId)?.title ?? topicId));
@@ -39,6 +41,22 @@ async function sessionsWithActivity(db: Db, learnerId: number, sessionId?: numbe
   return rows.map((r) => ({ ...r, lastActive: r.lastAt ? new Date(r.lastAt) : r.createdAt }));
 }
 
+/** What the Learner found in each of these Sessions, from their saved Widget state and the Topic's `found` lines. */
+async function foundIn(db: Db, map: CourseMap, learnerId: number, rows: { id: number; topicId: string | null }[]): Promise<Map<number, string[]>> {
+  const out = new Map<number, string[]>();
+  const wanted = rows.filter((r) => r.topicId && map.topic(r.topicId)?.found?.length);
+  if (wanted.length === 0) return out;
+  const saved = await db
+    .select({ sessionId: widgetState.sessionId, widgetKey: widgetState.widgetKey, values: widgetState.values, ticked: widgetState.ticked })
+    .from(widgetState)
+    .where(and(eq(widgetState.learnerId, learnerId), inArray(widgetState.sessionId, wanted.map((r) => r.id))));
+  for (const r of wanted) {
+    const states = Object.fromEntries(saved.filter((s) => s.sessionId === r.id).map((s) => [s.widgetKey, { values: s.values, ticked: s.ticked }]));
+    out.set(r.id, foundLines(map.topic(r.topicId!)!, states));
+  }
+  return out;
+}
+
 /** Topics an Older Session's messages named, in order. */
 async function olderTopics(db: Db, ids: number[]): Promise<Map<number, string[]>> {
   const out = new Map<number, string[]>(ids.map((id) => [id, []]));
@@ -53,10 +71,11 @@ async function olderTopics(db: Db, ids: number[]): Promise<Map<number, string[]>
 /** The Learner's Past Sessions: Topic Sessions, the most recently worked on first, and the Older ones, newest first. */
 export async function loadPastSessions(db: Db, map: CourseMap, learnerId: number): Promise<PastSessions> {
   const all = await sessionsWithActivity(db, learnerId);
+  const found = await foundIn(db, map, learnerId, all.filter((s) => !s.older));
   const topics = all
     .filter((s) => !s.older)
     .sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime() || (b.lastId ?? 0) - (a.lastId ?? 0) || b.id - a.id)
-    .map((s) => ({ id: s.id, topicId: s.topicId, title: titleOf(map, s.topicId), lastActive: s.lastActive }));
+    .map((s) => ({ id: s.id, topicId: s.topicId, title: titleOf(map, s.topicId), lastActive: s.lastActive, ...(found.get(s.id)?.length && { found: found.get(s.id) }) }));
   const olderRows = all.filter((s) => s.older);
   const named = await olderTopics(db, olderRows.map((s) => s.id));
   return { topics, older: olderRows.map((s) => ({ id: s.id, date: s.createdAt, topics: named.get(s.id) ?? [] })) };
@@ -69,5 +88,6 @@ export async function loadPastSession(db: Db, map: CourseMap, sessionId: number,
   if (s.older) return { kind: "older", date: s.createdAt, topics: (await olderTopics(db, [s.id])).get(s.id) ?? [] };
   const progress = await loadProgress(db, learnerId);
   const passed = s.topicId !== null && progress.topics[s.topicId]?.status === "passed";
-  return { kind: "topic", topicId: s.topicId, title: titleOf(map, s.topicId), lastActive: s.lastActive, passed };
+  const found = (await foundIn(db, map, learnerId, [s])).get(s.id);
+  return { kind: "topic", topicId: s.topicId, title: titleOf(map, s.topicId), lastActive: s.lastActive, passed, ...(found?.length && { found }) };
 }
