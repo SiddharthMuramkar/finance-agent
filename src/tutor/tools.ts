@@ -1,15 +1,15 @@
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
 import { REFERENCE_CASE } from "@/case-data/reference";
 import { calculate } from "@/finance/calculators";
-import type { CourseMap } from "@/course/map";
+import { isConverted, type CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, WIDGET_OPENED } from "@/course/written-ahead";
-import { messages, sessions, toolCalls, turns } from "@/db/schema";
+import { messages, practiceAnswers, sessions, toolCalls, turns } from "@/db/schema";
 import { widgetControls, widgetNodes, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
 import { declaredSettings } from "@/widgets/settings";
 import { ARCHETYPES } from "@/widgets/recipes/define";
@@ -23,7 +23,8 @@ import { stepUsage, type StepUsage } from "./usage";
 import { loadWrittenAhead } from "./written-ahead";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
-import { loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
+import { exactWords, loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
+import { MAX_RULE_LENGTH, saveOwnRule } from "@/learner/own-rule";
 import { quizUnavailable } from "@/learner/quiz";
 import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library/library";
 import { stepContext, topicCompleteContext } from "./context";
@@ -34,6 +35,7 @@ import { openWidgetsForTurn } from "./widget-context";
 import { textOf } from "./transcript";
 import type { ToolDefinition } from "./instructions";
 import { JUST_TELL_ME } from "./chips";
+import { ownRuleOf, OWN_RULE_SAVED } from "./own-rule-item";
 import { isCodeWritten, OLD_CONTINUE_TEXT, turnKind } from "./turn-status";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
@@ -98,6 +100,7 @@ export const TOOL_LABELS: Record<string, string> = {
   record_misconception: "Making a note…",
   record_check_verdict: "Recording the Check…",
   record_insight_attempt: "Recording your answer…",
+  save_learner_rule: "Saving to your notes…",
   open_widget: "Opening a Widget…",
   show_widget: "Drawing the Widget…",
   compose_widget: COMPOSE_LABEL,
@@ -194,6 +197,7 @@ export function toolCode(
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
   const searchInput = z.object({ query: z.string().min(1), source: z.string().optional() });
+  const ruleInput = z.object({ learner_words: z.string().min(1) });
   const insightInput = z.object({ outcome: z.enum(["found", "not_yet", "asked_to_be_told"]), learner_words: z.string().min(1) });
 
   /**
@@ -498,6 +502,62 @@ export function toolCode(
           return {
             ok: true,
             text: `Recorded by code: not yet (hint ${n}). ${quoted}\nHint ${n} for the Learner: ${saved.hint!.trim()}\nGive this hint in your own words, point to what to try in the Widget, and do not state the Insight. ${WRITE_AFTER}`,
+          };
+        }),
+    },
+    // The Learner's own rule (spec #229): code checks it is their typed words, then keeps them on the Topic Note.
+    save_learner_rule: {
+      parse: (input) => ruleInput.parse(input),
+      run: ({ learner_words }, context) =>
+        once(context?.toolUse.id, "save_learner_rule", async (tx) => {
+          const [turn] = await tx.select().from(turns).where(eq(turns.id, turnId));
+          const message = turn?.input ?? "";
+          // A chip, a note code wrote and the old "Continue." are never the Learner's own words.
+          if (!turn || message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || turnKind(turn) !== "message") {
+            return { ok: false, text: "Not saved: this turn is not a message the Learner typed. Save a rule only from words they wrote themselves." };
+          }
+          const words = exactWords(message, learner_words);
+          if (!words) return { ok: false, text: "Not saved: those words are not in the Learner's message this turn. Copy their rule exactly as they typed it." };
+          if (words.length > MAX_RULE_LENGTH) return { ok: false, text: `Not saved: a saved rule is at most ${MAX_RULE_LENGTH} characters. Copy only the sentence that states the rule.` };
+          const [row] = await tx.select({ topicId: sessions.topicId }).from(sessions).where(eq(sessions.id, turn.sessionId ?? -1));
+          if (turn.sessionId == null || turn.turnSeq == null || !row?.topicId) return { ok: false, text: "Not saved: this turn has no Topic Session yet." };
+          const topicId = row.topicId;
+          const rules = (await loadSessionItems(tx, turn.sessionId, learnerId)).flatMap((i) => {
+            const rule = ownRuleOf(i);
+            return rule && rule.topicId === topicId ? [{ ...rule, afterSeq: i.afterSeq }] : [];
+          });
+          if (rules.some((r) => r.afterSeq >= turn.turnSeq!)) return { ok: false, text: "Not saved: a rule was already saved in this turn. Save one rule per turn." };
+          let skillId: string | null = null;
+          const topic = map.topic(topicId);
+          if (topic && isConverted(topic)) {
+            // The Skill is the one the Learner just got right: code takes it from their latest marked answer, so the Tutor never names one.
+            const [answer] = await tx
+              .select({ skillId: practiceAnswers.skillId, verdict: practiceAnswers.verdict, createdAt: practiceAnswers.createdAt })
+              .from(practiceAnswers)
+              .where(and(eq(practiceAnswers.learnerId, learnerId), eq(practiceAnswers.topicId, topicId)))
+              .orderBy(desc(practiceAnswers.id))
+              .limit(1);
+            const [previous] = await tx
+              .select({ startedAt: turns.startedAt })
+              .from(turns)
+              .where(and(eq(turns.sessionId, turn.sessionId), lt(turns.id, turnId)))
+              .orderBy(desc(turns.id))
+              .limit(1);
+            if (!answer || answer.verdict !== "right" || (previous && answer.createdAt <= previous.startedAt)) {
+              return { ok: false, text: "Not saved: save the Learner's rule only right after they get a practice answer right. Code has not marked a right answer since your last reply, so teach on without saving." };
+            }
+            skillId = answer.skillId;
+            if (rules.some((r) => r.skillId === skillId)) return { ok: false, text: "Not saved: a rule for this Skill is already on the Learner's notes. Confirm their rule in a sentence without saving it." };
+          } else if (rules.length) {
+            return { ok: false, text: "Not saved: a rule is already on the Learner's notes for this Topic. Confirm their rule in a sentence without saving it." };
+          }
+          const saved = await saveOwnRule(tx, { learnerId, topicId, sessionId: turn.sessionId, turnSeq: turn.turnSeq, text: words, skillId }, now());
+          const item = { kind: OWN_RULE_SAVED, data: { noteId: saved.id, topicId, text: words, skillId } };
+          await saveItemAfterLatest(tx, learnerId, turn.sessionId, item, now());
+          return {
+            ok: true,
+            text: `Saved by code to the Learner's Topic Note: "${words}". The Learner sees "Saved to your notes" with Undo, so don't say you saved it. Confirm their rule in one sentence and use their words from now on.`,
+            items: [item],
           };
         }),
     },

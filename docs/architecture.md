@@ -3934,3 +3934,36 @@ each turn to one small read, but the row and the log could drift if one were edi
 the state can be rebuilt from it. The ladder is the same for every Topic and lives in code, which keeps Topic files small
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
+
+## The Learner's own rule (`save_learner_rule` in `src/tutor/tools.ts`, `src/learner/own-rule.ts`, `src/tutor/own-rule-item.ts`, `src/app/own-rule-line.tsx`, `note_items` kind `own_rule`, spec #229, ticket #244)
+
+**What it does.** When the Learner says a rule in their own words, more simply than the Tutor did, the Tutor can call
+`save_learner_rule` with those words. Code checks them before it keeps anything: the turn is a message the Learner typed
+(a chip, a note code wrote and the old "Continue." are refused); the words are found in that message, and are kept exactly
+as typed, symbols and all, up to 300 characters; no rule was already saved this turn. In a Topic with Skills, the Learner's
+latest practice answer in the Topic must be `right` and must have been recorded after this Session's previous turn began,
+and its Skill becomes the rule's Skill, so the Tutor never names one; a Skill takes one rule. In a Topic without Skills the
+Tutor judges the rule, and the Topic takes one. In one transaction code writes a `note_items` row of kind `own_rule` (the
+column is text, so no migration) and a Session item `OWN_RULE_SAVED` with `{noteId, topicId, text, skillId}`, which streams
+at once. "Once" counts the own-rule items in the Topic's Session, so an Undo does not free the slot. The tool result tells the
+Tutor what was saved, that the Learner sees "Saved to your notes" with Undo, and to confirm the rule in one sentence and use
+the Learner's words from then on. The turn passes the saved words to the reply checks as `ReplyDraft.savedRule`.
+
+The line under the reply reads "Saved to your notes · Undo · Open notes". It reuses the Save to notes control's view with a
+label, never has a Save button, and is never sent to the model. Undo calls `DELETE /api/notes` with the note id; the line then
+reads "Removed from your notes.", and an Undo on a note already gone says the same. On the Notes page `loadNotes` lists the
+rule among its Topic's lines with `ownRule: true`; the page marks it "Your rule", and it can be edited and removed like any
+line. `learnerSummary` adds "Rules in the Learner's own words (use them)" with the newest five, and the Where the Learner
+stands block is sent again when it changes, so the next turn carries them.
+
+**Scenario.** After a right answer on "points to basis points", the Learner types "so its basically change x 100 then divide
+by original". The Tutor calls the tool with "change x 100 then divide by original". Code saves it against that Skill and the
+Learner sees the line. The Tutor says "Yes, that is the rule" in one sentence and later says it in the Learner's words. If the
+Learner presses Undo, the rule leaves the note, and a later try at the same Skill is not saved a second time.
+
+**Trade-off.** The Skill lives only in the Session item, not in the note row, to keep the table as it is; a rule whose item is
+gone would show no Skill, which nothing reads. Saving the Learner's exact words, not a tidier version, keeps the note theirs
+but lets a clumsy or slightly wrong phrase in, and the Tutor is the judge of "correct" in a Topic without Skills. Counting the
+Session's items, not the note rows, means an Undo is final for that Skill or Topic: a Learner who took a rule off is not
+offered it again, and a fresh Session after Start again would be.
+

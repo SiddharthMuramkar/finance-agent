@@ -92,6 +92,10 @@ _Avoid_: Related topic, see also
 The page kept for one Topic: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote, and any rule the Learner put more simply in their own words, which the Tutor saves for them.
 _Avoid_: Summary, recap, cheat sheet
 
+**Own rule**:
+A rule the Learner says in their own words, correctly and more simply than the Tutor did, which code saves word for word to that Topic's Note. The Learner sees "Saved to your notes" with Undo, and the Tutor uses their words from then on. At most one per turn, and one per Skill in a Topic with Skills.
+_Avoid_: Custom rule, user note
+
 **Case**:
 A real past episode that a Topic is taught through, with an outcome that is already known.
 _Avoid_: Example, scenario
