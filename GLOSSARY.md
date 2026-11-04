@@ -28,6 +28,18 @@ _Avoid_: Lesson, module, unit
 One of the seven parts every Topic follows: story, concept, explore, your turn, Check, reveal and principle. Concept, your turn and Check repeat for each of the Topic's Checks; explore comes once, after the concept of the Check that tests the Topic's Insight.
 _Avoid_: Phase, stage
 
+**Topic goal**:
+One line in the Topic bar saying what the Learner will be able to do by the end of the Topic. Words only: it never gives the Insight away.
+_Avoid_: Objective, learning outcome
+
+**Off-Topic answer**:
+The Tutor's answer to a question that leaves the current Topic. It is marked by a quiet block in the conversation with "↩ Back to <Topic>", so the Topic stays in view. It never moves the Learner to another Topic: the Session stays that Topic's.
+_Avoid_: Detour, tangent, side quest
+
+**What the Learner found**:
+One line, worked out by code from the Learner's saved Widget state, saying what they found or guessed in a Topic ("You guessed 12%", "You found where the annuity is worth the same as the cash"). It is shown on Past Sessions and on the Topic complete card.
+_Avoid_: Score, result
+
 **Insight**:
 The surprising consequence of a Topic's idea, which the Learner finds by playing with a Widget at the explore step before the Tutor confirms it. Once the Learner has found it, or been told it, the Insight is settled; until then a Widget holds back anything that would give it away.
 _Avoid_: Aha, takeaway, novelty, X factor

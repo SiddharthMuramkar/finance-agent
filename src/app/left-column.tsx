@@ -1,7 +1,9 @@
 "use client";
 
 import { ThreadPrimitive } from "@assistant-ui/react";
+import { useEffect, useState } from "react";
 import type { ReviewState } from "@/learner/review";
+import { useAnnounce } from "./announcer";
 import { WhatComesNextButton } from "./course/jump-button";
 import { MessageBox } from "./message-box";
 import type { WidgetSlot } from "./reply-markdown";
@@ -12,6 +14,7 @@ import { SecondaryButton } from "./ui";
 import { exploreItem, PinnedExplore } from "./widget-panel";
 import { Chips, TopicBar, type PassedTopic, type Place } from "./workspace-parts";
 import type { NextOffer, StepSequence } from "@/course/navigator";
+import type { NextName } from "@/tutor/next";
 import { TOPIC_START } from "@/course/topic-start";
 import { STEP_DIVIDER } from "@/tutor/session-item-kinds";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
@@ -50,13 +53,30 @@ export function LeftColumn({
   openQuestion?: string | null;
 }) {
   const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, progress, stopping, stop } = turn;
-  // The chips stand only under the latest Tutor reply or card: never under the Learner's own message, during a
-  // turn, before the page has re-read the Learner's place after one, with Retry on offer, or on a passed Topic.
+  // The turn's status words go to the app's one polite live region (announcer.tsx), not one of this column's own.
+  const announce = useAnnounce();
+  useEffect(() => {
+    if (announcement) announce(announcement);
+  }, [announcement, announce]);
+  // A Next pressed keeps its chip on screen for the whole turn (disabled, with the spinner on the one pressed); the
+  // generation gives the chips a fresh start when the turn is over, or could not start.
+  const [nextTurn, setNextTurn] = useState(false);
+  const [generation, setGeneration] = useState(0);
+  const takeNext = (named: NextName) => {
+    setNextTurn(true);
+    void send({ next: named }).finally(() => {
+      setNextTurn(false);
+      setGeneration((g) => g + 1);
+    });
+  };
+  // The chips stand only under the latest Tutor reply or card: never under the Learner's own message, before the page
+  // has re-read the Learner's place after a turn, with Retry on offer, or on a passed Topic; and during a turn only
+  // while it is the one a Next started.
   // While a Check is open there is no Next, and the two help chips stay. Under the Topic Start card alone there
   // are none: the Tutor's opener starts by itself.
   const latest = messages.at(-1);
   const opening = latest?.role === "item" && latest.kind === TOPIC_START;
-  const chips = !passed && latest && latest.role !== "user" && !opening && !running && !refreshing && !canRetry;
+  const chips = !passed && latest && latest.role !== "user" && !opening && !canRetry && ((!running && !refreshing) || nextTurn);
   // The passed Topic's conversation ends at its Topic complete card, which offers where to go next.
   const carded = messages.some((m) => m.role === "item" && m.kind === TOPIC_COMPLETE);
   // The steps whose divider ("step" items) is in the thread: the strip scrolls back to those.
@@ -65,7 +85,7 @@ export function LeftColumn({
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
       {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a pinned Widget, a Review) can squeeze the chat. */}
       <div data-testid="above-thread" className="relative mb-6 flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
-        {place && <TopicBar title={place.title} strip={strip} marked={marked} />}
+        {place && <TopicBar title={place.title} goal={place.goal} strip={strip} marked={marked} />}
         {explore && <PinnedExplore item={exploreItem(explore.code, undefined, explore.id)} />}
         <ReviewPanel review={review} />
       </div>
@@ -73,7 +93,7 @@ export function LeftColumn({
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />
         </div>
-        {chips && <Chips offer={next} onNext={(named) => void send({ next: named })} onSay={(words) => void send({ message: words }, words)} />}
+        {chips && <Chips key={generation} offer={next} onNext={takeNext} onSay={(words) => void send({ message: words }, words)} />}
         {fixing && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Fixing the widget…</p>}
         {notice && (
           <p className="my-3 text-sm leading-5 text-[var(--muted)]" data-testid="turn-notice">
@@ -100,9 +120,6 @@ export function LeftColumn({
           </div>
         )}
       </ThreadPrimitive.Viewport>
-      <p role="status" aria-live="polite" className="sr-only" data-testid="turn-status">
-        {announcement}
-      </p>
       {passed ? (
         <section aria-label="Topic passed" data-testid="topic-passed" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)] p-4">
           {/* Read-only: a passed Topic shows Passed ✓, never Resume. */}

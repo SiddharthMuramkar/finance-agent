@@ -14,9 +14,10 @@ import { showsWelcome } from "@/learner/welcome";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { passedTopicShown, shownInWorkspace } from "@/tutor/session-log";
 import { comingBackItems } from "@/tutor/coming-back";
+import { foundLines } from "@/course/outcome";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 import { loadThread } from "@/tutor/transcript";
-import { nextOfferNow } from "@/tutor/next";
+import { finishStepFromWidget, nextOfferNow } from "@/tutor/next";
 import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
@@ -48,6 +49,9 @@ export default async function WorkspacePage() {
   const learnerId = learner.id;
   // A new Learner (no Sessions, no Topic chosen yet) sees the Welcome before anything else.
   if (await showsWelcome(db, learnerId)) redirect("/welcome");
+  // A step that finishes from what the Learner did in a Widget (its `doneWhen`) is finished now, from the saved Widget
+  // state; its divider and Widget chip are stored for the step that begins. Most renders have no such step and do nothing.
+  await finishStepFromWidget(db, map, learnerId, new Date());
   // The Learner's shown Session: the current Topic's own (ADR 0004), or the Topic alone before its first turn (the page
   // then starts the opener); a Topic passed in a turn stays shown until the Learner chooses. Rendering makes no Session.
   const shown = await shownInWorkspace(db, map, learnerId);
@@ -75,17 +79,22 @@ export default async function WorkspacePage() {
   ]);
   // The shown Topic: a passed Topic still on screen, else the current Topic.
   const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
-  const place = current ? { stage: current.stage, title: current.title } : null;
+  const place = current ? { stage: current.stage, title: current.title, goal: map.topic(current.id)?.goal } : null;
   // The Topic Start card opens the Topic's conversation: worked out from course data now, never stored.
   const start = current ? topicStart(map, progress, current.id) : null;
   // The shown Topic's written-ahead Widgets, as the Learner sees them now: those the Tutor opened are drawn from these.
   const writtenAhead = await loadWrittenAhead(db, map, progress, current?.id);
   // A passed Topic on screen sends no turns: What comes next (from the Course Navigator's place) and the Course Map instead.
   const passed = passedTopic ? { title: passedTopic.title, next: whatComesNext(map, progress)?.label ?? null } : null;
+  // What the Learner found in this Session, read from its saved Widget state when the Topic complete card is drawn.
+  const foundFor = (topicId: unknown) => {
+    const topic = typeof topicId === "string" ? map.topic(topicId) : undefined;
+    return topic ? foundLines(topic, widgetStates) : [];
+  };
   const initial: Line[] = [
     ...(start ? [{ role: "item" as const, ...start }] : []),
     // A Topic complete card offers What comes next as it is now; in a Session reopened for a Due Check, an earlier card offers only the Course Map.
-    ...thread.map((line) => (line.role === "item" && line.kind === TOPIC_COMPLETE ? { ...line, data: { ...line.data, next: passed?.next ?? null } } : line)),
+    ...thread.map((line) => (line.role === "item" && line.kind === TOPIC_COMPLETE ? { ...line, data: { ...line.data, next: passed?.next ?? null, found: foundFor(line.data.topicId) } } : line)),
     ...comingBack.map((item) => ({ role: "item" as const, ...item })),
   ];
   // A turn that didn't finish: the workspace resumes a cut-off one and offers Retry for a failed one. A cut-off or
@@ -104,6 +113,8 @@ export default async function WorkspacePage() {
         pending={pending}
         review={review}
         place={place}
+        // The pinned Open question line shows the Insight question until the Insight is settled (Conversation hides it then).
+        openQuestion={passed ? null : ((current ? map.topic(current.id)?.insight?.question : null) ?? null)}
         // The explore Widget is one of the written-ahead Widgets: drawn as the Learner sees it now, saved under its id.
         explore={passed ? null : exploreAsSeen(exploreWidgetFor(map, progress), writtenAhead)}
         // Until the shown Topic's Insight is settled, its Widgets hold back what would give it away.
