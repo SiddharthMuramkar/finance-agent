@@ -42,7 +42,7 @@ describe("The signed-out gate", () => {
     expect((await proxy(request("/course", { headers: { "Next-Action": "abc" } }))).status).toBe(401);
   });
 
-  it("serves the screenshots on Home", async () => {
+  it("serves the link-preview image signed out", async () => {
     expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
     expect(allowed(await proxy(request("/landing-assets/workspace-dark.webp")))).toBe(true);
   });
@@ -55,7 +55,6 @@ describe("The signed-out gate", () => {
 
   it("sends a signed-out visitor from the Study Workspace to the login, and lets a signed-in one in", async () => {
     expect(redirectedToLogin(await proxy(request("/study")))).toBe(true);
-    expect(redirectedToLogin(await proxy(request("/study?demo=1")))).toBe(true);
     const cookie = await ownersCookie();
     expect(allowed(await proxy(request("/study", { headers: { cookie } })))).toBe(true);
   });

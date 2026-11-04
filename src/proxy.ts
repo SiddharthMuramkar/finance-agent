@@ -4,7 +4,7 @@ import { learnerFromCookie } from "@/auth/learners";
 import { ACCESS_COOKIE, passcodeList } from "@/auth/passcode";
 import { getDb } from "@/db/client";
 
-/** The only files a signed-out visitor may fetch besides Home: its screenshots. */
+/** The only files a signed-out visitor may fetch besides Home: the link-preview image (site-metadata.ts). */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
 /** Signing out works signed in or out, so a Learner already signed out in another tab still lands on Home. */
