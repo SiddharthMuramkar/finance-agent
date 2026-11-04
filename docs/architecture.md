@@ -3324,6 +3324,30 @@ and the Study Workspace. Passcodes live in an environment value, so adding a per
 and redeploying, and a passcode can't contain a comma. Dropping the defaults means any forgotten
 Learner id is an error the Learner sees, rather than a silent leak into the owner's data.
 
+## Widget parts, wave 1 (`src/widgets/primitives/wave1/`, `calculateParts` in `src/finance/calculators.ts`, REPORT.md 7.3)
+
+**What it does.** Nine new Widget parts, each small, keyboard-operable and drawn by code: `Stat` (one formatted number),
+`Verdict` (the sentence a comparison ends in), `QuickCheck` (tap-to-answer practice), `Predict` (lock in a guess, then
+reveal), `Versus` (two bars on one scale), `Breakeven` (hunt for the flip point), `MoneyStack` (count the notes),
+`Waffle` (percent, points and basis points as squares) and `Pictogram` (the thing itself, such as gold bars). `Pictogram`
+and `MoneyStack` are two uses of one `IconGrid`, with 16 small objects on a 24 by 24 grid. They are exported together as
+`WAVE1_PARTS`; the Widget library does not register them yet, a later change does. Numbers come only from props or from
+calculators: `MoneyStack` asks `calculateParts`, which splits a total into its parts (a SIP into money put in and gain, a loan
+into principal and interest) by calling the same `calculate` as the Calculator widget. Teal marks what the Learner set, amber
+what is sourced, neutral what code worked out.
+
+**Scenario.** On the Sensex story the Learner drags `Predict` to 12% and presses "Lock in my guess". The real 33.5% a year
+(worked out by the `cagr` calculator) slides along the same track, and the sentence says it was 21.5 percentage points higher.
+The guess lives in a `$variable`, so a saved note still shows it. On the lottery case a `Breakeven` shows only Far, Warmer, Close
+as the Learner moves the rate slider; at 3.38% it says "Found it", draws a notch and then the amber tick for the 30-year
+Treasury yield that week, so the Learner sees the lottery priced its cash option at about the safe bond rate.
+
+**Trade-off.** Every part is a plain React view that takes plain props, with a thin wrapper that reads the `$variable`, so
+the views are tested without the Widget library. Bars, notes and icons keep their scale while a slider moves (the scale only
+grows), which costs a little precision in the first view but means a change is always seen as a change in number, not in axis.
+Charts here avoid the navy brand colour, so a `Versus` winner is the darker grey rather than blue. A guess stays in the
+`$variable`, but "locked" is kept only while the page is open, so a reload reopens the slider with the saved guess.
+
 ## Interaction foundation (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/nav-link.tsx`, `src/app/route-skeleton.tsx`, `loading.tsx` per route, `src/widgets/genui-theme.tsx`, UX audit lane "foundation")
 
 **What it does.** One base under every screen so a press, a wait and a theme switch feel the same everywhere.
