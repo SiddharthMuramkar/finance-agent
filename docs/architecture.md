@@ -1263,6 +1263,23 @@ and every piece follows at once without a single per-component dark rule.
 **Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
 a quick palette class. In return the look stays consistent and a colour change is one line.
 
+## Colour themes and the contrast check (`src/app/globals.css`, `scripts/check-theme-contrast.mjs`)
+
+**What it does.** There are four colour sets, each a full block of the 26 tokens above: Light (`:root`), Midnight
+(`:root.dark`, the dark theme, which replaced the old mirrored-Tailwind dark), Paper (`:root[data-theme="paper"]`, a warm
+low-glare light) and Forest (`:root.dark[data-theme="forest"]`, a soft green-grey dark). Midnight, Paper and Forest sit
+inside `@media screen`, so printing always falls back to Light's tokens (the print block also forces `color-scheme: light`).
+No block inherits colours from another. The palettes are adapted from Catppuccin Mocha, Rose Pine Dawn and Everforest (all
+MIT; credited in the CSS comments only). Nothing in the UI picks Paper or Forest yet; setting `data-theme` by hand shows them.
+`scripts/check-theme-contrast.mjs` reads the CSS and fails the `check` script if any theme drops below its contrast rules
+(body text, links, accents, tags, focus ring), if a token is missing, or if Light's colours change.
+
+**Scenario.** Someone edits `--muted` in Midnight to something a little too dark. `npm run check` prints which rule failed
+and for which theme, and exits non-zero, so the change cannot merge.
+
+**Trade-off.** Four full blocks repeat every token, so adding a token means editing four places; the checker flags a
+missing one. In return no theme can silently pick up another's colour, and the contrast numbers are enforced, not hoped for.
+
 ## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
 
 **What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
