@@ -2,6 +2,8 @@
 # Case Data (the sourced figures and datasets) lives in the database; see docs/architecture.md.
 id: present-value
 title: Present value
+# One line in the Topic bar: what the Learner can do by the end. Words only, never the Insight.
+goal: Compare money paid at different dates by moving each amount to today.
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
 
 cases:
@@ -101,6 +103,11 @@ widgets:
       text: "Set the 30-year Treasury yield of 24 Oct 2018: {before}%"
       done: "$rate == {before}"
       quick: { slider: rate, note: "30-yr Treasury, 24 Oct 2018" }
+
+# What the Learner found, said on Past Sessions and the Topic complete card once their saved Widget state shows it.
+found:
+  - when: { kind: ticked, widget: annuity-worth-today, task: 2 }
+    text: You found the rate where the annuity is worth the same as the cash.
 
 # Given by the Tutor at the principle step. Written in words (no figures); each names outline Topic IDs, checked by `npm run course:check`.
 connections:
