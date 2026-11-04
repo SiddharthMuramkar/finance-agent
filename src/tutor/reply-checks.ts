@@ -163,6 +163,124 @@ export function splitAsk(text: string): { message: string; ask: string | null } 
   return { message: kept.join("\n").trim(), ask: ask.trim() };
 }
 
+/** Rewrites the prose of a reply, chunk by chunk, leaving every fenced block (Widgets, sources) exactly as it was. */
+function mapProse(text: string, fn: (chunk: string) => string): string {
+  const out: string[] = [];
+  let chunk: string[] = [];
+  let inFence = false;
+  const flush = () => {
+    if (chunk.length) out.push(fn(chunk.join("\n")));
+    chunk = [];
+  };
+  for (const line of text.split("\n")) {
+    const fenceLine = line.trimStart().startsWith("```");
+    if (inFence || fenceLine) {
+      if (!inFence) flush();
+      out.push(line);
+      if (fenceLine) inFence = !inFence;
+      continue;
+    }
+    chunk.push(line);
+  }
+  flush();
+  return out.join("\n");
+}
+
+const ARROW_CHARS = "➜➔➙➛➝➞➟➠➡➢➣➤➥➦➧➨⇒⇨⟹⟶→↳↪";
+const ARROW = new RegExp(`[${ARROW_CHARS}]\\uFE0F?`, "u");
+const LINE_START_ARROW = new RegExp(`^([ \\t]*(?:[-*+][ \\t]+)?)(?:[${ARROW_CHARS}]\\uFE0F?)+[ \\t]*`, "gmu");
+const INLINE_ARROW = new RegExp(`[ \\t]*(?:[${ARROW_CHARS}]\\uFE0F?)+[ \\t]*`, "gu");
+const EMOJI_SOURCE = "(?:[\\p{Extended_Pictographic}\\p{Regional_Indicator}]\\uFE0F?(?:\\u200D\\p{Extended_Pictographic}\\uFE0F?)*|\\u20E3)";
+const EMOJI = new RegExp(EMOJI_SOURCE, "u");
+const LINE_START_EMOJI = new RegExp(`^([ \\t]*)${EMOJI_SOURCE}+[ \\t]*`, "gmu");
+const INLINE_EMOJI = new RegExp(`[ \\t]*${EMOJI_SOURCE}+`, "gu");
+const HEADING = /^([ \t]*)#{1,6}[ \t]+/gm;
+const BOLD = /\*\*(?=\S)([\s\S]*?\S)\*\*|__(?=\S)([\s\S]*?\S)__/g;
+
+/**
+ * The fixes that cost no retry: emoji go, decorative arrows go (or read "to" between two things),
+ * headings become plain lines, and only the first bold span stays bold. Widget fences are left alone.
+ */
+export function fixReply(draft: ReplyDraft): ReplyDraft {
+  let boldKept = false;
+  const text = mapProse(draft.text, (chunk) =>
+    chunk
+      .replace(LINE_START_ARROW, "$1")
+      .replace(INLINE_ARROW, " to ")
+      .replace(LINE_START_EMOJI, "$1")
+      .replace(INLINE_EMOJI, "")
+      .replace(HEADING, "$1")
+      .replace(BOLD, (whole: string, a?: string, b?: string) => {
+        if (!boldKept) {
+          boldKept = true;
+          return whole;
+        }
+        return a ?? b ?? "";
+      })
+      .replace(/[ \t]+$/gm, ""),
+  );
+  return { ...draft, text };
+}
+
+const BANNED_PHRASES = ["Great question", "Certainly", "Absolutely", "Code recorded"];
+/** The task verbs that may open only the ask line. */
+const TASK_VERBS = new Set(["set", "open", "try", "do", "tell", "press", "say"]);
+
+/** Whether a message line sets the Learner a task ("Set the widget…", "Do its Guided Tasks"). "Do not" and "Say a rate…" do not count. */
+function isTaskLine(line: string): boolean {
+  const start = bareStart(line);
+  const [first, second] = start.split(/\s+/).map((w) => w.replace(/[^\p{L}']/gu, "").toLowerCase());
+  if (!first || !TASK_VERBS.has(first)) return false;
+  if (first === "do" && (second === "not" || second === "you")) return false;
+  if (first === "say" && ["a", "an", "we", "you", "your", "that", "it"].includes(second ?? "")) return false;
+  return true;
+}
+
+function quoteList(items: string[]): string {
+  return items.map((s) => `"${s}"`).join(", ");
+}
+
+/**
+ * Every rule (V1 to V7) the reply breaks, with a reason a retry can be told. Run it on the fixed draft
+ * (`fixReply`), so that V3 fails only on what code cannot fix.
+ */
+export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProblem[] {
+  const problems: ReplyProblem[] = [];
+  const { message, ask } = splitAsk(draft.text);
+  const said = prose(draft.text);
+
+  // V1: words within the cap.
+  const words = countWords(message) + (ask ? countWords(ask) : 0);
+  const cap = capFor(ctx.step, ctx.replyKind);
+  if (words > cap) problems.push({ rule: "V1", message: `Your reply was ${words} words. The limit is ${cap}. Keep one idea and one ask.` });
+
+  // V2: one question in the message, one short ask, no other task lines.
+  const questions = (prose(message).match(/\?/g) ?? []).length;
+  if (questions > 1)
+    problems.push({ rule: "V2", message: `Your message asked ${questions} questions. The limit is one, plus the ask on the last line.` });
+  if (ask) {
+    const askWords = countWords(ask);
+    if (askWords > ASK_WORD_LIMIT)
+      problems.push({ rule: "V2", message: `Your ask was ${askWords} words. The limit is ${ASK_WORD_LIMIT}. Make it one short sentence.` });
+    const tasks = prose(message).split("\n").filter(isTaskLine);
+    if (tasks.length)
+      problems.push({
+        rule: "V2",
+        message: `Your message set ${tasks.length} more ${tasks.length === 1 ? "task" : "tasks"} besides the ask (${quoteList(tasks.map((t) => t.trim()))}). Give one thing to do, on the last line.`,
+      });
+  }
+
+  // V3: plain style.
+  const banned = BANNED_PHRASES.filter((p) => new RegExp(`\\b${p}\\b`, "i").test(said));
+  if (banned.length) problems.push({ rule: "V3", message: `Remove ${quoteList(banned)}. Start with the point.` });
+  if (EMOJI.test(said) || ARROW.test(said)) problems.push({ rule: "V3", message: "Remove the emoji and decorative arrows. Write plain text." });
+  if (/^[ \t]*#{1,6}[ \t]+/m.test(said)) problems.push({ rule: "V3", message: "Remove the headings. Write plain sentences." });
+  const bold = said.match(BOLD)?.length ?? 0;
+  if (bold > 1) problems.push({ rule: "V3", message: `Your reply had ${bold} bold spans. The limit is one: the rule worth writing down.` });
+
+  return problems;
+}
+
 /**
  * The numbers in a piece of text, normalised so that 4.5, 4.50 and 4.50% are one number:
  * Indian or Western thousands commas dropped, the sign dropped (a fall of −30 bp is 30), currency symbols ignored.

@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { blockedNumbersFrom, capFor, countWords, splitAsk, type OpenItem, type StepKind } from "./reply-checks";
+import {
+  blockedNumbersFrom,
+  capFor,
+  checkReply,
+  countWords,
+  fixReply,
+  splitAsk,
+  type OpenItem,
+  type ReplyCheckContext,
+  type ReplyDraft,
+  type ReplyWidget,
+  type StepKind,
+} from "./reply-checks";
 
 /** Percent's Check 1 questions, as an open attempt holds them. */
 const BP_DEFINITION: OpenItem = {
@@ -109,5 +121,125 @@ describe("blockedNumbersFrom", () => {
 
   it("is empty when no quiz is open", () => {
     expect(blockedNumbersFrom([])).toEqual([]);
+  });
+});
+
+/** A rupee Topic: Percent's Case figures are rates, not dollar amounts. */
+function ctx(over: Partial<ReplyCheckContext> = {}): ReplyCheckContext {
+  return {
+    step: "concept",
+    exampleCurrency: "INR",
+    caseCurrencies: [],
+    openItems: [],
+    internalWords: ["num-percent-bps", "check-1", "pb-q-bp-definition", "rate-change-three-ways"],
+    ...over,
+  };
+}
+
+function draft(text: string, widgets: ReplyWidget[] = [], savedRule: string | null = null): ReplyDraft {
+  return { text, widgets, savedRule };
+}
+
+function rules(d: ReplyDraft, c: ReplyCheckContext): string[] {
+  return checkReply(fixReply(d), c).map((p) => p.rule);
+}
+
+describe("fixReply", () => {
+  it("strips emoji and decorative arrows", () => {
+    expect(fixReply(draft("Nice 🎉 work.\n➜ Points first.\nIt went 4% → 5%.")).text).toBe("Nice work.\nPoints first.\nIt went 4% to 5%.");
+  });
+
+  it("flattens headings", () => {
+    expect(fixReply(draft("## Points\nPoints are the new rate minus the old.")).text).toBe("Points\nPoints are the new rate minus the old.");
+  });
+
+  it("keeps the first bold span only", () => {
+    expect(fixReply(draft("**Points** are a difference. **Basis points** are hundredths. __Percent__ is relative.")).text).toBe(
+      "**Points** are a difference. Basis points are hundredths. Percent is relative.",
+    );
+  });
+
+  it("leaves Widget fences as they are", () => {
+    const fence = '```openui-lang\nroot = Widget("Rate ➜ 🎯", [a])\n```';
+    expect(fixReply(draft(`Here.\n${fence}`)).text).toBe(`Here.\n${fence}`);
+  });
+
+  it("keeps the Widgets and the saved rule", () => {
+    const w: ReplyWidget = { kind: "recipe", id: "rate_move", params: { old: 2, new: 3 } };
+    expect(fixReply(draft("Here 🎉.", [w], "change times 100"))).toEqual(draft("Here.", [w], "change times 100"));
+  });
+});
+
+describe("V1: words within the cap", () => {
+  const long = Array.from({ length: 10 }, () => "Points are the new rate minus the old rate, said plainly.").join(" ");
+
+  it("passes 80 words at Concept", () => {
+    expect(rules(draft("Points are the new rate minus the old rate.\nHow many points is 3% to 3.5%?"), ctx())).toEqual([]);
+  });
+
+  it("fails 100 words at Concept and passes them at Story", () => {
+    expect(rules(draft(long), ctx({ step: "concept" }))).toContain("V1");
+    expect(rules(draft(long), ctx({ step: "story" }))).not.toContain("V1");
+  });
+
+  it("counts the ask with the message", () => {
+    const seventyNine = Array.from({ length: 79 }, () => "word").join(" ") + ".";
+    expect(rules(draft(`${seventyNine}\nHow many points?`), ctx())).toContain("V1");
+  });
+});
+
+/** The Percent Session's reply after the third attempt: two miss explanations and seven asks. */
+const SEVEN_ASKS = [
+  "Two slips this time.",
+  "",
+  "First: 0.6 of a point is 60 bp, not 6. Multiply by 100.",
+  "Second: 120 bp is 1.2 points. Divide by 100.",
+  "",
+  "Set the widget to 4% and 4.5% and watch the readouts.",
+  "Why do 50 bp and 12.5% describe the same move?",
+  "Do its three Guided Tasks.",
+  "Say the basis-point number out loud first.",
+  "Ask me anything that still feels unclear.",
+  "Press Try again when you are ready.",
+].join("\n");
+
+describe("V2: one question and one ask", () => {
+  it("fails the Percent Session's seven-ask reply", () => {
+    expect(rules(draft(SEVEN_ASKS), ctx({ step: "check" }))).toContain("V2");
+  });
+
+  it("fails two questions in the message", () => {
+    expect(rules(draft("How far did it move? Is that points or percent?\nWhat is 3% to 3.5% in points?"), ctx())).toContain("V2");
+  });
+
+  it("passes one question in the message plus the ask", () => {
+    expect(rules(draft("How far did it move? One point.\nWhat is 3% to 3.5% in points?"), ctx())).toEqual([]);
+  });
+
+  it("fails an ask over 25 words", () => {
+    const ask = "Now take the rate that went from three percent to three and a half percent last year and tell me how many points and basis points it moved?";
+    expect(rules(draft(`Points first.\n${ask}`), ctx())).toContain("V2");
+  });
+
+  it("fails a task line besides the ask", () => {
+    expect(rules(draft("Open the Widget and set the old rate.\nTry 3% to 3.5%.\nHow many points did it move?"), ctx())).toContain("V2");
+  });
+
+  it("allows a task line when the reply has no ask", () => {
+    expect(rules(draft("Try 3% to 3.5% in your head.\nThat is a move of half a point."), ctx())).toEqual([]);
+  });
+});
+
+describe("V3: plain style", () => {
+  it("fails banned phrases", () => {
+    expect(rules(draft("Great question! Points are a difference.\nHow many points is 3% to 3.5%?"), ctx())).toEqual(["V3"]);
+    expect(rules(draft("Certainly. Points are a difference."), ctx())).toEqual(["V3"]);
+    expect(rules(draft("Absolutely right."), ctx())).toEqual(["V3"]);
+  });
+
+  it("fails emoji, arrows and extra bold before the fix, and passes after it", () => {
+    const d = draft("**Points** 🎉 ➜ **bp**.\nHow many points is 3% to 3.5%?");
+    expect(checkReply(d, ctx()).map((p) => p.rule)).toContain("V3");
+    expect(checkReply(fixReply(d), ctx())).toEqual([]);
   });
 });
