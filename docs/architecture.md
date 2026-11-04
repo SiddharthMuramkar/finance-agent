@@ -1048,10 +1048,9 @@ never unticks, but it starts from the saved ticks and reports new ones. Save to 
 and the server keeps the values saved under that key in that Session (the browser's numbers only when nothing is
 saved yet). Notes, Older sessions and Home draw Widgets with no store, so there nothing is saved, as before.
 
-**Scenario.** In Percent, the Tutor opens "One rate change, said three ways" (saved under its id,
-`rate-change-three-ways`). The Learner sets the old rate to 6% and the new to 6.4%, which ticks the first Guided
-Task, then opens another Widget's tab and comes back: the sliders are still at 6% and 6.4% and the task still
-ticked. They reload the page: the same. A Widget the Tutor drew, saved to notes, keeps the values saved under its
+**Scenario.** In present value, the Tutor opens "What the annuity is worth today" (saved under its id,
+`annuity-worth-today`). The Learner sets the rate to 0%, which ticks the first Guided Task, then opens another
+Widget's tab and comes back: the slider is still at 0% and the task still ticked. They reload the page: the same. A Widget the Tutor drew, saved to notes, keeps the values saved under its
 title in the same way.
 
 **Trade-off.** Keying by title is simple and is what the Tutor already uses to update in place, but a Widget
