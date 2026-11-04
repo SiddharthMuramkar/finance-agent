@@ -69,7 +69,7 @@ export const WIDGET_BUDGET = { controls: 1, numbers: 3, visuals: 1, words: 25, c
 const CONTROLS = new Set(["Slider", "Select", "SwitchGroup", "Chips"]);
 
 /** Parts that are a Widget's one visual: our pictures and the kit's charts and tables. */
-const VISUALS = new Set([
+export const VISUALS = new Set([
   ...["AnnuityChart", "HistoryChart", "Calculator", "FormulaCard"],
   ...["Versus", "Breakeven", "MoneyStack", "Waffle", "Pictogram", "DrawTheLine", "PriceTag", "ShrinkingNote", "TimeTravel", "StepThrough", "Rank", "Waterfall"],
   ...["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "PieChart", "RadialChart", "SingleStackedBarChart", "ScatterChart", "Table"],
