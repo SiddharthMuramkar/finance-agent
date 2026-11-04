@@ -247,6 +247,16 @@ _Avoid_: Exercise, challenge, step
 A Quick try or Check question written once in the Topic's file with ranges in place of numbers ("A rate moves from {a}% to {b}%. How many basis points?"). Code draws the numbers and works out the answer and each Known mistake, so every try or attempt gets fresh numbers that code can mark.
 _Avoid_: Question generator, item model
 
+**Theme**:
+One of the site's four colour sets: Light and Paper are the light kind, Midnight and Forest the dark kind. The Learner pins one, or follows the computer with a Day theme and a Night theme. Saved per browser, not per Learner.
+_Avoid_: Skin, dark mode (as the name of a setting)
+
+**Day theme**:
+The Theme (Light or Paper) shown while the computer is in light mode, for a Learner following it.
+
+**Night theme**:
+The Theme (Midnight or Forest) shown while the computer is in dark mode, for a Learner following it.
+
 **Market Workbench**:
 A possible later section for analysing real companies with real data alongside the Tutor.
 _Avoid_: Dashboard, terminal
