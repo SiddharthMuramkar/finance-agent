@@ -211,6 +211,8 @@ export type TurnDeps = {
   now?: () => Date;
   /** How long this run may take before it cuts itself off; defaults to TIME_BUDGET_MS. */
   timeBudgetMs?: number;
+  /** How long into the run a failed reply may still get its one retry; defaults to RETRY_WITHIN_MS (tests shorten it). */
+  retryWithinMs?: number;
   /** Voyage query embeddings for Library search; without them search uses keyword results only. */
   embedQuery?: QueryEmbedder;
   /**
@@ -914,7 +916,7 @@ async function* runLockedTurn(
         await storeFixed();
         toSend = [...nonText(draftHeld), ...(await replyEvent())];
       } else toSend = storedBefore || resumedCorrection ? [...nonText(draftHeld), ...(await replyEvent())] : joinedEvents(draftHeld);
-    } else if (!retried && performance.now() - runStart < RETRY_WITHIN_MS) {
+    } else if (!retried && performance.now() - runStart < (deps.retryWithinMs ?? RETRY_WITHIN_MS)) {
       // One retry: the correction carries every failed check's reason, the Widget correction's included.
       correction = retryMessage(judged, widgetsOnScreen(log.rows, replyFrom, await loadSessionItems(db, session.id, learnerId)));
       rejectReplyRows();

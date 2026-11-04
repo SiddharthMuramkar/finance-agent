@@ -1628,17 +1628,16 @@ writing indicator, the "Stopped" note) is built on these events separately.
   never a 409. The running turn reads its own row every 500 ms (the Stop may reach another function instance, so a
   flag in memory would not work; the column already existed, so no migration). When it sees the flag it aborts the
   Anthropic stream through the Tool Runner's signal. A tool already running finishes its transaction, and no new API
-  call starts. Then the turn saves: every stored tool call gets its result, the step's streamed text is stored as the
-  Tutor's message less any Widget it had not finished (an unclosed openui-lang fence is cut off), no Widget check or
-  correction runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
+  call starts. Then the turn saves: every stored tool call gets its result, the held reply is dropped (since #239 no
+  text is shown or saved as the Tutor's reply, see the reply gate), no check or retry runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
   is stored after the reply. It sends `stopped`, then the normal `done`, so the browser never resumes the turn. A
   Next the Learner already took stays taken. A resume clears an old flag.
 - **Pings.** While the stream is open the route sends `{ type: "ping" }` every 5 seconds from its own timer: the
   turn itself cannot, because it is blocked while a tool runs or the model thinks.
 - **Progress.** The turn tells the route what it is doing through `notify`, which goes straight to the stream:
   "Looking up Case Data…", "Thinking…" at each model call, each tool's plain name while it runs ("Searching the
-  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), "Checking the Widget…" and "Fixing the
-  Widget…". Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
+  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), and, since #239,
+  "Checking the reply…" while code checks the held reply and runs its one retry. Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
   rather than waiting for the first text.
 - **`widget_state`** is declared as an event type only; nothing sends it yet.
 - **Prompt caching.** The request keeps its automatic cache breakpoint (the growing conversation) and adds a second
@@ -1761,7 +1760,7 @@ Learner must never read. The seven checks are:
 span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line
 per failed check with its limit ("Your reply was 142 words. The limit is 80. Keep one idea and one ask."), plus the
 numbers to keep away from after a leak. `trimToCap` is the fallback where no Concept card exists: the reply cut at its
-last full sentence within the cap, ask kept. Nothing calls the module yet; the Tutor Turn wires it in later (#239).
+last full sentence within the cap, ask kept. The Tutor Turn runs it on every reply through the reply gate (below, #239).
 
 **Scenario.** Check 1 of Percent is open with "How many basis points are there in 0.6 of a percentage point?". The
 Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach the idea on numbers other than 0.6,
@@ -1770,6 +1769,56 @@ Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach
 **Trade-off.** The checks read words, not meaning. A reply can pass V5 by saying "sixty" in words, and a supposition
 that opens "Say the rate goes…" counts as a task line. Both are left to the live-model tests, which grade the
 meaning; code catches the common, cheap-to-spot slips on every reply at no cost.
+
+### The reply gate: replies checked before the Learner sees them (`src/tutor/reply-gate.ts`, `reply-records.ts`, `reply-fallback.ts`, `turn.ts`, `session-log.ts`, `transcript.ts`, `usage.ts`, `under-the-hood.tsx`, `drizzle/0030_reply_checks.sql`, spec #229, ticket #239, ADR 0008)
+
+**What it does.** The Tutor Turn no longer streams the reply word by word. `loop()` collects every loop step's text
+(with its Citation markers), the Session items the reply's tools stored and its Widget states in one held list;
+progress labels ("Checking the reply…" among them), pings and a failed save still go out at once. When the model has
+finished, code checks the whole reply:
+- `fixReply` first (emoji, arrows, headings, extra bold): fixes never cost a retry. A fixed reply is stored again as
+  the turn's final assistant text, each block keeping its citations.
+- `checkReply` with this turn's facts (`turnFacts`, worked out again when a tool moved the Learner's step during the
+  draft). The draft's Widgets are only those its own show_widget, compose_widget and open_widget calls stored, plus any
+  openui-lang fence in its text; code-stored items never count, and tool-stored Widgets pass V4 because code checked
+  them as it stored them. A fence fails V4 in an engine Session ("Write no Widget code; call open_widget or
+  show_widget, or teach in words."); without the engine it is checked by `newReplyWidgetProblems` as before.
+- **One retry**, only while the run has used under 30 seconds (`RETRY_WITHIN_MS`). Code appends one correction
+  message ("Reply check by code:" with every failed check's reason, the old Widget correction's included, and the
+  Widgets already on screen) and runs the loop again. Tool effects from the draft stand.
+- **Fallback** when the retry fails too, or the draft fails past 30 seconds: the step's card when `cardFallback`
+  returns one (it returns null until #240 fills it), else the reply cut to its cap by `trimToCap`, ask kept, with any
+  Widget that failed V4 left out. It is stored as the turn's final assistant text, so the history holds what the
+  Learner saw.
+
+Then the browser gets the held items and Widget states in their order, and the checked reply as one text. Each checked
+turn writes one `reply_checks` row: words and cap, the draft's and the retry's problems with their reasons, the
+correction, whether it retried, fell back or was stopped, the rejected seqs and the text shown. `openLog` leaves the
+rejected seqs out of every later request: the draft's text-only messages and the correction go, and a rejected
+tool-use message keeps its tool calls but not its text, so every tool_use keeps its tool_result. The rows stay
+stored. `turnText`, `loadThread` and the resume and refusal paths show only what the Learner saw; a turn with no row
+(an old Session) shows as before. A resume clears the screen (`replay` with no text) and checks a stored draft before
+anything shows; a refusal shows earlier steps' text only when it passes. Stop drops the held reply: nothing is shown
+or saved as the Tutor's reply, every stored tool call still gets its result, and the Learner's message stays with the
+Stopped note. The Under the hood panel adds one line: the words, the failed checks, the retry and the fallback.
+
+The first turn after a refreeze (a deploy changed the instructions) folds the history into one compaction summary
+before the reply, so the reply's request carries the summary and no reply written under the old instructions. A
+refreeze now changes only the instructions, tools, fingerprint and `refrozenAtSeq`: an existing Session keeps its
+model and effort.
+
+**Scenario.** At the concept step the Tutor writes 150 words. The Learner sees "Checking the reply…". Code sends
+"Reply check by code: Your reply was 150 words. The limit is 80…", and the retry comes back at 40 words; the
+Learner sees only that, in one piece. The next turn's request holds neither the long draft nor the correction, and
+the `reply_checks` row keeps both with their reasons.
+
+**Trade-off.** The Learner waits for the whole reply instead of watching it type, and a retry adds a model call. In
+return nothing that breaks a rule ever reaches the screen. The 30 seconds count from the start of the run, refreeze
+fold included, so the first turn after a deploy may skip the retry when its draft fails and go to the fallback. The
+fold costs one compaction call per Session per instructions change. Production runs this code before the
+`reply_checks` migration is applied by hand: every read and write of the table fails soft on Postgres 42P01 (logged
+once), and the turn then runs as if nothing had been rejected, so a reload may show a rejected draft next to its
+retry until the table exists.
 
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
