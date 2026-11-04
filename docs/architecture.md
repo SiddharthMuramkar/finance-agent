@@ -974,6 +974,14 @@ Tutor Widget is in a reply the route would have to find; what is saved is only e
 A static page render cannot show saved values (OpenUI fills in state after the first browser render), so the
 workspace test draws in happy-dom, a browser-like page.
 
+### Widgets that update in place, the 12 second guard and the timing events (`turn-stream.ts`, `widget-states.tsx`, `widget-panel.tsx`, `analytics.ts`)
+
+**What it does.** Three browser behaviours for Widgets. First, when the turn stream carries a `widget_state` event (the Tutor changed a Widget's sliders), the browser saves those values under the Widget's key like a slider drag would (replacing any save still waiting), leaves ticked Guided Tasks alone, and bumps a per-key revision; the Widget is keyed by that revision, so its sliders remount at the new values. Second, a chip or card that has said "Drawing…" for 12 seconds turns into a quiet "The Widget did not arrive." with a Retry button instead of a spinner that never ends; Retry asks the page to draw it again if the page offers that, and always waits another 12 seconds. Third, `analytics.ts` wraps Vercel's `track` and sends five events: `turn_first_text` (ms to the first words), `widget_first_pixel` and `widget_interactive` (lane, recipe, ms from when the Widget began drawing), `widget_timeout` and `widget_fallback`. The lane is the Widget's source ("recipe", "compose", "fallback") or "fence" for one written in the reply.
+
+**Scenario.** The Learner has the rate slider at 3%. They say "show me 8%". The Tutor updates the Widget, the server sends `widget_state {rate: 8}`, and the slider jumps to 8 while the task they already ticked stays ticked. Another time a Widget's fence opens and the reply stalls: after 12 seconds the chip says it did not arrive and offers Retry.
+
+**Trade-off.** Remounting the Widget on a push is simple and always shows the right values, but a half-typed number in that Widget is lost. The timing events never throw and are off under tests, but Vercel only records custom events on the Pro plan or above, and Pro keeps two properties per event (Plus and Enterprise keep eight), so on Pro the third property of the Widget events is dropped.
+
 ### What the Tutor sees of the Widgets, and Tell the Tutor what I found (`src/widgets/widget-reading.ts`, `src/tutor/widget-context.ts`, `turn.ts`, `/api/turn`, `turn-stream.ts`, `WidgetWithSave` in `widget-panel.tsx`, spec #119, ticket #148)
 
 **What it does.** Every turn request from the Study Workspace carries the page's Widget state (the store above:
