@@ -1,13 +1,14 @@
 import { prerender } from "react-dom/static";
 import type { ReactElement } from "react";
 import { eq } from "drizzle-orm";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CourseMap } from "@/course/map";
 import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { loadProfile, saveProfile } from "@/learner/profile";
 import { listSessions, loadSession } from "@/tutor/transcript";
+import { closeBeforeExpand, databaseBeforeExpand, migrateToLatest, rowsFromBefore } from "@/test/before-expand";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
@@ -60,6 +61,8 @@ const turnRoute = await import("@/app/api/turn/route");
 const startOverRoute = await import("@/app/api/start-over/route");
 const settingsRoute = await import("@/app/api/settings/route");
 const { default: SettingsPage } = await import("@/app/settings/page");
+const { default: CourseMapPage } = await import("@/app/course/page");
+const { loadHomeButton } = await import("@/app/_landing/landing");
 
 const OWNER_PASSCODE = "correct horse battery";
 const TEST_PASSCODE = "staple gun";
@@ -113,6 +116,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
+afterAll(closeBeforeExpand);
 
 describe("Signing in with a passcode", () => {
   it("a listed name's passcode signs in as that name's Learner, made on its first sign-in, and the sign-in says which Learner it opened", async () => {
@@ -204,6 +208,21 @@ describe("The owner and a second Learner", () => {
     expect(await json(profileRoute.GET())).toMatchObject({ work: "a teacher in Mumbai" });
   });
 
+  it("the owner's passcode reaches the rows written before Learners existed, which the migration gave the owner", async () => {
+    const { client, db } = await databaseBeforeExpand();
+    await rowsFromBefore(client);
+    await migrateToLatest(client);
+    as.db = db;
+    await signIn(OWNER_PASSCODE);
+
+    expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).toContain("my line");
+    expect(await html(ProgressPage())).toContain('data-status="in_progress"');
+    expect(await html(SessionsPage())).toContain("Older sessions");
+    expect(await html(CourseMapPage())).toMatch(/>In progress\b/);
+    expect(await loadHomeButton()).toEqual({ kind: "resume", topic: as.map!.topic("present-value")!.title });
+    expect(await json(profileRoute.GET())).toMatchObject({ work: "teacher" });
+  });
+
   it("a second Learner sees none of the owner's data on any page, route or Tutor turn", async () => {
     await ownersRows();
     await signIn(TEST_PASSCODE);
@@ -213,6 +232,8 @@ describe("The owner and a second Learner", () => {
     expect(await html(ProgressPage())).toContain("0 in progress · 0 passed");
     expect(await html(ProgressPage())).not.toContain('data-status="in_progress"');
     expect(await html(SettingsPage())).not.toContain("Mumbai");
+    expect(await html(CourseMapPage())).not.toMatch(/>In progress\b/);
+    expect(await loadHomeButton()).toEqual({ kind: "start", topic: as.map!.topic("present-value")!.title });
     // With no Sessions of their own, the second Learner is sent to the Welcome, which holds nothing of the owner's.
     await expect(StudyPage()).rejects.toMatchObject(toWelcome);
     const welcome = await html(WelcomePage({ searchParams: Promise.resolve({}) }));
@@ -238,6 +259,8 @@ describe("The owner and a second Learner", () => {
     const owners = await html(StudyPage());
     expect(owners).toContain("The owner&#x27;s reply about the annuity.");
     expect(owners).not.toContain("Welcome. Let&#x27;s start with a story.");
+    expect(await html(CourseMapPage())).toMatch(/>In progress\b/);
+    expect(await loadHomeButton()).toEqual({ kind: "resume", topic: as.map!.topic("present-value")!.title });
   });
 });
 

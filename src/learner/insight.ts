@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, lt, count } from "drizzle-orm";
 import type { CourseMap, Insight } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
-import { insightAttempts, OWNER_LEARNER_ID, topicProgress, turns } from "@/db/schema";
+import { insightAttempts, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "./memory";
 
@@ -50,7 +50,7 @@ export async function saveInsightAttempt(
   map: CourseMap,
   input: InsightAttemptInput,
   now = new Date(),
-  learnerId = OWNER_LEARNER_ID,
+  learnerId: number,
 ): Promise<InsightAttemptResult> {
   const progress = await loadProgress(db, learnerId);
   const place = navigate(map, progress);
@@ -120,7 +120,7 @@ export type ExploreInfo = {
 };
 
 /** The Learner's attempts at their place's Insight, as the context tells them. */
-export async function loadExploreInfo(db: Db, place: Place | null, turnId?: number, learnerId = OWNER_LEARNER_ID): Promise<ExploreInfo | undefined> {
+export async function loadExploreInfo(db: Db, place: Place | null, turnId: number | undefined, learnerId: number): Promise<ExploreInfo | undefined> {
   const insight = place?.topic.insight;
   if (!place || !insight || (place.step !== "explore" && place.step !== "principle")) return undefined;
   const rows = await db

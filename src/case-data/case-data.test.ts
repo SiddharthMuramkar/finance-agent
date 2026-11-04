@@ -110,7 +110,7 @@ describe("the Case Data route", () => {
   it("before the reveal returns nothing dated after the as-of date, and everything once the reveal is shown", async () => {
     const db = await testDb();
     await importCaseData(db, [dataset("yield", [["2018-10-23", 3.37], ["2018-11-01", 3.4]], { unit: "percent" }), dataset("winner-choice", [["2019-03-04", 877_784_124]])]);
-    const before = await caseDataResponse(db, map, "jackpot");
+    const before = await caseDataResponse(db, map, "jackpot", OWNER_LEARNER_ID);
     expect(before.status).toBe(200);
     expect(before.headers.get("Cache-Control")).toBe("no-store");
     const body = await before.json();
@@ -119,11 +119,11 @@ describe("the Case Data route", () => {
 
     // Walk the Learner to the reveal through Learner Memory, as the Tutor's tools do.
     const now = new Date("2026-11-02T10:00:00Z");
-    await saveFinishedStep(db, map, "story", now);
-    await saveFinishedStep(db, map, "concept", now);
-    await saveFinishedStep(db, map, "your_turn", now);
-    await saveCheckResult(db, map, { checkId: "pv-check", passed: true }, now);
-    const after = await (await caseDataResponse(db, map, "jackpot")).json();
+    await saveFinishedStep(db, map, "story", now, OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "concept", now, OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "your_turn", now, OWNER_LEARNER_ID);
+    await saveCheckResult(db, map, { checkId: "pv-check", passed: true }, now, OWNER_LEARNER_ID);
+    const after = await (await caseDataResponse(db, map, "jackpot", OWNER_LEARNER_ID)).json();
     expect(after.revealed).toBe(true);
     expect(after.datasets.map((d: { id: string }) => d.id)).toEqual(["winner-choice", "yield"]);
   });
@@ -145,7 +145,7 @@ describe("the Case Data route", () => {
   });
 
   it("answers 404 for an unknown Case", async () => {
-    expect((await caseDataResponse(await testDb(), map, "nope")).status).toBe(404);
+    expect((await caseDataResponse(await testDb(), map, "nope", OWNER_LEARNER_ID)).status).toBe(404);
   });
 });
 

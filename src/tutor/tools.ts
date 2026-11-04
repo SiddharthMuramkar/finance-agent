@@ -8,7 +8,7 @@ import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
 import { exploreHeldBack } from "@/course/explore-widget";
 import { WIDGET_OPENED } from "@/course/written-ahead";
-import { OWNER_LEARNER_ID, sessions, toolCalls, turns } from "@/db/schema";
+import { sessions, toolCalls, turns } from "@/db/schema";
 import { widgetControls } from "@/widgets/check";
 import { loadWrittenAhead } from "./written-ahead";
 import type { Db } from "@/db/types";
@@ -69,7 +69,7 @@ const WRITE_AFTER = "Write your reply to the Learner now, after this result, and
 export const SAVE_FAILED_MESSAGE = "Your progress could not be saved just now. The Tutor has been told nothing was recorded.";
 
 /** The Course Navigator's context for the Learner's place, with the Case Data the as-of rule allows them right now. */
-export async function navigatorContext(db: Db, map: CourseMap, place: Place | null, turnId?: number, learnerId = OWNER_LEARNER_ID): Promise<string> {
+export async function navigatorContext(db: Db, map: CourseMap, place: Place | null, turnId: number | undefined, learnerId: number): Promise<string> {
   const sessionId = turnId === undefined ? null : (await db.select({ s: turns.sessionId }).from(turns).where(eq(turns.id, turnId)))[0]?.s;
   return stepContext(
     place,
@@ -81,7 +81,7 @@ export async function navigatorContext(db: Db, map: CourseMap, place: Place | nu
 }
 
 /** The Case Data of the place's Cases, under the as-of rule for this Learner's progress. */
-export async function caseDataFor(db: Db, map: CourseMap, place: Place | null, learnerId = OWNER_LEARNER_ID) {
+export async function caseDataFor(db: Db, map: CourseMap, place: Place | null, learnerId: number) {
   if (!place) return [];
   const progress = await loadProgress(db, learnerId);
   const all = await Promise.all(place.topic.cases.map((c) => loadCaseData(db, map, progress, c.id)));

@@ -162,7 +162,7 @@ If you ever need to clear the limit at once, delete the rows of `login_failures`
 
 ## Database (Neon Postgres through Drizzle)
 
-**What it does.** Neon is the only store. Thirteen tables so far:
+**What it does.** Neon is the only store. Its tables:
 - `settings`: the Tutor's model (`claude-opus-5-5`), effort (`medium`) and the idle hours that
   count as a break (they no longer start a Session), editable without a rebuild.
 - `sessions`: one row per Session (one Learner's conversation about one Topic), with the exact
@@ -193,16 +193,18 @@ Claude's thinking rules need, but makes it less convenient to query than neat co
 
 ## Learners, Topic Sessions and the expand step (`learners`, `session_items`, `widget_state`, `drizzle/0026_learners_expand.sql`, spec #119)
 
-**What it does.** This is the groundwork for own Learners and one Session per Topic (ADR 0004). It
-changes the database only; no code reads or writes the new parts yet, so nothing on screen changes.
+**What it does.** This was the groundwork for own Learners and one Session per Topic (ADR 0004). At
+the expand step it changed the database only; no code read or wrote the new parts yet, so nothing on
+screen changed. The per-Learner code and the contract step (below) have since shipped.
 - **Learners** (`learners`): one row per Learner, with a name, an archived time (set by Start over)
   and the Show developer details choice (off). The migration makes the owner's Learner, id 1, named
   "owner" (`OWNER_LEARNER_ID` in `src/db/schema.ts`). At most one Learner per name is not archived.
 - **A Learner id on every Learner-owned table**: the place on the Course Map (`learner_state`),
   `topic_progress`, `check_results`, `quiz_attempts`, `misconceptions`, `insight_attempts`,
   `review_cards`, `review_log`, `note_items`, `learner_profile`, `pasted_texts`, `sessions`, `turns`,
-  and the two new stores below. The column defaults to the owner, which gave every existing row to
-  the owner, and also gives the owner every row written by today's code, which never names a Learner.
+  and the two new stores below. At the expand step the column defaulted to the owner, which gave
+  every existing row to the owner, and also gave the owner every row written by the code of the time,
+  which never named a Learner. The contract step (migration 0028) later dropped those defaults.
 - **On Sessions**: the Topic, an Older flag and the position where the Session's instructions were
   last refrozen after a deploy. Every existing Session is Older. The flag defaults to Older; the
   Tutor Turn now makes live Topic Sessions (see "One Session per Topic" below). A database rule
@@ -269,8 +271,9 @@ friend's Tutor context, Case Data and Library search still stop at 24 October 20
 
 **Trade-off.** The Learner is passed by hand as an argument, not taken from a hidden per-request
 store, so every reader says whose data it reads and tests can run two Learners side by side. The
-cost is a longer argument list, and a reader that forgets the Learner is not caught by the database
-(a writer is: since the contract step a row without a Learner is refused). One more cost: the code
+cost is a longer argument list. The Learner is a required argument of every reader and writer, with
+no owner fallback in code, so one that forgets it does not compile; and since the contract step the
+database also refuses a row written without a Learner. One more cost: the code
 live before this change upserts Topic progress on its old one-column key, so between applying the
 migration and the new code's deploy such a write fails, and the Learner is told it was not saved.
 
@@ -575,14 +578,14 @@ outcome is included only from the reveal step on, so hindsight is withheld by co
 a tool, `finish_teaching_step`; when it calls it, code asks the Navigator, saves the move if it
 is legal and replies with the next step's material, or replies with an error if it isn't.
 
-**Sessions.** Opening the workspace makes no model call: the page reads the summary and the
+**Sessions.** Opening the workspace makes no model call: the page reads the
 current Topic's Session from SQL and shows the Next chip under its last reply. Each Topic has its own Session (see
 "One Session per Topic"), which a break never ends. A Session opens with the Where the Learner
 stands block and the context as the first block of its first message. (Claude's API rejects a
 "system" message in first place, which a live run showed; later context messages can be "system"
 messages.) Older Sessions stay readable at `/sessions`.
 
-**Scenario.** The Learner returns after a weekend. The page shows the summary and the Topic's
+**Scenario.** The Learner returns after a weekend. The page shows the Topic's
 thread at no cost, ending in a "Picking up where you left off" divider (see "Coming back") with the
 Next chip under it. They press Next or write to the Tutor; the same Session carries on, a new Where the
 Learner stands block tells the Tutor anything that changed, and teaching picks up at the same Teaching Step.
@@ -1330,8 +1333,9 @@ numbers (code already sends those, and they use neutral numbers).
 - **A failed progress write.** If saving a verdict or step fails, the transaction rolls back, so
   the Course Navigator doesn't advance. Claude's tool result says plainly that nothing was recorded,
   and the Learner sees an error.
-- **A deploy that changes the Tutor.** A Session whose frozen instructions or tools differ from the
-  new build's starts afresh from SQL on the next message, and the workspace says so in one line.
+- **A deploy that changes the Tutor.** The next new turn refreezes the instructions and tools inside
+  the same Session; earlier messages' thinking blocks are left out from then on, and no notice is
+  shown (see "One Session per Topic").
 - **Compaction for long Sessions.** When a turn ends with the conversation over `compact_at_tokens`
   (a setting, default 200,000 tokens), the Tool Runner asks Claude's API for a summary (on-demand
   compaction, beta `compact-2026-09-04`). The summary is stored as a new message; later requests
@@ -3252,7 +3256,10 @@ backfill reload places the corrected readings.
   login still goes straight to the Study Workspace or the safe `next`.
 - **The dropped owner defaults** (migration 0028, the contract step). Every `learner_id` column lost its
   default, so a write that forgets the Learner fails in the database instead of quietly giving the
-  row to the owner.
+  row to the owner. The code has no owner fallback either: every reader and writer, the Tutor Turn's
+  and the Library's dependencies, and the Case Data route take the Learner as a required argument, so
+  a call that forgets it does not compile. Signed-out Home names no Learner and reads Case Data with
+  an empty Progress, so nothing counts as revealed.
 
 **Scenario.** The owner sets `PASSCODES` to `owner:<his old passcode>, test:<a new one>` in Vercel and
 redeploys. His laptop's old cookie is refused, so he signs in again with the same passcode and finds

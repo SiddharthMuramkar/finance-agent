@@ -1,5 +1,5 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { OWNER_LEARNER_ID, pastedTexts } from "@/db/schema";
+import { pastedTexts } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 /**
@@ -24,12 +24,12 @@ export type Paste = typeof pastedTexts.$inferSelect;
 export const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
 
 /** Saves the paste a Learner's turn carries. A retry of the same turn keeps the first one. */
-export async function savePaste(db: Db, turnId: number, text: string, now: Date, learnerId = OWNER_LEARNER_ID): Promise<void> {
+export async function savePaste(db: Db, turnId: number, text: string, now: Date, learnerId: number): Promise<void> {
   await db.insert(pastedTexts).values({ learnerId, turnId, text, words: wordCount(text), createdAt: now }).onConflictDoNothing({ target: pastedTexts.turnId });
 }
 
 /** The paste a turn carries, if any; it is tied to the turn's Session the first time the turn picks one. */
-export async function pasteForTurn(db: Db, turnId: number, sessionId: number, learnerId = OWNER_LEARNER_ID): Promise<Paste | undefined> {
+export async function pasteForTurn(db: Db, turnId: number, sessionId: number, learnerId: number): Promise<Paste | undefined> {
   const thisTurn = and(eq(pastedTexts.learnerId, learnerId), eq(pastedTexts.turnId, turnId));
   await db
     .update(pastedTexts)
@@ -40,7 +40,7 @@ export async function pasteForTurn(db: Db, turnId: number, sessionId: number, le
 }
 
 /** Everything this Learner pasted in one Session, oldest first. */
-export async function loadPastes(db: Db, sessionId: number, learnerId = OWNER_LEARNER_ID): Promise<Paste[]> {
+export async function loadPastes(db: Db, sessionId: number, learnerId: number): Promise<Paste[]> {
   return db
     .select()
     .from(pastedTexts)
@@ -51,7 +51,7 @@ export async function loadPastes(db: Db, sessionId: number, learnerId = OWNER_LE
 /** What the Tutor has seen pasted in a Session: how many passages and words. */
 export type PasteSummary = { count: number; words: number };
 
-export async function pasteSummary(db: Db, sessionId: number | null | undefined, learnerId = OWNER_LEARNER_ID): Promise<PasteSummary> {
+export async function pasteSummary(db: Db, sessionId: number | null | undefined, learnerId: number): Promise<PasteSummary> {
   if (!sessionId) return { count: 0, words: 0 };
   const rows = await loadPastes(db, sessionId, learnerId);
   return { count: rows.length, words: rows.reduce((n, r) => n + r.words, 0) };

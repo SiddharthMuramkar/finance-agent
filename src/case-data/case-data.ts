@@ -54,7 +54,7 @@ export async function loadCaseData(db: Db, map: CourseMap, progress: Progress, c
 }
 
 /** The server route's answer for one Case: its data under the as-of rule for this Learner's progress. No model call. */
-export async function caseDataResponse(db: Db, map: CourseMap, caseId: string, learnerId?: number): Promise<Response> {
+export async function caseDataResponse(db: Db, map: CourseMap, caseId: string, learnerId: number): Promise<Response> {
   const data = await loadCaseData(db, map, await loadProgress(db, learnerId), caseId);
   if (!data) return Response.json({ error: "Unknown Case" }, { status: 404 });
   return Response.json(data, { headers: { "Cache-Control": "no-store" } });

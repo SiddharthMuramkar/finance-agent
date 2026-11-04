@@ -2,7 +2,7 @@ import { and, asc, eq, isNull, ne } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { exploreWidgetOf } from "@/course/explore-widget";
 import { navigate } from "@/course/navigator";
-import { messages, noteItems, OWNER_LEARNER_ID, sessions } from "@/db/schema";
+import { messages, noteItems, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { lastTopicTitle, rowsThroughTurn } from "@/tutor/session-summary";
 import { loadSession, type Line } from "@/tutor/transcript";
@@ -85,7 +85,7 @@ async function ownSession(db: Db, sessionId: number, learnerId: number): Promise
  * Saves a reply, or a Widget with its settings, on the right Topic's Note of this Learner. Saving the same thing
  * again changes nothing (a Widget's settings are updated). Another Learner's Session is no such Session.
  */
-export async function saveToNotes(db: Db, map: CourseMap, request: SaveRequest, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<SaveResult> {
+export async function saveToNotes(db: Db, map: CourseMap, request: SaveRequest, now = new Date(), learnerId: number): Promise<SaveResult> {
   const req = await withSavedState(db, request, learnerId);
   if (req.kind === "widget" && req.widgetIndex === EXPLORE_INDEX) {
     if (req.sessionId !== undefined && !(await ownSession(db, req.sessionId, learnerId))) return notFound("That Session does not exist.");
@@ -140,7 +140,7 @@ async function keep(db: Db, learnerId: number, key: Key, code: string | undefine
 }
 
 /** Takes one of this Learner's saved replies or Widgets off its Topic Note. False when they have no such item. Their own lines are not touched. */
-export async function removeSaved(db: Db, id: number, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
+export async function removeSaved(db: Db, id: number, learnerId: number): Promise<boolean> {
   const rows = await db
     .delete(noteItems)
     .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), ne(noteItems.kind, "line")))
@@ -153,7 +153,7 @@ export async function removeSaved(db: Db, id: number, learnerId = OWNER_LEARNER_
  * so a reply's sources are folded and the as-of rule applies as it does in an old Session: a passage
  * the Learner has not yet earned the right to see stays hidden until the Case's reveal.
  */
-export async function loadSaved(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<Map<string, SavedItem[]>> {
+export async function loadSaved(db: Db, map: CourseMap, learnerId: number): Promise<Map<string, SavedItem[]>> {
   const rows = (await db
     .select()
     .from(noteItems)

@@ -7,6 +7,7 @@ import { ensureTopicStarted, saveCheckResult, saveFinishedStep } from "@/learner
 import { OPENING_PREFIX } from "./context";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   await Array.fromAsync(events);
@@ -39,15 +40,15 @@ describe("Connections at the principle step", () => {
     const db = await testDb();
     const steps: string[] = [];
     // Walk the Learner through every Teaching Step, reading the context the Tutor gets at each one.
-    await ensureTopicStarted(db, map);
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID);
     const seen: Record<string, string> = {};
     for (const step of ["story", "concept", "your_turn", "check", "reveal", "principle"] as const) {
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Ok." }] }]);
-      await collect(runTutorTurn({ db, client, map }, `at ${step}`));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, `at ${step}`));
       seen[step] = contexts(requests[0] as Request).join("\n");
       steps.push(step);
-      if (step === "check") await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true });
-      else if (step !== "principle") await saveFinishedStep(db, map, step);
+      if (step === "check") await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true }, new Date(), OWNER_LEARNER_ID);
+      else if (step !== "principle") await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
     }
     expect(steps).toHaveLength(6);
     for (const step of ["story", "concept", "your_turn", "check", "reveal"]) {
@@ -71,11 +72,11 @@ describe("Connections at the principle step", () => {
     const db = await testDb();
     const bare = presentValueOnly({ withoutQuiz: true, withoutInsight: true });
     expect(bare.topic("present-value")!.connections).toEqual([]);
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, bare, step);
-    await saveCheckResult(db, bare, { checkId: bare.topic("present-value")!.checks[0].id, passed: true });
-    await saveFinishedStep(db, bare, "reveal");
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, bare, step, new Date(), OWNER_LEARNER_ID);
+    await saveCheckResult(db, bare, { checkId: bare.topic("present-value")!.checks[0].id, passed: true }, new Date(), OWNER_LEARNER_ID);
+    await saveFinishedStep(db, bare, "reveal", new Date(), OWNER_LEARNER_ID);
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Ok." }] }]);
-    await collect(runTutorTurn({ db, client, map: bare }, "go"));
+    await collect(runTutorTurn({ db, client, map: bare, learnerId: OWNER_LEARNER_ID }, "go"));
     const text = contexts(requests[0] as Request).join("\n");
     expect(text).toContain("Teaching Step: principle");
     expect(text).not.toContain("Connections:");

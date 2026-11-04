@@ -64,21 +64,21 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 /** Runs one turn with its own scripted replies; returns the events and the model requests it made. */
 async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map = twoTopics, shown?: Shown) {
   const { client, requests } = scriptedClient(replies);
-  const events = await collect(runTutorTurn({ db, client, map, shown }, input));
+  const events = await collect(runTutorTurn({ db, client, map, shown, learnerId: OWNER_LEARNER_ID }, input));
   return { events, requests };
 }
 
 const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messages);
-const texts = async (db: Db, map = twoTopics) => (await loadCurrentSession(db, map)).map((l) => l.text);
+const texts = async (db: Db, map = twoTopics) => (await loadCurrentSession(db, map, OWNER_LEARNER_ID)).map((l) => l.text);
 
 describe("one Session per Topic", () => {
   it("A → B → A: each Topic shows only its own messages, and B's model request holds nothing from A", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Tell me about the lottery.", [say("Picture October 2018.")]);
     expect(await texts(db)).toEqual(["Tell me about the lottery.", "Picture October 2018."]);
 
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     // The page renders B before its first turn: an empty thread, and no Session made by rendering.
     expect(await texts(db)).toEqual([]);
     const b = await turn(db, "What were we just talking about?", [say("We are starting on bond prices.")]);
@@ -86,7 +86,7 @@ describe("one Session per Topic", () => {
     expect(sent(b.requests[0])).not.toContain("Picture October 2018.");
     expect(await texts(db)).toEqual(["What were we just talking about?", "We are starting on bond prices."]);
 
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     expect(await texts(db)).toEqual(["Tell me about the lottery.", "Picture October 2018."]);
     const a = await turn(db, "Go on.", [say("The winner had a choice.")]);
     expect(sent(a.requests[0])).toContain("Picture October 2018.");
@@ -96,15 +96,15 @@ describe("one Session per Topic", () => {
 
   it("sends the Where the Learner stands block again, as a new message, only when it changes; nothing already sent is rebuilt", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
-    await saveProfile(db, profileInput.parse({ work: "Nurse" }));
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
+    await saveProfile(db, profileInput.parse({ work: "Nurse" }), new Date(), OWNER_LEARNER_ID);
     const first = await turn(db, "Hi", [say("Hello.")]);
     const second = await turn(db, "Again", [say("Still here.")]);
     // Unchanged: no new block, and the opening message replays as it was sent.
     expect(second.requests[0].messages[0]).toEqual(first.requests[0].messages[0]);
     expect(second.requests[0].messages.filter((m) => m.role === "system")).toEqual([]);
 
-    await saveProfile(db, profileInput.parse({ work: "Teacher" }));
+    await saveProfile(db, profileInput.parse({ work: "Teacher" }), new Date(), OWNER_LEARNER_ID);
     const third = await turn(db, "And now?", [say("Teaching, then.")]);
     const sentNow = third.requests[0].messages;
     expect(sentNow[0]).toEqual(first.requests[0].messages[0]);
@@ -128,7 +128,7 @@ describe("one Session per Topic", () => {
 
   it("a refused turn stays on screen, but every row of it is left out of later requests, in the same Session", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Hi", [say("Hello.")]);
     const calc = { type: "tool_use", id: "toolu_calc", name: "calculate", input: { expression: "100 / 1.08" } };
     const refused = await turn(db, "Something odd", [
@@ -144,7 +144,7 @@ describe("one Session per Topic", () => {
     expect(await texts(db)).toEqual(["Hi", "Hello.", "Something odd", "Let me work that out."]);
 
     const next = await turn(db, "Let me ask another way", [say("Sure.")]);
-    expect(await listSessions(db)).toHaveLength(1);
+    expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     const request = sent(next.requests[0]);
     for (const left of ["Something odd", "Let me work that out.", "toolu_calc", "I can't help"]) expect(request).not.toContain(left);
     expect(request).toContain("Hello.");
@@ -153,14 +153,14 @@ describe("one Session per Topic", () => {
 
   it("a turn from a tab showing another Topic's Session, or an opener for another Topic, is refused and changes nothing", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     // The page shows no Session yet, so it sends its Topic; the done event says what it shows next.
     const first = await turn(db, "Hi", [say("Hello.")], twoTopics, { topicId: "present-value" });
     const done = first.events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     expect(done.shown).toEqual({ sessionId: done.ref.sessionId });
 
     // Another tab chooses Bond prices.
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     const staleMessage = "This Topic changed in another tab. Reload to carry on.";
     for (const shown of [done.shown, { topicId: "present-value" }]) {
       const stale = await turn(db, "Still on present value?", [say("Should not run.")], twoTopics, shown);
@@ -169,7 +169,7 @@ describe("one Session per Topic", () => {
     }
     const retried = await turn(db, { resume: true }, [say("Should not run.")], twoTopics, done.shown);
     expect(retried.events).toEqual([{ type: "stale", message: staleMessage }]);
-    expect(await latestTurn(db)).toMatchObject({ status: "finished", input: "Hi" });
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "finished", input: "Hi" });
 
     // The tab that shows Bond prices carries on.
     const b = await turn(db, "Bonds, then.", [say("Bond prices.")], twoTopics, { topicId: "bonds" });
@@ -178,17 +178,17 @@ describe("one Session per Topic", () => {
 
   it("a turn that failed before reaching a Session is set aside when the Learner chooses another Topic, so it never runs there", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     // A turn for present value failed before it had a Session (a database error before its Session was chosen).
-    const failed = (await startTurn(db, new Date(), "Tell me about the lottery."))!;
+    const failed = (await startTurn(db, new Date(), "Tell me about the lottery.", OWNER_LEARNER_ID))!;
     await updateTurn(db, failed.id, { status: "failed", error: "The database could not be reached." });
     // Choosing the same Topic again keeps it, with its Retry.
-    await saveJump(db, twoTopics, "present-value");
-    expect(await latestTurn(db)).toMatchObject({ id: failed.id, status: "failed" });
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ id: failed.id, status: "failed" });
 
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     // Nothing unfinished is left, so Bond prices' page starts its opener rather than offering present value's Retry.
-    expect((await latestTurn(db))?.status).toBe("finished");
+    expect((await latestTurn(db, OWNER_LEARNER_ID))?.status).toBe("finished");
     // A Retry from any tab sends nothing into Bond prices' Session.
     const retried = await turn(db, { resume: true }, [say("Should not run.")], twoTopics, { topicId: "bonds" });
     expect(retried.requests).toHaveLength(0);
@@ -199,7 +199,7 @@ describe("one Session per Topic", () => {
 
   it("every Session from before is Older: never continued, never shown in the Study Workspace, and still readable", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     // As the expand migration left it: a Session that may hold several Topics, Older by default.
     const [old] = await db
       .insert(sessionsTable)
@@ -211,7 +211,7 @@ describe("one Session per Topic", () => {
     const fresh = await turn(db, "Hello.", [say("A fresh start.")]);
     expect(sent(fresh.requests[0])).not.toContain("Sensex");
     expect(await texts(db)).toEqual(["Hello.", "A fresh start."]);
-    expect((await loadSession(db, old.id, twoTopics)).map((l) => l.text)).toEqual(["An old question about the Sensex."]);
+    expect((await loadSession(db, old.id, twoTopics, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["An old question about the Sensex."]);
   });
 
   it("with every Topic passed, the Learner talks to the Tutor in one Session with no Topic", async () => {
@@ -228,23 +228,23 @@ describe("one Session per Topic", () => {
 
   it("B7: a pass survives A → B → A, a deploy that changes the instructions, and a reload", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, twoTopics, step);
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, twoTopics, step, new Date(), OWNER_LEARNER_ID);
     const checkId = twoTopics.topic("present-value")!.checks[0].id;
     const verdict = { type: "tool_use", id: "toolu_pass", name: "record_check_verdict", input: { check_id: checkId, verdict: "pass", reasons: "Discounted each payment." } };
     await turn(db, "Each payment is worth less today.", [{ content: [verdict], stop_reason: "tool_use" }, say("That is a pass.")]);
-    expect((await loadProgress(db)).topics["present-value"].passedChecks).toEqual([checkId]);
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"].passedChecks).toEqual([checkId]);
 
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Bonds now.", [say("Bond prices.")]);
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await db.update(sessionsTable).set({ fingerprint: "an-earlier-build" });
     const back = await turn(db, "Where was I?", [say("Past the Check, at the reveal.")]);
 
     // Reload: the pass, the place and the Topic's own thread are all still there.
-    expect((await loadProgress(db)).topics["present-value"].passedChecks).toEqual([checkId]);
-    expect(await loadCheckResults(db)).toMatchObject([{ checkId, passed: true }]);
-    expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: reveal");
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"].passedChecks).toEqual([checkId]);
+    expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toMatchObject([{ checkId, passed: true }]);
+    expect(await learnerSummary(db, twoTopics, OWNER_LEARNER_ID)).toContain("Teaching Step: reveal");
     expect(sent(back.requests[0])).toContain("Teaching Step: reveal");
     expect(await texts(db)).toEqual(["Each payment is worth less today.", "That is a pass.", "Where was I?", "Past the Check, at the reveal."]);
   });
@@ -252,17 +252,17 @@ describe("one Session per Topic", () => {
   it("a quiz result reaches only its own Topic's Session", async () => {
     const db = await testDb();
     const map = withBonds({ quiz: true });
-    await saveJump(db, map, "present-value");
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
     await turn(db, "Ready.", [say("Your quiz is on the right.")], map);
-    const quiz = (await openQuiz(db, map))!;
-    await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])));
+    const quiz = (await openQuiz(db, map, new Date(), OWNER_LEARNER_ID))!;
+    await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])), new Date(), OWNER_LEARNER_ID);
 
-    await saveJump(db, map, "bonds");
+    await saveJump(db, map, "bonds", new Date(), OWNER_LEARNER_ID);
     const b = await turn(db, "Hello bonds.", [say("Bond prices.")], map);
     expect(sent(b.requests[0])).not.toContain("Quiz result by code");
 
-    await saveJump(db, map, "present-value");
+    await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
     const a = await turn(db, "Back again.", [say("You passed.")], map);
     expect(sent(a.requests[0])).toContain(`Quiz result by code, Check ${quiz.checkId}, attempt 1`);
   });
@@ -271,26 +271,26 @@ describe("one Session per Topic", () => {
 describe("the opener: the page starts a Topic's first turn by itself", () => {
   it("stores no Learner message, is recorded as an opener turn, and teaches the Story of a Topic not yet started", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     const opened = await turn(db, { opener: true }, [say("Picture a bond in 1994.")], twoTopics, { topicId: "bonds" });
     expect(opened.events.at(-1)).toMatchObject({ type: "done" });
 
     // Only the Tutor's reply is on screen: no Learner bubble.
     expect(await texts(db)).toEqual(["Picture a bond in 1994."]);
-    expect(turnKind((await latestTurn(db))!)).toBe("opener");
+    expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("opener");
     const request = sent(opened.requests[0]);
     expect(request).toContain("Opener by code:");
     expect(request).toContain("Teach the Story");
     expect(request).toContain("Teaching Step: story.");
     // The opener started the Topic.
-    expect((await loadProgress(db)).topics["bonds"]).toMatchObject({ step: "story", status: "in_progress" });
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["bonds"]).toMatchObject({ step: "story", status: "in_progress" });
   });
 
   it("in a Topic already started, teaches the step reached, which nothing in this Session has taught yet", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Hi", [say("Hello.")]);
-    await saveFinishedStep(db, twoTopics, "story");
+    await saveFinishedStep(db, twoTopics, "story", new Date(), OWNER_LEARNER_ID);
     // The Learner went to Bond prices and comes back to a Topic whose Session is new (as after the switch-over).
     await db.update(sessionsTable).set({ older: true });
     const opened = await turn(db, { opener: true }, [say("Now the concept.")], twoTopics, { topicId: "present-value" });
@@ -305,8 +305,8 @@ describe("the opener: the page starts a Topic's first turn by itself", () => {
   it("at an open quiz, points the Learner to the Check tab rather than teaching", async () => {
     const db = await testDb();
     const map = withBonds({ quiz: true });
-    await saveJump(db, map, "present-value");
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
     const opened = await turn(db, { opener: true }, [say("Your quiz is in the Check tab.")], map, { topicId: "present-value" });
     const request = sent(opened.requests[0]);
     expect(request).toContain("is open on the right, in the Check tab. Point the Learner to it");
@@ -315,7 +315,7 @@ describe("the opener: the page starts a Topic's first turn by itself", () => {
 
   it("is refused once the Session has messages (another tab opened it first), and changes nothing", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     await turn(db, { opener: true }, [say("Picture a bond.")], twoTopics, { topicId: "bonds" });
     const again = await turn(db, { opener: true }, [say("Should not run.")], twoTopics, { topicId: "bonds" });
     expect(again.events).toEqual([{ type: "stale", message: "This Topic changed in another tab. Reload to carry on." }]);
@@ -325,12 +325,12 @@ describe("the opener: the page starts a Topic's first turn by itself", () => {
 
   it("a failed opener's Retry sends its note again and is still an opener", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     const failed = await turn(db, { opener: true }, [{ error: new Error("overloaded") }], twoTopics, { topicId: "bonds" });
     expect(failed.events.at(-1)).toMatchObject({ type: "error" });
     const retried = await turn(db, { resume: true }, [say("Picture a bond.")], twoTopics);
     expect(sent(retried.requests[0])).toContain("Opener by code:");
-    expect(turnKind((await latestTurn(db))!)).toBe("opener");
+    expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("opener");
     expect(await texts(db)).toEqual(["Picture a bond."]);
   });
 });
@@ -338,7 +338,7 @@ describe("the opener: the page starts a Topic's first turn by itself", () => {
 describe("a Topic passed in a turn", () => {
   it("tells the Tutor \"Topic complete: stop here\" with no context for another Topic, starts nothing, and stays on screen", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Hi", [say("Hello.")]);
     await db.update(topicProgress).set({ step: "principle" });
     const finish = { type: "tool_use", id: "toolu_done", name: "finish_teaching_step", input: { step: "principle" } };
@@ -349,17 +349,17 @@ describe("a Topic passed in a turn", () => {
     expect(result).not.toContain("Bond prices");
     expect(result).not.toContain("Course Navigator:");
     // The next Topic is not started, and the Learner's shown Session is still the passed one.
-    expect((await loadProgress(db)).topics).not.toHaveProperty("bonds");
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics).not.toHaveProperty("bonds");
     const done = passed.events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     expect(done.shown).toEqual({ sessionId: done.ref.sessionId });
     expect(await shownInWorkspace(db, twoTopics, OWNER_LEARNER_ID)).toEqual({ sessionId: done.ref.sessionId });
-    expect((await loadSession(db, done.ref.sessionId, twoTopics)).map((l) => l.text)).toEqual(["Hi", "Hello.", "So money today is worth more.", "Exactly.\n\nWell done."]);
+    expect((await loadSession(db, done.ref.sessionId, twoTopics, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Hi", "Hello.", "So money today is worth more.", "Exactly.\n\nWell done."]);
     expect(await passedTopicShown(db, twoTopics, OWNER_LEARNER_ID, done.shown)).toBe("present-value");
     // Its page can send no more turns there: the Learner's current Topic has moved on.
     expect((await turn(db, "And now?", [say("Should not run.")], twoTopics, done.shown)).events.map((e) => e.type)).toEqual(["stale"]);
 
     // Choosing where to go shows that Topic: here, what comes next (Bond prices), before its first turn.
-    await openCurrentTopic(db);
+    await openCurrentTopic(db, OWNER_LEARNER_ID);
     expect(await shownInWorkspace(db, twoTopics, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
     expect(await passedTopicShown(db, twoTopics, OWNER_LEARNER_ID, { topicId: "bonds" })).toBeNull();
   });
@@ -370,7 +370,7 @@ describe("a deploy that changes the Tutor's instructions", () => {
 
   it("refreezes instructions, tools, model and effort at the next new turn in the same Session; earlier thinking is never sent again, later thinking replays unchanged", async () => {
     const db = await testDb();
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     const reply = (n: number): ScriptedReply => ({ content: [thinking(n), { type: "text", text: `Reply ${n}.` }] });
     await turn(db, "One", [reply(1)]);
     await turn(db, "Two", [reply(2)]);
@@ -380,7 +380,7 @@ describe("a deploy that changes the Tutor's instructions", () => {
 
     const three = await turn(db, "Three", [reply(3)]);
     const four = await turn(db, "Four", [reply(4)]);
-    expect(await listSessions(db)).toHaveLength(1);
+    expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     for (const request of [...three.requests, ...four.requests]) {
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
       expect(request.model).toBe("claude-opus-5-5");
@@ -402,14 +402,14 @@ describe("the Course Map's passed rows", () => {
     await db
       .insert(sessionsTable)
       .values({ learnerId: OWNER_LEARNER_ID, instructions: TUTOR_INSTRUCTIONS, tools: [], model: "claude-opus-5-5", effort: "medium", fingerprint: "old", topicId: "bonds" });
-    await saveJump(db, twoTopics, "present-value");
+    await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Tell me about the lottery.", [say("Picture October 2018.")]);
-    await saveJump(db, twoTopics, "bonds");
+    await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
     await turn(db, "And bonds?", [say("Prices fall when rates rise.")]);
 
     const ids = await topicSessions(db, OWNER_LEARNER_ID);
     expect(Object.keys(ids).sort()).toEqual(["bonds", "present-value"]);
-    expect((await loadSession(db, ids["present-value"], twoTopics)).map((l) => l.text)).toEqual(["Tell me about the lottery.", "Picture October 2018."]);
-    expect((await loadSession(db, ids.bonds, twoTopics)).map((l) => l.text)).toEqual(["And bonds?", "Prices fall when rates rise."]);
+    expect((await loadSession(db, ids["present-value"], twoTopics, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Tell me about the lottery.", "Picture October 2018."]);
+    expect((await loadSession(db, ids.bonds, twoTopics, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["And bonds?", "Prices fall when rates rise."]);
   });
 });

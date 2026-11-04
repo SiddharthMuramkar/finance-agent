@@ -1,11 +1,4 @@
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { PGlite } from "@electric-sql/pglite";
-import { vector } from "@electric-sql/pglite-pgvector";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/pglite";
-import { migrate } from "drizzle-orm/pglite/migrator";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   OWNER_LEARNER_ID,
@@ -26,8 +19,8 @@ import {
   turns,
   widgetState,
 } from "./schema";
-import * as schema from "./schema";
 import type { Db } from "./types";
+import { closeBeforeExpand, databaseBeforeExpand, migrateToLatest, rowsFromBefore } from "@/test/before-expand";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { presentValueOnly } from "@/test/present-value-map";
@@ -55,51 +48,7 @@ const learnerOwned = {
   turns,
 };
 
-const EXPAND = "_learners_expand";
-
-const temp: string[] = [];
-const clients: PGlite[] = [];
-afterAll(async () => {
-  await Promise.allSettled(clients.map((c) => c.close()));
-  await Promise.allSettled(temp.map((d) => rm(d, { recursive: true, force: true })));
-});
-
-/** A Postgres migrated up to just before the expand migration: the database as production has it today. */
-async function databaseBeforeExpand(): Promise<{ client: PGlite; db: Db }> {
-  const dir = await mkdtemp(join(tmpdir(), "finance-agent-before-expand-"));
-  temp.push(dir);
-  await cp("drizzle", dir, { recursive: true });
-  const journalFile = join(dir, "meta", "_journal.json");
-  const journal = JSON.parse(await readFile(journalFile, "utf8")) as { entries: { tag: string }[] };
-  const at = journal.entries.findIndex((e) => e.tag.endsWith(EXPAND));
-  expect(at).toBeGreaterThan(0);
-  journal.entries = journal.entries.slice(0, at);
-  await writeFile(journalFile, JSON.stringify(journal));
-  const client = new PGlite({ extensions: { vector } });
-  clients.push(client);
-  const db = drizzle({ client, schema });
-  await migrate(db, { migrationsFolder: dir });
-  return { client, db: db as unknown as Db };
-}
-
-/** Rows written the way the code live before the expand wrote them: with no Learner id, which didn't exist. */
-async function rowsFromBefore(client: PGlite) {
-  await client.exec(`
-    INSERT INTO sessions (instructions, tools, model, effort, fingerprint) VALUES ('i', '[]', 'm', 'medium', 'f'), ('i', '[]', 'm', 'medium', 'g');
-    INSERT INTO turns (session_id, turn_seq, status) VALUES (1, 0, 'finished');
-    INSERT INTO learner_state (id, current_topic_id) VALUES (1, 'present-value');
-    INSERT INTO topic_progress (topic_id, step, status) VALUES ('present-value', 'concept', 'in_progress');
-    INSERT INTO check_results (topic_id, check_id, passed) VALUES ('present-value', 'pv-quiz', true);
-    INSERT INTO quiz_attempts (check_id, attempt_no, question_ids) VALUES ('pv-quiz', 0, '["q1"]');
-    INSERT INTO misconceptions (topic_id, description, model, tool_call_id) VALUES ('present-value', 'd', 'm', 'toolu_1');
-    INSERT INTO insight_attempts (topic_id, reported, released, words, tool_call_id) VALUES ('present-value', 'found', 'found', 'w', 'toolu_2');
-    INSERT INTO review_cards (question_id, due, stability, difficulty, elapsed_days, scheduled_days, reps, lapses, learning_steps, state) VALUES ('q1', now(), 1, 1, 0, 0, 0, 0, 0, 0);
-    INSERT INTO review_log (question_id, rating, source, reviewed_at) VALUES ('q1', 3, 'quiz', now());
-    INSERT INTO note_items (topic_id, kind, text) VALUES ('present-value', 'line', 'my line');
-    INSERT INTO learner_profile (id, work) VALUES (1, 'teacher');
-    INSERT INTO pasted_texts (turn_id, session_id, text, words) VALUES (1, 1, 'pasted', 1);
-  `);
-}
+afterAll(closeBeforeExpand);
 
 async function ownersOf(db: Db) {
   const out: Record<string, number[]> = {};
@@ -115,7 +64,7 @@ describe("database expand: Learners", () => {
     const { client, db } = await databaseBeforeExpand();
     await rowsFromBefore(client);
 
-    await migrate(drizzle({ client, schema }), { migrationsFolder: "./drizzle" });
+    await migrateToLatest(client);
 
     expect(await db.select().from(learners)).toEqual([
       { id: OWNER_LEARNER_ID, name: "owner", archivedAt: null, showDeveloperDetails: false, createdAt: expect.any(Date) },
@@ -132,31 +81,32 @@ describe("database expand: Learners", () => {
     expect(await db.select({ shown: learnerState.shownSessionId }).from(learnerState)).toEqual([{ shown: null }]);
   });
 
-  it("rows written by code that never names a Learner belong to the owner, and its Sessions belong to their Topic", async () => {
+  it("rows written by today's code belong to the Learner it names, never the owner, and its Sessions belong to their Topic", async () => {
     const db = await testDb();
+    const [learner] = await db.insert(learners).values({ name: "test" }).returning();
     const map = presentValueOnly({ withoutInsight: true });
     const text = (t: string) => ({ content: [{ type: "text", text: t }] });
     const { client } = scriptedClient([text("A story."), text("Your quiz is below."), text("Read it.")]);
     const run = async (input: Parameters<typeof runTutorTurn>[1]) => {
-      for await (const e of runTutorTurn({ db, client, map }, input)) void e;
+      for await (const e of runTutorTurn({ db, client, map, learnerId: learner.id }, input)) void e;
     };
 
     await run("Hello");
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), learner.id);
     await run("Go on.");
-    const quiz = (await openQuiz(db, map))!;
-    await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])));
-    await reviewState(db, map); // the Review panel enrolls the passed questions
-    await saveMisconception(db, map, { topicId: "present-value", description: "d", model: "m", toolCallId: "toolu_x" });
-    await saveProfile(db, { work: "teacher", location: null, loan: null, savingFor: null });
-    await addLine(db, map, "present-value", "my line");
+    const quiz = (await openQuiz(db, map, new Date(), learner.id))!;
+    await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])), new Date(), learner.id);
+    await reviewState(db, map, new Date(), learner.id); // the Review panel enrolls the passed questions
+    await saveMisconception(db, map, { topicId: "present-value", description: "d", model: "m", toolCallId: "toolu_x" }, new Date(), learner.id);
+    await saveProfile(db, { work: "teacher", location: null, loan: null, savingFor: null }, new Date(), learner.id);
+    await addLine(db, map, "present-value", "my line", new Date(), learner.id);
     await run({ message: "Look at this", paste: "A pasted passage." });
 
     const owners = await ownersOf(db);
     for (const [name, ids] of Object.entries(owners)) {
       if (name === "insight_attempts") continue; // the map has no Insight, so today's code writes none
       expect(ids.length, name).toBeGreaterThan(0);
-      expect(new Set(ids), name).toEqual(new Set([OWNER_LEARNER_ID]));
+      expect(new Set(ids), name).toEqual(new Set([learner.id]));
     }
     expect(new Set((await db.select({ older: sessions.older, topicId: sessions.topicId }).from(sessions)).map((s) => JSON.stringify(s)))).toEqual(
       new Set([JSON.stringify({ older: false, topicId: "present-value" })]),

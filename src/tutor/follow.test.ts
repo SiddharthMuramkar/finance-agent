@@ -7,6 +7,7 @@ import { loadPastes, PASTE_PREFIX } from "./pasted";
 import { listSessions, loadSession } from "./transcript";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -100,7 +101,7 @@ describe("Follow Topics: a dated piece as a Case", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Let's read it." }] }]);
 
-    await collect(runTutorTurn({ db, client, map: libraryMap() }, "Go on."));
+    await collect(runTutorTurn({ db, client, map: libraryMap(), learnerId: OWNER_LEARNER_ID }, "Go on."));
 
     const context = sentTexts(requests[0]).join("\n");
     expect(context).toContain('Piece studied: A. Writer, "Up, up and away", published 2014-12-02 (https://example.org/blog/up).');
@@ -118,7 +119,7 @@ describe("Follow Topics: a dated piece as a Case", () => {
       { content: [{ type: "text", text: "As A. Writer puts it, step one is the potential market." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client, map: libraryMap() }, "What is step one?"));
+    await collect(runTutorTurn({ db, client, map: libraryMap(), learnerId: OWNER_LEARNER_ID }, "What is step one?"));
 
     const result = sentTexts(requests[1]).find((t) => t.startsWith("Library search"))!;
     expect(result).toContain("Step one is the potential market for car service");
@@ -135,7 +136,7 @@ describe("Follow Topics: text the Learner pastes", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Please paste the opening." }] }]);
 
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, "Go on."));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), learnerId: OWNER_LEARNER_ID }, "Go on."));
 
     const context = sentTexts(requests[0]).join("\n");
     expect(context).toContain('Piece studied: B. Writer, "A newsletter piece", published 2014-12-01');
@@ -151,8 +152,8 @@ describe("Follow Topics: text the Learner pastes", () => {
       { content: [{ type: "text", text: "The first step is the subsidy claim." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, "Go on."));
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, { message: "Here is the opening.", paste: passage }));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), learnerId: OWNER_LEARNER_ID }, "Go on."));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), learnerId: OWNER_LEARNER_ID }, { message: "Here is the opening.", paste: passage }));
 
     const msgs = requests[1].messages;
     const learner = msgs.at(-2)!;
@@ -176,19 +177,19 @@ describe("Follow Topics: text the Learner pastes", () => {
       { content: [{ type: "text", text: "Nothing in the Library." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, { message: "Here is the opening.", paste: passage }));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), learnerId: OWNER_LEARNER_ID }, { message: "Here is the opening.", paste: passage }));
     const { requests: searchRequests, client: searchClient } = scriptedClient([
       { content: [{ type: "tool_use", id: "search-2", name: "search_library", input: { query: "cheap prices hide a subsidy" } }] },
       { content: [{ type: "text", text: "Nothing in the Library." }] },
     ]);
-    await collect(runTutorTurn({ db, client: searchClient, map: pasteMap() }, "Is this in the Library?"));
+    await collect(runTutorTurn({ db, client: searchClient, map: pasteMap(), learnerId: OWNER_LEARNER_ID }, "Is this in the Library?"));
 
-    const session = (await listSessions(db))[0];
-    expect(await loadPastes(db, session.id)).toEqual([expect.objectContaining({ sessionId: session.id, text: passage, words: 20 })]);
+    const session = (await listSessions(db, OWNER_LEARNER_ID))[0];
+    expect(await loadPastes(db, session.id, OWNER_LEARNER_ID)).toEqual([expect.objectContaining({ sessionId: session.id, text: passage, words: 20 })]);
     const result = sentTexts(searchRequests[1]).find((t) => t.startsWith("Library search"))!;
     expect(result).toContain("No Library passage matched");
     expect(result).not.toContain("subsidy cannot last");
-    const lines = await loadSession(db, session.id);
+    const lines = await loadSession(db, session.id, undefined, OWNER_LEARNER_ID);
     expect(lines[0]).toEqual({ role: "user", text: 'Here is the opening.\n\n(Pasted passage, 20 words: "Paragraph one of the newsletter piece …")' });
   });
 
@@ -200,9 +201,9 @@ describe("Follow Topics: text the Learner pastes", () => {
       { content: [{ type: "text", text: "Welcome back; please paste the part again." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client, map: pasteMap(), now: () => now }, { message: "Here is the opening.", paste: passage }));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), now: () => now, learnerId: OWNER_LEARNER_ID }, { message: "Here is the opening.", paste: passage }));
     now = new Date("2026-11-02T20:00:00Z");
-    await collect(runTutorTurn({ db, client, map: pasteMap(), now: () => now }, "Where were we?"));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), now: () => now, learnerId: OWNER_LEARNER_ID }, "Where were we?"));
 
     const context = sentTexts(requests[1]).join("\n");
     expect(context).toContain(passage);
@@ -213,8 +214,8 @@ describe("Follow Topics: text the Learner pastes", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ error: new Error("connection reset") }, { content: [{ type: "text", text: "Got it." }] }]);
 
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, { message: "Here is the opening.", paste: passage }));
-    await collect(runTutorTurn({ db, client, map: pasteMap() }, { resume: true }));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), learnerId: OWNER_LEARNER_ID }, { message: "Here is the opening.", paste: passage }));
+    await collect(runTutorTurn({ db, client, map: pasteMap(), learnerId: OWNER_LEARNER_ID }, { resume: true }));
 
     expect(sentTexts(requests.at(-1)!)).toContain(`${PASTE_PREFIX}\n${passage}`);
   });

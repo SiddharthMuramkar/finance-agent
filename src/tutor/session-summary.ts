@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { exploreWidgetInSession, type ExploreWidget } from "@/course/explore-widget";
 import type { CourseMap } from "@/course/map";
-import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
+import { messages, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
 
@@ -64,7 +64,7 @@ export function rowsThroughTurn<T extends { seq: number; role: string; content: 
 }
 
 /** Every one of the Learner's Sessions' summaries in one query, keyed by Session id. */
-export async function loadSessionSummaries(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Map<number, SessionSummary>> {
+export async function loadSessionSummaries(db: Db, learnerId: number): Promise<Map<number, SessionSummary>> {
   const rows = await db
     .select({ sessionId: messages.sessionId, role: messages.role, content: messages.content })
     .from(messages)

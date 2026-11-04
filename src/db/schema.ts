@@ -368,7 +368,7 @@ export const reviewCards = pgTable(
   (t) => [primaryKey({ columns: [t.learnerId, t.questionId] })],
 );
 
-/** Every rating given to a question. `source` "review" rows are the ones the per-Session cap counts. */
+/** Every rating given to a question. `source` "review" rows are the ones the daily cap counts (the last 24 hours, ADR 0004). */
 export const reviewLog = pgTable("review_log", {
   id: serial("id").primaryKey(),
   learnerId: learnerId(),

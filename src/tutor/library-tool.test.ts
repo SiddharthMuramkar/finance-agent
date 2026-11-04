@@ -6,6 +6,7 @@ import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -68,7 +69,7 @@ describe("search_library tool in the Tutor Turn", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hello." }] }]);
 
-    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     expect(requests[0].tools).toContainEqual({ name: "search_library" });
     expect(TUTOR_INSTRUCTIONS).toContain("do not name sources in your sentences");
@@ -80,7 +81,7 @@ describe("search_library tool in the Tutor Turn", () => {
     await importLibrary(db, blog);
     const { client, requests } = scriptedClient(structuredClone(searchThenReply));
 
-    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "What does the Library say about present value?"));
 
     const text = searchResult(requests);
     expect(text).toContain("Source: B. Author, A textbook (Publisher, 2022), CC BY 4.0");
@@ -99,7 +100,7 @@ describe("search_library tool in the Tutor Turn", () => {
     });
     const { client, requests } = scriptedClient(structuredClone(searchThenReply));
 
-    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "What does the Library say about present value?"));
 
     const content = searchContent(requests);
     expect(Array.isArray(content)).toBe(true);
@@ -118,7 +119,7 @@ describe("search_library tool in the Tutor Turn", () => {
     await importLibrary(db, { ...book, source: { ...book.source, quoteWords: 60 } });
     const { client, requests } = scriptedClient(structuredClone(searchThenReply));
 
-    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "What does the Library say about present value?"));
 
     expect(searchResult(requests)).toContain('Quote at most 60 words from "A textbook" at a time, with credit');
   });
@@ -131,7 +132,7 @@ describe("search_library tool in the Tutor Turn", () => {
       throw new Error("Voyage 503");
     };
 
-    await collect(runTutorTurn({ db, client, embedQuery, map: presentValueOnly() }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, embedQuery, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "What does the Library say about present value?"));
 
     const text = searchResult(requests);
     expect(text).toContain(VOYAGE_DOWN);
@@ -142,7 +143,7 @@ describe("search_library tool in the Tutor Turn", () => {
     const db = await testDb();
     const { client, requests } = scriptedClient(structuredClone(searchThenReply));
 
-    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does the Library say about present value?"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "What does the Library say about present value?"));
 
     expect(searchResult(requests)).toContain("No Library passage matched");
   });
@@ -160,7 +161,7 @@ describe("search_library tool in the Tutor Turn", () => {
       { content: [{ type: "text", text: "As B. Author puts it, present value discounts each payment." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What does B. Author say about present value?"));
+    await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "What does B. Author say about present value?"));
 
     const text = searchResult(requests);
     expect(text).toContain("Present value discounts each future payment back to today");

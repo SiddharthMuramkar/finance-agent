@@ -1,17 +1,17 @@
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Jump, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
-import { checkResults, insightAttempts, learnerState, misconceptions, OWNER_LEARNER_ID, topicProgress, turns } from "@/db/schema";
+import { checkResults, insightAttempts, learnerState, misconceptions, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 /**
  * Learner Memory: one Learner's place and results in SQL. Code reads and
  * writes it; the Course Navigator decides what the records mean. Every read
- * and write is of the given Learner's rows only (the owner's when none is
- * named, as the database's own default has it until every caller names one).
+ * and write is of the given Learner's rows only, and every caller names the
+ * Learner: there is no owner fallback, in code or in the database.
  */
 
-export async function loadProgress(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Progress> {
+export async function loadProgress(db: Db, learnerId: number): Promise<Progress> {
   const [state] = await db.select().from(learnerState).where(eq(learnerState.learnerId, learnerId));
   const topics = await db.select().from(topicProgress).where(eq(topicProgress.learnerId, learnerId));
   const passes = await db
@@ -82,7 +82,7 @@ async function saveCurrentTopic(db: Db, map: CourseMap, before: Progress, after:
  * The Learner chose a Topic (on the Course Map, after any prompt about unmet prerequisites). Only the
  * current Topic changes; every Topic keeps its progress. Its Session shows at once.
  */
-export async function saveJump(db: Db, map: CourseMap, topicId: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Jump> {
+export async function saveJump(db: Db, map: CourseMap, topicId: string, now = new Date(), learnerId: number): Promise<Jump> {
   const progress = await loadProgress(db, learnerId);
   const jump = jumpTo(map, progress, topicId);
   if (jump.ok) await saveCurrentTopic(db, map, progress, jump.progress, now, learnerId);
@@ -90,7 +90,7 @@ export async function saveJump(db: Db, map: CourseMap, topicId: string, now = ne
 }
 
 /** The Learner goes back to the default path; the Topic they leave keeps its progress. Its Session shows at once. */
-export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
+export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new Date(), learnerId: number): Promise<void> {
   const progress = await loadProgress(db, learnerId);
   await saveCurrentTopic(db, map, progress, returnToDefaultPath(progress), now, learnerId);
 }
@@ -100,12 +100,12 @@ export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new 
  * is what comes next), whose Session shows at once. After a Topic passed in a turn, this is how the
  * Learner leaves it: until then the Study Workspace keeps showing the passed Topic's Session.
  */
-export async function openCurrentTopic(db: Db, learnerId = OWNER_LEARNER_ID): Promise<void> {
+export async function openCurrentTopic(db: Db, learnerId: number): Promise<void> {
   await saveState(db, learnerId, { shownSessionId: null });
 }
 
 /** Saves the start of the current Topic the first time the Learner reaches it. */
-export async function ensureTopicStarted(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Place | null> {
+export async function ensureTopicStarted(db: Db, map: CourseMap, now = new Date(), learnerId: number): Promise<Place | null> {
   const progress = await loadProgress(db, learnerId);
   const place = navigate(map, progress);
   if (place?.status === "not_started") {
@@ -124,7 +124,7 @@ export async function ensureTopicStarted(db: Db, map: CourseMap, now = new Date(
 }
 
 /** Applies the Tutor's "finished this Teaching Step" report if the Course Navigator accepts it. */
-export async function saveFinishedStep(db: Db, map: CourseMap, step: TeachingStep, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Move> {
+export async function saveFinishedStep(db: Db, map: CourseMap, step: TeachingStep, now = new Date(), learnerId: number): Promise<Move> {
   const move = finishStep(map, await loadProgress(db, learnerId), step);
   if (move.ok) await saveProgress(db, move.progress, now, learnerId);
   return move;
@@ -151,7 +151,7 @@ export async function saveCheckResult(
   map: CourseMap,
   input: CheckResultInput,
   now = new Date(),
-  learnerId = OWNER_LEARNER_ID,
+  learnerId: number,
 ): Promise<{ ok: true; repeated: boolean } | { ok: false; reason: string }> {
   const { checkId, passed, evidence = null, model = null, toolCallId = null } = input;
   if (toolCallId) {
@@ -167,7 +167,7 @@ export async function saveCheckResult(
 }
 
 /** The Learner's every saved Check result, oldest first, with its evidence and the model that taught it. */
-export async function loadCheckResults(db: Db, learnerId = OWNER_LEARNER_ID) {
+export async function loadCheckResults(db: Db, learnerId: number) {
   return db.select().from(checkResults).where(eq(checkResults.learnerId, learnerId)).orderBy(asc(checkResults.id));
 }
 
@@ -179,7 +179,7 @@ export async function saveMisconception(
   map: CourseMap,
   input: MisconceptionInput,
   now = new Date(),
-  learnerId = OWNER_LEARNER_ID,
+  learnerId: number,
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   if (!map.topic(input.topicId)) return { ok: false, reason: `Topic "${input.topicId}" is not on the Course Map.` };
   await db
@@ -211,7 +211,7 @@ function unmasteredPrerequisites(map: CourseMap, progress: Progress, topicId: st
  * in those Topics, and the last verdict at the current Check. No model call.
  * The workspace shows it on opening, and a new Session opens with it.
  */
-export async function learnerSummary(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<string> {
+export async function learnerSummary(db: Db, map: CourseMap, learnerId: number): Promise<string> {
   const progress = await loadProgress(db, learnerId);
   const place = navigate(map, progress);
   if (!place) return "Every Topic on the Course Map is passed.";

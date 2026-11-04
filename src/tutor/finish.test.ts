@@ -32,7 +32,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 
 async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map: CourseMap = plain) {
   const { client, requests } = scriptedClient(replies);
-  const events = await collect(runTutorTurn({ db, client, map }, input));
+  const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, input));
   return { events, requests };
 }
 
@@ -55,9 +55,9 @@ describe("Finish this reply", () => {
     // The Tutor is asked by code to finish; the Learner wrote nothing.
     expect(sent(finished.requests[0])).toContain("Finish by code:");
     expect(sent(finished.requests[0])).not.toMatch(/Continue/);
-    expect(turnKind((await latestTurn(db))!)).toBe("finish");
+    expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("finish");
     // The thread shows the Learner's one message and the two replies, never a bubble for the button.
-    expect(seen(await loadThread(db, sessionOf(finished.events), plain))).toEqual([
+    expect(seen(await loadThread(db, sessionOf(finished.events), plain, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "Why is money today worth more?" },
       { role: "assistant", text: "A rupee today is worth" },
       { role: "assistant", text: "more than a rupee next year." },
@@ -110,9 +110,9 @@ describe("what the Tutor is told", () => {
     expect(TUTOR_INSTRUCTIONS).not.toMatch(/Continue/);
     expect(JSON.stringify(TUTOR_TOOLS)).not.toMatch(/Continue/);
     const db = await testDb();
-    await ensureTopicStarted(db, withInsight);
-    for (const step of ["story", "concept"] as const) await saveFinishedStep(db, withInsight, step);
-    const place = navigate(withInsight, await loadProgress(db));
+    await ensureTopicStarted(db, withInsight, new Date(), OWNER_LEARNER_ID);
+    for (const step of ["story", "concept"] as const) await saveFinishedStep(db, withInsight, step, new Date(), OWNER_LEARNER_ID);
+    const place = navigate(withInsight, await loadProgress(db, OWNER_LEARNER_ID));
     expect(place?.step).toBe("explore");
     const context = stepContext(place);
     expect(context).toContain("record_insight_attempt");

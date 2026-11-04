@@ -45,7 +45,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 
 async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], map: CourseMap = plain) {
   const { client, requests } = scriptedClient(replies);
-  const events = await collect(runTutorTurn({ db, client, map }, input));
+  const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, input));
   return { events, requests };
 }
 
@@ -55,7 +55,7 @@ const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messag
 
 async function saveSteps(db: Db, map: CourseMap, steps: TeachingStep[]) {
   for (const step of steps) {
-    const moved = await saveFinishedStep(db, map, step);
+    const moved = await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
     if (!moved.ok) throw new Error(moved.reason);
   }
 }
@@ -64,7 +64,7 @@ async function saveSteps(db: Db, map: CourseMap, steps: TeachingStep[]) {
 async function atPrinciple(db: Db) {
   const first = await turn(db, "Hi", [say("Once upon a time.")]);
   await saveSteps(db, plain, ["story", "concept", "your_turn"]);
-  await saveCheckResult(db, plain, { checkId: plain.topic("present-value")!.checks[0].id, passed: true, evidence: "Explained it." });
+  await saveCheckResult(db, plain, { checkId: plain.topic("present-value")!.checks[0].id, passed: true, evidence: "Explained it." }, new Date(), OWNER_LEARNER_ID);
   await saveSteps(db, plain, ["reveal"]);
   return sessionOf(first.events);
 }
@@ -84,7 +84,7 @@ describe("a passed Topic", () => {
     expect((closed.events.at(-1) as Extract<TurnEvent, { type: "done" }>).shown).toEqual({ sessionId });
 
     // A reload draws the card at the end of the passed Topic's conversation.
-    expect(seen(await loadThread(db, sessionId, plain)).slice(-2)).toEqual([{ role: "assistant", text: "Well done: that is the Topic." }, { role: "item", ...card }]);
+    expect(seen(await loadThread(db, sessionId, plain, OWNER_LEARNER_ID)).slice(-2)).toEqual([{ role: "assistant", text: "Well done: that is the Topic." }, { role: "item", ...card }]);
     // The card is never sent to the model.
     expect(sent(closed.requests[0])).not.toContain("topic_complete");
   });
@@ -97,9 +97,9 @@ describe("a passed Topic", () => {
       { content: [{ type: "tool_use", id: "t1", name: "finish_teaching_step", input: { step: "principle" } }], stop_reason: "tool_use" },
       say("That closes the Topic."),
     ]);
-    expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ status: "passed" });
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"]).toMatchObject({ status: "passed" });
     expect(finished.events.filter((e) => e.type === "item")).toEqual([{ type: "item", item: card }]);
-    expect(seen(await loadThread(db, sessionId, plain)).at(-1)).toEqual({ role: "item", ...card });
+    expect(seen(await loadThread(db, sessionId, plain, OWNER_LEARNER_ID)).at(-1)).toEqual({ role: "item", ...card });
   });
 
   it("passing its last Due Check by quiz stores the card after the result card, with no turn", async () => {
@@ -117,7 +117,7 @@ describe("a passed Topic", () => {
     const result = await submitQuizAnswers(db, withQuiz, quiz.attemptId, right, new Date(), OWNER_LEARNER_ID);
     expect(result).toMatchObject({ ok: true, passed: true, complete: card });
 
-    const items = seen(await loadThread(db, sessionId, withQuiz)).filter((e) => e.role === "item");
+    const items = seen(await loadThread(db, sessionId, withQuiz, OWNER_LEARNER_ID)).filter((e) => e.role === "item");
     expect(items.map((e) => e.role === "item" && e.kind)).toEqual(["topic_complete", "due_check", "step", "check_result", "topic_complete"]);
     // The passed Topic's Session, with its card, stays on screen (a reload too) until the Learner chooses where to go.
     const shown = await shownInWorkspace(db, withQuiz, OWNER_LEARNER_ID);

@@ -15,14 +15,14 @@ async function pass(db: Db) {
 async function settle(db: Db, released: "found" | "told", words: string) {
   await db.insert(insightAttempts).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, reported: released === "found" ? "found" : "asked_to_be_told", released, words, toolCallId: `t-${released}` });
 }
-const note = async (db: Db) => (await loadNotes(db, map)).find((n) => n.topicId === topic.id)!;
+const note = async (db: Db) => (await loadNotes(db, map, OWNER_LEARNER_ID)).find((n) => n.topicId === topic.id)!;
 
 describe("a Topic Note", () => {
   it("lists every Topic in course order and fills in nothing before the Topic is passed", async () => {
     const db = await testDb();
     await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, step: "concept", status: "in_progress" });
     await settle(db, "found", "Waiting makes it worth less");
-    const notes = await loadNotes(db, map);
+    const notes = await loadNotes(db, map, OWNER_LEARNER_ID);
     expect(notes.map((n) => n.topicId)).toEqual(map.topics.map((t) => t.id));
     expect(notes[0].passed).toBe(false);
     expect(notes[0].filled).toBeUndefined();
@@ -65,7 +65,7 @@ describe("a Topic Note", () => {
     await pass(db);
     const edited = presentValueOnly({ withConnections: true });
     edited.topic("present-value")!.principle = "A new principle.";
-    expect((await loadNotes(db, edited))[0].filled!.principle).toBe("A new principle.");
+    expect((await loadNotes(db, edited, OWNER_LEARNER_ID))[0].filled!.principle).toBe("A new principle.");
     expect((await note(db)).filled!.principle).toBe(topic.principle);
   });
 });
@@ -73,30 +73,30 @@ describe("a Topic Note", () => {
 describe("the Learner's own lines", () => {
   it("are added to, edited on and deleted from any Topic, passed or not", async () => {
     const db = await testDb();
-    const added = await addLine(db, map, topic.id, "  Discount rate is the price of waiting  ");
+    const added = await addLine(db, map, topic.id, "  Discount rate is the price of waiting  ", new Date(), OWNER_LEARNER_ID);
     expect(added.ok && added.line.text).toBe("Discount rate is the price of waiting");
     if (!added.ok) throw new Error("not added");
     expect((await note(db)).lines.map((l) => l.text)).toEqual(["Discount rate is the price of waiting"]);
     expect((await note(db)).filled).toBeUndefined();
 
-    const edited = await editLine(db, added.line.id, "Rate = price of waiting");
+    const edited = await editLine(db, added.line.id, "Rate = price of waiting", new Date(), OWNER_LEARNER_ID);
     expect(edited.ok && edited.line.text).toBe("Rate = price of waiting");
     expect((await note(db)).lines.map((l) => l.text)).toEqual(["Rate = price of waiting"]);
 
-    expect(await removeLine(db, added.line.id)).toBe(true);
+    expect(await removeLine(db, added.line.id, OWNER_LEARNER_ID)).toBe(true);
     expect((await note(db)).lines).toEqual([]);
-    expect(await removeLine(db, added.line.id)).toBe(false);
+    expect(await removeLine(db, added.line.id, OWNER_LEARNER_ID)).toBe(false);
   });
 
   it("refuse empty or over-long text, an unknown Topic and an unknown line", async () => {
     const db = await testDb();
-    expect((await addLine(db, map, topic.id, "   ")).ok).toBe(false);
-    expect((await addLine(db, map, topic.id, "x".repeat(2001))).ok).toBe(false);
-    expect((await addLine(db, map, "no-such-topic", "hello")).ok).toBe(false);
-    expect((await editLine(db, 999, "hello")).ok).toBe(false);
-    const added = await addLine(db, map, topic.id, "keep");
+    expect((await addLine(db, map, topic.id, "   ", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    expect((await addLine(db, map, topic.id, "x".repeat(2001), new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    expect((await addLine(db, map, "no-such-topic", "hello", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    expect((await editLine(db, 999, "hello", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
+    const added = await addLine(db, map, topic.id, "keep", new Date(), OWNER_LEARNER_ID);
     if (!added.ok) throw new Error("not added");
-    expect((await editLine(db, added.line.id, "")).ok).toBe(false);
+    expect((await editLine(db, added.line.id, "", new Date(), OWNER_LEARNER_ID)).ok).toBe(false);
     expect((await note(db)).lines.map((l) => l.text)).toEqual(["keep"]);
   });
 });
@@ -109,7 +109,7 @@ describe("Topic Notes for two Learners", () => {
     await pass(db);
     await settle(db, "found", "Waiting makes it worth less");
     await db.insert(misconceptions).values({ learnerId: OWNER_LEARNER_ID, topicId: topic.id, description: "Added the interest instead of dividing", model: "m", toolCallId: "mc1" });
-    await addLine(db, map, topic.id, "The owner's line");
+    await addLine(db, map, topic.id, "The owner's line", new Date(), OWNER_LEARNER_ID);
     await addLine(db, map, topic.id, "The second Learner's line", new Date(), second);
 
     const owners = (await loadNotes(db, map, OWNER_LEARNER_ID)).find((n) => n.topicId === topic.id)!;
@@ -126,7 +126,7 @@ describe("Topic Notes for two Learners", () => {
   it("another Learner's line is no such line: editing or deleting it answers 404 and leaves it alone", async () => {
     const db = await testDb();
     const [row] = await db.insert(learners).values({ name: "second" }).returning();
-    const owners = await addLine(db, map, topic.id, "Mine");
+    const owners = await addLine(db, map, topic.id, "Mine", new Date(), OWNER_LEARNER_ID);
     if (!owners.ok) throw new Error("not added");
     expect(await editLine(db, owners.line.id, "Changed", new Date(), row.id)).toMatchObject({ ok: false, status: 404 });
     expect(await removeLine(db, owners.line.id, row.id)).toBe(false);
@@ -137,7 +137,7 @@ describe("Topic Notes for two Learners", () => {
 describe("editing a line that is gone", () => {
   it("says 404 itself, not by its wording", async () => {
     const db = await testDb();
-    expect(await editLine(db, 9999, "hello")).toMatchObject({ ok: false, status: 404 });
-    expect(await editLine(db, 9999, "")).toMatchObject({ ok: false, status: 400 });
+    expect(await editLine(db, 9999, "hello", new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: false, status: 404 });
+    expect(await editLine(db, 9999, "", new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: false, status: 400 });
   });
 });

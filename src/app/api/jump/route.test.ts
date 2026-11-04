@@ -57,9 +57,9 @@ const say = (text: string) => ({ content: [{ type: "text", text }] });
 async function setUp() {
   as.db = await testDb();
   as.map = twoTopics();
-  await saveJump(as.db, as.map!, "present-value");
+  await saveJump(as.db, as.map!, "present-value", new Date(), OWNER_LEARNER_ID);
   const { client } = scriptedClient([say("Picture October 2018.")]);
-  for await (const event of runTutorTurn({ db: as.db, client, map: as.map! }, { opener: true })) void event;
+  for await (const event of runTutorTurn({ db: as.db, client, map: as.map!, learnerId: OWNER_LEARNER_ID }, { opener: true })) void event;
   return (await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)) as { sessionId: number };
 }
 
@@ -68,7 +68,7 @@ describe("choosing a Topic", () => {
     await setUp();
     const res = await post({ topicId: "bonds" });
     expect(res.status).toBe(200);
-    expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
+    expect((await loadProgress(as.db, OWNER_LEARNER_ID)).currentTopicId).toBe("bonds");
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
   });
 
@@ -83,7 +83,7 @@ describe("choosing a Topic", () => {
     const pv = await setUp();
     // As a turn that passed present value leaves it: the passed Session still shown, the place moved on.
     await as.db.update(topicProgress).set({ status: "passed", step: "principle" });
-    await saveJump(as.db, as.map!, "bonds");
+    await saveJump(as.db, as.map!, "bonds", new Date(), OWNER_LEARNER_ID);
     await as.db.execute(`update learner_state set shown_session_id = ${pv.sessionId}`);
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual(pv);
     expect((await post({ next: true })).status).toBe(200);
@@ -93,7 +93,7 @@ describe("choosing a Topic", () => {
   it("Home's Resume opens the current Topic and goes to the Study Workspace", async () => {
     const pv = await setUp();
     await as.db.update(topicProgress).set({ status: "passed", step: "principle" });
-    await saveJump(as.db, as.map!, "bonds");
+    await saveJump(as.db, as.map!, "bonds", new Date(), OWNER_LEARNER_ID);
     await as.db.execute(`update learner_state set shown_session_id = ${pv.sessionId}`);
     const res = await open(new Request("https://app.example/api/open", { method: "POST" }));
     expect(res.status).toBe(303);
@@ -112,38 +112,38 @@ describe("choosing a Topic", () => {
     const res = await openTopic("bonds");
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("https://app.example/study");
-    expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
+    expect((await loadProgress(as.db, OWNER_LEARNER_ID)).currentTopicId).toBe("bonds");
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
   });
 
   it("a Progress row for a passed Topic shows that Topic's own Session, leaving the current Topic as it was", async () => {
     const pv = await setUp();
     await as.db.update(topicProgress).set({ status: "passed", step: "principle" });
-    await saveJump(as.db, as.map!, "bonds");
+    await saveJump(as.db, as.map!, "bonds", new Date(), OWNER_LEARNER_ID);
     await as.db.execute(`update learner_state set shown_session_id = null`);
     const res = await openTopic("present-value");
     expect(res.headers.get("location")).toBe("https://app.example/study");
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual(pv);
-    expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
+    expect((await loadProgress(as.db, OWNER_LEARNER_ID)).currentTopicId).toBe("bonds");
   });
 
   it("a Progress row for a Topic passed in an Older session goes to Past Sessions, as the Course Map's row does", async () => {
     const pv = await setUp();
     await as.db.update(topicProgress).set({ status: "passed", step: "principle" });
-    await saveJump(as.db, as.map!, "bonds");
+    await saveJump(as.db, as.map!, "bonds", new Date(), OWNER_LEARNER_ID);
     // Passed before one Session per Topic: its only Session is Older.
     await as.db.execute(`update sessions set older = true where id = ${pv.sessionId}`);
     await as.db.execute(`update learner_state set shown_session_id = null`);
     const res = await openTopic("present-value");
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toBe("https://app.example/sessions");
-    expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
+    expect((await loadProgress(as.db, OWNER_LEARNER_ID)).currentTopicId).toBe("bonds");
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
   });
 
   it("while a turn is running, every way of choosing answers \"turn in progress\" and changes nothing", async () => {
     const pv = await setUp();
-    await startTurn(as.db, new Date(), "Still thinking.");
+    await startTurn(as.db, new Date(), "Still thinking.", OWNER_LEARNER_ID);
     for (const body of [{ topicId: "bonds" }, { topicId: null }, { next: true }]) {
       const res = await post(body);
       expect(res.status).toBe(409);
@@ -152,7 +152,7 @@ describe("choosing a Topic", () => {
     // Resume goes to the Study Workspace, which shows the turn in progress; nothing was chosen.
     expect((await open(new Request("https://app.example/api/open", { method: "POST" }))).status).toBe(303);
     expect((await openTopic("bonds")).status).toBe(303);
-    expect((await loadProgress(as.db)).currentTopicId).toBe("present-value");
+    expect((await loadProgress(as.db, OWNER_LEARNER_ID)).currentTopicId).toBe("present-value");
     expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual(pv);
   });
 });

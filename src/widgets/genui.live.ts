@@ -26,7 +26,7 @@ import { expect, it } from "vitest";
 import { placeLearner } from "@/behaviour/place";
 import { importCaseData, type CaseDatasetInput } from "@/case-data/import";
 import { loadCourseMap } from "@/course/map";
-import { settings } from "@/db/schema";
+import { OWNER_LEARNER_ID, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { saveJump } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
@@ -172,7 +172,7 @@ async function takeTurn(db: Db, client: TutorClient, input: GenuiAsk["turns"][nu
   let status: TurnRecord["status"] = "finished";
   let note = "";
   let usage: TurnUsage | null = null;
-  for await (const e of runTutorTurn({ db, client, map }, input)) {
+  for await (const e of runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, input)) {
     if (e.type === "text") {
       if (correction === null) draft += e.text;
       else correction += e.text;
@@ -249,8 +249,8 @@ async function runAsk(ask: GenuiAsk, client: TutorClient): Promise<AskRecord> {
       record.caseData.push(`${c.id}: ${note}`);
     }
     // Chosen on the Course Map, as a Learner does (and as the behaviour run does); its Session shows at once.
-    await saveJump(db, map, ask.topic);
-    const place = await placeLearner(db, map, ask.at);
+    await saveJump(db, map, ask.topic, new Date(), OWNER_LEARNER_ID);
+    const place = await placeLearner(db, map, ask.at, OWNER_LEARNER_ID);
     if (place.topic.id !== ask.topic) throw new Error(`The Learner was placed in ${place.topic.id}, not ${ask.topic}.`);
     record.place = `Topic "${place.topic.title}" (${place.topic.id}), Teaching Step "${place.step}"${place.check ? ` of Check ${place.check.id}` : ""}, before the reveal`;
     for (const learner of ask.turns) {

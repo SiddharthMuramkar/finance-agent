@@ -1,6 +1,6 @@
 import { asc } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { insightAttempts } from "@/db/schema";
+import { insightAttempts, OWNER_LEARNER_ID } from "@/db/schema";
 import { navigate } from "@/course/navigator";
 import { loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { presentValueOnly } from "@/test/present-value-map";
@@ -22,7 +22,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 /** A Learner at the explore step of present value: story and concept are done. */
 async function atExplore() {
   const db = await testDb();
-  for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step);
+  for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
   return db;
 }
 
@@ -41,7 +41,7 @@ const everything = (request: Request) => JSON.stringify(request.messages);
 
 async function turn(db: Awaited<ReturnType<typeof testDb>>, message: TurnInput, replies: ScriptedReply[]) {
   const { client, requests } = scriptedClient(replies);
-  await collect(runTutorTurn({ db, client, map }, message));
+  await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, message));
   return requests;
 }
 
@@ -122,11 +122,11 @@ describe("explore step in the Tutor Turn", () => {
     const rejection = toolResults(requests[2]).find((r) => r.tool_use_id === "f1")!;
     expect(rejection.is_error).toBe(true);
     expect(rejection.content).toContain("began during this turn");
-    expect(navigate(map, await loadProgress(db))?.step).toBe("explore");
+    expect(navigate(map, await loadProgress(db, OWNER_LEARNER_ID))?.step).toBe("explore");
 
     // The next turn can finish it, and the Learner moves on to their turn.
     await turn(db, "Okay, I see", [finish("f2", "explore"), say("Your turn.")]);
-    expect(navigate(map, await loadProgress(db))).toMatchObject({ step: "your_turn", check: { id: "pv-jackpot-choice" } });
+    expect(navigate(map, await loadProgress(db, OWNER_LEARNER_ID))).toMatchObject({ step: "your_turn", check: { id: "pv-jackpot-choice" } });
   });
 
   it("confirms a found Insight against the Learner's own words and lets explore be finished in the same turn", async () => {
@@ -140,7 +140,7 @@ describe("explore step in the Tutor Turn", () => {
     expect(found).toContain("the Learner found the Insight");
     expect(found).toContain("final text of your reply");
     expect(found).toContain(insight.written.trim());
-    expect(navigate(map, await loadProgress(db))?.step).toBe("your_turn");
+    expect(navigate(map, await loadProgress(db, OWNER_LEARNER_ID))?.step).toBe("your_turn");
   });
 
   it("refuses to finish explore until the Insight is found or told", async () => {
@@ -149,7 +149,7 @@ describe("explore step in the Tutor Turn", () => {
     const refused = toolResults(requests[1])[0];
     expect(refused.is_error).toBe(true);
     expect(refused.content).toMatch(/Insight/);
-    expect(navigate(map, await loadProgress(db))?.step).toBe("explore");
+    expect(navigate(map, await loadProgress(db, OWNER_LEARNER_ID))?.step).toBe("explore");
   });
 
   it("does not record words that are not in the Learner's message this turn", async () => {
@@ -180,7 +180,7 @@ describe("explore step in the Tutor Turn", () => {
       expect(result.content).toContain("never an attempt at the Insight");
       // The chip's exact words are the Learner's message, and the turn records its kind as chip.
       expect(everything(requests[0])).toContain(JSON.stringify(words).slice(1, -1));
-      expect(turnKind((await latestTurn(db))!)).toBe("chip");
+      expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("chip");
     }
     expect(await db.select().from(insightAttempts)).toEqual([]);
 
@@ -193,7 +193,7 @@ describe("explore step in the Tutor Turn", () => {
     const db = await atExplore();
     // The Tutor quotes some of the opener's note as if the Learner had said it.
     const { client, requests } = scriptedClient([attempt("o1", "not_yet", "Opener by code"), say("Have a look.")]);
-    await collect(runTutorTurn({ db, client, map }, { opener: true }));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, { opener: true }));
     const result = toolResults(requests[1])[0];
     expect(result.is_error).toBe(true);
     expect(result.content).toContain("never an attempt at the Insight");
@@ -218,7 +218,7 @@ describe("explore step in the Tutor Turn", () => {
 
   it("does not record an attempt at a step that began in the same turn", async () => {
     const db = await testDb();
-    await saveFinishedStep(db, map, "story");
+    await saveFinishedStep(db, map, "story", new Date(), OWNER_LEARNER_ID);
     // The Tutor finishes the concept step, then tries to record an attempt from the same message.
     const requests = await turn(db, "ok go on, bars shrink", [
       finish("f1", "concept"),
@@ -245,10 +245,10 @@ describe("explore step in the Tutor Turn", () => {
     const db = await atExplore();
     await turn(db, "Cash now beats later at high rates", [attempt("t1", "found", "Cash now beats later at high rates"), say("Yes.")]);
     // Move on with progress saved directly, as earlier turns would have.
-    await saveFinishedStep(db, map, "explore");
-    await saveFinishedStep(db, map, "your_turn");
-    await saveCheckResult(db, map, { checkId: "pv-jackpot-choice", passed: true });
-    await saveFinishedStep(db, map, "reveal");
+    await saveFinishedStep(db, map, "explore", new Date(), OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "your_turn", new Date(), OWNER_LEARNER_ID);
+    await saveCheckResult(db, map, { checkId: "pv-jackpot-choice", passed: true }, new Date(), OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "reveal", new Date(), OWNER_LEARNER_ID);
     const [request] = await turn(db, "Go on", [say("The principle.")]);
     expect(everything(request)).toContain("Teaching Step: principle");
     expect(everything(request)).toContain(`The Learner's own words about the Insight (found by themselves): \\"Cash now beats later at high rates\\"`);
@@ -257,10 +257,10 @@ describe("explore step in the Tutor Turn", () => {
   it("marks words saved after being told as such at the principle step", async () => {
     const db = await atExplore();
     await turn(db, "Just tell me please", [attempt("t1", "asked_to_be_told", "Just tell me please"), say("Here.")]);
-    await saveFinishedStep(db, map, "explore");
-    await saveFinishedStep(db, map, "your_turn");
-    await saveCheckResult(db, map, { checkId: "pv-jackpot-choice", passed: true });
-    await saveFinishedStep(db, map, "reveal");
+    await saveFinishedStep(db, map, "explore", new Date(), OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "your_turn", new Date(), OWNER_LEARNER_ID);
+    await saveCheckResult(db, map, { checkId: "pv-jackpot-choice", passed: true }, new Date(), OWNER_LEARNER_ID);
+    await saveFinishedStep(db, map, "reveal", new Date(), OWNER_LEARNER_ID);
     const [request] = await turn(db, "Go on", [say("The principle.")]);
     expect(everything(request)).toContain("after being told it");
   });
@@ -271,7 +271,7 @@ describe("settling the Insight is enforced by the database", () => {
     const { saveInsightAttempt } = await import("@/learner/insight");
     const db = await atExplore();
     const input = (toolCallId: string) => ({ reported: "found" as const, words: "money now is worth more", learnerMessage: "I think money now is worth more", toolCallId, model: "m", turnId: 1 });
-    const results = await Promise.all([saveInsightAttempt(db, map, input("a")), saveInsightAttempt(db, map, input("b"))]);
+    const results = await Promise.all([saveInsightAttempt(db, map, input("a"), new Date(), OWNER_LEARNER_ID), saveInsightAttempt(db, map, input("b"), new Date(), OWNER_LEARNER_ID)]);
     expect(results.filter((r) => r.ok)).toHaveLength(1);
     expect((await db.select().from(insightAttempts)).filter((r) => r.released === "found")).toHaveLength(1);
   });
