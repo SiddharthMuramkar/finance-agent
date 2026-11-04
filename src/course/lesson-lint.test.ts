@@ -52,7 +52,7 @@ describe("the Topic file's teaching fields", () => {
         dataWith((d) => {
           d.checks[0].card!.skills.push("ghost");
           d.checks[1].templates!.push("no-such-template");
-          d.checks[2].card!.widget = { widget: "nowhere", values: { old: 3 } };
+          d.checks[2].card!.widget = { widget: "nowhere", values: { old: 3, new: 3.25 } };
         }),
       ),
     ]);

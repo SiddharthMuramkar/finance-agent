@@ -465,7 +465,9 @@ through the 2018 $1.537 billion Mega Millions jackpot and its $877.8 million cas
 A validator checks the files: every prerequisite must exist, prerequisites must not loop, IDs
 must be unique, every Topic needs at least one Check, and a quiz Check may use only questions its
 Topic holds, with an answer that is one of the choices and a pass rule it can actually meet. A Topic may also hold an
-`insight` and an `explore` block, both or neither, checked as described under "The explore step". It runs as part of `npm run check`,
+`insight` and an `explore` block, both or neither, checked as described under "The explore step". A Topic may also hold its
+teaching (Skills, a Concept card per Check, Quick tries, question templates and Known mistakes), checked by the lesson lint, as
+described under "Topic files carry the teaching". It runs as part of `npm run check`,
 so CI fails on a bad edit.
 
 **Scenario.** Someone adds a Topic that requires `bond-pricing`, which doesn't exist yet. CI
@@ -3572,6 +3574,27 @@ backfill reload places the corrected readings.
 **Scenario.** The present value quiz asks for $1,210 received in two years at 10%. After the Learner answers, the explanation says "Two years at 10% means dividing by 1.10 twice" and shows a Formula Card with $1,210, 10% and 2 years filled in and $1,000.00 worked out by code. If someone later writes "PV = 1,210 / 1.21 = 1,000" into present value, the course check fails and names the line. If a Learner asks the Tutor to "write out the present value formula", the behaviour run marks the reply failed when it holds symbols, with no grader model call and no cost.
 
 **Trade-off.** The detector is strict: it also catches worked sums such as "100 / 1.10 = 90.91", so 86 other Topics that type formulas are on a not-yet-converted list (`NOT_YET_CONVERTED`). That list can only shrink: a Topic on it that has become clean must come off, and a Topic off it that types a formula fails. A strict detector means a few false alarms in a converted Topic, which are fixed by rewording into worded steps; it never means a missed formula going out unnoticed. Question Bank items are not scanned yet (they live in the database), so a Topic's quiz that uses a bank item can still show one until its explanation is converted or the item is swapped. A marker is checked when the Course Map loads: it must name a formula on the Topic's own `formulas` list and give exactly that formula's inputs.
+
+## Topic files carry the teaching, checked by the lesson lint (`src/course/map.ts`, `lesson-lint.ts`, `lesson-presets.test.ts`, `lesson-fixture.ts`, `formula-check.ts`, `presetValueProblems` in `written-ahead-check.ts`, `scripts/check-course.mjs`, spec #229, ticket #237, ADR 0006)
+
+**What it does.** A Topic file can now hold its own teaching, in new fields that are all optional, so every Topic written before loads unchanged. A Topic gets an example currency (`exampleCurrency`, rupees by default, for its everyday examples; a Case keeps its own currency), one Running example with its numbers, the terms it introduces, its Skills (each a rule in plain words and at most one analogy) and its question templates. Each Check gets one Concept card (a title, a few lines, one line to write down, the Skills it teaches, and a Widget preset: a recipe such as `rate_move` with its inputs, or one of the Topic's written-ahead Widgets with its sliders' values) and its Quick tries, fixed or drawn from a template. A quiz Check can draw typed questions from templates, which count as an unlimited pool, and a conversation Check lists the Skills it tests. A quiz question can carry a Skill, and a wrong choice a Known mistake with its fix. A Topic that lists Skills is converted (`isConverted`); `testedSkills` says which Skills a Check tests, and the Course Map finds a template by id. Fixed items and templates use the teaching engine's own shapes (`FixedItem`, `QuestionTemplate`, src/teaching), so code marks and draws them as written. The schema rejects an answer or mistake function the engine does not have, naming it and the allowed list, and any Skill, template or written-ahead Widget that does not resolve. A file can mark a restructure as content-only: Check ids stay, so passes stay, and the Course Navigator already keeps each Learner's step.
+
+The lesson lint (`lessonLintErrors`) then checks every converted Topic, after the typed-formula check, in `npm run course:check`:
+
+- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed.
+- **L2:** three Quick tries per Skill (a template is unlimited), one of them half-done, and three times the per-attempt count of distinct questions in each quiz Check (or a template).
+- **L3:** five lines at most on a card, with its write-down line; no sentence over 20 words.
+- **L4:** each Widget preset is valid.
+- **L5:** the currency matches the Topic: no $, USD, € or £ in a rupee Topic, no ₹ or Rs in a dollar one.
+- **L6:** no question prompt or ask says "wrong", "not" or "except", bold or not (the Check tab cannot show bold).
+- **L7:** no question a Check lists, and none of 50 draws of a template it lists, holds all the numbers of the Running example or of a card's own worked example.
+- **Draws:** every template draws 50 seeds and marks its own answer right; a fixed try's answer is exact at its decimals, and no Known mistake equals it.
+
+The rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 Topics today and can only shrink: a listed Topic that gains Skills must come off, and an unlisted one without Skills fails. A content-only restructure fails if any Check is required, so no Due Check appears. The typed-formula check also reads every new text (card lines, Skills, Quick tries, templates, choice fixes, the Running example), and a typed sum there fails even for a Topic still on its own not-yet-converted list.
+
+**Scenario.** Someone converting Percent moves the percent-change rule from Check 2's card to Check 3's but leaves Check 2's percent-change template in place. CI fails with `L1: Check "num-percent-bps-check-2" tests Skill "pct-change", which no Concept card at or before it teaches (Topic "num-percent-bps")`, the gap the Percent Session showed. If a card line says "5 - 4 = 1 point", the typed-formula check names that line; if a template could draw "from 4% to 5%", L7 says to add those numbers to its avoid list.
+
+**Trade-off.** Plain Node runs the course check, and it cannot load the Widget recipes (their imports have no extensions), so `course:check` checks written-ahead presets only (`presetValueProblems`: slider names, range and step, the same rules `open_widget` will use for a Tutor preset). Recipe presets are built with the recipe and run through the Widget checks in `lesson-presets.test.ts`, which is part of `npm run check` but not of `course:check` alone. The not-yet-converted list means the new rules guard nothing until a Topic converts; that is on purpose, as with the typed-formula list. L7 compares numbers, not moves, so a question that happens to use 4 and 5 for something else fails too; the fix is a different number. `src/course/lesson-fixture.ts` holds one full converted Topic, built from the spec's gold cards, for tests that need one.
 
 ## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
 
