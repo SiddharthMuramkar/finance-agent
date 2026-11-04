@@ -5,14 +5,15 @@ import { navigate } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { loadWidgetStates } from "@/learner/widget-state";
-import { openWidgetsIn, type OpenWidget } from "@/widgets/check";
+import type { OpenWidget } from "@/widgets/check";
 import { foundText, readWidget, type RateChangeSliders, type SourcedLookup, type WidgetReading } from "@/widgets/widget-reading";
 import { cleanSavedWidget, MAX_WIDGET_KEY, widgetKey, type WidgetStates } from "@/widgets/widget-state";
 import { currentTopicId, liveSession, openLog } from "./session-log";
-import { caseDataFor } from "./tools";
-import { textOf } from "./transcript";
+import { caseDataFor, replyTexts } from "./tools";
+
+export { replyTexts };
 import { WIDGET_REPORT_PREFIX } from "./turn-status";
-import { loadSessionItems } from "./session-items";
+import { drawnWidgets, loadSessionItems } from "./session-items";
 import { loadWrittenAhead } from "./written-ahead";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 
@@ -115,7 +116,7 @@ export async function widgetReportNote(
   const session = await liveSession(db, learnerId, await currentTopicId(db, map, learnerId));
   if (!session) return { ok: false, reason: REPORT_NOT_READY };
   const log = await openLog(db, session.id, () => new Date());
-  const drawn = openWidgetsIn(log.rows.filter((r) => r.role === "assistant").map((r) => textOf(r.content)));
+  const drawn = drawnWidgets(replyTexts(log.rows), await loadSessionItems(db, session.id, learnerId));
   const open = (await openWidgetsForTurn(db, map, learnerId, drawn, true, session)).filter((w) => w.key === key);
   const [read] = await readOpenWidgets(db, map, learnerId, session.id, open, sent);
   if (!read || !read.reading.tasks.length || !read.reading.tasks.every((t) => t.ticked)) return { ok: false, reason: REPORT_NOT_READY };

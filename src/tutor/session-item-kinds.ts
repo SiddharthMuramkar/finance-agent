@@ -1,7 +1,8 @@
 /**
  * The Session item type and the kinds the Study Workspace draws, with no server imports, so the browser can match
  * on them (see session-items.ts). The Topic complete card's kind is in topic-complete-card.ts, the Topic Start
- * card's in course/topic-start.ts and a Widget opened chip's in course/written-ahead.ts, for the same reason.
+ * card's in course/topic-start.ts, a Widget opened chip's in course/written-ahead.ts and a shown Widget's (WIDGET_SHOWN,
+ * re-exported here) in widgets/shown-widget.ts, for the same reason.
  */
 
 export type SessionItem = { kind: string; data: Record<string, unknown> };
@@ -23,3 +24,5 @@ export const NEXT_STEP = "next_step";
 
 /** The kind of a small "Stopped" note, stored after a reply the Learner stopped, so a reload shows where it ended. */
 export const STOPPED = "stopped";
+
+export { WIDGET_SHOWN } from "@/widgets/shown-widget";

@@ -8,6 +8,7 @@ import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import { SaveToNotes } from "./save-to-notes";
 import { splitReply } from "@/widgets/split";
+import { shownWidgetOf, WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
 import { SessionItemView, type SessionItemData } from "./session-item-view";
 import { UnderTheHood } from "./under-the-hood";
@@ -43,7 +44,8 @@ export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)
 /**
  * Every Widget in the conversation, numbered in order. Keys match the slot's `${messageId}:${index}`. A written-ahead
  * Widget the Tutor opened (a WIDGET_OPENED item) is drawn with its code from `writtenAhead`, under the item's own key
- * (`${itemId}:0`); one the Topic no longer has is left out.
+ * (`${itemId}:0`); one the Topic no longer has is left out. A Widget code drew from a recipe (a WIDGET_SHOWN item) is drawn
+ * the same way, with the code the item carries; its Widget key is its title, as for a Widget in a reply.
  */
 export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead: readonly WrittenAhead[] = []): WidgetItem[] {
   const out: WidgetItem[] = [];
@@ -54,6 +56,12 @@ export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead:
     if (m.role === "item" && m.kind === WIDGET_OPENED) {
       const widget = writtenAhead.find((w) => w.id === m.data.id);
       if (widget) out.push({ key: `${m.id}:0`, number: out.length + 1, code: widget.code, complete: true, writtenAhead: widget.id });
+      return;
+    }
+    // A Widget code drew from a recipe (show_widget, ADR 0005): its code is in the item, and its Widget key is its title.
+    if (m.role === "item" && m.kind === WIDGET_SHOWN) {
+      const shown = shownWidgetOf(m.data);
+      if (shown) out.push({ key: `${m.id}:0`, number: out.length + 1, code: shown.code, complete: true });
       return;
     }
     if (m.role !== "assistant") return;
@@ -100,6 +108,11 @@ function ItemMessage() {
   const item = items.get(id);
   // A written-ahead Widget the Tutor opened stands where it was opened as its chip, as a Widget in a reply does.
   if (item?.kind === WIDGET_OPENED) return slot({ messageId: id, index: 0, code: "", complete: true });
+  // So does a Widget code drew from a recipe, where the Tutor called show_widget.
+  if (item?.kind === WIDGET_SHOWN) {
+    const shown = shownWidgetOf(item.data);
+    return shown ? slot({ messageId: id, index: 0, code: shown.code, complete: true }) : null;
+  }
   return item ? <SessionItemView item={item} /> : null;
 }
 

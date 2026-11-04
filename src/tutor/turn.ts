@@ -10,13 +10,13 @@ import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { newReplyWidgetProblems, openWidgetsIn, widgetCheckMessage, type OpenWidget } from "@/widgets/check";
+import { newReplyWidgetProblems, widgetCheckMessage } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
-import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
+import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import { STOPPED } from "./session-item-kinds";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
 import { splitReply } from "@/widgets/split";
@@ -48,7 +48,7 @@ import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
-import { openWidgetsForTurn, readOpenWidgets, widgetReportNote } from "./widget-context";
+import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetReportNote } from "./widget-context";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
@@ -509,7 +509,7 @@ async function* runLockedTurn(
 
     turnSeq = log.nextSeq;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
-    const drawn = openWidgetsBefore(log, turnSeq);
+    const drawn = drawnWidgets(replyTexts(log.rows), await loadSessionItems(db, session.id, learnerId), turnSeq);
     // What the Learner's open Widgets show as they act (an opener is the page's, not theirs): stored with their message, so it replays unchanged.
     const opener = turnKind(turn) === "opener";
     const open = opener ? [] : await openWidgetsForTurn(db, map, learnerId, drawn, !completed, session);
@@ -722,7 +722,9 @@ async function* runLockedTurn(
   // A stopped reply is not checked either: the Learner asked for it to end, and a Stop that came after the reply ended starts no correction.
   const checked = !(stopReason === "refusal" || stopReason === "max_tokens" || stopReason === "stopped" || stop.aborted);
   if (checked && reply.includes(WIDGET_OPEN)) progress("Checking the Widget…");
-  const broken = checked ? newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code), covered) : [];
+  // The Widgets open before the reply, and any code drew from a recipe in it (show_widget), so a fence that draws their Case Data is caught too.
+  const openBefore = checked && reply.includes(WIDGET_OPEN) ? drawnWidgets(replyTexts(log.rows.filter((r) => r.seq < turnSeq)), await loadSessionItems(db, session.id, learnerId)) : [];
+  const broken = checked ? newReplyWidgetProblems(reply, openBefore.map((w) => w.code), covered) : [];
   // A formula marker the Tutor wrote that cannot be drawn shows as nothing on screen: say so in the server log.
   if (hasMarkers(reply)) {
     const problems = markerProblems(reply);
@@ -761,11 +763,6 @@ async function* runLockedTurn(
   if (passedCard) yield { type: "item", item: passedCard };
   const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
   return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq }, shown: await shownInWorkspace(db, map, learnerId) };
-}
-
-/** The Widgets open in the panel before the turn at `turnSeq`: those its Session's earlier replies drew. */
-function openWidgetsBefore(log: Log, turnSeq: number): OpenWidget[] {
-  return openWidgetsIn(log.rows.filter((r) => r.seq < turnSeq && r.role === "assistant").map((r) => textOf(r.content)));
 }
 
 /**
