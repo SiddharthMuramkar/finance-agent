@@ -23,7 +23,8 @@ import {
 } from "./answers.ts";
 import { matchesAnswer } from "./mark.ts";
 import { MISTAKE_FNS, mistakeValue, type KnownMistakeSpec, type MistakeFnId } from "./mistakes.ts";
-import { ANSWER_FNS, CannotCompute, answerValue, moveBp, movePoints, type AnswerFnId, type Values } from "./quantities.ts";
+import { nearRoundingBoundary } from "./growth.ts";
+import { ANSWER_FNS, BOUNDARY_FNS, CannotCompute, ROUNDED_FNS, answerValue, moveBp, movePoints, type AnswerFnId, type Values } from "./quantities.ts";
 
 /** A drawn parameter runs from min to max in steps of step, all inclusive and exact (0.05 steps are exact). */
 export interface ParamRange {
@@ -186,9 +187,10 @@ function attempt(t: QuestionTemplate, random: () => number, halfDone: boolean, s
   }
 
   const fn = halfDone ? t.halfDone!.asks : t.answer;
-  const rounded = fn === "pct_change";
+  const rounded = ROUNDED_FNS.includes(fn);
   const computed = tryCompute(() => answerValue(fn, values, t.decimals));
   if (!computed) return null; // a percent change from 0%: try other numbers
+  if (BOUNDARY_FNS.includes(fn) && nearRoundingBoundary(computed, t.decimals)) return null; // could fairly round either way
   if (!rounded && !sameValue(roundTo(computed, t.decimals), computed)) {
     throw new TemplateProblem(`answer ${plainExact(computed)} is not exact at ${t.decimals} decimals; raise decimals`);
   }

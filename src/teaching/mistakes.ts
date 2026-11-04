@@ -4,6 +4,7 @@
  * ×10), 12 for 1.2 (divided by 10), 0.12 for 1.2 (divided by 1,000) and 0.3 for 30 (stopped at points).
  */
 import { shift, type Exact } from "./answers.ts";
+import { averagedGainPercent, simpleDoublingYears, simpleGrowthValue } from "./growth.ts";
 import { moveBp, movePoints, percentChange, type AnswerFnId, type Values } from "./quantities.ts";
 
 export const MISTAKE_FNS = [
@@ -13,6 +14,9 @@ export const MISTAKE_FNS = [
   "divided_by_1000",
   "forgot_to_convert",
   "mixed_percent_points",
+  "simple_growth",
+  "simple_doubling",
+  "averaged_gain",
 ] as const;
 export type MistakeFnId = (typeof MISTAKE_FNS)[number];
 
@@ -30,6 +34,9 @@ export interface KnownMistakeSpec {
  * - divided_by_1000: basis points ÷ 1,000 (0.12 for 1.2).
  * - forgot_to_convert: the given number handed back, the basis points for a points ask and the points otherwise.
  * - mixed_percent_points: the move in points for a percent-change ask, and the percent change otherwise.
+ * - simple_growth: the yearly gain on the starting amount only, every year (₹1,300 for ₹1,331).
+ * - simple_doubling: 100 ÷ rate years to double, as if growth never compounded (12.5 for 9 at 8%).
+ * - averaged_gain: the total gain divided by the years (150% for 100% when 100 becomes 400 in 2 years).
  */
 export function mistakeValue(tag: MistakeFnId, answer: AnswerFnId, v: Values, decimals: number): Exact {
   switch (tag) {
@@ -45,5 +52,11 @@ export function mistakeValue(tag: MistakeFnId, answer: AnswerFnId, v: Values, de
       return answer === "points_from_bp" || answer === "points_between" ? moveBp(v) : movePoints(v);
     case "mixed_percent_points":
       return answer === "pct_change" ? movePoints(v) : percentChange(v, decimals);
+    case "simple_growth":
+      return simpleGrowthValue(v);
+    case "simple_doubling":
+      return simpleDoublingYears(v, decimals);
+    case "averaged_gain":
+      return averagedGainPercent(v, decimals);
   }
 }
