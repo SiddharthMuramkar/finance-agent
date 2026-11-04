@@ -570,9 +570,11 @@ function SliderStart({ slider, resets }: { slider: SliderNode; resets: Map<strin
   const current = field.value;
   useEffect(() => {
     if (streaming || start.current !== null || typeof current !== "number" || !Number.isFinite(current)) return;
-    start.current = snappedValue(typeof declared === "number" && Number.isFinite(declared) ? declared : current, slider);
+    const known = typeof declared === "number" && Number.isFinite(declared);
+    start.current = snappedValue(known ? declared : current, slider);
+    // Only the declared default is moved onto a step: a value restored from Widget state may be one the Learner typed.
     const onStep = snappedValue(current, slider);
-    if (onStep !== current) field.setValue(onStep);
+    if (onStep !== current && (!known || current === declared)) field.setValue(onStep);
   });
   useEffect(() => {
     resets.set(slider.target, () => {

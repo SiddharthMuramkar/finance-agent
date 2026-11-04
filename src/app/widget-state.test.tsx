@@ -129,6 +129,20 @@ describe("a Widget in the Study Workspace with saved Widget state", () => {
     expect(ticks()).toEqual(["current", "todo"]);
   });
 
+  it("keeps a saved value the Learner typed between two steps, rather than moving it onto a step", async () => {
+    const loan = [
+      'root = Widget("Loan", [amount, steps])',
+      "$amount = 5000000",
+      'amount = Slider("amount", "Loan amount", 500000, 20000000, 100000, $amount, "inr")',
+      "steps = GuidedTasks([big])",
+      'big = GuidedTask("Set the loan to 1 crore", $amount == 10000000)',
+    ].join("\n");
+    await open([{ role: "assistant", text: fence(loan) }], { Loan: { values: { $amount: 5050000 }, ticked: [] } });
+    await afterSaving();
+    expect(card().querySelector<HTMLInputElement>('input[type="number"][aria-label="Loan amount, exact value"]')!.value).toBe("5050000");
+    expect(posts).not.toContainEqual(expect.objectContaining({ values: { $amount: 5100000 } }));
+  });
+
   it("keeps two Widgets of a Session apart by their titles", async () => {
     await open(TWO_WIDGETS, {
       "First rates": { values: { $rate: 1 }, ticked: [] },
