@@ -672,7 +672,8 @@ async function* runLockedTurn(
         }
       }
     } catch (error) {
-      if (!(error instanceof StopRequested)) {
+      // On Stop the aborted stream may fail first, with the SDK's abort error: once the signal is aborted, any failure here is the Stop.
+      if (!(error instanceof StopRequested) && !stop.aborted) {
         await steps.return?.();
         throw error;
       }
