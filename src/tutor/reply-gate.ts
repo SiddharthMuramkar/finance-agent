@@ -50,6 +50,7 @@ const toolUses = (rows: readonly Row[], fromSeq: number) =>
 export function toolWidgets(rows: readonly Row[], fromSeq: number, items: readonly StoredItem[]): ReplyWidget[] {
   const uses = toolUses(rows, fromSeq);
   const later = items.filter((i) => i.afterSeq >= fromSeq);
+  const used = new Set<number>();
   return uses.flatMap((use): ReplyWidget[] => {
     if (use.name === "show_widget" || use.name === "compose_widget") {
       const shown = later.find((i) => i.kind === WIDGET_SHOWN && i.data.id === use.id);
@@ -59,7 +60,11 @@ export function toolWidgets(rows: readonly Row[], fromSeq: number, items: readon
     }
     if (use.name === "open_widget" && typeof use.input?.id === "string") {
       const id = use.input.id;
-      return later.some((i) => i.kind === WIDGET_OPENED && i.data.id === id) ? [{ kind: "written", id }] : [];
+      // Each stored chip answers one call: a refused call (a blocked preset) stored none.
+      const opened = later.findIndex((i, k) => i.kind === WIDGET_OPENED && i.data.id === id && !used.has(k));
+      if (opened < 0) return [];
+      used.add(opened);
+      return [{ kind: "written", id }];
     }
     return [];
   });

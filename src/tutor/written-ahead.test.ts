@@ -129,6 +129,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
       ].join("\n"),
     );
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(own), open("rate-change-three-ways", "toolu_fix"), text("")]);
     await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
     expect(String(requests[1].messages.at(-1)!.content)).toMatch(/this Widget has the title of the written-ahead Widget "One rate change, said three ways"\. Never draw your own version: call open_widget/);
@@ -146,6 +147,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
       ].join("\n"),
     );
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(emi)]);
     const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me a loan"));
     expect(requests).toHaveLength(1);
@@ -181,6 +183,7 @@ describe("the explore Widget before the explore step", () => {
 
   it("sends back an annuity chart the Tutor draws at the story step without telling it to open the explore Widget", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(`Look.\n${ANNUITY}`), text("")]);
     await collect(runTutorTurn({ db, client, map: pv, learnerId: OWNER_LEARNER_ID }, "Show me"));
     const correction = String(requests[1].messages.at(-1)!.content);
