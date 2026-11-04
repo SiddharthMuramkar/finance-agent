@@ -704,10 +704,10 @@ however narrow the panel (an 8px dot and a 7px ring round the point read), a rea
 <value>") when a point is hovered, tapped or reached with the keyboard (a line of more than 30 points
 is one stop, read with the arrow keys), and each value printed above its point when there are 12
 points or fewer. It is still plain SVG, so it draws on the server and in tests too. The annuity chart
-(`AnnuityChart`, drawn by `annuity-plot.tsx`) reads the same way: dollars up the side ($0, half and the
-largest payment, under "Dollars per payment"), payments along the bottom (first, middle, last, under
+(`AnnuityChart`, drawn by `annuity-plot.tsx`) reads the same way: dollars up the side (round-number
+ticks that only grow, under "Dollars per payment"), payments along the bottom (first, middle, last, under
 "Payment number (the first is paid now)"), and a readout such as "Payment 30: $95.2 million paid, worth
-$40.4 million today" when a bar is hovered, tapped or reached with Tab. Kit charts (OpenUI's own) are
+$40.4 million today" when a bar is hovered, tapped or read with the arrow keys (the bars are one slider; see "The plot kit"). Kit charts (OpenUI's own) are
 labelled through the Tutor's instructions and the server's Widget check, not here.
 
 **The shared Case Data cache (`src/widgets/case-data-cache.ts`, `case-data-provider.tsx`).** Each page
@@ -1027,6 +1027,30 @@ line instead of a chart, which is why the server check reads the written-out arg
 tools' names and argument rules sit in one file with no React (`tool-specs.ts`), because the server
 check reads them too.
 
+### The plot kit (`src/widgets/plot/`, `history-plot.tsx`, `annuity-plot.tsx`, UX audit lane "plot")
+
+**What it does.** One small, hand-drawn set of chart parts so every chart in a Widget has the same look, keys and
+units. `scales.ts` has round-number ticks (1, 2, 2.5 or 5 times a power of ten) and linear, log, time and band maps.
+`format.ts` has `formatAxis` and `formatValue`: a rupee axis reads ₹8 L or ₹1.2 Cr (the existing lakh and crore words,
+shortened) and never K or M, dollars read $50 m or $1.5 bn, and a value read out always carries its unit (₹4,000).
+`domain.ts` has `useStickyDomain`: a value axis that only grows while the Widget is in use, and starts over when the
+Widget's Reset changes the `PlotResetContext` value. `charts.tsx` has `BarChartPlot`, `LineChartPlot` and
+`AreaChartPlot`, taking OpenUI's own positional props plus optional `unit`, `yMin` and `yMax`; they are exported but
+not yet registered over OpenUI's charts (the Widget library does that). Areas overlap and never stack unless the
+variant is "stacked"; the first series is the filled area. Bars stop at about 48 px wide and sit in the middle of
+their slot. The keyboard has one stop in a chart (a roving tabindex), and the arrow keys, Home and End move from
+point to point.
+
+**Scenario.** A Learner drags the umbrella slider from 100 % down to 50 %. Before, the axis re-fitted itself on every
+step, so the bars looked the same height and the lesson ("the swing shrinks") was invisible. Now the axis stays at
+its widest, so the bars visibly shrink to half. On the Sensex chart, 1979 to 1990 is now eleven years wide and the
+month in 1992 is a sliver, and a "Log scale" switch redraws the same line so that steady growth runs straight.
+
+**Trade-off.** An axis that only grows can leave empty room above the bars after a big slider swing, until Reset.
+We take that: a steady axis teaches more than a tidy one. Log is offered only when every value is above zero, and
+the Annuity chart's keyboard is now one slider (one tab stop) instead of thirty, at the cost of a payment's reading
+being spoken only when the slider moves onto it.
+
 ## Dark and light modes (`src/app/theme-toggle.tsx`)
 
 **What it does.** A toggle in the header switches dark and light mode and remembers the choice in
@@ -1296,6 +1320,31 @@ hindsight test questions cover the rest. One such leak was found live (2 Novembe
 real move. The instructions now say that before the reveal no example or made-up number may match
 the real outcome, and point the Tutor to the Topic's own Concept or Check prompt for hypothetical
 numbers (code already sends those, and they use neutral numbers).
+
+### Reference data (the reserved Case `reference`, `src/case-data/reference.ts`)
+
+**What it does.** Some real numbers belong to no one Case: the gold price, the rupee-dollar rate,
+India's inflation, the RBI repo rate, Sensex and Nifty closes, typical FD, PPF and savings rates, and
+US Treasury yields. They are stored as ordinary Case Data under one reserved Case id, `reference`, and
+read the same way (`reference/usd-inr` in `Query("case_data", …)` or `HistoryChart`; the route is
+`/api/case-data/reference`). No Topic may use that id as a Case (the Course Map check rejects it), and a
+written-ahead Widget may read `reference/<id>` only for ids in `REFERENCE_DATASET_IDS`. The data files
+stay outside git and are imported from the laptop like any Case Data. The step context lists them in a
+short block (id, label, unit, latest date) so the Tutor knows they exist.
+
+**Scenario.** A Learner asks what a gold bar was worth in rupees. The Tutor draws a chart from
+`reference/gold-inr-10g` instead of saying it has no real prices, and the Sourced strip credits the
+World Bank and the Federal Reserve. If the Learner is in the 1992 Topic before its reveal, the same
+request returns nothing dated after that Case's as-of date, so a later Sensex close cannot give the
+outcome away.
+
+**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while the current
+Topic has a Case whose reveal is not yet shown, code clips every reference series to the earliest such
+as-of date (and leaves out a series with nothing earlier). The page's Case Data cache still keys on
+reveals only, so a series fetched before a reveal stays clipped on that page until it is reloaded: safe,
+but slightly stale. Some series are derived or approximate (gold in rupees is the international price
+at the monthly exchange rate, without duty; typical rates are the middle of an RBI range), and each
+dataset's check note says so.
 
 ## Surviving cut-offs and failures (`src/tutor/turn.ts`, `turn-status.ts`, `tools.ts`, `failures.ts`, `src/app/turn-stream.ts`)
 

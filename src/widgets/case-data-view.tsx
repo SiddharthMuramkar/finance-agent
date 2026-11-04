@@ -48,14 +48,22 @@ export function SourcedTag({ children = "Sourced" }: { children?: string }) {
 /** A sourced figure's credit, folded behind a small ⓘ that opens on click; the amber around it still marks the data as real. */
 export function Credit({ dataset }: { dataset: CaseDataset }) {
   return (
-    <details data-testid="credit" className="inline-block align-baseline text-xs text-[var(--muted)]">
-      <summary aria-label="Where this figure comes from" className="inline-block cursor-pointer select-none rounded px-1 text-sm leading-none">
+    <details data-testid="credit" className="group inline-block align-baseline text-xs text-[var(--muted)]">
+      {/* 24 by 24 px at least, so a finger or a pointer can hit it; the chevron turns when the panel is open. */}
+      <summary
+        aria-label="Where this figure comes from"
+        className="inline-flex min-h-6 min-w-6 cursor-pointer select-none items-center justify-center gap-0.5 rounded px-1 text-sm leading-none hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
+      >
         ⓘ
+        <svg aria-hidden viewBox="0 0 12 12" className="size-3 transition-transform duration-150 group-open:rotate-90" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4.5 2.5 8 6l-3.5 3.5" />
+        </svg>
       </summary>
-      <span className="mt-1 block">
+      <span className="mt-1 block rounded-md border border-[var(--border)] bg-[var(--field)] p-2">
         Source:{" "}
         <a href={dataset.sourceUrl} target="_blank" rel="noreferrer" className="underline">
           {dataset.source}
+          <span aria-hidden> ↗</span>
         </a>
       </span>
     </details>
@@ -81,7 +89,7 @@ function shortValue(value: number, unit: string): string {
  * A dataset drawn as a line over its dates, with value and date axes, its values printed when there are
  * few, and a readout of the point hovered, tapped or focused: sourced history only, with no Learner input.
  */
-export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDataset; revealed: boolean; asOf: string }) {
+export function HistoryFigure({ dataset, revealed, asOf, scale }: { dataset: CaseDataset; revealed: boolean; asOf: string; scale?: "linear" | "log" }) {
   const { points, unit } = dataset;
   const values = points.map((p) => p.value);
   const lo = Math.min(...values);
@@ -98,6 +106,8 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
         // Money and percentages carry their unit in each label; any other unit is named once above the axis.
         unit={unit === "USD" || percentUnit(unit) ? undefined : unit}
         ticks={ticks}
+        format={(v) => shortValue(v, unit)}
+        scale={scale}
         points={points.map((p) => ({ date: p.date, value: p.value, text: formatValue(p.value, unit), short: shortValue(p.value, unit) }))}
       />
       <figcaption className="mt-1 text-xs text-[var(--muted)]">
@@ -171,7 +181,7 @@ export function AnnuityFigure({ inputs, sourced, firstYear, compare }: { inputs:
   const against = cash ? annuityAgainstCash(inputs, cash.value) : null;
   return (
     <figure className="py-2">
-      <AnnuityPlot bars={bars} ticks={ticks} axes={year !== null ? yearAxes(year, payments) : undefined} />
+      <AnnuityPlot bars={bars} ticks={ticks} unit={year !== null ? "millions" : "usd"} axes={year !== null ? yearAxes(year, payments) : undefined} />
       <figcaption className="mt-2 space-y-2 text-sm">
         <p className="flex flex-wrap gap-x-4 text-xs text-[var(--muted)]">
           <span>
