@@ -63,6 +63,16 @@ describe("start_again", () => {
     expect((await openQuiz(db, map, new Date(), me))?.attemptId).toBe(quiz.attemptId);
   });
 
+  it("has the Tutor teach the first card's idea in its own words, never just point to the cards (ticket #248, T2)", async () => {
+    const db = await testDb();
+    const map = mapOf(CONVERTED_TOPIC_DATA);
+    await turn(db, map, "Hi");
+    const { requests } = await turn(db, map, "can I see the lesson again?", true);
+    const result = toolResults(requests);
+    expect(result).toContain("In your reply, teach the first card's idea in your own plain words, with one worked example, then one ask.");
+    expect(result).not.toContain("points to the first card");
+  });
+
   it("is refused in a Topic not yet converted", async () => {
     const db = await testDb();
     const map = mapOf(UNCONVERTED);

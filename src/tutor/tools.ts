@@ -862,7 +862,7 @@ export function toolCode(
           if (!items) return { ok: false, text: START_AGAIN_REFUSAL };
           return {
             ok: true,
-            text: "Started again by code: the Learner now sees this Topic's Concept cards again, in order, then its first Quick try. Their step and any open quiz stay as they were. Add one sentence that points to the first card, and one ask. Do not repeat the cards' words.",
+            text: "Started again by code: the Learner now sees this Topic's Concept cards again, in order, then its first Quick try. Their step and any open quiz stay as they were. In your reply, teach the first card's idea in your own plain words, with one worked example, then one ask. Leave the other cards to the Learner, and do not point to the cards: the reply teaches on its own.",
             items,
           };
         }),
