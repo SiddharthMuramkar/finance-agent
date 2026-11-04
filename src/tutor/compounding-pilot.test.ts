@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { stringify } from "yaml";
 import { formulaCheckErrors } from "@/course/formula-check";
 import { lessonLintErrors } from "@/course/lesson-lint";
-import { isConverted, loadCourseMap, testedSkills, type QuickTry, type Topic } from "@/course/map";
+import { isConverted, loadCourseMap, parseCourseMap, testedSkills, type CourseMap, type QuickTry, type Topic } from "@/course/map";
+import { navigate } from "@/course/navigator";
+import { parseTemplateInstanceId, selectQuestions } from "@/course/quiz";
+import { OWNER_LEARNER_ID } from "@/db/schema";
+import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
+import { openQuiz, submitQuiz } from "@/learner/quiz";
+import { testDb } from "@/test/pglite";
 import { calculate } from "@/finance/calculators";
 import { markerProblems } from "@/finance/formula-markers";
 import { plainFormulaText } from "@/finance/formula-text";
@@ -21,6 +28,13 @@ const map = loadCourseMap();
 const topic = map.topic("num-compounding")!;
 const fixedTries = (t: Topic) => t.checks.flatMap((c) => c.quickTries.filter((q): q is Extract<QuickTry, { id: string }> => "id" in q));
 const tryById = (id: string) => fixedTries(topic).find((q) => q.id === id)!;
+/** The real Topic alone, as a one-Topic course, so it comes first on the path. */
+function compoundingOnly(): CourseMap {
+  const text = stringify({ ...topic, connections: undefined, stage: "foundation", path: 1, prerequisites: [], subject: undefined });
+  const { map: one, errors } = parseCourseMap([{ name: "num-compounding.yaml", text }]);
+  if (!one) throw new Error(errors.join("\n"));
+  return one;
+}
 const calc = (id: string, inputs: object, label: string) => {
   const run = calculate(id, inputs);
   if (!run.ok) throw new Error(run.error);
@@ -149,6 +163,13 @@ describe("Growth, compounding and logs, converted", () => {
       }
     });
 
+    it("show at least one typed question on every attempt", () => {
+      for (const c of topic.checks) {
+        if (c.kind !== "quiz") continue;
+        for (let attempt = 0; attempt < 10; attempt++) expect(selectQuestions(c, attempt).some((id) => c.templates.includes(id)), `${c.id} attempt ${attempt}`).toBe(true);
+      }
+    });
+
     it("test only Skills taught on a card at or before them, and name a mistake on every wrong choice", () => {
       expect(testedSkills(topic, topic.checks[0])).toEqual(["compound-growth", "fall-and-recover", "rule-of-72"]);
       expect(testedSkills(topic, topic.checks[1])).toEqual(["cagr", "log-return"]);
@@ -162,6 +183,71 @@ describe("Growth, compounding and logs, converted", () => {
       expect(q.choices.find((c) => c.id === q.answer)!.text).toBe("₹2,880");
       expect(calc("future_value", { amount: 2000, ratePercent: 20, years: 2 }, "Future value")).toBeCloseTo(2880, 9);
     });
+  });
+
+  it("plays story to principle: both quizzes taken with typed answers (one slip first), the conversation Check, the reveal and a passed Topic", async () => {
+    const one = compoundingOnly();
+    const db = await testDb();
+    const at = async () => navigate(one, await loadProgress(db, OWNER_LEARNER_ID));
+    const finishStep = (step: Parameters<typeof saveFinishedStep>[2]) => saveFinishedStep(db, one, step, new Date(), OWNER_LEARNER_ID);
+    await ensureTopicStarted(db, one, new Date(), OWNER_LEARNER_ID);
+    expect((await at())?.step).toBe("story");
+    await finishStep("story");
+
+    /** The right answer to each shown question: a choice's key, or a typed draw rebuilt from its seed. */
+    const rightAnswers = (ids: string[]) =>
+      Object.fromEntries(
+        ids.map((id) => {
+          const parsed = parseTemplateInstanceId(id);
+          if (parsed) {
+            const drawn = drawTemplate(one.template(parsed.templateId)!, parsed.seed);
+            return [id, formatExact(drawn.answer, drawn.unit)];
+          }
+          return [id, topic.questions.find((q) => q.id === id)!.answer];
+        }),
+      );
+
+    for (const [i, checkId] of ["cp-quiz-compounding", "cp-quiz-steady-rate"].entries()) {
+      expect((await at())?.step, checkId).toBe("concept");
+      await finishStep("concept");
+      await finishStep("your_turn");
+      expect((await at())?.step).toBe("check");
+      const open = (await openQuiz(db, one, new Date(), OWNER_LEARNER_ID))!;
+      expect(open.checkId).toBe(checkId);
+      const typed = open.questions.filter((q) => q.kind === "number");
+      expect(typed.length, checkId).toBeGreaterThan(0);
+      const answers = rightAnswers(open.questions.map((q) => q.id));
+      if (i === 0) {
+        // The first attempt makes the named slip on a typed question and on a choice, and fails.
+        const slipped = { ...answers };
+        for (const q of open.questions) {
+          const parsed = parseTemplateInstanceId(q.id);
+          if (parsed) slipped[q.id] = plainExact(drawTemplate(one.template(parsed.templateId)!, parsed.seed).mistakes[0].value);
+          else slipped[q.id] = topic.questions.find((x) => x.id === q.id)!.choices.find((c) => c.mistake)!.id;
+        }
+        const res = await submitQuiz(db, one, open.attemptId, slipped, new Date(), OWNER_LEARNER_ID);
+        if (!res.ok) throw new Error(res.reason);
+        expect(res.passed).toBe(false);
+        expect(res.questions.every((q) => q.mistake)).toBe(true);
+        const retry = (await openQuiz(db, one, new Date(), OWNER_LEARNER_ID))!;
+        const passed = await submitQuiz(db, one, retry.attemptId, rightAnswers(retry.questions.map((q) => q.id)), new Date(), OWNER_LEARNER_ID);
+        expect(passed).toMatchObject({ ok: true, passed: true });
+      } else {
+        expect(await submitQuiz(db, one, open.attemptId, answers, new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: true, passed: true });
+      }
+    }
+
+    // The conversation Check, then the reveal and the principle.
+    expect((await at())?.step).toBe("concept");
+    await finishStep("concept");
+    await finishStep("your_turn");
+    expect((await at())?.step).toBe("check");
+    expect(await saveCheckResult(db, one, { checkId: "cp-sensex-rate", passed: true, toolCallId: "v-sensex" }, new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: true });
+    expect((await at())?.step).toBe("reveal");
+    await finishStep("reveal");
+    expect((await at())?.step).toBe("principle");
+    await finishStep("principle");
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["num-compounding"]?.status).toBe("passed");
   });
 
   it("keeps the conversation Check on the Sensex, with its Skills listed", () => {

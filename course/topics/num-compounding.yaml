@@ -277,9 +277,10 @@ checks:
       - cp-q-down-up
       - cp-q-rule-72
     templates: [grow-amount, double-time]
-    perAttempt: 3
+    # Four of a pool of five, so every attempt shows at least one typed question.
+    perAttempt: 4
     passRule:
-      correct: 2
+      correct: 3
     card:
       title: "Growth on growth"
       lines:
