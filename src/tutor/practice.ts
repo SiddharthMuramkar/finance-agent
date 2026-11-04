@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, max, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import type { Check, ConceptCard, CourseMap, FixedQuickTry, QuickTry, Topic } from "@/course/map";
 import { isConverted, testedSkills } from "@/course/map";
 import { checkSkills, finishFromPractice, navigate, practiceStep, type ParkedSkills, type Place, type Progress } from "@/course/navigator";
@@ -770,11 +770,12 @@ export async function startAgainItems(db: Db, map: CourseMap, learnerId: number,
  * What the frustration count reads in a Session, oldest first: the Learner's own typed messages, and each right
  * answer code marked in this Topic (converted Topics only; an unconverted Topic reads no practice answers).
  */
-export async function frustrationEvents(db: Db, learnerId: number, sessionId: number, topicId: string, converted = true): Promise<FrustrationEvent[]> {
+export async function frustrationEvents(db: Db, learnerId: number, sessionId: number, topicId: string, converted = true, current?: string): Promise<FrustrationEvent[]> {
+  // The running turn's message is not in the Session yet: it is passed as `current` and counted last.
   const typed = await db
     .select({ input: turns.input, at: turns.startedAt })
     .from(turns)
-    .where(and(eq(turns.learnerId, learnerId), eq(turns.sessionId, sessionId)))
+    .where(and(eq(turns.learnerId, learnerId), eq(turns.sessionId, sessionId), ne(turns.status, "running")))
     .orderBy(asc(turns.id));
   const said = typed.flatMap((t) => (t.input && !isCodeWritten(t.input) ? [{ at: t.at.getTime(), e: { kind: "learner", text: t.input } as FrustrationEvent }] : []));
   const rights = converted
@@ -785,7 +786,8 @@ export async function frustrationEvents(db: Db, learnerId: number, sessionId: nu
           .where(and(eq(practiceAnswers.learnerId, learnerId), eq(practiceAnswers.topicId, topicId), eq(practiceAnswers.verdict, "right")))
       ).map((r) => ({ at: r.at.getTime(), e: { kind: "right" } as FrustrationEvent }))
     : [];
-  return [...said, ...rights].sort((a, b) => a.at - b.at).map((x) => x.e);
+  const latest = current && !isCodeWritten(current) ? [{ kind: "learner", text: current } as FrustrationEvent] : [];
+  return [...[...said, ...rights].sort((a, b) => a.at - b.at).map((x) => x.e), ...latest];
 }
 
 /** What the ladder tells the Tutor this turn, through TurnFacts and the context. */
@@ -822,10 +824,10 @@ export async function ladderFacts(db: Db, map: CourseMap, learnerId: number, bar
   const skills = converted && place.check && (place.step === "your_turn" || place.step === "check") ? checkSkills(place.topic, place.check) : [];
   const current = skills.find((s) => states[s] && !isFluent(states[s]));
   if (session) {
-    const count = frustrationCount(await frustrationEvents(db, learnerId, session.id, bare.topic.id, converted), current ? states[current] : null);
+    const count = frustrationCount(await frustrationEvents(db, learnerId, session.id, bare.topic.id, converted, learnerText), current ? states[current] : null);
     if (count > 0) out.frustration = count;
   }
-  const ruleOf = (id: string) => place.topic.skills.find((s) => s.id === id)?.rule ?? "this idea";
+  const ruleOf = (id: string) => (place.topic.skills.find((s) => s.id === id)?.rule ?? "this idea").replace(/\.$/, "");
   out.skillLines = skills.map((id) => {
     const s = states[id] ?? freshSkillState();
     const mistake = s.lastMistake ? mistakeWords(place.topic, s.lastMistake) : undefined;
