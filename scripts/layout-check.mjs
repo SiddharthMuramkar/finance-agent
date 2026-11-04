@@ -102,6 +102,22 @@ function rupees(text) {
   return n * ({ crore: 1e7, cr: 1e7, lakh: 1e5, lac: 1e5, l: 1e5, k: 1e3, m: 1e6 }[unit] ?? 1);
 }
 
+/** A known pressable button: the .pressable class when the app has it, else the first enabled button in main. */
+function pressableButton(page) {
+  const pressable = page.locator("main button.pressable:not(:disabled)").filter({ visible: true });
+  return pressable.or(page.locator("main button:not(:disabled)").filter({ visible: true })).first();
+}
+
+/** Polls the button's computed transform for up to 300 ms (Chrome delays :active on touch); true once it differs from rest. */
+async function transformChanges(page, button, rest) {
+  for (let waited = 0; waited <= 300; waited += 30) {
+    const now = await button.evaluate((el) => getComputedStyle(el).transform);
+    if (now !== rest) return true;
+    await page.waitForTimeout(30);
+  }
+  return false;
+}
+
 /** What overflows the pane or its card: the pane's horizontal scroll, and any control whose right edge passes the card's. */
 async function overflowOf(page) {
   return page.evaluate(() => {
@@ -111,6 +127,14 @@ async function overflowOf(page) {
     const controls = [...card.querySelectorAll("button, input, select, textarea, summary, [role=button], [role=slider], [role=tab]")]
       .filter((el) => el.getClientRects().length > 0)
       .filter((el) => el.getBoundingClientRect().right > cardRight + 0.5)
+      .filter((el) => {
+        // A control only clipped inside a horizontal scroll container that itself stays in the card is not overflow.
+        for (let a = el.parentElement; a && a !== card; a = a.parentElement) {
+          const ox = getComputedStyle(a).overflowX;
+          if (ox === "auto" || ox === "scroll" || ox === "hidden") return a.getBoundingClientRect().right > cardRight + 0.5;
+        }
+        return true;
+      })
       .map((el) => `${el.tagName.toLowerCase()}${el.getAttribute("aria-label") ? `[${el.getAttribute("aria-label")}]` : ""}`);
     return { paneOver: pane.scrollWidth - pane.clientWidth, controls };
   });
@@ -255,7 +279,7 @@ async function studyChecks(browser, cookie) {
 
     for (const [name, locator] of [
       ["header", page.locator("header").first()],
-      ["Topic bar", page.getByLabel("Where you stand").first()],
+      ["Topic bar", page.getByTestId("topic-bar")],
       ["composer", page.getByRole("textbox", { name: "Message" })],
     ]) {
       await step(`scroll: a wheel over the ${name} does not scroll the document`, async () => {
@@ -314,17 +338,16 @@ async function studyChecks(browser, cookie) {
     });
 
     await step("buttons: a press changes the transform within 150ms", async () => {
-      const button = page.locator("main button:not(:disabled)").filter({ visible: true }).first();
+      const button = pressableButton(page);
       const at = await button.boundingBox();
       if (!at) throw new Error("no visible button");
       const rest = await button.evaluate((el) => getComputedStyle(el).transform);
       await page.mouse.move(at.x + at.width / 2, at.y + at.height / 2);
       await page.mouse.down();
-      await page.waitForTimeout(150);
-      const pressed = await button.evaluate((el) => getComputedStyle(el).transform);
+      const changed = await transformChanges(page, button, rest);
       await page.mouse.move(0, 0);
       await page.mouse.up();
-      if (pressed === rest) throw new Error(`the transform stayed ${rest}`);
+      if (!changed) throw new Error(`the transform stayed ${rest}`);
     });
 
     await step("nav: a nav click shows route-skeleton or data-link-pending within 300ms", async () => {
@@ -358,19 +381,18 @@ async function studyChecks(browser, cookie) {
   await step("touch: under iPad emulation (820x1180) a tap shows the pressed style", async () => {
     const { context: ipad, page: p } = await studyContext(browser, cookie, { size: "ipad", touch: true });
     try {
-      const button = p.locator("main button:not(:disabled)").filter({ visible: true }).first();
+      const button = pressableButton(p);
       const at = await button.boundingBox();
       if (!at) throw new Error("no visible button");
       const rest = await button.evaluate((el) => getComputedStyle(el).transform);
       const cdp = await ipad.newCDPSession(p);
       const point = { x: at.x + at.width / 2, y: at.y + at.height / 2 };
       await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
-      await p.waitForTimeout(150);
-      const pressed = await button.evaluate((el) => getComputedStyle(el).transform);
+      const changed = await transformChanges(p, button, rest);
       // Slide off the button before lifting, so the tap does not click it.
       await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 1, y: 1 }] });
       await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-      if (pressed === rest) throw new Error(`the transform stayed ${rest}`);
+      if (!changed) throw new Error(`the transform stayed ${rest}`);
     } finally {
       await ipad.close();
     }
