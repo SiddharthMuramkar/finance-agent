@@ -210,7 +210,8 @@ function attempt(t: QuestionTemplate, random: () => number, halfDone: boolean, s
 
   const fixSlots: Values = { ...slots, answer: absolute(answer) };
   const mistakes = t.mistakes.map((m) => ({
-    value: size(normalize(mistakeValue(m.tag, fn, values, Math.max(t.decimals, 2)))),
+    // On a rounded ask the mistake is rounded the same way, so a typed 8.3 matches 100 ÷ 12 = 8.33...
+    value: size(normalize(rounded ? roundTo(mistakeValue(m.tag, fn, values, Math.max(t.decimals, 2)), t.decimals) : mistakeValue(m.tag, fn, values, Math.max(t.decimals, 2)))),
     tag: m.tag,
     fix: fill(m.fix, fixSlots, `mistake ${m.tag}`),
   }));
