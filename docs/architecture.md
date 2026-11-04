@@ -4175,8 +4175,6 @@ the state can be rebuilt from it. The ladder is the same for every Topic and liv
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
 
-## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
-
 ## Percent, converted (`course/topics/num-percent-bps.yaml`, `revealWidget` in `src/course/map.ts` and `src/tutor/practice.ts`, `src/test/old-percent-map.ts`, spec #229, ticket #246)
 
 **What it does.** Percent is the first real Topic taught the new way. Its file lists the terms it introduces
@@ -4227,6 +4225,7 @@ Widget's `rateChange` readouts and reveal task keep it as a fixture, since no re
 reveal Widget is stored once a Session, so a Learner who drags it away and comes back to the reveal in the same Session
 finds it where they left it, not reset. Behaviour and eval placement (`finishForPlacement` in `src/behaviour/place.ts`)
 walks past a converted Your turn as fluency would, since no report can finish it.
+## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
 
 ## The ladder at work: re-teach, Park it, the drill, frustration and Start again (`src/tutor/practice.ts`, `ladder-moves.ts`, `frustration.ts`, `park-items.ts`, `turn.ts`, `turn-facts.ts`, `context.ts`, `tools.ts` (start_again), `next.ts`, `src/course/navigator.ts`, `src/learner/skill-state.ts` (`parkedSkills`), `src/app/park-offer-view.tsx`, `src/app/api/quick-try/route.ts`, `src/app/course/`, spec #229, ticket #245)
 
