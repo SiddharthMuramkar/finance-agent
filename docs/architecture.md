@@ -3544,6 +3544,30 @@ title, not the kit's indigo, even when his iPad itself is set to light.
 layout changes. In return the first paint after a click is instant and nothing jumps. The OpenUI mapping lives in two places
 (code and CSS) because CSS cannot import code; the test is what keeps them honest.
 
+## Widget parts, wave 2 (`src/widgets/primitives/wave2/`, REPORT.md 7.3)
+
+**What it does.** Seven more Widget parts, exported together as `WAVE2_PARTS` (the Widget library does not register them yet,
+library-v2 does). `DrawTheLine` shows a dataset's history up to its as-of date and lets the Learner draw eight slices of what
+came next, then press "Show me what happened". `PriceTag` and `ShrinkingNote` show inflation twice: a price tag that ticks up,
+and a note whose printed value stays put while its buying power shrinks inside it. `TimeTravel` drags one coin from today to
+year 30 (or, with payments, brings a row of coins to today where they stack up). `StepThrough` is a worked example with Back and
+Next, whose child `Step` can ask the Learner to type a number that code checks. `Rank` puts items in order by drag or keyboard,
+then checks and shows a reason for each. `Waterfall` takes revenue, then each cost, then adds up what is left. Every figure is
+worked out by code: the tested present value and inflation formulas, or the Case Data the server sends.
+
+**Scenario.** On the Sensex story `DrawTheLine` shows 1979 to 1990. The Learner draws a gentle climb, and each stroke is written
+to the `$drawn` variable at once, before any reveal. The server holds back every point after the as-of date until the Topic's
+reveal has been shown, so before then the part has nothing to reveal: it says the rest comes at the reveal and keeps the line. After
+the reveal, pressing the button draws what happened in amber and writes "Your line was 40% below what happened, on average."
+For inflation, `PriceTag("Vada pav", 20, $infl, $years)` and `ShrinkingNote(100, $infl, $years)` move together as the years slider moves.
+
+**Trade-off.** `DrawTheLine` draws in slices, not freehand, so it can be used with the keyboard (each slice is a vertical slider)
+and its answer is a handful of numbers that fit in Widget state; a freehand curve would feel better under a finger but could not
+be operated or saved the same way. Its horizon is always half the length of the history shown, so the size of the drawing space
+never hints at how long the outcome lasts. `StepThrough` refuses a body that contains a formula in symbols (ADR 0002) and points to
+the Formula Card instead, which means a model that types "PV = FV / (1 + r)^n" in a step gets a short pointer, not the formula.
+`Rank` always starts in a shuffled order that is never the answer, so it can be checked straight away without the Learner moving anything.
+
 ## The composer: Stop, progress labels and the open question (`message-box.tsx`, `turn-stream.ts`, `left-column.tsx`, `session-item-view.tsx`, UX audit 4.1b, 4.2e, 5.11, 5.12, 8.5, 10.1)
 
 **What it does.** The browser half of Stop and progress. While a reply runs, Send becomes a Stop button with a
