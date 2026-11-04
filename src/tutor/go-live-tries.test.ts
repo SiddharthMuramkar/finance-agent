@@ -25,7 +25,7 @@ describe("a template's Quick tries", () => {
     const missed = { tries: 1, right: 0, streak: 0, missesInRow: 1, lastMistake: null, methodsUsed: [], parkedUntil: null };
     const shown: QuickTryData[] = [];
     for (let i = 0; i < 12; i++) shown.push(nextQuickTry(topic, check, { "pts-to-bp": fluent, "bp-to-pts": missed }, shown, { session: 3 })!);
-    const draws = shown.filter((t) => t.key.includes("t:points-from-bp")).map((t) => (quickTryItem(topic, t.key)!.item as { params: Record<string, number> }).params.bp);
+    const draws = shown.filter((t) => t.key.includes("t:points-from-bp")).map((t) => (quickTryItem(topic, t.key)!.item as unknown as { params: Record<string, unknown> }).params.bp);
     expect(draws.length).toBeGreaterThan(5);
     for (let i = 1; i < draws.length; i++) expect(draws[i]).not.toBe(draws[i - 1]);
   });
