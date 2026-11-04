@@ -82,6 +82,8 @@ skills:
     rule: "CAGR is the one steady yearly rate that turns the start into the end over those years."
   - id: log-return
     rule: "Log returns of back-to-back periods add up to the log return of the whole stretch. For a rise they are a little smaller than the ordinary return."
+  - id: steady-pace
+    rule: "A long-run CAGR can hide an uneven path, so find the CAGR of each stretch and compare them."
 
 templates:
   - id: grow-amount
@@ -411,7 +413,7 @@ checks:
 
   - id: cp-sensex-rate
     kind: conversation
-    skills: [cagr, compound-growth]
+    skills: [steady-pace, cagr]
     prompt: >
       The Sensex went from 100 to 4,285 in about 13 years. A friend divides the 4,185-point gain
       by 100 and by 13 and says it rose about 322% a year. Explain what is wrong with that, and
@@ -433,7 +435,7 @@ checks:
         - "But the last 2 years went from 300 to 600, about 41% a year."
         - "When the last stretch is far faster than the whole run, the pace was not steady."
       writeDown: "Find the CAGR of each stretch, not only of the whole run."
-      skills: [cagr]
+      skills: [steady-pace]
       widget:
         recipe: formula
         title: "The steady rate of the last stretch"
@@ -441,3 +443,36 @@ checks:
           formula: cagr
           slider: { symbol: years, label: "Years the stretch took", min: 1, max: 20, step: 1, start: 2 }
           held: { start: 300, end: 600 }
+    quickTries:
+      - id: cp-try-pace-half
+        skill: steady-pace
+        ask: "An index went from 100 to 900 in 10 years, about 25% a year. The last 2 years took it from 300 to 900. What was the CAGR of those 2 years, to the nearest whole percent?"
+        kind: number
+        answer: 73
+        unit: percent
+        decimals: 0
+        halfDone: "First step, done for you: in those 2 years the index grew 3 times."
+        mistakes:
+          - { answer: 100, fix: "That divides the 200% gain by 2 years. Find the rate that, grown twice, gives 3 times.", tag: averaged_gain }
+      - id: cp-try-pace-truth
+        skill: steady-pace
+        ask: "An index grew about 25% a year over 10 years, but 73% a year in its last 2. True or false: its pace was steady."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "The last stretch grew far faster than the long-run rate, so the pace was uneven." }
+      - id: cp-try-pace-stretch
+        skill: steady-pace
+        ask: "A share went from ₹400 to ₹800 in 4 years, then to ₹1,800 in the next 2 years. What was the CAGR of those last 2 years, in percent?"
+        kind: number
+        answer: 50
+        unit: percent
+        mistakes:
+          - { answer: 62.5, fix: "That divides the 125% gain by 2 years. Growing 50% twice turns ₹800 into ₹1,800." }
+      - id: cp-try-pace-long-run
+        skill: steady-pace
+        ask: "True or false: a 10-year CAGR of 12% means every one of those years grew 12%."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "A CAGR is the one steady rate that joins the start and the end; the real years can differ a lot." }

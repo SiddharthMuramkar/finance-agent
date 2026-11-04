@@ -6,9 +6,14 @@ import { isConverted, loadCourseMap, parseCourseMap, testedSkills, type CourseMa
 import { navigate } from "@/course/navigator";
 import { parseTemplateInstanceId, selectQuestions } from "@/course/quiz";
 import { OWNER_LEARNER_ID } from "@/db/schema";
-import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
+import { loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
+import { scriptedClient } from "@/test/scripted-client";
+import { WIDGET_SHOWN } from "@/widgets/shown-widget";
+import { answerQuickTry, enterStepItems, quickTryItem } from "./practice";
+import { CONCEPT_CARD, QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData } from "./session-item-kinds";
+import { runTutorTurn } from "./turn";
 import { calculate } from "@/finance/calculators";
 import { markerProblems } from "@/finance/formula-markers";
 import { plainFormulaText } from "@/finance/formula-text";
@@ -42,11 +47,11 @@ const calc = (id: string, inputs: object, label: string) => {
 };
 
 describe("Growth, compounding and logs, converted", () => {
-  it("is converted, in rupees, with its five Skills, four terms and three Checks in story-to-principle order", () => {
+  it("is converted, in rupees, with its six Skills, four terms and three Checks in story-to-principle order", () => {
     expect(isConverted(topic)).toBe(true);
     expect(topic.exampleCurrency).toBe("INR");
     expect(topic.restructure).toBe("content-only");
-    expect(topic.skills.map((s) => s.id)).toEqual(["compound-growth", "fall-and-recover", "rule-of-72", "cagr", "log-return"]);
+    expect(topic.skills.map((s) => s.id)).toEqual(["compound-growth", "fall-and-recover", "rule-of-72", "cagr", "log-return", "steady-pace"]);
     expect(topic.terms.map((t) => t.term)).toEqual(["compounding", "compound annual growth rate (CAGR)", "rule of 72", "log return"]);
     expect(topic.checks.map((c) => [c.id, c.kind])).toEqual([
       ["cp-quiz-compounding", "quiz"],
@@ -132,6 +137,10 @@ describe("Growth, compounding and logs, converted", () => {
       expect(tryById("cp-try-log-half").answer).toBe(0.3);
       expect(tryById("cp-try-log-add").answer).toBe(0.4);
       expect(Math.log(2) + Math.log(0.5)).toBeCloseTo(0, 12);
+      // Steady pace: 300 to 900 in 2 years is about 73% a year (100 to 900 in 10 is about 25%); ₹800 to ₹1,800 in 2 is 50%.
+      expect(Math.round(calc("cagr", { start: 300, end: 900, years: 2 }, "CAGR"))).toBe(tryById("cp-try-pace-half").answer);
+      expect(Math.round(calc("cagr", { start: 100, end: 900, years: 10 }, "CAGR"))).toBe(25);
+      expect(calc("cagr", { start: 800, end: 1800, years: 2 }, "CAGR")).toBeCloseTo(tryById("cp-try-pace-stretch").answer as number, 9);
     });
 
     it("mark the real slips as Known mistakes with their fixes", () => {
@@ -173,7 +182,7 @@ describe("Growth, compounding and logs, converted", () => {
     it("test only Skills taught on a card at or before them, and name a mistake on every wrong choice", () => {
       expect(testedSkills(topic, topic.checks[0])).toEqual(["compound-growth", "fall-and-recover", "rule-of-72"]);
       expect(testedSkills(topic, topic.checks[1])).toEqual(["cagr", "log-return"]);
-      expect(testedSkills(topic, topic.checks[2])).toEqual(["cagr", "compound-growth"]);
+      expect(testedSkills(topic, topic.checks[2])).toEqual(["steady-pace", "cagr"]);
       for (const q of topic.questions) for (const choice of q.choices) if (choice.id !== q.answer) expect(choice.mistake, `${q.id} ${choice.id}`).toBeDefined();
     });
 
@@ -190,9 +199,44 @@ describe("Growth, compounding and logs, converted", () => {
     const db = await testDb();
     const at = async () => navigate(one, await loadProgress(db, OWNER_LEARNER_ID));
     const finishStep = (step: Parameters<typeof saveFinishedStep>[2]) => saveFinishedStep(db, one, step, new Date(), OWNER_LEARNER_ID);
-    await ensureTopicStarted(db, one, new Date(), OWNER_LEARNER_ID);
+    // The opener starts the Topic and its Session.
+    const { client } = scriptedClient([{ content: [{ type: "text", text: "Picture Bombay in March 1992." }] }]);
+    let sessionId = 0;
+    for await (const e of runTutorTurn({ db, client, map: one, learnerId: OWNER_LEARNER_ID }, "Hi")) if (e.type === "done") sessionId = e.ref.sessionId;
     expect((await at())?.step).toBe("story");
     await finishStep("story");
+
+    /** Enters the Concept step: code shows the card, then its rupee Formula Card set to the card's numbers. */
+    const concept = async (checkId: string) => {
+      const items = await enterStepItems(db, one, OWNER_LEARNER_ID, sessionId, new Date());
+      expect(items.map((i) => i.kind), checkId).toEqual([CONCEPT_CARD, WIDGET_SHOWN]);
+      expect(items[0].data).toMatchObject({ checkId });
+      expect(items[1].data).toMatchObject({ recipe: "formula" });
+      expect(JSON.stringify(items[1].data)).not.toContain('"usd"');
+      await finishStep("concept");
+    };
+
+    /** Plays Your turn through code's Quick tries until fluency ends it; the first try makes the named slip once. */
+    const yourTurn = async (checkId: string) => {
+      let open = (await enterStepItems(db, one, OWNER_LEARNER_ID, sessionId, new Date())).find((i) => i.kind === QUICK_TRY)?.data as QuickTryData | undefined;
+      expect(open?.halfDone, `${checkId}: the first try is half-done`).toBeTruthy();
+      let slipped = false;
+      for (let n = 0; open && n < 40; n++) {
+        const { item } = quickTryItem(one.topic("num-compounding")!, open.key)!;
+        const right: string = "templateId" in item ? formatExact(item.answer, item.unit) : String(item.answer);
+        const mistake: string | undefined =
+          "templateId" in item ? (item.mistakes[0] ? plainExact(item.mistakes[0].value) : undefined) : item.mistakes?.[0] ? String(item.mistakes[0].answer) : undefined;
+        const input: string = !slipped && mistake ? mistake : right;
+        const answered = await answerQuickTry(db, one, OWNER_LEARNER_ID, open.key, input, new Date());
+        if (!answered.ok) throw new Error(answered.error);
+        const result = answered.items.find((i) => i.kind === QUICK_TRY_RESULT)!.data as { verdict: string };
+        expect(result.verdict, open.prompt).toBe(input === right ? "right" : "known_mistake");
+        slipped ||= input !== right;
+        open = answered.items.find((i) => i.kind === QUICK_TRY)?.data as QuickTryData | undefined;
+      }
+      expect(slipped, checkId).toBe(true);
+      expect((await at())?.step, checkId).toBe("check");
+    };
 
     /** The right answer to each shown question: a choice's key, or a typed draw rebuilt from its seed. */
     const rightAnswers = (ids: string[]) =>
@@ -209,9 +253,8 @@ describe("Growth, compounding and logs, converted", () => {
 
     for (const [i, checkId] of ["cp-quiz-compounding", "cp-quiz-steady-rate"].entries()) {
       expect((await at())?.step, checkId).toBe("concept");
-      await finishStep("concept");
-      await finishStep("your_turn");
-      expect((await at())?.step).toBe("check");
+      await concept(checkId);
+      await yourTurn(checkId);
       const open = (await openQuiz(db, one, new Date(), OWNER_LEARNER_ID))!;
       expect(open.checkId).toBe(checkId);
       const typed = open.questions.filter((q) => q.kind === "number");
@@ -239,9 +282,10 @@ describe("Growth, compounding and logs, converted", () => {
 
     // The conversation Check, then the reveal and the principle.
     expect((await at())?.step).toBe("concept");
-    await finishStep("concept");
-    await finishStep("your_turn");
-    expect((await at())?.step).toBe("check");
+    await concept("cp-sensex-rate");
+    // The conversation Check practises its own Skill (steady pace), so Your turn ends through Quick tries here too.
+    expect((await finishStep("your_turn")).ok).toBe(false);
+    await yourTurn("cp-sensex-rate");
     expect(await saveCheckResult(db, one, { checkId: "cp-sensex-rate", passed: true, toolCallId: "v-sensex" }, new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: true });
     expect((await at())?.step).toBe("reveal");
     await finishStep("reveal");
@@ -252,7 +296,7 @@ describe("Growth, compounding and logs, converted", () => {
 
   it("keeps the conversation Check on the Sensex, with its Skills listed", () => {
     const c = topic.checks[2];
-    expect(c.kind === "conversation" && c.skills).toEqual(["cagr", "compound-growth"]);
+    expect(c.kind === "conversation" && c.skills).toEqual(["steady-pace", "cagr"]);
     expect(c.kind === "conversation" && c.prompt).toContain("4,285");
   });
 });

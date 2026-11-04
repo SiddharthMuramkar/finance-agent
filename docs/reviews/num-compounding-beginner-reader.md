@@ -60,6 +60,8 @@ Percent (the prerequisite Topic) counts as taught, so "10% of ₹1,100" and "per
   300 to 600, about 41% a year.
 - Its Formula Card opens on that last stretch.
 - It keeps away from the Sensex's figures, which belong to the story and the conversation Check.
+- Later, the card was given its own Skill (steady pace) and Quick tries on made-up stretches. The card's text did not
+  change.
 
 **Second read.** The point (a long-run rate can hide a fast last stretch) is shown with numbers a beginner can check
 on the card. **Verdict: pass.**
