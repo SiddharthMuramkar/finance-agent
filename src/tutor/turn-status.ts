@@ -36,6 +36,9 @@ export const FINISH_PREFIX = "Finish by code:";
  */
 export const REPLY_CHECK_PREFIX = "Reply check by code:";
 
+/** Opens the "Widget notes" block code adds to the Learner's message (widget-context.ts). It is code's, never the Learner's words. */
+export const WIDGET_NOTES_PREFIX = "Widget notes (code):";
+
 /** The note a Finish this reply turn sends, and sends again on Retry. */
 export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this reply, and has written nothing. Your last reply was cut short at its length limit. Finish it from where it stopped, without repeating what you already wrote, then stop and wait for the Learner.`;
 
@@ -156,7 +159,8 @@ export async function resumeTurn(db: Db, now: Date, learnerId: number): Promise<
   try {
     const [row] = await db
       .update(turns)
-      .set({ status: "running", startedAt: now, error: null, stopReason: null })
+      // A Stop that reached a turn at its deadline stays: the resumed turn sees it at its first look and ends there, not runs on.
+      .set({ status: "running", startedAt: now, error: null, ...(latest.status === "cut_off" && latest.stopReason === STOP_REQUESTED ? {} : { stopReason: null }) })
       .where(and(eq(turns.id, latest.id), eq(turns.status, latest.status)))
       .returning();
     return row ? { turn: row, alreadyFinished: false } : { turn: undefined };
@@ -172,12 +176,14 @@ export const STOP_REQUESTED = "stop_requested";
 /**
  * Asks the Learner's running turn to stop: it sees the flag at its next poll, ends its reply there and keeps what it
  * wrote. True when a turn was running to be stopped; false when none was (it had already finished, or never began).
+ * With `turnId` (the id the browser was told when its turn began), only that turn is stopped, so a Stop that arrives late
+ * or is asked again never stops the Learner's next turn.
  */
-export async function requestStop(db: Db, learnerId: number): Promise<boolean> {
+export async function requestStop(db: Db, learnerId: number, turnId?: number): Promise<boolean> {
   const rows = await db
     .update(turns)
     .set({ stopReason: STOP_REQUESTED })
-    .where(and(eq(turns.learnerId, learnerId), eq(turns.status, "running")))
+    .where(and(eq(turns.learnerId, learnerId), eq(turns.status, "running"), ...(turnId === undefined ? [] : [eq(turns.id, turnId)])))
     .returning({ id: turns.id });
   return rows.length > 0;
 }

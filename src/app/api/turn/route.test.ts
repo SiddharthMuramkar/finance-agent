@@ -56,7 +56,9 @@ describe("POST /api/turn", () => {
     const response = await post({ message: "What is present value?" });
     expect(response.status).toBe(200);
     const next = reader(response);
-    // The stream opened before any text: the turn said what it was doing.
+    // The stream opened before any text: it names the turn that holds the lock, then says what the turn is doing.
+    const started = await next();
+    expect(started).toMatchObject({ type: "turn_started", turnId: expect.any(Number) });
     expect(await next()).toEqual({ type: "progress", label: "Looking up Case Data…" });
 
     // The model says nothing for a while: the route pings.
@@ -64,7 +66,10 @@ describe("POST /api/turn", () => {
     expect(await next()).toEqual({ type: "ping" });
 
     // Stop, from another request: the running turn sees it at its next poll.
-    expect(await (await post({ stop: true })).json()).toEqual({ stopping: true });
+    // A Stop naming another turn stops nothing; one naming this turn does.
+    const turnId = (started as { turnId: number }).turnId;
+    expect(await (await post({ stop: true, turn: turnId + 1 })).json()).toEqual({ stopping: false });
+    expect(await (await post({ stop: true, turn: turnId })).json()).toEqual({ stopping: true });
     const rest: StreamEvent[] = [];
     for (let i = 0; i < 20 && rest.at(-1)?.type !== "done"; i++) {
       vi.advanceTimersByTime(500);

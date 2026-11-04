@@ -5,7 +5,7 @@ import { loadCourseMap } from "@/course/map";
 import { exploreAsSeen, exploreWidgetFor } from "@/course/explore-widget";
 import { courseOverview, stepSequence, whatComesNext } from "@/course/navigator";
 import { topicStart } from "@/course/topic-start";
-import { revealedCases } from "@/case-data/case-data";
+import { referenceClip, revealedCases } from "@/case-data/case-data";
 import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
@@ -124,6 +124,7 @@ export default async function WorkspacePage() {
         insightSettled={!!current && progress.topics[current.id]?.insight !== undefined}
         writtenAhead={writtenAhead}
         revealed={revealedCases(map, progress)}
+        referenceClip={referenceClip(map, progress)}
         shown={shown}
         widgetStates={widgetStates}
         passed={passed}

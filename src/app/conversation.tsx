@@ -47,6 +47,7 @@ export function Conversation({
   insightSettled = false,
   writtenAhead,
   revealed = [],
+  referenceClip,
   shown,
   widgetStates,
   passed = null,
@@ -76,6 +77,8 @@ export function Conversation({
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
   revealed?: readonly string[];
+  /** The date the reference Case is clipped to (referenceClip in case-data.ts): a later close is never drawn. */
+  referenceClip?: string | null;
   /** What the page shows (its Topic's Session, or the Topic before its first turn), carried by every turn request. */
   shown?: Shown;
   /** The shown Session's saved Widget state, by Widget key (loadWidgetStates): slider values and ticked Guided Tasks. */
@@ -160,7 +163,7 @@ export function Conversation({
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
       {/* One Case Data cache for the page, cleared as each turn ends. */}
-      <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
+      <CaseDataProvider revealed={revealed} referenceClip={referenceClip} turnRunning={turn.running}>
         <DeveloperDetails on={developerDetails}>
           <WidgetStatesProvider store={widgetStore}>
             <InsightSettledContext.Provider value={insightSettled}>

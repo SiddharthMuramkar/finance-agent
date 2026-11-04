@@ -8,7 +8,6 @@ import type { Topic } from "./map.ts";
 
 /** Topics that still type formulas. Remove an ID when its Topic is converted; never add one. */
 export const NOT_YET_CONVERTED: readonly string[] = [
-  "num-compounding",
   "num-probability",
   "fs-income",
   "fs-balance",
