@@ -30,6 +30,12 @@ export const NEXT_PREFIX = "Next by code:";
  */
 export const FINISH_PREFIX = "Finish by code:";
 
+/**
+ * Opens the correction message the reply checks send for their one retry (reply-gate.ts). It is code's, never the
+ * Learner's: the thread never draws it, and later requests leave it out.
+ */
+export const REPLY_CHECK_PREFIX = "Reply check by code:";
+
 /** The note a Finish this reply turn sends, and sends again on Retry. */
 export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this reply, and has written nothing. Your last reply was cut short at its length limit. Finish it from where it stopped, without repeating what you already wrote, then stop and wait for the Learner.`;
 
