@@ -69,8 +69,8 @@ The course check's rules for a Converted Topic's teaching: a Check tests only Sk
 _Avoid_: Content lint, card check
 
 **Widget preset**:
-The numbers a Widget opens with, written on a Concept card: a Widget recipe and its inputs, or a Written-ahead Widget and its sliders' values. The Widget opens already set to them.
-_Avoid_: Widget settings, default values
+The numbers a ready-made Widget opens with: the slider values, by `$variable`. A Concept card writes one ahead (a Widget recipe and its inputs, or a Written-ahead Widget and its sliders' values), and the Tutor gives one to open_widget (or the recipe's inputs to show_widget) for the numbers under discussion. It replaces the Learner's last settings, the Widget item records it, and the Widget's earlier chip reopens those numbers.
+_Avoid_: Widget settings, default values, starting state
 
 **Running example**:
 The one everyday example a Topic keeps using, such as Percent's savings rate going from 4% to 5%, shown in its Concept cards, its Widget and the Tutor's replies, so the Learner carries one picture instead of many.
@@ -210,10 +210,6 @@ _Avoid_: rate calculator, Illustration
 **Free-form Widget**:
 A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. It is not offered to the Tutor any more (ADR 0007): only Sessions frozen while it was offered still have the tool. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
 _Avoid_: custom Widget, freeform lane (in Learner-facing text)
-
-**Widget preset**:
-The slider values a ready-made Widget is opened at, by `$variable`. The Tutor gives one to open_widget (or its recipe's inputs to show_widget) for the numbers under discussion. It replaces the Learner's last settings, the Widget item records it, and the Widget's earlier chip reopens those numbers.
-_Avoid_: default values, starting state
 
 **Widget state**:
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.

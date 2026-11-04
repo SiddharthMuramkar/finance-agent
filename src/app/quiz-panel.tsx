@@ -146,7 +146,7 @@ export function QuizPanel({
           {result.correctCount} of {result.shown} correct.{" "}
           {result.passed
             ? "Passed."
-            : `Not yet: you need ${result.needed}. The Tutor will go over what you missed; try again when you are ready, with different questions where there are any.`}
+            : `Not yet: you need ${result.needed}. The answers and fixes are below, and the Tutor will help with the first idea you missed. Try again when you are ready, with different questions where there are any.`}
         </p>
         <ol className="mt-3 flex flex-col gap-3 text-sm leading-5">
           {result.questions.map((q) => (

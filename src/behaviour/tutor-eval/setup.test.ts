@@ -9,7 +9,7 @@ import { readSettings } from "@/tutor/session-log";
 import { loadThread } from "@/tutor/transcript";
 import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
 import { CASES_DIR, loadCases, type LiveCase } from "./case";
-import { DRAWN, noteMark, pendingReason, prepareCase, seenReply } from "./setup";
+import { answerDrawnTry, DRAWN, noteMark, pendingReason, prepareCase, seenReply } from "./setup";
 
 /**
  * Seam: the Tutor Turn on in-memory Postgres with a scripted model. Each case's state is set up through the real
@@ -81,10 +81,15 @@ describe("setting a case's state up", () => {
     const db = await testDb();
     const p = await prepareCase(db, live("T3"), { map, settings });
     const state = (await skillStates(db, p.learnerId, "num-percent-bps"))["pts-to-bp"];
-    // wrong, wrong, right, wrong, then the Learner's 0.3: three earlier misses, and two in a row now.
-    expect(state).toMatchObject({ tries: 5, right: 1, missesInRow: 2, methodsUsed: ["restate", "worked"] });
+    // wrong, wrong, right, wrong: the Learner's 0.3 is not recorded here, answerDrawnTry sends it through answerQuickTry.
+    expect(state).toMatchObject({ tries: 4, right: 1, missesInRow: 1, methodsUsed: ["restate", "worked"] });
+    await expect(answerDrawnTry(db, map, live("T3"), p)).resolves.toBe(true);
+    expect((await skillStates(db, p.learnerId, "num-percent-bps"))["pts-to-bp"]).toMatchObject({ tries: 5, missesInRow: 2 });
     const db7 = await testDb();
     const p7 = await prepareCase(db7, live("T7"), { map, settings });
+    expect((await skillStates(db7, p7.learnerId, "num-percent-bps"))["pts-to-bp"]).toMatchObject({ missesInRow: 2 });
+    // The third miss in a row brings the park offer from code, with no follow-up turn.
+    await expect(answerDrawnTry(db7, map, live("T7"), p7)).resolves.toBe(false);
     expect((await skillStates(db7, p7.learnerId, "num-percent-bps"))["pts-to-bp"]).toMatchObject({ missesInRow: 3 });
   });
 });
