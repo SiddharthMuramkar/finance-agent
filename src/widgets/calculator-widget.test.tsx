@@ -23,13 +23,22 @@ describe("Calculator widget", () => {
 
   it("shows the formula's answer in rupees with lakh and crore", () => {
     const html = renderToStaticMarkup(<WidgetView code={fixed} complete />);
-    expect(html).toContain("₹43,391.16");
+    expect(html).toContain("₹43,391");
+    expect(html).not.toContain("₹43,391.16");
     expect(html).toContain("₹54.14 lakh");
   });
 
-  it("marks the result as resting on the Learner's assumptions", () => {
+  it("keeps the whole figure of a lakh reading in a title, with no paise", () => {
     const html = renderToStaticMarkup(<WidgetView code={fixed} complete />);
-    expect(html).toContain("Your assumption");
+    expect(html).toMatch(/title="₹54,1\d,\d{3}"/);
+  });
+
+  it("titles the result with a neutral eyebrow, not the teal Your assumption tag", () => {
+    const html = renderToStaticMarkup(<WidgetView code={fixed} complete />);
+    expect(html).toContain('data-kind="worked-out"');
+    expect(html).toContain("Worked out");
+    expect(html).not.toContain("Your assumption");
+    expect(html).not.toContain("you-line");
   });
 
   it("says plainly when the inputs are wrong instead of drawing a number", () => {
@@ -44,7 +53,7 @@ card = Card([calc])
 calc = Calculator("emi", {principal: 5000000, ratePercent: 8.5, years: 20})`;
     expect(widgetProblems(nested)).toEqual([]);
     const html = renderToStaticMarkup(<WidgetView code={nested} complete />);
-    expect(html).toContain("₹43,391.16");
+    expect(html).toContain("₹43,391");
     expect(html).not.toContain("could not be drawn");
   });
 });

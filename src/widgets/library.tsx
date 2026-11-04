@@ -13,12 +13,13 @@ import {
 // The package root, not "/genui-lib": that entry bundles its own theme context, so GenuiTheme's
 // colours would never reach its charts.
 import { openuiLibrary } from "@openuidev/react-ui";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
-import { SecondaryButton } from "@/app/ui";
+import { Chip, IconButton, SecondaryButton } from "@/app/ui";
+import { formatInrDisplay } from "@/finance/indian-format";
 import { AnnuityFigure, annuityAgainstCash, AssumptionTag, formatUnit, formatUsd, HistoryFigure } from "./case-data-view";
 import { InsightSettledContext } from "./insight-settled";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
@@ -27,6 +28,8 @@ import { advanceReached, savedReached, walkNodes } from "./guided-tasks";
 import { SavedTicksContext } from "./saved-ticks";
 import { readingValue, settledValue, sliderStep, snappedValue, steppedValue, typedValue, type SliderRange } from "./slider-steps";
 import { GuidedTasksFigure } from "./guided-tasks-view";
+import { AreaChartPlot, BarChartPlot, LineChartPlot, type ChartProps } from "./plot/charts";
+import { PlotResetContext } from "./plot/domain";
 import { WIDGET_TOOL_SPECS } from "./tool-specs";
 
 // The OpenUI component library the Tutor writes widgets with: OpenUI's ready-made kit (charts,
@@ -54,44 +57,132 @@ const sliderProps = z.object({
     .describe('Optional quick buttons that set the slider to a value at once, e.g. [{value: 0}]; a note is shown after the value'),
 });
 
-const stepButton =
-  "h-7 w-7 shrink-0 rounded border border-[var(--border)] text-sm leading-none hover:bg-[var(--field)] disabled:opacity-40";
+/** Reset's slide back to the starting values: this many frames, this far apart (about 240 ms in all). */
+const RESET_FRAMES = 6;
+const RESET_FRAME_MS = 40;
+const RESET_MS = RESET_FRAMES * RESET_FRAME_MS;
+
+/** A press-and-hold repeat: the first press acts at once, and holding goes on acting every 80 ms after 400 ms. */
+function useHold(act: () => boolean) {
+  const latest = useRef(act);
+  // After each render, so a held press always steps from what the slider shows now.
+  useEffect(() => {
+    latest.current = act;
+  });
+  const timers = useRef<{ wait?: number; every?: number }>({});
+  const stop = useCallback(() => {
+    window.clearTimeout(timers.current.wait);
+    window.clearInterval(timers.current.every);
+    timers.current = {};
+  }, []);
+  useEffect(() => stop, [stop]);
+  return {
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      stop();
+      if (!latest.current()) return;
+      timers.current.wait = window.setTimeout(() => {
+        timers.current.every = window.setInterval(() => {
+          if (!latest.current()) stop();
+        }, 80);
+      }, 400);
+    },
+    onPointerUp: stop,
+    onPointerLeave: stop,
+    onPointerCancel: stop,
+    onBlur: stop,
+    // A press already acted on pointer down (click detail is 1+); a key press has no pointer, so it acts here.
+    onClick: (e: React.MouseEvent) => {
+      if (e.detail === 0) latest.current();
+    },
+  };
+}
 
 /**
  * A slider with a number box and −/+ buttons, so the Learner can set an exact value. The rules for what
  * values it takes live in slider-steps.ts. The number box keeps what is being typed until Enter or leaving
  * the box, so typing 3.38 never passes through 3 and 3.3 (which could tick a Guided Task on the way).
+ * It is a container-query component: the row is a grid that gives the range every pixel the buttons leave, and
+ * below 22rem the number box is replaced by tapping the value in the header to type it.
  */
 function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>) {
   const field = useStateField(props.name, props.value);
   const [draft, setDraft] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const value = Number(field.value ?? props.min);
   const set = (next: number) => field.setValue(settledValue(next, props));
   const commit = () => {
-    if (draft === null) return;
-    const typed = typedValue(draft, props);
-    if (typed !== null) field.setValue(typed);
+    if (draft !== null) {
+      const typed = typedValue(draft, props);
+      if (typed !== null) field.setValue(typed);
+    }
     setDraft(null);
+    setEditing(false);
+  };
+  // One step; false once the slider is at its end, which also ends a hold.
+  const step = (dir: 1 | -1) => () => {
+    const next = steppedValue(value, dir, props);
+    if (next === value) return false;
+    field.setValue(next);
+    return true;
+  };
+  const down = useHold(step(-1));
+  const up = useHold(step(1));
+  const reading = formatUnit(readingValue(value), props.unit);
+  const typing = {
+    type: "number" as const,
+    inputMode: "decimal" as const,
+    min: props.min,
+    max: props.max,
+    step: "any",
+    value: draft ?? String(readingValue(value)),
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setDraft(e.target.value),
+    onBlur: commit,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") commit();
+      if (e.key === "Escape") {
+        setDraft(null);
+        setEditing(false);
+      }
+    },
   };
   return (
-    <div className="py-2">
+    <div className="@container min-w-0 py-2" data-testid="slider">
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span>
+        <span className="min-w-0">
           <AssumptionTag />
           {props.label}
         </span>{" "}
-        <output className="font-medium tabular-nums">{formatUnit(readingValue(value), props.unit)}</output>
+        {editing ? (
+          <input
+            {...typing}
+            autoFocus
+            aria-label={`${props.label}, type a value`}
+            className="w-24 shrink-0 rounded border border-[var(--border)] bg-[var(--field)] px-1.5 py-0.5 text-right text-sm tabular-nums @[22rem]:hidden"
+          />
+        ) : (
+          <>
+            <output className="hidden shrink-0 font-medium tabular-nums @[22rem]:inline">{reading}</output>
+            <button
+              type="button"
+              title="Tap to type a value"
+              onClick={() => setEditing(true)}
+              className="min-h-6 shrink-0 rounded font-medium tabular-nums underline decoration-dotted underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] @[22rem]:hidden"
+            >
+              {reading}
+            </button>
+          </>
+        )}
       </div>
-      <div className="mt-2 flex items-center gap-2">
-        <button
-          type="button"
-          aria-label={`Decrease ${props.label} by one step`}
+      <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 @[22rem]:grid-cols-[auto_minmax(0,1fr)_auto_5rem]">
+        <IconButton
+          label={`Decrease ${props.label} by one step`}
           disabled={value <= props.min}
-          onClick={() => field.setValue(steppedValue(value, -1, props))}
-          className={stepButton}
+          {...down}
+          className="border border-[var(--border)] text-base leading-none text-[var(--ink)]"
         >
           −
-        </button>
+        </IconButton>
         <input
           type="range"
           aria-label={props.label}
@@ -100,44 +191,29 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
           step={sliderStep(props)}
           value={value}
           onChange={(e) => set(Number(e.target.value))}
-          className="min-w-0 flex-1 accent-[var(--you)]"
+          className="range-you min-w-0 w-full"
         />
-        <button
-          type="button"
-          aria-label={`Increase ${props.label} by one step`}
+        <IconButton
+          label={`Increase ${props.label} by one step`}
           disabled={value >= props.max}
-          onClick={() => field.setValue(steppedValue(value, 1, props))}
-          className={stepButton}
+          {...up}
+          className="border border-[var(--border)] text-base leading-none text-[var(--ink)]"
         >
           +
-        </button>
+        </IconButton>
         <input
-          type="number"
-          inputMode="decimal"
+          {...typing}
           aria-label={`${props.label}, exact value`}
-          min={props.min}
-          max={props.max}
-          step="any"
-          value={draft ?? String(readingValue(value))}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") commit();
-          }}
-          className="w-20 shrink-0 rounded border border-[var(--border)] bg-[var(--field)] px-1.5 py-0.5 text-right text-sm tabular-nums"
+          className="hidden w-20 shrink-0 rounded border border-[var(--border)] bg-[var(--field)] px-1.5 py-0.5 text-right text-sm tabular-nums @[22rem]:block"
         />
       </div>
       {!!props.quick?.length && (
         <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={`Quick values for ${props.label}`}>
           {props.quick.map((q) => (
-            <button
-              key={`${q.value} ${q.note ?? ""}`}
-              type="button"
-              onClick={() => field.setValue(settledValue(q.value, props))}
-              className="rounded border border-[var(--border)] px-2 py-0.5 text-xs tabular-nums hover:bg-[var(--field)]"
-            >
+            // No data-state: that attribute marks a Guided Task's state for the scripts and tests that read the page.
+            <Chip key={`${q.value} ${q.note ?? ""}`} data-state={undefined} onClick={() => field.setValue(settledValue(q.value, props))} className="tabular-nums">
               {quickLabel(q, props.unit)}
-            </button>
+            </Chip>
           ))}
         </div>
       )}
@@ -245,6 +321,10 @@ const AnnuityChart = defineComponent({
 
 const historyProps = z.object({
   dataset: z.string().describe('A Case Data reference, "caseId/datasetId", from the list code sent you'),
+  scale: z
+    .enum(["linear", "log"])
+    .optional()
+    .describe('"log" opens the chart on a log axis, which shows steady growth as a straight line; a Log scale switch is always offered'),
 });
 
 function HistoryChartView({ props }: ComponentRenderProps<z.infer<typeof historyProps>>) {
@@ -252,7 +332,7 @@ function HistoryChartView({ props }: ComponentRenderProps<z.infer<typeof history
   if (!props.dataset) return null;
   if (loaded === undefined) return <p className="py-6 text-sm text-[var(--muted)]">Fetching sourced data…</p>;
   if (loaded === null) return <Missing reference={props.dataset} />;
-  return <HistoryFigure dataset={loaded.dataset} revealed={loaded.data.revealed} asOf={loaded.data.asOf} />;
+  return <HistoryFigure dataset={loaded.dataset} revealed={loaded.data.revealed} asOf={loaded.data.asOf} scale={props.scale} />;
 }
 
 const HistoryChart = defineComponent({
@@ -285,17 +365,24 @@ function CalculatorView({ props }: ComponentRenderProps<z.infer<typeof calculato
   }
   return (
     <div className="py-2" data-testid="calculator">
-      <p data-kind="assumption" className="rounded-md border-l-4 border-[var(--you-line)] bg-[var(--you-tint)] p-2 text-sm">
-        <AssumptionTag />
-        {result.title}
+      <p data-kind="worked-out" className="text-sm">
+        <span className="text-[11px] font-semibold uppercase leading-4 tracking-[0.08em] text-[var(--muted)]">Worked out</span>
+        <span aria-hidden="true"> · </span>
+        <span className="font-medium">{result.title}</span>
       </p>
       <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
-        {result.results.map((r) => (
-          <div key={r.label} className="contents">
-            <dt className="text-[var(--muted)]">{r.label}</dt>
-            <dd className="text-right font-medium tabular-nums">{r.text}</dd>
-          </div>
-        ))}
+        {result.results.map((r) => {
+          // Rupees: no paise from ₹1,000 up, and lakh or crore first from one lakh, with the whole figure on hover.
+          const rupees = r.kind === "money" && r.text.startsWith("₹") ? formatInrDisplay(r.value) : null;
+          return (
+            <div key={r.label} className="contents">
+              <dt className="text-[var(--muted)]">{r.label}</dt>
+              <dd className="text-right font-medium tabular-nums" title={rupees?.title}>
+                {rupees?.text ?? r.text}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
     </div>
   );
@@ -413,7 +500,10 @@ function GuidedTasksView({ props }: ComponentRenderProps<z.infer<typeof guidedTa
   const fromSaved = savedReached(texts, saved?.ticked ?? []);
   // Ticks stick: the count only grows, so moving a slider away again never unticks a task.
   const [reached, setReached] = useState(fromSaved);
-  const now = advanceReached(Math.max(reached, fromSaved), tasks.map((t) => t.done));
+  // While Reset slides the sliders home, the numbers passed on the way tick nothing.
+  const paused = useContext(TicksPausedContext);
+  const held = Math.max(reached, fromSaved);
+  const now = paused ? held : advanceReached(held, tasks.map((t) => t.done));
   if (now !== reached) setReached(now);
   const doneKey = texts.slice(0, now).join("\n");
   const onTicked = saved?.onTicked;
@@ -481,6 +571,180 @@ const DROPPED_KIT_PARTS = [
   "VisualCardBlock",
 ];
 
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const isPart = (v: unknown, name?: string): v is { typeName: string; props: Record<string, unknown> } =>
+  isRecord(v) && typeof v.typeName === "string" && isRecord(v.props) && (name === undefined || v.typeName === name);
+
+const asList = (v: unknown): unknown[] => (Array.isArray(v) ? v : v == null ? [] : [v]);
+
+const STACK_GAPS: Record<string, string> = {
+  none: "0",
+  xs: "var(--openui-space-xs)",
+  s: "var(--openui-space-s)",
+  m: "var(--openui-space-m)",
+  l: "var(--openui-space-l)",
+  xl: "var(--openui-space-xl)",
+  "2xl": "var(--openui-space-2xl)",
+};
+const STACK_ALIGN: Record<string, string> = {
+  start: "flex-start",
+  center: "center",
+  end: "flex-end",
+  stretch: "stretch",
+  baseline: "baseline",
+};
+const STACK_JUSTIFY: Record<string, string> = {
+  start: "flex-start",
+  center: "center",
+  end: "flex-end",
+  between: "space-between",
+  around: "space-around",
+  evenly: "space-evenly",
+};
+
+/**
+ * The kit's Stack, repaired for narrow panels: a row whose every child is a Slider is drawn as a column (a Slider
+ * needs the whole width), and any other row wraps, each child at least min(100%, 15rem) wide, so nothing is pushed
+ * past the panel. Columns are drawn as the kit draws them.
+ */
+function StackView({ props, renderNode }: ComponentRenderProps) {
+  const children = asList(props.children);
+  const text = (v: unknown) => (typeof v === "string" ? v : "");
+  const row = props.direction === "row";
+  const sliders = children.length > 0 && children.every((c) => isPart(c, "Slider"));
+  const wrapped = row && !sliders;
+  const justify = (props.wrap || wrapped) && props.justify === "between" ? "start" : props.justify;
+  return (
+    <div
+      data-testid="stack"
+      data-direction={wrapped ? "row" : "column"}
+      style={{
+        display: "flex",
+        flexDirection: wrapped ? "row" : "column",
+        gap: STACK_GAPS[text(props.gap) || "m"] ?? STACK_GAPS.m,
+        alignItems: STACK_ALIGN[text(props.align)],
+        justifyContent: STACK_JUSTIFY[text(justify)],
+        flexWrap: props.wrap || wrapped ? "wrap" : undefined,
+        minWidth: 0,
+      }}
+    >
+      {wrapped
+        ? children.map((child, i) => (
+            <div key={i} style={{ flex: "1 1 min(100%, 15rem)", minWidth: 0 }}>
+              {renderNode(child)}
+            </div>
+          ))
+        : renderNode(props.children)}
+    </div>
+  );
+}
+
+const kitStack = openuiLibrary.components.Stack;
+const Stack = defineComponent({
+  name: "Stack",
+  props: kitStack.props,
+  description: kitStack.description,
+  component: StackView,
+});
+
+/** A Steps title without the number the model wrote into it ("1. Bad times arrive"): Steps number themselves. */
+export function withoutStepNumber(title: unknown): unknown {
+  return typeof title === "string" ? title.replace(/^\s*\d+[.)]\s+/, "") : title;
+}
+
+const kitSteps = openuiLibrary.components.Steps;
+
+/** The kit's Steps, drawn by the kit, with the numbers the model wrote into step titles taken out. */
+function StepsView(render: ComponentRenderProps) {
+  const Kit = kitSteps.component;
+  const items = asList(render.props.items).map((item) =>
+    isPart(item)
+      ? {
+          ...item,
+          props: { ...item.props, title: withoutStepNumber(item.props.title) },
+        }
+      : item,
+  );
+  return <Kit {...render} props={{ ...render.props, items }} />;
+}
+
+const Steps = defineComponent({
+  name: "Steps",
+  props: kitSteps.props,
+  description: kitSteps.description,
+  component: StepsView,
+});
+
+/**
+ * The kit's chart as the plot kit draws it. OpenUI hands a chart its labels, then Series elements (or, from a
+ * Query, rows of [label, value, value...] with the column names as labels); this turns either into the plot's
+ * series. Null while a streaming chart has no labels or series yet.
+ */
+export function chartFromProps(props: Record<string, unknown>): ChartProps | null {
+  const names = asList(props.labels).map(String);
+  const given = asList(props.series);
+  if (!names.length || !given.length) return null;
+  let labels = names;
+  let series: ChartProps["series"];
+  if (Array.isArray(given[0])) {
+    const rows = given as unknown[][];
+    labels = rows.map((cells) => String(cells[0] ?? ""));
+    series = names.slice(1).map((category, at) => ({
+      category,
+      values: rows.map((cells) => Number(cells[at + 1]) || 0),
+    }));
+  } else {
+    series = given
+      .filter((s): s is { props: Record<string, unknown> } => isRecord(s) && isRecord(s.props))
+      .map((s) => ({
+        category: String(s.props.category ?? ""),
+        values: asList(s.props.values).map((v) => Number(v) || 0),
+      }));
+  }
+  if (!series.length) return null;
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+  return {
+    labels,
+    series,
+    variant: typeof props.variant === "string" ? props.variant : undefined,
+    xLabel: typeof props.xLabel === "string" ? props.xLabel : undefined,
+    yLabel: typeof props.yLabel === "string" ? props.yLabel : undefined,
+    unit: typeof props.unit === "string" ? props.unit : undefined,
+    yMin: num(props.yMin),
+    yMax: num(props.yMax),
+  };
+}
+
+const chartExtras = {
+  unit: z.enum(["inr", "usd", "percent"]).optional().describe("The unit of the values, for axis ticks and tooltips; read from the y-axis label when left out"),
+  yMin: z.number().optional().describe("The value axis never ends inside yMin to yMax"),
+  yMax: z.number().optional(),
+};
+
+function overrideChart(name: "AreaChart" | "LineChart" | "BarChart", Plot: (props: ChartProps) => ReactNode, extra: z.ZodRawShape = {}, description?: string) {
+  const kitChart = openuiLibrary.components[name];
+  const base = kitChart.props as unknown as z.ZodObject;
+  return defineComponent({
+    name,
+    props: base.extend({ ...extra, ...chartExtras }),
+    description: description ?? kitChart.description,
+    component: ({ props }: ComponentRenderProps) => {
+      const chart = chartFromProps(props);
+      return chart ? Plot(chart) : null;
+    },
+  });
+}
+
+/** The kit's three axis charts, drawn by the plot kit: sticky value axes, round ticks, units, and areas that never stack. */
+const AreaChart = overrideChart(
+  "AreaChart",
+  (p) => <AreaChartPlot {...p} />,
+  { variant: z.enum(["linear", "natural", "step", "stacked"]).optional() },
+  'Filled first series with the others as lines, over one axis. Series overlap and never stack unless variant is "stacked".',
+);
+const LineChart = overrideChart("LineChart", (p) => <LineChartPlot {...p} />);
+const BarChart = overrideChart("BarChart", (p) => <BarChartPlot {...p} />);
+
 /** Our parts the kit's containers list as their content; Stack already takes any part. */
 const OUR_PARTS = [AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks];
 
@@ -491,7 +755,7 @@ const OUR_PARTS = [AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTa
 const kit = openuiLibrary.extend({
   components: {
     remove: DROPPED_KIT_PARTS,
-    override: [Slider],
+    override: [Slider, Stack, Steps, AreaChart, LineChart, BarChart],
     add: [...OUR_PARTS.map((component) => ({ component, slots: ["Card.children", "TabItem.content", "AccordionItem.content"] })), GuidedTask],
   },
 });
@@ -569,9 +833,28 @@ function SliderStart({ slider, resets }: { slider: SliderNode; resets: Map<strin
     const onStep = snappedValue(current, slider);
     if (onStep !== current && (!known || current === declared)) field.setValue(onStep);
   });
+  const frames = useRef<number[]>([]);
+  const cancel = () => {
+    frames.current.forEach((id) => window.clearTimeout(id));
+    frames.current = [];
+  };
+  useEffect(() => cancel, []);
   useEffect(() => {
+    // Back to the start in a few quick frames, so the Learner sees the slider travel; at once for reduced motion.
     resets.set(slider.target, () => {
-      if (start.current !== null) field.setValue(start.current);
+      const to = start.current;
+      if (to === null) return;
+      cancel();
+      const from = Number(current);
+      const still = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!Number.isFinite(from) || from === to || still) {
+        field.setValue(to);
+        return;
+      }
+      for (let i = 1; i <= RESET_FRAMES; i++) {
+        const eased = 1 - (1 - i / RESET_FRAMES) ** 2;
+        frames.current.push(window.setTimeout(() => field.setValue(i === RESET_FRAMES ? to : snappedValue(from + (to - from) * eased, slider)), i * RESET_FRAME_MS));
+      }
     });
     return () => {
       resets.delete(slider.target);
@@ -580,29 +863,79 @@ function SliderStart({ slider, resets }: { slider: SliderNode; resets: Map<strin
   return null;
 }
 
+/** True while Reset slides the sliders back: Guided Tasks do not tick on the numbers passed on the way. */
+export const TicksPausedContext = createContext(false);
+
+/** Top-level parts that are the Widget's controls: a Slider, or a Stack of nothing but Sliders. */
+function isControl(part: unknown): boolean {
+  if (isPart(part, "Slider")) return true;
+  if (!isPart(part, "Stack")) return false;
+  const inside = asList(part.props.children);
+  return inside.length > 0 && inside.every((c) => isPart(c, "Slider"));
+}
+
+/** Most sliders the control bar holds: with more, the bar would cover the answer it sits above. */
+const MAX_STICKY_SLIDERS = 2;
+
 function WidgetFrame({ props, renderNode }: ComponentRenderProps<{ title: string; children: unknown }>) {
   const bordered = useContext(WidgetBorderContext);
   const sliders = widgetSliders(props.children);
   const [resets] = useState(() => new Map<string, () => void>());
+  // Reset restarts the plots' value axes once the sliders are home, so the axes do not keep the numbers passed on the way.
+  const [resetCount, setResetCount] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const settle = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(settle.current), []);
+  const reset = () => {
+    setPaused(true);
+    resets.forEach((back) => back());
+    window.clearTimeout(settle.current);
+    settle.current = window.setTimeout(() => {
+      setResetCount((n) => n + 1);
+      setPaused(false);
+    }, RESET_MS + 60);
+  };
+  // The top-level sliders form a control bar that stays in view while the answer under it scrolls.
+  const parts = asList(props.children);
+  const controls = parts.filter(isControl);
+  const stuck = controls.length > 0 && widgetSliders(controls).length <= MAX_STICKY_SLIDERS;
+  const rest = stuck ? parts.filter((part) => !isControl(part)) : parts;
   return (
-    <section className={bordered ? "rounded-lg border border-[var(--border)] p-4" : ""}>
-      <div className="mb-2 flex items-baseline justify-between gap-3">
-        <h3 className="font-medium">{props.title}</h3>
+    <section className={bordered ? "min-w-0 rounded-lg border border-[var(--border)] p-4" : "min-w-0"}>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h3 className="min-w-0 font-medium">{props.title}</h3>
         {sliders.length > 0 && (
-          <button
-            type="button"
-            title="Put every slider back to its starting value"
-            onClick={() => resets.forEach((reset) => reset())}
-            className="shrink-0 rounded border border-[var(--border)] px-2 py-0.5 text-xs text-[var(--muted)] hover:bg-[var(--field)]"
-          >
-            Reset
-          </button>
+          <IconButton label="Put every slider back to its starting value" onClick={reset} data-testid="widget-reset" className="shrink-0">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="M2.5 8a5.5 5.5 0 1 0 1.8-4.07" />
+              <path d="M2.5 2.5v3h3" />
+            </svg>
+            <span className="sr-only">Reset</span>
+          </IconButton>
         )}
       </div>
       {sliders.map((slider) => (
         <SliderStart key={slider.target} slider={slider} resets={resets} />
       ))}
-      {renderNode(props.children)}
+      <PlotResetContext.Provider value={resetCount}>
+        <TicksPausedContext.Provider value={paused}>
+          {stuck && (
+            <div data-testid="widget-controls" className="sticky top-0 z-10 mb-2 border-b border-[var(--hairline)] bg-[var(--bg)]">
+              {renderNode(controls)}
+            </div>
+          )}
+          {renderNode(rest)}
+        </TicksPausedContext.Provider>
+      </PlotResetContext.Provider>
     </section>
   );
 }
@@ -617,6 +950,7 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
     components: ["Widget"],
     notes: [
       '- Widget("Title", [parts]) is the root of every widget. The panel already frames it, so lay its parts out with Stack (Stack([a, b], "row") puts two side by side), never with an outer Card.',
+      "- Put Sliders one under another, never in a row. The answer goes directly under the controls; details and charts come after.",
     ],
   },
   {
@@ -629,7 +963,7 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
     components: ["Stack", "Tabs", "TabItem", "Accordion", "AccordionItem", "Steps", "StepsItem", "Separator"],
     notes: [
       '- Use Tabs for two views of the same numbers, such as a chart and a table: Tabs([TabItem("chart", "Chart", [chart]), TabItem("table", "Table", [table])]). Keep Sliders above the Tabs, so one slider moves both views.',
-      "- Steps lists the stages of a method in words; it works nothing out.",
+      "- Steps lists the stages of a method in words; it works nothing out. Steps number themselves: don't start titles with numbers.",
     ],
   },
   {
@@ -652,6 +986,7 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
       "- Chart labels must be strings: use a tool result's rows.label or rows.date, never rows.x. The values come from rows.value, or another number column such as rows.payment.",
       '- Pluck a column from a tool result with dot access: d.rows.value is every row\'s value, as in LineChart(d.rows.date, [Series("Close", d.rows.value)]).',
       "- Line and area charts show change over time or across a range; bar charts compare a few cases; PieChart shows only the shares of one whole.",
+      "- Areas never stack. To show a total and the part you paid in, use one area and one line.",
     ],
   },
   {

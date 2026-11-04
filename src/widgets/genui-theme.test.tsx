@@ -100,8 +100,9 @@ describe("OpenUI's kit drawn in our tokens", () => {
 
   // The widget library's kit components see GenuiTheme only when they come from "@openuidev/react-ui" itself:
   // its "/genui-lib" entry bundles a private copy of the theme context, and its charts stay in the kit's blue.
-  it.skipIf(!("LineChart" in widgetLibrary.components))("draws a kit chart in a widget in our palette", () => {
-    const code = 'root = Widget("Illustration: two points", [c])\nc = LineChart(["a", "b"], [Series("x", [1, 2])])';
+  // (LineChart, AreaChart and BarChart are drawn by the plot kit, in the plot palette, so a chart the kit still draws stands in.)
+  it.skipIf(!("RadarChart" in widgetLibrary.components))("draws a kit chart in a widget in our palette", () => {
+    const code = 'root = Widget("Illustration: two points", [c])\nc = RadarChart(["a", "b", "c"], [Series("x", [1, 2, 3])])';
     const html = renderToStaticMarkup(
       <GenuiTheme>
         <Renderer response={code} library={widgetLibrary} />

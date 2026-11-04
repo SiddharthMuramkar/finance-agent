@@ -136,6 +136,8 @@ describe("Present value's annuity Widget at the explore step", () => {
     await click(button("0%")!);
     expect(range.value).toBe("0");
     await click(button("Reset")!);
+    // Reset slides the slider home in about a quarter of a second.
+    await act(async () => void (await new Promise((r) => setTimeout(r, 400))));
     expect(range.value).toBe("5");
   });
 

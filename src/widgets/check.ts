@@ -1,10 +1,10 @@
-import { createParser, type ASTNode, type LibraryJSONSchema, type ParseResult } from "@openuidev/lang-core";
+import { createParser, evaluate, type ASTNode, type LibraryJSONSchema, type ParseResult } from "@openuidev/lang-core";
 import { CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 import type { CoveredParts } from "@/course/written-ahead";
 // The frozen schema alone: the browser draws widgets with this check, and needs none of the instructions' text.
 import frozenSchema from "./frozen-schema.generated.json";
-import { guidedTaskProblems, parsedTasks, walkNodes, type ParsedNode } from "./guided-tasks";
+import { broadTaskWarnings, guidedTaskProblems, parsedTasks, walkNodes, type ParsedNode } from "./guided-tasks";
 import { sliderStep } from "./slider-steps";
 import { splitReply } from "./split";
 import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NAMES, type WidgetToolName } from "./tool-specs";
@@ -29,6 +29,21 @@ export function widgetProblems(code: string): string[] {
     return problems;
   } catch (e) {
     return [`The code could not be parsed: ${e instanceof Error ? e.message : String(e)}`];
+  }
+}
+
+/**
+ * Warnings about a widget that still draws and teaches, so they never trigger a correction round: a Guided Task that
+ * most of a slider's range ticks. Empty when there is nothing to say.
+ */
+export function widgetWarnings(code: string): string[] {
+  try {
+    const result = parser.parse(code);
+    const holds = (condition: unknown, values: Record<string, unknown>) =>
+      evaluate(condition as never, { getState: (name) => values[name], resolveRef: () => undefined }) === true;
+    return broadTaskWarnings(result.root?.props.children, result.stateDeclarations as Record<string, unknown>, holds);
+  } catch {
+    return [];
   }
 }
 

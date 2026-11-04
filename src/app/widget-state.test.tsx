@@ -120,6 +120,8 @@ describe("a Widget in the Study Workspace with saved Widget state", () => {
     await open([{ role: "assistant", text: fence(rates("Rates")) }], { Rates: { values: { $rate: 2.5 }, ticked: [] } });
     const reset = [...card().querySelectorAll("button")].find((b) => b.textContent === "Reset")!;
     await click(reset);
+    // Reset slides the slider home in about a quarter of a second.
+    await act(async () => vi.advanceTimersByTime(400));
     expect(slider().value).toBe("5");
   });
 
