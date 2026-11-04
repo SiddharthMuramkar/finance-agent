@@ -28,6 +28,11 @@ export type PracticeAnswer = {
   /** The Known mistake's tag; required for a `known_mistake` verdict. */
   mistakeTag?: string | null;
   source: "quick_try" | "quiz";
+  /**
+   * False logs the answer but leaves the Skill's state as it is: a quiz attempt's second and later misses on one Skill
+   * (one miss per Skill per attempt). Defaults to true.
+   */
+  countInState?: boolean;
 };
 
 type Row = typeof skillState.$inferSelect;
@@ -84,7 +89,7 @@ export async function recordAnswer(db: Db, a: PracticeAnswer, now = new Date()):
       .onConflictDoNothing()
       .returning({ id: practiceAnswers.id });
     const where = ofSkill(a.learnerId, a.topicId, a.skillId);
-    if (!logged.length) return toState((await tx.select().from(skillState).where(where))[0]);
+    if (!logged.length || a.countInState === false) return toState((await tx.select().from(skillState).where(where))[0]);
 
     // The row is made first, then locked, so two answers on one Skill at the same moment are applied one after the other.
     await tx.insert(skillState).values({ learnerId: a.learnerId, topicId: a.topicId, skillId: a.skillId, updatedAt: now }).onConflictDoNothing();
