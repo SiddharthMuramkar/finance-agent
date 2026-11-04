@@ -42,8 +42,8 @@ function Paperclip() {
  * It stays editable while a turn runs, so the Learner can draft the next message; Send stays off during a turn and
  * while the box is empty (assistant-ui's composer rules). Attach a passage opens a small box beside it: the text is
  * saved privately with this Session and given to the Tutor with the message, never added to the Library. The one
- * Send sends the message and the passage together. While a reply runs, Send becomes Stop: the reply ends where it
- * is and what it had written is kept.
+ * Send sends the message and the passage together. While a reply runs, Send becomes Stop: code holds every reply
+ * until it has checked it (ADR 0008), so Stop drops the held reply. The Learner's message stays, with a Stopped note.
  */
 export function MessageBox({
   waiting,
@@ -96,7 +96,7 @@ export function MessageBox({
           className="flex-1 resize-none rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-base leading-6 placeholder:text-[var(--muted)] focus:border-[var(--brand)] focus:outline-hidden focus:ring-1 focus:ring-[var(--brand)]"
         />
         {running ? (
-          <Button type="button" variant="secondary" data-testid="stop-reply" disabled={stopping} onClick={onStop} title="Stop the reply and keep what is written">
+          <Button type="button" variant="secondary" data-testid="stop-reply" disabled={stopping} onClick={onStop} title="Stop the reply">
             <Spinner />
             {stopping ? "Stopping…" : "Stop"}
           </Button>

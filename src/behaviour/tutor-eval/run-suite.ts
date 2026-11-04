@@ -53,7 +53,7 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
     const troubles: string[] = [];
     let note = "";
     const started = performance.now();
-    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId }, c.message)) {
+    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false }, c.message)) {
       if (e.type === "text") text += e.text;
       if (e.type === "replay") text = e.text;
       if (e.type === "done") {

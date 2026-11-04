@@ -10,6 +10,7 @@ import { profileInput, saveProfile } from "@/learner/profile";
 import { OPENING_PREFIX } from "./context";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { presentValueOnly } from "@/test/present-value-map";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
@@ -240,13 +241,14 @@ describe("one Session per Topic", () => {
     await turn(db, "Bonds now.", [say("Bond prices.")]);
     await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     await db.update(sessionsTable).set({ fingerprint: "an-earlier-build" });
-    const back = await turn(db, "Where was I?", [say("Past the Check, at the reveal.")]);
+    // The first turn after the deploy folds the history into a summary before its reply.
+    const back = await turn(db, "Where was I?", [{ content: [{ type: "compaction", content: "Summary." }] }, say("Past the Check, at the reveal.")]);
 
     // Reload: the pass, the place and the Topic's own thread are all still there.
     expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"].passedChecks).toEqual([checkId]);
     expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toMatchObject([{ checkId, passed: true }]);
     expect(await learnerSummary(db, twoTopics, OWNER_LEARNER_ID)).toContain("Teaching Step: reveal");
-    expect(sent(back.requests[0])).toContain("Teaching Step: reveal");
+    expect(sent(back.requests.at(-1)!)).toContain("Teaching Step: reveal");
     expect(await texts(db)).toEqual(["Each payment is worth less today.", "That is a pass.", "Where was I?", "Past the Check, at the reveal."]);
   });
 
@@ -369,8 +371,9 @@ describe("a Topic passed in a turn", () => {
 describe("a deploy that changes the Tutor's instructions", () => {
   const thinking = (n: number) => ({ type: "thinking", thinking: `Thought ${n}.`, signature: `sig-${n}==` });
 
-  it("refreezes instructions, tools, model and effort at the next new turn in the same Session; earlier thinking is never sent again, later thinking replays unchanged", async () => {
+  it("refreezes instructions and tools at the next new turn in the same Session, keeps its model and effort, folds the history, and never sends earlier thinking again", async () => {
     const db = await testDb();
+    await engineOff(db);
     await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     const reply = (n: number): ScriptedReply => ({ content: [thinking(n), { type: "text", text: `Reply ${n}.` }] });
     await turn(db, "One", [reply(1)]);
@@ -379,18 +382,21 @@ describe("a deploy that changes the Tutor's instructions", () => {
     await db.update(sessionsTable).set({ fingerprint: "an-earlier-build", instructions: "Old instructions.", model: "claude-old", effort: "low" });
     await db.update(settings).set({ value: "high" }).where(eq(settings.key, "effort"));
 
-    const three = await turn(db, "Three", [reply(3)]);
+    const three = await turn(db, "Three", [{ content: [{ type: "compaction", content: "Summary of One and Two." }] }, reply(3)]);
     const four = await turn(db, "Four", [reply(4)]);
     expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     for (const request of [...three.requests, ...four.requests]) {
       expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS, cache_control: { type: "ephemeral" } }]);
-      expect(request.model).toBe("claude-opus-5-5");
-      expect(request.output_config).toEqual({ effort: "high" });
+      // Existing Sessions keep their model and effort (spec #229).
+      expect(request.model).toBe("claude-old");
+      expect(request.output_config).toEqual({ effort: "low" });
       expect(sent(request)).not.toContain("Thought 1.");
       expect(sent(request)).not.toContain("Thought 2.");
-      // Their text still replays.
-      expect(sent(request)).toContain("Reply 2.");
     }
+    // The fold reads the earlier replies' text; from the reply on, the summary stands in for them.
+    expect(sent(three.requests[0])).toContain("Reply 2.");
+    expect(sent(three.requests[1])).toContain("Summary of One and Two.");
+    expect(sent(three.requests[1])).not.toContain("Reply 2.");
     expect(four.requests[0].messages).toContainEqual({ role: "assistant", content: [thinking(3), { type: "text", text: "Reply 3." }] });
     // No notice: the Learner carries on in the same Session.
     expect([...three.events, ...four.events].map((e) => e.type)).not.toContain("session");
