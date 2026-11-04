@@ -1,6 +1,7 @@
 import { CALCULATORS, CALCULATOR_IDS } from "@/finance/calculators";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 import { RECIPE_IDS, recipeSignatures } from "@/widgets/recipes";
+import { ARCHETYPES } from "@/widgets/recipes/define";
 
 /**
  * The Tutor's instructions. They are frozen into each Session at its first turn; after a deploy that
@@ -196,11 +197,51 @@ export const SHOW_WIDGET_TOOL: ToolDefinition = {
   },
 };
 
+/** The free-form lane (UX audit ★.4, lane 2): a faster model writes a Widget no recipe covers, within 12 seconds. */
+export const COMPOSE_WIDGET_TOOL: ToolDefinition = {
+  name: "compose_widget",
+  description:
+    "Have a Widget drawn free-form when no recipe fits the idea. Give a short brief (what the Learner should see and move, and which Case Data references or calculator it uses), its archetype, and any parts it must use. Code has it written, checks it like any Widget, and puts it in the Widget panel. If drawing takes longer than 12 seconds or fails, code shows the closest recipe instead (your fallback, if you give one) and the result says so in one line for you to tell the Learner. One Widget per reply.",
+  input_schema: {
+    type: "object",
+    properties: {
+      brief: { type: "string", description: "What the Widget shows and what the Learner moves, in one to three sentences, with its title and any Case Data references." },
+      archetype: { type: "string", enum: [...ARCHETYPES], description: "The kind of idea it teaches." },
+      mustUse: { type: "array", items: { type: "string" }, description: 'Parts it must use, e.g. ["Breakeven"]. Optional.' },
+      fallback: {
+        type: "object",
+        description: "Optional: the recipe and params (as for show_widget) to show if drawing fails.",
+        properties: { recipe: { type: "string", enum: RECIPE_IDS }, params: { type: "object" } },
+        required: ["recipe", "params"],
+      },
+    },
+    required: ["brief", "archetype"],
+    additionalProperties: false,
+  },
+};
+
+/** Moves an open Widget's sliders instead of drawing a new one (UX audit ★.4). */
+export const UPDATE_WIDGET_TOOL: ToolDefinition = {
+  name: "update_widget",
+  description:
+    "Move the sliders of a Widget already open, instead of drawing a new one (\"make it 9%\"). key is the Widget's title as the open-Widgets line lists it (or a written-ahead Widget's id); values are new slider values by $variable, each within that slider's range. Code saves them and the open Widget moves at once. Guided Tasks tick themselves; you never tick them.",
+  input_schema: {
+    type: "object",
+    properties: {
+      key: { type: "string", description: "The open Widget's title (its Widget key)." },
+      values: { type: "object", additionalProperties: { type: "number" }, description: 'New slider values by $variable, e.g. {"$rate": 9}.' },
+    },
+    required: ["key", "values"],
+    additionalProperties: false,
+  },
+};
+
 const ENGINE_WIDGETS = `Widgets (drawn by code from recipes):
 - A Widget is an interactive picture beside the conversation. You never write Widget code. To show one, call show_widget with a recipe and its params; to show a written-ahead Widget, call open_widget. Where the rules above say to build, draw or write a Widget (a Calculator, a FormulaCard, a chart of Case Data), call show_widget with the recipe that fits; if none fits, teach in words.
 - Call show_widget first, before you write any prose in the reply, then write at most about ${REPLY_WORD_LIMIT} words about the Widget on screen: what to look at, and what to move. One Widget per reply.
 - Params come in three kinds. inputs: slider ranges and starting values, and the calculator or formula inputs our code works out. refs: Case Data references from the list code sent ("caseId/datasetId", or "reference/<id>"). facts: numbers you type that the Widget shows as they are; any fact makes the Widget an Illustration, and code puts "Illustration:" before its title. Real figures come only from refs or from our calculators.
-- A Widget's title is its name in the panel. To change a Widget already open, call show_widget again with the same title: it updates in place.
+- When no recipe fits the idea, call compose_widget with a short brief, its archetype and any parts it must use (and a fallback recipe if one comes close). Call it first too, before any prose. If code says it showed a ready-made Widget instead, tell the Learner so in one short line.
+- A Widget's title is its name in the panel. To move the sliders of a Widget already open ("make it 9%"), call update_widget with its title and the new values; to change anything else about it, call show_widget again with the same title: it updates in place.
 - If code refuses the params, read its reason and call show_widget again with params that fit, or teach in words.
 - Code's "Widget notes" list the recent archetypes, latest last. Don't choose a recipe of the last one's archetype unless the Learner asked for the same thing again.
 
@@ -211,5 +252,5 @@ export const ENGINE_INSTRUCTIONS = `${TUTOR_RULES}
 
 ${ENGINE_WIDGETS}`;
 
-/** The engine's tools: today's, with show_widget after open_widget. */
-export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [t, SHOW_WIDGET_TOOL] : [t]));
+/** The engine's tools: today's, with show_widget, compose_widget and update_widget after open_widget. */
+export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [t, SHOW_WIDGET_TOOL, COMPOSE_WIDGET_TOOL, UPDATE_WIDGET_TOOL] : [t]));
