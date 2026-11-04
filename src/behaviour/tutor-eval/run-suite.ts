@@ -14,7 +14,8 @@ import type { Budget } from "./budget";
 import type { AggregateCase, EvalCase, LintCase, LiveCase } from "./case";
 import { buildGraderPrompt, codedFailures, GRADER_SYSTEM, judgeRun, parseGrade, RUBRIC, type SeenReply } from "./grading";
 import { caseStatus, RUNS_PER_CASE, type CaseResult, type EvalReport, type RunResult } from "./report";
-import { noteMark, pendingReason, prepareCase, seenReply, type TutorSettings } from "./setup";
+import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply, type TutorSettings } from "./setup";
+import { liveSession } from "@/tutor/session-log";
 
 export type SuiteDeps = {
   map?: CourseMap;
@@ -52,8 +53,17 @@ async function runLive(c: LiveCase, run: number, deps: SuiteDeps, map: CourseMap
     let done: { sessionId: number; turnSeq: number } | null = null;
     const troubles: string[] = [];
     let note = "";
+    // A case with an answer goes the way the app does: code marks it on a drawn Quick try, then the follow-up turn it asks for runs.
+    const followUp = c.answer ? await answerDrawnTry(db, map, c, p) : true;
+    if (!followUp) {
+      // Code answered with no Tutor turn (the park offer): grade what code stored, with no model call.
+      const session = await liveSession(db, p.learnerId, p.topic.id);
+      const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, sessionId: session!.id, turnSeq: 0, text: "", notesAfter });
+      const coded = codedFailures(c.pass, reply, p.ctx);
+      return { run, status: coded.length ? "fail" : "pass", reasons: coded, reply, costUsd: 0, note: "Code answered with no Tutor turn; graded by code only.", words: p.ctx.internalWords };
+    }
     const started = performance.now();
-    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false }, c.message)) {
+    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c, run), map, learnerId: p.learnerId, checkReplies: false }, c.answer ? { quickTryFollowUp: true } : c.message)) {
       if (e.type === "text") text += e.text;
       if (e.type === "replay") text = e.text;
       if (e.type === "done") {

@@ -40,7 +40,7 @@ export function parsePairs(raw: string | undefined): Pair[] {
 }
 
 export type PairStats = Pair & {
-  /** Every non-pending case passed three of three, the cap stopped nothing and the pair ran without an error. */
+  /** No case is pending, every case passed three of three, the cap stopped nothing and the pair ran without an error. */
   passed: boolean;
   runsPassed: number;
   /** Runs expected from the cases that could run (pending cases are left out). */
@@ -65,7 +65,7 @@ export function summarisePair(r: PairResult): PairStats {
   const turns = cases.filter((c) => c.kind === "live").flatMap((c) => c.runs).filter((run) => run.status !== "skipped").length;
   return {
     ...base,
-    passed: r.report.budgetStop === null && ran.every((c) => c.status === "pass"),
+    passed: r.report.budgetStop === null && cases.every((c) => c.status === "pass"),
     runsPassed: ran.flatMap((c) => c.runs).filter((run) => run.status === "pass").length,
     runsTotal: ran.length * RUNS_PER_CASE,
     casesPassed: ran.filter((c) => c.status === "pass").length,
@@ -134,7 +134,9 @@ export function renderSweep(r: SweepReport): string {
     "",
     "The rule: the cheapest pair, by cost per turn (Tutor and grader together), that passes every case three times out of three. A pair the cap stopped, or that threw, does not pass.",
     "",
-    chosen
+    stats.some((s) => s.pending.length)
+      ? `**Cases are still pending (${[...new Set(stats.flatMap((s) => s.pending))].join(", ")}), so no setting is chosen.** The choice needs T1 to T11 all run, three times out of three.`
+      : chosen
       ? `**Chosen setting: ${chosen.model}, effort ${chosen.effort}** (${usd4(chosen.costPerTurn)} per turn).`
       : "**No setting passed everything.** Do not change the stored default; read the failures below.",
     "",
@@ -142,7 +144,7 @@ export function renderSweep(r: SweepReport): string {
   for (const s of stats) {
     if (s.error) lines.push(`- ${s.model} ${s.effort}: did not run: ${s.error}`);
     if (s.budgetStop) lines.push(`- ${s.model} ${s.effort}: ${s.budgetStop}`);
-    if (s.pending.length) lines.push(`- ${s.model} ${s.effort}: pending, not counted: ${s.pending.join(", ")}.`);
+    if (s.pending.length) lines.push(`- ${s.model} ${s.effort}: pending, so this pair cannot pass: ${s.pending.join(", ")}.`);
   }
   for (const p of r.pairs) {
     if (!p.report || summarisePair(p).passed) continue;

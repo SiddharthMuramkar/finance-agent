@@ -81,4 +81,10 @@ describe("QuizPanel typed questions", () => {
     expect(html).toContain("A rate scales with the amount; a fee does not.");
     expect(html).toContain('data-testid="quiz-result"');
   });
+
+  it("says the answers and fixes are below and the Tutor helps with the first idea missed, not everything", () => {
+    const html = renderToStaticMarkup(<QuizPanel quiz={null} missed={missed} />);
+    expect(html).toContain("The answers and fixes are below, and the Tutor will help with the first idea you missed.");
+    expect(html).not.toContain("go over what you missed");
+  });
 });

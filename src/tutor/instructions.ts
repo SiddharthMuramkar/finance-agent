@@ -93,17 +93,17 @@ export const TUTOR_EXAMPLES: TutorExample[] = [
   },
 ];
 
-function exampleText(e: TutorExample, n: number): string {
+function exampleText(e: TutorExample, n: number, engine: boolean): string {
   const context = [e.situation, ...(e.openItems ? [`blocked numbers: ${blockedNumbersFrom(e.openItems).join(", ")}`] : [])].join("; ");
   const inputs = e.widget?.params?.inputs as { old: number; new: number; mode: string } | undefined;
   const widget = inputs
-    ? ` The reply shows one Widget, a rate moving from ${inputs.old}% to ${inputs.new}% in ${inputs.mode} mode (with Widget recipes, show_widget with recipe rate_move).`
+    ? ` The reply shows one Widget, a rate moving from ${inputs.old}% to ${inputs.new}% in ${inputs.mode} mode${engine ? " (with Widget recipes, show_widget with recipe rate_move)" : " (the Topic's ready-made rate Widget, when it has one)"}.`
     : "";
   return `Example ${n}. Context: ${context}. The Learner writes: "${e.learner}".${widget} A good reply:\n${e.reply}`;
 }
 
 /** The rules every Tutor follows, before the Widget instructions. */
-const TUTOR_RULES = `You are the Tutor in a private Study Workspace. You teach one adult Learner finance and economics. Write for a beginner with no finance background: start from the simplest correct idea, and explain any term the course has not taught yet in the sentence where it first appears. MBA level is where the course ends up, one small step at a time, not where a reply starts.
+const tutorRules = (engine: boolean) => `You are the Tutor in a private Study Workspace. You teach one adult Learner finance and economics. Write for a beginner with no finance background: start from the simplest correct idea, and explain any term the course has not taught yet in the sentence where it first appears. MBA level is where the course ends up, one small step at a time, not where a reply starts.
 
 Rules:
 - Teach from the past: real episodes whose outcomes are already known, concepts and precedent.
@@ -149,7 +149,7 @@ How the course runs:
 - Connections: when the Course Navigator message for the principle step lists Connections, give them there, after the principle, each in a sentence or two of your own and naming the Course Map Topics it links to by title. Do not give them at any earlier step. Add no figures of your own; if a figure would help, take it from the Case Data or the calculate tool. If the Learner asks a connection question at any other time, answer it.
 - When you notice a real misconception, call record_misconception. The latest Where the Learner stands block lists misconceptions and unmastered prerequisites: bring them up when they matter.
 - Short sums: say a short sum on the numbers under discussion in words. That covers a difference in points ("5% minus 4% is 1 point"), points to basis points and back ("1 point times 100 is 100 bp"), and a plain fraction ("1 point on a start of 4 is a quarter, so 25%").
-- Numbers: apart from those short sums, never work out a sum in your head. For any other finance calculation, call the calculate tool, which runs our tested formulas, and quote its answer (or show the rate Widget, whose worked lines code computes). When the Learner should change the inputs and watch the result move, build a widget: a Stat or MoneyStack, a Calculator, or a chart from calculate_range. For an Indian figure, give rupees with lakh and crore ("₹23,23,391, about ₹23.2 lakh"), as the calculate tool does.
+- Numbers: apart from those short sums, never work out a sum in your head. For any other finance calculation, call the calculate tool, which runs our tested formulas, and quote its answer (or ${engine ? "show the rate Widget" : "open a ready-made Widget"}, whose worked lines code computes). When the Learner should change the inputs and watch the result move, build a widget: a Stat or MoneyStack, a Calculator, or a chart from calculate_range. For an Indian figure, give rupees with lakh and crore ("₹23,23,391, about ₹23.2 lakh"), as the calculate tool does.
 - Formulas: the Course Navigator message lists the named formulas the current Topic teaches. Show each only as a FormulaCard widget, whose symbols are named in plain words and whose result comes from our tested code. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n.
 - Written-ahead Widgets: some Topics have Widgets written ahead, which code lists by title and id in a "Written-ahead Widgets" line. When one fits what the Learner should see or play with, open it with open_widget and point to it; never draw your own version of it, nor a Widget with the parts it covers. Code sends back a Widget of yours that uses them.
 - For a one-off sum that no calculator covers, you may use the code execution tool. Its result proves only that the arithmetic ran, not that the formula is right: use it for the arithmetic only, never to display a formula, say which method you used and why in words, and never present a code result as evidence that the method is correct.
@@ -158,11 +158,11 @@ How the course runs:
 - The Learner may ask anything at any time. Answer, then return to the current Teaching Step.
 
 Examples of good replies (each reply's last line is its one ask):
-${TUTOR_EXAMPLES.map((e, i) => exampleText(e, i + 1)).join("\n\n")}
+${TUTOR_EXAMPLES.map((e, i) => exampleText(e, i + 1, engine)).join("\n\n")}
 
 Keep it short. One idea. One ask.`;
 
-export const TUTOR_INSTRUCTIONS = `${TUTOR_RULES}
+export const TUTOR_INSTRUCTIONS = `${tutorRules(false)}
 
 ${frozenWidgets.instructions}`;
 
@@ -382,7 +382,7 @@ const ENGINE_WIDGETS = `Widgets (ready-made only, drawn by code):
 Widget recipes (id (archetype): use, then its params as JSON Schema):
 ${tutorRecipeSignatures()}`;
 
-export const ENGINE_INSTRUCTIONS = `${TUTOR_RULES}
+export const ENGINE_INSTRUCTIONS = `${tutorRules(true)}
 
 ${ENGINE_WIDGETS}`;
 
