@@ -1776,13 +1776,15 @@ Learner must never read. The seven checks are:
   120 for a worked example, a Go deeper reply and every other step (`capFor`). Words are counted the way the Learner
   reads them: Widget and sources fences, Citation markers and bare Markdown symbols do not count (`countWords`).
 - V2: at most one question in the message, an ask of 25 words or fewer, and no other line opening with a task verb
-  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask.
+  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask. With no ask, more than one such line fails too.
 - V3: no "Great question", "Certainly", "Absolutely" or "Code recorded", no emoji or decorative arrows, no headings
   and at most one bold span.
 - V4: at most one Widget, and each one passes the Widget validator the caller hands in.
 - V5: no open quiz answer together with its question's numbers, in the text or the saved rule, and no Widget preset
   that uses a blocked number. The blocked numbers are every number in the open attempt's questions, choices and
   answers, normalised so that 4.5, 4.50 and 4.50% match (`blockedNumbersFrom`).
+  An answer number that sits within four words of a confirm cue ("is right", "correct", "yes", "that's it", "the
+  answer is", "you got it") also fails, even without the question's numbers: "Yes, 60 is right." gives the answer away.
 - V6: no app words: the ids passed in, snake_case tool and step names, "Course Navigator", "Session item",
   "Reply kind", "Skill state", and "Code" as the subject of a sentence. Topic, Check, Check tab, Widget, Next,
   Go deeper, Show me in a widget, Quick try and Concept card stay allowed.
@@ -3681,7 +3683,7 @@ backfill reload places the corrected readings.
 
 The lesson lint (`lessonLintErrors`) then checks every converted Topic, after the typed-formula check, in `npm run course:check`:
 
-- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed.
+- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed; a conversation Check lists the Skills it tests.
 - **L2:** three Quick tries per Skill (a template is unlimited), one of them half-done, and three times the per-attempt count of distinct questions in each quiz Check (or a template).
 - **L3:** five lines at most on a card, with its write-down line; no sentence over 20 words.
 - **L4:** each Widget preset is valid.
