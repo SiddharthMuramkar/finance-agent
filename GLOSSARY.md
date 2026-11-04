@@ -17,7 +17,7 @@ The agent that teaches, explains and works through finance and economics with th
 _Avoid_: Assistant, bot
 
 **Reply kind**:
-What one Tutor reply sets out to do, such as feedback on an answer, a rule, a worked example, a hint, or an answer to the Learner's own question.
+What one Tutor reply sets out to do, such as feedback on an answer, a rule, a worked example, a hint, a drill, or an answer to the Learner's own question. Code chooses it when it knows the state, sends it to the Tutor, and records it with the turn's reply checks.
 _Avoid_: Move, teaching move, action
 
 **Course Map**:

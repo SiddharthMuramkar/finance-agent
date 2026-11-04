@@ -797,6 +797,11 @@ export const replyChecks = pgTable(
     /** Rows of the turn the Learner never saw: the draft's text, the correction message, a failed retry. */
     rejectedSeqs: integer("rejected_seqs").array().notNull().default(sql`'{}'::integer[]`),
     shownText: text("shown_text").notNull(),
+    /**
+     * The Reply kind code chose for the turn (spec #229: code records the kind it chose); a Learner's own typed message
+     * is `answer_question`. Null on rows from before migration 0031, and when code chose none.
+     */
+    replyKind: text("reply_kind"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("reply_checks_turn").on(t.sessionId, t.turnSeq)],
