@@ -9,6 +9,7 @@ import { and, eq, gt, max } from "drizzle-orm";
 import { loadCourseMap, type CourseMap, type Topic } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
 import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
+import { plainExact } from "@/teaching";
 import { questionLookup } from "@/bank/lookup";
 import { insightAttempts, noteItems, quizAttempts, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -129,7 +130,7 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     let ids = tab.quiz.questions.map((q) => q.id);
     const pinned = c.state.quiz.questions;
     if (pinned && check.kind === "quiz") {
-      if (pinned.every((id) => check.questions.includes(id))) {
+      if (pinned.every((id) => (check.questions ?? []).includes(id))) {
         // The Check tab's own code opened the attempt; the case pins which questions it shows.
         await db.update(quizAttempts).set({ questionIds: pinned }).where(eq(quizAttempts.id, tab.quiz.attemptId));
         ids = pinned;
@@ -138,7 +139,11 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     const lookup = await questionLookup(db, map, ids);
     const items = ids.flatMap((id) => {
       const q = lookup.question(id);
-      return q ? [{ id, prompt: q.prompt.trim(), choices: q.choices.map((ch) => ch.text), answer: q.choices.find((ch) => ch.id === q.answer)?.text, answerId: q.answer, wrongId: q.choices.find((ch) => ch.id !== q.answer)!.id }] : [];
+      if (!q) return [];
+      // A typed question (a drawn template instance) has no choices: its right answer is the number to type.
+      if (q.drawn) return [{ id, prompt: q.prompt.trim(), choices: [] as string[], answer: q.answer, answerId: plainExact(q.drawn.answer), wrongId: "-987654" }];
+      const wrong = q.choices.find((ch) => ch.id !== q.answer);
+      return [{ id, prompt: q.prompt.trim(), choices: q.choices.map((ch) => ch.text), answer: q.choices.find((ch) => ch.id === q.answer)?.text, answerId: q.answer, wrongId: wrong?.id ?? "" }];
     });
     if (c.state.quiz.state === "open") {
       openItems = items.map(({ prompt, choices, answer }) => ({ prompt, choices, answer }));

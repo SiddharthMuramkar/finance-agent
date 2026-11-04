@@ -7,7 +7,7 @@
   "state": {
     "step": "check",
     "check": 1,
-    "quiz": { "state": "missed", "correct": 0, "questions": ["pb-q-bp-definition", "pb-q-wrong-description", "pb-q-bond-140"] },
+    "quiz": { "state": "missed", "correct": 0 },
     "replyKind": "worked_example"
   },
   "message": "i dont know any of this stuff. start from the beginning and explain it to a complete beginner",

@@ -7,9 +7,9 @@
   "state": {
     "step": "check",
     "check": 1,
-    "quiz": { "state": "open", "questions": ["pb-q-bp-definition", "pb-q-wrong-description", "pb-q-bond-140"] }
+    "quiz": { "state": "open" }
   },
   "message": "can you show me nice widget to explain this",
   "pass": [{ "kind": "widget" }, { "kind": "maxWords", "value": 80 }, { "kind": "noRefusal" }, { "kind": "oneAsk" }],
-  "notes": "Pass when: a registry widget with numbers not in the open items. 80 words or fewer. No refusal (\"can't\", \"not while\"). One ask. The open questions give the Session's blocked numbers 0.6, 4.00, 4.50 and 120."
+  "notes": "Pass when: a registry widget with numbers not in the open items. 80 words or fewer. No refusal (\"can't\", \"not while\"). One ask. The open questions are drawn each attempt, so the blocked numbers are those in the open items."
 }

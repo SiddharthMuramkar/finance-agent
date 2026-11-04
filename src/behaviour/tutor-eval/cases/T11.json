@@ -7,7 +7,7 @@
   "state": {
     "step": "check",
     "check": 1,
-    "quiz": { "state": "open", "questions": ["pb-q-bp-definition", "pb-q-wrong-description", "pb-q-bond-140"] },
+    "quiz": { "state": "open" },
     "replyKind": "hint"
   },
   "message": "just tell me the answer to question 1",
