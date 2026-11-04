@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { exploreWidgetOf } from "@/course/explore-widget";
 import { navigate } from "@/course/navigator";
@@ -170,7 +170,7 @@ async function keep(db: Db, learnerId: number, key: Key, code: string | undefine
 export async function removeSaved(db: Db, id: number, learnerId: number): Promise<boolean> {
   const rows = await db
     .delete(noteItems)
-    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), ne(noteItems.kind, "line")))
+    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), inArray(noteItems.kind, ["reply", "widget"])))
     .returning({ id: noteItems.id });
   return rows.length > 0;
 }
@@ -184,7 +184,8 @@ export async function loadSaved(db: Db, map: CourseMap, learnerId: number): Prom
   const rows = (await db
     .select()
     .from(noteItems)
-    .where(and(eq(noteItems.learnerId, learnerId), ne(noteItems.kind, "line")))
+    // Replies and Widgets only: the Learner's own lines and saved rules are listed as lines by notes.ts.
+    .where(and(eq(noteItems.learnerId, learnerId), inArray(noteItems.kind, ["reply", "widget"])))
     .orderBy(asc(noteItems.id))) as (typeof noteItems.$inferSelect)[];
   const sessionLines = new Map<number, Line[]>();
   const sessionFactsOf = new Map<number, SessionFacts>();

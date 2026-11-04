@@ -110,7 +110,7 @@ export function NotesView({ notes, showAll = false }: { notes: TopicNote[]; show
                 <h2 className="text-base font-semibold leading-6">{note.title}</h2>
                 {note.filled ? <FilledPart filled={note.filled} /> : <p className="mt-1 text-sm leading-5 text-[var(--muted)] print:hidden">Fills in when you pass this Topic.</p>}
                 <SavedItems items={note.saved} />
-                <OwnLines topicId={note.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text }))} />
+                <OwnLines topicId={note.topicId} initial={note.lines.map((l) => ({ id: l.id, text: l.text, ...(l.ownRule && { ownRule: true }) }))} />
               </Card>
             ))}
           </div>

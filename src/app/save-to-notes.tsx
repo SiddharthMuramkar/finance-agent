@@ -39,14 +39,27 @@ function Bookmark() {
  * later (`settled`): the button again, with a quiet "Saved" badge, Undo and Open notes; the server keeps one saved
  * item per reply or Widget, so pressing it again saves nothing twice. Failed: a visible alert and Retry.
  */
-export function SaveToNotesView({ state, what, onSave, onUndo }: { state: SaveState; what: "reply" | "Widget"; onSave: () => void; onUndo: () => void }) {
+export function SaveToNotesView({
+  state,
+  what,
+  onSave,
+  onUndo,
+  label: savedLabel,
+}: {
+  state: SaveState;
+  what: "reply" | "Widget" | "rule";
+  onSave: () => void;
+  onUndo: () => void;
+  /** Words for the just-saved moment in place of "Saved ✓" (the Learner's own rule: "Saved to your notes"). */
+  label?: string;
+}) {
   const saved = state.status === "saved";
   const justSaved = saved && !state.settled;
   const label = `Save this ${what} to notes`;
   return (
     <span className="relative inline-flex flex-wrap items-center gap-x-2 text-xs leading-4 text-[var(--muted)] print:hidden" data-testid="save-to-notes" data-save-state={state.status}>
       {justSaved ? (
-        <span>Saved ✓</span>
+        <span>{savedLabel ?? "Saved ✓"}</span>
       ) : state.status === "failed" ? (
         <>
           <span role="alert" className="text-[var(--danger)]">

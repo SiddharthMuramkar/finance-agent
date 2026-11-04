@@ -211,6 +211,19 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: "save_learner_rule",
+    description:
+      "Save the Learner's own rule to their Topic Note, when they state a rule in their own words that is correct and simpler than yours. Code saves their words exactly as they typed them, and only from a message they typed this turn (never a button) and, in a Topic with practice, only right after code marked a practice answer right. At most one rule per turn, and one per Skill. The result says what was saved; then confirm their rule in one sentence and use their words from now on. Do not say you saved it: the Learner sees that for themselves.",
+    input_schema: {
+      type: "object",
+      properties: {
+        learner_words: { type: "string", description: "The Learner's rule, copied exactly from their message in this turn, at most 300 characters." },
+      },
+      required: ["learner_words"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "record_check_verdict",
     description:
       "Record your verdict on the current conversation Check, once the Learner has answered and you have questioned their reasoning. Code accepts a verdict only for the current Check, saves it with your reasons as evidence, and replies with what comes next. A pass moves the Learner on; not yet keeps them at the Check to try again.",
