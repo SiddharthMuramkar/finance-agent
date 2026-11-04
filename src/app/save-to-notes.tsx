@@ -27,7 +27,7 @@ const quiet =
  */
 export function SaveToNotesView({ state, what, onSave, onUndo }: { state: SaveState; what: "reply" | "Widget"; onSave: () => void; onUndo: () => void }) {
   return (
-    <span className="inline-flex items-center gap-2 text-xs leading-4 text-[var(--muted)] print:hidden" data-testid="save-to-notes">
+    <span className="relative inline-flex items-center gap-2 text-xs leading-4 text-[var(--muted)] print:hidden" data-testid="save-to-notes">
       {state.status === "saved" ? (
         <>
           <span>Saved ✓</span>
