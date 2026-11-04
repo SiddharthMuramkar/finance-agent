@@ -81,6 +81,20 @@ function skillOfTry(topic: Topic, q: QuickTry): string | undefined {
   return isFixed(q) ? q.skill : topic.templates.find((t) => t.id === q.template)?.skill;
 }
 
+/** The Skills of a Check that have Quick tries there, in card order: the ones Your turn waits on. */
+function practisedSkills(topic: Topic, check: Check): string[] {
+  return skillsInCardOrder(topic, check).filter((s) => check.quickTries.some((q) => skillOfTry(topic, q) === s));
+}
+
+/**
+ * Your turn is done once every practised Skill of the Check is fluent. A Skill with no Quick tries at this Check is
+ * left out, since no try can make it fluent here; with none practised at all, there is nothing to wait for.
+ */
+function practiceDone(topic: Topic, check: Check, states: Readonly<Record<string, SkillState>>): boolean {
+  const skills = practisedSkills(topic, check);
+  return !skills.length || yourTurnDone(skills.map((s) => states[s] ?? freshSkillState()));
+}
+
 /**
  * The Quick try to show next at a converted Your turn, or null once every Skill of the Check is fluent (or has no
  * tries). The first Skill not yet fluent, in card order, opens with a half-done try (R5); unused fixed tries follow,
@@ -94,11 +108,11 @@ export function nextQuickTry(
   shown: readonly QuickTryData[],
   opts: PickOptions = {},
 ): QuickTryData | null {
-  const open = skillsInCardOrder(topic, check).filter((s) => !(states[s] && isFluent(states[s])));
+  // A Skill with no Quick tries at this Check is skipped: it cannot hold Your turn open (practisedSkills).
+  const open = practisedSkills(topic, check).filter((s) => !(states[s] && isFluent(states[s])));
   const skillId = opts.skillId && open.includes(opts.skillId) ? opts.skillId : open[0];
   if (!skillId) return null;
   const tries = check.quickTries.filter((q) => skillOfTry(topic, q) === skillId);
-  if (!tries.length) return null;
   const used = new Set(shown.map((s) => refOfKey(s.key)).flatMap((r) => (r ? [refText(r)] : [])));
   const ofSkill = shown.filter((s) => s.skillId === skillId).length;
   const ref = pick(tries, used, opts.easier || ofSkill === 0, ofSkill);
@@ -382,9 +396,28 @@ export async function enterStepItems(db: Db, map: CourseMap, learnerId: number, 
   if (drill) return drill;
   if (practiceStep(topic, step, check)) {
     const item = await postTry(db, place, learnerId, sessionId, now);
-    return item ? [item] : [];
+    return item ? [item] : await finishWhenDone(db, map, learnerId, sessionId, now);
   }
   return [];
+}
+
+/**
+ * Finishes a converted Your turn that has nothing left to practise: every practised Skill of the Check is already
+ * fluent (from a quiz, or an earlier Check) and no try is open. Stores the divider, then what the next step shows.
+ * Nothing while a Skill is parked (the Topic waits for its drill) or while a try is open.
+ */
+async function finishWhenDone(db: Db, map: CourseMap, learnerId: number, sessionId: number, now: Date): Promise<SessionItem[]> {
+  const { progress, parked, place: at } = await placeWithParked(db, map, learnerId);
+  const place = convertedPlace(at);
+  if (!place || !practiceStep(place.topic, place.step, place.check)) return [];
+  if (triesIn(await loadSessionItems(db, sessionId, learnerId), place.check.id).open) return [];
+  const done = practiceDone(place.topic, place.check, await skillStates(db, learnerId, place.topic.id));
+  const move = finishFromPractice(map, progress, done, parked);
+  if (!move.ok) return [];
+  await saveTopicStep(db, learnerId, place.topic.id, move.progress, now);
+  const divider = stepDivider(map, move.progress, place.topic.id);
+  if (divider) await saveItemAfterLatest(db, learnerId, sessionId, divider, now);
+  return [...(divider ? [divider] : []), ...(await enterStepItems(db, map, learnerId, sessionId, now))];
 }
 
 /**
@@ -513,8 +546,7 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
     return { ok: true, items, followUp: false };
   }
   if (marked.verdict === "right") {
-    const states = await skillStates(db, learnerId, topic.id);
-    const done = yourTurnDone(testedSkills(topic, place.check).map((s) => states[s] ?? freshSkillState()));
+    const done = practiceDone(topic, place.check, await skillStates(db, learnerId, topic.id));
     const move = finishFromPractice(map, progress, done, parked);
     if (move.ok) {
       await saveTopicStep(db, learnerId, topic.id, move.progress, now);
@@ -528,7 +560,10 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
   }
   const next = await postTry(db, place, learnerId, row.sessionId, now, marked.verdict === "known_mistake" ? { skillId: shown.skillId } : {});
   if (next) items.push(next);
-  return { ok: true, items, followUp: false };
+  // No try left to give and nothing to wait for: Your turn ends here rather than leaving the Learner stuck.
+  const finished = next ? [] : await finishWhenDone(db, map, learnerId, row.sessionId, now);
+  items.push(...finished);
+  return { ok: true, items, followUp: finished.some((i) => i.kind === STEP_DIVIDER) };
 }
 
 /** Saves the Topic's new step after Your turn finished from practice (the Navigator's move; the Topic's row exists). */
