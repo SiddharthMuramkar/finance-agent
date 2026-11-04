@@ -646,8 +646,8 @@ export const noteItems = pgTable(
     id: serial("id").primaryKey(),
     learnerId: learnerId(),
     topicId: text("topic_id").notNull(),
-    kind: text("kind").notNull().$type<"line" | "reply" | "widget">(),
-    /** The Learner's own line; null for saved replies and Widgets. */
+    kind: text("kind").notNull().$type<"line" | "reply" | "widget" | "own_rule">(),
+    /** The Learner's own line, or their own rule the Tutor saved (kind own_rule, with its Session and turn); null for saved replies and Widgets. */
     text: text("text"),
     /** A saved reply or Widget: the Session and the turn (the seq of the Learner's message that began it). */
     sessionId: integer("session_id").references(() => sessions.id),

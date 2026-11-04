@@ -138,7 +138,7 @@ function readingLines(r: WidgetReading): string[] {
   return [
     `- "${r.title}"${r.explore ? " (the Topic's explore Widget)" : ""}`,
     ...(r.sliders.length ? [`  Sliders: ${r.sliders.map((s) => `${s.label}: ${s.text}`).join("; ")}`] : []),
-    ...(r.tasks.length ? [`  Guided Tasks (${done} of ${r.tasks.length} ticked): ${r.tasks.map((t) => `[${t.ticked ? "x" : " "}] ${t.text}`).join("; ")}`] : []),
+    ...(r.tasks.length ? [`  Guided Tasks (optional play, never set as work; ${done} of ${r.tasks.length} ticked): ${r.tasks.map((t) => `[${t.ticked ? "x" : " "}] ${t.text}`).join("; ")}`] : []),
     ...(r.readouts.length ? [`  Readouts (worked out by code): ${r.readouts.join("; ")}`] : []),
   ];
 }

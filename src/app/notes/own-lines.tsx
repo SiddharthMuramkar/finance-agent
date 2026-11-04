@@ -4,7 +4,8 @@ import { useState } from "react";
 import { PrimaryButton, SecondaryButton } from "../ui";
 import { useOfferUndo } from "./undo";
 
-export type OwnLine = { id: number; text: string };
+/** `ownRule`: a rule in the Learner's own words that the Tutor saved; the page labels it "Your rule". */
+export type OwnLine = { id: number; text: string; ownRule?: boolean };
 
 const MAX = 2000;
 
@@ -15,9 +16,9 @@ export async function send(method: "POST" | "PATCH" | "DELETE", body: object): P
   } catch {
     return { ok: false, error: "Could not reach the server. Check your connection and try again." };
   }
-  const data = (await res.json().catch(() => null)) as { id?: number; text?: string; error?: string } | null;
+  const data = (await res.json().catch(() => null)) as { id?: number; text?: string; ownRule?: boolean; error?: string } | null;
   if (!res.ok) return { ok: false, error: data?.error ?? `Something went wrong (${res.status}).` };
-  return { ok: true, line: data?.id !== undefined && data.text !== undefined ? { id: data.id, text: data.text } : undefined };
+  return { ok: true, line: data?.id !== undefined && data.text !== undefined ? { id: data.id, text: data.text, ...(data.ownRule && { ownRule: true }) } : undefined };
 }
 
 const field = "w-full rounded border border-[var(--border)] bg-[var(--field)] px-2 py-1 text-sm leading-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--brand)]";
@@ -96,7 +97,14 @@ export function OwnLines({ topicId, initial }: { topicId: string; initial: OwnLi
                   </div>
                 ) : (
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="whitespace-pre-wrap">{line.text}</span>
+                    <span className="whitespace-pre-wrap">
+                      {line.ownRule && (
+                        <span data-own-rule-label className="mr-2 rounded-full bg-[var(--hairline)] px-2 py-0.5 text-[11px] font-medium leading-4 text-[var(--muted)]">
+                          Your rule
+                        </span>
+                      )}
+                      {line.text}
+                    </span>
                     <span className="flex shrink-0 gap-3 text-xs print:hidden">
                       <button type="button" data-edit-line={line.id} onClick={() => setEditing({ id: line.id, text: line.text })} className="text-[var(--muted)] underline hover:text-[var(--brand)]">
                         Edit

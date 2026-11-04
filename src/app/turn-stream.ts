@@ -264,11 +264,13 @@ export function useTurnStream({
               continue;
             }
             if (event.type === "stopped") {
-              // The Learner stopped the reply: it ends here, less any Widget it had not finished, and "done" follows. Never a resume.
+              // The Learner stopped the reply, and "done" follows. Never a resume. The held reply is dropped (ADR 0008): no text
+              // was shown, so no empty reply bubble is left, only the Stopped note.
               finished = true;
               setWaiting(null);
               setProgress(null);
               updateReply(withoutOpenWidget);
+              setMessages((m) => m.filter((x) => !(ours(x) && x.role === "assistant" && !x.text)));
               addItem({ kind: STOPPED, data: {} }, true);
               continue;
             }

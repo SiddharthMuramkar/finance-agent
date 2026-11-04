@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { OWNER_LEARNER_ID, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
@@ -37,8 +38,9 @@ async function engine(db: Db, value: "on" | "off") {
 }
 
 describe("show_widget and the widget engine", () => {
-  it("is off by default: today's instructions and tools exactly, so the fingerprint is unchanged", async () => {
+  it("with the engine off: today's instructions and tools exactly, so the fingerprint is unchanged", async () => {
     const db = await testDb();
+    await engineOff(db);
     expect((await readSettings(db)).widgetEngine).toBe("off");
     const frozen = await frozenNow(db);
     expect(frozen.instructions).toBe(TUTOR_INSTRUCTIONS);

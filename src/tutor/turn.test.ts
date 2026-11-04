@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { parse, stringify } from "yaml";
 import { describe, expect, it } from "vitest";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
@@ -66,6 +67,7 @@ describe("Tutor Turn", () => {
 
   it("uses claude-opus-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: "First." }] },
       { content: [{ type: "text", text: "Second." }] },
@@ -84,6 +86,7 @@ describe("Tutor Turn", () => {
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
         { name: "record_insight_attempt" },
+        { name: "save_learner_rule" },
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
@@ -775,6 +778,7 @@ describe("Tutor Turn", () => {
     it("sends a new Widget with a slider and no Guided Task back for one correction turn", async () => {
       const noTasks = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Here it is.\n${noTasks}` }] }, { content: [{ type: "text", text: `Here it is.\n${good}` }] }]);
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(requests)).toMatch(/slider.*Guided Task/i);
@@ -788,6 +792,7 @@ describe("Tutor Turn", () => {
 
     it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
       const db = await testDb();
+    await engineOff(db);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hi." }] }]);
       await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hello"));
       expect(requests[0].system[0].text).toContain(frozenWidgets.instructions);
@@ -797,11 +802,13 @@ describe("Tutor Turn", () => {
       const unlabelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])])\n```';
       const labelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])], "grouped", "When", "Rate in percent")\n```';
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: unlabelled }] }, { content: [{ type: "text", text: labelled }] }]);
       await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(requests)).toMatch(/bars: this BarChart has no axis labels/);
 
       const fine = await testDb();
+      await engineOff(fine);
       const once = scriptedClient([{ content: [{ type: "text", text: labelled }] }]);
       await collect(runTutorTurn({ db: fine, client: once.client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(once.requests)).toBeUndefined();
@@ -815,6 +822,7 @@ describe("Tutor Turn", () => {
 
       it("tells the Tutor the open Widgets' titles and to update one by reusing its title", async () => {
         const db = await testDb();
+        await engineOff(db);
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text("Look at the chart.")]);
         await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         expect(sentText(requests[0])).not.toContain("Open Widgets");
@@ -826,6 +834,7 @@ describe("Tutor Turn", () => {
 
       it("sends a new Widget drawing the same Case Data as an open Widget back for one correction turn", async () => {
         const db = await testDb();
+        await engineOff(db);
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Rates around the draw")), text(queried("Long-term interest rates"))]);
         await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
@@ -835,6 +844,7 @@ describe("Tutor Turn", () => {
 
       it("lets the Tutor update an open Widget in place by reusing its title, with no correction turn", async () => {
         const db = await testDb();
+        await engineOff(db);
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Long-term interest rates"))]);
         await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
@@ -858,6 +868,7 @@ describe("Tutor Turn", () => {
 
     it("a valid widget needs no correction turn", async () => {
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Here it is.\n${good}\nDrag the rate.` }] }]);
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(requests).toHaveLength(1);
@@ -866,6 +877,7 @@ describe("Tutor Turn", () => {
 
     it("detects an invalid widget on the server, allows one correction turn, and the corrected widget replaces the broken one on reload", async () => {
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([
         { content: [{ type: "text", text: `Here it is.\n${bad}\nDrag the rate.` }] },
         { content: [{ type: "text", text: `Here it is.\n${good}\nDrag the rate.` }] },
@@ -890,6 +902,7 @@ describe("Tutor Turn", () => {
       const unbound = '```openui-lang\nroot = Widget("PV", [card])\ncard = FormulaCard("present-value", {ratePercent: 5}, {}, {amount: 1000, years: 5})\n```';
       const fixed = '```openui-lang\nroot = Widget("PV", [rate, card, steps])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.5, $rate, "percent")\ncard = FormulaCard("present-value", {ratePercent: $rate}, {}, {amount: 1000, years: 5})\nsteps = GuidedTasks([zero])\nzero = GuidedTask("Set the rate to 0%", $rate == 0)\n```';
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([
         { content: [{ type: "text", text: `Here it is.\n${unbound}` }] },
         { content: [{ type: "text", text: fixed }] },
@@ -1347,6 +1360,7 @@ describe("surviving cut-offs and failures", () => {
 
   it("a changed fingerprint of instructions and tools refreezes them in the same Session, with no notice, and folds the history before the reply", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([
       { content: [text("One.")] },
       { content: [{ type: "compaction", content: "Summary of the Session so far." }] },

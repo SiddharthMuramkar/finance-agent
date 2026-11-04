@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
@@ -29,6 +30,8 @@ const REPLY = ["Try it.", "", "```openui-lang", WIDGET, "```"].join("\n");
 const say = (text: string): ScriptedReply => ({ content: [{ type: "text", text }] });
 
 async function turn(db: Db, learnerId: number, message: string, reply: string) {
+  // The reply draws its own Widget, which only a Session without the widget engine may do (ADR 0007).
+  await engineOff(db);
   const events: TurnEvent[] = [];
   for await (const e of runTutorTurn({ db, client: scriptedClient([say(reply)]).client, map, learnerId }, message)) events.push(e);
   expect(events.at(-1)).toMatchObject({ type: "done" });

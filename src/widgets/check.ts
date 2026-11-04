@@ -71,7 +71,7 @@ const CONTROLS = new Set(["Slider", "Select", "SwitchGroup", "Chips"]);
 /** Parts that are a Widget's one visual: our pictures and the kit's charts and tables. */
 export const VISUALS = new Set([
   ...["AnnuityChart", "HistoryChart", "Calculator", "FormulaCard"],
-  ...["Versus", "Breakeven", "MoneyStack", "Waffle", "Pictogram", "DrawTheLine", "PriceTag", "ShrinkingNote", "TimeTravel", "StepThrough", "Rank", "Waterfall"],
+  ...["Versus", "Breakeven", "MoneyStack", "Waffle", "Pictogram", "RateMove", "DrawTheLine", "PriceTag", "ShrinkingNote", "TimeTravel", "StepThrough", "Rank", "Waterfall"],
   ...["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "PieChart", "RadialChart", "SingleStackedBarChart", "ScatterChart", "Table"],
 ]);
 
@@ -199,7 +199,7 @@ export function archetypeOf(code: string): Archetype | null {
   // Two datasets drawn side by side are a comparison, not a history. A reference dataset is only a backdrop.
   const compared = datasets.filter((d) => !d.startsWith(REFERENCE_PREFIX));
   if (has("Versus", "Breakeven", "Verdict") || compared.length > 1) return "Compare";
-  if (has("Waffle", "Pictogram")) return "Convert";
+  if (has("Waffle", "Pictogram", "RateMove")) return "Convert";
   if (has("FormulaCard")) return "Formula";
   if (has("HistoryChart") || datasets.length > 0) return "History";
   if (has("Slider") && has(...CHARTS)) return "Grow";
