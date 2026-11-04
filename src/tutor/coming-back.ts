@@ -5,6 +5,7 @@ import { messages, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { saveItemAfterLatest, loadSessionItems, type SessionItem } from "./session-items";
+import { DUE_CHECK, PICKING_UP } from "./session-item-kinds";
 import { DEFAULT_SETTINGS, liveSession } from "./session-log";
 
 /**
@@ -19,11 +20,7 @@ import { DEFAULT_SETTINGS, liveSession } from "./session-log";
  *   place of Picking up, and marks each Due Check run once.
  */
 
-/** The kind of a "Picking up where you left off" divider. */
-export const PICKING_UP = "picking_up";
-
-/** The kind of a "New Check · Check N" or "New step · Explore" divider: a Due Check reopened the passed Topic's Session. */
-export const DUE_CHECK = "due_check";
+export { DUE_CHECK, PICKING_UP };
 
 /** How long a gap counts as a break, read without writing (a page render stores nothing). */
 async function idleHours(db: Db): Promise<number> {

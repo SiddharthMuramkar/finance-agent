@@ -3,21 +3,21 @@ import type { CourseMap } from "@/course/map";
 import { stepSequence, type Progress } from "@/course/navigator";
 import { messages, sessionItems } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { STEP_DIVIDER, type SessionItem } from "./session-item-kinds";
 
 /**
  * Session items: what the Study Workspace draws between messages and never sends to the model (step
- * dividers, "Picking up" and Due Check dividers (coming-back.ts), and Check result cards (check-results.ts), Topic complete cards (topic-complete.ts)).
+ * dividers, "Picking up" and Due Check dividers (coming-back.ts), Check result cards (check-results.ts), Topic
+ * complete cards (topic-complete.ts) and Widget opened chips (open_widget in tools.ts)). Their kinds are in
+ * session-item-kinds.ts, which the browser can import.
  * Each is stored in order, after the message it follows, with a kind and its data; the thread draws
  * each by its kind and skips a kind it does not know. The model's history is read only from the
  * messages table (session-log.ts), so nothing here ever reaches a request.
  */
 
-export type SessionItem = { kind: string; data: Record<string, unknown> };
+export { STEP_DIVIDER, type SessionItem };
 /** A stored item: it sits after the message with seq `afterSeq` in its Session (-1: before the first). */
 export type StoredItem = SessionItem & { afterSeq: number };
-
-/** The kind of a "Step k of N · <step>" divider, stored when the Learner moves onto a new Teaching Step. */
-export const STEP_DIVIDER = "step";
 
 /**
  * The divider for the Learner's place in a Topic, numbered and named by the Course Navigator

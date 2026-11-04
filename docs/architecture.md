@@ -1734,7 +1734,8 @@ opener.
   `SessionItemView` draws it by its kind: a `step` item is a small centred line with its label. A kind
   it does not know draws nothing, so an item from a later change never breaks the thread. The
   Picking up and Due Check dividers (`picking_up`, `due_check`, see "Coming back") are drawn the same way; Check results and Topic complete add their kind there and
-  store their rows the same way.
+  store their rows the same way. The kinds live in `src/tutor/session-item-kinds.ts`, which has no server
+  imports, so the browser's views and checks key on the same constants the server stores.
 - **Live.** The turn streams `{ type: "item" }` as the tool stores it. The browser ends the reply part
   on screen, draws the divider and streams the rest of the reply into a new part. A replayed reply
   (a resume after a cut-off, or a refusal) arrives as one text, so it replaces the parts and their

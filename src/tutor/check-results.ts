@@ -4,6 +4,7 @@ import type { Db } from "@/db/types";
 import { pendingQuizNote, submitQuiz, type QuizResult } from "@/learner/quiz";
 import { currentTopicId, liveSession, saveShownSession } from "./session-log";
 import { saveItemAfterLatest, type SessionItem } from "./session-items";
+import { CHECK_RESULT } from "./session-item-kinds";
 import { storeTopicComplete } from "./topic-complete";
 import { QUIZ_FOLLOW_UP_PREFIX } from "./turn-status";
 
@@ -14,8 +15,7 @@ import { QUIZ_FOLLOW_UP_PREFIX } from "./turn-status";
  * from the note written here, and the Tutor goes over the missed questions.
  */
 
-/** The kind of a Check result card. */
-export const CHECK_RESULT = "check_result";
+export { CHECK_RESULT };
 
 /** The number (from 1) of the Check among its Topic's Checks, or null when it is not on the Course Map. */
 function checkNumber(map: CourseMap, checkId: string): number | null {

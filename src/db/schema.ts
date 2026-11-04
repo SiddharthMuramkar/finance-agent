@@ -669,8 +669,8 @@ export const noteItems = pgTable(
 
 /**
  * What the Study Workspace draws between messages and never sends to the model: step dividers,
- * "Picking up where you left off" and Due Check dividers, Check result cards and Topic complete
- * cards. Each sits after the message with seq `afterSeq` in its Session (-1: before the first).
+ * "Picking up where you left off" and Due Check dividers, Check result cards, Topic complete
+ * cards and Widget opened chips. Each sits after the message with seq `afterSeq` in its Session (-1: before the first).
  */
 export const sessionItems = pgTable(
   "session_items",

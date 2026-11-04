@@ -3,6 +3,7 @@
 import { AssistantRuntimeProvider, MessagePrimitive, ThreadPrimitive, useAuiState, useExternalStoreRuntime, type ThreadMessageLike } from "@assistant-ui/react";
 import { createContext, useContext, type ReactNode } from "react";
 import { WIDGET_OPENED, type WrittenAhead } from "@/course/written-ahead";
+import { NEXT_STEP } from "@/tutor/session-item-kinds";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import { SaveToNotes } from "./save-to-notes";
@@ -36,7 +37,7 @@ export type ThreadLine = Line & { id: string };
  * "→ next step" divider in its place, never as a Learner bubble.
  */
 export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)[] {
-  return lines.map((l) => (l.role === "user" && l.text.trim() === "Continue." ? { role: "item", kind: "next_step", data: {} } : l));
+  return lines.map((l) => (l.role === "user" && l.text.trim() === "Continue." ? { role: "item", kind: NEXT_STEP, data: {} } : l));
 }
 
 /**
