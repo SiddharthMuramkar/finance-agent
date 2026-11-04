@@ -1,5 +1,7 @@
 # Growth, compounding and logs: a foundation Topic taught through a short Case.
 # Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Converted to the new teaching (spec #229, ticket #247): Skills, Concept cards, Quick tries and typed Checks.
+# Every sum is said in words; the two Formula Cards (compound-growth, cagr) work the numbers.
 id: num-compounding
 title: Growth, compounding and logs
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
@@ -29,13 +31,17 @@ cases:
       far less stable.
 
 concept: >
-  Growth compounds: each period's growth is earned on the previous total, not on the starting
-  amount. After n periods at rate g, V_n = V_0 x (1 + g)^n. Turning that around, the compound
-  annual growth rate (CAGR) is (V_n / V_0)^(1/n) - 1; it is the one steady rate that gets from
-  start to end. The rule of 72 says money doubles in about 72 / rate years. Logarithms turn
-  compounding into adding: the log return ln(V_1 / V_0) of separate periods simply adds up,
-  which is why analysts use them. Growth and falls are not symmetric: after a fall of f, the
-  rise needed to recover is 1 / (1 - f) - 1.
+  Growth compounds: each year's growth is earned on the new total, not on the starting amount.
+  {{formula:compound-growth amount=1000 ratePercent=10 years=3}}
+  Turned around, the compound annual growth rate (CAGR) is the one steady yearly rate that gets
+  from a start to an end over some years.
+  {{formula:cagr start=1000 end=1331 years=3}}
+  The rule of 72 says money doubles in about 72 divided by the yearly rate in percent, in years.
+  Log returns turn compounding into adding: the log returns of back-to-back periods add up,
+  which is why analysts use them. Falls and rises are not symmetric: after a fall, the rise
+  needed to get back is bigger than the fall, because it works on a smaller amount.
+
+formulas: [compound-growth, cagr]
 
 principle: >
   Never average growth by dividing the total gain by the years; use a compound rate or logs.
@@ -48,29 +54,126 @@ youllLearn:
   - "Find the one steady yearly rate between a start and an end value."
   - "Spot a long-run average that hides a short, fragile final spurt."
 
+restructure: content-only
+exampleCurrency: INR
+runningExample:
+  text: "₹1,000 grows 10% a year: ₹1,100 after one year, ₹1,210 after two and ₹1,331 after three."
+  numbers: [1000, 10]
+
+terms:
+  - term: compounding
+    means: "Growth earned on growth: each year's gain joins the total, and the next year grows on that new total."
+  - term: compound annual growth rate (CAGR)
+    means: "The one steady yearly rate that takes a start value to an end value over a number of years."
+  - term: rule of 72
+    means: "A shortcut: 72 divided by the yearly rate in percent gives about the number of years to double."
+  - term: log return
+    means: "A second way to measure growth, chosen because the log returns of back-to-back periods simply add up."
+
+skills:
+  - id: compound-growth
+    rule: "Each year, the total grows by the rate, so next year's gain is on a bigger amount."
+    analogy: "Interest left in a fixed deposit earns interest of its own."
+  - id: fall-and-recover
+    rule: "A fall and then a rise of the same percent do not cancel, because the rise works on a smaller amount."
+  - id: rule-of-72
+    rule: "To find about how many years money takes to double, divide 72 by the yearly rate in percent."
+  - id: cagr
+    rule: "CAGR is the one steady yearly rate that turns the start into the end over those years."
+  - id: log-return
+    rule: "Log returns of back-to-back periods add up to the log return of the whole stretch. For a rise they are a little smaller than the ordinary return."
+
+templates:
+  - id: grow-amount
+    skill: compound-growth
+    ask: "₹{amount} grows {rate}% a year for {years} years. What is it worth at the end, to the nearest rupee?"
+    params:
+      amount: { min: 2000, max: 9000, step: 1000 }
+      rate: { min: 2, max: 12, step: 2 }
+      years: { min: 2, max: 3, step: 1 }
+    derived: { r: "times(rate, 0.01)", f: "plus(1, r)", first: "times(amount, f)" }
+    answer: compound_value
+    unit: inr
+    decimals: 0
+    sign: magnitude
+    mistakes:
+      - tag: simple_growth
+        fix: "That adds the first year's gain every year. Each year grows on the new, bigger total."
+    halfDone:
+      shows: "First step, done for you: after one year it is ₹{first}."
+      asks: compound_value
+    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126]
+  - id: double-time
+    skill: rule-of-72
+    ask: "Money grows {rate}% a year. By the rule of 72, about how many years does it take to double, to one decimal place?"
+    params:
+      rate: { min: 2, max: 24, step: 1 }
+    answer: rule_of_72_years
+    unit: years
+    decimals: 1
+    sign: magnitude
+    mistakes:
+      - tag: simple_doubling
+        fix: "That is 100 divided by the rate, as if growth never compounded. Divide 72 by the rate instead."
+    avoid: [10, 6, 12, 5, 23, 28, 33, 56, 126]
+  - id: steady-rate
+    skill: cagr
+    ask: "An index goes from {start} to {end} in {years} years. What steady yearly rate (CAGR) does that, in percent?"
+    params:
+      start: { min: 100, max: 500, step: 100 }
+      g: { min: 20, max: 90, step: 10 }
+      years: { min: 2, max: 2, step: 1 }
+    derived: { r: "times(g, 0.01)", f: "plus(1, r)", grew: "times(f, f)", end: "times(start, grew)" }
+    answer: cagr_percent
+    unit: percent
+    decimals: 0
+    sign: magnitude
+    mistakes:
+      - tag: averaged_gain
+        fix: "That divides the total gain by the years. Find the one rate that, grown twice, gives the whole rise."
+    halfDone:
+      shows: "First step, done for you: the index ended {grew} times where it started."
+      asks: cagr_percent
+    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126]
+
 questions:
   - id: cp-q-doubling-rate
+    skill: cagr
     prompt: >
       An amount grows from 100 to 400 in exactly two years at the same percentage rate each year. What is that yearly rate?
     choices:
-      - { id: a, text: "50%" }
+      - id: a
+        text: "50%"
+        mistake: { fix: "Growing 50% twice turns 100 into 225, not 400." }
       - { id: b, text: "100%" }
-      - { id: c, text: "150%" }
-      - { id: d, text: "200%" }
+      - id: c
+        text: "150%"
+        mistake: { fix: "That divides the 300% gain by 2 years. Growing 150% twice would turn 100 into 625.", tag: averaged_gain }
+      - id: d
+        text: "200%"
+        mistake: { fix: "Growing 200% a year triples the amount each year, which turns 100 into 900." }
     answer: b
     explanation: >
-      The amount quadruples in two steps, so each step multiplies it by 2 (2 x 2 = 4). A multiplier of 2 is a gain of 100% a year. Simple averaging (300 / 2 = 150%) is the common mistake.
+      The amount ends four times where it started. Doubling twice does that, since 2 times 2 is 4, and
+      doubling is a gain of 100% a year. Dividing the 300% gain by the 2 years says 150%, the common mistake.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance, compounding interest: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
 
   - id: cp-q-down-up
+    skill: fall-and-recover
     prompt: >
       A share price falls 50% and then rises 50%. Compared with where it started, it is now:
     choices:
-      - { id: a, text: "Back where it started" }
+      - id: a
+        text: "Back where it started"
+        mistake: { fix: "The 50% rise works on half the price, so it wins back only half of what was lost.", tag: back_where_started }
       - { id: b, text: "25% lower" }
-      - { id: c, text: "25% higher" }
-      - { id: d, text: "12.5% lower" }
+      - id: c
+        text: "25% higher"
+        mistake: { fix: "A fall and then an equal rise always ends lower, never higher." }
+      - id: d
+        text: "12.5% lower"
+        mistake: { fix: "Work it through from 100: down to 50, then half of 50 more gives 75, which is 25% lower." }
     answer: b
     explanation: >
       Start at 100. After a 50% fall it is 50. A 50% rise on 50 adds 25, giving 75, which is 25% below the start. Gains and losses apply to different bases, so they do not cancel.
@@ -78,58 +181,91 @@ questions:
       CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
   - id: cp-q-rule-72
+    skill: rule-of-72
     prompt: >
       Using the rule of 72, about how many years does it take money to double at 8% a year?
     choices:
-      - { id: a, text: "About 6 years" }
+      - id: a
+        text: "About 6 years"
+        mistake: { fix: "That is too fast for 8% a year. Divide 72 by 8." }
       - { id: b, text: "About 9 years" }
-      - { id: c, text: "About 12 years" }
-      - { id: d, text: "About 18 years" }
+      - id: c
+        text: "About 12 years"
+        mistake: { fix: "That is close to 100 divided by 8, as if growth never compounded. The rule divides 72 by the rate.", tag: simple_doubling }
+      - id: d
+        text: "About 18 years"
+        mistake: { fix: "That is too slow: at 8% the gains compound. Divide 72 by 8." }
     answer: b
     explanation: >
-      72 / 8 = 9 years. The exact figure is ln 2 / ln 1.08 = 9.006 years.
+      72 divided by 8 is 9, so about 9 years. Worked out exactly, it is just over 9 years.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance, the Rule of 72: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Investor.gov (US SEC), What is compound interest: https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/what-compound-interest
 
   - id: cp-q-three-years
+    skill: compound-growth
     prompt: >
-      Rs 1,000 grows 10% a year for three years. What is it worth at the end?
+      ₹2,000 grows 20% a year for two years. What is it worth at the end?
     choices:
-      - { id: a, text: "Rs 1,300" }
-      - { id: b, text: "Rs 1,331" }
-      - { id: c, text: "Rs 1,100" }
-      - { id: d, text: "Rs 1,030" }
+      - id: a
+        text: "₹2,800"
+        mistake: { fix: "That adds 20% of ₹2,000 in both years. The second year's 20% is on ₹2,400.", tag: simple_growth }
+      - { id: b, text: "₹2,880" }
+      - id: c
+        text: "₹2,400"
+        mistake: { fix: "That is only the first year. Grow it one more year, on ₹2,400." }
+      - id: d
+        text: "₹4,000"
+        mistake: { fix: "That doubles it. 20% a year adds a fifth of the total each year, not all of it." }
     answer: b
     explanation: >
-      1,000 x 1.10^3 = 1,000 x 1.331 = Rs 1,331. Rs 1,300 would be simple interest (10% of the original, three times).
+      Year one: 20% of ₹2,000 is ₹400, giving ₹2,400. Year two: 20% of ₹2,400 is ₹480, giving ₹2,880.
+      Simple growth adds ₹400 twice and says ₹2,800, which misses the growth on the first year's gain.
     source: >
       Investor.gov (US SEC), What is compound interest ("interest on interest"): https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/what-compound-interest
 
   - id: cp-q-log-return
+    skill: log-return
     prompt: >
-      A share price goes from 100 to 150. What is its log (continuously compounded) return, ln(150 / 100)?
+      A share price goes from 100 to 150, an ordinary return of 50%. Which statement about its log return is true?
     choices:
-      - { id: a, text: "0.50 (50%)" }
-      - { id: b, text: "0.405 (40.5%)" }
-      - { id: c, text: "0.333 (33.3%)" }
-      - { id: d, text: "0.693 (69.3%)" }
+      - id: a
+        text: "It is also 50%"
+        mistake: { fix: "For a rise, the log return is a little smaller than the ordinary return." }
+      - { id: b, text: "It is about 40.5%, a little smaller than the ordinary return" }
+      - id: c
+        text: "It is about 60%, larger than the ordinary return"
+        mistake: { fix: "For a rise, the log return is smaller than the ordinary return, never larger." }
+      - id: d
+        text: "It needs the number of years first"
+        mistake: { fix: "A log return needs only the start and the end, not the years." }
     answer: b
     explanation: >
-      ln(1.5) = 0.4055. The ordinary return is 50%, and the log return is smaller. Log returns add across periods, which ordinary returns do not.
+      The log return is the natural log of 150 divided by 100, which is about 0.405, or 40.5%. It is smaller
+      than the 50% ordinary return. Log returns add across periods, which ordinary returns do not.
     source: >
       CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
 
+  # Kept so old attempts and Reviews still load; no Check lists it now, because the conversation Check asks the
+  # same sum and the Learner should work it out there.
   - id: cp-q-index-rate
+    skill: cagr
     prompt: >
       An index rises from 100 to 4,285 in 13 years. Which is the best summary of its yearly growth?
     choices:
-      - { id: a, text: "About 322% a year, the total gain divided by 13 years and by 100" }
+      - id: a
+        text: "About 322% a year, the total gain divided by 13 years and by 100"
+        mistake: { fix: "That divides the total gain by the years, which ignores growth on growth.", tag: averaged_gain }
       - { id: b, text: "About 33% a year, found as the 13th root of 42.85, minus 1" }
-      - { id: c, text: "About 4,285% a year" }
-      - { id: d, text: "About 13% a year" }
+      - id: c
+        text: "About 4,285% a year"
+        mistake: { fix: "That is close to the whole rise over 13 years, not one year's rate." }
+      - id: d
+        text: "About 13% a year"
+        mistake: { fix: "That is the number of years, not the rate." }
     answer: b
     explanation: >
-      The index multiplied by 4,285 / 100 = 42.85. The steady yearly rate g solves (1 + g)^13 = 42.85, so g = 42.85^(1/13) - 1 = 0.335, about 33% a year. Dividing the gain by years ignores compounding.
+      The index ended 42.85 times where it started. The steady yearly rate is the one that, grown 13 times
+      over, multiplies the start by 42.85: about 33% a year. Dividing the gain by the years ignores compounding.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance (solving for the growth rate): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Sensex values: BSE, SENSEX@40 white paper (January 2026), https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
 
@@ -137,17 +273,144 @@ checks:
   - id: cp-quiz-compounding
     kind: quiz
     questions:
-      - cp-q-doubling-rate
+      - cp-q-three-years
       - cp-q-down-up
       - cp-q-rule-72
-      - cp-q-three-years
-      - cp-q-log-return
-      - cp-q-index-rate
+    templates: [grow-amount, double-time]
     perAttempt: 3
     passRule:
       correct: 2
+    card:
+      title: "Growth on growth"
+      lines:
+        - "₹1,000 grows 10% a year. After one year it is ₹1,100."
+        - "The next 10% is on ₹1,100, so year two ends at ₹1,210, and year three at ₹1,331."
+        - "A fall and an equal rise lose money: ₹1,000 down 20% is ₹800, and 20% up is only ₹960."
+        - "Rule of 72: divide 72 by the yearly rate. At 6% a year, money doubles in about 12 years."
+      writeDown: "Each year grows on the new total. To double, divide 72 by the rate."
+      skills: [compound-growth, fall-and-recover, rule-of-72]
+      widget:
+        recipe: formula
+        title: "What ₹1,000 grows to at 10% a year"
+        inputs:
+          formula: compound-growth
+          slider: { symbol: years, label: "Years it grows", min: 1, max: 30, step: 1, start: 3 }
+          held: { amount: 1000, ratePercent: 10 }
+    quickTries:
+      - id: cp-try-grow-half
+        skill: compound-growth
+        ask: "₹2,000 grows 10% a year. What is it worth after two years, in rupees?"
+        kind: number
+        answer: 2420
+        unit: inr
+        halfDone: "First step, done for you: after one year, ₹2,000 has grown by ₹200 to ₹2,200."
+        mistakes:
+          - { answer: 2400, fix: "That adds ₹200 in both years. The second year's 10% is on ₹2,200, which is ₹220.", tag: simple_growth }
+      - { template: grow-amount, halfDone: true }
+      - { template: grow-amount }
+      - id: cp-try-fall-half
+        skill: fall-and-recover
+        ask: "₹500 falls 40%, then rises 40%. What is it worth now, in rupees?"
+        kind: number
+        answer: 420
+        unit: inr
+        halfDone: "First step, done for you: ₹500 down 40% is ₹300."
+        mistakes:
+          - { answer: 500, fix: "The rise is 40% of ₹300, which is ₹120, so it ends at ₹420, below the start.", tag: back_where_started }
+      - id: cp-try-fall-truth
+        skill: fall-and-recover
+        ask: "A share falls 10% one day and rises 10% the next. True or false: it is back where it started."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "The 10% rise is on a smaller price, so it ends 1% below the start.", tag: back_where_started }
+      - id: cp-try-recover
+        skill: fall-and-recover
+        ask: "A price halves, from ₹400 to ₹200. What percent rise takes it back to ₹400?"
+        kind: number
+        answer: 100
+        unit: percent
+        mistakes:
+          - { answer: 50, fix: "That is the size of the fall. The rise works on ₹200, and ₹200 more on ₹200 is 100%." }
+      - id: cp-try-72-half
+        skill: rule-of-72
+        ask: "Money grows 9% a year. By the rule of 72, about how many years does it take to double?"
+        kind: number
+        answer: 8
+        unit: years
+        halfDone: "First step, done for you: the rule says divide 72 by the yearly rate."
+        mistakes:
+          - { answer: 11.1, fix: "That is 100 divided by the rate. The rule uses 72, and 72 divided by 9 is 8.", tag: simple_doubling }
+      - id: cp-try-72-truth
+        skill: rule-of-72
+        ask: "Money grows 18% a year. True or false: by the rule of 72 it doubles in about 4 years."
+        kind: truth
+        answer: true
+      - { template: double-time }
+
+  - id: cp-quiz-steady-rate
+    kind: quiz
+    questions:
+      - cp-q-doubling-rate
+      - cp-q-log-return
+    templates: [steady-rate]
+    perAttempt: 3
+    passRule:
+      correct: 2
+    card:
+      title: "One steady rate"
+      lines:
+        - "CAGR is the one steady yearly rate that gets from a start to an end."
+        - "₹1,000 became ₹1,331 in 3 years. Growing 10% a year does exactly that, so the CAGR is 10%."
+        - "Dividing the ₹331 gain by 3 years says about 11% a year. That is too high, because it skips growth on growth."
+        - "Log returns are a second way to measure growth. For a rise they are a little smaller, and back-to-back ones add up."
+      writeDown: "CAGR is the steady rate from start to end. Log returns add across years."
+      skills: [cagr, log-return]
+      widget:
+        recipe: formula
+        title: "The steady rate from 1,000 to 1,331"
+        inputs:
+          formula: cagr
+          slider: { symbol: years, label: "Years it took", min: 1, max: 10, step: 1, start: 3 }
+          held: { start: 1000, end: 1331 }
+    quickTries:
+      - id: cp-try-cagr-half
+        skill: cagr
+        ask: "An index goes from 100 to 121 in 2 years. What steady yearly rate (CAGR) does that, in percent?"
+        kind: number
+        answer: 10
+        unit: percent
+        halfDone: "First step, done for you: 1.1 times 1.1 is 1.21, so growing by a tenth twice gives the rise."
+        mistakes:
+          - { answer: 10.5, fix: "That divides the 21% gain by 2 years. Growing 10% twice already gives 21%.", tag: averaged_gain }
+      - { template: steady-rate, halfDone: true }
+      - { template: steady-rate }
+      - id: cp-try-log-half
+        skill: log-return
+        ask: "A fund's log return is 0.1 in one year and 0.2 the next. What is its log return over both years?"
+        kind: number
+        answer: 0.3
+        unit: ratio
+        halfDone: "First step, done for you: log returns of back-to-back years add up."
+        mistakes:
+          - { answer: 0.02, fix: "That multiplies them. Log returns of back-to-back years simply add: 0.1 plus 0.2." }
+      - id: cp-try-log-add
+        skill: log-return
+        ask: "A share's log return is 0.25 one year and 0.15 the next. What is its log return over both years?"
+        kind: number
+        answer: 0.4
+        unit: ratio
+      - id: cp-try-log-truth
+        skill: log-return
+        ask: "A price doubles, then halves back to where it began. True or false: its two log returns add up to zero."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "It ends where it began, so the whole stretch has a log return of zero, and the two add to that." }
+
   - id: cp-sensex-rate
     kind: conversation
+    skills: [cagr, compound-growth]
     prompt: >
       The Sensex went from 100 to 4,285 in about 13 years. A friend divides the 4,185-point gain
       by 100 and by 13 and says it rose about 322% a year. Explain what is wrong with that, and
@@ -156,7 +419,23 @@ checks:
     passCriteria: >
       The Learner explains that growth compounds, so the total gain cannot be spread evenly
       over the years by simple division. They compute a compound rate near 33% a year (accept
-      30% to 36%) using the 13th root of 42.85 or logarithms. They note that going from about
-      1,000 (July 1990) to 4,285 (March 1992) is more than a four-fold rise in under two years,
-      far above 33% a year, so the pace was not steady and the early years must have been slower
-      (about 22% a year by the same method). A rough answer is fine if the method is right.
+      30% to 36%) using the 13th root of 42.85, the steady-rate Formula Card or logarithms. They
+      note that going from about 1,000 (July 1990) to 4,285 (March 1992) is more than a four-fold
+      rise in under two years, far above the long-run rate, so the pace was not steady and the
+      early years must have been slower (about 22% a year by the same method). A rough answer is
+      fine if the method is right.
+    card:
+      title: "Is the pace steady?"
+      lines:
+        - "A long-run CAGR can hide an uneven path."
+        - "Split the run into stretches, and find the CAGR of each with the steady-rate card."
+        - "If the last stretch grew far faster than the whole run, the pace was not steady."
+      writeDown: "Check the pace of each stretch, not only the whole run."
+      skills: [cagr]
+      widget:
+        recipe: formula
+        title: "The steady rate of one stretch"
+        inputs:
+          formula: cagr
+          slider: { symbol: years, label: "Years the stretch took", min: 1, max: 20, step: 1, start: 4 }
+          held: { start: 200, end: 800 }
