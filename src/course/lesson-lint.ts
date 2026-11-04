@@ -7,7 +7,9 @@ import { presetValueProblems } from "./written-ahead-check.ts";
 // The lesson lint (spec #229, ADR 0006): the course check's rules for the teaching a converted Topic's file holds.
 // L1 a Check tests only what a card at or before it teaches; L2 enough Quick tries and questions; L3 short cards;
 // L4 valid Widget presets; L5 the Topic's currency; L6 no negative stems; L7 Check questions move apart from the
-// worked examples; Draws: every template draws and marks its own answer right, and fixed tries are sound.
+// worked examples; L8 every Quick try's Skill is one its own Check tests; L9 template draws move apart from the fixed
+// questions and Quick tries of the same Check; Draws: every template draws and marks its own answer right, and fixed
+// tries are sound.
 // Pure, with no "@/" imports, so `scripts/check-course.mjs` runs it under plain Node.
 
 /**
@@ -119,6 +121,8 @@ export type PresetCheck = (preset: WidgetPreset, topic: Topic) => string | null;
 
 /** How many seeded draws L7 and the Draws rule take of each template. */
 const DRAWS = 50;
+/** How many seeded draws L9 takes of each template: more, because one clash can be a single pair of numbers. */
+const APART_DRAWS = 1000;
 const MAX_CARD_LINES = 5;
 const MAX_SENTENCE_WORDS = 20;
 
@@ -182,6 +186,8 @@ function topicLint(t: Topic, presetOk: PresetCheck): string[] {
   lintL5(t, add);
   lintL6(t, add);
   lintL7(t, add);
+  lintL8(t, add);
+  lintL9(t, add);
   lintDraws(t, add);
   return errors;
 }
@@ -372,6 +378,71 @@ function lintL7(t: Topic, add: Add) {
         const e = clash(prompt);
         if (e) {
           add("L7", `Check "${c.id}" template "${tid}" draws ${quoted(prompt)}, which uses the numbers of ${e.name} (${e.numbers.join(", ")}); add them to its avoid list`);
+          break;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * L8: every Quick try practises a Skill its own Check tests. Your turn picks tries only for the Check's tested Skills
+ * (`nextQuickTry`), so a try on any other Skill is never shown.
+ */
+function lintL8(t: Topic, add: Add) {
+  for (const c of t.checks) {
+    const tested = testedSkills(t, c);
+    c.quickTries.forEach((q, i) => {
+      const s = skillOfTry(t, q);
+      if (!s || tested.includes(s)) return;
+      add(
+        "L8",
+        `Check "${c.id}" Quick try ${tryName(q, i)} practises Skill "${s}", which the Check does not test (it tests ${tested.join(", ") || "nothing"}), so the try is never shown; add a question or template on "${s}" to the Check`,
+      );
+    });
+  }
+}
+
+/** The numbers a draw put into a template's ask: those in the drawn prompt, less the ones the ask itself writes. */
+function drawnNumbers(ask: string, prompt: string): number[] {
+  const fixed = numbersIn(ask.replace(/\{\w+\}/g, " "));
+  return numbersIn(prompt).filter((n) => {
+    const at = fixed.findIndex((f) => Math.abs(f - n) < 1e-9);
+    if (at < 0) return true;
+    fixed.splice(at, 1);
+    return false;
+  });
+}
+
+/**
+ * L9: no draw of a template a Check uses (its quiz templates and its template Quick tries) repeats a fixed question or
+ * fixed Quick try of the same Check: a draw whose every drawn number is in that item's text asks the same thing again.
+ */
+function lintL9(t: Topic, add: Add) {
+  for (const c of t.checks) {
+    const fixed = [
+      ...(c.kind === "quiz" ? c.questions.flatMap((qid) => t.questions.filter((q) => q.id === qid).map((q) => ({ name: `question "${q.id}"`, text: q.prompt }))) : []),
+      ...c.quickTries.filter(isFixed).map((q) => ({ name: `Quick try "${q.id}"`, text: q.ask })),
+    ];
+    if (!fixed.length) continue;
+    const used = [...(c.kind === "quiz" ? c.templates : []), ...c.quickTries.flatMap((q) => (isFixed(q) ? [] : [q.template]))];
+    for (const tid of new Set(used)) {
+      const template = templateOf(t, tid);
+      if (!template) continue;
+      const seen = new Set<string>();
+      for (let i = 0; i < APART_DRAWS; i++) {
+        let prompt: string;
+        try {
+          prompt = drawTemplate(template, `apart-${i}`).prompt;
+        } catch {
+          break; // the Draws rule reports a template that cannot draw
+        }
+        if (seen.has(prompt)) continue;
+        seen.add(prompt);
+        const drawn = drawnNumbers(template.ask, prompt);
+        const item = drawn.length ? fixed.find((f) => holdsAll(f.text, drawn)) : undefined;
+        if (item) {
+          add("L9", `Check "${c.id}" template "${tid}" draws ${quoted(prompt)}, which repeats the numbers of ${item.name} (${drawn.join(", ")}); add one of them to the template's avoid list`);
           break;
         }
       }
