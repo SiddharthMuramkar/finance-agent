@@ -17,6 +17,7 @@ export default async function SettingsPage() {
         <SettingsView
           profile={{ work: p.work ?? "", location: p.location ?? "", loan: p.loan ?? "", savingFor: p.savingFor ?? "" }}
           developerDetails={learner.showDeveloperDetails}
+          theme={theme}
         />
       </ReadingPage>
     </SignedInFrame>
