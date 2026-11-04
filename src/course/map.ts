@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
+import { REFERENCE_CASE, REFERENCE_DATASET_IDS } from "../case-data/reference.ts";
 import { FORMULA_IDS } from "../finance/formula-ids.ts";
 import { markerProblems } from "../finance/formula-markers.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
@@ -65,7 +66,7 @@ const pieceSchema = z.object({
 export type Piece = z.infer<typeof pieceSchema>;
 
 const caseSchema = z.object({
-  id,
+  id: id.refine((v) => v !== REFERENCE_CASE, { message: `"${REFERENCE_CASE}" is reserved for reference data and cannot be a Case id` }),
   title: z.string().min(1),
   /** IDs of the Case Data datasets this Case is taught with. The laptop check confirms each one exists. */
   data: z.array(id).default([]),
@@ -365,6 +366,9 @@ const CASE_DATA_REFERENCE = /"([a-z0-9-]+)\/([a-z0-9-]+)"/g;
 /** Case Data references in a Topic Widget's code that do not belong to the Topic's own Cases and their datasets. */
 function widgetReferenceProblems(t: Pick<Topic, "id" | "cases">, code: string, where: string): string[] {
   return [...code.matchAll(CASE_DATA_REFERENCE)].flatMap(([, caseId, datasetId]) => {
+    if (caseId === REFERENCE_CASE) {
+      return REFERENCE_DATASET_IDS.includes(datasetId) ? [] : [`${where} reads "${caseId}/${datasetId}", but there is no reference dataset "${datasetId}"`];
+    }
     const c = t.cases.find((x) => x.id === caseId);
     if (!c) return [`${where} reads "${caseId}/${datasetId}", but "${caseId}" is not one of the Topic's Cases`];
     return c.data.includes(datasetId) ? [] : [`${where} reads "${caseId}/${datasetId}", but Case "${caseId}" does not list dataset "${datasetId}"`];
