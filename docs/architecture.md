@@ -938,6 +938,30 @@ are about 16.8K characters instead of 44.3K (tools 10.9K instead of 10.1K): roug
 any history, estimated at four characters a token. "show_widget before prose" is asked for, not enforced. Save to notes
 keeps a shown Widget (see "Save to notes keeps a shown Widget" below).
 
+### Recipe set A: seven recipes on the new parts (`src/widgets/recipes/set-a.ts`, `recipes/a/`; UX audit ★.5, ★.7)
+
+**What it does.** Seven recipes, each one control, at most three numbers, one picture and almost no words: `buying_power`
+(a Pictogram of gold bars, vada pavs or chai for an amount on a slider; the price is a sourced series such as
+`reference/gold-inr-10g`, newest point against the oldest, or a made-up price in `facts`, which makes it an Illustration),
+`grow_money` (the savings calculators drawn as a MoneyStack that splits what you put in from what it earned),
+`loan_cost` (the EMI as a Stat above a MoneyStack of loan against interest), `compare_two` (a Versus of two calculators'
+first results, one shared input on a slider), `breakeven_hunt` (a Breakeven meter: the Learner slides until the curve of one
+calculator meets the target another calculator works out), `percent_points` (a 100-square Waffle for a rate, the old rate
+outlined) and `quick_check` (one to three QuickChecks and a score). `grow_money` and `loan_cost` replace the seeds of the
+same id. Every params object is strict, so an extra number is refused rather than dropped; only `facts` may hold a number
+the code did not work out. Each recipe's schema runs the calculators at the slider's start, min and max, so a Widget
+never shows a calculator error; `breakeven_hunt` also refuses a range the curve never crosses the target in.
+
+**Scenario.** A Learner asks "should I take a 10 or a 20 year loan?". The Tutor calls `compare_two` with the `emi`
+calculator on both sides (10 years, 20 years), the rate on the slider and `better: "lower"`. The Widget is a slider
+and one Versus bar pair, with a Guided Task to move the rate; it passes the Widget check with no budget warning. Had
+the Tutor put a rupee price of its own in `inputs`, the recipe would have refused it and asked for `facts`.
+
+**Trade-off.** Narrow on purpose: a Widget outside these seven shapes needs the freeform route. Sides of `compare_two`
+and the target of `breakeven_hunt` use a calculator's first result only, so a calculator whose headline is not the
+number you want cannot be compared yet. A sourced `buying_power` price assumes the series and the amount share a
+currency, which the recipe cannot check.
+
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
