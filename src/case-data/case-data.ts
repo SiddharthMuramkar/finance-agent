@@ -28,7 +28,14 @@ export function revealedCases(map: CourseMap, progress: Progress): string[] {
 }
 
 /** What a Case's data request returns: `revealed` is false while hindsight is withheld. */
-export type CaseData = { caseId: string; asOf: string; revealed: boolean; datasets: CaseDataset[] };
+export type CaseData = {
+  caseId: string;
+  asOf: string;
+  revealed: boolean;
+  datasets: CaseDataset[];
+  /** The reference Case only: the date it was clipped to, or null when not clipped. */
+  clip?: string | null;
+};
 
 /**
  * A Case's datasets under the as-of rule: until its Topic's reveal has been shown, nothing dated
@@ -56,15 +63,27 @@ export async function loadCaseData(db: Db, map: CourseMap, progress: Progress, c
 }
 
 /**
+ * The date the reference Case is clipped to: the earliest as-of date among the Cases of every Topic the Learner has
+ * started whose reveal is not yet shown, or null when there is none (the full series is returned).
+ */
+export function referenceClip(map: CourseMap, progress: Progress): string | null {
+  const dates = map.topics
+    .filter((t) => {
+      const p = progress.topics[t.id];
+      return p !== undefined && !p.revealShown; // a record exists once the Topic is started
+    })
+    .flatMap((t) => t.cases.map((c) => c.asOf));
+  return dates.sort()[0] ?? null;
+}
+
+/**
  * The reserved reference Case: always readable, with `revealed` true and `asOf` the latest point returned.
- * But while the Learner's current Topic has a Case whose reveal is not yet shown, nothing dated after that
- * Case's as-of date is returned (the earliest, if the Topic has several), so a later Sensex or USD/INR
+ * But while any Topic the Learner has started has a Case whose reveal is not yet shown, nothing dated after the
+ * earliest such as-of date is returned, so a later Sensex or USD/INR
  * close cannot give the outcome away.
  */
 async function loadReferenceData(db: Db, map: CourseMap, progress: Progress): Promise<CaseData> {
-  const current = progress.currentTopicId ? map.topic(progress.currentTopicId) : undefined;
-  const open = current && !progress.topics[current.id]?.revealShown;
-  const clip = open ? current.cases.map((c) => c.asOf).sort()[0] : undefined;
+  const clip = referenceClip(map, progress) ?? undefined;
   const meta = await db.select().from(caseDatasets).where(eq(caseDatasets.caseId, REFERENCE_CASE)).orderBy(asc(caseDatasets.datasetId));
   const points = await db
     .select()
@@ -77,7 +96,7 @@ async function loadReferenceData(db: Db, map: CourseMap, progress: Progress): Pr
     return [{ id: d.datasetId, label: d.label, unit: d.unit, source: d.source, sourceUrl: d.sourceUrl, checkedOn: d.checkedOn, points: own }];
   });
   const latest = datasets.flatMap((d) => d.points.map((p) => p.date)).sort().at(-1) ?? clip ?? "";
-  return { caseId: REFERENCE_CASE, asOf: latest, revealed: true, datasets };
+  return { caseId: REFERENCE_CASE, asOf: latest, revealed: true, datasets, clip: clip ?? null };
 }
 
 /** The server route's answer for one Case: its data under the as-of rule for this Learner's progress. No model call. */

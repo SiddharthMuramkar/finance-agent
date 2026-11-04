@@ -174,7 +174,7 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
   const ctx: ReplyCheckContext = {
     step: STEP_KIND[place.step] ?? "none",
     replyKind: c.state.replyKind,
-    exampleCurrency: c.state.exampleCurrency ?? ((topic as { currency?: unknown }).currency as string | undefined) ?? "INR",
+    exampleCurrency: c.state.exampleCurrency ?? topic.exampleCurrency,
     caseCurrencies: c.state.caseCurrencies ?? [],
     openItems,
     internalWords,
