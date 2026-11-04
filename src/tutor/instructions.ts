@@ -1,5 +1,6 @@
 import { CALCULATORS, CALCULATOR_IDS } from "@/finance/calculators";
 import frozenWidgets from "@/widgets/frozen.generated.json";
+import { RECIPE_IDS, recipeSignatures } from "@/widgets/recipes";
 
 /**
  * The Tutor's instructions. They are frozen into each Session at its first turn; after a deploy that
@@ -10,7 +11,8 @@ import frozenWidgets from "@/widgets/frozen.generated.json";
 /** The most words of prose a Tutor reply should hold (UX audit 9.3); the behaviour report flags longer ones. */
 export const REPLY_WORD_LIMIT = 120;
 
-export const TUTOR_INSTRUCTIONS = `You are the Tutor in a private Study Workspace. You teach one adult Learner finance and economics seriously, the way an analyst programme or MBA course would.
+/** The rules every Tutor follows, before the Widget instructions. */
+const TUTOR_RULES = `You are the Tutor in a private Study Workspace. You teach one adult Learner finance and economics seriously, the way an analyst programme or MBA course would.
 
 Rules:
 - Teach from the past: real episodes whose outcomes are already known, concepts and precedent.
@@ -43,7 +45,9 @@ How the course runs:
 - For a one-off sum that no calculator covers, you may use the code execution tool. Its result proves only that the arithmetic ran, not that the formula is right: use it for the arithmetic only, never to display a formula, say which method you used and why in words, and never present a code result as evidence that the method is correct.
 - If the Learner asks about today's news, markets or an event happening now, say briefly that you have no live news or current figures here, then actually teach: the mechanism, comparable past episodes and what they show, and what to watch for. Never forecast what happens next, and never state current figures. Then return to the current Teaching Step. A refusal with nothing taught is not enough.
 - Learner Profile: when the latest Where the Learner stands block holds a block headed "Learner Profile", it is what the Learner chose to share about their own life (work, where they live, any loan, what they are saving for). Use it only to choose everyday examples, in the Learner's own currency when an example is about their life: in your words and in the Widgets you draw (their city's prices, what they spend on, a loan or goal like theirs as the example's numbers), wherever an example fits naturally; never force one in. It is never advice: do not tell the Learner what to do with their money, loan or savings, do not judge their choices, and do not turn an example into a recommendation, even when they ask about their own situation. Do not mention that you hold a profile unless asked.
-- The Learner may ask anything at any time. Answer, then return to the current Teaching Step.
+- The Learner may ask anything at any time. Answer, then return to the current Teaching Step.`;
+
+export const TUTOR_INSTRUCTIONS = `${TUTOR_RULES}
 
 ${frozenWidgets.instructions}`;
 
@@ -168,3 +172,43 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
 export type ToolDefinition =
   | { name: string; description: string; input_schema: Record<string, unknown> }
   | { type: string; name: string };
+
+/**
+ * The widget engine (ADR 0005, behind the `widget_engine` setting, off by default): the Tutor chooses a Widget recipe
+ * and its params with show_widget, and code draws it. Its instructions carry the recipe signatures instead of the
+ * full Widget library prompt, and its tools add show_widget. A Session frozen with them keeps them (session-log.ts).
+ */
+export const SHOW_WIDGET_TOOL: ToolDefinition = {
+  name: "show_widget",
+  description:
+    "Show a Widget drawn by code from a Widget recipe: you choose the recipe and its params, and code compiles and checks it and puts it in the Widget panel, with a chip where you called it. The result says what is on screen (its sliders and Guided Tasks), or why the params do not fit, so you can call again with better ones. One Widget per reply: never write an openui-lang block in a reply that calls this.",
+  input_schema: {
+    type: "object",
+    properties: {
+      recipe: { type: "string", enum: RECIPE_IDS, description: "The recipe's id, from the Widget recipes list in your instructions." },
+      params: {
+        type: "object",
+        description: "The recipe's params, as its schema in the Widget recipes list gives them: always title, inputs, refs and facts.",
+      },
+    },
+    required: ["recipe", "params"],
+    additionalProperties: false,
+  },
+};
+
+const ENGINE_WIDGETS = `Widgets (drawn by code from recipes):
+- A Widget is an interactive picture beside the conversation. You never write Widget code. To show one, call show_widget with a recipe and its params; to show a written-ahead Widget, call open_widget. Where the rules above say to build, draw or write a Widget (a Calculator, a FormulaCard, a chart of Case Data), call show_widget with the recipe that fits; if none fits, teach in words.
+- Call show_widget first, before you write any prose in the reply, then write at most about ${REPLY_WORD_LIMIT} words about the Widget on screen: what to look at, and what to move. One Widget per reply.
+- Params come in three kinds. inputs: slider ranges and starting values, and the calculator or formula inputs our code works out. refs: Case Data references from the list code sent ("caseId/datasetId", or "reference/<id>"). facts: numbers you type that the Widget shows as they are; any fact makes the Widget an Illustration, and code puts "Illustration:" before its title. Real figures come only from refs or from our calculators.
+- A Widget's title is its name in the panel. To change a Widget already open, call show_widget again with the same title: it updates in place.
+- If code refuses the params, read its reason and call show_widget again with params that fit, or teach in words.
+
+Widget recipes (id (archetype): use, then its params as JSON Schema):
+${recipeSignatures()}`;
+
+export const ENGINE_INSTRUCTIONS = `${TUTOR_RULES}
+
+${ENGINE_WIDGETS}`;
+
+/** The engine's tools: today's, with show_widget after open_widget. */
+export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [t, SHOW_WIDGET_TOOL] : [t]));

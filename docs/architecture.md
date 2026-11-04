@@ -899,6 +899,45 @@ draws nothing). The parts rule goes by named parts, so a Tutor Widget that does 
 expressions) is not caught. A written-ahead Widget has no Save to notes yet. A correction that only leaves Widgets
 out drops the Tutor's prose in the correction reply, as every correction does.
 
+### Widget recipes and show_widget: the Tutor chooses, code draws (`src/widgets/recipes/`, `src/widgets/shown-widget.ts`, `show_widget` in `src/tutor/tools.ts`, `ENGINE_INSTRUCTIONS` in `instructions.ts`, `frozenNow` in `session-log.ts`, `drawnWidgets` in `session-items.ts`, `widgetsIn` in `src/app/thread.tsx`, ADR 0005, UX audit ★.4, ★.5, ★.9)
+
+**What it does.** A Widget recipe is a typed function, made with `defineRecipe`, that turns params into an OpenUI Lang
+program. Its params schema (zod) has a title and three kinds of value: `inputs` (slider ranges and starting values,
+and calculator or formula inputs our tested code works out), `refs` (Case Data references) and `facts` (typed numbers;
+any of them puts "Illustration:" before the title). Each recipe also has an archetype, an information budget and
+working examples. `RECIPES` in `recipes/index.ts` is the seeds (`history_case`, `grow_money`, `loan_cost`, `formula`,
+built only from parts registered today) plus `set-a.ts` and `set-b.ts`, which the recipe lanes fill; a set's recipe
+replaces a seed with the same id. The Tutor calls `show_widget({recipe, params})`. Like open_widget it runs through
+`once`, so a repeat or a resume has no second effect. It parses the params, compiles them, refuses when the reply
+already has a Widget (one per reply), checks every ref against the Case Data the as-of rule allows now, and runs the
+Widget checks a written Widget gets (`widgetProblems`, `widgetRuleProblems` against the open Widgets,
+`writtenAheadPartProblems` with the explore Widget held back). Any problem is a tool error, so the Tutor fixes it in
+the same turn, never through the correction round-trip. On success it stores a `widget_shown` Session item with the
+Widget's identity: the tool call's id, the recipe, the parsed params, the title, the code and `source: "recipe"`. The
+item streams as the usual `item` event; the thread draws it where the call was (`widgetsIn`, `ItemMessage`) with the
+code it carries, keyed by its title like any Widget the Tutor drew, so Widget state, readings and updates in place
+work unchanged. `drawnWidgets` merges these items with reply fences in seq order wherever the server lists open
+Widgets (the open-Widgets note, widget readings, Tell the Tutor what I found, the same-Case-Data rule).
+
+**The switch.** The `widget_engine` setting (default "off") is read only by `frozenNow`. On, a new or refrozen Session
+gets `ENGINE_INSTRUCTIONS` (the Tutor's rules, then the recipe signatures as JSON Schema instead of the Widget library
+prompt, and "call show_widget first, then at most about 120 words") and `ENGINE_TOOLS` (today's plus show_widget). A
+Session whose tools already include show_widget keeps them even when the setting is off. Off, the instructions and
+tools are today's exactly, so the fingerprint, and every existing Session, is unchanged. The show_widget code is
+always bound, so a resume never fails on a saved call.
+
+**Scenario.** With the engine on, a Learner asks "what does ₹1,000 a month become?". The Tutor calls show_widget with
+`grow_money` and `{calculator: "sip", held: {monthly: 1000, ratePercent: 10}, slider: {input: "years", …}}`. Code
+compiles a Widget with one Years slider, the SIP Calculator and a Guided Task at 30 years, checks it, stores it and
+the panel opens it at once; the Tutor's result lists the slider and task, and it writes two sentences about moving the
+years. Had it asked for a slider from 40 to 30 years, it would have got "min must be below max" and called again.
+
+**Trade-off.** Code draws a designed, tested Widget in milliseconds, but only the ideas a recipe covers: with the
+engine on there is no freeform Widget until compose_widget arrives, so the rest is taught in words. The instructions
+are about 16.8K characters instead of 44.3K (tools 10.9K instead of 10.1K): roughly 7K tokens instead of 13.6K before
+any history, estimated at four characters a token. A shown Widget is not in the reply text, so Save to notes on the
+reply leaves it out for now, and "show_widget before prose" is asked for, not enforced.
+
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the

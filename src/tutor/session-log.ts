@@ -6,7 +6,7 @@ import { navigate } from "@/course/navigator";
 import { learnerState, messages, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
+import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
 
 /**
  * Sessions and their add-only message log: the stored settings a Session is frozen from, which
@@ -16,7 +16,7 @@ import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instruct
 export type Message = BetaMessageParam;
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
-export const DEFAULT_SETTINGS = { model: "claude-opus-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10" };
+export const DEFAULT_SETTINGS = { model: "claude-opus-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10", widget_engine: "off" };
 
 export type Session = typeof sessions.$inferSelect;
 
@@ -36,6 +36,8 @@ export async function readSettings(db: Db) {
     compactAtTokens: Number(get("compact_at_tokens")),
     /** The most spaced reviews offered over the last 24 hours. */
     reviewCap: Number(get("review_cap")),
+    /** The widget engine (ADR 0005): "on" freezes new and refrozen Sessions with show_widget. Read only by frozenNow. */
+    widgetEngine: get("widget_engine") === "on" ? ("on" as const) : ("off" as const),
   };
 }
 
@@ -160,7 +162,7 @@ export async function sessionForTurn(db: Db, now: Date, learnerId: number, topic
  * message after it: thinking blocks before that seq are never sent again (see `openLog`).
  */
 export async function refreezeIfChanged(db: Db, session: Session): Promise<Session> {
-  const frozen = await frozenNow(db);
+  const frozen = await frozenNow(db, session);
   if (session.fingerprint === frozen.fingerprint) return session;
   const [{ last }] = await db.select({ last: max(messages.seq) }).from(messages).where(eq(messages.sessionId, session.id));
   const [row] = await db
@@ -171,11 +173,23 @@ export async function refreezeIfChanged(db: Db, session: Session): Promise<Sessi
   return row;
 }
 
-/** The instructions, tools, model and effort a Session freezes now, with their fingerprint. */
-async function frozenNow(db: Db) {
-  const { model, effort } = await readSettings(db);
-  const tools: ToolDefinition[] = TUTOR_TOOLS;
-  return { instructions: TUTOR_INSTRUCTIONS, tools, model, effort, fingerprint: fingerprint(TUTOR_INSTRUCTIONS, tools) };
+/** Whether a Session was frozen with the widget engine: its tools include show_widget. Engine-only behaviour reads this, never the setting. */
+export function usesWidgetEngine(session: { tools: unknown } | undefined): boolean {
+  return Array.isArray(session?.tools) && session.tools.some((t) => (t as { name?: unknown })?.name === "show_widget");
+}
+
+/**
+ * The instructions, tools, model and effort a Session freezes now, with their fingerprint. The widget engine's
+ * (ADR 0005) when the `widget_engine` setting is "on", or when the Session already has show_widget: one way per
+ * Session, so no history ever holds a show_widget call its tools no longer list. Off, today's exactly, so the
+ * fingerprint of every Session without the engine is unchanged.
+ */
+export async function frozenNow(db: Db, session?: { tools: unknown }) {
+  const { model, effort, widgetEngine } = await readSettings(db);
+  const engine = widgetEngine === "on" || usesWidgetEngine(session);
+  const instructions = engine ? ENGINE_INSTRUCTIONS : TUTOR_INSTRUCTIONS;
+  const tools: ToolDefinition[] = engine ? ENGINE_TOOLS : TUTOR_TOOLS;
+  return { instructions, tools, model, effort, fingerprint: fingerprint(instructions, tools) };
 }
 
 export const isCompaction = (content: unknown) => Array.isArray(content) && content.some((b) => b?.type === "compaction");

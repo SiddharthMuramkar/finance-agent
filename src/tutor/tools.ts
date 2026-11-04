@@ -8,9 +8,11 @@ import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
 import { exploreHeldBack } from "@/course/explore-widget";
-import { WIDGET_OPENED } from "@/course/written-ahead";
-import { sessions, toolCalls, turns } from "@/db/schema";
-import { widgetControls } from "@/widgets/check";
+import { coveredParts, WIDGET_OPENED } from "@/course/written-ahead";
+import { messages, sessions, toolCalls, turns } from "@/db/schema";
+import { widgetControls, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
+import { RECIPE_IDS, recipeById } from "@/widgets/recipes";
+import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { loadWrittenAhead } from "./written-ahead";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
@@ -20,12 +22,21 @@ import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library
 import { stepContext, topicCompleteContext } from "./context";
 import { verdictCard } from "./check-results";
 import { pasteSummary } from "./pasted";
-import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
+import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type ReplyText, type SessionItem } from "./session-items";
+import { textOf } from "./transcript";
 import type { ToolDefinition } from "./instructions";
 import { JUST_TELL_ME } from "./chips";
 import { isCodeWritten, OLD_CONTINUE_TEXT, turnKind } from "./turn-status";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
+
+/** The text of each of a Session's replies (its assistant rows), with its seq, for drawnWidgets. */
+export function replyTexts(rows: readonly { seq: number; role: string; content?: unknown }[]): ReplyText[] {
+  return rows.filter((r) => r.role === "assistant").map((r) => ({ seq: r.seq, text: textOf(r.content) }));
+}
+
+/** How a Widget block opens in a reply. */
+const FENCE_OPEN = "```openui-lang\n";
 
 /** What a tool told the Tutor, and whether it was a rejection (sent back as a tool error). */
 type Outcome = {
@@ -62,6 +73,7 @@ export const TOOL_LABELS: Record<string, string> = {
   record_check_verdict: "Recording the Check…",
   record_insight_attempt: "Recording your answer…",
   open_widget: "Opening a Widget…",
+  show_widget: "Drawing the Widget…",
   finish_teaching_step: "Moving to the next step…",
 };
 
@@ -218,6 +230,7 @@ export function toolCode(
   }
 
   const openInput = z.object({ id: z.string().min(1) });
+  const showInput = z.object({ recipe: z.string(), params: z.unknown() });
   const calculateInput = z.object({ calculator: z.string(), inputs: z.unknown(), currency: z.enum(["usd", "inr"]).optional() });
 
   return withProgress({
@@ -345,6 +358,56 @@ export function toolCode(
           const { sliders, tasks } = widgetControls(widget.code);
           const lines = [
             `Opened by code: "${widget.title}" is in the Widget panel, with a chip where you opened it. Point the Learner to it; do not draw a Widget of your own for the same idea. Ask only for numbers its sliders can show.`,
+            ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
+            ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
+          ];
+          return { ok: true, text: lines.join("\n"), items: [item] };
+        }),
+    },
+    // The widget engine (ADR 0005): the Tutor chooses a recipe and params, code compiles, checks and stores the Widget.
+    // Always bound, whatever the widget_engine setting says, so a Session frozen with it always resumes.
+    show_widget: {
+      parse: (input) => showInput.parse(input),
+      run: ({ recipe: id, params }, context) =>
+        once(context?.toolUse.id, "show_widget", async (tx) => {
+          const recipe = recipeById(id);
+          if (!recipe) return { ok: false, text: `Not shown: there is no Widget recipe "${id}". Recipes: ${RECIPE_IDS.join(", ")}.` };
+          const built = recipe.build(params);
+          if (!built.ok) return { ok: false, text: `Not shown: these params do not fit the ${id} recipe. ${built.error}. Call show_widget again with params that fit, or teach this in words.` };
+          const [row] = await tx
+            .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, topicId: sessions.topicId })
+            .from(turns)
+            .leftJoin(sessions, eq(sessions.id, turns.sessionId))
+            .where(eq(turns.id, turnId));
+          if (row?.sessionId == null || row.turnSeq == null) return { ok: false, text: "Not shown: this turn has no Session yet." };
+          const rows = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
+          const items = await loadSessionItems(tx, row.sessionId, learnerId);
+          const turnSeq = row.turnSeq;
+          // One Widget per reply: the reply so far has drawn one of its own, or code has shown one in it.
+          const replySoFar = replyTexts(rows.filter((r) => r.seq >= turnSeq)).map((r) => r.text).join("\n");
+          if (replySoFar.includes(FENCE_OPEN) || items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= turnSeq)) {
+            return { ok: false, text: "Not shown: this reply already has a Widget, and a reply shows one Widget. Talk about the one on screen; show another in a later reply if it still helps." };
+          }
+          // Real figures only from Case Data the as-of rule allows the Learner now (ADR 0003).
+          const progress = await loadProgress(tx, learnerId);
+          const allowed = new Set((await caseDataFor(tx, map, navigate(map, progress), learnerId)).flatMap((c) => c.datasets.map((d) => `${c.caseId}/${d.id}`)));
+          const unknown = built.refs.filter((ref) => !allowed.has(ref));
+          if (unknown.length) {
+            return { ok: false, text: `Not shown: ${unknown.join(", ")} ${unknown.length > 1 ? "are" : "is"} not in the Case Data code sent for this step. Use a reference from that list, or teach this in words.` };
+          }
+          // The same checks as a Widget the Tutor writes: it draws, keeps the Widget rules, and leaves written-ahead parts alone.
+          const open = drawnWidgets(replyTexts(rows), items).map((w) => w.code);
+          const topic = row.topicId ? map.topic(row.topicId) : undefined;
+          const held = topic ? exploreHeldBack(topic, progress.topics[topic.id]) : null;
+          const covered = topic ? coveredParts(topic).map((w) => (w.id === held ? { ...w, held: true } : w)) : [];
+          const problems = [...widgetProblems(built.code), ...widgetRuleProblems(built.code, open), ...writtenAheadPartProblems(built.code, covered)];
+          if (problems.length) return { ok: false, text: `Not shown: ${problems.join(" ")}` };
+          const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe" };
+          const item = { kind: WIDGET_SHOWN, data };
+          await saveItemAfterLatest(tx, learnerId, row.sessionId, item, now());
+          const { sliders, tasks } = widgetControls(built.code);
+          const lines = [
+            `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. Write no openui-lang block in this reply. Now talk about the Widget on screen in a few sentences: what to look at, and what to move.`,
             ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
             ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
           ];
