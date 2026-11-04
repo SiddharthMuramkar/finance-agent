@@ -1595,11 +1595,17 @@ World Bank and the Federal Reserve. If the Learner is in the 1992 Topic before i
 request returns nothing dated after that Case's as-of date, so a later Sensex close cannot give the
 outcome away.
 
-**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while the current
-Topic has a Case whose reveal is not yet shown, code clips every reference series to the earliest such
-as-of date (and leaves out a series with nothing earlier). The page's Case Data cache still keys on
-reveals only, so a series fetched before a reveal stays clipped on that page until it is reloaded: safe,
-but slightly stale. Some series are derived or approximate (gold in rupees is the international price
+**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while any Topic the
+Learner has started has a Case whose reveal is not yet shown, code clips every reference series to the
+earliest such as-of date (`referenceClip`; a series with nothing earlier is left out). The payload carries
+that clip date, and the page's Case Data cache drops its held reference entry whenever the clip changes
+(`setReferenceClip`, driven by the provider's `referenceClip` prop), so the reference series is refetched
+at once instead of staying stale until a turn ends. An import writes new points first, in chunks of 2,000,
+and only then deletes dates missing from the new file, so a failure part-way leaves the old points in
+place; it refuses a reference dataset id that is not in `REFERENCE_DATASET_IDS`, and the import script
+prints its database host and needs `--yes`. The dev scripts `widget-eval` and `layout-check` share
+`scripts/script-guards.mjs` (local base URL only, tools Learner only, `EVAL_DB_OK=branch` and never the
+`PROD_DB_HOST` host). Some series are derived or approximate (gold in rupees is the international price
 at the monthly exchange rate, without duty; typical rates are the middle of an RBI range), and each
 dataset's check note says so.
 

@@ -1,5 +1,6 @@
 import { sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
+import { REFERENCE_CASE, REFERENCE_DATASET_IDS } from "./reference.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/import-case-data.mjs` can run it
 // with Node's type stripping from the laptop. It writes with plain SQL for the same reason.
@@ -29,12 +30,22 @@ export type CaseDatasetInput = z.input<typeof caseDatasetInput>;
 
 type Executor = { execute(query: SQL): PromiseLike<unknown> };
 
+/** Rows per insert: 4 parameters each, far under the driver's 65,535-parameter limit. */
+const CHUNK = 2000;
+
 /**
- * Writes checked datasets into the database. Re-importing a dataset replaces its
- * description and all of its points, so an import file can be corrected and run again.
+ * Writes checked datasets into the database. Re-importing a dataset replaces its description and its points, so an
+ * import file can be corrected and run again. Points are upserted first, in chunks, and only then are the dates
+ * missing from the new set deleted, so a failure part-way leaves the old points in place.
  */
 export async function importCaseData(db: Executor, input: CaseDatasetInput[]): Promise<{ datasets: number; points: number }> {
   const datasets = z.array(caseDatasetInput).parse(input);
+  const unknown = datasets.filter((d) => d.caseId === REFERENCE_CASE && !REFERENCE_DATASET_IDS.includes(d.id));
+  if (unknown.length) {
+    throw new Error(
+      `Unknown reference dataset ${unknown.map((d) => `"${REFERENCE_CASE}/${d.id}"`).join(", ")}. The allowed ids are: ${REFERENCE_DATASET_IDS.join(", ")}.`,
+    );
+  }
   let points = 0;
   for (const d of datasets) {
     await db.execute(sql`
@@ -43,9 +54,17 @@ export async function importCaseData(db: Executor, input: CaseDatasetInput[]): P
       on conflict (case_id, dataset_id) do update set
         label = excluded.label, unit = excluded.unit, source = excluded.source, source_url = excluded.source_url,
         checked_on = excluded.checked_on, check_note = excluded.check_note`);
-    await db.execute(sql`delete from case_data_points where case_id = ${d.caseId} and dataset_id = ${d.id}`);
-    const rows = d.points.map((p) => sql`(${d.caseId}, ${d.id}, ${p.date}, ${p.value})`);
-    await db.execute(sql`insert into case_data_points (case_id, dataset_id, date, value) values ${sql.join(rows, sql`, `)}`);
+    for (let i = 0; i < d.points.length; i += CHUNK) {
+      const rows = d.points.slice(i, i + CHUNK).map((p) => sql`(${d.caseId}, ${d.id}, ${p.date}, ${p.value})`);
+      await db.execute(sql`
+        insert into case_data_points (case_id, dataset_id, date, value) values ${sql.join(rows, sql`, `)}
+        on conflict (case_id, dataset_id, date) do update set value = excluded.value`);
+    }
+    // One parameter however many dates: the new set travels as a JSON array.
+    const keep = JSON.stringify(d.points.map((p) => p.date));
+    await db.execute(sql`
+      delete from case_data_points where case_id = ${d.caseId} and dataset_id = ${d.id}
+        and date not in (select (jsonb_array_elements_text(${keep}::jsonb))::date)`);
     points += d.points.length;
   }
   return { datasets: datasets.length, points };
