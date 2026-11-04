@@ -6,10 +6,10 @@
  * earlier turns are replayed through the real Tutor Turn with a scripted model, so they cost nothing.
  */
 import { and, eq, gt, max } from "drizzle-orm";
-import { loadCourseMap, type CourseMap, type Topic } from "@/course/map";
+import { loadCourseMap, type Check, type CourseMap, type Topic } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
 import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
-import { plainExact } from "@/teaching";
+import { plainExact, type DrawnItem, type FixedItem } from "@/teaching";
 import { questionLookup } from "@/bank/lookup";
 import { insightAttempts, noteItems, quizAttempts, settings, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -21,8 +21,8 @@ import { noteMethodUsed, recordAnswer, skillStates } from "@/learner/skill-state
 import { scriptedClient } from "@/test/scripted-client";
 import { submitQuizAnswers } from "@/tutor/check-results";
 import { ENGINE_TOOLS, TUTOR_TOOLS } from "@/tutor/instructions";
-import { answerQuickTry, nextQuickTry } from "@/tutor/practice";
-import { QUICK_TRY, type QuickTryData } from "@/tutor/session-item-kinds";
+import { answerQuickTry, nextQuickTry, quickTryItem } from "@/tutor/practice";
+import { QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData, type QuickTryResultData } from "@/tutor/session-item-kinds";
 import { liveSession } from "@/tutor/session-log";
 import type { OpenItem, ReplyCheckContext, StepKind } from "@/tutor/reply-checks";
 import { loadSessionItems, saveItemAfterLatest } from "@/tutor/session-items";
@@ -56,6 +56,14 @@ export function pendingReason(c: LiveCase, map: CourseMap): string | null {
   const missing = [...new Set(needed.filter((s) => !skills.includes(s)))];
   if (missing.length) return `${topic.id} lists no Skill ${missing.join(", ")} yet, so its Skill state cannot be set up (the Topic is converted by its own ticket).`;
   if (c.state.check > topic.checks.length) return `${topic.id} has ${topic.checks.length} Check(s), not a Check ${c.state.check}.`;
+  // A pinned Quick try must be a fixed try of the case's Check, on the answer's Skill.
+  if (c.answer?.try) {
+    const check = topic.checks[c.state.check - 1];
+    const pinned = c.answer.try;
+    const found = check.quickTries.find((q) => "id" in q && q.id === pinned) as { skill?: string } | undefined;
+    if (!found) return `Check ${c.state.check} of ${topic.id} (${check.id}) has no fixed Quick try "${pinned}".`;
+    if (found.skill !== c.answer.skill) return `Quick try ${pinned} is on the Skill ${found.skill}, not ${c.answer.skill}.`;
+  }
   return null;
 }
 
@@ -257,10 +265,23 @@ export async function seenReply(db: Db, args: { learnerId: number; topic: Topic;
 }
 
 /**
- * Answers a case's Quick try the way the app does: a try is drawn on the answer's Skill and shown in the Session, then
- * the case's message goes through `answerQuickTry` (code marks it, with no model call). Returns whether the
- * answer asks for a follow-up turn, which the caller then runs as `{ quickTryFollowUp: true }`. Throws when it cannot,
- * or when code marks the answer right, since the case expects a miss.
+ * A fixed Quick try as the Session shows it: the same item `nextQuickTry` makes for a key (the answer stays on the server,
+ * which finds the item again from the key).
+ */
+function shownTry(check: Check, key: string, found: { item: FixedItem | DrawnItem; halfDone?: string }): QuickTryData {
+  const { item, halfDone } = found;
+  const drawn = "templateId" in item;
+  const unit = drawn ? item.unit : item.kind === "number" ? item.unit : undefined;
+  return { key, checkId: check.id, skillId: item.skill, prompt: drawn ? item.prompt : item.ask, kind: item.kind, ...(unit && { unit }), ...(halfDone && { halfDone }) };
+}
+
+/**
+ * Answers a case's Quick try the way the app does: a try is shown in the Session (the fixed try the case names, so it is
+ * the one the earlier turns talk about, else the next try code draws on the answer's Skill), then the case's message
+ * goes through `answerQuickTry` (code marks it, with no model call). Returns whether the answer asks for a follow-up
+ * turn, which the caller then runs as `{ quickTryFollowUp: true }`. Throws when it cannot, or when code marks the
+ * answer right, since the case expects a miss. The try and its mark are added to `p.stateNote`, so the grader reads the
+ * numbers the Tutor was shown.
  */
 export async function answerDrawnTry(db: Db, map: CourseMap, c: LiveCase, p: Prepared, now = new Date()): Promise<boolean> {
   if (!c.answer) throw new Error(`${c.id}: the case has no answer.`);
@@ -268,12 +289,21 @@ export async function answerDrawnTry(db: Db, map: CourseMap, c: LiveCase, p: Pre
   const session = await liveSession(db, p.learnerId, p.topic.id);
   if (!session) throw new Error(`${c.id}: no Session to show the Quick try in; give the case a history.`);
   const shown = (await loadSessionItems(db, session.id, p.learnerId)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as unknown as QuickTryData);
-  const states = await skillStates(db, p.learnerId, p.topic.id);
-  const data = nextQuickTry(p.topic, check, states, shown, { skillId: c.answer.skill, session: session.id });
-  if (!data || data.skillId !== c.answer.skill) throw new Error(`${c.id}: no Quick try can be drawn on ${c.answer.skill}.`);
+  let data: QuickTryData | null;
+  if (c.answer.try) {
+    const key = `qt:${session.id}:${shown.length}:${c.answer.try}`;
+    const found = quickTryItem(p.topic, key);
+    data = found ? shownTry(check, key, found) : null;
+  } else {
+    data = nextQuickTry(p.topic, check, await skillStates(db, p.learnerId, p.topic.id), shown, { skillId: c.answer.skill, session: session.id });
+  }
+  if (!data || data.skillId !== c.answer.skill) throw new Error(`${c.id}: no Quick try can be shown on ${c.answer.skill}${c.answer.try ? ` as "${c.answer.try}"` : ""}.`);
   await saveItemAfterLatest(db, p.learnerId, session.id, { kind: QUICK_TRY, data: data as unknown as Record<string, unknown> }, now);
   const out = await answerQuickTry(db, map, p.learnerId, data.key, c.message, now);
   if (!out.ok) throw new Error(`${c.id}: the Quick try answer was refused: ${out.error}`);
-  if (out.items.some((i) => i.kind === "quick_try_result" && (i.data as { verdict?: string }).verdict === "right")) throw new Error(`${c.id}: code marked "${c.message}" right on the drawn try, but the case expects a miss.`);
+  const result = out.items.find((i) => i.kind === QUICK_TRY_RESULT)?.data as QuickTryResultData | undefined;
+  if (result?.verdict === "right") throw new Error(`${c.id}: code marked "${c.message}" right on the shown try, but the case expects a miss.`);
+  const marked = result?.verdict === "known_mistake" ? `a Known mistake, and code showed its fix ("${result.line}")` : "not right";
+  p.stateNote += ` Code showed the Learner the Quick try "${[data.prompt, data.halfDone].filter(Boolean).join(" ")}" and marked their answer "${c.message}" as ${marked}.`;
   return out.followUp;
 }

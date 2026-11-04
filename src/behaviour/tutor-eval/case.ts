@@ -94,8 +94,12 @@ export type LiveCase = Common & {
   topic: string;
   state: CaseState;
   message: string;
-  /** The Learner's message is an answer on this Skill, recorded with this verdict before the turn (a Quick try). */
-  answer?: { skill: string; verdict: "right" | "wrong" };
+  /**
+   * The Learner's message is an answer on this Skill, recorded with this verdict before the turn (a Quick try). `try` names
+   * the fixed Quick try of the case's Check that it answers (its id in the Topic file), so the try code shows is the one the
+   * case's earlier turns talk about; left out, code draws the next try on the Skill.
+   */
+  answer?: { skill: string; verdict: "right" | "wrong"; try?: string };
   pass: Condition[];
   /** Case conditions code cannot tell, asked of the grader as yes-or-no questions beside the rubric. */
   graderChecks?: string[];
@@ -206,6 +210,10 @@ export function parseCase(text: string, name: string): { case?: EvalCase; errors
     checkState(raw.state, name, errors);
     if (raw.answer !== undefined && !(isObj(raw.answer) && isStr(raw.answer.skill) && (raw.answer.verdict === "right" || raw.answer.verdict === "wrong")))
       errors.push(`${name}: "answer" needs "skill" and "verdict" (right or wrong)`);
+    else if (isObj(raw.answer)) {
+      unknownKeys(raw.answer, ["skill", "verdict", "try"], `${name} answer`, errors);
+      if (raw.answer.try !== undefined && !isStr(raw.answer.try)) errors.push(`${name}: answer "try" must be the id of a fixed Quick try`);
+    }
     if (raw.graderChecks !== undefined && !(isStrList(raw.graderChecks) && raw.graderChecks.every(isStr))) errors.push(`${name}: "graderChecks" must be questions`);
     parseConditions(raw.pass, name, errors);
   } else if (raw.kind === "aggregate") {

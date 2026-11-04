@@ -3,7 +3,7 @@ import { loadCourseMap } from "@/course/map";
 import { testDb } from "@/test/pglite";
 import { checkTabNow } from "@/learner/quiz";
 import { CASES_DIR, loadCases, type LiveCase } from "./case";
-import { pendingReason, prepareCase } from "./setup";
+import { answerDrawnTry, pendingReason, prepareCase } from "./setup";
 
 /**
  * Seam: setup on in-memory Postgres against the real Course Map, with no model call. Every live case must prepare
@@ -21,6 +21,8 @@ describe("every live case prepares against today's Course Map", () => {
       const db = await testDb();
       const p = await prepareCase(db, c, { map, settings });
       expect(p.place.step).toBe(c.state.step);
+      // A case whose message answers a Quick try shows the try and has code mark it, as the suite does before the Tutor's turn.
+      if (c.answer) expect(typeof (await answerDrawnTry(db, map, c, p))).toBe("boolean");
     },
     60_000,
   );
