@@ -1,0 +1,4 @@
+root = Widget("How big is a quarter-point rate rise?", [rise, grid])
+$rise = 3.25
+rise = Slider("rise", "New rate", 2, 6, 0.25, $rise, "percent")
+grid = Waffle("Policy rate: 3% before", $rise, 3, true)

@@ -1,0 +1,5 @@
+root = Widget("How much gold does ₹1 lakh buy?", [fx, bars])
+$fx = 80
+$gold = 50
+fx = Slider("rupeesPerDollar", "Rupees for 1 dollar (made up)", 60, 110, 5, $fx, "inr")
+bars = Pictogram("gold-bar", 100000 / ($gold * $fx), "What ₹1 lakh buys", "1 bar = 1 g", 100000 / (50 * 80), "neutral")
