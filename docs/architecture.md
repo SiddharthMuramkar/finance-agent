@@ -876,7 +876,8 @@ Widget the Tutor drew, so a Widget the Tutor updates in place under the same tit
 Study Workspace page reads the shown Session's rows with the Session and hands them to the page; a Widget then
 starts from its saved values (OpenUI's `initialState`, which wins over the starting numbers in its code) and its
 saved ticks. The page keeps one store of these for every Widget, above any one tab, so a Widget mounted again
-after a tab switch draws as it was left. As the Learner moves a slider or a task ticks, the store posts that
+after a tab switch draws as it was left, and so does one whose code changes under it (the reveal task joining the
+explore Widget redraws it from the store, rate and ticks kept). As the Learner moves a slider or a task ticks, the store posts that
 Widget's whole state to `/api/widget-state` 0.4 s after the last change, and at once when the page is left
 (`keepalive`, so a reload does not lose it). The route checks that the Session is the signed-in Learner's;
 another Learner's Session answers 404. Before the first turn has made the Session, changes wait in the page and

@@ -203,3 +203,35 @@ describe("what the Tutor is sent of the Widgets", () => {
     expect(host.textContent).not.toContain("I set");
   });
 });
+
+describe("the explore Widget at the reveal", () => {
+  // At the reveal the page hands the explore Widget its code with the reveal task added (writtenAheadFor), which is
+  // not the old code with more after it, so the Widget is drawn afresh: it must start from the Learner's work so far.
+  const before = rates("What the annuity is worth today");
+  const revealed = `${before.replace("GuidedTasks([t1, t2])", "GuidedTasks([t1, t2, revealTask])")}\nrevealTask = GuidedTask("Set the rate to 3.25%", $rate == 3.25)`;
+
+  async function exploreWith(code: string) {
+    await act(async () => {
+      root.render(
+        <Conversation
+          initial={[]}
+          quiz={null}
+          pending={null}
+          review={noReview}
+          place={{ stage: "foundation", title: "Present value" }}
+          shown={{ sessionId: 7 }}
+          explore={{ id: "annuity-worth-today", code }}
+        />,
+      );
+    });
+  }
+
+  it("keeps the rate the Learner set and the tasks they ticked when the reveal task joins it", async () => {
+    await exploreWith(before);
+    await setRate(3);
+    expect(ticks()).toEqual(["done", "current"]);
+    await exploreWith(revealed);
+    expect(slider().value).toBe("3");
+    expect(ticks()).toEqual(["done", "current", "todo"]);
+  });
+});

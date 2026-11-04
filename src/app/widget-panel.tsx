@@ -183,8 +183,10 @@ export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?:
   const store = useWidgetStore();
   // Only a finished Widget has a key: a streaming one's title may not be complete yet.
   const key = store && item.complete ? (item.writtenAhead ?? widgetKey(widgetParts(item.code).title)) : undefined;
-  // What it starts from is read once, as it mounts: later saves come from the Widget itself.
-  const [start] = useState(() => (key ? store?.saved(key) : undefined));
+  // What it starts from is read as it mounts, and again when its code changes (a reveal task joining the explore
+  // Widget draws it afresh), so it starts from the Learner's work so far: later saves come from the Widget itself.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- read again when the code changes, not on every save
+  const start = useMemo(() => (key ? store?.saved(key) : undefined), [store, key, item.code]);
   // The ticked Guided Tasks so far, kept here too, so Tell the Tutor what I found shows the moment the last one ticks.
   const [ticked, setTicked] = useState<readonly string[]>(() => start?.ticked ?? []);
   const ticks = useMemo<SavedTicks | null>(
