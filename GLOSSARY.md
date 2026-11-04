@@ -143,6 +143,14 @@ _Avoid_: template, preset Widget
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
 _Avoid_: Widget data, saved Widget
 
+**Archetype**:
+The kind of idea a Widget teaches, named from the parts it uses: Grow, Compare, Convert, Chain, Predict, History, Rank, Check or Formula. Recipes carry one; code works out a written Widget's with archetypeOf and tells the Tutor the last two, so it does not draw the same kind back to back.
+_Avoid_: Widget type, layout
+
+**Widget notes**:
+A short line code adds to the Learner's next message: the recent archetypes, and warnings about the Widgets of the Tutor's last reply (more than one control or visual, over 25 words, a number joined into text). Warnings never start a correction round; only errors that stop a Widget being right do.
+_Avoid_: lint, Widget feedback
+
 **Widget tool**:
 A small piece of our code a Widget calls in the browser to get real numbers (Case Data, a calculator, a range of answers, an annuity schedule), so moving a slider redraws without asking the Tutor.
 _Avoid_: API, query

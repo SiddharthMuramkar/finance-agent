@@ -3587,3 +3587,35 @@ it and Send comes back.
 **Trade-off.** If Stop lands before the server has saved the turn, it answers `{ stopping: false }`, so the browser asks
 again a few times (400 ms apart) before giving up. The pinned question only shows when the page passes one; it is
 not worked out from the conversation.
+
+## Widget language v2: the new parts, archetypes and Widget notes (`src/widgets/library.tsx`, `check.ts`, `src/tutor/widget-context.ts`, `turn.ts`, UX audit 7.2 to 7.6)
+
+**What it does.** The Widget library now registers the 16 parts of waves 1 and 2 (Stat, Verdict, QuickCheck, Predict, Versus,
+Breakeven, MoneyStack, Waffle, Pictogram, DrawTheLine, PriceTag, ShrinkingNote, TimeTravel, StepThrough with its Step, Rank,
+Waterfall), appended after the old parts, and allows them directly in a Widget, a Card, a TabItem and an AccordionItem. The
+Tutor's notes are rewritten as grammar v2: the title is a question, one control (others under "More settings"), the answer
+(Verdict or Stat) right under it, one visual, at most 3 numbers and 25 words, numbers in a Stat rather than joined into text,
+QuickCheck rather than Select, Predict before a guessable answer, Breakeven for a "find where it flips" task, no pie or radar
+charts. An archetype table maps an idea to a kind of Widget (Grow, Compare, Convert, Chain, Predict, Rank, Check, Formula).
+`archetypeOf(code)` in check.ts names a Widget's archetype from its parts, with the same names as the recipes. Style problems are
+warnings (`widgetWarnings`): the information budget, a number joined into text with +, typed numbers in Predict or Versus, a
+Pictogram object we do not draw, a Guided Task most of a slider's range ticks. They never start a correction round. Instead,
+at the next turn, `widgetNotes` in widget-context.ts builds a "Widget notes" line (the last two archetypes, and the warnings
+about the Widgets of the last reply) and turn.ts adds it to the Learner's message. Hard errors stay for correctness only: a
+QuickCheck answer out of range or with not 2 to 4 options, and a Rank whose order or reasons do not fit. A slider Widget whose
+discovery is a Breakeven, Predict, DrawTheLine, QuickCheck or Rank needs no Guided Task; two Widgets may draw the same
+`reference/<id>` data; and a reply that already showed a Widget through show_widget has any fence of its own left out.
+
+**Scenario.** The Learner asks "is the annuity better?". The Tutor draws `Widget("At what rate does the cash option win?",
+[rate, find])` with a Breakeven, so no Guided Task is asked for. Two replies later it draws a quiz with three Selects and a score
+joined with +. Nothing is corrected, the Learner sees it at once, and with their next message code adds "Widget notes (code):
+Recent archetypes, latest last: Compare. About "Practice": 3 controls are showing… score: a number is joined into text
+with +. Show it with Stat." The next quiz uses QuickCheck and a Stat score.
+
+**Trade-off.** The 16 parts make the prompt longer, so each part's description in the prompt is a short one written in
+library.tsx (the parts keep their own long ones), two examples were dropped, and the old notes were tightened: with the widget
+engine off, the Tutor's instructions grew from 44,836 to 49,305 characters (+9.97%, about 1,100 tokens; the Widget section
+alone from 33,662 to 38,109; the tools are unchanged). Warnings only teach the next Widget, so a Widget over budget stays on screen as drawn; a hard error
+would cost the Learner a "Fixing the Widget…" wait for every style slip. The notes ride in the Learner's stored message, so a
+replay sends the same text. The QuickCheck and Rank rules are restated in check.ts, because the parts' files are client
+modules and the server runs this check too.
