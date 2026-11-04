@@ -36,6 +36,9 @@ export const FINISH_PREFIX = "Finish by code:";
  */
 export const REPLY_CHECK_PREFIX = "Reply check by code:";
 
+/** Opens the "Widget notes" block code adds to the Learner's message (widget-context.ts). It is code's, never the Learner's words. */
+export const WIDGET_NOTES_PREFIX = "Widget notes (code):";
+
 /** The note a Finish this reply turn sends, and sends again on Retry. */
 export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this reply, and has written nothing. Your last reply was cut short at its length limit. Finish it from where it stopped, without repeating what you already wrote, then stop and wait for the Learner.`;
 
