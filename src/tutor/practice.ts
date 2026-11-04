@@ -7,7 +7,7 @@ import { loadCaseData } from "@/case-data/case-data";
 import { messages, practiceAnswers, sessionItems, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { noteMethodUsed, parkedSkills, parkSkill, recordAnswer, skillStates, unparkSkill } from "@/learner/skill-state";
+import { noteMethodUsed, parkedSkills, parkSkill, recordAnswerLogged, skillStates, unparkSkill } from "@/learner/skill-state";
 import { loadWidgetStates, saveWidgetState } from "@/learner/widget-state";
 import { drawTemplate, markAnswer, type DrawnItem, type FixedItem, type Verdict } from "@/teaching";
 import { drillDue, freshSkillState, isFluent, LADDER, yourTurnDone, type AnswerEvent, type Method, type SkillState } from "@/teaching/ladder";
@@ -522,7 +522,7 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
 
   const marked = markAnswer(found.item, input);
   const drawn = "templateId" in found.item ? found.item : null;
-  const after = await recordAnswer(
+  const { state: after, logged } = await recordAnswerLogged(
     db,
     {
       learnerId,
@@ -540,6 +540,8 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
     },
     now,
   );
+  // Another send of this key logged it first (perhaps at the same moment): that send shows the result and acts on it.
+  if (!logged) return { ok: true, items: [], followUp: false };
   const resultData: QuickTryResultData = { key, verdict: marked.verdict, line: lineOf(marked) };
   const result: SessionItem = { kind: QUICK_TRY_RESULT, data: resultData };
   await saveItemAfterLatest(db, learnerId, row.sessionId, result, now);

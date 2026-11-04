@@ -10,7 +10,7 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { reteachNote } from "./ladder-moves";
 import { answerQuickTry, enterStepItems } from "./practice";
-import { QUICK_TRY, STEP_DIVIDER, type QuickTryData } from "./session-item-kinds";
+import { QUICK_TRY, QUICK_TRY_RESULT, STEP_DIVIDER, type QuickTryData } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { turnFacts } from "./turn-facts";
@@ -96,6 +96,22 @@ describe("the Reply kind of a re-teach rung", () => {
 
   it("keeps restate as a re-teach at the short cap", async () => {
     expect(await factsFor("restate")).toMatchObject({ replyKind: "reteach", cap: 80 });
+  });
+});
+
+describe("one Quick try sent twice at once", () => {
+  it("is marked once: one result and one next try", async () => {
+    const map = mapOf(CONVERTED_TOPIC_DATA);
+    const db = await testDb();
+    const sessionId = await started(db, map);
+    for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, now(), me);
+    const [first] = await enterStepItems(db, map, me, sessionId, now());
+    const key = (first.data as QuickTryData).key;
+    const answers = await Promise.all([answerQuickTry(db, map, me, key, "7777", now()), answerQuickTry(db, map, me, key, "7777", now())]);
+    expect(answers.filter((a) => a.ok && a.items.length).length).toBe(1);
+    expect(answers.filter((a) => a.ok && a.followUp).length).toBe(1);
+    const stored = await loadSessionItems(db, sessionId, me);
+    expect(stored.filter((i) => i.kind === QUICK_TRY_RESULT)).toHaveLength(1);
   });
 });
 
