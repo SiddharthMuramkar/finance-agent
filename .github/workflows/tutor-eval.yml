@@ -18,6 +18,14 @@ on:
       - src/tutor/turn-status.ts
       # The help chips.
       - src/tutor/chips.ts
+      # The Tutor Turn: what it sends, the facts and place it reads, and the Session items it saves.
+      - src/tutor/next.ts
+      - src/tutor/turn.ts
+      - src/tutor/turn-facts.ts
+      - src/tutor/coming-back.ts
+      - src/tutor/session-items.ts
+      # The reply checks every reply must pass.
+      - src/tutor/reply-checks.ts
       # The Topic files.
       - course/topics/**
       # The suite itself.
