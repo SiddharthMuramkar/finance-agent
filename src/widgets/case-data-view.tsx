@@ -20,9 +20,11 @@ export function formatUnit(value: number, unit: string | undefined): string {
 /** Short money format: $1.537 billion, $877.8 million. */
 export function formatUsd(value: number): string {
   const abs = Math.abs(value);
-  if (abs >= 1e9) return `$${(value / 1e9).toFixed(abs >= 1e10 ? 1 : 3)} billion`;
-  if (abs >= 1e6) return `$${(value / 1e6).toFixed(1)} million`;
-  return `$${Math.round(value).toLocaleString("en-US")}`;
+  const sign = value < 0 && Math.round(abs) > 0 ? "-" : "";
+  // Round to the shown precision first, then pick the unit, so 999.96 million reads as 1.000 billion.
+  if (abs >= 1e9 || Number((abs / 1e6).toFixed(1)) >= 1000) return `${sign}$${(abs / 1e9).toFixed(abs >= 1e10 ? 1 : 3)} billion`;
+  if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)} million`;
+  return `${sign}$${Math.round(abs).toLocaleString("en-US")}`;
 }
 
 /** Money in millions to one decimal, as the annuity Widget's readouts and bars give it: $884.1M. */

@@ -196,8 +196,9 @@ export function archetypeOf(code: string): Archetype | null {
   if (has("Predict", "DrawTheLine")) return "Predict";
   if (has("Rank")) return "Rank";
   if (has("StepThrough", "Steps")) return "Chain";
-  // Two datasets drawn side by side are a comparison, not a history.
-  if (has("Versus", "Breakeven", "Verdict") || datasets.length > 1) return "Compare";
+  // Two datasets drawn side by side are a comparison, not a history. A reference dataset is only a backdrop.
+  const compared = datasets.filter((d) => !d.startsWith(REFERENCE_PREFIX));
+  if (has("Versus", "Breakeven", "Verdict") || compared.length > 1) return "Compare";
   if (has("Waffle", "Pictogram")) return "Convert";
   if (has("FormulaCard")) return "Formula";
   if (has("HistoryChart") || datasets.length > 0) return "History";

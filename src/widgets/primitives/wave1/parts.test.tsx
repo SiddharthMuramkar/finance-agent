@@ -463,3 +463,33 @@ describe("Pictogram", () => {
     expect(allById(page!, "icon-cell")[0].style.opacity).toBe("1");
   });
 });
+
+describe("Versus with a negative value", () => {
+  it("draws a bar for the negative value and shows no percentage when the signs differ", () => {
+    show(<VersusView leftLabel="A" leftValue={-5} rightLabel="B" rightValue={10} unit="inr" />);
+    expect(byId(page!, "versus-chip")!.textContent).toContain("₹15");
+    expect(byId(page!, "versus-chip")!.textContent).not.toContain("%");
+    expect(parseFloat(byId(page!, "versus-left-bar")!.style.width)).toBeGreaterThan(0);
+    expect(byId(page!, "versus-left")!.textContent).toContain("−");
+  });
+  it("still shows 100% for 5 vs 10", () => {
+    show(<VersusView leftLabel="A" leftValue={5} rightLabel="B" rightValue={10} unit="inr" />);
+    expect(byId(page!, "versus-chip")!.textContent).toContain("100%");
+  });
+});
+
+describe("Waffle with a partly covered square", () => {
+  const spans = (testId: string) => allById(page!, "waffle-square")[3].querySelectorAll<HTMLElement>(`[data-testid="${testId}"]`);
+  it("fills the steady part and outlines the change after it", () => {
+    show(<WaffleView label="x" percent={3.25} compareTo={3.75} />);
+    expect(spans("waffle-steady")[0].style.width).toBe("25%");
+    expect(spans("waffle-part")[0].style.left).toBe("25%");
+    expect(spans("waffle-part")[0].style.width).toBe("50%");
+  });
+  it("does the same when the percent rises", () => {
+    show(<WaffleView label="x" percent={3.75} compareTo={3.25} />);
+    expect(spans("waffle-steady")[0].style.width).toBe("25%");
+    expect(spans("waffle-part")[0].style.left).toBe("25%");
+    expect(spans("waffle-part")[0].style.width).toBe("50%");
+  });
+});
