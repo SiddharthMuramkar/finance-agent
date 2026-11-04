@@ -32,6 +32,24 @@ the saved conversation from Neon a few milliseconds away, and sends back the pag
 **Trade-off.** One app is one thing to deploy and understand. The price is Vercel Hobby's
 ceiling: one request may run for at most 300 seconds, streaming included.
 
+## Page analytics (`@vercel/analytics`, `<Analytics />` in `src/app/layout.tsx`, PR #116)
+
+**What it does.** The root layout adds Vercel Web Analytics to every page, signed in or out. Each
+page view loads a small script from our own site (`/_vercel/insights/script.js`) that reports the
+view to Vercel: the page's address, the route it matched (such as `/sessions/[id]`), the referrer, and
+the browser, device and country Vercel works out from the request. It sets no cookie and sends
+nothing typed on the page. The owner reads the counts in the Vercel dashboard.
+
+**Scenario.** A friend opens value-it.xyz from a link in a chat; the dashboard shows one more view of
+`/`, from that chat app, on a phone. A signed-in Learner then opens an old Session; the dashboard shows
+a view of `/sessions/12`.
+
+**Trade-off.** The owner sees which pages are used without building anything. The price: the
+addresses of signed-in pages, some of which carry ids (`/sessions/<id>`), go to a third
+party, while the Learner Profile tells Learners "This is private" about what they write there (the
+profile's text is never sent). Dropping the ids with the component's `beforeSend`, or showing it only
+on Home, is the owner's call.
+
 ## Passcode gate (`src/proxy.ts`)
 
 **What it does.** Every page and API route checks for a signed cookie before doing anything.
@@ -614,7 +632,7 @@ Widget only two ways: through our code-backed parts (`HistoryChart` takes a Case
 written `caseId/datasetId`; `AnnuityChart`, `Calculator` and `FormulaCard` take the inputs of a
 tested formula), or through the Widget tools (below), which a kit chart or table calls for its rows.
 The formulas are the tested code in `src/finance/`, and Case Data comes from `/api/case-data/<case>`
-under the as-of rule (see Case Data below). Everything the Learner sets carries a teal (`--you`
+under the as-of rule (see Case Data below), or on Home from the page itself (see the shared Case Data cache). Everything the Learner sets carries a teal (`--you`
 tokens) "Your assumption" tag; everything drawn from Case Data carries an amber "Sourced" tag and a
 link to its source, so the two never blend. For example, the Tutor tells the Mega Millions story and
 adds a discount-rate slider beside an annuity chart of the 30 payments. The Learner drags the rate
@@ -692,7 +710,7 @@ $40.4 million today" when a bar is hovered, tapped or reached with Tab. Kit char
 labelled through the Tutor's instructions and the server's Widget check, not here.
 
 **The shared Case Data cache (`src/widgets/case-data-cache.ts`, `case-data-provider.tsx`).** Each page
-(the Study Workspace, an old Session, Notes) holds one cache of Case Data, and every chart, Formula Card,
+(the Study Workspace, an old Session, Notes, and Home, which fills it differently: see below) holds one cache of Case Data, and every chart, Formula Card,
 Widget tool and Sourced strip on it reads through it (`useCaseLoad`). What it holds: one answer from
 `/api/case-data/<case>` per Case and reveal state. The page reads on the server which Cases the Learner
 has seen revealed (`revealedCases`) and passes them in, so an answer fetched before a reveal is never
@@ -707,6 +725,14 @@ Trade-off: data stays in the browser for the whole page, so a change made elsewh
 reaching the reveal) shows only after the next turn or a reload; and the cache refetches after every turn
 even when nothing changed, one small request per Case on the page, which buys never having to work out
 in the browser whether a turn opened a reveal.
+
+Home is the one page that fills the cache another way. Its `CaseDataProvider` is given `cases`, Case
+Data already read on the server under the signed-out as-of rule; the cache then answers only from
+those, never calls `/api/case-data`, never clears and ignores reveal state. Scenario: a visitor
+without a passcode drags Home's annuity Widget, and its chart and Sourced strip read the cash option
+from the page; the route, which would answer 401, is never asked. Trade-off: that data is only as
+fresh as the server's day-long cache (see Home's live annuity Widget), and a Case not passed in reads
+as missing.
 
 **Look and theme (`src/widgets/genui-theme.tsx`, `src/app/globals.css`).** The kit's styles come from
 OpenUI's layered stylesheet, placed in a CSS layer (`openui`) above Tailwind's base layer and below
@@ -957,7 +983,8 @@ numbers with `Query("tool", {...}, {rows: []})`. This is OpenUI's own pattern fo
 the `{rows: []}` is what the chart draws until the answer arrives.
 - `case_data` fetches one Case Data dataset by its reference, `caseId/datasetId`, from
   `/api/case-data/<case>` under the as-of rule, with its label, unit, source and as-of date. Several
-  Queries on one Case in a widget make one request, and the Sourced strip shares it.
+  Queries on one Case in a widget make one request, and the Sourced strip shares it. On Home it reads
+  the Case Data sent with the page instead and makes no request (see the shared Case Data cache).
 - `calculate` runs one of our tested calculators and gives one row per result line.
 - `calculate_range` runs a calculator across a range of one of its inputs, at most 200 points, and
   gives one row per point with a text label for the chart's axis ("8.5%" for a rate, "10 y" for a
@@ -2837,8 +2864,10 @@ main buttons name the Learner's place and the top bar says "Study Workspace"; ev
 `/study`, where the Study Workspace now lives. Beside the top
 bar's link sits Sign out, the same form as the app header's; on a phone it is the only Sign out,
 since signed-in pages there show only the bigger-screen note. Signed out, the page reads no Learner
-data and no Library text, only counts. All its words live in `copy.ts`, so the owner can rewrite
-them in one place. There is no Draft badge: a visitor sees facts, not the owner's notes. Explore
+data and no Library text: only counts, plus the Present value Case's Case Data as of its as-of date,
+for the live Widget. Home's own words live in `copy.ts`, so the owner can rewrite them in one place;
+the Widget's words (its title, slider, readouts and Sourced strip) come from the Topic file,
+`course/topics/present-value.yaml`. There is no Draft badge: a visitor sees facts, not the owner's notes. Explore
 ("move the sliders on a live Widget and spot the pattern") and Your turn ("answer a worked question
 on your own") are worded as two different steps, and the Principle line says Topic, not lesson.
 
@@ -2868,7 +2897,8 @@ second "Start learning" there, and lands on the passcode page without scrolling 
 Home is never cached as a page: `export const dynamic = "force-dynamic"` plus an explicit private,
 no-store `Cache-Control` for `/` in `next.config.ts` (a test in `src/next-config.test.ts` checks
 it), so neither a CDN nor the browser can hand a signed-out copy to a signed-in visitor or the
-reverse. Only Home's statistics keep their day-long data cache. The signed-in button costs one small
+reverse. Only two data reads keep a day-long cache: the statistics' Library count and the live
+Widget's Case Data (below). The signed-in button costs one small
 database read per visit (it was a free page before). The cookie check at the top of the page is
 load-bearing: anything added above it would run for strangers too. The proxy backs it up by allowing
 only reads of `/`, so no Server Action or POST can run signed out.
@@ -2895,8 +2925,13 @@ ticket #162). Under the hero, Home draws Present value's written-ahead annuity W
 is worth today") with the very component the Study Workspace uses (`WidgetWithSave`), signed in or out.
 It is shown as it is before the Insight: no verdict line, no break-even, no 30-year Treasury quick
 button. Its Guided Tasks are swapped by code for Home's one, "Drag to 0%. Why does it match the
-advertised jackpot?", and signed out "Sign in to learn why →" sits under it, to `/login`. Its Case Data
-(the cash option) is read on the server with `loadCaseData` under the signed-out as-of rule (an empty
+advertised jackpot?", and signed out "Sign in to learn why →" sits under it, to `/login`. Which Widget
+and which task live in `_landing/home-widget-spec.ts`; the swap is `withOnlyTask` in
+`src/course/written-ahead.ts`, beside the reveal task's, so the course check (`npm run course:check`)
+also checks that Home's copy draws and that its one task can be reached; renaming the Widget or its
+`$rate` in the Topic file fails the check, not just Home. Its Case Data is every dataset of the Present
+value Case dated on or before the as-of date (the cash option, which the Widget draws, and the 30-year
+Treasury series up to that day, which it does not), read on the server with `loadCaseData` under the signed-out as-of rule (an empty
 Progress, so nothing after the Case's as-of date, whatever any Learner has seen), cached for a day with
 `unstable_cache` like the Library count, and handed to the page's `CaseDataProvider` as `cases`. With
 `cases` given, the Case Data cache answers from them alone and never calls `/api/case-data`, which would
@@ -2909,7 +2944,12 @@ less, they press "Sign in to learn why →". No request left the browser while t
 **Trade-off.** The Widget's code is read from the Topic file on each render, so an edit to the Widget
 shows on Home with the next deploy; only its Case Data is cached, so a corrected cash figure can take a
 day to reach Home. If that read fails, the error is logged and Home shows no Widget rather than
-breaking.
+breaking. Page weight: drawing the Widget brings the OpenUI kit to Home, the page strangers open
+first, often on a phone. Before the Widget, Home drew no Widget code; now its page JavaScript is
+close to the Study Workspace's: about 711 kB gzipped for `/` against 870 kB for `/study` (the page
+and layout chunks of a `next build` on 4 Nov 2026, Next's own runtime not counted). Loading the Widget only when it
+scrolls into view (`next/dynamic`) would win most of that back, at the cost of a blank box while it
+loads.
 
 ## Learner Profile (`src/learner/profile.ts`, `learner_profile` table, `/api/profile`, `src/app/profile/`, ticket #67)
 

@@ -31,7 +31,7 @@ async function signedIn(request: NextRequest) {
 }
 
 /**
- * Every page and API route needs a sign-in cookie for an active, listed Learner. Signed out, only a GET or HEAD of "/" (Home), its images and
+ * Every page and API route needs a sign-in cookie for an active, listed Learner. Signed out, only a GET or HEAD of "/" (Home), the link-preview image and
  * the login page, and a POST to the sign-out route, get through; other pages redirect to the login, remembering a
  * GET or HEAD's page as `next`. Signed in, the login page skips its form and goes to the safe `next` or /study.
  */

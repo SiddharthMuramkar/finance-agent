@@ -42,7 +42,7 @@ describe("The signed-out gate", () => {
     expect((await proxy(request("/course", { headers: { "Next-Action": "abc" } }))).status).toBe(401);
   });
 
-  it("serves the link-preview image signed out", async () => {
+  it("serves any .png or .webp file under /landing-assets/ signed out, the link-preview image among them", async () => {
     expect(allowed(await proxy(request("/landing-assets/workspace-light.png")))).toBe(true);
     expect(allowed(await proxy(request("/landing-assets/workspace-dark.webp")))).toBe(true);
   });

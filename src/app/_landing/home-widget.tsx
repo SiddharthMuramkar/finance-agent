@@ -12,7 +12,7 @@ import { WidgetWithSave } from "../widget-panel";
 export function HomeWidget({ code, cases }: { code: string; cases: readonly CaseData[] }) {
   return (
     <CaseDataProvider cases={cases}>
-      <WidgetWithSave item={{ key: "home", number: 1, code, complete: true }} bare={false} />
+      <WidgetWithSave item={{ code, complete: true }} bare={false} />
     </CaseDataProvider>
   );
 }

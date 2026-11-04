@@ -3,7 +3,7 @@ import { createParser, evaluate, type LibraryJSONSchema } from "@openuidev/lang-
 import { parsedSliders, parsedTasks, stateRefs, type ParsedSlider } from "../widgets/guided-tasks.ts";
 import { sliderStep } from "../widgets/slider-steps.ts";
 import type { Topic } from "./map.ts";
-import { withRevealTask } from "./written-ahead.ts";
+import { withOnlyTask, withRevealTask, type OnlyTask } from "./written-ahead.ts";
 
 // The course check for written-ahead Widgets (spec #119, "Owner tooling › The course check"): each one can be drawn,
 // its sliders' defaults sit on their steps, and each Guided Task can be reached and is not done at the start. A task
@@ -104,6 +104,16 @@ export function writtenAheadCheck(topicId: string, widget: Topic["widgets"][numb
   const first = parsedSliders(parser.parse(widget.code).root?.props.children)[0];
   if (!first) return [`${where} has a reveal task but no slider for it`];
   return codeProblems(`${where} with its reveal task added`, withRevealTask(widget.code, task, { before: first.min, after: first.max }));
+}
+
+/** The written-ahead Widget Home shows and the one task it gives it (src/app/_landing/home-widget-spec.ts). */
+export type OnlyTaskWidget = { topic: string; widget: string; task: OnlyTask };
+
+/** Problems in the written-ahead Widget Home shows, as Home draws it: with its own tasks swapped for Home's one. */
+export function onlyTaskCheckErrors(topics: readonly Pick<Topic, "id" | "widgets">[], home: OnlyTaskWidget): string[] {
+  const widget = topics.find((t) => t.id === home.topic)?.widgets.find((w) => w.id === home.widget);
+  if (!widget) return [`Topic "${home.topic}" has no written-ahead Widget "${home.widget}", which Home shows`];
+  return codeProblems(`Topic "${home.topic}" written-ahead Widget "${home.widget}" with only Home's task`, withOnlyTask(widget.code, home.task));
 }
 
 /** Problems in every Topic's written-ahead Widgets. */

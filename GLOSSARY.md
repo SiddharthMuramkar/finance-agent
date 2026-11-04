@@ -29,7 +29,7 @@ One of the seven parts every Topic follows: story, concept, explore, your turn, 
 _Avoid_: Phase, stage
 
 **Insight**:
-The surprising consequence of a Topic's idea, which the Learner finds by playing with a Widget at the explore step before the Tutor confirms it.
+The surprising consequence of a Topic's idea, which the Learner finds by playing with a Widget at the explore step before the Tutor confirms it. Once the Learner has found it, or been told it, the Insight is settled; until then a Widget holds back anything that would give it away.
 _Avoid_: Aha, takeaway, novelty, X factor
 
 **Connection**:
@@ -49,8 +49,20 @@ Checked historical datasets a Case is taught with, each with its source, kept in
 _Avoid_: Market data, figures
 
 **Session**:
-The whole conversation between one Learner and the Tutor about one Topic. Leaving and coming back, even days later, continues the same Session; every other Topic has its own.
+The whole conversation between one Learner and the Tutor about one Topic. Leaving and coming back, even days later, continues the same Session; every other Topic has its own. The one exception: a Learner who has passed every Topic talks to the Tutor in one Session with no Topic.
 _Avoid_: Login, thread, chat
+
+**Older session**:
+A Session from before each Topic had one Session of its own. Older sessions are kept and can be read, listed apart from the Topic Sessions, but are never continued.
+_Avoid_: Legacy session, archived session
+
+**Opener**:
+The Tutor's first reply in a Topic's Session, which starts by itself when the Learner opens a Topic they have not begun, before they write anything.
+_Avoid_: Greeting, intro message
+
+**Step divider**:
+The line in a Session's conversation that marks where a Teaching Step began, such as "Step 5 of 10 · Concept".
+_Avoid_: Separator, section header
 
 **Stage**:
 One of the four levels the course takes the Learner through: Foundation (groundwork), then Follow (understand what a writer argues), Judge (spot where an argument is weak) and Analyse (reach an own view from the numbers).
@@ -91,6 +103,22 @@ _Avoid_: Dashboard
 The page at the site's main address, where every visit starts. Signed out, it introduces the Tutor, lets anyone try a live Widget and offers Start learning; signed in, it offers to Resume the Learner's current Topic.
 _Avoid_: Landing page, dashboard, start page
 
+**Welcome**:
+A new Learner's first page, before they have any Session or chosen Topic: how a Topic works, an optional About you, and a first Topic to start.
+_Avoid_: Onboarding, tour, first-visit card
+
+**Topic bar**:
+The slim bar above the conversation that stays for the whole Topic: its title and the Teaching Steps so far, the current one highlighted. A finished step takes the Learner back to where it began.
+_Avoid_: Status card, progress bar, breadcrumb
+
+**Topic Start card**:
+The first item of a Topic's conversation: what the Learner will learn, what to study first and whether it is passed, the written-ahead Widgets they will use (You'll use) and how many Checks there are.
+_Avoid_: Intro card, syllabus, overview
+
+**Topic complete card**:
+The card at the end of a passed Topic's Session: the Topic's principle in a line or two, a note that it is saved to the Learner's Notes, and What comes next.
+_Avoid_: Certificate, completion screen
+
 **Widget**:
 An interactive picture beside the conversation, either written ahead for a Topic or built by the Tutor: charts, tables, sliders and calculators whose numbers come from code, or a labelled Illustration. A Widget in the Study Workspace belongs to one Topic's Session. With each message, chip and Next the Tutor is told what the open Widgets show (their slider values, ticked Guided Tasks and readouts worked out by code), and once all of a Widget's Guided Tasks are ticked the Learner can press Tell the Tutor what I found, which posts a message code writes (a widget report).
 _Avoid_: artifact, card (on its own)
@@ -98,6 +126,10 @@ _Avoid_: artifact, card (on its own)
 **Written-ahead Widget**:
 A Widget written in a Topic's file, such as Percent's "One rate change, said three ways". The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.
 _Avoid_: template, preset Widget
+
+**Widget state**:
+A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
+_Avoid_: Widget data, saved Widget
 
 **Widget tool**:
 A small piece of our code a Widget calls in the browser to get real numbers (Case Data, a calculator, a range of answers, an annuity schedule), so moving a slider redraws without asking the Tutor.
