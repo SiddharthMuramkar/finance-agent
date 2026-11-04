@@ -57,7 +57,7 @@ export function OldSession({
       <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] items-start gap-6 lg:gap-8" data-testid="old-session">
         <div className="flex min-h-0 min-w-0 flex-col gap-4">
           {explore && <PinnedExplore item={exploreItem(explore.code, sessionId, explore.id)} />}
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="relative min-h-0 flex-1 overflow-y-auto">
             <DeveloperDetails on={developerDetails}>
               <ReadOnlyThread lines={lines} slot={slot} />
             </DeveloperDetails>
