@@ -50,7 +50,7 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
           data-scroll-to={target}
           title={`Back to ${s.label}`}
           onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="rounded px-1 underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--brand)]"
+          className="pressable inline-block rounded px-1 underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--brand)]"
         >
           {STEP_NAMES[s.step]}
         </button>

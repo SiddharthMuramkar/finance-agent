@@ -994,6 +994,35 @@ and the target of `breakeven_hunt` use a calculator's first result only, so a ca
 number you want cannot be compared yet. A sourced `buying_power` price assumes the series and the amount share a
 currency, which the recipe cannot check.
 
+### The rate-move recipe: the one rate Widget, in show and practice modes (`src/widgets/recipes/set-tutor.ts`, `rateMoveLines` in `src/finance/rate-change.ts`; spec #229, ticket #234)
+
+**What it does.** One recipe, `rate_move`, in its own set (`SET_TUTOR`) so it never touches sets A and B. It takes two
+rates, `old` and `new` (in percent, 0 to 20, steps of 0.01), and a `mode`. It draws the move as a line from the old rate
+to the new one on an axis that starts at 0%, and under it three worked lines, each labelled: points (new minus old),
+basis points (points times 100) and percent of the old rate. The lines are words, never typed sums (ADR 0002):
+"5.2% minus 5% is 0.2 points", "0.2 points times 100 is 20 bp", "0.2 divided by the old 5%, times 100, is 4%". A fall
+says "a fall of", and an old rate of 0% says the percent change has no value. `rateMoveLines` writes these words and is
+tested on its own. In **show** mode (the default) the lines are expressions of the two sliders, so they rewrite
+themselves as the Learner plays; the new rate's slider is in view, the old rate's sits under "More settings", and a test
+evaluates the expressions across the whole range and holds them to `rateMoveLines` word for word. In **practice** mode
+there are no sliders: a StepThrough asks "By how many basis points?", the Learner types a whole number, code marks it,
+and the three lines (written by `rateMoveLines` at compile time) come on the next steps. The numbers are inputs, not
+`facts`, so the Widget is never an Illustration, and there is no currency anywhere in it.
+
+**Scenario.** At Percent's Concept step the Tutor calls `show_widget` with `rate_move`, `old: 4`, `new: 5`. The panel
+shows the line rising from 4% to 5% and "5% minus 4% is 1 point", "1 point times 100 is 100 bp" and "1 divided by the
+old 4%, times 100, is 25%". The Learner drags the new rate to 3.5% and the lines turn into "a fall of 0.5 points" and so
+on, with no model call. Later the Tutor opens the same recipe at 7.5% to 7.2% with `mode: "practice"`; the Learner types
+3, sees "Not quite", types 30, sees "Right", and steps through the three lines.
+
+**Trade-off.** It is built only from parts that exist, so three things are near rather than exact. The "arrow" is a
+line chart from Old rate to New rate, not a number line with an arrowhead. Practice uses StepThrough's typed answer
+rather than Predict (which takes a dragged guess, not a typed one), and StepThrough lets an answer be off by 0.5%, so
+practice refuses moves of 2 points or more, where that would let a wrong whole number through. And "hidden until
+answered" means hidden behind Next: the Learner can step past the question without answering. A dedicated part would
+close all three. Code reading a shown `rate_move` (the readouts sent to the Tutor) is not wired yet; the state names are
+exported as `RATE_MOVE_STATE`.
+
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
@@ -1639,6 +1668,45 @@ as well as in words. The behaviour report lists every reply over the limit (`lon
 paragraph and stops, rather than ending with "so, what rate did you find?" again.
 
 **Trade-off.** The limit is a request to the model, not a cut: a reply may still run long, and the report shows it.
+
+### Reply checks: the rules every Tutor reply must meet, as code (`src/tutor/reply-checks.ts`, spec #229, ticket #230)
+
+**What it does.** A pure module, with no model and no database, that reads a finished Tutor reply and lists every rule
+it breaks. The reply is its text, its last line (the ask, when that line asks a question or says what to do), the
+Widgets it showed and any rule it saved to the Topic Note. The turn's context is the Teaching Step, the Reply kind,
+the Topic's example currency and its Cases' currencies, the open quiz's questions with their answers, and the ids the
+Learner must never read. The seven checks are:
+
+- V1: the message and the ask together are within the cap. The cap is 80 words at Concept, Your turn and Check, and
+  120 for a worked example, a Go deeper reply and every other step (`capFor`). Words are counted the way the Learner
+  reads them: Widget and sources fences, Citation markers and bare Markdown symbols do not count (`countWords`).
+- V2: at most one question in the message, an ask of 25 words or fewer, and no other line opening with a task verb
+  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask.
+- V3: no "Great question", "Certainly", "Absolutely" or "Code recorded", no emoji or decorative arrows, no headings
+  and at most one bold span.
+- V4: at most one Widget, and each one passes the Widget validator the caller hands in.
+- V5: no open quiz answer together with its question's numbers, in the text or the saved rule, and no Widget preset
+  that uses a blocked number. The blocked numbers are every number in the open attempt's questions, choices and
+  answers, normalised so that 4.5, 4.50 and 4.50% match (`blockedNumbersFrom`).
+- V6: no app words: the ids passed in, snake_case tool and step names, "Course Navigator", "Session item",
+  "Reply kind", "Skill state", and "Code" as the subject of a sentence. Topic, Check, Check tab, Widget, Next,
+  Go deeper, Show me in a widget, Quick try and Concept card stay allowed.
+- V7: a dollar amount (or a "$" in a Widget's labels) only when the Topic's examples or a Case are in dollars, and a
+  rupee amount only when they or a Case are in rupees.
+
+`fixReply` makes the fixes that cost no retry first (emoji and arrows out, headings flattened, only the first bold
+span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line
+per failed check with its limit ("Your reply was 142 words. The limit is 80. Keep one idea and one ask."), plus the
+numbers to keep away from after a leak. `trimToCap` is the fallback where no Concept card exists: the reply cut at its
+last full sentence within the cap, ask kept. Nothing calls the module yet; the Tutor Turn wires it in later (#239).
+
+**Scenario.** Check 1 of Percent is open with "How many basis points are there in 0.6 of a percentage point?". The
+Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach the idea on numbers other than 0.6,
+6, 60 and 600. The retry says "0.2 of a point is 20 bp" instead and passes.
+
+**Trade-off.** The checks read words, not meaning. A reply can pass V5 by saying "sixty" in words, and a supposition
+that opens "Say the rate goes…" counts as a task line. Both are left to the live-model tests, which grade the
+meaning; code catches the common, cheap-to-spot slips on every reply at no cost.
 
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
@@ -3517,6 +3585,14 @@ backfill reload places the corrected readings.
 
 **Trade-off.** Undo removes at once and restores by saving again, rather than holding the delete back until the toast goes. That keeps the database honest at every moment (a reload or closed tab never brings back something the Learner removed, or loses an Undo they pressed), and needs no new table or route; the price is that a restored item gets a new id, and after a reload a restored line or saved item sits at the end of its Topic's list rather than in its old place. Undo after a save deletes the saved item even if it had been saved earlier from another tab, because there is only ever one row per reply or Widget. The filter is a link, not a switch held in the page, so the choice is in the address and survives a reload, at the cost of one page load per toggle.
 
+## The Widget eval (`scripts/widget-eval.mjs`, `npm run widgets:eval`, UX audit 13.3 and ★.10)
+
+**What it does.** It sends the 20 beginner prompts of the audit to the real Tutor in a real headless browser and measures what comes back. For each prompt it starts the tools Learner over, walks Welcome to "Start this Topic", waits for the opening turn, types the prompt, presses Send and times three moments from there: the first Widget content on screen, the first enabled control in it, and the end of the turn. It also notes a "Drawing…" skeleton that stays up for more than 12 seconds. Afterwards it reads that Session's rows from the database to see which lane served the Widget (a recipe, compose, fallback, a fence in the reply, or none) and runs the code checks on the Widget's program: validator problems and warnings, charts outside Tabs, a Verdict or Stat, the archetype from `archetypeOf`, the information budget, numbers from code or data, and overflow at 480 px. It saves one screenshot per prompt and writes a JSON and a Markdown report with the ★.10 targets marked pass or fail. The Purpose, Concrete and Delight scores are not computed: a person or a model reads the screenshots and hands the scores back with `--scores`.
+
+**Scenario.** After a change to the Widget engine, run a local production build against the Neon test branch, then `npm run widgets:eval -- <folder>`. Prompt 3 ("SIP, 1000 a month for 20 years") comes back as a `grow_money` recipe, Grow archetype, 46 s to first pixel on a slow Tutor turn; the report shows that as a failed first-pixel target and the screenshot shows the Widget. `--only 3,11,19` runs a few prompts as a smoke test.
+
+**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The timings include the model's thinking time, so they measure the whole experience, not only the engine. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
+
 ## Present value pilot check (`src/tutor/pilot.test.ts`, `src/course/connections-check.ts`, `scripts/browser-check.mjs`, ticket #74)
 
 **What it does.** Three guards that the insight-led Topic works as one piece. (1) One turn test plays present value start to finish with a scripted Tutor and a real in-memory database: story and concept, then explore (a miss that earns hint 1, then the Learner's own words found), the Learner's turn, the Check, the reveal and the principle with its Connections, ending with a passed Topic. It then reads the Topic Note and expects the Learner's words, the Connections and a Formula Card that code works out from the registry's calculator. (2) The course check now fails any Topic that has an Insight but not two or three Connections. (3) A browser script signs in to a local server as the tools Learner, starts it over before each part (see "The tools Learner"), seeds the fresh Learner with inserts only, and takes screenshots at laptop and upright-iPad sizes in light and dark: the explore Widget, Guided Tasks ticking, the live Formula Card, folded sources, Notes and Settings. Since ticket #158 it also checks what only a real browser shows: a reload, a switch of the panel's tabs and a second browser tab keep slider values and ticked Guided Tasks; with a quiz open, the last Tutor message and the message box stay on screen and the page is no taller than the window; and the first-visit walk, sign-in → Welcome → Start this Topic → Next chips → quiz → passed, pressing only named buttons and answering from the Topic file's answer key. Only the walk calls the model (real Tutor turns on the local server, a few cents); `--skip-walk` leaves it out.
@@ -3712,13 +3788,66 @@ would cost the Learner a "Fixing the Widget…" wait for every style slip. The n
 replay sends the same text. The QuickCheck and Rank rules are restated in check.ts, because the parts' files are client
 modules and the server runs this check too.
 
-## The Widget eval (`scripts/widget-eval.mjs`, `npm run widgets:eval`, UX audit 13.3 and ★.10)
+## The teaching engine: exact answers, question templates and Known mistakes (`src/teaching/answers.ts`, `quantities.ts`, `mistakes.ts`, `templates.ts`, `mark.ts`, `fixtures.ts`, spec #229, ticket #231)
 
-**What it does.** It sends the 20 beginner prompts of the audit to the real Tutor in a real headless browser and measures what comes back. For each prompt it starts the tools Learner over, walks Welcome to "Start this Topic", waits for the opening turn, types the prompt, presses Send and times three moments from there: the first Widget content on screen, the first enabled control in it, and the end of the turn. It also notes a "Drawing…" skeleton that stays up for more than 12 seconds. Afterwards it reads that Session's rows from the database to see which lane served the Widget (a recipe, compose, fallback, a fence in the reply, or none) and runs the code checks on the Widget's program: validator problems and warnings, charts outside Tabs, a Verdict or Stat, the archetype from `archetypeOf`, the information budget, numbers from code or data, and overflow at 480 px. It saves one screenshot per prompt and writes a JSON and a Markdown report with the ★.10 targets marked pass or fail. The Purpose, Concrete and Delight scores are not computed: a person or a model reads the screenshots and hands the scores back with `--scores`.
+**What it does.** A pure module (no database, no model, no env) that marks a Learner's typed number or True/False, so
+Quick tries and typed Check questions need no model call. `parseAnswer` reads what was typed as an exact decimal (a
+scaled bigint), accepting %, bp, ₹, Rs, points, years, Indian or Western commas, a decimal comma, a sign and the words
+"fall", "down", "up" and "rise"; a unit word is decoration, so "0.3 points" for a basis-point ask is read as 0.3.
+`markAnswer` gives right, a Known mistake with its one-line fix, or wrong, under the item's sign rule (magnitude, either,
+signed). An exact answer must be typed exactly (30.4 is not 30); a rounded one, a percent change "to one decimal place",
+is compared at its decimals (8.33 is 8.3). A question template has parameter ranges, named answer functions
+(`points_between`, `bp_from_move`, `points_from_bp`, `bp_from_points`, `pct_change`) and named mistake functions
+(`stopped_at_points`, `used_x10`, `divided_by_10`, `divided_by_1000`, `forgot_to_convert`, `mixed_percent_points`), and
+derived values only through `plus`, `minus` and `times`, so nothing is ever evaluated. `drawTemplate` hashes a seed into a
+small generator, so the same seed gives the same draw, and it redraws until there is no zero move, no negative number
+shown, no number from `avoid` (the running example's), and no Known-mistake value equal to the answer. A half-done draw
+shows the first step ("6 minus 5.7 is 0.3 points") and asks for the last. `templateProblems` names what is wrong with a
+template, for the course check. Every item names its Skill.
 
-**Scenario.** After a change to the Widget engine, run a local production build against the Neon test branch, then `npm run widgets:eval -- <folder>`. Prompt 3 ("SIP, 1000 a month for 20 years") comes back as a `grow_money` recipe, Grow archetype, 46 s to first pixel on a slow Tutor turn; the report shows that as a failed first-pixel target and the screenshot shows the Widget. `--only 3,11,19` runs a few prompts as a smoke test.
+**Scenario.** A Quick try asks "A rate falls from 7.5% to 7.2%. How many basis points did it fall?". The Learner types
+"30 bp", "30" or "-30", and each is right; floating point never enters it, so 7.5 minus 7.2 is exactly 0.3 points. They type
+"0.3" instead, and code shows the stopped-at-points fix at once: "That is the fall in points. Times 100 gives basis
+points." The next try is drawn with a new seed, so it has new numbers, and 120 bp turned into 12 or 0.12 points gets the
+divided-by-10 or divided-by-1,000 fix.
 
-**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The timings include the model's thinking time, so they measure the whole experience, not only the engine. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
+**Trade-off.** Named functions cover only the rate Skills of the Percent Topic today; a Topic with rupee or year
+templates needs a new named function, written and tested in code, rather than a formula in its file. That is slower to
+author but keeps every answer computed by code (ADR 0003, ADR 0005). Comparing a Known mistake by its size means a
+Learner who also drops the sign still gets the fix. A fixed item states `decimals` only when its answer is rounded; left
+out, the answer is exact. A draw is rebuilt from its seed rather than stored, since bigints do not go into JSON.
+
+## Free-form Widgets and updates in place: compose_widget and update_widget (`src/tutor/compose.ts`, `tools.ts`, `turn.ts`, `instructions.ts`, `session-log.ts`, `src/widgets/shown-widget.ts`, UX audit ★.4)
+
+**What it does.** Two engine tools join show_widget (only in Sessions frozen with `widget_engine` on; off, nothing changes).
+`compose_widget({brief, archetype, mustUse, fallback?})` is the free-form lane: when no recipe fits, a second, faster model
+(setting `widget_compose_model`, default `claude-sonnet-5-5`, read when the tool runs) writes the OpenUI Lang program from a slim
+prompt: the frozen Widget instructions with the component groups the archetype and `mustUse` do not need cut out. The call is
+aborted after 12 seconds, or sooner when the turn's own deadline is less than 27 seconds away, or when the Learner presses Stop.
+While it runs the writing indicator says "Drawing your Widget…". The program then goes through show_widget's checks (it draws,
+keeps the Widget rules, leaves written-ahead parts alone, uses only allowed Case Data, has a title, uses every `mustUse` part).
+If it timed out, failed or did not pass, code shows the closest recipe instead: the Tutor's `fallback` if it gave one, else the
+working examples of recipes of the same archetype, then the rest, the first that builds and passes. It is stored as a
+WIDGET_SHOWN item with `source: "compose"` or `"fallback"` and `timings {composeMs, fallbackReason?}`, and the tool result gives
+the Tutor one line to say ("I used a ready-made Widget because…"). The compose model's tokens are saved as an extra loop step
+(`tools: ['compose_widget']`, its own model and cost), numbered by the turn so steps never clash. `update_widget({key, values})`
+moves the sliders of an open Widget (a title from the open-Widgets line, or an opened written-ahead Widget's id): each value
+must name one of its Slider `$variable`s and lie within its min and max. Code saves the Widget state (the page's values over
+what was saved, then the new ones; ticks kept exactly as they were) and the turn streams `widget_state {widgetKey, values}`,
+which the browser applies (freeform-client lane).
+
+**Scenario.** The Learner asks for something no recipe covers. The Tutor calls compose_widget with a brief and archetype
+"Compare" and a fallback loan_cost. The compose model hangs; after 12 s code shows loan_cost, stores it as `source: "fallback"`
+with `fallbackReason: "timeout"`, and the Tutor says "I used a ready-made Widget because drawing a new one took too long."
+Then the Learner says "make it 9%": the Tutor calls update_widget with the Widget's title and `{"$rate": 9}`, and the slider
+moves on screen without a twelfth Widget.
+
+**Trade-off.** The compose call runs outside the database transaction (a 12 s call must not hold one open), so the tool first
+looks for its saved result: a repeat or a resume returns that and never asks the model again, but a turn cut off in the few
+milliseconds between the call and the save would ask once more. The program is returned whole, not streamed: the Learner sees
+the progress label, then the finished Widget, never half of one. Falling back to a recipe example may show a Widget less exact
+than the ask, which is why the Tutor is told to say so. update_widget cannot tick Guided Tasks, so the "all ticked" gate on Tell
+the Tutor what I found stays the Learner's own. Free-form Widgets get no Widget notes warnings yet (widgetNotes reads only fences).
 
 ## Topics with a goal: steps that open their Widgets, finish from what you do, and remember what you found (`goal`, `steps`, `found` in `course/topics/*.yaml`, `src/course/map.ts`, `navigator.ts`, `outcome.ts`, `goal-check.ts`, `src/tutor/next.ts`, `off-topic.ts`, `past-sessions.ts`, UX audit 9.0, 9.4, 9.7, 11.5 to 11.9)
 
@@ -3727,3 +3856,36 @@ modules and the server runs this check too.
 **Scenario.** Percent, percentage points and basis points says `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]`. The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic.
 
 **Trade-off.** A Widget can never settle the Insight early (ADR 0001): `doneWhen` is refused on explore, a Check and the principle, by the schema and again in `widgetDone`, and the explore Widget stays opened by code at explore only. The cost is that a finishing Widget needs a page render or a Next to be noticed; the saved state is the source of truth, so nothing is lost. `found` lines are the Learner's own saved numbers, never typed figures (ADR 0003), so an unticked or reset Widget says nothing. Left for later: a Widget opening at the very first step and when the Tutor itself finishes a step (both happen in the turn lane's files), a tool for the Tutor to mark an Off-Topic answer (`offTopicNote` in context.ts is ready for it), Predict and Breakeven results as turn events, and plan versioning.
+
+## Skill state and the repair ladder (`src/learner/skill-state.ts`, `src/teaching/ladder.ts`, tables `skill_state` and `practice_answers`, `drizzle/0029_skill_state.sql`, spec #229, ticket #232)
+
+**What it does.** Code keeps a record of how each Learner is doing on each Skill of a Topic, and code, not the Tutor,
+decides what comes after each answer. Every Quick-try or typed quiz answer that code marks goes through `recordAnswer`. In
+one transaction it logs the answer in `practice_answers` (the item, the numbers it was shown with, what the Learner typed,
+the verdict right, Known mistake or wrong, and the mistake's tag) and updates the Skill's row in `skill_state`: tries, right,
+the streak of right answers, misses in a row, the last Known mistake, the teaching methods used and the park-until time. Each
+answer has an item key, unique per Learner, so the same answer sent twice (a double press, a retried request) is logged and
+counted once. Misses in a row count across Quick tries and quiz questions on the same Skill, and a right answer resets them.
+
+The policy is the pure module `ladder.ts`. `nextMove(state, answer)` takes the state after the answer and returns the
+Reply kind and method. A right answer gets feedback, and two right in a row make the Skill fluent (`isFluent`). The first
+miss gets feedback: one slip, one fix, one new try. The second miss in a row brings a re-teach with the next method on
+the ladder: restate, worked example, fill-in boxes, the Skill's Widget, then a drill of five. It takes the first method not
+used yet, and once all five are used it goes on round the ladder, so the same method never comes twice in a row. The third
+miss in a row, and every miss after it, offers to park. `parkSkill` sets a park-until time 20 hours on and starts the miss
+count again. `drillDue` says when that time has passed, so the Topic opens on a drill of five, and `unparkSkill` ends the
+park once the drill is done. `yourTurnDone` is true once every Skill of the Check is fluent. This layer stores and decides
+only: nothing is shown yet, and later tickets wire it into the Tutor Turn and the Course Navigator.
+
+**Scenario.** The Learner is asked to turn 0.6 percentage points into basis points and types 6. Code marks it as the Known
+mistake "multiplied by 10" and records it: one miss in a row, so the reply is feedback with the fix and a new try. They type
+0.06 on a quiz question for the same Skill: two misses in a row, so the reply re-teaches by restating the rule, and code
+notes "restate" as used. After a right answer and two more misses, the re-teach is a worked example, not the restatement
+again. A third miss in a row brings "Park it, review tomorrow". They park at 6 pm; at 2 pm the next day `drillDue` turns
+true and the Topic opens on a drill of five.
+
+**Trade-off.** The state is a stored row, updated on each answer, not worked out again from the log each time. That keeps
+each turn to one small read, but the row and the log could drift if one were edited by hand; the log keeps every answer, so
+the state can be rebuilt from it. The ladder is the same for every Topic and lives in code, which keeps Topic files small
+but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
+never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.

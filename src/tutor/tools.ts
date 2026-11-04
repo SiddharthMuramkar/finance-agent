@@ -10,9 +10,16 @@ import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/na
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, WIDGET_OPENED } from "@/course/written-ahead";
 import { messages, sessions, toolCalls, turns } from "@/db/schema";
-import { widgetControls, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
+import { widgetControls, widgetNodes, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
+import { declaredSettings } from "@/widgets/settings";
+import { ARCHETYPES } from "@/widgets/recipes/define";
 import { RECIPE_IDS, recipeById } from "@/widgets/recipes";
-import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
+import { WIDGET_SHOWN, type ComposeTimings, type ShownWidget } from "@/widgets/shown-widget";
+import type { WidgetStates } from "@/widgets/widget-state";
+import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
+import { anthropicComposeClient, COMPOSE_LABEL, composeLimitMs, composeProgram, fallbackCandidates, type ComposeClient, type Composed } from "./compose";
+import { readSettings } from "./session-log";
+import { stepUsage, type StepUsage } from "./usage";
 import { loadWrittenAhead } from "./written-ahead";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
@@ -22,7 +29,8 @@ import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library
 import { stepContext, topicCompleteContext } from "./context";
 import { verdictCard } from "./check-results";
 import { pasteSummary } from "./pasted";
-import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type ReplyText, type SessionItem } from "./session-items";
+import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type ReplyText, type SessionItem, type StoredItem } from "./session-items";
+import { openWidgetsForTurn } from "./widget-context";
 import { textOf } from "./transcript";
 import type { ToolDefinition } from "./instructions";
 import { JUST_TELL_ME } from "./chips";
@@ -46,7 +54,12 @@ type Outcome = {
   began?: boolean;
   /** The Session items the call stored (a result card, a step divider), in order, for the Learner to see at once. */
   items?: SessionItem[];
+  /** Widget states the call saved (update_widget), for the open panel to move its sliders at once. */
+  widgetStates?: WidgetStateEvent[];
 };
+
+/** A Widget's new slider values, by its Widget key, sent to the browser so the open Widget moves (update_widget). */
+export type WidgetStateEvent = { type: "widget_state"; widgetKey: string; values: Record<string, number> };
 
 /**
  * Shared with the Tutor Turn: whether a progress write failed, so it can tell the Learner, and the
@@ -60,7 +73,20 @@ export type ToolEffects = {
    * a tool cannot yield an event. The route wires it to its stream; left out (tests, scripts), nothing is sent.
    */
   notify?: (event: ProgressEvent) => void;
+  /** Widget states tool calls saved (update_widget), which the Tutor Turn streams to the browser as they are saved. */
+  widgetStates?: WidgetStateEvent[];
+  /** The turn's deadline (a performance.now() time): compose_widget ends its model call well before it. */
+  deadline?: number;
+  /** Aborts when the Learner presses Stop: compose_widget gives up its model call. */
+  stop?: AbortSignal;
+  /** Saves an extra usage step (the compose model's call) under the turn's next step number; left out, none is saved. */
+  saveStep?: (model: string, make: (step: number) => StepUsage) => Promise<void>;
+  /** What the page's Widgets showed when the turn was sent (TurnDeps.widgets), over what the Session saved. */
+  pageWidgets?: WidgetStates;
 };
+
+/** compose_widget's model client and, for tests, a shorter limit than 12 s. */
+export type Composer = { client: ComposeClient; limitMs?: number };
 
 /** A plain-word label for what the turn is doing now ("Searching the Library…"), shown by the writing indicator. */
 export type ProgressEvent = { type: "progress"; label: string };
@@ -74,6 +100,8 @@ export const TOOL_LABELS: Record<string, string> = {
   record_insight_attempt: "Recording your answer…",
   open_widget: "Opening a Widget…",
   show_widget: "Drawing the Widget…",
+  compose_widget: COMPOSE_LABEL,
+  update_widget: "Updating the Widget…",
   finish_teaching_step: "Moving to the next step…",
 };
 
@@ -159,6 +187,7 @@ export function toolCode(
   effects: ToolEffects,
   turn: ToolTurn,
   embedQuery?: QueryEmbedder,
+  composer?: Composer,
 ): Record<string, ToolCode> {
   const { id: turnId, learnerId } = turn;
   const finishInput = z.object({ step: z.enum(TEACHING_STEPS) });
@@ -225,12 +254,149 @@ export function toolCode(
       throw new Error(NOTHING_RECORDED);
     }
     if (outcome.items?.length) (effects.items ??= []).push(...outcome.items);
+    if (outcome.widgetStates?.length) (effects.widgetStates ??= []).push(...outcome.widgetStates);
     if (!outcome.ok) throw new Error(outcome.text);
     return outcome.text;
   }
 
+  /** The turn's Session, its reply so far and its items: what a shown Widget is checked against. */
+  type ReplyScope = { sessionId: number; turnSeq: number; topicId: string | null; rows: { seq: number; role: string; content: unknown }[]; items: StoredItem[] };
+
+  async function replyScope(tx: Db): Promise<ReplyScope | null> {
+    const [row] = await tx
+      .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, topicId: sessions.topicId })
+      .from(turns)
+      .leftJoin(sessions, eq(sessions.id, turns.sessionId))
+      .where(eq(turns.id, turnId));
+    if (row?.sessionId == null || row.turnSeq == null) return null;
+    const rows = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
+    const items = await loadSessionItems(tx, row.sessionId, learnerId);
+    return { sessionId: row.sessionId, turnSeq: row.turnSeq, topicId: row.topicId ?? null, rows, items };
+  }
+
+  /** One Widget per reply: the reply so far has drawn one of its own, or code has shown one in it. */
+  function widgetInReply(scope: ReplyScope): boolean {
+    const replySoFar = replyTexts(scope.rows.filter((r) => r.seq >= scope.turnSeq)).map((r) => r.text).join("\n");
+    return replySoFar.includes(FENCE_OPEN) || scope.items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= scope.turnSeq);
+  }
+
+  const ONE_WIDGET = "Not shown: this reply already has a Widget, and a reply shows one Widget. Talk about the one on screen; show another in a later reply if it still helps.";
+  const TALK_ABOUT_IT = "Write no openui-lang block in this reply. Now talk about the Widget on screen in a few sentences: what to look at, and what to move.";
+
+  /** The Case Data references the as-of rule allows the Learner now (ADR 0003). */
+  async function allowedRefs(tx: Db): Promise<Set<string>> {
+    const progress = await loadProgress(tx, learnerId);
+    return new Set((await caseDataFor(tx, map, navigate(map, progress), learnerId)).flatMap((c) => c.datasets.map((d) => `${c.caseId}/${d.id}`)));
+  }
+
+  /** The same checks as a Widget the Tutor writes: it draws, keeps the Widget rules, and leaves written-ahead parts alone. */
+  async function shownProblems(tx: Db, scope: ReplyScope, code: string): Promise<string[]> {
+    const open = drawnWidgets(replyTexts(scope.rows), scope.items).map((w) => w.code);
+    const topic = scope.topicId ? map.topic(scope.topicId) : undefined;
+    const progress = await loadProgress(tx, learnerId);
+    const held = topic ? exploreHeldBack(topic, progress.topics[topic.id]) : null;
+    const covered = topic ? coveredParts(topic).map((w) => (w.id === held ? { ...w, held: true } : w)) : [];
+    return [...widgetProblems(code), ...widgetRuleProblems(code, open), ...writtenAheadPartProblems(code, covered)];
+  }
+
+  /** Stores a shown Widget after the latest message and tells the Tutor what is on screen. */
+  async function storeShown(tx: Db, scope: ReplyScope, data: ShownWidget, opening: string): Promise<Outcome> {
+    const item = { kind: WIDGET_SHOWN, data };
+    await saveItemAfterLatest(tx, learnerId, scope.sessionId, item, now());
+    const { sliders, tasks } = widgetControls(data.code);
+    const lines = [
+      opening,
+      ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
+      ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
+    ];
+    return { ok: true, text: lines.join("\n"), items: [item] };
+  }
+
+  /**
+   * compose_widget inside `once`: shows the program the compose model wrote when it passes the checks, else the
+   * closest recipe that builds and passes them, else nothing (the Tutor teaches in words).
+   */
+  async function showComposed(tx: Db, toolCallId: string, input: ComposeInput, composed: Composed | null): Promise<Outcome> {
+    const scope = await replyScope(tx);
+    if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
+    if (widgetInReply(scope)) return { ok: false, text: ONE_WIDGET };
+    if (!composed) return { ok: false, text: "Not shown: the Widget could not be drawn. Teach this in words." };
+    if (!composed.ok && composed.reason === "stopped") return { ok: false, text: "Not shown: the Learner pressed Stop." };
+    const allowed = await allowedRefs(tx);
+    let reason: NonNullable<ComposeTimings["fallbackReason"]>;
+    let why: string;
+    if (composed.ok) {
+      const parts = widgetParts(composed.code);
+      const missing = input.mustUse.filter((p) => !parts.components.includes(p));
+      const unknown = parts.datasets.filter((d) => !allowed.has(d));
+      const problems = [
+        ...(parts.title?.trim() ? [] : ["It has no title."]),
+        ...(missing.length ? [`It does not use ${missing.join(", ")}.`] : []),
+        ...(unknown.length ? [`${unknown.join(", ")} is not in the Case Data code sent for this step.`] : []),
+        ...(await shownProblems(tx, scope, composed.code)),
+      ];
+      if (!problems.length) {
+        const title = parts.title!.trim();
+        const data: ShownWidget = {
+          id: toolCallId,
+          recipe: "",
+          params: { brief: input.brief, archetype: input.archetype, mustUse: input.mustUse },
+          title,
+          code: composed.code,
+          source: "compose",
+          timings: { composeMs: composed.ms },
+        };
+        return storeShown(tx, scope, data, `Shown by code: "${title}", drawn free-form, is in the Widget panel, with a chip where you called compose_widget. ${TALK_ABOUT_IT}`);
+      }
+      reason = "checks";
+      why = `the free-form Widget did not pass the checks (${problems.join(" ")})`;
+    } else {
+      reason = composed.reason === "timeout" ? "timeout" : "failed";
+      why = composed.reason === "timeout" ? "drawing it took too long" : "it could not be drawn";
+    }
+    for (const candidate of fallbackCandidates(input.archetype, input.fallback)) {
+      const built = recipeById(candidate.recipe)?.build(candidate.params);
+      if (!built?.ok || built.refs.some((ref) => !allowed.has(ref))) continue;
+      if ((await shownProblems(tx, scope, built.code)).length) continue;
+      const data: ShownWidget = {
+        id: toolCallId,
+        recipe: candidate.recipe,
+        params: built.params,
+        title: built.title,
+        code: built.code,
+        source: "fallback",
+        timings: { composeMs: composed.ms, fallbackReason: reason },
+      };
+      return storeShown(
+        tx,
+        scope,
+        data,
+        `Shown by code instead: "${built.title}", a ready-made Widget (recipe ${candidate.recipe}), because ${why}. Say so to the Learner in one short line (for example "I used a ready-made Widget because drawing a new one took too long"). ${TALK_ABOUT_IT}`,
+      );
+    }
+    return { ok: false, text: `Not shown: ${why}, and no ready-made Widget fits. Teach this in words.` };
+  }
+
+  /** The sliders of a Widget, by $variable, with their ranges; read by the parser. */
+  function sliderRanges(code: string): Map<string, { min: number; max: number }> {
+    const out = new Map<string, { min: number; max: number }>();
+    for (const n of widgetNodes(code)) {
+      const { value, min, max } = n.props as { value?: { k?: string; n?: string }; min?: unknown; max?: unknown };
+      if (n.typeName === "Slider" && value?.k === "StateRef" && typeof value.n === "string" && typeof min === "number" && typeof max === "number") out.set(value.n, { min, max });
+    }
+    return out;
+  }
+
   const openInput = z.object({ id: z.string().min(1) });
   const showInput = z.object({ recipe: z.string(), params: z.unknown() });
+  const composeInput = z.object({
+    brief: z.string().min(1),
+    archetype: z.enum(ARCHETYPES),
+    mustUse: z.array(z.string()).default([]),
+    fallback: z.object({ recipe: z.string(), params: z.unknown() }).optional(),
+  });
+  type ComposeInput = z.output<typeof composeInput>;
+  const updateInput = z.object({ key: z.string().min(1), values: z.record(z.string(), z.number()) });
   const calculateInput = z.object({ calculator: z.string(), inputs: z.unknown(), currency: z.enum(["usd", "inr"]).optional() });
 
   return withProgress({
@@ -374,44 +540,97 @@ export function toolCode(
           if (!recipe) return { ok: false, text: `Not shown: there is no Widget recipe "${id}". Recipes: ${RECIPE_IDS.join(", ")}.` };
           const built = recipe.build(params);
           if (!built.ok) return { ok: false, text: `Not shown: these params do not fit the ${id} recipe. ${built.error}. Call show_widget again with params that fit, or teach this in words.` };
-          const [row] = await tx
-            .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, topicId: sessions.topicId })
-            .from(turns)
-            .leftJoin(sessions, eq(sessions.id, turns.sessionId))
-            .where(eq(turns.id, turnId));
-          if (row?.sessionId == null || row.turnSeq == null) return { ok: false, text: "Not shown: this turn has no Session yet." };
-          const rows = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
-          const items = await loadSessionItems(tx, row.sessionId, learnerId);
-          const turnSeq = row.turnSeq;
-          // One Widget per reply: the reply so far has drawn one of its own, or code has shown one in it.
-          const replySoFar = replyTexts(rows.filter((r) => r.seq >= turnSeq)).map((r) => r.text).join("\n");
-          if (replySoFar.includes(FENCE_OPEN) || items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= turnSeq)) {
-            return { ok: false, text: "Not shown: this reply already has a Widget, and a reply shows one Widget. Talk about the one on screen; show another in a later reply if it still helps." };
-          }
+          const scope = await replyScope(tx);
+          if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
+          if (widgetInReply(scope)) return { ok: false, text: ONE_WIDGET };
           // Real figures only from Case Data the as-of rule allows the Learner now (ADR 0003).
-          const progress = await loadProgress(tx, learnerId);
-          const allowed = new Set((await caseDataFor(tx, map, navigate(map, progress), learnerId)).flatMap((c) => c.datasets.map((d) => `${c.caseId}/${d.id}`)));
+          const allowed = await allowedRefs(tx);
           const unknown = built.refs.filter((ref) => !allowed.has(ref));
           if (unknown.length) {
             return { ok: false, text: `Not shown: ${unknown.join(", ")} ${unknown.length > 1 ? "are" : "is"} not in the Case Data code sent for this step. Use a reference from that list, or teach this in words.` };
           }
-          // The same checks as a Widget the Tutor writes: it draws, keeps the Widget rules, and leaves written-ahead parts alone.
-          const open = drawnWidgets(replyTexts(rows), items).map((w) => w.code);
-          const topic = row.topicId ? map.topic(row.topicId) : undefined;
-          const held = topic ? exploreHeldBack(topic, progress.topics[topic.id]) : null;
-          const covered = topic ? coveredParts(topic).map((w) => (w.id === held ? { ...w, held: true } : w)) : [];
-          const problems = [...widgetProblems(built.code), ...widgetRuleProblems(built.code, open), ...writtenAheadPartProblems(built.code, covered)];
+          const problems = await shownProblems(tx, scope, built.code);
           if (problems.length) return { ok: false, text: `Not shown: ${problems.join(" ")}` };
           const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe" };
-          const item = { kind: WIDGET_SHOWN, data };
-          await saveItemAfterLatest(tx, learnerId, row.sessionId, item, now());
-          const { sliders, tasks } = widgetControls(built.code);
-          const lines = [
-            `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. Write no openui-lang block in this reply. Now talk about the Widget on screen in a few sentences: what to look at, and what to move.`,
-            ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
-            ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
-          ];
-          return { ok: true, text: lines.join("\n"), items: [item] };
+          return storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${TALK_ABOUT_IT}`);
+        }),
+    },
+    // The free-form lane (UX audit ★.4): the compose model writes the Widget within 12 s, outside the transaction, and
+    // `once` checks and stores it (or the closest recipe). A repeat or a resume finds the saved result and never asks
+    // the model again.
+    compose_widget: {
+      parse: (input) => composeInput.parse(input),
+      run: async (input: ComposeInput, context) => {
+        const toolCallId = context?.toolUse.id;
+        if (!toolCallId) throw new Error("Missing tool call ID.");
+        const [done] = await db.select({ id: toolCalls.toolCallId }).from(toolCalls).where(eq(toolCalls.toolCallId, toolCallId));
+        let composed: Composed | null = null;
+        const scope = done ? null : await replyScope(db);
+        if (scope && !widgetInReply(scope)) {
+          const { composeModel } = await readSettings(db);
+          composer ??= { client: anthropicComposeClient() };
+          composed = await composeProgram(composer.client, {
+            model: composeModel,
+            brief: input.brief,
+            archetype: input.archetype,
+            mustUse: input.mustUse,
+            limitMs: composeLimitMs(effects.deadline, performance.now(), composer.limitMs),
+            stop: effects.stop,
+          });
+          // The compose model's call is an extra step of the turn: its tokens and cost count in the turn's usage.
+          const spent = composed;
+          if (spent.ms > 0 || spent.usage) {
+            const stopReason = spent.ok ? spent.stopReason : (spent.stopReason ?? spent.reason);
+            await effects
+              .saveStep?.(composeModel, (n) => stepUsage(composeModel, n, spent.usage, ["compose_widget"], spent.ms, stopReason))
+              .catch((e) => console.error("compose_widget could not save its usage", e));
+          }
+        }
+        return once(toolCallId, "compose_widget", (tx) => showComposed(tx, toolCallId, input, composed));
+      },
+    },
+    // Moves the sliders of a Widget already open (UX audit ★.4): saves its state and tells the browser. It never ticks a
+    // Guided Task: they tick themselves from their conditions as the sliders move.
+    update_widget: {
+      parse: (input) => updateInput.parse(input),
+      run: ({ key, values }: z.output<typeof updateInput>, context) =>
+        once(context?.toolUse.id, "update_widget", async (tx) => {
+          const scope = await replyScope(tx);
+          if (!scope) return { ok: false, text: "Not updated: this turn has no Session yet." };
+          const drawn = drawnWidgets(replyTexts(scope.rows), scope.items);
+          const open = await openWidgetsForTurn(tx, map, learnerId, drawn, false, { id: scope.sessionId, topicId: scope.topicId });
+          const widget = open.find((w) => w.key === key.trim());
+          if (!widget) return { ok: false, text: `Not updated: no open Widget has the key "${key}". Open Widgets: ${open.map((w) => `"${w.key}"`).join(", ") || "none"}.` };
+          const ranges = sliderRanges(widget.code);
+          const problems: string[] = [];
+          const set: Record<string, number> = {};
+          for (const [raw, value] of Object.entries(values)) {
+            const name = raw.startsWith("$") ? raw : `$${raw}`;
+            const range = ranges.get(name);
+            if (!range) problems.push(`${name} is not one of its sliders.`);
+            else if (!Number.isFinite(value) || value < range.min || value > range.max) problems.push(`${name} must be from ${range.min} to ${range.max}.`);
+            else set[name] = value;
+          }
+          if (!Object.keys(values).length) problems.push("Give at least one slider value.");
+          if (problems.length) {
+            const sliders = [...ranges].map(([n, r]) => `${n} (${r.min} to ${r.max})`).join(", ") || "none";
+            return { ok: false, text: `Not updated: ${problems.join(" ")} Its sliders: ${sliders}.` };
+          }
+          // Its sliders where the Learner left them (the page's state over what was saved), with the new values over those.
+          const saved = await loadWidgetState(tx, scope.sessionId, widget.key, learnerId);
+          const page = effects.pageWidgets?.[widget.key];
+          const current = { ...declaredSettings(widget.code), ...saved?.values, ...page?.values };
+          const merged = { ...Object.fromEntries(Object.entries(current).filter(([n]) => ranges.has(n))), ...set };
+          // Ticks stay as they were: Guided Tasks tick themselves from their conditions.
+          const ticked = page?.ticked ?? saved?.ticked ?? [];
+          const result = await saveWidgetState(tx, { sessionId: scope.sessionId, widgetKey: widget.key, values: merged, ticked }, learnerId, now());
+          if (!result.ok) return { ok: false, text: `Not updated: ${result.reason}` };
+          const moved = Object.entries(set).map(([n, v]) => `${n} = ${v}`).join(", ");
+          return {
+            ok: true,
+            text: `Updated by code: "${widget.key}" now shows ${moved}. Its Guided Tasks tick themselves from what it shows. Talk about what changed on screen in a few sentences.`,
+            widgetStates: [{ type: "widget_state", widgetKey: widget.key, values: merged }],
+          };
         }),
     },
     finish_teaching_step: {

@@ -179,6 +179,14 @@ _Avoid_: template, preset Widget
 A Widget design written in code, such as grow_money or history_case. The Tutor names a recipe and its params with show_widget, and code draws the Widget, checks it and keeps it in the Session (ADR 0005). Its params are inputs (sliders and calculator inputs), refs (Case Data) and facts (typed numbers, which make it an Illustration).
 _Avoid_: template, preset Widget
 
+**Rate-move Widget**:
+The one Widget for a rate change, drawn from the rate_move recipe: the move from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the Learner types the move in basis points first, code marks it, then the lines follow.
+_Avoid_: rate calculator, Illustration
+
+**Free-form Widget**:
+A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
+_Avoid_: custom Widget, freeform lane (in Learner-facing text)
+
 **Widget state**:
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
 _Avoid_: Widget data, saved Widget
@@ -206,6 +214,10 @@ _Avoid_: Equation, formula block
 **Guided Task**:
 A small instruction under a Widget, such as "set the rate to 0%", that ticks itself when the Widget reaches that state. Optional play: nothing is marked and the Tutor never sets one as work, but the ticks are kept with the Session.
 _Avoid_: Exercise, challenge, step
+
+**Question template**:
+A Quick try or Check question written once in the Topic's file with ranges in place of numbers ("A rate moves from {a}% to {b}%. How many basis points?"). Code draws the numbers and works out the answer and each Known mistake, so every try or attempt gets fresh numbers that code can mark.
+_Avoid_: Question generator, item model
 
 **Market Workbench**:
 A possible later section for analysing real companies with real data alongside the Tutor.
