@@ -728,7 +728,9 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
     ...(action.method === "boxes"
       ? [
           ...(posted
-            ? [`The half-done try code posts after your reply: "${[posted.prompt, posted.halfDone].filter(Boolean).join(" ")}". Set your boxes on its numbers, so they and the try are one item, and never give its answer.`]
+            ? [
+                `The half-done try code posts after your reply: "${[posted.prompt, posted.halfDone].filter(Boolean).join(" ")}". Set your boxes on its numbers, so they and the try are one item. Box 1 says its rate move in full ("a rate goes from A% to B%") and its first step; Box 2 is its blank last step. Never give its answer.`,
+              ]
             : []),
           "Teach it again this way only, in a few short lines. The blank last box is your one ask: write no other question.",
         ]

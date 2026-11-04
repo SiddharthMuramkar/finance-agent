@@ -49,12 +49,14 @@ describe("the rules tuned against the live tests", () => {
 
       it("the Learner's own rule is saved before any prose, then confirmed in one sentence with nothing before the ask", () => {
         expect(text).toContain("call save_learner_rule with their words before you write");
-        expect(text).toContain("confirm it in one sentence that gives their rule back, then the ask, with nothing between: no reason, no note on the order of steps and no definition.");
+        expect(text).toContain(
+          'confirm it in one sentence that gives their rule back and starts "Yes:", then the ask as one sentence with its numbers in it, with nothing between: no reason, no note on the order of steps and no definition.',
+        );
       });
 
       it("asked for the answer to one open question, the Tutor teaches only the idea that question tests", () => {
         expect(text).toContain(
-          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): a few words that keep the answer back, the method in one or two sentences on other numbers, then one ask on that idea.",
+          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): a few words that keep the answer back, the rule and one worked example on other numbers in two short sentences, with no definitions (its terms are taught), then one ask on that idea.",
         );
       });
     });
@@ -94,6 +96,7 @@ describe("the rules tuned against the live tests", () => {
     const own = TUTOR_EXAMPLES.find((e) => e.learner.startsWith("so its basically"))!;
     expect(own.situation).toContain("the reply first calls save_learner_rule with the Learner's words");
     expect(own.reply.split("\n")[0]).toBe("Yes: **change times 100, then divide by the original.**");
+    expect(own.reply.split("\n").at(-1)).toBe("What is the percent change when a price goes from ₹50 to ₹60?");
   });
 
   it("the request-for-the-answer example names the idea the question tests, and teaches only that idea", () => {

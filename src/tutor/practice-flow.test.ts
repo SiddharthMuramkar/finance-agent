@@ -161,6 +161,7 @@ describe("the re-teach note after a second miss in a row (ticket #248, lane R11)
     const data = posted.data as QuickTryData;
     expect(data.halfDone).toBeTruthy();
     expect(note).toContain(`The half-done try code posts after your reply: "${data.prompt} ${data.halfDone}". Set your boxes on its numbers`);
+    expect(note).toContain('Box 1 says its rate move in full ("a rate goes from A% to B%") and its first step; Box 2 is its blank last step. Never give its answer.');
   });
 
   it("on another rung, still has the Tutor write no practice question of its own", async () => {
