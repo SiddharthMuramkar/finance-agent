@@ -3633,3 +3633,35 @@ alone from 33,662 to 38,109; the tools are unchanged). Warnings only teach the n
 would cost the Learner a "Fixing the Widget…" wait for every style slip. The notes ride in the Learner's stored message, so a
 replay sends the same text. The QuickCheck and Rank rules are restated in check.ts, because the parts' files are client
 modules and the server runs this check too.
+
+## Free-form Widgets and updates in place: compose_widget and update_widget (`src/tutor/compose.ts`, `tools.ts`, `turn.ts`, `instructions.ts`, `session-log.ts`, `src/widgets/shown-widget.ts`, UX audit ★.4)
+
+**What it does.** Two engine tools join show_widget (only in Sessions frozen with `widget_engine` on; off, nothing changes).
+`compose_widget({brief, archetype, mustUse, fallback?})` is the free-form lane: when no recipe fits, a second, faster model
+(setting `widget_compose_model`, default `claude-sonnet-5-5`, read when the tool runs) writes the OpenUI Lang program from a slim
+prompt: the frozen Widget instructions with the component groups the archetype and `mustUse` do not need cut out. The call is
+aborted after 12 seconds, or sooner when the turn's own deadline is less than 27 seconds away, or when the Learner presses Stop.
+While it runs the writing indicator says "Drawing your Widget…". The program then goes through show_widget's checks (it draws,
+keeps the Widget rules, leaves written-ahead parts alone, uses only allowed Case Data, has a title, uses every `mustUse` part).
+If it timed out, failed or did not pass, code shows the closest recipe instead: the Tutor's `fallback` if it gave one, else the
+working examples of recipes of the same archetype, then the rest, the first that builds and passes. It is stored as a
+WIDGET_SHOWN item with `source: "compose"` or `"fallback"` and `timings {composeMs, fallbackReason?}`, and the tool result gives
+the Tutor one line to say ("I used a ready-made Widget because…"). The compose model's tokens are saved as an extra loop step
+(`tools: ['compose_widget']`, its own model and cost), numbered by the turn so steps never clash. `update_widget({key, values})`
+moves the sliders of an open Widget (a title from the open-Widgets line, or an opened written-ahead Widget's id): each value
+must name one of its Slider `$variable`s and lie within its min and max. Code saves the Widget state (the page's values over
+what was saved, then the new ones; ticks kept exactly as they were) and the turn streams `widget_state {widgetKey, values}`,
+which the browser applies (freeform-client lane).
+
+**Scenario.** The Learner asks for something no recipe covers. The Tutor calls compose_widget with a brief and archetype
+"Compare" and a fallback loan_cost. The compose model hangs; after 12 s code shows loan_cost, stores it as `source: "fallback"`
+with `fallbackReason: "timeout"`, and the Tutor says "I used a ready-made Widget because drawing a new one took too long."
+Then the Learner says "make it 9%": the Tutor calls update_widget with the Widget's title and `{"$rate": 9}`, and the slider
+moves on screen without a twelfth Widget.
+
+**Trade-off.** The compose call runs outside the database transaction (a 12 s call must not hold one open), so the tool first
+looks for its saved result: a repeat or a resume returns that and never asks the model again, but a turn cut off in the few
+milliseconds between the call and the save would ask once more. The program is returned whole, not streamed: the Learner sees
+the progress label, then the finished Widget, never half of one. Falling back to a recipe example may show a Widget less exact
+than the ask, which is why the Tutor is told to say so. update_widget cannot tick Guided Tasks, so the "all ticked" gate on Tell
+the Tutor what I found stays the Learner's own. Free-form Widgets get no Widget notes warnings yet (widgetNotes reads only fences).
