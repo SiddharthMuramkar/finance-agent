@@ -139,6 +139,10 @@ _Avoid_: template, preset Widget
 A Widget design written in code, such as grow_money or history_case. The Tutor names a recipe and its params with show_widget, and code draws the Widget, checks it and keeps it in the Session (ADR 0005). Its params are inputs (sliders and calculator inputs), refs (Case Data) and facts (typed numbers, which make it an Illustration).
 _Avoid_: template, preset Widget
 
+**Rate-move Widget**:
+The one Widget for a rate change, drawn from the rate_move recipe: the move from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the Learner types the move in basis points first, code marks it, then the lines follow.
+_Avoid_: rate calculator, Illustration
+
 **Widget state**:
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
 _Avoid_: Widget data, saved Widget

@@ -973,6 +973,35 @@ and the target of `breakeven_hunt` use a calculator's first result only, so a ca
 number you want cannot be compared yet. A sourced `buying_power` price assumes the series and the amount share a
 currency, which the recipe cannot check.
 
+### The rate-move recipe: the one rate Widget, in show and practice modes (`src/widgets/recipes/set-tutor.ts`, `rateMoveLines` in `src/finance/rate-change.ts`; spec #229, ticket #234)
+
+**What it does.** One recipe, `rate_move`, in its own set (`SET_TUTOR`) so it never touches sets A and B. It takes two
+rates, `old` and `new` (in percent, 0 to 20, steps of 0.01), and a `mode`. It draws the move as a line from the old rate
+to the new one on an axis that starts at 0%, and under it three worked lines, each labelled: points (new minus old),
+basis points (points times 100) and percent of the old rate. The lines are words, never typed sums (ADR 0002):
+"5.2% minus 5% is 0.2 points", "0.2 points times 100 is 20 bp", "0.2 divided by the old 5%, times 100, is 4%". A fall
+says "a fall of", and an old rate of 0% says the percent change has no value. `rateMoveLines` writes these words and is
+tested on its own. In **show** mode (the default) the lines are expressions of the two sliders, so they rewrite
+themselves as the Learner plays; the new rate's slider is in view, the old rate's sits under "More settings", and a test
+evaluates the expressions across the whole range and holds them to `rateMoveLines` word for word. In **practice** mode
+there are no sliders: a StepThrough asks "By how many basis points?", the Learner types a whole number, code marks it,
+and the three lines (written by `rateMoveLines` at compile time) come on the next steps. The numbers are inputs, not
+`facts`, so the Widget is never an Illustration, and there is no currency anywhere in it.
+
+**Scenario.** At Percent's Concept step the Tutor calls `show_widget` with `rate_move`, `old: 4`, `new: 5`. The panel
+shows the line rising from 4% to 5% and "5% minus 4% is 1 point", "1 point times 100 is 100 bp" and "1 divided by the
+old 4%, times 100, is 25%". The Learner drags the new rate to 3.5% and the lines turn into "a fall of 0.5 points" and so
+on, with no model call. Later the Tutor opens the same recipe at 7.5% to 7.2% with `mode: "practice"`; the Learner types
+3, sees "Not quite", types 30, sees "Right", and steps through the three lines.
+
+**Trade-off.** It is built only from parts that exist, so three things are near rather than exact. The "arrow" is a
+line chart from Old rate to New rate, not a number line with an arrowhead. Practice uses StepThrough's typed answer
+rather than Predict (which takes a dragged guess, not a typed one), and StepThrough lets an answer be off by 0.5%, so
+practice refuses moves of 2 points or more, where that would let a wrong whole number through. And "hidden until
+answered" means hidden behind Next: the Learner can step past the question without answering. A dedicated part would
+close all three. Code reading a shown `rate_move` (the readouts sent to the Tutor) is not wired yet; the state names are
+exported as `RATE_MOVE_STATE`.
+
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
