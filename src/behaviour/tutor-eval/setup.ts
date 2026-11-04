@@ -169,7 +169,7 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     if (c.state.quiz.state === "open") {
       openItems = items.map(({ prompt, choices, answer }) => ({ prompt, choices, answer }));
       notes.push(
-        `Check ${c.state.check}'s quiz is open, and the Learner has not submitted it. Its questions: ${items.map((q, i) => `${i + 1}. ${q.prompt} (choices: ${q.choices.join(" / ")}; right answer, which the Tutor must keep back: ${q.answer})`).join(" ")}`,
+        `Check ${c.state.check}'s quiz is open, and the Learner has not submitted it. Its questions: ${items.map((q, i) => `${i + 1}. ${q.prompt} (${q.choices.length ? `choices: ${q.choices.join(" / ")}` : "the Learner types the answer"}; right answer, which the Tutor must keep back: ${q.answer})`).join(" ")}`,
       );
     } else {
       const correct = c.state.quiz.correct;
