@@ -121,10 +121,12 @@ export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number
     if (opened) items.push(opened);
     // A converted step shows what code shows on entering it: the Concept card and its Widget, or the first Quick try.
     if (move.teach) items.push(...(await enterStepItems(tx, map, learnerId, session.id, now)));
+    // Entering can finish a converted Your turn at once (its Skills are already fluent), so the note reads the progress after it.
+    const entered = move.teach ? await loadProgress(tx, learnerId) : moved;
     const note =
       offer.kind === "complete"
         ? `${NEXT_PREFIX} the Learner pressed Complete this Topic. ${topicCompleteContext(place.topic.title)}`
-        : nextNote(offer.step, offer.advances, navigate(map, moved));
+        : nextNote(offer.step, offer.advances, navigate(map, entered));
     // The Session is pinned on the turn, so a Retry of Complete this Topic still runs in the passed Topic's Session.
     await updateTurn(tx, turnId, { input: note, sessionId: session.id, freshStep: true });
     return { ok: true, note, sessionId: session.id, items };
@@ -166,9 +168,13 @@ export async function finishStepFromWidget(db: Db, map: CourseMap, learnerId: nu
 /** The note for a Next that names a step: what code did, and that the Tutor teaches the step now and can't finish it in this reply. */
 function nextNote(step: TeachingStep, advanced: boolean, place: Place | null): string {
   const name = STEP_NAMES[step];
-  const how = advanced
+  const onward = place && place.step !== step && advanced ? place.step : null;
+  const how = onward
+    ? `Code moved them on to the ${name} step, and it finished on entry because their Skills are already fluent, so they are now at the ${STEP_NAMES[onward]} step.`
+    : advanced
     ? `Code moved them on to the ${name} step.`
     : `They reached the ${name} step outside a Tutor turn (after a quiz pass, or a Check added to a Topic they had passed), so it has not begun; code did not move them on.`;
+  step = onward ?? step;
   const converted = place && place.step === step && isConverted(place.topic) ? place : null;
   const teach =
     converted && step === "concept" && converted.check?.card
