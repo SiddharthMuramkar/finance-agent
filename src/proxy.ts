@@ -7,6 +7,9 @@ import { getDb } from "@/db/client";
 /** The only files a signed-out visitor may fetch besides Home: the link-preview image (site-metadata.ts). */
 const LANDING_ASSET = /^\/landing-assets\/[\w-]+\.(png|webp)$/;
 
+/** Developer pages, open without a sign-in outside production only. In production the page itself also answers 404. */
+const DEV_PAGE = /^\/dev(?:\/|$)/;
+
 /** Signing out works signed in or out, so a Learner already signed out in another tab still lands on Home. */
 const SIGN_OUT = "/api/logout";
 
@@ -38,6 +41,8 @@ async function signedIn(request: NextRequest) {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const read = request.method === "GET" || request.method === "HEAD";
+  // Developer tools (the Widget harness at /dev/widgets) need no sign-in, and exist only outside production.
+  if (read && DEV_PAGE.test(pathname) && process.env.NODE_ENV !== "production") return NextResponse.next();
   const ok = await signedIn(request);
   if (ok) {
     if (read && pathname === "/login") {

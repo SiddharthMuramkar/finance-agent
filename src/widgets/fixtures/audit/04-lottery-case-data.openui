@@ -1,0 +1,8 @@
+root = Widget("Two ways to take the same prize", [cards, sep, rates])
+ann = Query("case_data", {dataset: "mega-millions-2018/advertised-annuity"}, {rows: [], label: "", unit: "", source: "", sourceUrl: "", asOf: "", revealed: false, error: ""})
+cash = Query("case_data", {dataset: "mega-millions-2018/cash-option"}, {rows: [], label: "", unit: "", source: "", sourceUrl: "", asOf: "", revealed: false, error: ""})
+cards = Stack([cardA, cardB], "row")
+cardA = Card([InlineHeader("Option A: the annuity", "30 growing yearly payments, first one now"), TextContent(@First(ann.rows.text), "large-heavy"), TextContent("Total of all 30 payments added up", "small")])
+cardB = Card([InlineHeader("Option B: the cash option", "One payment, today"), TextContent(@First(cash.rows.text), "large-heavy"), TextContent("Paid at once", "small")])
+sep = Separator()
+rates = Card([InlineHeader("Interest on 30-year US government bonds, July to October 2018", "What a very safe 30-year loan to the US government earned each year"), HistoryChart("mega-millions-2018/treasury-30-year")])

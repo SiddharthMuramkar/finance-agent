@@ -181,3 +181,27 @@ describe("Cookies the proxy refuses", () => {
     await expectSignedOut(cookie);
   });
 });
+
+describe("Developer pages (/dev)", () => {
+  beforeEach(async () => {
+    db = await testDb();
+    vi.stubEnv("SESSION_SECRET", SECRET);
+    vi.stubEnv("PASSCODE", "the passcode");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("open without a sign-in outside production", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    expect(allowed(await proxy(request("/dev/widgets?fixture=01-sensex-milestones")))).toBe(true);
+  });
+
+  it("go through the sign-in gate in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(redirectedToLogin(await proxy(request("/dev/widgets")))).toBe(true);
+  });
+
+  it("do not open for a path that only starts with the same letters", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    expect(redirectedToLogin(await proxy(request("/devices")))).toBe(true);
+  });
+});

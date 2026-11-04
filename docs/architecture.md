@@ -3274,3 +3274,26 @@ removed Learner is signed out at once, everywhere, and the login page can never 
 and the Study Workspace. Passcodes live in an environment value, so adding a person means editing it
 and redeploying, and a passcode can't contain a comma. Dropping the defaults means any forgotten
 Learner id is an error the Learner sees, rather than a silent leak into the owner's data.
+
+## The Widget test bed (`src/widgets/fixtures/audit/`, `src/widgets/legacy-fixtures.test.tsx`, `src/app/dev/widgets/`, `scripts/layout-check.mjs`, UX audit §13)
+
+**What it does.** Three tools around the eleven Widget programs the Tutor wrote during the UX audit (3 Nov 2026), kept as
+files. (1) `legacy-fixtures.test.tsx` runs in CI: each program must pass the Widget check and draw through the real
+library and renderer, with synthetic Case Data (the real data never goes into git). (2) `/dev/widgets` is a developer page
+that draws one fixture with the real `WidgetView` in a frame with the Study aside's and Widget card's classes and test ids,
+at a panel width of 360, 480 or 560 px, in light or dark, optionally from given slider values (`?fixture=…&width=…&theme=…&state={…}`).
+Without `fixture` it lists every fixture with a link at each width. It reads Case Data JSON from the folder in
+`UX_CASE_DATA_DIR`. The proxy lets `/dev/*` through without a sign-in only outside production, and the page answers 404 in
+production too. (3) `scripts/layout-check.mjs` (`npm run layout:check`, not in CI) drives Chromium against the harness and,
+as the tools Learner on a Neon test branch, against `/study`: fit at three widths, Sensex spacing, sticky axis ticks,
+SIP's top tick, scrolling, cursor and press feedback, navigation feedback, theme tokens, touch, and Stop.
+
+**Scenario.** A later change gives every Slider row an automatic wrap. Its author opens
+`/dev/widgets?fixture=07-sip-1000-month.openui&width=360` and sees the two sliders still run off the card, runs
+`npm run layout:check` and watches the fit check go green; CI separately proves that the saved Sensex and lottery programs
+still draw after the change.
+
+**Trade-off.** The fixtures are frozen copies, so they show how old programs look today, not how the Tutor writes now; new
+fixtures are added beside them, never swapped in. The browser check is not in CI (it needs Chromium, a running server and a
+test database), so it only protects the changes someone remembers to check; the happy-dom test is the part that always runs,
+and it proves a program draws, not that it looks right.
