@@ -116,12 +116,35 @@ export function nextQuickTry(
   const used = new Set(shown.map((s) => refOfKey(s.key)).flatMap((r) => (r ? [refText(r)] : [])));
   const ofSkill = shown.filter((s) => s.skillId === skillId).length;
   const ref = pick(tries, used, opts.easier || ofSkill === 0, ofSkill);
-  const n = shown.length;
-  const key = keyOf(opts.session ?? 0, n, ref);
+  const key = freshKey(topic, shown, opts.session ?? 0, ref);
   const drills = shown.filter((s) => s.skillId === skillId && s.drill).length;
   const reason = typeof opts.drill === "string" ? opts.drill : "Back after a break: a few short tries on this idea.";
   const drill = opts.drill ? { n: drills + 1, of: DRILL_OF, reason } : undefined;
   return { ...dataOf(topic, check, key, ref), ...(drill && { drill }) };
+}
+
+/** A template draw's numbers, by the key that seeds it; null for a fixed try or a draw that fails. */
+function drawnParams(topic: Topic, key: string): string | null {
+  const found = quickTryItem(topic, key);
+  return found && "templateId" in found.item ? JSON.stringify(found.item.params) : null;
+}
+
+/**
+ * The key for the next try. A template's draw that repeats the numbers of the last try shown from that template gets
+ * its key bumped (`<n>b1`, `<n>b2`, ...) until the numbers differ, so a try after a miss always has new numbers.
+ */
+function freshKey(topic: Topic, shown: readonly QuickTryData[], session: number, ref: Ref): string {
+  const n = shown.length;
+  const key = keyOf(session, n, ref);
+  if ("fixed" in ref) return key;
+  const last = shown.findLast((s) => refText(refOfKey(s.key) ?? { fixed: "" }) === refText(ref));
+  const before = last ? drawnParams(topic, last.key) : null;
+  if (!before) return key;
+  for (let bump = 0; bump <= 20; bump++) {
+    const candidate = bump ? `qt:${session}:${n}b${bump}:${refText(ref)}` : key;
+    if (drawnParams(topic, candidate) !== before) return candidate;
+  }
+  return key;
 }
 
 /** The ref to show: half-done when wanted (a fixed one unused, else a template's half-done draw), else the next full try. */
