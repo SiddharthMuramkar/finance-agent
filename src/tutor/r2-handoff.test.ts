@@ -5,6 +5,7 @@ import { OWNER_LEARNER_ID, usageRows } from "@/db/schema";
 import { lastStepNumber, saveStepUsage, stepUsage } from "./usage";
 import type { Db } from "@/db/types";
 import { saveWidgetState } from "@/learner/widget-state";
+import { oldPercentOnly } from "@/test/old-percent-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { finishStepFromWidget } from "./next";
@@ -19,8 +20,9 @@ const TOPIC = "num-percent-bps";
 const WIDGET = "rate-change-three-ways";
 const TASK = "Set a rise from 6% to 6.4%";
 
+/** Percent as it was taught before its conversion (it had the written-ahead Widget), with a concept step that opens it. */
 function lessonMap(): CourseMap {
-  const t = REAL.topic(TOPIC)!;
+  const t = oldPercentOnly(REAL).topic(TOPIC)!;
   const body = {
     ...t,
     stage: t.stage,

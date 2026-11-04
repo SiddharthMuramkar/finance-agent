@@ -7,12 +7,12 @@
   "state": {
     "step": "your_turn",
     "check": 1,
-    "skills": [{ "skill": "pts_to_bp", "answers": ["wrong", "wrong", "right", "wrong"], "methodsUsed": ["restate", "worked"] }],
+    "skills": [{ "skill": "pts-to-bp", "answers": ["wrong", "wrong", "right", "wrong"], "methodsUsed": ["restate", "worked"] }],
     "history": [{ "learner": "ok, give me one", "tutor": "A rate falls from 7.5% to 7.2%. How many basis points did it fall?" }],
     "replyKind": "reteach"
   },
   "message": "0.3",
-  "answer": { "skill": "pts_to_bp", "verdict": "wrong" },
+  "answer": { "skill": "pts-to-bp", "verdict": "wrong" },
   "pass": [{ "kind": "maxWords", "value": 60 }],
   "graderChecks": [
     "Does it use a method other than restating the rule or a worked example (for example fill-in boxes)?",

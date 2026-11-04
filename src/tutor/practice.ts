@@ -2,7 +2,8 @@ import { and, asc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import type { Check, ConceptCard, CourseMap, FixedQuickTry, QuickTry, Topic } from "@/course/map";
 import { isConverted, testedSkills } from "@/course/map";
 import { checkSkills, finishFromPractice, navigate, practiceStep, type ParkedSkills, type Place, type Progress } from "@/course/navigator";
-import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
+import { revealMove, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
+import { loadCaseData } from "@/case-data/case-data";
 import { messages, practiceAnswers, sessionItems, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
@@ -204,6 +205,36 @@ function startValues(code: string): Record<string, number> {
 }
 
 /**
+ * At a converted Topic's reveal, its reveal Widget, once a Session: a recipe whose "{before}" and "{after}" inputs take the
+ * move the Case's dataset made across its as-of date, read from Case Data. Nothing when the Topic has none, when the Case
+ * Data does not give the move, or when the recipe does not build.
+ */
+async function storeRevealWidget(db: Db, map: CourseMap, place: Place, progress: Progress, learnerId: number, sessionId: number, now: Date): Promise<SessionItem | null> {
+  const { topic } = place;
+  const r = topic.revealWidget;
+  if (!r) return null;
+  const id = `reveal-${topic.id}`;
+  const stored = await loadSessionItems(db, sessionId, learnerId);
+  if (stored.some((i) => i.kind === WIDGET_SHOWN && i.data.id === id)) return null;
+  // The reveal has begun, so the as-of rule gives the move even before the step is saved as shown.
+  const record = progress.topics[topic.id];
+  const shown: Progress = record ? { ...progress, topics: { ...progress.topics, [topic.id]: { ...record, revealShown: true } } } : progress;
+  const move = revealMove(await loadCaseData(db, map, shown, r.case), r.dataset);
+  if (!move) return null;
+  const inputs = Object.fromEntries(Object.entries(r.inputs).map(([k, v]) => [k, v === "{before}" ? move.before : v === "{after}" ? move.after : v]));
+  const title = r.title ?? topic.cases.find((c) => c.id === r.case)?.title ?? topic.title;
+  const built = recipeById(r.recipe)?.build({ title, inputs, refs: {}, facts: {} });
+  if (!built?.ok) {
+    console.error(`Reveal Widget of Topic "${topic.id}" does not build${built ? `: ${built.error}` : ""}.`);
+    return null;
+  }
+  const data: ShownWidget = { id, recipe: r.recipe, params: built.params, title: built.title, code: built.code, source: "recipe" };
+  const item = { kind: WIDGET_SHOWN, data };
+  await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+  return item;
+}
+
+/**
  * Stores the card's Widget preset after the card: a recipe built as the lesson lint builds it (no model call), or the
  * written-ahead Widget it names. When the Widget's key already has saved state in this Session, the state is set back
  * to the preset's starting values (ticks kept), so the card always opens at its own numbers.
@@ -326,7 +357,12 @@ async function frustratedNow(db: Db, place: Place & { check: Check }, learnerId:
  * turn, the next Quick try when none is open. Anything else stores nothing, so a Topic not converted is as before.
  */
 export async function enterStepItems(db: Db, map: CourseMap, learnerId: number, sessionId: number, now: Date): Promise<SessionItem[]> {
-  const place = convertedPlace((await placeWithParked(db, map, learnerId)).place);
+  const { progress, place: at } = await placeWithParked(db, map, learnerId);
+  if (at?.step === "reveal" && isConverted(at.topic)) {
+    const item = await storeRevealWidget(db, map, at, progress, learnerId, sessionId, now);
+    return item ? [item] : [];
+  }
+  const place = convertedPlace(at);
   if (!place) return [];
   const { topic, check, step } = place;
   if (step === "concept" && check.card) {

@@ -16,7 +16,6 @@ import { presetValueProblems } from "./written-ahead-check.ts";
  * never add one.
  */
 export const LESSON_NOT_YET_CONVERTED: readonly string[] = [
-  "num-percent-bps",
   "num-probability",
   "present-value",
   "fs-income",

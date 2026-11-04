@@ -411,7 +411,21 @@ const topicSchema = z.object({
    * their step. The lesson lint fails such a Topic if any Check is required, so no Due Check appears.
    */
   restructure: z.literal("content-only").optional(),
-  checks: z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
+  /**
+   * The Widget code opens, already set, when a converted Topic's reveal begins: a recipe whose inputs written "{before}"
+   * or "{after}" take the move one of the Case's datasets made across its as-of date (read from Case Data, never typed).
+   */
+  revealWidget: z
+    .object({
+      recipe: z.string().min(1),
+      title: z.string().trim().min(1).optional(),
+      case: id,
+      dataset: id,
+      inputs: z.record(z.string(), z.unknown()),
+    })
+    .strict()
+    .optional(),
+  checks:z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
 }).superRefine((topic, ctx) => {
   // Formula markers ({{formula:...}}) must name a formula on this Topic's own list and give exactly its inputs.
   const texts = [
@@ -574,7 +588,7 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
   for (const t of topics) {
     errors.push(...connectionProblems(t, titles));
     if (t.checks.length === 0) errors.push(`Topic "${t.id}" has no Checks`);
-    errors.push(...quizProblems(t), ...insightProblems(t), ...writtenAheadProblems(t));
+    errors.push(...quizProblems(t), ...insightProblems(t), ...writtenAheadProblems(t), ...revealWidgetProblems(t));
     for (const p of t.prerequisites) {
       if (!byId.has(p)) errors.push(`Topic "${t.id}" requires "${p}", which is not on the Course Map`);
     }
@@ -665,6 +679,15 @@ function exploreWidgetProblems(t: Pick<Topic, "id" | "explore" | "widgets">): st
   const id = t.explore?.widget;
   if (!id || t.widgets.some((w) => w.id === id)) return [];
   return [`Topic "${t.id}" explore Widget "${id}" is not one of the Topic's written-ahead Widgets (under widgets:)`];
+}
+
+/** A reveal Widget reads one of the Topic's own Cases and a dataset that Case lists. */
+function revealWidgetProblems(t: Topic): string[] {
+  const r = t.revealWidget;
+  if (!r) return [];
+  const c = t.cases.find((x) => x.id === r.case);
+  if (!c) return [`Topic "${t.id}" reveal Widget reads Case "${r.case}", which is not one of the Topic's Cases`];
+  return c.data.includes(r.dataset) ? [] : [`Topic "${t.id}" reveal Widget reads dataset "${r.dataset}", which Case "${r.case}" does not list`];
 }
 
 /** Problems in a Topic's written-ahead Widgets that the file alone shows; whether each draws is the course check's job. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCourseMap } from "@/course/map";
+import { oldPercentOnly } from "@/test/old-percent-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { Budget } from "./budget";
@@ -8,7 +8,7 @@ import type { EvalReport } from "./report";
 import type { SuiteDeps } from "./run-suite";
 import { chooseSetting, DEFAULT_PAIRS, parsePairs, renderSweep, runSweep, summarisePair, sweepFiles } from "./sweep";
 
-const map = loadCourseMap();
+const map = oldPercentOnly(); // Percent before its conversion (a fixture), with its old Widget
 const all = loadCases(CASES_DIR).cases;
 const pick = (...ids: string[]) => ids.map((id) => all.find((c) => c.id === id)!) as EvalCase[];
 

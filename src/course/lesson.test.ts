@@ -98,12 +98,11 @@ explore:
     expect([...STEP_KEYS]).toEqual([...TEACHING_STEPS]);
   });
 
-  it("is used by the real Topics: present value and Percent have a goal, and Percent opens its Widget at your turn", () => {
+  it("is used by the real Topics: present value and Percent have a goal, and present value has a found line", () => {
     const map = loadCourseMap();
     expect(map.topic("present-value")?.goal).toBeTruthy();
-    const bps = map.topic("num-percent-bps")!;
-    expect(bps.goal).toBeTruthy();
-    expect(bps.steps).toEqual([expect.objectContaining({ step: "your_turn", opens: "rate-change-three-ways" })]);
+    expect(map.topic("present-value")?.found).toEqual([expect.objectContaining({ when: { kind: "ticked", widget: "annuity-worth-today", task: 2 } })]);
+    expect(map.topic("num-percent-bps")?.goal).toBeTruthy();
     expect(goalCheckErrors(map.topics)).toEqual([]);
   });
 });
@@ -156,20 +155,21 @@ describe("conditions on saved Widget state", () => {
 });
 
 describe("the Course Navigator finishes a step from saved Widget state", () => {
-  const map = loadCourseMap();
-  const topicId = "num-percent-bps";
+  // A Topic whose your turn opens its Widget and is done once the first Guided Task is ticked (Percent's old setting).
+  const map = parseCourseMap([file("steps:\n  - step: your_turn\n    opens: w\n    doneWhen: { kind: ticked, widget: w, task: 1 }")]).map!;
+  const topicId = "t";
   const progress: Progress = { currentTopicId: topicId, topics: { [topicId]: { step: "your_turn", passedChecks: [], revealShown: false, status: "in_progress" } } };
   const task = guidedTaskTexts(map.topic(topicId)!.widgets[0].code)[0];
-  const done: Record<string, SavedWork> = { "rate-change-three-ways": { values: { $old: 6, $new: 6.4 }, ticked: [task] } };
+  const done: Record<string, SavedWork> = { w: { values: { $rate: 0 }, ticked: [task] } };
 
   it("knows the current step's setting", () => {
     const place = navigate(map, progress)!;
     expect(place.step).toBe("your_turn");
-    expect(stepSetting(place.topic, place.step, place.check)?.opens).toBe("rate-change-three-ways");
+    expect(stepSetting(place.topic, place.step, place.check)?.opens).toBe("w");
   });
   it("is done only once the condition holds", () => {
     expect(widgetDone(map, progress, {})).toBe(false);
-    expect(widgetDone(map, progress, { "rate-change-three-ways": { values: {}, ticked: [] } })).toBe(false);
+    expect(widgetDone(map, progress, { w: { values: {}, ticked: [] } })).toBe(false);
     expect(widgetDone(map, progress, done)).toBe(true);
     expect(finishFromWidget(map, progress, {}).ok).toBe(false);
   });

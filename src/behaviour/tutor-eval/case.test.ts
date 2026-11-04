@@ -86,6 +86,6 @@ describe("the suite's own cases", () => {
     };
     for (const id of ["T1", "T11"]) expect(state(id)).toMatchObject({ step: "check", check: 1, quiz: { state: "open" } });
     expect(state("T2")).toMatchObject({ step: "check", check: 1, quiz: { state: "missed", correct: 0 } });
-    expect(state("T3")?.skills?.[0]).toMatchObject({ skill: "pts_to_bp", methodsUsed: ["restate", "worked"] });
+    expect(state("T3")?.skills?.[0]).toMatchObject({ skill: "pts-to-bp", methodsUsed: ["restate", "worked"] });
   });
 });

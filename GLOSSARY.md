@@ -196,7 +196,7 @@ An interactive picture beside the conversation, either written ahead for a Topic
 _Avoid_: artifact, card (on its own)
 
 **Written-ahead Widget**:
-A Widget written in a Topic's file, such as Percent's "One rate change, said three ways". The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.
+A Widget written in a Topic's file, such as present value's "What the annuity is worth today" (`annuity-worth-today`). The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.
 _Avoid_: template, preset Widget
 
 **Widget recipe**:
