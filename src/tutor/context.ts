@@ -1,11 +1,11 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import { REFERENCE_CASE } from "@/case-data/reference";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
-import type { Insight, Piece } from "@/course/map";
+import { isConverted, type ConceptCard, type Insight, type Piece } from "@/course/map";
 import { plainFormulaText as plain } from "@/finance/formula-text";
 import type { ExploreInfo } from "@/learner/insight";
 import { formulaById, formulaGuide } from "@/finance/formulas";
-import { stepSetting, TEACHING_STEPS, type Place } from "@/course/navigator";
+import { practiceStep, stepSetting, TEACHING_STEPS, type Place } from "@/course/navigator";
 import { describeCondition, writtenAheadWidgets } from "@/course/written-ahead";
 import { exploreWidgetOf } from "@/course/explore-widget";
 import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
@@ -18,6 +18,23 @@ import type { TurnFacts } from "./turn-facts";
 export const IDLE_TURNS_BEFORE_REMINDER = 2;
 
 const AFTER_REVEAL =TEACHING_STEPS.indexOf("reveal");
+
+/** A Concept card as the Tutor reads it: its title, its lines and the line to write down. */
+export function cardText(card: ConceptCard): string {
+  return `"${card.title}": ${card.lines.join(" ")} Write down: ${card.writeDown}`;
+}
+
+/** The Concept card code shows at this place: at the Concept step of a converted Topic's Check that has one. */
+function shownCard(place: Pick<Place, "topic" | "step" | "check">): ConceptCard | undefined {
+  return place.step === "concept" && isConverted(place.topic) ? place.check?.card : undefined;
+}
+
+/** What the Tutor is told at a converted Concept step: code showed the card and its Widget; the Tutor adds one sentence and one ask. */
+const CARD_SHOWN = "Code has shown this Concept card and its Widget in the conversation, already set to the card's numbers. Add one sentence and one ask; never write your own version of the card.";
+
+/** What the Tutor is told at a converted Your turn: code shows and marks the Quick tries, and finishes the step. */
+const QUICK_TRIES =
+  "Your turn: code shows Quick tries one at a time under your reply and marks each answer at once. Write no practice questions of your own and never mark an answer. Code finishes this step once every idea of the Check has two right answers in a row; you cannot finish it.";
 
 /**
  * The note code writes for an opener (no Learner message comes with it): teach the Learner's saved step.
@@ -35,6 +52,8 @@ export function openerNote(place: Place | null, { quizOpen }: { quizOpen: boolea
     const blocked = facts?.blockedNumbers.length ? ` Keep away from these numbers: ${facts.blockedNumbers.join(", ")}.` : "";
     return `${resumed} The quiz for ${at} is open on the right, in the Check tab. Point the Learner to it in a sentence or two, and offer help now: you may teach the idea, show a Widget or start again, with numbers that are not in its questions. Never give or confirm the answer to an open question.${blocked}`;
   }
+  if (shownCard(place)) return `${resumed} Code shows this step's Concept card and its Widget as this turn starts: add one sentence and one ask.`;
+  if (practiceStep(place.topic, place.step, place.check)) return `${resumed} Code shows the next Quick try as this turn starts: welcome them back in a sentence and point to it.`;
   return `${resumed} Teach this step afresh.`;
 }
 
@@ -91,6 +110,9 @@ export function stepContext(
   ];
   if (facts) lines.push(...factLines(facts, step));
   if (topic.goal) lines.push(`Topic goal (the Learner sees this line in the Topic bar): ${plain(topic.goal)}`);
+  if (topic.terms.length) {
+    lines.push(`Terms this Topic introduces (define any you use where it first appears): ${topic.terms.map((t) => `${t.term}: ${plain(t.means)}`).join(" ")}`);
+  }
   lines.push(...stepSettingLines(place));
   const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
   if (formulas.length) {
@@ -106,7 +128,13 @@ export function stepContext(
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
   lines.push(...referenceLines(caseData.find((d) => d.caseId === REFERENCE_CASE)));
-  if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
+  const card = shownCard(place);
+  const practice = practiceStep(topic, step, check);
+  // The card goes in place of the concept text; with this turn's facts it is already in their lines, so it is not written twice.
+  if (card) lines.push("", ...(facts?.card ? [] : [`Concept card on screen: ${plain(cardText(card))}`]), CARD_SHOWN);
+  else if (practice && check?.card) lines.push("", `Concept card (on screen earlier): ${plain(cardText(check.card))}`, QUICK_TRIES);
+  else if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
+  if (practice && !check?.card) lines.push(QUICK_TRIES);
   if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, exploreWidgetOf(topic)?.code));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
@@ -150,6 +178,8 @@ export function stepContext(
     "",
     step === "explore" && !explore?.settled
       ? "You cannot finish explore yet: code accepts it only once record_insight_attempt has recorded the Insight as found or told."
+      : practice
+      ? "Do not call finish_teaching_step for your_turn: code finishes it from the Quick tries."
       : step !== "check"
       ? `When this Teaching Step is done, call finish_teaching_step with step "${step}".`
       : check && quizUnavailable

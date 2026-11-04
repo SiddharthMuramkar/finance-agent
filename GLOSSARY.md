@@ -44,6 +44,10 @@ _Avoid_: Lesson card, explainer, card (on its own)
 One short practice question at the your-turn step, set easiest first: the Learner types a number or picks True or False, and code marks it at once. It counts toward no Check.
 _Avoid_: Exercise, drill question, practice item
 
+**Quick-try follow-up**:
+The short Tutor turn code starts by itself after a Quick try marked wrong with no Known mistake to match: the Tutor names the slip in one sentence and gives the fix, then code shows a fresh Quick try. Code also starts one when Your turn finishes, to point the Learner to the Check.
+_Avoid_: Retry turn, feedback turn
+
 **Known mistake**:
 A wrong answer the Topic's file expects for a question, such as 6 for 60 (multiplied by 10, not 100), with a one-line fix that code shows the moment the Learner gives it.
 _Avoid_: Slip, error tag, misconception
