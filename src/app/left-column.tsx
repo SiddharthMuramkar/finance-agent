@@ -33,6 +33,7 @@ export function LeftColumn({
   explore,
   passed = null,
   next = null,
+  openQuestion = null,
 }: {
   /** The Next the Course Navigator offers now (null while a Check is open), drawn as the chip under the latest reply. */
   next?: NextOffer | null;
@@ -45,8 +46,10 @@ export function LeftColumn({
   quizOpen: boolean;
   explore: { code: string; id: string } | null;
   passed?: PassedTopic;
+  /** The question the Tutor has put to the Learner and is waiting on (the Insight question): a slim line pinned above the message box. */
+  openQuestion?: string | null;
 }) {
-  const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
+  const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, progress, stopping, stop } = turn;
   // The chips stand only under the latest Tutor reply or card: never under the Learner's own message, during a
   // turn, before the page has re-read the Learner's place after one, with Retry on offer, or on a passed Topic.
   // While a Check is open there is no Next, and the two help chips stay. Under the Topic Start card alone there
@@ -66,7 +69,7 @@ export function LeftColumn({
         {explore && <PinnedExplore item={exploreItem(explore.code, undefined, explore.id)} />}
         <ReviewPanel review={review} />
       </div>
-      <ThreadPrimitive.Viewport data-testid="thread-viewport" className="relative min-h-0 flex-1 overflow-y-auto pb-6">
+      <ThreadPrimitive.Viewport data-testid="thread-viewport" className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain pb-6 [scrollbar-gutter:stable]">
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />
         </div>
@@ -125,7 +128,12 @@ export function LeftColumn({
               Quiz open: the Tutor will help with these questions after you submit.
             </p>
           )}
-          <MessageBox waiting={waiting} passage={passage} onPassage={setPassage} />
+          {openQuestion && (
+            <p className="mb-2 truncate text-xs leading-4 text-[var(--muted)]" data-testid="open-question" title={openQuestion}>
+              <span className="font-medium">Open question:</span> {openQuestion}
+            </p>
+          )}
+          <MessageBox waiting={waiting} passage={passage} onPassage={setPassage} running={running} stopping={stopping} progress={progress} onStop={stop} />
         </>
       )}
     </ThreadPrimitive.Root>

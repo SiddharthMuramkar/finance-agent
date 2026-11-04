@@ -29,6 +29,9 @@ function Column({ given }: { given: Given }) {
     canRetry: false,
     cutShort: false,
     waiting: null,
+    progress: null,
+    stopping: false,
+    stop: () => {},
     passage: null,
     setPassage: () => {},
     send: async () => {},
@@ -114,12 +117,12 @@ const sendButtons = (html: string) => html.match(/<button[^>]*>Send<\/button>/g)
 const messageBox = (html: string) => html.match(/<textarea[^>]*aria-label="Message"[^>]*>/)?.[0] ?? "";
 
 describe("drafting during a turn", () => {
-  it("keeps the message box editable while a turn runs, with Send off", () => {
+  it("keeps the message box editable while a turn runs, with Send turned into Stop", () => {
     const html = column({ running: true, waiting: "writing" });
     expect(messageBox(html)).not.toBe("");
     expect(messageBox(html)).not.toContain("disabled");
-    expect(sendButtons(html)).toHaveLength(1);
-    expect(sendButtons(html)[0]).toContain('disabled=""');
+    expect(sendButtons(html)).toHaveLength(0);
+    expect(html).toContain('data-testid="stop-reply"');
   });
 
   it("keeps Send off while the box is empty", () => {

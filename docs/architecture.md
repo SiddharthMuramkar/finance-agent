@@ -3428,3 +3428,23 @@ title, not the kit's indigo, even when his iPad itself is set to light.
 **Trade-off.** The skeleton is drawn from the page's layout by hand, so it can drift from the real page when that page's
 layout changes. In return the first paint after a click is instant and nothing jumps. The OpenUI mapping lives in two places
 (code and CSS) because CSS cannot import code; the test is what keeps them honest.
+
+## The composer: Stop, progress labels and the open question (`message-box.tsx`, `turn-stream.ts`, `left-column.tsx`, `session-item-view.tsx`, UX audit 4.1b, 4.2e, 5.11, 5.12, 8.5, 10.1)
+
+**What it does.** The browser half of Stop and progress. While a reply runs, Send becomes a Stop button with a
+spinner. Stop is its own request (`{ stop: true }`); the reply's stream is never cut, so it ends by itself with
+`stopped` then `done`, and the browser treats that as finished (no resume). It keeps the words written, drops a
+Widget the Tutor had not finished, and draws a small muted "Stopped" note where the reply ended (the same item the
+server stores, so a reload agrees). `progress` events replace "Tutor is writing…" in the writing indicator
+("Looking up Case Data…"); the first words of the reply clear the label; `ping` is ignored. Attach a passage is a
+ghost button with a paperclip that reports `aria-pressed`. The chat viewport scrolls inside itself
+(`overscroll-contain`, a stable scrollbar gutter, and `relative` so hidden labels stay inside it). A slim line above
+the message box pins the open question (the Insight question) while the Insight is unsettled.
+
+**Scenario.** The Learner asks for a chart, sees "Looking up Case Data…", then the words arrive. They change their
+mind and press Stop: the button reads "Stopping…" and about half a second later the reply ends with "Stopped" under
+it and Send comes back.
+
+**Trade-off.** If Stop lands before the server has saved the turn, it answers `{ stopping: false }`, so the browser asks
+again a few times (400 ms apart) before giving up. The pinned question only shows when the page passes one; it is
+not worked out from the conversation.
