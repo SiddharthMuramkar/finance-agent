@@ -60,6 +60,10 @@ _Avoid_: Legacy session, archived session
 The Tutor's first reply in a Topic's Session, which starts by itself when the Learner opens a Topic they have not begun, before they write anything.
 _Avoid_: Greeting, intro message
 
+**Stop**:
+What the Learner presses while the Tutor is writing a reply: the reply ends where it was, keeps what it had written (less any Widget it had not finished), and is marked "Stopped".
+_Avoid_: Cancel, abort
+
 **Step divider**:
 The line in a Session's conversation that marks where a Teaching Step began, such as "Step 5 of 10 · Concept".
 _Avoid_: Separator, section header
