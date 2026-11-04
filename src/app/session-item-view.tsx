@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
 import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, OFF_TOPIC, PICKING_UP, STEP_DIVIDER, STOPPED, type OffTopicData, type SessionItem } from "@/tutor/session-item-kinds";
+import { PARK_DRILL, PARK_OFFER, PARKED, type ParkedData, type ParkOfferData } from "@/tutor/park-items";
 import { TOPIC_COMPLETE, type TopicCompleteData } from "@/tutor/topic-complete-card";
+import { ParkedLine, ParkOfferView } from "./park-offer-view";
 import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
@@ -80,6 +82,12 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.
   [TOPIC_COMPLETE]: (data) => (typeof data.title === "string" && typeof data.principle === "string" ? <TopicCompleteCard card={data as TopicCompleteData} /> : null),
+  // After a third miss in a row: code's park offer, "Park it, review tomorrow" and "One more short try".
+  [PARK_OFFER]: (data) => (typeof data.skillId === "string" && typeof data.line === "string" ? <ParkOfferView data={data as ParkOfferData} /> : null),
+  // Once parked: "Back tomorrow after Thu 3:00 pm", with the Course Map a click away.
+  [PARKED]: (data) => (typeof data.line === "string" ? <ParkedLine data={data as ParkedData} /> : null),
+  // Before a parked Skill's drill of five: "Drill · <Skill>".
+  [PARK_DRILL]: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="park-drill-divider" /> : null),
   // Never stored: the Topic Start card, worked out from course data on each render as the conversation's first item.
   [TOPIC_START]: (data) => (typeof data.title === "string" ? <TopicStartCard card={data as TopicStartData} /> : null),
 };
