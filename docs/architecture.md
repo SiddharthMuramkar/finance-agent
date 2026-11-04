@@ -1484,6 +1484,36 @@ and sourcing each one. The Tutor learns about a result late (on the next message
 of submission), which keeps the quiz free of model calls. Imported open question banks, spaced
 review and a Question Bank in the database come in later tickets.
 
+### Typed questions, fresh numbers and Known-mistake fixes (spec #229, ticket #241; `src/course/quiz.ts`, `src/bank/lookup.ts`, `src/learner/quiz.ts`, `src/tutor/check-results.ts`, `src/app/quiz-panel.tsx`)
+
+**What it does.** A quiz Check may list question templates beside its questions. A template slot in an attempt is
+stored in `question_ids` as `<templateId>#<seed>`; pure code rebuilds the numbers and the answer from the seed
+(`drawTemplate`), so nothing new is stored and there is no migration. `selectQuestions` still walks round the
+questions and then the templates and returns the bare template id for a slot; `openQuiz` turns each into an instance
+id (`instantiateSlots`) when it makes the attempt. The seed is made from the Learner, the Check, the attempt number and
+the slot, and a draw that repeats the numbers of the Learner's last attempt (or of an earlier slot) is stepped on until
+they differ. `questionLookup` resolves instance ids, so opening, marking, the Tutor's note and the Check tab after a
+miss all see the same numbers; a bare template id is never resolved, so the next attempt's numbers are not blocked
+before they are drawn. An instance's lookup entry carries the drawn prompt, no choices and its answer in words ("60 bp"),
+which is what the Tutor's blocked numbers read. A template that is gone counts as a removed question; templates make
+`quizUnavailable` false.
+
+**Scenario.** A Learner sees "A rate moves from 2% to 2.6%. How many basis points?" with a number box labelled "Answer
+in basis points". They type 0.6. Code marks "60 bp", "60" and "60.0" right and 0.6 as the Known mistake "stopped at
+points", so the Check tab shows "Your answer: 0.6 – right answer: 60 bp" and the template's one-line fix. A wrong
+multiple-choice option with a `mistake` shows its fix the same way. After a miss, the Tutor's note names the missed
+question's Skill as its rule in words, never its id, and the fix. Try again draws new numbers.
+
+**Skill state.** In the transaction that saves a first submission, every question with a Skill is logged with
+`recordAnswer` (source `quiz`, item key `quiz:<attemptId>:<questionId>`; a typed one also keeps its template and
+numbers). Right, a Known mistake that has a tag, and everything else (wrong) map to the three verdicts. A repeat
+submission records nothing. No real Topic has a Skill-tagged question until it is converted, so nothing is recorded in
+production before then.
+
+**Trade-off.** Seeds make a typed attempt cheap to store and exact to replay, but an instance cannot be edited once
+shown; and typed questions are left out of Reviews (see "Spaced review"), because a card needs a fixed question.
+
+
 ## Case Data (`src/case-data/`, `/api/case-data/[caseId]`, `npm run case-data:import`)
 
 **What it does.** Case Data is the checked historical data a Case is taught with: a few headline
@@ -2638,6 +2668,13 @@ day" study but cannot do same-day repeats of a missed question. Only questions s
 Map are offered, so deleting a question quietly retires its card. A rolling 24 hours rather than a
 calendar day means no time zone is needed and midnight never frees a second batch, at the price
 that the next review returns at a time of day the Learner may not expect.
+
+**Typed questions stay out (spec #229, ticket #241).** A typed Check question is a draw of a question template, kept in
+`question_ids` as `<templateId>#<seed>`. `enrollPassedQuestions` skips every such id, so only multiple-choice questions
+get a Review card, and Reviews behave exactly as before. The reason: a card holds a question id, and a typed question's
+numbers belong to one attempt, so there is nothing fixed to bring back later. The Skill state (see the quiz section)
+is what carries a typed miss forward instead.
+
 
 ## Library (`src/library/`, `search_library` tool, `npm run library:load`, `library:embed`, `library:score`)
 
@@ -3990,3 +4027,11 @@ each turn to one small read, but the row and the log could drift if one were edi
 the state can be rebuilt from it. The ladder is the same for every Topic and lives in code, which keeps Topic files small
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
+
+## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
+
+**What it does.** Two commands turn the go-live checks into one step each, and neither runs in `npm run check`. `npm run tutor:sweep` runs the live Tutor tests (T1 to T11, three runs each) once for every model and effort pair in `TUTOR_EVAL_MODELS` (default: Opus 5.5 low, Opus 5.5 medium and Sonnet 5.5 medium), each pair on its own spend cap (`TUTOR_EVAL_BUDGET_USD`, $5 by default). It uses the suite's own runner, so a pair is judged exactly as `npm run tutor:eval` judges one. One combined report gives each pair's runs passed, cases passed, spend and cost per turn, and names the cheapest pair that passed every case three times out of three. `npm run tutor:replay` reads the last 50 Learner turns from the stored Sessions (read-only; the script starts the replay with the database address removed from its environment), turns each into a case with the state the Learner had, sends it through the real Tutor Turn on a throwaway in-memory database, runs `fixReply` and `checkReply` on the reply, and writes the pass rate for each rule V1 to V7, the longest reply in words, and every failure in full. Reports go to `evidence/tutor-eval/`, which git ignores because the replay holds Learner messages.
+
+**Scenario.** The owner runs `npm run tutor:sweep`. Opus low passes everything at $0.21 a turn, Opus medium at $0.34, and Sonnet medium fails T4 once in three runs. The report chooses Opus 5.5 low. The owner stores it in the settings table, then runs `npm run tutor:replay -- --model claude-opus-5-5 --effort low --engine on`. The report shows V1 at 50 of 50 and a longest reply of 97 words, so the widget engine goes on.
+
+**Trade-off.** The sweep spends real money (up to the cap for every pair), and the cap stops a pair rather than the whole sweep, so a bad pair costs at most its cap. The rule picks the cheapest passing pair, so a flaky pass at three runs can win by luck; the report shows the runs passed so the owner can see it. The replay re-sends only the Learner's message with the state rebuilt from the log (methods used come from today's Skill state), so it is close to the original turn, not identical. Stored turns that need a Skill the Topic no longer lists are skipped and listed, not counted as passes.
