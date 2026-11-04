@@ -35,8 +35,8 @@ describe("the rules tuned against the live tests", () => {
         expect(text).toContain("Do not answer a question you left open: ask it again, in plainer words.");
       });
 
-      it("a quiz-me ask gets one question in 40 words or fewer", () => {
-        expect(text).toContain('"Ask me a question" gets one question, in 40 words or fewer.');
+      it("a quiz-me ask gets one question in 40 words or fewer, with nothing after it", () => {
+        expect(text).toContain('"Ask me a question" gets one question, in 40 words or fewer, with nothing after it: not even "Type your answer in the Widget".');
       });
 
       it("the Learner's own rule is saved before any prose, then confirmed in one sentence with nothing before the ask", () => {
@@ -45,7 +45,9 @@ describe("the rules tuned against the live tests", () => {
       });
 
       it("asked for the answer to one open question, the Tutor teaches only the idea that question tests", () => {
-        expect(text).toContain("Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it), then ask about that idea.");
+        expect(text).toContain(
+          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): a few words that keep the answer back, the method in one or two sentences on other numbers, then one ask on that idea.",
+        );
       });
     });
   }

@@ -1822,7 +1822,10 @@ then one similar item on new numbers with its last step left as the ask. Fill-in
 filled boxes are only a worked example. On the boxes rung, code's re-teach note says so too: "name the slip in one
 sentence, then one similar item on new numbers as boxes", "the blank last box is your one ask", and "Code posts a
 half-done try after your reply" (it used to say "has posted", for a try that is not on screen until the reply ends).
-The other rungs still say "write no practice question of your own". "Simpler" means less: the first idea only,
+The note also quotes that try: `reteachFor` picks it ahead without storing it, the way `afterReteachItems` will (the
+pick reads only the Session's tries and the Skill state, which the turn does not change), so the reply sets its boxes
+on the try's numbers and the reply and the try are one item, not two asks. The other rungs still say "write no
+practice question of your own". "Simpler" means less: the first idea only,
 nothing the earlier reply lacked (not even the Topic's analogy), and an open question asked again rather than answered.
 "Ask me a question" and frustration replies get 40 words, and with "use widgets" the engine shows rate_move in practice
 mode for a rate move. The Learner's own rule goes to save_learner_rule before any prose (code decides whether it may be
@@ -1844,9 +1847,9 @@ answer to question 1" now gets the method for points only, because the context s
 new rate minus the old rate". Trade-off: the reply checks keep the
 spec's 80 and 120 caps, so the Tutor is told a tighter limit than it is held to, and a draft a few words over its aim is
 shown, not retried. Reading a Reply kind from words is a guess: "don't ask me" reads as a quiz-me ask, and "give me a
-question" does not. On the boxes rung the Learner sees the reply's boxes and then code's half-done try, two items on
-one idea. The ideas line says which Skill each open question tests, never its answer. The rules grow by about 1,600
-characters.
+question" does not. On the boxes rung the reply's boxes and code's half-done try below carry the same numbers, so the
+Learner reads that question twice, once as boxes and once with an answer box. The ideas line says which Skill each open
+question tests, never its answer. The rules grow by about 1,700 characters.
 
 ### Turn facts: what code knows before the Tutor writes (`src/tutor/turn-facts.ts`, `src/tutor/context.ts`, spec #229, ticket #238)
 
