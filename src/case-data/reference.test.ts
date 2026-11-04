@@ -111,3 +111,47 @@ describe("the Course Map and the reserved Case", () => {
     expect(errors.join("\n")).toMatch(/no reference dataset "nope"/);
   });
 });
+
+describe("importing reference datasets", () => {
+  it("rejects an unknown reference dataset id, naming the allowed ids", async () => {
+    const db = await testDb();
+    await expect(importCaseData(db, [series("not-a-real-id", [["2020-01-01", 1]])])).rejects.toThrow(/not-a-real-id.*usd-inr/s);
+  });
+
+  it("accepts a listed reference dataset", async () => {
+    const db = await testDb();
+    await expect(importCaseData(db, [series("usd-inr", [["2020-01-01", 71]])])).resolves.toMatchObject({ datasets: 1 });
+  });
+});
+
+describe("the reference clip across Topics", () => {
+  const twoTopics = parseCourseMap([
+    { name: "a.yaml", text: topicText("crash-a").replace("id: pv", "id: topic-a").replace("1992-04-01", "2012-01-01") },
+    {
+      name: "b.yaml",
+      text: topicText("crash-b").replace("id: pv", "id: topic-b").replace("path: 1", "path: 2").replace("pv-check", "b-check").replace("1992-04-01", "2008-01-01"),
+    },
+  ]).map!;
+  const prog = (a: boolean, b?: boolean): Progress =>
+    ({
+      currentTopicId: "topic-a",
+      topics: {
+        "topic-a": { step: "reveal", passedChecks: [], revealShown: a, status: "in_progress" },
+        ...(b === undefined ? {} : { "topic-b": { step: "story", passedChecks: [], revealShown: b, status: "in_progress" } }),
+      },
+    }) as Progress;
+
+  it("clips to another started, unrevealed Topic even when the current Topic is revealed", async () => {
+    const db = await testDb();
+    await importCaseData(db, [series("usd-inr", [["2007-01-01", 40], ["2008-01-01", 39], ["2010-01-01", 45], ["2020-01-01", 71]])]);
+    const clipped = (await loadCaseData(db, twoTopics, prog(true, false), REFERENCE_CASE))!;
+    const dates = clipped.datasets.flatMap((d) => d.points.map((p) => p.date));
+    expect(dates.length).toBeGreaterThan(0);
+    expect(dates.every((d) => d <= "2008-01-01")).toBe(true);
+    expect(clipped.revealed).toBe(true);
+    expect(clipped.clip).toBe("2008-01-01");
+    const full = (await loadCaseData(db, twoTopics, prog(true, true), REFERENCE_CASE))!;
+    expect(full.datasets[0].points).toHaveLength(4);
+    expect(full.clip).toBeNull();
+  });
+});

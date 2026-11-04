@@ -16,17 +16,23 @@ const CaseDataContext = createContext<CaseDataCache | null>(null);
 export function CaseDataProvider({
   revealed = [],
   turnRunning = false,
+  referenceClip,
   cases,
   children,
 }: {
   revealed?: readonly string[];
   turnRunning?: boolean;
+  /** The date the reference Case is clipped to (referenceClip in case-data.ts), when the page knows it; a change refetches the reference Case. */
+  referenceClip?: string | null;
   cases?: readonly CaseData[];
   children: ReactNode;
 }) {
   const [cache] = useState(() => createCaseDataCache(cases && (async (caseId) => cases.find((c) => c.caseId === caseId) ?? null), revealed));
   const shown = revealed.join(" ");
   useEffect(() => cache.setRevealed(shown ? shown.split(" ") : []), [cache, shown]);
+  useEffect(() => {
+    if (referenceClip !== undefined) cache.setReferenceClip(referenceClip);
+  }, [cache, referenceClip]);
   const wasRunning = useRef(turnRunning);
   useEffect(() => {
     if (wasRunning.current && !turnRunning) void cache.revalidate();
