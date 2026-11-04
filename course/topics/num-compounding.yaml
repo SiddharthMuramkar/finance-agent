@@ -284,10 +284,10 @@ checks:
       title: "Growth on growth"
       lines:
         - "₹1,000 grows 10% a year. After one year it is ₹1,100."
-        - "The next 10% is on ₹1,100, so year two ends at ₹1,210, and year three at ₹1,331."
-        - "A fall and an equal rise lose money: ₹1,000 down 20% is ₹800, and 20% up is only ₹960."
-        - "Rule of 72: divide 72 by the yearly rate. At 6% a year, money doubles in about 12 years."
-      writeDown: "Each year grows on the new total. To double, divide 72 by the rate."
+        - "Year two adds 10% of ₹1,100, which is ₹110: ₹1,210. Year three adds ₹121: ₹1,331."
+        - "A fall then a rise of the same percent loses money. ₹1,000 down 20% is ₹800. Up 20% adds only ₹160: ₹960."
+        - "Rule of 72: at 6% a year, 72 divided by 6 gives about 12 years to double."
+      writeDown: "Compounding: each year grows on the new total. To double, divide 72 by the rate."
       skills: [compound-growth, fall-and-recover, rule-of-72]
       widget:
         recipe: formula
@@ -360,10 +360,10 @@ checks:
     card:
       title: "One steady rate"
       lines:
-        - "CAGR is the one steady yearly rate that gets from a start to an end."
+        - "CAGR, the compound annual growth rate, is the one steady yearly rate that gets from a start to an end."
         - "₹1,000 became ₹1,331 in 3 years. Growing 10% a year does exactly that, so the CAGR is 10%."
-        - "Dividing the ₹331 gain by 3 years says about 11% a year. That is too high, because it skips growth on growth."
-        - "Log returns are a second way to measure growth. For a rise they are a little smaller, and back-to-back ones add up."
+        - "Spreading the ₹331 gain evenly gives ₹110 a year, 11% of ₹1,000: too high, as it skips growth on growth."
+        - "Log returns measure growth so that years add up: 0.3 one year and 0.1 the next make 0.4. For a rise, a log return is a little below the percent change."
       writeDown: "CAGR is the steady rate from start to end. Log returns add across years."
       skills: [cagr, log-return]
       widget:
@@ -428,14 +428,15 @@ checks:
       title: "Is the pace steady?"
       lines:
         - "A long-run CAGR can hide an uneven path."
-        - "Split the run into stretches, and find the CAGR of each with the steady-rate card."
-        - "If the last stretch grew far faster than the whole run, the pace was not steady."
-      writeDown: "Check the pace of each stretch, not only the whole run."
+        - "A made-up example: 100 became 600 in 10 years, about 20% a year."
+        - "But the last 2 years went from 300 to 600, about 41% a year."
+        - "When the last stretch is far faster than the whole run, the pace was not steady."
+      writeDown: "Find the CAGR of each stretch, not only of the whole run."
       skills: [cagr]
       widget:
         recipe: formula
-        title: "The steady rate of one stretch"
+        title: "The steady rate of the last stretch"
         inputs:
           formula: cagr
-          slider: { symbol: years, label: "Years the stretch took", min: 1, max: 20, step: 1, start: 4 }
-          held: { start: 200, end: 800 }
+          slider: { symbol: years, label: "Years the stretch took", min: 1, max: 20, step: 1, start: 2 }
+          held: { start: 300, end: 600 }

@@ -84,6 +84,14 @@ describe("Growth, compounding and logs, converted", () => {
       for (const figure of ["₹1,000", "₹1,100", "₹1,210", "₹1,331"]) expect(lines).toContain(figure);
       for (const years of [1, 2, 3]) expect(calc("future_value", { amount: 1000, ratePercent: 10, years }, "Future value")).toBeCloseTo([1100, 1210, 1331][years - 1], 9);
     });
+
+    it("round the third card's made-up stretches as the calculator does: 100 to 600 in 10 years is about 20%, 300 to 600 in 2 is about 41%", () => {
+      const lines = topic.checks[2].card!.lines.join(" ");
+      expect(lines).toContain("about 20% a year");
+      expect(lines).toContain("about 41% a year");
+      expect(Math.round(calc("cagr", { start: 100, end: 600, years: 10 }, "CAGR"))).toBe(20);
+      expect(Math.round(calc("cagr", { start: 300, end: 600, years: 2 }, "CAGR"))).toBe(41);
+    });
   });
 
   describe("the Quick tries", () => {
