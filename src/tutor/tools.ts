@@ -19,7 +19,8 @@ import { shownWidgetOf, WIDGET_SHOWN, type ComposeTimings, type ShownWidget } fr
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
 import { anthropicComposeClient, COMPOSE_LABEL, composeLimitMs, composeProgram, fallbackCandidates, type ComposeClient, type Composed } from "./compose";
-import { readSettings, usesWidgetEngine } from "./session-log";
+import { readSettings, usesWidgetEngine, withoutRejected } from "./session-log";
+import { REPLY_CHECK_PREFIX } from "./turn-status";
 import { stepUsage, type StepUsage } from "./usage";
 import { loadWrittenAhead, openedItem, saveOpenedState } from "./written-ahead";
 import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, sliderSpecs, TUTOR_RECIPE_IDS } from "./ready-made-widgets";
@@ -315,7 +316,12 @@ export function toolCode(
       .leftJoin(sessions, eq(sessions.id, turns.sessionId))
       .where(eq(turns.id, turnId));
     if (row?.sessionId == null || row.turnSeq == null) return null;
-    const rows = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
+    const stored = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
+    // During the one retry the rejected draft is not the reply: its rows, up to the correction, are left out. The record
+    // of them is saved only when the turn ends, so the correction row is the marker (nothing to read, nothing to fail).
+    const turnSeq = row.turnSeq;
+    const correction = stored.findLast((r) => r.seq > turnSeq && r.role === "user" && textOf(r.content).startsWith(REPLY_CHECK_PREFIX));
+    const rows = correction ? withoutRejected(stored, new Set(stored.filter((r) => r.seq > turnSeq && r.seq <= correction.seq).map((r) => r.seq))) : stored;
     const items = await loadSessionItems(tx, row.sessionId, learnerId);
     return {
       sessionId: row.sessionId,
