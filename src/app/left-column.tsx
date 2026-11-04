@@ -140,9 +140,9 @@ export function LeftColumn({
       ) : (
         <>
           {quizOpen && (
-            // The box stays usable: the Learner can still ask about anything else while the quiz is open.
+            // The box stays usable, and the Tutor helps now: it teaches with other numbers and keeps back only the open answers.
             <p className="mb-2 text-xs leading-4 text-[var(--muted)]" data-testid="quiz-note">
-              Quiz open: the Tutor will help with these questions after you submit.
+              Quiz open. Stuck? Ask the Tutor: it can explain with other numbers.
             </p>
           )}
           {openQuestion && (
