@@ -6,9 +6,8 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { TOPIC_START } from "@/course/topic-start";
 import { replaceBrokenWidgets, withoutLeftOut } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
-import type { TurnRef } from "@/tutor/transcript";
+import type { StreamEvent } from "@/tutor/turn";
 import type { TurnBody } from "@/tutor/turn-body";
-import type { TurnUsage } from "@/tutor/usage";
 import type { WidgetStates } from "@/widgets/widget-state";
 import type { SessionItemData } from "./session-item-view";
 import { convertMessage, withNextStepDividers, type Line, type ThreadLine } from "./thread";
@@ -211,18 +210,19 @@ export function useTurnStream({
           buffer = parts.pop() ?? "";
           for (const part of parts) {
             if (!part) continue;
-            const event = JSON.parse(part);
+            // The route streams the Tutor Turn's events as they are (StreamEvent), so the compiler checks each field read here.
+            const event = JSON.parse(part) as StreamEvent;
             // The first words of the reply end the writing indicator.
             if ((event.type === "text" || event.type === "replay") && event.text) setWaiting(null);
             if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
             else if (event.type === "text") correction += event.text;
             else if (event.type === "replay") replaceReply(event.text);
             // An item the correction stores (a written-ahead Widget opened instead) stands after the reply it corrects.
-            else if (event.type === "item" && event.item) addItem(event.item as SessionItemData, correction !== null);
+            else if (event.type === "item" && event.item) addItem(event.item, correction !== null);
             else if (event.type === "correction") {
               correction = "";
-              const named = Array.isArray(event.widgets) ? (event.widgets as number[]) : undefined;
-              const leaveOut = Array.isArray(event.leaveOut) ? (event.leaveOut as number[]) : [];
+              const named = Array.isArray(event.widgets) ? event.widgets : undefined;
+              const leaveOut = Array.isArray(event.leaveOut) ? event.leaveOut : [];
               // Widgets a written-ahead Widget covers leave the reply now; the corrected block replaces the others.
               const after = withoutLeftOut("", named ?? [], leaveOut);
               flagged = named && after.flagged;
@@ -231,15 +231,12 @@ export function useTurnStream({
               setFixing(true);
             } else if (event.type === "done") {
               finished = true;
-              if (event.usage) {
-                const usage = event.usage as TurnUsage;
-                setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, usage } : x)));
-              }
+              const { usage, ref } = event;
+              if (usage) setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, usage } : x)));
               // What the next turn request says the page shows.
-              if (event.shown) shownRef.current = event.shown as Shown;
+              if (event.shown) shownRef.current = event.shown;
               // The finished reply can now be saved to notes (every part of it: its Widgets are saved by the whole reply's count).
-              if (event.ref) {
-                const ref = event.ref as TurnRef;
+              if (ref) {
                 setMessages((m) => m.map((x) => (partIds.includes(x.id) && x.role === "assistant" ? { ...x, ref } : x)));
               }
             } else if (event.type === "refusal") {

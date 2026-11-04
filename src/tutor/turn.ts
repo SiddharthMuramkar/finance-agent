@@ -134,7 +134,10 @@ export type TurnEvent =
   /** The API call failed; everything already saved is kept and the Learner can retry. */
   | { type: "error"; kind: FailureKind; message: string };
 
-export const CUT_SHORT_MESSAGE = "The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
+/** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
+export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
+
+export const CUT_SHORT_MESSAGE ="The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
 /** The refusal message when tool calls earlier in the same turn had already saved progress. */
 export const REFUSAL_AFTER_SAVES_MESSAGE =

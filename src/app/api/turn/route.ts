@@ -4,7 +4,7 @@ import { voyageQueryEmbedder } from "@/library/voyage";
 import { anthropicTutorClient } from "@/tutor/anthropic";
 import { MAX_PASTE_WORDS, wordCount } from "@/tutor/pasted";
 import type { Shown } from "@/tutor/session-log";
-import { runTutorTurn } from "@/tutor/turn";
+import { runTutorTurn, type StreamEvent, type TurnEvent } from "@/tutor/turn";
 import { turnBody, turnInputOf } from "@/tutor/turn-body";
 import { cleanSentWidgets } from "@/tutor/widget-context";
 
@@ -58,14 +58,16 @@ export async function POST(request: Request) {
   const stream = new ReadableStream({
     async start(controller) {
       // If the browser has gone, keep running so every loop step is still saved; it resumes or reloads.
-      const send = (event: object) => {
+      const send = (event: StreamEvent) => {
         try {
           controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
         } catch {}
       };
+      // "done" says how long the turn ran.
+      const stamped = (event: TurnEvent): StreamEvent => (event.type === "done" ? { ...event, elapsedMs: Date.now() - started } : event);
       try {
-        if (!first.done) send(first.value);
-        for await (const event of turn) send(event.type === "done" ? { ...event, elapsedMs: Date.now() - started } : event);
+        if (!first.done) send(stamped(first.value));
+        for await (const event of turn) send(stamped(event));
       } catch (error) {
         console.error("Tutor turn failed", error);
         send({ type: "error", kind: "error", message: error instanceof Error ? error.message : "The turn failed." });
