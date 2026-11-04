@@ -18,6 +18,7 @@ import { foundLines } from "@/course/outcome";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 import { loadThread } from "@/tutor/transcript";
 import { finishStepFromWidget, nextOfferNow } from "@/tutor/next";
+import { drillIsDue } from "@/tutor/practice";
 import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
@@ -57,7 +58,7 @@ export default async function WorkspacePage() {
   const shown = await shownInWorkspace(db, map, learnerId);
   const passedId = await passedTopicShown(db, map, learnerId, shown);
   const passedTopic = passedId ? map.topic(passedId) : undefined;
-  const [thread, checkTab, turn, review, progress, widgetStates, comingBack, next] = await Promise.all([
+  const [thread, checkTab, turn, review, progress, widgetStates, comingBack, next, drill] = await Promise.all([
     "sessionId" in shown ? loadThread(db, shown.sessionId, map, learnerId) : [],
     // The Check tab: the open quiz, or after a miss its marking with Try again (the next attempt is made only on that press).
     // A quiz that can't be loaded is left out, so it can't take the whole workspace down with it.
@@ -76,6 +77,8 @@ export default async function WorkspacePage() {
     passedTopic ? [] : comingBackItems(db, map, learnerId, new Date()),
     // The Next chip under the latest reply, from the Course Navigator's place (none while a Check is open).
     nextOfferNow(db, map, learnerId, new Date()),
+    // A parked Skill whose 20 hours have passed: the page starts its drill turn, as it starts a Next (ticket #245).
+    passedTopic ? false : drillIsDue(db, map, learnerId, new Date()),
   ]);
   // The shown Topic: a passed Topic still on screen, else the current Topic.
   const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
@@ -127,6 +130,7 @@ export default async function WorkspacePage() {
         passed={passed}
         // The current Topic's Next belongs to its own Session, never to a passed one kept on screen.
         next={passed ? null : next}
+        drill={!passed && drill}
         developerDetails={learner.showDeveloperDetails}
       />
     </WorkspaceShell>

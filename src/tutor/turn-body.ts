@@ -28,6 +28,8 @@ const kinds = [
   kind({ quizFollowUp: z.literal(true) }),
   // The Quick-try follow-up the page starts after a try marked wrong with no Known mistake, or after Your turn finished.
   kind({ quickTryFollowUp: z.literal(true) }),
+  // The drill the page starts when the Learner opens a Topic whose parked Skill is due (spec #229, "Parking").
+  kind({ drill: z.literal(true) }),
   // A resume of the last turn (Retry, or after a cut-off).
   kind({ resume: z.literal(true) }),
   // Stop: the Learner's running turn ends at its next check (within about half a second) and keeps what it wrote.
@@ -52,6 +54,7 @@ export function turnInputOf(body: z.output<typeof turnBody>): TurnInput | undefi
   if ("widgetReport" in body) return { widgetReport: body.widgetReport };
   if ("quizFollowUp" in body) return { quizFollowUp: true };
   if ("quickTryFollowUp" in body) return { quickTryFollowUp: true };
+  if ("drill" in body) return { drill: true };
   if ("finish" in body || "continue" in body) return { finish: true };
   const paste = body.paste?.trim();
   const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);

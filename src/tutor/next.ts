@@ -1,9 +1,10 @@
 import { and, eq, gt } from "drizzle-orm";
 import { learnerState, messages } from "@/db/schema";
 import { isConverted, type CourseMap } from "@/course/map";
-import { finishFromWidget, navigate, nextOffer, practiceStep, STEP_NAMES, stepSetting, takeNext, type NextOffer, type Place, type TeachingStep } from "@/course/navigator";
+import { finishFromWidget, navigate, nextOffer, practiceStep, STEP_NAMES, stepSetting, takeNext, type NextOffer, type ParkedSkills, type Place, type Progress, type TeachingStep } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
+import { parkedSkills } from "@/learner/skill-state";
 import { pendingQuizNote } from "@/learner/quiz";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { topicCompleteContext } from "./context";
@@ -59,7 +60,16 @@ export async function nextOfferNow(db: Db, map: CourseMap, learnerId: number, no
   const place = navigate(map, progress);
   if (!place) return null;
   const comingBack = await comingBackItems(db, map, learnerId, now);
-  return nextOffer(map, progress, { begun: await stepBegun(db, map, learnerId, place.topic.id, comingBack) });
+  return nextOffer(map, progress, { begun: await stepBegun(db, map, learnerId, place.topic.id, comingBack) }, await parkedIn(db, map, learnerId, progress));
+}
+
+/**
+ * The parked Skills of the Learner's current Topic, so no Next is offered or taken while one of its Check's Skills is
+ * parked (ticket #245). Only a converted Topic reads skill_state.
+ */
+async function parkedIn(db: Db, map: CourseMap, learnerId: number, progress: Progress): Promise<ParkedSkills> {
+  const topic = navigate(map, progress)?.topic;
+  return topic && isConverted(topic) ? parkedSkills(db, learnerId, [topic.id]) : {};
 }
 
 /**
@@ -91,10 +101,11 @@ export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number
     // The Picking up or Due Check divider the page drew, worked out before the move: it is stored with this Next, first.
     const comingBack = await comingBackItems(tx, map, learnerId, now);
     const begun = await stepBegun(tx, map, learnerId, place.topic.id, comingBack);
-    const move = takeNext(map, progress, named, { begun });
+    const parked = await parkedIn(tx, map, learnerId, progress);
+    const move = takeNext(map, progress, named, { begun }, parked);
     if (!move.ok) return move;
     // takeNext accepted it, so the offer is a Next or Complete this Topic, never Just tell me.
-    const offer = nextOffer(map, progress, { begun }) as Exclude<NextOffer, { kind: "just_tell_me" }>;
+    const offer = nextOffer(map, progress, { begun }, parked) as Exclude<NextOffer, { kind: "just_tell_me" }>;
     const advances = offer.kind === "complete" || offer.advances;
     if (advances) {
       const saved = await saveFinishedStep(tx, map, place.step, now, learnerId);

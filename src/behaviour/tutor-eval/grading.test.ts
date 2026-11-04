@@ -61,6 +61,9 @@ describe("the pass conditions code can tell", () => {
     const style = codedFailures([{ kind: "plainStyle" }], styled, ctx).join("\n");
     expect(style).toMatch(/pb-quiz-language/);
     expect(style).toMatch(/Code recorded/);
+    expect(style).toMatch(/needed fixing/);
+    // A reply that needed no fixing does not trip the raw-reply rule.
+    expect(codedFailures([{ kind: "plainStyle" }], seen({ text: "A point is 100 bp.\nWhat is 0.5 of a point?", widgets: [] }), ctx)).toEqual([]);
     expect(codedFailures([{ kind: "noDollar" }], seen({ text: "Say you save $100.", widgets: [] }), ctx)[0]).toMatch(/\$/);
     expect(codedFailures([{ kind: "noDollar" }], seen({ text: "Here.", widgets: [{ kind: "written", id: "x", labels: ["Interest ($)"] }] }), ctx)[0]).toMatch(/Widget/);
   });

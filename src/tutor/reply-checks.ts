@@ -260,11 +260,16 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   const questions = (prose(message).match(/\?/g) ?? []).length;
   if (questions > 1)
     problems.push({ rule: "V2", message: `Your message asked ${questions} questions. The limit is one, plus the ask on the last line.` });
+  const tasks = prose(message).split("\n").filter(isTaskLine);
+  if (!ask && tasks.length > 1)
+    problems.push({
+      rule: "V2",
+      message: `Your message set ${tasks.length} tasks (${quoteList(tasks.map((t) => t.trim()))}). Give one thing to do, on the last line.`,
+    });
   if (ask) {
     const askWords = countWords(ask);
     if (askWords > ASK_WORD_LIMIT)
       problems.push({ rule: "V2", message: `Your ask was ${askWords} words. The limit is ${ASK_WORD_LIMIT}. Make it one short sentence.` });
-    const tasks = prose(message).split("\n").filter(isTaskLine);
     if (tasks.length)
       problems.push({
         rule: "V2",
@@ -381,9 +386,28 @@ function givesAnswer(item: OpenItem, text: string): boolean {
   const promptNumbers = numbersIn(item.prompt);
   const withQuestion = promptNumbers.length === 0 || promptNumbers.some((n) => said.has(n));
   const answerNumbers = numbersIn(item.answer);
-  if (answerNumbers.length) return withQuestion && answerNumbers.every((n) => said.has(n));
+  if (answerNumbers.length) {
+    if (withQuestion && answerNumbers.every((n) => said.has(n))) return true;
+    return confirmsNumber(text, answerNumbers);
+  }
   const words = item.answer.trim().toLowerCase().split(/\s+/);
   return words.length >= 2 && withQuestion && text.toLowerCase().replace(/\s+/g, " ").includes(words.join(" "));
+}
+
+/** Words that confirm or hand over an answer: "is right", "correct", "yes", "that's it", "the answer is", "you got it". */
+const CONFIRM_CUE = /\b(?:(?:is|are|was)\s+(?:right|correct)|correct|yes|that(?:'|\u2019)?s\s+(?:it|right)|that\s+is\s+(?:it|right)|the\s+answer\s+is|you\s+got\s+it)\b/i;
+/** How many words either side of an answer number a confirm cue still counts. */
+const CUE_WINDOW = 4;
+
+/** Whether an answer number of an open item sits within a few words of a confirm cue, with or without the question's numbers. */
+function confirmsNumber(text: string, answerNumbers: string[]): boolean {
+  const tokens = text.split(/\s+/).filter(Boolean);
+  const answers = new Set(answerNumbers);
+  return tokens.some(
+    (token, i) =>
+      numbersIn(token).some((n) => answers.has(n)) &&
+      CONFIRM_CUE.test(tokens.slice(Math.max(0, i - CUE_WINDOW), i + CUE_WINDOW + 1).join(" ")),
+  );
 }
 
 /** Every number in a Widget's params, normalised: numbers as they are, and any numbers written in strings. */

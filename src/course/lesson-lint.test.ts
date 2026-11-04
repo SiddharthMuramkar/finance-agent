@@ -139,6 +139,20 @@ describe("the lesson lint", () => {
     expect(lint(topicWith((x) => (x.terms = [])))).toEqual([`L1: the Topic lists no terms; a converted Topic lists the terms it introduces${ON_TOPIC}`]);
   });
 
+  it("L1: fails a conversation Check with no skills, naming the Check", () => {
+    const t = topicWith((x) => {
+      (x.checks[2] as { skills: string[] }).skills = [];
+    });
+    expect(lint(t)).toEqual([`L1: Check "pct-demo-check-3" is a conversation Check with no skills; list the Skills it tests${ON_TOPIC}`]);
+  });
+
+  it("L5: reads the Topic's terms", () => {
+    const t = topicWith((x) => {
+      x.terms[0].means = "Worth $5 in a rupee Topic.";
+    });
+    expect(lint(t).join("\n")).toMatch(/L5: term .* uses "\$"/);
+  });
+
   it("L2: fails a Skill with too few Quick tries or no half-done one, and a quiz Check too small for three attempts", () => {
     const few = topicWith((x) => (x.checks[0].quickTries = x.checks[0].quickTries.filter((q) => !("id" in q) || q.id !== "pct-demo-try-pts-2")));
     expect(lint(few)).toEqual([`L2: Skill "pts" has 2 Quick tries; it needs at least 3 (a template counts as unlimited)${ON_TOPIC}`]);

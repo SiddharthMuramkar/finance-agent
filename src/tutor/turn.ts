@@ -18,7 +18,7 @@ import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
-import { enterStepItems, pendingQuickTryNote, quickTryFollowUpNote } from "./practice";
+import { afterReteachItems, drillIsDue, enterStepItems, methodInNote, pendingQuickTryNote, quickTryFollowUpNote, quizLadderNote } from "./practice";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
 import { withoutOpenWidget } from "./open-widget";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
@@ -48,7 +48,7 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, DRILL_NOTE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
 import { turnFacts, type TurnFacts } from "./turn-facts";
 import { CHECKING_LABEL, joinedEvents, judgeReply, REPLY_CHECK_PREFIX, replyTextAfter, replyWords, RETRY_WITHIN_MS, retryMessage, toolWidgets, trimmedFallback, widgetsOnScreen, type Judged } from "./reply-gate";
@@ -167,6 +167,8 @@ export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | { type: "turn_s
 
 /** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
 export const NO_QUICK_TRY_FOLLOW_UP = "There is no Quick try answer to go over.";
+/** A drill turn when no parked Skill of the current Topic is due. */
+export const NO_DRILL = "There is no drill due in this Topic.";
 
 export const CUT_SHORT_MESSAGE ="The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
@@ -210,6 +212,7 @@ export type TurnInput =
   | { quizFollowUp: true }
   /** The short turn the page starts after a Quick try marked wrong with no Known mistake, or after the try that finished Your turn. */
   | { quickTryFollowUp: true }
+  | { drill: true }
   | { widgetReport: string }
   | { resume: true }
   | PastedInput;
@@ -225,6 +228,13 @@ export type TurnDeps = {
   now?: () => Date;
   /** How long this run may take before it cuts itself off; defaults to TIME_BUDGET_MS. */
   timeBudgetMs?: number;
+  /** How long into the run a failed reply may still get its one retry; defaults to RETRY_WITHIN_MS (tests shorten it). */
+  retryWithinMs?: number;
+  /**
+   * False shows the model's reply as it came, with no fixes, checks, retry or fallback: for the tutor eval, which replays
+   * recorded replies and grades the model's own first reply. Left out, every reply is checked (ADR 0008).
+   */
+  checkReplies?: boolean;
   /** Voyage query embeddings for Library search; without them search uses keyword results only. */
   embedQuery?: QueryEmbedder;
   /**
@@ -356,6 +366,13 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   } else if (typeof input === "object" && "quickTryFollowUp" in input) {
     // Code writes the follow-up's note inside the lock, from the latest Quick-try result.
     started = QUICK_TRY_FOLLOW_UP_PREFIX;
+  } else if (typeof input === "object" && "drill" in input) {
+    // A parked Skill's drill: code shows the tries when the turn starts (enterStepItems); the Tutor adds one sentence.
+    if (!(await drillIsDue(db, deps.map ?? loadCourseMap(), learnerId, now()))) {
+      yield { type: "not_allowed", message: NO_DRILL };
+      return;
+    }
+    started = DRILL_NOTE;
   } else if (!resuming) started = learnerTextOf(input);
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) {
@@ -383,8 +400,12 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       yield { type: "not_allowed", message: NO_MISSED_QUIZ };
       return;
     }
-    await updateTurn(db, turn.id, { input: note });
-    turn = { ...turn, input: note };
+    // The repair ladder covers quiz questions too: a second miss in a row on the first missed question's idea
+    // re-teaches it, and a third shows the park offer instead (ticket #245).
+    const climbed = await quizLadderNote(db, deps.map ?? loadCourseMap(), learnerId, note, now());
+    for (const item of climbed.items) yield { type: "item", item };
+    await updateTurn(db, turn.id, { input: climbed.note });
+    turn = { ...turn, input: climbed.note };
   }
   if (typeof input === "object" && "quickTryFollowUp" in input) {
     const note = await quickTryFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId);
@@ -644,7 +665,7 @@ async function* runLockedTurn(
     for (const item of effects.items?.splice(0) ?? []) {
       itemSinceText = true;
       out.push({ type: "item", item });
-      // A tool moved the Learner onto a new step: what code shows on entering it follows the divider.
+      // A tool moved the Learner onto a new step: what code shows on entering it follows the divider, held with it.
       if (item.kind === STEP_DIVIDER) for (const entered of await enterStepItems(db, map, learnerId, session.id, now())) out.push({ type: "item", item: entered });
     }
     // update_widget saved new slider values: the open Widget moves to them.
@@ -873,7 +894,8 @@ async function* runLockedTurn(
       const problems = markerProblems(text);
       if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
     }
-    return judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, { engine, fenceProblems });
+    const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, { engine, fenceProblems });
+    return deps.checkReplies === false ? { ...judged, draft: { ...judged.draft, text }, changed: false, problems: [] } : judged;
   };
 
   /** Stores the fixed reply as the turn's final assistant text, keeping each block's citations; the rows it replaces are rejected. */
@@ -938,7 +960,7 @@ async function* runLockedTurn(
         await storeFixed();
         toSend = [...nonText(draftHeld), ...(await replyEvent())];
       } else toSend = storedBefore || resumedCorrection ? [...nonText(draftHeld), ...(await replyEvent())] : joinedEvents(draftHeld);
-    } else if (!retried && performance.now() - runStart < RETRY_WITHIN_MS) {
+    } else if (!retried && performance.now() - runStart < (deps.retryWithinMs ?? RETRY_WITHIN_MS)) {
       // One retry: the correction carries every failed check's reason, the Widget correction's included.
       correction = retryMessage(judged, widgetsOnScreen(log.rows, replyFrom, await loadSessionItems(db, session.id, learnerId)));
       rejectReplyRows();
@@ -1009,9 +1031,12 @@ async function* runLockedTurn(
     await saveItemAfterLatest(db, learnerId, session.id, { kind: STOPPED, data: { label: "Stopped" } }, now());
     yield { type: "stopped" };
   }
-  // After a Quick-try follow-up (the slip named), code posts a fresh try under the reply.
+  // After a Quick-try follow-up (the slip named), code posts a fresh try under the reply. After a re-teach, code does
+  // its method's part: a half-done try, the Widget in practice mode, or the first of a drill of five.
   if (turnKind(turn) === "quick_try_follow_up" && stopReason !== "stopped") {
-    for (const item of await enterStepItems(db, map, learnerId, session.id, now())) yield { type: "item", item };
+    const method = methodInNote(turn.input);
+    const after = method ? await afterReteachItems(db, map, learnerId, session.id, method, now()) : await enterStepItems(db, map, learnerId, session.id, now());
+    for (const item of after) yield { type: "item", item };
   }
   // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
   const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());
