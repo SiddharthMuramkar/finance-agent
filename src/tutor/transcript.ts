@@ -10,8 +10,9 @@ import { replyFold, sourceContext, topicDatasets, type SourceDeps } from "./sour
 import { topicTitleIn } from "./session-summary";
 import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
-import { currentTopicId, liveSession, type Message, type Row } from "./session-log";
-import { isCodeWritten } from "./turn-status";
+import { currentTopicId, liveSession, withoutRejected, type Message, type Row } from "./session-log";
+import { rejectedSeqsOf } from "./reply-records";
+import { isCodeWritten, REPLY_CHECK_PREFIX } from "./turn-status";
 import { loadTurnUsages, type TurnUsage } from "./usage";
 import { loadSessionItems, type StoredItem } from "./session-items";
 
@@ -29,8 +30,11 @@ const sourcesFor = (deps: SourceDeps, contents: unknown[]) => sourceContext(deps
 /**
  * The reply text a turn has saved so far, with any widget correction swapped in, as the browser shows it:
  * the text of every loop step, then one folded list of the reply's sources (under the as-of rule for the Learner).
+ * Rows the reply checks rejected are left out (`openLog` already leaves out those of earlier runs; `rejected`
+ * names any the running turn rejected since), so it is only the text the Learner saw.
  */
-export async function turnText(rows: Row[], turnSeq: number, deps: SourceDeps & { map: CourseMap }): Promise<string> {
+export async function turnText(allRows: Row[], turnSeq: number, deps: SourceDeps & { map: CourseMap }, rejected: ReadonlySet<number> = new Set()): Promise<string> {
+  const rows = withoutRejected(allRows, rejected);
   const ctx = await sourcesFor(deps, rows.filter((r) => r.seq > turnSeq && r.role === "assistant").map((r) => r.content));
   const marks = new CitationMarks();
   let text = "";
@@ -137,12 +141,16 @@ async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefi
   let turnSeq = 0;
   // The last row drawn-or-skipped was a code-written note, so the next reply starts its own line.
   let newTurn = false;
-  const rows = await db
-    .select({ seq: messages.seq, role: messages.role, content: messages.content })
-    .from(messages)
-    .innerJoin(sessions, eq(sessions.id, messages.sessionId))
-    .where(and(eq(messages.sessionId, sessionId), eq(sessions.learnerId, learnerId)))
-    .orderBy(asc(messages.seq));
+  // What the reply checks rejected (a draft, a correction) was never shown: only the text the Learner saw is drawn.
+  const rows = withoutRejected(
+    await db
+      .select({ seq: messages.seq, role: messages.role, content: messages.content })
+      .from(messages)
+      .innerJoin(sessions, eq(sessions.id, messages.sessionId))
+      .where(and(eq(messages.sessionId, sessionId), eq(sessions.learnerId, learnerId)))
+      .orderBy(asc(messages.seq)),
+    await rejectedSeqsOf(db, sessionId),
+  );
   const deps = { db, map, learnerId };
   const ctx = await sourcesFor(deps, rows.filter((m) => m.role === "assistant").map((m) => m.content));
   // Items, in seq order, wait for the next row that is drawn: they go inside the reply that row continues, else before its line.
@@ -171,6 +179,8 @@ async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefi
     }
     if (m.role === "user") correcting = undefined;
     // A note code wrote (an opener's, a Next's) is not the Learner's: it starts the turn but is never drawn as a bubble.
+    // The reply checks' correction message is code's: never drawn, even where its record is missing.
+    if (m.role === "user" && text.startsWith(REPLY_CHECK_PREFIX)) continue;
     if (m.role === "user" && isCodeWritten(text)) {
       turnSeq = m.seq;
       newTurn = true;
