@@ -2184,19 +2184,23 @@ Continue. `explore.test.ts`: Finish this reply is never an Insight attempt. In t
 `learner-moves.test.ts`: the test tools' moves are the opener, Finish this reply, Next (re-pressed on the
 step a refusal names) or a message, and never Continue.
 
-## Help chips, and which messages count as Insight attempts (`src/tutor/chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-status.ts`, `record_insight_attempt` in `tools.ts`, spec #119, ticket #135)
+## Help chips, and which messages count as Insight attempts (`src/tutor/chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-status.ts`, `record_insight_attempt` in `tools.ts`, spec #119, ticket #135; Go deeper from spec #229, ticket #233)
 
 **What it does.**
-- **Two help chips** sit beside Next under the latest Tutor reply or card: **Explain that more simply**
-  and **Show me in a widget**. They follow the Next chip's rules for where they stand (never under an
+- **Two help chips** sit beside Next under the latest Tutor reply or card: **Go deeper** and **Show me in
+  a widget**. Go deeper replaced "Explain that more simply" (spec #229), because the Tutor's first
+  explanation is now the simple one, so the help a Learner asks for is one more layer, not a simpler one. They follow the Next chip's rules for where they stand (never under an
   older reply or the Learner's own message, not during a turn, a refresh, with Retry on offer, or on a
   passed Topic), with one difference: while a quiz or conversation Check is open Next is hidden but the
   two help chips stay, so a Learner who is stuck can always ask for help in another form.
-- **Pressing one** posts its words ("Explain that more simply.", "Show me in a widget.") as the
+- **Pressing one** posts its words ("Go deeper.", "Show me in a widget.") as the
   Learner's own message, drawn as their bubble, and the Tutor answers it as an ordinary turn. The words
   of every chip, Just tell me included, live in one small module (`chips.ts`) that both the page and the
   Tutor Turn read. A turn whose input is exactly a chip's words has the kind **chip** (`turnKind`), read
   off the saved input like the opener's and Next's prefixes, so Retry re-runs it as a chip.
+- **Old chip words.** No chip sends "Explain that more simply." any more, but old Sessions hold it. It stays in
+  `OLD_CHIP_MESSAGES`, part of the chip words, so those turns still read as chip turns: Retry re-runs them as
+  chips and they never count as an Insight attempt.
 - **Which messages can count as an Insight attempt.** Only words the Learner typed. The Insight tool
   refuses, with no row stored: an old "Continue." (from before Finish this reply), any note code wrote
   (every prefix in `CODE_WRITTEN_PREFIXES`: the opener's, Next's, Finish this reply's and the quiz
@@ -2205,14 +2209,17 @@ step a refusal names) or a message, and never Continue.
   code records `asked_to_be_told`, so the Insight is told at once and it is never a not-yet. The order
   of ADR 0001 (hint one, hint two, then the Insight) is unchanged, because only typed not-yets move it.
 
-**Scenario.** At the Explore of Present value the Learner reads the question and presses "Explain that
-more simply". Their bubble reads "Explain that more simply." and the Tutor rephrases the question. If
-the Tutor then tried to record that as a not-yet, code refuses it and no hint is released, so the
-Learner's first typed guess still gets hint 1. Later, mid-quiz, the chips "Explain that more simply"
-and "Show me in a widget" still sit under the last reply, though Next does not.
+**Scenario.** At the Explore of Present value the Learner reads the question and presses "Go deeper".
+Their bubble reads "Go deeper." and the Tutor adds one more layer to the question. If the Tutor then
+tried to record that as a not-yet, code refuses it and no hint is released, so the Learner's first typed
+guess still gets hint 1. Later, mid-quiz, the chips "Go deeper" and "Show me in a widget" still sit under
+the last reply, though Next does not. A Session from last month, where they pressed "Explain that more
+simply", still shows that bubble, and that turn is still a chip turn.
 
 **Trade-off.** The chip kind is worked out from the exact words, with no column (this ticket adds no
 migration), so a Learner who types exactly "Show me in a widget." is treated as having pressed the chip.
+Keeping the old words in the list means a Learner who types exactly "Explain that more simply." today is
+treated the same way, which is the price of old Sessions reading correctly.
 That is harmless: the words ask for help, not an answer. A Tutor that ignores the refusal can still
 write a hint in prose, but nothing is stored and the hint count does not move.
 
@@ -2298,8 +2305,12 @@ Resume, Start, New in <Topic>: Check N →, Explore → and Next Topic.
 - **After a miss**, the page starts a quiz follow-up turn by itself (once no other turn is running). It is a
   code-written turn like the opener and Next: its note starts "Quiz follow-up by code:", it draws no Learner
   bubble, its kind is `quiz_follow_up`, and Retry re-runs it. The Tutor gets the usual "Quiz result by code"
-  note with the missed questions and goes over them. A follow-up with no missed result waiting (another
-  tab already ran it) is refused and nothing is stored.
+  note with every missed question, but the follow-up note (spec #229, ticket #233) points it at the first
+  missed one only, which code names with the Learner's choice and the right answer. In 60 words or fewer the
+  Tutor names the slip in one sentence (the Known mistake, when the quiz result names one for that question),
+  gives the one-line fix, and asks one similar question with new numbers that appear nowhere in the quiz. No
+  re-teaching, no other task, and no walk through the other misses: the Check tab shows them. A follow-up with
+  no missed result waiting (another tab already ran it) is refused and nothing is stored.
 - **Try Check k again.** After a miss the Check tab keeps the marking with **Try Check k again →**. The page
   reads the tab with `checkTabNow`, which returns the missed attempt's marking and makes no new attempt;
   only the press (`POST /api/quiz` with `{ retry: true }`) makes the next one, with different questions where
@@ -2308,8 +2319,9 @@ Resume, Start, New in <Topic>: Check N →, Explore → and Next Topic.
   the new result without reloading the Session; the Course Map and Progress read it on their next visit.
 
 **Scenario.** The Learner submits Check 1 of 2 with one of three right. "1 of 3 — not passed yet · let's look at
-question 2" appears under the last reply, and with no message from the Learner the Tutor walks through
-questions 2 and 3. The Check tab still shows the marking. A few minutes later they press Try Check 1 again →, a
+question 2" appears under the last reply, and with no message from the Learner the Tutor takes question 2
+only: "You read 45 basis points as 4.5%. One point is 100 basis points, so divide by 100. What is 30 basis
+points as a percent?" Question 3's miss stays in the Check tab, which still shows the marking. A few minutes later they press Try Check 1 again →, a
 fresh set of three opens, they get two right, and "2 of 3 — passed ✓ · let's look at question 1" appears with
 "Next: Concept →" under it.
 
@@ -2318,7 +2330,9 @@ wording of its day; it also means the thread needs no Course Map lookup to draw 
 the browser keeps it a normal streamed turn with the usual lock, Retry and resume, but a Learner who closes the
 tab the instant they submit gets no follow-up: the Tutor then hears of the miss with their next message, as
 before. Making the next attempt only on Try again means a Learner can read the follow-up with the marking in
-view, at the cost of one more press.
+view, at the cost of one more press. Taking only the first miss keeps the reply short and gives the Learner one
+thing to try, in place of the re-explaining loop that walking every miss became; the other misses get only the
+Check tab's marking, so a Learner with three different slips hears about one of them per attempt.
 
 ## The Topic complete card (`src/tutor/topic-complete.ts`, `topic-complete-card.ts`, `src/app/topic-complete-card.tsx`, `session-item-view.tsx`, `left-column.tsx`, `study/page.tsx`, spec #119, ticket #142)
 
