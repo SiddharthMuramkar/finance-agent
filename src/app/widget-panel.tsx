@@ -32,6 +32,8 @@ export type WidgetItem = {
   save?: SaveTarget & { kind: "widget" };
   /** The keys of earlier Widgets with the same title that this one updated in place (see updatedInPlace). */
   replaces?: string[];
+  /** The slider values the Widget was opened or shown at (by $variable): its chip puts them back when pressed. */
+  preset?: Record<string, number>;
   /** Where the Widget came from: "recipe", "compose" or "fallback" for one the Tutor's tools made; absent for one written in the reply. */
   source?: string;
 };
@@ -440,6 +442,13 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
   const name = (item.writtenAhead && widgetParts(item.code).title?.trim()) || widgetName(item);
   const state: ChipState = !item.complete ? "drawing" : active ? "showing" : "idle";
   const guard = useDrawingGuard(item.key, !item.complete);
+  const store = useWidgetStore();
+  // Pressing a chip reopens the Widget at the numbers it was opened with, not where the Learner left it since.
+  const reopenKey = item.complete && item.preset ? (item.writtenAhead ?? widgetKey(widgetParts(item.code).title)) : undefined;
+  const pick = (key: string) => {
+    if (store && reopenKey && item.preset) store.push(reopenKey, item.preset);
+    onPick(key);
+  };
   if (guard.timedOut) return <DrawingFailed retry={guard.retry} compact />;
   const look =
     state === "showing"
@@ -449,7 +458,7 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
         : "";
   return (
     <span className="my-3 block">
-      <Chip state={state} onClick={() => onPick(item.key)} data-testid="widget-chip" title={name} className={`min-h-9! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
+      <Chip state={state} onClick={() => pick(item.key)} data-testid="widget-chip" title={name} className={`min-h-9! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
         <span className="min-w-0 truncate font-medium">{name}</span>{" "}
         <span className="shrink-0 text-xs">{state === "drawing" ? "Drawing…" : state === "showing" ? "Showing" : "View widget →"}</span>
       </Chip>
