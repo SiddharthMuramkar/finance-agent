@@ -24,7 +24,7 @@ export function LinePlot({ series, xs, y, ticks, fill, stacked, step, active, on
   const drawn = series.map((s, j) => xs.map((_, i) => (stacked ? series.slice(0, j + 1).reduce((sum, t) => sum + (t.values[i] ?? 0), 0) : (s.values[i] ?? 0))));
   const gap = n > 1 ? Math.min(...xs.slice(1).map((v, i) => v - xs[i])) : PLOT_W;
   return (
-    <svg viewBox={`0 0 ${PLOT_W} ${PLOT_H}`} role="img" aria-label={ariaLabel} className="block w-full overflow-visible">
+    <svg viewBox={`0 0 ${PLOT_W} ${PLOT_H}`} role="group" aria-label={ariaLabel} className="block w-full overflow-visible">
       {ticks.map((t) => (
         <line key={t} x1={0} x2={PLOT_W} y1={y(t)} y2={y(t)} strokeWidth={1} vectorEffect="non-scaling-stroke" className="stroke-[var(--border)]" />
       ))}

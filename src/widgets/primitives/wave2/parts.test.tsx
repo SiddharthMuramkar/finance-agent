@@ -251,7 +251,7 @@ describe("StepThrough", () => {
   it("goes Back and Next and lights up the numbers in the step's tone", () => {
     show(<StepThroughView steps={steps} />);
     expect(byId(page!, "step-count")!.textContent).toBe("Step 1 of 3");
-    expect((back() as HTMLButtonElement).disabled).toBe(true);
+    expect(back()!.getAttribute("aria-disabled")).toBe("true");
     expect(allById(page!, "step-number").map((n) => [n.textContent, n.getAttribute("data-tone")])).toEqual([["₹10,000", "you"]]);
     click(next());
     expect(byId(page!, "step-count")!.textContent).toBe("Step 2 of 3");
