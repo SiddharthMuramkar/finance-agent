@@ -464,7 +464,7 @@ export type TopicOverview = {
   /** The Topic the default path leads to (where going back would land). */
   onDefaultPath: boolean;
   /** When the last of the Topic's parked Skills comes back; null when none is parked. */
-  parkedUntil: Date | null;
+  parkedUntil?: Date | null;
 };
 
 /** The latest time any of the Topic's parked Skills comes back. */
