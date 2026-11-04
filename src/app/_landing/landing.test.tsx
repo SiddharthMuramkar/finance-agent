@@ -147,6 +147,11 @@ describe("Home, signed in", () => {
     expect(inText).toContain(copy.footer);
   });
 
+  it("keeps the navy sources section's text white in every theme, not the brand's ink, which is dark in dark themes", () => {
+    const section = inHtml.slice(inHtml.lastIndexOf("<section", inHtml.indexOf(copy.sources.title)));
+    expect(section).toMatch(/^<section class="bg-\[var\(--navy-deep\)\] text-\[var\(--navy-ink\)\]"/);
+  });
+
   it("offers Open Study Workspace in the hero and Study Workspace in the top bar, both to /study", () => {
     expect(inHtml).toMatch(/<a[^>]*href="\/study"[^>]*>Open Study Workspace<\/a>/);
     expect(inHtml).toMatch(/<a[^>]*href="\/study"[^>]*>Study Workspace<\/a>/);
