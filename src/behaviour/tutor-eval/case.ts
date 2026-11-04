@@ -71,6 +71,12 @@ export type QuizState =
 /** Earlier answers on one Skill, oldest first, and the repair methods already used on it. */
 export type SkillSeed = { skill: string; answers: ("right" | "wrong")[]; methodsUsed?: CaseMethod[] };
 
+/**
+ * A Quick try the Learner answered after the Tutor's last reply, as code marked it. The try is shown in the Session and
+ * the answer goes through the Quick-try mark, so the Tutor is told of the result in its next turn, as the app tells it.
+ */
+export type AnsweredTry = { try: string; input: string; verdict: "right" | "wrong" };
+
 export type CaseState = {
   /** The Teaching Step the Learner is at. */
   step: CaseStep;
@@ -78,6 +84,8 @@ export type CaseState = {
   check: number;
   quiz?: QuizState;
   skills?: SkillSeed[];
+  /** Quick tries answered after the earlier turns (so the Tutor is told of them): each names a fixed Quick try of the Check. Needs a history. */
+  answeredTries?: AnsweredTry[];
   /** Earlier turns, replayed through the real Tutor Turn with a scripted model, so they cost nothing. */
   history?: { learner: string; tutor: string }[];
   /** The Reply kind code would pick here; it sets the word cap the reply checks use. */
@@ -156,7 +164,7 @@ function checkState(raw: unknown, where: string, errors: string[]) {
     errors.push(`${where}: "state" is required`);
     return;
   }
-  unknownKeys(raw, ["step", "check", "quiz", "skills", "history", "replyKind", "exampleCurrency", "caseCurrencies"], `${where} state`, errors);
+  unknownKeys(raw, ["step", "check", "quiz", "skills", "answeredTries", "history", "replyKind", "exampleCurrency", "caseCurrencies"], `${where} state`, errors);
   if (!(STEPS as readonly string[]).includes(raw.step as string)) errors.push(`${where}: state "step" must be one of ${STEPS.join(", ")}`);
   if (!(Number.isInteger(raw.check) && (raw.check as number) >= 1)) errors.push(`${where}: state "check" must be a Check number from 1`);
   if (raw.quiz !== undefined) {
@@ -181,6 +189,19 @@ function checkState(raw: unknown, where: string, errors: string[]) {
         if (s.methodsUsed !== undefined && !(Array.isArray(s.methodsUsed) && s.methodsUsed.every((m) => (METHODS as readonly string[]).includes(m))))
           errors.push(`${where}: skills[${i}] "methodsUsed" must be from ${METHODS.join(", ")}`);
       });
+  }
+  if (raw.answeredTries !== undefined) {
+    if (!Array.isArray(raw.answeredTries)) errors.push(`${where}: state "answeredTries" must be a list`);
+    else {
+      raw.answeredTries.forEach((t, i) => {
+        if (!isObj(t) || !isStr(t.try) || !isStr(t.input) || (t.verdict !== "right" && t.verdict !== "wrong")) {
+          errors.push(`${where}: answeredTries[${i}] needs "try" (a fixed Quick try id), "input" and "verdict" (right or wrong)`);
+          return;
+        }
+        unknownKeys(t, ["try", "input", "verdict"], `${where} answeredTries[${i}]`, errors);
+      });
+      if (raw.answeredTries.length && !(Array.isArray(raw.history) && raw.history.length)) errors.push(`${where}: "answeredTries" needs a "history", since the Session they are shown in starts with its first turn`);
+    }
   }
   if (raw.history !== undefined && !(Array.isArray(raw.history) && raw.history.every((h) => isObj(h) && isStr(h.learner) && isStr(h.tutor))))
     errors.push(`${where}: state "history" must be a list of { learner, tutor }`);
