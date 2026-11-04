@@ -129,6 +129,13 @@ describe("a history chart the Learner can read", () => {
     expect(html).toMatch(/data-testid="history-readout"[^>]*><span[^>]*>Hover over or tap the chart to read a value\.<\/span>/);
   });
 
+  it("makes the source disclosure at least 32 px", () => {
+    const html = renderToStaticMarkup(<AnnuityFigure inputs={{ total: 1_537_000_000, payments: 30, growthPercent: 5, ratePercent: 3 }} sourced={cash} />);
+    const summary = html.match(/<summary[^>]*>/)![0];
+    expect(summary).toContain("min-h-8");
+    expect(summary).toContain("min-w-8");
+  });
+
   it("keeps the credit and the sourced marking on a long line too", () => {
     const html = draw(daily(166));
     expect(html.match(/data-testid="credit"/g)).toHaveLength(1);
