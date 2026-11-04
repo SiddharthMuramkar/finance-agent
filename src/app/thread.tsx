@@ -8,6 +8,7 @@ import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
 import { SaveToNotes } from "./save-to-notes";
 import { splitReply } from "@/widgets/split";
+import { declaredSettings } from "@/widgets/settings";
 import { shownWidgetOf, WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
 import { SessionItemView, type SessionItemData } from "./session-item-view";
@@ -47,6 +48,13 @@ export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)
  * (`${itemId}:0`); one the Topic no longer has is left out. A Widget code drew from a recipe (a WIDGET_SHOWN item) is drawn
  * the same way, with the code the item carries; its Widget key is its title, as for a Widget in a reply.
  */
+/** A stored item's preset: its numeric entries by `$variable`, or undefined when it has none. */
+function presetOfItem(raw: unknown): Record<string, number> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const entries = Object.entries(raw).filter(([, v]) => typeof v === "number" && Number.isFinite(v)) as [string, number][];
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead: readonly WrittenAhead[] = []): WidgetItem[] {
   const out: WidgetItem[] = [];
   // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them for Save to notes.
@@ -55,13 +63,16 @@ export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead:
   messages.forEach((m, i) => {
     if (m.role === "item" && m.kind === WIDGET_OPENED) {
       const widget = writtenAhead.find((w) => w.id === m.data.id);
-      if (widget) out.push({ key: `${m.id}:0`, number: out.length + 1, code: widget.code, complete: true, writtenAhead: widget.id });
+      // A Widget opened already set carries its preset (on top of its declared settings), so its chip reopens those numbers.
+      const preset = presetOfItem(m.data.preset);
+      if (widget) out.push({ key: `${m.id}:0`, number: out.length + 1, code: widget.code, complete: true, writtenAhead: widget.id, ...(preset && { preset: { ...declaredSettings(widget.code), ...preset } }) });
       return;
     }
     // A Widget code drew from a recipe (show_widget, ADR 0005): its code is in the item, and its Widget key is its title.
     if (m.role === "item" && m.kind === WIDGET_SHOWN) {
       const shown = shownWidgetOf(m.data);
-      if (shown) out.push({ key: `${m.id}:0`, number: out.length + 1, code: shown.code, complete: true });
+      // Its chip reopens the recipe's own starting numbers.
+      if (shown) out.push({ key: `${m.id}:0`, number: out.length + 1, code: shown.code, complete: true, ...(Object.keys(declaredSettings(shown.code)).length && { preset: declaredSettings(shown.code) }) });
       return;
     }
     if (m.role !== "assistant") return;

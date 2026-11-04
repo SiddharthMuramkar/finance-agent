@@ -4060,6 +4060,48 @@ the progress label, then the finished Widget, never half of one. Falling back to
 than the ask, which is why the Tutor is told to say so. update_widget cannot tick Guided Tasks, so the "all ticked" gate on Tell
 the Tutor what I found stays the Learner's own. Free-form Widgets get no Widget notes warnings yet (widgetNotes reads only fences).
 
+## Ready-made Widgets only: opened already set, one a reply (`src/tutor/ready-made-widgets.ts`, `tools.ts`, `written-ahead.ts`, `instructions.ts`, `session-log.ts`, `widgetsIn` in `src/app/thread.tsx`, `WidgetChip` in `widget-panel.tsx`, ADR 0007, spec #229, ticket #242)
+
+**What it does.** The Tutor opens only Widgets that are ready-made: a written-ahead Widget from the Topic's file (`open_widget`) or a
+Widget recipe drawn by code (`show_widget`). It writes no Widget code and `compose_widget` is not offered to new Sessions: a new
+Session freezes `open_widget`, `show_widget` and `update_widget` (the setting `widget_engine` now defaults to "on"; production keeps its
+stored row until the switch). A Session whose stored tools already list `compose_widget` keeps it on refreeze (`ENGINE_TOOLS_WITH_COMPOSE`,
+ADR 0005's one-way rule), and its code stays bound so a saved call resumes. The Tutor's catalogue (`TUTOR_RECIPE_IDS`) is every recipe
+except `quick_check` (a "quiz me" goes to the next Quick try) and `percent_points` (`rate_move` is the single rate Widget); a frozen
+Session that still calls `quick_check` is refused in words. **Presets:** `open_widget` takes an optional `preset`, slider values by
+`$variable` (the `$` is optional). `presetProblems` checks each key is one of the Widget's sliders and each value is in range and on
+its step (the runtime twin of the lesson lint's `presetValueProblems`, built on the parser rather than a file read). A bad preset is a
+tool error and nothing is stored. A good one is stored on the WIDGET_OPENED item (`{id, title, preset}`), saves the Widget state as the
+Widget's declared settings with the preset on top (replacing the Learner's last settings, keeping their ticked Guided Tasks) and
+streams `widget_state`, so the open Widget moves at once. `show_widget` does the same, to the recipe's own starting numbers, when its
+title already has saved state. **One Widget a reply:** every Widget the reply holds counts, whoever stored it (`open_widget`,
+`show_widget`, the one a Next or a step opened just before the Learner's message, a fence the Tutor wrote, or an `update_widget` on
+a Widget this reply did not open). A second `open_widget` or `show_widget` is a tool error; `update_widget` may move the reply's own
+Widget. **Open quiz:** a preset, recipe inputs or update values are checked with the reply check's V5 (`checkReply` on an empty text
+with that one Widget, only its V5 problems kept) against `turnFacts`' open items, so the tool and the reply check never disagree.
+**Illustrations:** `ILLUSTRATION_FACTS` is a small table, one row per recipe with facts; a fact that an input or a Case Data path of
+the same recipe already covers is refused with the input to use (for example `percent_points`' `before` is where `inputs.slider.start`
+already is). **After a move:** the context `finish_teaching_step` and `record_check_verdict` return carries the new step's word limit,
+currency and blocked numbers (`turnFacts`). `widgetValidator(writtenAhead)` is the reply check's V4 hook (a known written-ahead id or
+Tutor recipe, a valid preset or valid params, no `quick_check`); the tools refuse every invalid Widget before it is stored, so the hook
+is for a check that reads a finished reply. In the browser `widgetsIn` carries the item's preset (over the Widget's declared settings)
+onto the `WidgetItem`, and pressing a chip pushes that preset into the Widget store, so an earlier chip reopens its own numbers. A shown
+`rate_move` Widget gets the `rateChange` readouts through `rateMoveSliders`, the way Percent's written-ahead Widget does.
+
+**Scenario.** The Learner is on the annuity Topic and asks "what if the rate were 4%?". The Tutor calls `open_widget` with
+`{id: "annuity-worth-today", preset: {"$rate": 4}}`. The chip stands in the reply, the slider reads 4%, and the tool result says
+"It is set to $rate = 4". The Tutor says in one sentence what the chart shows at 4% and asks for nothing to be moved. If it then
+tries `show_widget` in the same reply, code refuses: the reply already has its Widget. Later the Learner presses the first chip again
+after trying 9%, and the slider goes back to 4%. At an open quiz whose question mentions 10%, a preset of 10 is refused and the Tutor
+picks other numbers.
+
+**Trade-off.** One Widget a reply is strict: the Widget a step or a Concept card opens is the reply's one Widget, so the Tutor cannot add
+its own on that reply, which keeps the picture simple at the cost of the odd case where two would help. A Tutor preset must avoid every
+blocked number, even one that is only a slider's edge, so it sometimes has to pick less natural numbers. The Illustration table only
+covers facts where a path exists, so a made-up number with no input or Case Data path (a vada pav price) still makes an Illustration.
+Chips that put their preset back overwrite what the Learner did since, on purpose. The engine-off path is unchanged, so Sessions frozen
+without the engine keep writing Widgets until the production switch (T18).
+
 ## Topics with a goal: steps that open their Widgets, finish from what you do, and remember what you found (`goal`, `steps`, `found` in `course/topics/*.yaml`, `src/course/map.ts`, `navigator.ts`, `outcome.ts`, `goal-check.ts`, `src/tutor/next.ts`, `off-topic.ts`, `past-sessions.ts`, UX audit 9.0, 9.4, 9.7, 11.5 to 11.9)
 
 **What it does.** Three optional keys extend the Topic, not a second "plan" format (a Topic is still the lesson, a Teaching Step is still the beat). `goal` is one line of words shown under the title in the Topic bar. `steps` is a list of settings, each for one Teaching Step (and optionally one Check): `opens` names a written-ahead Widget that code puts in the panel when the step begins (it stores the same Widget opened item the Tutor's open_widget stores, so a Widget is never opened twice), and `doneWhen` is a condition on the Learner's saved Widget state: a Guided Task ticked, a $variable that has a value (a Predict's guess), or one saved near a target (a Breakeven). The Course Navigator's `widgetDone` and `finishFromWidget` read that state; `finishStepFromWidget` (next.ts) finishes the step, stores the new step's divider and opens its Widget, and the study page calls it on each render (it returns at once for a step with no `doneWhen`). Because nothing has taught the new step yet, Next then names it without moving on, the way it does after a quiz pass. `found` is a list of lines (`when` plus `text`, with `{value}` for the Learner's own number) that `foundLines` (outcome.ts) works out from saved Widget state; Past Sessions rows, the Session header and the Topic complete card show them. An Off-Topic answer is a Session item (`off_topic`, off-topic.ts) drawn as a quiet block with "↩ Back to <Topic>". The Topic schema checks every setting (the Widget, Check and Guided Task must exist), `npm run course:check` also checks the goal and found lines are in words, and prints the written-ahead warnings beside its errors.

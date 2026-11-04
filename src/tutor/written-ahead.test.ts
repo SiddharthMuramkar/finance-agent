@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { saveFinishedStep } from "@/learner/memory";
 import { presentValueOnly } from "@/test/present-value-map";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { REPLY_CHECK_PREFIX } from "./turn-status";
@@ -101,6 +102,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
 
   it("sends a Tutor-drawn growth-rate calculator in Percent back through the correction turn, naming the written-ahead Widget to open", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(`Here is a box.\n${CAGR}`), open("rate-change-three-ways", "toolu_fix"), text("")]);
     const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me in a widget"));
     // The draft is held and checked (ADR 0008): the Learner sees only the retry, which opens the written-ahead Widget.

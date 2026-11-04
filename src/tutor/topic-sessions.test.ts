@@ -10,6 +10,7 @@ import { profileInput, saveProfile } from "@/learner/profile";
 import { OPENING_PREFIX } from "./context";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { presentValueOnly } from "@/test/present-value-map";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
@@ -372,6 +373,7 @@ describe("a deploy that changes the Tutor's instructions", () => {
 
   it("refreezes instructions and tools at the next new turn in the same Session, keeps its model and effort, folds the history, and never sends earlier thinking again", async () => {
     const db = await testDb();
+    await engineOff(db);
     await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID);
     const reply = (n: number): ScriptedReply => ({ content: [thinking(n), { type: "text", text: `Reply ${n}.` }] });
     await turn(db, "One", [reply(1)]);
