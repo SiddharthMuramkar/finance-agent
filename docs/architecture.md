@@ -1482,6 +1482,36 @@ and sourcing each one. The Tutor learns about a result late (on the next message
 of submission), which keeps the quiz free of model calls. Imported open question banks, spaced
 review and a Question Bank in the database come in later tickets.
 
+### Typed questions, fresh numbers and Known-mistake fixes (spec #229, ticket #241; `src/course/quiz.ts`, `src/bank/lookup.ts`, `src/learner/quiz.ts`, `src/tutor/check-results.ts`, `src/app/quiz-panel.tsx`)
+
+**What it does.** A quiz Check may list question templates beside its questions. A template slot in an attempt is
+stored in `question_ids` as `<templateId>#<seed>`; pure code rebuilds the numbers and the answer from the seed
+(`drawTemplate`), so nothing new is stored and there is no migration. `selectQuestions` still walks round the
+questions and then the templates and returns the bare template id for a slot; `openQuiz` turns each into an instance
+id (`instantiateSlots`) when it makes the attempt. The seed is made from the Learner, the Check, the attempt number and
+the slot, and a draw that repeats the numbers of the Learner's last attempt (or of an earlier slot) is stepped on until
+they differ. `questionLookup` resolves instance ids, so opening, marking, the Tutor's note and the Check tab after a
+miss all see the same numbers; a bare template id is never resolved, so the next attempt's numbers are not blocked
+before they are drawn. An instance's lookup entry carries the drawn prompt, no choices and its answer in words ("60 bp"),
+which is what the Tutor's blocked numbers read. A template that is gone counts as a removed question; templates make
+`quizUnavailable` false.
+
+**Scenario.** A Learner sees "A rate moves from 2% to 2.6%. How many basis points?" with a number box labelled "Answer
+in basis points". They type 0.6. Code marks "60 bp", "60" and "60.0" right and 0.6 as the Known mistake "stopped at
+points", so the Check tab shows "Your answer: 0.6 – right answer: 60 bp" and the template's one-line fix. A wrong
+multiple-choice option with a `mistake` shows its fix the same way. After a miss, the Tutor's note names the missed
+question's Skill as its rule in words, never its id, and the fix. Try again draws new numbers.
+
+**Skill state.** In the transaction that saves a first submission, every question with a Skill is logged with
+`recordAnswer` (source `quiz`, item key `quiz:<attemptId>:<questionId>`; a typed one also keeps its template and
+numbers). Right, a Known mistake that has a tag, and everything else (wrong) map to the three verdicts. A repeat
+submission records nothing. No real Topic has a Skill-tagged question until it is converted, so nothing is recorded in
+production before then.
+
+**Trade-off.** Seeds make a typed attempt cheap to store and exact to replay, but an instance cannot be edited once
+shown; and typed questions are left out of Reviews (see "Spaced review"), because a card needs a fixed question.
+
+
 ## Case Data (`src/case-data/`, `/api/case-data/[caseId]`, `npm run case-data:import`)
 
 **What it does.** Case Data is the checked historical data a Case is taught with: a few headline
@@ -2636,6 +2666,13 @@ day" study but cannot do same-day repeats of a missed question. Only questions s
 Map are offered, so deleting a question quietly retires its card. A rolling 24 hours rather than a
 calendar day means no time zone is needed and midnight never frees a second batch, at the price
 that the next review returns at a time of day the Learner may not expect.
+
+**Typed questions stay out (spec #229, ticket #241).** A typed Check question is a draw of a question template, kept in
+`question_ids` as `<templateId>#<seed>`. `enrollPassedQuestions` skips every such id, so only multiple-choice questions
+get a Review card, and Reviews behave exactly as before. The reason: a card holds a question id, and a typed question's
+numbers belong to one attempt, so there is nothing fixed to bring back later. The Skill state (see the quiz section)
+is what carries a typed miss forward instead.
+
 
 ## Library (`src/library/`, `search_library` tool, `npm run library:load`, `library:embed`, `library:score`)
 
