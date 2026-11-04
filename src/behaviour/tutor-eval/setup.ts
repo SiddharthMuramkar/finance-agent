@@ -5,13 +5,13 @@
  * questions; a missed attempt is submitted through the quiz submit; Skill state is recorded answer by answer;
  * earlier turns are replayed through the real Tutor Turn with a scripted model, so they cost nothing.
  */
-import { and, eq, gt, max } from "drizzle-orm";
+import { and, eq, gt, max, sql } from "drizzle-orm";
 import { loadCourseMap, type Check, type CourseMap, type Topic } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
 import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
 import { plainExact, type DrawnItem, type FixedItem } from "@/teaching";
 import { questionLookup } from "@/bank/lookup";
-import { insightAttempts, noteItems, quizAttempts, settings, toolCalls, turns } from "@/db/schema";
+import { insightAttempts, noteItems, quizAttempts, sessionItems, settings, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { freshToolsLearner } from "@/dev/tools-learner";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveJump } from "@/learner/memory";
@@ -283,7 +283,9 @@ export async function seenReply(db: Db, args: { learnerId: number; topic: Topic;
     .where(and(eq(noteItems.learnerId, args.learnerId), eq(noteItems.topicId, args.topic.id), gt(noteItems.id, args.notesAfter)));
   const rule = saved.find((n) => n.kind !== "reply" && n.kind !== "widget" && n.text)?.text ?? null;
   const parkOffer = items.some((i) => /park/i.test(i.kind));
-  return seen({ text: args.text, widgets, savedRule: rule, parkOffer });
+  // The Quick try code put below the reply in this turn (after a re-teach, the next one), which a reply may point to ("the try below").
+  const alsoShown = items.flatMap((i): string[] => (i.kind === QUICK_TRY ? [`a Quick try: "${askOf(i.data as unknown as QuickTryData)}"`] : []));
+  return seen({ text: args.text, widgets, savedRule: rule, parkOffer, alsoShown });
 }
 
 /**
@@ -301,6 +303,22 @@ function shownTry(check: Check, key: string, found: { item: FixedItem | DrawnIte
 const askOf = (t: QuickTryData) => [t.prompt, t.halfDone].filter(Boolean).join(" ");
 
 /**
+ * Takes out the Quick tries the case's earlier turns posted that nobody answered. A turn at Your turn posts the next try
+ * as the app does, but the case's story is that the try it shows is the open one: with another still open, code would post
+ * nothing below the Tutor's reply, and "the try below" would point at nothing.
+ */
+async function clearOpenTries(db: Db, sessionId: number, learnerId: number): Promise<void> {
+  const items = await loadSessionItems(db, sessionId, learnerId);
+  const answered = new Set(items.filter((i) => i.kind === QUICK_TRY_RESULT).map((i) => (i.data as unknown as QuickTryResultData).key));
+  for (const i of items) {
+    const key = (i.data as unknown as QuickTryData).key;
+    if (i.kind === QUICK_TRY && !answered.has(key)) {
+      await db.delete(sessionItems).where(and(eq(sessionItems.sessionId, sessionId), eq(sessionItems.learnerId, learnerId), eq(sessionItems.kind, QUICK_TRY), sql`${sessionItems.data}->>'key' = ${key}`));
+    }
+  }
+}
+
+/**
  * Shows a Quick try in the Session and has code mark an answer to it, the way the app does (`answerQuickTry`, no model
  * call). The try is the fixed try with `tryId` in the Check, so it is the one the case's earlier turns talk about; without
  * one, it is the next try code draws on `skill`. Throws when the try cannot be shown or the answer is refused.
@@ -316,6 +334,7 @@ async function showAndMark(
   const check = p.topic.checks[c.state.check - 1];
   const session = await liveSession(db, p.learnerId, p.topic.id);
   if (!session) throw new Error(`${c.id}: no Session to show the Quick try in; give the case a history.`);
+  await clearOpenTries(db, session.id, p.learnerId);
   const shown = (await loadSessionItems(db, session.id, p.learnerId)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as unknown as QuickTryData);
   let data: QuickTryData | null;
   if (want.tryId) {

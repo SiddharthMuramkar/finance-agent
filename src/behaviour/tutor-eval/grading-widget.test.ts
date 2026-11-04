@@ -64,6 +64,15 @@ describe("the widget condition grades the Widget the Tutor showed", () => {
     expect(codedFailures([{ kind: "widget" }], reply([rateMove("show", { old: 0.6, new: 1, byCode: true }), rateMove("show")]), quiz)).toEqual([]);
   });
 
+  it("tells the grader what code showed below the reply, so 'the try below' points at something real, and says nothing when code showed nothing", () => {
+    const below = seen({ text: "Fill in the boxes.\nWhat goes in the last box?", widgets: [], alsoShown: ['a Quick try: "A rate goes from 3% to 3.5%. How many basis points did it move? First step, done for you: the move is 0.5 points."'] });
+    const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply: below, extra: [] });
+    expect(prompt).toContain("Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): a Quick try: \"A rate goes from 3% to 3.5%.");
+    const none = buildGraderPrompt({ stateNote: "x", message: "m", reply: reply([]), extra: [] });
+    expect(none).not.toMatch(/Code then showed/);
+    expect(none).not.toMatch(/\n\n\n/);
+  });
+
   it("tells the grader which Widget code showed", () => {
     const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply: reply([rateMove("show", { byCode: true }), rateMove("practice")]), extra: [] });
     expect(prompt).toMatch(/"rate_move" \(code showed this one, not the Tutor\)/);

@@ -122,6 +122,16 @@
   --openui-elevated: color-mix(in srgb, var(--ink) 8%, transparent);
   --openui-elevated-strong: color-mix(in srgb, var(--ink) 16%, transparent);
   --openui-elevated-intense: color-mix(in srgb, var(--ink) 32%, transparent);
+  --openui-highlight-subtle: color-mix(in srgb, var(--ink) 2%, transparent);
+  --openui-highlight: color-mix(in srgb, var(--ink) 4%, transparent);
+  --openui-highlight-strong: color-mix(in srgb, var(--ink) 8%, transparent);
+  --openui-highlight-intense: color-mix(in srgb, var(--ink) 30%, transparent);
+  --openui-inverted-background: var(--ink);
+  --openui-chat-user-response-bg: var(--bubble);
+  --openui-chat-user-response-text: var(--ink);
+  --openui-border-interactive-emphasis: color-mix(in srgb, var(--ink) 40%, transparent);
+  --openui-text-accent-secondary: color-mix(in srgb, var(--brand-ink) 70%, transparent);
+  --openui-text-accent-tertiary: color-mix(in srgb, var(--brand-ink) 40%, transparent);
   --openui-text-neutral-primary: var(--ink);
   --openui-text-neutral-secondary: var(--muted);
   --openui-text-neutral-tertiary: var(--muted);

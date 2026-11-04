@@ -33,18 +33,20 @@ export type SeenReply = {
   savedRule: string | null;
   /** Code stored a park offer item in the turn. */
   parkOffer: boolean;
+  /** What code showed below the reply in the same turn (the next Quick try, a Concept card), as the Learner reads it. */
+  alsoShown: string[];
 };
 
 const BOLD = /\*\*(?=\S)[\s\S]*?\S\*\*|__(?=\S)[\s\S]*?\S__/g;
 
 /** The reply as the Learner sees it, from the turn's raw text and what it showed and saved. */
-export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean }): SeenReply {
+export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[] }): SeenReply {
   const draft = fixReply({ text: r.text, widgets: r.widgets, savedRule: r.savedRule ?? null });
   const fixed: string[] = [];
   if (/^[ \t]*#{1,6}[ \t]+/m.test(r.text)) fixed.push("headings");
   if (/[\p{Extended_Pictographic}➜➔➡→⇒]/u.test(r.text)) fixed.push("emoji or arrows");
   if ((r.text.match(BOLD)?.length ?? 0) > 1) fixed.push("extra bold");
-  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false };
+  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [] };
 }
 
 const FENCE = /```[^\n]*\n[\s\S]*?(?:\n```|$)/g;
@@ -182,7 +184,9 @@ export function buildGraderPrompt(args: { stateNote: string; message: string; re
     args.reply.text,
     "",
     args.reply.widgets.length ? `Shown with the reply: ${args.reply.widgets.map(describeWidget).join("; ")}.` : "No Widget was shown with the reply.",
-    args.reply.widgets.length ? "A Widget's Guided Tasks (lines such as \"Move the new rate to 4%\") are optional play the Learner may ignore. They are not asks and not extra ideas: do not count them against \"one idea and one ask\"." : "",
+    // Not the Tutor's words: code shows the next Quick try below a reply, so "the try below" in a reply points at something real.
+    ...(args.reply.alsoShown.length ? [`Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): ${args.reply.alsoShown.join("; ")}.`] : []),
+    ...(args.reply.widgets.length ? ["A Widget's Guided Tasks (lines such as \"Move the new rate to 4%\") are optional play the Learner may ignore. They are not asks and not extra ideas: do not count them against \"one idea and one ask\"."] : []),
     args.reply.savedRule ? `Saved to the Learner's notes: "${args.reply.savedRule}".` : "Nothing was saved to the Learner's notes.",
     "",
     "Questions:",
