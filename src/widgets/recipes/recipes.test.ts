@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { widgetNodes, widgetParts, widgetProblems, widgetRuleProblems } from "@/widgets/check";
+import { VISUALS, widgetNodes, widgetParts, widgetProblems, widgetRuleProblems } from "@/widgets/check";
 import { defineRecipe, ILLUSTRATION, program, recipeSignature, str } from "./define";
 import { RECIPES, recipeById, recipeSignatures } from "./index";
 
-const VISUALS = new Set(["HistoryChart", "AnnuityChart", "Calculator", "FormulaCard", "LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "ScatterChart", "PieChart", "Table"]);
 
 const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
 

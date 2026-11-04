@@ -128,12 +128,10 @@ questions:
       on Markets, 18 February 2025.
   - id: ja-q-period
     prompt: >
-      A writer compares Firm P's ROE of 30% with Firm Q's ROE of -20% and concludes that P is the far
-      better business. Q's figure is from its first year, when it expensed a one-off Rs 40 crore of
-      research spending; P's is an ordinary year. What is wrong with the comparison?
+      A writer compares Firm P's ROE of 30% with Firm Q's ROE of -20% and concludes that P is the far better business. Q's figure is from its first year, when it expensed a one-off Rs 40 crore of research spending; P's is an ordinary year. Which statement about the comparison is true?
     choices:
-      - { id: a, text: "The periods are not comparable: Q's year includes a one-off charge that P's does not" }
-      - { id: b, text: "Nothing: both are return on equity, so the figures can be compared directly" }
+      - { id: a, text: "The periods differ: Q's year includes a one-off charge that P's year lacks" }
+      - { id: b, text: "The comparison is fair: both are return on equity, so the figures can be compared directly" }
       - { id: c, text: "A negative return on equity is impossible, so Q's figure must be a typing error" }
       - { id: d, text: "P's figure must be restated at market value first, and Q's must not" }
     answer: a

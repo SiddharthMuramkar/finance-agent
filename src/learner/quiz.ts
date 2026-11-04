@@ -1,6 +1,6 @@
 import { and, asc, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import type { CourseMap, QuizCheck } from "@/course/map";
-import { markAttempt, publicQuestions, selectQuestions, type Marking, type PublicQuestion } from "@/course/quiz";
+import { instantiateSlots, markAttempt, publicQuestions, selectQuestions, templateDraws, type MarkedQuestion, type Marking, type PublicQuestion } from "@/course/quiz";
 import { navigate } from "@/course/navigator";
 import { questionLookup } from "@/bank/lookup";
 import { quizAttempts } from "@/db/schema";
@@ -27,10 +27,11 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date(), learner
   let attempt = await open();
   if (!attempt) {
     const [{ n }] = await db.select({ n: count() }).from(quizAttempts).where(ofThisCheck);
-    await db
-      .insert(quizAttempts)
-      .values({ learnerId, checkId: check.id, attemptNo: n, questionIds: selectQuestions(check, n), createdAt: now })
-      .onConflictDoNothing();
+    // A template slot becomes an instance now ("template numbers are drawn when the attempt opens"), its numbers
+    // different from the Learner's last attempt at this Check.
+    const [last] = check.templates.length ? await db.select().from(quizAttempts).where(ofThisCheck).orderBy(desc(quizAttempts.id)).limit(1) : [];
+    const questionIds = instantiateSlots(map, check, selectQuestions(check, n), { learnerId, attemptNo: n, previous: last?.questionIds });
+    await db.insert(quizAttempts).values({ learnerId, checkId: check.id, attemptNo: n, questionIds, createdAt: now }).onConflictDoNothing();
     attempt = (await open())!;
   }
   let questionIds = attempt.questionIds;
@@ -40,12 +41,15 @@ export async function openQuiz(db: Db, map: CourseMap, now = new Date(), learner
     // no answers yet, so it is given a fresh selection from the questions that can still be shown.
     lookup = await questionLookup(db, map, check.questions);
     const usable = check.questions.filter((id) => lookup.question(id));
-    if (usable.length < check.passRule.correct) {
+    const templates = check.templates.filter((id) => templateDraws(map, id));
+    if (!templates.length && usable.length < check.passRule.correct) {
       // The Tutor is told and takes it as a conversation Check instead (see `quizUnavailable`).
       console.error(`Quiz Check "${check.id}": only ${usable.length} of its questions can be found, fewer than the ${check.passRule.correct} needed to pass, so no quiz is shown.`);
       return null;
     }
-    questionIds = selectQuestions({ ...check, questions: usable }, attempt.attemptNo);
+    const slots = selectQuestions({ ...check, questions: usable, templates }, attempt.attemptNo);
+    questionIds = instantiateSlots(map, { id: check.id, templates }, slots, { learnerId, attemptNo: attempt.attemptNo });
+    lookup = await questionLookup(db, map, questionIds);
     await db.update(quizAttempts).set({ questionIds }).where(eq(quizAttempts.id, attempt.id));
   }
   return {
@@ -101,6 +105,8 @@ export const retryQuiz = openQuiz;
  * conversation and records a verdict, so the Learner is never stuck at a Check nobody can mark.
  */
 export async function quizUnavailable(db: Db, map: CourseMap, check: QuizCheck): Promise<boolean> {
+  // A template can always be drawn, so one that exists makes the pool unlimited.
+  if (check.templates.some((id) => templateDraws(map, id))) return false;
   const lookup = await questionLookup(db, map, check.questions);
   return check.questions.filter((id) => lookup.question(id)).length < check.passRule.correct;
 }
@@ -129,7 +135,7 @@ export async function submitQuiz(
   now = new Date(),
   learnerId: number,
   /** Runs inside the transaction that saves a first submission (never a repeat), so what it stores goes with the result or not at all. */
-  onSaved?: (tx: Db, saved: { checkId: string; marking: Marking }) => Promise<void>,
+  onSaved?: (tx: Db, saved: { checkId: string; attemptId: number; marking: Marking }) => Promise<void>,
 ): Promise<QuizResult> {
   const [attempt] = await db
     .select()
@@ -150,7 +156,7 @@ export async function submitQuiz(
           .update(quizAttempts)
           .set({ answers: given, correctCount: marking.correctCount, passed: marking.passed, submittedAt: now })
           .where(eq(quizAttempts.id, attempt.id));
-        await onSaved?.(tx, { checkId: check.id, marking });
+        await onSaved?.(tx, { checkId: check.id, attemptId: attempt.id, marking });
         return result;
       });
       if (!saved.ok) return saved;
@@ -197,18 +203,27 @@ export async function pendingQuizNote(
     const verdict = passed
       ? "Passed: code recorded the pass."
       : "Not passed: the Learner stays at this Check and gets different questions on a retry where there are any.";
-    const missed = marking.questions
-      .filter((q) => !q.correct)
-      .map((q) => {
-        const text = (id: string | null) => q.choices.find((c) => c.id === id)?.text;
-        return `${q.prompt} The Learner chose ${q.chosen ? `"${text(q.chosen)}"` : "no answer"}; the right answer is "${text(q.answer)}".`;
-      });
+    const missed = marking.questions.filter((q) => !q.correct).map((q) => missedLine(map, check.topicId, q));
     const unchecked = marking.questions.some((q) => !q.verified)
       ? ["Some of these questions come from the Question Bank, whose answer key has not been checked by a person yet: if the Learner disputes a bank answer, work it out with them rather than defending the key."]
       : [];
     return [head, verdict, ...(missed.length ? ["Missed:", ...missed.map((m) => `- ${m}`)] : []), ...unchecked].join("\n");
   });
   return { text: notes.join("\n\n"), attemptIds: rows.map((r) => r.id), passed: rows.some((r) => r.passed === true) };
+}
+
+/**
+ * One missed question as a line for the Tutor: its prompt, what the Learner gave and the right answer, then the rule of
+ * the Skill it tests (in words, never the Skill's id) and, when the answer matched a Known mistake, that mistake's fix.
+ */
+export function missedLine(map: Pick<CourseMap, "topic">, topicId: string | undefined, q: MarkedQuestion): string {
+  const text = (id: string | null) => q.choices.find((c) => c.id === id)?.text;
+  const said =
+    q.kind === "number"
+      ? `The Learner typed ${q.given?.trim() ? `"${q.given.trim()}"` : "no answer"}; the right answer is "${q.expected ?? q.answer}".`
+      : `The Learner chose ${q.chosen ? `"${text(q.chosen)}"` : "no answer"}; the right answer is "${text(q.answer)}".`;
+  const rule = q.skill && topicId ? map.topic(topicId)?.skills.find((sk) => sk.id === q.skill)?.rule : undefined;
+  return [`${q.prompt} ${said}`, rule && `The Skill it tests: ${rule}`, q.mistake && `This is a Known mistake; the fix: ${q.mistake.fix}`].filter(Boolean).join(" ");
 }
 
 /** Marks the Learner's results as told to the Tutor, so each one reaches it once. */

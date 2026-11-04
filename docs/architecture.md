@@ -663,6 +663,8 @@ ones.
   tabs, "Chart" (a line chart) and "Table" (dates and closes), over a thin amber "Sourced" strip with
   the ⓘ credit. The values are Case Data, fetched from the server under the as-of rule, so before
   the reveal nothing after the Case's as-of date, 31 March 1992, appears.
+  When the reveal lifts, the newly shown part of the line wipes in from left to right over about
+  700 ms (a clip on just that stretch); under reduced motion it simply appears.
 - *A picture of an idea.* The Learner asks "draw me the difference between percent and percentage
   points". The Tutor builds a clearly made-up example, a rate moving from 5% to 5.5%, as bars plus a
   callout whose numbers the Widget works out: 50 basis points, and a rise of 10% of the old rate. The
@@ -774,6 +776,7 @@ only built together, and the package's per-file build is broken in 0.18.1 (a mis
 script is still over 1 MB and the stylesheet over 120 KB (our own CSS is 66 KB of it). The loader and stand-ins match
 this package version's text: after an OpenUI upgrade, run `npm run build` and read the sizes, and `openui-trim.test.ts`
 fails if the loader's patterns stop matching.
+The CSS trim itself lives in `openui-stubs/trim-openui.cjs` and `postcss.config.mjs` lists every plugin by path with an options object, the only form both Turbopack and `next dev --webpack` accept (`postcss-config.test.ts` guards it).
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
@@ -1263,6 +1266,23 @@ and every piece follows at once without a single per-component dark rule.
 **Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
 a quick palette class. In return the look stays consistent and a colour change is one line.
 
+## Colour themes and the contrast check (`src/app/globals.css`, `scripts/check-theme-contrast.mjs`)
+
+**What it does.** There are four colour sets, each a full block of the 26 tokens above: Light (`:root`), Midnight
+(`:root.dark`, the dark theme, which replaced the old mirrored-Tailwind dark), Paper (`:root[data-theme="paper"]`, a warm
+low-glare light) and Forest (`:root.dark[data-theme="forest"]`, a soft green-grey dark). Midnight, Paper and Forest sit
+inside `@media screen`, so printing always falls back to Light's tokens (the print block also forces `color-scheme: light`).
+No block inherits colours from another. The palettes are adapted from Catppuccin Mocha, Rose Pine Dawn and Everforest (all
+MIT; credited in the CSS comments only). Nothing in the UI picks Paper or Forest yet; setting `data-theme` by hand shows them.
+`scripts/check-theme-contrast.mjs` reads the CSS and fails the `check` script if any theme drops below its contrast rules
+(body text, links, accents, tags, focus ring), if a token is missing, or if Light's colours change.
+
+**Scenario.** Someone edits `--muted` in Midnight to something a little too dark. `npm run check` prints which rule failed
+and for which theme, and exits non-zero, so the change cannot merge.
+
+**Trade-off.** Four full blocks repeat every token, so adding a token means editing four places; the checker flags a
+missing one. In return no theme can silently pick up another's colour, and the contrast numbers are enforced, not hoped for.
+
 ## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
 
 **What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
@@ -1482,6 +1502,36 @@ and sourcing each one. The Tutor learns about a result late (on the next message
 of submission), which keeps the quiz free of model calls. Imported open question banks, spaced
 review and a Question Bank in the database come in later tickets.
 
+### Typed questions, fresh numbers and Known-mistake fixes (spec #229, ticket #241; `src/course/quiz.ts`, `src/bank/lookup.ts`, `src/learner/quiz.ts`, `src/tutor/check-results.ts`, `src/app/quiz-panel.tsx`)
+
+**What it does.** A quiz Check may list question templates beside its questions. A template slot in an attempt is
+stored in `question_ids` as `<templateId>#<seed>`; pure code rebuilds the numbers and the answer from the seed
+(`drawTemplate`), so nothing new is stored and there is no migration. `selectQuestions` still walks round the
+questions and then the templates and returns the bare template id for a slot; `openQuiz` turns each into an instance
+id (`instantiateSlots`) when it makes the attempt. The seed is made from the Learner, the Check, the attempt number and
+the slot, and a draw that repeats the numbers of the Learner's last attempt (or of an earlier slot) is stepped on until
+they differ. `questionLookup` resolves instance ids, so opening, marking, the Tutor's note and the Check tab after a
+miss all see the same numbers; a bare template id is never resolved, so the next attempt's numbers are not blocked
+before they are drawn. An instance's lookup entry carries the drawn prompt, no choices and its answer in words ("60 bp"),
+which is what the Tutor's blocked numbers read. A template that is gone counts as a removed question; templates make
+`quizUnavailable` false.
+
+**Scenario.** A Learner sees "A rate moves from 2% to 2.6%. How many basis points?" with a number box labelled "Answer
+in basis points". They type 0.6. Code marks "60 bp", "60" and "60.0" right and 0.6 as the Known mistake "stopped at
+points", so the Check tab shows "Your answer: 0.6 – right answer: 60 bp" and the template's one-line fix. A wrong
+multiple-choice option with a `mistake` shows its fix the same way. After a miss, the Tutor's note names the missed
+question's Skill as its rule in words, never its id, and the fix. Try again draws new numbers.
+
+**Skill state.** In the transaction that saves a first submission, every question with a Skill is logged with
+`recordAnswer` (source `quiz`, item key `quiz:<attemptId>:<questionId>`; a typed one also keeps its template and
+numbers). Right, a Known mistake that has a tag, and everything else (wrong) map to the three verdicts. A repeat
+submission records nothing. No real Topic has a Skill-tagged question until it is converted, so nothing is recorded in
+production before then.
+
+**Trade-off.** Seeds make a typed attempt cheap to store and exact to replay, but an instance cannot be edited once
+shown; and typed questions are left out of Reviews (see "Spaced review"), because a card needs a fixed question.
+
+
 ## Case Data (`src/case-data/`, `/api/case-data/[caseId]`, `npm run case-data:import`)
 
 **What it does.** Case Data is the checked historical data a Case is taught with: a few headline
@@ -1546,11 +1596,17 @@ World Bank and the Federal Reserve. If the Learner is in the 1992 Topic before i
 request returns nothing dated after that Case's as-of date, so a later Sensex close cannot give the
 outcome away.
 
-**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while the current
-Topic has a Case whose reveal is not yet shown, code clips every reference series to the earliest such
-as-of date (and leaves out a series with nothing earlier). The page's Case Data cache still keys on
-reveals only, so a series fetched before a reveal stays clipped on that page until it is reloaded: safe,
-but slightly stale. Some series are derived or approximate (gold in rupees is the international price
+**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while any Topic the
+Learner has started has a Case whose reveal is not yet shown, code clips every reference series to the
+earliest such as-of date (`referenceClip`; a series with nothing earlier is left out). The payload carries
+that clip date, and the page's Case Data cache drops its held reference entry whenever the clip changes
+(`setReferenceClip`, driven by the provider's `referenceClip` prop), so the reference series is refetched
+at once instead of staying stale until a turn ends. An import writes new points first, in chunks of 2,000,
+and only then deletes dates missing from the new file, so a failure part-way leaves the old points in
+place; it refuses a reference dataset id that is not in `REFERENCE_DATASET_IDS`, and the import script
+prints its database host and needs `--yes`. The dev scripts `widget-eval` and `layout-check` share
+`scripts/script-guards.mjs` (local base URL only, tools Learner only, `EVAL_DB_OK=branch` and never the
+`PROD_DB_HOST` host). Some series are derived or approximate (gold in rupees is the international price
 at the monthly exchange rate, without duty; typical rates are the middle of an RBI range), and each
 dataset's check note says so.
 
@@ -2637,6 +2693,13 @@ Map are offered, so deleting a question quietly retires its card. A rolling 24 h
 calendar day means no time zone is needed and midnight never frees a second batch, at the price
 that the next review returns at a time of day the Learner may not expect.
 
+**Typed questions stay out (spec #229, ticket #241).** A typed Check question is a draw of a question template, kept in
+`question_ids` as `<templateId>#<seed>`. `enrollPassedQuestions` skips every such id, so only multiple-choice questions
+get a Review card, and Reviews behave exactly as before. The reason: a card holds a question id, and a typed question's
+numbers belong to one attempt, so there is nothing fixed to bring back later. The Skill state (see the quiz section)
+is what carries a typed miss forward instead.
+
+
 ## Library (`src/library/`, `search_library` tool, `npm run library:load`, `library:embed`, `library:score`)
 
 **What it does.** The Library is the private collection of real sources the Tutor searches when it
@@ -3014,7 +3077,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **The CI job.** `.github/workflows/tutor-eval.yml` runs on pull requests that change the Tutor's instructions, tools or context, the quiz follow-up, the help chips, a Topic file or the suite itself. It is not one of the required checks (`check` and `build`), so a noisy model run never blocks a merge or a deploy. It has its own concurrency group that never cancels, so a paid run that started always reports. It reads `secrets.ANTHROPIC_API_KEY`; without it (a PR from a fork, since the repo is public, or the secret not set) it skips and says so in the job summary. It uses `pull_request` only, never `pull_request_target` or `workflow_run`, so no fork can reach the secret.
 
-**What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they are reported as pending with that reason and start running once the Skill `pts_to_bp` exists. T8 waits for the lesson lint and its fixture Topic (a Check that tests an untaught Skill, at `src/behaviour/tutor-eval/fixtures/untaught-skill/`). Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
+**What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they are reported as pending with that reason and start running once the Skill `pts_to_bp` exists. T8 runs: the course check passes on the repo and fails on the fixture folder `src/behaviour/tutor-eval/fixtures/untaught-skill/` (a Check that tests an untaught Skill), naming L1. `course:check` now runs the lesson lint before the typed-formula check, so the fixture's L1 errors show even though the fixture is not on the repo's not-yet-converted lists. Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
 
 **Trade-off.** A model grading a model is a first pass, not proof, and three runs are a small sample of a model that varies; the conditions code can tell are checked by code so the grader decides less. Replies have no move field (they stay text), so "offer to park" is read as a park offer item or both choices named in the reply, and "save to notes" as a note the turn added. T3's state reads "missed 3 times" as three misses in all with a right answer between, so the Learner's 0.3 is the second miss in a row, which brings a new method under the ladder; three in a row is T7's park offer. Offline tests cover the case files, the conditions and grade parsing, the cap, the report layout, the state set-up and a whole suite run with a scripted model and a stand-in grader, with no network.
 
@@ -3647,11 +3710,11 @@ The lesson lint (`lessonLintErrors`) then checks every converted Topic, after th
 - **L3:** five lines at most on a card, with its write-down line; no sentence over 20 words.
 - **L4:** each Widget preset is valid.
 - **L5:** the currency matches the Topic: no $, USD, € or £ in a rupee Topic, no ₹ or Rs in a dollar one.
-- **L6:** no question prompt or ask says "wrong", "not" or "except", bold or not (the Check tab cannot show bold).
+- **L6:** no question prompt or ask says "wrong", "not" or "except", bold or not (the Check tab cannot show bold). Unlike the other rules it runs on every Topic, converted or not, and reads every question in a Topic file, even one no Check lists (such questions are kept only so old attempts load). The 19 older questions that had a negative stem were reworded with their ids and answer ids kept, so stored attempts and review cards still match. Question Bank items live in the database, so `course:check` cannot see them: L6 is out of their reach.
 - **L7:** no question a Check lists, and none of 50 draws of a template it lists, holds all the numbers of the Running example or of a card's own worked example.
 - **Draws:** every template draws 50 seeds and marks its own answer right; a fixed try's answer is exact at its decimals, and no Known mistake equals it.
 
-The rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 Topics today and can only shrink: a listed Topic that gains Skills must come off, and an unlisted one without Skills fails. A content-only restructure fails if any Check is required, so no Due Check appears. The typed-formula check also reads every new text (card lines, Skills, Quick tries, templates, choice fixes, the Running example), and a typed sum there fails even for a Topic still on its own not-yet-converted list.
+Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 Topics today and can only shrink: a listed Topic that gains Skills must come off, and an unlisted one without Skills fails. A content-only restructure fails if any Check is required, so no Due Check appears. The typed-formula check also reads every new text (card lines, Skills, Quick tries, templates, choice fixes, the Running example), and a typed sum there fails even for a Topic still on its own not-yet-converted list.
 
 **Scenario.** Someone converting Percent moves the percent-change rule from Check 2's card to Check 3's but leaves Check 2's percent-change template in place. CI fails with `L1: Check "num-percent-bps-check-2" tests Skill "pct-change", which no Concept card at or before it teaches (Topic "num-percent-bps")`, the gap the Percent Session showed. If a card line says "5 - 4 = 1 point", the typed-formula check names that line; if a template could draw "from 4% to 5%", L7 says to add those numbers to its avoid list.
 
@@ -3689,7 +3752,7 @@ The rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 
 
 **Scenario.** After a change to the Widget engine, run a local production build against the Neon test branch, then `npm run widgets:eval -- <folder>`. Prompt 3 ("SIP, 1000 a month for 20 years") comes back as a `grow_money` recipe, Grow archetype, 46 s to first pixel on a slow Tutor turn; the report shows that as a failed first-pixel target and the screenshot shows the Widget. `--only 3,11,19` runs a few prompts as a smoke test.
 
-**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The timings include the model's thinking time, so they measure the whole experience, not only the engine. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
+**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The raw timings include the model's thinking time and, on a laptop far from the database, about 35 s of database round trips per turn, so the report also gives production-equivalent timings: the model's step durations from the `usage` table plus 100 ms of tool work, 500 ms of server overhead and the locally measured client render. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
 
 ## Present value pilot check (`src/tutor/pilot.test.ts`, `src/course/connections-check.ts`, `scripts/browser-check.mjs`, ticket #74)
 
@@ -4029,3 +4092,11 @@ copying the card into the Session. Re-deriving each try's answer from the file k
 Topic file edited after a try was shown marks that try against the new file. Results reach the Tutor by item order (those
 after its last reply), so no new table or column is needed, but a result stored during a turn is told in the next one.
 Only converted Topics touch `skill_state` and `practice_answers`; every other Topic behaves exactly as before.
+
+## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
+
+**What it does.** Two commands turn the go-live checks into one step each, and neither runs in `npm run check`. `npm run tutor:sweep` runs the live Tutor tests (T1 to T11, three runs each) once for every model and effort pair in `TUTOR_EVAL_MODELS` (default: Opus 5.5 low, Opus 5.5 medium and Sonnet 5.5 medium), each pair on its own spend cap (`TUTOR_EVAL_BUDGET_USD`, $5 by default). It uses the suite's own runner, so a pair is judged exactly as `npm run tutor:eval` judges one. One combined report gives each pair's runs passed, cases passed, spend and cost per turn, and names the cheapest pair that passed every case three times out of three. `npm run tutor:replay` reads the last 50 Learner turns from the stored Sessions (read-only; the script starts the replay with the database address removed from its environment), turns each into a case with the state the Learner had, sends it through the real Tutor Turn on a throwaway in-memory database, runs `fixReply` and `checkReply` on the reply, and writes the pass rate for each rule V1 to V7, the longest reply in words, and every failure in full. Reports go to `evidence/tutor-eval/`, which git ignores because the replay holds Learner messages.
+
+**Scenario.** The owner runs `npm run tutor:sweep`. Opus low passes everything at $0.21 a turn, Opus medium at $0.34, and Sonnet medium fails T4 once in three runs. The report chooses Opus 5.5 low. The owner stores it in the settings table, then runs `npm run tutor:replay -- --model claude-opus-5-5 --effort low --engine on`. The report shows V1 at 50 of 50 and a longest reply of 97 words, so the widget engine goes on.
+
+**Trade-off.** The sweep spends real money (up to the cap for every pair), and the cap stops a pair rather than the whole sweep, so a bad pair costs at most its cap. The rule picks the cheapest passing pair, so a flaky pass at three runs can win by luck; the report shows the runs passed so the owner can see it. The replay re-sends only the Learner's message with the state rebuilt from the log (methods used come from today's Skill state), so it is close to the original turn, not identical. Stored turns that need a Skill the Topic no longer lists are skipped and listed, not counted as passes.

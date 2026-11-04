@@ -66,3 +66,15 @@ describe("the OpenUI stylesheets globals.css imports", () => {
     expect(unstyled).toEqual([]);
   });
 });
+
+describe("code inside TextContent", () => {
+  it("is drawn as plain text, not dropped by the highlighter stand-in", () => {
+    const program = 'root = Widget("Code", [t])\nt = TextContent("Use:\\n\\n    FV = PV x (1 + r)\\n\\nto compound")';
+    const html = renderToStaticMarkup(
+      <GenuiTheme>
+        <Renderer response={program} library={widgetLibrary} isStreaming={false} />
+      </GenuiTheme>,
+    );
+    expect(html.replace(/<[^>]+>/g, "")).toContain("FV = PV x (1 + r)");
+  });
+});

@@ -32,8 +32,8 @@ export function VersusView({ leftLabel, leftValue, rightLabel, rightValue, unit,
   const scale = useStickyMax(Math.max(Math.abs(leftValue), Math.abs(rightValue)));
   const winner = winnerOf(leftValue, rightValue, better);
   const margin = Math.abs(leftValue - rightValue);
-  const base = Math.min(Math.abs(leftValue), Math.abs(rightValue));
-  const percent = base > 0 ? (margin / base) * 100 : null;
+  const base = Math.min(leftValue, rightValue);
+  const percent = leftValue > 0 && rightValue > 0 ? (margin / base) * 100 : null;
   const winnerLabel = winner === "left" ? leftLabel : rightLabel;
   const chip = winner === "tie" ? "Level" : `+${formatAmount(margin, unit)}${percent === null ? "" : ` · ${trimmed(percent, percent < 10 ? 1 : 0)}%`}`;
   const sentence =
@@ -43,7 +43,8 @@ export function VersusView({ leftLabel, leftValue, rightLabel, rightValue, unit,
 
   const bar = (side: "left" | "right", label: string, value: number) => {
     const wins = winner === side;
-    const width = scale > 0 && Number.isFinite(value) ? Math.max(0, (value / scale) * 100) : 0;
+    const width = scale > 0 && Number.isFinite(value) ? Math.min(100, (Math.abs(value) / scale) * 100) : 0;
+    const negative = Number.isFinite(value) && value < 0;
     return (
       <div className="grid grid-cols-[minmax(0,8rem)_1fr] items-center gap-x-3 sm:grid-cols-[10rem_1fr]" data-testid={`versus-${side}`} data-winner={wins}>
         <span className={`text-sm ${wins ? "font-semibold" : ""}`}>{label}</span>
@@ -54,12 +55,13 @@ export function VersusView({ leftLabel, leftValue, rightLabel, rightValue, unit,
               className="h-full rounded-sm"
               style={{
                 width: `${width}%`,
+                border: negative ? "1px dashed var(--ink)" : undefined,
                 background: wins ? "var(--muted)" : "var(--data)",
                 transition: reduced ? undefined : "width 160ms var(--ease-out, ease-out), background-color 200ms var(--ease-out, ease-out)",
               }}
             />
           </div>
-          <span className="w-24 shrink-0 text-right text-sm tabular-nums">{formatAmount(value, unit)}</span>
+          <span className="w-24 shrink-0 text-right text-sm tabular-nums">{negative ? "−" : ""}{formatAmount(Math.abs(value), unit)}</span>
         </div>
       </div>
     );
