@@ -42,7 +42,35 @@ export type Place = {
   revealShown: boolean;
   /** Required Checks added to already passed Topics since they were passed. */
   dueChecks: Check[];
+  /** The Skills of the current Check the Learner has parked, and when each comes back. While any is parked the Topic waits at its step. */
+  parked?: ParkedSkill[];
 };
+
+/** A parked Skill and when it comes back as a drill. */
+export type ParkedSkill = { skillId: string; until: Date };
+
+/** The Learner's parked Skills, by Topic id and then Skill id: when each comes back. Loaded by callers, so the Navigator stays pure. */
+export type ParkedSkills = Readonly<Record<string, Readonly<Record<string, Date>>>>;
+
+/** The Skills a Check teaches: its card's, then the ones its questions test, once each. */
+export function checkSkills(topic: Topic, check: Check): string[] {
+  // The tested Skills as map.ts's `testedSkills` finds them, written here because the browser bundle imports this module.
+  const tested =
+    check.kind === "conversation"
+      ? check.skills
+      : [
+          ...check.questions.flatMap((id) => topic.questions.find((q) => q.id === id)?.skill ?? []),
+          ...check.templates.flatMap((id) => topic.templates.find((t) => t.id === id)?.skill ?? []),
+        ];
+  return [...new Set([...(check.card?.skills ?? []), ...tested])];
+}
+
+/** The parked Skills of the Check the Learner is at. */
+function parkedAt(topic: Topic, check: Check | null, parked: ParkedSkills | undefined): ParkedSkill[] {
+  const inTopic = parked?.[topic.id];
+  if (!check || !inTopic) return [];
+  return checkSkills(topic, check).flatMap((skillId) => (inTopic[skillId] ? [{ skillId, until: inTopic[skillId] }] : []));
+}
 
 export type Move = { ok: true; progress: Progress } | { ok: false; reason: string };
 
@@ -130,8 +158,8 @@ function nextStep(topic: Topic, record: TopicProgress, step: TeachingStep, check
   }
 }
 
-/** Where the Learner is now, or null once every Topic is passed. */
-export function navigate(map: CourseMap, progress: Progress): Place | null {
+/** Where the Learner is now, or null once every Topic is passed. `parked` fills the place's parked Skills. */
+export function navigate(map: CourseMap, progress: Progress, parked?: ParkedSkills): Place | null {
   const topic = currentTopic(map, progress);
   if (!topic) return null;
   const record = progress.topics[topic.id];
@@ -145,6 +173,7 @@ export function navigate(map: CourseMap, progress: Progress): Place | null {
     unmetPrerequisites: topic.prerequisites.filter((p) => !isPassed(progress, p)),
     revealShown: (record?.revealShown ?? false) || step === "reveal",
     dueChecks: map.topics.flatMap((t) => dueIn(t, progress.topics[t.id])),
+    parked: parkedAt(topic, check, parked),
   };
 }
 
@@ -155,8 +184,49 @@ function save(progress: Progress, topic: Topic, record: TopicProgress): Progress
   };
 }
 
+/**
+ * Whether a step is a converted Your turn: Your turn for a Check that lists Skills, in a converted Topic. Quick tries
+ * fill it, and it finishes only from fluency (finishFromPractice), never from the Tutor's report or a Next.
+ */
+export function practiceStep(topic: Topic, step: TeachingStep, check: Check | null): boolean {
+  return step === "your_turn" && check !== null && topic.skills.length > 0 && checkHasSkills(topic, check);
+}
+
+/**
+ * Whether a Check tests any Skill: the same test as map.ts's `isConverted` and `testedSkills`, written here because the
+ * page imports this module and map.ts reads the Topic files from disk (node:fs), which the browser bundle cannot hold.
+ */
+function checkHasSkills(topic: Topic, check: Check): boolean {
+  if (check.kind === "conversation") return check.skills.length > 0;
+  return check.questions.some((id) => topic.questions.find((q) => q.id === id)?.skill) || check.templates.some((id) => topic.templates.find((t) => t.id === id)?.skill);
+}
+
 /** The Tutor reports that it finished a Teaching Step. Only the current step is accepted. */
 export function finishStep(map: CourseMap, progress: Progress, reported: TeachingStep): Move {
+  const topic = currentTopic(map, progress);
+  if (topic && reported === "your_turn") {
+    const { step, check } = placeIn(topic, progress.topics[topic.id]);
+    if (practiceStep(topic, step, check)) {
+      return { ok: false, reason: "Your turn ends only through the Quick tries: code finishes it once every Skill of the Check has two right answers in a row." };
+    }
+  }
+  return finishCurrent(map, progress, reported);
+}
+
+/**
+ * Your turn finishes from practice: accepted only at a converted Your turn, and only when `done`, which the caller
+ * works out with yourTurnDone over every Skill of the Check.
+ */
+export function finishFromPractice(map: CourseMap, progress: Progress, done: boolean, parked?: ParkedSkills): Move {
+  const place = navigate(map, progress, parked);
+  if (!place || !practiceStep(place.topic, place.step, place.check)) return { ok: false, reason: "The Learner is not at Your turn with Quick tries." };
+  // A parked Skill holds the place: Your turn waits for its drill.
+  if (place.parked?.length) return { ok: false, reason: "A Skill of this Check is parked: Your turn waits until its drill." };
+  if (!done) return { ok: false, reason: "Not every Skill of the Check has two right answers in a row yet." };
+  return finishCurrent(map, progress, "your_turn");
+}
+
+function finishCurrent(map: CourseMap, progress: Progress, reported: TeachingStep): Move {
   const topic = currentTopic(map, progress);
   if (!topic) return { ok: false, reason: "Every Topic on the Course Map is passed." };
   const { record, step, check } = placeIn(topic, progress.topics[topic.id]);
@@ -355,11 +425,13 @@ export type StepState = { begun: boolean };
 
 /**
  * The Next the Learner may take now, or null when there is none: while a Check is open (a miss keeps
- * it open), or once every Topic is passed.
+ * it open), while a Skill of the current Check is parked, or once every Topic is passed.
  */
-export function nextOffer(map: CourseMap, progress: Progress, { begun }: StepState): NextOffer | null {
-  const place = navigate(map, progress);
-  if (!place || place.step === "check") return null;
+export function nextOffer(map: CourseMap, progress: Progress, { begun }: StepState, parked?: ParkedSkills): NextOffer | null {
+  const place = navigate(map, progress, parked);
+  if (!place || place.step === "check" || place.parked?.length) return null;
+  // A converted Your turn ends only through its Quick tries: there is no Next, begun or not.
+  if (practiceStep(place.topic, place.step, place.check)) return null;
   if (!begun) return { kind: "next", step: place.step, label: `Next: ${STEP_NAMES[place.step]}`, advances: false };
   if (place.step === "explore" && !progress.topics[place.topic.id]?.insight) return { kind: "just_tell_me", label: "Just tell me" };
   // In a passed Topic the step after the last due step is its old principle: the run is over.
@@ -377,10 +449,11 @@ export type NextMove =
  * on offer: never past a Check without a saved pass, never past an unsettled Explore. A step not yet
  * begun is taught without moving on; otherwise the current step finishes and the following one is taught.
  */
-export function takeNext(map: CourseMap, progress: Progress, named: TeachingStep | "complete", state: StepState): NextMove {
-  const place = navigate(map, progress);
-  const offer = nextOffer(map, progress, state);
+export function takeNext(map: CourseMap, progress: Progress, named: TeachingStep | "complete", state: StepState, parked?: ParkedSkills): NextMove {
+  const place = navigate(map, progress, parked);
+  const offer = nextOffer(map, progress, state, parked);
   if (!place || !offer) {
+    if (place?.parked?.length) return { ok: false, reason: "A Skill of this Check is parked: the Topic waits at its step until the drill." };
     return { ok: false, reason: place?.step === "check" ? "A Check is open: only a saved pass moves past it." : "There is no Next to take." };
   }
   if (offer.kind === "just_tell_me") return { ok: false, reason: "Explore is not settled: the Learner has not found the Insight or been told it." };
@@ -441,10 +514,18 @@ export type TopicOverview = {
   current: boolean;
   /** The Topic the default path leads to (where going back would land). */
   onDefaultPath: boolean;
+  /** When the last of the Topic's parked Skills comes back; null when none is parked. */
+  parkedUntil?: Date | null;
 };
 
+/** The latest time any of the Topic's parked Skills comes back. */
+function latestBack(parked: ParkedSkills | undefined, topicId: string): Date | null {
+  const times = Object.values(parked?.[topicId] ?? {});
+  return times.length ? new Date(Math.max(...times.map((t) => t.getTime()))) : null;
+}
+
 /** Every Topic on the Course Map in default-path order, with its status, Checks and the Learner's place. For the Course Map page. */
-export function courseOverview(map: CourseMap, progress: Progress): TopicOverview[] {
+export function courseOverview(map: CourseMap, progress: Progress, parked?: ParkedSkills): TopicOverview[] {
   const place = navigate(map, progress);
   const defaultTopic = currentTopic(map, returnToDefaultPath(progress));
   return map.topics.map((topic) => {
@@ -461,6 +542,7 @@ export function courseOverview(map: CourseMap, progress: Progress): TopicOvervie
       unmetPrerequisites: topic.prerequisites.filter((p) => !isPassed(progress, p)),
       current: here !== null,
       onDefaultPath: defaultTopic?.id === topic.id,
+      parkedUntil: record?.status === "passed" ? null : latestBack(parked, topic.id),
     };
   });
 }

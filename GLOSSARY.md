@@ -44,6 +44,10 @@ _Avoid_: Lesson card, explainer, card (on its own)
 One short practice question at the your-turn step, set easiest first: the Learner types a number or picks True or False, and code marks it at once. It counts toward no Check.
 _Avoid_: Exercise, drill question, practice item
 
+**Quick-try follow-up**:
+The short Tutor turn code starts by itself after a Quick try marked wrong with no Known mistake to match: the Tutor names the slip in one sentence and gives the fix, then code shows a fresh Quick try. Code also starts one when Your turn finishes, to point the Learner to the Check.
+_Avoid_: Retry turn, feedback turn
+
 **Known mistake**:
 A wrong answer the Topic's file expects for a question, such as 6 for 60 (multiplied by 10, not 100), with a one-line fix that code shows the moment the Learner gives it.
 _Avoid_: Slip, error tag, misconception
@@ -53,7 +57,7 @@ Every number in the open quiz questions and the next attempt's, which the Tutor 
 _Avoid_: Forbidden numbers, quiz numbers
 
 **Parked Skill**:
-A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it. The Topic waits at its step while the Learner studies any other Topic, and the next day it starts with a drill of five on that Skill. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
+A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it, on Quick tries or quiz questions. The Topic waits at its step while the Learner studies any other Topic: no Quick try, no Next, and Your turn cannot finish, though an open quiz can still be passed. Once 20 hours have passed, opening the Topic starts a drill of five on that Skill, and five answered tries end the park. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
 _Avoid_: Skipped Skill, deferred Skill, review queue
 
 **Converted Topic**:

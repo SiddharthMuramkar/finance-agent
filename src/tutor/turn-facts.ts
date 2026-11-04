@@ -7,6 +7,7 @@ import { caseDatasets, quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { quizUnavailable } from "@/learner/quiz";
 import { GO_DEEPER, OLD_CHIP_MESSAGES } from "./chips";
+import { cardForFacts, ladderFacts } from "./practice";
 import { blockedNumbersFrom, capFor, type OpenItem, type ReplyCheckContext, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
 
 /**
@@ -38,6 +39,10 @@ export interface TurnFacts {
   frustration?: number;
   /** The Concept card on screen at this step (filled by a later ticket). */
   card?: string;
+  /** At a converted Your turn or Check: each Skill's state in one plain line (fluent or not, misses in a row, last Known mistake). */
+  skillLines?: string[];
+  /** While a Skill of the current Check is parked: when it comes back, and what the Tutor may still do. */
+  parked?: string;
 }
 
 /** The currency every Topic's everyday examples use until its file names one (spec #229: ₹ by default). */
@@ -55,11 +60,15 @@ export function replyKindOf(learnerText?: string): ReplyKind | undefined {
 /** This turn's facts, for the Learner's place (null once every Topic is passed) and the words that started the turn. */
 export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place: Place | null, turn?: { learnerText?: string }): Promise<TurnFacts> {
   const step: StepKind = place?.step ?? "none";
-  const replyKind = replyKindOf(turn?.learnerText);
+  // The repair ladder (ticket #245): the Reply kind and method code chose, the frustration count, Skill state and parking.
+  const ladder = await ladderFacts(db, map, learnerId, place, turn?.learnerText);
+  const replyKind = replyKindOf(turn?.learnerText) ?? ladder.replyKind;
   const check = place?.step === "check" && place.check?.kind === "quiz" ? place.check : null;
   const quizOpen = check !== null && !(await quizUnavailable(db, map, check));
   const openItems = quizOpen && check ? await openQuizItems(db, map, learnerId, check) : [];
   const currencies = place ? await topicCurrencies(db, place.topic) : { exampleCurrency: DEFAULT_EXAMPLE_CURRENCY, caseCurrencies: [] };
+  // The Concept card code shows (a converted Concept step) or teaches from (a converted quiz Check).
+  const card = cardForFacts(place);
   return {
     step,
     ...(replyKind && { replyKind }),
@@ -69,6 +78,11 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
     openItems,
     blockedNumbers: blockedNumbersFrom(openItems),
     internalWords: place ? internalWordsOf(place.topic) : [],
+    ...(card && { card }),
+    ...(ladder.method && { method: ladder.method }),
+    ...(ladder.frustration && { frustration: ladder.frustration }),
+    ...(ladder.skillLines.length && { skillLines: ladder.skillLines }),
+    ...(ladder.parked && { parked: ladder.parked }),
   };
 }
 
@@ -127,7 +141,7 @@ async function topicCurrencies(db: Db, topic: Topic): Promise<{ exampleCurrency:
     ...(stories.some((s) => USD_IN_STORY.test(s)) || units.some((u) => USD_UNIT.test(u)) ? ["USD"] : []),
     ...(stories.some((s) => INR_IN_STORY.test(s)) || units.some((u) => INR_UNIT.test(u)) ? ["INR"] : []),
   ];
-  return { exampleCurrency: DEFAULT_EXAMPLE_CURRENCY, caseCurrencies };
+  return { exampleCurrency: topic.exampleCurrency ?? DEFAULT_EXAMPLE_CURRENCY, caseCurrencies };
 }
 
 /** The ids of a Topic the Learner must never read in a reply. */

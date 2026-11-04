@@ -1,6 +1,6 @@
 import { evaluate } from "@openuidev/lang-core";
 import { calculate } from "@/finance/calculators";
-import { formulaById } from "@/finance/formulas";
+import { formulaById, formulaCurrency } from "@/finance/formulas";
 import { rateChangeReadouts } from "@/finance/rate-change";
 import { annuityPaymentCount } from "@/finance/present-value";
 import { formatUnit, formatUsd, formatValue } from "./case-data-view";
@@ -90,7 +90,7 @@ function partReadouts(node: ParsedNode, state: Record<string, number>, lookup: S
     const figures = Object.entries(sourced).map(([key, ref]) => [key, typeof ref === "string" ? lookup(ref)?.value : undefined] as const);
     const values = numbers({ ...(isRecord(props.fixed) ? props.fixed : {}), ...(isRecord(props.inputs) ? props.inputs : {}), ...Object.fromEntries(figures) });
     if (!formula || !values || !formula.symbols.every((s) => finite(values[s.key]))) return [];
-    const run = calculate(formula.calculator, values, "usd");
+    const run = calculate(formula.calculator, values, formulaCurrency(formula));
     if (!run.ok) return [];
     const outputs = [...formula.derived, formula.result].flatMap((o) => {
       const result = run.results.find((r) => r.label === o.resultLabel);

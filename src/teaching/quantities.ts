@@ -3,10 +3,16 @@
  * basis points and the percent change of the old rate. Answer functions and mistake functions both read them.
  */
 import { divide, multiply, shift, subtract, type Exact } from "./answers.ts";
+import { cagrPercent, compoundValue, ruleOf72Years } from "./growth.ts";
 
 /** Named answer functions a template may use. */
-export const ANSWER_FNS = ["points_between", "bp_from_move", "points_from_bp", "bp_from_points", "pct_change"] as const;
+export const ANSWER_FNS = ["points_between", "bp_from_move", "points_from_bp", "bp_from_points", "pct_change", "compound_value", "rule_of_72_years", "cagr_percent"] as const;
 export type AnswerFnId = (typeof ANSWER_FNS)[number];
+
+/** Answer functions whose answer is rounded to the ask's decimals, so a longer typed answer that rounds to it is right. */
+export const ROUNDED_FNS: readonly AnswerFnId[] = ["pct_change", "compound_value", "rule_of_72_years", "cagr_percent"];
+/** Rounded growth answers: a draw whose answer lies within 0.001 of a rounding boundary is dropped. */
+export const BOUNDARY_FNS: readonly AnswerFnId[] = ["compound_value", "rule_of_72_years", "cagr_percent"];
 
 export type Values = Record<string, Exact>;
 
@@ -48,5 +54,11 @@ export function answerValue(fn: AnswerFnId, v: Values, decimals: number): Exact 
       return shift(movePoints(v), 2);
     case "pct_change":
       return percentChange(v, decimals);
+    case "compound_value":
+      return compoundValue(v);
+    case "rule_of_72_years":
+      return ruleOf72Years(v, decimals);
+    case "cagr_percent":
+      return cagrPercent(v, decimals);
   }
 }
