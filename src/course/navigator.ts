@@ -178,10 +178,12 @@ function save(progress: Progress, topic: Topic, record: TopicProgress): Progress
 
 /**
  * Whether a step is a converted Your turn: Your turn for a Check that lists Skills, in a converted Topic. Quick tries
- * fill it, and it finishes only from fluency (finishFromPractice), never from the Tutor's report or a Next.
+ * fill it, and it finishes only from fluency (finishFromPractice), never from the Tutor's report or a Next. A Check with
+ * no Quick tries of its own (Percent's conversation Check, whose Skills earlier cards teach) has nothing to practise, so
+ * its Your turn is an ordinary step the Tutor finishes.
  */
 export function practiceStep(topic: Topic, step: TeachingStep, check: Check | null): boolean {
-  return step === "your_turn" && check !== null && isConverted(topic) && testedSkills(topic, check).length > 0;
+  return step === "your_turn" && check !== null && isConverted(topic) && check.quickTries.length > 0 && testedSkills(topic, check).length > 0;
 }
 
 /** The Tutor reports that it finished a Teaching Step. Only the current step is accepted. */

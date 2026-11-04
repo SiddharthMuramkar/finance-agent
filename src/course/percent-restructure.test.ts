@@ -5,7 +5,8 @@ import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
 import { isConverted, loadCourseMap } from "./map";
-import { courseOverview, navigate, type Progress, type TeachingStep } from "./navigator";
+import { cardForFacts } from "@/tutor/practice";
+import { courseOverview, finishStep, navigate, practiceStep, type Progress, type TeachingStep } from "./navigator";
 
 // Percent's conversion is a content-only restructure (spec #229, "Restructured Topics"): the old Checks keep their ids,
 // a new quiz Check 2 sits between them, no Check is required, and every Learner keeps their saved step. These tests
@@ -75,5 +76,15 @@ describe("Percent's content-only restructure", () => {
     expect(await loadProgress(db, learnerId)).toEqual(progress);
     const tab = await checkTabNow(db, map, new Date(), learnerId);
     expect(tab.quiz).toMatchObject({ checkId: "pb-quiz-change", checkNumber: 2, checkCount: 3 });
+    // The Tutor's context at that quiz carries Check 2's card, so it can teach the card while the quiz is open.
+    expect(cardForFacts(navigate(map, progress))).toContain("Compared with the start");
+  });
+
+  it("lets the Tutor finish Your turn at the conversation Check, which has no Quick tries to practise", () => {
+    const progress = inPercent("your_turn", ["pb-quiz-language", "pb-quiz-change"]);
+    const place = navigate(map, progress)!;
+    expect(place).toMatchObject({ step: "your_turn", check: { id: "pb-fed-language" } });
+    expect(practiceStep(place.topic, place.step, place.check)).toBe(false);
+    expect(finishStep(map, progress, "your_turn")).toMatchObject({ ok: true });
   });
 });

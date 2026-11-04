@@ -317,9 +317,10 @@ checks:
     kind: quiz
     questions: [pb-q-unemployment, pb-q-newspaper, pb-q-wrong-description]
     templates: [pb-t-pct-change]
-    perAttempt: 3
+    # Four a try, so every attempt shows the three wording questions and one typed percent change with fresh numbers.
+    perAttempt: 4
     passRule:
-      correct: 2
+      correct: 3
     card:
       title: Compared with the start
       lines:
