@@ -43,7 +43,7 @@ import {
   type Session,
   type Shown,
 } from "./session-log";
-import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
+import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
@@ -52,7 +52,7 @@ import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetRep
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
-import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
+import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 
 /**
  * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
@@ -151,7 +151,7 @@ export type TurnEvent =
    * not finished). Always followed by "done", so the browser never resumes the turn.
    */
   | { type: "stopped" }
-  /** A Widget's current slider values, by its Widget key. The type only for now: nothing sends it yet. */
+  /** A Widget's new slider values, by its Widget key: update_widget saved them, and the open Widget moves to them. */
   | { type: "widget_state"; widgetKey: string; values: Record<string, number> };
 
 /** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
@@ -221,6 +221,8 @@ export type TurnDeps = {
    * the generator cannot yield while a tool runs or the model thinks. Left out, nothing is sent.
    */
   notify?: (event: ProgressEvent) => void;
+  /** compose_widget's model client (and a test's shorter limit); left out, the real Anthropic client, made on first use. */
+  composer?: Composer;
 };
 
 /** Thrown when a run reaches its time budget. */
@@ -446,13 +448,22 @@ async function* runLockedTurn(
   const map = deps.map ?? loadCourseMap();
   const now = deps.now ?? (() => new Date());
   const runStart = performance.now();
-  const effects: ToolEffects = { saveFailed: false, items: [], notify: deps.notify };
+  const effects: ToolEffects = { saveFailed: false, items: [], notify: deps.notify, deadline, stop, pageWidgets: deps.widgets };
   const progress = (label: string) => deps.notify?.({ type: "progress", label });
 
   let session: Session;
   let log: Log;
   let turnSeq: number;
   let code: Record<string, ToolCode>;
+  // The turn's loop steps are numbered once across the Tutor's steps and the extra ones tools save (compose_widget's).
+  let stepNo: number | undefined;
+  let stepsReady = false;
+  const saveStep = async (model: string, make: (n: number) => StepUsage) => {
+    stepNo ??= (await loadStepUsages(db, session.id, turnSeq)).length;
+    await saveStepUsage(db, session.id, turnSeq, model, make(++stepNo), now());
+  };
+  // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
+  effects.saveStep = (model, make) => (stepsReady ? saveStep(model, make) : Promise.resolve());
   // A resume carries on from the last saved loop step, but only once the Learner's message is stored.
   let resumed: { session: Session; log: Log; turnSeq: number } | undefined;
   if (typeof input === "object" && "resume" in input && turn.sessionId !== null && turn.turnSeq !== null) {
@@ -463,7 +474,8 @@ async function* runLockedTurn(
   }
   if (resumed) {
     ({ session, log, turnSeq } = resumed);
-    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
+    stepsReady = true;
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
     yield { type: "replay", text: (await turnText(log.rows, turnSeq, { db, map, learnerId })) };
     yield* repairToolCalls();
   } else {
@@ -504,11 +516,12 @@ async function* runLockedTurn(
         ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
         : plainContext;
     const learnerBlocks: { type: "text"; text: string }[] = [{ type: "text", text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
-    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery);
+    code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
 
     turnSeq = log.nextSeq;
+    stepsReady = true;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
     const items = await loadSessionItems(db, session.id, learnerId);
     const drawn = drawnWidgets(replyTexts(log.rows), items, turnSeq);
@@ -585,11 +598,12 @@ async function* runLockedTurn(
       itemSinceText = true;
       yield { type: "item", item };
     }
+    // update_widget saved new slider values: the open Widget moves to them.
+    for (const state of effects.widgetStates?.splice(0) ?? []) yield state;
   }
 
   const activeSession = session;
   const { compactAtTokens } = await readSettings(db);
-  let stepNo = (await loadStepUsages(db, session.id, turnSeq)).length;
   let stopReason: string | null = null;
   // The Learner pressed Stop and the reply ended there.
   let stopped = false;
@@ -654,8 +668,7 @@ async function* runLockedTurn(
         }
         const final = await beforeDeadline((pending = stream.finalMessage()), deadline, stop);
         const tools = compacting ? ["compaction"] : final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
-        const step = stepUsage(activeSession.model, ++stepNo, final.usage, tools, Math.round(performance.now() - stepStart), final.stop_reason);
-        await saveStepUsage(db, activeSession.id, turnSeq, activeSession.model, step, now());
+        await saveStep(activeSession.model, (n) => stepUsage(activeSession.model, n, final.usage, tools, Math.round(performance.now() - stepStart), final.stop_reason));
         stepStart = performance.now();
         if (compacting) {
           // The summary stands in for everything before it from the next request on. No summary: carry on uncompacted.

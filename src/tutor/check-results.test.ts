@@ -98,6 +98,31 @@ describe("a quiz result card", () => {
     expect(await checkTabNow(db, map, new Date(), OWNER_LEARNER_ID)).toEqual({ quiz: retried, missed: null });
   });
 
+  it("after a miss: the follow-up note covers the first missed question only, as one slip, one fix and one new question", async () => {
+    const db = await testDb();
+    const { quiz } = await atQuiz(db);
+    await submitQuizAnswers(db, map, quiz.attemptId, missing(quiz, 2, 3), new Date(), OWNER_LEARNER_ID);
+    const [, second, third] = quiz.questions.map((q) => map.question(q.id)!);
+    const chosen = second.choices.find((c) => c.id !== second.answer)!.text;
+
+    await turn(db, { quizFollowUp: true }, [say("You took 4.5% for 45 points.")]);
+    const note = (await latestTurn(db, OWNER_LEARNER_ID))!.input!;
+    expect(note).toMatch(/^Quiz follow-up by code:/);
+    // Code names the first missed question, the Learner's choice and the right answer; the second miss is left to the Check tab.
+    expect(note).toContain(second.prompt);
+    expect(note).toContain(chosen);
+    expect(note).toContain(second.choices.find((c) => c.id === second.answer)!.text);
+    expect(note).not.toContain(third.prompt);
+    // One slip (the Known mistake when the marking names one), one fix, one similar question on new numbers, in 60 words.
+    expect(note).toContain("Known mistake");
+    expect(note).toContain("one-line fix");
+    expect(note).toContain("new numbers");
+    expect(note).toContain("60 words");
+    expect(note).not.toContain("one at a time");
+    expect(note).not.toContain("Do not write new quiz questions");
+    expect(note).toContain("only when the Learner presses Try again");
+  });
+
   it("after a pass: stores \"passed ✓\" (naming a missed question), runs no turn, and Next names the step not yet begun", async () => {
     const db = await testDb();
     const { sessionId, quiz } = await atQuiz(db);

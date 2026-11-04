@@ -16,7 +16,7 @@ import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, typ
 export type Message = BetaMessageParam;
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
-export const DEFAULT_SETTINGS = { model: "claude-opus-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10", widget_engine: "off" };
+export const DEFAULT_SETTINGS = { model: "claude-opus-5-5", effort: "medium", session_idle_hours: "6", compact_at_tokens: "200000", review_cap: "10", widget_engine: "off", widget_compose_model: "claude-sonnet-5-5" };
 
 export type Session = typeof sessions.$inferSelect;
 
@@ -38,6 +38,8 @@ export async function readSettings(db: Db) {
     reviewCap: Number(get("review_cap")),
     /** The widget engine (ADR 0005): "on" freezes new and refrozen Sessions with show_widget. Read only by frozenNow. */
     widgetEngine: get("widget_engine") === "on" ? ("on" as const) : ("off" as const),
+    /** The model compose_widget asks for a free-form Widget (UX audit ★.4, lane 2). Read when the tool runs, never frozen. */
+    composeModel: get("widget_compose_model") || DEFAULT_SETTINGS.widget_compose_model,
   };
 }
 

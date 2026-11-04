@@ -40,7 +40,7 @@ describe("the Next and help chips", () => {
     act(() => root.render(<Chips offer={null} onNext={() => {}} onSay={onSay} />));
     const [first] = host.querySelectorAll<HTMLButtonElement>('[data-testid="help-chip"]');
     act(() => first.click());
-    expect(onSay).toHaveBeenCalledWith("Explain that more simply.");
+    expect(onSay).toHaveBeenCalledWith("Go deeper.");
     expect(first.getAttribute("aria-busy")).toBe("true");
   });
 });

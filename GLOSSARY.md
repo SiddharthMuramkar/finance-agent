@@ -9,12 +9,16 @@ A person the Tutor teaches, signed in with their own passcode. Each Learner's Le
 _Avoid_: User, student, account
 
 **Learner Profile**:
-What the Learner chooses to share about their own life (work, where they live, any loan, what they are saving for), used only to pick everyday examples, never to give advice.
+What the Learner chooses to share about their own life (work, where they live, any loan, what they are saving for), used only when the Learner asks how an idea applies to them, never to give advice.
 _Avoid_: Account, user profile, persona
 
 **Tutor**:
 The agent that teaches, explains and works through finance and economics with the Learner.
 _Avoid_: Assistant, bot
+
+**Reply kind**:
+What one Tutor reply sets out to do, such as feedback on an answer, a rule, a worked example, a hint, or an answer to the Learner's own question.
+_Avoid_: Move, teaching move, action
 
 **Course Map**:
 The Topics across finance and economics, what each one requires first, and a default path the Tutor leads the Learner along. The Learner can ask anything along the way, or choose another Topic, and come back to where they were.
@@ -24,9 +28,33 @@ _Avoid_: Syllabus, curriculum
 A lesson-sized stop on the Course Map, with an ordered list of Checks along the way.
 _Avoid_: Lesson, module, unit
 
+**Skill**:
+One small thing a Topic teaches that can be tested on its own, such as turning percentage points into basis points. Each Quick try, Check question and Known mistake belongs to one Skill.
+_Avoid_: Objective, competency, sub-skill
+
 **Teaching Step**:
 One of the seven parts every Topic follows: story, concept, explore, your turn, Check, reveal and principle. Concept, your turn and Check repeat for each of the Topic's Checks; explore comes once, after the concept of the Check that tests the Topic's Insight.
 _Avoid_: Phase, stage
+
+**Concept card**:
+A short explanation of one idea, written ahead in the Topic's file and shown by code at the concept step: at most five plain lines with one worked example. The Tutor adds feedback and one question around it, and never writes its own version.
+_Avoid_: Lesson card, explainer, card (on its own)
+
+**Quick try**:
+One short practice question at the your-turn step, set easiest first: the Learner types a number or picks True or False, and code marks it at once. It counts toward no Check.
+_Avoid_: Exercise, drill question, practice item
+
+**Known mistake**:
+A wrong answer the Topic's file expects for a question, such as 6 for 60 (multiplied by 10, not 100), with a one-line fix that code shows the moment the Learner gives it.
+_Avoid_: Slip, error tag, misconception
+
+**Parked Skill**:
+A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it. The Topic waits at its step while the Learner studies any other Topic, and the next day it starts with a drill of five on that Skill. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
+_Avoid_: Skipped Skill, deferred Skill, review queue
+
+**Running example**:
+The one everyday example a Topic keeps using, such as Percent's savings rate going from 4% to 5%, shown in its Concept cards, its Widget and the Tutor's replies, so the Learner carries one picture instead of many.
+_Avoid_: Anchor example, recurring scenario
 
 **Topic goal**:
 One line in the Topic bar saying what the Learner will be able to do by the end of the Topic. Words only: it never gives the Insight away.
@@ -49,7 +77,7 @@ A written link from a Topic's idea to another idea or Topic, given when the Topi
 _Avoid_: Related topic, see also
 
 **Topic Note**:
-The page kept for one Topic: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote.
+The page kept for one Topic: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote, and any rule the Learner put more simply in their own words, which the Tutor saves for them.
 _Avoid_: Summary, recap, cheat sheet
 
 **Case**:
@@ -77,7 +105,7 @@ The Tutor's first reply in a Topic's Session, which starts by itself when the Le
 _Avoid_: Greeting, intro message
 
 **Stop**:
-What the Learner presses while the Tutor is writing a reply: the reply ends where it was, keeps what it had written (less any Widget it had not finished), and is marked "Stopped".
+What the Learner presses while waiting for the Tutor's reply: the reply in progress is dropped and none of it is shown, and the Learner's message stays, marked "Stopped".
 _Avoid_: Cancel, abort
 
 **Step divider**:
@@ -140,7 +168,7 @@ The card at the end of a passed Topic's Session: the Topic's principle in a line
 _Avoid_: Certificate, completion screen
 
 **Widget**:
-An interactive picture beside the conversation, either written ahead for a Topic or built by the Tutor: charts, tables, sliders and calculators whose numbers come from code, or a labelled Illustration. A Widget in the Study Workspace belongs to one Topic's Session. With each message, chip and Next the Tutor is told what the open Widgets show (their slider values, ticked Guided Tasks and readouts worked out by code), and once all of a Widget's Guided Tasks are ticked the Learner can press Tell the Tutor what I found, which posts a message code writes (a widget report).
+An interactive picture beside the conversation, either written ahead for a Topic or drawn by code from a Widget recipe the Tutor chooses, and opened already set to the numbers being discussed: charts, tables, sliders and calculators whose numbers come from code, or a labelled Illustration. The Tutor never draws one of its own during the chat. A Widget in the Study Workspace belongs to one Topic's Session. With each message, chip and Next the Tutor is told what the open Widgets show (their slider values, ticked Guided Tasks and readouts worked out by code), and once all of a Widget's Guided Tasks are ticked the Learner can press Tell the Tutor what I found, which posts a message code writes (a widget report).
 _Avoid_: artifact, card (on its own)
 
 **Written-ahead Widget**:
@@ -150,6 +178,10 @@ _Avoid_: template, preset Widget
 **Widget recipe**:
 A Widget design written in code, such as grow_money or history_case. The Tutor names a recipe and its params with show_widget, and code draws the Widget, checks it and keeps it in the Session (ADR 0005). Its params are inputs (sliders and calculator inputs), refs (Case Data) and facts (typed numbers, which make it an Illustration).
 _Avoid_: template, preset Widget
+
+**Free-form Widget**:
+A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
+_Avoid_: custom Widget, freeform lane (in Learner-facing text)
 
 **Widget state**:
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
@@ -176,7 +208,7 @@ A Widget that shows a named formula with each symbol in plain words, the Learner
 _Avoid_: Equation, formula block
 
 **Guided Task**:
-A small instruction under a Widget, such as "set the rate to 0%", that ticks itself when the Widget reaches that state. Practice only: nothing is marked, but the ticks are kept with the Session.
+A small instruction under a Widget, such as "set the rate to 0%", that ticks itself when the Widget reaches that state. Optional play: nothing is marked and the Tutor never sets one as work, but the ticks are kept with the Session.
 _Avoid_: Exercise, challenge, step
 
 **Question template**:
