@@ -1,0 +1,79 @@
+import { describe, expect, it } from "vitest";
+import { checkResults, learnerState, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
+import type { Db } from "@/db/types";
+import { loadProgress } from "@/learner/memory";
+import { checkTabNow } from "@/learner/quiz";
+import { testDb } from "@/test/pglite";
+import { isConverted, loadCourseMap } from "./map";
+import { courseOverview, navigate, type Progress, type TeachingStep } from "./navigator";
+
+// Percent's conversion is a content-only restructure (spec #229, "Restructured Topics"): the old Checks keep their ids,
+// a new quiz Check 2 sits between them, no Check is required, and every Learner keeps their saved step. These tests
+// read a Learner's saved place before the conversion through the Course Navigator, on the real Course Map.
+
+const map = loadCourseMap();
+const PERCENT = "num-percent-bps";
+const percent = map.topic(PERCENT)!;
+const learnerId = OWNER_LEARNER_ID;
+
+/** A Learner saved inside Percent before it was converted: at `step`, with these old Checks passed. */
+const inPercent = (step: TeachingStep, passed: string[], status: "in_progress" | "passed" = "in_progress"): Progress => ({
+  currentTopicId: status === "passed" ? null : PERCENT,
+  topics: { [PERCENT]: { step, passedChecks: passed, revealShown: step === "reveal" || step === "principle", status } },
+});
+
+/** The same saved place, written to the database as the app saved it. */
+async function saved(db: Db, progress: Progress) {
+  const record = progress.topics[PERCENT];
+  await db.insert(learnerState).values({ id: learnerId, learnerId, currentTopicId: progress.currentTopicId });
+  await db.insert(topicProgress).values({ learnerId, topicId: PERCENT, step: record.step, status: record.status, revealShown: record.revealShown });
+  for (const checkId of record.passedChecks) await db.insert(checkResults).values({ learnerId, topicId: PERCENT, checkId, passed: true });
+}
+
+describe("Percent's content-only restructure", () => {
+  it("keeps the old Check ids, adds Check 2 between them, and requires none", () => {
+    expect(isConverted(percent)).toBe(true);
+    expect(percent.restructure).toBe("content-only");
+    expect(percent.checks.map((c) => [c.id, c.kind])).toEqual([
+      ["pb-quiz-language", "quiz"],
+      ["pb-quiz-change", "quiz"],
+      ["pb-fed-language", "conversation"],
+    ]);
+    expect(percent.checks.some((c) => c.required)).toBe(false);
+  });
+
+  it("leaves a Learner who passed Percent passed, with no Due Check, and does not pull them back", () => {
+    const progress = inPercent("principle", ["pb-quiz-language", "pb-fed-language"], "passed");
+    const place = navigate(map, progress)!;
+    expect(place.topic.id).not.toBe(PERCENT);
+    expect(place.dueChecks).toEqual([]);
+    expect(courseOverview(map, progress).find((t) => t.id === PERCENT)).toMatchObject({ status: "passed" });
+  });
+
+  it("takes a Learner who passed Check 1 and stood at the old Check 2's concept to the new Check 2's concept and card", () => {
+    const place = navigate(map, inPercent("concept", ["pb-quiz-language"]))!;
+    expect(place).toMatchObject({ step: "concept", check: { id: "pb-quiz-change" } });
+    expect(place.check!.card!.title).toBe("Compared with the start");
+  });
+
+  it("keeps a Learner at Check 1's Your turn there, with Quick tries to practise", () => {
+    const place = navigate(map, inPercent("your_turn", []))!;
+    expect(place).toMatchObject({ step: "your_turn", check: { id: "pb-quiz-language" } });
+    expect(place.check!.quickTries.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("keeps a Learner at the reveal with both old Checks passed at the reveal, though the new Check 2 is not passed", () => {
+    const place = navigate(map, inPercent("reveal", ["pb-quiz-language", "pb-fed-language"]))!;
+    expect(place).toMatchObject({ step: "reveal", check: null, next: "principle" });
+  });
+
+  it("keeps a Learner at the old Check 2's check step (the Fed conversation) at the check step, which is now Check 2's quiz", async () => {
+    const progress = inPercent("check", ["pb-quiz-language"]);
+    expect(navigate(map, progress)).toMatchObject({ step: "check", check: { id: "pb-quiz-change", kind: "quiz" } });
+    const db = await testDb();
+    await saved(db, progress);
+    expect(await loadProgress(db, learnerId)).toEqual(progress);
+    const tab = await checkTabNow(db, map, new Date(), learnerId);
+    expect(tab.quiz).toMatchObject({ checkId: "pb-quiz-change", checkNumber: 2, checkCount: 3 });
+  });
+});

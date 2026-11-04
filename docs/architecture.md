@@ -542,8 +542,8 @@ and `takeNext` (see "The Learner's Next and code-written turns"); the Topic bar'
   <title>"); else a Due Check ("New in <Topic>: Check N", or "New in <Topic>: Explore"); else the
   next unpassed Topic on the default path ("Next Topic: <title>").
 
-**Scenario.** In Percent (two Checks, no Insight) the sequence has nine steps, so the first Next
-draws "Step 2 of 9 · Concept". The Learner passes the first quiz; the Concept of Check 2 has not
+**Scenario.** In Percent (three Checks, no Insight) the sequence has twelve steps, so the first Next
+draws "Step 2 of 12 · Concept". The Learner passes the first quiz; the Concept of Check 2 has not
 begun, so the chip reads "Next: Concept" and pressing it teaches that Concept without skipping it.
 
 **Trade-off.** Progress does not record when a late Explore was taken, so once it is finished the
@@ -898,24 +898,21 @@ sliders in 0.01 steps stay checkable. A Widget with a reveal task is checked aga
 max standing in for the Case Data. The Topic file check also refuses a repeated id or title, a reveal task whose Case
 or dataset the Topic does not have, and Case Data references outside the Topic's Cases.
 
-**Percent's "One rate change, said three ways"** (`rate-change-three-ways`): old and new rate, 0 to 10% in 0.01
-steps with number boxes, starting at 5% and 5.2%; readouts in percentage points, basis points and percent change of
-the old rate (worked out by the Widget, "none" when the old rate is 0%; for the Tutor and Tell the Tutor what I found,
-code works the same three out with the tested `rateChange` in `src/finance/rate-change.ts`, from the two sliders the
-Topic file names under `rateChange`, so the Tutor is told "40 bp" rather than left to do the sum). Its three Guided Tasks are made-up moves
-(6% to 6.4%, 8% to 7.1%, 0.5% to 0.9%) that tick on no Percent quiz question's move and never on the Case's outcome
-(a test checks both). After the reveal a fourth appears: "Set the Fed's move of February 1994: from 3% to 3.25%",
-its rates from the `fed-funds-target` dataset. A growth-rate calculator (`cagr`) drawn by the Tutor in Percent is
-sent back, so the Learner never sees a CAGR box there.
+**Percent's old "One rate change, said three ways"** (`rate-change-three-ways`) was the first written-ahead Widget:
+two rate sliders, readouts in points, basis points and percent change (the Topic file's `rateChange` names the two
+sliders, so code works the readouts out for the Tutor with the tested `rateChange` in `src/finance/rate-change.ts`),
+three made-up Guided Tasks, and after the reveal a fourth from the `fed-funds-target` dataset. Percent's conversion
+(spec #229, "Percent, converted" below) replaced it with `rate_move` presets, so no real Topic uses `rateChange` today.
+The feature stays, and the tests that read it use the old Widget as a fixture (`src/test/old-percent-map.ts`).
 
-**Scenario.** At Percent's concept step the Learner asks to try a move. The Tutor calls `open_widget` with
-`rate-change-three-ways`; the chip appears under its first sentence and the Widget opens on the right at 5% and
-5.2% (20 bp, 4%). The Learner ticks the 6% to 6.4% task. Later the Tutor draws a CAGR box of its own; the check
-sends it back, the Tutor opens the written-ahead Widget instead, and the box never reaches the screen. After the
-reveal the page draws the Widget with the February 1994 task; before it, nothing in the Widget mentions 1994.
+**Scenario.** At present value's explore step code puts "What the annuity is worth today" (`annuity-worth-today`) in
+the panel; later the Learner asks to see it again and the Tutor calls `open_widget` with that id, so its chip appears
+under the Tutor's first sentence. If the Tutor draws an annuity chart of its own, the check sends it back, the Tutor
+opens the written-ahead Widget instead, and the chart never reaches the screen. After the reveal the page draws the
+Widget with the 30-year Treasury task and quick button; before it, nothing in the Widget mentions that yield.
 
 **Trade-off.** Written-ahead Widgets are fixed text that cost no tokens and can be checked before they ship, but they
-cannot adapt to a Learner the way a Tutor Widget can, and only Percent and Present value have them (the annuity Widget,
+cannot adapt to a Learner the way a Tutor Widget can, and only Present value has one now (the annuity Widget,
 ticket #161, which is also Present value's explore Widget). Reading the code from the Topic file on every render keeps the reveal task honest and lets a Topic
 file fix reach old Sessions, but a Widget removed from a Topic file vanishes from Sessions that opened it (its chip
 draws nothing). The parts rule goes by named parts, so a Tutor Widget that does the same sum another way (typed
@@ -2897,7 +2894,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **What it does.** Two pieces tell the Learner where they are in a Topic.
 - **The Topic bar** is a slim bar above the chat that stays for the whole Topic, in place of the old status card (its "Course Map · Stage · Topic" eyebrow, its plain summary and its Continue are gone). It shows the Topic's title and a progress strip drawn from the Course Navigator's `stepSequence`: the steps in plain words, grouped by Check ("Story · Check 1: Concept, Your turn, Check · Check 2: Concept, Explore, Your turn, Check · Reveal · Principle"), with the current step highlighted. A finished step is a button that scrolls the chat back to where it began: the Story to the Topic Start card, any other step to its "Step k of N" divider, which now carries the anchor `step-k`. A finished step whose divider is not in this Session (one passed before dividers existed) is shown done but can't be pressed. The page works the strip out on every render, so it always reads the saved place; a passed Topic kept on screen shows every step as done.
-- **The Topic Start card** is the first item of a Topic's conversation and scrolls with the chat. It shows the title and the Subject (or the Stage, for a Topic with none); the You'll learn bullets; Before this, each prerequisite with "✓ passed" or "not passed yet · Study it first" (the link chooses that Topic and opens it, as the Course Map's "Do first" link does), or "Nothing — this is a starting Topic."; You'll use, the written-ahead Widget titles, left out while the Topic has none (Percent lists "One rate change, said three ways"); and "N Checks". `topicStart` builds it from course data and progress, and the page puts it in front of the Session's lines. It is never stored and never reaches the model: it travels as a display-only item like a divider, so the opener still starts by itself (the thread has no messages yet), and no Next chip stands under the card alone. A replayed reply (a resume or a refusal) replaces the reply and the items inside it but never the card.
+- **The Topic Start card** is the first item of a Topic's conversation and scrolls with the chat. It shows the title and the Subject (or the Stage, for a Topic with none); the You'll learn bullets; Before this, each prerequisite with "✓ passed" or "not passed yet · Study it first" (the link chooses that Topic and opens it, as the Course Map's "Do first" link does), or "Nothing — this is a starting Topic."; You'll use, the written-ahead Widget titles, left out while the Topic has none (present value lists "What the annuity is worth today"); and "N Checks". `topicStart` builds it from course data and progress, and the page puts it in front of the Session's lines. It is never stored and never reaches the model: it travels as a display-only item like a divider, so the opener still starts by itself (the thread has no messages yet), and no Next chip stands under the card alone. A replayed reply (a resume or a refusal) replaces the reply and the items inside it but never the card.
 
 **Scenario.** A Learner chooses Present value without having passed Growth, compounding and logs. The conversation opens with the card: "Present value", "Numbers & time value", three You'll learn bullets, "Growth, compounding and logs not passed yet · Study it first" and "2 Checks"; the Tutor's Story streams in under it. Later, at Explore, the bar reads Story · Check 1: Concept, Your turn, Check · Check 2: Concept, **Explore**, … They press Check 2's Concept on the strip and the chat scrolls up to "Step 5 of 10 · Concept".
 
@@ -2960,7 +2957,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **The CI job.** `.github/workflows/tutor-eval.yml` runs on pull requests that change the Tutor's instructions, tools or context, the quiz follow-up, the help chips, a Topic file or the suite itself. It is not one of the required checks (`check` and `build`), so a noisy model run never blocks a merge or a deploy. It has its own concurrency group that never cancels, so a paid run that started always reports. It reads `secrets.ANTHROPIC_API_KEY`; without it (a PR from a fork, since the repo is public, or the secret not set) it skips and says so in the job summary. It uses `pull_request` only, never `pull_request_target` or `workflow_run`, so no fork can reach the secret.
 
-**What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they are reported as pending with that reason and start running once the Skill `pts_to_bp` exists. T8 waits for the lesson lint and its fixture Topic (a Check that tests an untaught Skill, at `src/behaviour/tutor-eval/fixtures/untaught-skill/`). Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
+**What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they were reported as pending until Percent was converted; they now name its Skill `pts-to-bp`. T8 waits for the lesson lint and its fixture Topic (a Check that tests an untaught Skill, at `src/behaviour/tutor-eval/fixtures/untaught-skill/`). Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
 
 **Trade-off.** A model grading a model is a first pass, not proof, and three runs are a small sample of a model that varies; the conditions code can tell are checked by code so the grader decides less. Replies have no move field (they stay text), so "offer to park" is read as a park offer item or both choices named in the reply, and "save to notes" as a note the turn added. T3's state reads "missed 3 times" as three misses in all with a right answer between, so the Learner's 0.3 is the second miss in a row, which brings a new method under the ladder; three in a row is T7's park offer. Offline tests cover the case files, the conditions and grade parsing, the cap, the report layout, the state set-up and a whole suite run with a scripted model and a stand-in grader, with no network.
 
@@ -3898,7 +3895,7 @@ the Tutor what I found stays the Learner's own. Free-form Widgets get no Widget 
 
 **What it does.** Three optional keys extend the Topic, not a second "plan" format (a Topic is still the lesson, a Teaching Step is still the beat). `goal` is one line of words shown under the title in the Topic bar. `steps` is a list of settings, each for one Teaching Step (and optionally one Check): `opens` names a written-ahead Widget that code puts in the panel when the step begins (it stores the same Widget opened item the Tutor's open_widget stores, so a Widget is never opened twice), and `doneWhen` is a condition on the Learner's saved Widget state: a Guided Task ticked, a $variable that has a value (a Predict's guess), or one saved near a target (a Breakeven). The Course Navigator's `widgetDone` and `finishFromWidget` read that state; `finishStepFromWidget` (next.ts) finishes the step, stores the new step's divider and opens its Widget, and the study page calls it on each render (it returns at once for a step with no `doneWhen`). Because nothing has taught the new step yet, Next then names it without moving on, the way it does after a quiz pass. `found` is a list of lines (`when` plus `text`, with `{value}` for the Learner's own number) that `foundLines` (outcome.ts) works out from saved Widget state; Past Sessions rows, the Session header and the Topic complete card show them. An Off-Topic answer is a Session item (`off_topic`, off-topic.ts) drawn as a quiet block with "↩ Back to <Topic>". The Topic schema checks every setting (the Widget, Check and Guided Task must exist), `npm run course:check` also checks the goal and found lines are in words, and prints the written-ahead warnings beside its errors.
 
-**Scenario.** Percent, percentage points and basis points says `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]`. The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic.
+**Scenario.** Before its conversion, Percent said `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]` (the tests keep that file as a fixture). The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic. Converted Percent has no such setting: its Your turn ends on fluency in its Quick tries, and its found line went with its Widget. Present value's `found` line ("You found the rate where the annuity is worth the same as the cash.") is the real one today.
 
 **Trade-off.** A Widget can never settle the Insight early (ADR 0001): `doneWhen` is refused on explore, a Check and the principle, by the schema and again in `widgetDone`, and the explore Widget stays opened by code at explore only. The cost is that a finishing Widget needs a page render or a Next to be noticed; the saved state is the source of truth, so nothing is lost. `found` lines are the Learner's own saved numbers, never typed figures (ADR 0003), so an unticked or reset Widget says nothing. Left for later: a Widget opening at the very first step and when the Tutor itself finishes a step (both happen in the turn lane's files), a tool for the Tutor to mark an Off-Topic answer (`offTopicNote` in context.ts is ready for it), Predict and Breakeven results as turn events, and plan versioning.
 
@@ -3934,3 +3931,39 @@ each turn to one small read, but the row and the log could drift if one were edi
 the state can be rebuilt from it. The ladder is the same for every Topic and lives in code, which keeps Topic files small
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
+
+## Percent, converted (`course/topics/num-percent-bps.yaml`, `src/test/old-percent-map.ts`, spec #229, ticket #246)
+
+**What it does.** Percent is the first real Topic taught the new way. Its file lists the terms it introduces
+(percentage point, basis point, percent change, the base), five Skills (`pts`, `pts-to-bp`, `bp-to-pts`, `pct-change`,
+`wording`), the Running example (a savings rate going from 4% to 5%), rupees for every everyday example, and three
+question templates (basis points from a move, points from basis points, percent change), each with `avoid` numbers that
+keep the Running example, the Quick tries', the Check questions' and the Case's moves out of every draw. It has three
+Checks, each with a Concept card of at most five lines that says every sum in words and opens `rate_move` at 4% to 5%
+in show mode:
+- Check 1, `pb-quiz-language` (id kept), "One move, two ways": a typed quiz drawn from the two basis-point templates,
+  with new numbers each attempt, and Quick tries A1 to A4 from the spec plus enough more for three per Skill.
+- Check 2, `pb-quiz-change` (new), "Compared with the start": the percent-change template plus three "Which one is
+  true?" wording questions whose every wrong choice names its Known mistake, and Quick tries B1 to B4 plus one more.
+- Check 3, `pb-fed-language` (id kept), "Say it so nobody misreads it": the conversation Check, which lists its
+  Skills. Cards 1 and 2 already teach them, so it has no Quick tries of its own.
+
+The Known mistakes are the Percent Session's real wrong answers: 6 for 60 (`used_x10`), 12 for 1.2 (`divided_by_10`),
+0.12 for 1.2 (`divided_by_1000`), 0.3 for 30 (`stopped_at_points`) and "it should say up 1%" (`mixed_percent_points`),
+each with a one-line fix in words. The written-ahead "One rate change, said three ways", its Your-turn `steps` entry
+and its `found` line are gone. Percent is off both not-yet-converted lists, so the lesson lint (L1 to L7) and the
+typed-formula check now hold its whole file, the old questions' explanations included. The file is marked
+`restructure: content-only`: no Check is required, so nobody gets a Due Check.
+
+**Scenario.** A Learner who passed the old Check 1 and stood at the old Check 2's concept (the Fed conversation) comes
+back. The Course Navigator still has their saved step, `concept`, and the first Check without a pass is now
+`pb-quiz-change`, so they land on "Compared with the start" with its rate_move Widget. A Learner who had passed both
+old Checks and stood at the reveal stays at the reveal, and one who passed Percent stays passed. A Learner who was at
+the old Check 2's check step keeps the `check` step, which is now Check 2's quiz, and the Check tab opens it.
+
+**Trade-off.** Keeping every Check id and every old `pb-q-*` question means old attempts, Reviews and passes still
+load, but three questions (`pb-q-bp-definition`, `pb-q-bond-140`, `pb-q-mortgage-rate`) now sit in no Check, kept only
+so old records resolve. A content-only restructure keeps passes, so a Learner who passed Percent before never sees the
+new cards unless they open the Topic again. Each Check question moved to a fresh made-up move, so it shares no numbers
+with a card or Quick try; the Fed prompt moved to 6.25% to 6.75% for the same reason. The tests that read the old
+Widget's `rateChange` readouts and reveal task keep it as a fixture, since no real Topic uses those features now.

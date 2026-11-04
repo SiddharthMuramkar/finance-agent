@@ -7,12 +7,12 @@
   "state": {
     "step": "your_turn",
     "check": 1,
-    "skills": [{ "skill": "pts_to_bp", "answers": ["wrong", "wrong"], "methodsUsed": ["restate", "worked"] }],
+    "skills": [{ "skill": "pts-to-bp", "answers": ["wrong", "wrong"], "methodsUsed": ["restate", "worked"] }],
     "history": [{ "learner": "another one please", "tutor": "A rate rises from 2% to 2.6%. How many basis points did it rise?" }],
     "replyKind": "offer_park"
   },
   "message": "6",
-  "answer": { "skill": "pts_to_bp", "verdict": "wrong" },
+  "answer": { "skill": "pts-to-bp", "verdict": "wrong" },
   "pass": [{ "kind": "maxWords", "value": 40 }, { "kind": "parkOffer" }],
   "graderChecks": [
     "Does it offer two clear choices: park this for review tomorrow, or one more short try?",
