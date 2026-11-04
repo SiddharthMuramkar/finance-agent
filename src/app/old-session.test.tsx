@@ -32,7 +32,7 @@ describe("an old Session page", () => {
 
   it("puts a Widget chip where the Tutor put the Widget, the Widget itself in the panel, and never shows its code", () => {
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text: reply }]} />);
-    const chip = html.indexOf("Open: PV →");
+    const chip = html.indexOf('title="PV"');
     expect(chip).toBeGreaterThan(html.indexOf("prices rise"));
     expect(chip).toBeLessThan(html.indexOf("Try the slider."));
     expect(html).toContain('data-testid="widget-card"');
@@ -96,7 +96,7 @@ describe("a read-only Topic Session's Widgets, updated in place", () => {
   const ANNUITY = 'root = Widget("What the annuity is worth today", [rate])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")';
   const tabs = (html: string) => {
     const at = html.indexOf('aria-label="Widgets in this Session"');
-    return at === -1 ? 0 : (html.slice(at, html.indexOf("</div>", at)).match(/<button/g) ?? []).length;
+    return at === -1 ? 0 : (html.slice(at, html.indexOf("</div>", at)).match(/role="option"/g) ?? []).length;
   };
 
   it("draws a Widget the Tutor drew again under the same title in one tab", () => {
@@ -117,7 +117,7 @@ describe("a read-only Topic Session's Widgets, updated in place", () => {
       />,
     );
     expect(tabs(html)).toBe(1);
-    expect(html).toContain("Open: What the annuity is worth today →");
+    expect(html).toContain("What the annuity is worth today");
   });
 });
 

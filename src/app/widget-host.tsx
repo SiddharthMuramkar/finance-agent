@@ -75,11 +75,27 @@ export function useWidgetHost({
   /** Back to showing the newest Widget (or the open quiz's Check tab), as each turn starts. */
   const showNewest = picker.clear;
 
-  return { widgets, picker, check, slot, showNewest };
+  // Which message each Widget came from, counting the Learner's and the Tutor's messages from 1, for the panel's All menu.
+  const messageNumbers = useMemo(() => {
+    const at = new Map<string, number>();
+    let count = 0;
+    for (const m of messages) {
+      if (m.role !== "item") count++;
+      at.set(m.id, count);
+    }
+    const numbers: Record<string, number> = {};
+    for (const w of widgets) {
+      const n = at.get(w.key.slice(0, w.key.lastIndexOf(":")));
+      if (n) numbers[w.key] = n;
+    }
+    return numbers;
+  }, [messages, widgets]);
+
+  return { widgets, picker, check, slot, showNewest, messageNumbers };
 }
 
 /** The Widget panel itself, showing what the host picked. */
 export function WidgetHost({ host, topicTitle }: { host: WidgetHostState; topicTitle?: string }) {
-  const { widgets, picker, check } = host;
-  return <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} check={check} />;
+  const { widgets, picker, check, messageNumbers } = host;
+  return <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} check={check} messageNumbers={messageNumbers} />;
 }

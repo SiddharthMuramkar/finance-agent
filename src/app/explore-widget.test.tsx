@@ -36,7 +36,7 @@ describe("the explore Widget in the workspace", () => {
     const pane = html.slice(paneStart(html));
     expect(pane).toContain('data-testid="explore-chip"');
     expect(pane).toContain(">Explore<");
-    expect(pane).toMatch(/aria-pressed="true"[^>]*data-testid="explore-chip"|data-testid="explore-chip"[^>]*aria-pressed="true"/);
+    expect(pane).toMatch(/aria-selected="true"[^>]*data-testid="explore-chip"/);
     expect(pane).toContain("Interest rate (discount rate)");
   });
 
@@ -76,7 +76,7 @@ describe("the explore Widget in the workspace", () => {
   it("keeps the Tutor's own Widgets chipped by title in the conversation", () => {
     const initial: Line[] = [{ role: "assistant", text: `Here.\n\n${fence(TUTOR)}\n\nTry it.` }];
     const html = workspace({ explore: EXPLORE, initial });
-    expect(html.slice(0, paneStart(html))).toContain("Open: What a home loan costs →");
+    expect(html.slice(0, paneStart(html))).toContain("What a home loan costs");
   });
 });
 
