@@ -1,11 +1,4 @@
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { PGlite } from "@electric-sql/pglite";
-import { vector } from "@electric-sql/pglite-pgvector";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/pglite";
-import { migrate } from "drizzle-orm/pglite/migrator";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   OWNER_LEARNER_ID,
@@ -26,8 +19,8 @@ import {
   turns,
   widgetState,
 } from "./schema";
-import * as schema from "./schema";
 import type { Db } from "./types";
+import { closeBeforeExpand, databaseBeforeExpand, migrateToLatest, rowsFromBefore } from "@/test/before-expand";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { presentValueOnly } from "@/test/present-value-map";
@@ -55,51 +48,7 @@ const learnerOwned = {
   turns,
 };
 
-const EXPAND = "_learners_expand";
-
-const temp: string[] = [];
-const clients: PGlite[] = [];
-afterAll(async () => {
-  await Promise.allSettled(clients.map((c) => c.close()));
-  await Promise.allSettled(temp.map((d) => rm(d, { recursive: true, force: true })));
-});
-
-/** A Postgres migrated up to just before the expand migration: the database as production has it today. */
-async function databaseBeforeExpand(): Promise<{ client: PGlite; db: Db }> {
-  const dir = await mkdtemp(join(tmpdir(), "finance-agent-before-expand-"));
-  temp.push(dir);
-  await cp("drizzle", dir, { recursive: true });
-  const journalFile = join(dir, "meta", "_journal.json");
-  const journal = JSON.parse(await readFile(journalFile, "utf8")) as { entries: { tag: string }[] };
-  const at = journal.entries.findIndex((e) => e.tag.endsWith(EXPAND));
-  expect(at).toBeGreaterThan(0);
-  journal.entries = journal.entries.slice(0, at);
-  await writeFile(journalFile, JSON.stringify(journal));
-  const client = new PGlite({ extensions: { vector } });
-  clients.push(client);
-  const db = drizzle({ client, schema });
-  await migrate(db, { migrationsFolder: dir });
-  return { client, db: db as unknown as Db };
-}
-
-/** Rows written the way the code live before the expand wrote them: with no Learner id, which didn't exist. */
-async function rowsFromBefore(client: PGlite) {
-  await client.exec(`
-    INSERT INTO sessions (instructions, tools, model, effort, fingerprint) VALUES ('i', '[]', 'm', 'medium', 'f'), ('i', '[]', 'm', 'medium', 'g');
-    INSERT INTO turns (session_id, turn_seq, status) VALUES (1, 0, 'finished');
-    INSERT INTO learner_state (id, current_topic_id) VALUES (1, 'present-value');
-    INSERT INTO topic_progress (topic_id, step, status) VALUES ('present-value', 'concept', 'in_progress');
-    INSERT INTO check_results (topic_id, check_id, passed) VALUES ('present-value', 'pv-quiz', true);
-    INSERT INTO quiz_attempts (check_id, attempt_no, question_ids) VALUES ('pv-quiz', 0, '["q1"]');
-    INSERT INTO misconceptions (topic_id, description, model, tool_call_id) VALUES ('present-value', 'd', 'm', 'toolu_1');
-    INSERT INTO insight_attempts (topic_id, reported, released, words, tool_call_id) VALUES ('present-value', 'found', 'found', 'w', 'toolu_2');
-    INSERT INTO review_cards (question_id, due, stability, difficulty, elapsed_days, scheduled_days, reps, lapses, learning_steps, state) VALUES ('q1', now(), 1, 1, 0, 0, 0, 0, 0, 0);
-    INSERT INTO review_log (question_id, rating, source, reviewed_at) VALUES ('q1', 3, 'quiz', now());
-    INSERT INTO note_items (topic_id, kind, text) VALUES ('present-value', 'line', 'my line');
-    INSERT INTO learner_profile (id, work) VALUES (1, 'teacher');
-    INSERT INTO pasted_texts (turn_id, session_id, text, words) VALUES (1, 1, 'pasted', 1);
-  `);
-}
+afterAll(closeBeforeExpand);
 
 async function ownersOf(db: Db) {
   const out: Record<string, number[]> = {};
@@ -115,7 +64,7 @@ describe("database expand: Learners", () => {
     const { client, db } = await databaseBeforeExpand();
     await rowsFromBefore(client);
 
-    await migrate(drizzle({ client, schema }), { migrationsFolder: "./drizzle" });
+    await migrateToLatest(client);
 
     expect(await db.select().from(learners)).toEqual([
       { id: OWNER_LEARNER_ID, name: "owner", archivedAt: null, showDeveloperDetails: false, createdAt: expect.any(Date) },
