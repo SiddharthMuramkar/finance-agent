@@ -31,6 +31,8 @@ import { GuidedTasksFigure } from "./guided-tasks-view";
 import { AreaChartPlot, BarChartPlot, LineChartPlot, type ChartProps } from "./plot/charts";
 import { PlotResetContext } from "./plot/domain";
 import { WIDGET_TOOL_SPECS } from "./tool-specs";
+import { ICON_NAMES, WAVE1_PARTS } from "./primitives/wave1";
+import { Step, WAVE2_PARTS } from "./primitives/wave2";
 
 // The OpenUI component library the Tutor writes widgets with: OpenUI's ready-made kit (charts,
 // tables, tabs, callouts) beside our own code-backed parts (Slider, Calculator, AnnuityChart,
@@ -314,7 +316,7 @@ function AnnuityChartView({ props }: ComponentRenderProps<z.infer<typeof chartPr
 const AnnuityChart = defineComponent({
   name: "AnnuityChart",
   description:
-    'Bars for each yearly payment of an annuity that grows at a fixed rate (first payment now) and what each is worth today, computed by the tested present value formula from these inputs. `compareTo` optionally shows a sourced Case Data figure (the latest point of a dataset) beside the present value, as a reference "caseId/datasetId".',
+    'Bars for each yearly payment of a growing annuity (first payment now) and what each is worth today, by the tested present value formula. `compareTo` optionally shows a sourced Case Data figure "caseId/datasetId" (its latest point) beside the present value.',
   props: chartProps,
   component: AnnuityChartView,
 });
@@ -466,7 +468,7 @@ function FormulaCardView({ props }: ComponentRenderProps<z.infer<typeof formulaC
 const FormulaCard = defineComponent({
   name: "FormulaCard",
   description:
-    "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers). Never type a formula as text: show it with this card.",
+    "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers).",
   props: formulaCardProps,
   component: FormulaCardView,
 });
@@ -517,7 +519,7 @@ function GuidedTasksView({ props }: ComponentRenderProps<z.infer<typeof guidedTa
 const GuidedTasks = defineComponent({
   name: "GuidedTasks",
   description:
-    "Guided Tasks under a widget: small practice steps (to do, current, done) that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Practice only: never marked or saved.",
+    "Guided Tasks under a widget: practice steps that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Never marked or saved.",
   props: guidedTasksProps,
   component: GuidedTasksView,
 });
@@ -749,6 +751,42 @@ const BarChart = overrideChart("BarChart", (p) => <BarChartPlot {...p} />);
 const OUR_PARTS = [AnnuityChart, HistoryChart, Calculator, FormulaCard, GuidedTasks];
 
 /**
+ * The v2 parts' descriptions as the widget instructions print them: shorter than the parts' own (which restate the
+ * signature the instructions already print), so the instructions grow by at most a tenth (UX audit §7.3).
+ */
+const BRIEF: Record<string, string> = {
+  Stat: 'One number, formatted for its unit (inr in lakh and crore). tone "you" marks the Learner\'s assumption, "src" a sourced figure.',
+  Verdict: "The sentence a comparison ends in; it rewrites itself as test changes.",
+  QuickCheck: "Tap to answer: 2 to 4 options; answer is the right index from 0 (-1: a poll); why shows after the pick; picked is a $variable (-1 until picked).",
+  Predict: "Lock in a guess, then reveal actual (from a tool result or Case Data; while withheld, it waits until revealsAt).",
+  Versus: 'Two options on one shared scale, with the winner and the margin. better: "higher" (default) or "lower".',
+  Breakeven:
+    'Hunt for the flip point: rows, a calculate_range Query\'s rows over what the Slider bound to control sets, cross target there. marker: a sourced number or "caseId/datasetId".',
+  MoneyStack: "A calculator's total (sip, emi, future_value, fixed_deposit, recurring_deposit, ppf) drawn as notes, coloured by what you put in and what it earned.",
+  Waffle: "A 10 x 10 grid for percent, percentage points and basis points; compareTo outlines the other percent; zoom opens one square (100 basis points).",
+  Pictogram: `The thing itself, count times (count may be fractional; compareTo shows the earlier count as outlines). object: ${ICON_NAMES.join(", ")}.`,
+  DrawTheLine: 'The Learner draws where a Case Data series went next (eight slices after its as-of date), then sees the record. drawn: a $variable, set as $drawn = [].',
+  PriceTag: "The price of one thing rising with the years; ratePercent and years: Slider $variables.",
+  ShrinkingNote: "A note whose printed value stays while its buying power shrinks; ratePercent and years: Slider $variables.",
+  TimeTravel: "Present value as a journey: one coin from year maxYears to today, or with payments a row of coins (an annuity) brought to today.",
+  StepThrough: "A worked example or a cause-and-effect chain, one Step at a time with Back and Next.",
+  Rank: "Put 2 to 8 items in order, then check; correctOrder lists item indexes from low end to high; one reason per item.",
+  Waterfall: "A start, each change (costs negative) and the total bar, added up by code.",
+};
+
+/** A v2 part with its brief description (defineComponent's result is a plain object, so a copy is the same part). */
+function briefly<T extends { name: string; description: string }>(part: T): T {
+  const description = BRIEF[part.name];
+  return description ? { ...part, description } : part;
+}
+
+/**
+ * The Widget language v2 parts (UX audit §7.3), appended after our first parts and never renamed: Saved Sessions
+ * and Notes may hold programs that use them. Step is StepThrough's child, like GuidedTask under GuidedTasks.
+ */
+const NEW_PARTS = [...WAVE1_PARTS, ...WAVE2_PARTS].map(briefly);
+
+/**
  * OpenUI's kit with our parts in its containers. Our Slider replaces the kit's (same name), so every slider
  * keeps its "Your assumption" tag and saved settings. Made once, at module scope: parsers are cached per library.
  */
@@ -756,7 +794,11 @@ const kit = openuiLibrary.extend({
   components: {
     remove: DROPPED_KIT_PARTS,
     override: [Slider, Stack, Steps, AreaChart, LineChart, BarChart],
-    add: [...OUR_PARTS.map((component) => ({ component, slots: ["Card.children", "TabItem.content", "AccordionItem.content"] })), GuidedTask],
+    add: [
+      ...[...OUR_PARTS, ...NEW_PARTS].map((component) => ({ component, slots: ["Card.children", "TabItem.content", "AccordionItem.content"] })),
+      GuidedTask,
+      Step,
+    ],
   },
 });
 
@@ -770,6 +812,7 @@ function kitPart(name: string) {
 /** What a Widget holds directly: our parts, then the kit's. Sub-parts (TabItem, Series, Col, SelectItem…) go inside these. */
 const WIDGET_PARTS = [
   ...["Slider", ...OUR_PARTS.map((c) => c.name)],
+  ...NEW_PARTS.map((c) => c.name),
   ...["Stack", "Tabs", "Accordion", "Steps", "Separator"],
   ...["Card", "CardHeader", "TextContent", "Callout", "TextCallout", "InlineHeader"],
   "Table",
@@ -949,9 +992,27 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
     name: "Widget",
     components: ["Widget"],
     notes: [
-      '- Widget("Title", [parts]) is the root of every widget. The panel already frames it, so lay its parts out with Stack (Stack([a, b], "row") puts two side by side), never with an outer Card.',
-      "- Put Sliders one under another, never in a row. The answer goes directly under the controls; details and charts come after.",
+      '- Widget(question, [controls, answer, visual, tasks]). The title is a question the Learner answers by using it ("At what rate does the cash option win?"). With made-up numbers it starts "Illustration:", then the question.',
+      '- One primary control; any other goes in Accordion "More settings". Put Sliders one under another, never in a row. Lay parts out with Stack, never an outer Card.',
+      "- Right after the controls comes the answer: Verdict for a comparison, Stat for one number. Then one visual (Tabs only for the same numbers as chart and table).",
+      "- At rest: at most 3 numbers, 1 visual, 25 words of text, one TextCallout, and no number another part already shows.",
     ],
+  },
+  {
+    name: "Answers",
+    components: ["Stat", "Verdict"],
+    notes: ["- Show a number with Stat, never by joining it into text with +."],
+  },
+  {
+    name: "Guess, check, compare, order",
+    components: ["Predict", "DrawTheLine", "QuickCheck", "Versus", "Breakeven", "Rank"],
+    notes: [
+      '- Before an answer the Learner could guess, ask for the guess with Predict. Check understanding with 1 to 3 QuickChecks and a Stat score, never with Select. A "find where it flips" task is a Breakeven, not a GuidedTask.',
+    ],
+  },
+  {
+    name: "Things to count",
+    components: ["MoneyStack", "Pictogram", "Waffle", "PriceTag", "ShrinkingNote", "TimeTravel", "Waterfall"],
   },
   {
     name: "Our parts: numbers from code",
@@ -960,19 +1021,16 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
   },
   {
     name: "Layout",
-    components: ["Stack", "Tabs", "TabItem", "Accordion", "AccordionItem", "Steps", "StepsItem", "Separator"],
+    components: ["Stack", "Tabs", "TabItem", "Accordion", "AccordionItem", "StepThrough", "Step", "Steps", "StepsItem", "Separator"],
     notes: [
-      '- Use Tabs for two views of the same numbers, such as a chart and a table: Tabs([TabItem("chart", "Chart", [chart]), TabItem("table", "Table", [table])]). Keep Sliders above the Tabs, so one slider moves both views.',
-      "- Steps lists the stages of a method in words; it works nothing out. Steps number themselves: don't start titles with numbers.",
+      '- Tabs: Tabs([TabItem("chart", "Chart", [chart]), TabItem("table", "Table", [table])]), with the controls above them so one slider moves both views.',
+      "- Steps only lists stages in words, and numbers itself: don't number titles.",
     ],
   },
   {
     name: "Content",
     components: ["Card", "CardHeader", "TextContent", "Callout", "TextCallout", "InlineHeader"],
-    notes: [
-      "- Card groups parts inside the Widget, for example two Cards side by side in a row Stack.",
-      "- Keep text short. A number in TextContent or a Callout comes from a tool result (r.rows.text) or an expression the widget works out, such as (5.5 - 5) * 100.",
-    ],
+    notes: ["- Card groups parts, for example two Cards side by side in a row Stack."],
   },
   {
     name: "Tables",
@@ -983,17 +1041,15 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
     name: "Charts",
     components: ["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "Series", "PieChart", "RadialChart", "SingleStackedBarChart", "Slice", "ScatterChart", "ScatterSeries", "Point"],
     notes: [
-      "- Chart labels must be strings: use a tool result's rows.label or rows.date, never rows.x. The values come from rows.value, or another number column such as rows.payment.",
-      '- Pluck a column from a tool result with dot access: d.rows.value is every row\'s value, as in LineChart(d.rows.date, [Series("Close", d.rows.value)]).',
-      "- Line and area charts show change over time or across a range; bar charts compare a few cases; PieChart shows only the shares of one whole.",
-      "- Areas never stack. To show a total and the part you paid in, use one area and one line.",
+      "- Prefer the parts above to a chart. Chart labels are strings: a tool result's rows.label or rows.date, never rows.x; values come from rows.value or another number column, plucked with dot access: LineChart(d.rows.date, [Series(\"Close\", d.rows.value)]).",
+      "- Never use PieChart or RadarChart: a Waffle shows a share. Areas never stack; for a total and the part you paid in, use MoneyStack.",
     ],
   },
   {
     name: "Controls",
     components: ["FormControl", "Label", "Select", "SelectItem", "SwitchGroup", "SwitchItem", "Chips", "ChipItem"],
     notes: [
-      '- A number the Learner changes is always a Slider. Select, SwitchGroup and Chips choose between named options: a Select\'s $variable holds text, so compare it ($view == "real") rather than pass it to a tool as a number.',
+      '- A number the Learner sets is a Slider (a guess is a Predict). Select, SwitchGroup and Chips choose between named options: a Select\'s $variable holds text, so compare it ($view == "real") rather than pass it to a tool as a number.',
     ],
   },
   {
@@ -1017,85 +1073,76 @@ export const WIDGET_PROMPT_OPTIONS = {
   bindings: true,
   builtinFunctions: true,
   examples: [
-    `root = Widget("What the annuity is worth today", [rate, chart, steps])
+    `root = Widget("What is the annuity worth today at your rate?", [rate, chart, steps])
 $rate = 3
 rate = Slider("rate", "Discount rate", 0, 10, 0.01, $rate, "percent")
 chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")
 steps = GuidedTasks([zero])
 zero = GuidedTask("Set the rate to 0%", $rate == 0)`,
-    `root = Widget("Long-term interest rates around the draw", [history])
-history = HistoryChart("mega-millions-2018/treasury-30-year")`,
-    `root = Widget("What a home loan costs", [amount, rate, calc, steps])
-$amount = 5000000
-$rate = 8.5
-amount = Slider("principal", "Loan amount", 500000, 20000000, 100000, $amount, "inr")
-rate = Slider("ratePercent", "Interest rate", 5, 14, 0.01, $rate, "percent")
-calc = Calculator("emi", {principal: $amount, ratePercent: $rate, years: 20})
-steps = GuidedTasks([double])
-double = GuidedTask("Double the loan to 1 crore", $amount == 10000000)`,
-    `root = Widget("What a payment in five years is worth today", [rate, card, steps])
+    `root = Widget("How much of a SIP is growth?", [years, pile, steps])
+$years = 20
+years = Slider("years", "Years you keep investing", 1, 30, 1, $years, "years")
+pile = MoneyStack("sip", {monthly: 1000, ratePercent: 10, years: $years}, "inr", "₹1,000 a month at 10% a year")
+steps = GuidedTasks([ten])
+ten = GuidedTask("Cut it to 10 years and watch the growth shrink", $years == 10)`,
+    `root = Widget("What is a payment in five years worth today?", [rate, card, steps])
 $rate = 5
 rate = Slider("rate", "Discount rate", 0, 15, 0.01, $rate, "percent")
 card = FormulaCard("present-value", {ratePercent: $rate}, {amount: "mega-millions-2018/cash-option"}, {years: 5})
 steps = GuidedTasks([ten])
 ten = GuidedTask("Set the rate to 10%", $rate == 10)`,
-    `root = Widget("What a home loan costs at different rates", [rate, calc, steps])
-$rate = 8.5
-rate = Slider("ratePercent", "Interest rate", 5, 14, 0.01, $rate, "percent")
-calc = Calculator("emi", {principal: 5000000, ratePercent: $rate, years: 20})
-steps = GuidedTasks([low, high])
-low = GuidedTask("Set the rate to 6%", $rate == 6)
-high = GuidedTask("Now set it to 12%", $rate == 12)`,
+    `root = Widget("Which is worth more today?", [q])
+$q = -1
+q = QuickCheck("Which is worth more today?", ["₹1,000 in 5 years", "₹1,000 in 10 years", "The same"], 0, "Sooner money is discounted for fewer years.", $q)`,
   ],
   toolExamples: [
-    `root = Widget("The Sensex at its milestones", [tabs])
+    `root = Widget("How did the Sensex reach its milestones?", [tabs])
 sensex = Query("case_data", {dataset: "sensex-1992/sensex-close"}, {rows: []})
 tabs = Tabs([chartTab, tableTab])
 chartTab = TabItem("chart", "Chart", [line])
 tableTab = TabItem("table", "Table", [table])
 line = LineChart(sensex.rows.date, [Series("Sensex close", sensex.rows.value)], "linear", "Date", "Index points")
 table = Table([Col("Date", sensex.rows.date), Col("Close", sensex.rows.text)])`,
-    `root = Widget("How 1 lakh grows at your rate", [rate, growth, steps])
+    `root = Widget("What does 1 lakh grow to at your rate?", [rate, value, steps])
 $rate = 8
 rate = Slider("ratePercent", "Yearly return", 1, 15, 0.01, $rate, "percent")
-values = Query("calculate_range", {calculator: "future_value", inputs: {amount: 100000, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: 30, step: 1, currency: "inr"}, {rows: []})
-growth = AreaChart(values.rows.label, [Series("Value of 1 lakh", values.rows.value)], "natural", "Years", "Rupees")
+r = Query("calculate", {calculator: "future_value", inputs: {amount: 100000, ratePercent: $rate, years: 20}}, {rows: []})
+value = Stat("After 20 years", @First(r.rows.value), "inr", "At your rate", "you")
 steps = GuidedTasks([twelve])
 twelve = GuidedTask("Set the return to 12%", $rate == 12)`,
-    `root = Widget("A 50 lakh home loan, by its length", [rate, line, table, steps])
-$rate = 8.5
-rate = Slider("ratePercent", "Interest rate", 5, 14, 0.01, $rate, "percent")
-byLength = Query("calculate_range", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}, vary: "years", from: 5, to: 30, step: 5, output: "Monthly instalment"}, {rows: []})
-today = Query("calculate", {calculator: "emi", inputs: {principal: 5000000, ratePercent: $rate, years: 20}}, {rows: []})
-line = LineChart(byLength.rows.label, [Series("Monthly instalment", byLength.rows.value)], "linear", "Loan length", "Rupees a month")
-table = Table([Col("Over 20 years", today.rows.label), Col("Amount", today.rows.text)])
-steps = GuidedTasks([ten])
-ten = GuidedTask("Set the rate to 10%", $rate == 10)`,
-    `root = Widget("Each payment, and what it is worth today", [rate, bars, total, steps])
+    `root = Widget("At what rate does the cash option win?", [rate, find])
+$rate = 3
+rate = Slider("rate", "Discount rate", 0, 10, 0.01, $rate, "percent")
+cash = Query("case_data", {dataset: "mega-millions-2018/cash-option"}, {rows: []})
+curve = Query("calculate_range", {calculator: "growing_annuity_present_value", inputs: {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: 3}, vary: "ratePercent", from: 0, to: 10, step: 0.1}, {rows: []})
+find = Breakeven("Find the rate where the winner flips", curve.rows, @First(cash.rows.value), $rate, 0.05)`,
+    `root = Widget("Annuity or cash: which is worth more today?", [rate, verdict, duel, steps])
 $rate = 3
 rate = Slider("rate", "Discount rate", 0, 10, 0.01, $rate, "percent")
 schedule = Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: $rate}, {rows: []})
-bars = BarChart(schedule.rows.label, [Series("Payment", schedule.rows.payment), Series("Worth today", schedule.rows.presentValue)], "grouped", "Payment", "Dollars")
-total = TextContent("Worth today, all 30 payments together: " + schedule.presentValueText, "large-heavy")
-steps = GuidedTasks([zero])
-zero = GuidedTask("Set the rate to 0%", $rate == 0)`,
-    `root = Widget("Illustration: a rate moving from 5% to 5.5%", [bars, note])
-bars = BarChart(["Before", "After"], [Series("Rate in percent", [5, 5.5])], "grouped", "When", "Percent")
-note = TextContent("It rose by " + (5.5 - 5) + " percentage points, which is " + (5.5 - 5) * 100 + " basis points. As a share of the old rate, it rose " + (5.5 - 5) / 5 * 100 + "%.")`,
+cash = Query("case_data", {dataset: "mega-millions-2018/cash-option"}, {rows: []})
+verdict = Verdict(schedule.presentValue > @First(cash.rows.value), "At this rate the annuity is worth more today.", "At this rate the cash is worth more today.")
+duel = Versus("Annuity, valued today", schedule.presentValue, "Cash, paid today", @First(cash.rows.value), "usd")
+steps = GuidedTasks([eight])
+eight = GuidedTask("Set the rate to 8%", $rate == 8)`,
+    `root = Widget("Illustration: do two shops steady your income?", [bars, swing])
+bars = BarChart(["Rainy year", "Sunny year"], [Series("One shop", [80, 20]), Series("Two shops", [55, 45])], "grouped", "Year", "Income in ₹ thousand")
+swing = Stat("Swing with both shops", (55 - 45) * 1000, "inr", "Rainy year minus sunny year")`,
   ],
   additionalRules: [
-    "Widgets are how this Workspace shows things. Build one whenever a picture, a chart, a table or something to play with makes the idea clearer, which is most Teaching Steps. When the Learner asks for a chart, graph, diagram, table, comparison, picture or anything to see, always build one in that reply. At most one widget per reply, so make it rich: a slider or two, a chart, and a small table or callout, inside one Widget.",
+    "Widgets are how this Workspace shows things. Build one whenever a picture, a chart, a table or something to play with makes the idea clearer, which is most Teaching Steps. When the Learner asks for a chart, graph, diagram, table, comparison, picture or anything to see, always build one in that reply. At most one widget per reply.",
+    "Archetypes: Grow, growth over time (MoneyStack, PriceTag, ShrinkingNote, TimeTravel); Compare, two options (Versus, Verdict, Breakeven); Convert, percent or basis points (Waffle), what money buys (Pictogram); Chain, cause and effect (StepThrough); Predict, a Case's history (Predict, DrawTheLine); Rank; Check (QuickCheck); Formula. Don't repeat the last archetype code lists unless asked.",
     "Each openui-lang block is a complete widget: always write every statement, starting with root = Widget(...). Never write a partial patch of an earlier widget.",
-    'Real numbers come from code. Historical figures reach a widget only through Query("case_data", {dataset: "caseId/datasetId"}, {rows: []}) or HistoryChart, with references from the Case Data list code sent you. Finance results come only from Query("calculate" | "calculate_range" | "annuity_schedule", …), Calculator, AnnuityChart or FormulaCard. Never type a historical figure or a computed result into a widget.',
+    'Real numbers come from code. Historical figures reach a widget only through Query("case_data", {dataset: "caseId/datasetId"}, {rows: []}) or HistoryChart, with references from the Case Data list code sent you. Finance results come only from Query("calculate" | "calculate_range" | "annuity_schedule", …), Calculator, AnnuityChart, FormulaCard or our parts that run a calculator. Never type a historical figure or a computed result into a widget.',
     'Made-up teaching examples are the exception. You may type their numbers into a chart or table when the example is plainly hypothetical: start the Widget\'s title with "Illustration:". Before the reveal they must never match the Case\'s real outcome. For their arithmetic, write the expression (e.g. (5.5 - 5) * 100) and let the widget compute it; never type a result you worked out.',
     "Bind Sliders to $variables and pass them into Query arguments, so moving a slider recomputes the chart in the browser with no model call.",
     "Use only numbers a Widget can show. Every number you ask the Learner to try, in your prose or in a Guided Task, lies between that slider's min and max and on one of its steps (a percent slider: 0.01 steps). Never ask for a number the Widget cannot reach.",
-    "Charts: give every LineChart, AreaChart, BarChart, HorizontalBarChart and ScatterChart its axis labels: give it an x-axis and a y-axis label, in plain words with the unit.",
+    "Charts: for every chart with axes, give it an x-axis and a y-axis label, in plain words with the unit.",
     "Updating a Widget: code's context lists the open Widgets by title. To change an open Widget, write it again in full under exactly the same title: code replaces it in its tab. Draw a new Widget only for a new idea, never a near-copy under a new title, and never draw the same Case Data as an open Widget.",
     "Widgets only read: never use Mutation() or @Run.",
-    "Use a Calculator, or a chart from calculate_range, for any other sum the Learner should play with. Its numbers come from our tested formulas; never work the answer out yourself or type results.",
     "Formulas: show a named formula only as a FormulaCard, and only one the Course Navigator message lists under the Topic's formulas. Describe any other formula in words, and never type a formula with symbols such as (1 + r)^n. Give every symbol of the card exactly once: a Learner's assumption under inputs (a $variable bound to a Slider in the same widget), a Case Data figure under sourced, or a fixed number under fixed. A FormulaCard's result comes from code; never type it.",
-    "Guided Tasks: Every Widget with a Slider has GuidedTasks, with at least one task. GuidedTasks goes last in a widget's list, under the controls. Each GuidedTask's second argument is a condition that reads a $variable bound to a Slider in the same widget, and that is false at the slider's starting value. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
+    "Guided Tasks: Every Widget with a Slider has GuidedTasks, last, with 1 to 3 tasks, unless a Breakeven, Predict or QuickCheck is its discovery. Each GuidedTask's condition reads a $variable bound to a Slider in the same widget, is false at the slider's starting value, and changes what the Learner sees; the last is a discovery, never a condition most slider positions satisfy. Practice only: never ask the Learner to type a task's answer, and never treat a ticked task as an answer to a Check.",
+    'Code may add "Widget notes" about your last widget: follow them in your next widget, and never redraw one only for them.',
     "If no Case Data covers what the Learner wants, say plainly that the data is not available here, and still show what code can compute, or a clearly labelled Illustration of the idea.",
     "Starting numbers you put in a Slider or chart must come from the Case material code sent you.",
     "Before the reveal step, never put a Case's outcome in a widget.",

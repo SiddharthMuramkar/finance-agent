@@ -105,7 +105,7 @@ export const WIDGET_TOOL_SPECS: ToolSpec[] = [
   {
     name: "case_data",
     description:
-      'One checked Case Data dataset, fetched through the server\'s as-of rule (nothing dated after the Case\'s as-of date before the reveal). Use only references from the Case Data list code sent you. One row per point: date, value, and text (the value written in its unit). Example: d = Query("case_data", {dataset: "mega-millions-2018/treasury-30-year"}, {rows: []}), then LineChart(d.rows.date, [Series("30-year yield", d.rows.value)]) or Table([Col("Date", d.rows.date), Col("Yield", d.rows.text)]).',
+      'One checked Case Data dataset, fetched through the server\'s as-of rule (nothing dated after the Case\'s as-of date before the reveal). Use only references from the Case Data list code sent you, or reference/<id> from the reference list. One row per point: date, value, and text (the value written in its unit). Example: d = Query("case_data", {dataset: "mega-millions-2018/treasury-30-year"}, {rows: []}), then LineChart(d.rows.date, [Series("30-year yield", d.rows.value)]) or Table([Col("Date", d.rows.date), Col("Yield", d.rows.text)]).',
     inputSchema: jsonSchema(WIDGET_TOOL_ARGS.case_data),
     outputSchema: result({
       rows: rowsOf({ date: string, value: number, text: { type: "string", description: "The value formatted in its unit" } }),
