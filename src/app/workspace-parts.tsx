@@ -94,7 +94,7 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
  * while a Check is open): "Next: <step> →", "Complete this Topic →", or "Just tell me →" at an unsettled
  * Explore (which posts "Just tell me." as the Learner's message). Next and Complete send no Learner message:
  * code writes the turn's note. Then the two help chips, which stay during a Check and post their words
- * ("Explain that more simply.", "Show me in a widget.") as the Learner's message.
+ * ("Go deeper.", "Show me in a widget.") as the Learner's message.
  */
 export function Chips({ offer, onNext, onSay }: { offer: NextOffer | null; onNext: (named: NextName) => void; onSay: (words: string) => void }) {
   // The chip pressed shows a spinner at once and the others wait, until the turn takes the chips away (or, if the turn
