@@ -17,7 +17,20 @@ export type WidgetStore = {
   save: (key: string, change: Partial<SavedWidget>) => void;
   /** Every Widget's state as it stands now, by Widget key: what each turn request tells the Tutor of. */
   all: () => WidgetStates;
+  /**
+   * Applies slider values the server pushed (the Tutor updated a Widget): saves them like a drag would (replacing a
+   * pending save for the key), leaves ticked Guided Tasks as they are, and bumps the key's revision.
+   */
+  push: (key: string, values: Record<string, number>) => void;
+  /** Counts the server pushes that changed this Widget's values; a Widget keyed by it remounts at the new values. */
+  revision: (key: string) => number;
+  /** Calls back when any revision changes; returns the way to stop. */
+  subscribe: (listener: () => void) => () => void;
 };
+
+/** The store behind a store's `all` function, so the turn stream (given only `all`) can push server-sent state. */
+const storeByAll = new WeakMap<() => WidgetStates, WidgetStore>();
+export const storeOf = (all: (() => WidgetStates) | undefined): WidgetStore | undefined => (all ? storeByAll.get(all) : undefined);
 
 const WidgetStatesContext = createContext<WidgetStore | null>(null);
 
@@ -43,6 +56,8 @@ export function useWidgetStates(sessionId: number | undefined, initial: WidgetSt
     const pending = new Set<string>();
     let session = sessionId;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    const revisions = new Map<string, number>();
+    const listeners = new Set<() => void>();
     const flush = () => {
       clearTimeout(timer);
       if (session === undefined) return;
@@ -74,6 +89,17 @@ export function useWidgetStates(sessionId: number | undefined, initial: WidgetSt
         clearTimeout(timer);
         timer = setTimeout(flush, SAVE_AFTER_MS);
       },
+      push: (key, values) => {
+        if (states.has(key) && sameValues(values, states.get(key)!.values)) return;
+        api.save(key, { values });
+        revisions.set(key, (revisions.get(key) ?? 0) + 1);
+        for (const listener of listeners) listener();
+      },
+      revision: (key) => revisions.get(key) ?? 0,
+      subscribe: (listener) => {
+        listeners.add(listener);
+        return () => void listeners.delete(listener);
+      },
       flush,
       showSession: (id, saved) => {
         if (id === session) return;
@@ -87,6 +113,7 @@ export function useWidgetStates(sessionId: number | undefined, initial: WidgetSt
         flush();
       },
     };
+    storeByAll.set(api.all, api);
     return api;
   });
   useEffect(() => store.showSession(sessionId, initial), [store, sessionId, initial]);
