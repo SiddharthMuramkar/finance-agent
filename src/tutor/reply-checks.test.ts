@@ -3,9 +3,11 @@ import {
   blockedNumbersFrom,
   capFor,
   checkReply,
+  correctionText,
   countWords,
   fixReply,
   splitAsk,
+  trimToCap,
   type OpenItem,
   type ReplyCheckContext,
   type ReplyDraft,
@@ -395,4 +397,69 @@ describe("Appendix A's good replies, said in words", () => {
     it(`passes ${name}`, () => {
       expect(checkReply(fixReply(d), ctx({ ...c, widgetOk: () => null }))).toEqual([]);
     });
+});
+
+/** A 142-word reply: 20 seven-word sentences in two paragraphs, then a two-word ask. */
+const LONG_REPLY = [
+  Array.from({ length: 10 }, (_, i) => `Sentence ${i + 1} says one small plain thing.`).join(" "),
+  Array.from({ length: 10 }, (_, i) => `Sentence ${i + 11} says one more plain thing.`).join(" "),
+  "Ready now?",
+].join("\n\n");
+
+describe("correctionText", () => {
+  it("names each failed rule and its limit", () => {
+    const c = ctx();
+    const d = draft(LONG_REPLY);
+    const problems = checkReply(d, c);
+    const text = correctionText(problems, d, c);
+    expect(text).toContain("Your reply was 142 words. The limit is 80. Keep one idea and one ask.");
+  });
+
+  it("lists every problem, one per line", () => {
+    const c = ctx({ step: "check" });
+    const d = draft(`Code recorded a pass. Say you save $100.\n${SEVEN_ASKS}`);
+    const problems = checkReply(fixReply(d), c);
+    expect(problems.map((p) => p.rule)).toEqual(expect.arrayContaining(["V2", "V3", "V6", "V7"]));
+    const text = correctionText(problems, d, c);
+    for (const p of problems) expect(text).toContain(p.message);
+  });
+
+  it("tells a reply that leaked an open answer which numbers to keep away from", () => {
+    const c = ctx({ step: "check", openItems: [BP_DEFINITION] });
+    const d = draft("0.6 of a point is 60 bp.");
+    const text = correctionText(checkReply(d, c), d, c);
+    expect(text).toContain("0.6, 6, 60, 600");
+  });
+
+  it("is empty when nothing failed", () => {
+    expect(correctionText([], draft("Fine."), ctx())).toBe("");
+  });
+});
+
+describe("trimToCap", () => {
+  it("cuts at the last full sentence within the cap and keeps the ask", () => {
+    const trimmed = trimToCap(LONG_REPLY, 80);
+    expect(countWords(trimmed)).toBeLessThanOrEqual(80);
+    // 78 words are left after the ask: ten sentences of the first paragraph and one of the second (77 words).
+    expect(trimmed).toBe(
+      `${Array.from({ length: 10 }, (_, i) => `Sentence ${i + 1} says one small plain thing.`).join(" ")}\n\nSentence 11 says one more plain thing.\n\nReady now?`,
+    );
+  });
+
+  it("cuts inside the first paragraph when the cap is small", () => {
+    // 28 words are left after the ask: four sentences.
+    expect(trimToCap(LONG_REPLY, 30)).toBe(
+      "Sentence 1 says one small plain thing. Sentence 2 says one small plain thing. Sentence 3 says one small plain thing. Sentence 4 says one small plain thing.\n\nReady now?",
+    );
+  });
+
+  it("leaves a reply within the cap as it was", () => {
+    expect(trimToCap("Points are a difference.\nHow many points is 3% to 3.5%?", 80)).toBe("Points are a difference.\nHow many points is 3% to 3.5%?");
+  });
+
+  it("does not count Citation markers or Widget fences", () => {
+    const text = 'Rates move in points.[1](/passages/2?blocks=0-1) A point is 100 bp.\n```openui-lang\nroot = Widget("x", [a, b, c, d, e, f])\n```\nHow many bp is half a point?';
+    // Nine words of message and seven of ask.
+    expect(trimToCap(text, 16)).toBe(text);
+  });
 });

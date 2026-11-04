@@ -322,6 +322,55 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
 }
 
 /**
+ * What the one retry is told: each failed check with its limit, one per line, then how to write it again.
+ * A leak of an open answer also lists the numbers to keep away from. Empty when nothing failed.
+ */
+export function correctionText(problems: ReplyProblem[], draft: ReplyDraft, ctx: ReplyCheckContext): string {
+  if (!problems.length) return "";
+  const lines = unique(problems.map((p) => p.message));
+  if (problems.some((p) => p.rule === "V5")) {
+    const blocked = blockedNumbersFrom(ctx.openItems);
+    if (blocked.length) lines.push(`Numbers from the open quiz, which you may not use: ${blocked.join(", ")}.`);
+  }
+  const ask = splitAsk(draft.text).ask ? "Keep one ask, on the last line." : "End with one ask, on the last line.";
+  lines.push(`Write the whole reply again within ${capFor(ctx.step, ctx.replyKind)} words. ${ask}`);
+  return lines.join("\n");
+}
+
+/**
+ * The fallback when the retry fails too and there is no Concept card to show: the reply cut at its last
+ * full sentence within the cap, keeping the ask line. Fences (Widgets) stay where they were; uncounted.
+ */
+export function trimToCap(text: string, cap: number): string {
+  const { message, ask } = splitAsk(text);
+  if (countWords(message) + (ask ? countWords(ask) : 0) <= cap) return text;
+  let budget = cap - (ask ? countWords(ask) : 0);
+  let full = false;
+  const kept = mapProse(message, (chunk) =>
+    chunk
+      .split("\n")
+      .map((line) => {
+        const out: string[] = [];
+        for (const sentence of sentencesOf(line)) {
+          const words = countWords(sentence);
+          if (full || words > budget) {
+            full = true;
+            break;
+          }
+          budget -= words;
+          out.push(sentence);
+        }
+        return out.join(" ");
+      })
+      .join("\n"),
+  );
+  const body = kept.replace(/\n{3,}/g, "\n\n").trim();
+  // The ask keeps the gap it had: its own paragraph, or the next line.
+  const gap = ask && /\n[ \t]*\n\s*$/.test(text.slice(0, text.lastIndexOf(ask))) ? "\n\n" : "\n";
+  return ask ? (body ? `${body}${gap}${ask}` : ask) : body;
+}
+
+/**
  * Whether the text gives an open item's answer: every number of the answer together with any number
  * of its question. An answer with no numbers counts when its words appear (two words or more) beside
  * the question's numbers, or anywhere when the question has none.
