@@ -335,3 +335,61 @@ export function calculate(id: string, inputs: unknown, currency?: Currency): Cal
     return { ok: false, error: error instanceof Error ? error.message : "The calculation failed." };
   }
 }
+
+// How a calculator's total splits into parts, for MoneyStack: each part is one colour of notes. A tone is the
+// provenance colour: "neutral" is money the Learner put in (stone), "you" is growth on the Learner's assumption
+// (teal), "src" is what a lender or the record adds (amber). Only calculators that have a total with two honest
+// parts are here.
+export type PartTone = "neutral" | "you" | "src";
+export type CalculatorPart = { label: string; value: number; tone: PartTone };
+export type CalculatorParts = { ok: true; id: string; total: number; parts: CalculatorPart[] } | { ok: false; error: string };
+
+type PartsOf = (inputs: Record<string, number>, results: Record<string, number>) => CalculatorPart[];
+
+const PART_MAP: Record<string, PartsOf> = {
+  sip: (_i, r) => [
+    { label: "Total invested", value: r["Total invested"], tone: "neutral" },
+    { label: "Gain", value: r["Gain"], tone: "you" },
+  ],
+  emi: (i, r) => [
+    { label: "Principal", value: i.principal, tone: "neutral" },
+    { label: "Total interest", value: r["Total interest"], tone: "src" },
+  ],
+  future_value: (i, r) => [
+    { label: "Amount", value: i.amount, tone: "neutral" },
+    { label: "Growth", value: r["Future value"] - i.amount, tone: "you" },
+  ],
+  fixed_deposit: (i, r) => [
+    { label: "Invested", value: i.principal, tone: "neutral" },
+    { label: "Interest", value: r["Interest earned"], tone: "you" },
+  ],
+  recurring_deposit: (_i, r) => [
+    { label: "Invested", value: r["Total deposited"], tone: "neutral" },
+    { label: "Interest", value: r["Interest earned"], tone: "you" },
+  ],
+  ppf: (_i, r) => [
+    { label: "Invested", value: r["Total deposited"], tone: "neutral" },
+    { label: "Interest", value: r["Interest earned"], tone: "you" },
+  ],
+};
+
+/** The calculators MoneyStack can draw: those with a parts split. */
+export const PARTS_CALCULATOR_IDS = Object.keys(PART_MAP);
+
+/**
+ * A calculator's total and its parts (a SIP's money put in and its gain), worked out by the same `calculate` the Tutor's
+ * tool and the Calculator widget use. A calculator with no split, bad inputs or a negative part comes back as an error.
+ */
+export function calculateParts(id: string, inputs: unknown, currency?: Currency): CalculatorParts {
+  const partsOf = PART_MAP[id];
+  if (!partsOf) return { ok: false, error: `No parts split for "${id}". Available: ${PARTS_CALCULATOR_IDS.join(", ")}.` };
+  const done = calculate(id, inputs, currency);
+  if (!done.ok) return done;
+  const calculator = CALCULATORS.find((c) => c.id === id)!;
+  const parsed = calculator.inputs.safeParse(inputs);
+  if (!parsed.success) return { ok: false, error: `Check the inputs for ${id}.` };
+  const results = Object.fromEntries(done.results.map((r) => [r.label, r.value]));
+  const parts = partsOf(parsed.data as Record<string, number>, results).map((p) => ({ ...p, value: Math.max(0, p.value) }));
+  if (parts.some((p) => !Number.isFinite(p.value))) return { ok: false, error: `The parts of ${id} could not be worked out.` };
+  return { ok: true, id, total: parts.reduce((sum, p) => sum + p.value, 0), parts };
+}
