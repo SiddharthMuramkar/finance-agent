@@ -35,6 +35,7 @@ import { stepContext, topicCompleteContext } from "./context";
 import { verdictCard } from "./check-results";
 import { pasteSummary } from "./pasted";
 import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type ReplyText, type SessionItem, type StoredItem } from "./session-items";
+import { enterStepItems, startAgainItems } from "./practice";
 import { openWidgetsForTurn } from "./widget-context";
 import { textOf } from "./transcript";
 import type { ToolDefinition } from "./instructions";
@@ -105,6 +106,7 @@ export const TOOL_LABELS: Record<string, string> = {
   record_check_verdict: "Recording the Check…",
   record_insight_attempt: "Recording your answer…",
   save_learner_rule: "Saving to your notes…",
+  start_again: "Starting again…",
   open_widget: "Opening a Widget…",
   show_widget: "Drawing the Widget…",
   compose_widget: COMPOSE_LABEL,
@@ -135,6 +137,9 @@ export const NOTHING_RECORDED =
 /** Sent back when the Tutor tries to finish a step it only just reached in the same turn. */
 export const PACING_REJECTION =
   "Cannot finish this step: it began during this turn. Teach it in your reply now, then stop and wait for the Learner to answer; you can finish it in your next turn.";
+
+/** Sent back when the Tutor calls start_again in a Topic with no Concept cards (not converted). */
+export const START_AGAIN_REFUSAL = "Not started again: this Topic has no Concept cards to show again. Teach its first idea again in words, simply, with one ask.";
 
 /** Sent back when the Tutor records a verdict at a Check step it only just reached, before the Learner could answer the prompt. */
 export const VERDICT_PACING_REJECTION =
@@ -230,11 +235,19 @@ export function toolCode(
     return navigatorContext(tx, map, after, turnId, learnerId);
   }
 
-  /** Stores the divider for the Learner's new step in the turn's Session, when they are still in the Topic they were in. */
-  async function storeStepDivider(tx: Db, before: Place | null, progress: Progress): Promise<SessionItem | null> {
+  /**
+   * Stores the divider for the Learner's new step in the turn's Session, when they are still in the Topic they were in,
+   * then what code shows on entering that step (enterStepItems: a Concept card and its Widget, or the next Quick try),
+   * so a card lands right after the divider mid-reply. Returns them in order; empty when nothing was stored.
+   */
+  async function storeStepDivider(tx: Db, before: Place | null, progress: Progress): Promise<SessionItem[]> {
     const after = navigate(map, progress);
-    if (!before || after?.topic.id !== before.topic.id) return null;
-    return storeAfterLatest(tx, stepDivider(map, progress, after.topic.id));
+    if (!before || after?.topic.id !== before.topic.id) return [];
+    const divider = await storeAfterLatest(tx, stepDivider(map, progress, after.topic.id));
+    if (!divider) return [];
+    const [turn] = await tx.select({ sessionId: turns.sessionId }).from(turns).where(eq(turns.id, turnId));
+    const entered = turn?.sessionId == null ? [] : await enterStepItems(tx, map, learnerId, turn.sessionId, now());
+    return [divider, ...entered];
   }
 
   /** Stores a Session item after the latest message of the turn's Session; null when there is no item or no Session yet. */
@@ -520,8 +533,8 @@ export function toolCode(
           // The Learner sees the result in the conversation: a card after the reply that recorded it, never sent to the model.
           const card = await storeAfterLatest(tx, verdictCard(map, check_id, passed));
           // A pass moves the Learner on: the divider for their new step follows the card (none once the Topic is passed).
-          const divider = passed ? await storeStepDivider(tx, before, await loadProgress(tx, learnerId)) : null;
-          const items = [card, divider].filter((i) => i !== null);
+          const divider = passed ? await storeStepDivider(tx, before, await loadProgress(tx, learnerId)) : [];
+          const items = [card, ...divider].filter((i) => i !== null);
           return { ok: true, began: passed, text: `${recorded}\n\n${await contextAfterMove(tx, before)}`, ...(items.length && { items }) };
         }),
     },
@@ -813,8 +826,24 @@ export function toolCode(
           if (!move.ok) return { ok: false, text: move.reason };
           // The Learner sees where the next step begins: a divider after the reply that finished this one.
           // None once the Topic is passed; its Topic complete card marks that.
-          const item = await storeStepDivider(tx, before, move.progress);
-          return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(item && { items: [item] }) };
+          const items = await storeStepDivider(tx, before, move.progress);
+          return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(items.length && { items }) };
+        }),
+    },
+    // Start again (spec #229, ticket #245): in a converted Topic, code re-posts its Concept cards in order, then its first
+    // Quick try. The step and any open quiz attempt stay where they are.
+    start_again: {
+      parse: (input) => z.object({}).passthrough().parse(input ?? {}),
+      run: (_input, context) =>
+        once(context?.toolUse.id, "start_again", async (tx) => {
+          const [turn] = await tx.select({ sessionId: turns.sessionId }).from(turns).where(eq(turns.id, turnId));
+          const items = turn?.sessionId == null ? null : await startAgainItems(tx, map, learnerId, turn.sessionId, now());
+          if (!items) return { ok: false, text: START_AGAIN_REFUSAL };
+          return {
+            ok: true,
+            text: "Started again by code: the Learner now sees this Topic's Concept cards again, in order, then its first Quick try. Their step and any open quiz stay as they were. Add one sentence that points to the first card, and one ask. Do not repeat the cards' words.",
+            items,
+          };
         }),
     },
   }, effects);
