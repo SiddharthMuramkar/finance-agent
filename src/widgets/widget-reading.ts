@@ -1,5 +1,6 @@
 import { calculate, formatMoney } from "@/finance/calculators";
 import { formulaById } from "@/finance/formulas";
+import { rateChangeReadouts } from "@/finance/rate-change";
 import { formatUsd, formatValue } from "./case-data-view";
 import { widgetNodes, widgetParts, widgetTaskTexts } from "./check";
 import type { ParsedNode } from "./guided-tasks";
@@ -116,11 +117,15 @@ function partReadouts(node: ParsedNode, state: Record<string, number>, lookup: S
   return [];
 }
 
+/** The two sliders ($variables) whose rate change a written-ahead Widget says three ways (Percent). */
+export type RateChangeSliders = { old: string; new: string };
+
 /**
  * What a Widget shows now: its sliders at the saved values (else the ones its code starts at), its Guided Tasks
- * with the saved ticks, and our parts' readouts worked out from those values. Null when the code does not draw.
+ * with the saved ticks, and our parts' readouts worked out from those values. A written-ahead Widget that says a rate
+ * change (`rateChange`) gets those readouts from the tested rateChange too. Null when the code does not draw.
  */
-export function readWidget(code: string, saved: SavedWidget | undefined, lookup: SourcedLookup, explore = false): WidgetReading | null {
+export function readWidget(code: string, saved: SavedWidget | undefined, lookup: SourcedLookup, explore = false, rateChange?: RateChangeSliders): WidgetReading | null {
   const nodes = widgetNodes(code);
   const title = widgetParts(code).title?.trim();
   if (!nodes.length || !title) return null;
@@ -131,7 +136,9 @@ export function readWidget(code: string, saved: SavedWidget | undefined, lookup:
   });
   const ticked = new Set(saved?.ticked ?? []);
   const tasks = widgetTaskTexts(code).map((text) => ({ text, ticked: ticked.has(text) }));
-  return { title, explore, sliders, tasks, readouts: nodes.flatMap((n) => partReadouts(n, state, lookup)) };
+  const [before, after] = rateChange ? [state[rateChange.old], state[rateChange.new]] : [];
+  const changed = finite(before) && finite(after) ? rateChangeReadouts(before, after) : [];
+  return { title, explore, sliders, tasks, readouts: [...nodes.flatMap((n) => partReadouts(n, state, lookup)), ...changed] };
 }
 
 /** True when the Widget has Guided Tasks and every one of them is ticked. */

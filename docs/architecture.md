@@ -848,7 +848,9 @@ or dataset the Topic does not have, and Case Data references outside the Topic's
 
 **Percent's "One rate change, said three ways"** (`rate-change-three-ways`): old and new rate, 0 to 10% in 0.01
 steps with number boxes, starting at 5% and 5.2%; readouts in percentage points, basis points and percent change of
-the old rate (worked out by the Widget, "none" when the old rate is 0%). Its three Guided Tasks are made-up moves
+the old rate (worked out by the Widget, "none" when the old rate is 0%; for the Tutor and Tell the Tutor what I found,
+code works the same three out with the tested `rateChange` in `src/finance/rate-change.ts`, from the two sliders the
+Topic file names under `rateChange`, so the Tutor is told "40 bp" rather than left to do the sum). Its three Guided Tasks are made-up moves
 (6% to 6.4%, 8% to 7.1%, 0.5% to 0.9%) that tick on no Percent quiz question's move and never on the Case's outcome
 (a test checks both). After the reveal a fourth appears: "Set the Fed's move of February 1994: from 3% to 3.25%",
 its rates from the `fed-funds-target` dataset. A growth-rate calculator (`cagr`) drawn by the Tutor in Percent is
@@ -938,7 +940,8 @@ words, which is what the Insight tool can record.
 **Trade-off.** Code, not the model, does every sum, at the cost of a block in each message while a Widget is
 open (a few hundred tokens, cached with the rest of the history). Readouts cover only our own parts and simple
 `$rate * 2` style arguments; a kit chart's typed numbers and anything a Query works out in the browser are left
-to the slider values. Written-ahead Widgets get readouts the same way, from the parts they are built of. Trusting
+to the slider values. Written-ahead Widgets get readouts the same way, from the parts they are built of, and one that
+says a rate change (`rateChange` in its Topic file) gets those from `rateChange` too. Trusting
 the page's numbers means a tampered request could tell the Tutor a wrong rate, but only about the Learner's own
 Widget, and the readouts are still worked out by code from those numbers. The report's words are code's, so the
 Learner still has to say the Insight themselves.

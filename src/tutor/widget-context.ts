@@ -6,7 +6,7 @@ import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { openWidgetsIn, type OpenWidget } from "@/widgets/check";
-import { foundText, readWidget, type SourcedLookup, type WidgetReading } from "@/widgets/widget-reading";
+import { foundText, readWidget, type RateChangeSliders, type SourcedLookup, type WidgetReading } from "@/widgets/widget-reading";
 import { cleanSavedWidget, MAX_WIDGET_KEY, widgetKey, type WidgetStates } from "@/widgets/widget-state";
 import { currentTopicId, liveSession, openLog } from "./session-log";
 import { caseDataFor } from "./tools";
@@ -24,7 +24,7 @@ import { WIDGET_OPENED } from "@/course/written-ahead";
  */
 
 /** A Widget open in the panel, by its Widget key (the title, or the written-ahead id, which the explore Widget has too). */
-export type KeyedWidget = { key: string; code: string; explore: boolean };
+export type KeyedWidget = { key: string; code: string; explore: boolean; /** A written-ahead Widget's rate change, worked out by code. */ rateChange?: RateChangeSliders };
 
 /** What the page sent as its Widgets' state, cleaned: only well-formed entries, at most 20 of them. */
 export function cleanSentWidgets(raw: unknown): WidgetStates {
@@ -57,11 +57,15 @@ export async function openWidgetsForTurn(
   const opened = session ? new Set((await loadSessionItems(db, session.id, learnerId)).flatMap((i) => (i.kind === WIDGET_OPENED ? [i.data.id] : []))) : new Set();
   const found = withExplore ? exploreWidgetFor(map, progress) : null;
   // The explore Widget is a written-ahead Widget: read as the Learner sees it now (reveal task and all), under its id.
-  const explore = found && exploreAsSeen(found, await loadWrittenAhead(db, map, progress, found.topicId));
+  const exploreAhead = found ? await loadWrittenAhead(db, map, progress, found.topicId) : [];
+  const explore = found && exploreAsSeen(found, exploreAhead);
+  const exploreChange = exploreAhead.find((w) => w.id === explore?.id)?.rateChange;
   const ahead = opened.size
-    ? (await loadWrittenAhead(db, map, progress, session?.topicId)).filter((w) => opened.has(w.id) && w.id !== explore?.id).map((w) => ({ key: w.id, code: w.code, explore: false }))
+    ? (await loadWrittenAhead(db, map, progress, session?.topicId))
+        .filter((w) => opened.has(w.id) && w.id !== explore?.id)
+        .map((w) => ({ key: w.id, code: w.code, explore: false, ...(w.rateChange && { rateChange: w.rateChange }) }))
     : [];
-  return [...tutors, ...ahead, ...(explore ? [{ key: explore.id, code: explore.code, explore: true }] : [])];
+  return [...tutors, ...ahead, ...(explore ? [{ key: explore.id, code: explore.code, explore: true, ...(exploreChange && { rateChange: exploreChange }) }] : [])];
 }
 
 /** Reads a "caseId/datasetId" reference's latest point from the Case Data allowed now. */
@@ -88,7 +92,7 @@ export async function readOpenWidgets(
   const cases = await caseDataFor(db, map, navigate(map, await loadProgress(db, learnerId)), learnerId);
   const lookup = lookupIn(cases);
   return open.flatMap((widget) => {
-    const reading = readWidget(widget.code, states[widget.key], lookup, widget.explore);
+    const reading = readWidget(widget.code, states[widget.key], lookup, widget.explore, widget.rateChange);
     return reading ? [{ widget, reading }] : [];
   });
 }

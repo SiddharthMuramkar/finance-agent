@@ -11,8 +11,11 @@ export function widgetCodeTitle(code: string): string | null {
   return code.match(/^root = Widget\("([^"]+)"/m)?.[1]?.trim() || null;
 }
 
-/** A written-ahead Widget as the Workspace draws it: its id (its Widget key), its title and its code now. */
-export type WrittenAhead = { id: string; title: string; code: string };
+/**
+ * A written-ahead Widget as the Workspace draws it: its id (its Widget key), its title and its code now, and the two
+ * sliders whose rate change code works out for the Tutor, when it says one (WrittenAheadSpec's rateChange).
+ */
+export type WrittenAhead = { id: string; title: string; code: string; rateChange?: WrittenAheadSpec["rateChange"] };
 
 /** The Session item kind stored when the Tutor opens a written-ahead Widget: it stands where it was opened, as a chip. */
 export const WIDGET_OPENED = "widget_opened";
@@ -64,7 +67,7 @@ export function withRevealTask(code: string, task: NonNullable<WrittenAheadSpec[
 
 /** The Topic's written-ahead Widgets as written, before any reveal: the course check and the Tutor's context read these. */
 export function writtenAheadWidgets(topic: Pick<Topic, "widgets">): WrittenAhead[] {
-  return topic.widgets.map((w) => ({ id: w.id, title: widgetCodeTitle(w.code) ?? w.id, code: w.code }));
+  return topic.widgets.map((w) => ({ id: w.id, title: widgetCodeTitle(w.code) ?? w.id, code: w.code, ...(w.rateChange && { rateChange: w.rateChange }) }));
 }
 
 /**
@@ -77,7 +80,7 @@ export function writtenAheadFor(topic: Pick<Topic, "widgets">, cases: readonly (
     const title = widgetCodeTitle(w.code) ?? w.id;
     const task = w.revealTask;
     const move = task ? revealMove(cases.find((c) => c?.caseId === task.case), task.dataset) : null;
-    return { id: w.id, title, code: task && move ? withRevealTask(w.code, task, move) : w.code };
+    return { id: w.id, title, code: task && move ? withRevealTask(w.code, task, move) : w.code, ...(w.rateChange && { rateChange: w.rateChange }) };
   });
 }
 

@@ -73,6 +73,19 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     expect(asked).toContain("Old rate: 6%");
     expect(asked).toContain("New rate: 6.4%");
     expect(asked).toContain("[x] Set a rise from 6% to 6.4%");
+    // Its readouts are worked out by code, not left to the Tutor: 6% to 6.4% is 0.4 points, 40 bp, a 6.67% change.
+    expect(asked).toContain("In percentage points: 0.4 points; In basis points: 40 bp; As a percent change of the old rate: 6.67%");
+  });
+
+  it("writes Percent's readouts into Tell the Tutor what I found, worked out by code", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([open("rate-change-three-ways"), text("Try them all."), text("Good.")]);
+    await collect(runTutorTurn({ db, client }, "Can I play with this?"));
+    const ticked = ["Set a rise from 6% to 6.4%", "Now a cut from 8% to 7.1%", "Now a rise from 0.5% to 0.9%, and compare its percent change with the first rise"];
+    const widgets = { "rate-change-three-ways": { values: { $old: 0.5, $new: 0.9 }, ticked } };
+    await collect(runTutorTurn({ db, client, widgets }, { widgetReport: "rate-change-three-ways" }));
+    const asked = JSON.stringify(requests.at(-1)!.messages);
+    expect(asked).toContain("I set the old rate to 0.5% and the new rate to 0.9%. In percentage points: 0.4 points; In basis points: 40 bp; As a percent change of the old rate: 80%.");
   });
 
   it("refuses an id the Topic does not have, and stores nothing", async () => {

@@ -47,6 +47,8 @@ widgets:
   - id: rate-change-three-ways
     # The Tutor may not draw a growth-rate calculator here: this Widget is the clear version.
     parts: [cagr]
+    # Code works out the same three readouts for the Tutor from these two sliders (rateChange, src/finance/rate-change.ts).
+    rateChange: { old: $old, new: $new }
     code: |
       root = Widget("One rate change, said three ways", [old, new, points, bps, change, steps])
       $old = 5
