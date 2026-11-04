@@ -16,7 +16,7 @@ describe("the Welcome", () => {
   it("first explains how a Topic works: the seven Teaching Steps as a strip and the two-column layout", () => {
     const html = render("how-a-topic-works");
     const strip = html.match(/<ol[^>]*data-step-strip[^>]*>([\s\S]*?)<\/ol>/)![1];
-    expect(text(strip).trim()).toBe("Story Concept Your turn Check Explore Reveal Principle");
+    expect(text(strip).trim()).toBe("Story Concept Explore Your turn Check Reveal Principle");
     expect(text(html)).toContain("Concept → Your turn → Check repeats for each Check");
     expect(text(html)).toContain("The Tutor talks on the left. Things you can move and try appear on the right.");
   });

@@ -2997,8 +2997,9 @@ Sessions (Older ones count) and has not yet chosen a Topic (`showsWelcome`). The
 such a Learner here, so signing in, Home's Start and Settings' Start over all land on it; the Welcome
 sends anyone else to the Study Workspace. It has three panels, each its own address
 (`/welcome?panel=…`), so Next and Skip are plain links:
-1. **How a Topic works.** The seven kinds of Teaching Step as a strip (Story, Concept, Your turn,
-   Check, Explore, Reveal, Principle), "Concept → Your turn → Check repeats for each Check" and "The
+1. **How a Topic works.** The seven kinds of Teaching Step as a strip (Story, Concept, Explore,
+   Your turn, Check, Reveal, Principle: the Course Navigator's `TEACHING_STEPS`, the order Home and the
+   glossary use), "Concept → Your turn → Check repeats for each Check" and "The
    Tutor talks on the left. Things you can move and try appear on the right."
 2. **About you.** The same Learner Profile form as Settings, every answer optional. Next saves the
    answers; Skip saves nothing.
