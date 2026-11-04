@@ -4094,6 +4094,59 @@ the state can be rebuilt from it. The ladder is the same for every Topic and liv
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
 
+## The Learner's own rule (`save_learner_rule` in `src/tutor/tools.ts`, `src/learner/own-rule.ts`, `src/tutor/own-rule-item.ts`, `src/app/own-rule-line.tsx`, `note_items` kind `own_rule`, spec #229, ticket #244)
+
+**What it does.** When the Learner says a rule in their own words, more simply than the Tutor did, the Tutor can call
+`save_learner_rule` with those words. Code checks them before it keeps anything: the turn is a message the Learner typed
+(a chip, a note code wrote and the old "Continue." are refused); the words are found in that message, and are kept exactly
+as typed, symbols and all, up to 300 characters; no rule was already saved this turn. In a Topic with Skills, the Learner's
+latest practice answer in the Topic must be `right` and must have been recorded after this Session's previous turn began,
+and its Skill becomes the rule's Skill, so the Tutor never names one; a Skill takes one rule. In a Topic without Skills the
+Tutor judges the rule, and the Topic takes one. In one transaction code writes a `note_items` row of kind `own_rule` (the
+column is text, so no migration) and a Session item `OWN_RULE_SAVED` with `{noteId, topicId, text, skillId}`, which streams
+at once. "Once" counts the own-rule items in the Topic's Session, so an Undo does not free the slot. The tool result tells the
+Tutor what was saved, that the Learner sees "Saved to your notes" with Undo, and to confirm the rule in one sentence and use
+the Learner's words from then on. The turn passes the saved words to the reply checks as `ReplyDraft.savedRule`.
+
+The line under the reply reads "Saved to your notes · Undo · Open notes". It reuses the Save to notes control's view with a
+label, never has a Save button, and is never sent to the model. Undo calls `DELETE /api/notes` with the note id; the line then
+reads "Removed from your notes.", and an Undo on a note already gone says the same. On the Notes page `loadNotes` lists the
+rule among its Topic's lines with `ownRule: true`; the page marks it "Your rule", and it can be edited and removed like any
+line. `learnerSummary` adds "Rules in the Learner's own words (use them)" with the newest five, and the Where the Learner
+stands block is sent again when it changes, so the next turn carries them.
+
+**Scenario.** After a right answer on "points to basis points", the Learner types "so its basically change x 100 then divide
+by original". The Tutor calls the tool with "change x 100 then divide by original". Code saves it against that Skill and the
+Learner sees the line. The Tutor says "Yes, that is the rule" in one sentence and later says it in the Learner's words. If the
+Learner presses Undo, the rule leaves the note, and a later try at the same Skill is not saved a second time.
+
+**Trade-off.** The Skill lives only in the Session item, not in the note row, to keep the table as it is; a rule whose item is
+gone would show no Skill, which nothing reads. Saving the Learner's exact words, not a tidier version, keeps the note theirs
+but lets a clumsy or slightly wrong phrase in, and the Tutor is the judge of "correct" in a Topic without Skills. Counting the
+Session's items, not the note rows, means an Undo is final for that Skill or Topic: a Learner who took a rule off is not
+offered it again, and a fresh Session after Start again would be.
+
+## Known mistakes on the Topic Note and in the Learner summary (`src/learner/known-mistakes.ts`, `notes.ts`, `memory.ts`, table `practice_answers`, spec #229, ticket #244)
+
+**What it does.** Each answer code marks as a Known mistake is logged in `practice_answers` with the slip's tag. `loadNotes`
+adds every distinct Known mistake the Learner made in a Topic to that Topic Note's `mistakes`, once each, with the fix line
+the Topic file gives that tag (a template's, a quiz choice's or a fixed Quick try's). `learnerSummary` adds one line per Skill
+with hits, "Slips so far: <the Skill's rule>: twice multiplied by 10 instead of 100, stopped at points; fluent now", in plain
+words and never a tag id, so the Tutor cannot repeat one. Misconceptions the Tutor noted stay as they were. Both read only
+converted Topics, and skip the query when the Course Map has none, so no turn and no Notes page reads the practice tables
+before the migration that made them has been applied in production.
+
+**Scenario.** The Learner types 6 twice for "0.6 points in basis points" and 0.6 once. Their note for the Topic lists "One
+point is 100 basis points, so multiply by 100, not 10." and "That is the move in points. Times 100 gives basis points." once
+each, and the Tutor's summary says the Skill had two "multiplied by 10" slips and one "stopped at points", and is fluent now
+after two right answers.
+
+**Trade-off.** The note lists the fix, not the count, so a slip made ten times reads the same as one made once; the summary
+keeps the count for the Tutor. Slips are named in the summary by a small table of plain phrases, and any tag not in it reads
+as its words with the underscores taken out, which is clear but may be clumsy until the phrase is added. The note shows a
+mistake's fix only when the tag is still in the Topic file, so a tag a later edit removed is left out.
+
+
 ## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
 
 **What it does.** Two commands turn the go-live checks into one step each, and neither runs in `npm run check`. `npm run tutor:sweep` runs the live Tutor tests (T1 to T11, three runs each) once for every model and effort pair in `TUTOR_EVAL_MODELS` (default: Opus 5.5 low, Opus 5.5 medium and Sonnet 5.5 medium), each pair on its own spend cap (`TUTOR_EVAL_BUDGET_USD`, $5 by default). It uses the suite's own runner, so a pair is judged exactly as `npm run tutor:eval` judges one. One combined report gives each pair's runs passed, cases passed, spend and cost per turn, and names the cheapest pair that passed every case three times out of three. `npm run tutor:replay` reads the last 50 Learner turns from the stored Sessions (read-only; the script starts the replay with the database address removed from its environment), turns each into a case with the state the Learner had, sends it through the real Tutor Turn on a throwaway in-memory database, runs `fixReply` and `checkReply` on the reply, and writes the pass rate for each rule V1 to V7, the longest reply in words, and every failure in full. Reports go to `evidence/tutor-eval/`, which git ignores because the replay holds Learner messages.
