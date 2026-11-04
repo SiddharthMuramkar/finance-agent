@@ -112,3 +112,58 @@ export type CoveredParts = { id: string; title: string; parts: string[]; held?: 
 export function coveredParts(topic: Pick<Topic, "widgets">): CoveredParts[] {
   return topic.widgets.map((w) => ({ id: w.id, title: widgetCodeTitle(w.code) ?? w.id, parts: w.parts }));
 }
+
+// A step's condition on a Widget's saved state (Topic file `steps[].doneWhen` and `found[].when`). Pure, like the rest of
+// this file: it reads the saved work of one Session (slider values and $variables by name, ticked Guided Task texts).
+
+/** One Widget's saved work, as Widget state keeps it (src/widgets/widget-state.ts). */
+export type SavedWork = { values: Record<string, number>; ticked: string[] };
+
+/** A condition on the saved state of one written-ahead Widget. */
+export type WidgetCondition =
+  /** The Guided Task numbered `task` (1 is the first in its GuidedTasks list) is ticked. */
+  | { kind: "ticked"; widget: string; task: number }
+  /** The $variable has a saved value: a Predict's guess is locked, a slider has been set. */
+  | { kind: "set"; widget: string; variable: string }
+  /** The $variable's saved value is within `within` of `value`: a Breakeven found, a slider set near a target. */
+  | { kind: "near"; widget: string; variable: string; value: number; within: number };
+
+/** The texts of a Widget's Guided Tasks in the order its GuidedTasks list names them; none when it has none. */
+export function guidedTaskTexts(code: string): string[] {
+  const names = code.match(/GuidedTasks\(\[([^\]]*)\]\)/)?.[1]?.split(",").map((n) => n.trim()).filter((n) => /^\w+$/.test(n)) ?? [];
+  return names.flatMap((name) => {
+    const text = code.match(new RegExp(`^${name} = GuidedTask\\(("(?:[^"\\\\]|\\\\.)*")`, "m"))?.[1];
+    if (text === undefined) return [];
+    try {
+      return [JSON.parse(text) as string];
+    } catch {
+      return [];
+    }
+  });
+}
+
+/**
+ * What a condition reads from the saved work of its Widget when it holds: the $variable's saved value for `set` and
+ * `near`, true for `ticked`; null when it does not hold (or nothing is saved for the Widget).
+ */
+export function conditionValue(topic: Pick<Topic, "widgets">, when: WidgetCondition, states: Readonly<Record<string, SavedWork>>): number | true | null {
+  const saved = states[when.widget];
+  if (!saved) return null;
+  if (when.kind === "ticked") {
+    const text = guidedTaskTexts(topic.widgets.find((w) => w.id === when.widget)?.code ?? "")[when.task - 1];
+    return text !== undefined && saved.ticked.includes(text) ? true : null;
+  }
+  const value = saved.values[when.variable];
+  if (typeof value !== "number") return null;
+  if (when.kind === "near" && Math.abs(value - when.value) > when.within) return null;
+  return value;
+}
+
+/** A condition in plain words for the Tutor's context, e.g. `ticked the Guided Task "Set the rate to 0%"`. */
+export function describeCondition(topic: Pick<Topic, "widgets">, when: WidgetCondition): string {
+  const widget = topic.widgets.find((w) => w.id === when.widget);
+  const title = widget ? (widgetCodeTitle(widget.code) ?? widget.id) : when.widget;
+  if (when.kind === "ticked") return `ticked the Guided Task "${guidedTaskTexts(widget?.code ?? "")[when.task - 1] ?? `number ${when.task}`}" in "${title}"`;
+  if (when.kind === "set") return `locked in or set ${when.variable} in "${title}"`;
+  return `set ${when.variable} within ${when.within} of ${when.value} in "${title}"`;
+}

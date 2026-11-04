@@ -949,6 +949,30 @@ are about 16.8K characters instead of 44.3K (tools 10.9K instead of 10.1K): roug
 any history, estimated at four characters a token. "show_widget before prose" is asked for, not enforced. Save to notes
 keeps a shown Widget (see "Save to notes keeps a shown Widget" below).
 
+### Recipe set A: seven recipes on the new parts (`src/widgets/recipes/set-a.ts`, `recipes/a/`; UX audit ★.5, ★.7)
+
+**What it does.** Seven recipes, each one control, at most three numbers, one picture and almost no words: `buying_power`
+(a Pictogram of gold bars, vada pavs or chai for an amount on a slider; the price is a sourced series such as
+`reference/gold-inr-10g`, newest point against the oldest, or a made-up price in `facts`, which makes it an Illustration),
+`grow_money` (the savings calculators drawn as a MoneyStack that splits what you put in from what it earned),
+`loan_cost` (the EMI as a Stat above a MoneyStack of loan against interest), `compare_two` (a Versus of two calculators'
+first results, one shared input on a slider), `breakeven_hunt` (a Breakeven meter: the Learner slides until the curve of one
+calculator meets the target another calculator works out), `percent_points` (a 100-square Waffle for a rate, the old rate
+outlined) and `quick_check` (one to three QuickChecks and a score). `grow_money` and `loan_cost` replace the seeds of the
+same id. Every params object is strict, so an extra number is refused rather than dropped; only `facts` may hold a number
+the code did not work out. Each recipe's schema runs the calculators at the slider's start, min and max, so a Widget
+never shows a calculator error; `breakeven_hunt` also refuses a range the curve never crosses the target in.
+
+**Scenario.** A Learner asks "should I take a 10 or a 20 year loan?". The Tutor calls `compare_two` with the `emi`
+calculator on both sides (10 years, 20 years), the rate on the slider and `better: "lower"`. The Widget is a slider
+and one Versus bar pair, with a Guided Task to move the rate; it passes the Widget check with no budget warning. Had
+the Tutor put a rupee price of its own in `inputs`, the recipe would have refused it and asked for `facts`.
+
+**Trade-off.** Narrow on purpose: a Widget outside these seven shapes needs the freeform route. Sides of `compare_two`
+and the target of `breakeven_hunt` use a calculator's first result only, so a calculator whose headline is not the
+number you want cannot be compared yet. A sourced `buying_power` price assumes the series and the amount share a
+currency, which the recipe cannot check.
+
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
@@ -3684,3 +3708,11 @@ milliseconds between the call and the save would ask once more. The program is r
 the progress label, then the finished Widget, never half of one. Falling back to a recipe example may show a Widget less exact
 than the ask, which is why the Tutor is told to say so. update_widget cannot tick Guided Tasks, so the "all ticked" gate on Tell
 the Tutor what I found stays the Learner's own. Free-form Widgets get no Widget notes warnings yet (widgetNotes reads only fences).
+
+## Topics with a goal: steps that open their Widgets, finish from what you do, and remember what you found (`goal`, `steps`, `found` in `course/topics/*.yaml`, `src/course/map.ts`, `navigator.ts`, `outcome.ts`, `goal-check.ts`, `src/tutor/next.ts`, `off-topic.ts`, `past-sessions.ts`, UX audit 9.0, 9.4, 9.7, 11.5 to 11.9)
+
+**What it does.** Three optional keys extend the Topic, not a second "plan" format (a Topic is still the lesson, a Teaching Step is still the beat). `goal` is one line of words shown under the title in the Topic bar. `steps` is a list of settings, each for one Teaching Step (and optionally one Check): `opens` names a written-ahead Widget that code puts in the panel when the step begins (it stores the same Widget opened item the Tutor's open_widget stores, so a Widget is never opened twice), and `doneWhen` is a condition on the Learner's saved Widget state: a Guided Task ticked, a $variable that has a value (a Predict's guess), or one saved near a target (a Breakeven). The Course Navigator's `widgetDone` and `finishFromWidget` read that state; `finishStepFromWidget` (next.ts) finishes the step, stores the new step's divider and opens its Widget, and the study page calls it on each render (it returns at once for a step with no `doneWhen`). Because nothing has taught the new step yet, Next then names it without moving on, the way it does after a quiz pass. `found` is a list of lines (`when` plus `text`, with `{value}` for the Learner's own number) that `foundLines` (outcome.ts) works out from saved Widget state; Past Sessions rows, the Session header and the Topic complete card show them. An Off-Topic answer is a Session item (`off_topic`, off-topic.ts) drawn as a quiet block with "↩ Back to <Topic>". The Topic schema checks every setting (the Widget, Check and Guided Task must exist), `npm run course:check` also checks the goal and found lines are in words, and prints the written-ahead warnings beside its errors.
+
+**Scenario.** Percent, percentage points and basis points says `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]`. The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic.
+
+**Trade-off.** A Widget can never settle the Insight early (ADR 0001): `doneWhen` is refused on explore, a Check and the principle, by the schema and again in `widgetDone`, and the explore Widget stays opened by code at explore only. The cost is that a finishing Widget needs a page render or a Next to be noticed; the saved state is the source of truth, so nothing is lost. `found` lines are the Learner's own saved numbers, never typed figures (ADR 0003), so an unticked or reset Widget says nothing. Left for later: a Widget opening at the very first step and when the Tutor itself finishes a step (both happen in the turn lane's files), a tool for the Tutor to mark an Off-Topic answer (`offTopicNote` in context.ts is ready for it), Predict and Breakeven results as turn events, and plan versioning.
