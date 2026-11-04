@@ -18,10 +18,7 @@ import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
-<<<<<<< HEAD
-=======
 import { enterStepItems, pendingQuickTryNote, quickTryFollowUpNote } from "./practice";
->>>>>>> origin/tutor-T11
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
 import { splitReply } from "@/widgets/split";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
@@ -659,13 +656,9 @@ async function* runLockedTurn(
     const out: TurnEvent[] = [];
     for (const item of effects.items?.splice(0) ?? []) {
       itemSinceText = true;
-<<<<<<< HEAD
       out.push({ type: "item", item });
-=======
-      yield { type: "item", item };
       // A tool moved the Learner onto a new step: what code shows on entering it follows the divider.
-      if (item.kind === STEP_DIVIDER) for (const entered of await enterStepItems(db, map, learnerId, session.id, now())) yield { type: "item", item: entered };
->>>>>>> origin/tutor-T11
+      if (item.kind === STEP_DIVIDER) for (const entered of await enterStepItems(db, map, learnerId, session.id, now())) out.push({ type: "item", item: entered });
     }
     // update_widget saved new slider values: the open Widget moves to them.
     for (const state of effects.widgetStates?.splice(0) ?? []) out.push(state);
