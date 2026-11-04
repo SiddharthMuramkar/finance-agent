@@ -32,7 +32,7 @@ describe("AppHeader", () => {
 
   it("puts Finance Agent at the left as the heading, leading to Home", () => {
     const html = renderToStaticMarkup(<AppHeader current="progress" theme="light" />);
-    expect(html).toMatch(/<h1[^>]*><a[^>]*href="\/"[^>]*>Finance Agent<\/a><\/h1>/);
+    expect(html).toMatch(/<h1[^>]*><a[^>]*href="\/"[^>]*>(<svg.*<\/svg>)?Finance Agent<\/a><\/h1>/);
     expect(html.indexOf("Finance Agent")).toBeLessThan(html.indexOf("<nav"));
   });
 
@@ -57,7 +57,7 @@ describe("AppHeader", () => {
     for (const [page, href, label] of pages) {
       const html = renderToStaticMarkup(<AppHeader current={page} theme="light" />);
       expect(html.match(/aria-current="page"/g), page).toHaveLength(1);
-      expect(html, page).toMatch(new RegExp(`<a aria-current="page"[^>]*href="${href}"[^>]*>${label}<`));
+      expect(html, page).toMatch(new RegExp(`<a [^>]*aria-current="page"[^>]*href="${href}"[^>]*>${label}<`));
     }
   });
 
@@ -73,8 +73,28 @@ describe("AppHeader", () => {
     expect(html).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
   });
 
-  it("offers Light mode in dark mode", () => {
-    expect(renderToStaticMarkup(<AppHeader current="workspace" theme="dark" />)).toContain("Light mode");
+  it("has a Home brand link with a hover shape and the title Home", () => {
+    const html = renderToStaticMarkup(<AppHeader current="workspace" theme="light" />);
+    expect(html).toMatch(/<a title="Home"[^>]*hover:bg-\[var\(--hairline\)\][^>]*href="\/"/);
+  });
+
+  it("draws the page links as pills, the current one filled, each with a pending dot", () => {
+    const html = renderToStaticMarkup(<AppHeader current="notes" theme="light" />);
+    expect(html.match(/rounded-full/g)?.length).toBeGreaterThanOrEqual(6);
+    expect(html.match(/data-\[link-pending=true\]/g)).toHaveLength(6);
+    expect(html).toMatch(/aria-current="page"[^>]*href="\/notes"/);
+    expect(html).not.toContain("underline");
+  });
+
+  it("makes the theme toggle an icon button named Dark mode that is pressed in dark mode", () => {
+    const light = renderToStaticMarkup(<AppHeader current="workspace" theme="light" />);
+    const dark = renderToStaticMarkup(<AppHeader current="workspace" theme="dark" />);
+    expect(light).toMatch(/<button[^>]*aria-label="Dark mode"[^>]*aria-pressed="false"/);
+    expect(dark).toMatch(/<button[^>]*aria-label="Dark mode"[^>]*aria-pressed="true"/);
+  });
+
+  it("styles Sign out as a small outlined button", () => {
+    expect(renderToStaticMarkup(<AppHeader current="course" theme="light" />)).toMatch(/<button type="submit" class="[^"]*border[^"]*min-h-8[^"]*">Sign out/);
   });
 });
 

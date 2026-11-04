@@ -1048,11 +1048,19 @@ the header in the same wide box as the workspace, so the title and links never s
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
 those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
 Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Notes ·
-Settings · Dark mode · Sign out. The current page's link is marked (`aria-current`), the Study Workspace included, and no
-other link points at `/`. Sign out (`SignOutButton`) is a plain form posting to `/api/logout`, styled
-like the links; Home's signed-in top bar uses the same button. The gaps shrink to 8px below 1024px so the
-row stays on one line from 768px, with room for the Notes link (#69) and the Settings link (#129)
-before the theme toggle (measured in the system font at 14px: about 720px of the 736px there is). Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
+Settings, a thin divider, the theme toggle, Sign out. What is clickable looks clickable: "Finance Agent" has a small
+mark, the title "Home" and a hover wash; each page link is a pill (`NavLink`, which marks the current page with
+`aria-current` and fills its pill, the Study Workspace included, and shows a small dot inside while its page is
+loading); the theme toggle is an icon button named "Dark mode" that is `aria-pressed` while dark mode is on; Sign
+out (`SignOutButton`) is a plain form posting to `/api/logout`, styled as a small outlined button (Home's signed-in
+top bar uses the same component). No other link points at `/`. The Study Workspace and Course Map links are
+prefetched in full, so they open at once; the others use the default. A 2px bar across the top of the window
+(`route-bar.tsx`, mounted in `layout.tsx`) creeps along from a link press until the address changes, then finishes
+and fades. Below 1024px the pills, the text (13px) and the gaps shrink and the divider hides, so the row stays on one
+line from 768px (estimated at about 700px of the 736px there is; the pills' padding is the first thing to trim if a
+page link is added). The trade-off: more of the header is drawn, so it is wider than the old plain text links and
+the narrow-width margin is thin. Disclosures (Under the hood, Sources, folded rows) end in a chevron that turns a
+quarter turn when open (`Chevron` in `ui.tsx`), so a summary reads as something to open. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
 group that moves focus to its main button (Escape or "Not now" gives focus back), the cited sentence on a
 Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
@@ -1062,6 +1070,24 @@ and every piece follows at once without a single per-component dark rule.
 
 **Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
 a quick palette class. In return the look stays consistent and a colour change is one line.
+
+## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
+
+**What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
+mounted once in the root layout, outside every scroller. Anything that wants to say something calls `useAnnounce()`.
+Saying the same words twice in a row is heard twice: the region is emptied, then filled on the next beat. Save to notes
+no longer carries a hidden `role="status"` of its own under every reply (16 live regions in a long Session, each a
+chance to make the page taller); it calls `announce("Saved to notes")` once per save. The control moves through
+idle, "Saving…" (a spinner), "Saved ✓" for 1.6 seconds, then back to a "Save to notes" button with a quiet "Saved"
+badge, Undo and Open notes. A failed save shows a visible `role="alert"` message ("Could not save. Try again.") and a
+Retry button.
+
+**Scenario.** The Learner presses Save to notes under a reply. The button shows a spinner and "Saving…"; when the
+server answers, "Saved ✓" shows for a moment, a screen reader hears "Saved to notes" once, and the button comes back
+with a "Saved" badge beside it. Pressing it again saves nothing twice, since the server keeps one saved item per reply.
+
+**Trade-off.** The control is a little taller than the old caption (a 32px ghost button). Other status messages (the
+turn status in the left column, the Widget loaders) still have their own regions and are not on the announcer yet.
 
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 

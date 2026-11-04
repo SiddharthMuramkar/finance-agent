@@ -74,7 +74,7 @@ describe("an old Session page", () => {
     expect(html).toMatch(/<sup[^>]*><a[^>]*href="\/passages\/4\?blocks=1-2"[^>]*>1<\/a><\/sup>/);
     expect(html.match(/data-testid="sources-fold"/g)).toHaveLength(1);
     expect(html).not.toMatch(/<details[^>]*data-testid="sources-fold"[^>]*\sopen/);
-    expect(html).toMatch(/<summary[^>]*>2 sources<\/summary>/);
+    expect(html).toMatch(/<summary[^>]*>(<svg.*?<\/svg>)?2 sources<\/summary>/);
     expect(html).toMatch(/<a[^>]*href="\/passages\/4"[^>]*>Present value<\/a>/);
     expect(html).toContain("J. Author, A book (OpenStax), CC BY");
     expect(html).toContain("US Treasury");
@@ -86,7 +86,7 @@ describe("an old Session page", () => {
     const text = "Claim[1](/passages/9?blocks=1-2)" + foldText([{ n: 1, title: HIDDEN_SOURCE_TITLE, href: "/passages/9", credit: null }]);
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text }]} />);
     expect(html).toContain(HIDDEN_SOURCE_TITLE);
-    expect(html).toMatch(/<summary[^>]*>1 source<\/summary>/);
+    expect(html).toMatch(/<summary[^>]*>(<svg.*?<\/svg>)?1 source<\/summary>/);
     expect(html).not.toContain(" — ");
   });
 });

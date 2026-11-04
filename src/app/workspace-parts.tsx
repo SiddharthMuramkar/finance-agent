@@ -1,10 +1,10 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { Topic } from "@/course/map";
 import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from "@/course/navigator";
 import { HELP_CHIPS, JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
-import { SecondaryButton } from "./ui";
+import { Button, Chevron } from "./ui";
 
 // Small presentational pieces of the workspace's left column (issue #44).
 
@@ -92,18 +92,35 @@ export function TopicBar({ title, strip, marked }: { title: string; strip: StepS
  * ("Explain that more simply.", "Show me in a widget.") as the Learner's message.
  */
 export function Chips({ offer, onNext, onSay }: { offer: NextOffer | null; onNext: (named: NextName) => void; onSay: (words: string) => void }) {
-  const press = (offer: NextOffer) => (offer.kind === "just_tell_me" ? onSay(JUST_TELL_ME) : onNext(offer.kind === "complete" ? "complete" : offer.step));
+  // The chip pressed shows a spinner at once and the others wait, until the turn takes the chips away (or, if the turn
+  // could not start, they come back fresh).
+  const [pressed, setPressed] = useState<string | null>(null);
+  const press = (offer: NextOffer) => {
+    setPressed("next");
+    if (offer.kind === "just_tell_me") onSay(JUST_TELL_ME);
+    else onNext(offer.kind === "complete" ? "complete" : offer.step);
+  };
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {offer && (
-        <SecondaryButton data-testid="next-chip" onClick={() => press(offer)}>
+        <Button variant="secondary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →
-        </SecondaryButton>
+        </Button>
       )}
       {HELP_CHIPS.map((words) => (
-        <SecondaryButton key={words} data-testid="help-chip" onClick={() => onSay(words)}>
+        <Button
+          variant="secondary"
+          key={words}
+          data-testid="help-chip"
+          loading={pressed === words}
+          disabled={pressed !== null}
+          onClick={() => {
+            setPressed(words);
+            onSay(words);
+          }}
+        >
           {words.replace(/\.$/, "")}
-        </SecondaryButton>
+        </Button>
       ))}
     </div>
   );
@@ -115,9 +132,10 @@ export function FoldedRow({ label, open, children, ...rest }: { label: ReactNode
     <details open={open} className="group rounded-lg border border-[var(--border)]" {...rest}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm leading-5 [&::-webkit-details-marker]:hidden">
         <span>{label}</span>
-        <span className="text-xs leading-4 text-[var(--muted)]">
+        <span className="flex items-center gap-1.5 text-xs leading-4 text-[var(--muted)]">
           <span className="group-open:hidden">Show</span>
           <span className="hidden group-open:inline">Hide</span>
+          <Chevron />
         </span>
       </summary>
       <div className="border-t border-[var(--hairline)] p-4">{children}</div>
