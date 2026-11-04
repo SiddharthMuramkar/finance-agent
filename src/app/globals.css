@@ -159,34 +159,102 @@
   --openui-border-danger: var(--danger);
   --openui-border-danger-emphasis: var(--danger);
 }
-:root.dark {
-  color-scheme: dark;
-  --bg: #0c0a09;
-  --ink: #f5f5f4;
-  --muted: #a6a09b;
-  --border: #44403b;
-  --hairline: #292524;
-  --bubble: #292524;
-  --field: #1c1917;
-  --brand: #6699ff;
-  --brand-hover: #85adff;
-  --brand-pressed: #4f84ef;
-  --ring: #85adff;
-  --brand-ink: #0c0a09;
-  --brand-tint: #161b26;
-  --brand-line: #2b3b5e;
-  --you: #00d5be;
-  --you-line: #00d5be;
-  --you-tint: rgb(4 47 46 / 0.2);
-  --you-tag: #022f2e;
-  --you-tag-ink: #96f7e4;
-  --src: #ffb900;
-  --src-line: #ffb900;
-  --src-tint: rgb(70 25 1 / 0.2);
-  --src-tag: #461901;
-  --src-tag-ink: #fee685;
-  --data: #44403b;
-  --danger: #ff6467;
+/* Midnight (the dark theme), after Catppuccin Mocha (MIT licence). Screen only, so print falls back to Light's tokens. */
+@media screen {
+  :root.dark {
+    color-scheme: dark;
+    --bg: #1e1e2e;              /* page background */
+    --field: #252536;           /* inputs, cards, popovers (one step up) */
+    --bubble: #313244;          /* learner message bubble */
+    --hairline: #313244;        /* dividers, hover fills */
+    --border: #45475a;          /* borders */
+    --data: #45475a;            /* neutral chart data */
+    --muted: #a6adc8;           /* secondary text */
+    --ink: #cdd6f4;             /* body text */
+    --brand: #89b4fa;           /* links, primary button, active step */
+    --brand-hover: #9ac0fc;     /* primary hover */
+    --brand-pressed: #789bd8;   /* primary pressed */
+    --ring: #89b4fa;            /* focus ring */
+    --brand-ink: #1e1e2e;       /* text on brand fills */
+    --brand-tint: #2c3047;      /* active-step chip, info background */
+    --brand-line: #465579;      /* border of brand-tinted controls */
+    --you: #94e2d5;             /* learner accent (text, chart) */
+    --you-line: #94e2d5;        /* learner left rule */
+    --you-tint: #94e2d512;      /* learner card tint (alpha) */
+    --you-tag: #2f3946;         /* learner tag background */
+    --you-tag-ink: #abe8dd;     /* learner tag text */
+    --src: #fab387;             /* sourced-history accent (text, chart) */
+    --src-line: #fab387;        /* sourced-history left rule */
+    --src-tint: #fab38712;      /* sourced-history card tint (alpha) */
+    --src-tag: #3c343d;         /* "Sourced history" tag background */
+    --src-tag-ink: #fcc29f;     /* "Sourced history" tag text */
+    --danger: #f38ba8;          /* errors */
+  }
+}
+
+/* Paper and Forest only apply on screen, so the existing print block keeps printing in Light. */
+@media screen {
+  /* ── Paper: NEW. Light kind (no .dark class). After Rosé Pine Dawn (MIT licence). ── */
+  :root[data-theme="paper"] {
+    color-scheme: light;
+    --bg: #faf4ed;              /* page background */
+    --field: #fffaf3;           /* inputs, cards, popovers (one step up) */
+    --bubble: #f2e9e1;          /* learner message bubble */
+    --hairline: #f2e9e1;        /* dividers, hover fills */
+    --border: #dfdad9;          /* borders */
+    --data: #dfdad9;            /* neutral chart data */
+    --muted: #66617f;           /* secondary text */
+    --ink: #4d4870;             /* body text */
+    --brand: #286983;           /* links, primary button, active step */
+    --brand-hover: #20576e;     /* primary hover */
+    --brand-pressed: #1a495c;   /* primary pressed */
+    --ring: #286983;            /* focus ring */
+    --brand-ink: #fffaf3;       /* text on brand fills */
+    --brand-tint: #e5e6e2;      /* active-step chip, info background */
+    --brand-line: #b1c2c8;      /* border of brand-tinted controls */
+    --you: #376c76;             /* learner accent (text, chart) */
+    --you-line: #56949f;        /* learner left rule */
+    --you-tint: #56949f14;      /* learner card tint (alpha) */
+    --you-tag: #dde2df;         /* learner tag background */
+    --you-tag-ink: #2f5f68;     /* learner tag text */
+    --src: #94580f;             /* sourced-history accent (text, chart) */
+    --src-line: #ea9d34;        /* sourced-history left rule */
+    --src-tint: #ea9d3414;      /* sourced-history card tint (alpha) */
+    --src-tag: #f8e5cf;         /* "Sourced history" tag background */
+    --src-tag-ink: #7d4a12;     /* "Sourced history" tag text */
+    --danger: #a24f68;          /* errors */
+  }
+
+  /* ── Forest: NEW. Dark kind (.dark class is present too). After Everforest (MIT licence). ── */
+  :root.dark[data-theme="forest"] {
+    color-scheme: dark;
+    --bg: #2d353b;              /* page background */
+    --field: #343f44;           /* inputs, cards, popovers (one step up) */
+    --bubble: #3d484d;          /* learner message bubble */
+    --hairline: #3d484d;        /* dividers, hover fills */
+    --border: #4f585e;          /* borders */
+    --data: #4f585e;            /* neutral chart data */
+    --muted: #b3bcb2;           /* secondary text */
+    --ink: #eae2cf;             /* body text */
+    --brand: #7fbbb3;           /* links, primary button, active step */
+    --brand-hover: #93c5be;     /* primary hover */
+    --brand-pressed: #72a5a0;   /* primary pressed */
+    --ring: #7fbbb3;            /* focus ring */
+    --brand-ink: #232a2e;       /* text on brand fills */
+    --brand-tint: #38464a;      /* active-step chip, info background */
+    --brand-line: #4d6768;      /* border of brand-tinted controls */
+    --you: #a7c080;             /* learner accent (text, chart) */
+    --you-line: #a7c080;        /* learner left rule */
+    --you-tint: #a7c08012;      /* learner card tint (alpha) */
+    --you-tag: #3e4946;         /* learner tag background */
+    --you-tag-ink: #b8cd9a;     /* learner tag text */
+    --src: #dbbc7f;             /* sourced-history accent (text, chart) */
+    --src-line: #dbbc7f;        /* sourced-history left rule */
+    --src-tint: #dbbc7f12;      /* sourced-history card tint (alpha) */
+    --src-tag: #464947;         /* "Sourced history" tag background */
+    --src-tag-ink: #e2c999;     /* "Sourced history" tag text */
+    --danger: #eb8c8e;          /* errors */
+  }
 }
 /* Base rules: pointer cursor on whatever presses, no grey tap flash, no double-tap zoom delay. */
 @layer base {
@@ -469,7 +537,7 @@ body {
 @media print {
   :root,
   :root.dark {
-    color-scheme: light;
+    color-scheme: light !important;
     --bg: #ffffff;
     --ink: #000000;
     --muted: #4b4743;

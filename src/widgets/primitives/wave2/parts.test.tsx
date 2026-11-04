@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import type { CaseDataset } from "@/case-data/case-data";
 import { allById, byId, click, draw, key, redraw, setRange, settle, stubReducedMotion, type Page } from "../wave1/test-kit";
 import { actualSlices, DrawTheLineView, gapLine, horizonMs, SLICES, splitHistory, valueAt } from "./draw-the-line";
@@ -407,5 +408,17 @@ describe("DrawTheLine", () => {
     show(<DrawTheLineView dataset={dataset(history.slice(0, 1))} asOf="2005-01-01" drawn={[]} onDraw={() => {}} />);
     expect(page!.host.textContent).toContain("not enough history");
     await settle(0);
+  });
+});
+
+describe("Waterfall signs", () => {
+  it("signs a negative closing total in the bar and the summary", () => {
+    const html = renderToStaticMarkup(<WaterfallView labels={["Revenue", "Costs"]} values={[100000, -150000]} unit="inr" totalLabel="Profit" />);
+    expect(html).toContain("−₹50,000");
+    expect(html).toContain("Profit minus ₹50,000");
+  });
+  it("leaves a positive total unsigned", () => {
+    const html = renderToStaticMarkup(<WaterfallView labels={["Revenue", "Costs"]} values={[1000, -400]} unit="inr" totalLabel="Profit" />);
+    expect(html).toContain("Profit ₹600");
   });
 });
