@@ -49,10 +49,10 @@ export function SourcedTag({ children = "Sourced" }: { children?: string }) {
 export function Credit({ dataset }: { dataset: CaseDataset }) {
   return (
     <details data-testid="credit" className="group inline-block align-baseline text-xs text-[var(--muted)]">
-      {/* 24 by 24 px at least, so a finger or a pointer can hit it; the chevron turns when the panel is open. */}
+      {/* 32 by 32 px at least (the -my-1.5 keeps the text line as tall as before), so a finger or a pointer can hit it; the chevron turns when the panel is open. */}
       <summary
         aria-label="Where this figure comes from"
-        className="inline-flex min-h-6 min-w-6 cursor-pointer select-none items-center justify-center gap-0.5 rounded px-1 text-sm leading-none hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
+        className="-my-1.5 inline-flex min-h-8 min-w-8 cursor-pointer select-none items-center justify-center gap-0.5 rounded px-1 text-sm leading-none hover:text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
       >
         ⓘ
         <svg aria-hidden viewBox="0 0 12 12" className="size-3 transition-transform duration-150 group-open:rotate-90" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">

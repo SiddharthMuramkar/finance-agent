@@ -191,7 +191,7 @@ async function studyShots(browser, learner, size, theme) {
     const explore = size === "laptop" ? '[data-testid="widget-card"]' : '[data-testid="explore-card"]';
 
     await step(`${tag}: explore Widget`, async () => {
-      if (size === "laptop") await page.locator('[data-testid="explore-chip"]').click();
+      if (size === "laptop") await clickExploreChip(page);
       await page.locator(`${explore} input[type=range]`).first().waitFor({ state: "visible", timeout: 15_000 });
       await shot(page, `${tag}-1-explore-widget`);
     });
@@ -240,11 +240,27 @@ async function studyShots(browser, learner, size, theme) {
   }
 }
 
-/** The explore Widget's slider value and ticked Guided Tasks, as the laptop's panel draws them. */
-async function exploreState(page) {
+/** Clicks the explore chip once it is on screen and enabled; a chip that is already selected needs no click. */
+async function clickExploreChip(page) {
   const chip = page.locator('[data-testid="explore-chip"]');
   await chip.waitFor({ state: "visible", timeout: 15_000 });
+  await chip.scrollIntoViewIfNeeded();
+  const selected = await chip.evaluate((el) => ["aria-pressed", "aria-selected", "aria-current"].some((a) => el.getAttribute(a) === "true") || el.getAttribute("data-state") === "active");
+  if (selected) return;
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[data-testid="explore-chip"]');
+    return el && !el.disabled && el.getAttribute("aria-disabled") !== "true";
+  }, null, { timeout: 15_000 });
+  // A trial click names whatever intercepts the chip, instead of timing out without saying.
+  await chip.click({ trial: true, timeout: 5_000 }).catch((e) => {
+    throw new Error(`the explore chip cannot be clicked: ${String(e.message).split("\n").find((l) => /intercepts/.test(l)) ?? e.message}`);
+  });
   await chip.click();
+}
+
+/** The explore Widget's slider value and ticked Guided Tasks, as the laptop's panel draws them. */
+async function exploreState(page) {
+  await clickExploreChip(page);
   const slider = page.locator('[data-testid="widget-card"] input[type=range]').first();
   await slider.waitFor({ state: "visible", timeout: 15_000 });
   const ticked = await page.locator('[data-testid="widget-card"] [data-testid="guided-tasks"] li[data-state="done"]').count();

@@ -5,6 +5,7 @@ import type { CoveredParts } from "@/course/written-ahead";
 // The frozen schema alone: the browser draws widgets with this check, and needs none of the instructions' text.
 import frozenSchema from "./frozen-schema.generated.json";
 import { broadTaskWarnings, guidedTaskProblems, parsedTasks, walkNodes, type ParsedNode } from "./guided-tasks";
+import { quickCheckProblem, rankProblem } from "./part-rules";
 import { sliderStep } from "./slider-steps";
 import { splitReply } from "./split";
 import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NAMES, type WidgetToolName } from "./tool-specs";
@@ -14,22 +15,6 @@ import { REFERENCE_CASE } from "@/case-data/reference";
 
 /** How a reference dataset's reference starts: "reference/usd-inr". */
 const REFERENCE_PREFIX = `${REFERENCE_CASE}/`;
-
-// The QuickCheck and Rank rules as their parts state them (quickCheckProblem in quick-check.tsx, rankProblem in
-// rank.tsx). Restated here because those files are client modules, and the server runs this check too; the parts'
-// tests and check.test.ts hold the two to the same cases.
-function quickCheckProblem(options: readonly unknown[], answer: number): string | null {
-  if (options.length < 2 || options.length > 4) return `QuickCheck needs 2 to 4 options, not ${options.length}.`;
-  if (!Number.isInteger(answer) || answer < -1 || answer > options.length - 1) return `QuickCheck answer ${answer} is outside -1 to ${options.length - 1}.`;
-  return null;
-}
-
-function rankProblem(items: readonly unknown[], correctOrder: readonly number[], reasons: readonly unknown[]): string | null {
-  if (items.length < 2 || items.length > 8) return "Rank needs 2 to 8 items";
-  if (correctOrder.length !== items.length || [...correctOrder].sort((a, b) => a - b).some((v, i) => v !== i)) return "correctOrder must list every item index once";
-  if (reasons.length !== items.length) return "Rank needs one reason per item";
-  return null;
-}
 
 /** Opens the message code sends when a finished widget fails the check. */
 export const WIDGET_CHECK_PREFIX = "Widget check by code:";
@@ -125,6 +110,25 @@ function joinsNumberIntoText(value: unknown): boolean {
   return Object.values(value).some(joinsNumberIntoText);
 }
 
+/** Parts whose written text may hold a number the Learner reads. */
+const NUMBER_TEXT_PARTS = new Set(["TextContent", "InlineHeader", "Calculator", "TextCallout", "Callout", "Stat", "Verdict"]);
+
+/** Numbers in a text as digits with no commas or trailing zeros: "₹35.82" and "35.820" both give "35.82". Small counts and years are skipped. */
+function normalisedNumbers(text: string): string[] {
+  return (text.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((m) => String(Number(m.replace(/,/g, "")))).filter((m) => m.replace(/\D/g, "").length >= 3 && !/^(19|20)\d\d$/.test(m));
+}
+
+/** Warnings for a number shown in more than one part (a Stat's value, or a figure in a TextContent). */
+function repeatedNumbers(nodes: readonly ParsedNode[]): string[] {
+  const seen = new Map<string, Set<number>>();
+  nodes.forEach((n, index) => {
+    if (!NUMBER_TEXT_PARTS.has(n.typeName)) return;
+    const found = Object.values(n.props).flatMap((v) => (typeof v === "string" ? normalisedNumbers(v) : n.typeName === "Stat" && typeof v === "number" ? normalisedNumbers(String(v)) : []));
+    for (const number of found) seen.set(number, (seen.get(number) ?? new Set<number>()).add(index));
+  });
+  return [...seen].filter(([, places]) => places.size > 1).map(([number]) => `${number} is shown twice: show each number once, in a Stat, and say what it means in prose.`);
+}
+
 /**
  * Warnings about a widget that still draws and teaches, so they never trigger a correction round (UX audit §7.6):
  * code sends them with the next turn as "Widget notes". A Guided Task that most of a slider's range ticks; the
@@ -158,6 +162,7 @@ export function widgetWarnings(code: string): string[] {
   if (callouts > WIDGET_BUDGET.callouts) warnings.push(`${callouts} TextCallouts: use one at most.`);
   const tasks = parsedTasks(children).length;
   if (tasks > WIDGET_BUDGET.tasks) warnings.push(`${tasks} Guided Tasks: use ${WIDGET_BUDGET.tasks} at most, the last a discovery.`);
+  warnings.push(...repeatedNumbers(nodes));
   for (const n of nodes) {
     const where = n.statementId ?? n.typeName;
     if (Object.values(n.props).some(joinsNumberIntoText)) warnings.push(`${where}: a number is joined into text with +. Show it with Stat.`);
@@ -172,6 +177,9 @@ export function widgetWarnings(code: string): string[] {
   return warnings;
 }
 
+/** The kit's charts, which a slider moves. */
+const CHARTS = ["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "PieChart", "RadialChart", "SingleStackedBarChart", "ScatterChart"];
+
 /** The parts that are a Widget's discovery of their own, so its sliders need no Guided Task (grammar v2). */
 const DISCOVERY_PARTS = new Set(["Breakeven", "Predict", "DrawTheLine", "QuickCheck", "Rank"]);
 
@@ -183,13 +191,17 @@ export function archetypeOf(code: string): Archetype | null {
   const { components, tools, datasets } = widgetParts(code);
   const has = (...names: string[]) => names.some((name) => components.includes(name));
   if (has("QuickCheck")) return "Check";
+  // A quiz of dropdowns: Selects with no slider to move and nothing drawn.
+  if (has("Select") && !has("Slider", ...CHARTS)) return "Check";
   if (has("Predict", "DrawTheLine")) return "Predict";
   if (has("Rank")) return "Rank";
   if (has("StepThrough", "Steps")) return "Chain";
-  if (has("Versus", "Breakeven", "Verdict")) return "Compare";
+  // Two datasets drawn side by side are a comparison, not a history.
+  if (has("Versus", "Breakeven", "Verdict") || datasets.length > 1) return "Compare";
   if (has("Waffle", "Pictogram")) return "Convert";
   if (has("FormulaCard")) return "Formula";
   if (has("HistoryChart") || datasets.length > 0) return "History";
+  if (has("Slider") && has(...CHARTS)) return "Grow";
   if (has("MoneyStack", "PriceTag", "ShrinkingNote", "TimeTravel", "AnnuityChart", "Calculator", "Stat", "Waterfall") || tools.length > 0) return "Grow";
   return null;
 }
@@ -342,10 +354,13 @@ const AXIS_CHARTS = new Set(["LineChart", "AreaChart", "BarChart", "HorizontalBa
 /** True when a parsed argument is given: written text, or anything the browser works out. */
 const labelGiven = (value: unknown) => (typeof value === "string" ? value.trim() !== "" : value !== undefined && value !== null);
 
+/** Parts that name a Case Data reference in their own dataset argument. */
+const DATASET_PARTS = new Set(["HistoryChart", "DrawTheLine", "Predict"]);
+
 /** The Case Data references a parsed Widget draws, through Query("case_data") or a HistoryChart. */
 function caseDataDrawn(result: ParseResult): string[] {
   const queried = writtenQueries(result).flatMap(({ tool, args }) => (tool === "case_data" && isRecord(args) && typeof args.dataset === "string" ? [args.dataset] : []));
-  const charted = [...walkNodes(result.root?.props.children)].flatMap((n) => (n.typeName === "HistoryChart" && typeof n.props.dataset === "string" ? [n.props.dataset] : []));
+  const charted = [...walkNodes(result.root?.props.children)].flatMap((n) => (DATASET_PARTS.has(n.typeName) && typeof n.props.dataset === "string" ? [n.props.dataset] : []));
   return [...new Set([...queried, ...charted])].filter((ref) => CASE_DATA_REFERENCE.test(ref));
 }
 
@@ -594,10 +609,14 @@ export function widgetParts(code: string): WidgetParts {
     const title = typeof root?.props.title === "string" ? root.props.title : null;
     const components = [...walkNodes(root?.props.children)].map((n) => n.typeName).filter((name) => name !== "GuidedTask");
     const calls = writtenQueries(result);
-    const datasets = calls.flatMap(({ tool, args }) => {
+    const queried = calls.flatMap(({ tool, args }) => {
       const dataset = tool === "case_data" && isRecord(args) ? args.dataset : undefined;
       return typeof dataset === "string" && CASE_DATA_REFERENCE.test(dataset) ? [dataset] : [];
     });
+    const written = [...walkNodes(root?.props.children)].flatMap((n) =>
+      (n.typeName === "DrawTheLine" || n.typeName === "Predict") && typeof n.props.dataset === "string" && CASE_DATA_REFERENCE.test(n.props.dataset) ? [n.props.dataset] : [],
+    );
+    const datasets = [...queried, ...written];
     return { title, components, tools: [...new Set(calls.map((c) => c.tool))], datasets: [...new Set(datasets)] };
   } catch {
     return { title: null, components: [], tools: [], datasets: [] };
