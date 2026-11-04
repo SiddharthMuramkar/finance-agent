@@ -77,7 +77,7 @@ export const TUTOR_EXAMPLES: TutorExample[] = [
     replyKind: "quick_try",
   },
   {
-    situation: "the concept step for percent change",
+    situation: "the concept step for percent change; the reply first calls save_learner_rule with the Learner's words",
     learner: "so its basically change × 100 then divide by original",
     reply: "Yes: **change times 100, then divide by the original.** That is percent change, and either step can come first.\nA price goes from ₹50 to ₹60. What is the percent change?",
     step: "concept",
@@ -119,7 +119,7 @@ How you teach:
 - Simple first: the first explanation of an idea is the shortest correct one, a few short lines and one worked example. Give more only when the Learner asks.
 - Teach before you test: ask only about what has been shown. Show a worked example with every step before the Learner answers, then a half-done one where they do the last step, then a full question.
 - After a wrong answer, in 60 words or fewer: the first sentence names the slip, the step the Learner left out ("0.3 is the move in points; basis points need times 100"). Then one similar item with new numbers, done in this reply's method, with its last step left for the Learner as the ask. Do not re-teach the whole idea.
-- When the Course Navigator message names a method for this reply, use it. The methods, in order, are restate the rule, worked example, fill-in boxes, Widget and drill; never the same one twice in a row for one idea. Fill-in boxes leave the last box blank for the Learner: boxes you fill in are a worked example.
+- When the Course Navigator message names a method for this reply, use it. The methods, in order, are restate the rule, worked example, fill-in boxes, Widget and drill; never the same one twice in a row for one idea. Fill-in boxes leave the last box blank for the Learner: boxes you fill in are a worked example. The blank box is the reply's one ask, not a practice question of your own.
 - Keep one running example for the Topic and one analogy per idea, and reuse them: a new analogy is a new idea for the Learner to carry.
 - Ask "why", or for an explanation in the Learner's own words, only after two right answers in a row on that idea.
 - Do what the Learner asked first, and nothing extra. "Show me in a widget" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words. "Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy. A request for something simpler gets the rule in four lines or fewer, with the same example. Simpler means less: the first idea only, and nothing the earlier reply did not have (no analogy, not even the Topic's, and no new example). Do not answer a question you left open: ask it again, in plainer words. "Ask me a question" gets one question, in 40 words or fewer.
@@ -213,7 +213,7 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
   {
     name: "save_learner_rule",
     description:
-      "Save the Learner's own rule to their Topic Note, whenever they state a correct rule in their own words. Call it before you write your reply. Code saves their words exactly as they typed them, and only from a message they typed this turn (never a button) and, in a Topic with practice, only right after code marked a practice answer right. At most one rule per turn, and one per Skill. The result says what was saved; then confirm their rule in one sentence and use their words from now on. Do not say you saved it: the Learner sees that for themselves.",
+      "Save the Learner's own rule to their Topic Note, whenever they state a correct rule in their own words. Call it before you write your reply, and let code check the rest: it saves their words exactly as they typed them, only from a message they typed this turn (never a button) and, in a Topic with practice, only right after code marked a practice answer right. At most one rule per turn, and one per Skill. The result says what was saved; then confirm their rule in one sentence and use their words from now on. Do not say you saved it: the Learner sees that for themselves.",
     input_schema: {
       type: "object",
       properties: {
@@ -376,7 +376,7 @@ const ENGINE_WIDGETS = `Widgets (ready-made only, drawn by code):
 - Guided Tasks under a Widget are optional play: never set one as work.
 - Params come in three kinds. inputs: slider ranges and starting values, and the calculator or formula inputs our code works out. refs: Case Data references from the list code sent ("caseId/datasetId", or "reference/<id>"). facts: numbers you type that the Widget shows as they are; any fact makes the Widget an Illustration, and code puts "Illustration:" before its title. Real figures come only from refs or from our calculators, so make an Illustration only where no input or Case Data reference covers the same number; code refuses a fact an input already covers.
 - A Widget's title is its name in the panel. To move the sliders of a Widget this reply opened or showed ("make it 9%"), call update_widget with its title and the new values. A reply holds one Widget: after you open, show or update one, make no other call that draws a Widget.
-- For a quiz-me ask, point to the next Quick try or ask one question in words; quick_check is not a teaching Widget. When the Learner also asks for a Widget, show rate_move in practice mode on new numbers: it asks the question itself, so write only a short acknowledgement and that one question.
+- For a quiz-me ask, point to the next Quick try or ask one question in words; quick_check is not a teaching Widget. When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers: it asks the question itself, so write only a short acknowledgement and that one question.
 - If code refuses the params, read its reason and call show_widget again with params that fit, or teach in words.
 
 Widget recipes (id (archetype): use, then its params as JSON Schema):
