@@ -246,14 +246,14 @@ function triesIn(items: readonly StoredItem[], checkId: string) {
 }
 
 /** Stores the next Quick try for the Learner's converted Your turn, unless one is open (or every Skill is fluent). */
-async function postTry(db: Db, place: Place & { check: Check }, learnerId: number, sessionId: number, now: Date, opts: PickOptions = {}): Promise<SessionItem | null> {
+async function postTry(db: Db, place: Place & { check: Check }, learnerId: number, sessionId: number, now: Date, opts: PickOptions = {}, store = true): Promise<SessionItem | null> {
   const { shown, open } = triesIn(await loadSessionItems(db, sessionId, learnerId), place.check.id);
   if (open) return null;
   const states = await skillStates(db, learnerId, place.topic.id);
   const next = nextQuickTry(place.topic, place.check, states, shown, { ...opts, session: sessionId });
   if (!next) return null;
   const item = { kind: QUICK_TRY, data: next };
-  await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+  if (store) await saveItemAfterLatest(db, learnerId, sessionId, item, now);
   return item;
 }
 
@@ -457,6 +457,8 @@ export async function practiceFallback(db: Db, map: CourseMap, learnerId: number
   const at = convertedPlace(place);
   if (!at?.check.card || (at.step !== "concept" && !practiceStep(at.topic, at.step, at.check))) return null;
   const session = await liveSession(db, learnerId, at.topic.id);
-  const items = session && at.step === "your_turn" ? await enterStepItems(db, map, learnerId, session.id, now) : [];
-  return { text: at.check.card.writeDown, items };
+  // The Tutor Turn stores the returned items itself, so the next try is picked here but not stored.
+  const next = session && at.step === "your_turn" ? await postTry(db, at, learnerId, session.id, now, {}, false) : null;
+  void map;
+  return { text: at.check.card.writeDown, items: next ? [next] : [] };
 }
