@@ -80,7 +80,7 @@ describe("Tutor Turn", () => {
       expect(request.model).toBe("claude-opus-5-5");
       for (const banned of ["tool_choice", "temperature", "top_p", "top_k"]) expect(request).not.toHaveProperty(banned);
       expect(request.output_config).toEqual({ effort: "medium" });
-      expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
+      expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS, cache_control: { type: "ephemeral" } }]);
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
         { name: "record_insight_attempt" },
@@ -1346,7 +1346,7 @@ describe("surviving cut-offs and failures", () => {
     const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hello again"));
     expect(events.map((e) => e.type)).toEqual(["text", "done"]);
     expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
-    expect(requests.at(-1)!.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
+    expect(requests.at(-1)!.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS, cache_control: { type: "ephemeral" } }]);
     expect(JSON.stringify(requests.at(-1)!.messages)).toContain("One.");
   });
 

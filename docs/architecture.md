@@ -1348,6 +1348,31 @@ real move. The instructions now say that before the reveal no example or made-up
 the real outcome, and point the Tutor to the Topic's own Concept or Check prompt for hypothetical
 numbers (code already sends those, and they use neutral numbers).
 
+### Reference data (the reserved Case `reference`, `src/case-data/reference.ts`)
+
+**What it does.** Some real numbers belong to no one Case: the gold price, the rupee-dollar rate,
+India's inflation, the RBI repo rate, Sensex and Nifty closes, typical FD, PPF and savings rates, and
+US Treasury yields. They are stored as ordinary Case Data under one reserved Case id, `reference`, and
+read the same way (`reference/usd-inr` in `Query("case_data", …)` or `HistoryChart`; the route is
+`/api/case-data/reference`). No Topic may use that id as a Case (the Course Map check rejects it), and a
+written-ahead Widget may read `reference/<id>` only for ids in `REFERENCE_DATASET_IDS`. The data files
+stay outside git and are imported from the laptop like any Case Data. The step context lists them in a
+short block (id, label, unit, latest date) so the Tutor knows they exist.
+
+**Scenario.** A Learner asks what a gold bar was worth in rupees. The Tutor draws a chart from
+`reference/gold-inr-10g` instead of saying it has no real prices, and the Sourced strip credits the
+World Bank and the Federal Reserve. If the Learner is in the 1992 Topic before its reveal, the same
+request returns nothing dated after that Case's as-of date, so a later Sensex close cannot give the
+outcome away.
+
+**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while the current
+Topic has a Case whose reveal is not yet shown, code clips every reference series to the earliest such
+as-of date (and leaves out a series with nothing earlier). The page's Case Data cache still keys on
+reveals only, so a series fetched before a reveal stays clipped on that page until it is reloaded: safe,
+but slightly stale. Some series are derived or approximate (gold in rupees is the international price
+at the monthly exchange rate, without duty; typical rates are the middle of an RBI range), and each
+dataset's check note says so.
+
 ## Surviving cut-offs and failures (`src/tutor/turn.ts`, `turn-status.ts`, `tools.ts`, `failures.ts`, `src/app/turn-stream.ts`)
 
 **What it does.** Makes a turn safe to interrupt and safe to repeat.
@@ -1412,6 +1437,65 @@ repeats no write (a finished step and a verdict), the replayed text, a resume wh
 saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credits error with Retry,
 a database write that fails (a test trigger refuses the write), a changed fingerprint (refrozen in the same Session), a misconception
 with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
+
+## Stop, pings and progress (`src/app/api/turn/route.ts`, `turn.ts`, `turn-status.ts`, `tools.ts`, `turn-body.ts`, UX audit 4.2e, 5.11, 10.1)
+
+**What it does.** Makes every turn stoppable and never silent. The browser half (Send becoming Stop, the labelled
+writing indicator, the "Stopped" note) is built on these events separately.
+- **Stop.** A request with `{ stop: true }` runs no turn. The route sets `stop_reason = 'stop_requested'` on the
+  Learner's running `turns` row and answers `{ stopping: true }`, or `{ stopping: false }` when nothing was running;
+  never a 409. The running turn reads its own row every 500 ms (the Stop may reach another function instance, so a
+  flag in memory would not work; the column already existed, so no migration). When it sees the flag it aborts the
+  Anthropic stream through the Tool Runner's signal. A tool already running finishes its transaction, and no new API
+  call starts. Then the turn saves: every stored tool call gets its result, the step's streamed text is stored as the
+  Tutor's message less any Widget it had not finished (an unclosed openui-lang fence is cut off), no Widget check or
+  correction runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
+  is stored after the reply. It sends `stopped`, then the normal `done`, so the browser never resumes the turn. A
+  Next the Learner already took stays taken. A resume clears an old flag.
+- **Pings.** While the stream is open the route sends `{ type: "ping" }` every 5 seconds from its own timer: the
+  turn itself cannot, because it is blocked while a tool runs or the model thinks.
+- **Progress.** The turn tells the route what it is doing through `notify`, which goes straight to the stream:
+  "Looking up Case Data…", "Thinking…" at each model call, each tool's plain name while it runs ("Searching the
+  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), "Checking the Widget…" and "Fixing the
+  Widget…". Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
+  rather than waiting for the first text.
+- **`widget_state`** is declared as an event type only; nothing sends it yet.
+- **Prompt caching.** The request keeps its automatic cache breakpoint (the growing conversation) and adds a second
+  one on the frozen instructions, so the tools and instructions, the same for every Session of a deploy, are read
+  from the cache by a new Session too. Measured on 4 Nov 2026 from the `usage` table: inside a Session every turn
+  read the whole earlier conversation from the cache (for example 41,614 read and 1,859 written), but each new
+  Session's first turn read nothing and wrote about 23,000 tokens, even 30 seconds after another Session started,
+  and so did the first turn after more than 5 minutes idle.
+- **Formula markers.** A `{{formula:…}}` marker in a Tutor reply that cannot be drawn is logged as a warning on the
+  server, since the screen shows nothing for it.
+
+**Scenario.** The Learner asks for a chart, the Tutor starts a long reply and a Widget, and the Learner presses Stop.
+Within about half a second the stream ends; the sentences before the Widget are kept, the half-written Widget is not,
+and a reload shows them with "Stopped" under them. Their next message carries on normally.
+
+**Trade-off.** Polling costs one small query every 500 ms per running turn, and a Stop takes up to half a second plus
+the query to land. A tool that is already writing is never cut off, so a Stop during a slow tool waits for it. Words
+the browser showed from a step that never finished are what is saved, which may end mid-sentence. The second cache
+breakpoint costs a cache write of the static prefix when it is not already cached, which the first turn paid anyway.
+
+**How it is tested.** `src/tutor/turn-stop.test.ts` with the scripted client (which honours the signal): a Stop
+mid-stream ends within the poll window, keeps the text without the open fence, stores the STOPPED item, sends
+`stopped` then `done`, saves finished with stop reason `stopped`, and runs no correction; a Stop while a tool runs
+answers every stored tool call and the next turn runs; a Stop with nothing running answers false; progress labels
+through `notify`. `src/app/api/turn/route.test.ts`: `{ stopping: false }`, the stream opening on progress, a ping
+under fake timers, and a Stop through the route.
+
+### Replies of about 120 words, and the open question asked once (`src/tutor/instructions.ts`, `src/behaviour/grading.ts`, UX audit 5.12, 9.3, 9.10)
+
+**What it does.** The Tutor's instructions ask for at most about 120 words of prose per reply (`REPLY_WORD_LIMIT`;
+Widgets do not count), with longer answers given a part at a time or put into Steps or an Accordion; ask an open
+question once, and not again at the end of every reply; and use the Learner Profile for everyday examples in Widgets
+as well as in words. The behaviour report lists every reply over the limit (`longReplies`), counted by code at no cost.
+
+**Scenario.** The Learner asks about SIPs while the break-even question is open. The Tutor answers in a short
+paragraph and stops, rather than ending with "so, what rate did you find?" again.
+
+**Trade-off.** The limit is a request to the model, not a cut: a reply may still run long, and the report shows it.
 
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
@@ -3325,6 +3409,30 @@ removed Learner is signed out at once, everywhere, and the login page can never 
 and the Study Workspace. Passcodes live in an environment value, so adding a person means editing it
 and redeploying, and a passcode can't contain a comma. Dropping the defaults means any forgotten
 Learner id is an error the Learner sees, rather than a silent leak into the owner's data.
+
+## Widget parts, wave 1 (`src/widgets/primitives/wave1/`, `calculateParts` in `src/finance/calculators.ts`, REPORT.md 7.3)
+
+**What it does.** Nine new Widget parts, each small, keyboard-operable and drawn by code: `Stat` (one formatted number),
+`Verdict` (the sentence a comparison ends in), `QuickCheck` (tap-to-answer practice), `Predict` (lock in a guess, then
+reveal), `Versus` (two bars on one scale), `Breakeven` (hunt for the flip point), `MoneyStack` (count the notes),
+`Waffle` (percent, points and basis points as squares) and `Pictogram` (the thing itself, such as gold bars). `Pictogram`
+and `MoneyStack` are two uses of one `IconGrid`, with 16 small objects on a 24 by 24 grid. They are exported together as
+`WAVE1_PARTS`; the Widget library does not register them yet, a later change does. Numbers come only from props or from
+calculators: `MoneyStack` asks `calculateParts`, which splits a total into its parts (a SIP into money put in and gain, a loan
+into principal and interest) by calling the same `calculate` as the Calculator widget. Teal marks what the Learner set, amber
+what is sourced, neutral what code worked out.
+
+**Scenario.** On the Sensex story the Learner drags `Predict` to 12% and presses "Lock in my guess". The real 33.5% a year
+(worked out by the `cagr` calculator) slides along the same track, and the sentence says it was 21.5 percentage points higher.
+The guess lives in a `$variable`, so a saved note still shows it. On the lottery case a `Breakeven` shows only Far, Warmer, Close
+as the Learner moves the rate slider; at 3.38% it says "Found it", draws a notch and then the amber tick for the 30-year
+Treasury yield that week, so the Learner sees the lottery priced its cash option at about the safe bond rate.
+
+**Trade-off.** Every part is a plain React view that takes plain props, with a thin wrapper that reads the `$variable`, so
+the views are tested without the Widget library. Bars, notes and icons keep their scale while a slider moves (the scale only
+grows), which costs a little precision in the first view but means a change is always seen as a change in number, not in axis.
+Charts here avoid the navy brand colour, so a `Versus` winner is the darker grey rather than blue. A guess stays in the
+`$variable`, but "locked" is kept only while the page is open, so a reload reopens the slider with the saved guess.
 
 ## Interaction foundation (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/nav-link.tsx`, `src/app/route-skeleton.tsx`, `loading.tsx` per route, `src/widgets/genui-theme.tsx`, UX audit lane "foundation")
 

@@ -3,6 +3,7 @@ import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
+import { REFERENCE_CASE } from "@/case-data/reference";
 import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
@@ -40,7 +41,45 @@ type Outcome = {
  * Shared with the Tutor Turn: whether a progress write failed, so it can tell the Learner, and the
  * Session items tool calls stored, which it streams to the browser as they are stored.
  */
-export type ToolEffects = { saveFailed: boolean; items?: SessionItem[] };
+export type ToolEffects = {
+  saveFailed: boolean;
+  items?: SessionItem[];
+  /**
+   * Tells the browser, at once, what the turn is doing now: the Tutor Turn's generator is blocked while tools run, so
+   * a tool cannot yield an event. The route wires it to its stream; left out (tests, scripts), nothing is sent.
+   */
+  notify?: (event: ProgressEvent) => void;
+};
+
+/** A plain-word label for what the turn is doing now ("Searching the Library…"), shown by the writing indicator. */
+export type ProgressEvent = { type: "progress"; label: string };
+
+/** What the writing indicator says while each tool runs. */
+export const TOOL_LABELS: Record<string, string> = {
+  search_library: "Searching the Library…",
+  calculate: "Working out the numbers…",
+  record_misconception: "Making a note…",
+  record_check_verdict: "Recording the Check…",
+  record_insight_attempt: "Recording your answer…",
+  open_widget: "Opening a Widget…",
+  finish_teaching_step: "Moving to the next step…",
+};
+
+/** Each tool's code, telling the browser what runs as it starts. */
+function withProgress(code: Record<string, ToolCode>, effects: ToolEffects): Record<string, ToolCode> {
+  return Object.fromEntries(
+    Object.entries(code).map(([name, impl]) => [
+      name,
+      {
+        ...impl,
+        run: (input: never, context?: never) => {
+          effects.notify?.({ type: "progress", label: TOOL_LABELS[name] ?? "Working…" });
+          return impl.run(input, context);
+        },
+      } as ToolCode,
+    ]),
+  );
+}
 
 /** The tool result when a write failed: the Tutor is told plainly that nothing was saved. */
 export const NOTHING_RECORDED =
@@ -80,11 +119,11 @@ export async function navigatorContext(db: Db, map: CourseMap, place: Place | nu
   );
 }
 
-/** The Case Data of the place's Cases, under the as-of rule for this Learner's progress. */
+/** The Case Data of the place's Cases, then the reference datasets, under the as-of rule for this Learner's progress. */
 export async function caseDataFor(db: Db, map: CourseMap, place: Place | null, learnerId: number) {
   if (!place) return [];
   const progress = await loadProgress(db, learnerId);
-  const all = await Promise.all(place.topic.cases.map((c) => loadCaseData(db, map, progress, c.id)));
+  const all = await Promise.all([...place.topic.cases.map((c) => c.id), REFERENCE_CASE].map((id) => loadCaseData(db, map, progress, id)));
   return all.filter((d) => d !== undefined);
 }
 
@@ -181,7 +220,7 @@ export function toolCode(
   const openInput = z.object({ id: z.string().min(1) });
   const calculateInput = z.object({ calculator: z.string(), inputs: z.unknown(), currency: z.enum(["usd", "inr"]).optional() });
 
-  return {
+  return withProgress({
     search_library: {
       parse: (input) => searchInput.parse(input),
       run: async ({ query, source }) => searchResultBlocks(await searchLibrary({ db, map, embedQuery, learnerId }, query, { source })),
@@ -326,7 +365,7 @@ export function toolCode(
           return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(item && { items: [item] }) };
         }),
     },
-  };
+  }, effects);
 }
 
 /**

@@ -1,0 +1,8 @@
+root = Widget("Three quick checks on present value", [q1, q2, q3, score])
+$q1 = -1
+$q2 = -1
+$q3 = -1
+q1 = QuickCheck("Which is worth more today?", ["₹1,000 in 5 years", "₹1,000 in 10 years", "They're worth the same"], 0, "The sooner money arrives, the fewer years it is discounted.", $q1)
+q2 = QuickCheck("The discount rate goes up. A payment due in 10 years is now worth…", ["More today", "Less today", "The same"], 1, "When money could earn more now, waiting costs more, so future money is worth less today.", $q2)
+q3 = QuickCheck("At a 0% rate, what is ₹1,000 in 10 years worth today?", ["Less than ₹1,000", "Exactly ₹1,000", "More than ₹1,000"], 1, "With nothing to earn by waiting, timing doesn't change the value.", $q3)
+score = Stat("Your score", ($q1 == 0 ? 1 : 0) + ($q2 == 1 ? 1 : 0) + ($q3 == 1 ? 1 : 0), "of 3")
