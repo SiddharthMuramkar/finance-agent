@@ -17,7 +17,7 @@ export function SettingsView({ profile, developerDetails }: { profile: ProfileVa
         <h2 id="about-you-heading" className={heading}>
           About you
         </h2>
-        <p className="mb-2 text-sm leading-5">Share a little about your life so the Tutor can pick everyday examples that fit you. Every answer is optional.</p>
+        <p className="mb-2 text-sm leading-5">Share a little about your life so the Tutor can show how an idea applies to you when you ask. Every answer is optional.</p>
         <p className="mb-4 text-xs leading-4 text-[var(--muted)]">{PROFILE_PRIVACY}</p>
         <ProfileForm mode="page" initial={profile} />
       </section>

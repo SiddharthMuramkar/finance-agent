@@ -73,6 +73,7 @@ describe("recipe set A", () => {
           expect(widgetProblems(code)).toEqual([]);
           expect(widgetRuleProblems(code)).toEqual([]);
           expect(widgetWarnings(code)).toEqual([]);
+          expect(widgetWarnings(code).filter((w) => /is shown twice/.test(w)), "no number is shown twice").toHaveLength(0);
           expect(widgetParts(code).title).toBe(title);
           expect(archetypeOf(code)).not.toBeNull();
         });
