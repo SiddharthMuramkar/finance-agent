@@ -63,7 +63,7 @@ export function skillIdsOf(topic: Topic): string[] {
 }
 
 /** Writes the Tutor's model, effort and widget engine into the throwaway database, before any Session is made. */
-export async function useSettings(db: Db, s: TutorSettings): Promise<void> {
+export async function saveTutorSettings(db: Db, s: TutorSettings): Promise<void> {
   for (const [key, value] of [["model", s.model], ["effort", s.effort], ["widget_engine", s.widgetEngine]] as const) {
     await db.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } });
   }
@@ -101,7 +101,7 @@ async function drain(events: AsyncIterable<TurnEvent>): Promise<TurnEvent[]> {
 /** Sets the case's state up for a fresh tools Learner and returns what the checks and the grader need. Call `pendingReason` first. */
 export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; settings?: TutorSettings } = {}): Promise<Prepared> {
   const map = opts.map ?? loadCourseMap();
-  if (opts.settings) await useSettings(db, opts.settings);
+  if (opts.settings) await saveTutorSettings(db, opts.settings);
   const topic = map.topic(c.topic);
   if (!topic) throw new Error(`${c.id}: no Topic "${c.topic}".`);
   const { id: learnerId } = await freshToolsLearner(db);
