@@ -935,8 +935,8 @@ years. Had it asked for a slider from 40 to 30 years, it would have got "min mus
 **Trade-off.** Code draws a designed, tested Widget in milliseconds, but only the ideas a recipe covers: with the
 engine on there is no freeform Widget until compose_widget arrives, so the rest is taught in words. The instructions
 are about 16.8K characters instead of 44.3K (tools 10.9K instead of 10.1K): roughly 7K tokens instead of 13.6K before
-any history, estimated at four characters a token. A shown Widget is not in the reply text, so Save to notes on the
-reply leaves it out for now, and "show_widget before prose" is asked for, not enforced.
+any history, estimated at four characters a token. "show_widget before prose" is asked for, not enforced. Save to notes
+keeps a shown Widget (see "Save to notes keeps a shown Widget" below).
 
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
@@ -1178,6 +1178,20 @@ with a "Saved" badge beside it. Pressing it again saves nothing twice, since the
 
 **Trade-off.** The control is a little taller than the old caption (a 32px ghost button). Other status messages (the
 turn status in the left column, the Widget loaders) still have their own regions and are not on the announcer yet.
+Undo is the foundation ghost Button, and Send's title says "Type a message to send" while the box is empty.
+
+### Save to notes keeps a shown Widget (`withShownWidgets` in `src/learner/saved.ts`)
+
+**What it does.** A Widget the Tutor showed with show_widget is a `widget_shown` Session item, not part of the reply
+text. When a reply is saved or read back for Notes, the shown Widgets of that turn (items stored after the turn's first
+message and before the next turn's) are added after the text as ordinary Widget fences, numbered after the reply's own
+fences. Nothing new is stored: the note is still a pointer, and no migration is needed.
+
+**Scenario.** The Tutor answers "Here it is." and shows a Loan cost Widget. The Learner presses Save to notes under the
+reply. On Notes the reply text appears and the Loan cost Widget is drawn under it, with its sliders, as a fenced Widget is.
+
+**Trade-off.** The shown Widget is rebuilt from the Session on every read, so it follows the Session items; a Session
+item that is later removed also leaves the note. Widgets are drawn at the end of the reply, not where they stood in it.
 
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
