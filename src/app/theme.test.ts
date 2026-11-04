@@ -104,7 +104,8 @@ describe("THEME_INIT_SCRIPT, the head script's copy of the logic", () => {
 describe("THEME_SWATCH", () => {
   const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
   const block = (selector: string) => {
-    const at = css.indexOf(`${selector} {`);
+    // The theme's own block starts with its color-scheme line; other rules share these selectors.
+    const at = css.indexOf(`${selector} {\n${selector === ":root" ? "  " : "    "}color-scheme`);
     if (at < 0) throw new Error(`no ${selector} block in globals.css`);
     return css.slice(at, css.indexOf("}", at));
   };
