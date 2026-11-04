@@ -25,4 +25,10 @@ export const NEXT_STEP = "next_step";
 /** The kind of a small "Stopped" note, stored after a reply the Learner stopped, so a reload shows where it ended. */
 export const STOPPED = "stopped";
 
+/** The kind of an Off-Topic answer block: a quiet marker stored after a Tutor answer that left the Topic, with a way back. */
+export const OFF_TOPIC = "off_topic";
+
+/** The block's data: the Topic to go back to, and the number of the step the Learner was at (its divider's anchor), if known. */
+export type OffTopicData = { topicId: string; title: string; step?: number };
+
 export { WIDGET_SHOWN } from "@/widgets/shown-widget";

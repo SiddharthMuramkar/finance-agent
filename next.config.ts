@@ -1,6 +1,25 @@
 import type { NextConfig } from "next";
 
+// OpenUI ships as one file, and a bundler cannot tell which of its parts a page uses. Three changes trim it (the
+// numbers are in docs/architecture.md): a loader that marks its top-level calls as pure and drops its chat shell;
+// stand-ins for the code highlighter, date picker and table engine that only dropped parts call; and, in
+// globals.css, only the stylesheets of the parts the Widget library keeps. See src/widgets/openui-stubs/README.md.
+// The aliases are global, and nothing else in src/ imports those packages.
+const STUBS = "./src/widgets/openui-stubs";
+
 const nextConfig: NextConfig = {
+  turbopack: {
+    rules: {
+      "*.mjs": { condition: { path: /@openuidev\/react-ui\/dist\/index\.mjs$/ }, loaders: [`${STUBS}/pure-loader.cjs`], as: "*.js" },
+    },
+    resolveAlias: {
+      "react-syntax-highlighter": `${STUBS}/react-syntax-highlighter.tsx`,
+      "react-syntax-highlighter/dist/cjs/styles/prism/index.js": `${STUBS}/react-syntax-highlighter-styles.ts`,
+      "react-day-picker": `${STUBS}/react-day-picker.tsx`,
+      "date-fns": `${STUBS}/date-fns.ts`,
+      "@tanstack/react-table": `${STUBS}/tanstack-react-table.ts`,
+    },
+  },
   // The Course Map is read from course/topics and course/outline.yaml at runtime, so ship those files with every route.
   outputFileTracingIncludes: { "/*": ["./course/topics/**/*", "./course/outline.yaml"] },
   // "/" (Home) is public, so no other site may frame any page (clickjacking), browsers must not guess content types,

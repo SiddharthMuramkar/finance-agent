@@ -68,7 +68,7 @@ describe("show_widget and the widget engine", () => {
     const item = events.find((e) => e.type === "item") as Extract<TurnEvent, { type: "item" }>;
     expect(item.item.kind).toBe(WIDGET_SHOWN);
     expect(item.item.data).toMatchObject({ id: "toolu_show", recipe: "grow_money", title: "₹1,000 a month in a SIP", source: "recipe" });
-    expect(String(item.item.data.code)).toContain('Calculator("sip", {monthly: 1000, ratePercent: 10, years: $years}, "inr")');
+    expect(String(item.item.data.code)).toContain('MoneyStack("sip", {monthly: 1000, ratePercent: 10, years: $years}, "inr")');
     const [result] = toolResults(requests[1]);
     expect(result.is_error).toBeFalsy();
     expect(String(result.content)).toMatch(/Shown by code: "₹1,000 a month in a SIP" is in the Widget panel/);

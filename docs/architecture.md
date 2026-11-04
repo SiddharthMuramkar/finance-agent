@@ -752,6 +752,27 @@ schema, but its own Tabs (`drawingLibrary` in `src/app/widget-view.tsx`), becaus
 whichever tab's content last grew, so a chart-and-table Widget opened on its table as soon as the
 Query's rows arrived (browser check, 3 Nov 2026), and drew no tab at all on the server.
 
+**Smaller pages: the OpenUI trim (`next.config.ts`, `postcss.config.mjs`, `src/widgets/openui-stubs/`, the
+`@import` lines in `globals.css`, UX audit 10.3).**
+*What it does.* OpenUI ships as one 960 KB file that holds its chat shell, its agent screen and every part, and a
+bundler cannot leave any of it out, because the top-level calls that build each part look like they could have side
+effects. Three changes make the browser download only what a Widget can draw. (1) A small build-time loader
+(`pure-loader.cjs`) marks those calls as pure and removes the chat shell's attachments, so the bundler drops the chat
+shell. (2) The code highlighter (780 KB with its grammars), the date picker and the table engine are replaced by
+empty stand-ins in `openui-stubs/`, because only parts the Widget library dropped (CodeBlock, DatePicker,
+EditableTable) call them. (3) `globals.css` imports the stylesheets of the kept parts one by one instead of the
+whole 363 KB kit, and `postcss.config.mjs` removes the kit's own dark colours (nothing here uses them: GenuiTheme and
+the `:root` block in `globals.css` set every colour) and the rules for charts the library does not draw.
+*Scenario.* A Learner opens the Study Workspace on a phone. The page used to fetch a 2.2 MB script and a 434 KB
+stylesheet before the Widget could draw; now the largest script is 1.18 MB and the stylesheet 141 KB, and the
+Widget looks exactly the same. `openui-css.test.tsx` draws one of every kept part and fails if a class it draws has
+lost its stylesheet, so adding a part to the library cannot silently leave it unstyled.
+*Trade-off.* We keep OpenUI's library object and remove around it, because the kit's parts and their schemas are
+only built together, and the package's per-file build is broken in 0.18.1 (a missing icon file). So the largest
+script is still over 1 MB and the stylesheet over 120 KB (our own CSS is 66 KB of it). The loader and stand-ins match
+this package version's text: after an OpenUI upgrade, run `npm run build` and read the sizes, and `openui-trim.test.ts`
+fails if the loader's patterns stop matching.
+
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
 Formula Card input or Guided Task bound to no slider (looked for anywhere in the Widget, not only in
@@ -932,11 +953,46 @@ compiles a Widget with one Years slider, the SIP Calculator and a Guided Task at
 the panel opens it at once; the Tutor's result lists the slider and task, and it writes two sentences about moving the
 years. Had it asked for a slider from 40 to 30 years, it would have got "min must be below max" and called again.
 
+**Recipe set B (`recipes/set-b.ts`, `recipes/b/`).** Five recipes on the new parts, plus two upgraded seeds.
+`price_over_time` (a PriceTag or ShrinkingNote with years or the yearly rise on the slider), `predict_number` (a
+Predict whose real figure is the first or last point of a Case Data series, so it waits while the data is withheld),
+`chain` (a StepThrough; digits and formulas in the words are refused unless facts.numbers makes it an Illustration),
+`rank` (a Rank: the Tutor lists the items from the low end to the high end with a reason each, and code scrambles them
+and writes the answer key), and `fx_convert` (a Pictogram of what rupees buy as the rupees-per-dollar slider moves,
+with the real rate from `reference/usd-inr` as outlines). `history_case` now takes a log axis or a DrawTheLine, and
+`formula` now says plainly which Formula Card symbol is missing, repeated or unknown. Scenario: the Tutor asks for
+`rank` with four ways to hold money; the Learner gets them mixed up and drags them into order, and code checks it. The
+trade-off is that the Tutor chooses among fixed shapes: a Widget that needs two controls does not fit these recipes.
+
 **Trade-off.** Code draws a designed, tested Widget in milliseconds, but only the ideas a recipe covers: with the
 engine on there is no freeform Widget until compose_widget arrives, so the rest is taught in words. The instructions
 are about 16.8K characters instead of 44.3K (tools 10.9K instead of 10.1K): roughly 7K tokens instead of 13.6K before
 any history, estimated at four characters a token. "show_widget before prose" is asked for, not enforced. Save to notes
 keeps a shown Widget (see "Save to notes keeps a shown Widget" below).
+
+### Recipe set A: seven recipes on the new parts (`src/widgets/recipes/set-a.ts`, `recipes/a/`; UX audit ★.5, ★.7)
+
+**What it does.** Seven recipes, each one control, at most three numbers, one picture and almost no words: `buying_power`
+(a Pictogram of gold bars, vada pavs or chai for an amount on a slider; the price is a sourced series such as
+`reference/gold-inr-10g`, newest point against the oldest, or a made-up price in `facts`, which makes it an Illustration),
+`grow_money` (the savings calculators drawn as a MoneyStack that splits what you put in from what it earned),
+`loan_cost` (the EMI as a Stat above a MoneyStack of loan against interest), `compare_two` (a Versus of two calculators'
+first results, one shared input on a slider), `breakeven_hunt` (a Breakeven meter: the Learner slides until the curve of one
+calculator meets the target another calculator works out), `percent_points` (a 100-square Waffle for a rate, the old rate
+outlined) and `quick_check` (one to three QuickChecks and a score). `grow_money` and `loan_cost` replace the seeds of the
+same id. Every params object is strict, so an extra number is refused rather than dropped; only `facts` may hold a number
+the code did not work out. Each recipe's schema runs the calculators at the slider's start, min and max, so a Widget
+never shows a calculator error; `breakeven_hunt` also refuses a range the curve never crosses the target in.
+
+**Scenario.** A Learner asks "should I take a 10 or a 20 year loan?". The Tutor calls `compare_two` with the `emi`
+calculator on both sides (10 years, 20 years), the rate on the slider and `better: "lower"`. The Widget is a slider
+and one Versus bar pair, with a Guided Task to move the rate; it passes the Widget check with no budget warning. Had
+the Tutor put a rupee price of its own in `inputs`, the recipe would have refused it and asked for `facts`.
+
+**Trade-off.** Narrow on purpose: a Widget outside these seven shapes needs the freeform route. Sides of `compare_two`
+and the target of `breakeven_hunt` use a calculator's first result only, so a calculator whose headline is not the
+number you want cannot be compared yet. A sourced `buying_power` price assumes the series and the amount share a
+currency, which the recipe cannot check.
 
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
@@ -973,6 +1029,14 @@ numbers on `$variable` names, short task texts, at most 20 of each), not the Wid
 Tutor Widget is in a reply the route would have to find; what is saved is only ever read back into that Widget.
 A static page render cannot show saved values (OpenUI fills in state after the first browser render), so the
 workspace test draws in happy-dom, a browser-like page.
+
+### Widgets that update in place, the 12 second guard and the timing events (`turn-stream.ts`, `widget-states.tsx`, `widget-panel.tsx`, `analytics.ts`)
+
+**What it does.** Three browser behaviours for Widgets. First, when the turn stream carries a `widget_state` event (the Tutor changed a Widget's sliders), the browser saves those values under the Widget's key like a slider drag would (replacing any save still waiting), leaves ticked Guided Tasks alone, and bumps a per-key revision; the Widget is keyed by that revision, so its sliders remount at the new values. Second, a chip or card that has said "Drawing…" for 12 seconds turns into a quiet "The Widget did not arrive." with a Retry button instead of a spinner that never ends; Retry asks the page to draw it again if the page offers that, and always waits another 12 seconds. Third, `analytics.ts` wraps Vercel's `track` and sends five events: `turn_first_text` (ms to the first words), `widget_first_pixel` and `widget_interactive` (lane, recipe, ms from when the Widget began drawing), `widget_timeout` and `widget_fallback`. The lane is the Widget's source ("recipe", "compose", "fallback") or "fence" for one written in the reply.
+
+**Scenario.** The Learner has the rate slider at 3%. They say "show me 8%". The Tutor updates the Widget, the server sends `widget_state {rate: 8}`, and the slider jumps to 8 while the task they already ticked stays ticked. Another time a Widget's fence opens and the reply stalls: after 12 seconds the chip says it did not arrive and offers Retry.
+
+**Trade-off.** Remounting the Widget on a push is simple and always shows the right values, but a half-typed number in that Widget is lost. The timing events never throw and are off under tests, but Vercel only records custom events on the Pro plan or above, and Pro keeps two properties per event (Plus and Enterprise keep eight), so on Pro the third property of the Widget events is dropped.
 
 ### What the Tutor sees of the Widgets, and Tell the Tutor what I found (`src/widgets/widget-reading.ts`, `src/tutor/widget-context.ts`, `turn.ts`, `/api/turn`, `turn-stream.ts`, `WidgetWithSave` in `widget-panel.tsx`, spec #119, ticket #148)
 
@@ -2141,19 +2205,23 @@ Continue. `explore.test.ts`: Finish this reply is never an Insight attempt. In t
 `learner-moves.test.ts`: the test tools' moves are the opener, Finish this reply, Next (re-pressed on the
 step a refusal names) or a message, and never Continue.
 
-## Help chips, and which messages count as Insight attempts (`src/tutor/chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-status.ts`, `record_insight_attempt` in `tools.ts`, spec #119, ticket #135)
+## Help chips, and which messages count as Insight attempts (`src/tutor/chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-status.ts`, `record_insight_attempt` in `tools.ts`, spec #119, ticket #135; Go deeper from spec #229, ticket #233)
 
 **What it does.**
-- **Two help chips** sit beside Next under the latest Tutor reply or card: **Explain that more simply**
-  and **Show me in a widget**. They follow the Next chip's rules for where they stand (never under an
+- **Two help chips** sit beside Next under the latest Tutor reply or card: **Go deeper** and **Show me in
+  a widget**. Go deeper replaced "Explain that more simply" (spec #229), because the Tutor's first
+  explanation is now the simple one, so the help a Learner asks for is one more layer, not a simpler one. They follow the Next chip's rules for where they stand (never under an
   older reply or the Learner's own message, not during a turn, a refresh, with Retry on offer, or on a
   passed Topic), with one difference: while a quiz or conversation Check is open Next is hidden but the
   two help chips stay, so a Learner who is stuck can always ask for help in another form.
-- **Pressing one** posts its words ("Explain that more simply.", "Show me in a widget.") as the
+- **Pressing one** posts its words ("Go deeper.", "Show me in a widget.") as the
   Learner's own message, drawn as their bubble, and the Tutor answers it as an ordinary turn. The words
   of every chip, Just tell me included, live in one small module (`chips.ts`) that both the page and the
   Tutor Turn read. A turn whose input is exactly a chip's words has the kind **chip** (`turnKind`), read
   off the saved input like the opener's and Next's prefixes, so Retry re-runs it as a chip.
+- **Old chip words.** No chip sends "Explain that more simply." any more, but old Sessions hold it. It stays in
+  `OLD_CHIP_MESSAGES`, part of the chip words, so those turns still read as chip turns: Retry re-runs them as
+  chips and they never count as an Insight attempt.
 - **Which messages can count as an Insight attempt.** Only words the Learner typed. The Insight tool
   refuses, with no row stored: an old "Continue." (from before Finish this reply), any note code wrote
   (every prefix in `CODE_WRITTEN_PREFIXES`: the opener's, Next's, Finish this reply's and the quiz
@@ -2162,14 +2230,17 @@ step a refusal names) or a message, and never Continue.
   code records `asked_to_be_told`, so the Insight is told at once and it is never a not-yet. The order
   of ADR 0001 (hint one, hint two, then the Insight) is unchanged, because only typed not-yets move it.
 
-**Scenario.** At the Explore of Present value the Learner reads the question and presses "Explain that
-more simply". Their bubble reads "Explain that more simply." and the Tutor rephrases the question. If
-the Tutor then tried to record that as a not-yet, code refuses it and no hint is released, so the
-Learner's first typed guess still gets hint 1. Later, mid-quiz, the chips "Explain that more simply"
-and "Show me in a widget" still sit under the last reply, though Next does not.
+**Scenario.** At the Explore of Present value the Learner reads the question and presses "Go deeper".
+Their bubble reads "Go deeper." and the Tutor adds one more layer to the question. If the Tutor then
+tried to record that as a not-yet, code refuses it and no hint is released, so the Learner's first typed
+guess still gets hint 1. Later, mid-quiz, the chips "Go deeper" and "Show me in a widget" still sit under
+the last reply, though Next does not. A Session from last month, where they pressed "Explain that more
+simply", still shows that bubble, and that turn is still a chip turn.
 
 **Trade-off.** The chip kind is worked out from the exact words, with no column (this ticket adds no
 migration), so a Learner who types exactly "Show me in a widget." is treated as having pressed the chip.
+Keeping the old words in the list means a Learner who types exactly "Explain that more simply." today is
+treated the same way, which is the price of old Sessions reading correctly.
 That is harmless: the words ask for help, not an answer. A Tutor that ignores the refusal can still
 write a hint in prose, but nothing is stored and the hint count does not move.
 
@@ -2255,8 +2326,12 @@ Resume, Start, New in <Topic>: Check N →, Explore → and Next Topic.
 - **After a miss**, the page starts a quiz follow-up turn by itself (once no other turn is running). It is a
   code-written turn like the opener and Next: its note starts "Quiz follow-up by code:", it draws no Learner
   bubble, its kind is `quiz_follow_up`, and Retry re-runs it. The Tutor gets the usual "Quiz result by code"
-  note with the missed questions and goes over them. A follow-up with no missed result waiting (another
-  tab already ran it) is refused and nothing is stored.
+  note with every missed question, but the follow-up note (spec #229, ticket #233) points it at the first
+  missed one only, which code names with the Learner's choice and the right answer. In 60 words or fewer the
+  Tutor names the slip in one sentence (the Known mistake, when the quiz result names one for that question),
+  gives the one-line fix, and asks one similar question with new numbers that appear nowhere in the quiz. No
+  re-teaching, no other task, and no walk through the other misses: the Check tab shows them. A follow-up with
+  no missed result waiting (another tab already ran it) is refused and nothing is stored.
 - **Try Check k again.** After a miss the Check tab keeps the marking with **Try Check k again →**. The page
   reads the tab with `checkTabNow`, which returns the missed attempt's marking and makes no new attempt;
   only the press (`POST /api/quiz` with `{ retry: true }`) makes the next one, with different questions where
@@ -2265,8 +2340,9 @@ Resume, Start, New in <Topic>: Check N →, Explore → and Next Topic.
   the new result without reloading the Session; the Course Map and Progress read it on their next visit.
 
 **Scenario.** The Learner submits Check 1 of 2 with one of three right. "1 of 3 — not passed yet · let's look at
-question 2" appears under the last reply, and with no message from the Learner the Tutor walks through
-questions 2 and 3. The Check tab still shows the marking. A few minutes later they press Try Check 1 again →, a
+question 2" appears under the last reply, and with no message from the Learner the Tutor takes question 2
+only: "You read 45 basis points as 4.5%. One point is 100 basis points, so divide by 100. What is 30 basis
+points as a percent?" Question 3's miss stays in the Check tab, which still shows the marking. A few minutes later they press Try Check 1 again →, a
 fresh set of three opens, they get two right, and "2 of 3 — passed ✓ · let's look at question 1" appears with
 "Next: Concept →" under it.
 
@@ -2275,7 +2351,9 @@ wording of its day; it also means the thread needs no Course Map lookup to draw 
 the browser keeps it a normal streamed turn with the usual lock, Retry and resume, but a Learner who closes the
 tab the instant they submit gets no follow-up: the Tutor then hears of the miss with their next message, as
 before. Making the next attempt only on Try again means a Learner can read the follow-up with the marking in
-view, at the cost of one more press.
+view, at the cost of one more press. Taking only the first miss keeps the reply short and gives the Learner one
+thing to try, in place of the re-explaining loop that walking every miss became; the other misses get only the
+Check tab's marking, so a Learner with three different slips hears about one of them per attempt.
 
 ## The Topic complete card (`src/tutor/topic-complete.ts`, `topic-complete-card.ts`, `src/app/topic-complete-card.tsx`, `session-item-view.tsx`, `left-column.tsx`, `study/page.tsx`, spec #119, ticket #142)
 
@@ -3641,3 +3719,11 @@ modules and the server runs this check too.
 **Scenario.** After a change to the Widget engine, run a local production build against the Neon test branch, then `npm run widgets:eval -- <folder>`. Prompt 3 ("SIP, 1000 a month for 20 years") comes back as a `grow_money` recipe, Grow archetype, 46 s to first pixel on a slow Tutor turn; the report shows that as a failed first-pixel target and the screenshot shows the Widget. `--only 3,11,19` runs a few prompts as a smoke test.
 
 **Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The timings include the model's thinking time, so they measure the whole experience, not only the engine. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
+
+## Topics with a goal: steps that open their Widgets, finish from what you do, and remember what you found (`goal`, `steps`, `found` in `course/topics/*.yaml`, `src/course/map.ts`, `navigator.ts`, `outcome.ts`, `goal-check.ts`, `src/tutor/next.ts`, `off-topic.ts`, `past-sessions.ts`, UX audit 9.0, 9.4, 9.7, 11.5 to 11.9)
+
+**What it does.** Three optional keys extend the Topic, not a second "plan" format (a Topic is still the lesson, a Teaching Step is still the beat). `goal` is one line of words shown under the title in the Topic bar. `steps` is a list of settings, each for one Teaching Step (and optionally one Check): `opens` names a written-ahead Widget that code puts in the panel when the step begins (it stores the same Widget opened item the Tutor's open_widget stores, so a Widget is never opened twice), and `doneWhen` is a condition on the Learner's saved Widget state: a Guided Task ticked, a $variable that has a value (a Predict's guess), or one saved near a target (a Breakeven). The Course Navigator's `widgetDone` and `finishFromWidget` read that state; `finishStepFromWidget` (next.ts) finishes the step, stores the new step's divider and opens its Widget, and the study page calls it on each render (it returns at once for a step with no `doneWhen`). Because nothing has taught the new step yet, Next then names it without moving on, the way it does after a quiz pass. `found` is a list of lines (`when` plus `text`, with `{value}` for the Learner's own number) that `foundLines` (outcome.ts) works out from saved Widget state; Past Sessions rows, the Session header and the Topic complete card show them. An Off-Topic answer is a Session item (`off_topic`, off-topic.ts) drawn as a quiet block with "↩ Back to <Topic>". The Topic schema checks every setting (the Widget, Check and Guided Task must exist), `npm run course:check` also checks the goal and found lines are in words, and prints the written-ahead warnings beside its errors.
+
+**Scenario.** Percent, percentage points and basis points says `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]`. The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic.
+
+**Trade-off.** A Widget can never settle the Insight early (ADR 0001): `doneWhen` is refused on explore, a Check and the principle, by the schema and again in `widgetDone`, and the explore Widget stays opened by code at explore only. The cost is that a finishing Widget needs a page render or a Next to be noticed; the saved state is the source of truth, so nothing is lost. `found` lines are the Learner's own saved numbers, never typed figures (ADR 0003), so an unticked or reset Widget says nothing. Left for later: a Widget opening at the very first step and when the Tutor itself finishes a step (both happen in the turn lane's files), a tool for the Tutor to mark an Off-Topic answer (`offTopicNote` in context.ts is ready for it), Predict and Breakeven results as turn events, and plan versioning.

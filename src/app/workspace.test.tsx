@@ -62,10 +62,9 @@ describe("the workspace's left column", () => {
     expect(html).not.toMatch(/Continue/);
   });
 
-  it("has a polite status line for screen readers, empty until a turn runs, apart from the streaming text", () => {
+  it("leaves the turn's status words to the app's one live region, not one of its own", () => {
     const html = workspace();
-    expect(html).toMatch(/<p role="status" aria-live="polite" class="sr-only" data-testid="turn-status"><\/p>/);
-    expect(html.indexOf("turn-status")).toBeGreaterThan(html.indexOf("Ask the Tutor") - 2000);
+    expect(html).not.toContain('data-testid="turn-status"');
   });
 
   it("folds a due spaced review into one row with the due count, and leaves it out when none is due", () => {
@@ -251,12 +250,12 @@ describe("the help chips", () => {
   const toConcept = { kind: "next", step: "concept", label: "Next: Concept", advances: true } as const;
   const help = (html: string) => html.match(/<button[^>]*data-testid="help-chip"[^>]*>[^<]*<\/button>/g) ?? [];
 
-  it("offers Explain that more simply and Show me in a widget beside Next, under the latest Tutor reply only", () => {
+  it("offers Go deeper and Show me in a widget beside Next, under the latest Tutor reply only", () => {
     const html = workspace({ initial: conversation, next: toConcept });
-    expect(help(html).map((b) => b.replace(/<[^>]+>/g, ""))).toEqual(["Explain that more simply", "Show me in a widget"]);
+    expect(help(html).map((b) => b.replace(/<[^>]+>/g, ""))).toEqual(["Go deeper", "Show me in a widget"]);
     const plain = text(html);
-    expect(plain.indexOf("Explain that more simply")).toBeGreaterThan(plain.indexOf("Which would you take?"));
-    expect(plain.indexOf("Explain that more simply")).toBeGreaterThan(plain.indexOf("Next: Concept →"));
+    expect(plain.indexOf("Go deeper")).toBeGreaterThan(plain.indexOf("Which would you take?"));
+    expect(plain.indexOf("Go deeper")).toBeGreaterThan(plain.indexOf("Next: Concept →"));
     expect(help(workspace({ initial: [...conversation, { role: "user", text: "Wait" }], next: toConcept }))).toHaveLength(0);
     expect(help(workspace({ initial: [], next: toConcept }))).toHaveLength(0);
   });

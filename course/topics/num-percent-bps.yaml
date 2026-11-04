@@ -2,6 +2,8 @@
 # Case Data (the sourced figures) lives in the database; see docs/architecture.md.
 id: num-percent-bps
 title: Percent, percentage points and basis points
+# One line in the Topic bar: what the Learner can do by the end. Words only, never the Insight.
+goal: Say any rate change in percent, percentage points and basis points, and name its base.
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
 
 cases:
@@ -69,6 +71,18 @@ widgets:
       done: "$old == {before} && $new == {after}"
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
+# What a step does by itself: your turn opens the Widget when it begins, and is done once the Learner has ticked its first
+# Guided Task (the rise from 6% to 6.4%), so Next is there without the Tutor finishing the step.
+steps:
+  - step: your_turn
+    opens: rate-change-three-ways
+    doneWhen: { kind: ticked, widget: rate-change-three-ways, task: 1 }
+
+# What the Learner found, said on Past Sessions and the Topic complete card once their saved Widget state shows it.
+found:
+  - when: { kind: ticked, widget: rate-change-three-ways, task: 1 }
+    text: You set a rate change on the sliders and read it in points, basis points and percent change.
+
 youllLearn:
   - "Tell a change in percentage points from a change in percent."
   - "Read rate moves in basis points, the way bond traders quote them."

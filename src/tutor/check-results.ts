@@ -1,5 +1,8 @@
+import { and, eq } from "drizzle-orm";
+import { questionLookup } from "@/bank/lookup";
 import type { CourseMap } from "@/course/map";
-import type { Marking } from "@/course/quiz";
+import { markAttempt, type Marking } from "@/course/quiz";
+import { quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { pendingQuizNote, submitQuiz, type QuizResult } from "@/learner/quiz";
 import { currentTopicId, liveSession, saveShownSession } from "./session-log";
@@ -12,7 +15,7 @@ import { QUIZ_FOLLOW_UP_PREFIX } from "./turn-status";
  * Check results in the conversation. A result card is a display-only Session item, stored after the latest
  * message of the Check's Topic Session, so the model never sees it: a quiz's when the Learner submits it, a
  * conversation Check's when the Tutor records a verdict. After a missed quiz, code runs a quiz follow-up turn
- * from the note written here, and the Tutor goes over the missed questions.
+ * from the note written here, and the Tutor takes the first missed question: one slip, one fix, one new question.
  */
 
 export { CHECK_RESULT };
@@ -79,12 +82,41 @@ export async function submitQuizAnswers(
 export const NO_MISSED_QUIZ = "There is no missed quiz to go over.";
 
 /**
- * The note code writes for a quiz follow-up turn: the Learner missed the current Topic's quiz, and the Tutor goes
- * over the missed questions (the result itself reaches it as the "Quiz result by code" context). Null when no missed
- * result of this Topic is waiting to be told, or one waiting was a pass.
+ * The first question the Learner missed in their latest waiting attempt, as one line: its prompt, their choice and
+ * the right answer. Null when it cannot be found (its Check left the Course Map, or its questions did).
+ */
+async function firstMissed(db: Db, map: CourseMap, learnerId: number, attemptIds: number[]): Promise<string | null> {
+  if (!attemptIds.length) return null;
+  const [row] = await db
+    .select()
+    .from(quizAttempts)
+    .where(and(eq(quizAttempts.learnerId, learnerId), eq(quizAttempts.id, Math.max(...attemptIds))));
+  const check = row && map.check(row.checkId);
+  if (!check || check.kind !== "quiz") return null;
+  const lookup = await questionLookup(db, map, row.questionIds);
+  const marking = markAttempt(lookup, check, row.questionIds.filter((id) => lookup.question(id)), row.answers ?? {});
+  const q = marking.questions.find((question) => !question.correct);
+  if (!q) return null;
+  const text = (id: string | null) => q.choices.find((c) => c.id === id)?.text;
+  return `"${q.prompt}" The Learner chose ${q.chosen ? `"${text(q.chosen)}"` : "no answer"}; the right answer is "${text(q.answer)}".`;
+}
+
+/**
+ * The note code writes for a quiz follow-up turn: the Learner missed the current Topic's quiz, and the Tutor takes
+ * the first missed question only, as one slip, one fix and one new question (R7); code names that question. The
+ * whole result reaches it as the "Quiz result by code" context, and the Check tab shows the other misses. Null when
+ * no missed result of this Topic is waiting to be told, or one waiting was a pass.
  */
 export async function quizFollowUpNote(db: Db, map: CourseMap, learnerId: number): Promise<string | null> {
   const pending = await pendingQuizNote(db, map, learnerId, await currentTopicId(db, map, learnerId));
   if (!pending || pending.passed) return null;
-  return `${QUIZ_FOLLOW_UP_PREFIX} the Learner submitted the quiz and did not pass; code started this turn, and the Learner has written nothing. Go over the questions they missed, one at a time: what the right answer is, and where their choice went wrong. Keep it short, then invite their questions. Do not write new quiz questions. A new attempt, with different questions where there are any, opens only when the Learner presses Try again in the Check tab.`;
+  const first = await firstMissed(db, map, learnerId, pending.attemptIds);
+  const which = first ? `the first question they missed: ${first}` : "the first question under Missed in the latest quiz result by code.";
+  return [
+    `${QUIZ_FOLLOW_UP_PREFIX} the Learner submitted the quiz and did not pass; code started this turn, and the Learner has written nothing.`,
+    `Take only ${which}`,
+    "In 60 words or fewer: name their slip in one sentence (when the quiz result names a Known mistake for this question, that mistake is the slip); give the one-line fix; then ask one similar question with new numbers that appear nowhere in the quiz.",
+    "Do not re-teach the idea, set no other task, and leave the other missed questions alone: the Check tab shows them.",
+    "A new attempt, with different questions where there are any, opens only when the Learner presses Try again in the Check tab.",
+  ].join(" ");
 }
