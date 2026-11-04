@@ -179,6 +179,10 @@ _Avoid_: template, preset Widget
 A Widget design written in code, such as grow_money or history_case. The Tutor names a recipe and its params with show_widget, and code draws the Widget, checks it and keeps it in the Session (ADR 0005). Its params are inputs (sliders and calculator inputs), refs (Case Data) and facts (typed numbers, which make it an Illustration).
 _Avoid_: template, preset Widget
 
+**Rate-move Widget**:
+The one Widget for a rate change, drawn from the rate_move recipe: the move from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the Learner types the move in basis points first, code marks it, then the lines follow.
+_Avoid_: rate calculator, Illustration
+
 **Free-form Widget**:
 A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
 _Avoid_: custom Widget, freeform lane (in Learner-facing text)
