@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { parseCourseMap, type CourseMap, type QuizCheck } from "@/course/map";
 import { parseTemplateInstanceId, selectQuestions } from "@/course/quiz";
-import { OWNER_LEARNER_ID, practiceAnswers, reviewCards } from "@/db/schema";
+import { OWNER_LEARNER_ID, practiceAnswers, reviewCards, topicProgress } from "@/db/schema";
 import { openQuizItems } from "@/tutor/turn-facts";
 import { submitQuizAnswers } from "@/tutor/check-results";
 import { testDb } from "@/test/pglite";
@@ -81,7 +81,9 @@ async function atQuiz(text?: string) {
   const db = await testDb();
   const map = testMap(text);
   await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID);
-  for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
+  for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
+  // A converted Your turn ends only through fluency (ticket #243), so the test puts the Learner at the Check directly.
+  await db.update(topicProgress).set({ step: "check" }).where(eq(topicProgress.learnerId, OWNER_LEARNER_ID));
   return { db, map };
 }
 

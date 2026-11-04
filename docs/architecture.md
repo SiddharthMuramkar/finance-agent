@@ -1815,13 +1815,15 @@ Learner must never read. The seven checks are:
   120 for a worked example, a Go deeper reply and every other step (`capFor`). Words are counted the way the Learner
   reads them: Widget and sources fences, Citation markers and bare Markdown symbols do not count (`countWords`).
 - V2: at most one question in the message, an ask of 25 words or fewer, and no other line opening with a task verb
-  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask.
+  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask. With no ask, more than one such line fails too.
 - V3: no "Great question", "Certainly", "Absolutely" or "Code recorded", no emoji or decorative arrows, no headings
   and at most one bold span.
 - V4: at most one Widget, and each one passes the Widget validator the caller hands in.
 - V5: no open quiz answer together with its question's numbers, in the text or the saved rule, and no Widget preset
   that uses a blocked number. The blocked numbers are every number in the open attempt's questions, choices and
   answers, normalised so that 4.5, 4.50 and 4.50% match (`blockedNumbersFrom`).
+  An answer number that sits within four words of a confirm cue ("is right", "correct", "yes", "that's it", "the
+  answer is", "you got it") also fails, even without the question's numbers: "Yes, 60 is right." gives the answer away.
 - V6: no app words: the ids passed in, snake_case tool and step names, "Course Navigator", "Session item",
   "Reply kind", "Skill state", and "Code" as the subject of a sentence. Topic, Check, Check tab, Widget, Next,
   Go deeper, Show me in a widget, Quick try and Concept card stay allowed.
@@ -3782,7 +3784,7 @@ backfill reload places the corrected readings.
 
 The lesson lint (`lessonLintErrors`) then checks every converted Topic, after the typed-formula check, in `npm run course:check`:
 
-- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed.
+- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed; a conversation Check lists the Skills it tests.
 - **L2:** three Quick tries per Skill (a template is unlimited), one of them half-done, and three times the per-attempt count of distinct questions in each quiz Check (or a template).
 - **L3:** five lines at most on a card, with its write-down line; no sentence over 20 words.
 - **L4:** each Widget preset is valid.
@@ -4170,6 +4172,47 @@ each turn to one small read, but the row and the log could drift if one were edi
 the state can be rebuilt from it. The ladder is the same for every Topic and lives in code, which keeps Topic files small
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
+
+## Concept cards and Quick tries in the conversation (`src/tutor/practice.ts`, `session-item-kinds.ts`, `next.ts`, `turn.ts`, `context.ts`, `turn-facts.ts`, `src/course/navigator.ts`, `src/app/concept-card-view.tsx`, `quick-try-view.tsx`, `session-item-view.tsx`, `conversation.tsx`, `src/app/api/quick-try/route.ts`, spec #229, ticket #243)
+
+**What it does.** In a converted Topic (one whose file lists Skills), code shows two new things in the conversation, as
+Session items, with no model call. When the Learner enters a Concept step whose Check has a Concept card, code stores the
+card (a `concept_card` item: the title, the plain lines and the line to write down, copied from the file) and then its
+Widget preset. A `rate_move` preset is built exactly as the lesson lint builds it and stored as a shown Widget, titled with
+the card's title; a written-ahead preset opens that Widget with its sliders set. If the Widget's key already has saved state
+in the Session, code sets it back to the preset's numbers, so the card always opens at its own numbers. At Your turn, for a
+Check that lists Skills, code shows one Quick try at a time (a `quick_try` item): its ask, its unit, and, for the first try
+of each Skill, the first step shown done (R5). The item never holds the answer: its key names the fixed try or the template
+draw, and the server works the answer out again from the Topic file, with the key as the draw's seed.
+`enterStepItems` does this, and it is idempotent; Next, a step that finished from a Widget, the start of every Tutor Turn,
+and a step divider stored by a tool all call it. The pure `nextQuickTry` picks the try: the first Skill of the Check not yet
+fluent, in card order, a half-done try first, then unused fixed tries in file order, then fresh template draws.
+
+The Learner answers in the item itself: a number box or True and False buttons, locked while a Tutor turn runs and once
+marked, and read-only on old Sessions and Past Sessions pages. POST `/api/quick-try` marks the answer with the teaching
+engine, logs it once per key with `recordAnswer`, and stores a `quick_try_result` item: "Right.", the Known mistake's fix,
+or "Not quite.". A right answer posts the next try; a Known mistake posts a new try on the same Skill; a wrong answer with no
+Known mistake asks the page to start a short code-written follow-up turn ("Quick try follow-up by code:") that names the slip
+in one sentence, after which code posts a fresh try. Your turn finishes only when every Skill of the Check has two right
+answers in a row: the Course Navigator's `finishFromPractice` accepts it, while `finishStep` refuses `your_turn` from the
+Tutor and `nextOffer` gives no Next there. Code then stores the Check's divider and starts a follow-up turn that points to
+the Check. The Tutor hears what code showed: the card's text in place of the concept text, "add one sentence and one ask",
+that code shows and marks the Quick tries, and, with its next turn, the results marked since its last reply
+(`pendingQuickTryNote`), the way quiz results reach it. `practiceFallback` is the checked-replies fallback at these steps:
+the card's write-down line, then the next try.
+
+**Scenario.** Asha presses Next: Concept in a converted Percent Topic. The divider, the card "One move, two ways" and the
+rate Widget at 4% and 5% appear at once; she had dragged that Widget to 1% and 9% earlier, and it opens at 4% and 5% again.
+The Tutor adds one sentence and asks which number is bigger. At Your turn she sees "A rate moves from 4.5% to 3.45%. How
+many basis points?" with "the move is 1.05 points" shown done. She types 10.5; code shows "One point is 100 basis points,
+so multiply by 100, not 10." and a new try. Two right answers in a row on each idea later, the Check divider appears and the
+Tutor points her to the quiz.
+
+**Trade-off.** Items are stored, not worked out on each render, so a reload shows exactly what was shown, at the cost of
+copying the card into the Session. Re-deriving each try's answer from the file keeps answers out of the browser, but a
+Topic file edited after a try was shown marks that try against the new file. Results reach the Tutor by item order (those
+after its last reply), so no new table or column is needed, but a result stored during a turn is told in the next one.
+Only converted Topics touch `skill_state` and `practice_answers`; every other Topic behaves exactly as before.
 
 ## The Learner's own rule (`save_learner_rule` in `src/tutor/tools.ts`, `src/learner/own-rule.ts`, `src/tutor/own-rule-item.ts`, `src/app/own-rule-line.tsx`, `note_items` kind `own_rule`, spec #229, ticket #244)
 
