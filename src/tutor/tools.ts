@@ -10,7 +10,7 @@ import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/na
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, WIDGET_OPENED } from "@/course/written-ahead";
 import { messages, practiceAnswers, sessions, toolCalls, turns } from "@/db/schema";
-import { widgetControls, widgetNodes, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
+import { widgetControls, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
 import { declaredSettings } from "@/widgets/settings";
 import { widgetKey } from "@/widgets/widget-state";
 import { ARCHETYPES } from "@/widgets/recipes/define";

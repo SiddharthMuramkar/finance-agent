@@ -29,7 +29,7 @@ void [_s, _t];
 const UNCONVERTED = {
   ...rest,
   checks: [{ id: "plain-check", kind: "quiz", questions: ["pct-demo-headline"], passRule: { correct: 1 } }],
-  questions: rest.questions.map(({ skill: _k, ...q }) => ({ ...q, choices: q.choices.map(({ mistake: _m, ...c }) => c) })),
+  questions: rest.questions.map((q) => ({ ...q, skill: undefined, choices: q.choices.map((c) => ({ id: c.id, text: c.text })) })),
 };
 void checks;
 
