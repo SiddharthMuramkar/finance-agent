@@ -49,6 +49,7 @@ describe("recipe set B", () => {
           const built = build(id, example);
           // The freeform budget warnings (controls, numbers, visuals, words, callouts, tasks) never fire.
           expect(widgetWarnings(built.code)).toEqual([]);
+          expect(widgetWarnings(built.code).filter((w) => /is shown twice/.test(w)), "no number is shown twice").toHaveLength(0);
           const nodes = widgetNodes(built.code);
           expect(nodes.filter((n) => n.typeName === "Slider").length).toBeLessThanOrEqual(recipe.budget.controls);
           expect(recipe.budget.words).toBeLessThanOrEqual(WIDGET_BUDGET.words);

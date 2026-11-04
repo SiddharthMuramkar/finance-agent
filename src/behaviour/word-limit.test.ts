@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { REPLY_WORD_LIMIT, TUTOR_INSTRUCTIONS } from "@/tutor/instructions";
 import { longReplies, proseWords, renderReport, type Graded } from "./grading";
 
-/** Replies of 120 words or fewer (UX audit 9.3): the instructions ask for it, and the behaviour report flags longer ones. */
+/** Replies of 120 words or fewer (UX audit 9.3, spec #229): the instructions name each step's cap, 120 the longest, and the behaviour report flags longer ones. */
 
 const FENCE = "`".repeat(3);
 const words = (n: number) => Array.from({ length: n }, (_, i) => `word${i}`).join(" ");
 
 describe("the reply word limit", () => {
-  it("is in the Tutor's instructions, beside asking the open question once", () => {
-    expect(TUTOR_INSTRUCTIONS).toContain(`at most about ${REPLY_WORD_LIMIT} words of prose`);
+  it("is the longest cap in the Tutor's instructions, beside asking the open question once", () => {
+    expect(TUTOR_INSTRUCTIONS).toContain(`and ${REPLY_WORD_LIMIT} for a worked example`);
     expect(TUTOR_INSTRUCTIONS).toContain("Ask it once.");
   });
 

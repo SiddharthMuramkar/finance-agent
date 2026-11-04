@@ -3,7 +3,10 @@
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
 import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { z } from "zod/v4";
+import { rankProblem } from "../../part-rules";
 import { usePrefersReducedMotion } from "../wave1/motion";
+
+export { rankProblem };
 
 // Rank: put the items in order (of liquidity, of risk), then check. A row can be dragged, or moved by keyboard:
 // Space picks it up, the arrow keys move it, Space puts it down. Checking marks each row and shows the reason it
@@ -17,14 +20,6 @@ export const rankProps = z.object({
   lowLabel: z.string().describe('The low end, e.g. "Hardest to turn into cash"'),
   highLabel: z.string().describe('The high end, e.g. "Easiest to turn into cash"'),
 });
-
-/** What is wrong with a Rank's arguments, or null. Code-checked, like QuickCheck's answer index. */
-export function rankProblem(items: readonly unknown[], correctOrder: readonly number[], reasons: readonly unknown[]): string | null {
-  if (items.length < 2 || items.length > 8) return "Rank needs 2 to 8 items";
-  if (correctOrder.length !== items.length || [...correctOrder].sort((a, b) => a - b).some((v, i) => v !== i)) return "correctOrder must list every item index once";
-  if (reasons.length !== items.length) return "Rank needs one reason per item";
-  return null;
-}
 
 /** The order the Learner starts from: the right order, shifted and swapped so it is never already right. */
 export function startOrder(correctOrder: readonly number[]): number[] {

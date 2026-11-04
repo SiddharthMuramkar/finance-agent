@@ -7,7 +7,7 @@ import { submitQuizAnswers } from "@/tutor/check-results";
 
 export const runtime = "nodejs";
 
-const submission = z.object({ attemptId: z.number().int(), answers: z.record(z.string(), z.string()) });
+const submission = z.object({ attemptId: z.number().int(), answers: z.record(z.string(), z.string().max(40)) });
 const retry = z.object({ retry: z.literal(true) });
 
 /**
