@@ -179,6 +179,10 @@ _Avoid_: template, preset Widget
 A Widget design written in code, such as grow_money or history_case. The Tutor names a recipe and its params with show_widget, and code draws the Widget, checks it and keeps it in the Session (ADR 0005). Its params are inputs (sliders and calculator inputs), refs (Case Data) and facts (typed numbers, which make it an Illustration).
 _Avoid_: template, preset Widget
 
+**Free-form Widget**:
+A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
+_Avoid_: custom Widget, freeform lane (in Learner-facing text)
+
 **Widget state**:
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
 _Avoid_: Widget data, saved Widget
