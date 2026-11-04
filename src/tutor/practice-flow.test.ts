@@ -5,7 +5,7 @@ import { navigate } from "@/course/navigator";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
-import { skillStates } from "@/learner/skill-state";
+import { noteMethodUsed, recordAnswer, skillStates } from "@/learner/skill-state";
 import { loadWidgetStates, saveWidgetState } from "@/learner/widget-state";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
@@ -133,5 +133,31 @@ describe("Your turn with Quick tries", () => {
     expect(await answerQuickTry(db, map, me, "qt:1:0:pct-demo-try-bp-half", "1.2", now())).toMatchObject({ ok: false, status: 404 });
     await startTurn(db, now(), "Hi", me);
     expect(await answerQuickTry(db, map, me, first.key, "60", now())).toMatchObject({ ok: false, status: 409 });
+  });
+});
+
+describe("the re-teach note after a second miss in a row (ticket #248, lane R11)", () => {
+  /** Misses the first Quick try at Your turn after one earlier miss on its Skill, with these rungs already used on it. */
+  async function secondMiss(used: ("restate" | "worked")[]) {
+    const db = await testDb();
+    const { first } = await atYourTurn(db);
+    for (const method of used) await noteMethodUsed(db, me, "pct-demo", first.skillId, method);
+    await recordAnswer(db, { learnerId: me, topicId: "pct-demo", skillId: first.skillId, itemKey: `quiz:91:${first.skillId}`, itemId: first.skillId, input: "x", verdict: "wrong", source: "quiz" });
+    await answerQuickTry(db, map, me, first.key, "999", now());
+    return quickTryFollowUpNote(db, map, me);
+  }
+
+  it("on the fill-in boxes rung, has the Tutor name the slip and leave the last box blank as its one ask", async () => {
+    const note = await secondMiss(["restate", "worked"]);
+    expect(note).toContain("Method: boxes, fill-in boxes. Code posts a half-done try after your reply");
+    expect(note).toContain("name the slip in one sentence");
+    expect(note).toContain("The blank last box is your one ask");
+    expect(note).not.toContain("Write no practice question of your own");
+  });
+
+  it("on another rung, still has the Tutor write no practice question of its own", async () => {
+    const note = await secondMiss([]);
+    expect(note).toContain("Method: restate");
+    expect(note).toContain("Write no practice question of your own");
   });
 });

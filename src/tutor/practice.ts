@@ -723,7 +723,10 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
     line,
     ...(rule ? [`The idea: ${rule}`] : []),
     action.note,
-    "Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply.",
+    // On the boxes rung the reply sets its own boxes (ticket #248, T3), so their blank last box is the ask.
+    action.method === "boxes"
+      ? "Teach it again this way only, in a few short lines with numbers other than the try's. The blank last box is your one ask: write no other question."
+      : "Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply.",
   ].join("\n");
 }
 

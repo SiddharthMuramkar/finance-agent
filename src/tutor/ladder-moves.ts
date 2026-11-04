@@ -18,7 +18,8 @@ export type LadderAction =
 const METHOD_WORDS: Record<Method, string> = {
   restate: "restate the rule in new words, with new numbers. No new analogy.",
   worked: "a worked example with new numbers, step by step. No new analogy.",
-  boxes: "fill-in boxes. Code has posted a half-done try with the first step shown; help the Learner fill the next box, no new explanation.",
+  boxes:
+    "fill-in boxes. Code posts a half-done try after your reply, with its first step shown. In your reply, name the slip in one sentence, then one similar item on new numbers as boxes: fill the first box and leave the last one blank. Explain nothing else.",
   widget: "the Widget. Code has opened it in practice mode; say in one sentence what to move and what to watch.",
   drill5: "a drill of five. Code posts five short tries one at a time; add one sentence and one ask.",
 };
