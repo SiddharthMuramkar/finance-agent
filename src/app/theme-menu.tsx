@@ -124,7 +124,7 @@ export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; cla
           aria-label="Theme"
           onKeyDown={onMenuKey}
           data-testid="theme-menu"
-          className="absolute top-full right-0 z-20 mt-1 w-64 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
+          className="absolute top-full right-0 z-20 mt-1 w-72 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
         >
           <Item checked={pref.mode === "system"} swatch={resolveTheme(pair, osDark ?? false)} onPick={() => pick(followSystem)}>
             Match my Mac
