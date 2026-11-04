@@ -62,10 +62,9 @@ describe("the workspace's left column", () => {
     expect(html).not.toMatch(/Continue/);
   });
 
-  it("has a polite status line for screen readers, empty until a turn runs, apart from the streaming text", () => {
+  it("leaves the turn's status words to the app's one live region, not one of its own", () => {
     const html = workspace();
-    expect(html).toMatch(/<p role="status" aria-live="polite" class="sr-only" data-testid="turn-status"><\/p>/);
-    expect(html.indexOf("turn-status")).toBeGreaterThan(html.indexOf("Ask the Tutor") - 2000);
+    expect(html).not.toContain('data-testid="turn-status"');
   });
 
   it("folds a due spaced review into one row with the due count, and leaves it out when none is due", () => {

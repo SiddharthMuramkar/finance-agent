@@ -7,7 +7,8 @@ import { parseCourseMap, readOutlineText, readTopicFiles } from "../src/course/m
 import { formulaCheckErrors } from "../src/course/formula-check.ts";
 import { connectionsCheckErrors } from "../src/course/connections-check.ts";
 import { youllLearnCheckErrors } from "../src/course/youll-learn-check.ts";
-import { onlyTaskCheckErrors, writtenAheadCheckErrors } from "../src/course/written-ahead-check.ts";
+import { onlyTaskCheckErrors, writtenAheadCheckErrors, writtenAheadCheckWarnings } from "../src/course/written-ahead-check.ts";
+import { goalCheckErrors } from "../src/course/goal-check.ts";
 import { HOME_WIDGET } from "../src/app/_landing/home-widget-spec.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 
@@ -28,6 +29,9 @@ if (typed.length) fail("Typed formulas in the Course Map (ADR 0002)", typed);
 const writtenAhead = writtenAheadCheckErrors(map.topics);
 if (writtenAhead.length) fail("Written-ahead Widgets that cannot be drawn or worked", writtenAhead);
 
+// Warnings are printed beside the errors and never fail the check.
+for (const warning of writtenAheadCheckWarnings(map.topics)) console.warn(`  warning: ${warning}`);
+
 const home = onlyTaskCheckErrors(map.topics, HOME_WIDGET);
 if (home.length) fail("Home's Widget cannot be drawn or worked", home);
 
@@ -36,6 +40,9 @@ if (noConnections.length) fail("Topics with an Insight need Connections", noConn
 
 const youllLearn = youllLearnCheckErrors(map.topics);
 if (youllLearn.length) fail("You'll learn bullets that are missing or break the rules", youllLearn);
+
+const goals = goalCheckErrors(map.topics);
+if (goals.length) fail("Topic goals and found lines that break the rules", goals);
 
 const doc = renderCourseMapDoc(planned.outline, new Set(map.topics.map((t) => t.id)));
 if (process.argv.includes("--write")) {

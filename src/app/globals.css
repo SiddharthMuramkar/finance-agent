@@ -2,9 +2,39 @@
    sits above Tailwind's reset, which can't strip its styles, and below the utilities, which still win. */
 @layer theme, base, openui, components, utilities;
 @import "tailwindcss";
-/* OpenUI's component kit for generated widgets, imported from this one place only (OpenUI's rule for
-   layered styles). GenuiTheme (src/widgets/genui-theme.tsx) points its colours and fonts at our tokens. */
-@import "@openuidev/react-ui/layered/styles/index.css";
+/* OpenUI's component kit for generated widgets, imported from this one place only (OpenUI's rule for layered
+   styles). GenuiTheme (src/widgets/genui-theme.tsx) points its colours and fonts at our tokens. Only the sheets of
+   the parts the Widget library keeps are imported (the whole kit was 363 KB, mostly its chat shell and the parts we
+   dropped); src/widgets/openui-css.test.ts checks that every class the kept parts draw has its sheet here. Each sheet
+   wraps itself in @layer openui; the defaults (spacing, type, colours) are the one file that does not. */
+@import "@openuidev/react-ui/layered/styles/openui-defaults.css" layer(openui);
+@import "@openuidev/react-ui/layered/styles/accordion.css";
+@import "@openuidev/react-ui/layered/styles/callout.css";
+@import "@openuidev/react-ui/layered/styles/card.css";
+@import "@openuidev/react-ui/layered/styles/cardHeader.css";
+@import "@openuidev/react-ui/layered/styles/charts.css";
+@import "@openuidev/react-ui/layered/styles/chips.css";
+@import "@openuidev/react-ui/layered/styles/entityList.css";
+@import "@openuidev/react-ui/layered/styles/formControl.css";
+@import "@openuidev/react-ui/layered/styles/iconButton.css";
+@import "@openuidev/react-ui/layered/styles/inlineHeader.css";
+@import "@openuidev/react-ui/layered/styles/inlineMarkdownRenderer.css";
+@import "@openuidev/react-ui/layered/styles/label.css";
+@import "@openuidev/react-ui/layered/styles/markDownRenderer.css";
+@import "@openuidev/react-ui/layered/styles/select.css";
+@import "@openuidev/react-ui/layered/styles/separator.css";
+@import "@openuidev/react-ui/layered/styles/skeleton.css";
+@import "@openuidev/react-ui/layered/styles/steps.css";
+@import "@openuidev/react-ui/layered/styles/switchGroup.css";
+@import "@openuidev/react-ui/layered/styles/switchItem.css";
+@import "@openuidev/react-ui/layered/styles/table.css";
+@import "@openuidev/react-ui/layered/styles/tabs.css";
+@import "@openuidev/react-ui/layered/styles/tag.css";
+@import "@openuidev/react-ui/layered/styles/tagBlock.css";
+@import "@openuidev/react-ui/layered/styles/textCallout.css";
+@import "@openuidev/react-ui/layered/styles/textContent.css";
+@import "@openuidev/react-ui/layered/styles/textContentWrapper.css";
+@import "@openuidev/react-ui/layered/styles/tooltipWrapper.css";
 
 /* Dark mode follows the Learner's toggle (a `dark` class on <html>), not the system setting. */
 @custom-variant dark (&:where(.dark, .dark *));

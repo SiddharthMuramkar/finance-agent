@@ -4,7 +4,14 @@
 export const TOPIC_COMPLETE = "topic_complete";
 
 /** The card's data: the passed Topic, its principle's first sentence, and What comes next's label when it was stored (null: every Topic passed). */
-export type TopicCompleteData = { topicId: string; title: string; principle: string; next: string | null };
+export type TopicCompleteData = {
+  topicId: string;
+  title: string;
+  principle: string;
+  next: string | null;
+  /** What the Learner found, a line each, worked out by code from their saved Widget state when the card is drawn (never stored). */
+  found?: string[];
+};
 
 /** The principle in one or two lines: its first sentence. */
 export function principleLine(principle: string): string {

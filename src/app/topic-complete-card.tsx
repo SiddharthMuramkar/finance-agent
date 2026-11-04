@@ -13,6 +13,13 @@ export function TopicCompleteCard({ card }: { card: TopicCompleteData }) {
       <Eyebrow className="mb-1">Topic complete</Eyebrow>
       <h2 className="text-base font-semibold leading-6">{card.title}</h2>
       <p className="mt-2 text-sm leading-5">{card.principle}</p>
+      {card.found && card.found.length > 0 && (
+        <ul data-testid="topic-found" aria-label="What you found" className="mt-2 list-disc space-y-0.5 pl-5 text-sm leading-5">
+          {card.found.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      )}
       <p className="mt-2 text-xs leading-4 text-[var(--you)]">Saved to your Notes ✓</p>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {card.next && <WhatComesNextButton label={card.next} />}

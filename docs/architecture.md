@@ -752,6 +752,27 @@ schema, but its own Tabs (`drawingLibrary` in `src/app/widget-view.tsx`), becaus
 whichever tab's content last grew, so a chart-and-table Widget opened on its table as soon as the
 Query's rows arrived (browser check, 3 Nov 2026), and drew no tab at all on the server.
 
+**Smaller pages: the OpenUI trim (`next.config.ts`, `postcss.config.mjs`, `src/widgets/openui-stubs/`, the
+`@import` lines in `globals.css`, UX audit 10.3).**
+*What it does.* OpenUI ships as one 960 KB file that holds its chat shell, its agent screen and every part, and a
+bundler cannot leave any of it out, because the top-level calls that build each part look like they could have side
+effects. Three changes make the browser download only what a Widget can draw. (1) A small build-time loader
+(`pure-loader.cjs`) marks those calls as pure and removes the chat shell's attachments, so the bundler drops the chat
+shell. (2) The code highlighter (780 KB with its grammars), the date picker and the table engine are replaced by
+empty stand-ins in `openui-stubs/`, because only parts the Widget library dropped (CodeBlock, DatePicker,
+EditableTable) call them. (3) `globals.css` imports the stylesheets of the kept parts one by one instead of the
+whole 363 KB kit, and `postcss.config.mjs` removes the kit's own dark colours (nothing here uses them: GenuiTheme and
+the `:root` block in `globals.css` set every colour) and the rules for charts the library does not draw.
+*Scenario.* A Learner opens the Study Workspace on a phone. The page used to fetch a 2.2 MB script and a 434 KB
+stylesheet before the Widget could draw; now the largest script is 1.18 MB and the stylesheet 141 KB, and the
+Widget looks exactly the same. `openui-css.test.tsx` draws one of every kept part and fails if a class it draws has
+lost its stylesheet, so adding a part to the library cannot silently leave it unstyled.
+*Trade-off.* We keep OpenUI's library object and remove around it, because the kit's parts and their schemas are
+only built together, and the package's per-file build is broken in 0.18.1 (a missing icon file). So the largest
+script is still over 1 MB and the stylesheet over 120 KB (our own CSS is 66 KB of it). The loader and stand-ins match
+this package version's text: after an OpenUI upgrade, run `npm run build` and read the sizes, and `openui-trim.test.ts`
+fails if the loader's patterns stop matching.
+
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
 Formula Card input or Guided Task bound to no slider (looked for anywhere in the Widget, not only in
@@ -3715,3 +3736,11 @@ alone from 33,662 to 38,109; the tools are unchanged). Warnings only teach the n
 would cost the Learner a "Fixing the Widget…" wait for every style slip. The notes ride in the Learner's stored message, so a
 replay sends the same text. The QuickCheck and Rank rules are restated in check.ts, because the parts' files are client
 modules and the server runs this check too.
+
+## Topics with a goal: steps that open their Widgets, finish from what you do, and remember what you found (`goal`, `steps`, `found` in `course/topics/*.yaml`, `src/course/map.ts`, `navigator.ts`, `outcome.ts`, `goal-check.ts`, `src/tutor/next.ts`, `off-topic.ts`, `past-sessions.ts`, UX audit 9.0, 9.4, 9.7, 11.5 to 11.9)
+
+**What it does.** Three optional keys extend the Topic, not a second "plan" format (a Topic is still the lesson, a Teaching Step is still the beat). `goal` is one line of words shown under the title in the Topic bar. `steps` is a list of settings, each for one Teaching Step (and optionally one Check): `opens` names a written-ahead Widget that code puts in the panel when the step begins (it stores the same Widget opened item the Tutor's open_widget stores, so a Widget is never opened twice), and `doneWhen` is a condition on the Learner's saved Widget state: a Guided Task ticked, a $variable that has a value (a Predict's guess), or one saved near a target (a Breakeven). The Course Navigator's `widgetDone` and `finishFromWidget` read that state; `finishStepFromWidget` (next.ts) finishes the step, stores the new step's divider and opens its Widget, and the study page calls it on each render (it returns at once for a step with no `doneWhen`). Because nothing has taught the new step yet, Next then names it without moving on, the way it does after a quiz pass. `found` is a list of lines (`when` plus `text`, with `{value}` for the Learner's own number) that `foundLines` (outcome.ts) works out from saved Widget state; Past Sessions rows, the Session header and the Topic complete card show them. An Off-Topic answer is a Session item (`off_topic`, off-topic.ts) drawn as a quiet block with "↩ Back to <Topic>". The Topic schema checks every setting (the Widget, Check and Guided Task must exist), `npm run course:check` also checks the goal and found lines are in words, and prints the written-ahead warnings beside its errors.
+
+**Scenario.** Percent, percentage points and basis points says `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]`. The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic.
+
+**Trade-off.** A Widget can never settle the Insight early (ADR 0001): `doneWhen` is refused on explore, a Check and the principle, by the schema and again in `widgetDone`, and the explore Widget stays opened by code at explore only. The cost is that a finishing Widget needs a page render or a Next to be noticed; the saved state is the source of truth, so nothing is lost. `found` lines are the Learner's own saved numbers, never typed figures (ADR 0003), so an unticked or reset Widget says nothing. Left for later: a Widget opening at the very first step and when the Tutor itself finishes a step (both happen in the turn lane's files), a tool for the Tutor to mark an Off-Topic answer (`offTopicNote` in context.ts is ready for it), Predict and Breakeven results as turn events, and plan versioning.
