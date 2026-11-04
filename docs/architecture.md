@@ -752,6 +752,27 @@ schema, but its own Tabs (`drawingLibrary` in `src/app/widget-view.tsx`), becaus
 whichever tab's content last grew, so a chart-and-table Widget opened on its table as soon as the
 Query's rows arrived (browser check, 3 Nov 2026), and drew no tab at all on the server.
 
+**Smaller pages: the OpenUI trim (`next.config.ts`, `postcss.config.mjs`, `src/widgets/openui-stubs/`, the
+`@import` lines in `globals.css`, UX audit 10.3).**
+*What it does.* OpenUI ships as one 960 KB file that holds its chat shell, its agent screen and every part, and a
+bundler cannot leave any of it out, because the top-level calls that build each part look like they could have side
+effects. Three changes make the browser download only what a Widget can draw. (1) A small build-time loader
+(`pure-loader.cjs`) marks those calls as pure and removes the chat shell's attachments, so the bundler drops the chat
+shell. (2) The code highlighter (780 KB with its grammars), the date picker and the table engine are replaced by
+empty stand-ins in `openui-stubs/`, because only parts the Widget library dropped (CodeBlock, DatePicker,
+EditableTable) call them. (3) `globals.css` imports the stylesheets of the kept parts one by one instead of the
+whole 363 KB kit, and `postcss.config.mjs` removes the kit's own dark colours (nothing here uses them: GenuiTheme and
+the `:root` block in `globals.css` set every colour) and the rules for charts the library does not draw.
+*Scenario.* A Learner opens the Study Workspace on a phone. The page used to fetch a 2.2 MB script and a 434 KB
+stylesheet before the Widget could draw; now the largest script is 1.18 MB and the stylesheet 141 KB, and the
+Widget looks exactly the same. `openui-css.test.tsx` draws one of every kept part and fails if a class it draws has
+lost its stylesheet, so adding a part to the library cannot silently leave it unstyled.
+*Trade-off.* We keep OpenUI's library object and remove around it, because the kit's parts and their schemas are
+only built together, and the package's per-file build is broken in 0.18.1 (a missing icon file). So the largest
+script is still over 1 MB and the stylesheet over 120 KB (our own CSS is 66 KB of it). The loader and stand-ins match
+this package version's text: after an OpenUI upgrade, run `npm run build` and read the sizes, and `openui-trim.test.ts`
+fails if the loader's patterns stop matching.
+
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
 Formula Card input or Guided Task bound to no slider (looked for anywhere in the Widget, not only in
