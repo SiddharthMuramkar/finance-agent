@@ -279,7 +279,7 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
     input_schema: {
       type: "object",
       properties: {
-        id: { type: "string", description: "The written-ahead Widget's id, e.g. \"rate-change-three-ways\"." },
+        id: { type: "string", description: "The written-ahead Widget's id, e.g. \"annuity-worth-today\"." },
       },
       required: ["id"],
       additionalProperties: false,

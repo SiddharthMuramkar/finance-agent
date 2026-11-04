@@ -4428,3 +4428,18 @@ mistake's fix only when the tag is still in the Topic file, so a tag a later edi
 **Scenario.** A Learner got two right answers in a row on both Skills of a Check through an earlier quiz, and now reaches that Check's Your turn. Before, no try came and no Next showed, so the Learner was stuck. Now code shows the divider and the Check opens. Later the same Learner types 9999 into all three questions of a one-Skill quiz: the Tutor names one slip and gives one fix, as on any first miss.
 
 **Trade-off.** Migration 0031 is additive and applied by hand. Until it is, the record is saved through a copy of the table as 0030 made it (`replyChecksBefore0031`), and every read names its columns, so nothing fails; that copy should go once production has the column. Later misses in one quiz attempt are logged but not counted, so a Learner who gets every question on one idea wrong climbs the ladder no faster than one who gets one wrong. Finishing Your turn on entry means the Next note written just before can still name Your turn for that one turn; the context that follows names the Check.
+**Go-live fixes (ticket #248, part).** A pair passes only when no case is pending: while any case is pending the report says "Cases are still pending" and names no setting. A live case that carries an answer (T3, T7) now goes the way the app does: a Quick try is drawn on its Skill and shown, `answerQuickTry` marks the answer in code, and the follow-up turn it asks for is the turn the Tutor runs (when code answers alone, as with the park offer, the run is graded by code only). The engine-off Tutor instructions no longer name `show_widget` or the rate Widget; each variant has its own Widget sentence. `testedSkills` and `isConverted` live in the browser-safe `src/course/tested-skills.ts`, which `map.ts` re-exports and `navigator.ts` imports, so there is one copy and no `node:fs` in the page bundle. After a missed quiz the Check tab says the answers and fixes are below and the Tutor will help with the first idea missed.
+
+## The saved rule and the reply checks, and rounded Known mistakes (`src/tutor/tools.ts`, `src/tutor/reply-checks.ts`, `src/teaching/templates.ts`, part of #248)
+
+**What it does.** `save_learner_rule` now runs the V5 check (never give an open quiz answer) on the Learner's words before
+it keeps them, and refuses with a short reason when they give an answer away. The reply check still reads the saved rule
+for V5, but no longer for V6 (app words) or V7 (currency): the words are the Learner's own and the Tutor cannot change
+them. Separately, a template's Known mistakes on a rounded ask are rounded to the ask's decimals when they are drawn.
+
+**Scenario.** The Learner types "the present value of $1,100 at 10% for a year is $1,000" while that quiz question is
+open; the tool refuses, nothing reaches the notes, and the Tutor teaches on. A Learner who types 8.3 on a rule-of-72 draw
+at 12% now gets the "100 divided by the rate" fix line, because the stored mistake is 8.3 and not 8.33333333.
+
+**Trade-off.** A rounded mistake can now equal the answer after rounding; such a draw is thrown away and redrawn, which
+costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is kept as they wrote it.
