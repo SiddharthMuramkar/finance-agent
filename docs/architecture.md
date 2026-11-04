@@ -1651,7 +1651,8 @@ design tokens; the first two sit under the app header, Login (signed out) has no
   `/api/jump` answers "A turn is in progress…" and changes nothing; `/api/open` then just opens the
   Study Workspace, which says the same.
 - **The shown Session** (`learner_state.shown_session_id`) is what the Study Workspace renders
-  (`shownInWorkspace`). A turn saves the Session it runs in; choosing clears it, which means "the
+  (`shownInWorkspace`). A turn saves the Session it runs in, and so does a quiz submission that passes
+  the Topic (its last Due Check), which is not a turn; choosing clears it, which means "the
   current Topic's own Session, or that Topic before its first turn".
 - **The opener.** When the shown Session has no messages (and no turn is unfinished), the page starts a
   turn by itself (`{ opener: true }`). Code writes its note, starting "Opener by code:", and no Learner
