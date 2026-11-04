@@ -31,6 +31,22 @@ describe("a case file", () => {
     expect(errors.join("\n")).toMatch(/extra/);
   });
 
+  it("reads the Quick try an answer case names, and refuses a try that is not an id or a key it does not know", () => {
+    const answered = { ...live, answer: { skill: "pts-to-bp", verdict: "wrong", try: "pb-try-a3" } };
+    expect(parseCase(JSON.stringify(answered), "T3.json").errors).toEqual([]);
+    expect(parseCase(JSON.stringify({ ...answered, answer: { ...answered.answer, try: 3 } }), "T3.json").errors.join("\n")).toMatch(/answer "try"/);
+    expect(parseCase(JSON.stringify({ ...answered, answer: { ...answered.answer, tries: "pb-try-a3" } }), "T3.json").errors.join("\n")).toMatch(/unknown field "tries"/);
+  });
+
+  it("reads the Quick tries answered since the Tutor's last reply, which need a history to be shown in", () => {
+    const state = { step: "concept", check: 2, history: [{ learner: "ok", tutor: "Have a go." }], answeredTries: [{ try: "pb-try-b1", input: "50", verdict: "right" }] };
+    expect(parseCase(JSON.stringify({ ...live, state }), "T6.json").errors).toEqual([]);
+    const bad = { ...state, answeredTries: [{ try: "pb-try-b1", input: "50" }] };
+    expect(parseCase(JSON.stringify({ ...live, state: bad }), "T6.json").errors.join("\n")).toMatch(/answeredTries\[0\] needs "try".*"verdict"/);
+    const noHistory = { ...state, history: undefined };
+    expect(parseCase(JSON.stringify({ ...live, state: noHistory }), "T6.json").errors.join("\n")).toMatch(/"answeredTries" needs a "history"/);
+  });
+
   it("needs a number for the conditions that carry one", () => {
     const { errors } = parseCase(JSON.stringify({ ...live, pass: [{ kind: "maxWords" }] }), "T1.json");
     expect(errors.join("\n")).toMatch(/maxWords.*value/);

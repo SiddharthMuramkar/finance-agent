@@ -16,8 +16,12 @@ export const RUBRIC = [
   "Did it keep back an open quiz answer?",
 ] as const;
 
-/** A Widget the reply showed, with the words the Learner reads on it (its title and labels). */
-export type SeenWidget = ReplyWidget & { labels: string[] };
+/**
+ * A Widget the reply showed, with the words the Learner reads on it (its title and labels). `byCode` is set for a Widget
+ * code stored itself (the Concept card's Widget, the reveal Widget, a re-teach's practice Widget): it is on screen with
+ * the reply, but the Tutor did not show it, so the conditions about what the Tutor showed leave it out.
+ */
+export type SeenWidget = ReplyWidget & { labels: string[]; byCode?: boolean };
 
 /** One reply as the Learner sees it: after `fixReply`, with what code fixed noted, its Widgets, its saved rule and any park offer. */
 export type SeenReply = {
@@ -29,18 +33,20 @@ export type SeenReply = {
   savedRule: string | null;
   /** Code stored a park offer item in the turn. */
   parkOffer: boolean;
+  /** What code showed below the reply in the same turn (the next Quick try, a Concept card), as the Learner reads it. */
+  alsoShown: string[];
 };
 
 const BOLD = /\*\*(?=\S)[\s\S]*?\S\*\*|__(?=\S)[\s\S]*?\S__/g;
 
 /** The reply as the Learner sees it, from the turn's raw text and what it showed and saved. */
-export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean }): SeenReply {
+export function seen(r: { text: string; widgets: SeenWidget[]; savedRule?: string | null; parkOffer?: boolean; alsoShown?: string[] }): SeenReply {
   const draft = fixReply({ text: r.text, widgets: r.widgets, savedRule: r.savedRule ?? null });
   const fixed: string[] = [];
   if (/^[ \t]*#{1,6}[ \t]+/m.test(r.text)) fixed.push("headings");
   if (/[\p{Extended_Pictographic}➜➔➡→⇒]/u.test(r.text)) fixed.push("emoji or arrows");
   if ((r.text.match(BOLD)?.length ?? 0) > 1) fixed.push("extra bold");
-  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false };
+  return { text: draft.text, raw: r.text, fixed, widgets: r.widgets, savedRule: r.savedRule ?? null, parkOffer: r.parkOffer ?? false, alsoShown: r.alsoShown ?? [] };
 }
 
 const FENCE = /```[^\n]*\n[\s\S]*?(?:\n```|$)/g;
@@ -55,6 +61,15 @@ export const REFUSAL_WORDS = ["can't", "cannot", "can not", "not while", "unable
 
 function numbersOfParams(params: unknown): string[] {
   return blockedNumbersFrom([{ prompt: JSON.stringify(params ?? {}), choices: [] }]);
+}
+
+/**
+ * The mode a recipe Widget was set to. A recipe keeps its inputs under `params.inputs` (rate_move: `inputs.mode`), so
+ * that is read first; a flat `params.mode` is read as well. Undefined when the Widget has no mode (a written-ahead one).
+ */
+export function modeOf(w: ReplyWidget): unknown {
+  const params = w.params as { inputs?: { mode?: unknown }; mode?: unknown } | undefined;
+  return params?.inputs?.mode ?? params?.mode;
 }
 
 /** Every case condition the reply fails, each as a readable reason. */
@@ -88,15 +103,18 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
         break;
       }
       case "widget": {
-        if (!reply.widgets.length) {
-          out.push("No Widget was shown.");
+        // Only a Widget the Tutor showed counts: the Concept card's Widget is code's, and is on screen whatever the Tutor does.
+        const own = reply.widgets.filter((w) => !w.byCode);
+        if (!own.length) {
+          out.push(reply.widgets.length ? `The Tutor showed no Widget; the only one on screen is code's (${reply.widgets.map((w) => `"${w.id}"`).join(", ")}).` : "No Widget was shown.");
           break;
         }
-        const w = reply.widgets[0];
-        const mode = (w.params as { mode?: unknown } | undefined)?.mode;
-        if (c.mode && mode !== c.mode) out.push(`The Widget "${w.id}" is not in ${c.mode} mode (${mode === undefined ? "no mode" : `mode ${String(mode)}`}).`);
+        if (c.mode && !own.some((w) => modeOf(w) === c.mode)) {
+          const modes = own.map((w) => `"${w.id}" is in ${modeOf(w) === undefined ? "no mode" : `mode ${String(modeOf(w))}`}`).join(", ");
+          out.push(`No Widget the Tutor showed is in ${c.mode} mode (${modes}).`);
+        }
         const blocked = new Set(blockedNumbersFrom(ctx.openItems));
-        const used = [...new Set(reply.widgets.flatMap((x) => numbersOfParams(x.params)).filter((n) => blocked.has(n)))];
+        const used = [...new Set(own.flatMap((x) => numbersOfParams(x.params)).filter((n) => blocked.has(n)))];
         if (used.length) out.push(`The Widget uses ${used.join(", ")}, from the open quiz.`);
         break;
       }
@@ -148,7 +166,8 @@ export const GRADER_SYSTEM =
 function describeWidget(w: SeenWidget): string {
   const params = w.params ? ` set to ${JSON.stringify(w.params)}` : "";
   const labels = w.labels.length ? `; it reads: ${w.labels.join(" | ").slice(0, 600)}` : "";
-  return `${w.kind === "recipe" ? "Widget recipe" : w.kind === "written" ? "Written-ahead Widget" : "Widget"} "${w.id}"${params}${labels}`;
+  const by = w.byCode ? " (code showed this one, not the Tutor)" : "";
+  return `${w.kind === "recipe" ? "Widget recipe" : w.kind === "written" ? "Written-ahead Widget" : "Widget"} "${w.id}"${by}${params}${labels}`;
 }
 
 /** The grader's message: where the Learner is, what they said, the reply as they saw it, and the questions. */
@@ -165,6 +184,9 @@ export function buildGraderPrompt(args: { stateNote: string; message: string; re
     args.reply.text,
     "",
     args.reply.widgets.length ? `Shown with the reply: ${args.reply.widgets.map(describeWidget).join("; ")}.` : "No Widget was shown with the reply.",
+    // Not the Tutor's words: code shows the next Quick try below a reply, so "the try below" in a reply points at something real.
+    ...(args.reply.alsoShown.length ? [`Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): ${args.reply.alsoShown.join("; ")}.`] : []),
+    ...(args.reply.widgets.length ? ["A Widget's Guided Tasks (lines such as \"Move the new rate to 4%\") are optional play the Learner may ignore. They are not asks and not extra ideas: do not count them against \"one idea and one ask\"."] : []),
     args.reply.savedRule ? `Saved to the Learner's notes: "${args.reply.savedRule}".` : "Nothing was saved to the Learner's notes.",
     "",
     "Questions:",

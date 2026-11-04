@@ -4,7 +4,17 @@
   "source": "Percent Session, the frustrated Learner (TUTOR_SPEC section 7, T5)",
   "kind": "live",
   "topic": "num-percent-bps",
-  "state": { "step": "concept", "check": 1, "replyKind": "quick_try" },
+  "state": {
+    "step": "concept",
+    "check": 1,
+    "history": [
+      {
+        "learner": "ok I'm ready, teach me this",
+        "tutor": "Say a savings rate goes from 4% to 5%. The move is 5% minus 4%, which is 1 percentage point. A basis point is one hundredth of a percentage point, so that same move is 100 basis points. Traders quote moves in basis points, and headlines often use percent, so always say which one you mean.\nWhich of the two would you use for the move from 4% to 5%?"
+      }
+    ],
+    "replyKind": "quick_try"
+  },
   "message": "okay ask me a question this time, lets get it over with. use widgets",
   "pass": [
     { "kind": "maxWords", "value": 40 },
@@ -12,5 +22,5 @@
     { "kind": "oneAsk" },
     { "kind": "widget", "mode": "practice" }
   ],
-  "notes": "Pass when: 40 words or fewer. Acknowledgement 8 words or fewer. One question. A practice-mode widget."
+  "notes": "Pass when: 40 words or fewer. Acknowledgement 8 words or fewer. One question. A practice-mode widget the Tutor itself shows. The earlier turn puts the Concept card and its Widget (show mode) on screen, as the app does on entering the step, so the Tutor's own Widget in the graded turn is not refused as a second one."
 }

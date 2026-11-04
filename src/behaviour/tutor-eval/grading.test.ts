@@ -107,3 +107,15 @@ describe("the grader", () => {
     expect(judgeRun({ problems: [], coded: [], grade: no, questions: RUBRIC }).reasons).toEqual(['Grader: no to "Is there exactly one idea and one ask?" (two asks)']);
   });
 });
+
+describe("the grader prompt and Widget Guided Tasks", () => {
+  const widgetReply = seen({ text: "Here.\nWhat is the move in points?", widgets: [{ kind: "recipe", id: "rate_move", labels: ["Move the new rate to 4% and read the lines again"] }], savedRule: null, parkOffer: false });
+  it("tells the grader Guided Tasks are optional play, not asks, when a Widget was shown", () => {
+    const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply: widgetReply, extra: [] });
+    expect(prompt).toMatch(/Guided Tasks .* optional play .* not asks/);
+  });
+  it("leaves the line out when no Widget was shown", () => {
+    const none = seen({ text: "Hi.", widgets: [], savedRule: null, parkOffer: false });
+    expect(buildGraderPrompt({ stateNote: "x", message: "m", reply: none, extra: [] })).not.toMatch(/Guided Tasks/);
+  });
+});

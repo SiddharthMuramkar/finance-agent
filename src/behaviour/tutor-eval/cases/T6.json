@@ -4,7 +4,18 @@
   "source": "Percent Session, the Learner's rule for percent change (TUTOR_SPEC section 7, T6)",
   "kind": "live",
   "topic": "num-percent-bps",
-  "state": { "step": "concept", "check": 2, "replyKind": "feedback" },
+  "state": {
+    "step": "concept",
+    "check": 2,
+    "answeredTries": [{ "try": "pb-try-b1", "input": "50", "verdict": "right" }],
+    "history": [
+      {
+        "learner": "ok, next idea",
+        "tutor": "A percent change compares the move with where the rate started. Take 4% to 5%: the move is 1 point, and 1 divided by the start of 4 is 0.25, which is 25 percent.\nHave a go at the first Quick try."
+      }
+    ],
+    "replyKind": "feedback"
+  },
   "message": "so its basically change × 100 then divide by original",
   "pass": [
     { "kind": "maxMessageSentences", "value": 2 },
@@ -12,5 +23,5 @@
     { "kind": "oneAsk" }
   ],
   "graderChecks": ["Does it confirm the Learner's rule as right?"],
-  "notes": "Pass when: confirms in 2 sentences or fewer. save_to_notes holds the learner's wording. One new question. Replies stay text (spec #229), so the saved rule is the note the own-rule tool adds to the Topic Note during the turn."
+  "notes": "Pass when: confirms in 2 sentences or fewer. save_to_notes holds the learner's wording. One new question. Replies stay text (spec #229), so the saved rule is the note the own-rule tool adds to the Topic Note during the turn. In a converted Topic the tool saves only right after code has marked a practice answer right since the Tutor's last reply, so the case has the Learner answer a Quick try on the percent-change Skill right after the earlier turn, marked by the real Quick-try code, which is also how the Tutor is told of it with the Learner's message."
 }
