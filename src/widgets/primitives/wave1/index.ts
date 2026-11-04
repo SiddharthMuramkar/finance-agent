@@ -1,5 +1,4 @@
-// Wave 1 of the new Widget parts (REPORT.md §7.3). library-v2 registers WAVE1_PARTS in the Widget library; until
-// then they are only exported. The order of each part's props is its positional argument order, fixed forever.
+// Wave 1 of the new Widget parts (REPORT.md §7.3). library.tsx registers WAVE1_PARTS in the Widget library. The order of each part's props is its positional argument order, fixed forever.
 
 import { Breakeven } from "./breakeven";
 import { MoneyStack } from "./money-stack";

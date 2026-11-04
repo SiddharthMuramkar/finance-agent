@@ -1,5 +1,4 @@
-// Wave 2 of the new Widget parts (REPORT.md §7.3). library-v2 registers WAVE2_PARTS in the Widget library; until
-// then they are only exported. The order of each part's props is its positional argument order, fixed forever.
+// Wave 2 of the new Widget parts (REPORT.md §7.3). library.tsx registers WAVE2_PARTS in the Widget library. The order of each part's props is its positional argument order, fixed forever.
 // Step is the child part of StepThrough, like GuidedTask under GuidedTasks: it is exported on its own and is not
 // one of WAVE2_PARTS (library-v2 adds it as a child component of StepThrough).
 
