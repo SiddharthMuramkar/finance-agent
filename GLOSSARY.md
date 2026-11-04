@@ -52,6 +52,18 @@ _Avoid_: Slip, error tag, misconception
 A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it. The Topic waits at its step while the Learner studies any other Topic, and the next day it starts with a drill of five on that Skill. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
 _Avoid_: Skipped Skill, deferred Skill, review queue
 
+**Converted Topic**:
+A Topic whose file lists Skills, and with them a Concept card for each Check, Quick tries and Known mistakes. Its Concept steps show cards, and the lesson lint covers it. A Topic not yet converted keeps its concept text, taught by the Tutor.
+_Avoid_: New-style Topic, carded Topic
+
+**Lesson lint**:
+The course check's rules for a Converted Topic's teaching: a Check tests only Skills a card at or before it teaches (L1), enough Quick tries and questions (L2), short cards (L3), valid Widget presets (L4), the Topic's currency (L5), no negative stems (L6) and Check questions whose numbers differ from the worked examples (L7).
+_Avoid_: Content lint, card check
+
+**Widget preset**:
+The numbers a Widget opens with, written on a Concept card: a Widget recipe and its inputs, or a Written-ahead Widget and its sliders' values. The Widget opens already set to them.
+_Avoid_: Widget settings, default values
+
 **Running example**:
 The one everyday example a Topic keeps using, such as Percent's savings rate going from 4% to 5%, shown in its Concept cards, its Widget and the Tutor's replies, so the Learner carries one picture instead of many.
 _Avoid_: Anchor example, recurring scenario

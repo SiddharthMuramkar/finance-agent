@@ -3,6 +3,7 @@ import { calculate } from "@/finance/calculators";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
 import { formulaCheckErrors, NOT_YET_CONVERTED, topicTexts, typedFormulas } from "./formula-check";
+import { convertedTopic } from "./lesson-fixture";
 import { loadCourseMap, type Topic } from "./map";
 
 const map = loadCourseMap();
@@ -30,6 +31,34 @@ describe("the typed-formula course check", () => {
   it("lets a listed Topic type formulas, but makes a converted one come off the list", () => {
     expect(formulaCheckErrors([topicWith("old", "PV = amount / (1 + r)^n.")], ["old"])).toEqual([]);
     expect(formulaCheckErrors([topicWith("old", "Worded steps only.")], ["old"])[0]).toContain("remove it from the not-yet-converted list");
+  });
+
+  it("scans a converted Topic's teaching: card lines, Skills, Quick tries, templates, choice fixes and the Running example", () => {
+    const where = topicTexts(convertedTopic()).map((t) => t.where);
+    for (const label of [
+      "check pct-demo-check-1 card line 1",
+      "check pct-demo-check-1 card write-down",
+      "skill pts-to-bp rule",
+      "skill pts-to-bp analogy",
+      "check pct-demo-check-1 quick try pct-demo-try-pts-2 ask",
+      "check pct-demo-check-1 quick try pct-demo-try-pts-2 fix 1",
+      "template bp-from-move ask",
+      "template bp-from-move half-done step",
+      "template bp-from-move fix stopped_at_points",
+      "question pct-demo-headline choice points fix",
+      "running example",
+    ]) {
+      expect(where).toContain(label);
+    }
+    expect(formulaCheckErrors([convertedTopic()], [])).toEqual([]);
+  });
+
+  it("fails a typed sum in the new teaching texts even for a Topic on the not-yet-converted list", () => {
+    const t = convertedTopic();
+    t.checks[0].card!.lines[1] = "Points: 5 - 4 = 1 percentage point.";
+    const errors = formulaCheckErrors([t], ["pct-demo"]);
+    expect(errors[0]).toContain("Topic pct-demo types a formula in its teaching");
+    expect(errors.join("\n")).toContain("check pct-demo-check-1 card line 2");
   });
 
   it("makes a list entry for a Topic that does not exist come off", () => {
