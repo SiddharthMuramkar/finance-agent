@@ -4,10 +4,12 @@ import { exploreWidgetOf } from "@/course/explore-widget";
 import { navigate } from "@/course/navigator";
 import { messages, noteItems, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { loadSessionItems, type StoredItem } from "@/tutor/session-items";
 import { lastTopicTitle, rowsThroughTurn } from "@/tutor/session-summary";
 import { loadSession, type Line } from "@/tutor/transcript";
 import { widgetParts } from "@/widgets/check";
 import { applySettings, cleanSettings } from "@/widgets/settings";
+import { asFence, shownWidgetOf, WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { splitReply } from "@/widgets/split";
 import { loadProgress } from "./memory";
 import { loadWidgetState } from "./widget-state";
@@ -72,6 +74,30 @@ const replyOf = (lines: Line[], turnSeq: number) => lines.find((l) => l.role ===
 /** The complete Widgets of a reply, in order: the same count the browser numbers them by. */
 const widgetsOf = (text: string) => splitReply(text).flatMap((s) => (s.type === "widget" && s.complete ? [s.code] : []));
 
+/** What tells a turn's span and its shown Widgets: the Session's message seqs and its stored items. */
+type SessionFacts = { rows: { seq: number; role: string; content: unknown }[]; items: StoredItem[] };
+
+async function sessionFacts(db: Db, sessionId: number, learnerId: number): Promise<SessionFacts> {
+  const rows = await db.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, sessionId)).orderBy(asc(messages.seq));
+  return { rows, items: await loadSessionItems(db, sessionId, learnerId) };
+}
+
+/**
+ * A reply's text with the Widgets show_widget gave it (WIDGET_SHOWN items, ADR 0005) added after it as fences, so a
+ * saved reply keeps them and Notes draws them like any fenced Widget. They are numbered after the reply's own fences.
+ * The items of a turn are those stored after its first message and before the next turn's.
+ */
+function withShownWidgets(text: string, facts: SessionFacts, turnSeq: number): string {
+  const turn = rowsThroughTurn(facts.rows, turnSeq);
+  const end = turn.length ? turn[turn.length - 1].seq : turnSeq;
+  const next = facts.rows.find((r) => r.seq > end);
+  const fences = facts.items.flatMap((i) => {
+    const shown = i.kind === WIDGET_SHOWN && i.afterSeq >= turnSeq && (!next || i.afterSeq < next.seq) ? shownWidgetOf(i.data) : null;
+    return shown ? [asFence(shown.code)] : [];
+  });
+  return fences.length ? [text, ...fences].join("\n\n") : text;
+}
+
 /** True when the Session is this Learner's own. */
 async function ownSession(db: Db, sessionId: number, learnerId: number): Promise<boolean> {
   const rows = await db
@@ -102,7 +128,8 @@ export async function saveToNotes(db: Db, map: CourseMap, request: SaveRequest, 
   if (!topicId) return notFound("There is no Topic to save it on.");
   const key = { topicId, sessionId: req.sessionId, turnSeq: req.turnSeq };
   if (req.kind === "reply") return keep(db, learnerId, { ...key, kind: "reply", widgetIndex: null }, undefined, undefined, now);
-  const code = Number.isInteger(req.widgetIndex) ? widgetsOf(reply.text)[req.widgetIndex] : undefined;
+  const withShown = withShownWidgets(reply.text, await sessionFacts(db, req.sessionId, learnerId), req.turnSeq);
+  const code = Number.isInteger(req.widgetIndex) ? widgetsOf(withShown)[req.widgetIndex] : undefined;
   if (code === undefined) return notFound("That reply has no such Widget.");
   return keep(db, learnerId, { ...key, kind: "widget", widgetIndex: req.widgetIndex }, code, req.settings, now);
 }
@@ -160,16 +187,23 @@ export async function loadSaved(db: Db, map: CourseMap, learnerId: number): Prom
     .where(and(eq(noteItems.learnerId, learnerId), ne(noteItems.kind, "line")))
     .orderBy(asc(noteItems.id))) as (typeof noteItems.$inferSelect)[];
   const sessionLines = new Map<number, Line[]>();
-  for (const id of new Set(rows.flatMap((r) => (r.sessionId === null ? [] : [r.sessionId])))) sessionLines.set(id, await loadSession(db, id, map, learnerId));
+  const sessionFactsOf = new Map<number, SessionFacts>();
+  for (const id of new Set(rows.flatMap((r) => (r.sessionId === null ? [] : [r.sessionId])))) {
+    sessionLines.set(id, await loadSession(db, id, map, learnerId));
+    sessionFactsOf.set(id, await sessionFacts(db, id, learnerId));
+  }
+  // A saved reply keeps the Widgets shown for it, so the note draws them with its text.
+  const textOfReply = (r: { sessionId: number | null; turnSeq: number | null }, reply: Line) =>
+    r.sessionId !== null && r.turnSeq !== null && sessionFactsOf.has(r.sessionId) ? withShownWidgets(reply.text, sessionFactsOf.get(r.sessionId)!, r.turnSeq) : reply.text;
   const out = new Map<string, SavedItem[]>();
   for (const r of rows) {
     const reply = r.sessionId !== null && r.turnSeq !== null ? replyOf(sessionLines.get(r.sessionId) ?? [], r.turnSeq) : undefined;
     let item: SavedItem | undefined;
     if (r.kind === "reply" && reply && r.sessionId !== null && r.turnSeq !== null)
-      item = { id: r.id, kind: "reply", text: reply.text, savedAt: r.createdAt, again: { kind: "reply", sessionId: r.sessionId, turnSeq: r.turnSeq } };
+      item = { id: r.id, kind: "reply", text: textOfReply(r, reply), savedAt: r.createdAt, again: { kind: "reply", sessionId: r.sessionId, turnSeq: r.turnSeq } };
     else if (r.kind === "widget") {
       const exploreTopic = r.widgetIndex === EXPLORE_INDEX ? map.topic(r.topicId) : undefined;
-      const base = exploreTopic ? exploreWidgetOf(exploreTopic)?.code : reply ? widgetsOf(reply.text)[r.widgetIndex ?? -2] : undefined;
+      const base = exploreTopic ? exploreWidgetOf(exploreTopic)?.code : reply ? widgetsOf(textOfReply(r, reply))[r.widgetIndex ?? -2] : undefined;
       if (base !== undefined) {
         const code = applySettings(base, r.widgetState);
         const again: SaveAgain = {

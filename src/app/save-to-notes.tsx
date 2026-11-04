@@ -25,9 +25,6 @@ export type SaveState =
 /** How long "Saved ✓" stays before the control settles back. */
 export const SAVED_HOLD_MS = 1600;
 
-const quiet =
-  "cursor-pointer rounded underline-offset-2 hover:text-[var(--ink)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--brand)] disabled:opacity-50";
-
 function Bookmark() {
   return (
     <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" className="h-4 w-4 shrink-0">
@@ -73,9 +70,9 @@ export function SaveToNotesView({ state, what, onSave, onUndo }: { state: SaveSt
             </span>
           )}
           <span aria-hidden>·</span>
-          <button type="button" data-undo-save onClick={onUndo} aria-label={`Undo: take this ${what} off your notes`} className={`${quiet} -my-2 py-2`}>
+          <Button variant="ghost" size="sm" data-undo-save onClick={onUndo} aria-label={`Undo: take this ${what} off your notes`} className="-my-2">
             Undo
-          </button>
+          </Button>
           <span aria-hidden>·</span>
           <Link href={`/notes#note-${state.topicId}`} className="-my-2 py-2 underline underline-offset-2 hover:text-[var(--ink)]">
             Open notes
