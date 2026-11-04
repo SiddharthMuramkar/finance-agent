@@ -123,11 +123,18 @@ function asksOrInstructs(sentence: string): boolean {
   if (/\?[*_"')\]]*$/.test(s)) return true;
   const start = bareStart(s);
   if (/^your turn\b/i.test(start)) return true;
-  const first = start
-    .replace(/^(?:now|then|next|so)\b,?\s*/i, "")
-    .match(/^[\p{L}']+/u)?.[0]
-    ?.toLowerCase();
-  return first !== undefined && INSTRUCTION_VERBS.has(first);
+  return opensWithVerb(start.replace(/^(?:now|then|next|so)\b,?\s*/i, ""), INSTRUCTION_VERBS);
+}
+
+/** Whether a line opens with one of these verbs as an instruction. "Do not…" and "Say a rate…" (a supposition) do not count. */
+function opensWithVerb(line: string, verbs: ReadonlySet<string>): boolean {
+  const [first, second] = bareStart(line)
+    .split(/\s+/)
+    .map((w) => w.replace(/[^\p{L}']/gu, "").toLowerCase());
+  if (!first || !verbs.has(first)) return false;
+  if (first === "do" && (second === "not" || second === "you")) return false;
+  if (first === "say" && ["a", "an", "we", "you", "your", "that", "it"].includes(second ?? "")) return false;
+  return true;
 }
 
 /** The indices of the lines outside fences. */
@@ -226,14 +233,9 @@ const BANNED_PHRASES = ["Great question", "Certainly", "Absolutely", "Code recor
 /** The task verbs that may open only the ask line. */
 const TASK_VERBS = new Set(["set", "open", "try", "do", "tell", "press", "say"]);
 
-/** Whether a message line sets the Learner a task ("Set the widget…", "Do its Guided Tasks"). "Do not" and "Say a rate…" do not count. */
+/** Whether a message line sets the Learner a task ("Set the widget…", "Do its Guided Tasks"). */
 function isTaskLine(line: string): boolean {
-  const start = bareStart(line);
-  const [first, second] = start.split(/\s+/).map((w) => w.replace(/[^\p{L}']/gu, "").toLowerCase());
-  if (!first || !TASK_VERBS.has(first)) return false;
-  if (first === "do" && (second === "not" || second === "you")) return false;
-  if (first === "say" && ["a", "an", "we", "you", "your", "that", "it"].includes(second ?? "")) return false;
-  return true;
+  return opensWithVerb(line, TASK_VERBS);
 }
 
 function quoteList(items: string[]): string {
@@ -278,7 +280,122 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   const bold = said.match(BOLD)?.length ?? 0;
   if (bold > 1) problems.push({ rule: "V3", message: `Your reply had ${bold} bold spans. The limit is one: the rule worth writing down.` });
 
+  // V4: one Widget a reply, and a valid one.
+  if (draft.widgets.length > 1)
+    problems.push({ rule: "V4", message: `Your reply showed ${draft.widgets.length} Widgets. The limit is one.` });
+  for (const w of draft.widgets) {
+    const reason = ctx.widgetOk?.(w) ?? null;
+    if (reason) problems.push({ rule: "V4", message: `The Widget "${w.id}" cannot be shown: ${reason}` });
+  }
+
+  // V5: no open quiz answer, in the text, the saved rule or a Widget preset.
+  const withRule = `${said}\n${prose(draft.savedRule ?? "")}`;
+  const leaked = ctx.openItems.filter((item) => givesAnswer(item, withRule));
+  for (const item of leaked)
+    problems.push({
+      rule: "V5",
+      message: `Your reply gives the answer to an open quiz question ("${item.prompt.trim()}"). Never give or confirm an open answer. Teach the idea with other numbers.`,
+    });
+  const blocked = new Set(blockedNumbersFrom(ctx.openItems));
+  for (const w of draft.widgets) {
+    const used = unique(paramNumbers(w.params).filter((n) => blocked.has(n)));
+    if (used.length)
+      problems.push({
+        rule: "V5",
+        message: `The Widget "${w.id}" is set to ${used.join(", ")}, from the open quiz. Set it to other numbers.`,
+      });
+  }
+
+  // V6: no app words.
+  const appWords = appWordsIn(withRule, ctx.internalWords);
+  if (appWords.length) problems.push({ rule: "V6", message: `Remove the app words ${quoteList(appWords)}. Write only about the finance.` });
+
+  // V7: the right currency for made-up examples and Widgets.
+  const wrong = wrongCurrencies(withRule, draft.widgets, ctx);
+  if (wrong.length)
+    problems.push({
+      rule: "V7",
+      message: `Your reply uses ${wrong.join(" and ")}. This Topic's examples and Widgets use ${currencyName(ctx.exampleCurrency)}.`,
+    });
+
   return problems;
+}
+
+/**
+ * Whether the text gives an open item's answer: every number of the answer together with any number
+ * of its question. An answer with no numbers counts when its words appear (two words or more) beside
+ * the question's numbers, or anywhere when the question has none.
+ */
+function givesAnswer(item: OpenItem, text: string): boolean {
+  if (!item.answer?.trim()) return false;
+  const said = new Set(numbersIn(text));
+  const promptNumbers = numbersIn(item.prompt);
+  const withQuestion = promptNumbers.length === 0 || promptNumbers.some((n) => said.has(n));
+  const answerNumbers = numbersIn(item.answer);
+  if (answerNumbers.length) return withQuestion && answerNumbers.every((n) => said.has(n));
+  const words = item.answer.trim().toLowerCase().split(/\s+/);
+  return words.length >= 2 && withQuestion && text.toLowerCase().replace(/\s+/g, " ").includes(words.join(" "));
+}
+
+/** Every number in a Widget's params, normalised: numbers as they are, and any numbers written in strings. */
+function paramNumbers(value: unknown): string[] {
+  if (typeof value === "number") return Number.isFinite(value) ? [normalNumber(String(Math.abs(value)))] : [];
+  if (typeof value === "string") return numbersIn(value);
+  if (Array.isArray(value)) return value.flatMap(paramNumbers);
+  if (value && typeof value === "object") return Object.values(value).flatMap(paramNumbers);
+  return [];
+}
+
+/** Every string in a Widget's params. */
+function paramStrings(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(paramStrings);
+  if (value && typeof value === "object") return Object.values(value).flatMap(paramStrings);
+  return [];
+}
+
+/** App words the Learner can use: never banned, even when a caller passes one as an id. */
+export const ALLOWED_APP_WORDS = ["Topic", "Check", "Check tab", "Widget", "Next", "Go deeper", "Show me in a widget", "Quick try", "Concept card"];
+const INTERNAL_PHRASES = /\b(?:course navigator|session items?|reply kinds?|skill states?)\b/gi;
+const SNAKE_CASE = /(?<![\w/.-])[a-z][a-z0-9]*(?:_[a-z0-9]+)+(?![\w-])/g;
+const CODE_VERBS =
+  "recorded|records|marks|marked|saved|saves|logged|logs|noted|notes|checked|checks|tracks|tracked|counted|counts|will|has|shows|showed|says|said|keeps|kept|decides|decided|opens|opened|moves|moved|picks|picked|sees|saw|knows";
+const CODE_AS_SUBJECT = new RegExp(`(?:^|[.!?]["')]*\\s+)(?:the\\s+)?code\\s+[a-z]+|\\bcode\\s+(?:${CODE_VERBS})\\b`, "gim");
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** The app words in a reply: the ids it was told to keep out, tool and step names, named internals, and "Code" doing something. */
+function appWordsIn(text: string, internalWords: string[]): string[] {
+  const allowed = new Set(ALLOWED_APP_WORDS.map((w) => w.toLowerCase()));
+  const found: string[] = [];
+  for (const word of internalWords) {
+    if (!word.trim() || allowed.has(word.trim().toLowerCase())) continue;
+    const m = text.match(new RegExp(`(?<![\\w-])${escapeRegExp(word.trim())}(?![\\w-])`, "i"));
+    if (m) found.push(m[0]);
+  }
+  for (const re of [SNAKE_CASE, INTERNAL_PHRASES, CODE_AS_SUBJECT]) for (const m of text.match(re) ?? []) found.push(m.replace(/^[.!?"')\s]+/, ""));
+  return unique(found);
+}
+
+const USD_AMOUNT = /(?:US)?\$\s?\d|\bUSD\s?\d|\d\s?USD\b/;
+const INR_AMOUNT = /₹\s?\d|\bINR\s?\d|\d\s?INR\b|\bRs\.?\s?\d/;
+
+function currencyName(code: string): string {
+  if (code === "INR") return "rupees (₹)";
+  if (code === "USD") return "dollars ($)";
+  return code;
+}
+
+/** The currencies a reply uses that its Topic does not allow: $ only with dollar examples or a dollar Case, ₹ likewise for rupees. */
+function wrongCurrencies(text: string, widgets: ReplyWidget[], ctx: ReplyCheckContext): string[] {
+  const allows = (code: string) => ctx.exampleCurrency === code || ctx.caseCurrencies.includes(code);
+  const labels = widgets.flatMap((w) => paramStrings(w.params));
+  const out: string[] = [];
+  if (!allows("USD") && (USD_AMOUNT.test(text) || labels.some((s) => /\$|\bUSD\b/.test(s)))) out.push("dollars ($)");
+  if (!allows("INR") && (INR_AMOUNT.test(text) || labels.some((s) => /₹|\bINR\b|\bRs\b/.test(s)))) out.push("rupees (₹)");
+  return out;
 }
 
 /**

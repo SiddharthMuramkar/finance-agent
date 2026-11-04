@@ -243,3 +243,156 @@ describe("V3: plain style", () => {
     expect(checkReply(fixReply(d), ctx())).toEqual([]);
   });
 });
+
+const RATE_MOVE: ReplyWidget = { kind: "recipe", id: "rate_move", params: { old: 2, new: 3, mode: "show" } };
+
+describe("V4: a valid Widget", () => {
+  it("passes one Widget the validator accepts", () => {
+    expect(rules(draft("This shows a rate moving from 2% to 3%.", [RATE_MOVE]), ctx({ widgetOk: () => null }))).toEqual([]);
+  });
+
+  it("fails two Widgets in one reply", () => {
+    expect(rules(draft("Two pictures.", [RATE_MOVE, { kind: "written", id: "rate-change-three-ways" }]), ctx())).toEqual(["V4"]);
+  });
+
+  it("fails a Widget the validator rejects, with its reason", () => {
+    const problems = checkReply(draft("Here.", [RATE_MOVE]), ctx({ widgetOk: () => "unknown recipe" }));
+    expect(problems.map((p) => p.rule)).toEqual(["V4"]);
+    expect(problems[0].message).toContain("unknown recipe");
+  });
+});
+
+describe("V5: no open quiz answer", () => {
+  const quizOpen = ctx({ step: "check", openItems: CHECK_1 });
+
+  it("fails 60 basis points said while the 0.6-point question is open", () => {
+    expect(rules(draft("Think of it this way: 0.6 of a point is 60 bp, because a point is 100 bp.\nWhat is 0.3 of a point in bp?"), quizOpen)).toEqual([
+      "V5",
+    ]);
+  });
+
+  it("fails an answer given in words with its question's numbers", () => {
+    expect(rules(draft("From 4% to 4.5% the rate is up 50 percent? No, that one is wrong."), quizOpen)).toContain("V5");
+  });
+
+  it("passes the same idea taught on other numbers", () => {
+    expect(rules(draft("A point is 100 bp. So 0.2 of a point is 20 bp.\nHow many basis points is 0.7 of a point?"), quizOpen)).toEqual([]);
+  });
+
+  it("passes the open answer once no quiz is open", () => {
+    expect(rules(draft("0.6 of a point is 60 bp.\nWhat is 0.3 of a point in bp?"), ctx({ step: "check" }))).toEqual([]);
+  });
+
+  it("fails a Widget preset that uses a blocked number", () => {
+    const widget: ReplyWidget = { kind: "recipe", id: "rate_move", params: { old: 4, new: "4.50%", mode: "show" } };
+    expect(rules(draft("This shows a rate move.", [widget]), quizOpen)).toEqual(["V5"]);
+  });
+
+  it("passes a Widget preset on other numbers", () => {
+    expect(rules(draft("This shows a rate moving from 2% to 3%.", [RATE_MOVE]), quizOpen)).toEqual([]);
+  });
+
+  it("fails a saved rule that gives the answer", () => {
+    expect(rules(draft("Yes.", [], "0.6 of a point is 60 bp"), quizOpen)).toEqual(["V5"]);
+  });
+});
+
+describe("V6: no app words", () => {
+  it('fails "Code recorded a pass on Check 1"', () => {
+    expect(rules(draft("Code recorded a pass on Check 1, so the next step is open."), ctx())).toContain("V6");
+  });
+
+  it('fails "Code" as the subject of a sentence', () => {
+    expect(rules(draft("Right. The code marks this one as passed."), ctx())).toEqual(["V6"]);
+    expect(rules(draft("Right. Code will open the next step."), ctx())).toEqual(["V6"]);
+  });
+
+  it("fails Topic, Check, question and Widget ids, and tool names", () => {
+    expect(rules(draft("This is check-1 of num-percent-bps."), ctx())).toEqual(["V6"]);
+    expect(rules(draft("I will call open_widget now."), ctx())).toEqual(["V6"]);
+    expect(rules(draft("You are at your_turn."), ctx())).toEqual(["V6"]);
+  });
+
+  it("fails the named app internals", () => {
+    for (const phrase of ["Course Navigator", "Session item", "Reply kind", "Skill state"])
+      expect(rules(draft(`The ${phrase} says so.`), ctx())).toEqual(["V6"]);
+  });
+
+  it("allows the Learner's app words", () => {
+    const text = "This Topic has three Checks. Open the Check tab, or use the Widget, a Quick try or the Concept card. Go deeper or Show me in a widget if you like.\nPress Next.";
+    expect(rules(draft(text), ctx({ step: "story" }))).toEqual([]);
+  });
+
+  it("does not treat an allowed word passed as an id as banned", () => {
+    expect(rules(draft("This Topic is short."), ctx({ internalWords: ["topic"] }))).toEqual([]);
+  });
+});
+
+describe("V7: the right currency", () => {
+  it("fails a dollar amount in a rupee Topic", () => {
+    expect(rules(draft("Say you save $1,000 at 4%."), ctx())).toEqual(["V7"]);
+    expect(rules(draft("Say you save US$1,000 at 4%."), ctx())).toEqual(["V7"]);
+    expect(rules(draft("Say you save 1,000 USD at 4%."), ctx())).toEqual(["V7"]);
+  });
+
+  it('fails a "$" slider label in a rupee Topic', () => {
+    const widget: ReplyWidget = { kind: "recipe", id: "grow_money", params: { amount: 1000, rate: 4, label: "Deposit ($)" } };
+    expect(rules(draft("Here is your deposit growing.", [widget]), ctx())).toEqual(["V7"]);
+  });
+
+  it("passes rupee amounts in a rupee Topic", () => {
+    expect(rules(draft("Say you save ₹1,000 at 4%."), ctx())).toEqual([]);
+  });
+
+  it("passes a dollar amount when a Case is in dollars", () => {
+    expect(rules(draft("The ticket was worth $1.537 billion."), ctx({ caseCurrencies: ["USD"] }))).toEqual([]);
+  });
+
+  it("fails a rupee amount when the Topic's examples are in another currency and no Case uses rupees", () => {
+    expect(rules(draft("Say you save ₹1,000."), ctx({ exampleCurrency: "USD", caseCurrencies: ["USD"] }))).toEqual(["V7"]);
+    expect(rules(draft("Say you save ₹1,000."), ctx({ exampleCurrency: "USD", caseCurrencies: ["INR"] }))).toEqual([]);
+  });
+});
+
+describe("Appendix A's good replies, said in words", () => {
+  const quizOpen = { step: "check" as const, openItems: CHECK_1 };
+  const cases: { name: string; d: ReplyDraft; c: Partial<ReplyCheckContext> }[] = [
+    {
+      name: "a Widget asked for during an open quiz",
+      d: draft("Sure. This one shows a rate moving from 2% to 3%. The three numbers under the line each answer a different question.\nWhich of the three numbers is the move in basis points?", [RATE_MOVE]),
+      c: { ...quizOpen, replyKind: "answer_question" },
+    },
+    {
+      name: "starting from the beginning",
+      d: draft(
+        'Okay. One idea first. A savings rate goes from 4% to 5%. How far did it move? Five minus four is **1 percentage point**. "Points" is short for percentage points. It is the new rate minus the old rate.\nA rate goes from 3% to 3.5%: how many points did it move?',
+      ),
+      c: { step: "concept", replyKind: "rule" },
+    },
+    {
+      name: "fill-in boxes after repeat misses",
+      d: draft("0.3 is right in points. One step is left. Use two boxes. Box 1: 5.0 minus 4.6 is how many points. Box 2: that number times 100 is how many basis points.\nFill in both boxes."),
+      c: { step: "your_turn", replyKind: "reteach" },
+    },
+    {
+      name: "a practice Widget when the Learner wants it over with",
+      d: draft("Okay. Shortest path.\nHow many basis points did the rate move?", [{ kind: "recipe", id: "rate_move", params: { old: 2, new: 2.5, mode: "practice" } }]),
+      c: { step: "concept", replyKind: "quick_try" },
+    },
+    {
+      name: "the Learner's own rule",
+      d: draft("Yes. That is percent change: **the change times 100, divided by the old value.** The order does not matter.\nA price goes from ₹50 to ₹60: what is the percent change?", [], "change times 100, then divide by the original"),
+      c: { step: "concept", replyKind: "feedback" },
+    },
+    {
+      name: "asked for an open answer",
+      d: draft("I can't give the answer to an open quiz question. I can show the method on other numbers. Basis points are points times 100. So 0.2 of a point is 20 bp.\nNow you try: how many basis points is 0.7 of a point?"),
+      c: { ...quizOpen, replyKind: "hint" },
+    },
+  ];
+
+  for (const { name, d, c } of cases)
+    it(`passes ${name}`, () => {
+      expect(checkReply(fixReply(d), ctx({ ...c, widgetOk: () => null }))).toEqual([]);
+    });
+});
