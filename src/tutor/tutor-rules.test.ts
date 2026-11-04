@@ -109,7 +109,7 @@ describe("Appendix A's examples", () => {
 
   it("name the blocked numbers of an open quiz, and the Widget the reply shows", () => {
     expect(TUTOR_INSTRUCTIONS).toContain("Context: a quiz is open; blocked numbers: 4, 4.6, 0.6, 6, 60, 120.");
-    expect(TUTOR_INSTRUCTIONS).toContain("show_widget with recipe rate_move");
+    expect(ENGINE_INSTRUCTIONS).toContain("show_widget with recipe rate_move");
   });
 
   it("each pass every reply check", () => {

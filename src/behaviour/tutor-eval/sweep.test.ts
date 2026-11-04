@@ -117,7 +117,7 @@ describe("a sweep", () => {
     expect(b.passed).toBe(true);
   });
 
-  it("treats pending cases as neither passed nor failed, and lists them", () => {
+  it("does not pass a pair while a case is pending, and says cases are still pending instead of choosing", () => {
     const base: EvalReport = {
       startedAt: "2026-11-04T10:00:00.000Z",
       finishedAt: "2026-11-04T10:05:00.000Z",
@@ -133,7 +133,11 @@ describe("a sweep", () => {
       ],
     };
     const s = summarisePair({ pair: { model: "claude-opus-5-5", effort: "low" }, report: base });
-    expect(s).toMatchObject({ passed: true, runsPassed: 3, runsTotal: 3, pending: ["T3"] });
+    expect(s).toMatchObject({ passed: false, runsPassed: 3, runsTotal: 3, pending: ["T3"] });
+    expect(chooseSetting([s])).toBeNull();
+    const text = renderSweep({ startedAt: base.startedAt, finishedAt: base.finishedAt, capUsd: 5, pairs: [{ pair: { model: "claude-opus-5-5", effort: "low" }, report: base }] });
+    expect(text).toMatch(/Cases are still pending/);
+    expect(text).not.toMatch(/Chosen setting/);
   });
 
   it("writes a dated report and a latest copy, in Markdown and JSON", async () => {
