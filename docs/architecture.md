@@ -776,6 +776,7 @@ only built together, and the package's per-file build is broken in 0.18.1 (a mis
 script is still over 1 MB and the stylesheet over 120 KB (our own CSS is 66 KB of it). The loader and stand-ins match
 this package version's text: after an OpenUI upgrade, run `npm run build` and read the sizes, and `openui-trim.test.ts`
 fails if the loader's patterns stop matching.
+The CSS trim itself lives in `openui-stubs/trim-openui.cjs` and `postcss.config.mjs` lists every plugin by path with an options object, the only form both Turbopack and `next dev --webpack` accept (`postcss-config.test.ts` guards it).
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
