@@ -81,8 +81,11 @@ export function writtenAheadFor(topic: Pick<Topic, "widgets">, cases: readonly (
   });
 }
 
-/** The written-ahead Widget whose parts a Tutor Widget uses: the parts it covers, by Widget. */
-export type CoveredParts = { id: string; title: string; parts: string[] };
+/**
+ * The written-ahead Widget whose parts a Tutor Widget uses: the parts it covers, by Widget. `held` marks the explore
+ * Widget before the explore step (exploreHeldBack): it still covers its parts, but the Tutor may not open it yet.
+ */
+export type CoveredParts = { id: string; title: string; parts: string[]; held?: boolean };
 
 /** What each of the Topic's written-ahead Widgets covers, so a Widget the Tutor draws may not use those parts. */
 export function coveredParts(topic: Pick<Topic, "widgets">): CoveredParts[] {

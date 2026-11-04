@@ -6,6 +6,7 @@ import { loadCaseData } from "@/case-data/case-data";
 import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
+import { exploreHeldBack } from "@/course/explore-widget";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { OWNER_LEARNER_ID, sessions, toolCalls, turns } from "@/db/schema";
 import { widgetControls } from "@/widgets/check";
@@ -286,10 +287,16 @@ export function toolCode(
           // The Topic of the Session this turn runs in: its written-ahead Widgets are the ones that can be opened.
           const [row] = await tx.select({ sessionId: turns.sessionId, topicId: sessions.topicId }).from(turns).leftJoin(sessions, eq(sessions.id, turns.sessionId)).where(eq(turns.id, turnId));
           const topicId = row?.topicId ?? navigate(map, await loadProgress(tx, learnerId))?.topic.id;
-          const widgets = await loadWrittenAhead(tx, map, await loadProgress(tx, learnerId), topicId);
+          const progress = await loadProgress(tx, learnerId);
+          const widgets = await loadWrittenAhead(tx, map, progress, topicId);
           const widget = widgets.find((w) => w.id === id);
           if (!widget || row?.sessionId == null) {
             return { ok: false, text: `Not opened: this Topic has no written-ahead Widget "${id}". Its written-ahead Widgets: ${widgets.map((w) => w.id).join(", ") || "none"}.` };
+          }
+          // Code holds the sequence (ADR 0001): the explore Widget reaches the Learner only once the explore step begins.
+          const topic = topicId ? map.topic(topicId) : undefined;
+          if (topic && exploreHeldBack(topic, progress.topics[topic.id]) === widget.id) {
+            return { ok: false, text: `Not opened: "${widget.title}" is this Topic's explore Widget, which code shows when the explore step begins. Do not open it or draw your own version before then; teach this in words.` };
           }
           const item = { kind: WIDGET_OPENED, data: { id: widget.id, title: widget.title } };
           await saveItemAfterLatest(tx, learnerId, row.sessionId, item, now());

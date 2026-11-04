@@ -1,5 +1,5 @@
 import type { CourseMap, Topic } from "./map";
-import { navigate, type Progress } from "./navigator";
+import { navigate, type Progress, type TopicProgress } from "./navigator";
 
 /**
  * The Topic's own explore Widget, which code puts in the Widget panel (the Tutor does not draw it): one of the Topic's
@@ -27,6 +27,17 @@ export function exploreWidgetFor(map: CourseMap, progress: Progress): ExploreWid
   const settled = progress.topics[place.topic.id]?.insight !== undefined;
   const shown = place.step === "explore" || (place.status !== "passed" && settled);
   return shown ? widget : null;
+}
+
+/**
+ * The id of the Topic's explore Widget while the Learner has not reached its explore step (`record` is their progress
+ * in the Topic), else null. Until then the Tutor may not open it and is not told of it: the Learner plays with it only
+ * once the concept is named, and code holds that (ADR 0001). A passed Topic, or one whose Insight is settled, holds nothing back.
+ */
+export function exploreHeldBack(topic: Pick<Topic, "id" | "explore" | "widgets">, record: TopicProgress | undefined): string | null {
+  const id = exploreWidgetOf(topic)?.id;
+  const reached = record?.status === "passed" || record?.insight !== undefined || record?.step === "explore";
+  return id && !reached ? id : null;
 }
 
 /** The explore Widget with its code as the Learner sees it now, from the Topic's written-ahead Widgets worked out for them. */

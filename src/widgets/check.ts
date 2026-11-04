@@ -278,7 +278,10 @@ export function writtenAheadPartProblems(code: string, covered: readonly Covered
   }
   return covered.flatMap((w) => {
     const shared = w.parts.filter((p) => used.has(p));
-    const open = `Never draw your own version: call open_widget with id "${w.id}" and ${LEAVE_OUT}.`;
+    // The explore Widget before the explore step: the Learner meets it there (ADR 0001), so it is not opened yet either.
+    const open = w.held
+      ? `Never draw your own version, and do not open it yet: the Learner meets it at the explore step. Teach this in words for now and ${LEAVE_OUT}.`
+      : `Never draw your own version: call open_widget with id "${w.id}" and ${LEAVE_OUT}.`;
     if (shared.length) return [`this Widget uses ${shared.map(partName).join(" and ")}, which the written-ahead Widget "${w.title}" covers. ${open}`];
     // Its own title would take the written-ahead Widget's tab, as an update in place does.
     if (title === w.title) return [`this Widget has the title of the written-ahead Widget "${w.title}". ${open}`];
@@ -313,8 +316,8 @@ export function widgetCheckMessage(broken: readonly { index: number; problems: s
   const close = !leaveOut
     ? "Reply with only the corrected openui-lang block, written in full. Write no prose."
     : broken.every((b) => b.problems.some((p) => p.includes(LEAVE_OUT)))
-      ? "Call open_widget as each line says. Write no openui-lang block and no prose."
-      : "Call open_widget as each line says, and write no block for a Widget to leave out. For each other Widget named, reply with only its corrected openui-lang block, written in full, in order. Write no prose.";
+      ? "Call open_widget where a line says to. Write no openui-lang block and no prose."
+      : "Call open_widget where a line says to, and write no block for a Widget to leave out. For each other Widget named, reply with only its corrected openui-lang block, written in full, in order. Write no prose.";
   return `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn or breaks a Widget rule.\n${problems.join("\n")}\n${close}`;
 }
 

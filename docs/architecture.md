@@ -1395,8 +1395,11 @@ the Learner can keep playing during their turn and the Check. It is chosen from 
 that Session reached the explore step (read from the Course Navigator context saved in the Session). A
 newer Widget from the Tutor still opens on its own, because the explore Widget is placed after only the
 Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells it the Widget is already on
-screen, so it points to it and does not draw its own. Because it is a written-ahead Widget, the Tutor can open it
-again later with `open_widget`: the panel then keeps one tab (the Explore one), the Tutor's "Open: <title> →" chip
+screen, so it points to it and does not draw its own. Before the explore step code holds it back (ADR 0001,
+`exploreHeldBack`): `open_widget` refuses its id, the Written-ahead Widgets line leaves it out, and an annuity chart
+the Tutor draws at the story or concept step is still sent back, told to teach in words rather than to open it.
+Once the explore step has begun (or the Insight is settled, or the Topic passed), the Tutor can open it
+again with `open_widget`: the panel then keeps one tab (the Explore one), the Tutor's "Open: <title> →" chip
 opens it, its work is saved under the written-ahead id in both places, and the Tutor is told of it once
 (`updatedInPlace` in `widget-panel.tsx`, `openWidgetsForTurn` in `src/tutor/widget-context.ts`). The page draws it
 with the code as the Learner sees it now (`exploreAsSeen`), so a reveal task joins it after the reveal. It is mounted once: the page measures its width
