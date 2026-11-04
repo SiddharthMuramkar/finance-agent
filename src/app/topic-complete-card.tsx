@@ -1,6 +1,6 @@
 import type { TopicCompleteData } from "@/tutor/topic-complete-card";
 import { WhatComesNextButton } from "./course/jump-button";
-import { Eyebrow } from "./ui";
+import { Eyebrow, secondaryButtonClass } from "./ui";
 
 /**
  * The Topic complete card (src/tutor/topic-complete.ts), the last item of a passed Topic's conversation: the
@@ -16,7 +16,7 @@ export function TopicCompleteCard({ card }: { card: TopicCompleteData }) {
       <p className="mt-2 text-xs leading-4 text-[var(--you)]">Saved to your Notes ✓</p>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {card.next && <WhatComesNextButton label={card.next} />}
-        <a href="/course" className="text-sm leading-5 underline">
+        <a href="/course" className={secondaryButtonClass}>
           Course Map
         </a>
       </div>

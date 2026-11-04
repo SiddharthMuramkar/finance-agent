@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { createContext, useCallback, useContext, type ComponentProps, type ReactNode } from "react";
 import { isSafeHref, parseFold, SOURCES_FENCE, type SourceEntry } from "@/tutor/citations";
 import { findWidget, markdownSource, splitReply } from "@/widgets/split";
+import { Chevron } from "./ui";
 
 /** What stands where a widget belongs in the prose: a marker in the workspace, the widget itself in an old Session. */
 export type WidgetSlot = (widget: { messageId: string; index: number; code: string; complete: boolean }) => ReactNode;
@@ -53,8 +54,9 @@ const COMPONENTS = { a: ReplyLink };
 export function SourcesFold({ entries }: { entries: SourceEntry[] }) {
   if (!entries.length) return null;
   return (
-    <details data-testid="sources-fold" className="sources-fold mt-3 text-sm text-[var(--muted)]">
-      <summary className="cursor-pointer select-none">
+    <details data-testid="sources-fold" className="group sources-fold mt-3 text-sm text-[var(--muted)]">
+      <summary className="flex cursor-pointer select-none list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
+        <Chevron />
         {entries.length} {entries.length === 1 ? "source" : "sources"}
       </summary>
       <div className="mt-1 space-y-1">

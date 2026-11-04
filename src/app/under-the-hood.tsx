@@ -1,4 +1,5 @@
 import type { TurnUsage } from "@/tutor/usage";
+import { Chevron } from "./ui";
 
 const n = (v: number) => v.toLocaleString("en-US");
 const usd = (v: number | null) => (v === null ? "unpriced" : `$${v.toFixed(v < 0.01 ? 4 : 3)}`);
@@ -8,10 +9,13 @@ const secs = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 export function UnderTheHood({ usage }: { usage: TurnUsage }) {
   const cell = "px-2 py-1 text-right tabular-nums";
   return (
-    <details data-testid="under-the-hood" className="mt-2 text-xs text-[var(--muted)]">
-      <summary className="cursor-pointer select-none">
+    <details data-testid="under-the-hood" className="group mt-2 text-xs text-[var(--muted)]">
+      <summary className="flex cursor-pointer select-none list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
+        <Chevron />
+        <span>
         Under the hood: {usage.steps.length} {usage.steps.length === 1 ? "step" : "steps"}, {n(usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens)} tokens in,{" "}
         {n(usage.outputTokens)} out, {usd(usage.costUsd)}, {secs(usage.durationMs)}
+        </span>
       </summary>
       <div className="mt-2 overflow-x-auto rounded border border-[var(--border)] p-2">
         <p className="mb-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
-import { PrimaryButton, SecondaryButton } from "../ui";
+import { Button, PrimaryButton, SecondaryButton } from "../ui";
 
 /** A full page load, so the workspace's server page re-reads the saved place. */
 export function openWorkspace() {
@@ -139,18 +139,24 @@ export function TopicRow({
  */
 export function DoFirstLink({ topicId, title, label }: { topicId: string; title: string; label?: string }) {
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   return (
     <>
       <a
         href="/study"
         data-jump={topicId}
+        aria-busy={busy || undefined}
         onClick={async (e: MouseEvent<HTMLAnchorElement>) => {
           e.preventDefault();
-          setError(await choose({ topicId }));
+          if (busy) return;
+          setBusy(true);
+          const failed = await choose({ topicId });
+          setError(failed);
+          if (failed) setBusy(false);
         }}
-        className="relative z-10 text-[var(--brand)] underline"
+        className={`relative z-10 text-[var(--brand)] underline ${busy ? "opacity-60" : ""}`}
       >
-        {label ?? title}
+        {busy ? "Opening…" : (label ?? title)}
       </a>
       {error && <span className="relative z-10 ml-1 text-[var(--danger)]">{error}</span>}
     </>
@@ -160,19 +166,26 @@ export function DoFirstLink({ topicId, title, label }: { topicId: string; title:
 /** Goes back to the default path. The chosen Topic keeps its progress. */
 export function BackToPathButton() {
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   return (
     <>
-      <SecondaryButton
+      <Button
+        variant="secondary"
         data-back-to-path
+        loading={busy}
         onClick={async () => {
+          setBusy(true);
+          setError(null);
           const failed = await chooseTopic({ topicId: null });
-          if (failed) setError(failed);
-          else openWorkspace();
+          if (failed) {
+            setError(failed);
+            setBusy(false);
+          } else openWorkspace();
         }}
         className="mt-2 !px-2 !py-1 text-xs"
       >
         Back to the default path
-      </SecondaryButton>
+      </Button>
       {error && <p className="mt-1 text-xs text-[var(--danger)]">{error}</p>}
     </>
   );
@@ -184,18 +197,25 @@ export function BackToPathButton() {
  */
 export function WhatComesNextButton({ label }: { label: string }) {
   const [error, setError] = useState<string | null>(null);
+  // Busy from the press until the Study Workspace loads (or until the choice is refused).
+  const [busy, setBusy] = useState(false);
   return (
     <>
-      <PrimaryButton
+      <Button
         data-what-comes-next
+        loading={busy}
         onClick={async () => {
+          setBusy(true);
+          setError(null);
           const failed = await chooseTopic({ next: true });
-          if (failed) setError(failed);
-          else openWorkspace();
+          if (failed) {
+            setError(failed);
+            setBusy(false);
+          } else openWorkspace();
         }}
       >
         {label} →
-      </PrimaryButton>
+      </Button>
       {error && <p className="mt-1 text-xs text-[var(--danger)]">{error}</p>}
     </>
   );
