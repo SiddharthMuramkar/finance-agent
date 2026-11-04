@@ -13,6 +13,7 @@ import { freshSkillState, isFluent, yourTurnDone, type SkillState } from "@/teac
 import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { widgetKey } from "@/widgets/widget-state";
+import { cardText } from "./context";
 import { liveSession } from "./session-log";
 import { loadSessionItems, saveItemAfterLatest, stepDivider, type StoredItem } from "./session-items";
 import {
@@ -175,11 +176,6 @@ function dataOf(topic: Topic, check: Check, key: string, ref: Ref): QuickTryData
 // ---------------------------------------------------------------------------------------------------------------------
 // The database part: storing the card, its Widget and the tries as Session items, and marking answers.
 // Every read or write of skill_state and practice_answers is for a converted Topic only.
-
-/** A Concept card as the Tutor reads it: its title, its lines and the line to write down. */
-export function cardText(card: ConceptCard): string {
-  return `"${card.title}": ${card.lines.join(" ")} Write down: ${card.writeDown}`;
-}
 
 /** The Learner's place when it is about a Check of a converted Topic, else null. */
 function convertedPlace(place: Place | null): (Place & { check: Check }) | null {

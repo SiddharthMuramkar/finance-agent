@@ -7,6 +7,7 @@ import { caseDatasets, quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { quizUnavailable } from "@/learner/quiz";
 import { GO_DEEPER, OLD_CHIP_MESSAGES } from "./chips";
+import { cardForFacts } from "./practice";
 import { blockedNumbersFrom, capFor, type OpenItem, type ReplyCheckContext, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
 
 /**
@@ -60,6 +61,8 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
   const quizOpen = check !== null && !(await quizUnavailable(db, map, check));
   const openItems = quizOpen && check ? await openQuizItems(db, map, learnerId, check) : [];
   const currencies = place ? await topicCurrencies(db, place.topic) : { exampleCurrency: DEFAULT_EXAMPLE_CURRENCY, caseCurrencies: [] };
+  // The Concept card code shows (a converted Concept step) or teaches from (a converted quiz Check).
+  const card = cardForFacts(place);
   return {
     step,
     ...(replyKind && { replyKind }),
@@ -69,6 +72,7 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
     openItems,
     blockedNumbers: blockedNumbersFrom(openItems),
     internalWords: place ? internalWordsOf(place.topic) : [],
+    ...(card && { card }),
   };
 }
 
@@ -127,7 +131,7 @@ async function topicCurrencies(db: Db, topic: Topic): Promise<{ exampleCurrency:
     ...(stories.some((s) => USD_IN_STORY.test(s)) || units.some((u) => USD_UNIT.test(u)) ? ["USD"] : []),
     ...(stories.some((s) => INR_IN_STORY.test(s)) || units.some((u) => INR_UNIT.test(u)) ? ["INR"] : []),
   ];
-  return { exampleCurrency: DEFAULT_EXAMPLE_CURRENCY, caseCurrencies };
+  return { exampleCurrency: topic.exampleCurrency ?? DEFAULT_EXAMPLE_CURRENCY, caseCurrencies };
 }
 
 /** The ids of a Topic the Learner must never read in a reply. */
