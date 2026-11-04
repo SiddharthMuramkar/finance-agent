@@ -2,7 +2,7 @@
  * The quantities a rate question is about, worked out exactly from a draw's values: the move in points, the move in
  * basis points and the percent change of the old rate. Answer functions and mistake functions both read them.
  */
-import { divide, multiply, shift, subtract, type Exact } from "./answers";
+import { divide, multiply, shift, subtract, type Exact } from "./answers.ts";
 
 /** Named answer functions a template may use. */
 export const ANSWER_FNS = ["points_between", "bp_from_move", "points_from_bp", "bp_from_points", "pct_change"] as const;

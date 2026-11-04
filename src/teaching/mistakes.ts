@@ -3,8 +3,8 @@
  * slip, from the same numbers as the question. The Session's real wrong answers are the reference: 6 for 60 (used
  * ×10), 12 for 1.2 (divided by 10), 0.12 for 1.2 (divided by 1,000) and 0.3 for 30 (stopped at points).
  */
-import { shift, type Exact } from "./answers";
-import { moveBp, movePoints, percentChange, type AnswerFnId, type Values } from "./quantities";
+import { shift, type Exact } from "./answers.ts";
+import { moveBp, movePoints, percentChange, type AnswerFnId, type Values } from "./quantities.ts";
 
 export const MISTAKE_FNS = [
   "stopped_at_points",

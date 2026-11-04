@@ -20,10 +20,10 @@ import {
   type Exact,
   type SignRule,
   type Unit,
-} from "./answers";
-import { matchesAnswer } from "./mark";
-import { MISTAKE_FNS, mistakeValue, type KnownMistakeSpec, type MistakeFnId } from "./mistakes";
-import { ANSWER_FNS, CannotCompute, answerValue, moveBp, movePoints, type AnswerFnId, type Values } from "./quantities";
+} from "./answers.ts";
+import { matchesAnswer } from "./mark.ts";
+import { MISTAKE_FNS, mistakeValue, type KnownMistakeSpec, type MistakeFnId } from "./mistakes.ts";
+import { ANSWER_FNS, CannotCompute, answerValue, moveBp, movePoints, type AnswerFnId, type Values } from "./quantities.ts";
 
 /** A drawn parameter runs from min to max in steps of step, all inclusive and exact (0.05 steps are exact). */
 export interface ParamRange {
