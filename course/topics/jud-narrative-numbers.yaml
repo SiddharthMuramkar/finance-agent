@@ -156,15 +156,12 @@ questions:
 
   - id: jn-q-loss-labels
     prompt: >
-      A company reports, for one year: loss from operations $5.0 billion; Adjusted EBITDA loss $3.0
-      billion; and net income of +$1.0 billion, because it booked a one-off $6.0 billion gain on
-      selling a business in other income. A summary says "the company lost $3.0 billion that year."
-      What is wrong with the summary?
+      A company reports, for one year: loss from operations $5.0 billion; Adjusted EBITDA loss $3.0 billion; and net income of +$1.0 billion, because it booked a one-off $6.0 billion gain on selling a business in other income. A summary says "the company lost $3.0 billion that year." Which statement about the summary is true?
     choices:
       - { id: a, text: "It gives the Adjusted EBITDA loss as though it were the company's loss; the operating loss was $5.0 billion and net income was positive" }
-      - { id: b, text: "Nothing: loss from operations, Adjusted EBITDA and net income are the same measure" }
-      - { id: c, text: "It should have said the company lost $5.0 billion after tax" }
-      - { id: d, text: "It should have said the company made a $1.0 billion operating profit" }
+      - { id: b, text: "It is exact: loss from operations, Adjusted EBITDA and net income are the same measure" }
+      - { id: c, text: "The company lost $5.0 billion after tax, so the summary understates the net loss" }
+      - { id: d, text: "The company made a $1.0 billion operating profit, so the summary should have said so" }
     answer: a
     explanation: >
       The three lines are different measures. Adjusted EBITDA is a company-defined figure that
@@ -178,9 +175,7 @@ questions:
 
   - id: jn-q-period-basis
     prompt: >
-      A writer assumed revenue of $900 million for year 0. The company's first filing shows $650
-      million for year 0, with a note: "reported under the accounting rules then in force, not
-      recast, unaudited, and excluding a business sold later." What is the fair judgement?
+      A writer assumed revenue of $900 million for year 0. The company's first filing shows $650 million for year 0, with a note: "reported under the accounting rules then in force, never recast, unaudited, and excluding a business sold later." What is the fair judgement?
     choices:
       - { id: a, text: "The writer was wrong by $250 million, and the note changes nothing" }
       - { id: b, text: "The two may not be like for like; rebuild the writer's number on the filing's basis, or state the difference, before calling it a miss" }

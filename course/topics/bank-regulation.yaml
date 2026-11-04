@@ -82,7 +82,7 @@ questions:
 
   - id: br-q-aoci
     prompt: >
-      A bank has CET1 capital of $14 billion and risk-weighted assets of $100 billion. Its available-for-sale securities have an unrealised loss of $2 billion that is not counted in capital. If the rules required the loss to be counted, what would its CET1 ratio be?
+      A bank has CET1 capital of $14 billion and risk-weighted assets of $100 billion. Its available-for-sale securities have an unrealised loss of $2 billion that is left out of capital. If the rules required the loss to be counted, what would its CET1 ratio be?
     choices:
       - { id: a, text: "12%" }
       - { id: b, text: "14%" }

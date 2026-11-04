@@ -48,7 +48,7 @@ export function WaterfallView({ labels, values, unit, totalLabel }: z.infer<type
   const y = (v: number) => TOP + ((hi - v) / span) * (H - TOP - BOTTOM);
   const slot = W / bars.length;
   const barW = Math.min(64, slot * 0.6);
-  const summary = bars.map((b) => `${b.label} ${b.total ? "" : b.change < 0 ? "minus " : "plus "}${formatAmount(Math.abs(b.change), unit)}`.replace(/\s+/g, " ")).join(", ");
+  const summary = bars.map((b) => `${b.label} ${b.change < 0 ? "minus " : b.total ? "" : "plus "}${formatAmount(Math.abs(b.change), unit)}`.replace(/\s+/g, " ")).join(", ");
   return (
     <figure data-testid="waterfall" data-motion={reduced ? "reduced" : "full"} role="img" aria-label={`Waterfall: ${summary}.`} className="my-3">
       <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" preserveAspectRatio="xMidYMid meet" aria-hidden>
@@ -75,7 +75,7 @@ export function WaterfallView({ labels, values, unit, totalLabel }: z.infer<type
               />
               {next && !next.total && <line x1={x + barW} x2={(i + 1) * slot + (slot - barW) / 2} y1={y(b.to)} y2={y(b.to)} stroke="var(--border)" />}
               <text x={x + barW / 2} y={top - 6} textAnchor="middle" fontSize={12} fill="var(--ink)" className="tabular-nums">
-                {`${b.total || b.change >= 0 ? "" : "−"}${formatAmount(Math.abs(b.change), unit)}`}
+                {`${b.change < 0 ? "−" : ""}${formatAmount(Math.abs(b.change), unit)}`}
               </text>
               <text x={x + barW / 2} y={H - 14} textAnchor="middle" fontSize={12} fill="var(--muted)">
                 {b.label}

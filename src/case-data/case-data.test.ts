@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { parseCourseMap } from "@/course/map";
 import type { Progress } from "@/course/navigator";
-import { learners, OWNER_LEARNER_ID } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import { caseDataPoints, learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
@@ -153,5 +154,46 @@ describe("the Cases a page counts as revealed", () => {
   it("lists a Case once its Topic's reveal has been shown, and none before", () => {
     expect(revealedCases(map, progress(false))).toEqual([]);
     expect(revealedCases(map, progress(true))).toEqual(["jackpot"]);
+  });
+});
+
+describe("importing Case Data safely", () => {
+  const dates = (n: number) => Array.from({ length: n }, (_, i) => new Date(Date.UTC(2000, 0, 1 + i)).toISOString().slice(0, 10));
+  const stored = async (db: Db) =>
+    (await db.select().from(caseDataPoints).where(and(eq(caseDataPoints.caseId, "jackpot"), eq(caseDataPoints.datasetId, "big")))).sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
+
+  it("crosses a chunk, and a re-import with one changed value and one dropped date matches the new file", async () => {
+    const db = await testDb();
+    const all = dates(5000);
+    await importCaseData(db, [dataset("big", all.map((d, i) => [d, i] as [string, number]))]);
+    expect(await stored(db)).toHaveLength(5000);
+    const next = all.slice(1).map((d, i) => [d, i === 0 ? 999 : i + 1] as [string, number]);
+    await importCaseData(db, [dataset("big", next)]);
+    const rows = await stored(db);
+    expect(rows).toHaveLength(4999);
+    expect(rows[0]).toMatchObject({ date: all[1], value: 999 });
+    expect(rows.some((r) => r.date === all[0])).toBe(false);
+    expect(rows.at(-1)).toMatchObject({ date: all[4999], value: 4999 });
+  });
+
+  it("leaves the original points readable when the second chunk of a re-import throws", async () => {
+    const db = await testDb();
+    const all = dates(4500);
+    await importCaseData(db, [dataset("big", all.map((d, i) => [d, i] as [string, number]))]);
+    let calls = 0;
+    const failing = {
+      execute: (q: Parameters<Db["execute"]>[0]) => {
+        calls++;
+        // Call 1 is the description, 2 and 3 the first two chunks.
+        if (calls === 3) return Promise.reject(new Error("connection lost"));
+        return db.execute(q);
+      },
+    };
+    await expect(importCaseData(failing, [dataset("big", all.map((d, i) => [d, i + 1000] as [string, number]))])).rejects.toThrow("connection lost");
+    const rows = await stored(db);
+    expect(rows).toHaveLength(4500);
+    expect(rows[4000]).toMatchObject({ value: 4000 });
   });
 });
