@@ -373,21 +373,24 @@ describe("Course Navigator", () => {
 describe("Teaching Steps: the step sequence", () => {
   const labels = (map: CourseMap, progress: Progress, topicId: string) => stepSequence(map, progress, topicId)!.steps.map((s) => s.label);
 
-  it("numbers Percent's twelve steps, with Step 2 of 12 · Concept second", () => {
+  it("numbers Percent's fifteen steps, with Step 2 of 15 · Concept second", () => {
     const course = loadCourseMap();
     expect(labels(course, empty, "num-percent-bps")).toEqual([
-      "Step 1 of 12 · Story",
-      "Step 2 of 12 · Concept",
-      "Step 3 of 12 · Your turn",
-      "Step 4 of 12 · Check",
-      "Step 5 of 12 · Concept",
-      "Step 6 of 12 · Your turn",
-      "Step 7 of 12 · Check",
-      "Step 8 of 12 · Concept",
-      "Step 9 of 12 · Your turn",
-      "Step 10 of 12 · Check",
-      "Step 11 of 12 · Reveal",
-      "Step 12 of 12 · Principle",
+      "Step 1 of 15 · Story",
+      "Step 2 of 15 · Concept",
+      "Step 3 of 15 · Your turn",
+      "Step 4 of 15 · Check",
+      "Step 5 of 15 · Concept",
+      "Step 6 of 15 · Your turn",
+      "Step 7 of 15 · Check",
+      "Step 8 of 15 · Concept",
+      "Step 9 of 15 · Your turn",
+      "Step 10 of 15 · Check",
+      "Step 11 of 15 · Concept",
+      "Step 12 of 15 · Your turn",
+      "Step 13 of 15 · Check",
+      "Step 14 of 15 · Reveal",
+      "Step 15 of 15 · Principle",
     ]);
   });
 

@@ -1,6 +1,7 @@
 # Growth, compounding and logs: a foundation Topic taught through a short Case.
 # Case Data (the sourced figures) lives in the database; see docs/architecture.md.
 # Converted to the new teaching (spec #229, ticket #247): Skills, Concept cards, Quick tries and typed Checks.
+# Split one idea per Check (#248): six Checks, each card teaching one Skill, as a content-only restructure.
 # Every sum is said in words; the two Formula Cards (compound-growth, cagr) work the numbers.
 id: num-compounding
 title: Growth, compounding and logs
@@ -117,7 +118,8 @@ templates:
     mistakes:
       - tag: simple_doubling
         fix: "That is 100 divided by the rate, as if growth never compounded. Divide 72 by the rate instead."
-    avoid: [10, 6, 12, 5, 23, 28, 33, 56, 126]
+    # 8, 9 and 18 (and the answers 9 and 8) keep a draw apart from the rule-of-72 question and Quick tries (lint L9).
+    avoid: [10, 6, 12, 5, 23, 28, 33, 56, 126, 8, 9, 18]
   - id: steady-rate
     skill: cagr
     ask: "An index goes from {start} to {end} in {years} years. What steady yearly rate (CAGR) does that, in percent?"
@@ -134,9 +136,10 @@ templates:
       - tag: averaged_gain
         fix: "That divides the total gain by the years. Find the one rate that, grown twice, gives the whole rise."
     halfDone:
-      shows: "First step, done for you: the index ended {grew} times where it started."
+      shows: "First step, done for you: the end divided by the start is {grew}."
       asks: cagr_percent
-    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126]
+    # 144 keeps a draw apart from the card's worked example (100 became 144).
+    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126, 144]
 
 questions:
   - id: cp-q-doubling-rate
@@ -271,27 +274,242 @@ questions:
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance (solving for the growth rate): https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Sensex values: BSE, SENSEX@40 white paper (January 2026), https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
 
+  # Questions for the two Checks with no template (fall and recover, log returns): six each, so three tries of two never repeat.
+  - id: cp-q-fall-rise-20
+    skill: fall-and-recover
+    prompt: >
+      ₹2,000 falls 20%, then rises 20%. What is it worth now?
+    choices:
+      - id: a
+        text: "₹2,000"
+        mistake: { fix: "The 20% rise works on ₹1,600, so it wins back only ₹320 of the ₹400 lost.", tag: back_where_started }
+      - { id: b, text: "₹1,920" }
+      - id: c
+        text: "₹1,600"
+        mistake: { fix: "That is after the fall only. The 20% rise on ₹1,600 adds ₹320." }
+      - id: d
+        text: "₹2,080"
+        mistake: { fix: "A fall and then an equal rise always ends lower, never higher." }
+    answer: b
+    explanation: >
+      20% of ₹2,000 is ₹400, so the fall leaves ₹1,600. 20% of ₹1,600 is ₹320, so the rise ends at ₹1,920, below the start.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-rise-fall
+    skill: fall-and-recover
+    prompt: >
+      A price rises 25% and then falls 25%. Compared with where it started, it is now:
+    choices:
+      - id: a
+        text: "Back where it started"
+        mistake: { fix: "The 25% fall works on the bigger, risen price, so it takes away more than the rise added.", tag: back_where_started }
+      - { id: b, text: "6.25% lower" }
+      - id: c
+        text: "6.25% higher"
+        mistake: { fix: "An equal rise and fall end lower in either order, never higher." }
+      - id: d
+        text: "25% lower"
+        mistake: { fix: "Work it from 100: up to 125, then a quarter of 125 off leaves 93.75, which is 6.25% lower." }
+    answer: b
+    explanation: >
+      Start at 100. A 25% rise gives 125. A 25% fall on 125 takes away 31.25, leaving 93.75, which is 6.25% below the start.
+      The order does not matter: a fall then an equal rise ends just as low.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-recover-half
+    skill: fall-and-recover
+    prompt: >
+      A share falls from ₹600 to ₹300. What percent rise takes it back to ₹600?
+    choices:
+      - id: a
+        text: "50%"
+        mistake: { fix: "That is the size of the fall. The rise works on ₹300, and ₹300 more on ₹300 is 100%.", tag: back_where_started }
+      - { id: b, text: "100%" }
+      - id: c
+        text: "200%"
+        mistake: { fix: "A 200% rise would take ₹300 to ₹900. It needs only ₹300 more on ₹300." }
+      - id: d
+        text: "150%"
+        mistake: { fix: "A 150% rise would take ₹300 to ₹750. It needs ₹300 more on ₹300, which is 100%." }
+    answer: b
+    explanation: >
+      From ₹300 it needs ₹300 more to reach ₹600. ₹300 more on ₹300 is a rise of 100%, twice the size of the 50% fall.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-recover-quarter
+    skill: fall-and-recover
+    prompt: >
+      A fund falls 20%, from ₹4,000 to ₹3,200. What percent rise takes it back to ₹4,000?
+    choices:
+      - id: a
+        text: "20%"
+        mistake: { fix: "That is the size of the fall. The rise works on ₹3,200, and ₹800 more on ₹3,200 is 25%.", tag: back_where_started }
+      - { id: b, text: "25%" }
+      - id: c
+        text: "40%"
+        mistake: { fix: "40% of ₹3,200 is ₹1,280, which goes well past ₹4,000. It needs only ₹800 more." }
+      - id: d
+        text: "16%"
+        mistake: { fix: "The rise must be bigger than the fall, because it works on a smaller amount. ₹800 on ₹3,200 is 25%." }
+    answer: b
+    explanation: >
+      From ₹3,200 it needs ₹800 more to reach ₹4,000. ₹800 is a quarter of ₹3,200, so the rise is 25%, bigger than the 20% fall.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-fall-truth
+    skill: fall-and-recover
+    prompt: >
+      An amount falls by some percent and then rises by the same percent. Which one is true?
+    choices:
+      - { id: a, text: "It always ends below where it started" }
+      - id: b
+        text: "It always ends back where it started"
+        mistake: { fix: "The rise works on the smaller amount the fall left, so it wins back less than was lost.", tag: back_where_started }
+      - id: c
+        text: "It ends above the start when the percent is large"
+        mistake: { fix: "It ends below for every percent. The bigger the percent, the further below it ends." }
+      - id: d
+        text: "It depends on whether the fall or the rise comes first"
+        mistake: { fix: "Either order ends at the same place: down 20% then up 20%, or up then down, both end 4% lower." }
+    answer: a
+    explanation: >
+      The rise works on the smaller amount the fall left, so the same percent wins back less than was lost. Down 20% then
+      up 20% ends at 96% of the start, and so does up 20% then down 20%.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), on compounding returns over time: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-log-add-three
+    skill: log-return
+    prompt: >
+      A fund's log returns are 0.1, 0.2 and 0.1 in three back-to-back years. What is its log return over the three years?
+    choices:
+      - { id: a, text: "0.4" }
+      - id: b
+        text: "0.002"
+        mistake: { fix: "That multiplies them. Log returns of back-to-back years simply add: 0.1 plus 0.2 plus 0.1." }
+      - id: c
+        text: "About 0.13"
+        mistake: { fix: "That is the average for one year. Over all three years the log returns add up, to 0.4." }
+      - id: d
+        text: "0.2"
+        mistake: { fix: "That is only the biggest year. Add all three: 0.1 plus 0.2 plus 0.1." }
+    answer: a
+    explanation: >
+      Log returns of back-to-back periods add up to the log return of the whole stretch: 0.1 plus 0.2 plus 0.1 is 0.4.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-log-round-trip
+    skill: log-return
+    prompt: >
+      A share goes from ₹200 to ₹250 and then back to ₹200. Which one is true about its two log returns?
+    choices:
+      - { id: a, text: "They add up to zero" }
+      - id: b
+        text: "They add up to a gain, because the 25% rise is bigger than the 20% fall"
+        mistake: { fix: "It ends where it began, so the whole stretch has a log return of zero, and the two add to that." }
+      - id: c
+        text: "They cannot be added"
+        mistake: { fix: "Log returns of back-to-back periods always add up. That is why analysts use them." }
+      - id: d
+        text: "They add up to a loss, because a fall hurts more than a rise helps"
+        mistake: { fix: "It ends where it began, so there is no loss: the two log returns add up to zero." }
+    answer: a
+    explanation: >
+      The share ends where it began, so the log return of the whole stretch is zero. The two log returns add up to that,
+      so they are the same size with opposite signs. The ordinary returns, up 25% and down 20%, do not add.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-log-smaller
+    skill: log-return
+    prompt: >
+      A price rises 20% in a year. Which one is true about its log return for that year?
+    choices:
+      - { id: a, text: "It is a little below 20%" }
+      - id: b
+        text: "It is exactly 20%"
+        mistake: { fix: "For a rise, the log return is a little smaller than the ordinary return." }
+      - id: c
+        text: "It is a little above 20%"
+        mistake: { fix: "For a rise, the log return is smaller than the ordinary return, never larger." }
+      - id: d
+        text: "It needs the number of trading days in the year"
+        mistake: { fix: "A log return needs only the start and the end, not the days between them." }
+    answer: a
+    explanation: >
+      The log return is the natural log of 1.2, which is about 0.182, or 18.2%. For a rise, a log return is always a
+      little below the ordinary return.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-log-why
+    skill: log-return
+    prompt: >
+      Why do analysts often measure growth with log returns? Which one is true?
+    choices:
+      - { id: a, text: "Because the log returns of back-to-back periods add up" }
+      - id: b
+        text: "Because log returns are always bigger than ordinary returns"
+        mistake: { fix: "For a rise, a log return is a little smaller than the ordinary return." }
+      - id: c
+        text: "Because log returns leave compounding out"
+        mistake: { fix: "Log returns keep compounding in. They just turn it into adding." }
+      - id: d
+        text: "Because log returns need only dates, not prices"
+        mistake: { fix: "A log return needs the price at the start and at the end." }
+    answer: a
+    explanation: >
+      Ordinary returns of back-to-back periods have to be compounded, but log returns simply add up to the log return of
+      the whole stretch. That makes sums over many periods easy.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
+  - id: cp-q-log-two-years
+    skill: log-return
+    prompt: >
+      A share's log return is 0.12 one year and 0.18 the next. What is its log return over both years?
+    choices:
+      - { id: a, text: "0.3" }
+      - id: b
+        text: "0.0216"
+        mistake: { fix: "That multiplies them. Log returns of back-to-back years simply add: 0.12 plus 0.18." }
+      - id: c
+        text: "0.15"
+        mistake: { fix: "That is the average for one year. Over both years the log returns add up, to 0.3." }
+      - id: d
+        text: "0.06"
+        mistake: { fix: "That takes one from the other. Log returns of back-to-back years add up." }
+    answer: a
+    explanation: >
+      Log returns of back-to-back years add up: 0.12 plus 0.18 is 0.3 over both years.
+    source: >
+      CFA Institute, Rates and Returns (refresher reading, 2026), continuously compounded returns: https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/rates-and-returns
+
 checks:
+  # One idea per Check (spec #229, "The Concept step"; part of #248): each card teaches one Skill and its Check tests it.
+  # The three old Check ids keep their place, so this is a content-only restructure; the three new Checks sit between.
   - id: cp-quiz-compounding
     kind: quiz
-    questions:
-      - cp-q-three-years
-      - cp-q-down-up
-      - cp-q-rule-72
-    templates: [grow-amount, double-time]
-    # Four of a pool of five, so every attempt shows at least one typed question.
-    perAttempt: 4
+    questions: [cp-q-three-years]
+    templates: [grow-amount]
+    # The fixed question and two typed draws a try.
+    perAttempt: 3
     passRule:
-      correct: 3
+      correct: 2
     card:
       title: "Growth on growth"
       lines:
         - "₹1,000 grows 10% a year. After one year it is ₹1,100."
-        - "Year two adds 10% of ₹1,100, which is ₹110: ₹1,210. Year three adds ₹121: ₹1,331."
-        - "A fall then a rise of the same percent loses money. ₹1,000 down 20% is ₹800. Up 20% adds only ₹160: ₹960."
-        - "Rule of 72: at 6% a year, 72 divided by 6 gives about 12 years to double."
-      writeDown: "Compounding: each year grows on the new total. To double, divide 72 by the rate."
-      skills: [compound-growth, fall-and-recover, rule-of-72]
+        - "Year two adds 10% of ₹1,100, which is ₹110: ₹1,210."
+        - "Year three adds 10% of ₹1,210, which is ₹121: ₹1,331."
+        - "Each year's gain is bigger, because it is earned on a bigger total."
+      writeDown: "Compounding: each year grows on the new total, not on the start."
+      skills: [compound-growth]
       widget:
         recipe: formula
         title: "What ₹1,000 grows to at 10% a year"
@@ -311,6 +529,31 @@ checks:
           - { answer: 2400, fix: "That adds ₹200 in both years. The second year's 10% is on ₹2,200, which is ₹220.", tag: simple_growth }
       - { template: grow-amount, halfDone: true }
       - { template: grow-amount }
+
+  - id: cp-quiz-fall-recover
+    kind: quiz
+    questions: [cp-q-down-up, cp-q-fall-rise-20, cp-q-rise-fall, cp-q-recover-half, cp-q-recover-quarter, cp-q-fall-truth]
+    # Two a try from six, so three tries never repeat a question.
+    perAttempt: 2
+    passRule:
+      correct: 2
+    card:
+      title: "A fall, then a rise"
+      lines:
+        - "A percent is always a share of the amount you have at that moment."
+        - "₹1,000 falls 20%: it loses ₹200 and is now ₹800."
+        - "A 20% rise on ₹800 adds only ₹160, so it ends at ₹960."
+        - "To get back to ₹1,000 it needs ₹200 more. ₹200 divided by ₹800 is 0.25, so a 25% rise."
+      writeDown: "A fall and an equal rise do not cancel: the rise works on a smaller amount."
+      skills: [fall-and-recover]
+      widget:
+        recipe: formula
+        title: "₹800 rising for one year"
+        inputs:
+          formula: compound-growth
+          slider: { symbol: ratePercent, label: "The rise after the fall", min: 0, max: 50, step: 1, start: 20 }
+          held: { amount: 800, years: 1 }
+    quickTries:
       - id: cp-try-fall-half
         skill: fall-and-recover
         ask: "₹500 falls 40%, then rises 40%. What is it worth now, in rupees?"
@@ -335,6 +578,31 @@ checks:
         unit: percent
         mistakes:
           - { answer: 50, fix: "That is the size of the fall. The rise works on ₹200, and ₹200 more on ₹200 is 100%." }
+
+  - id: cp-quiz-rule-72
+    kind: quiz
+    questions: [cp-q-rule-72]
+    templates: [double-time]
+    perAttempt: 3
+    passRule:
+      correct: 2
+    card:
+      title: "Time to double"
+      lines:
+        - "The rule of 72 is a shortcut for how long money takes to double."
+        - "Divide 72 by the yearly rate in percent. The answer is about the number of years."
+        - "At 6% a year, 72 divided by 6 is 12, so about 12 years."
+        - "Check it: ₹1,000 at 6% for 12 years grows to about ₹2,012, close to double."
+      writeDown: "Years to double: about 72 divided by the yearly rate."
+      skills: [rule-of-72]
+      widget:
+        recipe: formula
+        title: "What ₹1,000 grows to at 6% a year"
+        inputs:
+          formula: compound-growth
+          slider: { symbol: years, label: "Years it grows", min: 1, max: 30, step: 1, start: 12 }
+          held: { amount: 1000, ratePercent: 6 }
+    quickTries:
       - id: cp-try-72-half
         skill: rule-of-72
         ask: "Money grows 9% a year. By the rule of 72, about how many years does it take to double?"
@@ -353,9 +621,7 @@ checks:
 
   - id: cp-quiz-steady-rate
     kind: quiz
-    questions:
-      - cp-q-doubling-rate
-      - cp-q-log-return
+    questions: [cp-q-doubling-rate]
     templates: [steady-rate]
     perAttempt: 3
     passRule:
@@ -365,10 +631,10 @@ checks:
       lines:
         - "CAGR, the compound annual growth rate, is the one steady yearly rate that gets from a start to an end."
         - "₹1,000 became ₹1,331 in 3 years. Growing 10% a year does exactly that, so the CAGR is 10%."
-        - "Spreading the ₹331 gain evenly gives ₹110 a year, 11% of ₹1,000: too high, as it skips growth on growth."
-        - "Log returns measure growth so that years add up: 0.3 one year and 0.1 the next make 0.4. For a rise, a log return is a little below the percent change."
-      writeDown: "CAGR is the steady rate from start to end. Log returns add across years."
-      skills: [cagr, log-return]
+        - "For 2 years: divide the end by the start, then find the number that times itself gives that. A calculator's square-root key does it."
+        - "100 became 144. 144 divided by 100 is 1.44, and 1.2 times 1.2 is 1.44. 1.2 is 1 plus 20%, so the CAGR is 20% a year."
+      writeDown: "CAGR is the one steady rate that joins the start and the end."
+      skills: [cagr]
       widget:
         recipe: formula
         title: "The steady rate from 1,000 to 1,331"
@@ -383,11 +649,30 @@ checks:
         kind: number
         answer: 10
         unit: percent
-        halfDone: "First step, done for you: 1.1 times 1.1 is 1.21, so growing by a tenth twice gives the rise."
+        halfDone: "First step, done for you: 121 divided by 100 is 1.21, and 1.1 times 1.1 is 1.21."
         mistakes:
           - { answer: 10.5, fix: "That divides the 21% gain by 2 years. Growing 10% twice already gives 21%.", tag: averaged_gain }
       - { template: steady-rate, halfDone: true }
       - { template: steady-rate }
+
+  # No formula recipe shows log returns, so this card has no Widget and the Tutor teaches it in words.
+  - id: cp-quiz-log-return
+    kind: quiz
+    questions: [cp-q-log-return, cp-q-log-add-three, cp-q-log-round-trip, cp-q-log-smaller, cp-q-log-why, cp-q-log-two-years]
+    # Two a try from six, so three tries never repeat a question.
+    perAttempt: 2
+    passRule:
+      correct: 2
+    card:
+      title: "Returns that add up"
+      lines:
+        - "A log return scores growth another way: divide the end by the start, then press ln on a calculator."
+        - "A 20% rise means end divided by start is 1.2. The ln of 1.2 is about 0.18, a little below 0.20."
+        - "Its use: the log returns of back-to-back years simply add up. 0.3 one year and 0.1 the next make 0.4 over both."
+        - "A price that ends where it began has a log return of zero. So a rise and the fall back to the start add up to zero."
+      writeDown: "Log returns of back-to-back years add up to the log return of the whole stretch."
+      skills: [log-return]
+    quickTries:
       - id: cp-try-log-half
         skill: log-return
         ask: "A fund's log return is 0.1 in one year and 0.2 the next. What is its log return over both years?"
@@ -430,9 +715,9 @@ checks:
     card:
       title: "Is the pace steady?"
       lines:
-        - "A long-run CAGR can hide an uneven path."
+        - "A long-run CAGR can hide years that grew at very different speeds."
         - "A made-up example: 100 became 600 in 10 years, about 20% a year."
-        - "But the last 2 years went from 300 to 600, about 41% a year."
+        - "The last 2 years went from 300 to 600, which is 2 times. About 1.41 times 1.41 is 2, so about 41% a year."
         - "When the last stretch is far faster than the whole run, the pace was not steady."
       writeDown: "Find the CAGR of each stretch, not only of the whole run."
       skills: [steady-pace]
@@ -451,7 +736,7 @@ checks:
         answer: 73
         unit: percent
         decimals: 0
-        halfDone: "First step, done for you: in those 2 years the index grew 3 times."
+        halfDone: "First step, done for you: in those 2 years the index grew 3 times, so find the number that times itself gives 3, then take 1 off."
         mistakes:
           - { answer: 100, fix: "That divides the 200% gain by 2 years. Find the rate that, grown twice, gives 3 times.", tag: averaged_gain }
       - id: cp-try-pace-truth
@@ -467,6 +752,7 @@ checks:
         kind: number
         answer: 50
         unit: percent
+        halfDone: "First step, done for you: ₹1,800 divided by ₹800 is 2.25, so find the number that times itself gives 2.25."
         mistakes:
           - { answer: 62.5, fix: "That divides the 125% gain by 2 years. Growing 50% twice turns ₹800 into ₹1,800." }
       - id: cp-try-pace-long-run

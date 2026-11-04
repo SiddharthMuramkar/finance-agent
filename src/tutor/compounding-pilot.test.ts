@@ -23,9 +23,10 @@ import { recipeById } from "@/widgets/recipes";
 import { readWidget } from "@/widgets/widget-reading";
 
 /**
- * Growth, compounding and logs, taught the new way (ticket #247): the converted Topic file from story to principle.
- * Each card opens a rupee Formula Card already set, each Skill has Quick tries that open half-done and name a Known
- * mistake, both quizzes draw typed questions with new numbers, and the conversation Check lists its Skills. Every
+ * Growth, compounding and logs, taught the new way (ticket #247, split one idea per Check for #248): the converted
+ * Topic file from story to principle. Each Check and its card teach one Skill; every card but the log-return one opens
+ * a rupee Formula Card already set, each Skill has Quick tries that open half-done and name a Known mistake, the
+ * quizzes on a calculation draw typed questions with new numbers, and the conversation Check lists its Skills. Every
  * fixed answer is checked against the tested calculators, or worked by hand in the comment beside it.
  */
 
@@ -33,6 +34,15 @@ const map = loadCourseMap();
 const topic = map.topic("num-compounding")!;
 const fixedTries = (t: Topic) => t.checks.flatMap((c) => c.quickTries.filter((q): q is Extract<QuickTry, { id: string }> => "id" in q));
 const tryById = (id: string) => fixedTries(topic).find((q) => q.id === id)!;
+const checkById = (id: string) => topic.checks.find((c) => c.id === id)!;
+/** The quiz Checks in order, each with the one Skill it teaches and the templates it draws from. */
+const QUIZZES = [
+  { id: "cp-quiz-compounding", skill: "compound-growth", templates: ["grow-amount"] },
+  { id: "cp-quiz-fall-recover", skill: "fall-and-recover", templates: [] },
+  { id: "cp-quiz-rule-72", skill: "rule-of-72", templates: ["double-time"] },
+  { id: "cp-quiz-steady-rate", skill: "cagr", templates: ["steady-rate"] },
+  { id: "cp-quiz-log-return", skill: "log-return", templates: [] },
+];
 /** The real Topic alone, as a one-Topic course, so it comes first on the path. */
 function compoundingOnly(): CourseMap {
   const text = stringify({ ...topic, connections: undefined, stage: "foundation", path: 1, prerequisites: [], subject: undefined });
@@ -47,17 +57,13 @@ const calc = (id: string, inputs: object, label: string) => {
 };
 
 describe("Growth, compounding and logs, converted", () => {
-  it("is converted, in rupees, with its six Skills, four terms and three Checks in story-to-principle order", () => {
+  it("is converted, in rupees, with its six Skills, four terms and six Checks in story-to-principle order", () => {
     expect(isConverted(topic)).toBe(true);
     expect(topic.exampleCurrency).toBe("INR");
     expect(topic.restructure).toBe("content-only");
     expect(topic.skills.map((s) => s.id)).toEqual(["compound-growth", "fall-and-recover", "rule-of-72", "cagr", "log-return", "steady-pace"]);
     expect(topic.terms.map((t) => t.term)).toEqual(["compounding", "compound annual growth rate (CAGR)", "rule of 72", "log return"]);
-    expect(topic.checks.map((c) => [c.id, c.kind])).toEqual([
-      ["cp-quiz-compounding", "quiz"],
-      ["cp-quiz-steady-rate", "quiz"],
-      ["cp-sensex-rate", "conversation"],
-    ]);
+    expect(topic.checks.map((c) => [c.id, c.kind])).toEqual([...QUIZZES.map((q) => [q.id, "quiz"]), ["cp-sensex-rate", "conversation"]]);
     expect(topic.formulas).toEqual(["compound-growth", "cagr"]);
     expect(topic.checks.every((c) => !c.required)).toBe(true);
   });
@@ -67,6 +73,17 @@ describe("Growth, compounding and logs, converted", () => {
     expect(formulaCheckErrors([topic], [])).toEqual([]);
     for (const id of ["cp-q-doubling-rate", "cp-q-down-up", "cp-q-rule-72", "cp-q-three-years", "cp-q-log-return", "cp-q-index-rate"]) {
       expect(topic.questions.some((q) => q.id === id), id).toBe(true);
+    }
+    // Each old question stays in the Check that now teaches its Skill.
+    for (const [checkId, questionId] of [
+      ["cp-quiz-compounding", "cp-q-three-years"],
+      ["cp-quiz-fall-recover", "cp-q-down-up"],
+      ["cp-quiz-rule-72", "cp-q-rule-72"],
+      ["cp-quiz-steady-rate", "cp-q-doubling-rate"],
+      ["cp-quiz-log-return", "cp-q-log-return"],
+    ]) {
+      const c = checkById(checkId);
+      expect(c.kind === "quiz" && c.questions, checkId).toContain(questionId);
     }
   });
 
@@ -80,8 +97,18 @@ describe("Growth, compounding and logs, converted", () => {
   });
 
   describe("the Concept cards", () => {
-    it("open a rupee Formula Card already set, which builds, passes the Widget checks and reads in rupees", () => {
-      for (const c of topic.checks) {
+    it("teach one Skill each, the one their Check tests (a Check teaches one idea)", () => {
+      for (const q of QUIZZES) {
+        const c = checkById(q.id);
+        expect(c.card!.skills, q.id).toEqual([q.skill]);
+        expect(testedSkills(topic, c), q.id).toEqual([q.skill]);
+      }
+      expect(checkById("cp-sensex-rate").card!.skills).toEqual(["steady-pace"]);
+    });
+
+    it("open a rupee Formula Card already set, which builds, passes the Widget checks and reads in rupees; log returns have no formula and teach in words", () => {
+      expect(checkById("cp-quiz-log-return").card!.widget).toBeUndefined();
+      for (const c of topic.checks.filter((x) => x.id !== "cp-quiz-log-return")) {
         const preset = c.card!.widget!;
         expect("recipe" in preset && preset.recipe, c.id).toBe("formula");
         if (!("recipe" in preset)) continue;
@@ -104,8 +131,27 @@ describe("Growth, compounding and logs, converted", () => {
       for (const years of [1, 2, 3]) expect(calc("future_value", { amount: 1000, ratePercent: 10, years }, "Future value")).toBeCloseTo([1100, 1210, 1331][years - 1], 9);
     });
 
-    it("round the third card's made-up stretches as the calculator does: 100 to 600 in 10 years is about 20%, 300 to 600 in 2 is about 41%", () => {
-      const lines = topic.checks[2].card!.lines.join(" ");
+    it("show the fall-and-recover sums the Formula Card agrees with: ₹800 up 20% is ₹960, and up 25% is back to ₹1,000", () => {
+      const lines = checkById("cp-quiz-fall-recover").card!.lines.join(" ");
+      for (const figure of ["₹1,000", "₹800", "₹160", "₹960", "25%"]) expect(lines).toContain(figure);
+      expect(calc("future_value", { amount: 800, ratePercent: 20, years: 1 }, "Future value")).toBeCloseTo(960, 9);
+      expect(calc("future_value", { amount: 800, ratePercent: 25, years: 1 }, "Future value")).toBeCloseTo(1000, 9);
+    });
+
+    it("check the rule of 72 against compounding: ₹1,000 at 6% for 12 years is about ₹2,012, close to double", () => {
+      const lines = checkById("cp-quiz-rule-72").card!.lines.join(" ");
+      expect(lines).toContain("about 12 years");
+      expect(lines).toContain("₹2,012");
+      expect(calc("rule_of_72", { ratePercent: 6 }, "Years to double (approximate)")).toBe(12);
+      expect(Math.round(calc("future_value", { amount: 1000, ratePercent: 6, years: 12 }, "Future value"))).toBe(2012);
+    });
+
+    it("say on the log-return card what its true-or-false try needs: a price that ends where it began has a log return of zero", () => {
+      expect(checkById("cp-quiz-log-return").card!.lines.join(" ")).toContain("A price that ends where it began has a log return of zero.");
+    });
+
+    it("round the last card's made-up stretches as the calculator does: 100 to 600 in 10 years is about 20%, 300 to 600 in 2 is about 41%", () => {
+      const lines = checkById("cp-sensex-rate").card!.lines.join(" ");
       expect(lines).toContain("about 20% a year");
       expect(lines).toContain("about 41% a year");
       expect(Math.round(calc("cagr", { start: 100, end: 600, years: 10 }, "CAGR"))).toBe(20);
@@ -154,10 +200,10 @@ describe("Growth, compounding and logs, converted", () => {
     });
   });
 
-  describe("the two quizzes", () => {
+  describe("the quizzes", () => {
     it("draw typed questions with new numbers, marking the right answer and the named slip", () => {
       const quizzes = topic.checks.filter((c) => c.kind === "quiz");
-      expect(quizzes.map((c) => c.kind === "quiz" && c.templates)).toEqual([["grow-amount", "double-time"], ["steady-rate"]]);
+      expect(quizzes.map((c) => c.kind === "quiz" && c.templates)).toEqual(QUIZZES.map((q) => q.templates));
       for (const c of quizzes) {
         if (c.kind !== "quiz") continue;
         for (const tid of c.templates) {
@@ -172,17 +218,21 @@ describe("Growth, compounding and logs, converted", () => {
       }
     });
 
-    it("show at least one typed question on every attempt", () => {
+    it("keep a double-time draw apart from the rule-of-72 question and Quick tries at 8%, 9% and 18%", () => {
+      const t = map.template("double-time")!;
+      for (const n of [8, 9, 18]) expect(t.avoid, String(n)).toContain(n);
+      for (let i = 0; i < 300; i++) expect(drawTemplate(t, `apart-${i}`).prompt).not.toMatch(/grows (8|9|18)% a year/);
+    });
+
+    it("show at least one typed question on every attempt of a Check that has templates", () => {
       for (const c of topic.checks) {
-        if (c.kind !== "quiz") continue;
+        if (c.kind !== "quiz" || c.templates.length === 0) continue;
         for (let attempt = 0; attempt < 10; attempt++) expect(selectQuestions(c, attempt).some((id) => c.templates.includes(id)), `${c.id} attempt ${attempt}`).toBe(true);
       }
     });
 
     it("test only Skills taught on a card at or before them, and name a mistake on every wrong choice", () => {
-      expect(testedSkills(topic, topic.checks[0])).toEqual(["compound-growth", "fall-and-recover", "rule-of-72"]);
-      expect(testedSkills(topic, topic.checks[1])).toEqual(["cagr", "log-return"]);
-      expect(testedSkills(topic, topic.checks[2])).toEqual(["steady-pace", "cagr"]);
+      expect(topic.checks.map((c) => testedSkills(topic, c))).toEqual([...QUIZZES.map((q) => [q.skill]), ["steady-pace", "cagr"]]);
       for (const q of topic.questions) for (const choice of q.choices) if (choice.id !== q.answer) expect(choice.mistake, `${q.id} ${choice.id}`).toBeDefined();
     });
 
@@ -194,7 +244,7 @@ describe("Growth, compounding and logs, converted", () => {
     });
   });
 
-  it("plays story to principle: both quizzes taken with typed answers (one slip first), the conversation Check, the reveal and a passed Topic", async () => {
+  it("plays story to principle: every quiz taken (one slip first), the conversation Check, the reveal and a passed Topic", async () => {
     const one = compoundingOnly();
     const db = await testDb();
     const at = async () => navigate(one, await loadProgress(db, OWNER_LEARNER_ID));
@@ -206,13 +256,14 @@ describe("Growth, compounding and logs, converted", () => {
     expect((await at())?.step).toBe("story");
     await finishStep("story");
 
-    /** Enters the Concept step: code shows the card, then its rupee Formula Card set to the card's numbers. */
+    /** Enters the Concept step: code shows the card, then its rupee Formula Card set to the card's numbers, if it has one. */
     const concept = async (checkId: string) => {
       const items = await enterStepItems(db, one, OWNER_LEARNER_ID, sessionId, new Date());
-      expect(items.map((i) => i.kind), checkId).toEqual([CONCEPT_CARD, WIDGET_SHOWN]);
+      const withWidget = Boolean(checkById(checkId).card!.widget);
+      expect(items.map((i) => i.kind), checkId).toEqual(withWidget ? [CONCEPT_CARD, WIDGET_SHOWN] : [CONCEPT_CARD]);
       expect(items[0].data).toMatchObject({ checkId });
-      expect(items[1].data).toMatchObject({ recipe: "formula" });
-      expect(JSON.stringify(items[1].data)).not.toContain('"usd"');
+      if (withWidget) expect(items[1].data).toMatchObject({ recipe: "formula" });
+      expect(JSON.stringify(items.at(-1)!.data)).not.toContain('"usd"');
       await finishStep("concept");
     };
 
@@ -251,14 +302,14 @@ describe("Growth, compounding and logs, converted", () => {
         }),
       );
 
-    for (const [i, checkId] of ["cp-quiz-compounding", "cp-quiz-steady-rate"].entries()) {
+    for (const [i, { id: checkId, templates }] of QUIZZES.entries()) {
       expect((await at())?.step, checkId).toBe("concept");
       await concept(checkId);
       await yourTurn(checkId);
       const open = (await openQuiz(db, one, new Date(), OWNER_LEARNER_ID))!;
       expect(open.checkId).toBe(checkId);
       const typed = open.questions.filter((q) => q.kind === "number");
-      expect(typed.length, checkId).toBeGreaterThan(0);
+      if (templates.length) expect(typed.length, checkId).toBeGreaterThan(0);
       const answers = rightAnswers(open.questions.map((q) => q.id));
       if (i === 0) {
         // The first attempt makes the named slip on a typed question and on a choice, and fails.
@@ -295,7 +346,7 @@ describe("Growth, compounding and logs, converted", () => {
   });
 
   it("keeps the conversation Check on the Sensex, with its Skills listed", () => {
-    const c = topic.checks[2];
+    const c = checkById("cp-sensex-rate");
     expect(c.kind === "conversation" && c.skills).toEqual(["steady-pace", "cagr"]);
     expect(c.kind === "conversation" && c.prompt).toContain("4,285");
   });
