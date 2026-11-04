@@ -48,6 +48,11 @@ export function PastSessionsList({ past }: { past: PastSessions }) {
               <Link href={`/sessions/${s.id}`} className={ROW}>
                 <span className="text-base font-medium leading-6 text-[var(--ink)]">{s.title}</span>
                 <span className="text-sm leading-5 text-[var(--muted)]">Last worked on {shortDate(s.lastActive)}</span>
+                {s.found && s.found.length > 0 && (
+                  <span data-testid="session-found" className="text-sm leading-5">
+                    {s.found.join(" ")}
+                  </span>
+                )}
               </Link>
             </li>
           ))}
@@ -106,6 +111,11 @@ export function PastSessionHeaderView({ header }: { header: PastSessionHeader })
         <div>
           <h1 className="text-xl font-semibold leading-7 text-[var(--ink)]">{header.title}</h1>
           <p className="text-sm leading-5 text-[var(--muted)]">Last worked on {shortDate(header.lastActive)}</p>
+          {header.found && header.found.length > 0 && (
+            <p data-testid="session-found" className="mt-1 text-sm leading-5">
+              {header.found.join(" ")}
+            </p>
+          )}
         </div>
         {header.passed ? (
           <Pill brand>Passed ✓</Pill>

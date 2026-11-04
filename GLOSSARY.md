@@ -56,6 +56,18 @@ _Avoid_: Skipped Skill, deferred Skill, review queue
 The one everyday example a Topic keeps using, such as Percent's savings rate going from 4% to 5%, shown in its Concept cards, its Widget and the Tutor's replies, so the Learner carries one picture instead of many.
 _Avoid_: Anchor example, recurring scenario
 
+**Topic goal**:
+One line in the Topic bar saying what the Learner will be able to do by the end of the Topic. Words only: it never gives the Insight away.
+_Avoid_: Objective, learning outcome
+
+**Off-Topic answer**:
+The Tutor's answer to a question that leaves the current Topic. It is marked by a quiet block in the conversation with "↩ Back to <Topic>", so the Topic stays in view. It never moves the Learner to another Topic: the Session stays that Topic's.
+_Avoid_: Detour, tangent, side quest
+
+**What the Learner found**:
+One line, worked out by code from the Learner's saved Widget state, saying what they found or guessed in a Topic ("You guessed 12%", "You found where the annuity is worth the same as the cash"). It is shown on Past Sessions and on the Topic complete card.
+_Avoid_: Score, result
+
 **Insight**:
 The surprising consequence of a Topic's idea, which the Learner finds by playing with a Widget at the explore step before the Tutor confirms it. Once the Learner has found it, or been told it, the Insight is settled; until then a Widget holds back anything that would give it away.
 _Avoid_: Aha, takeaway, novelty, X factor

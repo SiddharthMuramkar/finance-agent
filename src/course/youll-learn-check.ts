@@ -6,7 +6,7 @@ import type { Topic } from "./map.ts";
 // repeats the written Insight, since the bullets are shown before the Learner has found it.
 // No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
-const FIGURE = /[0-9%$€£₹¥]/;
+export const FIGURE = /[0-9%$€£₹¥]/;
 
 const COMMON = new Set(["than", "that", "this", "with", "from", "when", "what", "which", "into", "more", "less", "they", "them", "their", "your", "have", "been", "even", "only", "much", "very", "same"]);
 
@@ -17,7 +17,7 @@ const words = (text: string) => (text.toLowerCase().match(/[a-z]{4,}/g) ?? []).f
  * A bullet repeats the Insight when it holds it whole, holds a run of it, or says it in a new order:
  * three in five of the two texts' meaningful words, taken together, are shared.
  */
-function repeatsInsight(bullet: string, insight: string): boolean {
+export function repeatsInsight(bullet: string, insight: string): boolean {
   const flat = (t: string) => words(t).join(" ");
   const [b, i] = [flat(bullet), flat(insight)];
   if (b.split(" ").length >= 3 && (i.includes(b) || b.includes(i))) return true;
