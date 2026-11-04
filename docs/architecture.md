@@ -1411,6 +1411,65 @@ saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credi
 a database write that fails (a test trigger refuses the write), a changed fingerprint (refrozen in the same Session), a misconception
 with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
 
+## Stop, pings and progress (`src/app/api/turn/route.ts`, `turn.ts`, `turn-status.ts`, `tools.ts`, `turn-body.ts`, UX audit 4.2e, 5.11, 10.1)
+
+**What it does.** Makes every turn stoppable and never silent. The browser half (Send becoming Stop, the labelled
+writing indicator, the "Stopped" note) is built on these events separately.
+- **Stop.** A request with `{ stop: true }` runs no turn. The route sets `stop_reason = 'stop_requested'` on the
+  Learner's running `turns` row and answers `{ stopping: true }`, or `{ stopping: false }` when nothing was running;
+  never a 409. The running turn reads its own row every 500 ms (the Stop may reach another function instance, so a
+  flag in memory would not work; the column already existed, so no migration). When it sees the flag it aborts the
+  Anthropic stream through the Tool Runner's signal. A tool already running finishes its transaction, and no new API
+  call starts. Then the turn saves: every stored tool call gets its result, the step's streamed text is stored as the
+  Tutor's message less any Widget it had not finished (an unclosed openui-lang fence is cut off), no Widget check or
+  correction runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
+  is stored after the reply. It sends `stopped`, then the normal `done`, so the browser never resumes the turn. A
+  Next the Learner already took stays taken. A resume clears an old flag.
+- **Pings.** While the stream is open the route sends `{ type: "ping" }` every 5 seconds from its own timer: the
+  turn itself cannot, because it is blocked while a tool runs or the model thinks.
+- **Progress.** The turn tells the route what it is doing through `notify`, which goes straight to the stream:
+  "Looking up Case Data…", "Thinking…" at each model call, each tool's plain name while it runs ("Searching the
+  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), "Checking the Widget…" and "Fixing the
+  Widget…". Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
+  rather than waiting for the first text.
+- **`widget_state`** is declared as an event type only; nothing sends it yet.
+- **Prompt caching.** The request keeps its automatic cache breakpoint (the growing conversation) and adds a second
+  one on the frozen instructions, so the tools and instructions, the same for every Session of a deploy, are read
+  from the cache by a new Session too. Measured on 4 Nov 2026 from the `usage` table: inside a Session every turn
+  read the whole earlier conversation from the cache (for example 41,614 read and 1,859 written), but each new
+  Session's first turn read nothing and wrote about 23,000 tokens, even 30 seconds after another Session started,
+  and so did the first turn after more than 5 minutes idle.
+- **Formula markers.** A `{{formula:…}}` marker in a Tutor reply that cannot be drawn is logged as a warning on the
+  server, since the screen shows nothing for it.
+
+**Scenario.** The Learner asks for a chart, the Tutor starts a long reply and a Widget, and the Learner presses Stop.
+Within about half a second the stream ends; the sentences before the Widget are kept, the half-written Widget is not,
+and a reload shows them with "Stopped" under them. Their next message carries on normally.
+
+**Trade-off.** Polling costs one small query every 500 ms per running turn, and a Stop takes up to half a second plus
+the query to land. A tool that is already writing is never cut off, so a Stop during a slow tool waits for it. Words
+the browser showed from a step that never finished are what is saved, which may end mid-sentence. The second cache
+breakpoint costs a cache write of the static prefix when it is not already cached, which the first turn paid anyway.
+
+**How it is tested.** `src/tutor/turn-stop.test.ts` with the scripted client (which honours the signal): a Stop
+mid-stream ends within the poll window, keeps the text without the open fence, stores the STOPPED item, sends
+`stopped` then `done`, saves finished with stop reason `stopped`, and runs no correction; a Stop while a tool runs
+answers every stored tool call and the next turn runs; a Stop with nothing running answers false; progress labels
+through `notify`. `src/app/api/turn/route.test.ts`: `{ stopping: false }`, the stream opening on progress, a ping
+under fake timers, and a Stop through the route.
+
+### Replies of about 120 words, and the open question asked once (`src/tutor/instructions.ts`, `src/behaviour/grading.ts`, UX audit 5.12, 9.3, 9.10)
+
+**What it does.** The Tutor's instructions ask for at most about 120 words of prose per reply (`REPLY_WORD_LIMIT`;
+Widgets do not count), with longer answers given a part at a time or put into Steps or an Accordion; ask an open
+question once, and not again at the end of every reply; and use the Learner Profile for everyday examples in Widgets
+as well as in words. The behaviour report lists every reply over the limit (`longReplies`), counted by code at no cost.
+
+**Scenario.** The Learner asks about SIPs while the break-even question is open. The Tutor answers in a short
+paragraph and stops, rather than ending with "so, what rate did you find?" again.
+
+**Trade-off.** The limit is a request to the model, not a cut: a reply may still run long, and the report shows it.
+
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
 **What it does.** A Topic file may carry an Insight (the question to put, the written Insight, a
