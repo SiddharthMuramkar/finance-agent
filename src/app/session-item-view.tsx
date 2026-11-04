@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
-import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, PICKING_UP, STEP_DIVIDER, type SessionItem } from "@/tutor/session-item-kinds";
+import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, PICKING_UP, STEP_DIVIDER, STOPPED, type SessionItem } from "@/tutor/session-item-kinds";
 import { TOPIC_COMPLETE, type TopicCompleteData } from "@/tutor/topic-complete-card";
 import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
@@ -49,6 +49,12 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   [PICKING_UP]: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="picking-up-divider" /> : null),
   // A Due Check reopened a passed Topic's Session: "New Check · Check 3", or "New step · Explore".
   [DUE_CHECK]: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="due-check-divider" /> : null),
+  // Stored after a reply the Learner stopped, and drawn the moment they stop it: a small muted note.
+  [STOPPED]: () => (
+    <p data-testid="stopped-note" className="self-start text-xs leading-4 text-[var(--muted)]">
+      Stopped
+    </p>
+  ),
   // Never stored: an old "Continue." message, drawn in the thread and on Past Sessions pages as where the next step began.
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.

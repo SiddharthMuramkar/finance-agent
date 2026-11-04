@@ -79,7 +79,7 @@ export function FormulaFigure({ formula, values }: { formula: Formula; values: R
   ]);
 
   return (
-    <figure data-testid="formula-card" data-formula={formula.id} className="my-2 rounded-md border border-[var(--border)] p-3 text-sm">
+    <figure data-testid="formula-card" data-formula={formula.id} className="my-2 min-w-0 rounded-md border border-[var(--border)] p-3 text-sm">
       <figcaption className="mb-2 font-medium">{formula.title}</figcaption>
       <div className="space-y-1" aria-label="The formula">
         {formula.expression.map((line) => (
@@ -106,7 +106,7 @@ export function FormulaFigure({ formula, values }: { formula: Formula; values: R
                     {v.credit && (
                       <span className="text-xs">
                         {" "}
-                        <a href={v.credit.sourceUrl} target="_blank" rel="noreferrer" className="underline">
+                        <a href={v.credit.sourceUrl} target="_blank" rel="noreferrer" className="-my-1 inline-block min-h-6 py-1 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]">
                           {v.credit.source}
                         </a>{" "}
                         ({v.credit.date})

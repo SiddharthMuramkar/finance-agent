@@ -1,0 +1,15 @@
+root = Widget("Illustration: one gram of gold, in dollars and in rupees", [gold, fx, cards, bars, note, tasks])
+$gold = 50
+$fx = 80
+gold = Slider("goldUsd", "Price of 1 gram of gold, in dollars (made up)", 30, 80, 5, $gold, "usd")
+fx = Slider("rupeesPerDollar", "Rupees needed to buy 1 dollar (made up)", 60, 110, 5, $fx, "inr")
+cards = Stack([cardUsd, cardInr, cardLakh], "row")
+cardUsd = Card([InlineHeader("In dollars", "What the world pays"), TextContent("$" + $gold + " per gram", "large-heavy")])
+cardInr = Card([InlineHeader("In rupees", "Dollar price × rupees per dollar"), TextContent("₹" + $gold * $fx + " per gram", "large-heavy")])
+cardLakh = Card([InlineHeader("₹1 lakh buys", "Grams of gold"), TextContent(@Round(100000 / ($gold * $fx), 1) + " grams", "large-heavy")])
+bars = BarChart(["Starting point ($50, ₹80)", "Your setting"], [Series("Rupees for 1 gram of gold", [50 * 80, $gold * $fx])], "grouped", "", "Rupees")
+note = TextCallout("info", "The key idea", "Gold is priced in dollars around the world. An Indian buyer pays the dollar price times the rupees per dollar. So gold gets dearer in rupees if gold rises in dollars, if the rupee weakens, or both.")
+tasks = GuidedTasks([t1, t2, t3])
+t1 = GuidedTask("Keep gold at $50 and weaken the rupee to ₹100 per dollar", $fx == 100 && $gold == 50)
+t2 = GuidedTask("Now raise gold to $60 per gram as well (a fearful world bidding gold up)", $fx == 100 && $gold == 60)
+t3 = GuidedTask("Finally set the rupee back to ₹80 and gold back to $50", $fx == 80 && $gold == 50)

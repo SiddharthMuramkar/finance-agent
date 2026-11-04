@@ -426,6 +426,13 @@
       "properties": {
         "dataset": {
           "type": "string"
+        },
+        "scale": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "log"
+          ]
         }
       },
       "required": [
@@ -1061,7 +1068,8 @@
           "enum": [
             "linear",
             "natural",
-            "step"
+            "step",
+            "stacked"
           ]
         },
         "xLabel": {
@@ -1072,6 +1080,20 @@
         },
         "height": {
           "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd",
+            "percent"
+          ]
+        },
+        "yMin": {
+          "type": "number"
+        },
+        "yMax": {
+          "type": "number"
         }
       },
       "required": [
@@ -1079,7 +1101,7 @@
         "series"
       ],
       "additionalProperties": false,
-      "description": "Filled area under lines; use for cumulative totals or volume trends over time"
+      "description": "Filled first series with the others as lines, over one axis. Series overlap and never stack unless variant is \"stacked\"."
     },
     "BarChart": {
       "type": "object",
@@ -1110,6 +1132,20 @@
           "type": "string"
         },
         "height": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd",
+            "percent"
+          ]
+        },
+        "yMin": {
+          "type": "number"
+        },
+        "yMax": {
           "type": "number"
         }
       },
@@ -1150,6 +1186,20 @@
           "type": "string"
         },
         "height": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd",
+            "percent"
+          ]
+        },
+        "yMin": {
+          "type": "number"
+        },
+        "yMax": {
           "type": "number"
         }
       },

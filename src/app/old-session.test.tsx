@@ -32,7 +32,7 @@ describe("an old Session page", () => {
 
   it("puts a Widget chip where the Tutor put the Widget, the Widget itself in the panel, and never shows its code", () => {
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text: reply }]} />);
-    const chip = html.indexOf("Open: PV →");
+    const chip = html.indexOf('title="PV"');
     expect(chip).toBeGreaterThan(html.indexOf("prices rise"));
     expect(chip).toBeLessThan(html.indexOf("Try the slider."));
     expect(html).toContain('data-testid="widget-card"');
@@ -74,7 +74,7 @@ describe("an old Session page", () => {
     expect(html).toMatch(/<sup[^>]*><a[^>]*href="\/passages\/4\?blocks=1-2"[^>]*>1<\/a><\/sup>/);
     expect(html.match(/data-testid="sources-fold"/g)).toHaveLength(1);
     expect(html).not.toMatch(/<details[^>]*data-testid="sources-fold"[^>]*\sopen/);
-    expect(html).toMatch(/<summary[^>]*>2 sources<\/summary>/);
+    expect(html).toMatch(/<summary[^>]*>(<svg.*?<\/svg>)?2 sources<\/summary>/);
     expect(html).toMatch(/<a[^>]*href="\/passages\/4"[^>]*>Present value<\/a>/);
     expect(html).toContain("J. Author, A book (OpenStax), CC BY");
     expect(html).toContain("US Treasury");
@@ -86,7 +86,7 @@ describe("an old Session page", () => {
     const text = "Claim[1](/passages/9?blocks=1-2)" + foldText([{ n: 1, title: HIDDEN_SOURCE_TITLE, href: "/passages/9", credit: null }]);
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text }]} />);
     expect(html).toContain(HIDDEN_SOURCE_TITLE);
-    expect(html).toMatch(/<summary[^>]*>1 source<\/summary>/);
+    expect(html).toMatch(/<summary[^>]*>(<svg.*?<\/svg>)?1 source<\/summary>/);
     expect(html).not.toContain(" — ");
   });
 });
@@ -96,7 +96,7 @@ describe("a read-only Topic Session's Widgets, updated in place", () => {
   const ANNUITY = 'root = Widget("What the annuity is worth today", [rate])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")';
   const tabs = (html: string) => {
     const at = html.indexOf('aria-label="Widgets in this Session"');
-    return at === -1 ? 0 : (html.slice(at, html.indexOf("</div>", at)).match(/<button/g) ?? []).length;
+    return at === -1 ? 0 : (html.slice(at, html.indexOf("</div>", at)).match(/role="option"/g) ?? []).length;
   };
 
   it("draws a Widget the Tutor drew again under the same title in one tab", () => {
@@ -117,7 +117,7 @@ describe("a read-only Topic Session's Widgets, updated in place", () => {
       />,
     );
     expect(tabs(html)).toBe(1);
-    expect(html).toContain("Open: What the annuity is worth today →");
+    expect(html).toContain("What the annuity is worth today");
   });
 });
 

@@ -103,3 +103,35 @@ export function savedReached(texts: readonly string[], ticked: readonly string[]
   while (reached < texts.length && done.has(texts[reached])) reached++;
   return reached;
 }
+
+/** How many evenly spaced positions of a slider's range a task is tried at, to see how much of the range ticks it. */
+const BROAD_SAMPLES = 41;
+
+/**
+ * Warnings (never errors) for Guided Tasks that most of a slider's range ticks: such a task is not a discovery task,
+ * it ticks the moment the Learner moves. Each task is tried along every slider it reads, one at a time, with the other
+ * sliders at their starting values (`start`, the Widget's declared $variables); `holds` says whether a condition is
+ * true for these values. Tasks that read no slider, or whose slider has no range, are left to guidedTaskProblems.
+ */
+export function broadTaskWarnings(
+  children: unknown,
+  start: Record<string, unknown>,
+  holds: (condition: unknown, values: Record<string, unknown>) => boolean,
+): string[] {
+  const sliders = parsedSliders(children);
+  return parsedTasks(children).flatMap((task) => {
+    const read = new Set(stateRefs(task.condition));
+    return sliders
+      .filter((s) => read.has(s.variable) && s.max > s.min)
+      .flatMap((s) => {
+        let ticks = 0;
+        for (let i = 0; i < BROAD_SAMPLES; i++) {
+          if (holds(task.condition, { ...start, [s.variable]: s.min + ((s.max - s.min) * i) / (BROAD_SAMPLES - 1) })) ticks++;
+        }
+        if (ticks * 2 <= BROAD_SAMPLES) return [];
+        return [
+          `${task.id}: more than half of ${s.variable}'s range ticks "${task.text}", so it is not a discovery task. Name the value to find (a narrow range, or the break-even), not a region that most positions satisfy.`,
+        ];
+      });
+  });
+}

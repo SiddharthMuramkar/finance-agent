@@ -17,6 +17,9 @@ import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNo
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
+import { STOPPED } from "./session-item-kinds";
+import { hasMarkers, markerProblems } from "@/finance/formula-markers";
+import { splitReply } from "@/widgets/split";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { storeTopicComplete } from "./topic-complete";
 import { describeFailure, type FailureKind } from "./failures";
@@ -40,9 +43,9 @@ import {
   type Session,
   type Shown,
 } from "./session-log";
-import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ToolCode, type ToolEffects } from "./tools";
+import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, turnKind, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, widgetReportNote } from "./widget-context";
@@ -64,13 +67,16 @@ const MAX_TOKENS = 16000;
 const COMPACTION_BETA = "compact-2026-09-04";
 /** The turn stops itself this long after it starts, inside Vercel's 300 seconds, so it can save and tell the browser. */
 export const TIME_BUDGET_MS = 270_000;
+/** How often a running turn reads its own row for the Learner's Stop (another function instance may have written it). */
+export const STOP_POLL_MS = 500;
 
 
 /** The request the Tutor Turn builds; a subset of the SDK's Tool Runner params. */
 export type TutorRequest = {
   model: string;
   max_tokens: number;
-  system: { type: "text"; text: string }[];
+  /** The frozen instructions, with a cache breakpoint after them: with the tools before them, the static prefix every Session shares. */
+  system: { type: "text"; text: string; cache_control?: { type: "ephemeral" } }[];
   tools: BetaRunnableTool[];
   thinking: { type: "adaptive" };
   output_config: { effort: Effort };
@@ -87,7 +93,8 @@ type MessageStream = AsyncIterable<BetaRawMessageStreamEvent> & { finalMessage()
 export type TutorClient = {
   beta: {
     messages: {
-      toolRunner(params: TutorRequest): AsyncIterable<MessageStream> & {
+      /** The signal aborts the open stream and every later API call: the Learner pressed Stop. */
+      toolRunner(params: TutorRequest, options?: { signal?: AbortSignal }): AsyncIterable<MessageStream> & {
         params: { messages: Message[] };
         /** Asks the runner for a summary once the current turn ends; it then replaces its history with the summary. */
         compactBeforeNextTurn(): void;
@@ -133,7 +140,18 @@ export type TurnEvent =
   /** A tool could not save the Learner's progress. */
   | { type: "save_failed"; message: string }
   /** The API call failed; everything already saved is kept and the Learner can retry. */
-  | { type: "error"; kind: FailureKind; message: string };
+  | { type: "error"; kind: FailureKind; message: string }
+  /** Sent by the route every few seconds while the turn runs, so the browser knows the stream is alive. Carries nothing. */
+  | { type: "ping" }
+  /** What the turn is doing now, in plain words ("Thinking…", "Searching the Library…"), for the writing indicator. */
+  | ProgressEvent
+  /**
+   * The Learner pressed Stop: the reply ends where it was, and what it had written is kept (less any Widget it had
+   * not finished). Always followed by "done", so the browser never resumes the turn.
+   */
+  | { type: "stopped" }
+  /** A Widget's current slider values, by its Widget key. The type only for now: nothing sends it yet. */
+  | { type: "widget_state"; widgetKey: string; values: Record<string, number> };
 
 /** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
 export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
@@ -151,7 +169,9 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
   return {
     model: session.model,
     max_tokens: MAX_TOKENS,
-    system: [{ type: "text", text: session.instructions }],
+    // The tools and instructions are the same for every Session of a deploy: a breakpoint after them lets a new Session
+    // (or one after a pause) read them from the cache. The request's own cache_control caches the growing conversation.
+    system: [{ type: "text", text: session.instructions, cache_control: { type: "ephemeral" } }],
     tools: bindTools(session.tools as ToolDefinition[], code),
     thinking: { type: "adaptive" },
     output_config: { effort: session.effort as Effort },
@@ -195,22 +215,82 @@ export type TurnDeps = {
    * page's Widget state). Over what the Session saved, it is what the Tutor is told of the open Widgets.
    */
   widgets?: WidgetStates;
+  /**
+   * Tells the browser at once what the turn is doing ("Thinking…", a tool's label). The route wires it to its stream:
+   * the generator cannot yield while a tool runs or the model thinks. Left out, nothing is sent.
+   */
+  notify?: (event: ProgressEvent) => void;
 };
 
 /** Thrown when a run reaches its time budget. */
 class CutOff extends Error {}
 
-/** Resolves like the promise, or throws CutOff once the deadline (a performance.now() time) passes. */
-async function beforeDeadline<T>(promise: Promise<T>, deadline: number): Promise<T> {
+/** Thrown when the Learner pressed Stop. */
+class StopRequested extends Error {}
+
+/** Resolves like the promise, or throws CutOff once the deadline (a performance.now() time) passes, or StopRequested once `stop` aborts. */
+async function beforeDeadline<T>(promise: Promise<T>, deadline: number, stop?: AbortSignal): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let onStop: (() => void) | undefined;
   const late = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new CutOff()), Math.max(0, deadline - performance.now()));
   });
+  const stopped = new Promise<never>((_, reject) => {
+    if (!stop) return;
+    onStop = () => reject(new StopRequested());
+    if (stop.aborted) onStop();
+    else stop.addEventListener("abort", onStop, { once: true });
+  });
   try {
-    return await Promise.race([promise, late]);
+    return await Promise.race([promise, late, stopped]);
   } finally {
     clearTimeout(timer);
+    if (onStop) stop?.removeEventListener("abort", onStop);
   }
+}
+
+/**
+ * Reads the turn's row every STOP_POLL_MS for the Learner's Stop (the request that sets it may reach another
+ * function instance) and aborts the signal when it is set. `end` stops the polling.
+ */
+function watchForStop(db: Db, turnId: number) {
+  const controller = new AbortController();
+  let reading = false;
+  const timer = setInterval(() => {
+    if (reading || controller.signal.aborted) return;
+    reading = true;
+    stopRequested(db, turnId)
+      .then((stop) => {
+        if (stop) {
+          clearInterval(timer);
+          controller.abort();
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        reading = false;
+      });
+  }, STOP_POLL_MS);
+  return { signal: controller.signal, end: () => clearInterval(timer) };
+}
+
+const WIDGET_OPEN = "```openui-lang\n";
+const WIDGET_CLOSE = "\n```";
+
+/**
+ * The reply text without a Widget it had not finished: an unclosed openui-lang fence (and anything after it) is
+ * cut off, so a stopped reply is never saved or replayed with a Widget that cannot draw.
+ */
+export function withoutOpenWidget(text: string): string {
+  const kept = splitReply(text)
+    .flatMap((s) => (s.type === "prose" ? [s.text] : s.complete ? [WIDGET_OPEN + s.code + WIDGET_CLOSE] : []))
+    .join("");
+  // A fence only partly opened ("```openui") at the start of the last line goes too; a bare "```" may close a fence.
+  for (let k = WIDGET_OPEN.length - 1; k > 3; k--) {
+    const start = kept.length - k;
+    if (kept.endsWith(WIDGET_OPEN.slice(0, k)) && (start === 0 || kept[start - 1] === "\n")) return kept.slice(0, start).trimEnd();
+  }
+  return kept.trimEnd();
 }
 
 /**
@@ -301,8 +381,9 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
     return;
   }
   let ended = false;
+  const stop = watchForStop(db, turn.id);
   try {
-    const done = yield* runLockedTurn(deps, input, turn, deadline);
+    const done = yield* runLockedTurn(deps, input, turn, deadline, stop.signal);
     // Finished before the browser hears "done", so its next send finds the lock free.
     await updateTurn(db, turn.id, { status: "finished", stopReason: done.stopReason, finishedAt: now() });
     ended = true;
@@ -319,6 +400,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
     await updateTurn(db, turn.id, { status: "failed", error: failure.message });
     yield { type: "error", ...failure };
   } finally {
+    stop.end();
     // The caller stopped reading early: leave the turn resumable rather than locked.
     if (!ended) await updateTurn(db, turn.id, { status: "cut_off" });
   }
@@ -351,13 +433,20 @@ async function openerFor(db: Db, map: CourseMap, learnerId: number): Promise<str
   return openerNote(place, { quizOpen });
 }
 
-async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, deadline: number): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
+async function* runLockedTurn(
+  deps: TurnDeps,
+  input: TurnInput,
+  turn: Turn,
+  deadline: number,
+  stop: AbortSignal,
+): AsyncGenerator<TurnEvent, Extract<TurnEvent, { type: "done" }>> {
   const { db, client } = deps;
   const { learnerId } = turn;
   const map = deps.map ?? loadCourseMap();
   const now = deps.now ?? (() => new Date());
   const runStart = performance.now();
-  const effects: ToolEffects = { saveFailed: false, items: [] };
+  const effects: ToolEffects = { saveFailed: false, items: [], notify: deps.notify };
+  const progress = (label: string) => deps.notify?.({ type: "progress", label });
 
   let session: Session;
   let log: Log;
@@ -405,6 +494,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // A paste belongs to the Session this turn runs in; the context counts what the Tutor has seen there.
     const paste = await pasteForTurn(db, turn.id, session.id, learnerId);
     const pastes = await pasteSummary(db, session.id, learnerId);
+    if (place) progress("Looking up Case Data…");
     const caseData = await caseDataFor(db, map, place, learnerId);
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
     const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId));
@@ -495,10 +585,12 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   const { compactAtTokens } = await readSettings(db);
   let stepNo = (await loadStepUsages(db, session.id, turnSeq)).length;
   let stopReason: string | null = null;
+  // The Learner pressed Stop and the reply ended there.
+  let stopped = false;
 
   // Runs Tool Runner over the log's messages, streaming text and saving each loop step. Returns the replies' text.
   async function* loop(): AsyncGenerator<TurnEvent, string> {
-    const runner = client.beta.messages.toolRunner(requestFor(activeSession, [...log.messages], code));
+    const runner = client.beta.messages.toolRunner(requestFor(activeSession, [...log.messages], code), { signal: stop });
     // The runner's history, up to here, is stored.
     let saved = log.messages.length;
     // Saves anything the runner added to history that isn't stored yet (tool results).
@@ -514,13 +606,19 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     // A step's time runs from the end of the one before (so it includes the tools that ran between) to its final message.
     let stepStart = performance.now();
     const steps = runner[Symbol.asyncIterator]();
+    // What the loop waits on now: on Stop, a tool inside it runs to its end before anything is saved.
+    let pending: Promise<unknown> | undefined;
+    // The model's own text of the step being streamed, kept so a Stop can save it.
+    let stepText = "";
     try {
       for (;;) {
-        const next = await beforeDeadline(steps.next(), deadline);
+        const next = await beforeDeadline((pending = steps.next()), deadline, stop);
         if (next.done) break;
         const stream = next.value;
+        stepText = "";
         if (!compacting) await syncRunnerHistory();
         yield* reportSaveFailure();
+        if (!compacting) progress("Thinking…");
         const events = stream[Symbol.asyncIterator]();
         let stepHasText = false;
         // Citation markers follow each cited block.
@@ -536,15 +634,19 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
           return [...out, { type: "text", text: shown }];
         };
         for (;;) {
-          const event = await beforeDeadline(events.next(), deadline);
+          const event = await beforeDeadline((pending = events.next()), deadline, stop);
           if (event.done) break;
           const e = event.value;
           if (compacting) continue;
-          if (e.type === "content_block_delta" && e.delta.type === "text_delta" && e.delta.text) yield* show(marks.add(e.delta.text));
+          if (e.type === "content_block_start" && e.content_block.type === "server_tool_use") progress("Running a sum…");
+          if (e.type === "content_block_delta" && e.delta.type === "text_delta" && e.delta.text) {
+            stepText += e.delta.text;
+            yield* show(marks.add(e.delta.text));
+          }
           if (e.type === "content_block_delta" && e.delta.type === "citations_delta") cited.set(e.index, [...(cited.get(e.index) ?? []), e.delta.citation]);
           if (e.type === "content_block_stop") yield* show(marks.markers(cited.get(e.index)));
         }
-        const final = await beforeDeadline(stream.finalMessage(), deadline);
+        const final = await beforeDeadline((pending = stream.finalMessage()), deadline, stop);
         const tools = compacting ? ["compaction"] : final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
         const step = stepUsage(activeSession.model, ++stepNo, final.usage, tools, Math.round(performance.now() - stepStart), final.stop_reason);
         await saveStepUsage(db, activeSession.id, turnSeq, activeSession.model, step, now());
@@ -557,6 +659,8 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         }
         stopReason = final.stop_reason;
         saved++;
+        // The step has ended: its text is stored with it below (or discarded, if declined), never again by a Stop.
+        stepText = "";
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
@@ -568,10 +672,32 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
         }
       }
     } catch (error) {
-      await steps.return?.();
-      throw error;
+      // On Stop the aborted stream may fail first, with the SDK's abort error: once the signal is aborted, any failure here is the Stop.
+      if (!(error instanceof StopRequested) && !stop.aborted) {
+        await steps.return?.();
+        throw error;
+      }
+      // Stop: a tool already running finishes its transaction, and no new API call starts (the signal is aborted).
+      await beforeDeadline(Promise.resolve(pending).catch(() => {}), deadline);
+      await Promise.resolve(steps.return?.()).catch(() => {});
+      if (compacting) {
+        // The reply had ended and is stored; only its summary is given up.
+        saved = runner.params.messages.length;
+      } else {
+        // Every stored tool call gets its result; the reply being streamed was never stored, so it is not taken from the runner.
+        const all = runner.params.messages;
+        for (; saved < all.length; saved++) if (all[saved].role !== "assistant") await log.append(all[saved]);
+        // What the step had written is kept, less any Widget it had not finished.
+        const kept = withoutOpenWidget(stepText);
+        if (kept && log.messages.at(-1)?.role !== "assistant") {
+          await log.append({ role: "assistant", content: [{ type: "text", text: kept }] });
+          text += text ? PARAGRAPH + kept : kept;
+        }
+        stopReason = "stopped";
+        stopped = true;
+      }
     }
-    if (!compacting) await syncRunnerHistory();
+    if (!compacting && !stopped) await syncRunnerHistory();
     yield* reportSaveFailure();
     // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
     if (stopReason !== "refusal") {
@@ -593,9 +719,17 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   // Before the explore step the explore Widget still covers its parts, but the correction does not send the Tutor to open it.
   const heldBack = covering ? exploreHeldBack(covering, (await loadProgress(db, learnerId)).topics[covering.id]) : null;
   const covered = covering ? coveredParts(covering).map((w) => (w.id === heldBack ? { ...w, held: true } : w)) : [];
-  const broken =
-    stopReason === "refusal" || stopReason === "max_tokens" ? [] : newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code), covered);
+  // A stopped reply is not checked either: the Learner asked for it to end, and a Stop that came after the reply ended starts no correction.
+  const checked = !(stopReason === "refusal" || stopReason === "max_tokens" || stopReason === "stopped" || stop.aborted);
+  if (checked && reply.includes(WIDGET_OPEN)) progress("Checking the Widget…");
+  const broken = checked ? newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code), covered) : [];
+  // A formula marker the Tutor wrote that cannot be drawn shows as nothing on screen: say so in the server log.
+  if (hasMarkers(reply)) {
+    const problems = markerProblems(reply);
+    if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
+  }
   if (broken.length) {
+    progress("Fixing the Widget…");
     const message = widgetCheckMessage(broken);
     await log.append({ role: "user", content: message });
     yield { type: "correction", widgets: broken.map((b) => b.index), leaveOut: broken.flatMap((b) => (b.leaveOut ? [b.index] : [])) };
@@ -617,6 +751,10 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       await log.append({ role: "user", content: truncated.map((use) => ({ type: "tool_result" as const, tool_use_id: use.id, content: NOT_RUN, is_error: true })) });
     }
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
+  } else if (stopReason === "stopped") {
+    // A reload shows where the reply was stopped. A Next the Learner already took stays taken.
+    await saveItemAfterLatest(db, learnerId, session.id, { kind: STOPPED, data: { label: "Stopped" } }, now());
+    yield { type: "stopped" };
   }
   // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
   const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());

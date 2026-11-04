@@ -48,6 +48,7 @@ export function Conversation({
   passed = null,
   developerDetails = false,
   next = null,
+  openQuestion = null,
 }: {
   /** The Next the Course Navigator offers now (nextOfferNow), or null while a Check is open: the chip under the latest reply. */
   next?: NextOffer | null;
@@ -76,6 +77,8 @@ export function Conversation({
   passed?: PassedTopic;
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
+  /** The Insight question the Tutor is waiting on, pinned above the message box until the Insight is settled. */
+  openQuestion?: string | null;
 }) {
   // The Widgets' saved work in the shown Session, kept across tab switches and saved for a reload; each turn request carries it.
   const widgetStore = useWidgetStates(shown && "sessionId" in shown ? shown.sessionId : undefined, widgetStates);
@@ -117,7 +120,7 @@ export function Conversation({
             {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
             <WidgetReportContext.Provider value={passed ? null : report}>
               <WorkspaceFrame
-                left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} />}
+                left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
             </WidgetReportContext.Provider>

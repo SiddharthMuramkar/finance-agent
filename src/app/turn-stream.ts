@@ -4,6 +4,8 @@ import { useExternalStoreRuntime, type AppendMessage } from "@assistant-ui/react
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { TOPIC_START } from "@/course/topic-start";
+import { STOPPED } from "@/tutor/session-item-kinds";
+import { splitReply } from "@/widgets/split";
 import { replaceBrokenWidgets, withoutLeftOut } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
 import type { StreamEvent } from "@/tutor/turn";
@@ -37,6 +39,24 @@ export type Waiting = "writing" | "slow" | null;
 const MAX_RESUMES = 10;
 const BUSY_WAIT_MS = 3000;
 const MAX_BUSY_WAITS = 60;
+
+/** How long Stop waits before asking again when the server had no running turn yet (the Stop came before the turn was saved), and how many times it asks. */
+const STOP_RETRY_MS = 400;
+const MAX_STOP_TRIES = 4;
+
+/** The reply text without a Widget it had not finished writing: an unclosed openui-lang fence, and anything after it, is cut. */
+export function withoutOpenWidget(text: string): string {
+  const open = "```openui-lang\n";
+  const kept = splitReply(text)
+    .flatMap((s) => (s.type === "prose" ? [s.text] : s.complete ? [open + s.code + "\n```"] : []))
+    .join("");
+  // A fence only partly typed ("```openui") at the end of a line goes too.
+  for (let k = open.length - 1; k > 3; k--) {
+    const start = kept.length - k;
+    if (kept.endsWith(open.slice(0, k)) && (start === 0 || kept[start - 1] === "\n")) return kept.slice(0, start).trimEnd();
+  }
+  return kept.trimEnd();
+}
 
 export type TurnStream = ReturnType<typeof useTurnStream>;
 
@@ -76,6 +96,10 @@ export function useTurnStream({
   const [canRetry, setCanRetry] = useState(pending?.status === "failed");
   const [cutShort, setCutShort] = useState(false);
   const [waiting, setWaiting] = useState<Waiting>(null);
+  // What the server says the Tutor is doing now ("Looking up Case Data…"), and whether Stop has been pressed.
+  const [progress, setProgress] = useState<string | null>(null);
+  const [stopping, setStopping] = useState(false);
+  const runningRef = useRef(false);
   // The passage attached to the next message: null while the Attach a passage box is closed.
   const [passage, setPassage] = useState<string | null>(null);
 
@@ -98,6 +122,9 @@ export function useTurnStream({
     setCanRetry(false);
     setCutShort(false);
     setRunning(true);
+    runningRef.current = true;
+    setStopping(false);
+    setProgress(null);
     setWaiting("writing");
     // A slow turn never looks frozen: after 8 seconds with no words, the indicator says so.
     const slow = setTimeout(() => setWaiting((w) => (w === "writing" ? "slow" : w)), SLOW_AFTER_MS);
@@ -213,7 +240,25 @@ export function useTurnStream({
             // The route streams the Tutor Turn's events as they are (StreamEvent), so the compiler checks each field read here.
             const event = JSON.parse(part) as StreamEvent;
             // The first words of the reply end the writing indicator.
-            if ((event.type === "text" || event.type === "replay") && event.text) setWaiting(null);
+            if ((event.type === "text" || event.type === "replay") && event.text) {
+              setWaiting(null);
+              setProgress(null);
+            }
+            // A ping only shows the stream is alive; a progress label replaces the indicator's words.
+            if (event.type === "ping") continue;
+            if (event.type === "progress") {
+              setProgress(event.label);
+              continue;
+            }
+            if (event.type === "stopped") {
+              // The Learner stopped the reply: it ends here, less any Widget it had not finished, and "done" follows. Never a resume.
+              finished = true;
+              setWaiting(null);
+              setProgress(null);
+              updateReply(withoutOpenWidget);
+              addItem({ kind: STOPPED, data: {} }, true);
+              continue;
+            }
             if (event.type === "text" && correction === null) updateReply((t) => t + event.text);
             else if (event.type === "text") correction += event.text;
             else if (event.type === "replay") replaceReply(event.text);
@@ -273,12 +318,37 @@ export function useTurnStream({
       setAnnouncement(problem ?? "Reply ready");
       clearTimeout(slow);
       setWaiting(null);
+      setProgress(null);
+      setStopping(false);
+      runningRef.current = false;
       setRunning(false);
       setFixing(false);
       // Re-reads the strip and the Next on offer, since the Tutor may have finished a Teaching Step; `refreshing`
       // stays true until the page has them, so a Next chip from before the turn is never offered.
       startRefresh(() => router.refresh());
     }
+  }
+
+  /**
+   * Stop: a separate request that flags the running turn, which ends within about half a second and keeps what it
+   * wrote. The reply's own stream is never aborted: it ends by itself with "stopped" then "done". The server answers
+   * `{ stopping: false }` when it had no running turn yet (Stop pressed before the turn was saved), so ask again.
+   */
+  async function requestStop() {
+    if (!runningRef.current || stopping) return;
+    setStopping(true);
+    for (let tries = 0; tries < MAX_STOP_TRIES && runningRef.current; tries++) {
+      try {
+        const res = await fetch("/api/turn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stop: true }) });
+        const answer = (await res.json()) as { stopping?: boolean };
+        if (answer.stopping) return;
+      } catch {
+        // The reply's stream reports a real failure itself.
+      }
+      await new Promise((r) => setTimeout(r, STOP_RETRY_MS));
+    }
+    // Nothing was running to stop (or the turn ended meanwhile): the button comes back.
+    setStopping(false);
   }
 
   // A turn cut off while the page was closed resumes as soon as the page opens; an empty Session starts its opener.
@@ -306,5 +376,5 @@ export function useTurnStream({
   /** Draws a Session item stored outside a turn (a quiz's result card) at the end of the conversation, as a reload would. */
   const appendItem = (item: SessionItemData) => setMessages((m) => [...m, { id: `item-${Date.now()}-${m.length}`, role: "item", ...item }]);
 
-  return { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send, appendItem, runtime };
+  return { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, progress, stopping, stop: () => void requestStop(), passage, setPassage, send, appendItem, runtime };
 }

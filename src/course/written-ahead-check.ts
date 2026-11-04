@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { createParser, evaluate, type LibraryJSONSchema } from "@openuidev/lang-core";
-import { parsedSliders, parsedTasks, stateRefs, type ParsedSlider } from "../widgets/guided-tasks.ts";
+import { broadTaskWarnings, parsedSliders, parsedTasks, stateRefs, type ParsedSlider } from "../widgets/guided-tasks.ts";
 import { sliderStep } from "../widgets/slider-steps.ts";
 import type { Topic } from "./map.ts";
 import { withOnlyTask, withRevealTask, type OnlyTask } from "./written-ahead.ts";
@@ -119,4 +119,20 @@ export function onlyTaskCheckErrors(topics: readonly Pick<Topic, "id" | "widgets
 /** Problems in every Topic's written-ahead Widgets. */
 export function writtenAheadCheckErrors(topics: readonly Pick<Topic, "id" | "widgets">[]): string[] {
   return topics.flatMap((t) => t.widgets.flatMap((w) => writtenAheadCheck(t.id, w)));
+}
+
+/**
+ * Warnings (not errors) about every Topic's written-ahead Widgets: a Guided Task that more than half of a slider's range
+ * ticks is not a discovery task. For the course check to print beside its errors; they never fail it.
+ */
+export function writtenAheadCheckWarnings(topics: readonly Pick<Topic, "id" | "widgets">[]): string[] {
+  return topics.flatMap((t) =>
+    t.widgets.flatMap((w) => {
+      if (drawProblems(w.code).length) return [];
+      const result = parser.parse(w.code);
+      return broadTaskWarnings(result.root?.props.children, result.stateDeclarations as Record<string, unknown>, holds).map(
+        (warning) => `Topic "${t.id}" written-ahead Widget "${w.id}": ${warning}`,
+      );
+    }),
+  );
 }

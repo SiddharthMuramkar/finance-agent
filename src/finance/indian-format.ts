@@ -24,3 +24,18 @@ export function formatInrWords(amount: number): string {
   if (abs >= LAKH) return `${sign}₹${GROUPED.format(lakhs)} lakh`;
   return formatInr(amount);
 }
+
+const WHOLE = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+
+/**
+ * Rupees as a Widget shows them: no paise from ₹1,000 up (₹43,391), and from one lakh up the lakh or crore
+ * reading leads (₹9.76 lakh) with the whole figure kept in `title` for a tooltip. Below ₹1,000 the exact
+ * amount, paise included when there are any.
+ */
+export function formatInrDisplay(amount: number): { text: string; title?: string } {
+  const abs = Math.abs(amount);
+  if (abs < 1000) return { text: formatInr(amount) };
+  const whole = `${amount < 0 ? "-" : ""}₹${WHOLE.format(abs)}`;
+  if (abs >= LAKH) return { text: formatInrWords(amount), title: whole };
+  return { text: whole };
+}

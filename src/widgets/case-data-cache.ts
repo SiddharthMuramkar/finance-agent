@@ -6,13 +6,17 @@ import { fetchCaseData, type CaseLoad } from "./case-data-client";
  * fetched once per page however many read it.
  * - Keyed by Case and reveal state: the page says which Cases are revealed (`setRevealed`), and a Case read before its
  *   reveal is fetched afresh after it, so data dated after the as-of date is never served before the reveal.
- * - Cleared after every Tutor turn (`clear`), since a turn can open a reveal.
+ * - Stale while revalidating: after a Tutor turn the page calls `revalidate`, which keeps every entry on screen, asks the
+ *   server again in the background and replaces an entry only if its payload changed (then readers hear it). A Widget
+ *   already drawn never flashes "Fetching sourced data…" for a turn that changed nothing. `clear` drops everything.
  * - A failed load is forgotten, so a later read tries again. `load` never rejects.
- * `version` counts clears and reveal changes; `subscribe` hears each, so a Widget already drawn reads again.
+ * `version` counts clears, reveal changes and changed revalidations; `subscribe` hears each, so a Widget already drawn reads again.
  */
 export type CaseDataCache = {
   load: CaseLoad;
   clear: () => void;
+  /** Asks the server again for every Case held for the current reveal state; replaces one only if its data changed. */
+  revalidate: () => Promise<void>;
   setRevealed: (caseIds: readonly string[]) => void;
   subscribe: (listener: () => void) => () => void;
   version: () => number;
@@ -47,6 +51,19 @@ export function createCaseDataCache(fetchCase: CaseLoad = (caseId) => fetchCaseD
     clear() {
       entries.clear();
       changed();
+    },
+    async revalidate() {
+      const stale = [...entries].filter(([key]) => key === keyOf(key.slice(0, key.lastIndexOf("|"))));
+      await Promise.all(
+        stale.map(async ([key, held]) => {
+          const caseId = key.slice(0, key.lastIndexOf("|"));
+          const [before, now] = await Promise.all([held, new Promise<CaseData | null>((resolve) => resolve(fetchCase(caseId))).then((d) => d ?? null, () => null)]);
+          // A failed read keeps what is held; so does a read that finished after the entry was replaced or cleared.
+          if (!now || entries.get(key) !== held || JSON.stringify(before) === JSON.stringify(now)) return;
+          entries.set(key, Promise.resolve(now));
+          changed();
+        }),
+      );
     },
     setRevealed(caseIds) {
       const next = new Set(caseIds);

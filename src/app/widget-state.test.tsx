@@ -88,7 +88,7 @@ const card = () => host.querySelector('[data-testid="widget-card"]')!;
 const slider = () => card().querySelector<HTMLInputElement>('input[type="range"][aria-label="Interest rate"]')!;
 const ticks = () => [...card().querySelectorAll("[data-state]")].map((li) => li.getAttribute("data-state"));
 const title = () => card().querySelector("h3")?.textContent;
-const tab = (name: string) => [...host.querySelectorAll<HTMLButtonElement>('[aria-label="Widgets in this Session"] button')].find((b) => b.textContent === name)!;
+const tab = (name: string) => [...host.querySelectorAll<HTMLElement>('[aria-label="Widgets in this Session"] [role=option]')].find((o) => o.querySelector(".truncate")?.textContent === name)!;
 
 async function click(button: HTMLElement) {
   await act(async () => button.click());
@@ -120,6 +120,8 @@ describe("a Widget in the Study Workspace with saved Widget state", () => {
     await open([{ role: "assistant", text: fence(rates("Rates")) }], { Rates: { values: { $rate: 2.5 }, ticked: [] } });
     const reset = [...card().querySelectorAll("button")].find((b) => b.textContent === "Reset")!;
     await click(reset);
+    // Reset slides the slider home in about a quarter of a second.
+    await act(async () => vi.advanceTimersByTime(400));
     expect(slider().value).toBe("5");
   });
 

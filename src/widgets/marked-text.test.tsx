@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MarkedText } from "./marked-text";
 
 const html = (text: string) => renderToStaticMarkup(<MarkedText text={text} />);
@@ -24,9 +24,19 @@ describe("an explanation with a formula marker", () => {
     expect(out).toContain("$4,535.15");
   });
 
-  it("never shows the raw marker", () => {
+  it("never shows the raw marker of a formula it draws", () => {
     expect(html("A {{formula:present-value amount=5000 ratePercent=5 years=2}} B")).not.toContain("{{");
-    expect(html("A {{formula:nope a=1}} B")).not.toContain("{{");
+  });
+
+  it("shows a marker it cannot draw as its raw text, so the gap is visible, and warns in development", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const out = html("A {{formula:nope a=1}} B");
+    expect(out).toContain('data-testid="bad-formula-marker"');
+    expect(out).toContain("{{formula:nope a=1}}");
+    expect(out).toContain("A");
+    expect(out).toContain("B");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("nope"));
+    warn.mockRestore();
   });
 
   it("keeps text without a marker as one paragraph", () => {

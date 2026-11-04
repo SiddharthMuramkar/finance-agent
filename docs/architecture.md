@@ -684,14 +684,12 @@ the widget uses): an AnnuityChart or the `annuity_schedule` tool is "Present val
 "Formula", a kit chart or table with no tool and none of our code-backed parts "Illustration", and
 anything else the current Topic's title. A finished widget the check refuses shows only the fallback
 note, so its eyebrow is the Topic's title too, never "Illustration". The newest widget shows on its own, including when a new
-turn brings one. With two or more widgets a row of tabs, each named by its widget's title (never a number; "Untitled Widget" when the Tutor gave none), sits above the card on one line that scrolls sideways instead of wrapping; a long title is cut short with an ellipsis and shown in full on hover. Picking a tab, or an "Open: <title> →" chip in the chat, shows that widget, fades it in over 200ms,
-flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
+turn brings one. With two or more widgets (or a quiz open) a **pager** header (`widget-pager.tsx`) sits above the card: ‹ and › as 32px buttons, "3 of 11 · <title>" in the middle, and an "All" button that opens a listbox. Each row of the listbox shows the eyebrow, the title and "from message N", with the current one checked; the Check tab and the Explore item (still `explore-chip`, hidden below the laptop width) are rows too. While the panel has focus, ← and → page (a slider or field keeps its own arrows), and Escape closes the listbox and puts focus back on "All". Picking a widget, from the pager or from a chip in the chat, crossfades it in over 150ms with a 4px rise, plays a ring pulse around the card for 600ms (no more border flash), scrolls the panel back to the top, and holds the card at the last widget's height for 400ms so the column below does not jump. The chip in the chat is a 36px card-link with the widget's title and three states: "View widget →", "Showing" (filled brand) and "Drawing…" (a shimmer); pressing the one already showing scrolls to the top and pulses again. As soon as a widget's fence opens, the card shows a skeleton with "Drawing…" until the widget is written, then the widget replaces it. Before any widget, a dashed
 box says "Widgets for this Topic will appear here." Scenario: the Learner has a rate chart from earlier
-and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
-"Long-term interest rates" tab and the chart fades in under "Case Data". With eight widgets open the
-tabs still take one line; the Learner scrolls the row sideways to reach the older ones. Trade-off: one widget at a
+and a loan calculator from this reply; the calculator shows, "2 of 2 · What a home loan costs", eyebrow "Calculator"; they press ‹ and the chart fades in under "Case Data", "1 of 2". With eleven widgets open the
+header is still one line; "All" lists them with where each came from. Trade-off: one widget at a
 time keeps the panel calm and the sliders roomy, but comparing two widgets means switching between
-them; and a single scrolling row hides the far tabs until scrolled, where wrapping would push the card down.
+them; and a pager hides the other widgets' names behind one more press where a strip of tabs showed a few at once.
 
 **The Sourced strip and readable Case Data charts.** Under a Widget that calls `case_data`, one thin
 amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit; before the reveal
@@ -717,17 +715,19 @@ labelled through the Tutor's instructions and the server's Widget check, not her
 Widget tool and Sourced strip on it reads through it (`useCaseLoad`). What it holds: one answer from
 `/api/case-data/<case>` per Case and reveal state. The page reads on the server which Cases the Learner
 has seen revealed (`revealedCases`) and passes them in, so an answer fetched before a reveal is never
-served after it, nor the other way. When it clears: at the end of every Tutor turn (a turn can open the
-reveal), and whenever the revealed list changes; Widgets already on the page then read again, and a failed
-load is forgotten so the next read retries. Scenario: at the Fed Topic's explore step the panel shows a
+served after it, nor the other way. After every Tutor turn (a turn can open the
+reveal) the cache is **stale while revalidating**: it keeps every entry on screen, asks the server again in the
+background, and replaces an entry only if its data changed, telling readers only then. When the revealed list changes,
+or something clears the cache outright, Widgets already on the page read again; a failed load is forgotten so the
+next read retries, and a failed revalidation keeps what is held. Scenario: at the Fed Topic's explore step the panel shows a
 history chart of the funds rate and a Formula Card reading its latest point, while the explore Widget's
 chart compares against the same Case; the page makes one request, not three, and nothing flashes as
-each part loads. The Learner presses Next to the reveal; as the turn ends the cache clears, the next
-read fetches the full series, and a Widget the Tutor draws after the reveal shows February 1994 onwards.
+each part loads. The Learner asks a question; as the turn ends the cache asks again, the series is the same, and the chart
+never shows "Fetching sourced data…". The Learner presses Next to the reveal; the revalidation or the new revealed list
+brings the full series, and a Widget the Tutor draws after the reveal shows February 1994 onwards.
 Trade-off: data stays in the browser for the whole page, so a change made elsewhere (another device
-reaching the reveal) shows only after the next turn or a reload; and the cache refetches after every turn
-even when nothing changed, one small request per Case on the page, which buys never having to work out
-in the browser whether a turn opened a reveal.
+reaching the reveal) shows only after the next turn or a reload; and each turn still costs one small request per Case on the
+page, which buys never having to work out in the browser whether a turn opened a reveal, without the flash a wholesale clear caused.
 
 Home is the one page that fills the cache another way. Its `CaseDataProvider` is given `cases`, Case
 Data already read on the server under the signed-out as-of rule; the cache then answers only from
@@ -1051,6 +1051,33 @@ We take that: a steady axis teaches more than a tidy one. Log is offered only wh
 the Annuity chart's keyboard is now one slider (one tab stop) instead of thirty, at the cost of a payment's reading
 being spoken only when the slider moves onto it.
 
+### Widgets that fit the panel (`SliderView`, `StackView`, `WidgetFrame`, chart overrides in `src/widgets/library.tsx`, `formatInrDisplay` in `src/finance/indian-format.ts`, UX audit lane "widget-fixes")
+
+**What it does.** The Widget library now repairs what the model writes, so a Widget fits the panel and shows the truth.
+The Slider is a container-query component: below 22rem it drops the number box and the value in its header becomes a
+tap-to-type field; the range takes every pixel the 32 px ± buttons leave. Holding a ± button repeats the step (after
+400 ms, every 80 ms). The Stack is overridden: a row whose every child is a Slider is drawn as a column, and any other
+row wraps with each child at least `min(100%, 15rem)` wide. The kit's AreaChart, LineChart and BarChart are replaced by
+the plot kit's charts with the same positional arguments plus optional `unit`, `yMin` and `yMax` (AreaChart also takes
+`variant` "stacked"), so axes stay put while a slider moves and areas never stack. HistoryChart takes an optional
+`scale` ("linear" or "log"). Steps drops a number the model wrote into a title ("1. Bad times arrive"). The Calculator's
+title has a neutral "Worked out" eyebrow instead of the teal Your assumption tag, and its rupee figures show no paise
+from ₹1,000 and lead with lakh or crore from one lakh, the whole figure in a tooltip. The Widget frame puts one or two
+top-level Sliders in a sticky control bar, and its Reset is an icon button that slides the sliders back in about 240 ms,
+then restarts the plots' axes.
+
+**Scenario.** A Learner opens a SIP Widget in a 360 px panel. The two Sliders the model wrote as `Stack([a, b], "row")`
+stack one under the other and stay at the top while the chart and numbers scroll. Dragging the rate never rescales the
+chart's rupee axis, and the value area and the line for the money put in overlap instead of piling up. Reset slides both
+Sliders home; a Guided Task such as "Set the rate to 12%" does not tick on the 12% the slide passes through.
+
+**Trade-off.** Repairing in the renderer, not the validator, costs no correction round-trip, but the model's layout
+differs from what is drawn. Sticky controls only hold two Sliders, so a Widget with more keeps them in place. Guided
+Tasks stay unmarked while Reset runs, so a task cannot tick without learning, but a Learner who resets mid-task sees it
+pause for a quarter of a second. A task that more than half of a slider's range ticks gets a validator warning
+(`widgetWarnings`, and `writtenAheadCheckWarnings` for the course) and never an error; a true Breakeven part, which
+knows the flip point, is not built yet.
+
 ## Dark and light modes (`src/app/theme-toggle.tsx`)
 
 **What it does.** A toggle in the header switches dark and light mode and remembers the choice in
@@ -1072,11 +1099,19 @@ the header in the same wide box as the workspace, so the title and links never s
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
 those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
 Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Notes ·
-Settings · Dark mode · Sign out. The current page's link is marked (`aria-current`), the Study Workspace included, and no
-other link points at `/`. Sign out (`SignOutButton`) is a plain form posting to `/api/logout`, styled
-like the links; Home's signed-in top bar uses the same button. The gaps shrink to 8px below 1024px so the
-row stays on one line from 768px, with room for the Notes link (#69) and the Settings link (#129)
-before the theme toggle (measured in the system font at 14px: about 720px of the 736px there is). Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
+Settings, a thin divider, the theme toggle, Sign out. What is clickable looks clickable: "Finance Agent" has a small
+mark, the title "Home" and a hover wash; each page link is a pill (`NavLink`, which marks the current page with
+`aria-current` and fills its pill, the Study Workspace included, and shows a small dot inside while its page is
+loading); the theme toggle is an icon button named "Dark mode" that is `aria-pressed` while dark mode is on; Sign
+out (`SignOutButton`) is a plain form posting to `/api/logout`, styled as a small outlined button (Home's signed-in
+top bar uses the same component). No other link points at `/`. The Study Workspace and Course Map links are
+prefetched in full, so they open at once; the others use the default. A 2px bar across the top of the window
+(`route-bar.tsx`, mounted in `layout.tsx`) creeps along from a link press until the address changes, then finishes
+and fades. Below 1024px the pills, the text (13px) and the gaps shrink and the divider hides, so the row stays on one
+line from 768px (estimated at about 700px of the 736px there is; the pills' padding is the first thing to trim if a
+page link is added). The trade-off: more of the header is drawn, so it is wider than the old plain text links and
+the narrow-width margin is thin. Disclosures (Under the hood, Sources, folded rows) end in a chevron that turns a
+quarter turn when open (`Chevron` in `ui.tsx`), so a summary reads as something to open. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
 group that moves focus to its main button (Escape or "Not now" gives focus back), the cited sentence on a
 Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
@@ -1086,6 +1121,24 @@ and every piece follows at once without a single per-component dark rule.
 
 **Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
 a quick palette class. In return the look stays consistent and a colour change is one line.
+
+## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
+
+**What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
+mounted once in the root layout, outside every scroller. Anything that wants to say something calls `useAnnounce()`.
+Saying the same words twice in a row is heard twice: the region is emptied, then filled on the next beat. Save to notes
+no longer carries a hidden `role="status"` of its own under every reply (16 live regions in a long Session, each a
+chance to make the page taller); it calls `announce("Saved to notes")` once per save. The control moves through
+idle, "Saving…" (a spinner), "Saved ✓" for 1.6 seconds, then back to a "Save to notes" button with a quiet "Saved"
+badge, Undo and Open notes. A failed save shows a visible `role="alert"` message ("Could not save. Try again.") and a
+Retry button.
+
+**Scenario.** The Learner presses Save to notes under a reply. The button shows a spinner and "Saving…"; when the
+server answers, "Saved ✓" shows for a moment, a screen reader hears "Saved to notes" once, and the button comes back
+with a "Saved" badge beside it. Pressing it again saves nothing twice, since the server keeps one saved item per reply.
+
+**Trade-off.** The control is a little taller than the old caption (a 32px ghost button). Other status messages (the
+turn status in the left column, the Widget loaders) still have their own regions and are not on the announcer yet.
 
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
@@ -1410,6 +1463,65 @@ repeats no write (a finished step and a verdict), the replayed text, a resume wh
 saved, a stale lock, the 409 for a second send, `max_tokens`, `refusal`, a credits error with Retry,
 a database write that fails (a test trigger refuses the write), a changed fingerprint (refrozen in the same Session), a misconception
 with an unknown Topic ID, and compaction. Live runs against Claude are in the evidence folder.
+
+## Stop, pings and progress (`src/app/api/turn/route.ts`, `turn.ts`, `turn-status.ts`, `tools.ts`, `turn-body.ts`, UX audit 4.2e, 5.11, 10.1)
+
+**What it does.** Makes every turn stoppable and never silent. The browser half (Send becoming Stop, the labelled
+writing indicator, the "Stopped" note) is built on these events separately.
+- **Stop.** A request with `{ stop: true }` runs no turn. The route sets `stop_reason = 'stop_requested'` on the
+  Learner's running `turns` row and answers `{ stopping: true }`, or `{ stopping: false }` when nothing was running;
+  never a 409. The running turn reads its own row every 500 ms (the Stop may reach another function instance, so a
+  flag in memory would not work; the column already existed, so no migration). When it sees the flag it aborts the
+  Anthropic stream through the Tool Runner's signal. A tool already running finishes its transaction, and no new API
+  call starts. Then the turn saves: every stored tool call gets its result, the step's streamed text is stored as the
+  Tutor's message less any Widget it had not finished (an unclosed openui-lang fence is cut off), no Widget check or
+  correction runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
+  is stored after the reply. It sends `stopped`, then the normal `done`, so the browser never resumes the turn. A
+  Next the Learner already took stays taken. A resume clears an old flag.
+- **Pings.** While the stream is open the route sends `{ type: "ping" }` every 5 seconds from its own timer: the
+  turn itself cannot, because it is blocked while a tool runs or the model thinks.
+- **Progress.** The turn tells the route what it is doing through `notify`, which goes straight to the stream:
+  "Looking up Case Data…", "Thinking…" at each model call, each tool's plain name while it runs ("Searching the
+  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), "Checking the Widget…" and "Fixing the
+  Widget…". Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
+  rather than waiting for the first text.
+- **`widget_state`** is declared as an event type only; nothing sends it yet.
+- **Prompt caching.** The request keeps its automatic cache breakpoint (the growing conversation) and adds a second
+  one on the frozen instructions, so the tools and instructions, the same for every Session of a deploy, are read
+  from the cache by a new Session too. Measured on 4 Nov 2026 from the `usage` table: inside a Session every turn
+  read the whole earlier conversation from the cache (for example 41,614 read and 1,859 written), but each new
+  Session's first turn read nothing and wrote about 23,000 tokens, even 30 seconds after another Session started,
+  and so did the first turn after more than 5 minutes idle.
+- **Formula markers.** A `{{formula:…}}` marker in a Tutor reply that cannot be drawn is logged as a warning on the
+  server, since the screen shows nothing for it.
+
+**Scenario.** The Learner asks for a chart, the Tutor starts a long reply and a Widget, and the Learner presses Stop.
+Within about half a second the stream ends; the sentences before the Widget are kept, the half-written Widget is not,
+and a reload shows them with "Stopped" under them. Their next message carries on normally.
+
+**Trade-off.** Polling costs one small query every 500 ms per running turn, and a Stop takes up to half a second plus
+the query to land. A tool that is already writing is never cut off, so a Stop during a slow tool waits for it. Words
+the browser showed from a step that never finished are what is saved, which may end mid-sentence. The second cache
+breakpoint costs a cache write of the static prefix when it is not already cached, which the first turn paid anyway.
+
+**How it is tested.** `src/tutor/turn-stop.test.ts` with the scripted client (which honours the signal): a Stop
+mid-stream ends within the poll window, keeps the text without the open fence, stores the STOPPED item, sends
+`stopped` then `done`, saves finished with stop reason `stopped`, and runs no correction; a Stop while a tool runs
+answers every stored tool call and the next turn runs; a Stop with nothing running answers false; progress labels
+through `notify`. `src/app/api/turn/route.test.ts`: `{ stopping: false }`, the stream opening on progress, a ping
+under fake timers, and a Stop through the route.
+
+### Replies of about 120 words, and the open question asked once (`src/tutor/instructions.ts`, `src/behaviour/grading.ts`, UX audit 5.12, 9.3, 9.10)
+
+**What it does.** The Tutor's instructions ask for at most about 120 words of prose per reply (`REPLY_WORD_LIMIT`;
+Widgets do not count), with longer answers given a part at a time or put into Steps or an Accordion; ask an open
+question once, and not again at the end of every reply; and use the Learner Profile for everyday examples in Widgets
+as well as in words. The behaviour report lists every reply over the limit (`longReplies`), counted by code at no cost.
+
+**Scenario.** The Learner asks about SIPs while the break-even question is open. The Tutor answers in a short
+paragraph and stops, rather than ending with "so, what rate did you find?" again.
+
+**Trade-off.** The limit is a request to the model, not a cut: a reply may still run long, and the report shows it.
 
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
@@ -2208,7 +2320,7 @@ worth trusting (one could hold several Topics), so their Topics are still read f
 the Tutor context left in their messages; with none found the row says "No Topic".
 
 A row opens the Session's page: a "← Past Sessions" back link at the top, then a header, then the
-workspace's two columns, read-only, with "Open: <title> →" chips and the Widget panel. A Topic Session's
+workspace's two columns, read-only, with chat chips (the widget's title and "View widget →") and the Widget panel. A Topic Session's
 header shows the Topic, the date last worked on and **Resume this Topic**, a plain form post to `/api/open`
 that makes it the current Topic and opens the Study Workspace; once the Topic is passed it shows Passed ✓
 instead. An Older session's header shows its date, its Topics (or No Topic) and "Older session · read-only",
@@ -2557,7 +2669,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 - **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
 - **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the Topic bar, the pinned explore Widget, the folded review, the thread, the turn's notices and Retry, the quiz note while a quiz is open, and the box. Every button that starts a turn calls the turn stream's `send`.
 - **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid, fixed to the space under the header, and the right column's scrolling.
-- **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), the open quiz's Check tab, which of them the panel shows, and the "Open: <title> →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget, or to the Check tab while a quiz is open.
+- **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), the open quiz's Check tab, which of them the panel shows, and the chip ("View widget →", "Showing", "Drawing…") that stands in each reply. It also works out which message each Widget came from, for the pager's All menu. Each new turn sends the panel back to the newest Widget, or to the Check tab while a quiz is open.
 
 The page (`src/app/study/page.tsx`) still renders `Conversation` with the same props, so nothing the Learner sees changed; the markup is the same as before the split.
 
@@ -3324,6 +3436,29 @@ and the Study Workspace. Passcodes live in an environment value, so adding a per
 and redeploying, and a passcode can't contain a comma. Dropping the defaults means any forgotten
 Learner id is an error the Learner sees, rather than a silent leak into the owner's data.
 
+## The Widget test bed (`src/widgets/fixtures/audit/`, `src/widgets/legacy-fixtures.test.tsx`, `src/app/dev/widgets/`, `scripts/layout-check.mjs`, UX audit §13)
+
+**What it does.** Three tools around the eleven Widget programs the Tutor wrote during the UX audit (3 Nov 2026), kept as
+files. (1) `legacy-fixtures.test.tsx` runs in CI: each program must pass the Widget check and draw through the real
+library and renderer, with synthetic Case Data (the real data never goes into git). (2) `/dev/widgets` is a developer page
+that draws one fixture with the real `WidgetView` in a frame with the Study aside's and Widget card's classes and test ids,
+at a panel width of 360, 480 or 560 px, in light or dark, optionally from given slider values (`?fixture=…&width=…&theme=…&state={…}`).
+Without `fixture` it lists every fixture with a link at each width. It reads Case Data JSON from the folder in
+`UX_CASE_DATA_DIR`. The proxy lets `/dev/*` through without a sign-in only outside production, and the page answers 404 in
+production too. (3) `scripts/layout-check.mjs` (`npm run layout:check`, not in CI) drives Chromium against the harness and,
+as the tools Learner on a Neon test branch, against `/study`: fit at three widths, Sensex spacing, sticky axis ticks,
+SIP's top tick, scrolling, cursor and press feedback, navigation feedback, theme tokens, touch, and Stop.
+
+**Scenario.** A later change gives every Slider row an automatic wrap. Its author opens
+`/dev/widgets?fixture=07-sip-1000-month.openui&width=360` and sees the two sliders still run off the card, runs
+`npm run layout:check` and watches the fit check go green; CI separately proves that the saved Sensex and lottery programs
+still draw after the change.
+
+**Trade-off.** The fixtures are frozen copies, so they show how old programs look today, not how the Tutor writes now; new
+fixtures are added beside them, never swapped in. The browser check is not in CI (it needs Chromium, a running server and a
+test database), so it only protects the changes someone remembers to check; the happy-dom test is the part that always runs,
+and it proves a program draws, not that it looks right.
+
 ## Widget parts, wave 1 (`src/widgets/primitives/wave1/`, `calculateParts` in `src/finance/calculators.ts`, REPORT.md 7.3)
 
 **What it does.** Nine new Widget parts, each small, keyboard-operable and drawn by code: `Stat` (one formatted number),
@@ -3393,3 +3528,23 @@ be operated or saved the same way. Its horizon is always half the length of the 
 never hints at how long the outcome lasts. `StepThrough` refuses a body that contains a formula in symbols (ADR 0002) and points to
 the Formula Card instead, which means a model that types "PV = FV / (1 + r)^n" in a step gets a short pointer, not the formula.
 `Rank` always starts in a shuffled order that is never the answer, so it can be checked straight away without the Learner moving anything.
+
+## The composer: Stop, progress labels and the open question (`message-box.tsx`, `turn-stream.ts`, `left-column.tsx`, `session-item-view.tsx`, UX audit 4.1b, 4.2e, 5.11, 5.12, 8.5, 10.1)
+
+**What it does.** The browser half of Stop and progress. While a reply runs, Send becomes a Stop button with a
+spinner. Stop is its own request (`{ stop: true }`); the reply's stream is never cut, so it ends by itself with
+`stopped` then `done`, and the browser treats that as finished (no resume). It keeps the words written, drops a
+Widget the Tutor had not finished, and draws a small muted "Stopped" note where the reply ended (the same item the
+server stores, so a reload agrees). `progress` events replace "Tutor is writing…" in the writing indicator
+("Looking up Case Data…"); the first words of the reply clear the label; `ping` is ignored. Attach a passage is a
+ghost button with a paperclip that reports `aria-pressed`. The chat viewport scrolls inside itself
+(`overscroll-contain`, a stable scrollbar gutter, and `relative` so hidden labels stay inside it). A slim line above
+the message box pins the open question (the Insight question) while the Insight is unsettled.
+
+**Scenario.** The Learner asks for a chart, sees "Looking up Case Data…", then the words arrive. They change their
+mind and press Stop: the button reads "Stopping…" and about half a second later the reply ends with "Stopped" under
+it and Send comes back.
+
+**Trade-off.** If Stop lands before the server has saved the turn, it answers `{ stopping: false }`, so the browser asks
+again a few times (400 ms apart) before giving up. The pinned question only shows when the page passes one; it is
+not worked out from the conversation.
