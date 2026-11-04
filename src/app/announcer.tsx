@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 // The one place the app speaks to screen readers. A message with its own live region inside a scroller could make
 // the page taller or scroll; this single region is mounted once in the root layout, outside every scroller.
@@ -22,10 +22,21 @@ export function useAnnounce(): Announce {
 export function AnnouncerProvider({ children }: { children: ReactNode }) {
   const [text, setText] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Nothing may call the setter after unmount: a late timer would hit a torn-down window in tests.
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+    },
+    [],
+  );
   const announce = useCallback<Announce>((message) => {
     if (timer.current) clearTimeout(timer.current);
     setText("");
-    timer.current = setTimeout(() => setText(message), 50);
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      setText(message);
+    }, 50);
   }, []);
   const value = useMemo(() => announce, [announce]);
   return (
