@@ -31,24 +31,28 @@ export function waffleCaption(percent: number, compareTo?: number): string {
 type Look = "filled" | "outline" | "change" | "empty";
 
 /** How one square looks: filled, outlined only (in the comparison), the changed part, or empty. `part` is how much of it (0 to 1) is lit. */
-function squareLook(index: number, percent: number, compareTo: number | undefined): { look: Look; part: number } {
+function squareLook(index: number, percent: number, compareTo: number | undefined): { look: Look; part: number; steady: number } {
   const lit = (p: number) => Math.min(1, Math.max(0, p - index));
   const now = lit(percent);
-  if (compareTo === undefined) return now > 0 ? { look: "filled", part: now } : { look: "empty", part: 0 };
+  if (compareTo === undefined) return now > 0 ? { look: "filled", part: now, steady: 0 } : { look: "empty", part: 0, steady: 0 };
   const before = lit(compareTo);
-  if (now === before) return before > 0 ? { look: "filled", part: now } : { look: "empty", part: 0 };
+  if (now === before) return before > 0 ? { look: "filled", part: now, steady: 0 } : { look: "empty", part: 0, steady: 0 };
   // Between the two, the square holds the change; the smaller of the two is the steady part.
-  return { look: now < before ? "outline" : "change", part: Math.abs(now - before) };
+  return { look: now < before ? "outline" : "change", part: Math.abs(now - before), steady: Math.min(now, before) };
 }
 
-function Square({ look, part, startsAt, testId }: { look: Look; part: number; startsAt?: number; testId: string }) {
+function Square({ look, part, steady = 0, testId }: { look: Look; part: number; steady?: number; testId: string }) {
   const background = look === "filled" ? "var(--muted)" : look === "change" ? "var(--ink)" : "transparent";
   return (
     <span data-testid={testId} data-look={look} data-part={trimmed(part, 3)} className="relative block aspect-square overflow-hidden rounded-[2px] border border-[var(--border)] bg-[var(--field)]">
+      {steady > 0 && look !== "empty" && (
+        <span data-testid="waffle-steady" className="absolute inset-y-0 block" style={{ left: 0, width: `${steady * 100}%`, background: "var(--muted)" }} />
+      )}
       {part > 0 && look !== "empty" && (
         <span
+          data-testid="waffle-part"
           className="absolute inset-y-0 block"
-          style={{ left: `${(startsAt ?? 0) * 100}%`, width: `${part * 100}%`, background, border: look === "outline" ? "1px dashed var(--muted)" : undefined }}
+          style={{ left: `${steady * 100}%`, width: `${part * 100}%`, background, border: look === "outline" ? "1px dashed var(--muted)" : undefined }}
         />
       )}
     </span>
@@ -81,8 +85,8 @@ export function WaffleView({ label, percent, compareTo, zoom = false }: z.infer<
       <figcaption className="mb-1 text-sm font-medium">{label}</figcaption>
       <div className="grid max-w-72 grid-cols-10 gap-0.5" data-testid="waffle-grid">
         {Array.from({ length: 100 }, (_, i) => {
-          const { look, part } = squareLook(i, now, before);
-          return <Square key={i} look={look} part={part} startsAt={look === "change" ? Math.min(1, Math.max(0, Math.min(now, before ?? now) - i)) : 0} testId="waffle-square" />;
+          const { look, part, steady } = squareLook(i, now, before);
+          return <Square key={i} look={look} part={part} steady={steady} testId="waffle-square" />;
         })}
       </div>
       <p data-testid="waffle-caption" className="mt-1 text-xs text-[var(--muted)]">
