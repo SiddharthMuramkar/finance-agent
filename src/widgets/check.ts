@@ -8,6 +8,28 @@ import { broadTaskWarnings, guidedTaskProblems, parsedTasks, walkNodes, type Par
 import { sliderStep } from "./slider-steps";
 import { splitReply } from "./split";
 import { CASE_DATA_REFERENCE, isWidgetToolName, WIDGET_TOOL_ARGS, WIDGET_TOOL_NAMES, type WidgetToolName } from "./tool-specs";
+import { ICON_NAMES, isKnownObject } from "./primitives/wave1/icons";
+import type { Archetype } from "./recipes/define";
+import { REFERENCE_CASE } from "@/case-data/reference";
+
+/** How a reference dataset's reference starts: "reference/usd-inr". */
+const REFERENCE_PREFIX = `${REFERENCE_CASE}/`;
+
+// The QuickCheck and Rank rules as their parts state them (quickCheckProblem in quick-check.tsx, rankProblem in
+// rank.tsx). Restated here because those files are client modules, and the server runs this check too; the parts'
+// tests and check.test.ts hold the two to the same cases.
+function quickCheckProblem(options: readonly unknown[], answer: number): string | null {
+  if (options.length < 2 || options.length > 4) return `QuickCheck needs 2 to 4 options, not ${options.length}.`;
+  if (!Number.isInteger(answer) || answer < -1 || answer > options.length - 1) return `QuickCheck answer ${answer} is outside -1 to ${options.length - 1}.`;
+  return null;
+}
+
+function rankProblem(items: readonly unknown[], correctOrder: readonly number[], reasons: readonly unknown[]): string | null {
+  if (items.length < 2 || items.length > 8) return "Rank needs 2 to 8 items";
+  if (correctOrder.length !== items.length || [...correctOrder].sort((a, b) => a - b).some((v, i) => v !== i)) return "correctOrder must list every item index once";
+  if (reasons.length !== items.length) return "Rank needs one reason per item";
+  return null;
+}
 
 /** Opens the message code sends when a finished widget fails the check. */
 export const WIDGET_CHECK_PREFIX = "Widget check by code:";
@@ -25,6 +47,7 @@ export function widgetProblems(code: string): string[] {
     if (result.meta.unresolved.length) problems.push(`Undefined names: ${result.meta.unresolved.join(", ")}.`);
     problems.push(...formulaCardProblems(result.root?.props.children));
     problems.push(...guidedTaskProblems(result.root?.props.children));
+    problems.push(...partProblems(result.root?.props.children));
     problems.push(...toolProblems(result));
     return problems;
   } catch (e) {
@@ -33,18 +56,142 @@ export function widgetProblems(code: string): string[] {
 }
 
 /**
- * Warnings about a widget that still draws and teaches, so they never trigger a correction round: a Guided Task that
- * most of a slider's range ticks. Empty when there is nothing to say.
+ * Correctness errors in the v2 parts' written arguments (UX audit §7.6), which the parser cannot see: a QuickCheck
+ * whose answer index is out of range or that has not 2 to 4 options, and a Rank whose order or reasons do not fit
+ * its items. Arguments the browser works out are left alone.
+ */
+function partProblems(children: unknown): string[] {
+  return [...walkNodes(children)].flatMap((n) => {
+    const where = n.statementId ?? n.typeName;
+    const { props } = n;
+    if (n.typeName === "QuickCheck" && Array.isArray(props.options) && typeof props.answer === "number") {
+      const problem = quickCheckProblem(props.options, props.answer);
+      return problem ? [`${where}: ${problem}`] : [];
+    }
+    if (n.typeName === "Rank" && Array.isArray(props.items) && Array.isArray(props.correctOrder) && Array.isArray(props.reasons)) {
+      const order = props.correctOrder.every((v) => typeof v === "number") ? (props.correctOrder as number[]) : null;
+      const problem = order && rankProblem(props.items, order, props.reasons);
+      return problem ? [`${where}: ${problem}.`] : [];
+    }
+    return [];
+  });
+}
+
+/** The information budget of a Widget at rest (UX audit ★.7): what a free-form Widget is warned past. */
+export const WIDGET_BUDGET = { controls: 1, numbers: 3, visuals: 1, words: 25, callouts: 1, tasks: 3 } as const;
+
+/** Parts the Learner sets a value with. */
+const CONTROLS = new Set(["Slider", "Select", "SwitchGroup", "Chips"]);
+
+/** Parts that are a Widget's one visual: our pictures and the kit's charts and tables. */
+const VISUALS = new Set([
+  ...["AnnuityChart", "HistoryChart", "Calculator", "FormulaCard"],
+  ...["Versus", "Breakeven", "MoneyStack", "Waffle", "Pictogram", "DrawTheLine", "PriceTag", "ShrinkingNote", "TimeTravel", "StepThrough", "Rank", "Waterfall"],
+  ...["LineChart", "AreaChart", "BarChart", "HorizontalBarChart", "RadarChart", "PieChart", "RadialChart", "SingleStackedBarChart", "ScatterChart", "Table"],
+]);
+
+/** Parts that each show one number. */
+const NUMBER_PARTS: Record<string, number> = { Stat: 1, Versus: 2, Predict: 1, PriceTag: 1, ShrinkingNote: 1 };
+
+/** Parts whose text counts toward the 25 words, by the props that hold it. */
+const TEXT_PROPS: Record<string, string[]> = { TextContent: ["text"], Callout: ["title", "description"], TextCallout: ["title", "description"] };
+
+const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
+
+/** The words a text prop shows: its own, or for an expression the most either branch of a choice can show. */
+function textWords(value: unknown): number {
+  if (typeof value === "string") return wordCount(value);
+  if (!isRecord(value)) return 0;
+  if (value.k === "Str" && typeof value.v === "string") return wordCount(value.v);
+  if (value.k === "Ternary") return Math.max(textWords(value.then), textWords(value.else));
+  if (value.k === "BinOp") return textWords(value.left) + textWords(value.right);
+  return 0;
+}
+
+/** The parts inside each `container` part of a Widget, at any depth. */
+function insideOf(nodes: readonly ParsedNode[], container: string): Set<ParsedNode> {
+  return new Set(nodes.filter((n) => n.typeName === container).flatMap((n) => [...walkNodes(Object.values(n.props))]));
+}
+
+/** True when a parsed expression joins text and a non-text value with + ("Total: " + $x). */
+function joinsNumberIntoText(value: unknown): boolean {
+  if (!isRecord(value)) return Array.isArray(value) && value.some(joinsNumberIntoText);
+  // A part inside this one is checked on its own.
+  if (typeof value.typeName === "string" && isRecord(value.props)) return false;
+  if (value.k === "BinOp" && value.op === "+") {
+    const isText = (side: unknown) => isRecord(side) && side.k === "Str";
+    if (isText(value.left) !== isText(value.right)) return true;
+  }
+  return Object.values(value).some(joinsNumberIntoText);
+}
+
+/**
+ * Warnings about a widget that still draws and teaches, so they never trigger a correction round (UX audit §7.6):
+ * code sends them with the next turn as "Widget notes". A Guided Task that most of a slider's range ticks; the
+ * information budget (★.7: one control outside "More settings", three numbers, one visual outside Tabs, 25 words,
+ * one TextCallout, three tasks); a number joined into text with +; typed numbers where a Query could give them; and a
+ * Pictogram object we do not draw. Empty when there is nothing to say.
  */
 export function widgetWarnings(code: string): string[] {
+  let result: ParseResult;
   try {
-    const result = parser.parse(code);
-    const holds = (condition: unknown, values: Record<string, unknown>) =>
-      evaluate(condition as never, { getState: (name) => values[name], resolveRef: () => undefined }) === true;
-    return broadTaskWarnings(result.root?.props.children, result.stateDeclarations as Record<string, unknown>, holds);
+    result = parser.parse(code);
   } catch {
     return [];
   }
+  const children = result.root?.props.children;
+  const holds = (condition: unknown, values: Record<string, unknown>) =>
+    evaluate(condition as never, { getState: (name) => values[name], resolveRef: () => undefined }) === true;
+  const warnings = broadTaskWarnings(children, result.stateDeclarations as Record<string, unknown>, holds);
+  const nodes = [...walkNodes(children)];
+  const inMore = insideOf(nodes, "Accordion");
+  const inTabs = insideOf(nodes, "Tabs");
+  const controls = nodes.filter((n) => CONTROLS.has(n.typeName) && !inMore.has(n)).length;
+  if (controls > WIDGET_BUDGET.controls) warnings.push(`${controls} controls are showing: keep one primary control and put the others in Accordion "More settings".`);
+  const visuals = nodes.filter((n) => VISUALS.has(n.typeName) && !inTabs.has(n)).length + nodes.filter((n) => n.typeName === "Tabs").length;
+  if (visuals > WIDGET_BUDGET.visuals) warnings.push(`${visuals} visuals: use exactly one (Tabs only for the same numbers as a chart and a table).`);
+  const numbers = nodes.reduce((sum, n) => sum + (NUMBER_PARTS[n.typeName] ?? 0), 0);
+  if (numbers > WIDGET_BUDGET.numbers) warnings.push(`${numbers} numbers are showing: keep to ${WIDGET_BUDGET.numbers} at rest.`);
+  const words = nodes.reduce((sum, n) => sum + (TEXT_PROPS[n.typeName] ?? []).reduce((w, prop) => w + textWords(n.props[prop]), 0), 0);
+  if (words > WIDGET_BUDGET.words) warnings.push(`${words} words of text: keep a Widget to ${WIDGET_BUDGET.words}, and say the rest in prose.`);
+  const callouts = nodes.filter((n) => n.typeName === "TextCallout").length;
+  if (callouts > WIDGET_BUDGET.callouts) warnings.push(`${callouts} TextCallouts: use one at most.`);
+  const tasks = parsedTasks(children).length;
+  if (tasks > WIDGET_BUDGET.tasks) warnings.push(`${tasks} Guided Tasks: use ${WIDGET_BUDGET.tasks} at most, the last a discovery.`);
+  for (const n of nodes) {
+    const where = n.statementId ?? n.typeName;
+    if (Object.values(n.props).some(joinsNumberIntoText)) warnings.push(`${where}: a number is joined into text with +. Show it with Stat.`);
+    if (n.typeName === "Predict" && typeof n.props.actual === "number") warnings.push(`${where}: Predict's actual is typed. Give it from a Query or Case Data.`);
+    if (n.typeName === "Versus" && typeof n.props.leftValue === "number" && typeof n.props.rightValue === "number") {
+      warnings.push(`${where}: both Versus values are typed. Give them from a Query, a calculator or Case Data where one can.`);
+    }
+    if (n.typeName === "Pictogram" && typeof n.props.object === "string" && !isKnownObject(n.props.object)) {
+      warnings.push(`${where}: Pictogram has no "${n.props.object}", so it draws coins. Use one of: ${ICON_NAMES.join(", ")}.`);
+    }
+  }
+  return warnings;
+}
+
+/** The parts that are a Widget's discovery of their own, so its sliders need no Guided Task (grammar v2). */
+const DISCOVERY_PARTS = new Set(["Breakeven", "Predict", "DrawTheLine", "QuickCheck", "Rank"]);
+
+/**
+ * The archetype of a Widget (UX audit §7.4), from the parts it uses: the same names as the Widget recipes'
+ * archetypes, so code can tell the Tutor the recent ones and it varies them. Null for a Widget of no clear shape.
+ */
+export function archetypeOf(code: string): Archetype | null {
+  const { components, tools, datasets } = widgetParts(code);
+  const has = (...names: string[]) => names.some((name) => components.includes(name));
+  if (has("QuickCheck")) return "Check";
+  if (has("Predict", "DrawTheLine")) return "Predict";
+  if (has("Rank")) return "Rank";
+  if (has("StepThrough", "Steps")) return "Chain";
+  if (has("Versus", "Breakeven", "Verdict")) return "Compare";
+  if (has("Waffle", "Pictogram")) return "Convert";
+  if (has("FormulaCard")) return "Formula";
+  if (has("HistoryChart") || datasets.length > 0) return "History";
+  if (has("MoneyStack", "PriceTag", "ShrinkingNote", "TimeTravel", "AnnuityChart", "Calculator", "Stat", "Waterfall") || tools.length > 0) return "Grow";
+  return null;
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -220,7 +367,8 @@ export function widgetRuleProblems(code: string, open: readonly string[] = []): 
   if (!root) return [];
   const nodes = [...walkNodes(root.props.children)];
   const problems: string[] = [];
-  if (nodes.some((n) => n.typeName === "Slider") && !parsedTasks(root.props.children).length) {
+  const discovery = nodes.some((n) => DISCOVERY_PARTS.has(n.typeName));
+  if (nodes.some((n) => n.typeName === "Slider") && !discovery && !parsedTasks(root.props.children).length) {
     problems.push("this Widget has a slider but no Guided Task. Add GuidedTasks, last in the Widget, with at least one GuidedTask whose condition reads the slider's $variable and names a number the slider can reach.");
   }
   for (const chart of nodes.filter((n) => AXIS_CHARTS.has(n.typeName))) {
@@ -239,7 +387,8 @@ export function widgetRuleProblems(code: string, open: readonly string[] = []): 
     } catch {
       continue;
     }
-    const shared = caseDataDrawn(otherResult).filter((ref) => drawn.includes(ref));
+    // Reference data (reference/<id>, such as USD/INR) is a shared backdrop, which several Widgets may draw.
+    const shared = caseDataDrawn(otherResult).filter((ref) => drawn.includes(ref) && !ref.startsWith(REFERENCE_PREFIX));
     if (shared.length) {
       problems.push(
         `this new Widget draws the same Case Data (${shared.join(", ")}) as the open Widget "${parts.title ?? "Untitled"}". Update that Widget instead: write it again in full under the same title, "${parts.title ?? "Untitled"}".`,
@@ -311,15 +460,17 @@ export type BrokenWidget = { index: number; problems: string[]; leaveOut?: true 
  * Everything wrong with each finished Widget of the reply being written, by widget position: what stops it
  * drawing, then the Widget rules (widgetRuleProblems) and the written-ahead rule for the Topic's written-ahead
  * Widgets (`covered`), which marks it `leaveOut`. Each Widget is compared with the Widgets open before the reply
- * (`open`, their code) and with those earlier in the same reply. Widgets with no problem are left out.
+ * (`open`, their code) and with those earlier in the same reply. Widgets with no problem are left out. When code already
+ * showed a Widget from a recipe in this reply (`shownInReply`, show_widget), every fence is to be left out: one Widget a reply.
  */
-export function newReplyWidgetProblems(text: string, open: readonly string[] = [], covered: readonly CoveredParts[] = []): BrokenWidget[] {
+export function newReplyWidgetProblems(text: string, open: readonly string[] = [], covered: readonly CoveredParts[] = [], shownInReply = false): BrokenWidget[] {
   const seen = [...open];
   return splitReply(text)
     .filter((s) => s.type === "widget")
     .flatMap((s, index) => {
-      const ahead = writtenAheadPartProblems(s.code, covered);
-      const problems = [...widgetProblems(s.code), ...widgetRuleProblems(s.code, seen), ...ahead];
+      // One Widget per reply: when code already showed one from a recipe (show_widget) in this reply, a fence is left out.
+      const ahead = shownInReply ? [`this reply already shows a Widget through show_widget, and a reply shows one Widget: ${LEAVE_OUT}.`] : writtenAheadPartProblems(s.code, covered);
+      const problems = shownInReply ? ahead : [...widgetProblems(s.code), ...widgetRuleProblems(s.code, seen), ...ahead];
       seen.push(s.code);
       return problems.length ? [{ index, problems, ...(ahead.length > 0 && { leaveOut: true as const }) }] : [];
     });
