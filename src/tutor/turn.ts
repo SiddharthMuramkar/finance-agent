@@ -18,6 +18,10 @@ import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
+<<<<<<< HEAD
+=======
+import { enterStepItems, pendingQuickTryNote, quickTryFollowUpNote } from "./practice";
+>>>>>>> origin/tutor-T11
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
 import { splitReply } from "@/widgets/split";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
@@ -47,7 +51,7 @@ import {
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
 import { turnFacts, type TurnFacts } from "./turn-facts";
 import { CHECKING_LABEL, joinedEvents, judgeReply, REPLY_CHECK_PREFIX, replyTextAfter, replyWords, RETRY_WITHIN_MS, retryMessage, toolWidgets, trimmedFallback, widgetsOnScreen, type Judged } from "./reply-gate";
@@ -164,6 +168,9 @@ export type TurnEvent =
 /** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
 export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
 
+/** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
+export const NO_QUICK_TRY_FOLLOW_UP = "There is no Quick try answer to go over.";
+
 export const CUT_SHORT_MESSAGE ="The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
 /** The refusal message when tool calls earlier in the same turn had already saved progress. */
@@ -198,7 +205,17 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
  * Widget with this Widget key; code writes its note), or a resume of the last turn after a cut-off or failure
  * (Retry), which sends again whatever note or message the turn saved.
  */
-export type TurnInput = string | { finish: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { widgetReport: string } | { resume: true } | PastedInput;
+export type TurnInput =
+  | string
+  | { finish: true }
+  | { opener: true }
+  | { next: NextName }
+  | { quizFollowUp: true }
+  /** The short turn the page starts after a Quick try marked wrong with no Known mistake, or after the try that finished Your turn. */
+  | { quickTryFollowUp: true }
+  | { widgetReport: string }
+  | { resume: true }
+  | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -353,6 +370,9 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   } else if (typeof input === "object" && "quizFollowUp" in input) {
     // Code writes the follow-up's note inside the lock, once it has found the missed quiz to go over.
     started = QUIZ_FOLLOW_UP_PREFIX;
+  } else if (typeof input === "object" && "quickTryFollowUp" in input) {
+    // Code writes the follow-up's note inside the lock, from the latest Quick-try result.
+    started = QUICK_TRY_FOLLOW_UP_PREFIX;
   } else if (!resuming) started = learnerTextOf(input);
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) {
@@ -378,6 +398,17 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       // Already gone over (another tab), or nothing was missed: nothing ran, and the lock is free again.
       await dropTurn(db, turn.id);
       yield { type: "not_allowed", message: NO_MISSED_QUIZ };
+      return;
+    }
+    await updateTurn(db, turn.id, { input: note });
+    turn = { ...turn, input: note };
+  }
+  if (typeof input === "object" && "quickTryFollowUp" in input) {
+    const note = await quickTryFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId);
+    if (note === null) {
+      // Already followed up (another tab), or the latest Quick try needs none: nothing ran, and the lock is free again.
+      await dropTurn(db, turn.id);
+      yield { type: "not_allowed", message: NO_QUICK_TRY_FOLLOW_UP };
       return;
     }
     await updateTurn(db, turn.id, { input: note });
@@ -565,6 +596,8 @@ async function* runLockedTurn(
     const context = [widgetsNote, aheadNote, stepped].filter(Boolean).join("\n");
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = completed ? null : await pendingQuizNote(db, map, learnerId, session.topicId);
+    // Quick-try results code marked since the Tutor's last reply ride along the same way (item order shows which are new).
+    const tries = completed ? null : await pendingQuickTryNote(db, map, learnerId, session.id);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
     if (quiz?.passed) await updateTurn(db, turn.id, { freshStep: true });
     // Where the Learner stands: opens the Session, and is sent again as a new message whenever it changes.
@@ -573,18 +606,18 @@ async function* runLockedTurn(
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
       // Order: the Learner summary, the Learner Profile (if shared), then the Navigator context last.
-      const opening = [stands, quiz?.text, context].filter(Boolean).join("\n\n");
+      const opening = [stands, quiz?.text, tries, context].filter(Boolean).join("\n\n");
       await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {
       // The API accepts a system message only right after a user message (live 400 otherwise),
       // so changed context follows the Learner's message. Nothing already sent is rebuilt.
       // A quiz result or a changed stands block goes in the same system message as the context, which always ends it.
       const standsChanged = !standsAlreadySent(log.messages, stands);
-      const contextChanged = standsChanged || quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
+      const contextChanged = standsChanged || quiz !== null || tries !== null || !lastContextSent(log.messages)?.endsWith(context);
       // Pasted text goes in the Learner's own message, as a marked block after what they typed.
       await log.append({ role: "user", content: learnerBlocks.length > 1 ? learnerBlocks : learnerText });
       // A completed Topic's note already tells the Tutor to stop: it gets no context for another Topic.
-      if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
+      if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, tries, context].filter(Boolean).join("\n\n") });
     }
     // A typed message or help chip on a step not yet begun (a quiz pass moved the Learner on, or a Due Check reopened
     // the Topic) draws that step's divider before the reply that teaches it. A Next stores its own when it takes the move.
@@ -597,6 +630,11 @@ async function* runLockedTurn(
       }
     }
     if (quiz) await markQuizReported(db, quiz.attemptIds, now(), learnerId);
+    // A converted step shows what code shows on entering it (its Concept card and Widget, or the next Quick try) before
+    // the reply. A Quick-try follow-up posts its fresh try after the reply instead.
+    if (!completed && turnKind(turn) !== "quick_try_follow_up") {
+      for (const item of await enterStepItems(db, map, learnerId, session.id, now())) yield { type: "item", item };
+    }
   }
 
   async function* repairToolCalls(): AsyncGenerator<TurnEvent> {
@@ -621,7 +659,13 @@ async function* runLockedTurn(
     const out: TurnEvent[] = [];
     for (const item of effects.items?.splice(0) ?? []) {
       itemSinceText = true;
+<<<<<<< HEAD
       out.push({ type: "item", item });
+=======
+      yield { type: "item", item };
+      // A tool moved the Learner onto a new step: what code shows on entering it follows the divider.
+      if (item.kind === STEP_DIVIDER) for (const entered of await enterStepItems(db, map, learnerId, session.id, now())) yield { type: "item", item: entered };
+>>>>>>> origin/tutor-T11
     }
     // update_widget saved new slider values: the open Widget moves to them.
     for (const state of effects.widgetStates?.splice(0) ?? []) out.push(state);
@@ -984,6 +1028,10 @@ async function* runLockedTurn(
     // A reload shows where the reply was stopped. A Next the Learner already took stays taken.
     await saveItemAfterLatest(db, learnerId, session.id, { kind: STOPPED, data: { label: "Stopped" } }, now());
     yield { type: "stopped" };
+  }
+  // After a Quick-try follow-up (the slip named), code posts a fresh try under the reply.
+  if (turnKind(turn) === "quick_try_follow_up" && stopReason !== "stopped") {
+    for (const item of await enterStepItems(db, map, learnerId, session.id, now())) yield { type: "item", item };
   }
   // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
   const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());

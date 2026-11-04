@@ -1,7 +1,7 @@
 import { and, eq, gt } from "drizzle-orm";
 import { messages } from "@/db/schema";
-import type { CourseMap } from "@/course/map";
-import { finishFromWidget, navigate, nextOffer, STEP_NAMES, stepSetting, takeNext, type NextOffer, type TeachingStep } from "@/course/navigator";
+import { isConverted, type CourseMap } from "@/course/map";
+import { finishFromWidget, navigate, nextOffer, practiceStep, STEP_NAMES, stepSetting, takeNext, type NextOffer, type Place, type TeachingStep } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { pendingQuizNote } from "@/learner/quiz";
@@ -12,6 +12,7 @@ import { liveSession } from "./session-log";
 import { loadSessionItems, stepDivider, STEP_DIVIDER, type SessionItem } from "./session-items";
 import { NEXT_PREFIX, updateTurn } from "./turn-status";
 import { openStepWidget } from "./written-ahead";
+import { enterStepItems } from "./practice";
 
 /**
  * The Learner's Next: the chip under the latest Tutor reply, and what pressing it does. Code checks the
@@ -97,10 +98,12 @@ export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number
     // The step that begins opens its Widget by itself (the Topic's `steps[].opens`): a chip after the divider.
     const opened = move.teach ? await openStepWidget(tx, map, moved, learnerId, session.id, now) : null;
     if (opened) items.push(opened);
+    // A converted step shows what code shows on entering it: the Concept card and its Widget, or the first Quick try.
+    if (move.teach) items.push(...(await enterStepItems(tx, map, learnerId, session.id, now)));
     const note =
       offer.kind === "complete"
         ? `${NEXT_PREFIX} the Learner pressed Complete this Topic. ${topicCompleteContext(place.topic.title)}`
-        : nextNote(offer.step, offer.advances);
+        : nextNote(offer.step, offer.advances, navigate(map, moved));
     // The Session is pinned on the turn, so a Retry of Complete this Topic still runs in the passed Topic's Session.
     await updateTurn(tx, turnId, { input: note, sessionId: session.id, freshStep: true });
     return { ok: true, note, sessionId: session.id, items };
@@ -133,15 +136,23 @@ export async function finishStepFromWidget(db: Db, map: CourseMap, learnerId: nu
     await storeComingBack(tx, learnerId, session.id, items, now);
     const opened = await openStepWidget(tx, map, moved, learnerId, session.id, now);
     if (opened) items.push(opened);
+    items.push(...(await enterStepItems(tx, map, learnerId, session.id, now)));
     return items;
   });
 }
 
 /** The note for a Next that names a step: what code did, and that the Tutor teaches the step now and can't finish it in this reply. */
-function nextNote(step: TeachingStep, advanced: boolean): string {
+function nextNote(step: TeachingStep, advanced: boolean, place: Place | null): string {
   const name = STEP_NAMES[step];
   const how = advanced
     ? `Code moved them on to the ${name} step.`
     : `They reached the ${name} step outside a Tutor turn (after a quiz pass, or a Check added to a Topic they had passed), so it has not begun; code did not move them on.`;
-  return `${NEXT_PREFIX} the Learner pressed Next: ${name}, and has written nothing. ${how} Nothing of this step has been taught yet: teach it now, then stop and wait for the Learner. You cannot finish this step, record a Check verdict or record an Insight attempt in this reply.`;
+  const converted = place && place.step === step && isConverted(place.topic) ? place : null;
+  const teach =
+    converted && step === "concept" && converted.check?.card
+      ? "Code has shown this step's Concept card and its Widget: add one sentence and one ask, then stop and wait for the Learner."
+      : converted && practiceStep(converted.topic, step, converted.check)
+        ? "Code shows the Quick tries: point the Learner to the first one in a sentence, then stop."
+        : "Nothing of this step has been taught yet: teach it now, then stop and wait for the Learner.";
+  return `${NEXT_PREFIX} the Learner pressed Next: ${name}, and has written nothing. ${how} ${teach} You cannot finish this step, record a Check verdict or record an Insight attempt in this reply.`;
 }

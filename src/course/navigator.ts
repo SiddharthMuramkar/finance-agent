@@ -1,4 +1,4 @@
-import type { Check, CourseMap, StepSetting, Topic } from "./map";
+import { isConverted, testedSkills, type Check, type CourseMap, type StepSetting, type Topic } from "./map";
 import type { Subject } from "./outline";
 import type { QuestionLookup } from "./quiz";
 import { conditionValue, type SavedWork } from "./written-ahead";
@@ -155,8 +155,38 @@ function save(progress: Progress, topic: Topic, record: TopicProgress): Progress
   };
 }
 
+/**
+ * Whether a step is a converted Your turn: Your turn for a Check that lists Skills, in a converted Topic. Quick tries
+ * fill it, and it finishes only from fluency (finishFromPractice), never from the Tutor's report or a Next.
+ */
+export function practiceStep(topic: Topic, step: TeachingStep, check: Check | null): boolean {
+  return step === "your_turn" && check !== null && isConverted(topic) && testedSkills(topic, check).length > 0;
+}
+
 /** The Tutor reports that it finished a Teaching Step. Only the current step is accepted. */
 export function finishStep(map: CourseMap, progress: Progress, reported: TeachingStep): Move {
+  const topic = currentTopic(map, progress);
+  if (topic && reported === "your_turn") {
+    const { step, check } = placeIn(topic, progress.topics[topic.id]);
+    if (practiceStep(topic, step, check)) {
+      return { ok: false, reason: "Your turn ends only through the Quick tries: code finishes it once every Skill of the Check has two right answers in a row." };
+    }
+  }
+  return finishCurrent(map, progress, reported);
+}
+
+/**
+ * Your turn finishes from practice: accepted only at a converted Your turn, and only when `done`, which the caller
+ * works out with yourTurnDone over every Skill of the Check.
+ */
+export function finishFromPractice(map: CourseMap, progress: Progress, done: boolean): Move {
+  const place = navigate(map, progress);
+  if (!place || !practiceStep(place.topic, place.step, place.check)) return { ok: false, reason: "The Learner is not at Your turn with Quick tries." };
+  if (!done) return { ok: false, reason: "Not every Skill of the Check has two right answers in a row yet." };
+  return finishCurrent(map, progress, "your_turn");
+}
+
+function finishCurrent(map: CourseMap, progress: Progress, reported: TeachingStep): Move {
   const topic = currentTopic(map, progress);
   if (!topic) return { ok: false, reason: "Every Topic on the Course Map is passed." };
   const { record, step, check } = placeIn(topic, progress.topics[topic.id]);
@@ -360,6 +390,8 @@ export type StepState = { begun: boolean };
 export function nextOffer(map: CourseMap, progress: Progress, { begun }: StepState): NextOffer | null {
   const place = navigate(map, progress);
   if (!place || place.step === "check") return null;
+  // A converted Your turn ends only through its Quick tries: there is no Next, begun or not.
+  if (practiceStep(place.topic, place.step, place.check)) return null;
   if (!begun) return { kind: "next", step: place.step, label: `Next: ${STEP_NAMES[place.step]}`, advances: false };
   if (place.step === "explore" && !progress.topics[place.topic.id]?.insight) return { kind: "just_tell_me", label: "Just tell me" };
   // In a passed Topic the step after the last due step is its old principle: the run is over.

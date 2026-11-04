@@ -1,6 +1,21 @@
 import type { ReactNode } from "react";
 import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
-import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, OFF_TOPIC, PICKING_UP, STEP_DIVIDER, STOPPED, type OffTopicData, type SessionItem } from "@/tutor/session-item-kinds";
+import {
+  CHECK_RESULT,
+  CONCEPT_CARD,
+  DUE_CHECK,
+  NEXT_STEP,
+  OFF_TOPIC,
+  PICKING_UP,
+  QUICK_TRY,
+  QUICK_TRY_RESULT,
+  STEP_DIVIDER,
+  STOPPED,
+  type OffTopicData,
+  type SessionItem,
+} from "@/tutor/session-item-kinds";
+import { ConceptCardView, conceptCardOf } from "./concept-card-view";
+import { QuickTryResultView, QuickTryView, quickTryOf, quickTryResultOf } from "./quick-try-view";
 import { TOPIC_COMPLETE, type TopicCompleteData } from "@/tutor/topic-complete-card";
 import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
@@ -82,6 +97,21 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   [TOPIC_COMPLETE]: (data) => (typeof data.title === "string" && typeof data.principle === "string" ? <TopicCompleteCard card={data as TopicCompleteData} /> : null),
   // Never stored: the Topic Start card, worked out from course data on each render as the conversation's first item.
   [TOPIC_START]: (data) => (typeof data.title === "string" ? <TopicStartCard card={data as TopicStartData} /> : null),
+  // Stored when the Learner enters a converted Concept step: the card's plain lines, the write-down line in bold.
+  [CONCEPT_CARD]: (data) => {
+    const card = conceptCardOf(data);
+    return card ? <ConceptCardView card={card} /> : null;
+  },
+  // One Quick try at a converted Your turn, with its own input (QuickTryContext; read-only without one).
+  [QUICK_TRY]: (data) => {
+    const t = quickTryOf(data);
+    return t ? <QuickTryView data={t} /> : null;
+  },
+  // A Quick try's mark: "Right.", the Known mistake's fix, or "Not quite.".
+  [QUICK_TRY_RESULT]: (data) => {
+    const r = quickTryResultOf(data);
+    return r ? <QuickTryResultView data={r} /> : null;
+  },
 };
 
 /** The item drawn by its kind; nothing for a kind it does not know. */
