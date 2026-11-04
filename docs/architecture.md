@@ -1835,7 +1835,9 @@ example: `start_again` is now for a Learner who asks to see the lesson or the ca
 teaches the first card's idea in its own words instead of pointing at cards. An ask is about the numbers, never about
 what a bond trader or a newspaper would say. Everyday finance words get a few plain words too ("a savings rate, the
 interest a bank pays on savings"), and a simpler reply's ask uses only what that reply says, so it never brings back a
-number the reply dropped. Asked for the answer to one open question, the Tutor teaches only the
+number the reply dropped, and it re-asks the open question on new numbers, so the reply never gives its own answer.
+When show_widget shows a practice-mode Widget, its result adds that the Widget asks for the move itself and has its own
+answer box, so the reply ends at its one question and never says where to type. Asked for the answer to one open question, the Tutor teaches only the
 idea that question tests. Code backs the numbers, because the Tutor writes up to the limit it
 is told: `turnFacts` reads a quiz-me ask ("ask me", "quiz me", "test me") as Reply kind quick_try and a request for the
 answer as hint, and gives some Reply kinds an `aim` under the cap (`AIMS`: 60 words for feedback, reteach and hint, 40

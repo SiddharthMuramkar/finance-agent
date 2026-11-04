@@ -40,7 +40,7 @@ describe("the rules tuned against the live tests", () => {
       it("simpler means the first idea only, with nothing new, and an open question asked again rather than answered", () => {
         expect(text).toContain("Simpler means less: the first idea only");
         expect(text).toContain("no analogy, not even the Topic's, and no new example");
-        expect(text).toContain("Do not answer a question you left open: ask it again, in plainer words.");
+        expect(text).toContain("Do not answer a question you left open: ask it again, in plainer words and on new numbers, so the reply never gives its answer.");
       });
 
       it("a quiz-me ask gets one question in 40 words or fewer, with nothing after it", () => {
@@ -62,6 +62,7 @@ describe("the rules tuned against the live tests", () => {
 
   it("with the engine, a quiz-me ask that also asks for a Widget gets the rate Widget in practice mode", () => {
     expect(ENGINE_INSTRUCTIONS).toContain("When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers");
+    expect(ENGINE_INSTRUCTIONS).toContain("write only a short acknowledgement and that one question, and stop there: the Widget has its own answer box, so never say where to type.");
     expect(TUTOR_INSTRUCTIONS).not.toContain("show rate_move in practice mode");
   });
 
