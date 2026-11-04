@@ -37,6 +37,8 @@ export interface TurnFacts {
   openItems: OpenItem[];
   /** Every number in the open items: `blockedNumbersFrom(openItems)`. */
   blockedNumbers: string[];
+  /** The idea each question of the open attempt tests, in the order the Learner sees them (`openQuestionIdeas`). */
+  openIdeas?: string[];
   /** Ids the Learner must never read: the Topic's, its Checks', its questions' and its Widgets'. */
   internalWords: string[];
   /** The method code picked for the next try, once the ladder exists (filled by a later ticket). */
@@ -84,6 +86,7 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
   const check = place?.step === "check" && place.check?.kind === "quiz" ? place.check : null;
   const quizOpen = check !== null && !(await quizUnavailable(db, map, check));
   const openItems = quizOpen && check ? await openQuizItems(db, map, learnerId, check) : [];
+  const openIdeas = quizOpen && check && place ? await openQuestionIdeas(db, map, learnerId, check, place.topic) : [];
   const currencies = place ? await topicCurrencies(db, place.topic) : { exampleCurrency: DEFAULT_EXAMPLE_CURRENCY, caseCurrencies: [] };
   // The Concept card code shows (a converted Concept step) or teaches from (a converted quiz Check).
   const card = cardForFacts(place);
@@ -98,6 +101,7 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
     quizOpen,
     openItems,
     blockedNumbers: blockedNumbersFrom(openItems),
+    ...(openIdeas.length && { openIdeas }),
     internalWords: place ? internalWordsOf(place.topic) : [],
     ...(card && { card }),
     ...(ladder.method && { method: ladder.method }),
@@ -143,6 +147,25 @@ export async function openQuizItems(db: Db, map: CourseMap, learnerId: number, c
     const answer = q.choices.find((c) => c.id === q.answer)?.text ?? q.answer;
     return [{ prompt: q.prompt.trim(), choices: q.choices.map((c) => c.text), answer }];
   });
+}
+
+/**
+ * The idea each question of the open quiz attempt tests, in the order the Check tab shows them: the rule of the Skill the
+ * question (or the template it was drawn from) names. With it, the Tutor helps with the one idea a question asks about
+ * (ticket #248, T11). Empty when no attempt is open, or when any question names no Skill of the Topic, so the Tutor is
+ * never told a list that does not line up with what the Learner sees.
+ */
+export async function openQuestionIdeas(db: Db, map: CourseMap, learnerId: number, check: QuizCheck, topic: Topic): Promise<string[]> {
+  const rows = await db
+    .select({ questionIds: quizAttempts.questionIds, submittedAt: quizAttempts.submittedAt })
+    .from(quizAttempts)
+    .where(and(eq(quizAttempts.learnerId, learnerId), eq(quizAttempts.checkId, check.id)))
+    .orderBy(asc(quizAttempts.id));
+  const ids = rows.find((r) => r.submittedAt === null)?.questionIds ?? [];
+  if (!ids.length) return [];
+  const lookup = await questionLookup(db, map, ids);
+  const ideas = ids.map((id) => topic.skills.find((s) => s.id === lookup.question(id)?.skill)?.rule);
+  return ideas.every((rule): rule is string => !!rule) ? ideas : [];
 }
 
 const USD_IN_STORY = /US\$|\$\s?\d/;
