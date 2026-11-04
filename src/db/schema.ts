@@ -618,7 +618,7 @@ export const loginFailures = pgTable(
 /**
  * Learner Profile: what the Learner chooses to share about their own life. One row per Learner (the
  * owner's is id 1); every field is optional. It is used only to choose everyday examples. `offerDismissed`
- * is set by "Not now" on the first-visit card, after which the card is never offered again.
+ * was the old first-visit card's "Not now"; the Welcome replaced that card, and nothing reads it now.
  */
 export const learnerProfile = pgTable(
   "learner_profile",

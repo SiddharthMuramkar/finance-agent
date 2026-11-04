@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
-import { dismissProfileOffer, hasProfile, loadProfile, profileBlock, profileInput, saveProfile, shouldOfferProfile } from "./profile";
+import { hasProfile, loadProfile, profileBlock, profileInput, saveProfile } from "./profile";
 
 const parse = (v: unknown) => profileInput.parse(v);
 
@@ -25,23 +25,10 @@ describe("Learner Profile", () => {
     expect(await loadProfile(db)).toMatchObject({ work: "Teacher", location: null });
   });
 
-  it("offers the card until the Learner saves or says Not now, and then never again", async () => {
+  it("has no profile when every answer is left empty", async () => {
     const db = await testDb();
-    expect(shouldOfferProfile(await loadProfile(db))).toBe(true);
-    await dismissProfileOffer(db);
-    expect(shouldOfferProfile(await loadProfile(db))).toBe(false);
-
-    const other = await testDb();
-    await saveProfile(other, parse({}));
-    expect(hasProfile(await loadProfile(other))).toBe(false);
-    expect(shouldOfferProfile(await loadProfile(other))).toBe(false);
-  });
-
-  it("Not now keeps answers that were already saved", async () => {
-    const db = await testDb();
-    await saveProfile(db, parse({ loan: "Car loan" }));
-    await dismissProfileOffer(db);
-    expect((await loadProfile(db)).loan).toBe("Car loan");
+    await saveProfile(db, parse({}));
+    expect(hasProfile(await loadProfile(db))).toBe(false);
   });
 
   it("builds the Tutor's block from the shared answers only, and none when nothing is shared", async () => {

@@ -2936,8 +2936,8 @@ breaking.
 loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
 one row per Learner (`learner_profile`, whose id is the Learner's; the owner's is 1). A new Learner is
 asked on the Welcome's About you panel (Next saves, Skip saves nothing); the old first-visit card, with
-its Save and Not now, is gone, so its `offer_dismissed` flag and `/api/profile/dismiss` are no longer
-used by any page. About you, the first section of the Settings page, edits the same four answers later
+its Save and Not now, is gone, and so is its `/api/profile/dismiss` route; its `offer_dismissed` column
+stays (dropping it would need a migration) but nothing reads it. About you, the first section of the Settings page, edits the same four answers later
 (the old `/profile` address redirects there, and Progress no longer links to it). Both go
 through `/api/profile`, which sits behind the passcode like every other route. No model call is made to save it.
 
