@@ -48,7 +48,8 @@ import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
-import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetReportNote } from "./widget-context";
+import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
+import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type TurnUsage } from "./usage";
@@ -509,12 +510,17 @@ async function* runLockedTurn(
 
     turnSeq = log.nextSeq;
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
-    const drawn = drawnWidgets(replyTexts(log.rows), await loadSessionItems(db, session.id, learnerId), turnSeq);
+    const items = await loadSessionItems(db, session.id, learnerId);
+    const drawn = drawnWidgets(replyTexts(log.rows), items, turnSeq);
     // What the Learner's open Widgets show as they act (an opener is the page's, not theirs): stored with their message, so it replays unchanged.
     const opener = turnKind(turn) === "opener";
     const open = opener ? [] : await openWidgetsForTurn(db, map, learnerId, drawn, !completed, session);
     const widgetBlock = widgetsBlock((await readOpenWidgets(db, map, learnerId, session.id, open, deps.widgets)).map((r) => r.reading));
     if (widgetBlock) learnerBlocks.push({ type: "text", text: widgetBlock });
+    // Widget notes ride along with the Learner's message instead of a correction round: the recent archetypes, and
+    // warnings about the Widgets of the last reply (UX audit §7.6). Stored with the message, so it replays unchanged.
+    const notes = opener ? null : widgetNotes(log.rows, items, turnSeq);
+    if (notes) learnerBlocks.push({ type: "text", text: notes });
     // The Widgets open in the panel, by title, so the Tutor can update one in place rather than add a near-copy.
     const widgetsNote = openWidgetsNote(drawn.map((w) => w.title));
     // The Topic's written-ahead Widgets, by title and id, which the Tutor opens with open_widget.
@@ -723,8 +729,12 @@ async function* runLockedTurn(
   const checked = !(stopReason === "refusal" || stopReason === "max_tokens" || stopReason === "stopped" || stop.aborted);
   if (checked && reply.includes(WIDGET_OPEN)) progress("Checking the Widget…");
   // The Widgets open before the reply, and any code drew from a recipe in it (show_widget), so a fence that draws their Case Data is caught too.
-  const openBefore = checked && reply.includes(WIDGET_OPEN) ? drawnWidgets(replyTexts(log.rows.filter((r) => r.seq < turnSeq)), await loadSessionItems(db, session.id, learnerId)) : [];
-  const broken = checked ? newReplyWidgetProblems(reply, openBefore.map((w) => w.code), covered) : [];
+  const fenced = checked && reply.includes(WIDGET_OPEN);
+  const itemsNow = fenced ? await loadSessionItems(db, session.id, learnerId) : [];
+  const openBefore = fenced ? drawnWidgets(replyTexts(log.rows.filter((r) => r.seq < turnSeq)), itemsNow) : [];
+  // One Widget per reply: a fence after code showed a Widget from a recipe in this reply (show_widget) is left out.
+  const shownInReply = itemsNow.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= turnSeq);
+  const broken = checked ? newReplyWidgetProblems(reply, openBefore.map((w) => w.code), covered, shownInReply) : [];
   // A formula marker the Tutor wrote that cannot be drawn shows as nothing on screen: say so in the server log.
   if (hasMarkers(reply)) {
     const problems = markerProblems(reply);

@@ -5,7 +5,9 @@ import { navigate } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { loadWidgetStates } from "@/learner/widget-state";
-import type { OpenWidget } from "@/widgets/check";
+import { archetypeOf, widgetParts, widgetWarnings, type OpenWidget } from "@/widgets/check";
+import { shownWidgetOf, WIDGET_SHOWN } from "@/widgets/shown-widget";
+import { splitReply } from "@/widgets/split";
 import { foundText, readWidget, type RateChangeSliders, type SourcedLookup, type WidgetReading } from "@/widgets/widget-reading";
 import { cleanSavedWidget, MAX_WIDGET_KEY, widgetKey, type WidgetStates } from "@/widgets/widget-state";
 import { currentTopicId, liveSession, openLog } from "./session-log";
@@ -13,7 +15,7 @@ import { caseDataFor, replyTexts } from "./tools";
 
 export { replyTexts };
 import { WIDGET_REPORT_PREFIX } from "./turn-status";
-import { drawnWidgets, loadSessionItems } from "./session-items";
+import { drawnWidgets, loadSessionItems, type StoredItem } from "./session-items";
 import { loadWrittenAhead } from "./written-ahead";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 
@@ -96,6 +98,48 @@ export async function readOpenWidgets(
     const reading = readWidget(widget.code, states[widget.key], lookup, widget.explore, widget.rateChange);
     return reading ? [{ widget, reading }] : [];
   });
+}
+
+/** How many of the latest Widgets' archetypes code tells the Tutor, so it does not draw the same kind back to back. */
+export const RECENT_ARCHETYPES = 2;
+
+type LogRow = { seq: number; role: string; content?: unknown };
+
+/** True for a message the Learner (or code on their behalf) wrote, as opposed to tool results. */
+const hasText = (row: LogRow) => row.role === "user" && (typeof row.content === "string" || (Array.isArray(row.content) && row.content.some((b) => (b as { type?: unknown })?.type === "text")));
+
+/**
+ * The "Widget notes" line code sends with the Learner's next message (UX audit §7.4 and §7.6): the archetypes of the
+ * Session's latest Widgets (archetypeOf), drawn or shown by code, so the Tutor varies them; and the warnings about the
+ * Widgets the Tutor wrote in its last reply (widgetWarnings), which never cost a correction round. Rows and items at or
+ * after `beforeSeq` are left out. Null when there is nothing to say.
+ */
+export function widgetNotes(rows: readonly LogRow[], items: readonly StoredItem[], beforeSeq: number): string | null {
+  const earlier = rows.filter((r) => r.seq < beforeSeq);
+  // In Session order: an item stored after message s comes before the reply with seq s + 1.
+  const written = replyTexts(earlier).flatMap((r) => fencesIn(r.text).map((code) => ({ at: r.seq, code })));
+  const shown = items.flatMap((i) => {
+    const widget = i.kind === WIDGET_SHOWN && i.afterSeq < beforeSeq ? shownWidgetOf(i.data) : null;
+    return widget ? [{ at: i.afterSeq + 0.5, code: widget.code }] : [];
+  });
+  const ordered = [...written, ...shown].sort((a, b) => a.at - b.at);
+  const archetypes = ordered.flatMap((w) => archetypeOf(w.code) ?? []).slice(-RECENT_ARCHETYPES);
+  // The last reply: what the Tutor wrote after the latest message with text (the Learner's, or code's correction).
+  const since = Math.max(-1, ...earlier.filter(hasText).map((r) => r.seq));
+  const notes = written
+    .filter((w) => w.at > since)
+    .flatMap((w) => {
+      const warnings = widgetWarnings(w.code);
+      return warnings.length ? [`About "${widgetParts(w.code).title ?? "your last Widget"}": ${warnings.join(" ")}`] : [];
+    });
+  if (!archetypes.length && !notes.length) return null;
+  const recent = archetypes.length ? [`Recent archetypes, latest last: ${archetypes.join(", ")}.`] : [];
+  return [`Widget notes (code):`, ...recent, ...notes].join(" ");
+}
+
+/** The finished Widgets in a reply's text, in order. */
+function fencesIn(text: string): string[] {
+  return splitReply(text).flatMap((s) => (s.type === "widget" && s.complete ? [s.code] : []));
 }
 
 /** Why a widget report is refused: nothing was saved or sent. */

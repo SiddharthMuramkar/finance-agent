@@ -14,6 +14,7 @@ import {
   withoutContradictions,
 } from "./library";
 import { WIDGET_TOOL_NAMES, WIDGET_TOOL_SPECS } from "./tool-specs";
+import { TUTOR_INSTRUCTIONS } from "@/tutor/instructions";
 
 const FROZEN_PATH = new URL("./frozen.generated.json", import.meta.url);
 /** The schema alone, for the widget check: the browser runs it too, and needs none of the instructions' text. */
@@ -99,6 +100,28 @@ describe("widget instructions", () => {
 
   it("stay within the 12k tokens planned for them (about 4 characters a token)", () => {
     expect(frozen.instructions.length / 4).toBeLessThanOrEqual(12_000);
+  });
+
+  it("teach the Widget grammar v2: a question for a title, one control, the answer first, one visual, the budget, archetypes", () => {
+    for (const rule of [
+      "The title is a question the Learner answers by using it",
+      'any other goes in Accordion "More settings"',
+      "Verdict for a comparison, Stat for one number",
+      "at most 3 numbers, 1 visual, 25 words of text",
+      "never by joining it into text with +",
+      "never with Select",
+      "Never use PieChart or RadarChart",
+      "Don't repeat the last archetype",
+      'is a Breakeven, not a GuidedTask',
+      "Widget notes",
+    ]) {
+      expect(frozen.instructions).toContain(rule);
+    }
+    for (const old of ["make it rich", "A number the Learner changes is always a Slider"]) expect(frozen.instructions).not.toContain(old);
+  });
+
+  it("with the widget engine off, grow the Tutor's instructions by at most 10% for the v2 language (44,836 characters before)", () => {
+    expect(TUTOR_INSTRUCTIONS.length).toBeLessThanOrEqual(44_836 * 1.1);
   });
 
   it("group every part of the library, so none is listed under Other", () => {

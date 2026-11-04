@@ -146,8 +146,59 @@
     "GuidedTasks": {
       "$ref": "#/$defs/GuidedTasks"
     },
+    "Stat": {
+      "$ref": "#/$defs/Stat"
+    },
+    "Verdict": {
+      "$ref": "#/$defs/Verdict"
+    },
+    "QuickCheck": {
+      "$ref": "#/$defs/QuickCheck"
+    },
+    "Predict": {
+      "$ref": "#/$defs/Predict"
+    },
+    "Versus": {
+      "$ref": "#/$defs/Versus"
+    },
+    "Breakeven": {
+      "$ref": "#/$defs/Breakeven"
+    },
+    "MoneyStack": {
+      "$ref": "#/$defs/MoneyStack"
+    },
+    "Waffle": {
+      "$ref": "#/$defs/Waffle"
+    },
+    "Pictogram": {
+      "$ref": "#/$defs/Pictogram"
+    },
+    "DrawTheLine": {
+      "$ref": "#/$defs/DrawTheLine"
+    },
+    "PriceTag": {
+      "$ref": "#/$defs/PriceTag"
+    },
+    "ShrinkingNote": {
+      "$ref": "#/$defs/ShrinkingNote"
+    },
+    "TimeTravel": {
+      "$ref": "#/$defs/TimeTravel"
+    },
+    "StepThrough": {
+      "$ref": "#/$defs/StepThrough"
+    },
+    "Rank": {
+      "$ref": "#/$defs/Rank"
+    },
+    "Waterfall": {
+      "$ref": "#/$defs/Waterfall"
+    },
     "GuidedTask": {
       "$ref": "#/$defs/GuidedTask"
+    },
+    "Step": {
+      "$ref": "#/$defs/Step"
     }
   },
   "required": [
@@ -199,7 +250,24 @@
     "Calculator",
     "FormulaCard",
     "GuidedTasks",
-    "GuidedTask"
+    "Stat",
+    "Verdict",
+    "QuickCheck",
+    "Predict",
+    "Versus",
+    "Breakeven",
+    "MoneyStack",
+    "Waffle",
+    "Pictogram",
+    "DrawTheLine",
+    "PriceTag",
+    "ShrinkingNote",
+    "TimeTravel",
+    "StepThrough",
+    "Rank",
+    "Waterfall",
+    "GuidedTask",
+    "Step"
   ],
   "additionalProperties": false,
   "$defs": {
@@ -230,6 +298,54 @@
               },
               {
                 "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
               },
               {
                 "$ref": "#/$defs/Stack"
@@ -419,7 +535,7 @@
         "ratePercent"
       ],
       "additionalProperties": false,
-      "description": "Bars for each yearly payment of an annuity that grows at a fixed rate (first payment now) and what each is worth today, computed by the tested present value formula from these inputs. `compareTo` optionally shows a sourced Case Data figure (the latest point of a dataset) beside the present value, as a reference \"caseId/datasetId\"."
+      "description": "Bars for each yearly payment of a growing annuity (first payment now) and what each is worth today, by the tested present value formula. `compareTo` optionally shows a sourced Case Data figure \"caseId/datasetId\" (its latest point) beside the present value."
     },
     "HistoryChart": {
       "type": "object",
@@ -512,7 +628,7 @@
         "fixed"
       ],
       "additionalProperties": false,
-      "description": "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers). Never type a formula as text: show it with this card."
+      "description": "A Formula Card: a named formula from our formula registry with every symbol named in plain words and its unit, the numbers filled in live, and the result worked out by the tested calculator behind it. Every symbol must be given exactly once, under `inputs` (the Learner's assumptions, each a $variable bound to a Slider), `sourced` (Case Data references) or `fixed` (fixed numbers)."
     },
     "GuidedTasks": {
       "type": "object",
@@ -528,7 +644,7 @@
         "tasks"
       ],
       "additionalProperties": false,
-      "description": "Guided Tasks under a widget: small practice steps (to do, current, done) that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Practice only: never marked or saved."
+      "description": "Guided Tasks under a widget: practice steps that tick themselves, in order, when the Learner's sliders reach the state each GuidedTask describes. Never marked or saved."
     },
     "GuidedTask": {
       "type": "object",
@@ -546,6 +662,556 @@
       ],
       "additionalProperties": false,
       "description": "One Guided Task: a short instruction and the condition that completes it. Use it only inside GuidedTasks."
+    },
+    "Stat": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "you",
+            "src",
+            "neutral"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "One number, formatted for its unit (inr in lakh and crore). tone \"you\" marks the Learner's assumption, \"src\" a sourced figure."
+    },
+    "Verdict": {
+      "type": "object",
+      "properties": {
+        "test": {
+          "type": "boolean"
+        },
+        "ifTrue": {
+          "type": "string"
+        },
+        "ifFalse": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "test",
+        "ifTrue",
+        "ifFalse"
+      ],
+      "additionalProperties": false,
+      "description": "The sentence a comparison ends in; it rewrites itself as test changes."
+    },
+    "QuickCheck": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "answer": {
+          "type": "number"
+        },
+        "why": {
+          "type": "string"
+        },
+        "picked": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "question",
+        "options",
+        "answer",
+        "why"
+      ],
+      "additionalProperties": false,
+      "description": "Tap to answer: 2 to 4 options; answer is the right index from 0 (-1: a poll); why shows after the pick; picked is a $variable (-1 until picked)."
+    },
+    "Predict": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string"
+        },
+        "guess": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "number"
+        },
+        "actualLabel": {
+          "type": "string"
+        },
+        "revealsAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt",
+        "guess",
+        "min",
+        "max",
+        "step",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "Lock in a guess, then reveal actual (from a tool result or Case Data; while withheld, it waits until revealsAt)."
+    },
+    "Versus": {
+      "type": "object",
+      "properties": {
+        "leftLabel": {
+          "type": "string"
+        },
+        "leftValue": {
+          "type": "number"
+        },
+        "rightLabel": {
+          "type": "string"
+        },
+        "rightValue": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "better": {
+          "type": "string",
+          "enum": [
+            "higher",
+            "lower"
+          ]
+        }
+      },
+      "required": [
+        "leftLabel",
+        "leftValue",
+        "rightLabel",
+        "rightValue",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "Two options on one shared scale, with the winner and the margin. better: \"higher\" (default) or \"lower\"."
+    },
+    "Breakeven": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "value": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "target": {
+          "type": "number"
+        },
+        "control": {
+          "type": "number"
+        },
+        "tolerance": {
+          "type": "number"
+        },
+        "marker": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "markerLabel": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "rows",
+        "target",
+        "control"
+      ],
+      "additionalProperties": false,
+      "description": "Hunt for the flip point: rows, a calculate_range Query's rows over what the Slider bound to control sets, cross target there. marker: a sourced number or \"caseId/datasetId\"."
+    },
+    "MoneyStack": {
+      "type": "object",
+      "properties": {
+        "calculator": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "calculator",
+        "inputs"
+      ],
+      "additionalProperties": false,
+      "description": "A calculator's total (sip, emi, future_value, fixed_deposit, recurring_deposit, ppf) drawn as notes, coloured by what you put in and what it earned."
+    },
+    "Waffle": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "percent": {
+          "type": "number"
+        },
+        "compareTo": {
+          "type": "number"
+        },
+        "zoom": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "label",
+        "percent"
+      ],
+      "additionalProperties": false,
+      "description": "A 10 x 10 grid for percent, percentage points and basis points; compareTo outlines the other percent; zoom opens one square (100 basis points)."
+    },
+    "Pictogram": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "count": {
+          "type": "number"
+        },
+        "label": {
+          "type": "string"
+        },
+        "perIcon": {
+          "type": "string"
+        },
+        "compareTo": {
+          "type": "number"
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "you",
+            "src",
+            "neutral"
+          ]
+        }
+      },
+      "required": [
+        "object",
+        "count",
+        "label"
+      ],
+      "additionalProperties": false,
+      "description": "The thing itself, count times (count may be fractional; compareTo shows the earlier count as outlines). object: gold-bar, coin, note-inr, note-usd, piggy-bank, house, car, phone, vada-pav, chai, basket, bank, govt, share, umbrella, ice-cream."
+    },
+    "DrawTheLine": {
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "drawn": {
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      },
+      "required": [
+        "dataset"
+      ],
+      "additionalProperties": false,
+      "description": "The Learner draws where a Case Data series went next (eight slices after its as-of date), then sees the record. drawn: a $variable, set as $drawn = []."
+    },
+    "PriceTag": {
+      "type": "object",
+      "properties": {
+        "item": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "years": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        }
+      },
+      "required": [
+        "item",
+        "price",
+        "ratePercent",
+        "years"
+      ],
+      "additionalProperties": false,
+      "description": "The price of one thing rising with the years; ratePercent and years: Slider $variables."
+    },
+    "ShrinkingNote": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "years": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        }
+      },
+      "required": [
+        "amount",
+        "ratePercent",
+        "years"
+      ],
+      "additionalProperties": false,
+      "description": "A note whose printed value stays while its buying power shrinks; ratePercent and years: Slider $variables."
+    },
+    "TimeTravel": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "ratePercent": {
+          "type": "number"
+        },
+        "maxYears": {
+          "type": "number"
+        },
+        "payments": {
+          "type": "number"
+        },
+        "growthPercent": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "inr",
+            "usd"
+          ]
+        }
+      },
+      "required": [
+        "amount",
+        "ratePercent",
+        "maxYears"
+      ],
+      "additionalProperties": false,
+      "description": "Present value as a journey: one coin from year maxYears to today, or with payments a row of coins (an annuity) brought to today."
+    },
+    "StepThrough": {
+      "type": "object",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Step"
+          }
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "additionalProperties": false,
+      "description": "A worked example or a cause-and-effect chain, one Step at a time with Back and Next."
+    },
+    "Step": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "highlight": {
+          "type": "string",
+          "enum": [
+            "you",
+            "src",
+            "neutral"
+          ]
+        },
+        "ask": {
+          "type": "number"
+        },
+        "askUnit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "body"
+      ],
+      "additionalProperties": false,
+      "description": "One step of a StepThrough: Step(title, body, highlight?, ask?, askUnit?). Use it only inside StepThrough."
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "correctOrder": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lowLabel": {
+          "type": "string"
+        },
+        "highLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "prompt",
+        "items",
+        "correctOrder",
+        "reasons",
+        "lowLabel",
+        "highLabel"
+      ],
+      "additionalProperties": false,
+      "description": "Put 2 to 8 items in order, then check; correctOrder lists item indexes from low end to high; one reason per item."
+    },
+    "Waterfall": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "unit": {
+          "type": "string"
+        },
+        "totalLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "labels",
+        "values",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "A start, each change (costs negative) and the total bar, added up by code."
     },
     "Stack": {
       "type": "object",
@@ -704,6 +1370,54 @@
               },
               {
                 "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
               }
             ]
           }
@@ -1520,6 +2234,54 @@
               },
               {
                 "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
               }
             ]
           }
@@ -1617,6 +2379,54 @@
               },
               {
                 "$ref": "#/$defs/GuidedTasks"
+              },
+              {
+                "$ref": "#/$defs/Stat"
+              },
+              {
+                "$ref": "#/$defs/Verdict"
+              },
+              {
+                "$ref": "#/$defs/QuickCheck"
+              },
+              {
+                "$ref": "#/$defs/Predict"
+              },
+              {
+                "$ref": "#/$defs/Versus"
+              },
+              {
+                "$ref": "#/$defs/Breakeven"
+              },
+              {
+                "$ref": "#/$defs/MoneyStack"
+              },
+              {
+                "$ref": "#/$defs/Waffle"
+              },
+              {
+                "$ref": "#/$defs/Pictogram"
+              },
+              {
+                "$ref": "#/$defs/DrawTheLine"
+              },
+              {
+                "$ref": "#/$defs/PriceTag"
+              },
+              {
+                "$ref": "#/$defs/ShrinkingNote"
+              },
+              {
+                "$ref": "#/$defs/TimeTravel"
+              },
+              {
+                "$ref": "#/$defs/StepThrough"
+              },
+              {
+                "$ref": "#/$defs/Rank"
+              },
+              {
+                "$ref": "#/$defs/Waterfall"
               }
             ]
           }
