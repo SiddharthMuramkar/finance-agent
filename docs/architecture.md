@@ -1857,6 +1857,12 @@ finished, code checks the whole reply:
   openui-lang fence in its text; code-stored items never count, and tool-stored Widgets pass V4 because code checked
   them as it stored them. A fence fails V4 in an engine Session ("Write no Widget code; call open_widget or
   show_widget, or teach in words."); without the engine it is checked by `newReplyWidgetProblems` as before.
+  - **The saved rule.** The gate sets `ReplyDraft.savedRule` from the Session items the turn stored
+    (`savedRuleOf`), so V5, V6 and V7 hold the Learner's saved rule to the same limits as the reply: a rule that gives
+    away an open quiz answer fails V5 and the reply is retried.
+  - **The Widget check.** A written-ahead Widget the draft named is checked by `widgetValidator` against the Topic's
+    own Widgets and the preset it carries (V4). A fence in an engine Session fails V4; with the engine off, an old
+    Session's fence still passes.
 - **One retry**, only while the run has used under 30 seconds (`RETRY_WITHIN_MS`). Code appends one correction
   message ("Reply check by code:" with every failed check's reason, the old Widget correction's included, and the
   Widgets already on screen) and runs the loop again. Tool effects from the draft stand.
