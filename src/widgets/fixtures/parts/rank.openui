@@ -1,0 +1,2 @@
+root = Widget("How fast can you turn each into cash?", [order])
+order = Rank("Put these in order, hardest to turn into cash first", ["A house", "A fixed deposit", "Money in your savings account", "Cash in your wallet"], [0, 1, 2, 3], ["A house takes months to sell.", "A fixed deposit can be broken, with a penalty.", "A savings account can be withdrawn the same day.", "Cash is already cash."], "Hardest to turn into cash", "Easiest to turn into cash")

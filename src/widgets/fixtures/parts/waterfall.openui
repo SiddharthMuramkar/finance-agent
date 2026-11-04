@@ -1,0 +1,2 @@
+root = Widget("Illustration: where did the revenue go?", [bridge])
+bridge = Waterfall(["Revenue", "Cost of goods", "Salaries", "Tax"], [1000000, -450000, -300000, -60000], "inr", "Profit")

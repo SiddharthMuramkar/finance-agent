@@ -33,7 +33,7 @@ describe("WAVE1_PARTS", () => {
   it("each have a fixture program beside them", () => {
     const dir = `${process.cwd()}/src/widgets/fixtures/parts/`;
     const files = readdirSync(dir).filter((f) => f.endsWith(".openui"));
-    expect(files).toHaveLength(WAVE1_PARTS.length);
+    expect(files.length).toBeGreaterThanOrEqual(WAVE1_PARTS.length); // wave 2 keeps its fixtures in the same folder
     for (const part of WAVE1_PARTS) {
       const file = files.find((f) => readFileSync(dir + f, "utf8").includes(`${part.name}(`) && f.replace(/-/g, "").replace(".openui", "") === part.name.toLowerCase());
       expect(file, part.name).toBeDefined();

@@ -1,0 +1,3 @@
+root = Widget("Where was the Sensex heading?", [draw])
+$drawn = []
+draw = DrawTheLine("sensex-1992/sensex-close", "", "Draw the next stretch of the Sensex", $drawn)
