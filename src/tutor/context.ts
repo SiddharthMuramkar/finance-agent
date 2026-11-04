@@ -1,7 +1,7 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
 import { REFERENCE_CASE } from "@/case-data/reference";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
-import { isConverted, type ConceptCard, type Insight, type Piece } from "@/course/map";
+import { isConverted, testedSkills, type ConceptCard, type Insight, type Piece } from "@/course/map";
 import { plainFormulaText as plain } from "@/finance/formula-text";
 import type { ExploreInfo } from "@/learner/insight";
 import { formulaById, formulaGuide } from "@/finance/formulas";
@@ -84,6 +84,21 @@ export function writtenAheadNote(widgets: readonly { id: string; title: string }
 }
 
 /**
+ * A converted Topic's Running example, and the analogy of each Skill the current Check teaches (its card's Skills and
+ * the ones it tests), so a re-teach reuses them (spec #229). Nothing for a Topic not converted.
+ */
+function teachingAidLines(place: Place): string[] {
+  const { topic, check } = place;
+  if (!isConverted(topic)) return [];
+  const lines = topic.runningExample ? [`Running example (reuse it): ${plain(topic.runningExample.text)}`] : [];
+  const ids = check ? new Set([...(check.card?.skills ?? []), ...testedSkills(topic, check)]) : new Set<string>();
+  for (const s of topic.skills) {
+    if (ids.has(s.id) && s.analogy) lines.push(`Analogy for ${plain(s.rule.replace(/\.$/, "")).replace(/^\p{Lu}/u, (c) => c.toLowerCase())} (reuse it, never a new one): ${plain(s.analogy)}`);
+  }
+  return lines;
+}
+
+/**
  * The Teaching Step context code sends the Tutor as an appended message. The
  * Case's outcome is included only from the reveal on, so hindsight is withheld
  * by code as well as by instructions. With this turn's facts (turn-facts.ts) it also names the word limit, the
@@ -113,6 +128,7 @@ export function stepContext(
   if (topic.terms.length) {
     lines.push(`Terms this Topic introduces (define any you use where it first appears): ${topic.terms.map((t) => `${t.term}: ${plain(t.means)}`).join(" ")}`);
   }
+  lines.push(...teachingAidLines(place));
   lines.push(...stepSettingLines(place));
   const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
   if (formulas.length) {
