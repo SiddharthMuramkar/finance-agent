@@ -37,12 +37,7 @@ export async function turnText(rows: Row[], turnSeq: number, deps: SourceDeps & 
   // After a correction message: the widgets it names that a corrected block replaces, until one has.
   let correcting: Correcting = undefined;
   for (const r of rows.filter((r) => r.seq > turnSeq)) {
-    if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) {
-      // Widgets a written-ahead Widget covers leave the reply at once; the Tutor opens that one instead.
-      const out = leaveOutWidgets(text, textOf(r.content));
-      text = out.text;
-      correcting = out.left ? { flagged: out.flagged } : "done";
-    }
+    if (r.role === "user" && textOf(r.content).startsWith(WIDGET_CHECK_PREFIX)) ({ text, correcting } = startCorrection(text, textOf(r.content)));
     if (r.role !== "assistant") continue;
     const added = displayText(r.content, correcting ? new CitationMarks() : marks);
     if (correcting === undefined) text = text && added ? text + PARAGRAPH + added : text + added;
@@ -60,6 +55,15 @@ export async function turnText(rows: Row[], turnSeq: number, deps: SourceDeps & 
  * correction message is the correction: only its widget blocks are used, never its prose.
  */
 type Correcting = { flagged: number[] } | "done" | undefined;
+
+/**
+ * A correction message from code, applied to the reply it corrects: Widgets a written-ahead Widget covers leave the
+ * reply at once (the Tutor opens that one instead), and the rest it names wait for the corrected block.
+ */
+function startCorrection(reply: string, checkMessage: string): { text: string; correcting: Correcting } {
+  const out = leaveOutWidgets(reply, checkMessage);
+  return { text: out.text, correcting: out.left ? { flagged: out.flagged } : "done" };
+}
 
 const hasWidgetBlock = (text: string) => text.includes("```openui-lang\n");
 
@@ -160,10 +164,9 @@ async function sessionEntries(db: Db, sessionId: number, map: CourseMap | undefi
     if (!text || m.role === "system") continue;
     const target = lines.findLast((l) => l.role === "assistant");
     if (m.role === "user" && text.startsWith(WIDGET_CHECK_PREFIX)) {
-      // Widgets a written-ahead Widget covers leave the reply at once; the Tutor opens that one instead.
-      const out = leaveOutWidgets(target?.text ?? "", text);
+      const out = startCorrection(target?.text ?? "", text);
       if (target) target.text = out.text;
-      correcting = out.left ? { flagged: out.flagged } : "done";
+      correcting = out.correcting;
       continue;
     }
     if (m.role === "user") correcting = undefined;

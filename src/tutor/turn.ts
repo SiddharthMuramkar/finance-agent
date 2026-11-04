@@ -10,7 +10,7 @@ import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { droppedWidgets, newReplyWidgetProblems, openWidgetsIn, widgetCheckMessage, type OpenWidget } from "@/widgets/check";
+import { newReplyWidgetProblems, openWidgetsIn, widgetCheckMessage, type OpenWidget } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
@@ -585,7 +585,7 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   if (broken.length) {
     const message = widgetCheckMessage(broken);
     await log.append({ role: "user", content: message });
-    yield { type: "correction", widgets: broken.map((b) => b.index), leaveOut: droppedWidgets(message) };
+    yield { type: "correction", widgets: broken.map((b) => b.index), leaveOut: broken.flatMap((b) => (b.leaveOut ? [b.index] : [])) };
     yield* loop();
   }
 
