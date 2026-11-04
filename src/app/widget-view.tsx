@@ -169,15 +169,18 @@ function DrawnWidget({
   return (
     <>
       <GenuiTheme>
-        <Renderer
-          response={code}
-          library={drawingLibrary}
-          isStreaming={!complete}
-          toolProvider={tools}
-          queryLoader={LOADING}
-          initialState={initialValues}
-          onStateUpdate={onSettings && ((state) => onSettings(settingsFrom(state)))}
-        />
+        {/* Positioned, so the "Loading data" spinner sits on the Widget instead of floating to a corner of the panel. */}
+        <div data-testid="widget-host" className="relative min-w-0">
+          <Renderer
+            response={code}
+            library={drawingLibrary}
+            isStreaming={!complete}
+            toolProvider={tools}
+            queryLoader={LOADING}
+            initialState={initialValues}
+            onStateUpdate={onSettings && ((state) => onSettings(settingsFrom(state)))}
+          />
+        </div>
       </GenuiTheme>
       {messages.map((message) => (
         <p key={message} role="status" className="mt-2 text-xs leading-4 text-[var(--muted)]">

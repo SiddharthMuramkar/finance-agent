@@ -1051,6 +1051,33 @@ We take that: a steady axis teaches more than a tidy one. Log is offered only wh
 the Annuity chart's keyboard is now one slider (one tab stop) instead of thirty, at the cost of a payment's reading
 being spoken only when the slider moves onto it.
 
+### Widgets that fit the panel (`SliderView`, `StackView`, `WidgetFrame`, chart overrides in `src/widgets/library.tsx`, `formatInrDisplay` in `src/finance/indian-format.ts`, UX audit lane "widget-fixes")
+
+**What it does.** The Widget library now repairs what the model writes, so a Widget fits the panel and shows the truth.
+The Slider is a container-query component: below 22rem it drops the number box and the value in its header becomes a
+tap-to-type field; the range takes every pixel the 32 px ± buttons leave. Holding a ± button repeats the step (after
+400 ms, every 80 ms). The Stack is overridden: a row whose every child is a Slider is drawn as a column, and any other
+row wraps with each child at least `min(100%, 15rem)` wide. The kit's AreaChart, LineChart and BarChart are replaced by
+the plot kit's charts with the same positional arguments plus optional `unit`, `yMin` and `yMax` (AreaChart also takes
+`variant` "stacked"), so axes stay put while a slider moves and areas never stack. HistoryChart takes an optional
+`scale` ("linear" or "log"). Steps drops a number the model wrote into a title ("1. Bad times arrive"). The Calculator's
+title has a neutral "Worked out" eyebrow instead of the teal Your assumption tag, and its rupee figures show no paise
+from ₹1,000 and lead with lakh or crore from one lakh, the whole figure in a tooltip. The Widget frame puts one or two
+top-level Sliders in a sticky control bar, and its Reset is an icon button that slides the sliders back in about 240 ms,
+then restarts the plots' axes.
+
+**Scenario.** A Learner opens a SIP Widget in a 360 px panel. The two Sliders the model wrote as `Stack([a, b], "row")`
+stack one under the other and stay at the top while the chart and numbers scroll. Dragging the rate never rescales the
+chart's rupee axis, and the value area and the line for the money put in overlap instead of piling up. Reset slides both
+Sliders home; a Guided Task such as "Set the rate to 12%" does not tick on the 12% the slide passes through.
+
+**Trade-off.** Repairing in the renderer, not the validator, costs no correction round-trip, but the model's layout
+differs from what is drawn. Sticky controls only hold two Sliders, so a Widget with more keeps them in place. Guided
+Tasks stay unmarked while Reset runs, so a task cannot tick without learning, but a Learner who resets mid-task sees it
+pause for a quarter of a second. A task that more than half of a slider's range ticks gets a validator warning
+(`widgetWarnings`, and `writtenAheadCheckWarnings` for the course) and never an error; a true Breakeven part, which
+knows the flip point, is not built yet.
+
 ## Dark and light modes (`src/app/theme-toggle.tsx`)
 
 **What it does.** A toggle in the header switches dark and light mode and remembers the choice in
