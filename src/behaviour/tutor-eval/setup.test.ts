@@ -32,7 +32,7 @@ describe("setting a case's state up", () => {
     expect(p.place).toMatchObject({ step: "check", check: { id: "pb-quiz-language" } });
     const tab = await checkTabNow(db, map, new Date(), p.learnerId);
     expect(tab.quiz?.questions.map((q) => q.id)).toEqual(["pb-q-bp-definition", "pb-q-wrong-description", "pb-q-bond-140"]);
-    expect(p.openItems.map((i) => i.answer)).toEqual(["60", "The rate is up 50 percent", "1.2 percentage points"]);
+    expect(p.openItems.map((i) => i.answer)).toEqual(["60", "The rate is up 50 basis points, which is 12.5 percent of its old level", "1.2 percentage points"]);
     expect(p.ctx).toMatchObject({ step: "check", exampleCurrency: "INR", caseCurrencies: [] });
     expect(p.ctx.internalWords).toEqual(expect.arrayContaining(["num-percent-bps", "pb-quiz-language", "pb-q-bond-140", "rate-change-three-ways", "open_widget"]));
     expect(p.stateNote).toMatch(/quiz is open/);

@@ -105,15 +105,15 @@ questions:
 
   - id: pb-q-wrong-description
     prompt: >
-      A central bank moves its rate from 4.00% to 4.50%. Which description of this move is wrong?
+      A central bank moves its rate from 4.00% to 4.50%. Which description of this move is true?
     choices:
-      - { id: a, text: "The rate is up 50 basis points" }
-      - { id: b, text: "The rate is up half of a percentage point" }
-      - { id: c, text: "The rate is up 50 percent" }
-      - { id: d, text: "The rate is up 12.5 percent of its old level" }
+      - { id: a, text: "The rate is up 50 percent" }
+      - { id: b, text: "The rate is up 50 percentage points" }
+      - { id: c, text: "The rate is up 50 basis points, which is 12.5 percent of its old level" }
+      - { id: d, text: "The rate is up 12.5 basis points" }
     answer: c
     explanation: >
-      The change is 0.5 percentage points, which is 50 basis points. Relative to the old rate it is 0.5 / 4.00 = 12.5 percent. "Up 50 percent" would mean a new rate of 6.00%.
+      The change is half a percentage point, which is 50 basis points. Relative to the old rate it is half of 4.00, which is 12.5 percent. Up 50 percent would mean a new rate of 6.00%.
     source: >
       Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm ; the percent figures are the arithmetic 0.5 / 4.00.
 

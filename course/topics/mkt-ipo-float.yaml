@@ -106,7 +106,7 @@ questions:
 
   - id: ip-q-retail
     prompt: >
-      A net issue of 10 crore shares must by rule offer not less than 35 percent to retail individual bidders. What is the smallest number of shares reserved for them?
+      A net issue of 10 crore shares must by rule offer at least 35 percent to retail individual bidders. What is the smallest number of shares reserved for them?
     choices:
       - { id: a, text: "3.5 crore shares" }
       - { id: b, text: "1.5 crore shares" }
@@ -114,7 +114,7 @@ questions:
       - { id: d, text: "35 crore shares" }
     answer: a
     explanation: >
-      35 percent of 10 crore = 3.5 crore shares. The same prospectus reserved 50 percent for institutions and not less than 15 percent for non-institutional bidders.
+      35 percent of 10 crore = 3.5 crore shares. The same prospectus reserved 50 percent for institutions and at least 15 percent for non-institutional bidders.
     source: >
       Coffee Day Enterprises prospectus (SEBI-hosted, 19 Oct 2015), the Issue under SEBI ICDR Regulation 26(1): https://www.sebi.gov.in/sebi_data/attachdocs/1446117779846.pdf
 

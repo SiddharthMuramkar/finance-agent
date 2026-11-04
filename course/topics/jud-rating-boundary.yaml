@@ -70,12 +70,9 @@ youllLearn:
 questions:
   - id: jrb-q-mislabel
     prompt: >
-      A made-up agency, Agency Z, rates debt Z1 (best) down to Z8. Its published scale says Z1 to
-      Z4 are "investment grade" and Z5 to Z8 are "non-investment grade". A writer says
-      "non-investment grade debt (Z4 and below) defaulted far more often than investment grade debt
-      (Z1 to Z3)". What is wrong with the sentence?
+      A made-up agency, Agency Z, rates debt Z1 (best) down to Z8. Its published scale says Z1 to Z4 are "investment grade" and Z5 to Z8 are "non-investment grade". A writer says "non-investment grade debt (Z4 and below) defaulted far more often than investment grade debt (Z1 to Z3)". Which statement about the sentence is true?
     choices:
-      - { id: a, text: "Nothing: Z4 is the weakest of the top group, so it belongs with what follows" }
+      - { id: a, text: "The sentence is correct: Z4 is the weakest of the top group, so it belongs with what follows" }
       - { id: b, text: "It places the dividing line one notch too high; by Agency Z's scale Z4 is investment grade" }
       - { id: c, text: "It places the dividing line one notch too low; by Agency Z's scale Z5 is investment grade" }
       - { id: d, text: "Agency Z's scale cannot be used to say where the line is" }
@@ -154,9 +151,7 @@ questions:
       Method of matching the period of compared figures; numbers are hypothetical. Default-study definitions of cumulative and annual rates: Moody's Ratings, Understanding credit ratings, https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
   - id: jrb-q-what-survives
     prompt: >
-      A writer mislabels where a rating agency's grade line falls, but then quotes two default rates
-      taken from an agency study with its own grouping. You have not seen the study. Which statement
-      is the most careful?
+      A writer mislabels where a rating agency's grade line falls, but then quotes two default rates taken from an agency study with its own grouping. You have yet to see the study. Which statement is the most careful?
     choices:
       - { id: a, text: "The two rates are wrong because the label is wrong" }
       - { id: b, text: "The two rates are right because the study is by the agency" }

@@ -83,7 +83,7 @@ questions:
 
   - id: ra-q-yield-falls
     prompt: >
-      A flat rents out for Rs 3,00,000 a year while its price is Rs 50 lakh, a rent yield of 6 per cent. The price rises by half to Rs 75 lakh and the rent does not change. What is the rent yield now?
+      A flat rents out for Rs 3,00,000 a year while its price is Rs 50 lakh, a rent yield of 6 per cent. The price rises by half to Rs 75 lakh and the rent stays the same. What is the rent yield now?
     choices:
       - { id: a, text: "9 per cent" }
       - { id: b, text: "6 per cent" }
@@ -139,7 +139,7 @@ questions:
 
   - id: ra-q-gold-valuation
     prompt: >
-      Why can a discounted cash flow valuation not give a value for gold bars held in a vault?
+      Why does a discounted cash flow valuation fail to give a value for gold bars held in a vault?
     choices:
       - { id: a, text: "Gold has no price in the market" }
       - { id: b, text: "The bars produce no cash flows to discount, so gold can be priced (by scarcity and desirability) but not valued" }

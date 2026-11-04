@@ -95,12 +95,12 @@ questions:
 
   - id: fl-q-error-all-three
     prompt: >
-      By mistake, a company books a sale of 100 that never happened, and books the cash receipt of 100 with it. Which statements are wrong as a result?
+      By mistake, a company books a sale of 100 that never happened, and books the cash receipt of 100 with it. Which statement is true as a result?
     choices:
       - { id: a, text: "All three: revenue and profit are 100 too high, cash and retained earnings are 100 too high, and operating cash flow is 100 too high" }
-      - { id: b, text: "Only the income statement" }
-      - { id: c, text: "Only the balance sheet" }
-      - { id: d, text: "Only the cash flow statement" }
+      - { id: b, text: "Only the income statement is affected" }
+      - { id: c, text: "Only the balance sheet is affected" }
+      - { id: d, text: "Only the cash flow statement is affected" }
     answer: a
     explanation: >
       The false revenue raises net income (income statement). That profit flows into retained earnings and the false cash sits in assets (balance sheet). The same cash appears as an operating inflow (cash flow statement). One entry spreads through the whole system.
