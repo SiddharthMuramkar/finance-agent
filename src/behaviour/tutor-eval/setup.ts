@@ -16,12 +16,15 @@ import { freshToolsLearner } from "@/dev/tools-learner";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveJump } from "@/learner/memory";
 import { finishForPlacement } from "@/behaviour/place";
 import { checkTabNow } from "@/learner/quiz";
-import { noteMethodUsed, recordAnswer } from "@/learner/skill-state";
+import { noteMethodUsed, recordAnswer, skillStates } from "@/learner/skill-state";
 import { scriptedClient } from "@/test/scripted-client";
 import { submitQuizAnswers } from "@/tutor/check-results";
 import { ENGINE_TOOLS, TUTOR_TOOLS } from "@/tutor/instructions";
+import { answerQuickTry, nextQuickTry } from "@/tutor/practice";
+import { QUICK_TRY, type QuickTryData } from "@/tutor/session-item-kinds";
+import { liveSession } from "@/tutor/session-log";
 import type { OpenItem, ReplyCheckContext, StepKind } from "@/tutor/reply-checks";
-import { loadSessionItems } from "@/tutor/session-items";
+import { loadSessionItems, saveItemAfterLatest } from "@/tutor/session-items";
 import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { recipeById } from "@/widgets/recipes";
@@ -158,10 +161,7 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     for (const m of s.methodsUsed ?? []) await noteMethodUsed(db, learnerId, topic.id, s.skill, m);
     notes.push(`On the Skill ${s.skill}, the Learner's earlier answers were ${s.answers.join(", ")}; methods already used on it: ${(s.methodsUsed ?? []).join(", ") || "none"}.`);
   }
-  if (c.answer) {
-    await recordAnswer(db, { learnerId, topicId: topic.id, skillId: c.answer.skill, itemKey: `tutor-eval-${c.answer.skill}-answer`, itemId: `tutor-eval-${c.answer.skill}`, input: c.message, verdict: c.answer.verdict, source: "quick_try" });
-    notes.push(`The Learner's message answers a Quick try on ${c.answer.skill}, marked ${c.answer.verdict} by code.`);
-  }
+  if (c.answer) notes.push(`The Learner's message answers a Quick try on ${c.answer.skill}, marked by code (answerDrawnTry), which then asks for a follow-up turn.`);
   for (const h of c.state.history ?? []) notes.push(`Earlier in the Session. Learner: "${h.learner}" Tutor: "${h.tutor}"`);
 
   const widgets = writtenAheadWidgets(topic);
@@ -233,4 +233,26 @@ export async function seenReply(db: Db, args: { learnerId: number; topic: Topic;
   const rule = saved.find((n) => n.kind !== "reply" && n.kind !== "widget" && n.text)?.text ?? null;
   const parkOffer = items.some((i) => /park/i.test(i.kind));
   return seen({ text: args.text, widgets, savedRule: rule, parkOffer });
+}
+
+/**
+ * Answers a case's Quick try the way the app does: a try is drawn on the answer's Skill and shown in the Session, then
+ * the case's message goes through `answerQuickTry` (code marks it, with no model call). Returns whether the
+ * answer asks for a follow-up turn, which the caller then runs as `{ quickTryFollowUp: true }`. Throws when it cannot,
+ * or when code marks the answer right, since the case expects a miss.
+ */
+export async function answerDrawnTry(db: Db, map: CourseMap, c: LiveCase, p: Prepared, now = new Date()): Promise<boolean> {
+  if (!c.answer) throw new Error(`${c.id}: the case has no answer.`);
+  const check = p.topic.checks[c.state.check - 1];
+  const session = await liveSession(db, p.learnerId, p.topic.id);
+  if (!session) throw new Error(`${c.id}: no Session to show the Quick try in; give the case a history.`);
+  const shown = (await loadSessionItems(db, session.id, p.learnerId)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as unknown as QuickTryData);
+  const states = await skillStates(db, p.learnerId, p.topic.id);
+  const data = nextQuickTry(p.topic, check, states, shown, { skillId: c.answer.skill, session: session.id });
+  if (!data || data.skillId !== c.answer.skill) throw new Error(`${c.id}: no Quick try can be drawn on ${c.answer.skill}.`);
+  await saveItemAfterLatest(db, p.learnerId, session.id, { kind: QUICK_TRY, data: data as unknown as Record<string, unknown> }, now);
+  const out = await answerQuickTry(db, map, p.learnerId, data.key, c.message, now);
+  if (!out.ok) throw new Error(`${c.id}: the Quick try answer was refused: ${out.error}`);
+  if (out.items.some((i) => i.kind === "quick_try_result" && (i.data as { verdict?: string }).verdict === "right")) throw new Error(`${c.id}: code marked "${c.message}" right on the drawn try, but the case expects a miss.`);
+  return out.followUp;
 }
