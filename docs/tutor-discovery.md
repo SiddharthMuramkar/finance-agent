@@ -136,3 +136,18 @@ The tickets: #230 reply checks, #231 teaching engine, #232 Skill state and the l
 - **Build process.** → This page replaces Phase 0, and the phases became ticket dependencies gated by automated tests.
 - **Measuring success.** → Each reply's word count, failed checks, retry and fallback, and each Check's attempts to pass, are recorded and shown in the usage report (#239).
 - **ADRs and architecture notes.** → ADRs 0006 to 0008 (#235), and each ticket updates docs/architecture.md for its layers.
+
+## Spec parts the critic found uncovered (12)
+
+- **Section 0, the model-matching and Harvard/PNAS figures.** → Open: never rechecked; direction only, and nothing in the build depends on them.
+- **Section 1 F9, percent change before Check 1.** → Settled: the concept text already teaches it, and the Tutor teaching the whole concept is covered by the Concept card and Go deeper (#233).
+- **Section 2, the API facts (effort resets the cache, per-message effort, thinking cannot be disabled, max_tokens).** → Open: not rechecked; the code runs adaptive thinking with max_tokens 16000.
+- **R5, worked example then fade.** → Open: no decision maps it onto Concept cards plus Quick tries; the half-done try is the nearest thing shipped.
+- **R9 fields, a running example or analogy per Skill.** → Open: no Topic-file field; the Running example lives in the Concept card, and its conflict with the Learner Profile is raised in reply-16.
+- **Section 4.6 L3, what counts as a line on a card.** → Open: not defined.
+- **Section 5.1, a step counter for the Learner.** → Settled: the step divider reads "Step n of N" and shows it.
+- **Section 6, a lesson written at high effort in a separate call.** → Settled: spec #229 chose Claude Code lanes with lints and a beginner-reader review, and no paid authoring script.
+- **Section 7, turning a bad Session into a test.** → Open: no process exists for turning a Past Session into a live test case.
+- **Section 8, learner personality profiles.** → Open: a Learner Profile already exists and nobody has reconciled it with this note.
+- **Appendix B, sources and search words.** → Open: not rechecked; harmless.
+- **The critic's own spot checks (95 quiz Checks, no rate_change calculator, show_widget saves before the reply check).** → Settled: all three held; RateMove now calls rateMoveLines directly.

@@ -1,8 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-let theme: "light" | "dark" = "light";
-vi.mock("./theme-cookie", () => ({ readTheme: async () => theme }));
+import type { ThemeId } from "./theme";
+
+let theme: ThemeId = "light";
+vi.mock("./theme-cookie", () => ({ readTheme: async () => ({ mode: "single", theme }) }));
 
 const { default: NotFound } = await import("./not-found");
 
@@ -18,13 +20,11 @@ describe("Branded not-found page", () => {
     expect(html).toMatch(/<a[^>]*href="\/study"[^>]*>Back to your Topic<\/a>/);
   });
 
-  it("keeps the remembered dark or light mode in its menu", async () => {
-    theme = "dark";
-    const dark = await render();
+  it("keeps the remembered theme in its menu", async () => {
+    theme = "midnight";
+    expect(await render()).toContain('aria-label="Theme: Midnight"');
     theme = "light";
-    const light = await render();
-    expect(dark).not.toBe(light);
-    expect(light).toContain("Dark mode");
+    expect(await render()).toContain('aria-label="Theme: Light"');
   });
 
   it("says Topic, never lesson or Continue", async () => {

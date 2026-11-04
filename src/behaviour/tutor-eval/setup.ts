@@ -9,8 +9,9 @@ import { and, eq, gt, max } from "drizzle-orm";
 import { loadCourseMap, type CourseMap, type Topic } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
 import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
+import { plainExact } from "@/teaching";
 import { questionLookup } from "@/bank/lookup";
-import { insightAttempts, noteItems, quizAttempts, settings } from "@/db/schema";
+import { insightAttempts, noteItems, quizAttempts, settings, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { freshToolsLearner } from "@/dev/tools-learner";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveJump } from "@/learner/memory";
@@ -129,7 +130,7 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     let ids = tab.quiz.questions.map((q) => q.id);
     const pinned = c.state.quiz.questions;
     if (pinned && check.kind === "quiz") {
-      if (pinned.every((id) => check.questions.includes(id))) {
+      if (pinned.every((id) => (check.questions ?? []).includes(id))) {
         // The Check tab's own code opened the attempt; the case pins which questions it shows.
         await db.update(quizAttempts).set({ questionIds: pinned }).where(eq(quizAttempts.id, tab.quiz.attemptId));
         ids = pinned;
@@ -138,7 +139,11 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     const lookup = await questionLookup(db, map, ids);
     const items = ids.flatMap((id) => {
       const q = lookup.question(id);
-      return q ? [{ id, prompt: q.prompt.trim(), choices: q.choices.map((ch) => ch.text), answer: q.choices.find((ch) => ch.id === q.answer)?.text, answerId: q.answer, wrongId: q.choices.find((ch) => ch.id !== q.answer)!.id }] : [];
+      if (!q) return [];
+      // A typed question (a drawn template instance) has no choices: its right answer is the number to type.
+      if (q.drawn) return [{ id, prompt: q.prompt.trim(), choices: [] as string[], answer: q.answer, answerId: plainExact(q.drawn.answer), wrongId: "-987654" }];
+      const wrong = q.choices.find((ch) => ch.id !== q.answer);
+      return [{ id, prompt: q.prompt.trim(), choices: q.choices.map((ch) => ch.text), answer: q.choices.find((ch) => ch.id === q.answer)?.text, answerId: q.answer, wrongId: wrong?.id ?? "" }];
     });
     if (c.state.quiz.state === "open") {
       openItems = items.map(({ prompt, choices, answer }) => ({ prompt, choices, answer }));
@@ -207,21 +212,37 @@ export async function noteMark(db: Db, learnerId: number): Promise<number> {
 }
 
 /**
+ * What the Tutor itself stored in one turn, from the turn's successful tool calls: the ids of the Widgets its show_widget
+ * and compose_widget calls stored (a shown Widget's id is its tool call's id), and whether it opened a written-ahead one.
+ * A Widget item that is not among them was stored by code (the Concept card's, the reveal's, a re-teach's).
+ */
+async function tutorStored(db: Db, sessionId: number, turnSeq: number): Promise<{ shown: Set<string>; opened: boolean }> {
+  const calls = await db
+    .select({ id: toolCalls.toolCallId, name: toolCalls.name })
+    .from(toolCalls)
+    .innerJoin(turns, eq(turns.id, toolCalls.turnId))
+    .where(and(eq(turns.sessionId, sessionId), eq(turns.turnSeq, turnSeq), eq(toolCalls.isError, false)));
+  return { shown: new Set(calls.filter((c) => c.name === "show_widget" || c.name === "compose_widget").map((c) => c.id)), opened: calls.some((c) => c.name === "open_widget") };
+}
+
+/**
  * The reply of one finished turn as the Learner sees it: the text, the Widgets it opened, showed or drew, the
  * rule a tool saved to the Topic Note during the turn (a note that is not a saved reply or Widget), and any park
- * offer item code stored.
+ * offer item code stored. A Widget code stored itself in the turn is marked `byCode`, so the conditions about what the
+ * Tutor showed leave it out.
  */
 export async function seenReply(db: Db, args: { learnerId: number; topic: Topic; sessionId: number; turnSeq: number; text: string; notesAfter: number }): Promise<SeenReply> {
   const items = (await loadSessionItems(db, args.sessionId, args.learnerId)).filter((i) => i.afterSeq >= args.turnSeq);
   const written = writtenAheadWidgets(args.topic);
+  const tutor = await tutorStored(db, args.sessionId, args.turnSeq);
   const widgets: SeenWidget[] = items.flatMap((i): SeenWidget[] => {
     if (i.kind === WIDGET_SHOWN) {
       const d = i.data as ShownWidget;
-      return [{ kind: "recipe", id: d.recipe || DRAWN, params: d.params, labels: [d.title, ...stringsIn(d.code ?? "")] }];
+      return [{ kind: "recipe", id: d.recipe || DRAWN, params: d.params, labels: [d.title, ...stringsIn(d.code ?? "")], ...(tutor.shown.has(d.id) ? {} : { byCode: true }) }];
     }
     if (i.kind === WIDGET_OPENED) {
       const id = String(i.data.id);
-      return [{ kind: "written", id, labels: [String(i.data.title ?? ""), ...stringsIn(written.find((w) => w.id === id)?.code ?? "")] }];
+      return [{ kind: "written", id, labels: [String(i.data.title ?? ""), ...stringsIn(written.find((w) => w.id === id)?.code ?? "")], ...(tutor.opened ? {} : { byCode: true }) }];
     }
     return [];
   });

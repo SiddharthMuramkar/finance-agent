@@ -1218,14 +1218,33 @@ pause for a quarter of a second. A task that more than half of a slider's range 
 (`widgetWarnings`, and `writtenAheadCheckWarnings` for the course) and never an error; a true Breakeven part, which
 knows the flip point, is not built yet.
 
-## Dark and light modes (`src/app/theme-toggle.tsx`)
+## Themes and switching (`src/app/theme.ts`, `src/app/theme-store.ts`, `src/app/theme-menu.tsx`)
 
-**What it does.** A toggle in the header switches dark and light mode and remembers the choice in
-a cookie for a year. The server reads the cookie, so the page is drawn in the right mode from the
-first paint, with no flash.
+**What it does.** There are four themes: Light and Paper by day, Midnight and Forest at night. By default the site follows
+the computer: Light in light mode, Midnight in dark mode, and it switches live if the computer switches. The header's Theme
+menu picks Match my Mac or pins any one theme, in one click and without a reload. The choice is saved in the `theme` cookie
+for a year, as `system:light:midnight` or `single:forest`. The old saved values still work: `dark` opens Midnight and `light`
+opens Light. A second cookie, `theme-pair`, keeps the day and night pair while one theme is pinned, so Match my Mac can come
+back to it.
 
-**Trade-off.** The choice is per browser, not per Learner account (there is only one Learner), and
-it ignores the computer's own dark-mode setting until the Learner first toggles.
+**How the parts fit.** `theme.ts` is the one place that knows the themes, how a saved value becomes a theme (`parsePref`,
+`resolveTheme`) and what a theme puts on `<html>` (`applyTheme`: `data-theme`, the `dark` class, `color-scheme` and
+`data-openui-theme`). `theme-store.ts` is the browser's side: every control reads and changes the choice through
+`useThemeState` and `setThemePref`, so they stay in step, and `ThemeFollower` in the root layout keeps following the computer
+on pages with no header. `theme-menu.tsx` is the menu. `readTheme()` is the server's reading of the cookie, which only draws
+the menu's button until the browser takes over.
+
+**A concrete scenario.** A Learner on a Mac in dark mode opens `/study` with no cookie. A small script at the top of `<head>`
+reads the cookie, asks the browser about dark mode and sets the attributes before anything paints, so the page is Midnight
+from the first frame. They pick Forest, then Match my Mac, and then finish a Tutor turn, which runs `router.refresh()`. The
+page stays Midnight, because the layout gives `<html>` no theme attributes for React to change.
+
+**Trade-off.** The server never draws the theme, so the head script holds a second copy of the logic, written by hand because
+it runs before any bundle loads. A test runs it against the real functions for every kind of saved value, so the copies cannot
+drift. The price of the other way, the server drawing `data-theme` for a pinned theme, is a bug: going from pinned to following
+would make React strip the attributes on the next refresh. With JavaScript off the page is Light. The button's name is just
+"Theme" until hydration while following the computer, since the server cannot know its mode; the sun or moon follows the `dark`
+class, so it is right from first paint. The choice is per browser, not per Learner account.
 
 ## Design tokens (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/theme-cookie.ts`)
 
@@ -1239,10 +1258,10 @@ the header in the same wide box as the workspace, so the title and links never s
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
 those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
 Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Notes ·
-Settings, a thin divider, the theme toggle, Sign out. What is clickable looks clickable: "Finance Agent" has a small
+Settings, a thin divider, the Theme menu, Sign out. What is clickable looks clickable: "Finance Agent" has a small
 mark, the title "Home" and a hover wash; each page link is a pill (`NavLink`, which marks the current page with
 `aria-current` and fills its pill, the Study Workspace included, and shows a small dot inside while its page is
-loading); the theme toggle is an icon button named "Dark mode" that is `aria-pressed` while dark mode is on; Sign
+loading); the Theme menu is an icon button named for the current theme ("Theme: Midnight"); Sign
 out (`SignOutButton`) is a plain form posting to `/api/logout`, styled as a small outlined button (Home's signed-in
 top bar uses the same component). No other link points at `/`. The Study Workspace and Course Map links are
 prefetched in full, so they open at once; the others use the default. A 2px bar across the top of the window
@@ -3165,6 +3184,8 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 **The cost.** The cap is `TUTOR_EVAL_BUDGET_USD`, $5 by default, counting the Tutor Turns (with any retry) and the grader. Each run holds its estimated cost before it starts (the first run about $0.40, later ones the mean so far), so runs side by side cannot pass the cap; once the next run would not fit, no more start and the report says "Stopped" and why, and the runs not started count as not passed. A model missing from the price table stops the suite before it spends anything, because its spend could not be counted. With six runnable cases today, a full run is 18 Tutor Turns and 18 grades, about $2 to $4 on Opus 5.5 at medium. The Tutor runs on the production defaults (`DEFAULT_SETTINGS`) unless `TUTOR_EVAL_MODEL`, `TUTOR_EVAL_EFFORT` or `TUTOR_EVAL_WIDGET_ENGINE` say otherwise, which is how the model and effort sweep runs it.
 
 **The CI job.** `.github/workflows/tutor-eval.yml` runs on pull requests that change the Tutor's instructions, tools or context, the quiz follow-up, the help chips, a Topic file or the suite itself. It is not one of the required checks (`check` and `build`), so a noisy model run never blocks a merge or a deploy. It has its own concurrency group that never cancels, so a paid run that started always reports. It reads `secrets.ANTHROPIC_API_KEY`; without it (a PR from a fork, since the repo is public, or the secret not set) it skips and says so in the job summary. It uses `pull_request` only, never `pull_request_target` or `workflow_run`, so no fork can reach the secret.
+
+**Drawn questions.** Percent's Check 1 draws typed questions from templates and has no fixed questions, so T1, T2 and T11 no longer pin question ids: setup opens the attempt through the Check tab's own code and reads the drawn items back (a typed question's right answer is the number to type). `cases-prepare.test.ts` prepares every live case against the real Course Map with no model call, so a Check, question or Skill that a content change removes fails a test instead of crashing the live suite. The trade-off is that the open numbers differ each run.
 
 **What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they were reported as pending until Percent was converted; they now name its Skill `pts-to-bp`. T8 runs: the course check passes on the repo and fails on the fixture folder `src/behaviour/tutor-eval/fixtures/untaught-skill/` (a Check that tests an untaught Skill), naming L1. `course:check` now runs the lesson lint before the typed-formula check, so the fixture's L1 errors show even though the fixture is not on the repo's not-yet-converted lists. Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
 
