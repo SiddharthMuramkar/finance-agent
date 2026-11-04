@@ -1,7 +1,10 @@
 "use client";
 
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { QUICK_TRY_RESULT } from "@/tutor/session-item-kinds";
+import { QuickTryContext, type QuickTryHost } from "./quick-try-view";
+import type { SessionItemData } from "./session-item-view";
 import type { NextOffer, StepSequence } from "@/course/navigator";
 import type { WrittenAhead } from "@/course/written-ahead";
 import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
@@ -109,6 +112,27 @@ export function Conversation({
     void send({ quizFollowUp: true });
   }, [misses, running, send]);
   const report: WidgetReport = { tell: (key) => void turn.send({ widgetReport: key }), busy: turn.running };
+  // Quick tries: locked while a turn runs and once marked; an answer appends its items, and may start the follow-up turn.
+  const { appendItem, messages } = turn;
+  const answered = useMemo(
+    () => new Set(messages.flatMap((m) => (m.role === "item" && m.kind === QUICK_TRY_RESULT && typeof m.data.key === "string" ? [m.data.key] : []))),
+    [messages],
+  );
+  const quickTries: QuickTryHost = useMemo(
+    () => ({
+      locked: running,
+      answered,
+      answer: async (key, input) => {
+        const response = await fetch("/api/quick-try", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, input }) }).catch(() => null);
+        const body = (await response?.json().catch(() => null)) as { items?: SessionItemData[]; followUp?: boolean; error?: string } | null;
+        if (!response?.ok || !body) return body?.error ?? "That answer could not be sent. Try again.";
+        for (const item of body.items ?? []) appendItem(item);
+        if (body.followUp) void send({ quickTryFollowUp: true });
+        return null;
+      },
+    }),
+    [running, answered, appendItem, send],
+  );
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
@@ -119,10 +143,13 @@ export function Conversation({
             <InsightSettledContext.Provider value={insightSettled}>
             {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
             <WidgetReportContext.Provider value={passed ? null : report}>
+              {/* A passed Topic's page sends nothing, so its Quick tries draw read-only. */}
+              <QuickTryContext.Provider value={passed ? null : quickTries}>
               <WorkspaceFrame
                 left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
+              </QuickTryContext.Provider>
             </WidgetReportContext.Provider>
             </InsightSettledContext.Provider>
           </WidgetStatesProvider>

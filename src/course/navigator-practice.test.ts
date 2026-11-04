@@ -20,7 +20,14 @@ const plain = mapOf({
   ...CONVERTED_TOPIC_DATA,
   skills: [],
   templates: [],
-  questions: CONVERTED_TOPIC_DATA.questions.map(({ skill: _skill, ...q }) => ({ ...q, choices: q.choices.map(({ mistake: _m, ...c }) => c) })),
+  questions: CONVERTED_TOPIC_DATA.questions.map((q) => ({
+    id: q.id,
+    prompt: q.prompt,
+    choices: q.choices.map((c) => ({ id: c.id, text: c.text })),
+    answer: q.answer,
+    explanation: q.explanation,
+    source: q.source,
+  })),
   checks: [
     { id: "pct-demo-check-1", kind: "quiz", questions: ["pct-demo-headline"], perAttempt: 1, passRule: { correct: 1 } },
     { id: "pct-demo-check-3", kind: "conversation", prompt: "Say the move.", passCriteria: "Says it." },
