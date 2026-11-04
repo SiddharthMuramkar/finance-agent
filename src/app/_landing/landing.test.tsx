@@ -21,8 +21,13 @@ vi.mock("@/course/map", async (orig) => {
 vi.mock("./stats", () => ({ landingStats: async () => ({ topics: 1, cases: 1, librarySources: 1 }) }));
 // The owner is signed in (signing in itself is tested in src/auth/sign-in.test.ts).
 vi.mock("@/auth/session", () => ({ currentLearnerId: async () => 1, isSignedIn: async () => true }));
-// Home's Widget reads its Case Data through its own day-long cache; its server read is tested in home-widget.test.ts.
-vi.mock("./home-widget-data", async (orig) => ({ ...(await orig<typeof import("./home-widget-data")>()), homeWidget: async () => null }));
+// Home's Widget reads its Case Data through its own day-long cache; its server read is tested in
+// home-widget-data.test.ts. Here it is the real Widget code with no Case Data, so no database is read.
+vi.mock("./home-widget-data", async (orig) => {
+  const real = await orig<typeof import("./home-widget-data")>();
+  const { loadCourseMap: realMap } = await vi.importActual<typeof import("@/course/map")>("@/course/map");
+  return { ...real, homeWidget: async () => ({ code: real.homeWidgetCode(realMap())!, cases: [] }) };
+});
 const { LandingPage, LandingView, homeButton, loadHomeButton } = await import("./landing");
 const { homeWidgetCode } = await import("./home-widget-data");
 type HomeButton = import("./landing").HomeButton;
@@ -253,11 +258,16 @@ describe("Home's page, signed in", () => {
     expect(log).toHaveBeenCalled();
     log.mockRestore();
   });
-  it("shows no Learner words signed out and does not touch the database", async () => {
+  it("signed out, reads no Learner data and shows Sign in with the live Widget, its one task and its sign-in link", async () => {
     getDbMock.mockImplementation(() => {
       throw new Error("must not be called");
     });
     const out = renderToStaticMarkup(await LandingPage({}));
     expect(out).toContain("Sign in");
+    expect(out).toContain(">What the annuity is worth today</h3>");
+    const tasks = [...out.matchAll(/<li[^>]*data-state="[^"]*"[^>]*>(?:(?!<\/li>).)*<\/li>/g)].map((m) => m[0]);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]).toContain("Drag to 0%. Why does it match the advertised jackpot?");
+    expect(out).toMatch(/<a[^>]*href="\/login"[^>]*>Sign in to learn why →<\/a>/);
   });
 });

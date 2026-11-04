@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 import { loadCourseMap, parseCourseMap, type Topic } from "./map";
-import { writtenAheadCheckErrors } from "./written-ahead-check";
+import { HOME_WIDGET } from "../app/_landing/home-widget-spec";
+import { onlyTaskCheckErrors, writtenAheadCheckErrors } from "./written-ahead-check";
 
 // The course check covers every written-ahead Widget (spec #119, "Owner tooling › The course check"): it can be
 // drawn, its defaults sit on their steps, and each Guided Task can be reached and is not done at the start, tried
@@ -68,5 +69,33 @@ describe("the course check for written-ahead Widgets", () => {
     const twice = { ...real, stage: "foundation", path: 1, prerequisites: [], subject: undefined, connections: undefined, widgets: [...real.widgets, { ...real.widgets[0], id: "again" }] };
     const { errors } = parseCourseMap([{ name: "num-percent-bps.yaml", text: stringify(twice) }]);
     expect(errors.join("\n")).toMatch(/written-ahead Widget "again" repeats the title "One rate change, said three ways"/);
+  });
+});
+
+describe("the course check for the Widget Home shows, with only Home's task", () => {
+  const home = (code: string, done = "$old == 6") => onlyTaskCheckErrors([topic(code)], { topic: "t", widget: "w", task: { text: "Home's task", done } }).join("\n");
+
+  it("passes Present value's annuity Widget with Home's task", () => {
+    expect(onlyTaskCheckErrors(loadCourseMap().topics, HOME_WIDGET)).toEqual([]);
+  });
+
+  it("passes when the GuidedTasks list is written inside root's children", () => {
+    const inside = [
+      'root = Widget("A rate change", [old, GuidedTasks([t0])])',
+      "$old = 5",
+      'old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")',
+      't0 = GuidedTask("Task 1", $old == 7)',
+    ].join("\n");
+    expect(home(inside)).toBe("");
+  });
+
+  it("fails when Home's task cannot be reached", () => {
+    expect(home(widget(), "$old == 11")).toMatch(/with only Home's task Guided Task "Home's task" .* can never be reached/);
+  });
+
+  it("fails when the Widget Home shows is missing", () => {
+    expect(onlyTaskCheckErrors([topic(widget())], { topic: "t", widget: "gone", task: { text: "x", done: "$old == 6" } })).toEqual([
+      'Topic "t" has no written-ahead Widget "gone", which Home shows',
+    ]);
   });
 });

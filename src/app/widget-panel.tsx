@@ -175,9 +175,10 @@ export const TELL_THE_TUTOR = "Tell the Tutor what I found →";
  *
  * In the Study Workspace its slider values and ticked Guided Tasks are saved with the Session under its Widget key
  * (Widget state, see widget-states.tsx), so it draws as the Learner left it after a reload or a tab switch, and
- * Save to notes keeps the same values under the same key. Elsewhere they are kept only while it is on screen.
+ * Save to notes keeps the same values under the same key. Elsewhere (Home, for one) they are kept only while it is
+ * on screen, and with no `save` there is no Save to notes. It reads only these fields of the conversation's item.
  */
-export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?: boolean }) {
+export function WidgetWithSave({ item, bare = true }: { item: Pick<WidgetItem, "code" | "complete" | "explore" | "writtenAhead" | "save">; bare?: boolean }) {
   const settings = useRef<Record<string, number>>({});
   const loadCase = useCaseLoad();
   const store = useWidgetStore();

@@ -2,17 +2,13 @@ import { unstable_cache } from "next/cache";
 import { loadCaseData, type CaseData } from "@/case-data/case-data";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import type { Progress } from "@/course/navigator";
-import { writtenAheadWidgets } from "@/course/written-ahead";
+import { withOnlyTask, writtenAheadWidgets } from "@/course/written-ahead";
 import { getDb } from "@/db/client";
 import type { Db } from "@/db/types";
-import { copy } from "./copy";
+import { HOME_WIDGET } from "./home-widget-spec";
 
 // Home's copy of Present value's annuity Widget (spec #119, "Widgets › Home's copy"): the same Widget, signed out,
-// as it is before the Insight, with one Guided Task of Home's own.
-
-/** The Topic and written-ahead Widget Home shows. */
-const TOPIC = "present-value";
-const WIDGET = "annuity-worth-today";
+// as it is before the Insight, with one Guided Task of Home's own (home-widget-spec.ts, which the course check reads too).
 
 /** What Home draws: the Widget's code and its Cases' data, read on the server under the signed-out rule. */
 export type HomeWidgetData = { code: string; cases: CaseData[] };
@@ -25,17 +21,14 @@ const SIGNED_OUT: Progress = { currentTopicId: null, topics: {} };
  * with its Guided Tasks swapped for Home's one. Null when the Topic or the Widget is missing.
  */
 export function homeWidgetCode(map: CourseMap): string | null {
-  const topic = map.topic(TOPIC);
-  const widget = topic && writtenAheadWidgets(topic).find((w) => w.id === WIDGET);
-  if (!widget) return null;
-  const lines = widget.code.trimEnd().split("\n").filter((line) => !/^\w+ = GuidedTask\(/.test(line));
-  const tasks = lines.map((line) => line.replace(/^(\w+ = )GuidedTasks\(\[[^\]]*\]\)$/, "$1GuidedTasks([homeTask])"));
-  return [...tasks, `homeTask = GuidedTask(${JSON.stringify(copy.widget.task)}, $rate == 0)`].join("\n");
+  const topic = map.topic(HOME_WIDGET.topic);
+  const widget = topic && writtenAheadWidgets(topic).find((w) => w.id === HOME_WIDGET.widget);
+  return widget ? withOnlyTask(widget.code, HOME_WIDGET.task) : null;
 }
 
 /** The Widget's Topic's Cases' data, read under the signed-out as-of rule: nothing dated after a Case's as-of date. */
 export async function signedOutCases(db: Db, map: CourseMap): Promise<CaseData[]> {
-  const cases = await Promise.all((map.topic(TOPIC)?.cases ?? []).map((c) => loadCaseData(db, map, SIGNED_OUT, c.id)));
+  const cases = await Promise.all((map.topic(HOME_WIDGET.topic)?.cases ?? []).map((c) => loadCaseData(db, map, SIGNED_OUT, c.id)));
   return cases.filter((c): c is CaseData => !!c);
 }
 

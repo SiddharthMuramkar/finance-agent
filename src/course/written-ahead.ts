@@ -41,6 +41,15 @@ export function revealMove(data: CaseData | undefined, datasetId: string): Revea
 /** The statement name the reveal task is written under; no Topic Widget may use it for anything else. */
 const REVEAL_TASK = "revealTask";
 
+/** The statement name a Widget's only task is written under (withOnlyTask); no Topic Widget may use it for anything else. */
+const ONLY_TASK = "onlyTask";
+
+/** A Guided Task given from outside the Topic file: its text and its done condition, e.g. `$rate == 0`. */
+export type OnlyTask = { text: string; done: string };
+
+/** The Widget's code with its GuidedTasks list, wherever it is written, rewritten by `list` (the names inside the brackets). */
+const withTaskList = (code: string, list: (tasks: string) => string) => code.replace(/GuidedTasks\(\[([^\]]*)\]\)/, (_, tasks: string) => `GuidedTasks([${list(tasks.trim())}])`);
+
 const fill = (template: string, move: RevealMove) => template.replaceAll("{before}", String(move.before)).replaceAll("{after}", String(move.after));
 
 /**
@@ -60,9 +69,18 @@ function withQuickButton(code: string, name: string, value: number, note: string
  * reveal quick button (when it has one) added to its slider, set to the move's {before} value.
  */
 export function withRevealTask(code: string, task: NonNullable<WrittenAheadSpec["revealTask"]>, move: RevealMove): string {
-  const joined = code.replace(/GuidedTasks\(\[([^\]]*)\]\)/, (_, tasks: string) => `GuidedTasks([${tasks.trim() ? `${tasks}, ` : ""}${REVEAL_TASK}])`);
+  const joined = withTaskList(code, (tasks) => `${tasks ? `${tasks}, ` : ""}${REVEAL_TASK}`);
   const quick = task.quick ? withQuickButton(joined, task.quick.slider, move.before, task.quick.note) : joined;
   return `${quick.trimEnd()}\n${REVEAL_TASK} = GuidedTask(${JSON.stringify(fill(task.text, move))}, ${fill(task.done, move)})`;
+}
+
+/**
+ * The Widget's code with its own Guided Tasks swapped for one task: its GuidedTask statements dropped and its
+ * GuidedTasks list naming only the new one. Home's copy of a Widget (src/app/_landing/home-widget-data.ts) is this.
+ */
+export function withOnlyTask(code: string, task: OnlyTask): string {
+  const lines = code.trimEnd().split("\n").filter((line) => !/^\w+ = GuidedTask\(/.test(line));
+  return `${withTaskList(lines.join("\n"), () => ONLY_TASK)}\n${ONLY_TASK} = GuidedTask(${JSON.stringify(task.text)}, ${task.done})`;
 }
 
 /** The Topic's written-ahead Widgets as written, before any reveal: the course check and the Tutor's context read these. */
