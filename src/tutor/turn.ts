@@ -54,6 +54,7 @@ import { CHECKING_LABEL, joinedEvents, judgeReply, REPLY_CHECK_PREFIX, replyText
 import { cardFallback } from "./reply-fallback";
 import { saveReplyCheck, summaryOf } from "./reply-records";
 import { fixReply } from "./reply-checks";
+import { savedRuleOf } from "./own-rule-item";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
@@ -856,7 +857,12 @@ async function* runLockedTurn(
       const problems = markerProblems(text);
       if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
     }
-    const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, { engine, fenceProblems });
+    const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, {
+      engine,
+      fenceProblems,
+      savedRule: savedRuleOf(items.filter((i) => i.afterSeq >= turnSeq)),
+      writtenAhead: covering ? writtenAheadWidgets(covering) : undefined,
+    });
     return deps.checkReplies === false ? { ...judged, draft: { ...judged.draft, text }, changed: false, problems: [] } : judged;
   };
 
