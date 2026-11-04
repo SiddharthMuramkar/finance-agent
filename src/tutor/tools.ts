@@ -245,7 +245,20 @@ export function toolCode(
     return item;
   }
 
-  async function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
+  /**
+   * The Widget-drawing calls of a turn, one after another: the Tool Runner runs a message's calls at once, and each checks
+   * "one Widget a reply" against what the others stored, so two calls in one message must not read the reply together.
+   */
+  let widgetLane: Promise<unknown> = Promise.resolve();
+  const WIDGET_CALLS = new Set(["show_widget", "compose_widget", "open_widget", "update_widget"]);
+  function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
+    if (!WIDGET_CALLS.has(name)) return onceNow(toolCallId, name, effect);
+    const run = widgetLane.then(() => onceNow(toolCallId, name, effect));
+    widgetLane = run.catch(() => undefined);
+    return run;
+  }
+
+  async function onceNow(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
     if (!toolCallId) throw new Error("Missing tool call ID.");
     let outcome: Outcome;
     try {

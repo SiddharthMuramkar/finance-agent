@@ -19,7 +19,7 @@ export type SaveTarget =
  */
 export type SaveState =
   | { status: "idle" | "saving" }
-  | { status: "saved"; id: number; topicId: string; settled?: boolean }
+  | { status: "saved"; id: number; topicId: string; settled?: boolean; error?: string }
   | { status: "failed"; message: string };
 
 /** How long "Saved ✓" stays before the control settles back. */
@@ -56,34 +56,53 @@ export function SaveToNotesView({
   const saved = state.status === "saved";
   const justSaved = saved && !state.settled;
   const label = `Save this ${what} to notes`;
+  // The control swaps one element for another as it changes; a keyboard Learner who pressed it keeps their place.
+  const root = useRef<HTMLSpanElement>(null);
+  const acted = useRef(false);
+  useEffect(() => {
+    if (!acted.current || state.status === "saving") return;
+    const lost = !document.activeElement || document.activeElement === document.body;
+    if (lost) root.current?.querySelector<HTMLElement>("[data-focus-target]")?.focus();
+  }, [state]);
+  const press = (action: () => void) => () => {
+    acted.current = true;
+    action();
+  };
   return (
-    <span className="relative inline-flex flex-wrap items-center gap-x-2 text-xs leading-4 text-[var(--muted)] print:hidden" data-testid="save-to-notes" data-save-state={state.status}>
+    <span ref={root} className="relative inline-flex flex-wrap items-center gap-x-2 text-xs leading-4 text-[var(--muted)] print:hidden" data-testid="save-to-notes" data-save-state={state.status}>
       {justSaved ? (
-        <span>{savedLabel ?? "Saved ✓"}</span>
+        <span tabIndex={-1} data-focus-target className="outline-none">
+          {savedLabel ?? "Saved ✓"}
+        </span>
       ) : state.status === "failed" ? (
         <>
           <span role="alert" className="text-[var(--danger)]">
             {state.message}
           </span>
-          <Button variant="secondary" size="sm" onClick={onSave} aria-label={`Retry: ${label}`}>
+          <Button variant="secondary" size="sm" onClick={press(onSave)} aria-label={`Retry: ${label}`} data-focus-target>
             Retry
           </Button>
         </>
       ) : (
-        <Button variant="ghost" size="sm" onClick={onSave} loading={state.status === "saving"} aria-label={label} className="-ml-3">
+        <Button variant="ghost" size="sm" onClick={press(onSave)} loading={state.status === "saving"} aria-label={label} className="-ml-3" data-focus-target>
           {state.status !== "saving" && <Bookmark />}
           {state.status === "saving" ? "Saving…" : "Save to notes"}
         </Button>
       )}
       {saved && (
         <>
+          {state.error && (
+            <span role="alert" className="text-[var(--danger)]">
+              {state.error}
+            </span>
+          )}
           {!justSaved && (
             <span data-testid="saved-badge" className="rounded-full bg-[var(--hairline)] px-2 py-0.5 text-[11px] font-medium leading-4">
               Saved
             </span>
           )}
           <span aria-hidden>·</span>
-          <Button variant="ghost" size="sm" data-undo-save onClick={onUndo} aria-label={`Undo: take this ${what} off your notes`} className="-my-2">
+          <Button variant="ghost" size="sm" data-undo-save onClick={press(onUndo)} aria-label={`Undo: take this ${what} off your notes`} className="-my-2">
             Undo
           </Button>
           <span aria-hidden>·</span>
@@ -134,7 +153,11 @@ export function SaveToNotes({ target, getSettings, what }: { target: SaveTarget;
     if (res && (res.ok || res.status === 404)) {
       setState({ status: "idle" });
       announce("Removed from notes");
-    } else setState(kept);
+    } else {
+      // The note is still saved: back to the settled control (Undo works again), with a short reason.
+      setState({ ...kept, settled: true, error: "Could not undo. Try again." });
+      announce("Could not remove it from notes");
+    }
   };
   return <SaveToNotesView state={state} what={what} onSave={() => void save()} onUndo={() => void undo()} />;
 }
