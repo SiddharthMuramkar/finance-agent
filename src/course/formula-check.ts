@@ -96,8 +96,50 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "ana-anthropic-s1",
 ];
 
+type Labelled = { where: string; text: string };
+
+/**
+ * The teaching a converted Topic's file holds (spec #229): card lines and write-down lines, Skill rules and analogies,
+ * Quick-try asks and fixes, template asks, fixes and half-done steps, wrong choices' fixes and the Running example.
+ * These are new, so a typed sum in them fails even for a Topic on the not-yet-converted list.
+ */
+export function teachingTexts(topic: Topic): Labelled[] {
+  const texts: Labelled[] = [];
+  if (topic.runningExample) texts.push({ where: "running example", text: topic.runningExample.text });
+  for (const s of topic.skills) {
+    texts.push({ where: `skill ${s.id} rule`, text: s.rule });
+    if (s.analogy) texts.push({ where: `skill ${s.id} analogy`, text: s.analogy });
+  }
+  for (const t of topic.templates) {
+    texts.push({ where: `template ${t.id} ask`, text: t.ask });
+    if (t.halfDone) texts.push({ where: `template ${t.id} half-done step`, text: t.halfDone.shows });
+    for (const m of t.mistakes) texts.push({ where: `template ${t.id} fix ${m.tag}`, text: m.fix });
+  }
+  for (const q of topic.questions) {
+    for (const c of q.choices) if (c.mistake) texts.push({ where: `question ${q.id} choice ${c.id} fix`, text: c.mistake.fix });
+  }
+  for (const c of topic.checks) {
+    if (c.card) {
+      c.card.lines.forEach((line, i) => texts.push({ where: `check ${c.id} card line ${i + 1}`, text: line }));
+      texts.push({ where: `check ${c.id} card write-down`, text: c.card.writeDown });
+    }
+    for (const q of c.quickTries) {
+      if (!("id" in q)) continue;
+      texts.push({ where: `check ${c.id} quick try ${q.id} ask`, text: q.ask });
+      if (q.halfDone) texts.push({ where: `check ${c.id} quick try ${q.id} half-done step`, text: q.halfDone });
+      (q.mistakes ?? []).forEach((m, i) => texts.push({ where: `check ${c.id} quick try ${q.id} fix ${i + 1}`, text: m.fix }));
+    }
+  }
+  return texts;
+}
+
 /** Every piece of Topic text a Learner or the Tutor reads, with a label saying where it is. */
-export function topicTexts(topic: Topic): { where: string; text: string }[] {
+export function topicTexts(topic: Topic): Labelled[] {
+  return [...earlierTexts(topic), ...teachingTexts(topic)];
+}
+
+/** The texts every Topic had before the teaching fields. */
+function earlierTexts(topic: Topic): Labelled[] {
   return [
     ...topic.cases.flatMap((c) => [
       { where: `case ${c.id} story`, text: c.story },
@@ -130,9 +172,11 @@ export function topicTexts(topic: Topic): { where: string; text: string }[] {
   ];
 }
 
+const hitsIn = (texts: Labelled[]) => texts.flatMap(({ where, text }) => rawFormulaHits(text).map((hit) => `${where}: ${hit}`));
+
 /** Where a Topic types a formula, as "where: sign". */
 export function typedFormulas(topic: Topic): string[] {
-  return topicTexts(topic).flatMap(({ where, text }) => rawFormulaHits(text).map((hit) => `${where}: ${hit}`));
+  return hitsIn(topicTexts(topic));
 }
 
 export function formulaCheckErrors(topics: Topic[], notYet: readonly string[] = NOT_YET_CONVERTED): string[] {
@@ -142,6 +186,10 @@ export function formulaCheckErrors(topics: Topic[], notYet: readonly string[] = 
   for (const topic of topics) {
     const hits = typedFormulas(topic);
     const listed = notYet.includes(topic.id);
+    const teaching = hitsIn(teachingTexts(topic));
+    if (teaching.length && listed) {
+      errors.push(`Topic ${topic.id} types a formula in its teaching (cards, Skills, Quick tries and templates say sums in words; ADR 0002):`, ...teaching.map((h) => `    ${h}`));
+    }
     if (hits.length && !listed) {
       errors.push(`Topic ${topic.id} types a formula (use a formula marker or worded steps instead; ADR 0002):`, ...hits.map((h) => `    ${h}`));
     }
