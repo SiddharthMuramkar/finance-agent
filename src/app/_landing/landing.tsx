@@ -5,6 +5,8 @@ import { getDb } from "@/db/client";
 import { loadProgress } from "@/learner/memory";
 import { Eyebrow, Pill, SignOutButton } from "../ui";
 import { copy } from "./copy";
+import { HomeWidget } from "./home-widget";
+import { homeWidget, type HomeWidgetData } from "./home-widget-data";
 import { landingStats, type LandingStats } from "./stats";
 
 const bigButton = "inline-flex items-center justify-center rounded-lg px-6 py-3 text-base font-medium leading-6 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";
@@ -38,8 +40,9 @@ const buttonLabel = (b: HomeButton) =>
 /**
  * Home, at "/": counts only, no Learner data or Library text. With no `button` (signed out) the top bar and hero offer
  * Sign in; with one, the top bar links the Study Workspace beside Sign out and the hero button shows its label.
+ * `widget` is Present value's live annuity Widget, drawn under the hero (with "Sign in to learn why →" when signed out).
  */
-export function LandingView({ stats, button }: { stats: LandingStats; button?: HomeButton }) {
+export function LandingView({ stats, button, widget }: { stats: LandingStats; button?: HomeButton; widget?: HomeWidgetData | null }) {
   // Signed out, the main button is Start learning, to the passcode page; signed in, the Learner's own button.
   const hero = button ? { href: "/study", label: buttonLabel(button) } : { href: "/login", label: copy.startLearning };
   const heroClass = `${bigButton} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`;
@@ -99,19 +102,17 @@ export function LandingView({ stats, button }: { stats: LandingStats; button?: H
             </div>
 
             <div className="mt-14">
-              <figure className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)]">
-                <div className="flex gap-1.5 border-b border-[var(--hairline)] px-3 py-2" aria-hidden>
-                  <span className="size-2.5 rounded-full bg-[var(--border)]" />
-                  <span className="size-2.5 rounded-full bg-[var(--border)]" />
-                  <span className="size-2.5 rounded-full bg-[var(--border)]" />
+              {widget && (
+                <div className="mx-auto max-w-2xl rounded-xl bg-[var(--bg)]">
+                  <HomeWidget code={widget.code} cases={widget.cases} />
+                  {!button && (
+                    <a href="/login" className="mt-3 inline-block text-sm font-medium text-[var(--brand)] hover:underline">
+                      {copy.widget.signIn}
+                    </a>
+                  )}
                 </div>
-                {/* eslint-disable-next-line @next/next/no-img-element -- static screenshots served by the proxy's asset rule */}
-                <img src="/landing-assets/workspace-light.png" alt={copy.screenshotAlt} width={1280} height={800} className="block h-auto w-full dark:hidden" />
-                {/* eslint-disable-next-line @next/next/no-img-element -- as above, the dark-mode copy */}
-                <img src="/landing-assets/workspace-dark.png" alt={copy.screenshotAlt} width={1280} height={800} className="hidden h-auto w-full dark:block" />
-              </figure>
-              {/* Below the screenshot, not over it, so the Tutor's composer row stays visible at every width. */}
-              <p className="mt-4 text-base font-semibold leading-6 text-[var(--brand)] sm:text-right">{copy.stats(stats)}</p>
+              )}
+              <p className="mt-6 text-base font-semibold leading-6 text-[var(--brand)] sm:text-right">{copy.stats(stats)}</p>
             </div>
           </div>
         </section>
@@ -169,7 +170,11 @@ export async function loadHomeButton(): Promise<HomeButton> {
   }
 }
 
-/** Loads the counts (the database part cached for a day) and renders Home; with no `button`, no Learner data is read. */
+/**
+ * Loads the counts and the Widget's Case Data (the database parts each cached for a day) and renders Home; with no
+ * `button`, no Learner data is read.
+ */
 export async function LandingPage({ button }: { button?: HomeButton }) {
-  return <LandingView stats={await landingStats()} button={button} />;
+  const [stats, widget] = await Promise.all([landingStats(), homeWidget()]);
+  return <LandingView stats={stats} button={button} widget={widget} />;
 }

@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { currentLearner } from "@/auth/session";
-import { DEMO_PROGRESS, isDemoMode } from "../_landing/demo-mode";
-import { SAMPLE_LINES } from "../_landing/demo-session";
 import { loadCourseMap } from "@/course/map";
 import { exploreAsSeen, exploreWidgetFor } from "@/course/explore-widget";
 import { courseOverview, stepSequence, whatComesNext } from "@/course/navigator";
@@ -41,27 +39,11 @@ async function WorkspaceShell({ children }: { children: ReactNode }) {
   );
 }
 
-export default async function WorkspacePage({ searchParams }: { searchParams: Promise<{ demo?: string | string[] }> }) {
+export default async function WorkspacePage() {
   // The proxy already sends a signed-out visitor to the login; this check also comes before any Learner data is read.
   const learner = await currentLearner();
   if (!learner) redirect("/login");
   const map = loadCourseMap();
-  // Demo mode (local only, at /study?demo=1, for Home's screenshot): a sample conversation, no Learner data read.
-  if (isDemoMode(await searchParams)) {
-    const topic = map.topic("present-value");
-    return (
-      <WorkspaceShell>
-        <Conversation
-          initial={SAMPLE_LINES}
-          strip={stepSequence(map, DEMO_PROGRESS, "present-value")}
-          quiz={null}
-          pending={null}
-          review={{ question: null, dueCount: 0, done: 0, cap: 0 }}
-          place={topic ? { stage: topic.stage, title: topic.title } : null}
-        />
-      </WorkspaceShell>
-    );
-  }
   const db = getDb();
   const learnerId = learner.id;
   // A new Learner (no Sessions, no Topic chosen yet) sees the Welcome before anything else.

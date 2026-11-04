@@ -39,7 +39,7 @@ const map = loadCourseMap();
 const toWelcome = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/welcome;/) };
 const toStudy = { digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/study;/) };
 const welcome = (panel?: string) => WelcomePage({ searchParams: Promise.resolve(panel ? { panel } : {}) });
-const study = () => StudyPage({ searchParams: Promise.resolve({}) });
+const study = () => StudyPage();
 const json = (body: unknown) => new Request("https://app.example/api", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
 async function html(page: Promise<ReactElement>) {

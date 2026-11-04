@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import type { CaseData } from "@/case-data/case-data";
 import { createCaseDataCache, type CaseDataCache } from "./case-data-cache";
 import type { CaseLoad } from "./case-data-client";
 
@@ -9,9 +10,21 @@ const CaseDataContext = createContext<CaseDataCache | null>(null);
 /**
  * Gives a page one shared Case Data cache (case-data-cache.ts). `revealed` lists the Cases whose reveal the Learner
  * has seen, read on the server; `turnRunning` is the Tutor turn's state, and the cache is cleared each time a turn ends.
+ * `cases`, when given, is every Case the page may read, already read on the server (Home's signed-out Widget): the
+ * cache answers from them alone and never calls the Case Data route, and a Case not among them reads as missing.
  */
-export function CaseDataProvider({ revealed = [], turnRunning = false, children }: { revealed?: readonly string[]; turnRunning?: boolean; children: ReactNode }) {
-  const [cache] = useState(() => createCaseDataCache(undefined, revealed));
+export function CaseDataProvider({
+  revealed = [],
+  turnRunning = false,
+  cases,
+  children,
+}: {
+  revealed?: readonly string[];
+  turnRunning?: boolean;
+  cases?: readonly CaseData[];
+  children: ReactNode;
+}) {
+  const [cache] = useState(() => createCaseDataCache(cases && (async (caseId) => cases.find((c) => c.caseId === caseId) ?? null), revealed));
   const shown = revealed.join(" ");
   useEffect(() => cache.setRevealed(shown ? shown.split(" ") : []), [cache, shown]);
   const wasRunning = useRef(turnRunning);

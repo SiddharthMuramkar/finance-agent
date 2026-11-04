@@ -200,7 +200,7 @@ describe("The owner and a second Learner", () => {
     expect(await html(NotesPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s own note line");
     expect(await html(SessionsPage())).not.toContain("No Sessions yet.");
     expect(await html(ProgressPage())).toMatch(/In progress/i);
-    expect(await html(StudyPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s reply about the annuity.");
+    expect(await html(StudyPage())).toContain("The owner&#x27;s reply about the annuity.");
     expect(await json(profileRoute.GET())).toMatchObject({ work: "a teacher in Mumbai" });
   });
 
@@ -214,7 +214,7 @@ describe("The owner and a second Learner", () => {
     expect(await html(ProgressPage())).not.toContain('data-status="in_progress"');
     expect(await html(SettingsPage())).not.toContain("Mumbai");
     // With no Sessions of their own, the second Learner is sent to the Welcome, which holds nothing of the owner's.
-    await expect(StudyPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(toWelcome);
+    await expect(StudyPage()).rejects.toMatchObject(toWelcome);
     const welcome = await html(WelcomePage({ searchParams: Promise.resolve({}) }));
     expect(welcome).not.toContain("The owner&#x27;s reply");
     expect(welcome).not.toContain("The owner&#x27;s question");
@@ -235,7 +235,7 @@ describe("The owner and a second Learner", () => {
 
     // The owner's Workspace still shows only the owner's conversation.
     await signIn(OWNER_PASSCODE);
-    const owners = await html(StudyPage({ searchParams: Promise.resolve({}) }));
+    const owners = await html(StudyPage());
     expect(owners).toContain("The owner&#x27;s reply about the annuity.");
     expect(owners).not.toContain("Welcome. Let&#x27;s start with a story.");
   });
@@ -264,7 +264,7 @@ describe("Settings", () => {
     expect(await html(SettingsPage())).not.toMatch(/<input[^>]*checked/);
     const { client } = scriptedClient([text("The test Learner's reply.")]);
     await drain(runTutorTurn({ db: as.db, client, map: as.map!, learnerId: await session.currentLearnerId() }, "A question"));
-    const study = () => html(StudyPage({ searchParams: Promise.resolve({}) }));
+    const study = () => html(StudyPage());
     expect(await study()).toContain("The test Learner&#x27;s reply.");
     expect(await study()).not.toContain("Under the hood");
 
@@ -343,7 +343,7 @@ describe("Start over", () => {
     expect(await html(ProgressPage())).not.toContain('data-status="in_progress"');
     expect(await json(profileRoute.GET())).toMatchObject({ work: null });
     // With no Sessions, the fresh Learner lands on the Welcome, from the Study Workspace too.
-    await expect(StudyPage({ searchParams: Promise.resolve({}) })).rejects.toMatchObject(toWelcome);
+    await expect(StudyPage()).rejects.toMatchObject(toWelcome);
     expect(await html(WelcomePage({ searchParams: Promise.resolve({}) }))).toContain("How a Topic works");
 
     // The old Learner is archived, and every row it owned reads back exactly as before.
@@ -362,7 +362,7 @@ describe("Start over", () => {
     await signIn(TEST_PASSCODE);
     expect(await session.currentLearnerId()).toBe(fresh!.id);
     await signIn(OWNER_PASSCODE);
-    expect(await html(StudyPage({ searchParams: Promise.resolve({}) }))).toContain("The owner&#x27;s reply about the annuity.");
+    expect(await html(StudyPage())).toContain("The owner&#x27;s reply about the annuity.");
   });
 
   it("does nothing without the confirmation, or when another site sends it", async () => {

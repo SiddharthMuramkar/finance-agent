@@ -21,7 +21,10 @@ vi.mock("@/course/map", async (orig) => {
 vi.mock("./stats", () => ({ landingStats: async () => ({ topics: 1, cases: 1, librarySources: 1 }) }));
 // The owner is signed in (signing in itself is tested in src/auth/sign-in.test.ts).
 vi.mock("@/auth/session", () => ({ currentLearnerId: async () => 1, isSignedIn: async () => true }));
+// Home's Widget reads its Case Data through its own day-long cache; its server read is tested in home-widget.test.ts.
+vi.mock("./home-widget-data", async (orig) => ({ ...(await orig<typeof import("./home-widget-data")>()), homeWidget: async () => null }));
 const { LandingPage, LandingView, homeButton, loadHomeButton } = await import("./landing");
+const { homeWidgetCode } = await import("./home-widget-data");
 type HomeButton = import("./landing").HomeButton;
 
 const html = renderToStaticMarkup(<LandingView stats={{ topics: 95, cases: 103, librarySources: 8 }} />);
@@ -87,20 +90,52 @@ describe("Home", () => {
     expect(html).not.toContain("/api/logout");
   });
 
-  it("puts the stats after the screenshot, so they never cover it", () => {
-    expect(html.indexOf("</figure>")).toBeGreaterThan(0);
-    expect(html.indexOf("</figure>")).toBeLessThan(html.indexOf("95 Topics"));
+  it("shows no screenshot of the workspace", () => {
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain("landing-assets");
+  });
+});
+
+// Seam 2: Home's live annuity Widget (spec #119, "Widgets › Home's copy"), the very Widget Present value opens,
+// drawn as it is before the Insight, with one Guided Task and a way to sign in.
+describe("Home's live annuity Widget, signed out", () => {
+  const widget = { code: homeWidgetCode(loadCourseMap())!, cases: [] };
+  const out = renderToStaticMarkup(<LandingView stats={{ topics: 95, cases: 103, librarySources: 8 }} widget={widget} />);
+  const words = out.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  const tasks = [...out.matchAll(/<li[^>]*data-state="[^"]*"[^>]*>(?:(?!<\/li>).)*<\/li>/g)].map((m) => m[0].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+
+  it("is Present value's annuity Widget, with its rate slider", () => {
+    expect(out).toContain(">What the annuity is worth today</h3>");
+    expect(out).toContain('aria-label="Interest rate (discount rate)"');
+  });
+
+  it("has exactly one Guided Task: Drag to 0%, and why it matches the advertised jackpot", () => {
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]).toContain("Drag to 0%. Why does it match the advertised jackpot?");
+  });
+
+  it("offers Sign in to learn why → under the Widget, to the passcode page", () => {
+    expect(out).toMatch(/<a[^>]*href="\/login"[^>]*>Sign in to learn why →<\/a>/);
+    expect(out.indexOf("Sign in to learn why")).toBeGreaterThan(out.indexOf("Drag to 0%"));
+  });
+
+  it("is shown as before the Insight: no break-even task, verdict or 30-year Treasury button", () => {
+    expect(words).not.toMatch(/Find the rate|worth the same|Treasury|3\.33|more than the cash|less than the cash/);
+  });
+
+  it("sits above the stats line", () => {
+    expect(out.indexOf("What the annuity is worth today")).toBeLessThan(out.indexOf("95 Topics"));
   });
 });
 
 describe("Home, signed in", () => {
   const stats = { topics: 95, cases: 103, librarySources: 8 };
-  const inHtml = renderToStaticMarkup(<LandingView stats={stats} button={{ kind: "open" }} />);
+  const inHtml = renderToStaticMarkup(<LandingView stats={stats} button={{ kind: "open" }} widget={{ code: homeWidgetCode(loadCourseMap())!, cases: [] }} />);
   const inText = inHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
   it("is the same page, with the same sections", () => {
     expect(inHtml).toMatch(/<h1[^>]*>Learn finance from<br\/><span[^>]*>what already happened\.<\/span><\/h1>/);
-    expect(inHtml).toContain("</figure>");
+    expect(inHtml).toContain("What the annuity is worth today");
     expect(inText).toContain("95 Topics · 103 historical cases · 8 sources");
     expect(inHtml).toContain('id="how"');
     expect(inText).toContain(copy.sources.title);
