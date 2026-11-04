@@ -162,18 +162,18 @@ describe("quiz Check flow", () => {
 describe("quiz results for the Tutor", () => {
   it("writes a note for each submitted result not yet reported, then none once reported", async () => {
     const { db, map } = await atQuiz();
-    expect(await pendingQuizNote(db, map, OWNER_LEARNER_ID)).toBeNull();
+    expect(await pendingQuizNote(db, map, OWNER_LEARNER_ID, map.check("quiz")!.topicId)).toBeNull();
     const first = (await openQuiz(db, map, new Date(), OWNER_LEARNER_ID))!;
     await submitQuiz(db, map, first.attemptId, { q1: "a", q2: "b" }, new Date(), OWNER_LEARNER_ID);
     const second = (await openQuiz(db, map, new Date(), OWNER_LEARNER_ID))!;
     await submitQuiz(db, map, second.attemptId, { q3: "a", q4: "a" }, new Date(), OWNER_LEARNER_ID);
 
-    const note = (await pendingQuizNote(db, map, OWNER_LEARNER_ID))!;
+    const note = (await pendingQuizNote(db, map, OWNER_LEARNER_ID, map.check("quiz")!.topicId))!;
     expect(note.text).toContain("Quiz result by code, Check quiz, attempt 1: 1 of 2 correct (needs 2).\nNot passed");
     expect(note.text).toContain('Question 2? The Learner chose "Wrong 2"; the right answer is "Right 2".');
     expect(note.text).toContain("attempt 2: 2 of 2 correct (needs 2).\nPassed");
     await markQuizReported(db, note.attemptIds, new Date(), OWNER_LEARNER_ID);
-    expect(await pendingQuizNote(db, map, OWNER_LEARNER_ID)).toBeNull();
+    expect(await pendingQuizNote(db, map, OWNER_LEARNER_ID, map.check("quiz")!.topicId)).toBeNull();
     const rows = await db.select().from(quizAttempts).where(eq(quizAttempts.id, first.attemptId));
     expect(rows[0].reportedAt).not.toBeNull();
   });
@@ -276,7 +276,7 @@ checks:
     const { db, map } = await atBankQuiz();
     const quiz = (await openQuiz(db, map, new Date(), OWNER_LEARNER_ID))!;
     await submitQuiz(db, map, quiz.attemptId, { q1: "a", "bank:eab:Q-1": "A" }, new Date(), OWNER_LEARNER_ID);
-    const note = (await pendingQuizNote(db, map, OWNER_LEARNER_ID))!;
+    const note = (await pendingQuizNote(db, map, OWNER_LEARNER_ID, map.check("quiz")!.topicId))!;
     expect(note.text).toContain('Bank question 1? The Learner chose "Wrong 1"; the right answer is "Right 1".');
     expect(note.text).toMatch(/answer key .*not been checked/i);
   });
@@ -293,7 +293,7 @@ checks:
     const quiz = (await openQuiz(db, map, new Date(), OWNER_LEARNER_ID))!;
     await submitQuiz(db, map, quiz.attemptId, { q1: "b", "bank:eab:Q-1": "B" }, new Date(), OWNER_LEARNER_ID);
     await db.delete(questionBank).where(eq(questionBank.id, "bank:eab:Q-1"));
-    const note = (await pendingQuizNote(db, map, OWNER_LEARNER_ID))!;
+    const note = (await pendingQuizNote(db, map, OWNER_LEARNER_ID, map.check("quiz")!.topicId))!;
     expect(note.text).toContain("Quiz result by code, Check quiz, attempt 1: 1 of 2 correct (needs 2).");
     expect(note.text).toContain("Not passed");
     // The question still on the Course Map is still named; the one that left the bank cannot be.

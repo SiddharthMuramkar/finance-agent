@@ -173,9 +173,9 @@ export async function pendingQuizNote(
   /**
    * The Topic of the Session the note goes to: only results of that Topic's Checks reach it (one
    * Session per Topic, ADR 0004); the others wait for their own Topic's Session. Null (the
-   * every-Topic-passed Session) takes none. Left out, every result is taken.
+   * every-Topic-passed Session) takes none.
    */
-  topicId?: string | null,
+  topicId: string | null,
 ): Promise<{ text: string; attemptIds: number[]; /** Any of them passed, so the Learner moved on. */ passed: boolean } | null> {
   const rows = (
     await db
@@ -183,7 +183,7 @@ export async function pendingQuizNote(
       .from(quizAttempts)
       .where(and(eq(quizAttempts.learnerId, learnerId), isNotNull(quizAttempts.submittedAt), isNull(quizAttempts.reportedAt)))
       .orderBy(asc(quizAttempts.id))
-  ).filter((row) => topicId === undefined || map.check(row.checkId)?.topicId === topicId);
+  ).filter((row) => map.check(row.checkId)?.topicId === topicId);
   if (!rows.length) return null;
   const lookup = await questionLookup(db, map, rows.flatMap((r) => r.questionIds));
   const notes = rows.map((row) => {
