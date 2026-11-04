@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { revealedCases } from "@/case-data/case-data";
 import { loadCourseMap } from "@/course/map";
@@ -14,6 +13,7 @@ import { loadThread } from "@/tutor/transcript";
 import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { OldSession } from "../../old-session";
 import { PastSessionHeaderView } from "../../past-sessions";
+import { readTheme } from "../../theme-cookie";
 import { AppHeader, SignedInFrame } from "../../ui";
 
 export const dynamic = "force-dynamic";
@@ -29,10 +29,10 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const learner = await signedInLearner();
   const learnerId = learner.id;
   const map = loadCourseMap();
-  const [header, lines, jar, explore, progress] = await Promise.all([
+  const [header, lines, theme, explore, progress] = await Promise.all([
     loadPastSession(db, map, id, learnerId),
     loadThread(db, id, map, learnerId),
-    cookies(),
+    readTheme(),
     loadSessionExplore(db, id, map),
     loadProgress(db, learnerId),
   ]);
@@ -49,7 +49,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   return (
     <SignedInFrame>
       <main data-route="study" className="mx-auto flex h-dvh max-w-6xl flex-col px-4 pb-4 pt-4 lg:px-6 lg:pt-6">
-        <AppHeader current="sessions" theme={jar.get("theme")?.value === "dark" ? "dark" : "light"} className="mb-6" />
+        <AppHeader current="sessions" theme={theme} className="mb-6" />
         <PastSessionHeaderView header={header} />
         <OldSession lines={drawn} topicTitle={topicTitle} explore={explore} writtenAhead={writtenAhead} inPlace={header.kind === "topic"} revealed={revealedCases(map, progress)} developerDetails={learner.showDeveloperDetails} />
       </main>
