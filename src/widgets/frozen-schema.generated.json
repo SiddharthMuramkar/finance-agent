@@ -194,6 +194,9 @@
     "Waterfall": {
       "$ref": "#/$defs/Waterfall"
     },
+    "RateMove": {
+      "$ref": "#/$defs/RateMove"
+    },
     "GuidedTask": {
       "$ref": "#/$defs/GuidedTask"
     },
@@ -266,6 +269,7 @@
     "StepThrough",
     "Rank",
     "Waterfall",
+    "RateMove",
     "GuidedTask",
     "Step"
   ],
@@ -346,6 +350,9 @@
               },
               {
                 "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
               },
               {
                 "$ref": "#/$defs/Stack"
@@ -1213,6 +1220,30 @@
       "additionalProperties": false,
       "description": "A start, each change (costs negative) and the total bar, added up by code."
     },
+    "RateMove": {
+      "type": "object",
+      "properties": {
+        "oldRate": {
+          "type": "number"
+        },
+        "newRate": {
+          "type": "number"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "show",
+            "practice"
+          ]
+        }
+      },
+      "required": [
+        "oldRate",
+        "newRate"
+      ],
+      "additionalProperties": false,
+      "description": "A rate move on a number line, with points, bp and percent of the old rate by code; \"practice\" asks for the bp first."
+    },
     "Stack": {
       "type": "object",
       "properties": {
@@ -1418,6 +1449,9 @@
               },
               {
                 "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
               }
             ]
           }
@@ -2282,6 +2316,9 @@
               },
               {
                 "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
               }
             ]
           }
@@ -2427,6 +2464,9 @@
               },
               {
                 "$ref": "#/$defs/Waterfall"
+              },
+              {
+                "$ref": "#/$defs/RateMove"
               }
             ]
           }

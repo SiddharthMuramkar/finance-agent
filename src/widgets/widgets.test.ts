@@ -120,8 +120,9 @@ describe("widget instructions", () => {
     for (const old of ["make it rich", "A number the Learner changes is always a Slider"]) expect(frozen.instructions).not.toContain(old);
   });
 
-  it("with the widget engine off, grow the Tutor's instructions by at most 10% for the v2 language (44,836 characters before)", () => {
-    expect(TUTOR_INSTRUCTIONS.length).toBeLessThanOrEqual(44_836 * 1.1);
+  it("with the widget engine off, grow the Tutor's instructions by at most 10% for the v2 language (44,836 characters before), plus the RateMove part", () => {
+    // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
+    expect(TUTOR_INSTRUCTIONS.length).toBeLessThanOrEqual(44_836 * 1.1 + 250);
   });
 
   it("group every part of the library, so none is listed under Other", () => {
