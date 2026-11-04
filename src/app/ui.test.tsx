@@ -1,12 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { DEFAULT_PREF, type ThemePref } from "./theme";
 import { AppHeader, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
+
+const LIGHT: ThemePref = { mode: "single", theme: "light" };
 
 describe("ReadingPage", () => {
   it("puts the header in the same wide box on every reading page and narrows only the content", () => {
     const pages = (["course", "progress", "sessions", "notes", "settings", undefined] as const).map((current) =>
       renderToStaticMarkup(
-        <ReadingPage current={current} theme="light">
+        <ReadingPage current={current} theme={LIGHT}>
           <p>content</p>
         </ReadingPage>,
       ),
@@ -31,13 +34,13 @@ describe("AppHeader", () => {
   ] as const;
 
   it("puts Finance Agent at the left as the heading, leading to Home", () => {
-    const html = renderToStaticMarkup(<AppHeader current="progress" theme="light" />);
+    const html = renderToStaticMarkup(<AppHeader current="progress" theme={LIGHT} />);
     expect(html).toMatch(/<h1[^>]*><a[^>]*href="\/"[^>]*>(<svg.*<\/svg>)?Finance Agent<\/a><\/h1>/);
     expect(html.indexOf("Finance Agent")).toBeLessThan(html.indexOf("<nav"));
   });
 
   it("lists the pages in order, Settings last, then the theme toggle and Sign out", () => {
-    const html = renderToStaticMarkup(<AppHeader current="progress" theme="light" />);
+    const html = renderToStaticMarkup(<AppHeader current="progress" theme={LIGHT} />);
     const at = (pattern: RegExp) => html.search(pattern);
     const order = [
       at(/href="\/study"[^>]*>Study Workspace</),
@@ -46,7 +49,7 @@ describe("AppHeader", () => {
       at(/href="\/sessions"[^>]*>Past Sessions</),
       at(/href="\/notes"[^>]*>Notes</),
       at(/href="\/settings"[^>]*>Settings</),
-      at(/Dark mode/),
+      at(/aria-label="Theme: Light"/),
       at(/Sign out/),
     ];
     expect(order.every((i) => i > 0)).toBe(true);
@@ -55,7 +58,7 @@ describe("AppHeader", () => {
 
   it("marks exactly the current page on every page, the Study Workspace included", () => {
     for (const [page, href, label] of pages) {
-      const html = renderToStaticMarkup(<AppHeader current={page} theme="light" />);
+      const html = renderToStaticMarkup(<AppHeader current={page} theme={LIGHT} />);
       expect(html.match(/aria-current="page"/g), page).toHaveLength(1);
       expect(html, page).toMatch(new RegExp(`<a [^>]*aria-current="page"[^>]*href="${href}"[^>]*>${label}<`));
     }
@@ -63,38 +66,41 @@ describe("AppHeader", () => {
 
   it("points no link but Finance Agent at Home", () => {
     for (const [page] of pages) {
-      const html = renderToStaticMarkup(<AppHeader current={page} theme="light" />);
+      const html = renderToStaticMarkup(<AppHeader current={page} theme={LIGHT} />);
       expect(html.match(/href="\/"/g), page).toHaveLength(1);
     }
   });
 
   it("signs out through a plain form that posts to the sign-out route", () => {
-    const html = renderToStaticMarkup(<AppHeader current="course" theme="light" />);
+    const html = renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />);
     expect(html).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
   });
 
   it("has a Home brand link with a hover shape and the title Home", () => {
-    const html = renderToStaticMarkup(<AppHeader current="workspace" theme="light" />);
+    const html = renderToStaticMarkup(<AppHeader current="workspace" theme={LIGHT} />);
     expect(html).toMatch(/<a title="Home"[^>]*hover:bg-\[var\(--hairline\)\][^>]*href="\/"/);
   });
 
   it("draws the page links as pills, the current one filled, each with a pending dot", () => {
-    const html = renderToStaticMarkup(<AppHeader current="notes" theme="light" />);
+    const html = renderToStaticMarkup(<AppHeader current="notes" theme={LIGHT} />);
     expect(html.match(/rounded-full/g)?.length).toBeGreaterThanOrEqual(6);
     expect(html.match(/data-\[link-pending=true\]/g)).toHaveLength(6);
     expect(html).toMatch(/aria-current="page"[^>]*href="\/notes"/);
     expect(html).not.toContain("underline");
   });
 
-  it("makes the theme toggle an icon button named Dark mode that is pressed in dark mode", () => {
-    const light = renderToStaticMarkup(<AppHeader current="workspace" theme="light" />);
-    const dark = renderToStaticMarkup(<AppHeader current="workspace" theme="dark" />);
-    expect(light).toMatch(/<button[^>]*aria-label="Dark mode"[^>]*aria-pressed="false"/);
-    expect(dark).toMatch(/<button[^>]*aria-label="Dark mode"[^>]*aria-pressed="true"/);
+  it("makes the theme control an icon button named for the current theme, which opens a menu", () => {
+    const midnight = renderToStaticMarkup(<AppHeader current="workspace" theme={{ mode: "single", theme: "midnight" }} />);
+    expect(midnight).toMatch(/<button[^>]*aria-label="Theme: Midnight"[^>]*aria-haspopup="menu"[^>]*aria-expanded="false"/);
+    expect(midnight).not.toContain("aria-pressed");
+  });
+
+  it("names the theme control just Theme on the server while the Learner follows the computer, whose mode it cannot know", () => {
+    expect(renderToStaticMarkup(<AppHeader current="workspace" theme={DEFAULT_PREF} />)).toContain('aria-label="Theme"');
   });
 
   it("styles Sign out as a small outlined button", () => {
-    expect(renderToStaticMarkup(<AppHeader current="course" theme="light" />)).toMatch(/<button type="submit" class="[^"]*border[^"]*min-h-8[^"]*">Sign out/);
+    expect(renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />)).toMatch(/<button type="submit" class="[^"]*border[^"]*min-h-8[^"]*">Sign out/);
   });
 });
 

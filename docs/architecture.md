@@ -1218,14 +1218,33 @@ pause for a quarter of a second. A task that more than half of a slider's range 
 (`widgetWarnings`, and `writtenAheadCheckWarnings` for the course) and never an error; a true Breakeven part, which
 knows the flip point, is not built yet.
 
-## Dark and light modes (`src/app/theme-toggle.tsx`)
+## Themes and switching (`src/app/theme.ts`, `src/app/theme-store.ts`, `src/app/theme-menu.tsx`)
 
-**What it does.** A toggle in the header switches dark and light mode and remembers the choice in
-a cookie for a year. The server reads the cookie, so the page is drawn in the right mode from the
-first paint, with no flash.
+**What it does.** There are four themes: Light and Paper by day, Midnight and Forest at night. By default the site follows
+the computer: Light in light mode, Midnight in dark mode, and it switches live if the computer switches. The header's Theme
+menu picks Match my Mac or pins any one theme, in one click and without a reload. The choice is saved in the `theme` cookie
+for a year, as `system:light:midnight` or `single:forest`. The old saved values still work: `dark` opens Midnight and `light`
+opens Light. A second cookie, `theme-pair`, keeps the day and night pair while one theme is pinned, so Match my Mac can come
+back to it.
 
-**Trade-off.** The choice is per browser, not per Learner account (there is only one Learner), and
-it ignores the computer's own dark-mode setting until the Learner first toggles.
+**How the parts fit.** `theme.ts` is the one place that knows the themes, how a saved value becomes a theme (`parsePref`,
+`resolveTheme`) and what a theme puts on `<html>` (`applyTheme`: `data-theme`, the `dark` class, `color-scheme` and
+`data-openui-theme`). `theme-store.ts` is the browser's side: every control reads and changes the choice through
+`useThemeState` and `setThemePref`, so they stay in step, and `ThemeFollower` in the root layout keeps following the computer
+on pages with no header. `theme-menu.tsx` is the menu. `readTheme()` is the server's reading of the cookie, which only draws
+the menu's button until the browser takes over.
+
+**A concrete scenario.** A Learner on a Mac in dark mode opens `/study` with no cookie. A small script at the top of `<head>`
+reads the cookie, asks the browser about dark mode and sets the attributes before anything paints, so the page is Midnight
+from the first frame. They pick Forest, then Match my Mac, and then finish a Tutor turn, which runs `router.refresh()`. The
+page stays Midnight, because the layout gives `<html>` no theme attributes for React to change.
+
+**Trade-off.** The server never draws the theme, so the head script holds a second copy of the logic, written by hand because
+it runs before any bundle loads. A test runs it against the real functions for every kind of saved value, so the copies cannot
+drift. The price of the other way, the server drawing `data-theme` for a pinned theme, is a bug: going from pinned to following
+would make React strip the attributes on the next refresh. With JavaScript off the page is Light. The button's name is just
+"Theme" until hydration while following the computer, since the server cannot know its mode; the sun or moon follows the `dark`
+class, so it is right from first paint. The choice is per browser, not per Learner account.
 
 ## Design tokens (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/theme-cookie.ts`)
 
@@ -1239,10 +1258,10 @@ the header in the same wide box as the workspace, so the title and links never s
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
 those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
 Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Notes ·
-Settings, a thin divider, the theme toggle, Sign out. What is clickable looks clickable: "Finance Agent" has a small
+Settings, a thin divider, the Theme menu, Sign out. What is clickable looks clickable: "Finance Agent" has a small
 mark, the title "Home" and a hover wash; each page link is a pill (`NavLink`, which marks the current page with
 `aria-current` and fills its pill, the Study Workspace included, and shows a small dot inside while its page is
-loading); the theme toggle is an icon button named "Dark mode" that is `aria-pressed` while dark mode is on; Sign
+loading); the Theme menu is an icon button named for the current theme ("Theme: Midnight"); Sign
 out (`SignOutButton`) is a plain form posting to `/api/logout`, styled as a small outlined button (Home's signed-in
 top bar uses the same component). No other link points at `/`. The Study Workspace and Course Map links are
 prefetched in full, so they open at once; the others use the default. A 2px bar across the top of the window

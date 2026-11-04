@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { CaseData } from "@/case-data/case-data";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
+import { applyTheme, isTheme } from "../../theme";
 import { WidgetView } from "../../widget-view";
 import { Eyebrow } from "../../ui";
 import type { HarnessWidth } from "./widths";
@@ -28,13 +29,12 @@ export function WidgetHarness({
   values?: Record<string, number>;
   cases: readonly CaseData[];
 }) {
-  // The tokens switch under `:root.dark`, so the class goes on the page's root, as the theme cookie does in the layout.
+  // The tokens switch on the page's root, so this page's own light or dark replaces what the head script set there.
   useEffect(() => {
-    const root = document.documentElement;
-    const had = root.classList.contains("dark");
-    root.classList.toggle("dark", theme === "dark");
+    const before = document.documentElement.dataset.theme;
+    applyTheme(theme === "dark" ? "midnight" : "light");
     return () => {
-      root.classList.toggle("dark", had);
+      applyTheme(isTheme(before) ? before : "light");
     };
   }, [theme]);
 

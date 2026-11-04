@@ -1,11 +1,12 @@
 // Shared look pieces of the design system (finance-agent-ui-spec.md, issue #43). Colours come only from
 // the tokens in globals.css, so light and dark mode need no per-piece variants. Server-safe: no
-// "use client" here; the only client piece rendered is ThemeToggle.
+// "use client" here; the only client piece rendered is ThemeMenu.
 
 import Link from "next/link";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { NavLink } from "./nav-link";
-import { ThemeToggle, type Theme } from "./theme-toggle";
+import type { ThemePref } from "./theme";
+import { ThemeMenu } from "./theme-menu";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]";
 
@@ -231,10 +232,10 @@ function BrandMark() {
 
 /**
  * App header (spec #77): h1 "Finance Agent" (a mark and the words) linking to Home, the page links as pills (the current one
- * filled and aria-current; each shows a dot while its page loads), a divider, the theme toggle, and Sign out as a small
+ * filled and aria-current; each shows a dot while its page loads), a divider, the Theme menu, and Sign out as a small
  * outlined button. current = the page showing; theme from readTheme(). Sizes tighten below 1024px to keep one line from 768px.
  */
-export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
+export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: ThemePref; className?: string }) {
   return (
     <header className={`flex items-center justify-between gap-2 lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
@@ -251,7 +252,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
           </NavLink>
         ))}
         <span aria-hidden="true" className="mx-2 hidden h-5 w-px bg-[var(--border)] lg:block" />
-        <ThemeToggle initial={theme} />
+        <ThemeMenu initial={theme} />
         <SignOutButton className={`${secondaryButtonClass} min-h-8 lg:ml-1 px-2! py-1! text-[13px] lg:px-3! lg:text-sm`} />
       </nav>
     </header>
@@ -263,7 +264,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
  * same 6xl box as the workspace's, so the title and nav stay put between pages, and only the content
  * below it uses the narrower reading column.
  */
-export function ReadingPage({ current, theme, children }: { current?: HeaderPage; theme: Theme; children: ReactNode }) {
+export function ReadingPage({ current, theme, children }: { current?: HeaderPage; theme: ThemePref; children: ReactNode }) {
   return (
     <main className="mx-auto max-w-6xl px-4 pb-12 pt-4 lg:px-6 lg:pt-6">
       <AppHeader current={current} theme={theme} className="mb-6" />
