@@ -1,3 +1,4 @@
+import { engineOff } from "@/test/engine-off";
 import { describe, expect, it } from "vitest";
 import { importLibrary, type LibraryFile } from "@/library/ingest";
 import { scriptedClient } from "@/test/scripted-client";
@@ -94,6 +95,7 @@ describe("Tutor replies cite Library passages", () => {
 
   it("never puts a marker inside a widget block, so inline widgets still draw", async () => {
     const db = await testDb();
+    await engineOff(db);
     const widget = '```openui-lang\nroot = Widget("PV", [])\n```';
     const { client } = scriptedClient([
       {

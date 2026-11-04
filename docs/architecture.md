@@ -1315,6 +1315,22 @@ reply. On Notes the reply text appears and the Loan cost Widget is drawn under i
 **Trade-off.** The shown Widget is rebuilt from the Session on every read, so it follows the Session items; a Session
 item that is later removed also leaves the note. Widgets are drawn at the end of the reply, not where they stood in it.
 
+### Widget Retry, the drawing guard and per-Widget Save for shown Widgets (`src/app/widget-host.tsx`, `src/app/widget-panel.tsx`, `src/app/thread.tsx`, `src/app/save-to-notes.tsx`, `src/tutor/tools.ts`)
+
+**What it does.** The Widget host gives chips and the panel a Retry: pressing it on a Widget that did not arrive resumes
+the last turn, which draws the reply again. The 12-second "drawing" wait now counts from the last token that arrived, so a
+slow but moving Widget is not given up on. A Widget show_widget drew gets the same per-Widget Save to notes as one written
+in the reply: `widgetsIn` finds its turn's reply and numbers it after the reply's own fences, as the server does. The
+Widget-drawing tool calls of a turn run one after another, so two calls in one message cannot both pass the
+"one Widget a reply" check. Save to notes keeps keyboard focus when it changes to Saved, and a failed Undo returns to the
+settled control with a short error.
+
+**Scenario.** A Widget stalls at "Drawing…". Twelve seconds after its last token the chip says "The Widget did not arrive"
+with Retry; Retry resumes the turn. A Learner who pressed Save with the keyboard hears "Saved to notes" and is still on
+the control.
+
+**Trade-off.** Retry resumes the whole last turn, not only the Widget, so the Tutor may word the reply differently.
+
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
 **What it does.** Every Tutor turn is made of one or more *steps*. A step is one request to
@@ -1684,17 +1700,16 @@ writing indicator, the "Stopped" note) is built on these events separately.
   never a 409. The running turn reads its own row every 500 ms (the Stop may reach another function instance, so a
   flag in memory would not work; the column already existed, so no migration). When it sees the flag it aborts the
   Anthropic stream through the Tool Runner's signal. A tool already running finishes its transaction, and no new API
-  call starts. Then the turn saves: every stored tool call gets its result, the step's streamed text is stored as the
-  Tutor's message less any Widget it had not finished (an unclosed openui-lang fence is cut off), no Widget check or
-  correction runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
+  call starts. Then the turn saves: every stored tool call gets its result, the held reply is dropped (since #239 no
+  text is shown or saved as the Tutor's reply, see the reply gate), no check or retry runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
   is stored after the reply. It sends `stopped`, then the normal `done`, so the browser never resumes the turn. A
   Next the Learner already took stays taken. A resume clears an old flag.
 - **Pings.** While the stream is open the route sends `{ type: "ping" }` every 5 seconds from its own timer: the
   turn itself cannot, because it is blocked while a tool runs or the model thinks.
 - **Progress.** The turn tells the route what it is doing through `notify`, which goes straight to the stream:
   "Looking up Case Data…", "Thinking…" at each model call, each tool's plain name while it runs ("Searching the
-  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), "Checking the Widget…" and "Fixing the
-  Widget…". Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
+  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), and, since #239,
+  "Checking the reply…" while code checks the held reply and runs its one retry. Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
   rather than waiting for the first text.
 - **`widget_state`** is declared as an event type only; nothing sends it yet.
 - **Prompt caching.** The request keeps its automatic cache breakpoint (the growing conversation) and adds a second
@@ -1800,13 +1815,15 @@ Learner must never read. The seven checks are:
   120 for a worked example, a Go deeper reply and every other step (`capFor`). Words are counted the way the Learner
   reads them: Widget and sources fences, Citation markers and bare Markdown symbols do not count (`countWords`).
 - V2: at most one question in the message, an ask of 25 words or fewer, and no other line opening with a task verb
-  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask.
+  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask. With no ask, more than one such line fails too.
 - V3: no "Great question", "Certainly", "Absolutely" or "Code recorded", no emoji or decorative arrows, no headings
   and at most one bold span.
 - V4: at most one Widget, and each one passes the Widget validator the caller hands in.
 - V5: no open quiz answer together with its question's numbers, in the text or the saved rule, and no Widget preset
   that uses a blocked number. The blocked numbers are every number in the open attempt's questions, choices and
   answers, normalised so that 4.5, 4.50 and 4.50% match (`blockedNumbersFrom`).
+  An answer number that sits within four words of a confirm cue ("is right", "correct", "yes", "that's it", "the
+  answer is", "you got it") also fails, even without the question's numbers: "Yes, 60 is right." gives the answer away.
 - V6: no app words: the ids passed in, snake_case tool and step names, "Course Navigator", "Session item",
   "Reply kind", "Skill state", and "Code" as the subject of a sentence. Topic, Check, Check tab, Widget, Next,
   Go deeper, Show me in a widget, Quick try and Concept card stay allowed.
@@ -1817,7 +1834,7 @@ Learner must never read. The seven checks are:
 span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line
 per failed check with its limit ("Your reply was 142 words. The limit is 80. Keep one idea and one ask."), plus the
 numbers to keep away from after a leak. `trimToCap` is the fallback where no Concept card exists: the reply cut at its
-last full sentence within the cap, ask kept. Nothing calls the module yet; the Tutor Turn wires it in later (#239).
+last full sentence within the cap, ask kept. The Tutor Turn runs it on every reply through the reply gate (below, #239).
 
 **Scenario.** Check 1 of Percent is open with "How many basis points are there in 0.6 of a percentage point?". The
 Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach the idea on numbers other than 0.6,
@@ -1826,6 +1843,56 @@ Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach
 **Trade-off.** The checks read words, not meaning. A reply can pass V5 by saying "sixty" in words, and a supposition
 that opens "Say the rate goes…" counts as a task line. Both are left to the live-model tests, which grade the
 meaning; code catches the common, cheap-to-spot slips on every reply at no cost.
+
+### The reply gate: replies checked before the Learner sees them (`src/tutor/reply-gate.ts`, `reply-records.ts`, `reply-fallback.ts`, `turn.ts`, `session-log.ts`, `transcript.ts`, `usage.ts`, `under-the-hood.tsx`, `drizzle/0030_reply_checks.sql`, spec #229, ticket #239, ADR 0008)
+
+**What it does.** The Tutor Turn no longer streams the reply word by word. `loop()` collects every loop step's text
+(with its Citation markers), the Session items the reply's tools stored and its Widget states in one held list;
+progress labels ("Checking the reply…" among them), pings and a failed save still go out at once. When the model has
+finished, code checks the whole reply:
+- `fixReply` first (emoji, arrows, headings, extra bold): fixes never cost a retry. A fixed reply is stored again as
+  the turn's final assistant text, each block keeping its citations.
+- `checkReply` with this turn's facts (`turnFacts`, worked out again when a tool moved the Learner's step during the
+  draft). The draft's Widgets are only those its own show_widget, compose_widget and open_widget calls stored, plus any
+  openui-lang fence in its text; code-stored items never count, and tool-stored Widgets pass V4 because code checked
+  them as it stored them. A fence fails V4 in an engine Session ("Write no Widget code; call open_widget or
+  show_widget, or teach in words."); without the engine it is checked by `newReplyWidgetProblems` as before.
+- **One retry**, only while the run has used under 30 seconds (`RETRY_WITHIN_MS`). Code appends one correction
+  message ("Reply check by code:" with every failed check's reason, the old Widget correction's included, and the
+  Widgets already on screen) and runs the loop again. Tool effects from the draft stand.
+- **Fallback** when the retry fails too, or the draft fails past 30 seconds: the step's card when `cardFallback`
+  returns one (it returns null until #240 fills it), else the reply cut to its cap by `trimToCap`, ask kept, with any
+  Widget that failed V4 left out. It is stored as the turn's final assistant text, so the history holds what the
+  Learner saw.
+
+Then the browser gets the held items and Widget states in their order, and the checked reply as one text. Each checked
+turn writes one `reply_checks` row: words and cap, the draft's and the retry's problems with their reasons, the
+correction, whether it retried, fell back or was stopped, the rejected seqs and the text shown. `openLog` leaves the
+rejected seqs out of every later request: the draft's text-only messages and the correction go, and a rejected
+tool-use message keeps its tool calls but not its text, so every tool_use keeps its tool_result. The rows stay
+stored. `turnText`, `loadThread` and the resume and refusal paths show only what the Learner saw; a turn with no row
+(an old Session) shows as before. A resume clears the screen (`replay` with no text) and checks a stored draft before
+anything shows; a refusal shows earlier steps' text only when it passes. Stop drops the held reply: nothing is shown
+or saved as the Tutor's reply, every stored tool call still gets its result, and the Learner's message stays with the
+Stopped note. The Under the hood panel adds one line: the words, the failed checks, the retry and the fallback.
+
+The first turn after a refreeze (a deploy changed the instructions) folds the history into one compaction summary
+before the reply, so the reply's request carries the summary and no reply written under the old instructions. A
+refreeze now changes only the instructions, tools, fingerprint and `refrozenAtSeq`: an existing Session keeps its
+model and effort.
+
+**Scenario.** At the concept step the Tutor writes 150 words. The Learner sees "Checking the reply…". Code sends
+"Reply check by code: Your reply was 150 words. The limit is 80…", and the retry comes back at 40 words; the
+Learner sees only that, in one piece. The next turn's request holds neither the long draft nor the correction, and
+the `reply_checks` row keeps both with their reasons.
+
+**Trade-off.** The Learner waits for the whole reply instead of watching it type, and a retry adds a model call. In
+return nothing that breaks a rule ever reaches the screen. The 30 seconds count from the start of the run, refreeze
+fold included, so the first turn after a deploy may skip the retry when its draft fails and go to the fallback. The
+fold costs one compaction call per Session per instructions change. Production runs this code before the
+`reply_checks` migration is applied by hand: every read and write of the table fails soft on Postgres 42P01 (logged
+once), and the turn then runs as if nothing had been rejected, so a reload may show a rejected draft next to its
+retry until the table exists.
 
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
@@ -3705,7 +3772,7 @@ backfill reload places the corrected readings.
 
 The lesson lint (`lessonLintErrors`) then checks every converted Topic, after the typed-formula check, in `npm run course:check`:
 
-- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed.
+- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed; a conversation Check lists the Skills it tests.
 - **L2:** three Quick tries per Skill (a template is unlimited), one of them half-done, and three times the per-attempt count of distinct questions in each quiz Check (or a template).
 - **L3:** five lines at most on a card, with its write-down line; no sentence over 20 words.
 - **L4:** each Widget preset is valid.
@@ -4110,6 +4177,47 @@ The Tutor gains `start_again`: in a converted Topic it re-posts every Concept ca
 
 **Trade-off.** All of this is code, so the Tutor cannot skip a rung or forget the park, but the methods' wording is fixed in one place for every Topic. The drill counts answered tries, not right ones, so a Learner can finish it with misses; the ladder starts again from zero after a park, so misses then climb it afresh. Parking holds only Quick tries, Next and finishing Your turn, never a quiz attempt, so a Learner who parks at a quiz Check can still pass it. The frustration window is three messages, so one early phrase does not count for the rest of a Session, and a phrase said four messages ago no longer shrinks the step. Nothing reads `skill_state` or `practice_answers` for a Topic that is not converted, so production reads none of it before a Topic is converted and the migration is applied.
 
+## Concept cards and Quick tries in the conversation (`src/tutor/practice.ts`, `session-item-kinds.ts`, `next.ts`, `turn.ts`, `context.ts`, `turn-facts.ts`, `src/course/navigator.ts`, `src/app/concept-card-view.tsx`, `quick-try-view.tsx`, `session-item-view.tsx`, `conversation.tsx`, `src/app/api/quick-try/route.ts`, spec #229, ticket #243)
+
+**What it does.** In a converted Topic (one whose file lists Skills), code shows two new things in the conversation, as
+Session items, with no model call. When the Learner enters a Concept step whose Check has a Concept card, code stores the
+card (a `concept_card` item: the title, the plain lines and the line to write down, copied from the file) and then its
+Widget preset. A `rate_move` preset is built exactly as the lesson lint builds it and stored as a shown Widget, titled with
+the card's title; a written-ahead preset opens that Widget with its sliders set. If the Widget's key already has saved state
+in the Session, code sets it back to the preset's numbers, so the card always opens at its own numbers. At Your turn, for a
+Check that lists Skills, code shows one Quick try at a time (a `quick_try` item): its ask, its unit, and, for the first try
+of each Skill, the first step shown done (R5). The item never holds the answer: its key names the fixed try or the template
+draw, and the server works the answer out again from the Topic file, with the key as the draw's seed.
+`enterStepItems` does this, and it is idempotent; Next, a step that finished from a Widget, the start of every Tutor Turn,
+and a step divider stored by a tool all call it. The pure `nextQuickTry` picks the try: the first Skill of the Check not yet
+fluent, in card order, a half-done try first, then unused fixed tries in file order, then fresh template draws.
+
+The Learner answers in the item itself: a number box or True and False buttons, locked while a Tutor turn runs and once
+marked, and read-only on old Sessions and Past Sessions pages. POST `/api/quick-try` marks the answer with the teaching
+engine, logs it once per key with `recordAnswer`, and stores a `quick_try_result` item: "Right.", the Known mistake's fix,
+or "Not quite.". A right answer posts the next try; a Known mistake posts a new try on the same Skill; a wrong answer with no
+Known mistake asks the page to start a short code-written follow-up turn ("Quick try follow-up by code:") that names the slip
+in one sentence, after which code posts a fresh try. Your turn finishes only when every Skill of the Check has two right
+answers in a row: the Course Navigator's `finishFromPractice` accepts it, while `finishStep` refuses `your_turn` from the
+Tutor and `nextOffer` gives no Next there. Code then stores the Check's divider and starts a follow-up turn that points to
+the Check. The Tutor hears what code showed: the card's text in place of the concept text, "add one sentence and one ask",
+that code shows and marks the Quick tries, and, with its next turn, the results marked since its last reply
+(`pendingQuickTryNote`), the way quiz results reach it. `practiceFallback` is the checked-replies fallback at these steps:
+the card's write-down line, then the next try.
+
+**Scenario.** Asha presses Next: Concept in a converted Percent Topic. The divider, the card "One move, two ways" and the
+rate Widget at 4% and 5% appear at once; she had dragged that Widget to 1% and 9% earlier, and it opens at 4% and 5% again.
+The Tutor adds one sentence and asks which number is bigger. At Your turn she sees "A rate moves from 4.5% to 3.45%. How
+many basis points?" with "the move is 1.05 points" shown done. She types 10.5; code shows "One point is 100 basis points,
+so multiply by 100, not 10." and a new try. Two right answers in a row on each idea later, the Check divider appears and the
+Tutor points her to the quiz.
+
+**Trade-off.** Items are stored, not worked out on each render, so a reload shows exactly what was shown, at the cost of
+copying the card into the Session. Re-deriving each try's answer from the file keeps answers out of the browser, but a
+Topic file edited after a try was shown marks that try against the new file. Results reach the Tutor by item order (those
+after its last reply), so no new table or column is needed, but a result stored during a turn is told in the next one.
+Only converted Topics touch `skill_state` and `practice_answers`; every other Topic behaves exactly as before.
+
 ## The Learner's own rule (`save_learner_rule` in `src/tutor/tools.ts`, `src/learner/own-rule.ts`, `src/tutor/own-rule-item.ts`, `src/app/own-rule-line.tsx`, `note_items` kind `own_rule`, spec #229, ticket #244)
 
 **What it does.** When the Learner says a rule in their own words, more simply than the Tutor did, the Tutor can call
@@ -4162,46 +4270,6 @@ keeps the count for the Tutor. Slips are named in the summary by a small table o
 as its words with the underscores taken out, which is clear but may be clumsy until the phrase is added. The note shows a
 mistake's fix only when the tag is still in the Topic file, so a tag a later edit removed is left out.
 
-## Concept cards and Quick tries in the conversation (`src/tutor/practice.ts`, `session-item-kinds.ts`, `next.ts`, `turn.ts`, `context.ts`, `turn-facts.ts`, `src/course/navigator.ts`, `src/app/concept-card-view.tsx`, `quick-try-view.tsx`, `session-item-view.tsx`, `conversation.tsx`, `src/app/api/quick-try/route.ts`, spec #229, ticket #243)
-
-**What it does.** In a converted Topic (one whose file lists Skills), code shows two new things in the conversation, as
-Session items, with no model call. When the Learner enters a Concept step whose Check has a Concept card, code stores the
-card (a `concept_card` item: the title, the plain lines and the line to write down, copied from the file) and then its
-Widget preset. A `rate_move` preset is built exactly as the lesson lint builds it and stored as a shown Widget, titled with
-the card's title; a written-ahead preset opens that Widget with its sliders set. If the Widget's key already has saved state
-in the Session, code sets it back to the preset's numbers, so the card always opens at its own numbers. At Your turn, for a
-Check that lists Skills, code shows one Quick try at a time (a `quick_try` item): its ask, its unit, and, for the first try
-of each Skill, the first step shown done (R5). The item never holds the answer: its key names the fixed try or the template
-draw, and the server works the answer out again from the Topic file, with the key as the draw's seed.
-`enterStepItems` does this, and it is idempotent; Next, a step that finished from a Widget, the start of every Tutor Turn,
-and a step divider stored by a tool all call it. The pure `nextQuickTry` picks the try: the first Skill of the Check not yet
-fluent, in card order, a half-done try first, then unused fixed tries in file order, then fresh template draws.
-
-The Learner answers in the item itself: a number box or True and False buttons, locked while a Tutor turn runs and once
-marked, and read-only on old Sessions and Past Sessions pages. POST `/api/quick-try` marks the answer with the teaching
-engine, logs it once per key with `recordAnswer`, and stores a `quick_try_result` item: "Right.", the Known mistake's fix,
-or "Not quite.". A right answer posts the next try; a Known mistake posts a new try on the same Skill; a wrong answer with no
-Known mistake asks the page to start a short code-written follow-up turn ("Quick try follow-up by code:") that names the slip
-in one sentence, after which code posts a fresh try. Your turn finishes only when every Skill of the Check has two right
-answers in a row: the Course Navigator's `finishFromPractice` accepts it, while `finishStep` refuses `your_turn` from the
-Tutor and `nextOffer` gives no Next there. Code then stores the Check's divider and starts a follow-up turn that points to
-the Check. The Tutor hears what code showed: the card's text in place of the concept text, "add one sentence and one ask",
-that code shows and marks the Quick tries, and, with its next turn, the results marked since its last reply
-(`pendingQuickTryNote`), the way quiz results reach it. `practiceFallback` is the checked-replies fallback at these steps:
-the card's write-down line, then the next try.
-
-**Scenario.** Asha presses Next: Concept in a converted Percent Topic. The divider, the card "One move, two ways" and the
-rate Widget at 4% and 5% appear at once; she had dragged that Widget to 1% and 9% earlier, and it opens at 4% and 5% again.
-The Tutor adds one sentence and asks which number is bigger. At Your turn she sees "A rate moves from 4.5% to 3.45%. How
-many basis points?" with "the move is 1.05 points" shown done. She types 10.5; code shows "One point is 100 basis points,
-so multiply by 100, not 10." and a new try. Two right answers in a row on each idea later, the Check divider appears and the
-Tutor points her to the quiz.
-
-**Trade-off.** Items are stored, not worked out on each render, so a reload shows exactly what was shown, at the cost of
-copying the card into the Session. Re-deriving each try's answer from the file keeps answers out of the browser, but a
-Topic file edited after a try was shown marks that try against the new file. Results reach the Tutor by item order (those
-after its last reply), so no new table or column is needed, but a result stored during a turn is told in the next one.
-Only converted Topics touch `skill_state` and `practice_answers`; every other Topic behaves exactly as before.
 
 ## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
 
