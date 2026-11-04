@@ -5,7 +5,8 @@ import type { Insight, Piece } from "@/course/map";
 import { plainFormulaText as plain } from "@/finance/formula-text";
 import type { ExploreInfo } from "@/learner/insight";
 import { formulaById, formulaGuide } from "@/finance/formulas";
-import { TEACHING_STEPS, type Place } from "@/course/navigator";
+import { stepSetting, TEACHING_STEPS, type Place } from "@/course/navigator";
+import { describeCondition, writtenAheadWidgets } from "@/course/written-ahead";
 import { exploreWidgetOf } from "@/course/explore-widget";
 import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
 import { PROFILE_BLOCK_HEADING } from "@/learner/profile";
@@ -82,6 +83,8 @@ export function stepContext(
     `Topic: ${topic.title} (${topic.stage} Stage).`,
     `Teaching Step: ${step}${check ? ` (Check ${topic.checks.indexOf(check) + 1} of ${topic.checks.length}: ${check.id})` : ""}.`,
   ];
+  if (topic.goal) lines.push(`Topic goal (the Learner sees this line in the Topic bar): ${plain(topic.goal)}`);
+  lines.push(...stepSettingLines(place));
   const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
   if (formulas.length) {
     lines.push(
@@ -142,6 +145,36 @@ export function stepContext(
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");
+}
+
+/**
+ * What this Topic's file says the current step does by itself: the Widget code opened when the step began (so the Tutor
+ * points to it and does not open or draw one), and the Widget condition that finishes the step.
+ */
+function stepSettingLines({ topic, step, check }: Place): string[] {
+  const setting = stepSetting(topic, step, check);
+  if (!setting) return [];
+  const lines: string[] = [];
+  const opened = setting.opens ? writtenAheadWidgets(topic).find((w) => w.id === setting.opens) : undefined;
+  if (opened) {
+    lines.push(
+      `Code opened the Widget "${opened.title}" (id ${opened.id}) when this step began: it is in the Widget panel, with a chip in the conversation. Point the Learner to it; do not call open_widget for it or draw a Widget of your own for the same idea.`,
+    );
+  }
+  if (setting.doneWhen) {
+    lines.push(
+      `This step is done once the Learner has ${describeCondition(topic, setting.doneWhen)}; code sees that itself and offers Next. React to what they did, and do not ask them to report it.`,
+    );
+  }
+  return lines;
+}
+
+/**
+ * The line that tells the Tutor to mark an answer that leaves the Topic as an Off-Topic answer. Not part of the step
+ * context until the Tutor has a tool that stores the block (storeOffTopic in off-topic.ts); then it is added with that tool.
+ */
+export function offTopicNote(title: string): string {
+  return `When your answer leaves ${title} (the Learner asked about something else), answer it briefly and mark it as an Off-Topic answer; code then draws a quiet block with a way back. Never move the Learner to another Topic, and return to the current Teaching Step in one line.`;
 }
 
 /**
