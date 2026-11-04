@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from "react";
+import { XAxis, YAxis, type XMark } from "./plot/Axis";
+import { dateMs, logTicks, niceTicks, timeMarks } from "./plot/scales";
 
 // The interactive part of a Case Data line chart. It is a client component of its own because the module
 // that frames it (case-data-view.tsx) is also imported by server components, which may not use React state.
@@ -11,6 +13,9 @@ export type PlotPoint = { date: string; value: number; text: string; short: stri
 /** A label on the value axis: the value it marks, in short. */
 export type PlotTick = { value: number; text: string };
 
+/** The value axis' two scales; a log axis shows ratios, so growth at a steady rate runs straight. */
+export type PlotScale = "linear" | "log";
+
 const W = 600;
 const H = 180;
 const PAD_X = 10;
@@ -20,6 +25,7 @@ const DENSE = 30;
 /** Up to this many points, each value is printed above its point. */
 const LABELLED = 12;
 const KEY_STEPS: Record<string, number> = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 };
+const THREE_YEARS = 3 * 365.25 * 86_400_000;
 
 const share = (part: number, whole: number) => `${(part / whole) * 100}%`;
 
@@ -53,22 +59,89 @@ function useUnitsPerPixel(svg: RefObject<SVGSVGElement | null>): number {
   return unitsPerPixel;
 }
 
+/** Eases between the linear (0) and log (1) drawing of a line over about 200 ms; jumps when motion is reduced. */
+function useScaleMix(target: PlotScale): number {
+  const goal = target === "log" ? 1 : 0;
+  const [mix, setMix] = useState(goal);
+  const current = useRef(goal);
+  // With reduced motion the line jumps: no easing, so the mix is the goal itself.
+  const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    const start = current.current;
+    if (start === goal || reduced || typeof requestAnimationFrame === "undefined") return;
+    const began = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - began) / 200);
+      current.current = start + (goal - start) * t;
+      setMix(current.current);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [goal, reduced]);
+  return reduced ? goal : mix;
+}
+
 /**
- * A sourced line readable at any width: values at the left (lowest, middle, highest), dates below (first,
- * middle, last), each value above its point when there are 12 or fewer, and a readout line. Hovering, tapping
- * or focusing a point reads it as "<date>: <value>". The labels are page text beside the drawing, so they keep
- * their size while the drawing scales to the panel. Drawn on the server with no point read yet.
+ * A sourced line readable at any width: values at the left (round-number ticks), dates below, each value above its
+ * point when there are 12 or fewer, and a readout line. The line is spaced by time, so a decade between two points
+ * is a decade wide; with `format` and values above zero, a "Log scale" switch re-draws it on a log axis. Hovering,
+ * tapping or focusing a point reads it as "<date>: <value>". The labels are page text beside the drawing, so they
+ * keep their size while the drawing scales to the panel. Drawn on the server with no point read yet.
  */
-export function HistoryPlot({ label, unit, points, ticks }: { label: string; unit?: string; points: PlotPoint[]; ticks: PlotTick[] }) {
+export function HistoryPlot({
+  label,
+  unit,
+  points,
+  ticks,
+  format,
+  scale = "linear",
+}: {
+  label: string;
+  unit?: string;
+  points: PlotPoint[];
+  ticks: PlotTick[];
+  /** How a tick value reads; with it the value axis gets round-number ticks and, above zero, a Log scale switch. */
+  format?: (value: number) => string;
+  /** Which scale to start on. */
+  scale?: PlotScale;
+}) {
   const [picked, setPicked] = useState<number | null>(null);
+  const [chosen, setChosen] = useState<PlotScale>(scale);
   const svg = useRef<SVGSVGElement>(null);
   const n = points.length;
-  const sizes = pointSizes(n, useUnitsPerPixel(svg));
   const values = points.map((p) => p.value);
   const lo = Math.min(...values);
   const hi = Math.max(...values);
-  const x = (i: number) => (n === 1 ? W / 2 : PAD_X + (i * (W - 2 * PAD_X)) / (n - 1));
-  const y = (v: number) => (hi === lo ? H / 2 : H - PAD_Y - ((v - lo) / (hi - lo)) * (H - 2 * PAD_Y));
+  const canLog = !!format && n >= 2 && lo > 0;
+  const mode: PlotScale = canLog ? chosen : "linear";
+  const mix = useScaleMix(mode);
+
+  // Linear and log axes, each with round-number ticks; the line is drawn between them while it eases.
+  const linearTicks = format ? niceTicks(lo, hi, 5) : ticks.map((t) => t.value);
+  const logAxis = canLog ? logTicks(lo, hi) : null;
+  const textOf = (v: number) => (format ? format(v) : (ticks.find((t) => t.value === v)?.text ?? String(v)));
+  const lin = { lo: linearTicks[0], hi: linearTicks[linearTicks.length - 1] };
+  const logr = logAxis ? { lo: Math.log10(logAxis[0]), hi: Math.log10(logAxis[logAxis.length - 1]) } : null;
+  const norm = (v: number) => {
+    const a = lin.hi === lin.lo ? 0.5 : (v - lin.lo) / (lin.hi - lin.lo);
+    if (!logr || mix === 0) return a;
+    const b = logr.hi === logr.lo ? 0.5 : (Math.log10(v) - logr.lo) / (logr.hi - logr.lo);
+    return a + (b - a) * mix;
+  };
+  const y = (v: number) => H - PAD_Y - norm(v) * (H - 2 * PAD_Y);
+  const shownTicks = mode === "log" && logAxis ? logAxis : linearTicks;
+  const yTicks = shownTicks.filter((v, i) => i === 0 || textOf(v) !== textOf(shownTicks[i - 1]));
+
+  // Spaced by time when every date reads as one; otherwise by position in the list.
+  const times = points.map((p) => dateMs(p.date));
+  const timed = n >= 2 && times.every((t) => Number.isFinite(t)) && times.every((t, i) => i === 0 || t >= times[i - 1]) && times[n - 1] > times[0];
+  const span = timed ? times[n - 1] - times[0] : n - 1;
+  const x = (i: number) => (n === 1 ? W / 2 : PAD_X + (((timed ? times[i] - times[0] : i) * (W - 2 * PAD_X)) / span));
+  // Points keep their size even where time packs them together: the line says how close they are.
+  const sizes = pointSizes(n, useUnitsPerPixel(svg));
+  const dot = sizes.dot;
   const clamp = (i: number) => Math.min(n - 1, Math.max(0, i));
   const dense = n > DENSE;
   const labelled = n <= LABELLED;
@@ -76,11 +149,13 @@ export function HistoryPlot({ label, unit, points, ticks }: { label: string; uni
   const read = active === null ? null : points[active];
   const shown = read ?? points[n - 1];
 
-  // Anywhere on the drawing reads the point nearest the pointer, so a tap need not land on a dot.
+  // Anywhere on the drawing reads the point nearest the pointer (nearest in time), so a tap need not land on a dot.
   const pickNearest = (e: PointerEvent<SVGRectElement>) => {
     const box = e.currentTarget.getBoundingClientRect();
     const at = ((e.clientX - box.left) / box.width) * W;
-    setPicked(n === 1 ? 0 : clamp(Math.round(((at - PAD_X) / (W - 2 * PAD_X)) * (n - 1))));
+    let best = 0;
+    for (let i = 1; i < n; i++) if (Math.abs(x(i) - at) < Math.abs(x(best) - at)) best = i;
+    setPicked(best);
   };
   const step = (e: KeyboardEvent<SVGRectElement>) => {
     const from = active ?? n - 1;
@@ -91,33 +166,50 @@ export function HistoryPlot({ label, unit, points, ticks }: { label: string; uni
   };
   const surface = { x: 0, y: 0, width: W, height: H, fill: "transparent", onPointerMove: pickNearest, onPointerDown: pickNearest };
 
+  // Dates along the bottom: the first and last, with round years between on a long span.
   const middle = Math.floor((n - 1) / 2);
-  const dated = n === 1 ? [0] : n === 2 ? [0, 1] : [0, middle, n - 1];
-  const dateStyle = (i: number) =>
-    n === 1 ? { left: "50%", transform: "translateX(-50%)" } : i === 0 ? { left: 0 } : i === n - 1 ? { right: 0 } : { left: share(x(i), W), transform: "translateX(-50%)" };
+  const marks: XMark[] = timed
+    ? timeMarks(times[0], times[n - 1], points[0].date, points[n - 1].date).map((m) => ({ at: PAD_X + ((m.ms - times[0]) * (W - 2 * PAD_X)) / span, text: m.text, edge: m.edge }))
+    : (n === 1 ? [0] : n === 2 ? [0, 1] : [0, middle, n - 1]).map((i) => ({
+        at: x(i),
+        text: points[i].date,
+        edge: n > 1 && i === 0 ? ("start" as const) : n > 1 && i === n - 1 ? ("end" as const) : undefined,
+        hideNarrow: n > 2 && i === middle,
+      }));
+  // A shorter span also names its middle point, when it sits clear of both ends.
+  if (timed && n > 2 && times[n - 1] - times[0] < THREE_YEARS) {
+    const at = (times[middle] - times[0]) / span;
+    if (at > 0.25 && at < 0.75) marks.splice(1, 0, { at: x(middle), text: points[middle].date, hideNarrow: true });
+  }
   // The first and last values lean inwards so they stay inside the chart.
   const along = (i: number) => (n === 1 ? "-50%" : i === 0 ? "-6px" : i === n - 1 ? "calc(6px - 100%)" : "-50%");
 
   return (
     <div className="@container">
-      {unit && <p className="text-[11px] leading-4 text-[var(--muted)]">{unit}</p>}
-      <div className={`flex gap-2 ${labelled ? "pt-5" : "pt-2"}`}>
-        <div aria-hidden className="relative w-14 shrink-0">
-          {ticks.map((t) => (
-            <span
-              key={t.value}
-              data-testid="history-y-label"
-              className="absolute right-0 -translate-y-1/2 whitespace-nowrap text-[11px] leading-none tabular-nums text-[var(--muted)]"
-              style={{ top: share(y(t.value), H) }}
-            >
-              {t.text}
+      <div className="flex items-start justify-between gap-2">
+        {unit && <p className="text-[11px] leading-4 text-[var(--muted)]">{unit}</p>}
+        {canLog && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={mode === "log"}
+            data-testid="history-log-toggle"
+            onClick={() => setChosen(mode === "log" ? "linear" : "log")}
+            className="-mt-1 ml-auto flex min-h-6 shrink-0 cursor-pointer items-center gap-2 rounded px-1 text-xs text-[var(--muted)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]"
+          >
+            Log scale
+            <span aria-hidden className={`relative inline-block h-4 w-7 rounded border transition-colors duration-150 ${mode === "log" ? "border-[var(--brand)] bg-[var(--brand)]" : "border-[var(--border)] bg-[var(--field)]"}`}>
+              <span className={`absolute left-0.5 top-0.5 size-3 rounded-sm transition-transform duration-150 ${mode === "log" ? "translate-x-3 bg-[var(--brand-ink)]" : "bg-[var(--muted)]"}`} />
             </span>
-          ))}
-        </div>
+          </button>
+        )}
+      </div>
+      <div className={`flex gap-2 ${labelled ? "pt-5" : "pt-2"}`}>
+        <YAxis ticks={yTicks} y={y} format={textOf} testid="history-y-label" />
         <div className="relative min-w-0 flex-1">
           <svg ref={svg} viewBox={`0 0 ${W} ${H}`} role="group" aria-label={label} className="block w-full overflow-visible">
-            {ticks.map((t) => (
-              <line key={t.value} x1={0} x2={W} y1={y(t.value)} y2={y(t.value)} strokeWidth={1} vectorEffect="non-scaling-stroke" className="stroke-[var(--border)]" />
+            {yTicks.map((t) => (
+              <line key={t} x1={0} x2={W} y1={y(t)} y2={y(t)} strokeWidth={1} vectorEffect="non-scaling-stroke" className="stroke-[var(--border)]" />
             ))}
             <polyline
               points={points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")}
@@ -131,7 +223,7 @@ export function HistoryPlot({ label, unit, points, ticks }: { label: string; uni
               <line x1={x(active)} x2={x(active)} y1={0} y2={H} strokeWidth={1} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" className="stroke-[var(--muted)]" />
             )}
             {points.map((p, i) => (
-              <circle key={p.date} data-testid="history-point" cx={x(i)} cy={y(p.value)} r={sizes.dot} className="fill-[var(--src)]">
+              <circle key={p.date} data-testid="history-point" cx={x(i)} cy={y(p.value)} r={dot} className="fill-[var(--src)]">
                 <title>{`${p.date}: ${p.text}`}</title>
               </circle>
             ))}
@@ -187,18 +279,7 @@ export function HistoryPlot({ label, unit, points, ticks }: { label: string; uni
             ))}
         </div>
       </div>
-      <div aria-hidden className="relative ml-16 mt-1 h-4">
-        {dated.map((i) => (
-          <span
-            key={i}
-            data-testid="history-x-label"
-            className={`absolute top-0 whitespace-nowrap text-[11px] leading-4 tabular-nums text-[var(--muted)] ${n > 2 && i === middle ? "@max-2xs:hidden" : ""}`}
-            style={dateStyle(i)}
-          >
-            {points[i].date}
-          </span>
-        ))}
-      </div>
+      <XAxis marks={marks} testid="history-x-label" />
       <p data-testid="history-readout" className="mt-1 min-h-5 text-sm leading-5 tabular-nums">
         {read ? `${read.date}: ${read.text}` : <span className="text-[var(--muted)]">Hover over or tap the chart to read a value.</span>}
       </p>

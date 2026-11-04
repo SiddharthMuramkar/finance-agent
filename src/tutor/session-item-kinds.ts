@@ -20,3 +20,6 @@ export const CHECK_RESULT = "check_result";
 
 /** Never stored: an old "Continue." message, drawn as a "→ next step" divider where the next step began. */
 export const NEXT_STEP = "next_step";
+
+/** The kind of a small "Stopped" note, stored after a reply the Learner stopped, so a reload shows where it ended. */
+export const STOPPED = "stopped";

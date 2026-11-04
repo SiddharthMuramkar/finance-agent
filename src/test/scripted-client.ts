@@ -1,3 +1,4 @@
+import { APIUserAbortError } from "@anthropic-ai/sdk";
 import type { TutorClient, TutorRequest } from "@/tutor/turn";
 
 type Block = Record<string, unknown> & { type: string };
@@ -10,6 +11,8 @@ export type ScriptedReply =
       delayMs?: number;
       /** Waits for this promise before the reply starts. */
       hold?: Promise<unknown>;
+      /** Streams the reply's first text, then waits for this promise (or an abort) before the rest: a reply still being written. */
+      holdAfterFirstText?: Promise<unknown>;
     }
   /** The API call fails with this error. */
   | { error: Error };
@@ -31,16 +34,28 @@ export function scriptedClient(replies: ScriptedReply[]) {
   const client: TutorClient = {
     beta: {
       messages: {
-        toolRunner(params) {
+        toolRunner(params, options) {
+          // Like the SDK, an aborted signal ends the open stream and fails every later API call; a running tool is not cut off.
+          const signal = options?.signal;
+          const checkAbort = () => {
+            if (signal?.aborted) throw new APIUserAbortError();
+          };
+          const orAbort = <T>(promise: Promise<T>) =>
+            new Promise<T>((resolve, reject) => {
+              if (signal?.aborted) return reject(new APIUserAbortError());
+              signal?.addEventListener("abort", () => reject(new APIUserAbortError()), { once: true });
+              promise.then(resolve, reject);
+            });
           let compact = false;
           const record = (extra: object = {}) =>
             requests.push(structuredClone({ ...params, tools: params.tools.map(({ name }) => ({ name })), ...extra }) as never);
           const next = async () => {
             const reply = replies.shift();
             if (!reply) throw new Error("scripted client ran out of replies");
+            checkAbort();
             if ("error" in reply) throw reply.error;
-            if (reply.delayMs) await new Promise((r) => setTimeout(r, reply.delayMs));
-            if (reply.hold) await reply.hold;
+            if (reply.delayMs) await orAbort(new Promise((r) => setTimeout(r, reply.delayMs)));
+            if (reply.hold) await orAbort(reply.hold);
             return reply;
           };
           const streamOf = (reply: Exclude<ScriptedReply, { error: Error }>, stopReason: string) => {
@@ -48,14 +63,24 @@ export function scriptedClient(replies: ScriptedReply[]) {
             return {
               async *[Symbol.asyncIterator]() {
                 // As the API streams a cited text block: its citations, then its text, then the block's end.
+                let held = false;
                 for (const [index, block] of reply.content.entries()) {
                   if (block.type !== "text") continue;
+                  checkAbort();
                   for (const citation of (block.citations as unknown[] | undefined) ?? []) yield { type: "content_block_delta", index, delta: { type: "citations_delta", citation } };
                   yield { type: "content_block_delta", index, delta: { type: "text_delta", text: block.text } };
+                  if (reply.holdAfterFirstText && !held) {
+                    held = true;
+                    await orAbort(reply.holdAfterFirstText);
+                  }
+                  checkAbort();
                   yield { type: "content_block_stop", index };
                 }
               },
-              finalMessage: async () => final,
+              finalMessage: async () => {
+                checkAbort();
+                return final;
+              },
             } as never;
           };
           return {
@@ -67,6 +92,8 @@ export function scriptedClient(replies: ScriptedReply[]) {
               for (;;) {
                 assertSystemPlacement(params.messages);
                 assertToolCallsAnswered(params.messages);
+                // An aborted runner sends no new request.
+                checkAbort();
                 record();
                 const reply = await next();
                 const uses = reply.content.filter((b) => b.type === "tool_use");

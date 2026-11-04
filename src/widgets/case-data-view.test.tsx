@@ -75,24 +75,24 @@ describe("a history chart drawn from a Case Data dataset", () => {
 });
 
 describe("a history chart the Learner can read", () => {
-  it("labels the values at the left (lowest, middle, highest) and the dates below (first, middle, last), naming the unit once", () => {
+  it("labels the values at the left in round numbers and the dates below (first and last by month, round years between), naming the unit once", () => {
     const html = draw(sensex);
-    expect(texts(html, "history-y-label")).toEqual(["100", "2,284", "4,467"]);
-    expect(texts(html, "history-x-label")).toEqual(["1979-04-01", "1992-01-15", "1992-03-30"]);
+    expect(texts(html, "history-y-label")).toEqual(["0", "2,000", "4,000", "6,000"]);
+    expect(texts(html, "history-x-label")).toEqual(["Apr 1979", "1985", "Mar 1992"]);
     expect(html).toContain(">index points<");
   });
 
   it("labels a percentage axis in percent without naming the unit again", () => {
     const html = draw(yields);
     const labels = texts(html, "history-y-label");
-    expect([labels[0], labels.at(-1)]).toEqual(["3.33%", "3.38%"]);
+    expect([labels[0], labels.at(-1)]).toEqual(["3.32%", "3.38%"]);
     expect(html).not.toContain(">percent<");
   });
 
   it("gives money short labels and the full figure when a point is read", () => {
     const prizes: CaseDataset = { ...cash, label: "Prize sizes", points: [{ date: "2018-10-23", value: 877_800_000 }, { date: "2019-03-04", value: 1_537_000_000 }] };
     const html = draw(prizes);
-    expect(texts(html, "history-y-label")).toEqual(["$877.8m", "$1.21bn", "$1.54bn"]);
+    expect(texts(html, "history-y-label")).toEqual(["$800m", "$1bn", "$1.2bn", "$1.4bn", "$1.6bn"]);
     expect(texts(html, "history-x-label")).toEqual(["2018-10-23", "2019-03-04"]);
     expect(html).toContain('aria-label="2018-10-23: $877.8 million"');
   });
@@ -100,7 +100,7 @@ describe("a history chart the Learner can read", () => {
   it("keeps the minus sign on losses", () => {
     const losses: CaseDataset = { ...sensex, unit: "USD million", points: [{ date: "1999", value: -144.6 }, { date: "2000", value: -453.3 }, { date: "2001", value: -12 }] };
     const html = draw(losses);
-    expect(texts(html, "history-y-label")).toEqual(["-453.3", "-232.7", "-12"]);
+    expect(texts(html, "history-y-label")).toEqual(["-600", "-400", "-200", "0"]);
     expect(texts(html, "history-value")).toEqual(["-144.6", "-453.3", "-12"]);
     expect(html).toContain(">USD million<");
   });
@@ -185,8 +185,8 @@ describe("sourced history and the Learner's assumptions are visibly separate", (
     ]) {
       expect(html.match(/data-testid="credit"/g)).toHaveLength(1);
       expect(html).not.toMatch(/<details[^>]*data-testid="credit"[^>]*\sopen/);
-      expect(html).toMatch(/<summary[^>]*aria-label="Where this figure comes from"[^>]*>\s*ⓘ\s*<\/summary>/);
-      expect(html).toMatch(/Source:\s*<a[^>]*href="https:\/\/home\.treasury\.gov\/example"|Source:\s*<a[^>]*>CNBC, 24 October 2018<\/a>/);
+      expect(html).toMatch(/<summary[^>]*aria-label="Where this figure comes from"[^>]*>\s*ⓘ\s*<svg[^>]*>[\s\S]*?<\/svg>\s*<\/summary>/);
+      expect(html).toMatch(/Source:\s*<a[^>]*href="https:\/\/home\.treasury\.gov\/example"|Source:\s*<a[^>]*>CNBC, 24 October 2018\s*<span[^>]*> ↗<\/span><\/a>/);
       expect(html).toContain('data-kind="sourced"');
     }
   });
@@ -215,7 +215,7 @@ describe("every chart our own parts draw can be read", () => {
 
   it("the annuity chart labels both axes: dollars up the side, payments along the bottom", () => {
     const html = annuity();
-    expect(texts(html, "chart-y-label")).toEqual(["$0", "$47.61m", "$95.22m"]);
+    expect(texts(html, "chart-y-label")).toEqual(["$0", "$25 m", "$50 m", "$75 m", "$100 m"]);
     expect(texts(html, "chart-x-label")).toEqual(["Payment 1", "Payment 15", "Payment 30"]);
     expect(texts(html, "chart-y-name")).toEqual(["Dollars per payment"]);
     expect(texts(html, "chart-x-name")).toEqual(["Payment number (the first is paid now)"]);
@@ -224,9 +224,9 @@ describe("every chart our own parts draw can be read", () => {
   // Payment 1 is $1.537bn × 0.05 / (1.05^30 − 1) ≈ $23.1m, paid now; payment 30 is that × 1.05^29 ≈ $95.2m, and ÷ 1.03^29 ≈ $40.4m today.
   it("the annuity chart reads a payment's value on hover, tap or focus", () => {
     const html = annuity();
-    expect(html).toContain('aria-label="Payment 1: $23.1 million paid, worth $23.1 million today"');
-    expect(html).toContain('aria-label="Payment 30: $95.2 million paid, worth $40.4 million today"');
-    expect(html.match(/<rect[^>]*tabindex="0"[^>]*aria-label="Payment \d+:/g)).toHaveLength(30);
+    // One control for all thirty bars: a single tab stop, which says the last payment until another is read.
+    expect(html.match(/tabindex="0"/g)).toHaveLength(1);
+    expect(html).toMatch(/role="slider"[^>]*aria-valuenow="30"[^>]*aria-valuetext="Payment 30: \$95\.2 million paid, worth \$40\.4 million today"/);
     expect(html).toContain("Hover over or tap the chart to read a value.");
   });
 

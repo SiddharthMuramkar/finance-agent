@@ -28,6 +28,9 @@ const kinds = [
   kind({ quizFollowUp: z.literal(true) }),
   // A resume of the last turn (Retry, or after a cut-off).
   kind({ resume: z.literal(true) }),
+  // Stop: the Learner's running turn ends at its next check (within about half a second) and keeps what it wrote.
+  // The route answers it on its own, before any turn runs; it never starts a turn.
+  kind({ stop: z.literal(true) }),
 ] as const;
 
 /** Every kind, and the `continue` a tab opened before Finish this reply replaced Continue still sends: it means Finish. */
@@ -39,6 +42,8 @@ export type TurnBody = KindOnly<z.input<(typeof kinds)[number]>>;
 
 /** The Tutor Turn's input for a parsed body; undefined for an empty message. */
 export function turnInputOf(body: z.output<typeof turnBody>): TurnInput | undefined {
+  // A stop is not a turn: the route handles it before asking for a turn's input.
+  if ("stop" in body) return undefined;
   if ("resume" in body) return { resume: true };
   if ("opener" in body) return { opener: true };
   if ("next" in body) return { next: body.next };
