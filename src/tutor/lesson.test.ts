@@ -18,7 +18,7 @@ import { navigate } from "@/course/navigator";
 /**
  * The lesson additions on a real (in-memory) database: a step opens its Widget by itself when it begins, a step
  * finishes from the Learner's saved Widget state, an Off-Topic answer block is stored, and Past Sessions say what the
- * Learner found. Percent, percentage points and basis points alone, with its Widget opening at the concept step here.
+ * Learner found. Percent's story alone, taught the old way with its old Widget (a fixture), opening at the concept step here.
  */
 
 const REAL = loadCourseMap();
@@ -26,8 +26,30 @@ const TOPIC = "num-percent-bps";
 const WIDGET = "rate-change-three-ways";
 const TASK = "Set a rise from 6% to 6.4%";
 
+/**
+ * Percent's old written-ahead Widget, kept here as a fixture: the real Topic now opens rate_move presets instead
+ * (spec #229), and no real Topic has a step that opens a Widget by itself.
+ */
+const RATE_WIDGET = {
+  id: WIDGET,
+  parts: ["cagr"],
+  rateChange: { old: "$old", new: "$new" },
+  code: [
+    'root = Widget("One rate change, said three ways", [old, new, points, steps])',
+    "$old = 5",
+    "$new = 5.2",
+    'old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")',
+    'new = Slider("new", "New rate", 0, 10, 0.01, $new, "percent")',
+    'points = TextContent("In percentage points: " + @Round($new - $old, 2) + " points")',
+    "steps = GuidedTasks([rise])",
+    `rise = GuidedTask("${TASK}", $old == 6 && $new == 6.4)`,
+  ].join("\n"),
+};
+
 function lessonMap(): CourseMap {
   const t = REAL.topic(TOPIC)!;
+  // Percent's story and Cases, taught the old way: no Skills or cards, one conversation Check, and the old Widget.
+  const fed = t.checks.find((c) => c.id === "pb-fed-language")!;
   const body = {
     ...t,
     stage: t.stage,
@@ -35,6 +57,15 @@ function lessonMap(): CourseMap {
     prerequisites: [],
     subject: undefined,
     connections: undefined,
+    restructure: undefined,
+    runningExample: undefined,
+    skills: [],
+    templates: [],
+    terms: [],
+    questions: [],
+    checks: [{ id: fed.id, kind: "conversation", prompt: fed.kind === "conversation" ? fed.prompt : "", passCriteria: fed.kind === "conversation" ? fed.passCriteria : "" }],
+    widgets: [RATE_WIDGET],
+    found: [{ when: { kind: "ticked", widget: WIDGET, task: 1 }, text: "You set a rate change on the sliders and read it in points, basis points and percent change." }],
     // Concept opens the Widget; the first Guided Task finishes it.
     steps: [{ step: "concept", opens: WIDGET, doneWhen: { kind: "ticked", widget: WIDGET, task: 1 } }],
   };

@@ -26,7 +26,7 @@ describe("the Topic file's teaching fields", () => {
     expect(testedSkills(t, t.checks[2])).toEqual(["wording"]);
   });
 
-  it("leaves every real Topic as it was: not converted, rupees, and no new teaching", () => {
+  it("leaves every real Topic not yet converted as it was: rupees, and no new teaching", () => {
     for (const t of loadCourseMap().topics.filter((x) => LESSON_NOT_YET_CONVERTED.includes(x.id))) {
       expect(isConverted(t)).toBe(false);
       expect(t.exampleCurrency).toBe("INR");
@@ -98,7 +98,7 @@ describe("the lesson lint", () => {
     expect(lint(convertedTopic())).toEqual([]);
   });
 
-  it("passes the real Course Map, where every Topic is still on the not-yet-converted list", () => {
+  it("passes the real Course Map, where every Topic without Skills is on the not-yet-converted list", () => {
     const topics = loadCourseMap().topics;
     expect(lessonLintErrors(topics)).toEqual([]);
     expect(LESSON_NOT_YET_CONVERTED).toHaveLength(topics.filter((t) => !isConverted(t)).length);

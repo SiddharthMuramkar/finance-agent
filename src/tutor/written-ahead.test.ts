@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { saveFinishedStep } from "@/learner/memory";
+import { oldPercentOnly } from "@/test/old-percent-map";
 import { presentValueOnly } from "@/test/present-value-map";
 import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
@@ -12,8 +13,9 @@ import { OWNER_LEARNER_ID } from "@/db/schema";
 
 // Seam 1, the Tutor Turn (spec #119, "Widgets › Written-ahead Widgets"): the Tutor opens a written-ahead Widget by id
 // with open_widget; the opening is stored in the Session as an item, so the Widget comes back after a reload. In Percent
-// (the first Topic on the real Course Map) a Widget the Tutor draws with a growth-rate calculator is sent back through
-// the correction turn, which names the written-ahead Widget to open instead.
+// as it was before its conversion (a fixture, with its old Widget) a Widget the Tutor draws with a growth-rate
+// calculator is sent back through the correction turn, which names the written-ahead Widget to open instead.
+const percent = oldPercentOnly();
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -43,7 +45,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
   it("tells the Tutor the Topic's written-ahead Widgets by id and title, and that it opens them rather than drawing its own", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([text("Hello.")]);
-    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hi"));
+    await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Hi"));
     expect(requests[0].tools.map((t) => t.name)).toContain("open_widget");
     expect(contextOf(requests[0])).toContain('Written-ahead Widgets for this Topic (open one with open_widget; never draw your own version): \\"One rate change, said three ways\\" (id rate-change-three-ways).');
   });
@@ -51,7 +53,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
   it("opens one by id: the opening streams and is stored as an item in the Session, so it comes back after a reload", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([open("rate-change-three-ways"), text("Move the old rate first.")]);
-    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Can I play with this?"));
+    const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Can I play with this?"));
     expect(events).toContainEqual({ type: "item", item: { kind: WIDGET_OPENED, data: { id: "rate-change-three-ways", title: "One rate change, said three ways" } } });
     const [result] = toolResults(requests[1]);
     expect(result.is_error).toBeFalsy();
@@ -68,9 +70,9 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
   it("shows the Tutor an opened written-ahead Widget's sliders and ticks with the Learner's next message, keyed by its id", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([open("rate-change-three-ways"), text("Try a rise."), text("You set 6% to 6.4%.")]);
-    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Can I play with this?"));
+    await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Can I play with this?"));
     const widgets = { "rate-change-three-ways": { values: { $old: 6, $new: 6.4 }, ticked: ["Set a rise from 6% to 6.4%"] } };
-    await collect(runTutorTurn({ db, client, widgets, learnerId: OWNER_LEARNER_ID }, "What rates do I have set?"));
+    await collect(runTutorTurn({ db, client, map: percent, widgets, learnerId: OWNER_LEARNER_ID }, "What rates do I have set?"));
     const asked = JSON.stringify(requests.at(-1)!.messages);
     expect(asked).toContain("Old rate: 6%");
     expect(asked).toContain("New rate: 6.4%");
@@ -82,10 +84,10 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
   it("writes Percent's readouts into Tell the Tutor what I found, worked out by code", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([open("rate-change-three-ways"), text("Try them all."), text("Good.")]);
-    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Can I play with this?"));
+    await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Can I play with this?"));
     const ticked = ["Set a rise from 6% to 6.4%", "Now a cut from 8% to 7.1%", "Now a rise from 0.5% to 0.9%, and compare its percent change with the first rise"];
     const widgets = { "rate-change-three-ways": { values: { $old: 0.5, $new: 0.9 }, ticked } };
-    await collect(runTutorTurn({ db, client, widgets, learnerId: OWNER_LEARNER_ID }, { widgetReport: "rate-change-three-ways" }));
+    await collect(runTutorTurn({ db, client, map: percent, widgets, learnerId: OWNER_LEARNER_ID }, { widgetReport: "rate-change-three-ways" }));
     const asked = JSON.stringify(requests.at(-1)!.messages);
     expect(asked).toContain("I set the old rate to 0.5% and the new rate to 0.9%. In percentage points: 0.4 points; In basis points: 40 bp; As a percent change of the old rate: 80%.");
   });
@@ -93,7 +95,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
   it("refuses an id the Topic does not have, and stores nothing", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([open("annuity-today"), text("Let me draw it instead.")]);
-    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
+    const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me"));
     const [result] = toolResults(requests[1]);
     expect(result.is_error).toBe(true);
     expect(String(result.content)).toMatch(/Not opened: this Topic has no written-ahead Widget "annuity-today". Its written-ahead Widgets: rate-change-three-ways/);
@@ -104,7 +106,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     const db = await testDb();
     await engineOff(db);
     const { client, requests } = scriptedClient([text(`Here is a box.\n${CAGR}`), open("rate-change-three-ways", "toolu_fix"), text("")]);
-    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me in a widget"));
+    const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me in a widget"));
     // The draft is held and checked (ADR 0008): the Learner sees only the retry, which opens the written-ahead Widget.
     expect(events.map((e) => e.type)).toEqual(["item", "done"]);
     const correction = String(requests[1].messages.at(-1)!.content);
@@ -131,7 +133,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     const db = await testDb();
     await engineOff(db);
     const { client, requests } = scriptedClient([text(own), open("rate-change-three-ways", "toolu_fix"), text("")]);
-    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
+    await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me"));
     expect(String(requests[1].messages.at(-1)!.content)).toMatch(/this Widget has the title of the written-ahead Widget "One rate change, said three ways"\. Never draw your own version: call open_widget/);
   });
 
@@ -149,7 +151,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     const db = await testDb();
     await engineOff(db);
     const { client, requests } = scriptedClient([text(emi)]);
-    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me a loan"));
+    const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me a loan"));
     expect(requests).toHaveLength(1);
     expect(events.some((e) => e.type === "correction")).toBe(false);
   });
