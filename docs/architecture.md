@@ -1707,6 +1707,12 @@ opener.
   nothing; a finish that passes the Topic stores none either (the Topic complete card marks that);
   a repeated tool call, or one re-run after a cut-off, returns its saved result and stores no second
   divider.
+- **Every other move on gets one too.** A conversation Check's pass (`record_check_verdict`) moves the
+  Learner on, so its divider follows the "Check 2 — passed ✓" card in the same transaction ("Step 8 of 9 ·
+  Reveal"). A step reached outside a turn (a quiz pass, or a Due Check reopening a passed Topic) has its
+  divider stored by whichever turn teaches it first: the Learner's Next stores it with the move, and a
+  typed message or help chip stores it right after the Learner's message, before the reply, and streams it
+  as an item. So every step the Topic bar marks done has a divider to scroll back to.
 - **Drawn in place.** `loadThread` is `loadSession`'s lines with each item placed after the message it
   follows. An item that falls inside a reply (the Tutor gave feedback, finished the step, then began
   teaching the next one) cuts the reply in two there; every part but the last carries `more`. The

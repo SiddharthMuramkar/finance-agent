@@ -134,15 +134,17 @@ describe("a Due Check reopens the Topic's own Session", () => {
     const back = await turn(db, "What's new?", at(1), [{ content: [{ type: "text", text: "A new Check." }, finishConcept] }, say("Let's take the concept first.")], withNewCheck);
     expect(back.sessionId).toBe(first.sessionId);
     const thread = seen(await loadThread(db, first.sessionId, withNewCheck));
-    expect(thread.slice(0, 4)).toEqual([
+    // The new Check's concept has not begun, so its step divider comes before the reply that teaches it.
+    expect(thread.slice(0, 5)).toEqual([
       { role: "user", text: "Hi" },
       { role: "assistant", text: "Once, a lottery winner had a choice." },
       { role: "item", kind: "due_check", data: expect.objectContaining({ label }) },
       { role: "user", text: "What's new?" },
+      { role: "item", kind: "step", data: expect.objectContaining({ step: "concept" }) },
     ]);
     // Fresh: the Tutor teaches the new Check's concept and cannot finish it in the same reply.
-    // Its finish was refused, so no step divider follows and the Learner is still at the new Check's concept.
-    expect(items(thread)).toHaveLength(1);
+    // Its finish was refused, so no further step divider follows and the Learner is still at the new Check's concept.
+    expect(items(thread)).toHaveLength(2);
     expect(navigate(withNewCheck, await loadProgress(db))).toMatchObject({ step: "concept", check: { id: "pv-new" } });
     expect(await comingBackItems(db, withNewCheck, OWNER_LEARNER_ID, at(1))).toEqual([]);
   });

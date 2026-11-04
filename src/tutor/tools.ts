@@ -31,8 +31,8 @@ type Outcome = {
   text: string;
   /** The call moved the Learner onto a new Teaching Step. */
   began?: boolean;
-  /** A Session item the call stored (a step divider), for the Learner to see at once. */
-  item?: SessionItem;
+  /** The Session items the call stored (a result card, a step divider), in order, for the Learner to see at once. */
+  items?: SessionItem[];
 };
 
 /**
@@ -172,7 +172,7 @@ export function toolCode(
       effects.saveFailed = true;
       throw new Error(NOTHING_RECORDED);
     }
-    if (outcome.item) (effects.items ??= []).push(outcome.item);
+    if (outcome.items?.length) (effects.items ??= []).push(...outcome.items);
     if (!outcome.ok) throw new Error(outcome.text);
     return outcome.text;
   }
@@ -231,7 +231,10 @@ export function toolCode(
             : `Recorded by code: not yet for Check ${check_id}. The Learner stays at this Check and can try again.`;
           // The Learner sees the result in the conversation: a card after the reply that recorded it, never sent to the model.
           const card = await storeAfterLatest(tx, verdictCard(map, check_id, passed));
-          return { ok: true, began: passed, text: `${recorded}\n\n${await contextAfterMove(tx, before)}`, ...(card && { item: card }) };
+          // A pass moves the Learner on: the divider for their new step follows the card (none once the Topic is passed).
+          const divider = passed ? await storeStepDivider(tx, before, await loadProgress(tx, learnerId)) : null;
+          const items = [card, divider].filter((i) => i !== null);
+          return { ok: true, began: passed, text: `${recorded}\n\n${await contextAfterMove(tx, before)}`, ...(items.length && { items }) };
         }),
     },
     record_insight_attempt: {
@@ -299,7 +302,7 @@ export function toolCode(
             ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
             ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
           ];
-          return { ok: true, text: lines.join("\n"), item };
+          return { ok: true, text: lines.join("\n"), items: [item] };
         }),
     },
     finish_teaching_step: {
@@ -313,7 +316,7 @@ export function toolCode(
           // The Learner sees where the next step begins: a divider after the reply that finished this one.
           // None once the Topic is passed; its Topic complete card marks that.
           const item = await storeStepDivider(tx, before, move.progress);
-          return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(item && { item }) };
+          return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(item && { items: [item] }) };
         }),
     },
   };

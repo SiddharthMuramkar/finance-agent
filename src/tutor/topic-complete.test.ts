@@ -115,6 +115,6 @@ describe("a passed Topic", () => {
     expect(result).toMatchObject({ ok: true, passed: true, complete: card });
 
     const items = seen(await loadThread(db, sessionId, withQuiz)).filter((e) => e.role === "item");
-    expect(items.map((e) => e.role === "item" && e.kind)).toEqual(["topic_complete", "due_check", "check_result", "topic_complete"]);
+    expect(items.map((e) => e.role === "item" && e.kind)).toEqual(["topic_complete", "due_check", "step", "check_result", "topic_complete"]);
   });
 });
