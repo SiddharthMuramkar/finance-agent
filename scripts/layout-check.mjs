@@ -17,6 +17,8 @@
 //   EVAL_DB_OK       Part 2: must be "branch", your statement that DATABASE_URL is a Neon test branch. Part 2 prints the
 //                    database host and refuses without it (and refuses the host named by PROD_DB_HOST, if set)
 //   PASSCODES        Part 2: the passcode list the server was started with; it must list a tools:<passcode> pair
+//   STOP_BUDGET_MS   the live Stop check's click-to-end budget in ms (default 1000). The time is printed either way. A
+//                    local server far from Neon needs about 10 s, so run it with STOP_BUDGET_MS=15000 there
 //   PLAYWRIGHT_CORE  path to a playwright-core install when it is not in node_modules, for example
 //                    /Users/siddharth/Developer/skills/node_modules/playwright-core
 //                    (Chromium comes from ~/Library/Caches/ms-playwright)
@@ -320,20 +322,26 @@ async function studyChecks(browser, cookie) {
       await page.keyboard.press("Enter");
       await page.waitForTimeout(100);
       await assertNoDocumentScroll(page, "just after Send");
-      await page.waitForFunction(() => document.querySelector('[data-testid="turn-status"]')?.textContent?.trim() === "Reply ready", null, { timeout: 15_000 });
+      await page.waitForFunction(
+        () => {
+          const last = [...document.querySelectorAll('[data-testid="assistant-message"]')].pop();
+          const send = [...document.querySelectorAll("button")].find((b) => /^send/i.test((b.getAttribute("aria-label") || b.textContent || "").trim()));
+          return Boolean(last && last.textContent.includes("Mocked reply.") && send && !send.disabled);
+        },
+        null,
+        { timeout: 15_000 },
+      );
       await assertNoDocumentScroll(page, "after streaming ends");
       await page.unroute("**/api/turn");
     });
 
-    await step("markup: no role=status in a Tutor message, exactly one app-announcer and one turn-status", async () => {
+    await step("markup: no role=status in a Tutor message, and exactly one app-announcer", async () => {
       const counts = await page.evaluate(() => ({
         inMessages: document.querySelectorAll('[data-testid="assistant-message"] [role="status"]').length,
         announcers: document.querySelectorAll('[data-testid="app-announcer"]').length,
-        turnStatus: document.querySelectorAll('[data-testid="turn-status"]').length,
       }));
       if (counts.inMessages) throw new Error(`${counts.inMessages} role=status regions inside Tutor messages`);
       if (counts.announcers !== 1) throw new Error(`${counts.announcers} app-announcer elements, expected 1`);
-      if (counts.turnStatus !== 1) throw new Error(`${counts.turnStatus} turn-status elements, expected 1`);
     });
 
     await step("buttons: every visible enabled button, [role=button] and summary has cursor:pointer", async () => {
@@ -418,17 +426,20 @@ async function studyChecks(browser, cookie) {
 
 /** A live Tutor turn: Stop mid-reply ends within a second, and a reload keeps the partial reply with its Stopped note. */
 async function stopCheck(browser, cookie) {
+  const stopBudgetMs = Number(process.env.STOP_BUDGET_MS) > 0 ? Number(process.env.STOP_BUDGET_MS) : 1000;
   const { context, page } = await studyContext(browser, cookie);
   try {
-    await step("stop: a Stop mid-reply ends within 1s, and a reload keeps the partial reply with its Stopped note", async () => {
+    await step("stop: a Stop mid-reply ends within the budget, and a reload keeps the partial reply with its Stopped note", async () => {
       await page.getByRole("textbox", { name: "Message" }).fill("Explain present value in some detail, with an example.");
       await page.keyboard.press("Enter");
       await page.locator('[data-testid="assistant-message"]').last().getByText(/\S{3,}/).first().waitFor({ timeout: 60_000 });
       const stop = page.getByRole("button", { name: /^stop/i });
+      const clicked = Date.now();
       await stop.click({ timeout: 10_000 });
-      const stopped = Date.now();
-      await stop.waitFor({ state: "hidden", timeout: 1000 });
-      if (Date.now() - stopped > 1000) throw new Error("Stop took longer than a second");
+      await stop.waitFor({ state: "hidden", timeout: Math.max(stopBudgetMs, 60_000) });
+      const took = Date.now() - clicked;
+      console.log(`stop click-to-end ${took} ms (budget ${stopBudgetMs} ms)`);
+      if (took > stopBudgetMs) throw new Error(`Stop took ${took} ms, over the ${stopBudgetMs} ms budget`);
       await page.reload({ waitUntil: "networkidle" });
       const last = page.locator('[data-testid="assistant-message"]').last();
       if (!(await last.innerText()).trim()) throw new Error("the partial reply is gone after a reload");
