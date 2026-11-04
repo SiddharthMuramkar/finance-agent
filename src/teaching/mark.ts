@@ -67,8 +67,9 @@ export function matchesMistake(input: Exact, value: Exact, answer: Exact, decima
 
 /** How the right answer is written back: a fall under the either rule reads "30 bp (a fall)". */
 export function expectedText(answer: Exact, unit: Unit, sign: SignRule): string {
-  if (sign === "signed" || !isNegative(answer)) return formatExact(sign === "magnitude" ? absolute(answer) : answer, unit);
-  return sign === "magnitude" ? formatExact(absolute(answer), unit) : `${formatExact(absolute(answer), unit)} (a fall)`;
+  if (!isNegative(answer) || sign === "signed") return formatExact(answer, unit);
+  const size = formatExact(absolute(answer), unit);
+  return sign === "either" ? `${size} (a fall)` : size;
 }
 
 const TRUE_WORDS = new Set(["true", "t", "yes", "y"]);
