@@ -8,7 +8,7 @@ import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress } from "@/learner/memory";
 import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
-import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
+import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
 import { newReplyWidgetProblems, widgetCheckMessage } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
@@ -47,6 +47,7 @@ import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, 
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
+import { turnFacts } from "./turn-facts";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
@@ -432,8 +433,9 @@ async function openerFor(db: Db, map: CourseMap, learnerId: number): Promise<str
   const live = await liveSession(db, learnerId, await currentTopicId(db, map, learnerId));
   if (live && (await openLog(db, live.id, () => new Date())).rows.length) return null;
   const place = navigate(map, await loadProgress(db, learnerId));
-  const quizOpen = place?.step === "check" && place.check?.kind === "quiz" && !(await quizUnavailable(db, map, place.check));
-  return openerNote(place, { quizOpen });
+  // The opener's own facts: this runs before the turn is claimed, at the place the page opened.
+  const facts = await turnFacts(db, map, learnerId, place);
+  return openerNote(place, { quizOpen: facts.quizOpen }, facts);
 }
 
 async function* runLockedTurn(
@@ -509,11 +511,13 @@ async function* runLockedTurn(
     const pastes = await pasteSummary(db, session.id, learnerId);
     if (place) progress("Looking up Case Data…");
     const caseData = await caseDataFor(db, map, place, learnerId);
-    const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
-    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId));
+    // This turn's facts (turn-facts.ts), worked out once: the context names them, and later steps of the turn reuse them.
+    const facts = await turnFacts(db, map, learnerId, place, { learnerText });
+    const quizDown = place?.step === "check" && place.check?.kind === "quiz" && !facts.quizOpen;
+    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId), facts);
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(log.messages, place.check.id, plainContext)
-        ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
+        ? noVerdictContext({ ...place, check: place.check }, caseData, pastes, facts)
         : plainContext;
     const learnerBlocks: { type: "text"; text: string }[] = [{ type: "text", text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);

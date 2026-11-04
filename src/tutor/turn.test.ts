@@ -960,7 +960,7 @@ describe("Tutor Turn", () => {
       await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const context = requests.at(-1)!.messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).map((b) => JSON.stringify(b)).join("\n");
       expect(context).toContain(`Check: quiz ${quizId}`);
-      expect(context).toContain("Do not write quiz questions");
+      expect(context).toContain("While the quiz is open, help freely");
       // Where the Learner sees it: on the right, in the Check tab, never "beside the conversation" or "the quiz panel".
       expect(context).toContain("on the right, in the Check tab");
       expect(context).not.toContain("panel beside the conversation");
@@ -1468,9 +1468,9 @@ describe("Learner Profile in the Tutor Turn", () => {
     expect(requests[2].messages.filter((m) => m.role === "system")).toHaveLength(1);
   });
 
-  it("the instructions say the profile is for examples only, never advice", () => {
+  it("the instructions say the profile is used only when the Learner asks how an idea applies to them, never as advice", () => {
     expect(TUTOR_INSTRUCTIONS).toMatch(/Learner Profile/);
-    expect(TUTOR_INSTRUCTIONS).toMatch(/only to choose everyday examples/);
+    expect(TUTOR_INSTRUCTIONS).toMatch(/only when the Learner asks how an idea applies to them/);
     expect(TUTOR_INSTRUCTIONS).toMatch(/never advice/i);
   });
 });
