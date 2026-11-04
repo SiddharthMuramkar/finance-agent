@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { practiceAnswers, skillState } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -142,4 +142,19 @@ export async function noteMethodUsed(db: Db, learnerId: number, topicId: string,
     { methodsUsed: sql`array_append(${skillState.methodsUsed}, ${method}::text)` },
     now,
   );
+}
+
+/**
+ * The Learner's parked Skills in the given Topics, by Topic id and then Skill id: when each comes back. Pass only
+ * converted Topics; with none, nothing is read, so a database without the skill_state table is never queried.
+ */
+export async function parkedSkills(db: Db, learnerId: number, topicIds: readonly string[]): Promise<Record<string, Record<string, Date>>> {
+  if (!topicIds.length) return {};
+  const rows = await db
+    .select({ topicId: skillState.topicId, skillId: skillState.skillId, until: skillState.parkedUntil })
+    .from(skillState)
+    .where(and(eq(skillState.learnerId, learnerId), inArray(skillState.topicId, [...topicIds]), isNotNull(skillState.parkedUntil)));
+  const out: Record<string, Record<string, Date>> = {};
+  for (const r of rows) if (r.until) (out[r.topicId] ??= {})[r.skillId] = r.until;
+  return out;
 }

@@ -208,6 +208,8 @@ function factLines(facts: TurnFacts, step: Place["step"]): string[] {
   if (facts.replyKind) lines.push(`Reply kind: ${facts.replyKind}.`);
   if (facts.method) lines.push(`Method for this reply: ${facts.method}.`);
   if (facts.frustration) lines.push(`Frustration: ${facts.frustration}. Acknowledge it in eight words or fewer, then give a smaller step.`);
+  if (facts.skillLines?.length) lines.push("How the Learner stands on each idea of this Check (code marks every try):", ...facts.skillLines);
+  if (facts.parked) lines.push(facts.parked);
   if (facts.card && step !== "check") lines.push(`Concept card on screen (code showed it; never write your own version): ${plain(facts.card.trim())}`);
   return lines;
 }
