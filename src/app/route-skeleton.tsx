@@ -31,7 +31,7 @@ export async function ReadingSkeleton({ current, children }: { current: HeaderPa
   );
 }
 
-/** The Study Workspace's frame: the header and two columns, the conversation left and the Widget panel right. */
+/** The Study Workspace's frame: the header and two columns, the conversation left and the Topic bar over the Widget panel right. */
 export async function WorkspaceSkeleton() {
   return (
     <SignedInFrame>
@@ -48,6 +48,7 @@ export async function WorkspaceSkeleton() {
             </div>
           </div>
           <div className="min-h-0 space-y-4">
+            <SkeletonBlock className="h-10 w-full" />
             <SkeletonBlock className="h-8 w-1/3" />
             <SkeletonBlock className="h-48 w-full" />
             <SkeletonLines count={3} />

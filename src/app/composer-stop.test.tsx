@@ -114,7 +114,7 @@ function Column({ openQuestion }: { openQuestion?: string }) {
   } as TurnStream;
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <LeftColumn turn={turn} slot={() => null} place={null} review={noReview} quizOpen={false} explore={null} openQuestion={openQuestion} />
+      <LeftColumn turn={turn} slot={() => null} quizOpen={false} openQuestion={openQuestion} />
     </AssistantRuntimeProvider>
   );
 }
