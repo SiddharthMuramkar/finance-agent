@@ -173,7 +173,8 @@ describe("explore step in the Tutor Turn", () => {
 
   it("never counts a help chip's message as an attempt, while a typed answer still counts", async () => {
     const db = await atExplore();
-    for (const words of ["Explain that more simply.", "Show me in a widget."]) {
+    // "Explain that more simply." is the old chip's words, which old Sessions still hold: it still reads as a chip turn.
+    for (const words of ["Go deeper.", "Show me in a widget.", "Explain that more simply."]) {
       const requests = await turn(db, words, [attempt("c-" + words, "not_yet", words), say("Here it is another way.")]);
       const result = toolResults(requests[1])[0];
       expect(result.is_error).toBe(true);

@@ -707,3 +707,63 @@ export const widgetState = pgTable(
   },
   (t) => [primaryKey({ columns: [t.sessionId, t.widgetKey] })],
 );
+
+/**
+ * Skill state (spec #229, ticket #232): one Learner's progress on one Skill of a Topic. The repair ladder
+ * (`src/teaching/ladder.ts`) reads it to choose what comes next; `src/learner/skill-state.ts` writes it.
+ */
+export const skillState = pgTable(
+  "skill_state",
+  {
+    learnerId: learnerId(),
+    topicId: text("topic_id").notNull(),
+    skillId: text("skill_id").notNull(),
+    tries: integer("tries").notNull().default(0),
+    right: integer("right").notNull().default(0),
+    /** Right answers in a row. */
+    streak: integer("streak").notNull().default(0),
+    /** Misses in a row, across Quick tries and quiz questions; a right answer sets it back to 0. */
+    missesInRow: integer("misses_in_row").notNull().default(0),
+    /** The tag of the last Known mistake made on this Skill. */
+    lastMistake: text("last_mistake"),
+    /** Ladder method ids used to teach the Skill again, oldest first. */
+    methodsUsed: text("methods_used").array().notNull().default(sql`'{}'::text[]`),
+    /** Set when the Learner parks the Skill: it comes back as a drill of five after this time. */
+    parkedUntil: timestamp("parked_until", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.learnerId, t.topicId, t.skillId] })],
+);
+
+/**
+ * Every Quick-try and typed quiz answer, with its item, numbers, answer and verdict. `item_key` names one showing of
+ * one item, so the same answer sent twice is stored, and counted in Skill state, once.
+ */
+export const practiceAnswers = pgTable(
+  "practice_answers",
+  {
+    id: serial("id").primaryKey(),
+    learnerId: learnerId(),
+    topicId: text("topic_id").notNull(),
+    skillId: text("skill_id").notNull(),
+    sessionId: integer("session_id").references(() => sessions.id),
+    itemKey: text("item_key").notNull(),
+    /** The Quick try or quiz question. */
+    itemId: text("item_id").notNull(),
+    /** The question template the numbers were made from, when code made them. */
+    templateId: text("template_id"),
+    /** The numbers the item was shown with. */
+    params: jsonb("params").notNull().$type<Record<string, unknown>>().default(sql`'{}'::jsonb`),
+    /** What the Learner gave, exactly as typed or picked. */
+    input: text("input").notNull(),
+    verdict: text("verdict").notNull().$type<"right" | "known_mistake" | "wrong">(),
+    /** The Known mistake's tag, for a `known_mistake` verdict. */
+    mistakeTag: text("mistake_tag"),
+    source: text("source").notNull().$type<"quick_try" | "quiz">(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("practice_answers_once").on(t.learnerId, t.itemKey),
+    index("practice_answers_skill").on(t.learnerId, t.topicId, t.skillId),
+  ],
+);
