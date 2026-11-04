@@ -12,7 +12,7 @@ export type ProfileValues = Record<ProfileField, string>;
  * with the Learner's next message (a new Where the Learner stands block), so nothing waits for a new Session.
  */
 export const PROFILE_PRIVACY =
-  "This is private. The Tutor is given it with your messages, and it is kept in your Session's record. The Tutor uses it only to choose everyday examples, never as advice.";
+  "This is private. The Tutor is given it with your messages, and it is kept in your Session's record. The Tutor uses it only when you ask how an idea applies to you, never as advice.";
 
 const inputClass =
   "mt-1 w-full rounded border border-[var(--border)] bg-[var(--field)] px-3 py-2 text-sm leading-5 text-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]";

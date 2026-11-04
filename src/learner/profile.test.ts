@@ -38,7 +38,7 @@ describe("Learner Profile", () => {
     await saveProfile(db, parse({ work: "Nurse", savingFor: "School fees" }), new Date(), OWNER_LEARNER_ID);
     const block = (await profileBlock(db, OWNER_LEARNER_ID))!;
     expect(block).toContain("Learner Profile");
-    expect(block).toContain("only to choose everyday examples");
+    expect(block).toContain("only when the Learner asks how an idea applies to them");
     expect(block).toContain("never as advice");
     expect(block).toContain("- Work: Nurse");
     expect(block).toContain("- What you are saving for: School fees");
