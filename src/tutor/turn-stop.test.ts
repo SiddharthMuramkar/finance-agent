@@ -16,6 +16,11 @@ const FENCE = "`".repeat(3);
 const never = new Promise<never>(() => {});
 const emi = { type: "tool_use", id: "toolu_stop_emi", name: "calculate", input: { calculator: "emi", inputs: { principal: 5_000_000, ratePercent: 8.5, years: 20 } } };
 
+/** Resolves once the scripted client has been asked `n` times. */
+async function asked(requests: unknown[], n: number) {
+  while (requests.length < n) await new Promise((r) => setTimeout(r, 5));
+}
+
 async function collect(events: AsyncIterator<TurnEvent>) {
   const out: TurnEvent[] = [];
   for (let e = await events.next(); !e.done; e = await events.next()) out.push(e.value);
@@ -23,31 +28,31 @@ async function collect(events: AsyncIterator<TurnEvent>) {
 }
 
 describe("Stop", () => {
-  it("ends a reply mid-stream within the poll window and keeps its text, less the unfinished Widget", async () => {
+  it("ends a reply mid-stream within the poll window and drops the held reply: no text is shown or saved", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: `Here is the idea in a picture.\n\n${FENCE}openui-lang\nroot = Stack([` }], holdAfterFirstText: never },
     ]);
-    const turn = runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me present value");
-    const first = await turn.next();
-    expect(first.value).toMatchObject({ type: "text" });
+    const turn = collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me present value"));
+    await asked(requests, 1);
 
     expect(await requestStop(db, OWNER_LEARNER_ID)).toBe(true);
-    const asked = performance.now();
-    const rest = await collect(turn);
-    expect(performance.now() - asked).toBeLessThan(STOP_POLL_MS * 3);
+    const at = performance.now();
+    const rest = await turn;
+    expect(performance.now() - at).toBeLessThan(STOP_POLL_MS * 3);
 
-    // "stopped", then the normal "done": the browser never resumes the turn. No correction runs on the cut-off Widget.
+    // "stopped", then the normal "done": the browser never resumes the turn. The held reply is dropped (ADR 0008).
     expect(rest.map((e) => e.type)).toEqual(["stopped", "done"]);
     expect(rest.at(-1)).toMatchObject({ type: "done", stopReason: "stopped" });
     const [row] = await db.select().from(turns).where(eq(turns.learnerId, OWNER_LEARNER_ID));
     expect(row).toMatchObject({ status: "finished", stopReason: "stopped" });
     expect(requests).toHaveLength(1);
 
+    // The Learner's message stays; no reply was saved as the Tutor's.
     const lines = await loadCurrentSession(db, undefined, OWNER_LEARNER_ID);
-    expect(lines.filter((l) => l.role === "assistant").map((l) => l.text)).toEqual(["Here is the idea in a picture."]);
+    expect(lines.map((l) => l.role)).toEqual(["user"]);
     const stored = await db.select().from(messages);
-    expect(JSON.stringify(stored)).not.toContain("openui-lang");
+    expect(JSON.stringify(stored)).not.toContain("Here is the idea");
     const sessionId = stored[0].sessionId;
     expect((await loadSessionItems(db, sessionId, OWNER_LEARNER_ID)).map((i) => i.kind)).toEqual([STOPPED]);
   });
@@ -62,12 +67,14 @@ describe("Stop", () => {
       { content: [{ type: "text", text: "Never sent." }], hold: toolDone },
       { content: [{ type: "text", text: "Next turn." }] },
     ]);
-    const turn = runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "What is the EMI?");
-    expect((await turn.next()).value).toMatchObject({ type: "text" });
+    const turn = collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "What is the EMI?"));
+    await asked(requests, 2);
     await requestStop(db, OWNER_LEARNER_ID);
-    const rest = await collect(turn);
+    const rest = await turn;
     release();
     expect(rest.map((e) => e.type)).toEqual(["stopped", "done"]);
+    // The text written before the tool call was held, and is never shown.
+    expect((await loadCurrentSession(db, undefined, OWNER_LEARNER_ID)).map((l) => l.role)).toEqual(["user"]);
     // Only the first request was answered; the second never got a reply.
     expect(requests).toHaveLength(2);
     const stored = (await db.select().from(messages)).map((m) => m.role);
@@ -99,7 +106,7 @@ describe("progress", () => {
     const progress: ProgressEvent[] = [];
     const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID, notify: (e) => progress.push(e) }, "What is the EMI?"));
     expect(events.at(-1)).toMatchObject({ type: "done" });
-    expect(progress.map((p) => p.label)).toEqual(["Looking up Case Data…", "Thinking…", "Working out the numbers…", "Thinking…"]);
+    expect(progress.map((p) => p.label)).toEqual(["Looking up Case Data…", "Thinking…", "Working out the numbers…", "Thinking…", "Checking the reply…"]);
   });
 });
 
