@@ -167,6 +167,10 @@ _Avoid_: Equation, formula block
 A small instruction under a Widget, such as "set the rate to 0%", that ticks itself when the Widget reaches that state. Practice only: nothing is marked, but the ticks are kept with the Session.
 _Avoid_: Exercise, challenge, step
 
+**Question template**:
+A Quick try or Check question written once in the Topic's file with ranges in place of numbers ("A rate moves from {a}% to {b}%. How many basis points?"). Code draws the numbers and works out the answer and each Known mistake, so every try or attempt gets fresh numbers that code can mark.
+_Avoid_: Question generator, item model
+
 **Market Workbench**:
 A possible later section for analysing real companies with real data alongside the Tutor.
 _Avoid_: Dashboard, terminal

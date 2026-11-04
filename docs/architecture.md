@@ -3676,3 +3676,32 @@ alone from 33,662 to 38,109; the tools are unchanged). Warnings only teach the n
 would cost the Learner a "Fixing the Widget…" wait for every style slip. The notes ride in the Learner's stored message, so a
 replay sends the same text. The QuickCheck and Rank rules are restated in check.ts, because the parts' files are client
 modules and the server runs this check too.
+
+## The teaching engine: exact answers, question templates and Known mistakes (`src/teaching/answers.ts`, `quantities.ts`, `mistakes.ts`, `templates.ts`, `mark.ts`, `fixtures.ts`, spec #229, ticket #231)
+
+**What it does.** A pure module (no database, no model, no env) that marks a Learner's typed number or True/False, so
+Quick tries and typed Check questions need no model call. `parseAnswer` reads what was typed as an exact decimal (a
+scaled bigint), accepting %, bp, ₹, Rs, points, years, Indian or Western commas, a decimal comma, a sign and the words
+"fall", "down", "up" and "rise"; a unit word is decoration, so "0.3 points" for a basis-point ask is read as 0.3.
+`markAnswer` gives right, a Known mistake with its one-line fix, or wrong, under the item's sign rule (magnitude, either,
+signed). An exact answer must be typed exactly (30.4 is not 30); a rounded one, a percent change "to one decimal place",
+is compared at its decimals (8.33 is 8.3). A question template has parameter ranges, named answer functions
+(`points_between`, `bp_from_move`, `points_from_bp`, `bp_from_points`, `pct_change`) and named mistake functions
+(`stopped_at_points`, `used_x10`, `divided_by_10`, `divided_by_1000`, `forgot_to_convert`, `mixed_percent_points`), and
+derived values only through `plus`, `minus` and `times`, so nothing is ever evaluated. `drawTemplate` hashes a seed into a
+small generator, so the same seed gives the same draw, and it redraws until there is no zero move, no negative number
+shown, no number from `avoid` (the running example's), and no Known-mistake value equal to the answer. A half-done draw
+shows the first step ("6 minus 5.7 is 0.3 points") and asks for the last. `templateProblems` names what is wrong with a
+template, for the course check. Every item names its Skill.
+
+**Scenario.** A Quick try asks "A rate falls from 7.5% to 7.2%. How many basis points did it fall?". The Learner types
+"30 bp", "30" or "-30", and each is right; floating point never enters it, so 7.5 minus 7.2 is exactly 0.3 points. They type
+"0.3" instead, and code shows the stopped-at-points fix at once: "That is the fall in points. Times 100 gives basis
+points." The next try is drawn with a new seed, so it has new numbers, and 120 bp turned into 12 or 0.12 points gets the
+divided-by-10 or divided-by-1,000 fix.
+
+**Trade-off.** Named functions cover only the rate Skills of the Percent Topic today; a Topic with rupee or year
+templates needs a new named function, written and tested in code, rather than a formula in its file. That is slower to
+author but keeps every answer computed by code (ADR 0003, ADR 0005). Comparing a Known mistake by its size means a
+Learner who also drops the sign still gets the fix. A fixed item states `decimals` only when its answer is rounded; left
+out, the answer is exact. A draw is rebuilt from its seed rather than stored, since bigints do not go into JSON.
