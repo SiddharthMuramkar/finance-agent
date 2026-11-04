@@ -1,0 +1,15 @@
+root = Widget("Illustration: ₹1,000 a month in a SIP", [controls, calc, chart, note, tasks])
+$rate = 10
+$years = 20
+controls = Stack([rate, years], "row")
+rate = Slider("ratePercent", "Assumed yearly return", 0, 15, 0.5, $rate, "percent")
+years = Slider("years", "Years you keep investing", 1, 30, 1, $years, "years")
+calc = Calculator("sip", {monthly: 1000, ratePercent: $rate, years: $years}, "inr")
+grown = Query("calculate_range", {calculator: "sip", inputs: {monthly: 1000, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: $years, step: 1, output: "Maturity value", currency: "inr"}, {rows: [], output: "", outputs: [], error: ""})
+paid = Query("calculate_range", {calculator: "sip", inputs: {monthly: 1000, ratePercent: $rate, years: 1}, vary: "years", from: 1, to: $years, step: 1, output: "Total invested", currency: "inr"}, {rows: [], output: "", outputs: [], error: ""})
+chart = AreaChart(grown.rows.label, [Series("Value of your SIP", grown.rows.value), Series("What you put in", paid.rows.value)], "natural", "Years", "Rupees")
+note = TextCallout("warning", "This assumes a smooth return", "Real returns jump around and can be negative in some years. The chart shows the arithmetic of compounding at a steady rate, not what any fund will do.")
+tasks = GuidedTasks([t1, t2, t3])
+t1 = GuidedTask("Set the return to 0%: the two lines become one", $rate == 0)
+t2 = GuidedTask("Set the return to 6%: closer to a bank deposit", $rate == 6)
+t3 = GuidedTask("Keep 10% and stretch to 30 years: watch the gap widen", $rate == 10 && $years == 30)

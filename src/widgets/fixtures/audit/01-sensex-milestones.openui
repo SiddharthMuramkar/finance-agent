@@ -1,0 +1,2 @@
+root = Widget("The Sensex at its milestones, 1979 to March 1992", [history])
+history = HistoryChart("sensex-1992/sensex-close")

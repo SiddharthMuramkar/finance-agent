@@ -1,0 +1,11 @@
+root = Widget("At what rate does the cash option beat the annuity?", [rate, chart, verdict, tasks])
+$rate = 3
+rate = Slider("rate", "Discount rate (what safe money could earn each year)", 0, 10, 0.1, $rate, "percent")
+schedule = Query("annuity_schedule", {total: 1537000000, payments: 30, growthPercent: 5, ratePercent: $rate}, {rows: [], presentValue: 0, presentValueText: "", error: ""})
+cash = Query("case_data", {dataset: "mega-millions-2018/cash-option"}, {rows: [], label: "", unit: "", source: "", sourceUrl: "", asOf: "", revealed: false, error: ""})
+chart = AnnuityChart(1537000000, 30, 5, $rate, "mega-millions-2018/cash-option")
+verdict = Card([InlineHeader("Annuity, all 30 payments valued today", schedule.presentValueText), InlineHeader("Cash option, paid today", @First(cash.rows.text)), TextContent(schedule.presentValue > @First(cash.rows.value) ? "At this rate, the annuity is worth MORE today than the cash option." : "At this rate, the cash option is worth MORE today than the annuity.", "large-heavy")])
+tasks = GuidedTasks([t1, t2, t3])
+t1 = GuidedTask("Slide down to 1% and read the verdict", $rate <= 1)
+t2 = GuidedTask("Slide up to 8% and read it again", $rate >= 8)
+t3 = GuidedTask("Now hunt for the rate where the verdict flips, in steps of 0.1%", $rate > 1 && $rate < 8)
