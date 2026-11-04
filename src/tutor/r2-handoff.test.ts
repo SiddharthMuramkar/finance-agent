@@ -1,7 +1,8 @@
 import { stringify } from "yaml";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
-import { OWNER_LEARNER_ID } from "@/db/schema";
+import { OWNER_LEARNER_ID, usageRows } from "@/db/schema";
+import { lastStepNumber, saveStepUsage, stepUsage } from "./usage";
 import type { Db } from "@/db/types";
 import { saveWidgetState } from "@/learner/widget-state";
 import { testDb } from "@/test/pglite";
@@ -67,6 +68,20 @@ describe("a step finished from a Widget by two renders at once", () => {
     const dividers = (await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item" && e.kind === "step");
     // One divider from the Next into the concept step, one from the finished step.
     expect(dividers).toHaveLength(2);
+  });
+});
+
+describe("a resumed turn's usage steps", () => {
+  it("number after the last saved step, not after a row count that a gap would make collide", async () => {
+    const db = await testDb();
+    const first = await turn(db, "Hi", "The story.");
+    const sessionId = sessionOf(first);
+    const [{ turnSeq }] = await db.select({ turnSeq: usageRows.turnSeq }).from(usageRows).limit(1);
+    // Steps 1 and 3 were saved (2 never was): two rows, but the next step is 4.
+    await saveStepUsage(db, sessionId, turnSeq + 1, "m", stepUsage("m", 1, undefined, [], 5, null), new Date());
+    await saveStepUsage(db, sessionId, turnSeq + 1, "m", stepUsage("m", 3, undefined, [], 5, null), new Date());
+    expect(await lastStepNumber(db, sessionId, turnSeq + 1)).toBe(3);
+    expect(await lastStepNumber(db, sessionId, turnSeq + 99)).toBe(0);
   });
 });
 

@@ -60,7 +60,7 @@ import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetRep
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
-import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
+import { lastStepNumber, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 
 /**
  * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
@@ -482,7 +482,7 @@ async function* runLockedTurn(
   let stepNo: number | undefined;
   let stepsReady = false;
   const saveStep = async (model: string, make: (n: number) => StepUsage) => {
-    stepNo ??= (await loadStepUsages(db, session.id, turnSeq)).length;
+    stepNo ??= await lastStepNumber(db, session.id, turnSeq);
     await saveStepUsage(db, session.id, turnSeq, model, make(++stepNo), now());
   };
   // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
