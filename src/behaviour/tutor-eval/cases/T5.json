@@ -1,0 +1,16 @@
+{
+  "id": "T5",
+  "title": "Ask me a question, let's get it over with, use widgets",
+  "source": "Percent Session, the frustrated Learner (TUTOR_SPEC section 7, T5)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": { "step": "concept", "check": 1, "replyKind": "quick_try" },
+  "message": "okay ask me a question this time, lets get it over with. use widgets",
+  "pass": [
+    { "kind": "maxWords", "value": 40 },
+    { "kind": "ackMaxWords", "value": 8 },
+    { "kind": "oneAsk" },
+    { "kind": "widget", "mode": "practice" }
+  ],
+  "notes": "Pass when: 40 words or fewer. Acknowledgement 8 words or fewer. One question. A practice-mode widget."
+}

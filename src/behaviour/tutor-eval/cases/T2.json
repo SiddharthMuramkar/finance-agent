@@ -1,0 +1,21 @@
+{
+  "id": "T2",
+  "title": "After 0 of 3: start from the beginning",
+  "source": "Percent Session, after the first Check 1 attempt scored 0 of 3 (TUTOR_SPEC section 7, T2)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "check",
+    "check": 1,
+    "quiz": { "state": "missed", "correct": 0, "questions": ["pb-q-bp-definition", "pb-q-wrong-description", "pb-q-bond-140"] },
+    "replyKind": "worked_example"
+  },
+  "message": "i dont know any of this stuff. start from the beginning and explain it to a complete beginner",
+  "pass": [{ "kind": "oneAsk" }],
+  "graderChecks": [
+    "Does it teach the first idea only (points: the new rate minus the old rate), leaving basis points and percent change for later?",
+    "Does it give exactly one worked example?",
+    "Does it use no second analogy?"
+  ],
+  "notes": "Pass when: teaches the first idea only (points). One worked example. One ask. No second analogy."
+}

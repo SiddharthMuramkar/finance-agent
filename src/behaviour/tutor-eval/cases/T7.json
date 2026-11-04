@@ -1,0 +1,22 @@
+{
+  "id": "T7",
+  "title": "Same Skill missed 3 times: offer to park",
+  "source": "Percent Session, the six points-to-basis-points misses (TUTOR_SPEC section 7, T7)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1,
+    "skills": [{ "skill": "pts_to_bp", "answers": ["wrong", "wrong"], "methodsUsed": ["restate", "worked"] }],
+    "history": [{ "learner": "another one please", "tutor": "A rate rises from 2% to 2.6%. How many basis points did it rise?" }],
+    "replyKind": "offer_park"
+  },
+  "message": "6",
+  "answer": { "skill": "pts_to_bp", "verdict": "wrong" },
+  "pass": [{ "kind": "maxWords", "value": 40 }, { "kind": "parkOffer" }],
+  "graderChecks": [
+    "Does it offer two clear choices: park this for review tomorrow, or one more short try?",
+    "Does it give no new long explanation?"
+  ],
+  "notes": "Pass when: move is offer_park. 40 words or fewer. Two clear choices. No new long explanation. The Learner's 6 (for 60) is the third miss in a row. Replies have no move field (spec #229), so code sees the offer as a park offer item, or as both choices named in the reply."
+}
