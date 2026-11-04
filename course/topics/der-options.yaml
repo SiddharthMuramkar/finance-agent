@@ -118,7 +118,7 @@ questions:
 
   - id: op-q-replicate-put
     prompt: >
-      An investor wants to copy a put on a share portfolio by trading, not by buying a put. As the market falls, what does the strategy tell the investor to do?
+      An investor wants to copy a put on a share portfolio by trading rather than by buying a put. As the market falls, what does the strategy tell the investor to do?
     choices:
       - { id: a, text: "Sell shares (or index futures), reducing exposure as prices fall" }
       - { id: b, text: "Buy more shares as prices fall" }
