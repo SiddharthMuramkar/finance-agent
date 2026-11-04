@@ -1467,9 +1467,9 @@ describe("Learner Profile in the Tutor Turn", () => {
     expect(requests[2].messages.filter((m) => m.role === "system")).toHaveLength(1);
   });
 
-  it("the instructions say the profile is for examples only, never advice", () => {
+  it("the instructions say the profile is used only when the Learner asks how an idea applies to them, never as advice", () => {
     expect(TUTOR_INSTRUCTIONS).toMatch(/Learner Profile/);
-    expect(TUTOR_INSTRUCTIONS).toMatch(/only to choose everyday examples/);
+    expect(TUTOR_INSTRUCTIONS).toMatch(/only when the Learner asks how an idea applies to them/);
     expect(TUTOR_INSTRUCTIONS).toMatch(/never advice/i);
   });
 });
