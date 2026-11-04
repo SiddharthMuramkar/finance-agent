@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CONVERTED_TOPIC_DATA, topicFileOf } from "./lesson-fixture";
 import { parseCourseMap } from "./map";
-import { courseOverview, navigate, nextOffer, takeNext, type Progress } from "./navigator";
+import { courseOverview, finishFromPractice, navigate, nextOffer, takeNext, type Progress } from "./navigator";
 
 function loaded() {
   const { map, errors } = parseCourseMap([topicFileOf(CONVERTED_TOPIC_DATA)]);
@@ -48,5 +48,13 @@ describe("parked Skills hold the Learner's place", () => {
     const [row] = courseOverview(map, at("your_turn"), { "pct-demo": { pts: until, "bp-to-pts": later } });
     expect(row.parkedUntil).toEqual(later);
     expect(courseOverview(map, at("your_turn"))[0].parkedUntil).toBeNull();
+  });
+});
+
+describe("Your turn while parked", () => {
+  it("cannot finish, even when every Skill is fluent", () => {
+    const map = loaded();
+    expect(finishFromPractice(map, at("your_turn"), true)).toMatchObject({ ok: true });
+    expect(finishFromPractice(map, at("your_turn"), true, { "pct-demo": { "bp-to-pts": until } })).toMatchObject({ ok: false });
   });
 });
