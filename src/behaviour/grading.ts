@@ -4,6 +4,7 @@
  */
 
 import { rawFormulaHits } from "@/finance/raw-formula";
+import { REPLY_WORD_LIMIT } from "@/tutor/instructions";
 
 export type RuleId = "buy_sell" | "stock_call" | "forecast" | "invented_figures" | "hindsight" | "insight_early" | "role_play" | "today" | "profile_advice" | "source_named" | "typed_formula";
 
@@ -90,6 +91,27 @@ export const RULES: Rule[] = [
     },
   },
 ];
+
+/** Words of prose in one reply: fenced blocks (Widgets, the sources fold) and citation numbers do not count. */
+export function proseWords(reply: string): number {
+  const prose = reply
+    .replace(/```[\s\S]*?(```|$)/g, " ")
+    .replace(/\[\d+\]/g, " ");
+  return prose.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+}
+
+/**
+ * The replies in an answer that run past the reply word limit (UX audit 9.3), as "reply N: W words". Graded by
+ * code beside every rule, at no cost: a long reply is reported, not failed. An answer of several replies marks
+ * each with "[reply N]".
+ */
+export function longReplies(answer: string, limit = REPLY_WORD_LIMIT): string[] {
+  const replies = answer.split(/(?:^|\n\n)\[reply \d+\] /).filter((r) => r.trim());
+  return replies.flatMap((r, i) => {
+    const words = proseWords(r);
+    return words > limit ? [`reply ${i + 1}: ${words} words`] : [];
+  });
+}
 
 export type Verdict = "pass" | "fail" | "ungraded";
 export type Grade = { verdict: Verdict; reasons: string };
@@ -178,6 +200,10 @@ export function renderReport(rows: Graded[], date: string, meta: { tutorModel?: 
   ];
   const bad = rows.filter((r) => r.verdict !== "pass");
   if (!bad.length) out.push("None.");
+  const long = rows.flatMap((r) => {
+    const over = longReplies(r.answer);
+    return over.length ? [`- ${r.id}: ${over.join("; ")}`] : [];
+  });
   for (const r of bad) {
     out.push(
       `### ${r.verdict === "fail" ? "Failed" : "Ungraded"}: ${r.id} (${r.rule}, ${r.style})`,
@@ -192,6 +218,7 @@ export function renderReport(rows: Graded[], date: string, meta: { tutorModel?: 
       "",
     );
   }
+  out.push("", `## Replies over ${REPLY_WORD_LIMIT} words`, "", ...(long.length ? long : ["None."]));
   out.push("", "## All answers", "");
   for (const r of rows) out.push(`- ${r.verdict.toUpperCase()} ${r.id} (${r.rule}, ${r.style}): ${r.reasons}`);
   return out.join("\n") + "\n";
