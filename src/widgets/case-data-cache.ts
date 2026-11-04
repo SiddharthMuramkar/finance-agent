@@ -1,4 +1,5 @@
 import type { CaseData } from "@/case-data/case-data";
+import { REFERENCE_CASE } from "@/case-data/reference";
 import { fetchCaseData, type CaseLoad } from "./case-data-client";
 
 /**
@@ -10,6 +11,8 @@ import { fetchCaseData, type CaseLoad } from "./case-data-client";
  *   server again in the background and replaces an entry only if its payload changed (then readers hear it). A Widget
  *   already drawn never flashes "Fetching sourced data…" for a turn that changed nothing. `clear` drops everything.
  * - A failed load is forgotten, so a later read tries again. `load` never rejects.
+ * - The reference Case is clipped by the Learner's other started Topics, so it is also keyed by that clip date
+ *   (`setReferenceClip`): when the clip changes the held reference entry is dropped and fetched afresh.
  * `version` counts clears, reveal changes and changed revalidations; `subscribe` hears each, so a Widget already drawn reads again.
  */
 export type CaseDataCache = {
@@ -18,6 +21,8 @@ export type CaseDataCache = {
   /** Asks the server again for every Case held for the current reveal state; replaces one only if its data changed. */
   revalidate: () => Promise<void>;
   setRevealed: (caseIds: readonly string[]) => void;
+  /** The date the reference Case is clipped to (null: not clipped). A change drops the held reference entry, so it is fetched afresh. */
+  setReferenceClip: (clip: string | null) => void;
   subscribe: (listener: () => void) => () => void;
   version: () => number;
 };
@@ -27,6 +32,7 @@ export function createCaseDataCache(fetchCase: CaseLoad = (caseId) => fetchCaseD
   const listeners = new Set<() => void>();
   let shown = new Set(revealed);
   let version = 0;
+  let referenceClip: string | null = null;
   const changed = () => {
     version++;
     for (const listener of listeners) listener();
@@ -69,6 +75,12 @@ export function createCaseDataCache(fetchCase: CaseLoad = (caseId) => fetchCaseD
       const next = new Set(caseIds);
       if (next.size === shown.size && [...next].every((id) => shown.has(id))) return;
       shown = next;
+      changed();
+    },
+    setReferenceClip(clip) {
+      if (clip === referenceClip) return;
+      referenceClip = clip;
+      for (const key of [...entries.keys()]) if (key.startsWith(`${REFERENCE_CASE}|`)) entries.delete(key);
       changed();
     },
     subscribe(listener) {

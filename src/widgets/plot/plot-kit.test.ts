@@ -115,3 +115,17 @@ describe("the sticky domain", () => {
     expect(domainOf(growSeen(null, 0, [3300, 4467], false)).min).toBeGreaterThan(0);
   });
 });
+
+describe("domainOf with all-zero data", () => {
+  it("starts at 0 with no negative ticks", () => {
+    const d = domainOf(growSeen(null, 0, [0, 0], true));
+    expect(d.min).toBe(0);
+    expect(d.max).toBe(1);
+    expect(d.ticks.every((t) => t >= 0)).toBe(true);
+  });
+  it("pads a single non-zero value as before", () => {
+    const d = domainOf(growSeen(null, 0, [5], false));
+    expect(d.min).toBeLessThanOrEqual(5);
+    expect(d.max).toBeGreaterThanOrEqual(5);
+  });
+});

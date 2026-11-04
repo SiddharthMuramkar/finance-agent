@@ -63,7 +63,7 @@ youllLearn:
 questions:
   - id: bf-q-herding
     prompt: >
-      Investors buy a stock mainly because many others are buying it, and not because of their own analysis. What is this behaviour called?
+      Investors buy a stock mainly because many others are buying it, rather than because of their own analysis. What is this behaviour called?
     choices:
       - { id: a, text: "Herding" }
       - { id: b, text: "Diversification" }
@@ -91,7 +91,7 @@ questions:
 
   - id: bf-q-extrapolation
     prompt: >
-      A stock rose 60% last year while its earnings forecasts did not change. Many investors buy it expecting another 60%. Which bias best describes this?
+      A stock rose 60% last year while its earnings forecasts stayed the same. Many investors buy it expecting another 60%. Which bias best describes this?
     choices:
       - { id: a, text: "Extrapolating recent returns" }
       - { id: b, text: "Loss aversion" }

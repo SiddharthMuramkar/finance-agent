@@ -13,7 +13,7 @@
     "layout:check": "node scripts/layout-check.mjs",
     "course:check":"node scripts/check-course.mjs",
     "course:doc": "node scripts/check-course.mjs --write",
-    "check": "npm run typecheck && npm run lint && npm run course:check && npm run test",
+    "check": "npm run typecheck && npm run lint && npm run course:check && npm run test && node scripts/check-theme-contrast.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate",
     "case-data:import": "node --env-file=.env scripts/import-case-data.mjs",
@@ -33,6 +33,8 @@
     "library:score": "node --env-file=.env scripts/library-score.mjs",
     "behaviour": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.behaviour.config.ts",
     "tutor:eval": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.tutor-eval.config.ts",
+    "tutor:sweep": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.tutor-sweep.config.ts src/behaviour/tutor-eval/sweep.live.ts",
+    "tutor:replay": "node scripts/tutor-replay.mjs",
     "compare:models": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.comparison.config.ts src/comparison/run.live.ts",
     "compare:rules": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.comparison.config.ts src/comparison/run-rules.live.ts"
   },

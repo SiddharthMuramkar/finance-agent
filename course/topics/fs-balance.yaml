@@ -119,7 +119,7 @@ questions:
 
   - id: fb-q-missing-assets
     prompt: >
-      A company reports assets of 8,000 and liabilities of 3,500. It then turns out that 900 of the assets do not exist, and the liabilities are correct. What is its true equity?
+      A company reports assets of 8,000 and liabilities of 3,500. It then turns out that 900 of the assets turn out to be fictitious, and the liabilities are correct. What is its true equity?
     choices:
       - { id: a, text: "4,500" }
       - { id: b, text: "3,600" }

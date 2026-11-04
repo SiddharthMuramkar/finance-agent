@@ -24,13 +24,13 @@ const planned = parseOutline(readOutlineText());
 if (!planned.outline) fail("Course Map outline is invalid", planned.errors);
 const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
 if (!map) fail("Course Map is invalid", errors);
-const typed = formulaCheckErrors(map.topics);
-if (typed.length) fail("Typed formulas in the Course Map (ADR 0002)", typed);
-
 // The lesson lint, with written-ahead presets only: recipe presets need the recipes, which plain Node cannot load, so
 // src/course/lesson-presets.test.ts checks those under vitest (part of npm run check).
 const lesson = lessonLintErrors(map.topics);
 if (lesson.length) fail("Lesson lint for converted Topics (spec #229, ADR 0006)", lesson);
+
+const typed = formulaCheckErrors(map.topics);
+if (typed.length) fail("Typed formulas in the Course Map (ADR 0002)", typed);
 
 const writtenAhead = writtenAheadCheckErrors(map.topics);
 if (writtenAhead.length) fail("Written-ahead Widgets that cannot be drawn or worked", writtenAhead);

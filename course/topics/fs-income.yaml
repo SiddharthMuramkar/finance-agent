@@ -111,12 +111,12 @@ questions:
 
   - id: fi-q-not-on-statement
     prompt: >
-      Which of these items belongs on the balance sheet, not on the income statement?
+      Which statement about where these items are reported is true?
     choices:
-      - { id: a, text: "Revenue for the half-year" }
-      - { id: b, text: "Interest expense for the half-year" }
-      - { id: c, text: "Cash on hand at the end of the half-year" }
-      - { id: d, text: "Income tax for the half-year" }
+      - { id: a, text: "Revenue for the half-year belongs on the balance sheet" }
+      - { id: b, text: "Interest expense for the half-year belongs on the balance sheet" }
+      - { id: c, text: "Cash on hand at the end of the half-year belongs on the balance sheet" }
+      - { id: d, text: "Income tax for the half-year belongs on the balance sheet" }
     answer: c
     explanation: >
       The income statement covers a period and holds revenue, expenses and profit. A balance at a date, such as cash on hand, belongs on the balance sheet.

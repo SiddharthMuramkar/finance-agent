@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { CaseDataset } from "@/case-data/case-data";
-import { AnnuityFigure, HistoryFigure } from "./case-data-view";
+import { AnnuityFigure, formatUsd, HistoryFigure } from "./case-data-view";
 import { pointSizes } from "./history-plot";
 
 const yields: CaseDataset = {
@@ -243,5 +243,17 @@ describe("every chart our own parts draw can be read", () => {
     expect(texts(html, "history-x-label")).toContain("2018-10-22");
     expect(html).toMatch(/tabindex="0"[^>]*aria-label="2018-10-22: 3\.\d\d%"/);
     expect(html).toContain("Hover over or tap the chart to read a value.");
+  });
+});
+
+describe("formatUsd", () => {
+  it("puts the minus before the $", () => {
+    expect(formatUsd(-2e9).startsWith("-$2")).toBe(true);
+    expect(formatUsd(-2e9).endsWith("billion")).toBe(true);
+    expect(formatUsd(-500)).toBe("-$500");
+  });
+  it("moves to billions when millions round to 1000", () => {
+    expect(formatUsd(999_960_000)).toContain("billion");
+    expect(formatUsd(877_800_000)).toBe("$877.8 million");
   });
 });
