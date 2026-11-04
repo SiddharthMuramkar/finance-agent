@@ -73,7 +73,7 @@ async function replayOne(c: LiveCase, deps: ReplayDeps, map: CourseMap): Promise
     let text = "";
     let done: { sessionId: number; turnSeq: number } | null = null;
     const troubles: string[] = [];
-    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c), map, learnerId: p.learnerId }, c.message)) {
+    for await (const e of runTutorTurn({ db, client: deps.tutorClient(c), map, learnerId: p.learnerId, checkReplies: false }, c.message)) {
       if (e.type === "text") text += e.text;
       if (e.type === "replay") text = e.text;
       if (e.type === "done") {

@@ -124,6 +124,7 @@ describe("widget instructions", () => {
     // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
     // Spec #229 (ticket #238) grew the teaching rules before the Widget text on purpose. This bound is about the Widget
     // language, so it counts the rules at the 11,194 characters they had when it was set.
+    // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
     expect(TUTOR_INSTRUCTIONS.endsWith(frozen.instructions)).toBe(true);
     expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250);
   });
