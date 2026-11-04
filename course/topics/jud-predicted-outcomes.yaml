@@ -146,14 +146,12 @@ questions:
       Arithmetic on the numbers in the question (target less amount booked, divided by months left).
   - id: jud-po-q-run-rate
     prompt: >
-      A start-up's best month so far brought in $0.9 billion of revenue, and it says its
-      "annualised revenue" is $10.8 billion. A writer then says it "has made $10.8 billion this
-      year". What is wrong with the writer's sentence?
+      A start-up's best month so far brought in $0.9 billion of revenue, and it says its "annualised revenue" is $10.8 billion. A writer then says it "has made $10.8 billion this year". Which statement about the writer's sentence is true?
     choices:
-      - { id: a, text: "$10.8 billion is the latest month times twelve, a rate; revenue booked this year is lower" }
+      - { id: a, text: "$10.8 billion is the best month times twelve, a rate; revenue booked this year is lower" }
       - { id: b, text: "Annualised revenue is always smaller than revenue booked this year" }
-      - { id: c, text: "Nothing is wrong, annualised revenue is the same as revenue for the year" }
-      - { id: d, text: "The monthly figure should have been multiplied by 52" }
+      - { id: c, text: "The sentence is fine: annualised revenue is the same as revenue for the year" }
+      - { id: d, text: "A monthly figure is annualised by multiplying it by 52" }
     answer: a
     explanation: >
       An annualised figure here is 0.9 x 12 = 10.8: a month turned into a yearly rate. It says what
