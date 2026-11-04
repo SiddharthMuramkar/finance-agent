@@ -28,6 +28,13 @@ describe("the saved rule in the reply check", () => {
   });
 });
 
+describe("the Learner's own words in the reply check", () => {
+  it("are exempt from V7 (a dollar sign in a rupee Topic) and V6 (an app word), since the Tutor cannot change them", () => {
+    const judged = judgeReply(OK, [], facts, { engine: true, savedRule: "I think $50 grows, and the Check tab helps" });
+    expect(judged.problems.filter((p) => p.rule === "V6" || p.rule === "V7")).toEqual([]);
+  });
+});
+
 describe("the Widget check in the reply check", () => {
   it("fails V4 for a fence in an engine Session", () => {
     const judged = judgeReply(`${OK}\n${FENCE}`, [], facts, { engine: true, writtenAhead: [] });

@@ -314,11 +314,12 @@ export function checkReply(draft: ReplyDraft, ctx: ReplyCheckContext): ReplyProb
   }
 
   // V6: no app words.
-  const appWords = appWordsIn(withRule, ctx.internalWords);
+  // The saved rule is the Learner's own typed words, not the Tutor's, so V6 and V7 read the Tutor's text only; V5 still reads both.
+  const appWords = appWordsIn(said, ctx.internalWords);
   if (appWords.length) problems.push({ rule: "V6", message: `Remove the app words ${quoteList(appWords)}. Write only about the finance.` });
 
   // V7: the right currency for made-up examples and Widgets.
-  const wrong = wrongCurrencies(withRule, draft.widgets, ctx);
+  const wrong = wrongCurrencies(said, draft.widgets, ctx);
   if (wrong.length)
     problems.push({
       rule: "V7",

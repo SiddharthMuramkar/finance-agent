@@ -385,11 +385,11 @@ export function toolCode(
    * An open quiz keeps its numbers from the Widgets the Tutor sets (V5 of the reply checks, spec #229): the same rule the
    * reply check uses, so the tool and the check never disagree. The problems are in words; none when no quiz is open.
    */
-  async function openQuizProblems(tx: Db, w: ReplyWidget): Promise<string[]> {
+  async function openQuizProblems(tx: Db, w: ReplyWidget | null, savedRule: string | null = null): Promise<string[]> {
     const place = navigate(map, await loadProgress(tx, learnerId));
     const facts = await turnFacts(tx, map, learnerId, place);
     if (!facts.openItems.length) return [];
-    return checkReply({ text: "", widgets: [w] }, replyCheckContext(facts))
+    return checkReply({ text: "", widgets: w ? [w] : [], savedRule }, replyCheckContext(facts))
       .filter((p) => p.rule === "V5")
       .map((p) => p.message);
   }
@@ -616,6 +616,8 @@ export function toolCode(
           const words = exactWords(message, learner_words);
           if (!words) return { ok: false, text: "Not saved: those words are not in the Learner's message this turn. Copy their rule exactly as they typed it." };
           if (words.length > MAX_RULE_LENGTH) return { ok: false, text: `Not saved: a saved rule is at most ${MAX_RULE_LENGTH} characters. Copy only the sentence that states the rule.` };
+          const leak = await openQuizProblems(tx, null, words);
+          if (leak.length) return { ok: false, text: "Not saved: that rule gives the answer to a question the Learner is still working on. Teach on without saving it, and do not repeat the answer." };
           const [row] = await tx.select({ topicId: sessions.topicId }).from(sessions).where(eq(sessions.id, turn.sessionId ?? -1));
           if (turn.sessionId == null || turn.turnSeq == null || !row?.topicId) return { ok: false, text: "Not saved: this turn has no Topic Session yet." };
           const topicId = row.topicId;
