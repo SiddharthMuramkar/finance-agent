@@ -325,8 +325,9 @@ async function studyChecks(browser, cookie) {
       await page.waitForFunction(
         () => {
           const last = [...document.querySelectorAll('[data-testid="assistant-message"]')].pop();
-          const send = [...document.querySelectorAll("button")].find((b) => /^send/i.test((b.getAttribute("aria-label") || b.textContent || "").trim()));
-          return Boolean(last && last.textContent.includes("Mocked reply.") && send && !send.disabled);
+          const buttons = [...document.querySelectorAll("button")].map((b) => (b.getAttribute("aria-label") || b.textContent || "").trim());
+          // Send is back and Stop is gone: the turn is over. (Send stays disabled while the box is empty.)
+          return Boolean(last && last.textContent.includes("Mocked reply.") && buttons.some((t) => /^send/i.test(t)) && !buttons.some((t) => /^stop/i.test(t)));
         },
         null,
         { timeout: 15_000 },
