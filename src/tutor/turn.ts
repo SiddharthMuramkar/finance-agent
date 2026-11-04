@@ -1019,6 +1019,8 @@ async function* runLockedTurn(
     stopped: stopReason === "stopped",
     rejectedSeqs: [...rejected].sort((a, b) => a - b),
     shownText: stopReason === "stopped" ? "" : await shownText(),
+    // The Reply kind code chose; a Learner's own typed message with none is an answer to their own question (spec #229).
+    replyKind: gateFacts.replyKind ?? (turnKind(turn) === "message" ? "answer_question" : null),
   };
   await saveReplyCheck(db, record);
 
