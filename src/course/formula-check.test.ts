@@ -47,10 +47,17 @@ describe("the typed-formula course check", () => {
       "template bp-from-move fix stopped_at_points",
       "question pct-demo-headline choice points fix",
       "running example",
+      "term basis point",
     ]) {
       expect(where).toContain(label);
     }
     expect(formulaCheckErrors([convertedTopic()], [])).toEqual([]);
+  });
+
+  it("fails a typed sum in a term's meaning", () => {
+    const t = convertedTopic();
+    t.terms[0].means = "Sum: 5 - 4 = 1 percentage point.";
+    expect(formulaCheckErrors([t], ["pct-demo"]).join("\n")).toContain(`term ${t.terms[0].term}`);
   });
 
   it("fails a typed sum in the new teaching texts even for a Topic on the not-yet-converted list", () => {
