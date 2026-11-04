@@ -10,7 +10,7 @@ export function WorkspaceFrame({ left, right }: { left: ReactNode; right: ReactN
   return (
     <div data-testid="workspace-frame" className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] gap-6 overflow-hidden lg:gap-8">
       {left}
-      <aside aria-label="Widget panel" data-testid="widget-pane" className="relative min-h-0 min-w-0 overflow-y-auto">
+      <aside aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll relative min-h-0 min-w-0 overflow-y-auto overflow-x-clip overscroll-contain [scrollbar-gutter:stable]">
         {right}
       </aside>
     </div>

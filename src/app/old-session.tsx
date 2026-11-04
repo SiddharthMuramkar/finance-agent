@@ -66,7 +66,7 @@ export function OldSession({
             Back to the workspace
           </Link>
         </div>
-        <aside aria-label="Widget panel" data-testid="widget-pane" className="sticky top-6 max-h-[min(100%,calc(100dvh-48px))] min-w-0 overflow-y-auto">
+        <aside aria-label="Widget panel" data-testid="widget-pane" className="quiet-scroll sticky top-6 max-h-[min(100%,calc(100dvh-48px))] min-w-0 overflow-y-auto overflow-x-clip overscroll-contain [scrollbar-gutter:stable]">
           <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} />
         </aside>
       </div>
