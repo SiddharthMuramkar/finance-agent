@@ -12,6 +12,8 @@ import type { StreamEvent } from "@/tutor/turn";
 import type { TurnBody } from "@/tutor/turn-body";
 import type { WidgetStates } from "@/widgets/widget-state";
 import type { SessionItemData } from "./session-item-view";
+import { track } from "./analytics";
+import { storeOf } from "./widget-states";
 import { convertMessage, withNextStepDividers, type Line, type ThreadLine } from "./thread";
 
 /** How an attached passage shows in the thread: a short label, as the saved transcript shows it. */
@@ -127,6 +129,8 @@ export function useTurnStream({
     setProgress(null);
     setWaiting("writing");
     // A slow turn never looks frozen: after 8 seconds with no words, the indicator says so.
+    const turnStart = performance.now();
+    let firstText = true;
     const slow = setTimeout(() => setWaiting((w) => (w === "writing" ? "slow" : w)), SLOW_AFTER_MS);
     onTurnStart();
     const stamp = Date.now();
@@ -243,6 +247,15 @@ export function useTurnStream({
             if ((event.type === "text" || event.type === "replay") && event.text) {
               setWaiting(null);
               setProgress(null);
+              if (firstText) {
+                firstText = false;
+                track("turn_first_text", { ms: Math.round(performance.now() - turnStart) });
+              }
+            }
+            // The Tutor updated a Widget: its sliders move in place; ticked Guided Tasks stay as they were.
+            if (event.type === "widget_state") {
+              storeOf(widgets)?.push(event.widgetKey, event.values);
+              continue;
             }
             // A ping only shows the stream is alive; a progress label replaces the indicator's words.
             if (event.type === "ping") continue;
