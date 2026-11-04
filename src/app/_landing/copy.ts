@@ -1,4 +1,5 @@
-// Every word on Home (the page at "/") lives here, so the owner can rewrite it in one place.
+// Every word of Home's own (the page at "/") lives here, so the owner can rewrite it in one place. The live Widget's
+// words (its title, slider, readouts and Sourced strip) come from its Topic file, course/topics/present-value.yaml.
 // Serious and grounded: finance taught through what already happened. No hype, no buy or sell, no forecasts.
 
 export const copy = {

@@ -26,7 +26,7 @@ import { AppHeader, SignedInFrame } from "../ui";
 // The Study Workspace, at /study. Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
 export const dynamic = "force-dynamic";
 
-// The frame, box and header both branches share.
+// The Study Workspace's frame, box and header, around its two columns.
 async function WorkspaceShell({ children }: { children: ReactNode }) {
   return (
     <SignedInFrame>

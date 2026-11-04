@@ -38,7 +38,7 @@ const buttonLabel = (b: HomeButton) =>
   b.kind === "open" ? copy.openStudyWorkspace : b.kind === "next" ? b.label : `${b.kind === "resume" ? copy.resume : copy.start} ${b.topic}`;
 
 /**
- * Home, at "/": counts only, no Learner data or Library text. With no `button` (signed out) the top bar and hero offer
+ * Home, at "/": counts and the Widget's Case Data (as of its Case's as-of date), no Learner data or Library text. With no `button` (signed out) the top bar and hero offer
  * Sign in; with one, the top bar links the Study Workspace beside Sign out and the hero button shows its label.
  * `widget` is Present value's live annuity Widget, drawn under the hero (with "Sign in to learn why →" when signed out).
  */
