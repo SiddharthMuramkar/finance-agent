@@ -1,6 +1,6 @@
 "use client";
 
-import { ComposerPrimitive } from "@assistant-ui/react";
+import { ComposerPrimitive, useAuiState } from "@assistant-ui/react";
 import type { Waiting } from "./turn-stream";
 import { Button, Spinner } from "./ui";
 
@@ -14,6 +14,18 @@ export function WritingIndicator({ waiting, label = null }: { waiting: Waiting; 
     <p className="mb-2 text-sm leading-5 text-[var(--muted)]" data-testid="writing-indicator">
       {label ?? (waiting === "slow" ? "Still working on it…" : "Tutor is writing…")}
     </p>
+  );
+}
+
+/** Send: its title says why it is off while the box is empty. */
+function SendButton() {
+  const empty = useAuiState((st) => st.composer.isEmpty);
+  return (
+    <ComposerPrimitive.Send asChild>
+      <Button variant="primary" title={empty ? "Type a message to send" : "Send (Enter)"}>
+        Send
+      </Button>
+    </ComposerPrimitive.Send>
   );
 }
 
@@ -89,11 +101,7 @@ export function MessageBox({
             {stopping ? "Stopping…" : "Stop"}
           </Button>
         ) : (
-          <ComposerPrimitive.Send asChild>
-            <Button variant="primary" title="Send (Enter)">
-              Send
-            </Button>
-          </ComposerPrimitive.Send>
+          <SendButton />
         )}
       </ComposerPrimitive.Root>
     </div>
