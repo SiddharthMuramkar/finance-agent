@@ -13,7 +13,7 @@
     "layout:check": "node scripts/layout-check.mjs",
     "course:check":"node scripts/check-course.mjs",
     "course:doc": "node scripts/check-course.mjs --write",
-    "check": "npm run typecheck && npm run lint && npm run course:check && npm run test",
+    "check": "npm run typecheck && npm run lint && npm run course:check && npm run test && node scripts/check-theme-contrast.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env ./node_modules/drizzle-kit/bin.cjs migrate",
     "case-data:import": "node --env-file=.env scripts/import-case-data.mjs",
