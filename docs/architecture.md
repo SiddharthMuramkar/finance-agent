@@ -746,11 +746,17 @@ OpenUI's layered stylesheet, placed in a CSS layer (`openui`) above Tailwind's b
 its utilities, so our own classes still win. `GenuiTheme` wraps every Widget and maps the kit's theme
 onto our design tokens: the navy brand for accents, our ink and muted colours for text, our borders,
 plain or field-coloured surfaces, the page's own font, and our chart colours, which the kit hands out
-from the middle of the list (one series is navy; two are teal and amber; three are teal, navy and
-amber). It follows our
-dark-mode class on the page, not the computer's own setting, so a Widget always matches the rest of
-the page. Charts are SVG, whose colours cannot always read CSS variables, so the theme gives them the
-same colours as fixed hex values for each mode, copied from `globals.css`. Tabs open on their first
+from the middle of the list (one series is the brand colour; two are the learner's accent and the sourced-history
+accent; three are accent, brand and sourced). It follows the page's theme (`data-theme` on `<html>`, read by
+`useHtmlTheme`, which also redraws the charts when the theme changes), never the computer's own setting, so a
+Widget always matches the rest of the page: the kit's `mode` is that theme's kind (light or dark), and the kit's
+last fixed black-and-white colours (highlights, the inverted fill, the chat bubble) are mapped to ink and the
+bubble token. Charts are SVG, whose colours cannot always read CSS variables, so each of the four themes
+(Light, Paper, Midnight, Forest) has its own list of fixed hex values, copied from that theme's block in
+`globals.css`; Light's is unchanged, and a test fails if a hex drifts from the tokens file. *Scenario.* A Mac in
+Dark Mode with the app on Paper draws a cream card with Paper's blue and ochre bars, not the Mac's dark kit.
+*Trade-off.* The hex lists are a second copy of some colours, kept honest by the test, because SVG attributes
+cannot read a CSS variable on every browser. Tabs open on their first
 view and stay on the one the Learner picks: the browser draws Widgets with the same library and
 schema, but its own Tabs (`drawingLibrary` in `src/app/widget-view.tsx`), because OpenUI's jump to
 whichever tab's content last grew, so a chart-and-table Widget opened on its table as soon as the
