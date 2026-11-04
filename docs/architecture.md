@@ -663,6 +663,8 @@ ones.
   tabs, "Chart" (a line chart) and "Table" (dates and closes), over a thin amber "Sourced" strip with
   the ⓘ credit. The values are Case Data, fetched from the server under the as-of rule, so before
   the reveal nothing after the Case's as-of date, 31 March 1992, appears.
+  When the reveal lifts, the newly shown part of the line wipes in from left to right over about
+  700 ms (a clip on just that stretch); under reduced motion it simply appears.
 - *A picture of an idea.* The Learner asks "draw me the difference between percent and percentage
   points". The Tutor builds a clearly made-up example, a rate moving from 5% to 5.5%, as bars plus a
   callout whose numbers the Widget works out: 50 basis points, and a rise of 10% of the old rate. The

@@ -124,7 +124,7 @@ describe("widget instructions", () => {
     // Spec #229 (ticket #238) grew the teaching rules before the Widget text on purpose. This bound is about the Widget
     // language, so it counts the rules at the 11,194 characters they had when it was set.
     expect(TUTOR_INSTRUCTIONS.endsWith(frozen.instructions)).toBe(true);
-    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250); // + 250: RateMove (ticket #234), about 240 characters of part lists
+    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250);
   });
 
   it("group every part of the library, so none is listed under Other", () => {
