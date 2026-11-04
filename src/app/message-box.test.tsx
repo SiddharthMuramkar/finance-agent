@@ -9,7 +9,6 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }))
 
 // The message box and what shows around it while a turn runs (Seam 2: static markup from given turn state).
 
-const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 type Given = Partial<Omit<TurnStream, "runtime">>;
@@ -41,7 +40,7 @@ function Column({ given }: { given: Given }) {
   };
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <LeftColumn turn={turn} slot={() => null} place={null} review={noReview} quizOpen={false} explore={null} next={NEXT} />
+      <LeftColumn turn={turn} slot={() => null} quizOpen={false} next={NEXT} />
     </AssistantRuntimeProvider>
   );
 }

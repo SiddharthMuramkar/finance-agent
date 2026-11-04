@@ -11,6 +11,7 @@ import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { InsightSettledContext } from "@/widgets/insight-settled";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { LeftColumn } from "./left-column";
+import { TopicHeader } from "./topic-header";
 import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
@@ -26,6 +27,7 @@ export type { Line, PendingTurn };
  * - turn streaming and its state (`useTurnStream`, turn-stream.ts);
  * - the Widget panel host (`useWidgetHost` and `WidgetHost`, widget-host.tsx);
  * - the left column with the thread and the message box (`LeftColumn`, left-column.tsx; message-box.tsx);
+ * - the Topic bar, pinned explore Widget and review at the top of the right column (`TopicHeader`, topic-header.tsx);
  * - the frame and layout (`WorkspaceFrame`, workspace-frame.tsx);
  * - the page's shared Case Data cache (`CaseDataProvider`, widgets/case-data-provider.tsx).
  * Replies stream in through assistant-ui's external-store runtime; widget blocks are pulled out of the
@@ -120,7 +122,8 @@ export function Conversation({
             {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
             <WidgetReportContext.Provider value={passed ? null : report}>
               <WorkspaceFrame
-                left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
+                left={<LeftColumn turn={turn} slot={host.slot} quizOpen={!!quiz} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
+                top={<TopicHeader turn={turn} strip={strip} place={place} review={review} explore={explore} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
             </WidgetReportContext.Provider>

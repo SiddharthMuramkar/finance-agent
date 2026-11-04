@@ -2,38 +2,30 @@
 
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { useEffect, useState } from "react";
-import type { ReviewState } from "@/learner/review";
 import { useAnnounce } from "./announcer";
 import { WhatComesNextButton } from "./course/jump-button";
 import { MessageBox } from "./message-box";
 import type { WidgetSlot } from "./reply-markdown";
-import { ReviewPanel } from "./review-panel";
 import { ThreadMessages } from "./thread";
 import type { TurnStream } from "./turn-stream";
 import { SecondaryButton } from "./ui";
-import { exploreItem, PinnedExplore } from "./widget-panel";
-import { Chips, TopicBar, type PassedTopic, type Place } from "./workspace-parts";
-import type { NextOffer, StepSequence } from "@/course/navigator";
+import { Chips, type PassedTopic } from "./workspace-parts";
+import type { NextOffer } from "@/course/navigator";
 import type { NextName } from "@/tutor/next";
 import { TOPIC_START } from "@/course/topic-start";
-import { STEP_DIVIDER } from "@/tutor/session-item-kinds";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 
 /**
- * The Study Workspace's left column, top to bottom: the Topic bar, the pinned explore Widget, the folded
- * review, the thread with the Next and help chips under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
+ * The Study Workspace's left column, top to bottom: the thread with the Next and help chips under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
  * itself is in the right panel's Check tab), and the message box with the writing indicator and Attach a passage.
  * A Topic passed in a turn stays on screen with no message box: What comes next and the Course Map instead.
+ * The Topic bar, the pinned explore Widget and the folded review stand at the top of the right column instead (TopicHeader).
  * It shows the turn stream's state and starts turns through it; Widget chips come from the Widget host's `slot`.
  */
 export function LeftColumn({
   turn,
   slot,
-  strip = null,
-  place,
-  review,
   quizOpen,
-  explore,
   passed = null,
   next = null,
   openQuestion = null,
@@ -42,12 +34,7 @@ export function LeftColumn({
   next?: NextOffer | null;
   turn: TurnStream;
   slot: WidgetSlot;
-  /** The shown Topic's step sequence (Course Navigator), drawn as the Topic bar's strip. */
-  strip?: StepSequence | null;
-  place: Place;
-  review: ReviewState;
   quizOpen: boolean;
-  explore: { code: string; id: string } | null;
   passed?: PassedTopic;
   /** The question the Tutor has put to the Learner and is waiting on (the Insight question): a slim line pinned above the message box. */
   openQuestion?: string | null;
@@ -79,16 +66,8 @@ export function LeftColumn({
   const chips = !passed && latest && latest.role !== "user" && !opening && !canRetry && ((!running && !refreshing) || nextTurn);
   // The passed Topic's conversation ends at its Topic complete card, which offers where to go next.
   const carded = messages.some((m) => m.role === "item" && m.kind === TOPIC_COMPLETE);
-  // The steps whose divider ("step" items) is in the thread: the strip scrolls back to those.
-  const marked = new Set(messages.flatMap((m) => (m.role === "item" && m.kind === STEP_DIVIDER && typeof m.data.number === "number" ? [m.data.number] : [])));
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
-      {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a pinned Widget, a Review) can squeeze the chat. */}
-      <div data-testid="above-thread" className="relative mb-6 flex max-h-[40%] shrink-0 flex-col gap-3 overflow-y-auto">
-        {place && <TopicBar title={place.title} goal={place.goal} strip={strip} marked={marked} />}
-        {explore && <PinnedExplore item={exploreItem(explore.code, undefined, explore.id)} />}
-        <ReviewPanel review={review} />
-      </div>
       <ThreadPrimitive.Viewport data-testid="thread-viewport" className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain pb-6 [scrollbar-gutter:stable]">
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />
