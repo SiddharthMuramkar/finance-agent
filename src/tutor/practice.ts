@@ -15,7 +15,7 @@ import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { widgetKey } from "@/widgets/widget-state";
 import { cardText } from "./context";
-import { ladderAction, reteachNote } from "./ladder-moves";
+import { ladderAction, reteachNote, rungKind, type RungKind } from "./ladder-moves";
 import { backAt, PARK_DRILL, PARK_OFFER, PARK_OFFER_LINE, PARKED, parkedLine, practiceTitle, type ParkDrillData, type ParkedData, type ParkOfferData } from "./park-items";
 import { liveSession } from "./session-log";
 import { loadSessionItems, saveItemAfterLatest, stepDivider, type StoredItem } from "./session-items";
@@ -873,7 +873,7 @@ export async function frustrationEvents(db: Db, learnerId: number, sessionId: nu
 }
 
 /** What the ladder tells the Tutor this turn, through TurnFacts and the context. */
-export type LadderFacts = { replyKind?: "feedback" | "reteach" | "offer_park"; method?: string; frustration?: number; skillLines: string[]; parked?: string };
+export type LadderFacts = { replyKind?: "feedback" | "offer_park" | RungKind; method?: string; frustration?: number; skillLines: string[]; parked?: string };
 
 const METHOD_NAMES: Record<Method, string> = { restate: "restate the rule", worked: "a worked example", boxes: "fill-in boxes", widget: "the Widget in practice mode", drill5: "a drill of five" };
 
@@ -895,7 +895,7 @@ export async function ladderFacts(db: Db, map: CourseMap, learnerId: number, bar
   const method = methodInNote(learnerText);
   if (method) {
     out.method = METHOD_NAMES[method];
-    if (method !== "drill5") out.replyKind = "reteach";
+    out.replyKind = rungKind(method);
   } else if (learnerText && isCodeWritten(learnerText) && /Reply kind: feedback\b/.test(learnerText)) out.replyKind = "feedback";
   if (!bare) return out;
   const converted = isConverted(bare.topic);

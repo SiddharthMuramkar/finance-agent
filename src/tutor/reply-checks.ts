@@ -15,6 +15,8 @@ export type ReplyKind =
   | "worked_example"
   | "quick_try"
   | "reteach"
+  /** The ladder's drill rung: five short tries code posts; the reply is one sentence and one ask (the short cap). */
+  | "drill"
   | "hint"
   | "answer_question"
   | "offer_park"

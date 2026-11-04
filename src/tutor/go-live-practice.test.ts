@@ -8,9 +8,12 @@ import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { recordAnswer } from "@/learner/skill-state";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
+import { reteachNote } from "./ladder-moves";
 import { enterStepItems } from "./practice";
 import { QUICK_TRY, STEP_DIVIDER } from "./session-item-kinds";
 import { runTutorTurn } from "./turn";
+import { turnFacts } from "./turn-facts";
+import { QUICK_TRY_FOLLOW_UP_PREFIX } from "./turn-status";
 
 /**
  * Seam: Your turn at a converted Check (ticket #248, go-live fixes). Entering Your turn never leaves the Learner with no
@@ -69,5 +72,28 @@ describe("entering a converted Your turn", () => {
     await makeFluent(db2, "bp-to-pts");
     for (const step of ["story", "concept"] as const) await saveFinishedStep(db2, map, step, now(), me);
     expect((await enterStepItems(db2, map, me, session2, now())).map((i) => i.kind)).toEqual([STEP_DIVIDER]);
+  });
+});
+
+describe("the Reply kind of a re-teach rung", () => {
+  async function factsFor(method: "worked" | "drill5" | "restate") {
+    const map = mapOf(CONVERTED_TOPIC_DATA);
+    const db = await testDb();
+    await started(db, map);
+    for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, now(), me);
+    const note = `${QUICK_TRY_FOLLOW_UP_PREFIX} the Learner missed a Quick try on the same idea twice in a row:\n${reteachNote(method)}`;
+    return turnFacts(db, map, me, navigate(map, await loadProgress(db, me)), { learnerText: note });
+  }
+
+  it("sends the worked-example rung as a worked example, held to 120 words", async () => {
+    expect(await factsFor("worked")).toMatchObject({ step: "your_turn", replyKind: "worked_example", cap: 120 });
+  });
+
+  it("sends the drill rung as Reply kind drill, held to the short cap", async () => {
+    expect(await factsFor("drill5")).toMatchObject({ replyKind: "drill", cap: 80 });
+  });
+
+  it("keeps restate as a re-teach at the short cap", async () => {
+    expect(await factsFor("restate")).toMatchObject({ replyKind: "reteach", cap: 80 });
   });
 });
