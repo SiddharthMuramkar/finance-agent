@@ -1672,7 +1672,10 @@ design tokens; the first two sit under the app header, Login (signed out) has no
 - **Turn kinds.** A turn records its kind (`turnKind`): a code-written turn saves its note, with its
   fixed prefix, as the turn's input, so "opener" (and, since the Learner's Next, "next", and since Tell the
   Tutor what I found, "widget_report") is read off the turn row and a Retry sends the same note again. Every
-  other turn is a "message" (or a "chip").
+  other turn is a "message" (or a "chip"). On the wire, `src/tutor/turn-body.ts` is the one list of kinds:
+  `/api/turn` parses the body with its zod union (one kind per request; a body naming two is refused
+  rather than silently picking one) and the browser's `TurnBody` is its type, so a new kind is one entry
+  there plus its handler in the Tutor Turn.
 - **A Topic passed in a turn** (its Principle finished, or its last Due Check passed): the tool result
   tells the Tutor "Topic complete: stop here" and gives no context for another Topic, and the next
   Topic is not started. The Learner's current Topic moves on, but the shown Session stays: the

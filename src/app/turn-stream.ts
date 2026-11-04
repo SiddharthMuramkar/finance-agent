@@ -4,10 +4,10 @@ import { useExternalStoreRuntime, type AppendMessage } from "@assistant-ui/react
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { TOPIC_START } from "@/course/topic-start";
-import type { NextName } from "@/tutor/next";
 import { replaceBrokenWidgets, withoutLeftOut } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
 import type { TurnRef } from "@/tutor/transcript";
+import type { TurnBody } from "@/tutor/turn-body";
 import type { TurnUsage } from "@/tutor/usage";
 import type { WidgetStates } from "@/widgets/widget-state";
 import type { SessionItemData } from "./session-item-view";
@@ -28,19 +28,6 @@ export function pastePreview(paste: string): string {
 
 /** The latest turn's saved status, as the page found it. */
 export type PendingTurn = { status: "running" | "cut_off" | "failed"; error: string | null } | null;
-/**
- * What a turn request carries: a message (with an optional pasted passage), Finish this reply (offered under a reply
- * cut off at its length limit), the opener, the Learner's Next (naming the step on its chip, or "complete"), a widget
- * report (Tell the Tutor what I found, naming the Widget's key), the quiz follow-up after a missed quiz, or a resume.
- */
-export type TurnBody =
-  | { message: string; paste?: string }
-  | { finish: true }
-  | { opener: true }
-  | { next: NextName }
-  | { widgetReport: string }
-  | { quizFollowUp: true }
-  | { resume: true };
 
 /** How long "Tutor is writing…" shows before it changes to "Still working on it…". */
 export const SLOW_AFTER_MS = 8000;
