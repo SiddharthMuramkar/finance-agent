@@ -4,8 +4,8 @@ import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { checkTabNow } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
-import { isConverted, loadCourseMap } from "./map";
-import { cardForFacts } from "@/tutor/practice";
+import { isConverted, loadCourseMap, testedSkills } from "./map";
+import { cardForFacts, nextQuickTry } from "@/tutor/practice";
 import { courseOverview, finishStep, navigate, practiceStep, type Progress, type TeachingStep } from "./navigator";
 
 // Percent's conversion is a content-only restructure (spec #229, "Restructured Topics"): the old Checks keep their ids,
@@ -61,6 +61,12 @@ describe("Percent's content-only restructure", () => {
     const place = navigate(map, inPercent("your_turn", []))!;
     expect(place).toMatchObject({ step: "your_turn", check: { id: "pb-quiz-language" } });
     expect(place.check!.quickTries.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("tests points at Check 1, so Your turn opens on points with its half-done try and every pts Quick try can be shown", () => {
+    const check = percent.checks[0];
+    expect(testedSkills(percent, check)).toContain("pts");
+    expect(nextQuickTry(percent, check, {}, [])).toMatchObject({ skillId: "pts", key: expect.stringMatching(/:pb-try-a1$/) });
   });
 
   it("keeps a Learner at the reveal with both old Checks passed at the reveal, though the new Check 2 is not passed", () => {

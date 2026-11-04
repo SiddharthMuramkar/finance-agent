@@ -72,6 +72,21 @@ cases:
 # Question templates: code draws the numbers and works out the answer. `avoid` keeps the Running example, the Quick
 # tries', the Check questions' and the Case's moves out of every draw.
 templates:
+  # Check 1 tests points too, so its three Quick tries on pts can be shown (review item 0; lesson lint L8).
+  - id: pb-t-points-from-move
+    skill: pts
+    ask: A rate moves from {a}% to {b}%. How many percentage points did it move?
+    params:
+      a: { min: 1, max: 9, step: 0.25 }
+      d: { min: -1.2, max: 1.2, step: 0.05 }
+    derived: { b: "plus(a, d)" }
+    answer: points_between
+    unit: points
+    decimals: 2
+    sign: magnitude
+    mistakes:
+      - { tag: forgot_to_convert, fix: That is basis points. Points are the new rate minus the old rate. }
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9]
   - id: pb-t-bp-from-move
     skill: pts-to-bp
     ask: A rate moves from {a}% to {b}%. How many basis points did it move?
@@ -87,7 +102,7 @@ templates:
       - { tag: stopped_at_points, fix: That is the move in points. Times 100 gives basis points. }
       - { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." }
     halfDone: { shows: "First step, done for you: the move is {points} points.", asks: bp_from_points }
-    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5]
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9]
   - id: pb-t-points-from-bp
     skill: bp-to-pts
     ask: A bond yield rises by {bp} basis points. How many percentage points is that, to two decimal places?
@@ -235,10 +250,10 @@ questions:
       Federal Reserve Board, Regulatory Reform glossary, Basis point: https://federalreserve.gov/regreform/reform-glossary.htm ; the 50% is the arithmetic of 0.75 points on a start of 1.5%.
 
 checks:
-  # Check 1: points and basis points, typed answers only, with new numbers each attempt.
+  # Check 1: points and basis points, typed answers only, with new numbers each attempt: one of each Skill a try.
   - id: pb-quiz-language
     kind: quiz
-    templates: [pb-t-bp-from-move, pb-t-points-from-bp]
+    templates: [pb-t-points-from-move, pb-t-bp-from-move, pb-t-points-from-bp]
     perAttempt: 3
     passRule:
       correct: 2
