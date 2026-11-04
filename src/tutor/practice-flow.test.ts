@@ -5,12 +5,12 @@ import { navigate } from "@/course/navigator";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
-import { skillStates } from "@/learner/skill-state";
+import { noteMethodUsed, recordAnswer, skillStates } from "@/learner/skill-state";
 import { loadWidgetStates, saveWidgetState } from "@/learner/widget-state";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { answerQuickTry, enterStepItems, pendingQuickTryNote, quickTryFollowUpNote } from "./practice";
+import { afterReteachItems, answerQuickTry, enterStepItems, pendingQuickTryNote, quickTryFollowUpNote } from "./practice";
 import { CONCEPT_CARD, QUICK_TRY, QUICK_TRY_RESULT, STEP_DIVIDER, type QuickTryData, type SessionItem } from "./session-item-kinds";
 import { loadSessionItems, saveItemAfterLatest } from "./session-items";
 import { runTutorTurn } from "./turn";
@@ -133,5 +133,40 @@ describe("Your turn with Quick tries", () => {
     expect(await answerQuickTry(db, map, me, "qt:1:0:pct-demo-try-bp-half", "1.2", now())).toMatchObject({ ok: false, status: 404 });
     await startTurn(db, now(), "Hi", me);
     expect(await answerQuickTry(db, map, me, first.key, "60", now())).toMatchObject({ ok: false, status: 409 });
+  });
+});
+
+describe("the re-teach note after a second miss in a row (ticket #248, lane R11)", () => {
+  /** Misses the first Quick try at Your turn after one earlier miss on its Skill, with these rungs already used on it. */
+  async function secondMiss(used: ("restate" | "worked")[]) {
+    const db = await testDb();
+    const { sessionId, first } = await atYourTurn(db);
+    for (const method of used) await noteMethodUsed(db, me, "pct-demo", first.skillId, method);
+    await recordAnswer(db, { learnerId: me, topicId: "pct-demo", skillId: first.skillId, itemKey: `quiz:91:${first.skillId}`, itemId: first.skillId, input: "x", verdict: "wrong", source: "quiz" });
+    await answerQuickTry(db, map, me, first.key, "999", now());
+    return { db, sessionId, note: await quickTryFollowUpNote(db, map, me) };
+  }
+
+  it("on the fill-in boxes rung, has the Tutor name the slip and leave the last box blank as its one ask", async () => {
+    const { note } = await secondMiss(["restate", "worked"]);
+    expect(note).toContain("Method: boxes, fill-in boxes. Code posts a half-done try after your reply");
+    expect(note).toContain("name the slip in one sentence");
+    expect(note).toContain("The blank last box is your one ask");
+    expect(note).not.toContain("Write no practice question of your own");
+  });
+
+  it("on the fill-in boxes rung, names the very half-done try code posts after the reply, so the boxes can be set on it", async () => {
+    const { db, sessionId, note } = await secondMiss(["restate", "worked"]);
+    const [posted] = await afterReteachItems(db, map, me, sessionId, "boxes", now());
+    const data = posted.data as QuickTryData;
+    expect(data.halfDone).toBeTruthy();
+    expect(note).toContain(`The half-done try code posts after your reply: "${data.prompt} ${data.halfDone}". Set your boxes on its numbers`);
+    expect(note).toContain('Box 1 says its rate move in full ("a rate goes from A% to B%") and its first step; Box 2 is its blank last step. Never give its answer.');
+  });
+
+  it("on another rung, still has the Tutor write no practice question of its own", async () => {
+    const { note } = await secondMiss([]);
+    expect(note).toContain("Method: restate");
+    expect(note).toContain("Write no practice question of your own");
   });
 });

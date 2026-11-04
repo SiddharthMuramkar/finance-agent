@@ -1815,20 +1815,63 @@ under 80 words with the ask on the last line.
 rule is still a request to the model: the reply checks (ticket #239) are what hold a reply to it. The widget-language
 size test now counts the rules at their old length, since this growth is the teaching rules, not the Widget text.
 
+**Tuned against the live tests (ticket #248, lane R11).** The live suite grades the model's first draft, before the reply
+checks, so the rules and the turn facts carry the tighter targets the tests hold. After a miss: 60 words, one sentence
+names the step the Learner left out (even when code already showed a fix, and after at most a short acknowledgement),
+then one similar item on new numbers with its last step left as the ask. Fill-in boxes leave the last box blank, because
+filled boxes are only a worked example. On the boxes rung, code's re-teach note says so too: "name the slip in one
+sentence, then one similar item on new numbers as boxes", "the blank last box is your one ask", and "Code posts a
+half-done try after your reply" (it used to say "has posted", for a try that is not on screen until the reply ends).
+The note also quotes that try: `reteachFor` picks it ahead without storing it, the way `afterReteachItems` will (the
+pick reads only the Session's tries and the Skill state, which the turn does not change), so the reply sets its boxes
+on the try's numbers and the reply and the try are one item, not two asks. The other rungs still say "write no
+practice question of your own". "Simpler" means less: the first idea only,
+nothing the earlier reply lacked (not even the Topic's analogy), and an open question asked again rather than answered.
+"Ask me a question" and frustration replies get 40 words, and with "use widgets" the engine shows rate_move in practice
+mode for a rate move. The Learner's own rule goes to save_learner_rule before any prose (code decides whether it may be
+saved), then is confirmed in one sentence that gives the rule back, with nothing before the ask (no reason, no note on
+the order of steps, no definition). "Start from the beginning" gets the first idea taught in words with one worked
+example: `start_again` is now for a Learner who asks to see the lesson or the cards again, and after it the Tutor
+teaches the first card's idea in its own words instead of pointing at cards. An ask is about the numbers, never about
+what a bond trader or a newspaper would say. Everyday finance words get a few plain words too ("a savings rate, the
+interest a bank pays on savings"), and a simpler reply's ask uses only what that reply says, so it never brings back a
+number the reply dropped, and it re-asks the open question on new numbers, so the reply never gives its own answer.
+When show_widget shows a practice-mode Widget, its result adds that the Widget asks for the move itself and has its own
+answer box, so the reply ends at its one question and never says where to type. Asked for the answer to one open question, the Tutor teaches only the
+idea that question tests. Code backs the numbers, because the Tutor writes up to the limit it
+is told: `turnFacts` reads a quiz-me ask ("ask me", "quiz me", "test me") as Reply kind quick_try and a request for the
+answer as hint, and gives some Reply kinds an `aim` under the cap (`AIMS`: 60 words for feedback, reteach and hint, 40
+for quick_try), which the context names as the reply's word limit. A simpler reply also gets "Line limit for this
+reply: 4 lines, counting the ask." At an open quiz, `openQuestionIdeas` gives the idea each open question tests, in the
+Check tab's order, so the context says "The open questions test these ideas, in the order the Learner sees them: 1. …".
+Scenario: a Learner answers 0.3 to a fall from 7.5% to 7.2% asked in basis points;
+the context says "Word limit for this reply: 60 words", and the Tutor writes "0.3 is the move in points; basis points
+need one more step, times 100", fills Box 1 for 6% to 6.4%, and asks for Box 2. With a quiz open, "just tell me the
+answer to question 1" now gets the method for points only, because the context says question 1 tests "Points are the
+new rate minus the old rate". Trade-off: the reply checks keep the
+spec's 80 and 120 caps, so the Tutor is told a tighter limit than it is held to, and a draft a few words over its aim is
+shown, not retried. Reading a Reply kind from words is a guess: "don't ask me" reads as a quiz-me ask, and "give me a
+question" does not. On the boxes rung the reply's boxes and code's half-done try below carry the same numbers, so the
+Learner reads that question twice, once as boxes and once with an answer box. The ideas line says which Skill each open
+question tests, never its answer. The rules grow by about 2,000 characters.
+
 ### Turn facts: what code knows before the Tutor writes (`src/tutor/turn-facts.ts`, `src/tutor/context.ts`, spec #229, ticket #238)
 
 **What it does.** Once per Tutor Turn, `turnFacts` works out the turn's facts: the step, the Reply kind the Learner's
-words ask for (Go deeper, or a request for something simpler), the word limit (`capFor`), the Topic's example
+words ask for (Go deeper, a request for something simpler, a quiz-me ask or a request for the answer), the word limit
+(`capFor`, with a tighter `aim` for some Reply kinds since lane R11), the Topic's example
 currency (₹ until Topic files name one) and its Cases' currencies (from `$` amounts in the story and Case Data
 units), and the ids the Learner must never read. At a quiz Check whose quiz can be shown, `openQuizItems` reads the
 open attempt's questions plus the next attempt's (after a miss, only the next one's), through the Course Map and the
 Question Bank, with each answer as the right choice's text; it reads rows only and never makes an attempt. The
-blocked numbers are every number in those items. The Course Navigator context then carries "Word limit for this
+blocked numbers are every number in those items. Since lane R11, `openQuestionIdeas` also gives the rule of the Skill
+each question of the open attempt tests, in order (empty if any question names no Skill of the Topic). The Course Navigator context then carries "Word limit for this
 reply: N words", the currency line, "Reply kind" when known, the method, frustration and Concept card lines once
 later tickets fill them, and at an open quiz the new rule, the blocked numbers and the Concept (or card) to teach
 from. The opener names the blocked numbers too, and the Check tab's note above the message box now offers help:
 "Quiz open. Stuck? Ask the Tutor: it can explain with other numbers." `replyCheckContext` turns the same facts into
-the reply checks' context, so the Tutor is told exactly the limits its reply is held to.
+the reply checks' context, so the Tutor is told the limits its reply is held to (or, for a Reply kind with an aim, a
+tighter one).
 
 **Scenario.** The Learner opens the present value quiz and asks how discounting works. The context says the limit is
 80 words and lists 1100, 10, 1000, 990, 1010, 1210 and the next attempt's numbers as blocked, so the Tutor explains
@@ -3199,6 +3242,8 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **Setting a case up as the app would have.** A converted Topic shows its Concept card and the card's Widget the moment the Learner enters the step, in the same turn as the first reply, and the app allows one Widget a reply. So T5 and T6 start with one earlier turn ("ok" and a scripted reply): the card is already on screen, and the graded turn is the Tutor's own. The pass condition "widget" then grades only a Widget the Tutor itself showed (code marks the ones it stored, by the tool calls of the turn), reads a recipe's mode where the recipe keeps it (`params.inputs.mode`), and passes when any of the Tutor's Widgets is in the mode. T6 has the Learner answer one Quick try on the percent-change Skill right after that turn (`state.answeredTries`, marked by the real Quick-try code), because in a converted Topic `save_learner_rule` saves only right after code has marked a right answer since the Tutor's last reply, and the Tutor is told of that answer with the Learner's message, as in the app. T2's missed typed quiz is submitted with each question's first Known mistake as the slip (the move in points where basis points were asked), not an odd number. T3 names the fixed Quick try its earlier turn talks about (`answer.try`, 7.5% to 7.2%), so the Learner's 0.3 is that try's Known mistake instead of a wrong answer to a 3% to 3.5% try the Tutor never mentioned, and the grader's note carries the try that was shown. The setup also takes out the unanswered try the earlier turn posted (code posts nothing below a reply while a try is open), so after a re-teach code shows its next try, and the grader is told of it ("code then showed the Learner, below the reply: a Quick try ...") so that "the try below" in the Tutor's reply points at something real. The grader is told a Widget's Guided Tasks are optional play, not asks. The trade-off is that these are scripted pasts: the earlier replies cost nothing, but they are ours, not the model's.
 
+**A Widget's sliders are no leak (lane R11).** When a reply shows a Widget, the grader is also told that its sliders are not a leak of an open quiz answer: the reply check V5 already keeps the open questions' numbers out of a Widget's inputs, so a Learner who could move the sliders to a quiz's numbers is playing, not being given the answer (a T1 run failed on this).
+
 **What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they were reported as pending until Percent was converted; they now name its Skill `pts-to-bp`. T8 runs: the course check passes on the repo and fails on the fixture folder `src/behaviour/tutor-eval/fixtures/untaught-skill/` (a Check that tests an untaught Skill), naming L1. `course:check` now runs the lesson lint before the typed-formula check, so the fixture's L1 errors show even though the fixture is not on the repo's not-yet-converted lists. Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
 
 **Trade-off.** A model grading a model is a first pass, not proof, and three runs are a small sample of a model that varies; the conditions code can tell are checked by code so the grader decides less. Replies have no move field (they stay text), so "offer to park" is read as a park offer item or both choices named in the reply, and "save to notes" as a note the turn added. T3's state reads "missed 3 times" as three misses in all with a right answer between, so the Learner's 0.3 is the second miss in a row, which brings a new method under the ladder; three in a row is T7's park offer. Offline tests cover the case files, the conditions and grade parsing, the cap, the report layout, the state set-up and a whole suite run with a scripted model and a stand-in grader, with no network.
@@ -4299,7 +4344,7 @@ Once 20 hours have passed, the study page sees the drill is due and starts a `{ 
 
 The context now also carries, at a converted Your turn or Check, each Skill's state in one plain line (fluent or not, misses in a row, the last Known mistake by its fix line, never its tag), and the frustration count. `frustrationCount` counts the signal phrases ("get it over with", "too complicated", "over complicated", "don't know any of this") in the Learner's last three messages since their last right code-marked answer, plus 1 for two or more misses in a row on the current Skill. When it is 1 or more the context says `Frustration: N`, and code makes the smaller step itself: the next Quick try is half-done. These lines go in through `TurnFacts` (`replyKind`, `method`, `frustration`, `skillLines`, `parked`), so the reply checks and the context see the same values.
 
-The Tutor gains `start_again`: in a converted Topic it re-posts every Concept card in order, then the first Quick try, and leaves the step and any open quiz attempt as they were. In a Topic not converted it is refused with a tool error that says to teach the first idea again in words. `tools.ts`'s step divider now also stores what the new step shows (`enterStepItems`), so a card lands right after the divider mid-reply.
+The Tutor gains `start_again`: in a converted Topic it re-posts every Concept card in order, then the first Quick try, and leaves the step and any open quiz attempt as they were. In a Topic not converted it is refused with a tool error that says to teach the first idea again in words. Since lane R11 (ticket #248, T2) its description keeps it for a Learner who asks to see the lesson or the cards again: one who asks to be taught from the beginning gets the first idea in words instead. After it runs, its result asks the Tutor to teach the first card's idea in its own words, with one worked example and one ask, not to point at the cards. `tools.ts`'s step divider now also stores what the new step shows (`enterStepItems`), so a card lands right after the divider mid-reply.
 
 **Scenario.** At Your turn the Learner types 6 for "0.6 points in basis points", then 7, then 8. The second miss brings a turn noted `Reply kind: reteach`, `Method: restate`; after it a fresh try appears. The third miss shows "This one is not landing yet…" with the two buttons, and no reply. They press Park it: "Back tomorrow after Thu 3:00 pm", and the Course Map shows Percent as "Parked · back Thu 3:00 pm". They study Compounding instead. The next afternoon they open Percent: a "Drill · Basis points are points times 100" divider and a first try appear, the Tutor says one line, and after the fifth answer the next normal try follows.
 

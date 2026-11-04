@@ -118,4 +118,10 @@ describe("the grader prompt and Widget Guided Tasks", () => {
     const none = seen({ text: "Hi.", widgets: [], savedRule: null, parkOffer: false });
     expect(buildGraderPrompt({ stateNote: "x", message: "m", reply: none, extra: [] })).not.toMatch(/Guided Tasks/);
   });
+  it("tells the grader a Widget's sliders are no leak of an open answer, since code keeps the open numbers out of its inputs", () => {
+    const prompt = buildGraderPrompt({ stateNote: "x", message: "m", reply: widgetReply, extra: [] });
+    expect(prompt).toContain("A Widget's sliders are not a leak of an open quiz answer: code's reply checks already keep the open questions' numbers out of its inputs.");
+    const none = seen({ text: "Hi.", widgets: [], savedRule: null, parkOffer: false });
+    expect(buildGraderPrompt({ stateNote: "x", message: "m", reply: none, extra: [] })).not.toMatch(/sliders/);
+  });
 });

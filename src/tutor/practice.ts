@@ -717,14 +717,35 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
   await noteMethodUsed(db, learnerId, tried.topicId, tried.data.skillId, action.method);
   const [line] = await resultLines(db, map, learnerId, items, [result]);
   const rule = map.topic(tried.topicId)?.skills.find((s) => s.id === tried.data.skillId)?.rule;
-  void sessionId;
+  // On the boxes rung the reply sets out boxes whose blank last box is the ask (ticket #248, T3), on the numbers of the
+  // half-done try code posts after the reply, so the reply and that try are one item, not two.
+  const posted = action.method === "boxes" ? await halfDoneTryAfterReteach(db, map, learnerId, sessionId, tried.data.skillId) : null;
   return [
     `${QUICK_TRY_FOLLOW_UP_PREFIX} the Learner missed a Quick try on the same idea twice in a row:`,
     line,
     ...(rule ? [`The idea: ${rule}`] : []),
     action.note,
-    "Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply.",
+    ...(action.method === "boxes"
+      ? [
+          ...(posted
+            ? [
+                `The half-done try code posts after your reply: "${[posted.prompt, posted.halfDone].filter(Boolean).join(" ")}". Set your boxes on its numbers, so they and the try are one item. Box 1 says its rate move in full ("a rate goes from A% to B%") and its first step; Box 2 is its blank last step. Never give its answer.`,
+              ]
+            : []),
+          "Teach it again this way only, in a few short lines. The blank last box is your one ask: write no other question.",
+        ]
+      : ["Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply."]),
   ].join("\n");
+}
+
+/**
+ * The half-done try `afterReteachItems` will post after a boxes re-teach, picked the same way but not stored. The pick
+ * reads only the Session's tries and the Skill state, which the re-teach turn does not change, so it is the same try.
+ */
+async function halfDoneTryAfterReteach(db: Db, map: CourseMap, learnerId: number, sessionId: number, skillId: string): Promise<QuickTryData | null> {
+  const place = convertedPlace((await placeWithParked(db, map, learnerId)).place);
+  const item = place ? await postTry(db, place, learnerId, sessionId, new Date(), { skillId, easier: true }, false) : null;
+  return item ? (item.data as QuickTryData) : null;
 }
 
 /** The method a re-teach note names, read back from the turn's note. */

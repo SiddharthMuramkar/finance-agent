@@ -9,6 +9,7 @@ import { quizUnavailable } from "@/learner/quiz";
 import { GO_DEEPER, OLD_CHIP_MESSAGES } from "./chips";
 import { cardForFacts, ladderFacts } from "./practice";
 import { blockedNumbersFrom, capFor, type OpenItem, type ReplyCheckContext, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
+import { isCodeWritten } from "./turn-status";
 
 /**
  * Turn facts (spec #229, ticket #238): what code knows about this Tutor Turn before the Tutor writes a word, worked out
@@ -19,8 +20,13 @@ export interface TurnFacts {
   step: StepKind;
   /** Code's choice of Reply kind, when it knows it: today only from the Learner's own words (Go deeper, simpler). */
   replyKind?: ReplyKind;
-  /** The word limit for this reply: `capFor(step, replyKind)`. */
+  /** The word limit for this reply: `capFor(step, replyKind)`. The reply checks hold the reply to it. */
   cap: number;
+  /**
+   * A tighter word limit some Reply kinds get (`AIMS`, ticket #248), which the context names in place of the cap. The
+   * reply checks still allow the cap, so a reply a few words over the aim is shown, not retried.
+   */
+  aim?: number;
   /** The currency of everyday examples and non-Case Widgets, such as "INR". */
   exampleCurrency: string;
   /** The currencies the Topic's Cases give amounts in, such as ["USD"]. */
@@ -31,6 +37,8 @@ export interface TurnFacts {
   openItems: OpenItem[];
   /** Every number in the open items: `blockedNumbersFrom(openItems)`. */
   blockedNumbers: string[];
+  /** The idea each question of the open attempt tests, in the order the Learner sees them (`openQuestionIdeas`). */
+  openIdeas?: string[];
   /** Ids the Learner must never read: the Topic's, its Checks', its questions' and its Widgets'. */
   internalWords: string[];
   /** The method code picked for the next try, once the ladder exists (filled by a later ticket). */
@@ -48,12 +56,24 @@ export interface TurnFacts {
 /** The currency every Topic's everyday examples use until its file names one (spec #229: ₹ by default). */
 export const DEFAULT_EXAMPLE_CURRENCY = "INR";
 
-/** The Reply kind a Learner's own words ask for: the Go deeper chip, or a request for something simpler. */
+/**
+ * The tighter word limits (ticket #248, from TUTOR_SPEC section 7): 60 words after a miss (feedback or a re-teach) and
+ * for a request for the answer (hint), 40 for a quiz-me ask (quick_try). The Tutor writes up to the limit it is told,
+ * so these replies are told their own; every other reply is told its step's cap.
+ */
+export const AIMS: Partial<Record<ReplyKind, number>> = { feedback: 60, reteach: 60, hint: 60, quick_try: 40 };
+
+/**
+ * The Reply kind a Learner's own words ask for: the Go deeper chip, a request for something simpler, a quiz-me ask, or a
+ * request for the answer. A note code wrote is never the Learner's words.
+ */
 export function replyKindOf(learnerText?: string): ReplyKind | undefined {
   const text = learnerText?.trim();
-  if (!text) return undefined;
+  if (!text || isCodeWritten(text)) return undefined;
   if (text === GO_DEEPER) return "go_deeper";
   if ((OLD_CHIP_MESSAGES as readonly string[]).includes(text) || /\b(?:simpler|more simply)\b/i.test(text)) return "simpler";
+  if (/\b(?:ask|quiz|test) me\b/i.test(text)) return "quick_try";
+  if (/\b(?:tell|give|show) me the answers?\b|\bwhat(?:'s| is) the answer\b/i.test(text)) return "hint";
   return undefined;
 }
 
@@ -66,17 +86,22 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
   const check = place?.step === "check" && place.check?.kind === "quiz" ? place.check : null;
   const quizOpen = check !== null && !(await quizUnavailable(db, map, check));
   const openItems = quizOpen && check ? await openQuizItems(db, map, learnerId, check) : [];
+  const openIdeas = quizOpen && check && place ? await openQuestionIdeas(db, map, learnerId, check, place.topic) : [];
   const currencies = place ? await topicCurrencies(db, place.topic) : { exampleCurrency: DEFAULT_EXAMPLE_CURRENCY, caseCurrencies: [] };
   // The Concept card code shows (a converted Concept step) or teaches from (a converted quiz Check).
   const card = cardForFacts(place);
+  const cap = capFor(step, replyKind);
+  const aim = replyKind && AIMS[replyKind];
   return {
     step,
     ...(replyKind && { replyKind }),
-    cap: capFor(step, replyKind),
+    cap,
+    ...(aim && aim < cap && { aim }),
     ...currencies,
     quizOpen,
     openItems,
     blockedNumbers: blockedNumbersFrom(openItems),
+    ...(openIdeas.length && { openIdeas }),
     internalWords: place ? internalWordsOf(place.topic) : [],
     ...(card && { card }),
     ...(ladder.method && { method: ladder.method }),
@@ -122,6 +147,25 @@ export async function openQuizItems(db: Db, map: CourseMap, learnerId: number, c
     const answer = q.choices.find((c) => c.id === q.answer)?.text ?? q.answer;
     return [{ prompt: q.prompt.trim(), choices: q.choices.map((c) => c.text), answer }];
   });
+}
+
+/**
+ * The idea each question of the open quiz attempt tests, in the order the Check tab shows them: the rule of the Skill the
+ * question (or the template it was drawn from) names. With it, the Tutor helps with the one idea a question asks about
+ * (ticket #248, T11). Empty when no attempt is open, or when any question names no Skill of the Topic, so the Tutor is
+ * never told a list that does not line up with what the Learner sees.
+ */
+export async function openQuestionIdeas(db: Db, map: CourseMap, learnerId: number, check: QuizCheck, topic: Topic): Promise<string[]> {
+  const rows = await db
+    .select({ questionIds: quizAttempts.questionIds, submittedAt: quizAttempts.submittedAt })
+    .from(quizAttempts)
+    .where(and(eq(quizAttempts.learnerId, learnerId), eq(quizAttempts.checkId, check.id)))
+    .orderBy(asc(quizAttempts.id));
+  const ids = rows.find((r) => r.submittedAt === null)?.questionIds ?? [];
+  if (!ids.length) return [];
+  const lookup = await questionLookup(db, map, ids);
+  const ideas = ids.map((id) => topic.skills.find((s) => s.id === lookup.question(id)?.skill)?.rule);
+  return ideas.every((rule): rule is string => !!rule) ? ideas : [];
 }
 
 const USD_IN_STORY = /US\$|\$\s?\d/;

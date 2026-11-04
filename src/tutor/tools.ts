@@ -380,6 +380,7 @@ export function toolCode(
   const ONE_WIDGET = "Not shown: this reply already has a Widget, and a reply shows one Widget. Talk about the one on screen; show another in a later reply if it still helps.";
   const TALK_ABOUT_IT = "Write no openui-lang block in this reply. Say in one sentence what the Widget shows at these numbers; do not ask the Learner to move or set anything.";
   const GUIDED_TASKS = "Its Guided Tasks (optional play, never set as work; they tick themselves):";
+  const PRACTICE_ASK = "It asks the Learner for the move itself and has its own answer box: end your reply with that one question, and do not say where to type.";
 
   /**
    * An open quiz keeps its numbers from the Widgets the Tutor sets (V5 of the reply checks, spec #229): the same rule the
@@ -742,7 +743,10 @@ export function toolCode(
           const blocked = await openQuizProblems(tx, { kind: "recipe", id, params: built.params });
           if (blocked.length) return { ok: false, text: `Not shown: ${blocked.join(" ")}` };
           const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe" };
-          const outcome = await storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${TALK_ABOUT_IT}`);
+          // A practice-mode Widget asks its own question and marks the typed answer, so the reply only asks it (ticket #248, T5).
+          const practice = (built.params as { inputs?: { mode?: unknown } } | undefined)?.inputs?.mode === "practice";
+          const talk = practice ? `${TALK_ABOUT_IT} ${PRACTICE_ASK}` : TALK_ABOUT_IT;
+          const outcome = await storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${talk}`);
           // A title the Learner already has saved state for opens at the recipe's own numbers, not where they last left it.
           const key = widgetKey(built.title);
           const had = key ? (effects.pageWidgets?.[key] ?? (await loadWidgetState(tx, scope.sessionId, key, learnerId))) : undefined;
@@ -862,7 +866,7 @@ export function toolCode(
           if (!items) return { ok: false, text: START_AGAIN_REFUSAL };
           return {
             ok: true,
-            text: "Started again by code: the Learner now sees this Topic's Concept cards again, in order, then its first Quick try. Their step and any open quiz stay as they were. Add one sentence that points to the first card, and one ask. Do not repeat the cards' words.",
+            text: "Started again by code: the Learner now sees this Topic's Concept cards again, in order, then its first Quick try. Their step and any open quiz stay as they were. In your reply, teach the first card's idea in your own plain words, with one worked example, then one ask. Leave the other cards to the Learner, and do not point to the cards: the reply teaches on its own.",
             items,
           };
         }),

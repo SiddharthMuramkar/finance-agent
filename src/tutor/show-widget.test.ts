@@ -90,6 +90,27 @@ describe("show_widget and the widget engine", () => {
     expect(asked).toContain("25 years");
   });
 
+  it("for a practice-mode Widget, tells the Tutor it has its own answer box, so the reply ends at its one question (ticket #248, T5)", async () => {
+    const db = await testDb();
+    await engine(db, "on");
+    const practice = { title: "Your try: 2% to 2.5%", inputs: { old: 2, new: 2.5, mode: "practice" }, refs: {}, facts: {} };
+    const { client, requests } = scriptedClient([{ content: [show("rate_move", practice)] }, { content: [text("Okay.\nHow many basis points did the rate move?")] }]);
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "ask me a question, use widgets"));
+    const [result] = toolResults(requests[1]);
+    expect(String(result.content)).toContain("It asks the Learner for the move itself and has its own answer box: end your reply with that one question, and do not say where to type.");
+  });
+
+  it("for a show-mode Widget, says nothing about an answer box", async () => {
+    const db = await testDb();
+    await engine(db, "on");
+    const shown = { title: "A rate from 2% to 2.5%", inputs: { old: 2, new: 2.5, mode: "show" }, refs: {}, facts: {} };
+    const { client, requests } = scriptedClient([{ content: [show("rate_move", shown)] }, { content: [text("The Widget shows the move.\nWhich line gives basis points?")] }]);
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "show me in a widget"));
+    const [result] = toolResults(requests[1]);
+    expect(String(result.content)).toMatch(/Shown by code: "A rate from 2% to 2.5%"/);
+    expect(String(result.content)).not.toContain("answer box");
+  });
+
   it("params that do not fit give a tool error, so the Tutor retries inside the loop; nothing is stored", async () => {
     const db = await testDb();
     await engine(db, "on");
