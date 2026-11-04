@@ -3,6 +3,7 @@ import { WIDGET_OPENED } from "@/course/written-ahead";
 import { saveFinishedStep } from "@/learner/memory";
 import { oldPercentOnly } from "@/test/old-percent-map";
 import { presentValueOnly } from "@/test/present-value-map";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
@@ -103,6 +104,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
 
   it("sends a Tutor-drawn growth-rate calculator in Percent back through the correction turn, naming the written-ahead Widget to open", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(`Here is a box.\n${CAGR}`), open("rate-change-three-ways", "toolu_fix"), text("")]);
     const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me in a widget"));
     expect(events.map((e) => e.type)).toEqual(["text", "correction", "item", "done"]);

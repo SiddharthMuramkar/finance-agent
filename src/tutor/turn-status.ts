@@ -45,8 +45,14 @@ export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
  */
 export const WIDGET_REPORT_PREFIX = "Widget report by code:";
 
+/**
+ * The fixed prefix of the note code writes for a Quick-try follow-up: the short turn the page starts after a Quick try
+ * marked wrong with no Known mistake (name the slip), or after the try that finished Your turn. Never a Learner bubble.
+ */
+export const QUICK_TRY_FOLLOW_UP_PREFIX = "Quick try follow-up by code:";
+
 /** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
-export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX] as const;
+export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX, QUICK_TRY_FOLLOW_UP_PREFIX] as const;
 
 /**
  * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
@@ -54,7 +60,7 @@ export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX,
  * quiz follow-up after a missed quiz, or a widget report (Tell the Tutor what I found); the last five carry no
  * Learner message.
  */
-export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up" | "widget_report";
+export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up" | "widget_report" | "quick_try_follow_up";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
@@ -63,6 +69,7 @@ export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(FINISH_PREFIX)) return "finish";
   if (turn.input?.startsWith(QUIZ_FOLLOW_UP_PREFIX)) return "quiz_follow_up";
   if (turn.input?.startsWith(WIDGET_REPORT_PREFIX)) return "widget_report";
+  if (turn.input?.startsWith(QUICK_TRY_FOLLOW_UP_PREFIX)) return "quick_try_follow_up";
   if (turn.input && isChipMessage(turn.input)) return "chip";
   return "message";
 }

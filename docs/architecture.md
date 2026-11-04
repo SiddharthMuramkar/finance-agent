@@ -3985,6 +3985,48 @@ the progress label, then the finished Widget, never half of one. Falling back to
 than the ask, which is why the Tutor is told to say so. update_widget cannot tick Guided Tasks, so the "all ticked" gate on Tell
 the Tutor what I found stays the Learner's own. Free-form Widgets get no Widget notes warnings yet (widgetNotes reads only fences).
 
+## Ready-made Widgets only: opened already set, one a reply (`src/tutor/ready-made-widgets.ts`, `tools.ts`, `written-ahead.ts`, `instructions.ts`, `session-log.ts`, `widgetsIn` in `src/app/thread.tsx`, `WidgetChip` in `widget-panel.tsx`, ADR 0007, spec #229, ticket #242)
+
+**What it does.** The Tutor opens only Widgets that are ready-made: a written-ahead Widget from the Topic's file (`open_widget`) or a
+Widget recipe drawn by code (`show_widget`). It writes no Widget code and `compose_widget` is not offered to new Sessions: a new
+Session freezes `open_widget`, `show_widget` and `update_widget` (the setting `widget_engine` now defaults to "on"; production keeps its
+stored row until the switch). A Session whose stored tools already list `compose_widget` keeps it on refreeze (`ENGINE_TOOLS_WITH_COMPOSE`,
+ADR 0005's one-way rule), and its code stays bound so a saved call resumes. The Tutor's catalogue (`TUTOR_RECIPE_IDS`) is every recipe
+except `quick_check` (a "quiz me" goes to the next Quick try) and `percent_points` (`rate_move` is the single rate Widget); a frozen
+Session that still calls `quick_check` is refused in words. **Presets:** `open_widget` takes an optional `preset`, slider values by
+`$variable` (the `$` is optional). `presetProblems` checks each key is one of the Widget's sliders and each value is in range and on
+its step (the runtime twin of the lesson lint's `presetValueProblems`, built on the parser rather than a file read). A bad preset is a
+tool error and nothing is stored. A good one is stored on the WIDGET_OPENED item (`{id, title, preset}`), saves the Widget state as the
+Widget's declared settings with the preset on top (replacing the Learner's last settings, keeping their ticked Guided Tasks) and
+streams `widget_state`, so the open Widget moves at once. `show_widget` does the same, to the recipe's own starting numbers, when its
+title already has saved state. **One Widget a reply:** every Widget the reply holds counts, whoever stored it (`open_widget`,
+`show_widget`, the one a Next or a step opened just before the Learner's message, a fence the Tutor wrote, or an `update_widget` on
+a Widget this reply did not open). A second `open_widget` or `show_widget` is a tool error; `update_widget` may move the reply's own
+Widget. **Open quiz:** a preset, recipe inputs or update values are checked with the reply check's V5 (`checkReply` on an empty text
+with that one Widget, only its V5 problems kept) against `turnFacts`' open items, so the tool and the reply check never disagree.
+**Illustrations:** `ILLUSTRATION_FACTS` is a small table, one row per recipe with facts; a fact that an input or a Case Data path of
+the same recipe already covers is refused with the input to use (for example `percent_points`' `before` is where `inputs.slider.start`
+already is). **After a move:** the context `finish_teaching_step` and `record_check_verdict` return carries the new step's word limit,
+currency and blocked numbers (`turnFacts`). `widgetValidator(writtenAhead)` is the reply check's V4 hook (a known written-ahead id or
+Tutor recipe, a valid preset or valid params, no `quick_check`); the tools refuse every invalid Widget before it is stored, so the hook
+is for a check that reads a finished reply. In the browser `widgetsIn` carries the item's preset (over the Widget's declared settings)
+onto the `WidgetItem`, and pressing a chip pushes that preset into the Widget store, so an earlier chip reopens its own numbers. A shown
+`rate_move` Widget gets the `rateChange` readouts through `rateMoveSliders`, the way Percent's written-ahead Widget does.
+
+**Scenario.** The Learner is on the annuity Topic and asks "what if the rate were 4%?". The Tutor calls `open_widget` with
+`{id: "annuity-worth-today", preset: {"$rate": 4}}`. The chip stands in the reply, the slider reads 4%, and the tool result says
+"It is set to $rate = 4". The Tutor says in one sentence what the chart shows at 4% and asks for nothing to be moved. If it then
+tries `show_widget` in the same reply, code refuses: the reply already has its Widget. Later the Learner presses the first chip again
+after trying 9%, and the slider goes back to 4%. At an open quiz whose question mentions 10%, a preset of 10 is refused and the Tutor
+picks other numbers.
+
+**Trade-off.** One Widget a reply is strict: the Widget a step or a Concept card opens is the reply's one Widget, so the Tutor cannot add
+its own on that reply, which keeps the picture simple at the cost of the odd case where two would help. A Tutor preset must avoid every
+blocked number, even one that is only a slider's edge, so it sometimes has to pick less natural numbers. The Illustration table only
+covers facts where a path exists, so a made-up number with no input or Case Data path (a vada pav price) still makes an Illustration.
+Chips that put their preset back overwrite what the Learner did since, on purpose. The engine-off path is unchanged, so Sessions frozen
+without the engine keep writing Widgets until the production switch (T18).
+
 ## Topics with a goal: steps that open their Widgets, finish from what you do, and remember what you found (`goal`, `steps`, `found` in `course/topics/*.yaml`, `src/course/map.ts`, `navigator.ts`, `outcome.ts`, `goal-check.ts`, `src/tutor/next.ts`, `off-topic.ts`, `past-sessions.ts`, UX audit 9.0, 9.4, 9.7, 11.5 to 11.9)
 
 **What it does.** Three optional keys extend the Topic, not a second "plan" format (a Topic is still the lesson, a Teaching Step is still the beat). `goal` is one line of words shown under the title in the Topic bar. `steps` is a list of settings, each for one Teaching Step (and optionally one Check): `opens` names a written-ahead Widget that code puts in the panel when the step begins (it stores the same Widget opened item the Tutor's open_widget stores, so a Widget is never opened twice), and `doneWhen` is a condition on the Learner's saved Widget state: a Guided Task ticked, a $variable that has a value (a Predict's guess), or one saved near a target (a Breakeven). The Course Navigator's `widgetDone` and `finishFromWidget` read that state; `finishStepFromWidget` (next.ts) finishes the step, stores the new step's divider and opens its Widget, and the study page calls it on each render (it returns at once for a step with no `doneWhen`). Because nothing has taught the new step yet, Next then names it without moving on, the way it does after a quiz pass. `found` is a list of lines (`when` plus `text`, with `{value}` for the Learner's own number) that `foundLines` (outcome.ts) works out from saved Widget state; Past Sessions rows, the Session header and the Topic complete card show them. An Off-Topic answer is a Session item (`off_topic`, off-topic.ts) drawn as a quiet block with "↩ Back to <Topic>". The Topic schema checks every setting (the Widget, Check and Guided Task must exist), `npm run course:check` also checks the goal and found lines are in words, and prints the written-ahead warnings beside its errors.
@@ -4069,3 +4111,56 @@ Widget's `rateChange` readouts and reveal task keep it as a fixture, since no re
 **Scenario.** The owner runs `npm run tutor:sweep`. Opus low passes everything at $0.21 a turn, Opus medium at $0.34, and Sonnet medium fails T4 once in three runs. The report chooses Opus 5.5 low. The owner stores it in the settings table, then runs `npm run tutor:replay -- --model claude-opus-5-5 --effort low --engine on`. The report shows V1 at 50 of 50 and a longest reply of 97 words, so the widget engine goes on.
 
 **Trade-off.** The sweep spends real money (up to the cap for every pair), and the cap stops a pair rather than the whole sweep, so a bad pair costs at most its cap. The rule picks the cheapest passing pair, so a flaky pass at three runs can win by luck; the report shows the runs passed so the owner can see it. The replay re-sends only the Learner's message with the state rebuilt from the log (methods used come from today's Skill state), so it is close to the original turn, not identical. Stored turns that need a Skill the Topic no longer lists are skipped and listed, not counted as passes.
+
+## The Learner's own rule (`save_learner_rule` in `src/tutor/tools.ts`, `src/learner/own-rule.ts`, `src/tutor/own-rule-item.ts`, `src/app/own-rule-line.tsx`, `note_items` kind `own_rule`, spec #229, ticket #244)
+
+**What it does.** When the Learner says a rule in their own words, more simply than the Tutor did, the Tutor can call
+`save_learner_rule` with those words. Code checks them before it keeps anything: the turn is a message the Learner typed
+(a chip, a note code wrote and the old "Continue." are refused); the words are found in that message, and are kept exactly
+as typed, symbols and all, up to 300 characters; no rule was already saved this turn. In a Topic with Skills, the Learner's
+latest practice answer in the Topic must be `right` and must have been recorded after this Session's previous turn began,
+and its Skill becomes the rule's Skill, so the Tutor never names one; a Skill takes one rule. In a Topic without Skills the
+Tutor judges the rule, and the Topic takes one. In one transaction code writes a `note_items` row of kind `own_rule` (the
+column is text, so no migration) and a Session item `OWN_RULE_SAVED` with `{noteId, topicId, text, skillId}`, which streams
+at once. "Once" counts the own-rule items in the Topic's Session, so an Undo does not free the slot. The tool result tells the
+Tutor what was saved, that the Learner sees "Saved to your notes" with Undo, and to confirm the rule in one sentence and use
+the Learner's words from then on. The turn passes the saved words to the reply checks as `ReplyDraft.savedRule`.
+
+The line under the reply reads "Saved to your notes · Undo · Open notes". It reuses the Save to notes control's view with a
+label, never has a Save button, and is never sent to the model. Undo calls `DELETE /api/notes` with the note id; the line then
+reads "Removed from your notes.", and an Undo on a note already gone says the same. On the Notes page `loadNotes` lists the
+rule among its Topic's lines with `ownRule: true`; the page marks it "Your rule", and it can be edited and removed like any
+line. `learnerSummary` adds "Rules in the Learner's own words (use them)" with the newest five, and the Where the Learner
+stands block is sent again when it changes, so the next turn carries them.
+
+**Scenario.** After a right answer on "points to basis points", the Learner types "so its basically change x 100 then divide
+by original". The Tutor calls the tool with "change x 100 then divide by original". Code saves it against that Skill and the
+Learner sees the line. The Tutor says "Yes, that is the rule" in one sentence and later says it in the Learner's words. If the
+Learner presses Undo, the rule leaves the note, and a later try at the same Skill is not saved a second time.
+
+**Trade-off.** The Skill lives only in the Session item, not in the note row, to keep the table as it is; a rule whose item is
+gone would show no Skill, which nothing reads. Saving the Learner's exact words, not a tidier version, keeps the note theirs
+but lets a clumsy or slightly wrong phrase in, and the Tutor is the judge of "correct" in a Topic without Skills. Counting the
+Session's items, not the note rows, means an Undo is final for that Skill or Topic: a Learner who took a rule off is not
+offered it again, and a fresh Session after Start again would be.
+
+## Known mistakes on the Topic Note and in the Learner summary (`src/learner/known-mistakes.ts`, `notes.ts`, `memory.ts`, table `practice_answers`, spec #229, ticket #244)
+
+**What it does.** Each answer code marks as a Known mistake is logged in `practice_answers` with the slip's tag. `loadNotes`
+adds every distinct Known mistake the Learner made in a Topic to that Topic Note's `mistakes`, once each, with the fix line
+the Topic file gives that tag (a template's, a quiz choice's or a fixed Quick try's). `learnerSummary` adds one line per Skill
+with hits, "Slips so far: <the Skill's rule>: twice multiplied by 10 instead of 100, stopped at points; fluent now", in plain
+words and never a tag id, so the Tutor cannot repeat one. Misconceptions the Tutor noted stay as they were. Both read only
+converted Topics, and skip the query when the Course Map has none, so no turn and no Notes page reads the practice tables
+before the migration that made them has been applied in production.
+
+**Scenario.** The Learner types 6 twice for "0.6 points in basis points" and 0.6 once. Their note for the Topic lists "One
+point is 100 basis points, so multiply by 100, not 10." and "That is the move in points. Times 100 gives basis points." once
+each, and the Tutor's summary says the Skill had two "multiplied by 10" slips and one "stopped at points", and is fluent now
+after two right answers.
+
+**Trade-off.** The note lists the fix, not the count, so a slip made ten times reads the same as one made once; the summary
+keeps the count for the Tutor. Slips are named in the summary by a small table of plain phrases, and any tag not in it reads
+as its words with the underscores taken out, which is clear but may be clumsy until the phrase is added. The note shows a
+mistake's fix only when the tag is still in the Topic file, so a tag a later edit removed is left out.
+

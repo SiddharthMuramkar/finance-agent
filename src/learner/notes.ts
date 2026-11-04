@@ -4,6 +4,7 @@ import { insightAttempts, misconceptions, noteItems, topicProgress } from "@/db/
 import type { Db } from "@/db/types";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
+import { anyConverted, mistakeHits } from "./known-mistakes";
 import { loadSaved, type SavedItem } from "./saved";
 
 /**
@@ -46,7 +47,11 @@ export type TopicNote = {
   saved: SavedItem[];
 };
 
-export type NoteLine = { id: number; text: string; createdAt: Date; updatedAt: Date };
+/** One of the Learner's lines on a note. `ownRule` marks a rule in their own words that the Tutor saved (spec #229): the page labels it "Your rule". */
+export type NoteLine = { id: number; text: string; createdAt: Date; updatedAt: Date; ownRule?: boolean };
+
+/** The kinds of note item that are the Learner's own words: their typed lines and the rules the Tutor saved for them. */
+const OWN_KINDS = ["line", "own_rule"] as const;
 
 /** The Learner's records a note is built from. */
 export type NoteRecords = {
@@ -82,7 +87,7 @@ export function buildFilledNote(topic: Topic, records: NoteRecords): FilledNote 
 
 /** Every Topic in course order with this Learner's note: the filled-in part for a Topic they passed, and their own lines. */
 export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Promise<TopicNote[]> {
-  const [progress, attempts, noticed, items, saved] = await Promise.all([
+  const [progress, attempts, noticed, items, saved, slips] = await Promise.all([
     db.select().from(topicProgress).where(eq(topicProgress.learnerId, learnerId)),
     db
       .select()
@@ -93,9 +98,11 @@ export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Prom
     db
       .select()
       .from(noteItems)
-      .where(and(eq(noteItems.learnerId, learnerId), eq(noteItems.kind, "line")))
+      .where(and(eq(noteItems.learnerId, learnerId), inArray(noteItems.kind, [...OWN_KINDS])))
       .orderBy(asc(noteItems.id)),
     loadSaved(db, map, learnerId),
+    // Known mistakes come from the practice tables, which only converted Topics write: no converted Topic, no query.
+    anyConverted(map) ? mistakeHits(db, map, learnerId) : Promise.resolve([]),
   ]);
   return map.topics.map((topic) => {
     const passed = progress.find((p) => p.topicId === topic.id)?.status === "passed";
@@ -103,7 +110,11 @@ export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Prom
     const records: NoteRecords = {
       passed,
       settled: settledRow ? { released: settledRow.released as "found" | "told", words: settledRow.words } : undefined,
-      mistakes: noticed.filter((m) => m.topicId === topic.id).map((m) => m.description),
+      // The Tutor's misconceptions as before, then each distinct Known mistake code marked, once, with its fix line.
+      mistakes: [
+        ...noticed.filter((m) => m.topicId === topic.id).map((m) => m.description),
+        ...slips.filter((h) => h.topicId === topic.id && h.fix).map((h) => h.fix as string),
+      ],
     };
     return {
       topicId: topic.id,
@@ -113,7 +124,7 @@ export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Prom
       filled: passed ? buildFilledNote(topic, records) : undefined,
       lines: items
         .filter((i) => i.topicId === topic.id && i.text !== null)
-        .map((i) => ({ id: i.id, text: i.text as string, createdAt: i.createdAt, updatedAt: i.updatedAt })),
+        .map((i) => ({ id: i.id, text: i.text as string, createdAt: i.createdAt, updatedAt: i.updatedAt, ...(i.kind === "own_rule" && { ownRule: true }) })),
       saved: saved.get(topic.id) ?? [],
     };
   });
@@ -137,24 +148,24 @@ export async function addLine(db: Db, map: CourseMap, topicId: string, text: str
   return { ok: true, line: { id: row.id, text: clean.text, createdAt: row.createdAt, updatedAt: row.updatedAt } };
 }
 
-/** Changes the words of one of this Learner's own lines. Only a line can be edited; another Learner's is not found. */
+/** Changes the words of one of this Learner's own lines or saved rules. Only those can be edited; another Learner's is not found. */
 export async function editLine(db: Db, id: number, text: string, now = new Date(), learnerId: number): Promise<LineResult> {
   const clean = cleanLine(text);
   if (!clean.ok) return clean;
   const [row] = await db
     .update(noteItems)
     .set({ text: clean.text, updatedAt: now })
-    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), eq(noteItems.kind, "line")))
+    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), inArray(noteItems.kind, [...OWN_KINDS])))
     .returning();
   if (!row) return { ok: false, reason: "That line does not exist.", status: 404 };
-  return { ok: true, line: { id: row.id, text: clean.text, createdAt: row.createdAt, updatedAt: row.updatedAt } };
+  return { ok: true, line: { id: row.id, text: clean.text, createdAt: row.createdAt, updatedAt: row.updatedAt, ...(row.kind === "own_rule" && { ownRule: true }) } };
 }
 
-/** Deletes one of this Learner's own lines. Returns false when they have no such line. */
+/** Deletes one of this Learner's own lines or saved rules. Returns false when they have no such line. */
 export async function removeLine(db: Db, id: number, learnerId: number): Promise<boolean> {
   const rows = await db
     .delete(noteItems)
-    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), eq(noteItems.kind, "line")))
+    .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), inArray(noteItems.kind, [...OWN_KINDS])))
     .returning({ id: noteItems.id });
   return rows.length > 0;
 }
