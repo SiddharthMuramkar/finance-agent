@@ -3298,3 +3298,25 @@ the views are tested without the Widget library. Bars, notes and icons keep thei
 grows), which costs a little precision in the first view but means a change is always seen as a change in number, not in axis.
 Charts here avoid the navy brand colour, so a `Versus` winner is the darker grey rather than blue. A guess stays in the
 `$variable`, but "locked" is kept only while the page is open, so a reload reopens the slider with the saved guess.
+
+## Interaction foundation (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/nav-link.tsx`, `src/app/route-skeleton.tsx`, `loading.tsx` per route, `src/widgets/genui-theme.tsx`, UX audit lane "foundation")
+
+**What it does.** One base under every screen so a press, a wait and a theme switch feel the same everywhere.
+`globals.css` holds the timing tokens (`--dur-press` 90ms, `--dur-ui` 150ms, `--dur-panel` 200ms, `--ease-out`), the pressed
+navy (`--brand-pressed`) and the focus ring colour (`--ring`), plus Tailwind aliases (`bg-brand`, `text-ink`, `border-border`).
+A base layer gives everything pressable a pointer cursor and everything disabled a not-allowed one, and switches off the grey
+tap flash. The `pressable` utility moves a control 1px down and in on `:active` (not `:hover`, so a finger gets it too).
+`ui.tsx` has one `Button` (primary, secondary, ghost; small or medium; `loading` shows a spinner and sets `aria-busy`), a
+`Chip` with idle, showing and drawing states and at least 28px tall, a 32px `IconButton`, a `Spinner`, and `NavLink`
+(re-exported from `nav-link.tsx`), whose dot carries `data-link-pending` while its page loads. Each route has a
+`loading.tsx` that shows the real header with hairline blocks where content will land. The OpenUI kit's colours are mapped to
+our tokens at `:root` (and a test keeps that block equal to `genui-theme.tsx`), so they follow the Learner's dark switch, not
+the operating system's.
+
+**Scenario.** Siddharth taps Course Map on his iPad. The link's dot appears at once, the button dips for 90ms, and the
+Course Map's skeleton shows under the same header instead of a frozen page. In dark mode, a Callout in a Widget has a navy
+title, not the kit's indigo, even when his iPad itself is set to light.
+
+**Trade-off.** The skeleton is drawn from the page's layout by hand, so it can drift from the real page when that page's
+layout changes. In return the first paint after a click is instant and nothing jumps. The OpenUI mapping lives in two places
+(code and CSS) because CSS cannot import code; the test is what keeps them honest.
