@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { loadCourseMap } from "@/course/map";
+import { oldPercentOnly } from "@/test/old-percent-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { Budget } from "./budget";
 import { CASES_DIR, loadCases, type LiveCase } from "./case";
 import { renderReplay, replayFiles, runReplay, type ReplayDeps } from "./sweep-replay";
 
-const map = loadCourseMap();
+const map = oldPercentOnly(); // Percent before its conversion (a fixture), with its old Widget
 const t1 = loadCases(CASES_DIR).cases.find((c) => c.id === "T1") as LiveCase;
 const turn = (id: string, over: Partial<LiveCase> = {}): LiveCase => ({ ...t1, id, title: `Turn ${id}`, source: `Session turn ${id}`, ...over });
 
