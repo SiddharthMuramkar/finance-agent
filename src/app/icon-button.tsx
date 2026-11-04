@@ -1,4 +1,4 @@
-// The icon-only button (kept apart from ui.tsx so the client ThemeToggle can use it without importing the header).
+// The icon-only button (kept apart from ui.tsx so the client ThemeMenu can use it without importing the header).
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]";
 
