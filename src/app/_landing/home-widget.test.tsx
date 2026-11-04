@@ -67,6 +67,8 @@ describe("Home's live annuity Widget", () => {
     expect(range.value).toBe("0");
     expect([...host.querySelectorAll("[data-state]")].map((li) => li.getAttribute("data-state"))).toEqual(["done"]);
     expect(host.textContent).toContain("Sum of payments: $1.537 billion");
+    // Signed out, nothing is saved or fetched as the visitor drags.
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("offers no verdict, break-even or Tell the Tutor, as before the Insight", async () => {

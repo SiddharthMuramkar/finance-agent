@@ -43,7 +43,7 @@ with `SESSION_SECRET` (see "Own passcodes" at the end of this note).
 Claude call happens, so no credits are spent.
 
 **The public doors.** Signed out, the proxy lets through only a plain GET or HEAD of `/` (Home) and
-image files under `/landing-assets/` (`.png` or `.webp`). A POST to `/`, or any request carrying a
+image files under `/landing-assets/` (`.png` or `.webp`; today only the link-preview image). A POST to `/`, or any request carrying a
 `Next-Action` header (a Server Action call), answers 401. Every other page still redirects to
 `/login`, and every `/api/*` route still answers 401. `/` itself checks the cookie again
 (`isSignedIn()` in `src/auth/session.ts`) before it reads anything. The Study Workspace lives at
@@ -2828,13 +2828,13 @@ and separate the argument's facts, inferences and forecasts.
 ## Home (`src/app/page.tsx`, `src/app/_landing/`, `src/auth/session.ts`)
 
 **What it does.** The main address, `/`, always shows Home, signed in or out. Home says what the
-Study Workspace is: a headline, a screenshot, one stats line worked out by code ("95 Topics · 103
+Study Workspace is: a headline, a live annuity Widget (below), one stats line worked out by code ("95 Topics · 103
 historical cases · 8 sources": Topics written, every Case in the outline, Library sources), the
 seven Teaching Steps and "Every number has a source". Signed out, the main button is "Start
 learning", once in the hero and again after "Every number has a source", and the top bar says
 "Sign in"; all three go to the passcode page (`/login`). Signed in, it is the same page, but both
 main buttons name the Learner's place and the top bar says "Study Workspace"; every one of them opens
-`/study`, where the Study Workspace now lives (demo mode with it: `/study?demo=1`). Beside the top
+`/study`, where the Study Workspace now lives. Beside the top
 bar's link sits Sign out, the same form as the app header's; on a phone it is the only Sign out,
 since signed-in pages there show only the bigger-screen note. Signed out, the page reads no Learner
 data and no Library text, only counts. All its words live in `copy.ts`, so the owner can rewrite
@@ -2871,10 +2871,7 @@ it), so neither a CDN nor the browser can hand a signed-out copy to a signed-in 
 reverse. Only Home's statistics keep their day-long data cache. The signed-in button costs one small
 database read per visit (it was a free page before). The cookie check at the top of the page is
 load-bearing: anything added above it would run for strangers too. The proxy backs it up by allowing
-only reads of `/`, so no Server Action or POST can run signed out. The screenshots are static files
-in `public/landing-assets/`, taken from the demo Study Workspace (`/study?demo=1`, signed in only,
-and only when `WORKSPACE_DEMO=1` is set locally, never on Vercel), which shows a sample Mega
-Millions conversation instead of the Learner's own.
+only reads of `/`, so no Server Action or POST can run signed out.
 
 **Why the stats are cached.** The Topic and Case counts come from files on disk and cost nothing.
 The Library source count needs the database, so it is cached for a day (`unstable_cache`, revalidate
@@ -2890,8 +2887,29 @@ card. Signed-in pages share the same generic title; nothing in it names the Lear
 also sends four headers on every route: no other site may frame a page (`frame-ancestors 'none'` and
 `X-Frame-Options: DENY`, against clickjacking), `nosniff`, and a referrer that carries only our origin
 to other sites. There is no full script policy: Next's inline scripts would need per-request nonces.
-The three counts sit in a card below the screenshot rather than over it, so the Tutor's composer row in
-the screenshot is never covered.
+The light screenshot in `public/landing-assets/` stays only as that card's image; Home itself no longer
+shows a screenshot, and the dark copy and the demo mode that took them (`/study?demo=1`) are gone.
+
+**Home's live annuity Widget** (`_landing/home-widget.tsx`, `_landing/home-widget-data.ts`, spec #119,
+ticket #162). Under the hero, Home draws Present value's written-ahead annuity Widget ("What the annuity
+is worth today") with the very component the Study Workspace uses (`WidgetWithSave`), signed in or out.
+It is shown as it is before the Insight: no verdict line, no break-even, no 30-year Treasury quick
+button. Its Guided Tasks are swapped by code for Home's one, "Drag to 0%. Why does it match the
+advertised jackpot?", and signed out "Sign in to learn why →" sits under it, to `/login`. Its Case Data
+(the cash option) is read on the server with `loadCaseData` under the signed-out as-of rule (an empty
+Progress, so nothing after the Case's as-of date, whatever any Learner has seen), cached for a day with
+`unstable_cache` like the Library count, and handed to the page's `CaseDataProvider` as `cases`. With
+`cases` given, the Case Data cache answers from them alone and never calls `/api/case-data`, which would
+answer 401 to a visitor anyway. There is no Widget store on Home, so dragging saves nothing.
+
+**Scenario.** A friend opens value-it.xyz without a passcode, drags the rate to 0% and sees the sum of
+payments match the advertised $1.537 billion; the one task ticks. Curious why the cash option is so much
+less, they press "Sign in to learn why →". No request left the browser while they played.
+
+**Trade-off.** The Widget's code is read from the Topic file on each render, so an edit to the Widget
+shows on Home with the next deploy; only its Case Data is cached, so a corrected cash figure can take a
+day to reach Home. If that read fails, the error is logged and Home shows no Widget rather than
+breaking.
 
 ## Learner Profile (`src/learner/profile.ts`, `learner_profile` table, `/api/profile`, `src/app/profile/`, ticket #67)
 
