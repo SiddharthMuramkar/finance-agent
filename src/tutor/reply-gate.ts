@@ -6,6 +6,7 @@ import { checkReply, correctionText, countWords, fixReply, trimToCap, type Reply
 import { replyCheckContext, type TurnFacts } from "./turn-facts";
 import type { StoredItem } from "./session-items";
 import type { TurnEvent } from "./turn";
+import { widgetValidator } from "./ready-made-widgets";
 import { PARAGRAPH, textOf } from "./transcript";
 import { REPLY_CHECK_PREFIX } from "./turn-status";
 
@@ -98,13 +99,16 @@ export function judgeReply(
   text: string,
   stored: ReplyWidget[],
   facts: TurnFacts,
-  o: { engine: boolean; fenceProblems?: readonly BrokenWidget[] },
+  o: { engine: boolean; fenceProblems?: readonly BrokenWidget[]; savedRule?: string | null; writtenAhead?: readonly { id: string; code: string }[] },
 ): Judged {
   const fences = splitReply(text).filter((s) => s.type === "widget");
   const fenceWidgets: ReplyWidget[] = fences.map((_, i) => ({ kind: "recipe", id: fenceId(i) }));
   const reasons = new Map(fenceWidgets.map((w, i) => [w.id, o.engine ? FENCE_IN_ENGINE : (o.fenceProblems?.find((b) => b.index === i)?.problems.join(" ") ?? null)]));
-  const ctx = replyCheckContext(facts, { widgetOk: (w) => reasons.get(w.id) ?? null });
-  const fixed = fixReply({ text, widgets: [...stored, ...fenceWidgets] });
+  // A Widget a tool stored passes unless it names a written-ahead Widget this Topic lacks or a preset that does not fit.
+  const validate = widgetValidator(o.writtenAhead ?? []);
+  const ctx = replyCheckContext(facts, { widgetOk: (w) => reasons.get(w.id) ?? (w.kind === "written" && o.writtenAhead ? validate(w) : null) });
+  // The Learner's rule saved this turn is held to V5, V6 and V7 like the reply.
+  const fixed = { ...fixReply({ text, widgets: [...stored, ...fenceWidgets] }), savedRule: o.savedRule ?? null };
   return { draft: fixed, changed: fixed.text !== text, problems: checkReply(fixed, ctx), ctx };
 }
 
