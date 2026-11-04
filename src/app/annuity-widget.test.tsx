@@ -144,10 +144,17 @@ describe("Present value's annuity Widget at the explore step", () => {
     const years = [...card().querySelectorAll('[data-testid="chart-x-label"]')].map((l) => l.textContent);
     expect(years).toEqual(["2018", "2023", "2028", "2033", "2038", "2043"]);
     expect(card().querySelector('[data-testid="chart-y-name"]')?.textContent).toContain("$ millions");
-    const reads = [...card().querySelectorAll("svg [aria-label^='Payment in']")].map((b) => b.getAttribute("aria-label"));
-    expect(reads).toHaveLength(30);
-    expect(reads[11]).toMatch(/^Payment in 2029: \$[\d.]+M paid → worth \$[\d.]+M today$/);
-    expect(reads[29]).toMatch(/^Payment in 2047: /);
+    // The thirty bars are one control: a single tab stop that the arrow keys, Home and End step through.
+    const slider = card().querySelector<SVGRectElement>('svg [role="slider"]')!;
+    expect(card().querySelectorAll("svg [tabindex='0']")).toHaveLength(1);
+    expect(slider.getAttribute("aria-valuetext")).toMatch(/^Payment in 2047: /);
+    const key = async (k: string) => act(async () => void slider.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true })));
+    await key("Home");
+    expect(card().querySelector('[data-testid="chart-readout"]')?.textContent).toMatch(/^Payment in 2018: /);
+    for (let i = 0; i < 11; i++) await key("ArrowRight");
+    expect(card().querySelector('[data-testid="chart-readout"]')?.textContent).toMatch(/^Payment in 2029: \$[\d.]+M paid → worth \$[\d.]+M today$/);
+    await key("End");
+    expect(slider.getAttribute("aria-valuetext")).toMatch(/^Payment in 2047: /);
   });
 
   it("reads out the sum of payments, the worth today (teal) and the sourced cash option (amber), with labelled bars", async () => {

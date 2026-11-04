@@ -706,10 +706,10 @@ however narrow the panel (an 8px dot and a 7px ring round the point read), a rea
 <value>") when a point is hovered, tapped or reached with the keyboard (a line of more than 30 points
 is one stop, read with the arrow keys), and each value printed above its point when there are 12
 points or fewer. It is still plain SVG, so it draws on the server and in tests too. The annuity chart
-(`AnnuityChart`, drawn by `annuity-plot.tsx`) reads the same way: dollars up the side ($0, half and the
-largest payment, under "Dollars per payment"), payments along the bottom (first, middle, last, under
+(`AnnuityChart`, drawn by `annuity-plot.tsx`) reads the same way: dollars up the side (round-number
+ticks that only grow, under "Dollars per payment"), payments along the bottom (first, middle, last, under
 "Payment number (the first is paid now)"), and a readout such as "Payment 30: $95.2 million paid, worth
-$40.4 million today" when a bar is hovered, tapped or reached with Tab. Kit charts (OpenUI's own) are
+$40.4 million today" when a bar is hovered, tapped or read with the arrow keys (the bars are one slider; see "The plot kit"). Kit charts (OpenUI's own) are
 labelled through the Tutor's instructions and the server's Widget check, not here.
 
 **The shared Case Data cache (`src/widgets/case-data-cache.ts`, `case-data-provider.tsx`).** Each page
@@ -1026,6 +1026,30 @@ tools it calls itself. A tool is only as good as its arguments: a wrong input na
 line instead of a chart, which is why the server check reads the written-out arguments first. The
 tools' names and argument rules sit in one file with no React (`tool-specs.ts`), because the server
 check reads them too.
+
+### The plot kit (`src/widgets/plot/`, `history-plot.tsx`, `annuity-plot.tsx`, UX audit lane "plot")
+
+**What it does.** One small, hand-drawn set of chart parts so every chart in a Widget has the same look, keys and
+units. `scales.ts` has round-number ticks (1, 2, 2.5 or 5 times a power of ten) and linear, log, time and band maps.
+`format.ts` has `formatAxis` and `formatValue`: a rupee axis reads ₹8 L or ₹1.2 Cr (the existing lakh and crore words,
+shortened) and never K or M, dollars read $50 m or $1.5 bn, and a value read out always carries its unit (₹4,000).
+`domain.ts` has `useStickyDomain`: a value axis that only grows while the Widget is in use, and starts over when the
+Widget's Reset changes the `PlotResetContext` value. `charts.tsx` has `BarChartPlot`, `LineChartPlot` and
+`AreaChartPlot`, taking OpenUI's own positional props plus optional `unit`, `yMin` and `yMax`; they are exported but
+not yet registered over OpenUI's charts (the Widget library does that). Areas overlap and never stack unless the
+variant is "stacked"; the first series is the filled area. Bars stop at about 48 px wide and sit in the middle of
+their slot. The keyboard has one stop in a chart (a roving tabindex), and the arrow keys, Home and End move from
+point to point.
+
+**Scenario.** A Learner drags the umbrella slider from 100 % down to 50 %. Before, the axis re-fitted itself on every
+step, so the bars looked the same height and the lesson ("the swing shrinks") was invisible. Now the axis stays at
+its widest, so the bars visibly shrink to half. On the Sensex chart, 1979 to 1990 is now eleven years wide and the
+month in 1992 is a sliver, and a "Log scale" switch redraws the same line so that steady growth runs straight.
+
+**Trade-off.** An axis that only grows can leave empty room above the bars after a big slider swing, until Reset.
+We take that: a steady axis teaches more than a tidy one. Log is offered only when every value is above zero, and
+the Annuity chart's keyboard is now one slider (one tab stop) instead of thirty, at the cost of a payment's reading
+being spoken only when the slider moves onto it.
 
 ## Dark and light modes (`src/app/theme-toggle.tsx`)
 
