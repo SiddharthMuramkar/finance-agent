@@ -959,7 +959,7 @@ describe("Tutor Turn", () => {
       await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const context = requests.at(-1)!.messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).map((b) => JSON.stringify(b)).join("\n");
       expect(context).toContain(`Check: quiz ${quizId}`);
-      expect(context).toContain("Do not write quiz questions");
+      expect(context).toContain("While the quiz is open, help freely");
       // Where the Learner sees it: on the right, in the Check tab, never "beside the conversation" or "the quiz panel".
       expect(context).toContain("on the right, in the Check tab");
       expect(context).not.toContain("panel beside the conversation");
