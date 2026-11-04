@@ -20,7 +20,7 @@ import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type 
 import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
 import { afterReteachItems, drillIsDue, enterStepItems, methodInNote, pendingQuickTryNote, quickTryFollowUpNote, quizLadderNote } from "./practice";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
-import { splitReply } from "@/widgets/split";
+import { withoutOpenWidget } from "./open-widget";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { storeTopicComplete } from "./topic-complete";
 import { describeFailure, type FailureKind } from "./failures";
@@ -55,12 +55,13 @@ import { CHECKING_LABEL, joinedEvents, judgeReply, REPLY_CHECK_PREFIX, replyText
 import { cardFallback } from "./reply-fallback";
 import { saveReplyCheck, summaryOf } from "./reply-records";
 import { fixReply } from "./reply-checks";
+import { savedRuleOf } from "./own-rule-item";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
-import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
+import { lastStepNumber, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 
 /**
  * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
@@ -163,7 +164,7 @@ export type TurnEvent =
   | { type: "widget_state"; widgetKey: string; values: Record<string, number> };
 
 /** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
-export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
+export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | { type: "turn_started"; turnId: number } | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
 
 /** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
 export const NO_QUICK_TRY_FOLLOW_UP = "There is no Quick try answer to go over.";
@@ -252,6 +253,8 @@ export type TurnDeps = {
    * the generator cannot yield while a tool runs or the model thinks. Left out, nothing is sent.
    */
   notify?: (event: ProgressEvent) => void;
+  /** Tells the route the id of the turn that holds the Learner's lock, once it does, so the browser can tie its Stop to that turn. */
+  onTurn?: (turnId: number) => void;
   /** compose_widget's model client (and a test's shorter limit); left out, the real Anthropic client, made on first use. */
   composer?: Composer;
 };
@@ -309,23 +312,7 @@ function watchForStop(db: Db, turnId: number) {
 }
 
 const WIDGET_OPEN = "```openui-lang\n";
-const WIDGET_CLOSE = "\n```";
-
-/**
- * The reply text without a Widget it had not finished: an unclosed openui-lang fence (and anything after it) is
- * cut off, so a stopped reply is never saved or replayed with a Widget that cannot draw.
- */
-export function withoutOpenWidget(text: string): string {
-  const kept = splitReply(text)
-    .flatMap((s) => (s.type === "prose" ? [s.text] : s.complete ? [WIDGET_OPEN + s.code + WIDGET_CLOSE] : []))
-    .join("");
-  // A fence only partly opened ("```openui") at the start of the last line goes too; a bare "```" may close a fence.
-  for (let k = WIDGET_OPEN.length - 1; k > 3; k--) {
-    const start = kept.length - k;
-    if (kept.endsWith(WIDGET_OPEN.slice(0, k)) && (start === 0 || kept[start - 1] === "\n")) return kept.slice(0, start).trimEnd();
-  }
-  return kept.trimEnd();
-}
+export { withoutOpenWidget };
 
 /**
  * Runs one Tutor turn for one Learner: refuses a request from a tab showing another Topic, takes
@@ -440,6 +427,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
     return;
   }
   let ended = false;
+  deps.onTurn?.(turn.id);
   const stop = watchForStop(db, turn.id);
   try {
     const done = yield* runLockedTurn(deps, input, turn, deadline, stop.signal);
@@ -516,7 +504,7 @@ async function* runLockedTurn(
   let stepNo: number | undefined;
   let stepsReady = false;
   const saveStep = async (model: string, make: (n: number) => StepUsage) => {
-    stepNo ??= (await loadStepUsages(db, session.id, turnSeq)).length;
+    stepNo ??= await lastStepNumber(db, session.id, turnSeq);
     await saveStepUsage(db, session.id, turnSeq, model, make(++stepNo), now());
   };
   // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
@@ -907,7 +895,12 @@ async function* runLockedTurn(
       const problems = markerProblems(text);
       if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
     }
-    const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, { engine, fenceProblems });
+    const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, {
+      engine,
+      fenceProblems,
+      savedRule: savedRuleOf(items.filter((i) => i.afterSeq >= turnSeq)),
+      writtenAhead: covering ? writtenAheadWidgets(covering) : undefined,
+    });
     return deps.checkReplies === false ? { ...judged, draft: { ...judged.draft, text }, changed: false, problems: [] } : judged;
   };
 

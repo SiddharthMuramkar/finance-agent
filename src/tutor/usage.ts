@@ -111,6 +111,12 @@ export async function loadStepUsages(db: Db, sessionId: number, turnSeq: number)
   return rows.map(toStep);
 }
 
+/** The number of the last step saved for a turn (0 when none): a resumed turn numbers its next step after it, never from a row count that a gap would make collide. */
+export async function lastStepNumber(db: Db, sessionId: number, turnSeq: number): Promise<number> {
+  const saved = await loadStepUsages(db, sessionId, turnSeq);
+  return saved.reduce((most, s) => Math.max(most, s.step), 0);
+}
+
 /** Saves the turn's total from its saved steps, once the turn has finished. */
 export async function saveTurnTotal(db: Db, sessionId: number, turnSeq: number, model: string, durationMs: number, now: Date, replyCheck?: ReplyCheckSummary): Promise<TurnUsage> {
   const usage: TurnUsage = { ...sumSteps(model, await loadStepUsages(db, sessionId, turnSeq), durationMs), ...(replyCheck && { replyCheck }) };

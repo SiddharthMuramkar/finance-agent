@@ -57,6 +57,22 @@ function ResultCard({ label, passed }: { label: string; passed: boolean }) {
   );
 }
 
+/**
+ * Scrolls to the Topic's step (or start) anchor. Where that anchor is not on the page (an older Session never stored it), it
+ * falls back to the latest Teaching Step divider, else to the end of the thread, so the button always goes somewhere.
+ */
+export function scrollBackToTopic(anchor: string, from: HTMLElement) {
+  const toTop = { behavior: "smooth", block: "start" } as const;
+  const found = document.getElementById(anchor);
+  if (found) return found.scrollIntoView(toTop);
+  const dividers = document.querySelectorAll<HTMLElement>('[data-testid="step-divider"]');
+  const latest = dividers.item(dividers.length - 1);
+  if (latest) return latest.scrollIntoView(toTop);
+  const viewport = document.querySelector<HTMLElement>('[data-testid="thread-viewport"]');
+  if (viewport) return viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
+  from.scrollIntoView({ behavior: "smooth", block: "end" });
+}
+
 /** An Off-Topic answer's marker: a quiet line under the answer, with a way back to the Topic's step (or its start). */
 function OffTopicBlock({ data }: { data: OffTopicData }) {
   const target = typeof data.step === "number" ? stepAnchor(data.step) : TOPIC_START_ANCHOR;
@@ -66,7 +82,7 @@ function OffTopicBlock({ data }: { data: OffTopicData }) {
       <button
         type="button"
         data-testid="off-topic-back"
-        onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        onClick={(e) => scrollBackToTopic(target, e.currentTarget)}
         className="rounded underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--ink)]"
       >
         ↩ Back to {data.title}

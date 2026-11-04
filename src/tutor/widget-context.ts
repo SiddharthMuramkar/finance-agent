@@ -14,7 +14,7 @@ import { currentTopicId, liveSession, openLog } from "./session-log";
 import { caseDataFor, replyTexts } from "./tools";
 
 export { replyTexts };
-import { WIDGET_REPORT_PREFIX } from "./turn-status";
+import { WIDGET_NOTES_PREFIX, WIDGET_REPORT_PREFIX } from "./turn-status";
 import { drawnWidgets, loadSessionItems, type StoredItem } from "./session-items";
 import { loadWrittenAhead } from "./written-ahead";
 import { WIDGET_OPENED } from "@/course/written-ahead";
@@ -145,7 +145,7 @@ export function widgetNotes(rows: readonly LogRow[], items: readonly StoredItem[
     });
   if (!archetypes.length && !notes.length) return null;
   const recent = archetypes.length ? [`Recent archetypes, latest last: ${archetypes.join(", ")}.`] : [];
-  return [`Widget notes (code):`, ...recent, ...notes].join(" ");
+  return [WIDGET_NOTES_PREFIX, ...recent, ...notes].join(" ");
 }
 
 /** The finished Widgets in a reply's text, in order. */

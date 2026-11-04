@@ -12,7 +12,7 @@ import { OPENING_PREFIX } from "./context";
 import { PASTE_PREFIX, pasteLabel } from "./pasted";
 import { currentTopicId, liveSession, withoutRejected, type Message, type Row } from "./session-log";
 import { rejectedSeqsOf } from "./reply-records";
-import { isCodeWritten, REPLY_CHECK_PREFIX } from "./turn-status";
+import { isCodeWritten, REPLY_CHECK_PREFIX, WIDGET_NOTES_PREFIX } from "./turn-status";
 import { loadTurnUsages, type TurnUsage } from "./usage";
 import { loadSessionItems, type StoredItem } from "./session-items";
 
@@ -239,8 +239,8 @@ export function textOf(content: unknown): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
   return content
-    // The opening context and the Widget context are code's, never the Learner's words.
-    .filter((b): b is { type: "text"; text: string } => b?.type === "text" && !b.text.startsWith(OPENING_PREFIX) && !b.text.startsWith(WIDGETS_PREFIX))
+    // The opening context, the Widget context and the Widget notes are code's, never the Learner's words.
+    .filter((b): b is { type: "text"; text: string } => b?.type === "text" && !b.text.startsWith(OPENING_PREFIX) && !b.text.startsWith(WIDGETS_PREFIX) && !b.text.startsWith(WIDGET_NOTES_PREFIX))
     .map((b) => (b.text.startsWith(PASTE_PREFIX) ? `${PARAGRAPH}${pasteLabel(b.text)}` : b.text))
     .join("");
 }
