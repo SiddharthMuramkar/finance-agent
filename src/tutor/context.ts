@@ -218,10 +218,11 @@ const currencyName = (code: string) => CURRENCY_NAMES[code] ?? code;
 function factLines(facts: TurnFacts, step: Place["step"]): string[] {
   const others = facts.caseCurrencies.filter((c) => c !== facts.exampleCurrency);
   const lines = [
-    `Word limit for this reply: ${facts.cap} words.`,
+    `Word limit for this reply: ${facts.aim ?? facts.cap} words.`,
     `Currency for everyday examples and Widgets: ${currencyName(facts.exampleCurrency)}.${others.length ? ` The Case's own figures stay in ${others.map(currencyName).join(" and ")}.` : ""}`,
   ];
   if (facts.replyKind) lines.push(`Reply kind: ${facts.replyKind}.`);
+  if (facts.replyKind === "simpler") lines.push("Line limit for this reply: 4 lines, counting the ask.");
   if (facts.method) lines.push(`Method for this reply: ${facts.method}.`);
   if (facts.frustration) lines.push(`Frustration: ${facts.frustration}. Acknowledge it in eight words or fewer, then give a smaller step.`);
   if (facts.skillLines?.length) lines.push("How the Learner stands on each idea of this Check (code marks every try):", ...facts.skillLines);

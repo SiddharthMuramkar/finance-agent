@@ -9,6 +9,7 @@ import { quizUnavailable } from "@/learner/quiz";
 import { GO_DEEPER, OLD_CHIP_MESSAGES } from "./chips";
 import { cardForFacts, ladderFacts } from "./practice";
 import { blockedNumbersFrom, capFor, type OpenItem, type ReplyCheckContext, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
+import { isCodeWritten } from "./turn-status";
 
 /**
  * Turn facts (spec #229, ticket #238): what code knows about this Tutor Turn before the Tutor writes a word, worked out
@@ -19,8 +20,13 @@ export interface TurnFacts {
   step: StepKind;
   /** Code's choice of Reply kind, when it knows it: today only from the Learner's own words (Go deeper, simpler). */
   replyKind?: ReplyKind;
-  /** The word limit for this reply: `capFor(step, replyKind)`. */
+  /** The word limit for this reply: `capFor(step, replyKind)`. The reply checks hold the reply to it. */
   cap: number;
+  /**
+   * A tighter word limit some Reply kinds get (`AIMS`, ticket #248), which the context names in place of the cap. The
+   * reply checks still allow the cap, so a reply a few words over the aim is shown, not retried.
+   */
+  aim?: number;
   /** The currency of everyday examples and non-Case Widgets, such as "INR". */
   exampleCurrency: string;
   /** The currencies the Topic's Cases give amounts in, such as ["USD"]. */
@@ -48,12 +54,24 @@ export interface TurnFacts {
 /** The currency every Topic's everyday examples use until its file names one (spec #229: ₹ by default). */
 export const DEFAULT_EXAMPLE_CURRENCY = "INR";
 
-/** The Reply kind a Learner's own words ask for: the Go deeper chip, or a request for something simpler. */
+/**
+ * The tighter word limits (ticket #248, from TUTOR_SPEC section 7): 60 words after a miss (feedback or a re-teach) and
+ * for a request for the answer (hint), 40 for a quiz-me ask (quick_try). The Tutor writes up to the limit it is told,
+ * so these replies are told their own; every other reply is told its step's cap.
+ */
+export const AIMS: Partial<Record<ReplyKind, number>> = { feedback: 60, reteach: 60, hint: 60, quick_try: 40 };
+
+/**
+ * The Reply kind a Learner's own words ask for: the Go deeper chip, a request for something simpler, a quiz-me ask, or a
+ * request for the answer. A note code wrote is never the Learner's words.
+ */
 export function replyKindOf(learnerText?: string): ReplyKind | undefined {
   const text = learnerText?.trim();
-  if (!text) return undefined;
+  if (!text || isCodeWritten(text)) return undefined;
   if (text === GO_DEEPER) return "go_deeper";
   if ((OLD_CHIP_MESSAGES as readonly string[]).includes(text) || /\b(?:simpler|more simply)\b/i.test(text)) return "simpler";
+  if (/\b(?:ask|quiz|test) me\b/i.test(text)) return "quick_try";
+  if (/\b(?:tell|give|show) me the answers?\b|\bwhat(?:'s| is) the answer\b/i.test(text)) return "hint";
   return undefined;
 }
 
@@ -69,10 +87,13 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
   const currencies = place ? await topicCurrencies(db, place.topic) : { exampleCurrency: DEFAULT_EXAMPLE_CURRENCY, caseCurrencies: [] };
   // The Concept card code shows (a converted Concept step) or teaches from (a converted quiz Check).
   const card = cardForFacts(place);
+  const cap = capFor(step, replyKind);
+  const aim = replyKind && AIMS[replyKind];
   return {
     step,
     ...(replyKind && { replyKind }),
-    cap: capFor(step, replyKind),
+    cap,
+    ...(aim && aim < cap && { aim }),
     ...currencies,
     quizOpen,
     openItems,

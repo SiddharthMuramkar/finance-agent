@@ -1794,21 +1794,29 @@ rule is still a request to the model: the reply checks (ticket #239) are what ho
 size test now counts the rules at their old length, since this growth is the teaching rules, not the Widget text.
 
 **Tuned against the live tests (ticket #248, lane R11).** The live suite grades the model's first draft, before the reply
-checks, so the rules carry the tighter targets the tests hold. After a miss: 60 words, the first sentence names the step
-the Learner left out, then one similar item on new numbers with its last step left as the ask. Fill-in boxes leave the
-last box blank, because filled boxes are only a worked example. "Simpler" means less: the first idea only, nothing the
-earlier reply lacked (not even the Topic's analogy), and an open question asked again rather than answered. "Ask me a
-question" and frustration replies get 40 words, and with "use widgets" the engine shows rate_move in practice mode.
-The Learner's own rule is saved with save_learner_rule before any prose, then confirmed in at most two sentences.
-Scenario: a Learner answers 0.3 to a fall from 7.5% to 7.2% asked in basis points; the Tutor writes "0.3 is the move in
-points; basis points need one more step, times 100", fills Box 1 for 6% to 6.4%, and asks for Box 2. Trade-off: each
-target is written as a rule the reply checks don't enforce (the checks keep the spec's 80 and 120 caps), so a draft that
-misses one is still shown. The rules grow by about 900 characters.
+checks, so the rules and the turn facts carry the tighter targets the tests hold. After a miss: 60 words, the first
+sentence names the step the Learner left out, then one similar item on new numbers with its last step left as the ask.
+Fill-in boxes leave the last box blank, because filled boxes are only a worked example, and the blank box is the ask, not
+the "practice question of your own" that code's re-teach note rules out. "Simpler" means less: the first idea only,
+nothing the earlier reply lacked (not even the Topic's analogy), and an open question asked again rather than answered.
+"Ask me a question" and frustration replies get 40 words, and with "use widgets" the engine shows rate_move in practice
+mode for a rate move. The Learner's own rule goes to save_learner_rule before any prose (code decides whether it may be
+saved), then is confirmed in at most two sentences. Code backs the numbers, because the Tutor writes up to the limit it
+is told: `turnFacts` reads a quiz-me ask ("ask me", "quiz me", "test me") as Reply kind quick_try and a request for the
+answer as hint, and gives some Reply kinds an `aim` under the cap (`AIMS`: 60 words for feedback, reteach and hint, 40
+for quick_try), which the context names as the reply's word limit. A simpler reply also gets "Line limit for this
+reply: 4 lines, counting the ask." Scenario: a Learner answers 0.3 to a fall from 7.5% to 7.2% asked in basis points;
+the context says "Word limit for this reply: 60 words", and the Tutor writes "0.3 is the move in points; basis points
+need one more step, times 100", fills Box 1 for 6% to 6.4%, and asks for Box 2. Trade-off: the reply checks keep the
+spec's 80 and 120 caps, so the Tutor is told a tighter limit than it is held to, and a draft a few words over its aim is
+shown, not retried. Reading a Reply kind from words is a guess: "don't ask me" reads as a quiz-me ask, and "give me a
+question" does not. The rules grow by about 1,000 characters.
 
 ### Turn facts: what code knows before the Tutor writes (`src/tutor/turn-facts.ts`, `src/tutor/context.ts`, spec #229, ticket #238)
 
 **What it does.** Once per Tutor Turn, `turnFacts` works out the turn's facts: the step, the Reply kind the Learner's
-words ask for (Go deeper, or a request for something simpler), the word limit (`capFor`), the Topic's example
+words ask for (Go deeper, a request for something simpler, a quiz-me ask or a request for the answer), the word limit
+(`capFor`, with a tighter `aim` for some Reply kinds since lane R11), the Topic's example
 currency (₹ until Topic files name one) and its Cases' currencies (from `$` amounts in the story and Case Data
 units), and the ids the Learner must never read. At a quiz Check whose quiz can be shown, `openQuizItems` reads the
 open attempt's questions plus the next attempt's (after a miss, only the next one's), through the Course Map and the
@@ -1818,7 +1826,8 @@ reply: N words", the currency line, "Reply kind" when known, the method, frustra
 later tickets fill them, and at an open quiz the new rule, the blocked numbers and the Concept (or card) to teach
 from. The opener names the blocked numbers too, and the Check tab's note above the message box now offers help:
 "Quiz open. Stuck? Ask the Tutor: it can explain with other numbers." `replyCheckContext` turns the same facts into
-the reply checks' context, so the Tutor is told exactly the limits its reply is held to.
+the reply checks' context, so the Tutor is told the limits its reply is held to (or, for a Reply kind with an aim, a
+tighter one).
 
 **Scenario.** The Learner opens the present value quiz and asks how discounting works. The context says the limit is
 80 words and lists 1100, 10, 1000, 990, 1010, 1210 and the next attempt's numbers as blocked, so the Tutor explains
