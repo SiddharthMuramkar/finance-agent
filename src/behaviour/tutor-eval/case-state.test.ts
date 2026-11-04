@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadCourseMap } from "@/course/map";
+import { checkTabNow } from "@/learner/quiz";
+import { exactFrom, type DrawnItem } from "@/teaching";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { CONCEPT_CARD, QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData, type QuickTryResultData } from "@/tutor/session-item-kinds";
@@ -9,7 +11,7 @@ import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { CASES_DIR, loadCases, type LiveCase } from "./case";
 import { codedFailures } from "./grading";
-import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply } from "./setup";
+import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply, slipFor } from "./setup";
 
 /**
  * Seam: the Tutor Turn on in-memory Postgres with a scripted model, on today's Course Map. T3, T5 and T6 are set up so that
@@ -102,6 +104,35 @@ describe("T6: the Learner's own rule is saved after a right practice answer", ()
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text: textOf(events), notesAfter });
     expect(reply.savedRule).toBeNull();
+  });
+});
+
+describe("T2: a missed typed quiz holds the slips a Learner makes", () => {
+  it("submits each wrong answer as one of the question's Known mistakes, never an odd number, and tells the Tutor and the grader what was typed", async () => {
+    const db = await testDb();
+    const c = live("T2");
+    const p = await prepareCase(db, c, { map, settings });
+    const tab = await checkTabNow(db, map, new Date(), p.learnerId);
+    const questions = tab.missed?.result.questions ?? [];
+    expect(questions).toHaveLength(3);
+    for (const q of questions) {
+      expect(q.correct).toBe(false);
+      expect(q.given).toMatch(/^\d+(\.\d+)?$/);
+      expect(q.mistake?.tag, `"${q.given}" on "${q.prompt}" is not one of its Known mistakes`).toBeTruthy();
+    }
+    expect(p.stateNote).toMatch(/got 0 of 3 right; 1\. they typed "[\d.]+" \(right: /);
+
+    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Okay.\nWhat is 5% minus 4%?" }] }]);
+    await collect(runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: false }, c.message));
+    expect(JSON.stringify(requests[0])).not.toContain("987654");
+  });
+
+  it("falls back to 0 for a question with no Known mistake, and to 1 when 0 is the answer", () => {
+    const drawn = (answer: number, mistakes: number[]) => ({ answer: exactFrom(answer), mistakes: mistakes.map((m) => ({ value: exactFrom(m), tag: "x", fix: "y" })) }) as unknown as DrawnItem;
+    expect(slipFor(drawn(95, [0.95, 9.5]))).toBe("0.95");
+    expect(slipFor(drawn(95, []))).toBe("0");
+    expect(slipFor(drawn(0, []))).toBe("1");
+    expect(slipFor(drawn(95, [95, 9.5]))).toBe("9.5");
   });
 });
 

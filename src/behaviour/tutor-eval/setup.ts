@@ -107,6 +107,17 @@ async function walkTo(db: Db, map: CourseMap, topic: Topic, c: LiveCase, learner
   throw new Error(`${c.id}: could not place the Learner at ${c.state.step} of Check ${c.state.check}.`);
 }
 
+/**
+ * A wrong answer a Learner would type to a typed question: the question's first Known mistake (the move in points where
+ * basis points were asked, say 0.95), else 0, or 1 when 0 is the answer. Never the right answer, and never an odd number
+ * the Tutor would remark on.
+ */
+export function slipFor(drawn: DrawnItem): string {
+  const right = plainExact(drawn.answer);
+  const slip = drawn.mistakes.map((m) => plainExact(m.value)).find((v) => v !== right);
+  return slip ?? (right === "0" ? "1" : "0");
+}
+
 async function drain(events: AsyncIterable<TurnEvent>): Promise<TurnEvent[]> {
   const out: TurnEvent[] = [];
   for await (const e of events) out.push(e);
@@ -150,8 +161,8 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     const items = ids.flatMap((id) => {
       const q = lookup.question(id);
       if (!q) return [];
-      // A typed question (a drawn template instance) has no choices: its right answer is the number to type.
-      if (q.drawn) return [{ id, prompt: q.prompt.trim(), choices: [] as string[], answer: q.answer, answerId: plainExact(q.drawn.answer), wrongId: "-987654" }];
+      // A typed question (a drawn template instance) has no choices: its right answer is the number to type, and a miss is a slip a Learner makes.
+      if (q.drawn) return [{ id, prompt: q.prompt.trim(), choices: [] as string[], answer: q.answer, answerId: plainExact(q.drawn.answer), wrongId: slipFor(q.drawn) }];
       const wrong = q.choices.find((ch) => ch.id !== q.answer);
       return [{ id, prompt: q.prompt.trim(), choices: q.choices.map((ch) => ch.text), answer: q.choices.find((ch) => ch.id === q.answer)?.text, answerId: q.answer, wrongId: wrong?.id ?? "" }];
     });
@@ -165,7 +176,10 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
       const answers = Object.fromEntries(items.map((q, i) => [q.id, i < correct ? q.answerId : q.wrongId]));
       const result = await submitQuizAnswers(db, map, tab.quiz.attemptId, answers, new Date(), learnerId);
       if (!result.ok) throw new Error(`${c.id}: could not submit the quiz: ${result.reason}`);
-      notes.push(`The Learner just submitted Check ${c.state.check}'s quiz and got ${correct} of ${items.length} right. No quiz is open now.`);
+      if (result.correctCount !== correct) throw new Error(`${c.id}: the submitted quiz scored ${result.correctCount} right, not the ${correct} the case says.`);
+      // What was typed on the questions that were missed, so the grader reads the slips the Tutor was told.
+      const typed = result.questions.flatMap((q, i) => (q.kind === "number" && !q.correct ? [`${i + 1}. they typed "${q.given}" (right: ${q.expected})`] : []));
+      notes.push(`The Learner just submitted Check ${c.state.check}'s quiz and got ${correct} of ${items.length} right${typed.length ? `; ${typed.join("; ")}` : ""}. No quiz is open now.`);
     }
   }
 
