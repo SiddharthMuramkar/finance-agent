@@ -32,12 +32,13 @@ async function saved(db: Db, progress: Progress) {
 }
 
 describe("Percent's content-only restructure", () => {
-  it("keeps the old Check ids, adds Check 2 between them, and requires none", () => {
+  it("keeps the old Check ids, adds Checks 2 and 3 between them, and requires none", () => {
     expect(isConverted(percent)).toBe(true);
     expect(percent.restructure).toBe("content-only");
     expect(percent.checks.map((c) => [c.id, c.kind])).toEqual([
       ["pb-quiz-language", "quiz"],
       ["pb-quiz-change", "quiz"],
+      ["pb-quiz-wording", "quiz"],
       ["pb-fed-language", "conversation"],
     ]);
     expect(percent.checks.some((c) => c.required)).toBe(false);
@@ -81,13 +82,27 @@ describe("Percent's content-only restructure", () => {
     await saved(db, progress);
     expect(await loadProgress(db, learnerId)).toEqual(progress);
     const tab = await checkTabNow(db, map, new Date(), learnerId);
-    expect(tab.quiz).toMatchObject({ checkId: "pb-quiz-change", checkNumber: 2, checkCount: 3 });
+    expect(tab.quiz).toMatchObject({ checkId: "pb-quiz-change", checkNumber: 2, checkCount: 4 });
     // The Tutor's context at that quiz carries Check 2's card, so it can teach the card while the quiz is open.
     expect(cardForFacts(navigate(map, progress))).toContain("Compared with the start");
   });
 
+  it("gives each of Checks 2 and 3 one idea: percent change alone, then how a move is worded", () => {
+    const [, change, wording] = percent.checks;
+    expect(change.card!.skills).toEqual(["pct-change"]);
+    expect(wording.card!.skills).toEqual(["wording"]);
+    expect(testedSkills(percent, change)).toEqual(["pct-change"]);
+    expect(testedSkills(percent, wording)).toEqual(["wording"]);
+    expect(wording.quickTries.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("sends a Learner who passed Checks 1 and 2 to the wording Check before the conversation Check", () => {
+    const place = navigate(map, inPercent("concept", ["pb-quiz-language", "pb-quiz-change"]))!;
+    expect(place).toMatchObject({ step: "concept", check: { id: "pb-quiz-wording" } });
+  });
+
   it("lets the Tutor finish Your turn at the conversation Check, which has no Quick tries to practise", () => {
-    const progress = inPercent("your_turn", ["pb-quiz-language", "pb-quiz-change"]);
+    const progress = inPercent("your_turn", ["pb-quiz-language", "pb-quiz-change", "pb-quiz-wording"]);
     const place = navigate(map, progress)!;
     expect(place).toMatchObject({ step: "your_turn", check: { id: "pb-fed-language" } });
     expect(practiceStep(place.topic, place.step, place.check)).toBe(false);

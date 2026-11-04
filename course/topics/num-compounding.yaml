@@ -136,9 +136,10 @@ templates:
       - tag: averaged_gain
         fix: "That divides the total gain by the years. Find the one rate that, grown twice, gives the whole rise."
     halfDone:
-      shows: "First step, done for you: the index ended {grew} times where it started."
+      shows: "First step, done for you: the end divided by the start is {grew}."
       asks: cagr_percent
-    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126]
+    # 144 keeps a draw apart from the card's worked example (100 became 144).
+    avoid: [1000, 10, 1331, 5, 23, 28, 33, 56, 126, 144]
 
 questions:
   - id: cp-q-doubling-rate
@@ -539,10 +540,10 @@ checks:
     card:
       title: "A fall, then a rise"
       lines:
-        - "A percent works on the amount it starts from."
+        - "A percent is always a share of the amount you have at that moment."
         - "₹1,000 falls 20%: it loses ₹200 and is now ₹800."
         - "A 20% rise on ₹800 adds only ₹160, so it ends at ₹960."
-        - "To get back to ₹1,000 it needs ₹200 on ₹800, which is a 25% rise."
+        - "To get back to ₹1,000 it needs ₹200 more. ₹200 divided by ₹800 is 0.25, so a 25% rise."
       writeDown: "A fall and an equal rise do not cancel: the rise works on a smaller amount."
       skills: [fall-and-recover]
       widget:
@@ -630,7 +631,8 @@ checks:
       lines:
         - "CAGR, the compound annual growth rate, is the one steady yearly rate that gets from a start to an end."
         - "₹1,000 became ₹1,331 in 3 years. Growing 10% a year does exactly that, so the CAGR is 10%."
-        - "Spreading the ₹331 gain evenly gives ₹110 a year, 11% of ₹1,000: too high, as it skips growth on growth."
+        - "For 2 years: divide the end by the start, then find the number that times itself gives that. A calculator's square-root key does it."
+        - "100 became 144. 144 divided by 100 is 1.44, and 1.2 times 1.2 is 1.44. 1.2 is 1 plus 20%, so the CAGR is 20% a year."
       writeDown: "CAGR is the one steady rate that joins the start and the end."
       skills: [cagr]
       widget:
@@ -647,7 +649,7 @@ checks:
         kind: number
         answer: 10
         unit: percent
-        halfDone: "First step, done for you: 1.1 times 1.1 is 1.21, so growing by a tenth twice gives the rise."
+        halfDone: "First step, done for you: 121 divided by 100 is 1.21, and 1.1 times 1.1 is 1.21."
         mistakes:
           - { answer: 10.5, fix: "That divides the 21% gain by 2 years. Growing 10% twice already gives 21%.", tag: averaged_gain }
       - { template: steady-rate, halfDone: true }
@@ -664,10 +666,10 @@ checks:
     card:
       title: "Returns that add up"
       lines:
-        - "A log return measures growth a second way. For a rise, it is a little below the percent change."
-        - "Its use: the log returns of back-to-back years simply add up."
-        - "A log return of 0.3 one year and 0.1 the next make 0.4 over both years."
-        - "A price that ends where it began has a log return of zero."
+        - "A log return scores growth another way: divide the end by the start, then press ln on a calculator."
+        - "A 20% rise means end divided by start is 1.2. The ln of 1.2 is about 0.18, a little below 0.20."
+        - "Its use: the log returns of back-to-back years simply add up. 0.3 one year and 0.1 the next make 0.4 over both."
+        - "A price that ends where it began has a log return of zero. So a rise and the fall back to the start add up to zero."
       writeDown: "Log returns of back-to-back years add up to the log return of the whole stretch."
       skills: [log-return]
     quickTries:
@@ -713,9 +715,9 @@ checks:
     card:
       title: "Is the pace steady?"
       lines:
-        - "A long-run CAGR can hide an uneven path."
+        - "A long-run CAGR can hide years that grew at very different speeds."
         - "A made-up example: 100 became 600 in 10 years, about 20% a year."
-        - "But the last 2 years went from 300 to 600, about 41% a year."
+        - "The last 2 years went from 300 to 600, which is 2 times. About 1.41 times 1.41 is 2, so about 41% a year."
         - "When the last stretch is far faster than the whole run, the pace was not steady."
       writeDown: "Find the CAGR of each stretch, not only of the whole run."
       skills: [steady-pace]
@@ -734,7 +736,7 @@ checks:
         answer: 73
         unit: percent
         decimals: 0
-        halfDone: "First step, done for you: in those 2 years the index grew 3 times."
+        halfDone: "First step, done for you: in those 2 years the index grew 3 times, so find the number that times itself gives 3, then take 1 off."
         mistakes:
           - { answer: 100, fix: "That divides the 200% gain by 2 years. Find the rate that, grown twice, gives 3 times.", tag: averaged_gain }
       - id: cp-try-pace-truth
@@ -750,6 +752,7 @@ checks:
         kind: number
         answer: 50
         unit: percent
+        halfDone: "First step, done for you: ₹1,800 divided by ₹800 is 2.25, so find the number that times itself gives 2.25."
         mistakes:
           - { answer: 62.5, fix: "That divides the 125% gain by 2 years. Growing 50% twice turns ₹800 into ₹1,800." }
       - id: cp-try-pace-long-run

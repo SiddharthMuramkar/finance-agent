@@ -148,7 +148,8 @@ describe("Percent, converted, end to end", () => {
         // A typed quiz: every typed question right but one, which takes a Known mistake and shows its fix line.
         const quiz = (await openQuiz(db, map, now(), me))!;
         expect(quiz.checkId).toBe(check.id);
-        expect(quiz.questions.some((q) => q.kind === "number")).toBe(true);
+        // The wording Check asks "which is true" questions only; every other quiz here draws a typed question.
+        if (check.id !== "pb-quiz-wording") expect(quiz.questions.some((q) => q.kind === "number")).toBe(true);
         const lookup = await questionLookup(db, map, quiz.questions.map((q) => q.id));
         let slipped = false;
         const answers = Object.fromEntries(
@@ -165,7 +166,7 @@ describe("Percent, converted, end to end", () => {
         const result = await submitQuiz(db, map, quiz.attemptId, answers, now(), me);
         expect(result).toMatchObject({ ok: true, passed: true });
         const fixes = result.ok ? result.questions.filter((q) => q.mistake) : [];
-        expect(fixes).toHaveLength(1);
+        expect(fixes).toHaveLength(check.id === "pb-quiz-wording" ? 0 : 1);
         fixLines += fixes.length;
         // The Learner's next message hears the result, and code shows the next step's card.
         await turn("I did the quiz", [say("Well done. Next idea.")]);

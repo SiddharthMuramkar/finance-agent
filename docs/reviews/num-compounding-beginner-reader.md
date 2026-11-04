@@ -73,3 +73,19 @@ on the card. **Verdict: pass.**
 | Growth on growth | pass |
 | One steady rate | pass |
 | Is the pace steady? | pass |
+
+## Second pass: a fresh-context beginner reader (ticket #248)
+
+A fresh reader with no other context read both Topics' cards and tried every Quick try as a beginner. Verdict, card
+by card, with what changed for each fail.
+
+| Card (Check) | Verdict | What the reader said | What changed |
+|---|---|---|---|
+| Growth on growth (`cp-quiz-compounding`) | pass | Quick tries answerable; the templated ones mean long year-by-year sums. | Nothing. |
+| A fall, then a rise (`cp-quiz-fall-recover`) | pass | "A percent works on the amount it starts from" is abstract, and "₹200 on ₹800 is 25%" relied on the Percent Topic. | Line 1 now says a percent is a share of the amount you have at that moment; line 4 shows ₹200 divided by ₹800 is 0.25, a 25% rise. |
+| Time to double (`cp-quiz-rule-72`) | pass | Clear. | Nothing. |
+| One steady rate (`cp-quiz-steady-rate`) | fail | Two ideas packed in, line 3 needed two reads, and no method for finding a CAGR; the steady-rate half-done hint ("ended 1.69 times where it started") taught nothing, so two template tries were unanswerable. | The card now teaches one idea with a method: for 2 years divide the end by the start, find the number that times itself gives that (square-root key), worked on 100 to 144 (1.2 times 1.2, so 20%). The "do not split the gain evenly" line is gone. The hint now says "the end divided by the start is {grew}". The CAGR Quick try hint was reworded the same way, and 144 joined the template's avoid list. |
+| Returns that add up (`cp-quiz-log-return`) | fail | Never said what a log return is or how to get one; three facts on one card. | Line 1 now defines it (divide end by start, press ln); line 2 works a 20% rise (about 0.18, a little below 0.20); the card keeps one use, that log returns add, with the round trip as the consequence. |
+| Is the pace steady? (`cp-sensex-rate`) | pass | "Hide an uneven path" was vague; two tries needed a 2-year CAGR that no card taught. | Line 1 reworded. Line 3 now works the made-up stretch (2 times, about 1.41 times 1.41, so about 41%). The CAGR card now teaches the 2-year method these tries use, and their half-done hints say which number to find. |
+
+Result: all six cards pass after the second pass.

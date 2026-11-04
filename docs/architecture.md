@@ -542,8 +542,8 @@ and `takeNext` (see "The Learner's Next and code-written turns"); the Topic bar'
   <title>"); else a Due Check ("New in <Topic>: Check N", or "New in <Topic>: Explore"); else the
   next unpassed Topic on the default path ("Next Topic: <title>").
 
-**Scenario.** In Percent (three Checks, no Insight) the sequence has twelve steps, so the first Next
-draws "Step 2 of 12 · Concept". The Learner passes the first quiz; the Concept of Check 2 has not
+**Scenario.** In Percent (four Checks, no Insight) the sequence has fifteen steps, so the first Next
+draws "Step 2 of 15 · Concept". The Learner passes the first quiz; the Concept of Check 2 has not
 begun, so the chip reads "Next: Concept" and pressing it teaches that Concept without skipping it.
 
 **Trade-off.** Progress does not record when a late Explore was taken, so once it is finished the
@@ -3726,6 +3726,8 @@ backfill reload places the corrected readings.
 
 **Scenario.** The Learner reads "Growth on growth" (₹1,000 at 10% a year becomes ₹1,100, ₹1,210, ₹1,331) with the growth card open. A half-done Quick try shows the first year done and asks for ₹2,000 after two years. Typing 2400 gets the simple-growth fix: the second year's 10% is on ₹2,200. The quiz then draws, say, "₹7,000 grows 8% a year for 3 years", marked by code to the nearest rupee.
 
+**Beginner-reader fixes (#248, second pass).** The CAGR card now teaches the method for two years (divide the end by the start, find the number that times itself gives that, take 1 off), and the steady-rate half-done hint says "the end divided by the start", so the steady-rate and steady-pace Quick tries can be answered. The log-return card says what a log return is (press ln on end divided by start) before using it. The fall-and-recover card shows how ₹200 on ₹800 is 25%. Percent's card for Check 1 spells out "bp" and the falls its Quick tries ask for. Full verdicts are in `docs/reviews/`.
+
 **Trade-off.** Quiz numbers come from templates, so the Tutor never invents them, but the templates keep to friendly ranges (whole-percent rates, CAGR over two years from perfect squares) so a beginner can check them by hand. A test fails if any card, Quick try, template draw, fix line or preset holds a number only the reveal or the outline's outcome knows (the 4,467 peak, the 56% fall, the 33% long-run rate). The conversation Check and the story keep the Sensex's own figures. The beginner-reader review that shaped the cards is recorded in `docs/reviews/num-compounding-beginner-reader.md`.
 
 ## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
@@ -4183,18 +4185,21 @@ never climb it. Parking never moves the Learner's place on the Course Map, and i
 (percentage point, basis point, percent change, the base), five Skills (`pts`, `pts-to-bp`, `bp-to-pts`, `pct-change`,
 `wording`), the Running example (a savings rate going from 4% to 5%), rupees for every everyday example, and three
 question templates (basis points from a move, points from basis points, percent change), each with `avoid` numbers that
-keep the Running example, the Quick tries', the Check questions' and the Case's moves out of every draw. It has three
+keep the Running example, the Quick tries', the Check questions' and the Case's moves out of every draw. It has four
 Checks, each with a Concept card of at most five lines that says every sum in words and opens `rate_move` at 4% to 5%
 in show mode:
 - Check 1, `pb-quiz-language` (id kept), "One move, two ways": a typed quiz drawn from three templates, one a Skill
   (points from a move, added in #248, and the two basis-point ones), with new numbers each attempt, and Quick tries A1
   to A4 from the spec plus enough more for three per Skill. Without the points template the Check did not test `pts`,
   so its three `pts` Quick tries could never be shown (lint L8 now catches that).
-- Check 2, `pb-quiz-change` (new), "Compared with the start": the percent-change template plus three "Which one is
-  true?" wording questions whose every wrong choice names its Known mistake, four a try (pass on three), so every attempt
-  has one typed percent change; and Quick tries B1 to B4 plus one more.
-- Check 3, `pb-fed-language` (id kept), "Say it so nobody misreads it": the conversation Check, which lists its
-  Skills. Cards 1 and 2 already teach them, so it has no Quick tries of its own. A Check with no Quick tries is not a
+- Check 2, `pb-quiz-change` (new), "Compared with the start": percent change alone. The card says the move, divides it
+  by the base (1 divided by 4 is 0.25, times 100 is 25%) and shows why the base matters. One fixed question plus two
+  typed draws of the percent-change template a try; Quick tries B1, B2 and two template draws.
+- Check 3, `pb-quiz-wording` (new in the beginner-reader pass of #248), "Say which size you mean": how a move is worded,
+  split out of Check 2 because that card taught two ideas. It says "up 1%" could mean 1 point or 1% of the old rate, so
+  say points or bp. Three "Which one is true?" questions, one a try; Quick tries B3, B4 and a basis-point wording one.
+- Check 4, `pb-fed-language` (id kept), "Say it so nobody misreads it": the conversation Check, which lists its
+  Skills. Cards 1 to 3 already teach them, so it has no Quick tries of its own. A Check with no Quick tries is not a
   practice step (`practiceStep` in `src/course/navigator.ts`), so the Tutor finishes its Your turn as before; without
   that, a Your turn that only fluency can end, with no tries to show, would never end.
 
