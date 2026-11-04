@@ -72,7 +72,7 @@ export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead:
     if (m.role === "item" && m.kind === WIDGET_SHOWN) {
       const shown = shownWidgetOf(m.data);
       // Its chip reopens the recipe's own starting numbers.
-      if (shown) out.push({ key: `${m.id}:0`, number: out.length + 1, code: shown.code, complete: true, preset: declaredSettings(shown.code) });
+      if (shown) out.push({ key: `${m.id}:0`, number: out.length + 1, code: shown.code, complete: true, ...(Object.keys(declaredSettings(shown.code)).length && { preset: declaredSettings(shown.code) }) });
       return;
     }
     if (m.role !== "assistant") return;
