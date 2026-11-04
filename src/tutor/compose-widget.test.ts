@@ -90,7 +90,7 @@ describe("compose_widget", () => {
     await engineOn(db);
     const compose = composeStub("program");
     const { client, requests } = scriptedClient([
-      { content: [call("compose_widget", { brief: "A SIP the Learner stretches over the years", archetype: "Grow", mustUse: ["Calculator"] }, "toolu_c")] },
+      { content: [call("compose_widget", { brief: "A SIP the Learner stretches over the years", archetype: "Grow", mustUse: ["Slider"] }, "toolu_c")] },
       { content: [text("Drag the years.")] },
     ]);
     const progress: { label: string }[] = [];
