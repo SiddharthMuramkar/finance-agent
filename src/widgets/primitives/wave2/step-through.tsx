@@ -103,7 +103,7 @@ export function StepThroughView({ steps }: { steps: StepData[] }) {
     if (e.key === "ArrowRight") setIndex(Math.min(steps.length - 1, at + 1));
     else if (e.key === "ArrowLeft") setIndex(Math.max(0, at - 1));
   };
-  const button = "min-h-10 rounded-md px-4 text-sm font-medium disabled:opacity-40";
+  const button = "min-h-10 rounded-md px-4 text-sm font-medium disabled:opacity-40 aria-disabled:opacity-40";
 
   return (
     <div data-testid="step-through" data-step={at} data-motion={reduced ? "reduced" : "full"} onKeyDown={onKey} className="my-3 rounded-md border border-[var(--border)] p-3">
@@ -159,10 +159,10 @@ export function StepThroughView({ steps }: { steps: StepData[] }) {
         )}
       </div>
       <div className="mt-3 flex gap-2">
-        <button type="button" onClick={() => setIndex(at - 1)} disabled={at === 0} className={`${button} border border-[var(--border)]`}>
+        <button type="button" onClick={() => at > 0 && setIndex(at - 1)} aria-disabled={at === 0} className={`${button} border border-[var(--border)]`}>
           Back
         </button>
-        <button type="button" onClick={() => setIndex(at + 1)} disabled={at === steps.length - 1} className={`${button} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)] disabled:hover:bg-[var(--brand)]`}>
+        <button type="button" onClick={() => at < steps.length - 1 && setIndex(at + 1)} aria-disabled={at === steps.length - 1} className={`${button} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)] aria-disabled:hover:bg-[var(--brand)]`}>
           Next
         </button>
       </div>

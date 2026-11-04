@@ -188,6 +188,23 @@ describe("the lesson lint", () => {
     expect(NEGATIVE_STEM.test("Which is **not** true?")).toBe(true);
   });
 
+  it("L6: also runs on a Topic that is not converted, and on a question no Check lists", () => {
+    const notConverted = (prompt: string) =>
+      topicWith((x) => {
+        x.skills = [];
+        x.questions[0].prompt = prompt;
+        x.questions.push({ ...x.questions[0], id: "pct-demo-unlisted", prompt: "Which one is not a rate?" });
+      });
+    const bad = lessonLintErrors([notConverted("Which description is not right?")], { notYet: ["pct-demo"] });
+    expect(bad).toEqual([
+      `L6: question "pct-demo-headline" prompt says "not"; ask "Which one is true?" instead: "Which description is not right?"${ON_TOPIC}`,
+      `L6: question "pct-demo-unlisted" prompt says "not"; ask "Which one is true?" instead: "Which one is not a rate?"${ON_TOPIC}`,
+    ]);
+    const fixed = notConverted("Which one is true?");
+    fixed.questions[1].prompt = "Which one is a rate?";
+    expect(lessonLintErrors([fixed], { notYet: ["pct-demo"] })).toEqual([]);
+  });
+
   it("L7: fails a Check question that holds the Running example's move, and a template that can draw a card's example", () => {
     const t = topicWith((x) => (x.questions[0].prompt = 'A rate goes from 4% to 5%. A headline says "rates up 25%". Which one is true?'));
     expect(lint(t)).toEqual([

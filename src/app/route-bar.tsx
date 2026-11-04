@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 // The thin bar across the top of the window while a page change loads (spec 8.6). A link press starts it; it creeps to 80%
 // and waits; when the address changes it runs to the end and fades. It is decorative (aria-hidden): the link's own pending
@@ -11,7 +11,7 @@ type Phase = "idle" | "loading" | "done";
 
 /** The internal page a plain left-click would open, or null (new tab, modifier key, download, other site, same page). */
 function destination(e: MouseEvent): string | null {
-  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return null;
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return null;
   const a = e.target instanceof Element ? e.target.closest("a") : null;
   if (!a || (a.target && a.target !== "_self") || a.hasAttribute("download")) return null;
   const url = new URL(a.href, window.location.href);
@@ -21,7 +21,17 @@ function destination(e: MouseEvent): string | null {
 }
 
 export function RouteBar() {
+  // useSearchParams needs a Suspense boundary in a statically built layout; the bar draws nothing while it waits.
+  return (
+    <Suspense fallback={null}>
+      <RouteBarInner />
+    </Suspense>
+  );
+}
+
+function RouteBarInner() {
   const pathname = usePathname();
+  const search = useSearchParams().toString();
   const [phase, setPhase] = useState<Phase>("idle");
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const later = (fn: () => void, ms: number) => timers.current.push(setTimeout(fn, ms));
@@ -38,9 +48,10 @@ export function RouteBar() {
       // A page that never arrives must not leave the bar hanging.
       later(() => setPhase("idle"), 15_000);
     };
-    document.addEventListener("click", onClick);
+    // Capture phase: next/link calls preventDefault in its own handler, which would otherwise run first.
+    document.addEventListener("click", onClick, true);
     return () => {
-      document.removeEventListener("click", onClick);
+      document.removeEventListener("click", onClick, true);
       clear();
     };
   }, []);
@@ -55,7 +66,7 @@ export function RouteBar() {
     clear();
     setPhase((p) => (p === "loading" ? "done" : p));
     later(() => setPhase("idle"), 400);
-  }, [pathname]);
+  }, [pathname, search]);
 
   return (
     <div

@@ -200,8 +200,12 @@ The one Widget for a rate change, drawn from the rate_move recipe with its own p
 _Avoid_: rate calculator, Illustration
 
 **Free-form Widget**:
-A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
+A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. It is not offered to the Tutor any more (ADR 0007): only Sessions frozen while it was offered still have the tool. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
 _Avoid_: custom Widget, freeform lane (in Learner-facing text)
+
+**Widget preset**:
+The slider values a ready-made Widget is opened at, by `$variable`. The Tutor gives one to open_widget (or its recipe's inputs to show_widget) for the numbers under discussion. It replaces the Learner's last settings, the Widget item records it, and the Widget's earlier chip reopens those numbers.
+_Avoid_: default values, starting state
 
 **Widget state**:
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
