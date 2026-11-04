@@ -1315,6 +1315,22 @@ reply. On Notes the reply text appears and the Loan cost Widget is drawn under i
 **Trade-off.** The shown Widget is rebuilt from the Session on every read, so it follows the Session items; a Session
 item that is later removed also leaves the note. Widgets are drawn at the end of the reply, not where they stood in it.
 
+### Widget Retry, the drawing guard and per-Widget Save for shown Widgets (`src/app/widget-host.tsx`, `src/app/widget-panel.tsx`, `src/app/thread.tsx`, `src/app/save-to-notes.tsx`, `src/tutor/tools.ts`)
+
+**What it does.** The Widget host gives chips and the panel a Retry: pressing it on a Widget that did not arrive resumes
+the last turn, which draws the reply again. The 12-second "drawing" wait now counts from the last token that arrived, so a
+slow but moving Widget is not given up on. A Widget show_widget drew gets the same per-Widget Save to notes as one written
+in the reply: `widgetsIn` finds its turn's reply and numbers it after the reply's own fences, as the server does. The
+Widget-drawing tool calls of a turn run one after another, so two calls in one message cannot both pass the
+"one Widget a reply" check. Save to notes keeps keyboard focus when it changes to Saved, and a failed Undo returns to the
+settled control with a short error.
+
+**Scenario.** A Widget stalls at "Drawing…". Twelve seconds after its last token the chip says "The Widget did not arrive"
+with Retry; Retry resumes the turn. A Learner who pressed Save with the keyboard hears "Saved to notes" and is still on
+the control.
+
+**Trade-off.** Retry resumes the whole last turn, not only the Widget, so the Tutor may word the reply differently.
+
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
 **What it does.** Every Tutor turn is made of one or more *steps*. A step is one request to
