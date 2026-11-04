@@ -10,6 +10,13 @@ goal: Say any rate change in percent, percentage points and basis points, and na
 # A content-only restructure: Check ids pb-quiz-language and pb-fed-language are kept, so passes stay and Learners keep
 # their step. No Check is required, so a Learner who passed Percent gets no Due Check.
 restructure: content-only
+# At the reveal code opens rate_move at the Fed's real move, read from the Case Data across the as-of date.
+revealWidget:
+  recipe: rate_move
+  title: The Fed's move of February 1994
+  case: fed-hike-1994
+  dataset: fed-funds-target
+  inputs: { old: "{before}", new: "{after}", mode: show }
 exampleCurrency: INR
 runningExample:
   text: A savings rate goes from 4% to 5%.
