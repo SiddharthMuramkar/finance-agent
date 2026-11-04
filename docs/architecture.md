@@ -1592,9 +1592,11 @@ with no prerequisite prompt (the Learner picked it from their own record). A pas
 chosen, so its own Session is shown instead (`learner_state.shown_session_id`), read-only with its
 Topic complete card, exactly as after the turn that passed it; the current Topic doesn't move.
 Scenario: Present value is passed and the Learner is in Bond prices; they open Present value from
-Progress, reread its Principle, then press What comes next to go back to Bond prices. Trade-off: a
-passed Topic with no Session of its own (passed before Sessions were per Topic) opens the workspace on
-the current Topic instead; its old Sessions are still under Past Sessions.
+Progress, reread its Principle, then press What comes next to go back to Bond prices. A passed Topic
+with no Session of its own (passed in an Older session, before Sessions were per Topic) goes to Past
+Sessions instead, as its Course Map row does, and nothing changes. Trade-off: that row lands on the
+whole list rather than the one Older session that passed it, which would need a search of Older
+sessions by Topic; the list shows it near the top under Older sessions.
 
 If a chosen Topic has prerequisites the Learner hasn't passed, the row first warns: "Bond prices
 builds on Present value, which you have not passed yet. You can fill the gap first, or go ahead

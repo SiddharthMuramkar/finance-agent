@@ -127,6 +127,20 @@ describe("choosing a Topic", () => {
     expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
   });
 
+  it("a Progress row for a Topic passed in an Older session goes to Past Sessions, as the Course Map's row does", async () => {
+    const pv = await setUp();
+    await as.db.update(topicProgress).set({ status: "passed", step: "principle" });
+    await saveJump(as.db, as.map!, "bonds");
+    // Passed before one Session per Topic: its only Session is Older.
+    await as.db.execute(`update sessions set older = true where id = ${pv.sessionId}`);
+    await as.db.execute(`update learner_state set shown_session_id = null`);
+    const res = await openTopic("present-value");
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("https://app.example/sessions");
+    expect((await loadProgress(as.db)).currentTopicId).toBe("bonds");
+    expect(await shownInWorkspace(as.db, as.map!, OWNER_LEARNER_ID)).toEqual({ topicId: "bonds" });
+  });
+
   it("while a turn is running, every way of choosing answers \"turn in progress\" and changes nothing", async () => {
     const pv = await setUp();
     await startTurn(as.db, new Date(), "Still thinking.");
