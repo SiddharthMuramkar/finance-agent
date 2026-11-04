@@ -20,7 +20,7 @@ import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type 
 import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
 import { enterStepItems, pendingQuickTryNote, quickTryFollowUpNote } from "./practice";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
-import { splitReply } from "@/widgets/split";
+import { withoutOpenWidget } from "./open-widget";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { storeTopicComplete } from "./topic-complete";
 import { describeFailure, type FailureKind } from "./failures";
@@ -299,23 +299,7 @@ function watchForStop(db: Db, turnId: number) {
 }
 
 const WIDGET_OPEN = "```openui-lang\n";
-const WIDGET_CLOSE = "\n```";
-
-/**
- * The reply text without a Widget it had not finished: an unclosed openui-lang fence (and anything after it) is
- * cut off, so a stopped reply is never saved or replayed with a Widget that cannot draw.
- */
-export function withoutOpenWidget(text: string): string {
-  const kept = splitReply(text)
-    .flatMap((s) => (s.type === "prose" ? [s.text] : s.complete ? [WIDGET_OPEN + s.code + WIDGET_CLOSE] : []))
-    .join("");
-  // A fence only partly opened ("```openui") at the start of the last line goes too; a bare "```" may close a fence.
-  for (let k = WIDGET_OPEN.length - 1; k > 3; k--) {
-    const start = kept.length - k;
-    if (kept.endsWith(WIDGET_OPEN.slice(0, k)) && (start === 0 || kept[start - 1] === "\n")) return kept.slice(0, start).trimEnd();
-  }
-  return kept.trimEnd();
-}
+export { withoutOpenWidget };
 
 /**
  * Runs one Tutor turn for one Learner: refuses a request from a tab showing another Topic, takes

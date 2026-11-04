@@ -68,3 +68,19 @@ describe("a step finished from a Widget by two renders at once", () => {
     expect(dividers).toHaveLength(2);
   });
 });
+
+describe("a stopped reply's trailing code fence", () => {
+  const FENCE = "```";
+  it("drops a bare fence the reply stopped on, in the server copy and the browser copy", async () => {
+    const { withoutOpenWidget: server } = await import("./turn");
+    const { withoutOpenWidget: browser } = await import("@/app/turn-stream");
+    for (const cut of [server, browser]) {
+      expect(cut(`Look:\n${FENCE}`)).toBe("Look:");
+      expect(cut(FENCE)).toBe("");
+      // A fence that closes one is kept, and so is a finished Widget.
+      expect(cut(`Try:\n${FENCE}\nx = 1\n${FENCE}`)).toBe(`Try:\n${FENCE}\nx = 1\n${FENCE}`);
+      const done = `${FENCE}openui-lang\nroot = Card([])\n${FENCE}`;
+      expect(cut(`Here.\n\n${done}`)).toBe(`Here.\n\n${done}`);
+    }
+  });
+});

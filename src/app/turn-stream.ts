@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { TOPIC_START } from "@/course/topic-start";
 import { STOPPED } from "@/tutor/session-item-kinds";
-import { splitReply } from "@/widgets/split";
+import { withoutOpenWidget } from "@/tutor/open-widget";
 import { replaceBrokenWidgets, withoutLeftOut } from "@/widgets/check";
 import type { Shown } from "@/tutor/session-log";
 import type { StreamEvent } from "@/tutor/turn";
@@ -46,19 +46,7 @@ const MAX_BUSY_WAITS = 60;
 const STOP_RETRY_MS = 400;
 const MAX_STOP_TRIES = 4;
 
-/** The reply text without a Widget it had not finished writing: an unclosed openui-lang fence, and anything after it, is cut. */
-export function withoutOpenWidget(text: string): string {
-  const open = "```openui-lang\n";
-  const kept = splitReply(text)
-    .flatMap((s) => (s.type === "prose" ? [s.text] : s.complete ? [open + s.code + "\n```"] : []))
-    .join("");
-  // A fence only partly typed ("```openui") at the end of a line goes too.
-  for (let k = open.length - 1; k > 3; k--) {
-    const start = kept.length - k;
-    if (kept.endsWith(open.slice(0, k)) && (start === 0 || kept[start - 1] === "\n")) return kept.slice(0, start).trimEnd();
-  }
-  return kept.trimEnd();
-}
+export { withoutOpenWidget };
 
 export type TurnStream = ReturnType<typeof useTurnStream>;
 
