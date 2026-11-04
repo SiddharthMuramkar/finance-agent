@@ -1,6 +1,6 @@
 # Widgets drawn by code from recipes: the Tutor chooses, code draws
 
-Status: accepted, 2026-11-04. Amends ADR 0003. Behind the `widget_engine` setting, which is off until the owner turns it on.
+Status: accepted, 2026-11-04. Amends ADR 0003. Behind the `widget_engine` setting, which is off until the owner turns it on. Amended by ADR 0006 (at a converted Concept step, code opens the Concept card's Widget preset) and ADR 0007 (compose_widget is not offered to the Tutor, and teaching in words where no recipe fits is permanent).
 
 With the widget engine on, the Tutor no longer writes a Widget's OpenUI Lang program. It calls a tool, `show_widget({recipe, params})`, naming a Widget recipe and its params. Code parses the params against the recipe's schema, compiles them into an OpenUI Lang program, runs the same Widget checks a written Widget gets (it draws, a slider has a Guided Task at a number it can reach, axes are labelled, no second Widget of the same Case Data, no written-ahead parts), and stores the Widget as a Session item that carries its id, recipe, params, title and code. It streams as an item at once and draws in the panel like any other Widget. A problem goes back to the Tutor as a tool error, so it retries inside the same turn rather than through the correction round-trip. We chose this because a Widget the Tutor writes arrives last (after its prose and 300 to 650 tokens of code), is laid out from scratch each time, and fails in the same few ways (UX audit ★.2): the model is good at choosing what to show, and code is good at drawing it.
 
