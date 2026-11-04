@@ -133,7 +133,7 @@ export async function resumeTurn(db: Db, now: Date, learnerId: number): Promise<
   try {
     const [row] = await db
       .update(turns)
-      .set({ status: "running", startedAt: now, error: null })
+      .set({ status: "running", startedAt: now, error: null, stopReason: null })
       .where(and(eq(turns.id, latest.id), eq(turns.status, latest.status)))
       .returning();
     return row ? { turn: row, alreadyFinished: false } : { turn: undefined };
@@ -141,6 +141,28 @@ export async function resumeTurn(db: Db, now: Date, learnerId: number): Promise<
     // Another of the Learner's turns took the lock first (the partial unique index on running turns).
     return { turn: undefined };
   }
+}
+
+/** What a running turn's stop_reason holds once the Learner has pressed Stop; the turn polls for it. */
+export const STOP_REQUESTED = "stop_requested";
+
+/**
+ * Asks the Learner's running turn to stop: it sees the flag at its next poll, ends its reply there and keeps what it
+ * wrote. True when a turn was running to be stopped; false when none was (it had already finished, or never began).
+ */
+export async function requestStop(db: Db, learnerId: number): Promise<boolean> {
+  const rows = await db
+    .update(turns)
+    .set({ stopReason: STOP_REQUESTED })
+    .where(and(eq(turns.learnerId, learnerId), eq(turns.status, "running")))
+    .returning({ id: turns.id });
+  return rows.length > 0;
+}
+
+/** Whether the Learner has asked this running turn to stop. */
+export async function stopRequested(db: Db, id: number): Promise<boolean> {
+  const [row] = await db.select({ stopReason: turns.stopReason, status: turns.status }).from(turns).where(eq(turns.id, id));
+  return row?.status === "running" && row.stopReason === STOP_REQUESTED;
 }
 
 export async function updateTurn(db: Db, id: number, set: Partial<Turn>) {

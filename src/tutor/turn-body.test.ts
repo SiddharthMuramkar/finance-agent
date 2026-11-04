@@ -23,6 +23,13 @@ describe("a turn request's body", () => {
     expect(input({ resume: true })).toEqual({ resume: true });
   });
 
+  it("parses a stop, which is never a turn's input, and refuses it beside another kind", () => {
+    expect(turnBody.safeParse({ stop: true, shown: { sessionId: 3 } }).success).toBe(true);
+    expect(input({ stop: true })).toBeUndefined();
+    expect(input({ stop: true, message: "Hi" })).toBe("refused");
+    expect(input({ stop: false })).toBe("refused");
+  });
+
   it("reads an old tab's continue as Finish this reply", () => {
     expect(input({ continue: true })).toEqual({ finish: true });
   });

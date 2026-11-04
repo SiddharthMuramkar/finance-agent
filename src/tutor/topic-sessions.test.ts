@@ -382,7 +382,7 @@ describe("a deploy that changes the Tutor's instructions", () => {
     const four = await turn(db, "Four", [reply(4)]);
     expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     for (const request of [...three.requests, ...four.requests]) {
-      expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
+      expect(request.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS, cache_control: { type: "ephemeral" } }]);
       expect(request.model).toBe("claude-opus-5-5");
       expect(request.output_config).toEqual({ effort: "high" });
       expect(sent(request)).not.toContain("Thought 1.");
