@@ -69,9 +69,10 @@
   --src-tag-ink: #7b3306;
   --data: #d6d3d1;
   --danger: #c10007;
-  /* Landing page only; the same in both modes. */
+  /* Landing page only; the same in every theme. */
   --navy-deep: #001647;
   --navy-deeper: #001034;
+  --navy-ink: #ffffff;
   --navy-accent: #6699ff;
   --navy-muted: #a6a09b;
   /* Interaction timing (one place, so every press, fade and panel move agrees). */

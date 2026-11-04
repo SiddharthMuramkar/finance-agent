@@ -135,7 +135,7 @@ export function LandingView({ stats, button, widget }: { stats: LandingStats; bu
           </ol>
         </section>
 
-        <section className="bg-[var(--navy-deep)] text-[var(--brand-ink)]">
+        <section className="bg-[var(--navy-deep)] text-[var(--navy-ink)]">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
             <p className="text-[11px] font-semibold uppercase leading-4 tracking-[0.08em] text-[var(--navy-accent)]">{copy.sources.eyebrow}</p>
             <h2 className="mt-2 text-2xl font-bold leading-8 tracking-[-0.6px] sm:text-4xl sm:leading-10 sm:tracking-[-0.9px]">{copy.sources.title}</h2>
