@@ -1038,8 +1038,9 @@ async function* runLockedTurn(
     yield { type: "stopped" };
   }
   // After a Quick-try follow-up (the slip named), code posts a fresh try under the reply. After a re-teach, code does
-  // its method's part: a half-done try, the Widget in practice mode, or the first of a drill of five.
-  if (turnKind(turn) === "quick_try_follow_up" && stopReason !== "stopped") {
+  // its method's part: a half-done try, the Widget in practice mode, or the first of a drill of five. Stop drops only
+  // the reply text, so these still follow a stopped follow-up: Your turn is never left with no open try.
+  if (turnKind(turn) === "quick_try_follow_up") {
     const method = methodInNote(turn.input);
     const after = method ? await afterReteachItems(db, map, learnerId, session.id, method, now()) : await enterStepItems(db, map, learnerId, session.id, now());
     for (const item of after) yield { type: "item", item };

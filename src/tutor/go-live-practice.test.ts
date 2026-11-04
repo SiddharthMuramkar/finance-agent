@@ -9,11 +9,12 @@ import { recordAnswer } from "@/learner/skill-state";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { reteachNote } from "./ladder-moves";
-import { enterStepItems } from "./practice";
-import { QUICK_TRY, STEP_DIVIDER } from "./session-item-kinds";
-import { runTutorTurn } from "./turn";
+import { answerQuickTry, enterStepItems } from "./practice";
+import { QUICK_TRY, STEP_DIVIDER, type QuickTryData } from "./session-item-kinds";
+import { loadSessionItems } from "./session-items";
+import { runTutorTurn, type TurnEvent } from "./turn";
 import { turnFacts } from "./turn-facts";
-import { QUICK_TRY_FOLLOW_UP_PREFIX } from "./turn-status";
+import { QUICK_TRY_FOLLOW_UP_PREFIX, requestStop } from "./turn-status";
 
 /**
  * Seam: Your turn at a converted Check (ticket #248, go-live fixes). Entering Your turn never leaves the Learner with no
@@ -95,5 +96,31 @@ describe("the Reply kind of a re-teach rung", () => {
 
   it("keeps restate as a re-teach at the short cap", async () => {
     expect(await factsFor("restate")).toMatchObject({ replyKind: "reteach", cap: 80 });
+  });
+});
+
+describe("Stop on a Quick-try follow-up turn", () => {
+  it("drops the reply but still posts the fresh try", async () => {
+    const map = mapOf(CONVERTED_TOPIC_DATA);
+    const db = await testDb();
+    const sessionId = await started(db, map);
+    for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, now(), me);
+    const [first] = await enterStepItems(db, map, me, sessionId, now());
+    const answer = await answerQuickTry(db, map, me, (first.data as QuickTryData).key, "7777", now());
+    expect(answer).toMatchObject({ ok: true, followUp: true });
+
+    const never = new Promise<never>(() => {});
+    const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "The slip was" }], holdAfterFirstText: never }]);
+    const events: TurnEvent[] = [];
+    const run = (async () => {
+      for await (const e of runTutorTurn({ db, client, map, learnerId: me }, { quickTryFollowUp: true })) events.push(e);
+    })();
+    while (requests.length < 1) await new Promise((r) => setTimeout(r, 5));
+    expect(await requestStop(db, me)).toBe(true);
+    await run;
+    expect(events.some((e) => e.type === "stopped")).toBe(true);
+    const posted = events.flatMap((e) => (e.type === "item" && e.item.kind === QUICK_TRY ? [e.item] : []));
+    expect(posted).toHaveLength(1);
+    expect((await loadSessionItems(db, sessionId, me)).filter((i) => i.kind === QUICK_TRY)).toHaveLength(2);
   });
 });
