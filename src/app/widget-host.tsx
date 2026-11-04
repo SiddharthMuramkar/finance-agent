@@ -7,7 +7,7 @@ import { shownWidgetOf, WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { checkTabName, QuizPanel, type QuizSubmitted } from "./quiz-panel";
 import type { WidgetSlot } from "./reply-markdown";
 import { widgetsIn, type ThreadLine } from "./thread";
-import { holdsKey, updatedInPlace, useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, withExplore, type WidgetItem } from "./widget-panel";
+import { holdsKey, updatedInPlace, useExploreAnchor, useWidgetPicker, WidgetChip, WidgetPanel, WidgetRetryContext, withExplore, type WidgetItem } from "./widget-panel";
 
 /** The picker's key for the Check tab; no Widget's key looks like it (theirs are `${messageId}:${index}` or "explore"). */
 const CHECK_KEY = "check";
@@ -50,6 +50,7 @@ export function useWidgetHost({
   writtenAhead = NONE,
   missed = null,
   onQuizSubmitted,
+  onRetry,
 }: {
   messages: ThreadLine[];
   running: boolean;
@@ -60,6 +61,8 @@ export function useWidgetHost({
   missed?: MissedQuiz | null;
   /** A quiz was marked: the conversation draws its result card, and after a miss starts the Tutor's follow-up. */
   onQuizSubmitted?: (submitted: QuizSubmitted) => void;
+  /** Retry on a Widget that did not arrive: the page draws the reply again (a resume of the last turn). */
+  onRetry?: () => void;
 }) {
   const tutorWidgets = useMemo(() => widgetsIn(messages, running, writtenAhead), [messages, running, writtenAhead]);
   const exploreAnchor = useExploreAnchor(explore, tutorWidgets.length);
@@ -86,10 +89,15 @@ export function useWidgetHost({
       }
     : undefined;
 
+  // Retry on a timed-out Widget draws the reply again; without a page to ask, Retry only waits another 12 seconds.
+  const retry = useMemo(() => (onRetry ? () => onRetry() : null), [onRetry]);
+
   // Where a Widget belongs in a reply: a chip that shows it in the panel. Widgets are never drawn in the chat.
   const slot: WidgetSlot = ({ messageId, index }) => {
     const item = widgets.find((w) => holdsKey(w, `${messageId}:${index}`));
-    return item ? <WidgetChip item={item} active={!checkSelected && item.key === picker.shown?.key} onPick={picker.pick} /> : null;
+    if (!item) return null;
+    const chip = <WidgetChip item={item} active={!checkSelected && item.key === picker.shown?.key} onPick={picker.pick} />;
+    return <WidgetRetryContext.Provider value={retry}>{chip}</WidgetRetryContext.Provider>;
   };
 
   /** Back to showing the newest Widget (or the open quiz's Check tab), as each turn starts. */
@@ -111,11 +119,15 @@ export function useWidgetHost({
     return numbers;
   }, [messages, widgets]);
 
-  return { widgets, picker, check, slot, showNewest, messageNumbers };
+  return { widgets, picker, check, slot, showNewest, messageNumbers, retry };
 }
 
 /** The Widget panel itself, showing what the host picked. */
 export function WidgetHost({ host, topicTitle }: { host: WidgetHostState; topicTitle?: string }) {
-  const { widgets, picker, check, messageNumbers } = host;
-  return <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} check={check} messageNumbers={messageNumbers} />;
+  const { widgets, picker, check, messageNumbers, retry } = host;
+  return (
+    <WidgetRetryContext.Provider value={retry}>
+      <WidgetPanel widgets={widgets} shown={picker.shown} flashing={picker.flashing} onPick={picker.pick} topicTitle={topicTitle} check={check} messageNumbers={messageNumbers} />
+    </WidgetRetryContext.Provider>
+  );
 }

@@ -767,3 +767,37 @@ export const practiceAnswers = pgTable(
     index("practice_answers_skill").on(t.learnerId, t.topicId, t.skillId),
   ],
 );
+
+/**
+ * Reply checks (spec #229, ticket #239, ADR 0008): one row per Tutor turn whose reply code held back and changed
+ * before the Learner saw it. It keeps the draft's problems and the retry's (with their reasons), the correction code
+ * sent, whether the turn retried, fell back or was stopped, the seqs of the rows the Learner never saw (left out of
+ * every later request), and the text the Learner saw. Read and written fail-soft (reply-records.ts): a database
+ * without this table runs turns as if nothing had been rejected.
+ */
+export const replyChecks = pgTable(
+  "reply_checks",
+  {
+    id: serial("id").primaryKey(),
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => sessions.id),
+    /** The seq of the message that began the turn. */
+    turnSeq: integer("turn_seq").notNull(),
+    /** The words of the reply the Learner saw, and the cap it was held to. */
+    words: integer("words").notNull(),
+    cap: integer("cap").notNull(),
+    draftProblems: jsonb("draft_problems").notNull().$type<{ rule: string; message: string }[]>().default(sql`'[]'::jsonb`),
+    retryProblems: jsonb("retry_problems").notNull().$type<{ rule: string; message: string }[]>().default(sql`'[]'::jsonb`),
+    correction: text("correction"),
+    retried: boolean("retried").notNull().default(false),
+    fallback: boolean("fallback").notNull().default(false),
+    /** The Learner pressed Stop: the held reply was dropped. */
+    stopped: boolean("stopped").notNull().default(false),
+    /** Rows of the turn the Learner never saw: the draft's text, the correction message, a failed retry. */
+    rejectedSeqs: integer("rejected_seqs").array().notNull().default(sql`'{}'::integer[]`),
+    shownText: text("shown_text").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("reply_checks_turn").on(t.sessionId, t.turnSeq)],
+);

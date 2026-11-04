@@ -1,4 +1,4 @@
-import { isConverted, testedSkills, type Check, type CourseMap, type StepSetting, type Topic } from "./map";
+import type { Check, CourseMap, StepSetting, Topic } from "./map";
 import type { Subject } from "./outline";
 import type { QuestionLookup } from "./quiz";
 import { conditionValue, type SavedWork } from "./written-ahead";
@@ -54,7 +54,15 @@ export type ParkedSkills = Readonly<Record<string, Readonly<Record<string, Date>
 
 /** The Skills a Check teaches: its card's, then the ones its questions test, once each. */
 export function checkSkills(topic: Topic, check: Check): string[] {
-  return [...new Set([...(check.card?.skills ?? []), ...testedSkills(topic, check)])];
+  // The tested Skills as map.ts's `testedSkills` finds them, written here because the browser bundle imports this module.
+  const tested =
+    check.kind === "conversation"
+      ? check.skills
+      : [
+          ...check.questions.flatMap((id) => topic.questions.find((q) => q.id === id)?.skill ?? []),
+          ...check.templates.flatMap((id) => topic.templates.find((t) => t.id === id)?.skill ?? []),
+        ];
+  return [...new Set([...(check.card?.skills ?? []), ...tested])];
 }
 
 /** The parked Skills of the Check the Learner is at. */
@@ -183,7 +191,16 @@ function save(progress: Progress, topic: Topic, record: TopicProgress): Progress
  * its Your turn is an ordinary step the Tutor finishes.
  */
 export function practiceStep(topic: Topic, step: TeachingStep, check: Check | null): boolean {
-  return step === "your_turn" && check !== null && isConverted(topic) && check.quickTries.length > 0 && testedSkills(topic, check).length > 0;
+  return step === "your_turn" && check !== null && topic.skills.length > 0 && check.quickTries.length > 0 && checkHasSkills(topic, check);
+}
+
+/**
+ * Whether a Check tests any Skill: the same test as map.ts's `isConverted` and `testedSkills`, written here because the
+ * page imports this module and map.ts reads the Topic files from disk (node:fs), which the browser bundle cannot hold.
+ */
+function checkHasSkills(topic: Topic, check: Check): boolean {
+  if (check.kind === "conversation") return check.skills.length > 0;
+  return check.questions.some((id) => topic.questions.find((q) => q.id === id)?.skill) || check.templates.some((id) => topic.templates.find((t) => t.id === id)?.skill);
 }
 
 /** The Tutor reports that it finished a Teaching Step. Only the current step is accepted. */

@@ -113,7 +113,7 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
   // Earlier turns, through the real Tutor Turn, with the recorded Tutor text as a scripted model's reply.
   for (const h of c.state.history ?? []) {
     const { client } = scriptedClient([{ content: [{ type: "text", text: h.tutor }] }]);
-    const events = await drain(runTutorTurn({ db, client, map, learnerId }, h.learner));
+    const events = await drain(runTutorTurn({ db, client, map, learnerId, checkReplies: false }, h.learner));
     if (events.at(-1)?.type !== "done") throw new Error(`${c.id}: replaying an earlier turn failed: ${JSON.stringify(events.at(-1))}`);
   }
 

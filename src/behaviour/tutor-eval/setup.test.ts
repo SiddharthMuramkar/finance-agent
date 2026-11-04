@@ -99,7 +99,7 @@ describe("reading a turn back as the Learner sees it", () => {
       { content: [{ type: "text", text: `Okay. Shortest path.\n${fence}\nHow many basis points did the rate move?` }] },
     ]);
     const after = await noteMark(db, p.learnerId);
-    const events = await collect(runTutorTurn({ db, client, map: oldMap, learnerId: p.learnerId }, live("T5").message));
+    const events = await collect(runTutorTurn({ db, client, map: oldMap, learnerId: p.learnerId, checkReplies: false }, live("T5").message));
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const text = events.flatMap((e) => (e.type === "text" ? [e.text] : [])).join("");
     const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text, notesAfter: after });

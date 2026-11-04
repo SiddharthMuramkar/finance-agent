@@ -30,12 +30,18 @@ export const NEXT_PREFIX = "Next by code:";
  */
 export const FINISH_PREFIX = "Finish by code:";
 
+/**
+ * Opens the correction message the reply checks send for their one retry (reply-gate.ts). It is code's, never the
+ * Learner's: the thread never draws it, and later requests leave it out.
+ */
+export const REPLY_CHECK_PREFIX = "Reply check by code:";
+
 /** The note a Finish this reply turn sends, and sends again on Retry. */
 export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this reply, and has written nothing. Your last reply was cut short at its length limit. Finish it from where it stopped, without repeating what you already wrote, then stop and wait for the Learner.`;
 
 /**
  * The fixed prefix of the note code writes for a quiz follow-up: the turn the page starts by itself after the Learner
- * misses a quiz, in which the Tutor goes over the missed questions. Never drawn as a Learner bubble.
+ * misses a quiz, in which the Tutor takes the first missed question only. Never drawn as a Learner bubble.
  */
 export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
 
@@ -51,16 +57,25 @@ export const WIDGET_REPORT_PREFIX = "Widget report by code:";
  */
 export const QUICK_TRY_FOLLOW_UP_PREFIX = "Quick try follow-up by code:";
 
+/**
+ * The fixed prefix of the note code writes for a drill turn: the page starts it when the Learner opens a Topic whose
+ * parked Skill's 20 hours have passed (spec #229, "Parking"). Code shows the drill; never a Learner bubble.
+ */
+export const DRILL_PREFIX = "Drill by code:";
+
+/** The note a drill turn sends. */
+export const DRILL_NOTE = `${DRILL_PREFIX} the Learner parked an idea and its time has come, so code shows a drill of five short Quick tries on it, one at a time, and marks them; then the step goes on. Add one sentence and one ask. Write no practice question of your own.`;
+
 /** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
-export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX, QUICK_TRY_FOLLOW_UP_PREFIX] as const;
+export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX, QUICK_TRY_FOLLOW_UP_PREFIX, DRILL_PREFIX] as const;
 
 /**
- * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
- * that more simply, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, the
+ * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Go
+ * deeper, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, the
  * quiz follow-up after a missed quiz, or a widget report (Tell the Tutor what I found); the last five carry no
  * Learner message.
  */
-export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up" | "widget_report" | "quick_try_follow_up";
+export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up" | "widget_report" | "quick_try_follow_up" | "drill";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
@@ -70,6 +85,7 @@ export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(QUIZ_FOLLOW_UP_PREFIX)) return "quiz_follow_up";
   if (turn.input?.startsWith(WIDGET_REPORT_PREFIX)) return "widget_report";
   if (turn.input?.startsWith(QUICK_TRY_FOLLOW_UP_PREFIX)) return "quick_try_follow_up";
+  if (turn.input?.startsWith(DRILL_PREFIX)) return "drill";
   if (turn.input && isChipMessage(turn.input)) return "chip";
   return "message";
 }

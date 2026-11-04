@@ -7,7 +7,7 @@ import { caseDatasets, quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { quizUnavailable } from "@/learner/quiz";
 import { GO_DEEPER, OLD_CHIP_MESSAGES } from "./chips";
-import { cardForFacts } from "./practice";
+import { cardForFacts, ladderFacts } from "./practice";
 import { blockedNumbersFrom, capFor, type OpenItem, type ReplyCheckContext, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
 
 /**
@@ -39,6 +39,10 @@ export interface TurnFacts {
   frustration?: number;
   /** The Concept card on screen at this step (filled by a later ticket). */
   card?: string;
+  /** At a converted Your turn or Check: each Skill's state in one plain line (fluent or not, misses in a row, last Known mistake). */
+  skillLines?: string[];
+  /** While a Skill of the current Check is parked: when it comes back, and what the Tutor may still do. */
+  parked?: string;
 }
 
 /** The currency every Topic's everyday examples use until its file names one (spec #229: ₹ by default). */
@@ -56,7 +60,9 @@ export function replyKindOf(learnerText?: string): ReplyKind | undefined {
 /** This turn's facts, for the Learner's place (null once every Topic is passed) and the words that started the turn. */
 export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place: Place | null, turn?: { learnerText?: string }): Promise<TurnFacts> {
   const step: StepKind = place?.step ?? "none";
-  const replyKind = replyKindOf(turn?.learnerText);
+  // The repair ladder (ticket #245): the Reply kind and method code chose, the frustration count, Skill state and parking.
+  const ladder = await ladderFacts(db, map, learnerId, place, turn?.learnerText);
+  const replyKind = replyKindOf(turn?.learnerText) ?? ladder.replyKind;
   const check = place?.step === "check" && place.check?.kind === "quiz" ? place.check : null;
   const quizOpen = check !== null && !(await quizUnavailable(db, map, check));
   const openItems = quizOpen && check ? await openQuizItems(db, map, learnerId, check) : [];
@@ -73,6 +79,10 @@ export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place
     blockedNumbers: blockedNumbersFrom(openItems),
     internalWords: place ? internalWordsOf(place.topic) : [],
     ...(card && { card }),
+    ...(ladder.method && { method: ladder.method }),
+    ...(ladder.frustration && { frustration: ladder.frustration }),
+    ...(ladder.skillLines.length && { skillLines: ladder.skillLines }),
+    ...(ladder.parked && { parked: ladder.parked }),
   };
 }
 

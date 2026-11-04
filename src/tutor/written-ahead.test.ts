@@ -6,7 +6,7 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
-import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
+import { REPLY_CHECK_PREFIX } from "./turn-status";
 import { loadSession, loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
@@ -107,14 +107,15 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     await engineOff(db);
     const { client, requests } = scriptedClient([text(`Here is a box.\n${CAGR}`), open("rate-change-three-ways", "toolu_fix"), text("")]);
     const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me in a widget"));
-    expect(events.map((e) => e.type)).toEqual(["text", "correction", "item", "done"]);
+    // The draft is held and checked (ADR 0008): the Learner sees only the retry, which opens the written-ahead Widget.
+    expect(events.map((e) => e.type)).toEqual(["item", "done"]);
     const correction = String(requests[1].messages.at(-1)!.content);
-    expect(correction.startsWith(WIDGET_CHECK_PREFIX)).toBe(true);
-    expect(correction).toMatch(/- Widget 1: this Widget uses the Compound annual growth rate calculator \(cagr\), which the written-ahead Widget "One rate change, said three ways" covers/);
+    expect(correction.startsWith(REPLY_CHECK_PREFIX)).toBe(true);
+    expect(correction).toMatch(/this Widget uses the Compound annual growth rate calculator \(cagr\), which the written-ahead Widget "One rate change, said three ways" covers/);
     expect(correction).toMatch(/call open_widget with id "rate-change-three-ways"/);
-    // The Tutor's own version is gone on reload; the written-ahead Widget stands after the reply instead.
+    // The Tutor's own version is gone on reload; the written-ahead Widget stands instead.
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
-    expect((await loadSession(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Show me in a widget", "Here is a box.\n"]);
+    expect((await loadSession(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["Show me in a widget"]);
     const thread = await loadThread(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID);
     expect(thread.filter((e) => e.role === "item").map((e) => e.role === "item" && e.kind)).toEqual([WIDGET_OPENED]);
   });
@@ -130,9 +131,10 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
       ].join("\n"),
     );
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(own), open("rate-change-three-ways", "toolu_fix"), text("")]);
     await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me"));
-    expect(String(requests[1].messages.at(-1)!.content)).toMatch(/- Widget 1: this Widget has the title of the written-ahead Widget "One rate change, said three ways"\. Never draw your own version: call open_widget/);
+    expect(String(requests[1].messages.at(-1)!.content)).toMatch(/this Widget has the title of the written-ahead Widget "One rate change, said three ways"\. Never draw your own version: call open_widget/);
   });
 
   it("lets the Tutor draw a calculator the Topic's written-ahead Widgets do not cover", async () => {
@@ -147,6 +149,7 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
       ].join("\n"),
     );
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(emi)]);
     const events = await collect(runTutorTurn({ db, client, map: percent, learnerId: OWNER_LEARNER_ID }, "Show me a loan"));
     expect(requests).toHaveLength(1);
@@ -182,10 +185,11 @@ describe("the explore Widget before the explore step", () => {
 
   it("sends back an annuity chart the Tutor draws at the story step without telling it to open the explore Widget", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([text(`Look.\n${ANNUITY}`), text("")]);
     await collect(runTutorTurn({ db, client, map: pv, learnerId: OWNER_LEARNER_ID }, "Show me"));
     const correction = String(requests[1].messages.at(-1)!.content);
-    expect(correction).toMatch(/- Widget 1: this Widget uses .*which the written-ahead Widget "What the annuity is worth today" covers/);
+    expect(correction).toMatch(/this Widget uses .*which the written-ahead Widget "What the annuity is worth today" covers/);
     expect(correction).toMatch(/do not open it yet/);
     expect(correction).not.toMatch(/call open_widget with id "annuity-worth-today"/);
   });

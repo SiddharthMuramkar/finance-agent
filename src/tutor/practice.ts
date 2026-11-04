@@ -1,20 +1,22 @@
-import { and, eq, inArray, max, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import type { Check, ConceptCard, CourseMap, FixedQuickTry, QuickTry, Topic } from "@/course/map";
 import { isConverted, testedSkills } from "@/course/map";
-import { finishFromPractice, navigate, practiceStep, type Place, type Progress } from "@/course/navigator";
+import { checkSkills, finishFromPractice, navigate, practiceStep, type ParkedSkills, type Place, type Progress } from "@/course/navigator";
 import { revealMove, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
 import { loadCaseData } from "@/case-data/case-data";
-import { messages, practiceAnswers, sessionItems, topicProgress } from "@/db/schema";
+import { messages, practiceAnswers, sessionItems, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
-import { recordAnswer, skillStates } from "@/learner/skill-state";
+import { noteMethodUsed, parkedSkills, parkSkill, recordAnswer, skillStates, unparkSkill } from "@/learner/skill-state";
 import { loadWidgetStates, saveWidgetState } from "@/learner/widget-state";
 import { drawTemplate, markAnswer, type DrawnItem, type FixedItem, type Verdict } from "@/teaching";
-import { freshSkillState, isFluent, yourTurnDone, type SkillState } from "@/teaching/ladder";
+import { drillDue, freshSkillState, isFluent, LADDER, yourTurnDone, type AnswerEvent, type Method, type SkillState } from "@/teaching/ladder";
 import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { widgetKey } from "@/widgets/widget-state";
 import { cardText } from "./context";
+import { ladderAction, reteachNote } from "./ladder-moves";
+import { backAt, PARK_DRILL, PARK_OFFER, PARK_OFFER_LINE, PARKED, parkedLine, practiceTitle, type ParkDrillData, type ParkedData, type ParkOfferData } from "./park-items";
 import { liveSession } from "./session-log";
 import { loadSessionItems, saveItemAfterLatest, stepDivider, type StoredItem } from "./session-items";
 import {
@@ -27,7 +29,8 @@ import {
   type QuickTryResultData,
   type SessionItem,
 } from "./session-item-kinds";
-import { QUICK_TRY_FOLLOW_UP_PREFIX, turnRunning } from "./turn-status";
+import { frustrationCount, type FrustrationEvent } from "./frustration";
+import { isCodeWritten, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, turnRunning } from "./turn-status";
 
 /**
  * Practice at Your turn (spec #229, ticket #243). The pure part: which Quick try comes next, and the item a key names.
@@ -42,8 +45,8 @@ export type PickOptions = {
   skillId?: string;
   /** Give a half-done try, however many tries the Skill has had. */
   easier?: boolean;
-  /** The try is part of a drill of five. */
-  drill?: boolean;
+  /** The try is part of a drill of five; a string is the drill's reason ("ladder" or "parked"). */
+  drill?: boolean | string;
   /** The Session the try is shown in: it makes the key unique to the Learner across Sessions. */
   session?: number;
 };
@@ -102,7 +105,8 @@ export function nextQuickTry(
   const n = shown.length;
   const key = keyOf(opts.session ?? 0, n, ref);
   const drills = shown.filter((s) => s.skillId === skillId && s.drill).length;
-  const drill = opts.drill ? { n: drills + 1, of: DRILL_OF, reason: "Back after a break: a few short tries on this idea." } : undefined;
+  const reason = typeof opts.drill === "string" ? opts.drill : "Back after a break: a few short tries on this idea.";
+  const drill = opts.drill ? { n: drills + 1, of: DRILL_OF, reason } : undefined;
   return { ...dataOf(topic, check, key, ref), ...(drill && { drill }) };
 }
 
@@ -276,16 +280,75 @@ function triesIn(items: readonly StoredItem[], checkId: string) {
   return { shown, answered, open: shown.find((t) => !answered.has(t.key)) };
 }
 
-/** Stores the next Quick try for the Learner's converted Your turn, unless one is open (or every Skill is fluent). */
-async function postTry(db: Db, place: Place & { check: Check }, learnerId: number, sessionId: number, now: Date, opts: PickOptions = {}): Promise<SessionItem | null> {
+/**
+ * Stores the next Quick try for the Learner's converted Your turn, unless one is open (or every Skill is fluent). A
+ * drill under way goes on first, one try at a time. While a Skill of the Check is parked nothing is posted: the Topic
+ * waits for its drill. `opts.skillId` with `force` posts a try on that Skill even when it is fluent (One more short
+ * try, a drill). With `store` false it only works out the try (the checked-replies fallback stores it itself).
+ */
+async function postTry(
+  db: Db,
+  place: Place & { check: Check },
+  learnerId: number,
+  sessionId: number,
+  now: Date,
+  opts: PickOptions & { force?: boolean } = {},
+  store = true,
+): Promise<SessionItem | null> {
   const { shown, open } = triesIn(await loadSessionItems(db, sessionId, learnerId), place.check.id);
   if (open) return null;
   const states = await skillStates(db, learnerId, place.topic.id);
-  const next = nextQuickTry(place.topic, place.check, states, shown, { ...opts, session: sessionId });
+  const running = drillUnderWay(shown);
+  if (running) return storeTry(db, place, learnerId, sessionId, now, states, shown, { skillId: running.skillId, drill: running.reason, force: true, store });
+  if (place.parked?.length && !opts.force) return null;
+  return storeTry(db, place, learnerId, sessionId, now, states, shown, { ...opts, store });
+}
+
+async function storeTry(
+  db: Db,
+  place: Place & { check: Check },
+  learnerId: number,
+  sessionId: number,
+  now: Date,
+  states: Record<string, SkillState>,
+  shown: readonly QuickTryData[],
+  opts: PickOptions & { force?: boolean; store?: boolean },
+): Promise<SessionItem | null> {
+  // A forced Skill counts as not fluent, so the picker keeps to it.
+  const forced = opts.force && opts.skillId ? { ...states, [opts.skillId]: freshSkillState() } : states;
+  const easier = opts.easier || (await frustratedNow(db, place, learnerId, sessionId, states));
+  const next = nextQuickTry(place.topic, place.check, forced, shown, { ...opts, easier, session: sessionId });
   if (!next) return null;
-  const item = { kind: QUICK_TRY, data: next };
-  await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+  const data = next.drill ? { ...next, drill: { ...next.drill, n: drillCount(shown, next.skillId) + 1 } } : next;
+  const item = { kind: QUICK_TRY, data };
+  if (opts.store !== false) await saveItemAfterLatest(db, learnerId, sessionId, item, now);
   return item;
+}
+
+/** The drill the latest try belongs to while it has tries to go: its Skill and reason. */
+function drillUnderWay(shown: readonly QuickTryData[]): { skillId: string; reason: string } | null {
+  const last = shown[shown.length - 1];
+  return last?.drill && last.drill.n < last.drill.of ? { skillId: last.skillId, reason: last.drill.reason } : null;
+}
+
+/** How many tries of the drill under way on this Skill are already shown (the trailing run of drill tries). */
+function drillCount(shown: readonly QuickTryData[], skillId: string): number {
+  let n = 0;
+  for (let i = shown.length - 1; i >= 0 && shown[i].drill && shown[i].skillId === skillId; i--) {
+    n++;
+    if (shown[i].drill!.n === 1) break;
+  }
+  return n;
+}
+
+/**
+ * Frustration makes the next try easier (spec #229, "Frustration"): the Learner's signal phrases in their last three
+ * messages since their last right answer, or two misses in a row on the try's Skill.
+ */
+async function frustratedNow(db: Db, place: Place & { check: Check }, learnerId: number, sessionId: number, states: Record<string, SkillState>): Promise<boolean> {
+  const current = checkSkills(place.topic, place.check).find((s) => states[s] && !isFluent(states[s]));
+  const count = frustrationCount(await frustrationEvents(db, learnerId, sessionId, place.topic.id), current ? states[current] : null);
+  return count > 0;
 }
 
 /**
@@ -294,8 +357,7 @@ async function postTry(db: Db, place: Place & { check: Check }, learnerId: numbe
  * turn, the next Quick try when none is open. Anything else stores nothing, so a Topic not converted is as before.
  */
 export async function enterStepItems(db: Db, map: CourseMap, learnerId: number, sessionId: number, now: Date): Promise<SessionItem[]> {
-  const progress = await loadProgress(db, learnerId);
-  const at = navigate(map, progress);
+  const { progress, place: at } = await placeWithParked(db, map, learnerId);
   if (at?.step === "reveal" && isConverted(at.topic)) {
     const item = await storeRevealWidget(db, map, at, progress, learnerId, sessionId, now);
     return item ? [item] : [];
@@ -315,11 +377,58 @@ export async function enterStepItems(db: Db, map: CourseMap, learnerId: number, 
     const preset = await storePreset(db, topic, check, check.card, learnerId, sessionId, now, cards);
     return preset ? [card, preset] : [card];
   }
+  // A parked Skill whose time has come opens on its drill of five, at whatever step the Topic waits.
+  const drill = await drillItems(db, place, learnerId, sessionId, now);
+  if (drill) return drill;
   if (practiceStep(topic, step, check)) {
     const item = await postTry(db, place, learnerId, sessionId, now);
     return item ? [item] : [];
   }
   return [];
+}
+
+/**
+ * The Learner's place, with the parked Skills of a converted current Topic filled in. Only a converted Topic reads
+ * skill_state, so production reads nothing new until a Topic is converted.
+ */
+export async function placeWithParked(db: Db, map: CourseMap, learnerId: number): Promise<{ progress: Progress; parked: ParkedSkills; place: Place | null }> {
+  const progress = await loadProgress(db, learnerId);
+  const bare = navigate(map, progress);
+  const parked = bare && isConverted(bare.topic) ? await parkedSkills(db, learnerId, [bare.topic.id]) : {};
+  return { progress, parked, place: navigate(map, progress, parked) };
+}
+
+/** Whether the Learner's current Topic opens on a drill now: a Skill of its Check is parked and its 20 hours have passed. */
+export async function drillIsDue(db: Db, map: CourseMap, learnerId: number, now: Date): Promise<boolean> {
+  const { place } = await placeWithParked(db, map, learnerId);
+  const due = place?.parked?.filter((p) => now.getTime() >= p.until.getTime()) ?? [];
+  if (!place || !due.length) return false;
+  // A drill already begun (its divider stored since the Skill was parked) is not started again.
+  const session = await liveSession(db, learnerId, place.topic.id);
+  const items = session ? await loadSessionItems(db, session.id, learnerId) : [];
+  return due.some((p) => {
+    const parkedAt = items.findLastIndex((i) => i.kind === PARKED && i.data.skillId === p.skillId);
+    return !items.some((i, n) => n > parkedAt && i.kind === PARK_DRILL && i.data.skillId === p.skillId);
+  });
+}
+
+/**
+ * The drill after a park: when a parked Skill of the Check is due and no drill or try is under way, a divider
+ * ("Drill · <rule>") and the first of five tries on it. Null when no drill starts now.
+ */
+async function drillItems(db: Db, bare: Place & { check: Check }, learnerId: number, sessionId: number, now: Date): Promise<SessionItem[] | null> {
+  const parked = await parkedSkills(db, learnerId, [bare.topic.id]);
+  const place = { ...bare, parked: checkSkills(bare.topic, bare.check).flatMap((skillId) => (parked[bare.topic.id]?.[skillId] ? [{ skillId, until: parked[bare.topic.id][skillId] }] : [])) };
+  const states = await skillStates(db, learnerId, place.topic.id);
+  const due = place.parked.find((p) => drillDue(states[p.skillId] ?? { ...freshSkillState(), parkedUntil: p.until }, now));
+  if (!due) return null;
+  const { shown, open } = triesIn(await loadSessionItems(db, sessionId, learnerId), place.check.id);
+  if (open || drillUnderWay(shown)) return null;
+  const rule = place.topic.skills.find((s) => s.id === due.skillId)?.rule ?? "this idea";
+  const divider: SessionItem = { kind: PARK_DRILL, data: { skillId: due.skillId, label: `Drill · ${rule}` } satisfies ParkDrillData };
+  await saveItemAfterLatest(db, learnerId, sessionId, divider, now);
+  const first = await storeTry(db, place, learnerId, sessionId, now, states, shown, { skillId: due.skillId, drill: "parked", force: true });
+  return first ? [divider, first] : [divider];
 }
 
 export type QuickTryAnswer = { ok: true; items: SessionItem[]; followUp: boolean } | { ok: false; status: 400 | 404 | 409; error: string };
@@ -357,7 +466,7 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
 
   const marked = markAnswer(found.item, input);
   const drawn = "templateId" in found.item ? found.item : null;
-  await recordAnswer(
+  const after = await recordAnswer(
     db,
     {
       learnerId,
@@ -379,15 +488,34 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
   const result: SessionItem = { kind: QUICK_TRY_RESULT, data: resultData };
   await saveItemAfterLatest(db, learnerId, row.sessionId, result, now);
   const items = [result];
+  const event: AnswerEvent = marked.verdict === "known_mistake" ? { verdict: "known_mistake", tag: marked.tag } : { verdict: marked.verdict };
+  if (shown.drill) {
+    // A drill of five is five answered tries, right or wrong. The return drill's fifth ends the park, and the step goes on.
+    if (shown.drill.n >= shown.drill.of && shown.drill.reason === "parked") await unparkSkill(db, learnerId, topic.id, shown.skillId, now);
+  } else {
+    // The repair ladder: a second miss in a row brings a re-teach turn, a third the park offer, with no Tutor turn.
+    const action = ladderAction(after, event);
+    if (action.kind === "park_offer") {
+      items.push(await storeParkOffer(db, learnerId, row.sessionId, shown.skillId, now));
+      return { ok: true, items, followUp: false };
+    }
+    if (action.kind === "reteach") return { ok: true, items, followUp: true };
+  }
   if (marked.verdict === "wrong") return { ok: true, items, followUp: true };
 
-  const progress = await loadProgress(db, learnerId);
-  const place = convertedPlace(navigate(map, progress));
-  if (!place || place.check.id !== check.id || !practiceStep(place.topic, place.step, place.check)) return { ok: true, items, followUp: false };
+  const { progress, parked, place: at } = await placeWithParked(db, map, learnerId);
+  const place = convertedPlace(at);
+  if (!place || place.check.id !== check.id) return { ok: true, items, followUp: false };
+  if (!practiceStep(place.topic, place.step, place.check)) {
+    // A drill at a quiz Check goes on try by try; once it ends the Check is open as before.
+    const next = drillUnderWay(triesIn(await loadSessionItems(db, row.sessionId, learnerId), check.id).shown) ? await postTry(db, place, learnerId, row.sessionId, now) : null;
+    if (next) items.push(next);
+    return { ok: true, items, followUp: false };
+  }
   if (marked.verdict === "right") {
     const states = await skillStates(db, learnerId, topic.id);
     const done = yourTurnDone(testedSkills(topic, place.check).map((s) => states[s] ?? freshSkillState()));
-    const move = finishFromPractice(map, progress, done);
+    const move = finishFromPractice(map, progress, done, parked);
     if (move.ok) {
       await saveTopicStep(db, learnerId, topic.id, move.progress, now);
       const divider = stepDivider(map, move.progress, topic.id);
@@ -475,6 +603,8 @@ export async function quickTryFollowUpNote(db: Db, map: CourseMap, learnerId: nu
   const latest = items.findLast((i) => i.kind === QUICK_TRY_RESULT);
   if (!latest || (await lastReplySeq(db, session.id)) > latest.afterSeq) return null;
   const result = dataOfItem<QuickTryResultData>(latest);
+  const reteach = await reteachFor(db, map, learnerId, items, result, session.id);
+  if (reteach) return reteach;
   if (result.verdict === "wrong") {
     const [line] = await resultLines(db, map, learnerId, items, [result]);
     return `${QUICK_TRY_FOLLOW_UP_PREFIX} the Learner answered a Quick try, and code marked it with no Known mistake to match:\n${line}\nReply kind: feedback. Name the slip in one sentence and give the fix. Do not teach the idea again, and write no practice question of your own: code shows a fresh Quick try after your reply.`;
@@ -494,6 +624,313 @@ export async function practiceFallback(db: Db, map: CourseMap, learnerId: number
   const at = convertedPlace(place);
   if (!at?.check.card || (at.step !== "concept" && !practiceStep(at.topic, at.step, at.check))) return null;
   const session = await liveSession(db, learnerId, at.topic.id);
-  const items = session && at.step === "your_turn" ? await enterStepItems(db, map, learnerId, session.id, now) : [];
-  return { text: at.check.card.writeDown, items };
+  // The Tutor Turn stores the returned items itself, so the next try is picked here but not stored.
+  const next = session && at.step === "your_turn" ? await postTry(db, at, learnerId, session.id, now, {}, false) : null;
+  void map;
+  return { text: at.check.card.writeDown, items: next ? [next] : [] };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The repair ladder's code-side moves (spec #229, "Repair ladder and Reply kinds" and "Parking"; ticket #245).
+
+/** The try a result answers, and the Learner's state on its Skill now. */
+async function triedSkill(db: Db, map: CourseMap, learnerId: number, items: readonly StoredItem[], key: string) {
+  const tried = items.find((i) => i.kind === QUICK_TRY && dataOfItem<QuickTryData>(i).key === key);
+  const data = tried ? dataOfItem<QuickTryData>(tried) : undefined;
+  const check = data ? map.check(data.checkId) : undefined;
+  if (!data || !check) return null;
+  const states = await skillStates(db, learnerId, check.topicId);
+  return { data, check, topicId: check.topicId, state: states[data.skillId] ?? freshSkillState() };
+}
+
+/**
+ * The re-teach note after a second miss in a row on a Skill (a Known mistake too): `Reply kind: reteach` and the next
+ * method in plain words. Code notes the method as used, so the next re-teach on this Skill names another.
+ */
+async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: readonly StoredItem[], result: QuickTryResultData, sessionId: number): Promise<string | null> {
+  if (result.verdict === "right") return null;
+  const tried = await triedSkill(db, map, learnerId, items, result.key);
+  if (!tried || tried.data.drill) return null;
+  const event: AnswerEvent = result.verdict === "known_mistake" ? { verdict: "known_mistake", tag: "known" } : { verdict: "wrong" };
+  const action = ladderAction(tried.state, event);
+  if (action.kind !== "reteach") return null;
+  await noteMethodUsed(db, learnerId, tried.topicId, tried.data.skillId, action.method);
+  const [line] = await resultLines(db, map, learnerId, items, [result]);
+  const rule = map.topic(tried.topicId)?.skills.find((s) => s.id === tried.data.skillId)?.rule;
+  void sessionId;
+  return [
+    `${QUICK_TRY_FOLLOW_UP_PREFIX} the Learner missed a Quick try on the same idea twice in a row:`,
+    line,
+    ...(rule ? [`The idea: ${rule}`] : []),
+    action.note,
+    "Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply.",
+  ].join("\n");
+}
+
+/** The method a re-teach note names, read back from the turn's note. */
+export function methodInNote(note: string | null | undefined): Method | null {
+  for (const m of LADDER) if (note?.includes(reteachNote(m))) return m;
+  return null;
+}
+
+/**
+ * What code shows after a re-teach turn, by its method: a half-done try (boxes), the card's Widget in practice mode
+ * under its own title, then a try (widget), the first of a drill of five (drill), or the next try as usual (restate,
+ * worked example). Stored as Session items.
+ */
+export async function afterReteachItems(db: Db, map: CourseMap, learnerId: number, sessionId: number, method: Method, now: Date): Promise<SessionItem[]> {
+  const { place: at } = await placeWithParked(db, map, learnerId);
+  const place = convertedPlace(at);
+  if (!place) return [];
+  const items = await loadSessionItems(db, sessionId, learnerId);
+  const latest = items.findLast((i) => i.kind === QUICK_TRY_RESULT);
+  const tried = latest ? await triedSkill(db, map, learnerId, items, dataOfItem<QuickTryResultData>(latest).key) : null;
+  const skillId = tried?.data.skillId;
+  const out: SessionItem[] = [];
+  if (method === "widget" && skillId) {
+    const widget = await storePracticeWidget(db, place.topic, skillId, learnerId, sessionId, now);
+    if (widget) out.push(widget);
+  }
+  const opts: PickOptions & { force?: boolean } =
+    method === "boxes" || (method === "widget" && !out.length) ? { skillId, easier: true } : method === "drill5" ? { skillId, drill: "ladder", force: true } : { skillId };
+  const next = await postTry(db, place, learnerId, sessionId, now, opts);
+  if (next) out.push(next);
+  return out;
+}
+
+/** The Skill's card preset opened in practice mode, under "<card title> · practice", so its key is its own. Recipe presets only. */
+async function storePracticeWidget(db: Db, topic: Topic, skillId: string, learnerId: number, sessionId: number, now: Date): Promise<SessionItem | null> {
+  const card = topic.checks.map((c) => c.card).find((c) => c?.skills.includes(skillId) && c.widget && "recipe" in c.widget);
+  const preset = card?.widget;
+  if (!card || !preset || !("recipe" in preset)) return null;
+  const title = practiceTitle(preset.title ?? card.title);
+  const built = recipeById(preset.recipe)?.build({ title, inputs: { ...preset.inputs, mode: "practice" }, refs: {}, facts: {} });
+  if (!built?.ok) return null;
+  const data: ShownWidget = { id: `practice-${skillId}-${now.getTime()}`, recipe: preset.recipe, params: built.params, title: built.title, code: built.code, source: "recipe" };
+  const item = { kind: WIDGET_SHOWN, data };
+  await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+  return item;
+}
+
+/** Stores the park offer: code's own line and two buttons. */
+async function storeParkOffer(db: Db, learnerId: number, sessionId: number, skillId: string, now: Date): Promise<SessionItem> {
+  const item: SessionItem = { kind: PARK_OFFER, data: { skillId, line: PARK_OFFER_LINE } satisfies ParkOfferData };
+  await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+  return item;
+}
+
+/**
+ * The park offer after a third miss in a row on a quiz question's Skill (T13 records quiz answers too): stored in the
+ * Topic's live Session unless one is already waiting there for that Skill. Converted Topics only.
+ */
+export async function parkOfferFor(db: Db, map: CourseMap, learnerId: number, topicId: string, skillId: string, now: Date): Promise<SessionItem | null> {
+  const session = await liveSession(db, learnerId, topicId);
+  if (!session) return null;
+  const items = await loadSessionItems(db, session.id, learnerId);
+  const waiting = items.some((i) => i.kind === PARK_OFFER && i.data.skillId === skillId && !i.data.chosen);
+  if (waiting) return null;
+  return storeParkOffer(db, learnerId, session.id, skillId, now);
+}
+
+export type ParkResult = { ok: true; items: SessionItem[] } | { ok: false; status: 404 | 409; error: string };
+
+/** The Learner's latest park offer on this Skill that no button has answered yet, in their current Topic's live Session. */
+async function waitingOffer(db: Db, map: CourseMap, learnerId: number, skillId: string) {
+  const { place } = await placeWithParked(db, map, learnerId);
+  const topic = place?.topic;
+  if (!topic || !isConverted(topic) || !topic.skills.some((s) => s.id === skillId)) return null;
+  const session = await liveSession(db, learnerId, topic.id);
+  if (!session) return null;
+  const [row] = await db
+    .select({ id: sessionItems.id, data: sessionItems.data })
+    .from(sessionItems)
+    .where(and(eq(sessionItems.learnerId, learnerId), eq(sessionItems.sessionId, session.id), eq(sessionItems.kind, PARK_OFFER), sql`${sessionItems.data}->>'skillId' = ${skillId}`))
+    .orderBy(sql`${sessionItems.id} desc`)
+    .limit(1);
+  if (!row || row.data.chosen) return null;
+  return { row, topic, sessionId: session.id, place: place as Place };
+}
+
+/** Marks the offer answered, so each button works once. */
+async function answerOffer(db: Db, id: number, data: Record<string, unknown>, chosen: "park" | "one_more") {
+  await db.update(sessionItems).set({ data: { ...data, chosen } }).where(eq(sessionItems.id, id));
+}
+
+/**
+ * "Park it, review tomorrow": parks the Skill for 20 hours and stores the parked line ("Back tomorrow after <weekday,
+ * time>"). The Topic waits at its step; the Learner may study any other Topic meanwhile.
+ */
+export async function parkFromOffer(db: Db, map: CourseMap, learnerId: number, skillId: string, now: Date): Promise<ParkResult> {
+  if (await turnRunning(db, now, learnerId)) return { ok: false, status: 409, error: "Wait for the Tutor to finish, then choose." };
+  const offer = await waitingOffer(db, map, learnerId, skillId);
+  if (!offer) return { ok: false, status: 404, error: "There is no park offer waiting for that idea." };
+  await answerOffer(db, offer.row.id, offer.row.data, "park");
+  const state = await parkSkill(db, learnerId, offer.topic.id, skillId, now);
+  const until = state.parkedUntil ?? now;
+  const item: SessionItem = { kind: PARKED, data: { skillId, line: parkedLine(until), until: until.toISOString() } satisfies ParkedData };
+  await saveItemAfterLatest(db, learnerId, offer.sessionId, item, now);
+  return { ok: true, items: [item] };
+}
+
+/** "One more short try": one more Quick try on that Skill now. A miss on it offers the park again. */
+export async function oneMoreFromOffer(db: Db, map: CourseMap, learnerId: number, skillId: string, now: Date): Promise<ParkResult> {
+  if (await turnRunning(db, now, learnerId)) return { ok: false, status: 409, error: "Wait for the Tutor to finish, then choose." };
+  const offer = await waitingOffer(db, map, learnerId, skillId);
+  const place = offer && convertedPlace(offer.place);
+  if (!offer || !place) return { ok: false, status: 404, error: "There is no park offer waiting for that idea." };
+  await answerOffer(db, offer.row.id, offer.row.data, "one_more");
+  const states = await skillStates(db, learnerId, place.topic.id);
+  const { shown } = triesIn(await loadSessionItems(db, offer.sessionId, learnerId), place.check.id);
+  const next = await storeTry(db, place, learnerId, offer.sessionId, now, states, shown, { skillId, force: true });
+  return { ok: true, items: next ? [next] : [] };
+}
+
+/**
+ * Start again (spec #229): the Topic's Concept cards re-posted in order, then its first Quick try. The step and any open
+ * quiz attempt stay where they are. Null for a Topic not converted.
+ */
+export async function startAgainItems(db: Db, map: CourseMap, learnerId: number, sessionId: number, now: Date): Promise<SessionItem[] | null> {
+  const place = navigate(map, await loadProgress(db, learnerId));
+  if (!place || !isConverted(place.topic)) return null;
+  const out: SessionItem[] = [];
+  for (const check of place.topic.checks) {
+    if (!check.card) continue;
+    const data: ConceptCardData = { checkId: check.id, title: check.card.title, lines: [...check.card.lines], writeDown: check.card.writeDown };
+    const card: SessionItem = { kind: CONCEPT_CARD, data };
+    await saveItemAfterLatest(db, learnerId, sessionId, card, now);
+    out.push(card);
+  }
+  const first = place.topic.checks.find((c) => c.quickTries.length);
+  if (first) {
+    const { shown } = triesIn(await loadSessionItems(db, sessionId, learnerId), first.id);
+    const firstTry = nextQuickTry(place.topic, first, {}, shown, { session: sessionId, easier: true });
+    if (firstTry) {
+      const item = { kind: QUICK_TRY, data: firstTry };
+      await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+      out.push(item);
+    }
+  }
+  return out;
+}
+
+/**
+ * What the frustration count reads in a Session, oldest first: the Learner's own typed messages, and each right
+ * answer code marked in this Topic (converted Topics only; an unconverted Topic reads no practice answers).
+ */
+export async function frustrationEvents(db: Db, learnerId: number, sessionId: number, topicId: string, converted = true, current?: string): Promise<FrustrationEvent[]> {
+  // The running turn's message is not in the Session yet: it is passed as `current` and counted last.
+  const typed = await db
+    .select({ input: turns.input, at: turns.startedAt })
+    .from(turns)
+    .where(and(eq(turns.learnerId, learnerId), eq(turns.sessionId, sessionId), ne(turns.status, "running")))
+    .orderBy(asc(turns.id));
+  const said = typed.flatMap((t) => (t.input && !isCodeWritten(t.input) ? [{ at: t.at.getTime(), e: { kind: "learner", text: t.input } as FrustrationEvent }] : []));
+  const rights = converted
+    ? (
+        await db
+          .select({ at: practiceAnswers.createdAt })
+          .from(practiceAnswers)
+          .where(and(eq(practiceAnswers.learnerId, learnerId), eq(practiceAnswers.topicId, topicId), eq(practiceAnswers.verdict, "right")))
+      ).map((r) => ({ at: r.at.getTime(), e: { kind: "right" } as FrustrationEvent }))
+    : [];
+  const latest = current && !isCodeWritten(current) ? [{ kind: "learner", text: current } as FrustrationEvent] : [];
+  return [...[...said, ...rights].sort((a, b) => a.at - b.at).map((x) => x.e), ...latest];
+}
+
+/** What the ladder tells the Tutor this turn, through TurnFacts and the context. */
+export type LadderFacts = { replyKind?: "feedback" | "reteach" | "offer_park"; method?: string; frustration?: number; skillLines: string[]; parked?: string };
+
+const METHOD_NAMES: Record<Method, string> = { restate: "restate the rule", worked: "a worked example", boxes: "fill-in boxes", widget: "the Widget in practice mode", drill5: "a drill of five" };
+
+/** A Known mistake's fix line, by its tag, from the Topic file: never the tag itself, which the Tutor must not repeat. */
+function mistakeWords(topic: Topic, tag: string): string | undefined {
+  for (const t of topic.templates) for (const m of t.mistakes) if (m.tag === tag) return m.fix;
+  for (const c of topic.checks) for (const q of c.quickTries) if (isFixed(q)) for (const m of q.mistakes ?? []) if (m.tag === tag) return m.fix;
+  for (const q of topic.questions) for (const c of q.choices) if (c.mistake?.tag === tag) return c.mistake.fix;
+  return undefined;
+}
+
+/**
+ * The ladder's facts for this turn (spec #229, ticket #245): the Reply kind and method a code-written re-teach note
+ * named; the frustration count; at a converted Your turn or Check, each Skill's state in one plain line; and, while a
+ * Skill of the Check is parked, when it comes back. Only a converted Topic reads skill_state and practice_answers.
+ */
+export async function ladderFacts(db: Db, map: CourseMap, learnerId: number, bare: Place | null, learnerText?: string, now = new Date()): Promise<LadderFacts> {
+  const out: LadderFacts = { skillLines: [] };
+  const method = methodInNote(learnerText);
+  if (method) {
+    out.method = METHOD_NAMES[method];
+    if (method !== "drill5") out.replyKind = "reteach";
+  } else if (learnerText && isCodeWritten(learnerText) && /Reply kind: feedback\b/.test(learnerText)) out.replyKind = "feedback";
+  if (!bare) return out;
+  const converted = isConverted(bare.topic);
+  const session = await liveSession(db, learnerId, bare.topic.id);
+  const parked = converted ? await parkedSkills(db, learnerId, [bare.topic.id]) : {};
+  const place = navigate(map, await loadProgress(db, learnerId), parked) ?? bare;
+  const states = converted ? await skillStates(db, learnerId, bare.topic.id) : {};
+  const skills = converted && place.check && (place.step === "your_turn" || place.step === "check") ? checkSkills(place.topic, place.check) : [];
+  const current = skills.find((s) => states[s] && !isFluent(states[s]));
+  if (session) {
+    const count = frustrationCount(await frustrationEvents(db, learnerId, session.id, bare.topic.id, converted, learnerText), current ? states[current] : null);
+    if (count > 0) out.frustration = count;
+  }
+  const ruleOf = (id: string) => (place.topic.skills.find((s) => s.id === id)?.rule ?? "this idea").replace(/\.$/, "");
+  out.skillLines = skills.map((id) => {
+    const s = states[id] ?? freshSkillState();
+    const mistake = s.lastMistake ? mistakeWords(place.topic, s.lastMistake) : undefined;
+    const how = isFluent(s) ? "fluent" : `not fluent yet, ${s.missesInRow} ${s.missesInRow === 1 ? "miss" : "misses"} in a row`;
+    return `- ${ruleOf(id)}: ${how}${mistake ? `; last Known mistake: ${mistake}` : ""}.`;
+  });
+  const waiting = place.parked?.filter((p) => now.getTime() < p.until.getTime()) ?? [];
+  if (waiting.length) {
+    out.parked = `Parked until ${backAt(waiting[0].until)}: ${waiting.map((p) => ruleOf(p.skillId)).join("; ")}. The Topic waits at this step, and code shows no Quick try and no Next until then. You may still answer the Learner's questions, and you may suggest another Topic on the Course Map.`;
+    out.replyKind ??= "offer_park";
+  }
+  return out;
+}
+
+/**
+ * The quiz follow-up on the repair ladder (spec #229; ticket #245). T13 records each Skill-tagged quiz answer with
+ * `recordAnswer`, so misses in a row count across Quick tries and quiz questions. Code reads the first missed
+ * question's Skill: at two misses in a row the note gains the re-teach lines and the method is noted as used; at three
+ * or more code stores the park offer and the note tells the Tutor to say one short sentence. Otherwise the note is as
+ * T04 wrote it. Converted Topics only, so production reads nothing new before a Topic is converted.
+ */
+export async function quizLadderNote(db: Db, map: CourseMap, learnerId: number, note: string, now: Date): Promise<{ note: string; items: SessionItem[] }> {
+  const place = navigate(map, await loadProgress(db, learnerId));
+  if (!place || !isConverted(place.topic)) return { note, items: [] };
+  const topicId = place.topic.id;
+  const [latest] = await db
+    .select({ itemKey: practiceAnswers.itemKey })
+    .from(practiceAnswers)
+    .where(and(eq(practiceAnswers.learnerId, learnerId), eq(practiceAnswers.topicId, topicId), eq(practiceAnswers.source, "quiz")))
+    .orderBy(sql`${practiceAnswers.id} desc`)
+    .limit(1);
+  const attempt = latest?.itemKey.split(":")[1];
+  if (!attempt) return { note, items: [] };
+  const [missed] = await db
+    .select({ skillId: practiceAnswers.skillId, verdict: practiceAnswers.verdict, mistakeTag: practiceAnswers.mistakeTag })
+    .from(practiceAnswers)
+    .where(and(eq(practiceAnswers.learnerId, learnerId), sql`${practiceAnswers.itemKey} like ${`quiz:${attempt}:%`}`, sql`${practiceAnswers.verdict} <> 'right'`))
+    .orderBy(asc(practiceAnswers.id))
+    .limit(1);
+  if (!missed) return { note, items: [] };
+  const state = (await skillStates(db, learnerId, topicId))[missed.skillId] ?? freshSkillState();
+  const event: AnswerEvent = missed.verdict === "known_mistake" && missed.mistakeTag ? { verdict: "known_mistake", tag: missed.mistakeTag } : { verdict: "wrong" };
+  const action = ladderAction(state, event);
+  if (action.kind === "reteach") {
+    await noteMethodUsed(db, learnerId, topicId, missed.skillId, action.method, now);
+    return {
+      note: `${note}\nThis is the second miss in a row on this idea, so code overrides "do not re-teach": teach this one idea again this way, then ask the one similar question.\n${action.note}`,
+      items: [],
+    };
+  }
+  if (action.kind === "park_offer") {
+    const offer = await parkOfferFor(db, map, learnerId, topicId, missed.skillId, now);
+    return {
+      note: `${QUIZ_FOLLOW_UP_PREFIX} the Learner missed the quiz, and this is their third miss in a row on the same idea. Code has shown them a park offer: park the idea and review it tomorrow, or have one more short try now. Reply kind: offer_park. Say one short sentence that leaves the choice to them. No new explanation and no question of your own.`,
+      items: offer ? [offer] : [],
+    };
+  }
+  return { note, items: [] };
 }
