@@ -28,7 +28,7 @@ export function OldSession({
 }: {
   lines: OldLine[];
   topicTitle?: string;
-  explore?: { code: string; id?: string } | null;
+  explore?: { code: string; id: string } | null;
   /** The Topic's written-ahead Widgets (loadWrittenAhead): one the Tutor opened in this Session is drawn from these. */
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen, for the page's shared Case Data cache. */

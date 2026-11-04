@@ -7,6 +7,7 @@ import { exploreItem, NarrowScreen, withExplore, type WidgetItem } from "./widge
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
 const EXPLORE = {
+  id: "cash-or-payments",
   code: `root = Widget("Cash now or 30 yearly payments: what the rate decides", [rate, chart])
 $rate = 5
 rate = Slider("rate", "Interest rate (discount rate)", 0, 10, 0.25, $rate, "percent")
@@ -84,7 +85,7 @@ describe("which Widget the panel shows first", () => {
 
   it("puts the explore Widget after those the Tutor drew before it began, so it is the newest", () => {
     const list = withExplore([tutor(0), tutor(1)], EXPLORE, 2);
-    expect(list.at(-1)).toEqual(exploreItem(EXPLORE.code));
+    expect(list.at(-1)).toEqual(exploreItem(EXPLORE.code, undefined, EXPLORE.id));
   });
 
   it("lets a newer Widget from the Tutor take over", () => {

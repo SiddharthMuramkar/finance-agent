@@ -90,13 +90,13 @@ function useLaptopWidth(): boolean {
  * The Topic's explore Widget as a panel item: a written-ahead Widget (`id`), so its work is saved under that id. In an
  * old Session, `sessionId` tells the server which Topic it was played under.
  */
-export const exploreItem = (code: string, sessionId?: number, id?: string): WidgetItem => ({
+export const exploreItem = (code: string, sessionId: number | undefined, id: string): WidgetItem => ({
   key: EXPLORE_KEY,
   number: 0,
   code,
   complete: true,
   explore: true,
-  ...(id && { writtenAhead: id }),
+  writtenAhead: id,
   save: { kind: "widget", widgetIndex: -1, ...(sessionId !== undefined && { sessionId }) },
 });
 
@@ -182,7 +182,7 @@ export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?:
   const loadCase = useCaseLoad();
   const store = useWidgetStore();
   // Only a finished Widget has a key: a streaming one's title may not be complete yet.
-  const key = store && item.complete ? (item.writtenAhead ?? widgetKey(widgetParts(item.code).title, item.explore)) : undefined;
+  const key = store && item.complete ? (item.writtenAhead ?? widgetKey(widgetParts(item.code).title)) : undefined;
   // What it starts from is read once, as it mounts: later saves come from the Widget itself.
   const [start] = useState(() => (key ? store?.saved(key) : undefined));
   // The ticked Guided Tasks so far, kept here too, so Tell the Tutor what I found shows the moment the last one ticks.
@@ -239,7 +239,7 @@ export function WidgetWithSave({ item, bare = true }: { item: WidgetItem; bare?:
  * The Tutor's Widgets with the explore Widget among them, standing after the first `after` of them (those
  * drawn before explore began), so a newer Widget from the Tutor still opens on its own after it.
  */
-export function withExplore(widgets: WidgetItem[], explore: { code: string; id?: string } | null | undefined, after: number, sessionId?: number): WidgetItem[] {
+export function withExplore(widgets: WidgetItem[], explore: { code: string; id: string } | null | undefined, after: number, sessionId?: number): WidgetItem[] {
   return explore ? [...widgets.slice(0, after), exploreItem(explore.code, sessionId, explore.id), ...widgets.slice(after)] : widgets;
 }
 

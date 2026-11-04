@@ -36,7 +36,7 @@ export function useWidgetHost({
 }: {
   messages: ThreadLine[];
   running: boolean;
-  explore: { code: string; id?: string } | null;
+  explore: { code: string; id: string } | null;
   quiz?: OpenQuiz | null;
   /** The Topic's written-ahead Widgets as the Learner sees them now; those the Tutor opened are drawn. */
   writtenAhead?: readonly WrittenAhead[];

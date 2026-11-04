@@ -61,7 +61,7 @@ export function Conversation({
   review: ReviewState;
   place?: Place;
   /** The Topic's own explore Widget while the Learner has it (see exploreWidgetFor); shown by code, not drawn by the Tutor. */
-  explore?: { code: string; id?: string } | null;
+  explore?: { code: string; id: string } | null;
   /** Whether the shown Topic's Insight is settled (found or told): until then Widgets hold back what gives it away. */
   insightSettled?: boolean;
   /** The Topic's written-ahead Widgets as the Learner sees them now (writtenAheadFor); those the Tutor opened are drawn. */
