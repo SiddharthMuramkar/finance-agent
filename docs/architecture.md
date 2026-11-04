@@ -932,6 +932,17 @@ compiles a Widget with one Years slider, the SIP Calculator and a Guided Task at
 the panel opens it at once; the Tutor's result lists the slider and task, and it writes two sentences about moving the
 years. Had it asked for a slider from 40 to 30 years, it would have got "min must be below max" and called again.
 
+**Recipe set B (`recipes/set-b.ts`, `recipes/b/`).** Five recipes on the new parts, plus two upgraded seeds.
+`price_over_time` (a PriceTag or ShrinkingNote with years or the yearly rise on the slider), `predict_number` (a
+Predict whose real figure is the first or last point of a Case Data series, so it waits while the data is withheld),
+`chain` (a StepThrough; digits and formulas in the words are refused unless facts.numbers makes it an Illustration),
+`rank` (a Rank: the Tutor lists the items from the low end to the high end with a reason each, and code scrambles them
+and writes the answer key), and `fx_convert` (a Pictogram of what rupees buy as the rupees-per-dollar slider moves,
+with the real rate from `reference/usd-inr` as outlines). `history_case` now takes a log axis or a DrawTheLine, and
+`formula` now says plainly which Formula Card symbol is missing, repeated or unknown. Scenario: the Tutor asks for
+`rank` with four ways to hold money; the Learner gets them mixed up and drags them into order, and code checks it. The
+trade-off is that the Tutor chooses among fixed shapes: a Widget that needs two controls does not fit these recipes.
+
 **Trade-off.** Code draws a designed, tested Widget in milliseconds, but only the ideas a recipe covers: with the
 engine on there is no freeform Widget until compose_widget arrives, so the rest is taught in words. The instructions
 are about 16.8K characters instead of 44.3K (tools 10.9K instead of 10.1K): roughly 7K tokens instead of 13.6K before
