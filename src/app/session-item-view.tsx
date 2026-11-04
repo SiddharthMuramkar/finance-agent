@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
 import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, OFF_TOPIC, PICKING_UP, STEP_DIVIDER, STOPPED, type OffTopicData, type SessionItem } from "@/tutor/session-item-kinds";
+import { ownRuleOf, OWN_RULE_SAVED } from "@/tutor/own-rule-item";
 import { TOPIC_COMPLETE, type TopicCompleteData } from "@/tutor/topic-complete-card";
+import { OwnRuleLine } from "./own-rule-line";
 import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
@@ -76,6 +78,11 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   ),
   // Stored after a Tutor answer that left the Topic: "Off-Topic answer · ↩ Back to <Topic>".
   [OFF_TOPIC]: (data) => (typeof data.title === "string" && typeof data.topicId === "string" ? <OffTopicBlock data={data as OffTopicData} /> : null),
+  // Stored when the Tutor saves the Learner's own rule to their Topic Note: "Saved to your notes · Undo · Open notes".
+  [OWN_RULE_SAVED]: (data) => {
+    const rule = ownRuleOf({ kind: OWN_RULE_SAVED, data });
+    return rule ? <OwnRuleLine data={rule} /> : null;
+  },
   // Never stored: an old "Continue." message, drawn in the thread and on Past Sessions pages as where the next step began.
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.

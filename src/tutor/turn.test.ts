@@ -86,6 +86,7 @@ describe("Tutor Turn", () => {
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
         { name: "record_insight_attempt" },
+        { name: "save_learner_rule" },
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
