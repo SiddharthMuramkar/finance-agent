@@ -69,7 +69,16 @@ export async function submitQuizAnswers(
     const n = checkNumber(map, checkId);
     const session = check && (await liveSession(tx, learnerId, check.topicId));
     // Every answer to a question that tests a Skill goes into the Learner's Skill state, with the result or not at all.
-    if (check) for (const q of marking.questions) if (q.skill) await recordAnswer(tx, practiceAnswerOf(learnerId, check.topicId, session?.id, attempt, q), now);
+    // Only the first miss on a Skill in one attempt counts on the ladder; later misses on it are logged, not counted.
+    const missed = new Set<string>();
+    if (check)
+      for (const q of marking.questions) {
+        if (!q.skill) continue;
+        const answer = practiceAnswerOf(learnerId, check.topicId, session?.id, attempt, q);
+        const again = answer.verdict !== "right" && missed.has(q.skill);
+        if (answer.verdict !== "right") missed.add(q.skill);
+        await recordAnswer(tx, again ? { ...answer, countInState: false } : answer, now);
+      }
     if (!session || n === null) return;
     item = quizResultCard(n, marking);
     await saveItemAfterLatest(tx, learnerId, session.id, item, now);

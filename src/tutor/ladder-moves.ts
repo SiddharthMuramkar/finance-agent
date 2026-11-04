@@ -10,7 +10,7 @@ export type LadderAction =
   /** Right, or a first miss: the usual feedback. */
   | { kind: "feedback" }
   /** Second miss in a row: code starts a follow-up turn that teaches the Skill again with `method`. */
-  | { kind: "reteach"; method: Method; replyKind: "reteach" | "drill"; note: string }
+  | { kind: "reteach"; method: Method; replyKind: RungKind; note: string }
   /** Third miss in a row, and every one after: code shows the park offer, with no Tutor turn. */
   | { kind: "park_offer" };
 
@@ -23,9 +23,17 @@ const METHOD_WORDS: Record<Method, string> = {
   drill5: "a drill of five. Code posts five short tries one at a time; add one sentence and one ask.",
 };
 
-/** The note lines for a re-teach: "Reply kind: reteach" and "Method: …", in plain words. */
+/** The Reply kind of a re-teach rung: a worked example (the long cap), a drill, or a re-teach. */
+export type RungKind = "reteach" | "drill" | "worked_example";
+
+/** The Reply kind code chooses for a re-teach with this method. */
+export function rungKind(method: Method): RungKind {
+  return method === "drill5" ? "drill" : method === "worked" ? "worked_example" : "reteach";
+}
+
+/** The note lines for a re-teach: "Reply kind: …" and "Method: …", in plain words. */
 export function reteachNote(method: Method): string {
-  const kind = method === "drill5" ? "drill" : "reteach";
+  const kind = method === "drill5" ? "drill" : method === "worked" ? "worked example" : "reteach";
   const name = method === "drill5" ? "drill" : method === "worked" ? "worked example" : method;
   return `Reply kind: ${kind}\nMethod: ${name}, ${METHOD_WORDS[method]}`;
 }
@@ -34,6 +42,6 @@ export function reteachNote(method: Method): string {
 export function ladderAction(after: SkillState, event: AnswerEvent): LadderAction {
   const move = nextMove(after, event);
   if (move.offerPark) return { kind: "park_offer" };
-  if (move.method) return { kind: "reteach", method: move.method, replyKind: move.method === "drill5" ? "drill" : "reteach", note: reteachNote(move.method) };
+  if (move.method) return { kind: "reteach", method: move.method, replyKind: rungKind(move.method), note: reteachNote(move.method) };
   return { kind: "feedback" };
 }
