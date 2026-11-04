@@ -1668,17 +1668,71 @@ answers every stored tool call and the next turn runs; a Stop with nothing runni
 through `notify`. `src/app/api/turn/route.test.ts`: `{ stopping: false }`, the stream opening on progress, a ping
 under fake timers, and a Stop through the route.
 
-### Replies of about 120 words, and the open question asked once (`src/tutor/instructions.ts`, `src/behaviour/grading.ts`, UX audit 5.12, 9.3, 9.10)
+### Teach simply: the Tutor's rules (`src/tutor/instructions.ts`, `src/behaviour/grading.ts`, spec #229, ticket #238; UX audit 5.12, 9.3, 9.10)
 
-**What it does.** The Tutor's instructions ask for at most about 120 words of prose per reply (`REPLY_WORD_LIMIT`;
-Widgets do not count), with longer answers given a part at a time or put into Steps or an Accordion; ask an open
-question once, and not again at the end of every reply; and use the Learner Profile for everyday examples in Widgets
-as well as in words. The behaviour report lists every reply over the limit (`longReplies`), counted by code at no cost.
+**What it does.** The Tutor's rules, shared by both instruction sets, now write for a beginner: the simplest correct
+idea first, any untaught term explained where it first appears, and MBA level as where the course ends up rather
+than where a reply starts. Every earlier rule stays (the past only, no advice, hindsight, Case Data, Citations,
+pacing, Formula Cards, Illustrations, the Library, the open question asked once). The new ones:
 
-**Scenario.** The Learner asks about SIPs while the break-even question is open. The Tutor answers in a short
-paragraph and stops, rather than ending with "so, what rate did you find?" again.
+- **Caps by step.** 80 words at concept, your turn and Check; 120 for a worked example, Go deeper, and the story,
+  explore, reveal and principle steps. The rules name the table, but the "Word limit for this reply" line code sends
+  each turn (see "Turn facts") rules. `REPLY_WORD_LIMIT` stays 120, the longest cap, for the behaviour report.
+- **One idea and one ask.** At most one sentence of feedback, one idea and one thing to do, alone on the last line.
+  No task lists, no "Want the next part?" and no Steps or Accordion advice: the Go deeper chip asks for more.
+- **Teaching.** Simple first, a worked example, then fading; after a miss, one slip, one fix and one new try with new
+  numbers; the method code names; one running example and one analogy per idea; "why" only after two right in a row.
+- **What was asked, first.** "Show me in a widget" gets one Widget and one sentence (or one sentence saying none fits,
+  then the shortest version in words); Go deeper gets one more layer in 120 words, same example, no new analogy;
+  "simpler" gets the rule in four lines or fewer.
+- **Frustration** gets an acknowledgement of eight words or fewer, then a smaller step. **The Learner's own rule** is
+  confirmed in one sentence and their words are used from then on.
+- **Open quiz.** The Tutor teaches, shows Widgets and starts again freely, with numbers off the blocked list, and
+  keeps back only the open answers. At a conversation Check it teaches with other numbers and never states the
+  reasoning the pass criteria ask for about the prompt's own move.
+- **Short sums** on the numbers under discussion are said in words: a difference in points, points to basis points
+  and back, a plain fraction. Every other sum still goes through calculate or the rate Widget.
+- **Plain style and app words** follow R13 and the spec's allowed and banned lists, and Guided Tasks are optional play.
+- **The Learner Profile** is used only when the Learner asks how an idea applies to them.
+- **Six examples** (Appendix A) close the rules. They live as data (`TUTOR_EXAMPLES`), and a test runs every reply
+  check on each, so an example can never break the rules it teaches.
 
-**Trade-off.** The limit is a request to the model, not a cut: a reply may still run long, and the report shows it.
+The engine text drops the line against repeating the last archetype (the running example's Widget is meant to
+repeat), takes its word cap from code's line, and allows an Illustration only where no input or Case Data covers
+the number. The behaviour report still lists every reply over 120 words (`longReplies`).
+
+**Scenario.** The Learner, at Percent's Check 1, types "just tell me the answer to question 1". The Tutor does not
+refuse: it keeps that answer back, shows that 0.2 of a point times 100 is 20 bp, and asks for 0.7 of a point, all in
+under 80 words with the ask on the last line.
+
+**Trade-off.** The rules and examples add about 6,500 characters to every Session's cached instructions, and a
+rule is still a request to the model: the reply checks (ticket #239) are what hold a reply to it. The widget-language
+size test now counts the rules at their old length, since this growth is the teaching rules, not the Widget text.
+
+### Turn facts: what code knows before the Tutor writes (`src/tutor/turn-facts.ts`, `src/tutor/context.ts`, spec #229, ticket #238)
+
+**What it does.** Once per Tutor Turn, `turnFacts` works out the turn's facts: the step, the Reply kind the Learner's
+words ask for (Go deeper, or a request for something simpler), the word limit (`capFor`), the Topic's example
+currency (₹ until Topic files name one) and its Cases' currencies (from `$` amounts in the story and Case Data
+units), and the ids the Learner must never read. At a quiz Check whose quiz can be shown, `openQuizItems` reads the
+open attempt's questions plus the next attempt's (after a miss, only the next one's), through the Course Map and the
+Question Bank, with each answer as the right choice's text; it reads rows only and never makes an attempt. The
+blocked numbers are every number in those items. The Course Navigator context then carries "Word limit for this
+reply: N words", the currency line, "Reply kind" when known, the method, frustration and Concept card lines once
+later tickets fill them, and at an open quiz the new rule, the blocked numbers and the Concept (or card) to teach
+from. The opener names the blocked numbers too, and the Check tab's note above the message box now offers help:
+"Quiz open. Stuck? Ask the Tutor: it can explain with other numbers." `replyCheckContext` turns the same facts into
+the reply checks' context, so the Tutor is told exactly the limits its reply is held to.
+
+**Scenario.** The Learner opens the present value quiz and asks how discounting works. The context says the limit is
+80 words and lists 1100, 10, 1000, 990, 1010, 1210 and the next attempt's numbers as blocked, so the Tutor explains
+with $500 over three years instead, and never confirms which choice is right.
+
+**Trade-off.** The word limit and Reply kind change from turn to turn, so a Go deeper press resends the whole context,
+and the turn after it sends it again. The next attempt's numbers are blocked as well, which leaves the Tutor fewer
+numbers but stops it rehearsing the questions a Try again would show. `tools.ts` still calls the context without facts
+after a step move (ticket #243 passes them); without facts the lines are left out, but the open-quiz rule has changed
+either way.
 
 ### Reply checks: the rules every Tutor reply must meet, as code (`src/tutor/reply-checks.ts`, spec #229, ticket #230)
 
@@ -2907,7 +2961,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 ## The fixed two-column layout and the Check tab (`workspace-frame.tsx`, `left-column.tsx`, `widget-host.tsx`, `quiz-panel.tsx`, `study/page.tsx`, spec #119, ticket #140)
 
-**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. After a miss the tab keeps the marking with Try Check k again →, even after a reload, and the next attempt is made only on that press (see "Check result cards and the quiz follow-up"). While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
+**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. After a miss the tab keeps the marking with Try Check k again →, even after a reload, and the next attempt is made only on that press (see "Check result cards and the quiz follow-up"). While a quiz is open, a one-line note above the message box reads "Quiz open. Stuck? Ask the Tutor: it can explain with other numbers.", and the box stays usable. The Tutor's context says the quiz is on the right, in the Check tab, and (since ticket #238) lets the Tutor teach with numbers off the blocked list, keeping back only the open answers (see "Turn facts").
 
 **Scenario.** The Learner reaches Check 1 of 2 on a 1024 × 640 laptop with three Reviews due. The right panel switches to "Check 1 of 2" with six questions that scroll inside the panel. They open the Review row: it scrolls inside its capped box, while the last Tutor message, the quiz note and the message box all stay on screen and the page stays 640 px tall. They ask "is a basis point a hundredth of a percent?"; the Tutor answers that but won't touch the quiz, and the Check tab is still selected when the reply ends.
 
@@ -3383,13 +3437,13 @@ through `/api/profile`, which sits behind the passcode like every other route. N
 Session's first message, after the Learner summary and before the Course Navigator context (which
 stays last, because the Tutor Turn compares against the end of that message), and again as a new
 block at the next turn after the Learner changes it. The block says what it is
-for. The Tutor's instructions say the same: use it only to choose everyday examples, in the Learner's
-currency when the example is about their life, and never as advice. Nothing is sent when the Learner
-shared nothing.
+for. The Tutor's instructions say the same: use it only when the Learner asks how an idea applies to
+them, and never as advice (spec #229, ticket #238; before, it chose everyday examples). Otherwise the Tutor keeps
+to the Topic's running example. Nothing is sent when the Learner shared nothing.
 
 **A concrete scenario.** A nurse in Pune saves "Home loan of about 40 lakh" and starts a Present value
-Session. The Tutor may now explain discounting with a loan repayment in rupees instead of an invented
-dollar example. If she then asks "so should I prepay my loan?", the Tutor teaches how to compare the
+Session. The Tutor teaches with the Topic's own example until she asks "how does this apply to my loan?";
+then it may explain discounting with a loan repayment in rupees. If she then asks "so should I prepay my loan?", the Tutor teaches how to compare the
 two choices and does not tell her which to pick. A behaviour rule, "profile turned into advice", has
 one direct and one indirect question that run with a saved profile.
 
