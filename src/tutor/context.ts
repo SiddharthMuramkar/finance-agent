@@ -12,6 +12,7 @@ import { WIDGET_CHECK_PREFIX, widgetTaskTexts } from "@/widgets/check";
 import { PROFILE_BLOCK_HEADING } from "@/learner/profile";
 import { PASTE_PREFIX, type PasteSummary } from "./pasted";
 import { OPENER_PREFIX } from "./turn-status";
+import type { TurnFacts } from "./turn-facts";
 
 /** Turns at explore with no attempt before the context reminds the Tutor to put the question. */
 export const IDLE_TURNS_BEFORE_REMINDER = 2;
@@ -21,16 +22,18 @@ const AFTER_REVEAL =TEACHING_STEPS.indexOf("reveal");
 /**
  * The note code writes for an opener (no Learner message comes with it): teach the Learner's saved step.
  * The Story in a Topic not yet started; otherwise the step reached, which nothing in this Session has
- * taught yet; at an open quiz, point the Learner to the Check tab, where it already shows.
+ * taught yet; at an open quiz, point the Learner to the Check tab, where it already shows, and offer help now.
+ * With this turn's facts, the note also names the numbers to keep away from.
  */
-export function openerNote(place: Place | null, { quizOpen }: { quizOpen: boolean }): string {
+export function openerNote(place: Place | null, { quizOpen }: { quizOpen: boolean }, facts?: TurnFacts): string {
   const lead = `${OPENER_PREFIX} the Learner has just opened this Topic, and this turn was started by the page; the Learner has written nothing yet.`;
   if (!place) return `${OPENER_PREFIX} the Learner has passed every Topic on the Course Map and opened the Study Workspace; they have written nothing yet. Greet them in a sentence or two and invite their questions.`;
   if (place.status === "not_started") return `${lead} They have not started it. Teach the Story step now: open the Topic with its Case's story.`;
   const at = place.check ? `Check ${place.topic.checks.indexOf(place.check) + 1} of ${place.topic.checks.length}` : null;
   const resumed = `${lead} They had already started it and are at the ${place.step.replace("_", " ")} step${at ? `, for ${at}` : ""}. Nothing of this step has been taught in this Session yet.`;
   if (quizOpen && at) {
-    return `${resumed} The quiz for ${at} is open on the right, in the Check tab. Point the Learner to it in a sentence or two, and say you will help with its questions after they submit. Do not teach or hint at its questions.`;
+    const blocked = facts?.blockedNumbers.length ? ` Keep away from these numbers: ${facts.blockedNumbers.join(", ")}.` : "";
+    return `${resumed} The quiz for ${at} is open on the right, in the Check tab. Point the Learner to it in a sentence or two, and offer help now: you may teach the idea, show a Widget or start again, with numbers that are not in its questions. Never give or confirm the answer to an open question.${blocked}`;
   }
   return `${resumed} Teach this step afresh.`;
 }
@@ -64,7 +67,8 @@ export function writtenAheadNote(widgets: readonly { id: string; title: string }
 /**
  * The Teaching Step context code sends the Tutor as an appended message. The
  * Case's outcome is included only from the reveal on, so hindsight is withheld
- * by code as well as by instructions.
+ * by code as well as by instructions. With this turn's facts (turn-facts.ts) it also names the word limit, the
+ * currency, the Reply kind and, at an open quiz, the blocked numbers; without them those lines are left out.
  */
 export function stepContext(
   place: Place | null,
@@ -74,6 +78,8 @@ export function stepContext(
   quizUnavailable = false,
   /** The Topic's Insight attempts so far, for the explore and principle steps. */
   explore?: ExploreInfo,
+  /** This turn's facts. */
+  facts?: TurnFacts,
 ): string {
   if (!place) return "Course Navigator: every Topic on the Course Map is passed. Answer the Learner's questions.";
   const { topic, step, check } = place;
@@ -83,6 +89,7 @@ export function stepContext(
     `Topic: ${topic.title} (${topic.stage} Stage).`,
     `Teaching Step: ${step}${check ? ` (Check ${topic.checks.indexOf(check) + 1} of ${topic.checks.length}: ${check.id})` : ""}.`,
   ];
+  if (facts) lines.push(...factLines(facts, step));
   if (topic.goal) lines.push(`Topic goal (the Learner sees this line in the Topic bar): ${plain(topic.goal)}`);
   lines.push(...stepSettingLines(place));
   const formulas = topic.formulas.flatMap((id) => formulaById(id) ?? []);
@@ -104,7 +111,12 @@ export function stepContext(
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
   if (check && step === "check") {
     if (check.kind === "conversation") {
-      lines.push("", `Check prompt: ${plain(check.prompt.trim())}`, `Pass criteria: ${plain(check.passCriteria.trim())}`);
+      lines.push(
+        "",
+        `Check prompt: ${plain(check.prompt.trim())}`,
+        `Pass criteria: ${plain(check.passCriteria.trim())}`,
+        "While this Check is open, teach with numbers other than the prompt's, and never state the reasoning the pass criteria ask for about the prompt's own move: that is the Learner's to give.",
+      );
     } else if (quizUnavailable) {
       lines.push(
         "",
@@ -114,7 +126,10 @@ export function stepContext(
     } else {
       lines.push(
         "",
-        `Check: quiz ${check.id}. Code shows the questions on the right, in the Check tab, and marks the answers; the Learner answers there. Do not write quiz questions, help with them, hint at answers or mark anything yourself, but do answer questions unrelated to the quiz. Code sends you the result in your next turn: after a miss, code starts that turn itself so you can go over what was missed.`,
+        `Check: quiz ${check.id}. Code shows the questions on the right, in the Check tab, and marks the answers; the Learner answers there. Code sends you the result in your next turn: after a miss, code starts that turn itself so you can go over what was missed.`,
+        "While the quiz is open, help freely: teach the idea, show a Widget or start again from the beginning, using numbers that are not in the open questions. Never give or confirm the answer to an open question, and never mark anything yourself; show the method on other numbers instead.",
+        ...(facts?.blockedNumbers.length ? [`Blocked numbers (in the open quiz questions and the next attempt's): ${facts.blockedNumbers.join(", ")}.`] : []),
+        facts?.card ? `Concept card: ${plain(facts.card.trim())}` : `Concept: ${plain(topic.concept.trim())}`,
       );
     }
   }
@@ -141,10 +156,30 @@ export function stepContext(
         ? `When you can judge whether the Learner understands the Concept, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
         : check?.kind === "conversation"
         ? `Put the Check prompt to the Learner and question their reasoning. When you can judge it against the pass criteria, call record_check_verdict with check_id "${check.id}", verdict "pass" or "not_yet", and your reasons. Never tell the Learner they passed unless code says a pass was recorded.`
-        : "Code records the quiz result; you cannot finish this step yourself. Never tell the Learner they passed unless code says a pass was recorded. If the Learner asks, point them to the quiz on the right, in the Check tab, and say you will help with its questions after they submit.",
+        : "Code records the quiz result; you cannot finish this step yourself. Never tell the Learner they passed unless code says a pass was recorded. If the Learner asks about the quiz, help now with other numbers, and point them to the quiz on the right, in the Check tab.",
   );
   if (!revealed) lines.push("Do not reveal or hint at the Case's outcome before the reveal step.");
   return lines.join("\n");
+}
+
+const CURRENCY_NAMES: Record<string, string> = { INR: "₹ (rupees)", USD: "$ (dollars)" };
+const currencyName = (code: string) => CURRENCY_NAMES[code] ?? code;
+
+/**
+ * The lines code writes from this turn's facts: the word limit, the currency, and the Reply kind, method, frustration
+ * count and Concept card whenever code knows them. (The blocked numbers and, at a quiz Check, the card go with the quiz's lines.)
+ */
+function factLines(facts: TurnFacts, step: Place["step"]): string[] {
+  const others = facts.caseCurrencies.filter((c) => c !== facts.exampleCurrency);
+  const lines = [
+    `Word limit for this reply: ${facts.cap} words.`,
+    `Currency for everyday examples and Widgets: ${currencyName(facts.exampleCurrency)}.${others.length ? ` The Case's own figures stay in ${others.map(currencyName).join(" and ")}.` : ""}`,
+  ];
+  if (facts.replyKind) lines.push(`Reply kind: ${facts.replyKind}.`);
+  if (facts.method) lines.push(`Method for this reply: ${facts.method}.`);
+  if (facts.frustration) lines.push(`Frustration: ${facts.frustration}. Acknowledge it in eight words or fewer, then give a smaller step.`);
+  if (facts.card && step !== "check") lines.push(`Concept card on screen (code showed it; never write your own version): ${plain(facts.card.trim())}`);
+  return lines;
 }
 
 /**
@@ -283,9 +318,15 @@ function caseDataLines(data: CaseData | undefined): string[] {
  * The context for a Learner who is still at a Check after a turn that recorded
  * no verdict: a note first, then the usual context, so it still ends the same.
  */
-export function noVerdictContext(place: Place & { check: NonNullable<Place["check"]> }, caseData: CaseData[] = [], pastes?: PasteSummary): string {
+export function noVerdictContext(
+  place: Place & { check: NonNullable<Place["check"]> },
+  caseData: CaseData[] = [],
+  pastes?: PasteSummary,
+  /** This turn's facts, passed on to `stepContext`. */
+  facts?: TurnFacts,
+): string {
   // A Check step never needs explore info, which is why none is taken here.
-  return `No verdict was recorded for Check ${place.check.id} in the last turn, so the Learner is still at this Check.\n${stepContext(place, caseData, pastes)}`;
+  return `No verdict was recorded for Check ${place.check.id} in the last turn, so the Learner is still at this Check.\n${stepContext(place, caseData, pastes, false, undefined, facts)}`;
 }
 
 /**
