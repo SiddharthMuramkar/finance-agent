@@ -15,7 +15,7 @@ import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { listSessions, loadCurrentSession, loadSession } from "./transcript";
 import { passedTopicShown, shownInWorkspace, topicSessions, type Shown } from "./session-log";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
-import { turnKind } from "./turn-status";
+import { startTurn, turnKind, updateTurn } from "./turn-status";
 
 /**
  * One Session per Topic (ADR 0004, spec #119): the Tutor Turn on in-memory Postgres with the real
@@ -174,6 +174,27 @@ describe("one Session per Topic", () => {
     // The tab that shows Bond prices carries on.
     const b = await turn(db, "Bonds, then.", [say("Bond prices.")], twoTopics, { topicId: "bonds" });
     expect(b.events.at(-1)).toMatchObject({ type: "done" });
+  });
+
+  it("a turn that failed before reaching a Session is set aside when the Learner chooses another Topic, so it never runs there", async () => {
+    const db = await testDb();
+    await saveJump(db, twoTopics, "present-value");
+    // A turn for present value failed before it had a Session (a database error before its Session was chosen).
+    const failed = (await startTurn(db, new Date(), "Tell me about the lottery."))!;
+    await updateTurn(db, failed.id, { status: "failed", error: "The database could not be reached." });
+    // Choosing the same Topic again keeps it, with its Retry.
+    await saveJump(db, twoTopics, "present-value");
+    expect(await latestTurn(db)).toMatchObject({ id: failed.id, status: "failed" });
+
+    await saveJump(db, twoTopics, "bonds");
+    // Nothing unfinished is left, so Bond prices' page starts its opener rather than offering present value's Retry.
+    expect((await latestTurn(db))?.status).toBe("finished");
+    // A Retry from any tab sends nothing into Bond prices' Session.
+    const retried = await turn(db, { resume: true }, [say("Should not run.")], twoTopics, { topicId: "bonds" });
+    expect(retried.requests).toHaveLength(0);
+    expect(await texts(db)).toEqual([]);
+    const opener = await turn(db, { opener: true }, [say("Picture a bond.")], twoTopics, { topicId: "bonds" });
+    expect(sent(opener.requests[0])).not.toContain("Tell me about the lottery.");
   });
 
   it("every Session from before is Older: never continued, never shown in the Study Workspace, and still readable", async () => {

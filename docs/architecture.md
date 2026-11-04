@@ -1654,6 +1654,12 @@ design tokens; the first two sit under the app header, Login (signed out) has no
   (`shownInWorkspace`). A turn saves the Session it runs in, and so does a quiz submission that passes
   the Topic (its last Due Check), which is not a turn; choosing clears it, which means "the
   current Topic's own Session, or that Topic before its first turn".
+- **A failed turn with no Session.** A turn that failed (or was cut off) before it reached a Session has
+  no Topic on its row, so the page shows it on whatever Topic is current. Choosing another Topic sets
+  it aside (marks it finished), so the new Topic's opener starts and a Retry never sends the left
+  Topic's message into the new Topic's Session. Choosing the same Topic keeps it and its Retry. The
+  trade-off: the Learner's unsent message is dropped rather than kept for the Topic they left, which
+  needs no new column.
 - **The opener.** When the shown Session has no messages (and no turn is unfinished), the page starts a
   turn by itself (`{ opener: true }`). Code writes its note, starting "Opener by code:", and no Learner
   bubble is drawn. The note teaches the saved step: the Story in a Topic not yet started; otherwise the
