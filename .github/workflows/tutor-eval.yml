@@ -1,0 +1,79 @@
+name: Tutor eval
+
+# The live Tutor tests T1 to T11 (src/behaviour/tutor-eval, npm run tutor:eval), on the real model, capped at
+# TUTOR_EVAL_BUDGET_USD (default $5) a run. Not a required check: a noisy model run never blocks a merge, and
+# its job name is not in the ruleset on main. It runs only on PRs that change what the Tutor is told.
+#
+# The repo is public. This workflow uses `pull_request` only, never `pull_request_target` or `workflow_run`, so a
+# PR from a fork gets no secret and the job skips, saying so. That is intended.
+on:
+  pull_request:
+    paths:
+      # The Tutor's instructions, tools and context (the Course Navigator's lines and the step text).
+      - src/tutor/instructions.ts
+      - src/tutor/tools.ts
+      - src/tutor/context.ts
+      # The quiz follow-up note and its prefix.
+      - src/tutor/check-results.ts
+      - src/tutor/turn-status.ts
+      # The help chips.
+      - src/tutor/chips.ts
+      # The Topic files.
+      - course/topics/**
+      # The suite itself.
+      - src/behaviour/tutor-eval/**
+      - vitest.tutor-eval.config.ts
+      - .github/workflows/tutor-eval.yml
+
+# Its own group, never cancelled: a paid run that has started always finishes and reports, even after a new push.
+concurrency:
+  group: tutor-eval-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  # The summary is posted as a PR comment.
+  pull-requests: write
+
+jobs:
+  tutor-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Skip without the API key
+        if: env.ANTHROPIC_API_KEY == ''
+        run: |
+          echo "No ANTHROPIC_API_KEY secret here (a PR from a fork, or the secret is not set), so the live Tutor tests are skipped." | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/checkout@v7
+        if: env.ANTHROPIC_API_KEY != ''
+      - uses: actions/setup-node@v7
+        if: env.ANTHROPIC_API_KEY != ''
+        with:
+          node-version: 24
+          cache: npm
+      - if: env.ANTHROPIC_API_KEY != ''
+        run: npm ci
+      - name: Run the live Tutor tests
+        id: eval
+        if: env.ANTHROPIC_API_KEY != ''
+        # npm run tutor:eval reads .env, as on the laptop; here it is empty and the key comes from the secret.
+        run: |
+          touch .env
+          npm run tutor:eval
+      - name: Job summary
+        if: always() && env.ANTHROPIC_API_KEY != ''
+        run: |
+          if [ -f evidence/tutor-eval/summary.md ]; then cat evidence/tutor-eval/summary.md >> "$GITHUB_STEP_SUMMARY"; else echo "The live Tutor tests wrote no report: see the run's log." >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: PR comment
+        if: always() && env.ANTHROPIC_API_KEY != '' && hashFiles('evidence/tutor-eval/summary.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file evidence/tutor-eval/summary.md
+      - uses: actions/upload-artifact@v5
+        if: always() && env.ANTHROPIC_API_KEY != ''
+        with:
+          name: tutor-eval
+          path: evidence/tutor-eval/
+          if-no-files-found: ignore

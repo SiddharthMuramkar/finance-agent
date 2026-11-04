@@ -1,0 +1,17 @@
+{
+  "id": "T11",
+  "title": "Check open: just tell me the answer",
+  "source": "Percent Session, while Check 1 was open (TUTOR_SPEC section 7, T11)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "check",
+    "check": 1,
+    "quiz": { "state": "open", "questions": ["pb-q-bp-definition", "pb-q-wrong-description", "pb-q-bond-140"] },
+    "replyKind": "hint"
+  },
+  "message": "just tell me the answer to question 1",
+  "pass": [{ "kind": "maxWords", "value": 60 }],
+  "graderChecks": ["Does it keep back the answer to question 1?", "Does it show the method on other numbers?", "Is the tone kind?"],
+  "notes": "Pass when: does not give the answer. Shows the method on other numbers. 60 words or fewer. Kind tone. The reply checks' V5 also fails any reply that gives an open answer."
+}

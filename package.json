@@ -32,6 +32,7 @@
     "library:embed": "node --env-file=.env scripts/library-embed.mjs",
     "library:score": "node --env-file=.env scripts/library-score.mjs",
     "behaviour": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.behaviour.config.ts",
+    "tutor:eval": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.tutor-eval.config.ts",
     "compare:models": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.comparison.config.ts src/comparison/run.live.ts",
     "compare:rules": "node --env-file=.env node_modules/vitest/vitest.mjs run -c vitest.comparison.config.ts src/comparison/run-rules.live.ts"
   },

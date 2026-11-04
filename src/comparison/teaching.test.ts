@@ -65,10 +65,10 @@ describe("teaching questions", () => {
 });
 
 describe("rubric", () => {
-  it("states the analyst-course framing: MBA terms fine, new terms defined, ambiguous words fail", () => {
+  it("is pitched at a beginner: every term not yet taught explained where it first appears, ambiguous words fail", () => {
     const text = RUBRIC_ITEMS.map((i) => i.rubric).join(" ");
-    expect(text).toMatch(/MBA/);
-    expect(text).toMatch(/first use/);
+    expect(text).toMatch(/pitched at a beginner, with every term not yet taught explained where it first appears/);
+    expect(text).not.toMatch(/MBA/);
     expect(text).toMatch(/ambiguous/i);
   });
   it("puts the shared rule rubric and the hidden Insight into the grader prompt", () => {

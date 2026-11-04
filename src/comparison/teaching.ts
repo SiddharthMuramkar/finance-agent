@@ -36,7 +36,7 @@ export type Verdict = "pass" | "fail" | "ungraded";
 
 export type RubricItem = { id: string; title: string; rubric: string };
 
-/** The analyst-course rubric. Every item is pass or fail for each answer. */
+/** The teaching rubric, pitched at a beginner (spec #229). Every item is pass or fail for each answer. */
 export const RUBRIC_ITEMS: RubricItem[] = [
   { id: "accurate", title: "Accurate", rubric: "PASS if everything stated as fact is right and no figure is invented. FAIL for a wrong fact or calculation." },
   {
@@ -46,15 +46,16 @@ export const RUBRIC_ITEMS: RubricItem[] = [
       "PASS if the Tutor helps the Learner see the idea for themselves (a question, a pointer to the Widget, a plain step) and does not simply hand over a conclusion the Learner is meant to find. Where the Learner only asks for an explanation of a concept, explaining plainly is guiding. FAIL if it states the Topic's hidden Insight early or does the thinking for the Learner.",
   },
   {
+    // The id stays, so stored comparison runs still read; the level changed with spec #229 (write for a beginner).
     id: "analyst_level",
-    title: "Pitched at an analyst course",
+    title: "Pitched at a beginner",
     rubric:
-      "The course is for people training as analysts. PASS if terms an MBA student already knows (discount rate, yield, present value, cash flow, bond price) are used without a lecture, and the tone is calm and respectful, not childish. FAIL if it over-explains basics at a beginner's pace with no sign the Learner asked for that, or talks down.",
+      "The Learner is a beginner; analyst level is where the course ends up, not where it starts. PASS if the reply is pitched at a beginner, with every term not yet taught explained where it first appears, and the tone is calm and respectful, not childish. FAIL if it leans on a term the Learner has not been taught without explaining it, or talks down.",
   },
   {
     id: "defines_terms",
     title: "Defines a new term at first use",
-    rubric: "PASS if every term an MBA student would not already know is defined in plain words at first use (or no such term appears). FAIL if a new technical term is used undefined.",
+    rubric: "PASS if every term not yet taught is defined in plain words where it first appears (or no such term appears). FAIL if a new technical term is used undefined.",
   },
   {
     id: "unambiguous",
@@ -161,7 +162,7 @@ export const RANKING_SYSTEM = 'You rank answers blind. Respond with one JSON obj
 
 export function buildRankingPrompt(args: { turns: string[]; answers: string[]; stepNote: string }): string {
   return [
-    "Rank these answers from an AI finance Tutor to the same Learner message, best teaching first. Good teaching here: accurate; helps the Learner see the idea rather than just telling them; pitched at people training as analysts (MBA terms are fine, a new term is defined at first use, no ambiguous words); no advice. Judge the teaching, not the length.",
+    "Rank these answers from an AI finance Tutor to the same Learner message, best teaching first. Good teaching here: accurate; helps the Learner see the idea rather than just telling them; pitched at a beginner, with every term not yet taught explained where it first appears (no ambiguous words); no advice. Judge the teaching, not the length.",
     `Where the Learner is in the course: ${args.stepNote}`,
     "",
     ...args.turns.map((t) => `Learner: ${t}`),

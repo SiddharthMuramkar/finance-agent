@@ -1,0 +1,24 @@
+{
+  "id": "T3",
+  "title": "A repeat miss on points to basis points: a new method",
+  "source": "Percent Session, the basis-point slip that came up three times (TUTOR_SPEC section 7, T3)",
+  "kind": "live",
+  "topic": "num-percent-bps",
+  "state": {
+    "step": "your_turn",
+    "check": 1,
+    "skills": [{ "skill": "pts_to_bp", "answers": ["wrong", "wrong", "right", "wrong"], "methodsUsed": ["restate", "worked"] }],
+    "history": [{ "learner": "ok, give me one", "tutor": "A rate falls from 7.5% to 7.2%. How many basis points did it fall?" }],
+    "replyKind": "reteach"
+  },
+  "message": "0.3",
+  "answer": { "skill": "pts_to_bp", "verdict": "wrong" },
+  "pass": [{ "kind": "maxWords", "value": 60 }],
+  "graderChecks": [
+    "Does it use a method other than restating the rule or a worked example (for example fill-in boxes)?",
+    "Does it name the slip in one sentence?",
+    "Does it set one similar item with new numbers?",
+    "Does it leave percent change alone (no re-explaining it)?"
+  ],
+  "notes": "Pass when: uses a method not in methods_used (for example fill-in boxes). Names the slip in one sentence. One similar item with new numbers. 60 words or fewer. Does not re-explain percent change. The Skill has three misses before this answer, but a right answer broke the run, so 0.3 is the second miss in a row: under the decided ladder that brings the next unused method, where a third miss in a row would offer to park (T7)."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "T9",
+  "title": "Every reply in T1 to T7: plain style",
+  "source": "TUTOR_SPEC section 7, T9",
+  "kind": "aggregate",
+  "over": ["T1", "T2", "T3", "T4", "T5", "T6", "T7"],
+  "pass": [{ "kind": "plainStyle" }],
+  "notes": "Pass when: no headings, no emoji, no \"➜\", one bold or fewer, no internal words. Run k passes when run k of every case it covers does; a case that did not run is left out."
+}
