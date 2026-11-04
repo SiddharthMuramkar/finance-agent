@@ -24,6 +24,7 @@ export function OldSession({
   explore = null,
   writtenAhead = NO_WRITTEN_AHEAD,
   revealed = [],
+  referenceClip,
   developerDetails = false,
   inPlace = false,
 }: {
@@ -34,6 +35,8 @@ export function OldSession({
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen, for the page's shared Case Data cache. */
   revealed?: readonly string[];
+  /** The date the reference Case is clipped to (referenceClip in case-data.ts): a later close is never drawn. */
+  referenceClip?: string | null;
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
   /**
@@ -53,7 +56,7 @@ export function OldSession({
     return item ? <WidgetChip item={item} active={item.key === picker.shown?.key} onPick={picker.pick} /> : null;
   };
   return (
-    <CaseDataProvider revealed={revealed}>
+    <CaseDataProvider revealed={revealed} referenceClip={referenceClip}>
       <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] items-start gap-6 lg:gap-8" data-testid="old-session">
         <div className="flex min-h-0 min-w-0 flex-col gap-4">
           {explore && <PinnedExplore item={exploreItem(explore.code, sessionId, explore.id)} />}
