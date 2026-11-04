@@ -106,6 +106,7 @@ type Labelled = { where: string; text: string };
 export function teachingTexts(topic: Topic): Labelled[] {
   const texts: Labelled[] = [];
   if (topic.runningExample) texts.push({ where: "running example", text: topic.runningExample.text });
+  for (const x of topic.terms) texts.push({ where: `term ${x.term}`, text: `${x.term}: ${x.means}` });
   for (const s of topic.skills) {
     texts.push({ where: `skill ${s.id} rule`, text: s.rule });
     if (s.analogy) texts.push({ where: `skill ${s.id} analogy`, text: s.analogy });
