@@ -27,7 +27,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   return out;
 }
 const textOf = (events: TurnEvent[]) => events.flatMap((e) => (e.type === "text" ? [e.text] : [])).join("");
-const without = (c: LiveCase, drop: "history" | "skills"): LiveCase => ({ ...c, state: { ...c.state, [drop]: undefined } });
+const without = (c: LiveCase, drop: "history" | "answeredTries"): LiveCase => ({ ...c, state: { ...c.state, [drop]: undefined } });
 
 /** A scripted turn: the Tutor calls one tool, then says its reply. */
 function scripted(tool: { id: string; name: string; input: unknown }, reply: string) {
@@ -80,9 +80,12 @@ describe("T6: the Learner's own rule is saved after a right practice answer", ()
     const c = live("T6");
     expect(pendingReason(c, map)).toBeNull();
     const p = await prepareCase(db, c, { map, settings });
+    expect(p.stateNote).toMatch(/answered the Quick try "A rate goes from 2% to 3%\./);
     const notesAfter = await noteMark(db, p.learnerId);
-    const { client } = scripted({ id: "toolu_t6", name: "save_learner_rule", input: { learner_words: c.message } }, "Yes, that is the rule.\nWhat is the percent change from 50 to 60?");
+    const { client, requests } = scripted({ id: "toolu_t6", name: "save_learner_rule", input: { learner_words: c.message } }, "Yes, that is the rule.\nWhat is the percent change from 50 to 60?");
     const events = await collect(runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: false }, c.message));
+    // The Tutor is told of the right answer with the Learner's message, as the app tells it.
+    expect(JSON.stringify(requests[0])).toMatch(/Quick try results since your last reply[\s\S]*The Learner gave \\"50\\": right/);
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text: textOf(events), notesAfter });
     expect(reply.savedRule).toBe(c.message);
@@ -91,7 +94,7 @@ describe("T6: the Learner's own rule is saved after a right practice answer", ()
 
   it("would not save it without that right answer (the tool's own rule for a converted Topic)", async () => {
     const db = await testDb();
-    const c = without(live("T6"), "skills");
+    const c = without(live("T6"), "answeredTries");
     const p = await prepareCase(db, c, { map, settings });
     const notesAfter = await noteMark(db, p.learnerId);
     const { client } = scripted({ id: "toolu_t6n", name: "save_learner_rule", input: { learner_words: c.message } }, "Yes, that is the rule.\nWhat is the percent change from 50 to 60?");

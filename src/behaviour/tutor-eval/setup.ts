@@ -56,14 +56,16 @@ export function pendingReason(c: LiveCase, map: CourseMap): string | null {
   const missing = [...new Set(needed.filter((s) => !skills.includes(s)))];
   if (missing.length) return `${topic.id} lists no Skill ${missing.join(", ")} yet, so its Skill state cannot be set up (the Topic is converted by its own ticket).`;
   if (c.state.check > topic.checks.length) return `${topic.id} has ${topic.checks.length} Check(s), not a Check ${c.state.check}.`;
-  // A pinned Quick try must be a fixed try of the case's Check, on the answer's Skill.
+  // A Quick try a case names must be a fixed try of the case's Check (and, for the answer, on the answer's Skill).
+  const check = topic.checks[c.state.check - 1];
+  const fixedTry = (id: string) => check.quickTries.find((q) => "id" in q && q.id === id) as { skill?: string } | undefined;
   if (c.answer?.try) {
-    const check = topic.checks[c.state.check - 1];
-    const pinned = c.answer.try;
-    const found = check.quickTries.find((q) => "id" in q && q.id === pinned) as { skill?: string } | undefined;
-    if (!found) return `Check ${c.state.check} of ${topic.id} (${check.id}) has no fixed Quick try "${pinned}".`;
-    if (found.skill !== c.answer.skill) return `Quick try ${pinned} is on the Skill ${found.skill}, not ${c.answer.skill}.`;
+    const found = fixedTry(c.answer.try);
+    if (!found) return `Check ${c.state.check} of ${topic.id} (${check.id}) has no fixed Quick try "${c.answer.try}".`;
+    if (found.skill !== c.answer.skill) return `Quick try ${c.answer.try} is on the Skill ${found.skill}, not ${c.answer.skill}.`;
   }
+  const missingTry = (c.state.answeredTries ?? []).find((t) => !fixedTry(t.try));
+  if (missingTry) return `Check ${c.state.check} of ${topic.id} (${check.id}) has no fixed Quick try "${missingTry.try}".`;
   return null;
 }
 
@@ -174,6 +176,12 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     for (const m of s.methodsUsed ?? []) await noteMethodUsed(db, learnerId, topic.id, s.skill, m);
     notes.push(`On the Skill ${s.skill}, the Learner's earlier answers were ${s.answers.join(", ")}; methods already used on it: ${(s.methodsUsed ?? []).join(", ") || "none"}.`);
   }
+  // Tries answered since the Tutor's last reply go through the real Quick-try mark, so the Tutor is told of them next turn.
+  for (const t of c.state.answeredTries ?? []) {
+    const { data, result } = await showAndMark(db, map, c, { learnerId, topic }, { tryId: t.try, input: t.input }, new Date());
+    if ((result?.verdict === "right") !== (t.verdict === "right")) throw new Error(`${c.id}: code marked "${t.input}" ${result?.verdict ?? "unmarked"} on ${t.try}, but the case expects ${t.verdict}.`);
+    notes.push(`After the Tutor's last reply the Learner answered the Quick try "${askOf(data)}" with "${t.input}", and code marked it ${t.verdict === "right" ? "right" : "not right"} (the Tutor is told this with their next message).`);
+  }
   if (c.answer) notes.push(`The Learner's message answers a Quick try on ${c.answer.skill}, marked by code (answerDrawnTry), which then asks for a follow-up turn.`);
   for (const h of c.state.history ?? []) notes.push(`Earlier in the Session. Learner: "${h.learner}" Tutor: "${h.tutor}"`);
 
@@ -275,6 +283,41 @@ function shownTry(check: Check, key: string, found: { item: FixedItem | DrawnIte
   return { key, checkId: check.id, skillId: item.skill, prompt: drawn ? item.prompt : item.ask, kind: item.kind, ...(unit && { unit }), ...(halfDone && { halfDone }) };
 }
 
+/** A Quick try's words as the Learner reads them: the ask, then the first step shown done when it has one. */
+const askOf = (t: QuickTryData) => [t.prompt, t.halfDone].filter(Boolean).join(" ");
+
+/**
+ * Shows a Quick try in the Session and has code mark an answer to it, the way the app does (`answerQuickTry`, no model
+ * call). The try is the fixed try with `tryId` in the Check, so it is the one the case's earlier turns talk about; without
+ * one, it is the next try code draws on `skill`. Throws when the try cannot be shown or the answer is refused.
+ */
+async function showAndMark(
+  db: Db,
+  map: CourseMap,
+  c: LiveCase,
+  p: { learnerId: number; topic: Topic },
+  want: { tryId?: string; skill?: string; input: string },
+  now: Date,
+): Promise<{ data: QuickTryData; followUp: boolean; result: QuickTryResultData | undefined }> {
+  const check = p.topic.checks[c.state.check - 1];
+  const session = await liveSession(db, p.learnerId, p.topic.id);
+  if (!session) throw new Error(`${c.id}: no Session to show the Quick try in; give the case a history.`);
+  const shown = (await loadSessionItems(db, session.id, p.learnerId)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as unknown as QuickTryData);
+  let data: QuickTryData | null;
+  if (want.tryId) {
+    const key = `qt:${session.id}:${shown.length}:${want.tryId}`;
+    const found = quickTryItem(p.topic, key);
+    data = found ? shownTry(check, key, found) : null;
+  } else {
+    data = nextQuickTry(p.topic, check, await skillStates(db, p.learnerId, p.topic.id), shown, { skillId: want.skill, session: session.id });
+  }
+  if (!data || (want.skill && data.skillId !== want.skill)) throw new Error(`${c.id}: no Quick try can be shown${want.skill ? ` on ${want.skill}` : ""}${want.tryId ? ` as "${want.tryId}"` : ""}.`);
+  await saveItemAfterLatest(db, p.learnerId, session.id, { kind: QUICK_TRY, data: data as unknown as Record<string, unknown> }, now);
+  const out = await answerQuickTry(db, map, p.learnerId, data.key, want.input, now);
+  if (!out.ok) throw new Error(`${c.id}: the Quick try answer was refused: ${out.error}`);
+  return { data, followUp: out.followUp, result: out.items.find((i) => i.kind === QUICK_TRY_RESULT)?.data as unknown as QuickTryResultData | undefined };
+}
+
 /**
  * Answers a case's Quick try the way the app does: a try is shown in the Session (the fixed try the case names, so it is
  * the one the earlier turns talk about, else the next try code draws on the answer's Skill), then the case's message
@@ -285,25 +328,9 @@ function shownTry(check: Check, key: string, found: { item: FixedItem | DrawnIte
  */
 export async function answerDrawnTry(db: Db, map: CourseMap, c: LiveCase, p: Prepared, now = new Date()): Promise<boolean> {
   if (!c.answer) throw new Error(`${c.id}: the case has no answer.`);
-  const check = p.topic.checks[c.state.check - 1];
-  const session = await liveSession(db, p.learnerId, p.topic.id);
-  if (!session) throw new Error(`${c.id}: no Session to show the Quick try in; give the case a history.`);
-  const shown = (await loadSessionItems(db, session.id, p.learnerId)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as unknown as QuickTryData);
-  let data: QuickTryData | null;
-  if (c.answer.try) {
-    const key = `qt:${session.id}:${shown.length}:${c.answer.try}`;
-    const found = quickTryItem(p.topic, key);
-    data = found ? shownTry(check, key, found) : null;
-  } else {
-    data = nextQuickTry(p.topic, check, await skillStates(db, p.learnerId, p.topic.id), shown, { skillId: c.answer.skill, session: session.id });
-  }
-  if (!data || data.skillId !== c.answer.skill) throw new Error(`${c.id}: no Quick try can be shown on ${c.answer.skill}${c.answer.try ? ` as "${c.answer.try}"` : ""}.`);
-  await saveItemAfterLatest(db, p.learnerId, session.id, { kind: QUICK_TRY, data: data as unknown as Record<string, unknown> }, now);
-  const out = await answerQuickTry(db, map, p.learnerId, data.key, c.message, now);
-  if (!out.ok) throw new Error(`${c.id}: the Quick try answer was refused: ${out.error}`);
-  const result = out.items.find((i) => i.kind === QUICK_TRY_RESULT)?.data as QuickTryResultData | undefined;
+  const { data, followUp, result } = await showAndMark(db, map, c, p, { tryId: c.answer.try, skill: c.answer.skill, input: c.message }, now);
   if (result?.verdict === "right") throw new Error(`${c.id}: code marked "${c.message}" right on the shown try, but the case expects a miss.`);
   const marked = result?.verdict === "known_mistake" ? `a Known mistake, and code showed its fix ("${result.line}")` : "not right";
-  p.stateNote += ` Code showed the Learner the Quick try "${[data.prompt, data.halfDone].filter(Boolean).join(" ")}" and marked their answer "${c.message}" as ${marked}.`;
-  return out.followUp;
+  p.stateNote += ` Code showed the Learner the Quick try "${askOf(data)}" and marked their answer "${c.message}" as ${marked}.`;
+  return followUp;
 }
