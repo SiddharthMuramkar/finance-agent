@@ -47,8 +47,8 @@ const show = (code: string) =>
 const fixture = (name: string) => readFileSync(`${process.cwd()}/src/widgets/fixtures/parts/${name}.openui`, "utf8");
 
 describe("WAVE2_PARTS", () => {
-  it("are the seven parts, each with a one-line description", () => {
-    expect(WAVE2_PARTS.map((p) => p.name)).toEqual(["DrawTheLine", "PriceTag", "ShrinkingNote", "TimeTravel", "StepThrough", "Rank", "Waterfall"]);
+  it("are the eight parts, each with a one-line description", () => {
+    expect(WAVE2_PARTS.map((p) => p.name)).toEqual(["DrawTheLine", "PriceTag", "ShrinkingNote", "TimeTravel", "StepThrough", "Rank", "Waterfall", "RateMove"]);
     for (const part of [...WAVE2_PARTS, Step]) expect(part.description.split("\n")).toHaveLength(1);
   });
 
@@ -61,6 +61,7 @@ describe("WAVE2_PARTS", () => {
       ["step-through", "StepThrough"],
       ["rank", "Rank"],
       ["waterfall", "Waterfall"],
+      ["rate-move", "RateMove"],
     ]) {
       expect(fixture(file), part).toContain(`${part}(`);
     }

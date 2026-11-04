@@ -72,9 +72,9 @@ afterEach(() => {
   host.remove();
 });
 
-describe("the 16 new parts", () => {
+describe("the 17 new parts", () => {
   it("are registered in the Widget library, with Step as StepThrough's child", () => {
-    expect(NEW).toHaveLength(16);
+    expect(NEW).toHaveLength(17);
     for (const name of [...NEW, "Step"]) expect(Object.keys(widgetLibrary.components), name).toContain(name);
   });
 
