@@ -11,6 +11,7 @@ import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { InsightSettledContext } from "@/widgets/insight-settled";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { LeftColumn } from "./left-column";
+import { ParkActionsContext, type ParkActions } from "./park-offer-view";
 import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
@@ -49,7 +50,10 @@ export function Conversation({
   developerDetails = false,
   next = null,
   openQuestion = null,
+  drill = false,
 }: {
+  /** A parked Skill's 20 hours have passed (drillIsDue): the page starts the drill turn once, as soon as no turn runs. */
+  drill?: boolean;
   /** The Next the Course Navigator offers now (nextOfferNow), or null while a Check is open: the chip under the latest reply. */
   next?: NextOffer | null;
   initial: Line[];
@@ -109,6 +113,24 @@ export function Conversation({
     void send({ quizFollowUp: true });
   }, [misses, running, send]);
   const report: WidgetReport = { tell: (key) => void turn.send({ widgetReport: key }), busy: turn.running };
+  // The drill after a park runs first when the Learner opens the Topic: code shows its tries, the Tutor adds a sentence.
+  const drillStarted = useRef(false);
+  useEffect(() => {
+    if (!drill || passed || running || drillStarted.current) return;
+    drillStarted.current = true;
+    void send({ drill: true });
+  }, [drill, passed, running, send]);
+  // The park offer's buttons: each posts its choice to /api/quick-try and the page appends what code stored.
+  const park: ParkActions = {
+    busy: turn.running,
+    act: async (choice) => {
+      const response = await fetch("/api/quick-try", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(choice) }).catch(() => null);
+      if (!response?.ok) return false;
+      const result = (await response.json().catch(() => null)) as { items?: { kind: string; data: Record<string, unknown> }[] } | null;
+      for (const item of result?.items ?? []) turn.appendItem(item);
+      return true;
+    },
+  };
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
@@ -119,10 +141,12 @@ export function Conversation({
             <InsightSettledContext.Provider value={insightSettled}>
             {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
             <WidgetReportContext.Provider value={passed ? null : report}>
+            <ParkActionsContext.Provider value={passed ? null : park}>
               <WorkspaceFrame
                 left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
+            </ParkActionsContext.Provider>
             </WidgetReportContext.Provider>
             </InsightSettledContext.Provider>
           </WidgetStatesProvider>

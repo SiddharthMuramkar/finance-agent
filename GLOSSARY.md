@@ -53,7 +53,7 @@ Every number in the open quiz questions and the next attempt's, which the Tutor 
 _Avoid_: Forbidden numbers, quiz numbers
 
 **Parked Skill**:
-A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it. The Topic waits at its step while the Learner studies any other Topic, and the next day it starts with a drill of five on that Skill. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
+A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it, on Quick tries or quiz questions. The Topic waits at its step while the Learner studies any other Topic: no Quick try, no Next, and Your turn cannot finish, though an open quiz can still be passed. Once 20 hours have passed, opening the Topic starts a drill of five on that Skill, and five answered tries end the park. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
 _Avoid_: Skipped Skill, deferred Skill, review queue
 
 **Converted Topic**:

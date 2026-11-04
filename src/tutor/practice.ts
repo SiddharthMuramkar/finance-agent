@@ -364,7 +364,15 @@ export async function placeWithParked(db: Db, map: CourseMap, learnerId: number)
 /** Whether the Learner's current Topic opens on a drill now: a Skill of its Check is parked and its 20 hours have passed. */
 export async function drillIsDue(db: Db, map: CourseMap, learnerId: number, now: Date): Promise<boolean> {
   const { place } = await placeWithParked(db, map, learnerId);
-  return Boolean(place?.parked?.some((p) => now.getTime() >= p.until.getTime()));
+  const due = place?.parked?.filter((p) => now.getTime() >= p.until.getTime()) ?? [];
+  if (!place || !due.length) return false;
+  // A drill already begun (its divider stored since the Skill was parked) is not started again.
+  const session = await liveSession(db, learnerId, place.topic.id);
+  const items = session ? await loadSessionItems(db, session.id, learnerId) : [];
+  return due.some((p) => {
+    const parkedAt = items.findLastIndex((i) => i.kind === PARKED && i.data.skillId === p.skillId);
+    return !items.some((i, n) => n > parkedAt && i.kind === PARK_DRILL && i.data.skillId === p.skillId);
+  });
 }
 
 /**
