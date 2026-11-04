@@ -1,10 +1,43 @@
 # Percent, percentage points and basis points: a foundation Topic taught through a short Case.
 # Case Data (the sourced figures) lives in the database; see docs/architecture.md.
+# Converted (spec #229): three Checks, each with a Concept card and Quick tries. Every sum is said in words (ADR 0002).
 id: num-percent-bps
 title: Percent, percentage points and basis points
 # One line in the Topic bar: what the Learner can do by the end. Words only, never the Insight.
 goal: Say any rate change in percent, percentage points and basis points, and name its base.
 # Stage, place on the default path and prerequisites live in course/outline.yaml.
+
+# A content-only restructure: Check ids pb-quiz-language and pb-fed-language are kept, so passes stay and Learners keep
+# their step. No Check is required, so a Learner who passed Percent gets no Due Check.
+restructure: content-only
+exampleCurrency: INR
+runningExample:
+  text: A savings rate goes from 4% to 5%.
+  numbers: [4, 5]
+
+terms:
+  - term: percentage point
+    means: The gap between two rates, found by taking the old rate from the new one.
+  - term: basis point
+    means: One hundredth of a percentage point, so 100 basis points (bp) make 1 point.
+  - term: percent change
+    means: The move compared with where the rate started, said as a percent of that start.
+  - term: base
+    means: The old rate, the start that a percent change is measured against.
+
+skills:
+  - id: pts
+    rule: Points are the new rate minus the old rate.
+  - id: pts-to-bp
+    rule: Basis points are points times 100.
+    analogy: 100 paise make ₹1.
+  - id: bp-to-pts
+    rule: Points are basis points divided by 100.
+  - id: pct-change
+    rule: Percent change is the move divided by the old rate, times 100.
+    analogy: ₹10 more on ₹20 is big. ₹10 more on ₹500 is small.
+  - id: wording
+    rule: Up some percent compares the move with the old rate; points and bp are the gap itself.
 
 cases:
   - id: fed-hike-1994
@@ -29,174 +62,333 @@ cases:
       The same 25 was a quarter of a percentage point of the rate and 8.3% of its old level, and
       the long-rate rise that followed was several times larger than the step that set it off.
 
+# Question templates: code draws the numbers and works out the answer. `avoid` keeps the Running example, the Quick
+# tries', the Check questions' and the Case's moves out of every draw.
+templates:
+  - id: pb-t-bp-from-move
+    skill: pts-to-bp
+    ask: A rate moves from {a}% to {b}%. How many basis points did it move?
+    params:
+      a: { min: 1, max: 9, step: 0.25 }
+      d: { min: -1.2, max: 1.2, step: 0.05 }
+    derived: { b: "plus(a, d)" }
+    answer: bp_from_move
+    unit: bp
+    decimals: 0
+    sign: magnitude
+    mistakes:
+      - { tag: stopped_at_points, fix: That is the move in points. Times 100 gives basis points. }
+      - { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." }
+    halfDone: { shows: "First step, done for you: the move is {points} points.", asks: bp_from_points }
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5]
+  - id: pb-t-points-from-bp
+    skill: bp-to-pts
+    ask: A bond yield rises by {bp} basis points. How many percentage points is that, to two decimal places?
+    params:
+      bp: { min: 10, max: 300, step: 5 }
+    answer: points_from_bp
+    unit: points
+    decimals: 2
+    sign: magnitude
+    mistakes:
+      - { tag: divided_by_10, fix: "Divide by 100, not 10: 100 basis points make 1 point." }
+      - { tag: divided_by_1000, fix: "Divide by 100, not 1,000: 100 basis points make 1 point." }
+      - { tag: forgot_to_convert, fix: That is still basis points. Divide by 100 for points. }
+    avoid: [100, 25, 1, 120, 1.2, 50, 75, 60, 30]
+  - id: pb-t-pct-change
+    skill: pct-change
+    ask: A rate goes from {a}% to {b}%. By what percent of the old rate did it change, to one decimal place?
+    params:
+      a: { min: 1, max: 9, step: 0.5 }
+      d: { min: 0.25, max: 2, step: 0.25 }
+    derived: { b: "plus(a, d)" }
+    answer: pct_change
+    unit: percent
+    decimals: 1
+    sign: either
+    mistakes:
+      - { tag: mixed_percent_points, fix: "That is the move in points. Divide it by the old rate, then times 100." }
+    halfDone: { shows: "First step, done for you: the move is {points} points.", asks: pct_change }
+    avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 2, 6, 7.5, 1.5, 8, 6.25, 50, 12.5]
+
 concept: >
-  A percentage point is the plain difference between two percentages: going from 4% to 4.5%
-  is a rise of 0.5 percentage points. A basis point is one hundredth of a percentage point, so
-  0.5 percentage points is 50 basis points (bp), and 1 percentage point is 100 bp. A percent
-  change is relative: it compares the change with the starting level, so 4% to 4.5% is also a
-  rise of 0.5 / 4 = 12.5 percent of the old rate. Rates move in points or basis points; prices
-  and amounts move in percent. Always say which one you mean.
+  A percentage point is the plain gap between two rates: a savings rate going from 4% to 5% has
+  risen 1 percentage point. A basis point is one hundredth of a percentage point, so that same
+  move is 100 basis points (bp). A percent change compares the move with the starting rate, the
+  base: 1 point on a start of 4% is a rise of 25 percent of the old rate. Rates move in points or
+  basis points; prices and amounts move in percent. Always say which one you mean.
 
 principle: >
   A change in a rate has two honest sizes, absolute (percentage points or basis points) and
   relative (percent of the old rate), and they differ by a lot. Name the base every time, and
   state rate changes in basis points to avoid mixing them up.
 
-# Written-ahead Widgets: the Tutor opens them by id (open_widget) and never draws its own version.
-# The practice moves are made up: none is a quiz question's move or the Case's outcome. After the
-# reveal, a task for February 1994's move joins them, its rates read from Case Data.
-widgets:
-  - id: rate-change-three-ways
-    # The Tutor may not draw a growth-rate calculator here: this Widget is the clear version.
-    parts: [cagr]
-    # Code works out the same three readouts for the Tutor from these two sliders (rateChange, src/finance/rate-change.ts).
-    rateChange: { old: $old, new: $new }
-    code: |
-      root = Widget("One rate change, said three ways", [old, new, points, bps, change, steps])
-      $old = 5
-      $new = 5.2
-      old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")
-      new = Slider("new", "New rate", 0, 10, 0.01, $new, "percent")
-      points = TextContent("In percentage points: " + @Round($new - $old, 2) + " points")
-      bps = TextContent("In basis points: " + @Round(($new - $old) * 100, 0) + " bp")
-      change = TextContent("As a percent change of the old rate: " + ($old == 0 ? "none, because the old rate is 0%" : @Round(($new - $old) / $old * 100, 2) + "%"))
-      steps = GuidedTasks([rise, cut, low])
-      rise = GuidedTask("Set a rise from 6% to 6.4%", $old == 6 && $new == 6.4)
-      cut = GuidedTask("Now a cut from 8% to 7.1%", $old == 8 && $new == 7.1)
-      low = GuidedTask("Now a rise from 0.5% to 0.9%, and compare its percent change with the first rise", $old == 0.5 && $new == 0.9)
-    revealTask:
-      case: fed-hike-1994
-      dataset: fed-funds-target
-      text: "Set the Fed's move of February 1994: from {before}% to {after}%"
-      done: "$old == {before} && $new == {after}"
-
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
-# What a step does by itself: your turn opens the Widget when it begins, and is done once the Learner has ticked its first
-# Guided Task (the rise from 6% to 6.4%), so Next is there without the Tutor finishing the step.
-steps:
-  - step: your_turn
-    opens: rate-change-three-ways
-    doneWhen: { kind: ticked, widget: rate-change-three-ways, task: 1 }
-
-# What the Learner found, said on Past Sessions and the Topic complete card once their saved Widget state shows it.
-found:
-  - when: { kind: ticked, widget: rate-change-three-ways, task: 1 }
-    text: You set a rate change on the sliders and read it in points, basis points and percent change.
-
 youllLearn:
   - "Tell a change in percentage points from a change in percent."
   - "Read rate moves in basis points, the way bond traders quote them."
   - "Name the base of every change so its size is never mixed up."
 
+# Every question that ever was in a Percent Check stays defined, so an old attempt or Review still loads.
+# pb-q-bp-definition, pb-q-bond-140 and pb-q-mortgage-rate are in no Check now: Check 1 draws typed questions instead.
 questions:
   - id: pb-q-bp-definition
+    skill: pts-to-bp
     prompt: >
       How many basis points are there in 0.6 of a percentage point?
     choices:
-      - { id: a, text: "6" }
+      - { id: a, text: "6", mistake: { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." } }
       - { id: b, text: "60" }
-      - { id: c, text: "600" }
-      - { id: d, text: "0.6" }
+      - { id: c, text: "600", mistake: { tag: used_x1000, fix: "One point is 100 basis points, so multiply by 100, not 1,000." } }
+      - { id: d, text: "0.6", mistake: { tag: stopped_at_points, fix: That is the move in points. Times 100 gives basis points. } }
     answer: b
     explanation: >
-      A basis point is one hundredth of a percentage point, so 0.6 x 100 = 60 basis points.
+      A basis point is one hundredth of a percentage point, so 0.6 points times 100 is 60 basis points.
     source: >
       Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
   - id: pb-q-wrong-description
+    skill: wording
     prompt: >
-      A central bank moves its rate from 4.00% to 4.50%. Which description of this move is wrong?
+      A central bank moves its rate from 8.00% to 8.50%. Which description of this move is true?
     choices:
-      - { id: a, text: "The rate is up 50 basis points" }
-      - { id: b, text: "The rate is up half of a percentage point" }
-      - { id: c, text: "The rate is up 50 percent" }
-      - { id: d, text: "The rate is up 12.5 percent of its old level" }
+      - { id: a, text: "The rate is up 50 percent", mistake: { tag: mixed_percent_points, fix: "50 is the move in basis points. As a percent of the old 8%, the move is 6.25%." } }
+      - { id: b, text: "The rate is up 5 basis points", mistake: { tag: used_x10, fix: "One point is 100 basis points, so half a point is 50 bp, not 5." } }
+      - { id: c, text: "The rate is up 50 basis points, which is 6.25 percent of its old level" }
+      - { id: d, text: "The rate is up half a percent of its old level", mistake: { tag: mixed_percent_points, fix: "Half a point is the gap itself. As a percent of the old 8%, the move is 6.25%." } }
     answer: c
     explanation: >
-      The change is 0.5 percentage points, which is 50 basis points. Relative to the old rate it is 0.5 / 4.00 = 12.5 percent. "Up 50 percent" would mean a new rate of 6.00%.
+      The change is half a percentage point, which is 50 basis points. Compared with the old 8%,
+      half a point is one sixteenth, or 6.25 percent of the old level. "Up 50 percent" would mean a
+      new rate of 12%.
     source: >
-      Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm ; the percent figures are the arithmetic 0.5 / 4.00.
+      Federal Reserve Board, Regulatory Reform glossary, Basis point ("One one-hundredth of a percentage point"): https://federalreserve.gov/regreform/reform-glossary.htm ; the percent figures are the arithmetic of half a point on 8.00%.
 
   - id: pb-q-bond-140
+    skill: bp-to-pts
     prompt: >
       A bond yield rises by 120 basis points. How many percentage points is that?
     choices:
-      - { id: a, text: "12 percentage points" }
+      - { id: a, text: "12 percentage points", mistake: { tag: divided_by_10, fix: "Divide by 100, not 10: 100 basis points make 1 point." } }
       - { id: b, text: "1.2 percentage points" }
-      - { id: c, text: "0.12 percentage points" }
-      - { id: d, text: "120 percentage points" }
+      - { id: c, text: "0.12 percentage points", mistake: { tag: divided_by_1000, fix: "Divide by 100, not 1,000: 100 basis points make 1 point." } }
+      - { id: d, text: "120 percentage points", mistake: { tag: forgot_to_convert, fix: That is still basis points. Divide by 100 for points. } }
     answer: b
     explanation: >
-      Divide basis points by 100: 120 / 100 = 1.2 percentage points.
+      Divide basis points by 100: 120 basis points divided by 100 is 1.2 percentage points.
     source: >
       Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
   - id: pb-q-unemployment
+    skill: pct-change
     prompt: >
-      The unemployment rate rises from 4% to 6%. Which statement is correct?
+      The unemployment rate rises from 6% to 9%. Which statement is correct?
     choices:
-      - { id: a, text: "Up 2 percentage points, a relative increase of 50%" }
-      - { id: b, text: "Up 50 percentage points, a relative increase of 2%" }
-      - { id: c, text: "Up 2 percentage points, a relative increase of 200%" }
-      - { id: d, text: "Up 4 percentage points, a relative increase of 50%" }
+      - { id: a, text: "Up 3 percentage points, a relative increase of 50%" }
+      - { id: b, text: "Up 50 percentage points, a relative increase of 3%", mistake: { tag: mixed_percent_points, fix: "This swaps the two sizes. The gap is 3 points, and 3 points on a start of 6% is 50%." } }
+      - { id: c, text: "Up 3 percentage points, a relative increase of 33.3%", mistake: { tag: used_end_as_base, fix: "Compare the move with the start, 6%, not with the end, 9%." } }
+      - { id: d, text: "Up 9 percentage points, a relative increase of 50%", mistake: { tag: gave_the_new_level, fix: "9% is where the rate ended. The move is the end minus the start, 3 points." } }
     answer: a
     explanation: >
-      The difference is 6 - 4 = 2 percentage points. Relative to the starting 4%, that is 2 / 4 = 50%.
+      The difference is 9 minus 6, which is 3 percentage points. Compared with the starting 6%, a
+      move of 3 points is half of the start, so the relative increase is 50%.
     source: >
       Arithmetic from the Federal Reserve Board's definition of a percentage-point scale for rates (Regulatory Reform glossary): https://federalreserve.gov/regreform/reform-glossary.htm
 
   - id: pb-q-mortgage-rate
+    skill: pts-to-bp
     prompt: >
       A mortgage rate falls from 7.50% to 7.20%. By how many basis points did it fall?
     choices:
-      - { id: a, text: "3" }
+      - { id: a, text: "3", mistake: { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." } }
       - { id: b, text: "30" }
-      - { id: c, text: "300" }
-      - { id: d, text: "0.3" }
+      - { id: c, text: "300", mistake: { tag: used_x1000, fix: "One point is 100 basis points, so multiply by 100, not 1,000." } }
+      - { id: d, text: "0.3", mistake: { tag: stopped_at_points, fix: That is the move in points. Times 100 gives basis points. } }
     answer: b
     explanation: >
-      7.50 - 7.20 = 0.30 percentage points, and 0.30 x 100 = 30 basis points.
+      7.50 minus 7.20 is 0.30 percentage points, and 0.30 points times 100 is 30 basis points.
     source: >
       Investor.gov (US SEC), Basis Point glossary entry: https://www.investor.gov/introduction-investing/investing-basics/glossary/basis-point
 
   - id: pb-q-newspaper
+    skill: wording
     prompt: >
-      An interest rate rises from 2% to 3%. A newspaper writes "rates up 50%". Is that correct?
+      An interest rate rises from 1.5% to 2.25%. A newspaper writes "rates up 50%". Is that correct?
     choices:
-      - { id: a, text: "Yes: it is a relative rise of 50%, which is also 1 percentage point or 100 basis points" }
-      - { id: b, text: "No: it should say rates are up 1%" }
-      - { id: c, text: "No: it should say rates are up 100%" }
-      - { id: d, text: "No: rates cannot be described in percent" }
+      - { id: a, text: "Yes: it is a relative rise of 50%, which is also 0.75 percentage points or 75 basis points" }
+      - { id: b, text: "No: it should say rates are up 0.75%", mistake: { tag: mixed_percent_points, fix: "Up 0.75% mixes points with percent. The move is 0.75 points, which is 50% of the start of 1.5%." } }
+      - { id: c, text: "No: it should say rates are up 75%", mistake: { tag: bp_as_percent, fix: "75 is the move in basis points, not a percent of the old rate." } }
+      - { id: d, text: "No: rates cannot be described in percent", mistake: { tag: percent_never_for_rates, fix: "A rate can rise by a percent of its old level. The writer just has to say so." } }
     answer: a
     explanation: >
-      The rise is 1 percentage point, which is 100 basis points. Compared with the old 2% it is 1 / 2 = 50%. Both descriptions are true, which is why a careful writer says which one is meant.
+      The rise is 0.75 percentage points, which is 75 basis points. Compared with the old 1.5%, a
+      move of 0.75 points is half of the start, so 50%. Both descriptions are true, which is why a
+      careful writer says which one is meant.
     source: >
-      Federal Reserve Board, Regulatory Reform glossary, Basis point: https://federalreserve.gov/regreform/reform-glossary.htm ; the 50% is the arithmetic 1 / 2.
+      Federal Reserve Board, Regulatory Reform glossary, Basis point: https://federalreserve.gov/regreform/reform-glossary.htm ; the 50% is the arithmetic of 0.75 points on a start of 1.5%.
 
 checks:
+  # Check 1: points and basis points, typed answers only, with new numbers each attempt.
   - id: pb-quiz-language
     kind: quiz
-    questions:
-      - pb-q-bp-definition
-      - pb-q-wrong-description
-      - pb-q-bond-140
-      - pb-q-unemployment
-      - pb-q-mortgage-rate
-      - pb-q-newspaper
+    templates: [pb-t-bp-from-move, pb-t-points-from-bp]
     perAttempt: 3
     passRule:
       correct: 2
+    card:
+      title: One move, two ways
+      lines:
+        - A savings rate goes from 4% to 5%.
+        - "Points: 5 minus 4 is 1 percentage point. That is how far it moved."
+        - "Basis points: 1 point times 100 is 100 bp. Same distance, in small units."
+        - 100 bp make 1 point, as 100 paise make ₹1.
+      writeDown: Points times 100 give basis points. Basis points divided by 100 give points.
+      skills: [pts, pts-to-bp, bp-to-pts]
+      widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }
+    quickTries:
+      - id: pb-try-a1
+        skill: pts
+        ask: A rate goes from 3% to 3.5%. How many points did it move?
+        kind: number
+        answer: 0.5
+        unit: points
+        halfDone: "First step, done for you: the new rate is 3.5% and the old rate is 3%."
+        mistakes:
+          - { answer: 50, fix: That is basis points. Points are the new rate minus the old rate., tag: forgot_to_convert }
+      - id: pb-try-a2
+        skill: pts-to-bp
+        ask: Same move, 3% to 3.5%. How many basis points did it move?
+        kind: number
+        answer: 50
+        unit: bp
+        halfDone: "First step, done for you: the move is 0.5 points."
+        mistakes:
+          - { answer: 5, fix: "One point is 100 basis points, so multiply by 100, not 10.", tag: used_x10 }
+          - { answer: 0.5, fix: That is the move in points. Times 100 gives basis points., tag: stopped_at_points }
+      - id: pb-try-a3
+        skill: pts-to-bp
+        ask: A rate falls from 7.5% to 7.2%. How many basis points did it fall?
+        kind: number
+        answer: -30
+        unit: bp
+        decimals: 0
+        sign: either
+        mistakes:
+          - { answer: 3, fix: "One point is 100 basis points, so multiply by 100, not 10.", tag: used_x10 }
+          - { answer: 0.3, fix: That is the fall in points. Times 100 gives basis points., tag: stopped_at_points }
+      - id: pb-try-a4
+        skill: bp-to-pts
+        ask: 120 bp is how many points?
+        kind: number
+        answer: 1.2
+        unit: points
+        halfDone: "First step, done for you: 100 bp make 1 point, so divide by 100."
+        mistakes:
+          - { answer: 12, fix: "Divide by 100, not 10: 100 bp make 1 point.", tag: divided_by_10 }
+          - { answer: 0.12, fix: "Divide by 100, not 1,000: 100 bp make 1 point.", tag: divided_by_1000 }
+      - id: pb-try-pts-2
+        skill: pts
+        ask: A rate goes from 9% to 9.4%. How many points did it move?
+        kind: number
+        answer: 0.4
+        unit: points
+        mistakes:
+          - { answer: 40, fix: That is basis points. Points are the new rate minus the old rate., tag: forgot_to_convert }
+      - id: pb-try-pts-3
+        skill: pts
+        ask: A rate falls from 6.5% to 5.9%. How many points did it fall?
+        kind: number
+        answer: -0.6
+        unit: points
+        sign: either
+      - { template: pb-t-bp-from-move }
+      - { template: pb-t-points-from-bp }
+      - { template: pb-t-bp-from-move, halfDone: true }
+
+  # Check 2: percent change and how a move is worded. A pct_change template plus "Which one is true?" wording items.
+  - id: pb-quiz-change
+    kind: quiz
+    questions: [pb-q-unemployment, pb-q-newspaper, pb-q-wrong-description]
+    templates: [pb-t-pct-change]
+    perAttempt: 3
+    passRule:
+      correct: 2
+    card:
+      title: Compared with the start
+      lines:
+        - "Same move: 4% to 5%."
+        - "Percent change: the move is 1 point. Divide it by the old 4%, then times 100. That gives 25%."
+        - "Why the start matters: ₹10 more on ₹20 is big. ₹10 more on ₹500 is small."
+        - Say up 1 point or up 100 bp. Up 25% is also true. Up 1% is unclear.
+      writeDown: Percent change is the move divided by the old rate, times 100.
+      skills: [pct-change, wording]
+      widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }
+    quickTries:
+      - id: pb-try-b1
+        skill: pct-change
+        ask: A rate goes from 2% to 3%. By what percent of the old rate did it change?
+        kind: number
+        answer: 50
+        unit: percent
+        halfDone: "First step, done for you: the move is 1 point, on a start of 2%."
+        mistakes:
+          - { answer: 1, fix: "That is the move in points. Divide it by the old rate, then times 100.", tag: mixed_percent_points }
+      - id: pb-try-b2
+        skill: pct-change
+        ask: A rate goes from 4% to 4.5%. By what percent of the old rate did it change?
+        kind: number
+        answer: 12.5
+        unit: percent
+        mistakes:
+          - { answer: 0.5, fix: "That is the move in points. Divide it by the old rate, then times 100.", tag: mixed_percent_points }
+      - { template: pb-t-pct-change, halfDone: true }
+      - { template: pb-t-pct-change }
+      - id: pb-try-b3
+        skill: wording
+        ask: "A rate goes from 2% to 3%. True or false: rates rose 50%."
+        kind: truth
+        answer: true
+        halfDone: "First step, done for you: the move is 1 point, on a start of 2%."
+        mistakes:
+          - { answer: false, fix: "Compared with the start of 2%, a move of 1 point is 50%. Up 1 point is true too.", tag: mixed_percent_points }
+      - id: pb-try-b4
+        skill: wording
+        ask: "A rate goes from 4% to 6%. True or false: rates rose 200%."
+        kind: truth
+        answer: false
+        mistakes:
+          - { answer: true, fix: "The move is 2 points, on a start of 4%. That is 50%, not 200%.", tag: mixed_percent_points }
+      - id: pb-try-word-3
+        skill: wording
+        ask: "A rate goes from 7% to 8%. True or false: it rose 100 basis points."
+        kind: truth
+        answer: true
+        mistakes:
+          - { answer: false, fix: "The move is 1 point, and 1 point is 100 basis points.", tag: mixed_percent_points }
+
+  # Check 3: the conversation Check, on Skills Cards 1 and 2 already teach, so it needs no Quick tries of its own.
   - id: pb-fed-language
     kind: conversation
+    skills: [pts, pts-to-bp, pct-change, wording]
     prompt: >
-      Three people describe the same central bank move from 4.00% to 4.50%: a trader says "up
-      50", a reporter says "half a point", and a headline says "rates up 12.5 percent". Explain why all
+      Three people describe the same central bank move from 6.25% to 6.75%: a trader says "up
+      50", a reporter says "half a point", and a headline says "rates up 8 percent". Explain why all
       three can be right, which phrase is most likely to mislead a reader, and how you would
       state the move so nobody can misread it.
     passCriteria: >
-      The Learner explains that "50" means basis points (0.5 percentage points), that "half a
-      point" means 0.5 percentage points, and that "12.5 percent" is the relative change
-      0.5 / 4.00 = 12.5% of the old rate. They identify the relative "percent" phrase (or the
-      bare "50") as the one most likely to be misread, because a reader may take it as 12.5 or 50
-      percentage points, and they propose stating the move in basis points or percentage points
-      with the starting and ending levels.
+      The Learner explains that "50" means basis points (half a percentage point), that "half a
+      point" means 0.5 percentage points, and that "8 percent" is the relative change: half a
+      point on a start of 6.25% is 8 percent of the old rate. They identify the relative "percent"
+      phrase (or the bare "50") as the one most likely to be misread, because a reader may take it
+      as 8 or 50 percentage points, and they propose stating the move in basis points or
+      percentage points with the starting and ending levels.
+    card:
+      title: Say it so nobody misreads it
+      lines:
+        - "Give the start and the end: from 4% to 5%."
+        - "Then give the move in points or bp: up 1 point, or up 100 bp."
+        - Up 25% is true too, but only next to the start it is measured from.
+        - A bare up 1% can mean either, so do not use it.
+      writeDown: Say the start, the end, and the move in points or bp.
+      skills: [pts, pts-to-bp, wording]
+      widget: { recipe: rate_move, inputs: { old: 4, new: 5, mode: show } }

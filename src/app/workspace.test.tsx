@@ -819,7 +819,7 @@ describe("the Topic Start card", () => {
   });
 
   it("lists You'll use with the Topic's written-ahead Widget titles", () => {
-    expect(text(startCard(card("num-percent-bps")))).toContain("You’ll use: One rate change, said three ways");
+    expect(text(startCard(card("num-percent-bps")))).not.toContain("You’ll use");
     expect(text(startCard(card("present-value")))).toContain("You’ll use: What the annuity is worth today");
   });
 
