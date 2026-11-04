@@ -58,6 +58,7 @@ export class Budget {
   settle(held: number, actual: number): void {
     this.held = Math.max(0, this.held - held);
     this.spent += actual;
-    this.costs.push(actual);
+    // A run that failed before spending anything says nothing about what the next run costs: it must not pull the estimate to $0.
+    if (actual > 0) this.costs.push(actual);
   }
 }
