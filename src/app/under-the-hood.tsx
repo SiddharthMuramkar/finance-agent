@@ -5,6 +5,16 @@ const n = (v: number) => v.toLocaleString("en-US");
 const usd = (v: number | null) => (v === null ? "unpriced" : `$${v.toFixed(v < 0.01 ? 4 : 3)}`);
 const secs = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 
+/**
+ * The reply checks' line (spec #229, ticket #239): the words the Learner saw, the checks the draft failed, and
+ * whether code retried or fell back. Turns from before the checks have none.
+ */
+export function replyCheckLine(rc: NonNullable<TurnUsage["replyCheck"]>): string {
+  const failed = rc.failed.length ? `Failed ${rc.failed.join(", ")}.` : "Passed every check.";
+  const then = rc.fallback ? (rc.retried ? " Retried once, then fell back." : " Fell back with no retry.") : rc.retried ? " Retried once, and the retry passed." : "";
+  return `Reply checks: ${rc.words} words. ${failed}${then}`;
+}
+
 /** The "under the hood" panel: the loop steps, tools, tokens and cost of one Tutor turn. */
 export function UnderTheHood({ usage }: { usage: TurnUsage }) {
   const cell = "px-2 py-1 text-right tabular-nums";
@@ -22,6 +32,11 @@ export function UnderTheHood({ usage }: { usage: TurnUsage }) {
           Model {usage.model}. {usage.tools.length ? `Tools called: ${usage.tools.join(", ")}.` : "No tools called."} Each step is one request to the model; a tool call
           makes a new step.
         </p>
+        {usage.replyCheck && (
+          <p data-testid="reply-check-line" className="mb-2">
+            {replyCheckLine(usage.replyCheck)}
+          </p>
+        )}
         <table className="w-full min-w-[34rem] border-collapse">
           <thead>
             <tr className="border-b border-[var(--border)]">

@@ -253,7 +253,7 @@ function triesIn(items: readonly StoredItem[], checkId: string) {
  * Stores the next Quick try for the Learner's converted Your turn, unless one is open (or every Skill is fluent). A
  * drill under way goes on first, one try at a time. While a Skill of the Check is parked nothing is posted: the Topic
  * waits for its drill. `opts.skillId` with `force` posts a try on that Skill even when it is fluent (One more short
- * try, a drill).
+ * try, a drill). With `store` false it only works out the try (the checked-replies fallback stores it itself).
  */
 async function postTry(
   db: Db,
@@ -262,14 +262,15 @@ async function postTry(
   sessionId: number,
   now: Date,
   opts: PickOptions & { force?: boolean } = {},
+  store = true,
 ): Promise<SessionItem | null> {
   const { shown, open } = triesIn(await loadSessionItems(db, sessionId, learnerId), place.check.id);
   if (open) return null;
   const states = await skillStates(db, learnerId, place.topic.id);
   const running = drillUnderWay(shown);
-  if (running) return storeTry(db, place, learnerId, sessionId, now, states, shown, { skillId: running.skillId, drill: running.reason, force: true });
+  if (running) return storeTry(db, place, learnerId, sessionId, now, states, shown, { skillId: running.skillId, drill: running.reason, force: true, store });
   if (place.parked?.length && !opts.force) return null;
-  return storeTry(db, place, learnerId, sessionId, now, states, shown, opts);
+  return storeTry(db, place, learnerId, sessionId, now, states, shown, { ...opts, store });
 }
 
 async function storeTry(
@@ -280,7 +281,7 @@ async function storeTry(
   now: Date,
   states: Record<string, SkillState>,
   shown: readonly QuickTryData[],
-  opts: PickOptions & { force?: boolean },
+  opts: PickOptions & { force?: boolean; store?: boolean },
 ): Promise<SessionItem | null> {
   // A forced Skill counts as not fluent, so the picker keeps to it.
   const forced = opts.force && opts.skillId ? { ...states, [opts.skillId]: freshSkillState() } : states;
@@ -289,7 +290,7 @@ async function storeTry(
   if (!next) return null;
   const data = next.drill ? { ...next, drill: { ...next.drill, n: drillCount(shown, next.skillId) + 1 } } : next;
   const item = { kind: QUICK_TRY, data };
-  await saveItemAfterLatest(db, learnerId, sessionId, item, now);
+  if (opts.store !== false) await saveItemAfterLatest(db, learnerId, sessionId, item, now);
   return item;
 }
 
@@ -587,8 +588,10 @@ export async function practiceFallback(db: Db, map: CourseMap, learnerId: number
   const at = convertedPlace(place);
   if (!at?.check.card || (at.step !== "concept" && !practiceStep(at.topic, at.step, at.check))) return null;
   const session = await liveSession(db, learnerId, at.topic.id);
-  const items = session && at.step === "your_turn" ? await enterStepItems(db, map, learnerId, session.id, now) : [];
-  return { text: at.check.card.writeDown, items };
+  // The Tutor Turn stores the returned items itself, so the next try is picked here but not stored.
+  const next = session && at.step === "your_turn" ? await postTry(db, at, learnerId, session.id, now, {}, false) : null;
+  void map;
+  return { text: at.check.card.writeDown, items: next ? [next] : [] };
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
