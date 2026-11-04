@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { NavLink } from "./nav-link";
 import { ThemeToggle, type Theme } from "./theme-toggle";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]";
@@ -123,26 +124,18 @@ export function SecondaryButton({ className = "", type = "button", ...props }: R
   return <button type={type} className={`${secondaryButtonClass} ${className}`} {...props} />;
 }
 
-/**
- * A button that is only an icon, at least 32x32. label names it for screen readers (aria-label) and as a tooltip;
- * pressed marks a toggle that is on (aria-pressed).
- */
-export function IconButton({ label, pressed, className = "", type = "button", children, ...props }: Omit<React.ComponentProps<"button">, "aria-label"> & { label: string; pressed?: boolean }) {
+/** A small chevron for a disclosure's summary: it turns a quarter turn when its <details> (class "group") is open. */
+export function Chevron({ className = "" }: { className?: string }) {
   return (
-    <button
-      type={type}
-      aria-label={label}
-      title={label}
-      aria-pressed={pressed}
-      className={`pressable inline-flex min-h-8 min-w-8 items-center justify-center rounded text-[var(--muted)] hover:bg-[var(--hairline)] hover:text-[var(--ink)] disabled:opacity-50 ${pressed ? "bg-[var(--brand-tint)] text-[var(--brand)]" : ""} ${focusRing} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
+    <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`h-3.5 w-3.5 shrink-0 transition-transform duration-150 group-open:rotate-90 ${className}`}>
+      <path d="m6 3.5 4.5 4.5L6 12.5" />
+    </svg>
   );
 }
 
-export { NavLink } from "./nav-link";
+export { IconButton } from "./icon-button";
+
+export { NavLink };
 
 /** Bordered section (spec §5.1): 1px border, radius 8, padding 16. className adds layout. */
 export function Card({ children, className = "", ...props }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLElement>) {
@@ -208,8 +201,9 @@ const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "settings", href: "/settings", label: "Settings" },
 ];
 
-const headerLink = `whitespace-nowrap text-sm leading-5 transition-colors duration-200 ${focusRing}`;
-const mutedLink = `${headerLink} text-[var(--muted)] hover:text-[var(--ink)]`;
+const headerLink = `pressable inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-1 text-[13px] leading-5 lg:px-3 lg:text-sm ${focusRing}`;
+const idleLink = `${headerLink} text-[var(--muted)] hover:bg-[var(--hairline)] hover:text-[var(--ink)]`;
+const currentLink = `${headerLink} bg-[var(--brand-tint)] font-medium text-[var(--brand)]`;
 
 /**
  * Sign out: a plain form posting to /api/logout (its 303 reloads the page), never a link (a GET could be
@@ -225,32 +219,40 @@ export function SignOutButton({ className = "", children = "Sign out" }: { class
   );
 }
 
+/** The brand mark: a small rising line in a rounded square, decorative (the words beside it name the link). */
+function BrandMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-5 w-5 shrink-0 text-[var(--brand)]">
+      <rect x="1" y="1" width="18" height="18" rx="4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M5 13.5 8.5 10l2.5 2.5L15 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /**
- * App header (spec #77): h1 "Finance Agent" linking to Home, the page links (Settings last), Dark mode, Sign out. current = the
- * page showing (aria-current); theme from readTheme(). Gaps tighten to 8px below 1024px to keep one line from 768px.
+ * App header (spec #77): h1 "Finance Agent" (a mark and the words) linking to Home, the page links as pills (the current one
+ * filled and aria-current; each shows a dot while its page loads), a divider, the theme toggle, and Sign out as a small
+ * outlined button. current = the page showing; theme from readTheme(). Sizes tighten below 1024px to keep one line from 768px.
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: Theme; className?: string }) {
-  // The two buttons share the links' look, with the padding that gives them the same height.
-  const mutedButton = `py-2 ${mutedLink}`;
   return (
     <header className={`flex items-center justify-between gap-2 lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
-        <Link href="/" className={`hover:text-[var(--brand)] ${focusRing}`}>Finance Agent</Link>
+        <Link href="/" title="Home" className={`-ml-2 inline-flex items-center gap-1.5 rounded px-2 py-1 transition-colors hover:bg-[var(--hairline)] hover:text-[var(--brand)] ${focusRing}`}>
+          <BrandMark />
+          Finance Agent
+        </Link>
       </h1>
-      <nav aria-label="Pages" className="flex items-center gap-2 lg:gap-4">
-        {HEADER_LINKS.map(({ page, href, label }) =>
-          page === current ? (
-            <Link key={href} href={href} aria-current="page" className={`${headerLink} text-[var(--brand)] underline decoration-1 underline-offset-4`}>
-              {label}
-            </Link>
-          ) : (
-            <Link key={href} href={href} className={mutedLink}>
-              {label}
-            </Link>
-          ),
-        )}
-        <ThemeToggle initial={theme} className={mutedButton} />
-        <SignOutButton className={mutedButton} />
+      <nav aria-label="Pages" className="flex items-center gap-0.5 lg:gap-1">
+        {HEADER_LINKS.map(({ page, href, label }) => (
+          // The two pages a Learner returns to most are fetched ahead, so they open at once.
+          <NavLink key={href} href={href} current={page === current} prefetch={page === "workspace" || page === "course" ? true : undefined} className={page === current ? currentLink : idleLink}>
+            {label}
+          </NavLink>
+        ))}
+        <span aria-hidden="true" className="mx-2 hidden h-5 w-px bg-[var(--border)] lg:block" />
+        <ThemeToggle initial={theme} />
+        <SignOutButton className={`${secondaryButtonClass} min-h-8 lg:ml-1 px-2! py-1! text-[13px] lg:px-3! lg:text-sm`} />
       </nav>
     </header>
   );

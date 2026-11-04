@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import { AnnouncerProvider } from "./announcer";
+import { RouteBar } from "./route-bar";
 import { siteMetadata } from "./site-metadata";
 
 // Public metadata for search results and shared links; signed-in pages sit behind the login gate.
@@ -13,7 +15,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={dark ? "dark" : undefined}>
       <body className="min-h-screen antialiased">
-        {children}
+        <RouteBar />
+        <AnnouncerProvider>{children}</AnnouncerProvider>
         <Analytics />
       </body>
     </html>

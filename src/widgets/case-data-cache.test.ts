@@ -50,4 +50,44 @@ describe("the page's shared Case Data cache", () => {
     cache.clear();
     expect(heard).toHaveBeenCalledTimes(2);
   });
+
+  describe("revalidating after a turn (stale while revalidating)", () => {
+    it("keeps the held entry and its version when the server sends the same data", async () => {
+      const load = vi.fn(async () => structuredClone(withheld));
+      const cache = createCaseDataCache(load);
+      const first = cache.load("fed-hike-1994");
+      await first;
+      const before = cache.version();
+      const heard = vi.fn();
+      cache.subscribe(heard);
+      await cache.revalidate();
+      expect(load).toHaveBeenCalledTimes(2);
+      expect(cache.load("fed-hike-1994")).toBe(first);
+      expect(cache.version()).toBe(before);
+      expect(heard).not.toHaveBeenCalled();
+    });
+
+    it("serves the old data until the new arrives, then replaces the entry and tells its readers", async () => {
+      let release!: (d: CaseData) => void;
+      const load = vi.fn<(caseId: string) => Promise<CaseData | null>>().mockResolvedValueOnce(withheld).mockReturnValueOnce(new Promise((r) => (release = r)));
+      const cache = createCaseDataCache(load);
+      await cache.load("fed-hike-1994");
+      const heard = vi.fn();
+      cache.subscribe(heard);
+      const running = cache.revalidate();
+      expect(await cache.load("fed-hike-1994")).toEqual(withheld);
+      release(full);
+      await running;
+      expect(await cache.load("fed-hike-1994")).toEqual(full);
+      expect(heard).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps what it holds when the revalidation fails", async () => {
+      const load = vi.fn<(caseId: string) => Promise<CaseData | null>>().mockResolvedValueOnce(withheld).mockRejectedValue(new Error("offline"));
+      const cache = createCaseDataCache(load);
+      await cache.load("fed-hike-1994");
+      await cache.revalidate();
+      expect(await cache.load("fed-hike-1994")).toEqual(withheld);
+    });
+  });
 });

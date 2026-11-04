@@ -67,9 +67,9 @@ async function workspace(cases: CaseData[], initial: Line[] = opened) {
 }
 
 describe("a written-ahead Widget opened by the Tutor", () => {
-  it("stands as an Open: <title> → chip where it was opened, and draws in the panel", async () => {
+  it("stands as an <title> chip where it was opened, and draws in the panel", async () => {
     const { conversation, pane } = await workspace([beforeReveal]);
-    expect(conversation).toContain("Here is the Widget for this Topic.Open: One rate change, said three ways →TutorMove the old rate first.");
+    expect(conversation).toMatch(/Here is the Widget for this Topic\.One rate change, said three ways (Showing|View widget →)TutorMove the old rate first\./);
     expect(host.querySelector('[data-testid="widget-card"]')).not.toBeNull();
     expect(pane).toContain("One rate change, said three ways");
   });
@@ -135,7 +135,7 @@ describe("a written-ahead Widget opened by the Tutor", () => {
     });
     const shown = host.textContent!;
     expect(shown).toContain("Here is a box.");
-    expect(shown).toContain("Open: One rate change, said three ways →");
+    expect(shown).toContain("One rate change, said three ways");
     expect(shown).not.toContain("One rate move, two ways to describe it");
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import type { CaseData } from "@/case-data/case-data";
 import { fetchCaseData, splitReference, type CaseLoad } from "@/widgets/case-data-client";
 import { useCaseLoad } from "@/widgets/case-data-provider";
@@ -9,10 +9,11 @@ import { widgetParts, widgetProblems } from "@/widgets/check";
 import { SavedTicksContext, type SavedTicks } from "@/widgets/saved-ticks";
 import { widgetKey } from "@/widgets/widget-state";
 import { allTasksTicked } from "@/widgets/widget-reading";
-import { Chip, Eyebrow, SecondaryButton } from "./ui";
+import { Chip, Eyebrow, SecondaryButton, type ChipState } from "./ui";
 import { SaveToNotes, type SaveTarget } from "./save-to-notes";
 import { useWidgetStore } from "./widget-states";
 import { WidgetView } from "./widget-view";
+import { keepsOwnArrows, WidgetPager, type PagerEntry } from "./widget-pager";
 import { FoldedRow } from "./workspace-parts";
 
 /**
@@ -59,6 +60,9 @@ export function updatedInPlace(widgets: readonly WidgetItem[]): WidgetItem[] {
 }
 
 export const EXPLORE_KEY = "explore";
+
+/** The pager's key for the Check tab; no Widget's key looks like it (theirs are `${messageId}:${index}` or "explore"). */
+const CHECK_ENTRY = "check";
 
 /** Tailwind's lg breakpoint: from here the panel carries the explore Widget; below it, the conversation column does. */
 const LAPTOP = "(min-width: 1024px)";
@@ -291,7 +295,8 @@ function eyebrowFor(item: WidgetItem, topicTitle: string | undefined): string {
 
 /**
  * Which Widget the panel shows: the one picked, else the newest (`newest` names it by key when it is not last,
- * as when it updated an earlier tab in place). Picking flashes the card border for 1s.
+ * as when it updated an earlier tab in place). Picking sets `flashing` for 600ms, the length of the ring pulse the
+ * panel plays around the card.
  * `clear` forgets the pick, so a new turn's Widget shows on its own.
  */
 export function useWidgetPicker(widgets: WidgetItem[], newest?: string) {
@@ -303,7 +308,7 @@ export function useWidgetPicker(widgets: WidgetItem[], newest?: string) {
     setPicked(key);
     setFlashing(true);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setFlashing(false), 1000);
+    timer.current = setTimeout(() => setFlashing(false), 600);
   };
   const shown = widgets.find((w) => holdsKey(w, picked)) ?? widgets.find((w) => holdsKey(w, newest)) ?? widgets.at(-1);
   return { shown, picked, pick, flashing, clear: () => setPicked(undefined) };
@@ -315,14 +320,27 @@ export function widgetName(item: WidgetItem): string {
   return widgetParts(item.code).title?.trim() || "Untitled Widget";
 }
 
-/** The chip standing where a Widget belongs in a reply: "Open: <title> →"; it shows that Widget in the panel. */
+/**
+ * The chip standing where a Widget belongs in a reply: a 36px card-link with the Widget's title and three states.
+ * Idle "View widget →"; Showing (filled brand) while the panel shows that Widget; Drawing… (a shimmer) while its
+ * fence is still being written. Pressing it shows that Widget in the panel; pressing the one already showing
+ * scrolls the panel to the top and pulses it.
+ */
 export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active: boolean; onPick: (key: string) => void }) {
   // A chip the Tutor's open_widget left names the Widget by title, even when it is the explore Widget's tab.
   const name = (item.writtenAhead && widgetParts(item.code).title?.trim()) || widgetName(item);
+  const state: ChipState = !item.complete ? "drawing" : active ? "showing" : "idle";
+  const look =
+    state === "showing"
+      ? "border-[var(--brand)]! bg-[var(--brand)]! text-[var(--brand-ink)]! hover:bg-[var(--brand-hover)]!"
+      : state === "drawing"
+        ? "skeleton text-[var(--muted)]!"
+        : "";
   return (
     <span className="my-3 block">
-      <Chip active={active} onClick={() => onPick(item.key)} data-testid="widget-chip" className="max-w-full" title={name}>
-        <span className="min-w-0 truncate">{item.complete ? `Open: ${name} →` : `${name} (drawing…)`}</span>
+      <Chip state={state} onClick={() => onPick(item.key)} data-testid="widget-chip" title={name} className={`min-h-9! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
+        <span className="min-w-0 truncate font-medium">{name}</span>{" "}
+        <span className="shrink-0 text-xs">{state === "drawing" ? "Drawing…" : state === "showing" ? "Showing" : "View widget →"}</span>
       </Chip>
     </span>
   );
@@ -348,46 +366,76 @@ export function WidgetPanel({
   onPick,
   topicTitle,
   check,
+  messageNumbers,
 }: {
   widgets: WidgetItem[];
   shown: WidgetItem | undefined;
+  /** True for 600ms after a pick: the ring pulse plays when it turns on. */
   flashing?: boolean;
   onPick: (key: string) => void;
   topicTitle?: string;
   check?: CheckTab;
+  /** The number of the conversation message each Widget (by key) came from, for the "from message N" in the All menu. */
+  messageNumbers?: Readonly<Record<string, number>>;
 }) {
   const laptop = useLaptopWidth();
+  const checkShown = !!check && (check.selected || !shown);
+  const view = checkShown ? CHECK_ENTRY : shown?.key;
+
+  // On every switch (a different Widget, or a press on the one already showing): a ring pulse around the card, and
+  // the panel scrolls back to the top. Derived while rendering, so the pulse restarts with the render that shows it.
+  const [seen, setSeen] = useState({ view, flashing, pulse: 0 });
+  if (seen.view !== view || seen.flashing !== flashing) setSeen({ view, flashing, pulse: seen.view !== view || (flashing && !seen.flashing) ? seen.pulse + 1 : seen.pulse });
+  const root = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLElement>(null);
+  const lastHeight = useRef(0);
+  // Keep the card as tall as the one it replaces for a moment, so the page below does not jump while the new Widget draws.
+  useLayoutEffect(() => {
+    const el = card.current;
+    if (!el || seen.pulse === 0) return;
+    el.style.minHeight = `${lastHeight.current}px`;
+    const timer = setTimeout(() => (el.style.minHeight = ""), 400);
+    return () => clearTimeout(timer);
+  }, [view]); // eslint-disable-line react-hooks/exhaustive-deps -- reads the height the previous Widget had, once per switch
+  // The card's height as it is drawn, kept up to date as its Widget loads data and grows (a switch reads it before the new one draws).
+  const hasCard = !!shown && !checkShown;
+  useLayoutEffect(() => {
+    const el = card.current;
+    if (!el) return;
+    lastHeight.current = el.offsetHeight;
+    if (typeof ResizeObserver === "undefined") return;
+    const watch = new ResizeObserver(() => (lastHeight.current = el.offsetHeight));
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, [hasCard]);
+  useEffect(() => {
+    if (seen.pulse > 0) scrollToTop(root.current);
+  }, [seen.pulse]);
+
   if (!shown && !check) {
     return <p className="rounded-lg border border-dashed border-[var(--border)] p-6 text-sm leading-5 text-[var(--muted)]">Widgets for this Topic will appear here.</p>;
   }
-  const checkShown = !!check && (check.selected || !shown);
   // Below the laptop breakpoint the explore Widget stands in the conversation column instead (PinnedExplore),
   // so the panel draws no copy of its own there and says where it went.
   const elsewhere = shown?.explore && !laptop;
+  const entries: PagerEntry[] = [
+    ...(check ? [{ key: CHECK_ENTRY, title: check.name, eyebrow: "Quiz", check: true as const }] : []),
+    ...widgets.map((w) => ({ key: w.key, title: widgetName(w), eyebrow: eyebrowFor(w, topicTitle), from: messageNumbers?.[w.key], ...(w.explore && { explore: true as const }) })),
+  ];
+  const paged = laptop ? entries : entries.filter((e) => !e.explore);
+  const select = (key: string) => (key === CHECK_ENTRY ? check?.onPick() : onPick(key));
+  // ← and → page while the panel has focus, except from a control that uses the arrows itself (a slider, a field, the listbox).
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if ((e.key !== "ArrowLeft" && e.key !== "ArrowRight") || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || keepsOwnArrows(e.target)) return;
+    const at = paged.findIndex((p) => p.key === view);
+    const to = paged[at < 0 ? (e.key === "ArrowRight" ? 0 : paged.length - 1) : at + (e.key === "ArrowRight" ? 1 : -1)];
+    if (!to) return;
+    e.preventDefault();
+    select(to.key);
+  };
   return (
-    <>
-      {(check || widgets.length >= 2 || widgets.some((w) => w.explore)) && (
-        // One line of tabs that scrolls sideways, never wrapping; a long title is cut short with an ellipsis (full title on hover).
-        <div className="mb-3 flex flex-nowrap gap-2 overflow-x-auto pb-1" role="group" aria-label="Widgets in this Session">
-          {check && (
-            <Chip active={checkShown} onClick={check.onPick} className="shrink-0" data-testid="check-tab">
-              {check.name}
-            </Chip>
-          )}
-          {widgets.map((w) => (
-            <Chip
-              key={w.key}
-              active={!checkShown && w.key === shown?.key}
-              onClick={() => onPick(w.key)}
-              className={`max-w-56 shrink-0 ${w.explore ? "max-lg:hidden" : ""}`}
-              title={widgetName(w)}
-              data-testid={w.explore ? "explore-chip" : undefined}
-            >
-              <span className="min-w-0 truncate">{widgetName(w)}</span>
-            </Chip>
-          ))}
-        </div>
-      )}
+    <div ref={root} className="contents" onKeyDown={onKeyDown}>
+      {(check || widgets.length >= 2 || widgets.some((w) => w.explore)) && <WidgetPager entries={entries} paged={paged} current={view} onSelect={select} />}
       {check && (
         <section aria-label={check.name} data-testid="check-card" hidden={!checkShown} className="rounded-lg border border-[var(--border)] p-4">
           {check.body}
@@ -399,16 +447,50 @@ export function WidgetPanel({
         </p>
       )}
       {shown && !checkShown && !elsewhere && (
-        <section data-testid="widget-card" className={`rounded-lg border p-4 transition-colors duration-200 ${flashing ? "border-[var(--brand)]" : "border-[var(--border)]"}`}>
-          {/* Remounts per Widget, so each one fades in over 200ms. */}
-          <div key={shown.key} className="transition-opacity duration-200 starting:opacity-0">
-            <Eyebrow className="mb-1">{eyebrowFor(shown, topicTitle)}</Eyebrow>
-            <WidgetWithSave item={shown} />
+        <section ref={card} data-testid="widget-card" className="relative rounded-lg border border-[var(--border)] p-4">
+          {/* A ring that breathes once (600ms) on every switch; the key restarts it, and it never remounts the Widget. */}
+          {seen.pulse > 0 && <span key={seen.pulse} aria-hidden="true" data-testid="widget-pulse" className="animate-ring-pulse pointer-events-none absolute inset-0 rounded-lg" />}
+          {/* Remounts per Widget, so each one fades in (150ms) with a 4px rise. */}
+          <div key={shown.key} className="animate-fade-rise">
+            {shown.complete ? (
+              <>
+                <Eyebrow className="mb-1">{eyebrowFor(shown, topicTitle)}</Eyebrow>
+                <WidgetWithSave item={shown} />
+              </>
+            ) : (
+              <DrawingCard title={widgetParts(shown.code).title?.trim()} />
+            )}
           </div>
         </section>
       )}
-    </>
+    </div>
   );
+}
+
+/** What the card shows as soon as a Widget's fence opens, until the Widget is written: a title, a figure and two lines, shimmering. */
+function DrawingCard({ title }: { title?: string }) {
+  return (
+    <div data-testid="widget-skeleton" aria-busy="true" role="status" aria-label="Drawing the Widget">
+      <Eyebrow className="mb-1">Drawing…</Eyebrow>
+      {title && <p className="mb-3 text-sm leading-5 font-medium">{title}</p>}
+      <div aria-hidden="true" className="flex flex-col gap-3">
+        <div className="skeleton h-5 w-2/3" />
+        <div className="skeleton h-28 w-full" />
+        <div className="skeleton h-4 w-1/2" />
+      </div>
+    </div>
+  );
+}
+
+/** Scrolls the nearest scrolling ancestor of `el` (the Widget panel's aside) back to the top. */
+function scrollToTop(el: HTMLElement | null) {
+  for (let p = el?.parentElement; p; p = p.parentElement) {
+    const overflow = getComputedStyle(p).overflowY;
+    if ((overflow === "auto" || overflow === "scroll") && p.scrollHeight > p.clientHeight) {
+      p.scrollTop = 0;
+      return;
+    }
+  }
 }
 
 /**

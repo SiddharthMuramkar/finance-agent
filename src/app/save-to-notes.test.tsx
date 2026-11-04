@@ -55,7 +55,7 @@ describe("after Save to notes", () => {
 
   it("is the plain Save to notes button before a save and after Undo", () => {
     const idle = renderToStaticMarkup(<SaveToNotesView state={{ status: "idle" }} what="Widget" onSave={noop} onUndo={noop} />);
-    expect(idle).toMatch(/<button[^>]*aria-label="Save this Widget to notes"[^>]*>Save to notes<\/button>/);
+    expect(idle).toMatch(/<button[^>]*aria-label="Save this Widget to notes"[^>]*>(<svg.*<\/svg>)?Save to notes<\/button>/);
     expect(idle).not.toContain("Undo");
   });
 });

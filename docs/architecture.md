@@ -684,14 +684,12 @@ the widget uses): an AnnuityChart or the `annuity_schedule` tool is "Present val
 "Formula", a kit chart or table with no tool and none of our code-backed parts "Illustration", and
 anything else the current Topic's title. A finished widget the check refuses shows only the fallback
 note, so its eyebrow is the Topic's title too, never "Illustration". The newest widget shows on its own, including when a new
-turn brings one. With two or more widgets a row of tabs, each named by its widget's title (never a number; "Untitled Widget" when the Tutor gave none), sits above the card on one line that scrolls sideways instead of wrapping; a long title is cut short with an ellipsis and shown in full on hover. Picking a tab, or an "Open: <title> →" chip in the chat, shows that widget, fades it in over 200ms,
-flashes the card border navy for one second and marks both chips active. Before any widget, a dashed
+turn brings one. With two or more widgets (or a quiz open) a **pager** header (`widget-pager.tsx`) sits above the card: ‹ and › as 32px buttons, "3 of 11 · <title>" in the middle, and an "All" button that opens a listbox. Each row of the listbox shows the eyebrow, the title and "from message N", with the current one checked; the Check tab and the Explore item (still `explore-chip`, hidden below the laptop width) are rows too. While the panel has focus, ← and → page (a slider or field keeps its own arrows), and Escape closes the listbox and puts focus back on "All". Picking a widget, from the pager or from a chip in the chat, crossfades it in over 150ms with a 4px rise, plays a ring pulse around the card for 600ms (no more border flash), scrolls the panel back to the top, and holds the card at the last widget's height for 400ms so the column below does not jump. The chip in the chat is a 36px card-link with the widget's title and three states: "View widget →", "Showing" (filled brand) and "Drawing…" (a shimmer); pressing the one already showing scrolls to the top and pulses again. As soon as a widget's fence opens, the card shows a skeleton with "Drawing…" until the widget is written, then the widget replaces it. Before any widget, a dashed
 box says "Widgets for this Topic will appear here." Scenario: the Learner has a rate chart from earlier
-and a loan calculator from this reply; the calculator shows, eyebrow "Calculator"; they click the
-"Long-term interest rates" tab and the chart fades in under "Case Data". With eight widgets open the
-tabs still take one line; the Learner scrolls the row sideways to reach the older ones. Trade-off: one widget at a
+and a loan calculator from this reply; the calculator shows, "2 of 2 · What a home loan costs", eyebrow "Calculator"; they press ‹ and the chart fades in under "Case Data", "1 of 2". With eleven widgets open the
+header is still one line; "All" lists them with where each came from. Trade-off: one widget at a
 time keeps the panel calm and the sliders roomy, but comparing two widgets means switching between
-them; and a single scrolling row hides the far tabs until scrolled, where wrapping would push the card down.
+them; and a pager hides the other widgets' names behind one more press where a strip of tabs showed a few at once.
 
 **The Sourced strip and readable Case Data charts.** Under a Widget that calls `case_data`, one thin
 amber line per dataset shows the Sourced tag, the dataset's label and its ⓘ credit; before the reveal
@@ -717,17 +715,19 @@ labelled through the Tutor's instructions and the server's Widget check, not her
 Widget tool and Sourced strip on it reads through it (`useCaseLoad`). What it holds: one answer from
 `/api/case-data/<case>` per Case and reveal state. The page reads on the server which Cases the Learner
 has seen revealed (`revealedCases`) and passes them in, so an answer fetched before a reveal is never
-served after it, nor the other way. When it clears: at the end of every Tutor turn (a turn can open the
-reveal), and whenever the revealed list changes; Widgets already on the page then read again, and a failed
-load is forgotten so the next read retries. Scenario: at the Fed Topic's explore step the panel shows a
+served after it, nor the other way. After every Tutor turn (a turn can open the
+reveal) the cache is **stale while revalidating**: it keeps every entry on screen, asks the server again in the
+background, and replaces an entry only if its data changed, telling readers only then. When the revealed list changes,
+or something clears the cache outright, Widgets already on the page read again; a failed load is forgotten so the
+next read retries, and a failed revalidation keeps what is held. Scenario: at the Fed Topic's explore step the panel shows a
 history chart of the funds rate and a Formula Card reading its latest point, while the explore Widget's
 chart compares against the same Case; the page makes one request, not three, and nothing flashes as
-each part loads. The Learner presses Next to the reveal; as the turn ends the cache clears, the next
-read fetches the full series, and a Widget the Tutor draws after the reveal shows February 1994 onwards.
+each part loads. The Learner asks a question; as the turn ends the cache asks again, the series is the same, and the chart
+never shows "Fetching sourced data…". The Learner presses Next to the reveal; the revalidation or the new revealed list
+brings the full series, and a Widget the Tutor draws after the reveal shows February 1994 onwards.
 Trade-off: data stays in the browser for the whole page, so a change made elsewhere (another device
-reaching the reveal) shows only after the next turn or a reload; and the cache refetches after every turn
-even when nothing changed, one small request per Case on the page, which buys never having to work out
-in the browser whether a turn opened a reveal.
+reaching the reveal) shows only after the next turn or a reload; and each turn still costs one small request per Case on the
+page, which buys never having to work out in the browser whether a turn opened a reveal, without the flash a wholesale clear caused.
 
 Home is the one page that fills the cache another way. Its `CaseDataProvider` is given `cases`, Case
 Data already read on the server under the signed-out as-of rule; the cache then answers only from
@@ -1111,11 +1111,19 @@ the header in the same wide box as the workspace, so the title and links never s
 and narrows only the content below it. The trade-off: the header is wider than the text under it on
 those pages. The header (spec #77) has "Finance Agent" at the far left as the page heading, linking to
 Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past Sessions · Notes ·
-Settings · Dark mode · Sign out. The current page's link is marked (`aria-current`), the Study Workspace included, and no
-other link points at `/`. Sign out (`SignOutButton`) is a plain form posting to `/api/logout`, styled
-like the links; Home's signed-in top bar uses the same button. The gaps shrink to 8px below 1024px so the
-row stays on one line from 768px, with room for the Notes link (#69) and the Settings link (#129)
-before the theme toggle (measured in the system font at 14px: about 720px of the 736px there is). Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
+Settings, a thin divider, the theme toggle, Sign out. What is clickable looks clickable: "Finance Agent" has a small
+mark, the title "Home" and a hover wash; each page link is a pill (`NavLink`, which marks the current page with
+`aria-current` and fills its pill, the Study Workspace included, and shows a small dot inside while its page is
+loading); the theme toggle is an icon button named "Dark mode" that is `aria-pressed` while dark mode is on; Sign
+out (`SignOutButton`) is a plain form posting to `/api/logout`, styled as a small outlined button (Home's signed-in
+top bar uses the same component). No other link points at `/`. The Study Workspace and Course Map links are
+prefetched in full, so they open at once; the others use the default. A 2px bar across the top of the window
+(`route-bar.tsx`, mounted in `layout.tsx`) creeps along from a link press until the address changes, then finishes
+and fades. Below 1024px the pills, the text (13px) and the gaps shrink and the divider hides, so the row stays on one
+line from 768px (estimated at about 700px of the 736px there is; the pills' padding is the first thing to trim if a
+page link is added). The trade-off: more of the header is drawn, so it is wider than the old plain text links and
+the narrow-width margin is thin. Disclosures (Under the hood, Sources, folded rows) end in a chevron that turns a
+quarter turn when open (`Chevron` in `ui.tsx`), so a summary reads as something to open. Smaller details in the same pass: the Course Map's prerequisite confirm is a labelled
 group that moves focus to its main button (Escape or "Not now" gives focus back), the cited sentence on a
 Passage has an amber underline as well as a fill, and old Session pages keep two columns on an iPad.
 
@@ -1125,6 +1133,24 @@ and every piece follows at once without a single per-component dark rule.
 
 **Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
 a quick palette class. In return the look stays consistent and a colour change is one line.
+
+## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
+
+**What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
+mounted once in the root layout, outside every scroller. Anything that wants to say something calls `useAnnounce()`.
+Saying the same words twice in a row is heard twice: the region is emptied, then filled on the next beat. Save to notes
+no longer carries a hidden `role="status"` of its own under every reply (16 live regions in a long Session, each a
+chance to make the page taller); it calls `announce("Saved to notes")` once per save. The control moves through
+idle, "Saving…" (a spinner), "Saved ✓" for 1.6 seconds, then back to a "Save to notes" button with a quiet "Saved"
+badge, Undo and Open notes. A failed save shows a visible `role="alert"` message ("Could not save. Try again.") and a
+Retry button.
+
+**Scenario.** The Learner presses Save to notes under a reply. The button shows a spinner and "Saving…"; when the
+server answers, "Saved ✓" shows for a moment, a screen reader hears "Saved to notes" once, and the button comes back
+with a "Saved" badge beside it. Pressing it again saves nothing twice, since the server keeps one saved item per reply.
+
+**Trade-off.** The control is a little taller than the old caption (a 32px ghost button). Other status messages (the
+turn status in the left column, the Widget loaders) still have their own regions and are not on the announcer yet.
 
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
@@ -2306,7 +2332,7 @@ worth trusting (one could hold several Topics), so their Topics are still read f
 the Tutor context left in their messages; with none found the row says "No Topic".
 
 A row opens the Session's page: a "← Past Sessions" back link at the top, then a header, then the
-workspace's two columns, read-only, with "Open: <title> →" chips and the Widget panel. A Topic Session's
+workspace's two columns, read-only, with chat chips (the widget's title and "View widget →") and the Widget panel. A Topic Session's
 header shows the Topic, the date last worked on and **Resume this Topic**, a plain form post to `/api/open`
 that makes it the current Topic and opens the Study Workspace; once the Topic is passed it shows Passed ✓
 instead. An Older session's header shows its date, its Topics (or No Topic) and "Older session · read-only",
@@ -2655,7 +2681,7 @@ costs extra tokens for the code and its output and is optional: the Tutor is tol
 - **Turn streaming and its state** (`useTurnStream` in `turn-stream.ts`). It holds the conversation on screen and the turn being run: it posts to `/api/turn`, streams the reply in, resumes a cut-off turn on its own, waits for a turn running elsewhere, and keeps the notice, the error, Retry and "cut short". It also gives assistant-ui its runtime. It draws nothing.
 - **The left column** (`LeftColumn` in `left-column.tsx`), with the message box, the writing indicator and Attach a passage in `message-box.tsx`. It draws the Topic bar, the pinned explore Widget, the folded review, the thread, the turn's notices and Retry, the quiz note while a quiz is open, and the box. Every button that starts a turn calls the turn stream's `send`.
 - **The frame and layout** (`WorkspaceFrame` in `workspace-frame.tsx`). It owns only the two-column grid, fixed to the space under the header, and the right column's scrolling.
-- **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), the open quiz's Check tab, which of them the panel shows, and the "Open: <title> →" chip that stands in each reply. Each new turn sends the panel back to the newest Widget, or to the Check tab while a quiz is open.
+- **The Widget panel host** (`useWidgetHost` and `WidgetHost` in `widget-host.tsx`). It works out the conversation's Widgets (the Tutor's plus the Topic's explore Widget), the open quiz's Check tab, which of them the panel shows, and the chip ("View widget →", "Showing", "Drawing…") that stands in each reply. It also works out which message each Widget came from, for the pager's All menu. Each new turn sends the panel back to the newest Widget, or to the Check tab while a quiz is open.
 
 The page (`src/app/study/page.tsx`) still renders `Conversation` with the same props, so nothing the Learner sees changed; the markup is the same as before the split.
 
