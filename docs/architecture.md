@@ -1619,6 +1619,45 @@ paragraph and stops, rather than ending with "so, what rate did you find?" again
 
 **Trade-off.** The limit is a request to the model, not a cut: a reply may still run long, and the report shows it.
 
+### Reply checks: the rules every Tutor reply must meet, as code (`src/tutor/reply-checks.ts`, spec #229, ticket #230)
+
+**What it does.** A pure module, with no model and no database, that reads a finished Tutor reply and lists every rule
+it breaks. The reply is its text, its last line (the ask, when that line asks a question or says what to do), the
+Widgets it showed and any rule it saved to the Topic Note. The turn's context is the Teaching Step, the Reply kind,
+the Topic's example currency and its Cases' currencies, the open quiz's questions with their answers, and the ids the
+Learner must never read. The seven checks are:
+
+- V1: the message and the ask together are within the cap. The cap is 80 words at Concept, Your turn and Check, and
+  120 for a worked example, a Go deeper reply and every other step (`capFor`). Words are counted the way the Learner
+  reads them: Widget and sources fences, Citation markers and bare Markdown symbols do not count (`countWords`).
+- V2: at most one question in the message, an ask of 25 words or fewer, and no other line opening with a task verb
+  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask.
+- V3: no "Great question", "Certainly", "Absolutely" or "Code recorded", no emoji or decorative arrows, no headings
+  and at most one bold span.
+- V4: at most one Widget, and each one passes the Widget validator the caller hands in.
+- V5: no open quiz answer together with its question's numbers, in the text or the saved rule, and no Widget preset
+  that uses a blocked number. The blocked numbers are every number in the open attempt's questions, choices and
+  answers, normalised so that 4.5, 4.50 and 4.50% match (`blockedNumbersFrom`).
+- V6: no app words: the ids passed in, snake_case tool and step names, "Course Navigator", "Session item",
+  "Reply kind", "Skill state", and "Code" as the subject of a sentence. Topic, Check, Check tab, Widget, Next,
+  Go deeper, Show me in a widget, Quick try and Concept card stay allowed.
+- V7: a dollar amount (or a "$" in a Widget's labels) only when the Topic's examples or a Case are in dollars, and a
+  rupee amount only when they or a Case are in rupees.
+
+`fixReply` makes the fixes that cost no retry first (emoji and arrows out, headings flattened, only the first bold
+span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line
+per failed check with its limit ("Your reply was 142 words. The limit is 80. Keep one idea and one ask."), plus the
+numbers to keep away from after a leak. `trimToCap` is the fallback where no Concept card exists: the reply cut at its
+last full sentence within the cap, ask kept. Nothing calls the module yet; the Tutor Turn wires it in later (#239).
+
+**Scenario.** Check 1 of Percent is open with "How many basis points are there in 0.6 of a percentage point?". The
+Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach the idea on numbers other than 0.6,
+6, 60 and 600. The retry says "0.2 of a point is 20 bp" instead and passes.
+
+**Trade-off.** The checks read words, not meaning. A reply can pass V5 by saying "sixty" in words, and a supposition
+that opens "Say the rate goes…" counts as a task line. Both are left to the live-model tests, which grade the
+meaning; code catches the common, cheap-to-spot slips on every reply at no cost.
+
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
 **What it does.** A Topic file may carry an Insight (the question to put, the written Insight, a
