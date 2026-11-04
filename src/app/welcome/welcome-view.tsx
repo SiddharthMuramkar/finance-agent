@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Topic } from "@/course/map";
-import { STEP_NAMES, type TeachingStep } from "@/course/navigator";
+import { STEP_NAMES, TEACHING_STEPS } from "@/course/navigator";
 import { PROFILE_PRIVACY, ProfileForm } from "../profile/profile-form";
 import { Card, Eyebrow, primaryButtonClass, secondaryButtonClass } from "../ui";
 import { StartTopicButton } from "./start-topic-button";
@@ -15,9 +15,6 @@ export const welcomeHref = (panel: WelcomePanel) => (panel === "how-a-topic-work
 export function welcomePanel(value: string | string[] | undefined): WelcomePanel {
   return WELCOME_PANELS.find((p) => p === value) ?? "how-a-topic-works";
 }
-
-/** The seven kinds of Teaching Step, in the order a Topic meets them. */
-const STRIP: TeachingStep[] = ["story", "concept", "your_turn", "check", "explore", "reveal", "principle"];
 
 /** Skip always lands on the Your first Topic card. */
 const SKIP = welcomeHref("first-topic");
@@ -37,7 +34,8 @@ function HowATopicWorks() {
       <h2 className="text-xl font-semibold leading-7">How a Topic works</h2>
       <p className="mt-2 text-sm leading-5">Each Topic walks through the same kinds of Teaching Step:</p>
       <ol data-step-strip aria-label="Teaching Steps" className="mt-3 flex flex-wrap gap-1.5">
-        {STRIP.map((step) => (
+        {/* The seven kinds of Teaching Step, in the order a Topic meets them (the Course Navigator's). */}
+        {TEACHING_STEPS.map((step) => (
           <li key={step} className="rounded border border-[var(--border)] px-2 py-1 text-xs font-medium leading-4">
             {STEP_NAMES[step]}
           </li>

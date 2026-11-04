@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Jump, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
-import { checkResults, insightAttempts, learnerState, misconceptions, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
+import { checkResults, insightAttempts, learnerState, misconceptions, OWNER_LEARNER_ID, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 /**
@@ -64,9 +64,18 @@ async function saveProgress(db: Db, progress: Progress, now: Date, learnerId: nu
  * Choosing a Topic: saves the new current Topic and shows its Session at once. The shown Session is
  * cleared, so the Study Workspace shows the current Topic's own Session, or the Topic before its first
  * turn (the opener). Nothing waits for the next turn.
+ *
+ * A failed or cut-off turn that never reached a Session belongs to the Topic the Learner leaves, though its row
+ * does not say so: once another Topic is chosen it is set aside (marked finished), so it never blocks that Topic's
+ * opener and its Retry never sends the left Topic's message into that Topic's Session.
  */
-async function saveCurrentTopic(db: Db, after: Progress, now: Date, learnerId: number) {
+async function saveCurrentTopic(db: Db, map: CourseMap, before: Progress, after: Progress, now: Date, learnerId: number) {
   await saveState(db, learnerId, { currentTopicId: after.currentTopicId, updatedAt: now, shownSessionId: null });
+  if (navigate(map, before)?.topic.id === navigate(map, after)?.topic.id) return;
+  await db
+    .update(turns)
+    .set({ status: "finished" })
+    .where(and(eq(turns.learnerId, learnerId), isNull(turns.sessionId), inArray(turns.status, ["failed", "cut_off"])));
 }
 
 /**
@@ -76,14 +85,14 @@ async function saveCurrentTopic(db: Db, after: Progress, now: Date, learnerId: n
 export async function saveJump(db: Db, map: CourseMap, topicId: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<Jump> {
   const progress = await loadProgress(db, learnerId);
   const jump = jumpTo(map, progress, topicId);
-  if (jump.ok) await saveCurrentTopic(db, jump.progress, now, learnerId);
+  if (jump.ok) await saveCurrentTopic(db, map, progress, jump.progress, now, learnerId);
   return jump;
 }
 
 /** The Learner goes back to the default path; the Topic they leave keeps its progress. Its Session shows at once. */
 export async function saveReturnToDefaultPath(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
   const progress = await loadProgress(db, learnerId);
-  await saveCurrentTopic(db, returnToDefaultPath(progress), now, learnerId);
+  await saveCurrentTopic(db, map, progress, returnToDefaultPath(progress), now, learnerId);
 }
 
 /**

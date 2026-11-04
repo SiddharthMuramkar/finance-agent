@@ -114,6 +114,23 @@ describe("a quiz result card", () => {
     expect(refused.requests).toHaveLength(0);
   });
 
+  it("after a pass, a typed message gets the divider for the step not yet begun, before the reply that teaches it", async () => {
+    const db = await testDb();
+    const { sessionId, quiz } = await atQuiz(db);
+    await submitQuizAnswers(db, map, quiz.attemptId, right(quiz), new Date(), OWNER_LEARNER_ID);
+    const typed = await turn(db, "What comes now?", [say("The second concept.")]);
+
+    const divider = { role: "item", kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 9 · Concept" } };
+    // The browser draws it as it is stored, before the reply, as a reload does.
+    expect(typed.events.filter((e) => e.type === "item")).toEqual([{ type: "item", item: { kind: divider.kind, data: divider.data } }]);
+    expect(seen(await loadThread(db, sessionId, map)).slice(-3)).toEqual([{ role: "user", text: "What comes now?" }, divider, { role: "assistant", text: "The second concept." }]);
+    expect(sent(typed.requests[0])).not.toContain("Step 5 of 9");
+
+    // The next message is in the middle of that step: no second divider.
+    await turn(db, "Go on.", [say("Money later is worth less.")]);
+    expect((await loadThread(db, sessionId, map)).filter((e) => e.role === "item" && e.kind === "step")).toHaveLength(1);
+  });
+
   it("with every question right reads \"3 of 3 — passed ✓\", and a repeat submission stores no second card", async () => {
     const db = await testDb();
     const { sessionId, quiz } = await atQuiz(db);
@@ -146,8 +163,13 @@ describe("a conversation Check's result card", () => {
 
     const passed = await turn(db, "Because it could earn interest meanwhile.", [verdict("toolu_v2", "pass", checkId), say("Exactly.")]);
     const pass = { role: "item", kind: "check_result", data: { check: 2, passed: true, label: "Check 2 — passed ✓" } };
-    expect(passed.events.find((e) => e.type === "item")).toEqual({ type: "item", item: { kind: pass.kind, data: pass.data } });
-    expect(seen(await loadThread(db, sessionId, map)).slice(-2)).toEqual([pass, { role: "assistant", text: "Exactly." }]);
+    // The pass moves the Learner on, so the divider for the new step follows the card: a finished step can be scrolled back to.
+    const divider = { role: "item", kind: "step", data: { step: "reveal", number: 8, label: "Step 8 of 9 · Reveal" } };
+    expect(passed.events.filter((e) => e.type === "item")).toEqual([
+      { type: "item", item: { kind: pass.kind, data: pass.data } },
+      { type: "item", item: { kind: divider.kind, data: divider.data } },
+    ]);
+    expect(seen(await loadThread(db, sessionId, map)).slice(-3)).toEqual([pass, divider, { role: "assistant", text: "Exactly." }]);
     expect(sent(passed.requests.at(-1)!)).not.toContain("Check 2 — not passed yet");
     expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ step: "reveal" });
   });

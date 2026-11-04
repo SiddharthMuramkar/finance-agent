@@ -4,11 +4,7 @@ import type { Topic } from "./map.ts";
 // The course check for You'll learn (spec #119). Every written Topic gives two or three short
 // bullets in words: no digits, currency or percent signs, no typed formula (ADR 0002), and none that
 // repeats the written Insight, since the bullets are shown before the Learner has found it.
-// Topics not yet filled are on a list that can only shrink: a Topic on it that has bullets must come
-// off. No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
-
-/** Topics with no You'll learn yet, in default-path order. Remove an ID when its Topic is filled; never add one. */
-export const NOT_YET_FILLED: readonly string[] = [];
+// No "@/" imports, so `scripts/check-course.mjs` can run it under plain Node.
 
 const FIGURE = /[0-9%$€£₹¥]/;
 
@@ -31,17 +27,13 @@ function repeatsInsight(bullet: string, insight: string): boolean {
   return shared >= 3 && shared / new Set([...own, ...theirs]).size >= 0.6;
 }
 
-export function youllLearnCheckErrors(topics: Pick<Topic, "id" | "youllLearn" | "insight">[], notYet: readonly string[] = NOT_YET_FILLED): string[] {
+export function youllLearnCheckErrors(topics: Pick<Topic, "id" | "youllLearn" | "insight">[]): string[] {
   const errors: string[] = [];
-  const ids = new Set(topics.map((t) => t.id));
-  for (const id of notYet) if (!ids.has(id)) errors.push(`"${id}" is on the not-yet-filled list but is not a Topic: remove it from src/course/youll-learn-check.ts`);
   for (const topic of topics) {
-    const listed = notYet.includes(topic.id);
     if (!topic.youllLearn?.length) {
-      if (!listed) errors.push(`Topic ${topic.id} has no You'll learn: give it two or three short bullets drafted from its concept and principle`);
+      errors.push(`Topic ${topic.id} has no You'll learn: give it two or three short bullets drafted from its concept and principle`);
       continue;
     }
-    if (listed) errors.push(`Topic ${topic.id} has You'll learn: remove it from the not-yet-filled list in src/course/youll-learn-check.ts`);
     topic.youllLearn.forEach((bullet, i) => {
       const where = `You'll learn bullet ${i + 1}`;
       if (FIGURE.test(bullet)) errors.push(`Topic ${topic.id} has a figure in ${where}; write it in words: "${bullet}"`);

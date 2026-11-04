@@ -42,27 +42,14 @@ export async function loadProfile(db: Db, learnerId = OWNER_LEARNER_ID): Promise
   return { work: row.work, location: row.location, loan: row.loan, savingFor: row.savingFor, offerDismissed: row.offerDismissed };
 }
 
-/** Saves all four answers. Saving also ends the first-visit offer, even if every answer was cleared. */
+/** Saves all four answers. (It also sets `offerDismissed`, the flag of the old first-visit card, which nothing reads now.) */
 export async function saveProfile(db: Db, input: ProfileInput, now: Date = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
   const values = { ...input, offerDismissed: true, updatedAt: now };
   await db.insert(learnerProfile).values({ id: learnerId, learnerId, ...values }).onConflictDoUpdate({ target: learnerProfile.id, set: values });
 }
 
-/** "Not now" on the first-visit card: the card is never offered again. Answers already saved are kept. */
-export async function dismissProfileOffer(db: Db, now: Date = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
-  await db
-    .insert(learnerProfile)
-    .values({ id: learnerId, learnerId, offerDismissed: true, updatedAt: now })
-    .onConflictDoUpdate({ target: learnerProfile.id, set: { offerDismissed: true, updatedAt: now } });
-}
-
 export function hasProfile(p: Profile): boolean {
   return PROFILE_FIELDS.some((f) => p[f.key] !== null);
-}
-
-/** The first-visit card shows until the Learner saves or says "Not now". */
-export function shouldOfferProfile(p: Profile): boolean {
-  return !p.offerDismissed && !hasProfile(p);
 }
 
 export const PROFILE_BLOCK_HEADING =

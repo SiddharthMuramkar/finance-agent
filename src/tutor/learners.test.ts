@@ -4,7 +4,7 @@ import { importCaseData } from "@/case-data/import";
 import { learners, OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
-import { dismissProfileOffer, loadProfile, profileInput, saveProfile, shouldOfferProfile } from "@/learner/profile";
+import { loadProfile, profileInput, saveProfile } from "@/learner/profile";
 import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
 import { presentValueOnly } from "@/test/present-value-map";
@@ -209,7 +209,6 @@ describe("two Learners in the Tutor Turn", () => {
     await saveProfile(db, profileInput.parse({ work: "Teacher" }), new Date(), second);
     expect(await loadProfile(db, OWNER_LEARNER_ID)).toMatchObject({ work: "Nurse", location: "Pune" });
     expect(await loadProfile(db, second)).toMatchObject({ work: "Teacher", location: null });
-    expect(shouldOfferProfile(await loadProfile(db, third))).toBe(true);
 
     const ownerTurn = turnFor(db, OWNER_LEARNER_ID, "Hi", [say("Hello.")]);
     await ownerTurn.events;
@@ -222,10 +221,6 @@ describe("two Learners in the Tutor Turn", () => {
     expect(sent(secondTurn.requests[0])).toContain("- Work: Teacher");
     expect(sent(secondTurn.requests[0])).not.toContain("Nurse");
     expect(sent(thirdTurn.requests[0])).not.toContain("Learner Profile");
-
-    // "Not now" on one Learner's card doesn't hide another's.
-    await dismissProfileOffer(db, new Date(), third);
-    expect(shouldOfferProfile(await loadProfile(db, third))).toBe(false);
     expect((await loadProfile(db, second)).work).toBe("Teacher");
   });
 

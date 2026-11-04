@@ -13,6 +13,7 @@ import { exploreItem, PinnedExplore } from "./widget-panel";
 import { Chips, TopicBar, type PassedTopic, type Place } from "./workspace-parts";
 import type { NextOffer, StepSequence } from "@/course/navigator";
 import { TOPIC_START } from "@/course/topic-start";
+import { STEP_DIVIDER } from "@/tutor/session-item-kinds";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
 
 /**
@@ -56,7 +57,7 @@ export function LeftColumn({
   // The passed Topic's conversation ends at its Topic complete card, which offers where to go next.
   const carded = messages.some((m) => m.role === "item" && m.kind === TOPIC_COMPLETE);
   // The steps whose divider ("step" items) is in the thread: the strip scrolls back to those.
-  const marked = new Set(messages.flatMap((m) => (m.role === "item" && m.kind === "step" && typeof m.data.number === "number" ? [m.data.number] : [])));
+  const marked = new Set(messages.flatMap((m) => (m.role === "item" && m.kind === STEP_DIVIDER && typeof m.data.number === "number" ? [m.data.number] : [])));
   return (
     <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
       {/* Capped at two fifths of the column and scrolling inside itself, so nothing up here (a pinned Widget, a Review) can squeeze the chat. */}

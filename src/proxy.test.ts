@@ -75,7 +75,6 @@ describe("The signed-out gate", () => {
     // The Learner Profile API is behind the passcode too.
     expect((await proxy(request("/api/profile"))).status).toBe(401);
     expect((await proxy(request("/api/profile", { method: "PUT" }))).status).toBe(401);
-    expect((await proxy(request("/api/profile/dismiss", { method: "POST" }))).status).toBe(401);
   });
 
   it("sends /study to the login, remembering it", async () => {

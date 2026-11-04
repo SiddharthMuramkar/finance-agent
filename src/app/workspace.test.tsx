@@ -350,13 +350,20 @@ describe("coming back to a Topic", () => {
     { role: "assistant", text: "Because it can earn interest." },
   ];
 
-  it("draws Picking up where you left off as a centred divider after the last reply, with the message box ready", () => {
+  it("draws Picking up where you left off as a centred divider after the last reply, with the Next chip under it and the message box ready", () => {
     const label = "Picking up where you left off · Step 6 of 10 · Concept";
-    const html = workspace({ initial: [...initial, { role: "item", kind: "picking_up", data: { step: "concept", number: 6, label } }] });
+    const next = { kind: "next", step: "your_turn", label: "Next: Your turn", advances: true } as const;
+    const html = workspace({ initial: [...initial, { role: "item", kind: "picking_up", data: { step: "concept", number: 6, label } }], next });
     const divider = html.match(/<div[^>]*data-testid="picking-up-divider"[^>]*>.*?<\/div>/)?.[0];
     expect(divider).toContain('role="separator"');
     expect(divider).toContain(label);
     expect(html.indexOf(label)).toBeGreaterThan(html.indexOf("Because it can earn interest."));
+    // One Next chip follows the divider, beside the two help chips.
+    const chips = html.match(/<button[^>]*data-testid="next-chip"[^>]*>[^<]*<\/button>/g) ?? [];
+    expect(chips).toHaveLength(1);
+    expect(chips[0]).toContain("Next: Your turn →");
+    expect(html.indexOf('data-testid="next-chip"')).toBeGreaterThan(html.indexOf(label));
+    expect(html.match(/data-testid="help-chip"/g)).toHaveLength(2);
     expect(html).toContain('placeholder="Ask the Tutor"');
   });
 

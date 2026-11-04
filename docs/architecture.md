@@ -1619,9 +1619,11 @@ with no prerequisite prompt (the Learner picked it from their own record). A pas
 chosen, so its own Session is shown instead (`learner_state.shown_session_id`), read-only with its
 Topic complete card, exactly as after the turn that passed it; the current Topic doesn't move.
 Scenario: Present value is passed and the Learner is in Bond prices; they open Present value from
-Progress, reread its Principle, then press What comes next to go back to Bond prices. Trade-off: a
-passed Topic with no Session of its own (passed before Sessions were per Topic) opens the workspace on
-the current Topic instead; its old Sessions are still under Past Sessions.
+Progress, reread its Principle, then press What comes next to go back to Bond prices. A passed Topic
+with no Session of its own (passed in an Older session, before Sessions were per Topic) goes to Past
+Sessions instead, as its Course Map row does, and nothing changes. Trade-off: that row lands on the
+whole list rather than the one Older session that passed it, which would need a search of Older
+sessions by Topic; the list shows it near the top under Older sessions.
 
 If a chosen Topic has prerequisites the Learner hasn't passed, the row first warns: "Bond prices
 builds on Present value, which you have not passed yet. You can fill the gap first, or go ahead
@@ -1678,8 +1680,15 @@ design tokens; the first two sit under the app header, Login (signed out) has no
   `/api/jump` answers "A turn is in progress…" and changes nothing; `/api/open` then just opens the
   Study Workspace, which says the same.
 - **The shown Session** (`learner_state.shown_session_id`) is what the Study Workspace renders
-  (`shownInWorkspace`). A turn saves the Session it runs in; choosing clears it, which means "the
+  (`shownInWorkspace`). A turn saves the Session it runs in, and so does a quiz submission that passes
+  the Topic (its last Due Check), which is not a turn; choosing clears it, which means "the
   current Topic's own Session, or that Topic before its first turn".
+- **A failed turn with no Session.** A turn that failed (or was cut off) before it reached a Session has
+  no Topic on its row, so the page shows it on whatever Topic is current. Choosing another Topic sets
+  it aside (marks it finished), so the new Topic's opener starts and a Retry never sends the left
+  Topic's message into the new Topic's Session. Choosing the same Topic keeps it and its Retry. The
+  trade-off: the Learner's unsent message is dropped rather than kept for the Topic they left, which
+  needs no new column.
 - **The opener.** When the shown Session has no messages (and no turn is unfinished), the page starts a
   turn by itself (`{ opener: true }`). Code writes its note, starting "Opener by code:", and no Learner
   bubble is drawn. The note teaches the saved step: the Story in a Topic not yet started; otherwise the
@@ -1690,7 +1699,10 @@ design tokens; the first two sit under the app header, Login (signed out) has no
 - **Turn kinds.** A turn records its kind (`turnKind`): a code-written turn saves its note, with its
   fixed prefix, as the turn's input, so "opener" (and, since the Learner's Next, "next", and since Tell the
   Tutor what I found, "widget_report") is read off the turn row and a Retry sends the same note again. Every
-  other turn is a "message" (or a "chip").
+  other turn is a "message" (or a "chip"). On the wire, `src/tutor/turn-body.ts` is the one list of kinds:
+  `/api/turn` parses the body with its zod union (one kind per request; a body naming two is refused
+  rather than silently picking one) and the browser's `TurnBody` is its type, so a new kind is one entry
+  there plus its handler in the Tutor Turn.
 - **A Topic passed in a turn** (its Principle finished, or its last Due Check passed): the tool result
   tells the Tutor "Topic complete: stop here" and gives no context for another Topic, and the next
   Topic is not started. The Learner's current Topic moves on, but the shown Session stays: the
@@ -1734,6 +1746,12 @@ opener.
   nothing; a finish that passes the Topic stores none either (the Topic complete card marks that);
   a repeated tool call, or one re-run after a cut-off, returns its saved result and stores no second
   divider.
+- **Every other move on gets one too.** A conversation Check's pass (`record_check_verdict`) moves the
+  Learner on, so its divider follows the "Check 2 — passed ✓" card in the same transaction ("Step 8 of 9 ·
+  Reveal"). A step reached outside a turn (a quiz pass, or a Due Check reopening a passed Topic) has its
+  divider stored by whichever turn teaches it first: the Learner's Next stores it with the move, and a
+  typed message or help chip stores it right after the Learner's message, before the reply, and streams it
+  as an item. So every step the Topic bar marks done has a divider to scroll back to.
 - **Drawn in place.** `loadThread` is `loadSession`'s lines with each item placed after the message it
   follows. An item that falls inside a reply (the Tutor gave feedback, finished the step, then began
   teaching the next one) cuts the reply in two there; every part but the last carries `more`. The
@@ -1743,7 +1761,8 @@ opener.
   `SessionItemView` draws it by its kind: a `step` item is a small centred line with its label. A kind
   it does not know draws nothing, so an item from a later change never breaks the thread. The
   Picking up and Due Check dividers (`picking_up`, `due_check`, see "Coming back") are drawn the same way; Check results and Topic complete add their kind there and
-  store their rows the same way.
+  store their rows the same way. The kinds live in `src/tutor/session-item-kinds.ts`, which has no server
+  imports, so the browser's views and checks key on the same constants the server stores.
 - **Live.** The turn streams `{ type: "item" }` as the tool stores it. The browser ends the reply part
   on screen, draws the divider and streams the rest of the reply into a new part. A replayed reply
   (a resume after a cut-off, or a refusal) arrives as one text, so it replaces the parts and their
@@ -2957,8 +2976,8 @@ loads.
 loan, and what they are saving for. Each is optional, trimmed, and at most 200 characters. It lives in
 one row per Learner (`learner_profile`, whose id is the Learner's; the owner's is 1). A new Learner is
 asked on the Welcome's About you panel (Next saves, Skip saves nothing); the old first-visit card, with
-its Save and Not now, is gone, so its `offer_dismissed` flag and `/api/profile/dismiss` are no longer
-used by any page. About you, the first section of the Settings page, edits the same four answers later
+its Save and Not now, is gone, and so is its `/api/profile/dismiss` route; its `offer_dismissed` column
+stays (dropping it would need a migration) but nothing reads it. About you, the first section of the Settings page, edits the same four answers later
 (the old `/profile` address redirects there, and Progress no longer links to it). Both go
 through `/api/profile`, which sits behind the passcode like every other route. No model call is made to save it.
 
@@ -3022,8 +3041,9 @@ Sessions (Older ones count) and has not yet chosen a Topic (`showsWelcome`). The
 such a Learner here, so signing in, Home's Start and Settings' Start over all land on it; the Welcome
 sends anyone else to the Study Workspace. It has three panels, each its own address
 (`/welcome?panel=…`), so Next and Skip are plain links:
-1. **How a Topic works.** The seven kinds of Teaching Step as a strip (Story, Concept, Your turn,
-   Check, Explore, Reveal, Principle), "Concept → Your turn → Check repeats for each Check" and "The
+1. **How a Topic works.** The seven kinds of Teaching Step as a strip (Story, Concept, Explore,
+   Your turn, Check, Reveal, Principle: the Course Navigator's `TEACHING_STEPS`, the order Home and the
+   glossary use), "Concept → Your turn → Check repeats for each Check" and "The
    Tutor talks on the left. Things you can move and try appear on the right."
 2. **About you.** The same Learner Profile form as Settings, every answer optional. Next saves the
    answers; Skip saves nothing.
@@ -3124,11 +3144,11 @@ backfill reload places the corrected readings.
 
 ## You'll learn (`youllLearn` in `course/topics/*.yaml`, `src/course/map.ts`, `src/course/youll-learn-check.ts`, spec #119)
 
-**What it does.** Each Topic file carries two or three short "You'll learn" bullets that tell a Learner what the Topic gives them; the Topic Start card and the Welcome show them. Claude drafts them from the concept and principle only, never the Insight, the reveal or the Case's outcome, and they sit in the Topic files for the owner to review and reword. The course parser exposes them as `topic.youllLearn`. `npm run course:check` requires them on every written Topic and rejects a bullet that holds a digit, a currency sign or a percent sign, a typed formula (the same raw-formula detector as ADR 0002), or a repeat of the Topic's written Insight. Topics not yet filled sit on a not-yet-filled list (`NOT_YET_FILLED`) that can only shrink: a Topic on it that gains bullets must come off, and a Topic off it with none fails.
+**What it does.** Each Topic file carries two or three short "You'll learn" bullets that tell a Learner what the Topic gives them; the Topic Start card and the Welcome show them. Claude drafts them from the concept and principle only, never the Insight, the reveal or the Case's outcome, and they sit in the Topic files for the owner to review and reword. The course parser exposes them as `topic.youllLearn`. `npm run course:check` requires them on every written Topic and rejects a bullet that holds a digit, a currency sign or a percent sign, a typed formula (the same raw-formula detector as ADR 0002), or a repeat of the Topic's written Insight. A written Topic with no bullets fails.
 
 **Scenario.** Percent shows "Tell a change in percentage points from a change in percent.", "Read rate moves in basis points, the way bond traders quote them." and "Name the base of every change so its size is never mixed up." If someone rewords the second to "Read a move of 25 basis points", the course check fails with `Topic num-percent-bps has a figure in You'll learn bullet 2; write it in words`. If someone pastes present value's Insight in as a bullet (or the same words in a new order), the check fails with `bullet 3 repeats its Insight`, because the bullets are on screen before the Learner has found it.
 
-**Trade-off.** "Repeats the Insight" is a word-overlap test (the Insight held whole, or three in five of the two texts' meaningful words shared), so it catches pasting and light rewording but not a bullet that gives the Insight away in quite different words; the owner's review is the guard for that. The figure rule is strict: a bullet cannot say "two" as "2", and cannot name a Case's year, which keeps every number the Learner sees in Case Data or a calculator. Every Topic is now filled (the first third by #137, the middle third, Trade and globalisation to Bank runs, by #138, and the last third by #139), so the not-yet-filled list is empty and the course check requires bullets on every Topic, including any Topic written later.
+**Trade-off.** "Repeats the Insight" is a word-overlap test (the Insight held whole, or three in five of the two texts' meaningful words shared), so it catches pasting and light rewording but not a bullet that gives the Insight away in quite different words; the owner's review is the guard for that. The figure rule is strict: a bullet cannot say "two" as "2", and cannot name a Case's year, which keeps every number the Learner sees in Case Data or a calculator. Every Topic is now filled (the first third by #137, the middle third, Trade and globalisation to Bank runs, by #138, and the last third by #139), so the course check requires two or three bullets on every written Topic, including any Topic written later.
 
 ## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/guided-task-check.ts`, issue #66)
 

@@ -4,12 +4,13 @@ import { parseCourseMap, type CourseMap } from "@/course/map";
 import type { TeachingStep } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { OWNER_LEARNER_ID } from "@/db/schema";
-import { loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
+import { loadProgress, openCurrentTopic, saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { checkTabNow, type OpenQuiz } from "@/learner/quiz";
 import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { submitQuizAnswers } from "./check-results";
+import { passedTopicShown, shownInWorkspace } from "./session-log";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 
@@ -109,12 +110,18 @@ describe("a passed Topic", () => {
     // The quiz Check is added: the passed Topic owes it, and its Session reopens for the Due Check run.
     await turn(db, "Ready for the new Check.", [say("Here is the new concept.")], withQuiz);
     await saveSteps(db, withQuiz, ["concept", "your_turn"]);
+    // The Learner left and came back through Home's main button, which shows the current Topic (no Session pinned).
+    await openCurrentTopic(db, OWNER_LEARNER_ID);
     const quiz = (await checkTabNow(db, withQuiz, new Date(), OWNER_LEARNER_ID)).quiz as OpenQuiz;
     const right = Object.fromEntries(quiz.questions.map((q) => [q.id, withQuiz.question(q.id)!.answer]));
     const result = await submitQuizAnswers(db, withQuiz, quiz.attemptId, right, new Date(), OWNER_LEARNER_ID);
     expect(result).toMatchObject({ ok: true, passed: true, complete: card });
 
     const items = seen(await loadThread(db, sessionId, withQuiz)).filter((e) => e.role === "item");
-    expect(items.map((e) => e.role === "item" && e.kind)).toEqual(["topic_complete", "due_check", "check_result", "topic_complete"]);
+    expect(items.map((e) => e.role === "item" && e.kind)).toEqual(["topic_complete", "due_check", "step", "check_result", "topic_complete"]);
+    // The passed Topic's Session, with its card, stays on screen (a reload too) until the Learner chooses where to go.
+    const shown = await shownInWorkspace(db, withQuiz, OWNER_LEARNER_ID);
+    expect(shown).toEqual({ sessionId });
+    expect(await passedTopicShown(db, withQuiz, OWNER_LEARNER_ID, shown)).toBe("present-value");
   });
 });

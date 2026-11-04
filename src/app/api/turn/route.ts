@@ -2,12 +2,11 @@ import { currentLearnerId } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { voyageQueryEmbedder } from "@/library/voyage";
 import { anthropicTutorClient } from "@/tutor/anthropic";
-import { MAX_PASTE_WORDS, PASTE_MESSAGE, wordCount } from "@/tutor/pasted";
+import { MAX_PASTE_WORDS, wordCount } from "@/tutor/pasted";
 import type { Shown } from "@/tutor/session-log";
-import { runTutorTurn, type TurnInput } from "@/tutor/turn";
-import type { NextName } from "@/tutor/next";
+import { runTutorTurn, type StreamEvent, type TurnEvent } from "@/tutor/turn";
+import { turnBody, turnInputOf } from "@/tutor/turn-body";
 import { cleanSentWidgets } from "@/tutor/widget-context";
-import { TEACHING_STEPS, type TeachingStep } from "@/course/navigator";
 
 export const runtime = "nodejs";
 // Vercel Hobby's ceiling for one function, streaming included. The turn stops itself
@@ -23,11 +22,6 @@ function shownOf(value: unknown): Shown | undefined {
   return undefined;
 }
 
-/** The step a Next names (or "complete" for Complete this Topic); anything else is not a Next. */
-function nextOf(value: unknown): NextName | undefined {
-  return value === "complete" || TEACHING_STEPS.includes(value as TeachingStep) ? (value as NextName) : undefined;
-}
-
 /**
  * Runs one Tutor turn (a message, Next, a widget report, Finish this reply, the opener the page starts for a Session
  * with no messages, or the quiz follow-up it starts after a missed quiz), or resumes the last one, and streams its events as
@@ -35,40 +29,13 @@ function nextOf(value: unknown): NextName | undefined {
  * whose Topic is no longer the Learner's current one (`stale`).
  */
 export async function POST(request: Request) {
-  const body = (await request.json()) as {
-    message?: string;
-    paste?: string;
-    finish?: boolean;
-    continue?: boolean;
-    opener?: boolean;
-    next?: unknown;
-    widgetReport?: unknown;
-    quizFollowUp?: boolean;
-    resume?: boolean;
-    shown?: unknown;
-    widgets?: unknown;
-  };
-  const paste = body.paste?.trim();
+  // One kind of turn per request (turn-body.ts): a body naming none, or two, is refused.
+  const parsed = turnBody.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return Response.json({ error: "Send one kind of turn: a message, finish, opener, next, widgetReport, quizFollowUp or resume." }, { status: 400 });
+  const body = parsed.data;
+  const paste = "paste" in body ? body.paste?.trim() : undefined;
   if (paste && wordCount(paste) > MAX_PASTE_WORDS) return Response.json({ error: `A paste can hold at most ${MAX_PASTE_WORDS} words; paste the part being studied.` }, { status: 400 });
-  const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);
-  const next = nextOf(body.next);
-  const widgetReport = typeof body.widgetReport === "string" && body.widgetReport.trim() ? body.widgetReport : undefined;
-  // A tab opened before Finish this reply replaced the cut-off reply's Continue still sends `continue`: it means the same.
-  const input: TurnInput | undefined = body.resume
-    ? { resume: true }
-    : body.opener
-      ? { opener: true }
-      : next
-        ? { next }
-        : widgetReport
-          ? { widgetReport }
-          : body.quizFollowUp
-            ? { quizFollowUp: true }
-            : body.finish || body.continue
-              ? { finish: true }
-              : message && paste
-                ? { message, paste }
-                : message;
+  const input = turnInputOf(body);
   if (!input) return Response.json({ error: "Empty message" }, { status: 400 });
 
   const started = Date.now();
@@ -91,14 +58,16 @@ export async function POST(request: Request) {
   const stream = new ReadableStream({
     async start(controller) {
       // If the browser has gone, keep running so every loop step is still saved; it resumes or reloads.
-      const send = (event: object) => {
+      const send = (event: StreamEvent) => {
         try {
           controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
         } catch {}
       };
+      // "done" says how long the turn ran.
+      const stamped = (event: TurnEvent): StreamEvent => (event.type === "done" ? { ...event, elapsedMs: Date.now() - started } : event);
       try {
-        if (!first.done) send(first.value);
-        for await (const event of turn) send(event.type === "done" ? { ...event, elapsedMs: Date.now() - started } : event);
+        if (!first.done) send(stamped(first.value));
+        for await (const event of turn) send(stamped(event));
       } catch (error) {
         console.error("Tutor turn failed", error);
         send({ type: "error", kind: "error", message: error instanceof Error ? error.message : "The turn failed." });

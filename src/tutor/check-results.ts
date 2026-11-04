@@ -2,8 +2,9 @@ import type { CourseMap } from "@/course/map";
 import type { Marking } from "@/course/quiz";
 import type { Db } from "@/db/types";
 import { pendingQuizNote, submitQuiz, type QuizResult } from "@/learner/quiz";
-import { currentTopicId, liveSession } from "./session-log";
+import { currentTopicId, liveSession, saveShownSession } from "./session-log";
 import { saveItemAfterLatest, type SessionItem } from "./session-items";
+import { CHECK_RESULT } from "./session-item-kinds";
 import { storeTopicComplete } from "./topic-complete";
 import { QUIZ_FOLLOW_UP_PREFIX } from "./turn-status";
 
@@ -14,8 +15,7 @@ import { QUIZ_FOLLOW_UP_PREFIX } from "./turn-status";
  * from the note written here, and the Tutor goes over the missed questions.
  */
 
-/** The kind of a Check result card. */
-export const CHECK_RESULT = "check_result";
+export { CHECK_RESULT };
 
 /** The number (from 1) of the Check among its Topic's Checks, or null when it is not on the Course Map. */
 function checkNumber(map: CourseMap, checkId: string): number | null {
@@ -69,6 +69,8 @@ export async function submitQuizAnswers(
     await saveItemAfterLatest(tx, learnerId, session.id, item, now);
     // A pass of the last Due Check passes the Topic again: its Topic complete card follows the result card.
     complete = await storeTopicComplete(tx, map, learnerId, session.id, now);
+    // The passed Topic's Session, with its card, stays on screen until the Learner chooses where to go.
+    if (complete) await saveShownSession(tx, learnerId, session.id);
   });
   return result.ok && item ? { ...result, item, ...(complete ? { complete } : {}) } : result;
 }

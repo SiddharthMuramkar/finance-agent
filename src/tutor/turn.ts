@@ -15,7 +15,7 @@ import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
-import type { SessionItem } from "./session-items";
+import { saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { storeTopicComplete } from "./topic-complete";
 import { describeFailure, type FailureKind } from "./failures";
@@ -134,7 +134,10 @@ export type TurnEvent =
   /** The API call failed; everything already saved is kept and the Learner can retry. */
   | { type: "error"; kind: FailureKind; message: string };
 
-export const CUT_SHORT_MESSAGE = "The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
+/** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
+export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
+
+export const CUT_SHORT_MESSAGE ="The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
 /** The refusal message when tool calls earlier in the same turn had already saved progress. */
 export const REFUSAL_AFTER_SAVES_MESSAGE =
@@ -449,6 +452,16 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
       await log.append({ role: "user", content: learnerBlocks.length > 1 ? learnerBlocks : learnerText });
       // A completed Topic's note already tells the Tutor to stop: it gets no context for another Topic.
       if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
+    }
+    // A typed message or help chip on a step not yet begun (a quiz pass moved the Learner on, or a Due Check reopened
+    // the Topic) draws that step's divider before the reply that teaches it. A Next stores its own when it takes the move.
+    const typed = turnKind(turn) === "message" || turnKind(turn) === "chip";
+    if (typed && !completed && session.topicId && (quiz?.passed || comingBack.some((i) => i.kind === DUE_CHECK))) {
+      const divider = stepDivider(map, await loadProgress(db, learnerId), session.topicId);
+      if (divider) {
+        await saveItemAfterLatest(db, learnerId, session.id, divider, now());
+        yield { type: "item", item: divider };
+      }
     }
     if (quiz) await markQuizReported(db, quiz.attemptIds, now(), learnerId);
   }

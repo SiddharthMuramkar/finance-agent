@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, type Topic } from "./map";
-import { NOT_YET_FILLED, youllLearnCheckErrors } from "./youll-learn-check";
+import { youllLearnCheckErrors } from "./youll-learn-check";
 
 const map = loadCourseMap();
 const pv = map.topic("present-value")!;
@@ -15,53 +15,40 @@ describe("the You'll learn course check", () => {
   });
 
   it("fails a written Topic with no You'll learn", () => {
-    expect(youllLearnCheckErrors([topicWith("fresh")], [])).toEqual([
+    expect(youllLearnCheckErrors([topicWith("fresh")])).toEqual([
       "Topic fresh has no You'll learn: give it two or three short bullets drafted from its concept and principle",
     ]);
   });
 
   it("passes a Topic whose bullets are plain words", () => {
-    expect(youllLearnCheckErrors([topicWith("fresh", good)], [])).toEqual([]);
-  });
-
-  it("lets a Topic on the not-yet-filled list go without, but makes a filled one come off", () => {
-    expect(youllLearnCheckErrors([topicWith("old")], ["old"])).toEqual([]);
-    expect(youllLearnCheckErrors([topicWith("old", good)], ["old"])).toEqual([
-      "Topic old has You'll learn: remove it from the not-yet-filled list in src/course/youll-learn-check.ts",
-    ]);
-  });
-
-  it("makes a list entry for a Topic that does not exist come off", () => {
-    expect(youllLearnCheckErrors([], ["gone"])).toEqual([
-      '"gone" is on the not-yet-filled list but is not a Topic: remove it from src/course/youll-learn-check.ts',
-    ]);
+    expect(youllLearnCheckErrors([topicWith("fresh", good)])).toEqual([]);
   });
 
   it("rejects digits, currency signs and percent signs", () => {
     for (const bad of ["Read a move of 25 basis points.", "Say what $ a dollar buys.", "Turn ₹ into dollars.", "Say a rate in % and in points.", "Price in € and £."]) {
-      const errors = youllLearnCheckErrors([topicWith("fresh", [bad, good[1]])], []);
+      const errors = youllLearnCheckErrors([topicWith("fresh", [bad, good[1]])]);
       expect(errors, bad).toHaveLength(1);
       expect(errors[0], bad).toContain("Topic fresh has a figure in You'll learn bullet 1; write it in words");
     }
   });
 
   it("rejects a typed formula, with the raw-formula rule of ADR 0002", () => {
-    const errors = youllLearnCheckErrors([topicWith("fresh", [good[0], "Learn that value = cash / rate."])], []);
+    const errors = youllLearnCheckErrors([topicWith("fresh", [good[0], "Learn that value = cash / rate."])]);
     expect(errors).toHaveLength(1);
     expect(errors[0]).toContain("Topic fresh types a formula in You'll learn bullet 2 (ADR 0002): an equals sign");
   });
 
   it("rejects a bullet that repeats the written Insight", () => {
     const insight = pv.insight!.written;
-    const errors = youllLearnCheckErrors([topicWith("fresh", [good[0], insight])], []);
+    const errors = youllLearnCheckErrors([topicWith("fresh", [good[0], insight])]);
     expect(errors).toEqual(["Topic fresh's You'll learn bullet 2 repeats its Insight: draft it from the concept and principle only"]);
   });
 
   it("rejects a bullet that repeats most of the Insight's words in a new order", () => {
     const insight: NonNullable<Topic["insight"]> = { ...pv.insight!, written: "A small change in the interest rate moves the value of a long stream of payments a great deal." };
     const reworded = "The value of a long stream of payments moves a great deal with a small change in the interest rate.";
-    expect(youllLearnCheckErrors([{ ...topicWith("fresh", [good[0], reworded]), insight }], [])).toHaveLength(1);
-    expect(youllLearnCheckErrors([{ ...topicWith("fresh", good), insight }], [])).toEqual([]);
+    expect(youllLearnCheckErrors([{ ...topicWith("fresh", [good[0], reworded]), insight }])).toHaveLength(1);
+    expect(youllLearnCheckErrors([{ ...topicWith("fresh", good), insight }])).toEqual([]);
   });
 
   it("gives every Follow, Judge and Analyse Topic its You'll learn", () => {
@@ -71,13 +58,5 @@ describe("the You'll learn course check", () => {
       expect(topic.youllLearn?.length ?? 0, topic.id).toBeGreaterThanOrEqual(2);
       expect(topic.youllLearn!.length, topic.id).toBeLessThanOrEqual(3);
     }
-  });
-
-  it("only shrinks: it holds no duplicate and starts from the Topics after the first third", () => {
-    expect(new Set(NOT_YET_FILLED).size).toBe(NOT_YET_FILLED.length);
-    expect(NOT_YET_FILLED).not.toContain("num-percent-bps");
-    expect(NOT_YET_FILLED).not.toContain("present-value");
-    // The ceiling is the list's length once the first and last thirds were filled (95 Topics, 63 filled). Lower it as Topics are filled; never raise it.
-    expect(NOT_YET_FILLED.length).toBeLessThanOrEqual(32);
   });
 });
