@@ -66,7 +66,7 @@ youllLearn:
 questions:
   - id: ef-q-semi-strong
     prompt: >
-      In a market where prices reflect all publicly available information, such as accounts and news announcements, but not private information, which form of efficiency holds?
+      In a market where prices reflect all publicly available information, such as accounts and news announcements, but leave out private information, which form of efficiency holds?
     choices:
       - { id: a, text: "Weak form only" }
       - { id: b, text: "Semi-strong form" }

@@ -23,7 +23,9 @@
 // Environment (the orchestrator sets these):
 //   DATABASE_URL     the test branch's pooled connection string (the server needs the same one)
 //   PASSCODES        the same passcode list the local server was started with; it must list a tools:<passcode> pair
-//   BASE_URL         where the server listens (default http://localhost:3101)
+//   BASE_URL         where the server listens (default http://localhost:3101); localhost, 127.0.0.1 or ::1 only
+//   EVAL_DB_OK       must be "branch", your statement that DATABASE_URL is a Neon test branch. The run prints the database
+//                    host and refuses without it (and refuses the host named by PROD_DB_HOST, if set)
 //   PLAYWRIGHT_CORE  optional path to a playwright-core install when it is not in node_modules
 //
 // The widget checks import src/widgets/check.ts, which uses the "@/" alias, so the script loads `tsx` (already in
@@ -34,6 +36,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
+import { assertLocalBase, assertTestDatabase, assertToolsLearner, textOf } from "./script-guards.mjs";
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -223,8 +226,11 @@ if (!DATABASE_URL) {
   console.error("DATABASE_URL must be set: run with node --env-file=.env (the test branch's .env).");
   process.exit(2);
 }
-if (!/localhost|127\.0\.0\.1/.test(BASE)) {
-  console.error(`Refusing to run against ${BASE}: this eval writes test data, so it only runs against a local server.`);
+try {
+  assertLocalBase(BASE);
+  assertTestDatabase(DATABASE_URL, process.env);
+} catch (e) {
+  console.error(e.message);
   process.exit(2);
 }
 
@@ -253,18 +259,21 @@ const FROM_CODE_PARTS = new Set(["Calculator", "FormulaCard", "HistoryChart", "A
 
 const squash = (text) => String(text ?? "").replace(/\s+/g, " ").trim();
 
+/** The highest message seq of the Learner's latest Session (0 when none): taken just before a prompt is sent, it marks where the prompt starts. */
+async function maxSeq(pool, learnerId) {
+  const { rows } = await pool.query(
+    `select coalesce(max(seq), 0)::int as seq from messages where session_id = (select id from sessions where learner_id = $1 order by id desc limit 1)`,
+    [learnerId],
+  );
+  return rows[0].seq;
+}
+
 /** Which lane served the Widget, and its code, from the Session's rows after the prompt. */
-async function readLane(pool, learnerId, prompt) {
+async function readLane(pool, learnerId, promptSeq) {
   const sessions = (await pool.query(`select id from sessions where learner_id = $1 order by id desc limit 1`, [learnerId])).rows;
   if (!sessions.length) return { lane: "none", note: "no Session" };
   const sessionId = sessions[0].id;
   const messages = (await pool.query(`select seq, role, content from messages where session_id = $1 order by seq`, [sessionId])).rows;
-  const textOf = (m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === "text").map((b) => b.text).join("\n") : "");
-  // The Learner's message can carry extra context blocks, so match on "contains", never "equals": with no match the
-  // opener's Widget would be counted as the answer to the prompt.
-  const promptMsg = [...messages].reverse().find((m) => m.role === "user" && squash(textOf(m)).includes(squash(prompt)));
-  if (!promptMsg) return { sessionId, toolsUsed: [], turn: null, lane: "none", note: "the prompt's message was not found in the Session" };
-  const promptSeq = promptMsg.seq;
   const after = messages.filter((m) => m.seq > promptSeq);
   const toolsUsed = after.flatMap((m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === "tool_use").map((b) => b.name) : []));
   const items = (await pool.query(`select kind, data, after_seq from session_items where session_id = $1 and kind = 'widget_shown' and after_seq >= $2 order by id`, [sessionId, promptSeq])).rows;
@@ -460,6 +469,8 @@ async function evalPrompt(browser, pool, p) {
   };
   const { context, page, learnerId } = await reachStudy(browser);
   try {
+    await assertToolsLearner(pool, learnerId);
+    const promptSeq = await maxSeq(pool, learnerId);
     const box = page.getByRole("textbox", { name: "Message" });
     await box.fill(p.prompt);
     await page.evaluate(WATCHER);
@@ -478,7 +489,7 @@ async function evalPrompt(browser, pool, p) {
     const approx = state.firstPixelMs == null && state.approxFirstPixelMs != null;
     Object.assign(row, { firstPixelApprox: approx || undefined, firstPixelMs: round(state.firstPixelMs ?? state.approxFirstPixelMs), interactiveMs: round(state.interactiveMs ?? state.approxInteractiveMs), doneMs: round(state.doneMs), stuckMs: round(state.stuckMs), stuck: state.stuckMs > 12_000, stopped: state.stopped });
 
-    const lane = await readLane(pool, learnerId, p.prompt);
+    const lane = await readLane(pool, learnerId, promptSeq);
     Object.assign(row, { lane: lane.lane, recipe: lane.recipe ?? null, params: lane.params ?? null, title: lane.title ?? null, code: lane.code ?? null, toolsUsed: lane.toolsUsed ?? [], widgetsShown: lane.widgetsShown ?? 0, sessionId: lane.sessionId ?? null });
     row.prodEq = await prodEquivalent(pool, lane.sessionId, row);
     if (lane.turn?.error && !row.error) row.error = lane.turn.error;
