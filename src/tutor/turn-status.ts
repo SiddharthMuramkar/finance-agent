@@ -30,12 +30,18 @@ export const NEXT_PREFIX = "Next by code:";
  */
 export const FINISH_PREFIX = "Finish by code:";
 
+/**
+ * Opens the correction message the reply checks send for their one retry (reply-gate.ts). It is code's, never the
+ * Learner's: the thread never draws it, and later requests leave it out.
+ */
+export const REPLY_CHECK_PREFIX = "Reply check by code:";
+
 /** The note a Finish this reply turn sends, and sends again on Retry. */
 export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this reply, and has written nothing. Your last reply was cut short at its length limit. Finish it from where it stopped, without repeating what you already wrote, then stop and wait for the Learner.`;
 
 /**
  * The fixed prefix of the note code writes for a quiz follow-up: the turn the page starts by itself after the Learner
- * misses a quiz, in which the Tutor goes over the missed questions. Never drawn as a Learner bubble.
+ * misses a quiz, in which the Tutor takes the first missed question only. Never drawn as a Learner bubble.
  */
 export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
 
@@ -49,8 +55,8 @@ export const WIDGET_REPORT_PREFIX = "Widget report by code:";
 export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX] as const;
 
 /**
- * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
- * that more simply, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, the
+ * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Go
+ * deeper, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, the
  * quiz follow-up after a missed quiz, or a widget report (Tell the Tutor what I found); the last five carry no
  * Learner message.
  */

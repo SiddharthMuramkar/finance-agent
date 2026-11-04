@@ -7,6 +7,7 @@ import { learnerState, messages, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { ENGINE_INSTRUCTIONS, ENGINE_TOOLS, ENGINE_TOOLS_WITH_COMPOSE, TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
+import { rejectedSeqsOf } from "./reply-records";
 
 /**
  * Sessions and their add-only message log: the stored settings a Session is frozen from, which
@@ -160,16 +161,18 @@ export async function sessionForTurn(db: Db, now: Date, learnerId: number, topic
 
 /**
  * After a deploy changed the instructions or tools, the next new turn (never a resume) refreezes the
- * instructions, tools, model and effort inside the same Session and records the seq of the first
- * message after it: thinking blocks before that seq are never sent again (see `openLog`).
+ * instructions and tools inside the same Session and records the seq of the first message after it:
+ * thinking blocks before that seq are never sent again (see `openLog`), and that turn folds the earlier
+ * history into a summary before its reply (turn.ts). The Session keeps its model and effort (spec #229:
+ * "existing Sessions keep theirs"); a changed default reaches new Sessions only.
  */
 export async function refreezeIfChanged(db: Db, session: Session): Promise<Session> {
-  const frozen = await frozenNow(db, session);
-  if (session.fingerprint === frozen.fingerprint) return session;
+  const { instructions, tools, fingerprint } = await frozenNow(db, session);
+  if (session.fingerprint === fingerprint) return session;
   const [{ last }] = await db.select({ last: max(messages.seq) }).from(messages).where(eq(messages.sessionId, session.id));
   const [row] = await db
     .update(sessions)
-    .set({ ...frozen, refrozenAtSeq: (last ?? -1) + 1 })
+    .set({ instructions, tools, fingerprint, refrozenAtSeq: (last ?? -1) + 1 })
     .where(eq(sessions.id, session.id))
     .returning();
   return row;
@@ -206,14 +209,20 @@ export type Row = { seq: number } & Message;
  * - leaves out every row of a refused turn (the Learner's message, context and kept loop steps alike),
  *   which the Learner still sees;
  * - leaves out the thinking blocks of rows before the Session was last refrozen, because the API
- *   rejects thinking made under other instructions or tools. Everything else replays unchanged.
+ *   rejects thinking made under other instructions or tools;
+ * - leaves out what the reply checks rejected (reply_checks): a draft's or failed retry's text-only
+ *   messages and the correction message go, and a rejected tool-use message keeps its tool calls but
+ *   not its text, so every tool_use keeps its tool_result. Everything else replays unchanged.
+ * `rows` is the Session as the Learner saw it (rejected text left out too); rows appended later are kept whole.
  */
 export async function openLog(db: Db, sessionId: number, now: () => Date) {
-  const rows = (await db
+  const stored = (await db
     .select({ seq: messages.seq, role: messages.role, content: messages.content })
     .from(messages)
     .where(eq(messages.sessionId, sessionId))
     .orderBy(asc(messages.seq))) as Row[];
+  let nextSeq = stored.length ? stored[stored.length - 1].seq + 1 : 0;
+  const rows = withoutRejected(stored, await rejectedSeqsOf(db, sessionId));
   const [session] = await db.select({ refrozenAtSeq: sessions.refrozenAtSeq }).from(sessions).where(eq(sessions.id, sessionId));
   const refused = await refusedSeqs(db, sessionId);
   const refrozenAt = session?.refrozenAtSeq ?? 0;
@@ -221,7 +230,6 @@ export async function openLog(db: Db, sessionId: number, now: () => Date) {
     .slice(Math.max(rows.findLastIndex((r) => isCompaction(r.content)), 0))
     .filter((r) => !refused(r.seq))
     .map((r) => ({ role: r.role, content: r.seq < refrozenAt ? withoutThinking(r.content) : r.content }) as Message);
-  let nextSeq = rows.length ? rows[rows.length - 1].seq + 1 : 0;
   return {
     rows,
     /** What the next request sends. */
@@ -250,6 +258,20 @@ async function refusedSeqs(db: Db, sessionId: number): Promise<(seq: number) => 
     .orderBy(asc(turns.turnSeq));
   const ranges = starts.flatMap((t, i) => (t.stopReason === "refusal" ? [[t.seq!, starts[i + 1]?.seq ?? Infinity] as const] : []));
   return (seq) => ranges.some(([from, to]) => seq >= from && seq < to);
+}
+
+/**
+ * Rows without what the reply checks rejected: a rejected user or text-only row goes, and a rejected assistant row
+ * with tool calls keeps everything but its text blocks.
+ */
+export function withoutRejected<R extends { seq: number; role: string; content?: unknown }>(rows: R[], rejected: ReadonlySet<number>): R[] {
+  if (!rejected.size) return rows;
+  return rows.flatMap((r) => {
+    if (!rejected.has(r.seq)) return [r];
+    if (r.role !== "assistant" || !Array.isArray(r.content)) return [];
+    const content = r.content.filter((b) => b?.type !== "text");
+    return content.some((b) => b?.type === "tool_use" || b?.type === "server_tool_use") ? [{ ...r, content }] : [];
+  });
 }
 
 /** Assistant content without its thinking blocks; anything else unchanged. */

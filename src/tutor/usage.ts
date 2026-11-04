@@ -2,6 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { costUsd } from "./pricing";
+import { replyCheckSummaries, type ReplyCheckSummary } from "./reply-records";
 
 /** The token counts the API reports on a finished message; every field may be missing. */
 export type ApiUsage = {
@@ -40,6 +41,8 @@ export type TurnUsage = {
   costUsd: number | null;
   tools: string[];
   steps: StepUsage[];
+  /** What code's reply checks found (reply_checks): the words shown, the checks the reply failed, the retry and the fallback. */
+  replyCheck?: ReplyCheckSummary;
 };
 
 /** Turns one finished message's usage report into a step record. */
@@ -109,8 +112,8 @@ export async function loadStepUsages(db: Db, sessionId: number, turnSeq: number)
 }
 
 /** Saves the turn's total from its saved steps, once the turn has finished. */
-export async function saveTurnTotal(db: Db, sessionId: number, turnSeq: number, model: string, durationMs: number, now: Date): Promise<TurnUsage> {
-  const usage = sumSteps(model, await loadStepUsages(db, sessionId, turnSeq), durationMs);
+export async function saveTurnTotal(db: Db, sessionId: number, turnSeq: number, model: string, durationMs: number, now: Date, replyCheck?: ReplyCheckSummary): Promise<TurnUsage> {
+  const usage: TurnUsage = { ...sumSteps(model, await loadStepUsages(db, sessionId, turnSeq), durationMs), ...(replyCheck && { replyCheck }) };
   await db.insert(usageRows).values({
     sessionId,
     turnSeq,
@@ -154,7 +157,9 @@ export async function loadTurnUsages(db: Db, sessionId: number): Promise<Map<num
     .where(eq(usageRows.sessionId, sessionId))
     .orderBy(asc(usageRows.turnSeq), asc(usageRows.step));
   const out = new Map<number, TurnUsage>();
+  const checks = await replyCheckSummaries(db, sessionId);
   for (const r of rows.filter((r) => r.kind === "turn")) {
+    const replyCheck = checks.get(r.turnSeq);
     const steps: StepUsage[] = rows.filter((s) => s.kind === "step" && s.turnSeq === r.turnSeq).map(toStep);
     out.set(r.turnSeq, {
       model: r.model,
@@ -167,6 +172,7 @@ export async function loadTurnUsages(db: Db, sessionId: number): Promise<Map<num
       costUsd: r.costUsd,
       tools: r.tools,
       steps,
+      ...(replyCheck && { replyCheck }),
     });
   }
   return out;

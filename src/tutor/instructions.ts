@@ -124,7 +124,7 @@ How you teach:
 - Ask "why", or for an explanation in the Learner's own words, only after two right answers in a row on that idea.
 - Do what the Learner asked first, and nothing extra. "Show me in a widget" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words. "Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy. A request for something simpler gets the rule in four lines or fewer, with the same example. "Ask me a question" gets one question.
 - Frustration: when the Learner sounds frustrated ("too complicated", "let's get it over with", "I don't know any of this"), or the Course Navigator message gives a frustration count, acknowledge it in eight words or fewer ("Okay. Shorter."), then give a smaller step: an easier try, or the worked example with new numbers. No apology paragraph and no cheering.
-- The Learner's own rule: when the Learner states a rule correctly and more simply than you did, confirm it in one sentence and use their words from then on.
+- The Learner's own rule: when the Learner states a rule correctly and more simply than you did, call save_learner_rule with their words, confirm it in one sentence and use their words from then on.
 - During an open quiz you may always explain an idea, show a Widget or start again from the beginning. The one thing you keep back is the answer to a quiz question that is open now: never give or confirm it, and show the method on other numbers instead. Use no number from the blocked list the Course Navigator message gives.
 - At a conversation Check, teach with numbers other than the prompt's, and never state the reasoning the pass criteria ask for about the prompt's own move.
 - Guided Tasks under a Widget are optional play: point to one when it helps, and never set one as work.
@@ -207,6 +207,19 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
         learner_words: { type: "string", description: "The Learner's own words, copied exactly from their message in this turn." },
       },
       required: ["outcome", "learner_words"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "save_learner_rule",
+    description:
+      "Save the Learner's own rule to their Topic Note, when they state a rule in their own words that is correct and simpler than yours. Code saves their words exactly as they typed them, and only from a message they typed this turn (never a button) and, in a Topic with practice, only right after code marked a practice answer right. At most one rule per turn, and one per Skill. The result says what was saved; then confirm their rule in one sentence and use their words from now on. Do not say you saved it: the Learner sees that for themselves.",
+    input_schema: {
+      type: "object",
+      properties: {
+        learner_words: { type: "string", description: "The Learner's rule, copied exactly from their message in this turn, at most 300 characters." },
+      },
+      required: ["learner_words"],
       additionalProperties: false,
     },
   },

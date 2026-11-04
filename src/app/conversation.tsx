@@ -95,6 +95,7 @@ export function Conversation({
     quiz,
     missed,
     writtenAhead,
+    onRetry: () => void turn.send({ resume: true }),
     onQuizSubmitted: ({ passed, item, complete }) => {
       // The result card goes in the conversation at once, where a reload draws it, and after it any Topic complete card.
       if (item) turn.appendItem(item);
