@@ -224,6 +224,12 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: "start_again",
+    description:
+      "Start the Topic again from its first idea, when the Learner is lost or asks to start over. In a Topic with Concept cards, code shows the cards again in order, then the first Quick try; the Learner's step and any open quiz stay where they are. Elsewhere it is refused: teach the first idea again in words.",
+    input_schema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
     name: "record_check_verdict",
     description:
       "Record your verdict on the current conversation Check, once the Learner has answered and you have questioned their reasoning. Code accepts a verdict only for the current Check, saves it with your reasons as evidence, and replies with what comes next. A pass moves the Learner on; not yet keeps them at the Check to try again.",
