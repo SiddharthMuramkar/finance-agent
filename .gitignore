@@ -20,3 +20,6 @@ __pycache__/
 # Build and type caches
 *.tsbuildinfo
 next-env.d.ts
+
+# Live Tutor test, sweep and replay reports (can hold Learner messages)
+evidence/tutor-eval/
