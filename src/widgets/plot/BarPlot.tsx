@@ -46,6 +46,7 @@ export function HitBands({ n, x, width, active, onActive, label }: { n: number; 
           height={PLOT_H}
           fill="transparent"
           tabIndex={i === stop ? 0 : -1}
+          role="img"
           aria-label={label(i)}
           onPointerEnter={() => onActive(i)}
           onPointerDown={() => onActive(i)}
@@ -73,7 +74,7 @@ export function BarPlot({ labels, series, stacked, y, ticks, unitsPerPixel, acti
   };
   const [d0] = y.domain;
   return (
-    <svg viewBox={`0 0 ${PLOT_W} ${PLOT_H}`} role="img" aria-label={ariaLabel} className="block w-full">
+    <svg viewBox={`0 0 ${PLOT_W} ${PLOT_H}`} role="group" aria-label={ariaLabel} className="block w-full">
       {ticks.map((t) => (
         <line key={t} x1={0} x2={PLOT_W} y1={y(t)} y2={y(t)} strokeWidth={1} vectorEffect="non-scaling-stroke" className="stroke-[var(--border)]" />
       ))}

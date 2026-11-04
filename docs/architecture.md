@@ -776,6 +776,7 @@ only built together, and the package's per-file build is broken in 0.18.1 (a mis
 script is still over 1 MB and the stylesheet over 120 KB (our own CSS is 66 KB of it). The loader and stand-ins match
 this package version's text: after an OpenUI upgrade, run `npm run build` and read the sizes, and `openui-trim.test.ts`
 fails if the loader's patterns stop matching.
+The CSS trim itself lives in `openui-stubs/trim-openui.cjs` and `postcss.config.mjs` lists every plugin by path with an options object, the only form both Turbopack and `next dev --webpack` accept (`postcss-config.test.ts` guards it).
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
@@ -1261,6 +1262,23 @@ and every piece follows at once without a single per-component dark rule.
 **Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
 a quick palette class. In return the look stays consistent and a colour change is one line.
 
+## Colour themes and the contrast check (`src/app/globals.css`, `scripts/check-theme-contrast.mjs`)
+
+**What it does.** There are four colour sets, each a full block of the 26 tokens above: Light (`:root`), Midnight
+(`:root.dark`, the dark theme, which replaced the old mirrored-Tailwind dark), Paper (`:root[data-theme="paper"]`, a warm
+low-glare light) and Forest (`:root.dark[data-theme="forest"]`, a soft green-grey dark). Midnight, Paper and Forest sit
+inside `@media screen`, so printing always falls back to Light's tokens (the print block also forces `color-scheme: light`).
+No block inherits colours from another. The palettes are adapted from Catppuccin Mocha, Rose Pine Dawn and Everforest (all
+MIT; credited in the CSS comments only). Nothing in the UI picks Paper or Forest yet; setting `data-theme` by hand shows them.
+`scripts/check-theme-contrast.mjs` reads the CSS and fails the `check` script if any theme drops below its contrast rules
+(body text, links, accents, tags, focus ring), if a token is missing, or if Light's colours change.
+
+**Scenario.** Someone edits `--muted` in Midnight to something a little too dark. `npm run check` prints which rule failed
+and for which theme, and exits non-zero, so the change cannot merge.
+
+**Trade-off.** Four full blocks repeat every token, so adding a token means editing four places; the checker flags a
+missing one. In return no theme can silently pick up another's colour, and the contrast numbers are enforced, not hoped for.
+
 ## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
 
 **What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
@@ -1574,11 +1592,17 @@ World Bank and the Federal Reserve. If the Learner is in the 1992 Topic before i
 request returns nothing dated after that Case's as-of date, so a later Sensex close cannot give the
 outcome away.
 
-**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while the current
-Topic has a Case whose reveal is not yet shown, code clips every reference series to the earliest such
-as-of date (and leaves out a series with nothing earlier). The page's Case Data cache still keys on
-reveals only, so a series fetched before a reveal stays clipped on that page until it is reloaded: safe,
-but slightly stale. Some series are derived or approximate (gold in rupees is the international price
+**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while any Topic the
+Learner has started has a Case whose reveal is not yet shown, code clips every reference series to the
+earliest such as-of date (`referenceClip`; a series with nothing earlier is left out). The payload carries
+that clip date, and the page's Case Data cache drops its held reference entry whenever the clip changes
+(`setReferenceClip`, driven by the provider's `referenceClip` prop), so the reference series is refetched
+at once instead of staying stale until a turn ends. An import writes new points first, in chunks of 2,000,
+and only then deletes dates missing from the new file, so a failure part-way leaves the old points in
+place; it refuses a reference dataset id that is not in `REFERENCE_DATASET_IDS`, and the import script
+prints its database host and needs `--yes`. The dev scripts `widget-eval` and `layout-check` share
+`scripts/script-guards.mjs` (local base URL only, tools Learner only, `EVAL_DB_OK=branch` and never the
+`PROD_DB_HOST` host). Some series are derived or approximate (gold in rupees is the international price
 at the monthly exchange rate, without duty; typical rates are the middle of an RBI range), and each
 dataset's check note says so.
 
@@ -3726,7 +3750,7 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 
 **Scenario.** After a change to the Widget engine, run a local production build against the Neon test branch, then `npm run widgets:eval -- <folder>`. Prompt 3 ("SIP, 1000 a month for 20 years") comes back as a `grow_money` recipe, Grow archetype, 46 s to first pixel on a slow Tutor turn; the report shows that as a failed first-pixel target and the screenshot shows the Widget. `--only 3,11,19` runs a few prompts as a smoke test.
 
-**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The timings include the model's thinking time, so they measure the whole experience, not only the engine. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
+**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The raw timings include the model's thinking time and, on a laptop far from the database, about 35 s of database round trips per turn, so the report also gives production-equivalent timings: the model's step durations from the `usage` table plus 100 ms of tool work, 500 ms of server overhead and the locally measured client render. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
 
 ## Present value pilot check (`src/tutor/pilot.test.ts`, `src/course/connections-check.ts`, `scripts/browser-check.mjs`, ticket #74)
 

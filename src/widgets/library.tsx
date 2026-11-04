@@ -111,6 +111,15 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
   const field = useStateField(props.name, props.value);
   const [draft, setDraft] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  // After Enter or Escape in the typed-value box the box goes away: hand focus to the value button (not after a blur).
+  const valueButton = useRef<HTMLButtonElement>(null);
+  const refocus = useRef(false);
+  useEffect(() => {
+    if (!editing && refocus.current) {
+      refocus.current = false;
+      valueButton.current?.focus();
+    }
+  }, [editing]);
   const value = Number(field.value ?? props.min);
   const set = (next: number) => field.setValue(settledValue(next, props));
   const commit = () => {
@@ -141,8 +150,12 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => setDraft(e.target.value),
     onBlur: commit,
     onKeyDown: (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") commit();
+      if (e.key === "Enter") {
+        refocus.current = true;
+        commit();
+      }
       if (e.key === "Escape") {
+        refocus.current = true;
         setDraft(null);
         setEditing(false);
       }
@@ -166,6 +179,7 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
           <>
             <output className="hidden shrink-0 font-medium tabular-nums @[22rem]:inline">{reading}</output>
             <button
+              ref={valueButton}
               type="button"
               title="Tap to type a value"
               onClick={() => setEditing(true)}

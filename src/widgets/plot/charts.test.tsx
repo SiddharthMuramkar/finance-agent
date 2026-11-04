@@ -85,7 +85,23 @@ describe("the kit's charts", () => {
     const hit = host.querySelectorAll<SVGRectElement>('[data-testid="plot-hit"]')[0];
     expect(hit.getAttribute("aria-label")).toBe("Jan: ₹4,000");
     await act(async () => hit.dispatchEvent(new Event("focusin", { bubbles: true })));
-    expect(host.querySelector('svg[role="img"]')?.getAttribute("aria-label")).toContain("Spend");
+    expect(host.querySelector('svg[role="group"]')?.getAttribute("aria-label")).toContain("Spend");
+  });
+
+  it("names each focusable band and announces the focused value politely", async () => {
+    await draw(<BarChartPlot labels={["a", "b", "c"]} series={[{ category: "S", values: [1, 2, 3] }]} yLabel="Rupees" />);
+    const hits = [...host.querySelectorAll<SVGRectElement>('[data-testid="plot-hit"]')];
+    for (const h of hits) {
+      expect(h.getAttribute("role")).toBe("img");
+      expect(h.getAttribute("aria-label")).toBeTruthy();
+    }
+    const readout = host.querySelector('[data-testid="plot-readout"]')!;
+    expect(readout.getAttribute("aria-live")).toBe("polite");
+    hits[0].focus();
+    await act(async () => void 0);
+    const first = readout.textContent;
+    await act(async () => void hits[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })));
+    expect(readout.textContent).not.toBe(first);
   });
 
   it("moves focus point to point with one tab stop", async () => {
