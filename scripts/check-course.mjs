@@ -8,7 +8,8 @@ import { formulaCheckErrors } from "../src/course/formula-check.ts";
 import { connectionsCheckErrors } from "../src/course/connections-check.ts";
 import { guidedTaskCheckErrors } from "../src/course/guided-task-check.ts";
 import { youllLearnCheckErrors } from "../src/course/youll-learn-check.ts";
-import { writtenAheadCheckErrors } from "../src/course/written-ahead-check.ts";
+import { onlyTaskCheckErrors, writtenAheadCheckErrors } from "../src/course/written-ahead-check.ts";
+import { HOME_WIDGET } from "../src/app/_landing/home-widget-spec.ts";
 import { parseOutline, renderCourseMapDoc } from "../src/course/outline.ts";
 
 const DOC = "docs/course-map.md";
@@ -30,6 +31,9 @@ if (unreachable.length) fail("Guided Tasks that cannot work", unreachable);
 
 const writtenAhead = writtenAheadCheckErrors(map.topics);
 if (writtenAhead.length) fail("Written-ahead Widgets that cannot be drawn or worked", writtenAhead);
+
+const home = onlyTaskCheckErrors(map.topics, HOME_WIDGET);
+if (home.length) fail("Home's Widget cannot be drawn or worked", home);
 
 const noConnections = connectionsCheckErrors(map.topics);
 if (noConnections.length) fail("Topics with an Insight need Connections", noConnections);
