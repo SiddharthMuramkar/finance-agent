@@ -53,7 +53,7 @@ export function hasProfile(p: Profile): boolean {
 }
 
 export const PROFILE_BLOCK_HEADING =
-  "Learner Profile (shared by the Learner; use it only to choose everyday examples, in the Learner's currency when an example is about their life, and never as advice):";
+  "Learner Profile (shared by the Learner; use it only when the Learner asks how an idea applies to them, and never as advice):";
 
 /** The Tutor's own block in a Session's opening message, from this Learner's profile; null when they have shared nothing. */
 export async function profileBlock(db: Db, learnerId: number): Promise<string | null> {
