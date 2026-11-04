@@ -8,18 +8,30 @@ import { calculatorRecipe } from "./calculator-recipe";
  * GuidedTasks). The recipe sets (set-a.ts, set-b.ts) add the rest of the catalog on the new primitives.
  */
 
-/** What actually happened: one Case Data series on a time axis, from the list code sent. */
+/** What actually happened: one Case Data series on a time axis (optionally log), or the Learner draws what came next. */
 export const historyCase = defineRecipe({
   id: "history_case",
   archetype: "History",
-  summary: "What actually happened: draws one Case Data series (a reference from the Case Data list code sent, such as \"reference/sensex-close\") as a dated chart. No controls.",
-  params: { inputs: z.object({}), refs: z.object({ dataset: caseDataRef }), facts: z.object({}) },
+  summary:
+    'What actually happened: draws one Case Data series (a reference from the Case Data list code sent, such as "reference/sensex-close") as a dated chart; scale "log" shows steady growth as a straight line. With draw set, the Learner first draws where it went next, then sees the record. The as-of rule decides what is drawn: nothing after the Case\'s as-of date shows before the reveal.',
+  params: {
+    inputs: z.object({
+      scale: z.enum(["linear", "log"]).optional().describe('"log" opens the chart on a log axis'),
+      draw: z.object({ prompt: z.string().trim().min(5).max(80) }).optional().describe("Turns the chart into a draw-the-next-stretch task"),
+    }),
+    refs: z.object({ dataset: caseDataRef }),
+    facts: z.object({}),
+  },
   budget: { controls: 0, numbers: 0, visuals: 1, words: 12 },
   examples: [
     { title: "The Sensex at its milestones, 1979 to March 1992", inputs: {}, refs: { dataset: "sensex-1992/sensex-close" }, facts: {} },
-    { title: "Gold in rupees per 10 grams", inputs: {}, refs: { dataset: "reference/gold-inr-10g" }, facts: {} },
+    { title: "Gold in rupees per 10 grams", inputs: { scale: "log" }, refs: { dataset: "reference/gold-inr-10g" }, facts: {} },
+    { title: "Where was the Sensex heading?", inputs: { draw: { prompt: "Draw the next stretch of the Sensex" } }, refs: { dataset: "sensex-1992/sensex-close" }, facts: {} },
   ],
-  compile: ({ title, refs }) => program(title, ["history"], [`history = HistoryChart(${str(refs.dataset)})`]),
+  compile: ({ title, inputs: p, refs }) => {
+    if (p.draw) return program(title, ["draw"], ["$drawn = []", `draw = DrawTheLine(${str(refs.dataset)}, "", ${str(p.draw.prompt)}, $drawn)`]);
+    return program(title, ["history"], [`history = HistoryChart(${str(refs.dataset)}${p.scale ? `, ${str(p.scale)}` : ""})`]);
+  },
 });
 
 /** What money becomes: a savings calculator with one input on a slider. */
@@ -93,6 +105,18 @@ export const formula = defineRecipe({
   ],
   compile: ({ title, inputs: p, refs }) => {
     const f = formulaById(p.formula)!;
+    // Every symbol exactly once, or the card would only say "Working it out…" (ADR 0002: the card shows the formula).
+    const given = [p.slider.symbol, ...Object.keys(p.held), ...Object.keys(refs.sourced)];
+    const missing = f.symbols.filter((s) => !given.includes(s.key)).map((s) => s.key);
+    const twice = given.filter((k, i) => given.indexOf(k) !== i);
+    const unknown = given.filter((k) => !f.symbols.some((s) => s.key === k));
+    if (missing.length || twice.length || unknown.length) {
+      throw new Error(
+        [missing.length && `${p.formula} needs a value for ${missing.join(", ")}`, twice.length && `${[...new Set(twice)].join(", ")} given more than once`, unknown.length && `${unknown.join(", ")} not a symbol of ${p.formula}`]
+          .filter(Boolean)
+          .join("; ") + `. Its symbols: ${f.symbols.map((s) => s.key).join(", ")}`,
+      );
+    }
     const unit = f.symbols.find((s) => s.key === p.slider.symbol)?.unit;
     const slider: CompiledSlider = { name: "control", variable: p.slider.symbol, label: p.slider.label, range: p.slider, unit: unit === "percent" || unit === "years" ? unit : "usd" };
     const tasks = taskStatements([slider])!;
