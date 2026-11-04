@@ -4,3 +4,10 @@
  */
 export { exactEquals, exactFrom, formatExact, parseAnswer, plainExact } from "./answers";
 export type { Exact, SignRule, Unit } from "./answers";
+export { ANSWER_FNS } from "./quantities";
+export type { AnswerFnId } from "./quantities";
+export { MISTAKE_FNS } from "./mistakes";
+export type { KnownMistakeSpec, MistakeFnId } from "./mistakes";
+export type { DrawnItem, ParamRange, QuestionTemplate } from "./templates";
+export { markAnswer } from "./mark";
+export type { FixedItem, Verdict } from "./mark";
