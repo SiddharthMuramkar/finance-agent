@@ -31,6 +31,13 @@ describe("a case file", () => {
     expect(errors.join("\n")).toMatch(/extra/);
   });
 
+  it("reads the Quick try an answer case names, and refuses a try that is not an id or a key it does not know", () => {
+    const answered = { ...live, answer: { skill: "pts-to-bp", verdict: "wrong", try: "pb-try-a3" } };
+    expect(parseCase(JSON.stringify(answered), "T3.json").errors).toEqual([]);
+    expect(parseCase(JSON.stringify({ ...answered, answer: { ...answered.answer, try: 3 } }), "T3.json").errors.join("\n")).toMatch(/answer "try"/);
+    expect(parseCase(JSON.stringify({ ...answered, answer: { ...answered.answer, tries: "pb-try-a3" } }), "T3.json").errors.join("\n")).toMatch(/unknown field "tries"/);
+  });
+
   it("needs a number for the conditions that carry one", () => {
     const { errors } = parseCase(JSON.stringify({ ...live, pass: [{ kind: "maxWords" }] }), "T1.json");
     expect(errors.join("\n")).toMatch(/maxWords.*value/);
