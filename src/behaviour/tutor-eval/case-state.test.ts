@@ -10,7 +10,7 @@ import { liveSession } from "@/tutor/session-log";
 import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { CASES_DIR, loadCases, type LiveCase } from "./case";
-import { codedFailures } from "./grading";
+import { buildGraderPrompt, codedFailures } from "./grading";
 import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply, slipFor } from "./setup";
 
 /**
@@ -159,6 +159,7 @@ describe("T3: the Quick try code shows is the one the earlier turn talks about",
     const c = live("T3");
     const p = await prepareCase(db, c, { map, settings });
     await answerDrawnTry(db, map, c, p);
+    const notesAfter = await noteMark(db, p.learnerId);
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Fill in the boxes.\nOne point is ___ bp, so 0.4 points is ___ bp?" }] }]);
     const events = await collect(runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: false }, { quickTryFollowUp: true }));
     expect(events.at(-1)?.type).toBe("done");
@@ -166,6 +167,15 @@ describe("T3: the Quick try code shows is the one the earlier turn talks about",
     expect(sent).toMatch(/missed a Quick try on the same idea twice in a row/);
     expect(sent).toMatch(/A rate falls from 7\.5% to 7\.2%\./);
     expect(sent).toMatch(/The Learner gave \\"0\.3\\": a Known mistake/);
+
+    // The next Quick try code posts below the reply is part of what the Learner sees, and the grader is told of it.
+    const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
+    const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text: textOf(events), notesAfter });
+    expect(reply.alsoShown).toHaveLength(1);
+    // Fill-in boxes: the half-done try on the same Skill, with new numbers (3% to 3.5%, not the 7.5% to 7.2% just missed).
+    expect(reply.alsoShown[0]).toMatch(/^a Quick try: ".*3% to 3\.5%.*First step, done for you/);
+    const prompt = buildGraderPrompt({ stateNote: p.stateNote, message: c.message, reply, extra: [] });
+    expect(prompt).toContain("Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): a Quick try:");
   });
 
   it("refuses a case that names a Quick try the Check does not have, or one on another Skill", () => {
