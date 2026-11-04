@@ -3,6 +3,9 @@
 import { defineComponent, reactive, useStateField, type ComponentRenderProps } from "@openuidev/react-lang";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { z } from "zod/v4";
+import { quickCheckProblem } from "../../part-rules";
+
+export { quickCheckProblem };
 
 // QuickCheck: tap-to-answer practice. Never marked and never saved as a score. Its option rows share the marked
 // Quiz's look (at least 44 px tall, an icon as well as a colour), so practice and marked quizzes read as one system.
@@ -18,13 +21,6 @@ export const quickCheckProps = z.object({
 
 export const MIN_OPTIONS = 2;
 export const MAX_OPTIONS = 4;
-
-/** What is wrong with a QuickCheck's options or answer, or null. library-v2 turns this into a hard error. */
-export function quickCheckProblem(options: readonly unknown[], answer: number): string | null {
-  if (options.length < MIN_OPTIONS || options.length > MAX_OPTIONS) return `QuickCheck needs ${MIN_OPTIONS} to ${MAX_OPTIONS} options, not ${options.length}.`;
-  if (!Number.isInteger(answer) || answer < -1 || answer > options.length - 1) return `QuickCheck answer ${answer} is outside -1 to ${options.length - 1}.`;
-  return null;
-}
 
 function Mark({ kind }: { kind: "right" | "wrong" | "none" }) {
   return (
