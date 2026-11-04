@@ -104,11 +104,11 @@ function sentencesOf(line: string): string[] {
     .filter(Boolean);
 }
 
-/** Words that open a line telling the Learner to do something. */
+/** Words that open a line telling the Learner to do something. Not "check": "Check 1 opens next" names a Check. */
 const INSTRUCTION_VERBS = new Set(
   (
     "set open try do tell press say type fill work find pick choose write give name put use move drag compare guess answer " +
-    "show explain convert add subtract multiply divide take calculate read look click tap think start enter check"
+    "show explain convert add subtract multiply divide take calculate read look click tap think start enter"
   ).split(" "),
 );
 
