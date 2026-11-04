@@ -35,6 +35,9 @@ describe("every live case prepares against today's Course Map", () => {
       expect(p.place.check?.id).toBe("pb-quiz-language");
       if (c.state.quiz?.state === "open") {
         expect(p.openItems).toHaveLength(3);
+        // Typed questions have no choices: the grader's note says so instead of listing none.
+        expect(p.stateNote).toMatch(/the Learner types the answer; right answer, which the Tutor must keep back: /);
+        expect(p.stateNote).not.toMatch(/choices: ;/);
         expect((await checkTabNow(db, map, new Date(), p.learnerId)).quiz?.questions).toHaveLength(3);
       } else expect(p.openItems).toEqual([]);
     }
