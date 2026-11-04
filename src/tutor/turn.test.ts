@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { parse, stringify } from "yaml";
 import { describe, expect, it } from "vitest";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
@@ -66,6 +67,7 @@ describe("Tutor Turn", () => {
 
   it("uses claude-opus-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: "First." }] },
       { content: [{ type: "text", text: "Second." }] },
@@ -84,6 +86,7 @@ describe("Tutor Turn", () => {
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
         { name: "record_insight_attempt" },
+        { name: "save_learner_rule" },
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
@@ -788,6 +791,7 @@ describe("Tutor Turn", () => {
 
     it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
       const db = await testDb();
+    await engineOff(db);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hi." }] }]);
       await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hello"));
       expect(requests[0].system[0].text).toContain(frozenWidgets.instructions);
@@ -1347,6 +1351,7 @@ describe("surviving cut-offs and failures", () => {
 
   it("a changed fingerprint of instructions and tools refreezes them in the same Session, with no notice, and folds the history before the reply", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([
       { content: [text("One.")] },
       { content: [{ type: "compaction", content: "Summary of the Session so far." }] },

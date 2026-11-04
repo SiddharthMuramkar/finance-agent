@@ -16,7 +16,11 @@ import {
 } from "@/tutor/session-item-kinds";
 import { ConceptCardView, conceptCardOf } from "./concept-card-view";
 import { QuickTryResultView, QuickTryView, quickTryOf, quickTryResultOf } from "./quick-try-view";
+import { PARK_DRILL, PARK_OFFER, PARKED, type ParkedData, type ParkOfferData } from "@/tutor/park-items";
 import { TOPIC_COMPLETE, type TopicCompleteData } from "@/tutor/topic-complete-card";
+import { ParkedLine, ParkOfferView } from "./park-offer-view";
+import { ownRuleOf, OWN_RULE_SAVED } from "@/tutor/own-rule-item";
+import { OwnRuleLine } from "./own-rule-line";
 import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
@@ -91,10 +95,21 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   ),
   // Stored after a Tutor answer that left the Topic: "Off-Topic answer · ↩ Back to <Topic>".
   [OFF_TOPIC]: (data) => (typeof data.title === "string" && typeof data.topicId === "string" ? <OffTopicBlock data={data as OffTopicData} /> : null),
+  // Stored when the Tutor saves the Learner's own rule to their Topic Note: "Saved to your notes · Undo · Open notes".
+  [OWN_RULE_SAVED]: (data) => {
+    const rule = ownRuleOf({ kind: OWN_RULE_SAVED, data });
+    return rule ? <OwnRuleLine data={rule} /> : null;
+  },
   // Never stored: an old "Continue." message, drawn in the thread and on Past Sessions pages as where the next step began.
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.
   [TOPIC_COMPLETE]: (data) => (typeof data.title === "string" && typeof data.principle === "string" ? <TopicCompleteCard card={data as TopicCompleteData} /> : null),
+  // After a third miss in a row: code's park offer, "Park it, review tomorrow" and "One more short try".
+  [PARK_OFFER]: (data) => (typeof data.skillId === "string" && typeof data.line === "string" ? <ParkOfferView data={data as ParkOfferData} /> : null),
+  // Once parked: "Back tomorrow after Thu 3:00 pm", with the Course Map a click away.
+  [PARKED]: (data) => (typeof data.line === "string" ? <ParkedLine data={data as ParkedData} /> : null),
+  // Before a parked Skill's drill of five: "Drill · <Skill>".
+  [PARK_DRILL]: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="park-drill-divider" /> : null),
   // Never stored: the Topic Start card, worked out from course data on each render as the conversation's first item.
   [TOPIC_START]: (data) => (typeof data.title === "string" ? <TopicStartCard card={data as TopicStartData} /> : null),
   // Stored when the Learner enters a converted Concept step: the card's plain lines, the write-down line in bold.

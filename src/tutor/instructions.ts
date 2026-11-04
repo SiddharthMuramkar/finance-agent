@@ -1,7 +1,8 @@
 import { CALCULATORS, CALCULATOR_IDS } from "@/finance/calculators";
 import frozenWidgets from "@/widgets/frozen.generated.json";
-import { RECIPE_IDS, recipeSignatures } from "@/widgets/recipes";
+import { RECIPE_IDS } from "@/widgets/recipes";
 import { ARCHETYPES } from "@/widgets/recipes/define";
+import { TUTOR_RECIPE_IDS, tutorRecipeSignatures } from "./ready-made-widgets";
 import { blockedNumbersFrom, LONG_CAP, type OpenItem, type ReplyKind, type ReplyWidget, type StepKind } from "./reply-checks";
 
 /**
@@ -210,6 +211,19 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: "save_learner_rule",
+    description:
+      "Save the Learner's own rule to their Topic Note, when they state a rule in their own words that is correct and simpler than yours. Code saves their words exactly as they typed them, and only from a message they typed this turn (never a button) and, in a Topic with practice, only right after code marked a practice answer right. At most one rule per turn, and one per Skill. The result says what was saved; then confirm their rule in one sentence and use their words from now on. Do not say you saved it: the Learner sees that for themselves.",
+    input_schema: {
+      type: "object",
+      properties: {
+        learner_words: { type: "string", description: "The Learner's rule, copied exactly from their message in this turn, at most 300 characters." },
+      },
+      required: ["learner_words"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "record_check_verdict",
     description:
       "Record your verdict on the current conversation Check, once the Learner has answered and you have questioned their reasoning. Code accepts a verdict only for the current Check, saves it with your reasons as evidence, and replies with what comes next. A pass moves the Learner on; not yet keeps them at the Check to try again.",
@@ -299,7 +313,7 @@ export const SHOW_WIDGET_TOOL: ToolDefinition = {
   input_schema: {
     type: "object",
     properties: {
-      recipe: { type: "string", enum: RECIPE_IDS, description: "The recipe's id, from the Widget recipes list in your instructions." },
+      recipe: { type: "string", enum: [...TUTOR_RECIPE_IDS], description: "The recipe's id, from the Widget recipes list in your instructions." },
       params: {
         type: "object",
         description: "The recipe's params, as its schema in the Widget recipes list gives them: always title, inputs, refs and facts.",
@@ -349,20 +363,50 @@ export const UPDATE_WIDGET_TOOL: ToolDefinition = {
   },
 };
 
-const ENGINE_WIDGETS = `Widgets (drawn by code from recipes):
-- A Widget is an interactive picture beside the conversation. You never write Widget code. To show one, call show_widget with a recipe and its params; to show a written-ahead Widget, call open_widget. Where the rules above say to build, draw or write a Widget (a Calculator, a FormulaCard, a chart of Case Data), call show_widget with the recipe that fits; if none fits, teach in words.
-- Call show_widget first, before you write any prose in the reply, then write about the Widget on screen within the word limit code gives for this reply: what to look at. Open it already set to the numbers under discussion (never a blocked number), so the Learner sees the point without moving anything. One Widget per reply.
-- Params come in three kinds. inputs: slider ranges and starting values, and the calculator or formula inputs our code works out. refs: Case Data references from the list code sent ("caseId/datasetId", or "reference/<id>"). facts: numbers you type that the Widget shows as they are; any fact makes the Widget an Illustration, and code puts "Illustration:" before its title. Real figures come only from refs or from our calculators, so make an Illustration only where no input or Case Data reference covers the same number.
-- When no recipe fits the idea, call compose_widget with a short brief, its archetype and any parts it must use (and a fallback recipe if one comes close). Call it first too, before any prose. If code says it showed a ready-made Widget instead, tell the Learner so in one short line.
-- A Widget's title is its name in the panel. To move the sliders of a Widget already open ("make it 9%"), call update_widget with its title and the new values; to change anything else about it, call show_widget again with the same title: it updates in place.
+const ENGINE_WIDGETS = `Widgets (ready-made only, drawn by code):
+- A Widget is an interactive picture beside the conversation. You never write Widget code and never write an openui-lang block. To show one, call show_widget with a recipe and its params; to open a written-ahead Widget, call open_widget. Where the rules above say to build, draw or write a Widget (a Calculator, a FormulaCard, a chart of Case Data), call show_widget with the recipe that fits; if none fits, teach in words.
+- Call it first, before you write any prose in the reply, then write about the Widget on screen within the word limit code gives for this reply. Open it already set: give the numbers under discussion as open_widget's preset or as the recipe's inputs (never a blocked number), so the Learner sees the point without moving anything. Say in one sentence what it shows at those numbers, and ask for nothing to be moved. One Widget per reply.
+- "Show me in a widget" gets one Widget and one sentence. When no recipe fits, say so in one sentence, then give the shortest version in words.
+- Guided Tasks under a Widget are optional play: never set one as work.
+- Params come in three kinds. inputs: slider ranges and starting values, and the calculator or formula inputs our code works out. refs: Case Data references from the list code sent ("caseId/datasetId", or "reference/<id>"). facts: numbers you type that the Widget shows as they are; any fact makes the Widget an Illustration, and code puts "Illustration:" before its title. Real figures come only from refs or from our calculators, so make an Illustration only where no input or Case Data reference covers the same number; code refuses a fact an input already covers.
+- A Widget's title is its name in the panel. To move the sliders of a Widget this reply opened or showed ("make it 9%"), call update_widget with its title and the new values. A reply holds one Widget: after you open, show or update one, make no other call that draws a Widget.
+- For a quiz-me ask, point to the next Quick try or ask one question in words; quick_check is not a teaching Widget.
 - If code refuses the params, read its reason and call show_widget again with params that fit, or teach in words.
 
 Widget recipes (id (archetype): use, then its params as JSON Schema):
-${recipeSignatures()}`;
+${tutorRecipeSignatures()}`;
 
 export const ENGINE_INSTRUCTIONS = `${TUTOR_RULES}
 
 ${ENGINE_WIDGETS}`;
 
-/** The engine's tools: today's, with show_widget, compose_widget and update_widget after open_widget. */
-export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [t, SHOW_WIDGET_TOOL, COMPOSE_WIDGET_TOOL, UPDATE_WIDGET_TOOL] : [t]));
+/**
+ * open_widget as the engine offers it: the same tool, with a preset (the slider values it opens at, by $variable). Its own
+ * definition, so the engine-off tools keep today's text exactly.
+ */
+const OPEN_WIDGET_ENGINE_TOOL: ToolDefinition = (() => {
+  const base = TUTOR_TOOLS.find((t) => t.name === "open_widget") as Extract<ToolDefinition, { description: string }>;
+  return {
+    ...base,
+    description: `${base.description} Open it already set: give preset, the slider values for the numbers under discussion, and the Widget opens at them instead of where the Learner last left it.`,
+    input_schema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: 'The written-ahead Widget\'s id, e.g. "annuity-worth-today".' },
+        preset: {
+          type: "object",
+          additionalProperties: { type: "number" },
+          description: 'Optional: slider values by $variable, e.g. {"$rate": 9}. Each must be one of its sliders, within its range and on its step; never a blocked number.',
+        },
+      },
+      required: ["id"],
+      additionalProperties: false,
+    },
+  };
+})();
+
+/** The engine's tools (ADR 0007): open_widget with a preset, show_widget and update_widget. compose_widget is not offered. */
+export const ENGINE_TOOLS: ToolDefinition[] = TUTOR_TOOLS.flatMap((t) => (t.name === "open_widget" ? [OPEN_WIDGET_ENGINE_TOOL, SHOW_WIDGET_TOOL, UPDATE_WIDGET_TOOL] : [t]));
+
+/** The engine's tools for a Session frozen while compose_widget was offered: it keeps the tools it was frozen with (ADR 0005). */
+export const ENGINE_TOOLS_WITH_COMPOSE: ToolDefinition[] = ENGINE_TOOLS.flatMap((t) => (t.name === "show_widget" ? [t, COMPOSE_WIDGET_TOOL] : [t]));

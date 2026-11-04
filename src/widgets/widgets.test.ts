@@ -121,6 +121,7 @@ describe("widget instructions", () => {
   });
 
   it("with the widget engine off, grow the Tutor's instructions by at most 10% for the v2 language (44,836 characters before), plus the RateMove part", () => {
+    // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
     // Spec #229 (ticket #238) grew the teaching rules before the Widget text on purpose. This bound is about the Widget
     // language, so it counts the rules at the 11,194 characters they had when it was set.
     // RateMove (spec #229, ticket #234) adds its signature line and its name to four part lists: about 240 characters.
