@@ -4092,7 +4092,7 @@ the state can be rebuilt from it. The ladder is the same for every Topic and liv
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
 
-## Percent, converted (`course/topics/num-percent-bps.yaml`, `src/test/old-percent-map.ts`, spec #229, ticket #246)
+## Percent, converted (`course/topics/num-percent-bps.yaml`, `revealWidget` in `src/course/map.ts` and `src/tutor/practice.ts`, `src/test/old-percent-map.ts`, spec #229, ticket #246)
 
 **What it does.** Percent is the first real Topic taught the new way. Its file lists the terms it introduces
 (percentage point, basis point, percent change, the base), five Skills (`pts`, `pts-to-bp`, `bp-to-pts`, `pct-change`,
@@ -4104,9 +4104,19 @@ in show mode:
 - Check 1, `pb-quiz-language` (id kept), "One move, two ways": a typed quiz drawn from the two basis-point templates,
   with new numbers each attempt, and Quick tries A1 to A4 from the spec plus enough more for three per Skill.
 - Check 2, `pb-quiz-change` (new), "Compared with the start": the percent-change template plus three "Which one is
-  true?" wording questions whose every wrong choice names its Known mistake, and Quick tries B1 to B4 plus one more.
+  true?" wording questions whose every wrong choice names its Known mistake, four a try (pass on three), so every attempt
+  has one typed percent change; and Quick tries B1 to B4 plus one more.
 - Check 3, `pb-fed-language` (id kept), "Say it so nobody misreads it": the conversation Check, which lists its
-  Skills. Cards 1 and 2 already teach them, so it has no Quick tries of its own.
+  Skills. Cards 1 and 2 already teach them, so it has no Quick tries of its own. A Check with no Quick tries is not a
+  practice step (`practiceStep` in `src/course/navigator.ts`), so the Tutor finishes its Your turn as before; without
+  that, a Your turn that only fluency can end, with no tries to show, would never end.
+
+At the reveal, code opens the Topic's `revealWidget`: `rate_move` titled "The Fed's move of February 1994", its
+`{before}` and `{after}` inputs read from the `fed-funds-target` Case Data across the Case's as-of date (`revealMove`),
+so the file types neither figure. `enterStepItems` (`src/tutor/practice.ts`) stores it once a Session, as a shown
+Widget, so it opens on Next and also when a tool's step divider moves the Learner on, as `record_check_verdict`'s pass on
+Check 3 usually does. Any converted Topic can name a recipe and a Case dataset this way; `src/course/map.ts` checks that
+the Case is the Topic's and lists the dataset.
 
 The Known mistakes are the Percent Session's real wrong answers: 6 for 60 (`used_x10`), 12 for 1.2 (`divided_by_10`),
 0.12 for 1.2 (`divided_by_1000`), 0.3 for 30 (`stopped_at_points`) and "it should say up 1%" (`mixed_percent_points`),
@@ -4119,14 +4129,19 @@ typed-formula check now hold its whole file, the old questions' explanations inc
 back. The Course Navigator still has their saved step, `concept`, and the first Check without a pass is now
 `pb-quiz-change`, so they land on "Compared with the start" with its rate_move Widget. A Learner who had passed both
 old Checks and stood at the reveal stays at the reveal, and one who passed Percent stays passed. A Learner who was at
-the old Check 2's check step keeps the `check` step, which is now Check 2's quiz, and the Check tab opens it.
+the old Check 2's check step keeps the `check` step, which is now Check 2's quiz, and the Check tab opens it. A new
+Learner who passes the Fed conversation sees the divider and then the rate Widget at 3% and 3.25%, the numbers coming
+from Case Data now that the reveal has begun.
 
 **Trade-off.** Keeping every Check id and every old `pb-q-*` question means old attempts, Reviews and passes still
 load, but three questions (`pb-q-bp-definition`, `pb-q-bond-140`, `pb-q-mortgage-rate`) now sit in no Check, kept only
 so old records resolve. A content-only restructure keeps passes, so a Learner who passed Percent before never sees the
 new cards unless they open the Topic again. Each Check question moved to a fresh made-up move, so it shares no numbers
 with a card or Quick try; the Fed prompt moved to 6.25% to 6.75% for the same reason. The tests that read the old
-Widget's `rateChange` readouts and reveal task keep it as a fixture, since no real Topic uses those features now.
+Widget's `rateChange` readouts and reveal task keep it as a fixture, since no real Topic uses those features now. The
+reveal Widget is stored once a Session, so a Learner who drags it away and comes back to the reveal in the same Session
+finds it where they left it, not reset. Behaviour and eval placement (`finishForPlacement` in `src/behaviour/place.ts`)
+walks past a converted Your turn as fluency would, since no report can finish it.
 
 ## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
 

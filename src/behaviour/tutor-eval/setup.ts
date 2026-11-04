@@ -13,7 +13,8 @@ import { questionLookup } from "@/bank/lookup";
 import { insightAttempts, noteItems, quizAttempts, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { freshToolsLearner } from "@/dev/tools-learner";
-import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep, saveJump } from "@/learner/memory";
+import { ensureTopicStarted, loadProgress, saveCheckResult, saveJump } from "@/learner/memory";
+import { finishForPlacement } from "@/behaviour/place";
 import { checkTabNow } from "@/learner/quiz";
 import { noteMethodUsed, recordAnswer } from "@/learner/skill-state";
 import { scriptedClient } from "@/test/scripted-client";
@@ -85,7 +86,7 @@ async function walkTo(db: Db, map: CourseMap, topic: Topic, c: LiveCase, learner
       if (place.step === "explore") {
         await db.insert(insightAttempts).values({ learnerId, topicId: topic.id, reported: "asked_to_be_told", released: "told", words: "", toolCallId: `tutor-eval-${topic.id}-${learnerId}-${i}` });
       }
-      const moved = await saveFinishedStep(db, map, place.step, new Date(), learnerId);
+      const moved = await finishForPlacement(db, map, place.step, learnerId);
       if (!moved.ok) throw new Error(`${c.id}: could not finish ${place.step}: ${moved.reason}`);
     }
   }
