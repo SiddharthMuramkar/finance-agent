@@ -48,6 +48,10 @@ _Avoid_: Exercise, drill question, practice item
 A wrong answer the Topic's file expects for a question, such as 6 for 60 (multiplied by 10, not 100), with a one-line fix that code shows the moment the Learner gives it.
 _Avoid_: Slip, error tag, misconception
 
+**Blocked numbers**:
+Every number in the open quiz questions and the next attempt's, which the Tutor keeps out of its examples and Widgets while a quiz Check is open, so it can teach freely without giving an answer away.
+_Avoid_: Forbidden numbers, quiz numbers
+
 **Parked Skill**:
 A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it. The Topic waits at its step while the Learner studies any other Topic, and the next day it starts with a drill of five on that Skill. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
 _Avoid_: Skipped Skill, deferred Skill, review queue
@@ -192,11 +196,11 @@ A Learner's work on a Widget in a Session: the numbers on its sliders and the Gu
 _Avoid_: Widget data, saved Widget
 
 **Archetype**:
-The kind of idea a Widget teaches, named from the parts it uses: Grow, Compare, Convert, Chain, Predict, History, Rank, Check or Formula. Recipes carry one; code works out a written Widget's with archetypeOf and tells the Tutor the last two, so it does not draw the same kind back to back.
+The kind of idea a Widget teaches, named from the parts it uses: Grow, Compare, Convert, Chain, Predict, History, Rank, Check or Formula. Recipes carry one, and code works out a written Widget's with archetypeOf. The same kind may repeat: a Topic's running example keeps its one Widget.
 _Avoid_: Widget type, layout
 
 **Widget notes**:
-A short line code adds to the Learner's next message: the recent archetypes, and warnings about the Widgets of the Tutor's last reply (more than one control or visual, over 25 words, a number joined into text). Warnings never start a correction round; only errors that stop a Widget being right do.
+A short line code adds to the Learner's next message: warnings about the Widgets of the Tutor's last reply (more than one control or visual, over 25 words, a number joined into text), and the recent archetypes, which no rule asks the Tutor to avoid repeating. Warnings never start a correction round; only errors that stop a Widget being right do.
 _Avoid_: lint, Widget feedback
 
 **Widget tool**:
