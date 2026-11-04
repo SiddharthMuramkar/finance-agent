@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseCourseMap } from "@/course/map";
+import { loadCourseMap, parseCourseMap } from "@/course/map";
 import { learners, libraryPassages, messages, noteItems, OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { importLibrary, type LibraryFile } from "@/library/ingest";
@@ -7,7 +7,7 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { HIDDEN_SOURCE_TITLE } from "@/tutor/citations";
 import { declaredSettings } from "@/widgets/settings";
-import { saveCheckResult, saveFinishedStep } from "./memory";
+import { saveCheckResult, saveFinishedStep, saveJump } from "./memory";
 import { addLine } from "./notes";
 import { loadNotes } from "./notes";
 import { EXPLORE_INDEX, loadSaved, removeSaved, saveToNotes } from "./saved";
@@ -224,6 +224,21 @@ describe("taking saved items off a note", () => {
     expect(after.map((i) => i.kind)).toEqual(["reply", "widget"]);
     expect(after[0].kind === "reply" && after[0].text).toContain("Keep me.");
     expect(after[1].kind === "widget" && declaredSettings(after[1].code)).toEqual({ $rate: 8 });
+  });
+
+  it("Undo brings back an explore Widget saved with no Session on its own Topic, after the Learner has moved on", async () => {
+    const db = await testDb();
+    const real = loadCourseMap();
+    expect((await saveJump(db, real, "present-value")).ok).toBe(true);
+    const saved = await saveToNotes(db, real, { kind: "widget", widgetIndex: EXPLORE_INDEX, settings: { $rate: 4 } });
+    expect(saved.ok && saved.topicId).toBe("present-value");
+    expect((await saveJump(db, real, "num-percent-bps")).ok).toBe(true);
+    const [item] = (await loadSaved(db, real)).get("present-value")!;
+    expect(await removeSaved(db, item.id)).toBe(true);
+    const undone = await saveToNotes(db, real, item.again);
+    expect(undone.ok && undone.topicId).toBe("present-value");
+    const [back] = (await loadSaved(db, real)).get("present-value")!;
+    expect(back.kind === "widget" && declaredSettings(back.code).$rate).toBe(4);
   });
 });
 

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WIDGET_OPENED } from "@/course/written-ahead";
+import { saveFinishedStep } from "@/learner/memory";
+import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_CHECK_PREFIX } from "@/widgets/check";
@@ -71,6 +73,19 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     expect(asked).toContain("Old rate: 6%");
     expect(asked).toContain("New rate: 6.4%");
     expect(asked).toContain("[x] Set a rise from 6% to 6.4%");
+    // Its readouts are worked out by code, not left to the Tutor: 6% to 6.4% is 0.4 points, 40 bp, a 6.67% change.
+    expect(asked).toContain("In percentage points: 0.4 points; In basis points: 40 bp; As a percent change of the old rate: 6.67%");
+  });
+
+  it("writes Percent's readouts into Tell the Tutor what I found, worked out by code", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([open("rate-change-three-ways"), text("Try them all."), text("Good.")]);
+    await collect(runTutorTurn({ db, client }, "Can I play with this?"));
+    const ticked = ["Set a rise from 6% to 6.4%", "Now a cut from 8% to 7.1%", "Now a rise from 0.5% to 0.9%, and compare its percent change with the first rise"];
+    const widgets = { "rate-change-three-ways": { values: { $old: 0.5, $new: 0.9 }, ticked } };
+    await collect(runTutorTurn({ db, client, widgets }, { widgetReport: "rate-change-three-ways" }));
+    const asked = JSON.stringify(requests.at(-1)!.messages);
+    expect(asked).toContain("I set the old rate to 0.5% and the new rate to 0.9%. In percentage points: 0.4 points; In basis points: 40 bp; As a percent change of the old rate: 80%.");
   });
 
   it("refuses an id the Topic does not have, and stores nothing", async () => {
@@ -131,5 +146,51 @@ describe("written-ahead Widgets in the Tutor Turn", () => {
     const events = await collect(runTutorTurn({ db, client }, "Show me a loan"));
     expect(requests).toHaveLength(1);
     expect(events.some((e) => e.type === "correction")).toBe(false);
+  });
+});
+
+// ADR 0001: the Learner plays with the explore Widget only once the concept is named, and code, not the Tutor's
+// instructions, holds that. Present value's explore Widget is its written-ahead annuity Widget.
+describe("the explore Widget before the explore step", () => {
+  const pv = presentValueOnly({ withoutQuiz: true });
+  const ANNUITY = fence(
+    [
+      'root = Widget("How the payments shrink", [rate, chart, steps])',
+      "$rate = 5",
+      'rate = Slider("rate", "Interest rate", 0, 10, 0.01, $rate, "percent")',
+      "chart = AnnuityChart(1000, 10, 0, $rate)",
+      "steps = GuidedTasks([high])",
+      'high = GuidedTask("Set the rate to 8%", $rate == 8)',
+    ].join("\n"),
+  );
+
+  it("refuses to open it at the story step, stores nothing, and leaves it off the Written-ahead Widgets line", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([open("annuity-worth-today"), text("Let us start with the story.")]);
+    const events = await collect(runTutorTurn({ db, client, map: pv }, "Can I play with it?"));
+    const [result] = toolResults(requests[1]);
+    expect(result.is_error).toBe(true);
+    expect(String(result.content)).toMatch(/Not opened: "What the annuity is worth today" is this Topic's explore Widget/);
+    expect(events.some((e) => e.type === "item")).toBe(false);
+    expect(contextOf(requests[0])).not.toContain("annuity-worth-today");
+  });
+
+  it("sends back an annuity chart the Tutor draws at the story step without telling it to open the explore Widget", async () => {
+    const db = await testDb();
+    const { client, requests } = scriptedClient([text(`Look.\n${ANNUITY}`), text("")]);
+    await collect(runTutorTurn({ db, client, map: pv }, "Show me"));
+    const correction = String(requests[1].messages.at(-1)!.content);
+    expect(correction).toMatch(/- Widget 1: this Widget uses .*which the written-ahead Widget "What the annuity is worth today" covers/);
+    expect(correction).toMatch(/do not open it yet/);
+    expect(correction).not.toMatch(/call open_widget with id "annuity-worth-today"/);
+  });
+
+  it("opens it once the explore step has begun", async () => {
+    const db = await testDb();
+    for (const step of ["story", "concept"] as const) await saveFinishedStep(db, pv, step);
+    const { client, requests } = scriptedClient([open("annuity-worth-today"), text("Try the rate.")]);
+    const events = await collect(runTutorTurn({ db, client, map: pv }, "Can I play with it?"));
+    expect(toolResults(requests[1])[0].is_error).toBeFalsy();
+    expect(events).toContainEqual({ type: "item", item: { kind: WIDGET_OPENED, data: { id: "annuity-worth-today", title: "What the annuity is worth today" } } });
   });
 });

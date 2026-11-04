@@ -261,8 +261,7 @@ it(
         const all = JSON.parse(readFileSync(FOUNDATION_CASE_DATA, "utf8")) as CaseDatasetInput[];
         await importCaseData(db, all.filter((d) => topic.cases.some((c) => c.id === d.caseId)));
       } else console.warn(`No Case Data file at ${FOUNDATION_CASE_DATA}; running without it.`);
-      // Pinned to the Topic (first on the default path today). Taking the jump mark makes the turn read
-      // like the live one: mid-Topic in a new Session, with no "the Learner chose this Topic" note.
+      // Pinned to the Topic (first on the default path today), chosen as a Learner chooses it.
       await saveJump(db, map, MADE_UP_EXAMPLE_TOPIC, new Date(), learnerId);
     });
     expect(stepNote).toContain(topic.title);

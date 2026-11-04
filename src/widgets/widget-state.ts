@@ -13,15 +13,11 @@ export const MAX_VALUES = 20;
 export const MAX_TICKED = 20;
 export const MAX_TASK_TEXT = 300;
 
-/** The key the explore Widget (shown by code from the Topic file, not drawn by the Tutor) is saved under. */
-export const EXPLORE_WIDGET_KEY = "explore";
-
 /**
- * A Widget's key: the explore Widget's own, else its title. A Widget with no title has no key, so its work is
- * kept only while the page is open.
+ * A Tutor Widget's key: its title. A written-ahead Widget (the explore Widget among them) is keyed by its id instead.
+ * A Widget with no title has no key, so its work is kept only while the page is open.
  */
-export function widgetKey(title: string | null | undefined, explore = false): string | undefined {
-  if (explore) return EXPLORE_WIDGET_KEY;
+export function widgetKey(title: string | null | undefined): string | undefined {
   const trimmed = title?.trim();
   return trimmed ? trimmed.slice(0, MAX_WIDGET_KEY) : undefined;
 }

@@ -123,6 +123,11 @@ const writtenAheadSchema = z.object({
    */
   parts: z.array(z.string().min(1)).default([]),
   /**
+   * The two sliders ($variables) whose rate change the Widget says three ways (Percent): code works out its readouts
+   * in points, basis points and percent change for the Tutor with the tested rateChange (src/finance/rate-change.ts).
+   */
+  rateChange: z.object({ old: z.string().regex(/^\$\w+$/), new: z.string().regex(/^\$\w+$/) }).optional(),
+  /**
    * A Guided Task that joins the Widget's GuidedTasks once the Case's reveal has been shown, with the move its
    * dataset made across the Case's as-of date: {before} is the last value on or before it, {after} the first after.
    * Before the reveal the as-of rule withholds the "after" value, so the task does not appear.
@@ -387,6 +392,9 @@ function writtenAheadProblems(t: Topic): string[] {
     else if (titles.has(title)) problems.push(`${where} repeats the title "${title}"`);
     if (title) titles.add(title);
     problems.push(...widgetReferenceProblems(t, w.code, where));
+    for (const name of w.rateChange ? [w.rateChange.old, w.rateChange.new] : []) {
+      if (!new RegExp(`^\\${name} = `, "m").test(w.code)) problems.push(`${where} works out a rate change from ${name}, which its code does not declare`);
+    }
     const task = w.revealTask;
     if (!task) continue;
     const c = t.cases.find((x) => x.id === task.case);

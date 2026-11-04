@@ -10,7 +10,7 @@ const id = z.number().int();
 const save = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("reply"), sessionId: id, turnSeq: id }),
   // Settings are only numbers by name; the server checks them against the Widget's own code. The Widget's code is never sent.
-  z.object({ kind: z.literal("widget"), sessionId: id.optional(), turnSeq: id.optional(), widgetIndex: id, settings: z.record(z.string(), z.number()).optional(), widgetKey: z.string().max(200).optional() }),
+  z.object({ kind: z.literal("widget"), sessionId: id.optional(), turnSeq: id.optional(), widgetIndex: id, settings: z.record(z.string(), z.number()).optional(), widgetKey: z.string().max(200).optional(), topicId: z.string().max(200).optional() }),
 ]);
 const remove = z.object({ id });
 

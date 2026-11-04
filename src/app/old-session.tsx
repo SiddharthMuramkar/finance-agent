@@ -7,7 +7,7 @@ import { DeveloperDetails, readOnlyLines, ReadOnlyThread, widgetsIn, withNextSte
 import type { WrittenAhead } from "@/course/written-ahead";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { primaryButtonClass } from "./ui";
-import { exploreItem, PinnedExplore, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
+import { exploreItem, holdsKey, PinnedExplore, updatedInPlace, useWidgetPicker, WidgetChip, WidgetPanel, withExplore } from "./widget-panel";
 
 export type OldLine = Line;
 
@@ -25,24 +25,31 @@ export function OldSession({
   writtenAhead = NO_WRITTEN_AHEAD,
   revealed = [],
   developerDetails = false,
+  inPlace = false,
 }: {
   lines: OldLine[];
   topicTitle?: string;
-  explore?: { code: string; id?: string } | null;
+  explore?: { code: string; id: string } | null;
   /** The Topic's written-ahead Widgets (loadWrittenAhead): one the Tutor opened in this Session is drawn from these. */
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen, for the page's shared Case Data cache. */
   revealed?: readonly string[];
   /** The Learner's Show developer details choice (Settings): "Under the hood" under each Tutor reply only when on. */
   developerDetails?: boolean;
+  /**
+   * A Topic Session: its Widgets are updated in place as in the Study Workspace (updatedInPlace), so a Widget the Tutor
+   * drew again under the same title, or the explore Widget it reopened, keeps one tab. Older sessions draw as before.
+   */
+  inPlace?: boolean;
 }) {
   const lines = useMemo(() => withNextStepDividers(stored), [stored]);
   const tutorWidgets = useMemo(() => widgetsIn(readOnlyLines(lines), false, writtenAhead), [lines, writtenAhead]);
   const sessionId = lines.flatMap((l) => (l.role !== "item" && l.ref ? [l.ref.sessionId] : []))[0];
-  const widgets = useMemo(() => withExplore(tutorWidgets, explore, tutorWidgets.length, sessionId), [tutorWidgets, explore, sessionId]);
+  const drawn = useMemo(() => withExplore(tutorWidgets, explore, tutorWidgets.length, sessionId), [tutorWidgets, explore, sessionId]);
+  const widgets = useMemo(() => (inPlace ? updatedInPlace(drawn) : drawn), [drawn, inPlace]);
   const picker = useWidgetPicker(widgets);
   const slot: WidgetSlot = ({ messageId, index }) => {
-    const item = widgets.find((w) => w.key === `${messageId}:${index}`);
+    const item = widgets.find((w) => holdsKey(w, `${messageId}:${index}`));
     return item ? <WidgetChip item={item} active={item.key === picker.shown?.key} onPick={picker.pick} /> : null;
   };
   return (

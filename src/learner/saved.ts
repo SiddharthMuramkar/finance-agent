@@ -29,15 +29,18 @@ export const MAX_SETTINGS = 20;
 
 export type SaveRequest =
   | { kind: "reply"; sessionId: number; turnSeq: number }
-  /** `widgetKey`: the key the Widget's state is saved under in that Session; what is saved there is what the note keeps. */
-  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; settings?: unknown; widgetKey?: string };
+  /**
+   * `widgetKey`: the key the Widget's state is saved under in that Session; what is saved there is what the note keeps.
+   * `topicId`: for the explore Widget, the Topic it is saved on (Undo sends it), so that does not hang on where the Learner is now.
+   */
+  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; settings?: unknown; widgetKey?: string; topicId?: string };
 
 export type SaveResult = { ok: true; id: number; topicId: string } | { ok: false; reason: string; status: 400 | 404 };
 
 /** What saves an item again: the place it came from and, for a Widget, its settings. Undo after a removal sends it back. */
 export type SaveAgain =
   | { kind: "reply"; sessionId: number; turnSeq: number }
-  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; settings?: Record<string, number> };
+  | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; settings?: Record<string, number>; topicId?: string };
 
 /** One saved item on a Topic Note, ready to draw. */
 export type SavedItem =
@@ -86,7 +89,7 @@ export async function saveToNotes(db: Db, map: CourseMap, request: SaveRequest, 
   const req = await withSavedState(db, request, learnerId);
   if (req.kind === "widget" && req.widgetIndex === EXPLORE_INDEX) {
     if (req.sessionId !== undefined && !(await ownSession(db, req.sessionId, learnerId))) return notFound("That Session does not exist.");
-    const topicId = await topicOfTurn(db, map, req.sessionId, undefined, learnerId);
+    const topicId = req.topicId ?? (await topicOfTurn(db, map, req.sessionId, undefined, learnerId));
     const topic = topicId ? map.topic(topicId) : undefined;
     const code = topic ? exploreWidgetOf(topic)?.code : undefined;
     if (!topicId || !code) return notFound("There is no explore Widget to save.");
@@ -174,6 +177,8 @@ export async function loadSaved(db: Db, map: CourseMap, learnerId = OWNER_LEARNE
           ...(r.sessionId !== null && { sessionId: r.sessionId }),
           ...(r.turnSeq !== null && { turnSeq: r.turnSeq }),
           widgetIndex: r.widgetIndex ?? EXPLORE_INDEX,
+          // The explore Widget goes back on its own Topic, wherever the Learner is when they press Undo.
+          ...(exploreTopic && { topicId: r.topicId }),
           ...(r.widgetState && { settings: r.widgetState }),
         };
         item = { id: r.id, kind: "widget", code, title: widgetParts(code).title ?? null, savedAt: r.createdAt, again };

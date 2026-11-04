@@ -27,6 +27,9 @@ export type AnnuityRow = { year: number; payment: number; presentValue: number }
  * Splits an advertised total into yearly payments that grow at a fixed rate
  * (first payment now), and discounts each one to today.
  */
+/** The payments as the annuity chart, its Widget tool and the Tutor's readouts take them: a whole number from 1 to 60. */
+export const annuityPaymentCount = (payments: number) => Math.max(1, Math.min(60, Math.round(payments)));
+
 export function annuitySchedule({ total, payments, growthPercent, ratePercent }: AnnuityInputs) {
   const g = growthPercent / 100;
   const weights = Array.from({ length: payments }, (_, year) => (1 + g) ** year);

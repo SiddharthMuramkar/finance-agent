@@ -6,7 +6,6 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { parseCourseMap, readOutlineText, readTopicFiles } from "../src/course/map.ts";
 import { formulaCheckErrors } from "../src/course/formula-check.ts";
 import { connectionsCheckErrors } from "../src/course/connections-check.ts";
-import { guidedTaskCheckErrors } from "../src/course/guided-task-check.ts";
 import { youllLearnCheckErrors } from "../src/course/youll-learn-check.ts";
 import { onlyTaskCheckErrors, writtenAheadCheckErrors } from "../src/course/written-ahead-check.ts";
 import { HOME_WIDGET } from "../src/app/_landing/home-widget-spec.ts";
@@ -25,9 +24,6 @@ const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
 if (!map) fail("Course Map is invalid", errors);
 const typed = formulaCheckErrors(map.topics);
 if (typed.length) fail("Typed formulas in the Course Map (ADR 0002)", typed);
-
-const unreachable = guidedTaskCheckErrors(map.topics);
-if (unreachable.length) fail("Guided Tasks that cannot work", unreachable);
 
 const writtenAhead = writtenAheadCheckErrors(map.topics);
 if (writtenAhead.length) fail("Written-ahead Widgets that cannot be drawn or worked", writtenAhead);

@@ -1,5 +1,6 @@
 import type { CaseDataset } from "@/case-data/case-data";
-import { annuityBreakEven, annuitySchedule, type AnnuityInputs } from "@/finance/present-value";
+import { formatMoney } from "@/finance/calculators";
+import { annuityBreakEven, annuityPaymentCount as paymentCount, annuitySchedule, type AnnuityInputs } from "@/finance/present-value";
 import { Tag } from "@/app/ui";
 import { AnnuityPlot, type AnnuityAxes } from "./annuity-plot";
 import { HistoryPlot } from "./history-plot";
@@ -7,6 +8,14 @@ import { HistoryPlot } from "./history-plot";
 // Pure drawings for the widget components. Anything drawn from Case Data carries a "Sourced"
 // tag in amber with its source; anything the Learner sets carries a "Your assumption" tag in
 // teal. Each is a separate element (data-kind="sourced" | "assumption"), so they never blend.
+
+/** A slider's value as the Widget prints it beside its label, in its unit: 3.38%, 20 years, ₹ or $. */
+export function formatUnit(value: number, unit: string | undefined): string {
+  if (unit === "percent") return `${value}%`;
+  if (unit === "years") return `${value} years`;
+  if (unit === "inr") return formatMoney(value, "inr");
+  return formatUsd(value);
+}
 
 /** Short money format: $1.537 billion, $877.8 million. */
 export function formatUsd(value: number): string {
@@ -100,9 +109,6 @@ export function HistoryFigure({ dataset, revealed, asOf }: { dataset: CaseDatase
 
 /** How close, in percentage points, the rate must come to the break-even before the break-even line shows by itself. */
 export const BREAK_EVEN_NEAR = 0.02;
-
-/** The payments as AnnuityFigure draws them: a whole number from 1 to 60. */
-const paymentCount = (payments: number) => Math.max(1, Math.min(60, Math.round(payments)));
 
 /**
  * The annuity against a sourced cash figure, worked out by code: what it is worth today, the rate at which the two

@@ -129,6 +129,20 @@ describe("a Widget in the Study Workspace with saved Widget state", () => {
     expect(ticks()).toEqual(["current", "todo"]);
   });
 
+  it("keeps a saved value the Learner typed between two steps, rather than moving it onto a step", async () => {
+    const loan = [
+      'root = Widget("Loan", [amount, steps])',
+      "$amount = 5000000",
+      'amount = Slider("amount", "Loan amount", 500000, 20000000, 100000, $amount, "inr")',
+      "steps = GuidedTasks([big])",
+      'big = GuidedTask("Set the loan to 1 crore", $amount == 10000000)',
+    ].join("\n");
+    await open([{ role: "assistant", text: fence(loan) }], { Loan: { values: { $amount: 5050000 }, ticked: [] } });
+    await afterSaving();
+    expect(card().querySelector<HTMLInputElement>('input[type="number"][aria-label="Loan amount, exact value"]')!.value).toBe("5050000");
+    expect(posts).not.toContainEqual(expect.objectContaining({ values: { $amount: 5100000 } }));
+  });
+
   it("keeps two Widgets of a Session apart by their titles", async () => {
     await open(TWO_WIDGETS, {
       "First rates": { values: { $rate: 1 }, ticked: [] },
@@ -201,5 +215,37 @@ describe("what the Tutor is sent of the Widgets", () => {
     expect(turns.at(-1)).toMatchObject({ widgetReport: "Second rates", widgets: { "Second rates": { values: { $rate: 8 } } } });
     // Code writes the message: no Learner bubble is drawn for it.
     expect(host.textContent).not.toContain("I set");
+  });
+});
+
+describe("the explore Widget at the reveal", () => {
+  // At the reveal the page hands the explore Widget its code with the reveal task added (writtenAheadFor), which is
+  // not the old code with more after it, so the Widget is drawn afresh: it must start from the Learner's work so far.
+  const before = rates("What the annuity is worth today");
+  const revealed = `${before.replace("GuidedTasks([t1, t2])", "GuidedTasks([t1, t2, revealTask])")}\nrevealTask = GuidedTask("Set the rate to 3.25%", $rate == 3.25)`;
+
+  async function exploreWith(code: string) {
+    await act(async () => {
+      root.render(
+        <Conversation
+          initial={[]}
+          quiz={null}
+          pending={null}
+          review={noReview}
+          place={{ stage: "foundation", title: "Present value" }}
+          shown={{ sessionId: 7 }}
+          explore={{ id: "annuity-worth-today", code }}
+        />,
+      );
+    });
+  }
+
+  it("keeps the rate the Learner set and the tasks they ticked when the reveal task joins it", async () => {
+    await exploreWith(before);
+    await setRate(3);
+    expect(ticks()).toEqual(["done", "current"]);
+    await exploreWith(revealed);
+    expect(slider().value).toBe("3");
+    expect(ticks()).toEqual(["done", "current", "todo"]);
   });
 });

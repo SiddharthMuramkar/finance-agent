@@ -228,6 +228,31 @@ ${extra}`;
     });
   });
 
+  describe("written-ahead Widgets that say a rate change", () => {
+    const widget = (rateChange: string) => `widgets:
+  - id: rates
+    rateChange: ${rateChange}
+    code: |
+      root = Widget("Rates", [old, new, steps])
+      $old = 5
+      $new = 5.2
+      old = Slider("old", "Old rate", 0, 10, 0.01, $old, "percent")
+      new = Slider("new", "New rate", 0, 10, 0.01, $new, "percent")
+      steps = GuidedTasks([up])
+      up = GuidedTask("Set 6%", $new == 6)`;
+
+    it("accepts two sliders the Widget declares", () => {
+      const { map, errors } = parseCourseMap([topic("a", widget("{ old: $old, new: $new }"))]);
+      expect(errors).toEqual([]);
+      expect(map?.topic("a")?.widgets[0].rateChange).toEqual({ old: "$old", new: "$new" });
+    });
+
+    it("rejects a slider the Widget does not declare", () => {
+      const { errors } = parseCourseMap([topic("a", widget("{ old: $old, new: $later }"))]);
+      expect(errors).toEqual(['Topic "a" written-ahead Widget "rates" works out a rate change from $later, which its code does not declare']);
+    });
+  });
+
   describe("Connections", () => {
     const connection = (text: string, topics = "[b]") => `  - text: ${text}\n    topics: ${topics}`;
     const withConnections = (...items: string[]) => `connections:\n${items.join("\n")}`;

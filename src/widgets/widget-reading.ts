@@ -1,9 +1,13 @@
-import { calculate, formatMoney } from "@/finance/calculators";
+import { evaluate } from "@openuidev/lang-core";
+import { calculate } from "@/finance/calculators";
 import { formulaById } from "@/finance/formulas";
-import { formatUsd, formatValue } from "./case-data-view";
+import { rateChangeReadouts } from "@/finance/rate-change";
+import { annuityPaymentCount } from "@/finance/present-value";
+import { formatUnit, formatUsd, formatValue } from "./case-data-view";
 import { widgetNodes, widgetParts, widgetTaskTexts } from "./check";
 import type { ParsedNode } from "./guided-tasks";
 import { declaredSettings } from "./settings";
+import { readingValue } from "./slider-steps";
 import type { SavedWidget } from "./widget-state";
 
 // What the Tutor sees of a Widget (spec #119, "Widgets › What the Tutor sees"): its sliders at the values the
@@ -27,31 +31,18 @@ export type WidgetReading = {
   sliders: { label: string; text: string }[];
   /** Each Guided Task, in order, and whether it is ticked. */
   tasks: { text: string; ticked: boolean }[];
-  /** The key readouts of our own parts, worked out by code: "Worth today at 3.38%: $877.9 million". */
+  /** The key readouts of our own parts, worked out by code: "Worth today at 3.38%: $877.4 million". */
   readouts: string[];
 };
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
-/** Stands for a value code cannot work out from the Widget's state (an expression it does not evaluate). */
-const UNKNOWN = Symbol("unknown");
-
-/** A parsed prop with each $variable read from `state`, simple arithmetic worked out, else UNKNOWN. */
+/** A parsed prop with each expression in it worked out by OpenUI's own evaluator at the Widget's state, as the browser does. */
 function resolve(raw: unknown, state: Record<string, number>): unknown {
   if (raw === null || typeof raw !== "object") return raw;
   if (Array.isArray(raw)) return raw.map((v) => resolve(v, state));
   const value = raw as Record<string, unknown>;
-  if (value.k === "StateRef" && typeof value.n === "string") return state[value.n] ?? UNKNOWN;
-  if (value.k === "Num" && typeof value.v === "number") return value.v;
-  if (value.k === "BinOp") {
-    const left = resolve(value.left, state);
-    const right = resolve(value.right, state);
-    if (typeof left !== "number" || typeof right !== "number") return UNKNOWN;
-    const ops: Record<string, (a: number, b: number) => number> = { "+": (a, b) => a + b, "-": (a, b) => a - b, "*": (a, b) => a * b, "/": (a, b) => a / b };
-    const op = typeof value.op === "string" ? ops[value.op] : undefined;
-    return op ? op(left, right) : UNKNOWN;
-  }
-  if (typeof value.k === "string") return UNKNOWN;
+  if (typeof value.k === "string") return evaluate(value as never, { getState: (name) => state[name], resolveRef: () => undefined });
   return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, resolve(v, state)]));
 }
 
@@ -64,14 +55,8 @@ function numbers(value: unknown): Record<string, number> | undefined {
 
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
-/** A slider's value as the Widget prints it beside its label. */
-function sliderText(value: number, unit: unknown): string {
-  if (unit === "percent") return `${value}%`;
-  if (unit === "years") return `${value} years`;
-  if (unit === "inr") return formatMoney(value, "inr");
-  if (unit === "usd") return formatUsd(value);
-  return String(value);
-}
+/** A slider's value as the Widget prints it beside its label (the Slider's own readout). */
+const sliderText = (value: number, unit: unknown) => formatUnit(readingValue(value), typeof unit === "string" ? unit : undefined);
 
 const sourcedLine = (figure: SourcedFigure) => `${figure.label}: ${formatValue(figure.value, figure.unit)} (sourced, ${figure.date})`;
 
@@ -81,7 +66,7 @@ function partReadouts(node: ParsedNode, state: Record<string, number>, lookup: S
   if (node.typeName === "AnnuityChart") {
     const { total, payments, growthPercent, ratePercent, compareTo } = props;
     if (![total, payments, growthPercent, ratePercent].every(finite)) return [];
-    const inputs = { total, payments: Math.max(1, Math.min(60, Math.round(payments as number))), growthPercent, ratePercent };
+    const inputs = { total, payments: annuityPaymentCount(payments as number), growthPercent, ratePercent };
     const run = calculate("growing_annuity_present_value", inputs, "usd");
     if (!run.ok) return [];
     const value = (label: string) => run.results.find((r) => r.label === label)?.value;
@@ -116,11 +101,15 @@ function partReadouts(node: ParsedNode, state: Record<string, number>, lookup: S
   return [];
 }
 
+/** The two sliders ($variables) whose rate change a written-ahead Widget says three ways (Percent). */
+export type RateChangeSliders = { old: string; new: string };
+
 /**
  * What a Widget shows now: its sliders at the saved values (else the ones its code starts at), its Guided Tasks
- * with the saved ticks, and our parts' readouts worked out from those values. Null when the code does not draw.
+ * with the saved ticks, and our parts' readouts worked out from those values. A written-ahead Widget that says a rate
+ * change (`rateChange`) gets those readouts from the tested rateChange too. Null when the code does not draw.
  */
-export function readWidget(code: string, saved: SavedWidget | undefined, lookup: SourcedLookup, explore = false): WidgetReading | null {
+export function readWidget(code: string, saved: SavedWidget | undefined, lookup: SourcedLookup, explore = false, rateChange?: RateChangeSliders): WidgetReading | null {
   const nodes = widgetNodes(code);
   const title = widgetParts(code).title?.trim();
   if (!nodes.length || !title) return null;
@@ -131,7 +120,9 @@ export function readWidget(code: string, saved: SavedWidget | undefined, lookup:
   });
   const ticked = new Set(saved?.ticked ?? []);
   const tasks = widgetTaskTexts(code).map((text) => ({ text, ticked: ticked.has(text) }));
-  return { title, explore, sliders, tasks, readouts: nodes.flatMap((n) => partReadouts(n, state, lookup)) };
+  const [before, after] = rateChange ? [state[rateChange.old], state[rateChange.new]] : [];
+  const changed = finite(before) && finite(after) ? rateChangeReadouts(before, after) : [];
+  return { title, explore, sliders, tasks, readouts: [...nodes.flatMap((n) => partReadouts(n, state, lookup)), ...changed] };
 }
 
 /** True when the Widget has Guided Tasks and every one of them is ticked. */
@@ -169,7 +160,7 @@ const theLabel = (label: string) => `the ${/^[A-Z][a-z]/.test(label) ? label[0].
 
 /**
  * What the Learner found, written by code from the Widget's values and readouts for "Tell the Tutor what I found":
- * e.g. "I set the interest rate (discount rate) to 3.38%. Worth today at 3.38%: $877.9 million; Cash option: …".
+ * e.g. "I set the interest rate (discount rate) to 3.38%. Worth today at 3.38%: $877.4 million; Cash option: …".
  */
 export function foundText(reading: WidgetReading): string {
   const set = reading.sliders.length ? `I set ${reading.sliders.map((s) => `${theLabel(s.label)} to ${s.text}`).join(" and ")}.` : `I did every task in "${reading.title}".`;

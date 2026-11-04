@@ -278,7 +278,10 @@ export function writtenAheadPartProblems(code: string, covered: readonly Covered
   }
   return covered.flatMap((w) => {
     const shared = w.parts.filter((p) => used.has(p));
-    const open = `Never draw your own version: call open_widget with id "${w.id}" and ${LEAVE_OUT}.`;
+    // The explore Widget before the explore step: the Learner meets it there (ADR 0001), so it is not opened yet either.
+    const open = w.held
+      ? `Never draw your own version, and do not open it yet: the Learner meets it at the explore step. Teach this in words for now and ${LEAVE_OUT}.`
+      : `Never draw your own version: call open_widget with id "${w.id}" and ${LEAVE_OUT}.`;
     if (shared.length) return [`this Widget uses ${shared.map(partName).join(" and ")}, which the written-ahead Widget "${w.title}" covers. ${open}`];
     // Its own title would take the written-ahead Widget's tab, as an update in place does.
     if (title === w.title) return [`this Widget has the title of the written-ahead Widget "${w.title}". ${open}`];
@@ -286,20 +289,24 @@ export function writtenAheadPartProblems(code: string, covered: readonly Covered
   });
 }
 
+/** A flagged Widget of the reply: its position, its problems, and whether the written-ahead rule leaves it out. */
+export type BrokenWidget = { index: number; problems: string[]; leaveOut?: true };
+
 /**
  * Everything wrong with each finished Widget of the reply being written, by widget position: what stops it
  * drawing, then the Widget rules (widgetRuleProblems) and the written-ahead rule for the Topic's written-ahead
- * Widgets (`covered`). Each Widget is compared with the Widgets open before the reply (`open`, their code) and with
- * those earlier in the same reply. Widgets with no problem are left out.
+ * Widgets (`covered`), which marks it `leaveOut`. Each Widget is compared with the Widgets open before the reply
+ * (`open`, their code) and with those earlier in the same reply. Widgets with no problem are left out.
  */
-export function newReplyWidgetProblems(text: string, open: readonly string[] = [], covered: readonly CoveredParts[] = []): { index: number; problems: string[] }[] {
+export function newReplyWidgetProblems(text: string, open: readonly string[] = [], covered: readonly CoveredParts[] = []): BrokenWidget[] {
   const seen = [...open];
   return splitReply(text)
     .filter((s) => s.type === "widget")
     .flatMap((s, index) => {
-      const problems = [...widgetProblems(s.code), ...widgetRuleProblems(s.code, seen), ...writtenAheadPartProblems(s.code, covered)];
+      const ahead = writtenAheadPartProblems(s.code, covered);
+      const problems = [...widgetProblems(s.code), ...widgetRuleProblems(s.code, seen), ...ahead];
       seen.push(s.code);
-      return problems.length ? [{ index, problems }] : [];
+      return problems.length ? [{ index, problems, ...(ahead.length > 0 && { leaveOut: true as const }) }] : [];
     });
 }
 
@@ -307,14 +314,13 @@ export function newReplyWidgetProblems(text: string, open: readonly string[] = [
  * The correction message code sends for the reply's flagged Widgets. When some are to be left out (the written-ahead
  * rule), the Tutor writes no block for those; the others it writes again in full, in order.
  */
-export function widgetCheckMessage(broken: readonly { index: number; problems: string[] }[]): string {
+export function widgetCheckMessage(broken: readonly BrokenWidget[]): string {
   const problems = broken.flatMap((b) => b.problems.map((p) => `- Widget ${b.index + 1}: ${p}`));
-  const leaveOut = problems.some((p) => p.includes(LEAVE_OUT));
-  const close = !leaveOut
+  const close = !broken.some((b) => b.leaveOut)
     ? "Reply with only the corrected openui-lang block, written in full. Write no prose."
-    : broken.every((b) => b.problems.some((p) => p.includes(LEAVE_OUT)))
-      ? "Call open_widget as each line says. Write no openui-lang block and no prose."
-      : "Call open_widget as each line says, and write no block for a Widget to leave out. For each other Widget named, reply with only its corrected openui-lang block, written in full, in order. Write no prose.";
+    : broken.every((b) => b.leaveOut)
+      ? "Call open_widget where a line says to. Write no openui-lang block and no prose."
+      : "Call open_widget where a line says to, and write no block for a Widget to leave out. For each other Widget named, reply with only its corrected openui-lang block, written in full, in order. Write no prose.";
   return `${WIDGET_CHECK_PREFIX} the widget in your last reply cannot be drawn or breaks a Widget rule.\n${problems.join("\n")}\n${close}`;
 }
 

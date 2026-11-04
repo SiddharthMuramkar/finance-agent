@@ -812,7 +812,8 @@ tests, it is not part of `npm run check`, because it spends money and needs the 
   the panel (the Session's earlier replies, one per title) and says to change one by writing it again
   in full under exactly the same title. In the browser, a Widget with the title of an earlier one takes
   that one's tab instead of adding a tab, shows the newest drawing, and the older reply's
-  "Open: <title> →" chip opens it too.
+  "Open: <title> →" chip opens it too. A Topic Session opened read-only (Past Sessions, a passed Course Map row) draws
+  its Widgets the same way (`OldSession` with `inPlace`); an Older session draws them as before, one tab each.
 - *Code-backed Widget rules.* Beyond "can it be drawn", the server holds the reply being written to
   three rules, and a break feeds the same one correction turn: a Widget with a slider has at least one
   Guided Task; a kit chart with axes (line, area, bar, horizontal bar, scatter) has both axis labels;
@@ -873,7 +874,9 @@ or dataset the Topic does not have, and Case Data references outside the Topic's
 
 **Percent's "One rate change, said three ways"** (`rate-change-three-ways`): old and new rate, 0 to 10% in 0.01
 steps with number boxes, starting at 5% and 5.2%; readouts in percentage points, basis points and percent change of
-the old rate (worked out by the Widget, "none" when the old rate is 0%). Its three Guided Tasks are made-up moves
+the old rate (worked out by the Widget, "none" when the old rate is 0%; for the Tutor and Tell the Tutor what I found,
+code works the same three out with the tested `rateChange` in `src/finance/rate-change.ts`, from the two sliders the
+Topic file names under `rateChange`, so the Tutor is told "40 bp" rather than left to do the sum). Its three Guided Tasks are made-up moves
 (6% to 6.4%, 8% to 7.1%, 0.5% to 0.9%) that tick on no Percent quiz question's move and never on the Case's outcome
 (a test checks both). After the reveal a fourth appears: "Set the Fed's move of February 1994: from 3% to 3.25%",
 its rates from the `fed-funds-target` dataset. A growth-rate calculator (`cagr`) drawn by the Tutor in Percent is
@@ -902,7 +905,8 @@ Widget the Tutor drew, so a Widget the Tutor updates in place under the same tit
 Study Workspace page reads the shown Session's rows with the Session and hands them to the page; a Widget then
 starts from its saved values (OpenUI's `initialState`, which wins over the starting numbers in its code) and its
 saved ticks. The page keeps one store of these for every Widget, above any one tab, so a Widget mounted again
-after a tab switch draws as it was left. As the Learner moves a slider or a task ticks, the store posts that
+after a tab switch draws as it was left, and so does one whose code changes under it (the reveal task joining the
+explore Widget redraws it from the store, rate and ticks kept). As the Learner moves a slider or a task ticks, the store posts that
 Widget's whole state to `/api/widget-state` 0.4 s after the last change, and at once when the page is left
 (`keepalive`, so a reload does not lose it). The route checks that the Session is the signed-in Learner's;
 another Learner's Session answers 404. Before the first turn has made the Session, changes wait in the page and
@@ -960,9 +964,11 @@ appears; they press it, and the Tutor replies to what they found and asks them t
 words, which is what the Insight tool can record.
 
 **Trade-off.** Code, not the model, does every sum, at the cost of a block in each message while a Widget is
-open (a few hundred tokens, cached with the rest of the history). Readouts cover only our own parts and simple
-`$rate * 2` style arguments; a kit chart's typed numbers and anything a Query works out in the browser are left
-to the slider values. Written-ahead Widgets get readouts the same way, from the parts they are built of. Trusting
+open (a few hundred tokens, cached with the rest of the history). Readouts cover only our own parts, their
+arguments worked out by OpenUI's own evaluator (as the browser does); slider values are printed with the Slider's own
+`formatUnit`, and the annuity's 1-to-60 payment count is one shared `annuityPaymentCount`; a kit chart's typed numbers and anything a Query works out in the browser are left
+to the slider values. Written-ahead Widgets get readouts the same way, from the parts they are built of, and one that
+says a rate change (`rateChange` in its Topic file) gets those from `rateChange` too. Trusting
 the page's numbers means a tampered request could tell the Tutor a wrong rate, but only about the Learner's own
 Widget, and the readouts are still worked out by code from those numbers. The report's words are code's, so the
 Learner still has to say the Insight themselves.
@@ -1422,8 +1428,11 @@ the Learner can keep playing during their turn and the Check. It is chosen from 
 that Session reached the explore step (read from the Course Navigator context saved in the Session). A
 newer Widget from the Tutor still opens on its own, because the explore Widget is placed after only the
 Widgets the Tutor had drawn when it appeared. The Tutor's explore context tells it the Widget is already on
-screen, so it points to it and does not draw its own. Because it is a written-ahead Widget, the Tutor can open it
-again later with `open_widget`: the panel then keeps one tab (the Explore one), the Tutor's "Open: <title> →" chip
+screen, so it points to it and does not draw its own. Before the explore step code holds it back (ADR 0001,
+`exploreHeldBack`): `open_widget` refuses its id, the Written-ahead Widgets line leaves it out, and an annuity chart
+the Tutor draws at the story or concept step is still sent back, told to teach in words rather than to open it.
+Once the explore step has begun (or the Insight is settled, or the Topic passed), the Tutor can open it
+again with `open_widget`: the panel then keeps one tab (the Explore one), the Tutor's "Open: <title> →" chip
 opens it, its work is saved under the written-ahead id in both places, and the Tutor is told of it once
 (`updatedInPlace` in `widget-panel.tsx`, `openWidgetsForTurn` in `src/tutor/widget-context.ts`). The page draws it
 with the code as the Learner sees it now (`exploreAsSeen`), so a reveal task joins it after the reveal. It is mounted once: the page measures its width
@@ -3150,9 +3159,9 @@ backfill reload places the corrected readings.
 
 **Trade-off.** "Repeats the Insight" is a word-overlap test (the Insight held whole, or three in five of the two texts' meaningful words shared), so it catches pasting and light rewording but not a bullet that gives the Insight away in quite different words; the owner's review is the guard for that. The figure rule is strict: a bullet cannot say "two" as "2", and cannot name a Case's year, which keeps every number the Learner sees in Case Data or a calculator. Every Topic is now filled (the first third by #137, the middle third, Trade and globalisation to Bank runs, by #138, and the last third by #139), so the course check requires two or three bullets on every written Topic, including any Topic written later.
 
-## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/guided-task-check.ts`, issue #66)
+## Guided Tasks (`GuidedTasks` and `GuidedTask` in `src/widgets/library.tsx`, `guided-tasks.ts`, `guided-tasks-view.tsx`, `src/course/written-ahead-check.ts`, issue #66)
 
-**What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked. In the Study Workspace the ticks are saved with the Session (see "Widget state"), so they survive a reload and a tab switch. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` tries every position of the sliders a task reads in each Topic's explore Widget, and fails on a task no position can reach or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
+**What it does.** Two Widget components put a short stepper under a Widget's controls. A `GuidedTask` is one instruction plus a condition written on a slider's `$variable` (for example `$rate == 0`); `GuidedTasks` lists them. Each task shows as to do, current or done, in the redesign's look (tokens only). They tick themselves in the browser, in order: only the first task not yet done can tick, and a task that has ticked never unticks, even when the slider moves away again. They are practice only: nothing is marked. In the Study Workspace the ticks are saved with the Session (see "Widget state"), so they survive a reload and a tab switch. Three pieces of code guard them. The server's Widget check rejects a task whose condition reads no value bound to a Slider in the same Widget, and the existing correction turn asks the Tutor to rewrite it. `npm run course:check` checks each Topic's explore Widget as the written-ahead Widget it is (`writtenAheadCheck`, one rule for every Widget in a Topic file): it tries the numbers a task names plus each slider's min, max and default, on the steps the slider really takes (0.01 for a percent slider), and fails on a task none of them reaches or one that is already done at the start. At the explore step, the Tutor's context lists the task texts (never the Widget's code or conditions) and tells it not to mark them.
 
 **Scenario.** Present value's annuity Widget has two tasks under the rate slider and the annuity chart before the reveal: set the rate to 0%, then find the rate where the annuity is worth the same as the cash. The slider starts at 5%, so none is done. The Learner types 3.38 first: nothing ticks, because task 1 is current. They press 0%: task 1 ticks. They type 3.36: task 2 ticks, as it does anywhere from 3.36 to 3.39, within 0.02 points of the break-even (about 3.38%). If a later edit made task 2 read `$rate >= 10.5`, the course check would fail, because no slider position reaches it.
 
@@ -3160,7 +3169,7 @@ backfill reload places the corrected readings.
 
 ## Exact slider values (`SliderView` and `WidgetFrame` in `src/widgets/library.tsx`, `src/widgets/slider-steps.ts`, issue #143)
 
-**What it does.** Every slider in every Widget has a number box beside it that takes any value from its minimum to its maximum, and − and + buttons that move it by exactly one step and stop at the ends. A percent slider always moves in 0.01 steps, whatever step the Tutor or a Topic file wrote. Every value set is rounded to the step's decimals (so typed percents keep two decimals), and a value outside the range is clamped; text that is no number is ignored. The number box keeps what is being typed until Enter or leaving the box, so typing 3.38 never passes through 3 and 3.3 on the way. When a finished Widget first sets a slider, its starting value is moved onto the nearest step. The readout prints a value at its own precision (3.38 on a 0.25 slider), without float noise, and a space separates label and value, so it reads "Old rate 4%", never "Old rate4%". Any Widget with a slider shows **Reset** beside its title, which puts every slider back to its starting value. The rules live in one small module, `slider-steps.ts`; the frame finds the sliders at any depth (including a tab not showing) and remembers each one's start.
+**What it does.** Every slider in every Widget has a number box beside it that takes any value from its minimum to its maximum, and − and + buttons that move it by exactly one step and stop at the ends. A percent slider always moves in 0.01 steps, whatever step the Tutor or a Topic file wrote. Every value set is rounded to the step's decimals (so typed percents keep two decimals), and a value outside the range is clamped; text that is no number is ignored. The number box keeps what is being typed until Enter or leaving the box, so typing 3.38 never passes through 3 and 3.3 on the way. When a finished Widget first sets a slider, its declared starting value is moved onto the nearest step; a value restored from Widget state is left as the Learner typed it. The readout prints a value at its own precision (3.38 on a 0.25 slider), without float noise, and a space separates label and value, so it reads "Old rate 4%", never "Old rate4%". Any Widget with a slider shows **Reset** beside its title, which puts every slider back to its starting value. The rules live in one small module, `slider-steps.ts`; the frame finds the sliders at any depth (including a tab not showing) and remembers each one's start.
 
 **Scenario.** A Widget is written with `Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")` starting at `$rate = 5`, and a Guided Task `$rate == 3.38`. The Learner types 3.3812 in the number box and presses Enter: the value becomes 3.38, the readout says "Discount rate 3.38%", and the task ticks. They press + twice (3.40%), drag the slider about, then press Reset: the rate is back at 5%.
 
@@ -3206,7 +3215,7 @@ backfill reload places the corrected readings.
 
 ## The Notes filter and Undo (`src/app/notes/notes-view.tsx`, `src/app/notes/undo.tsx`, `src/app/save-to-notes.tsx`, `src/learner/saved.ts`, spec #119, ticket #152)
 
-**What it does.** Notes has a visible title and, by default, lists only the Topics that have a Topic Note: a passed Topic (code fills its note in), or one where the Learner wrote a line or saved a reply or Widget. A Learner with none sees one short line instead of a column of empty cards. "Show all Topics" is a plain link to `/notes?all=1`, which lists every Topic so a line can be added to one not reached yet; on that view the link reads "Show only Topics with notes" and goes back to `/notes`. The filter runs on the server from the same notes, so there is no state in the browser to lose. Saving is safe both ways. After **Save to notes** in the Study Workspace or an old Session, the control reads "Saved ✓ · Undo · Open notes": there is no button to save the same thing again, Undo deletes that saved item (by the id the save answered with), and Open notes goes to `/notes#note-<Topic>`, the anchor on that Topic's card. On Notes, **Remove from notes** and a line's **Delete** take the item off at once and show one Undo toast at the bottom of the screen for eight seconds. Undo puts it back through the ordinary routes: a line is added again with its words, and a saved item is saved again from what the page was given with it (`again`: its Session, turn, Widget number and slider numbers), so the server checks it exactly as a fresh save, Learner ownership included. The item reappears where it was. A second removal replaces the toast, and neither the toast nor the toggle prints.
+**What it does.** Notes has a visible title and, by default, lists only the Topics that have a Topic Note: a passed Topic (code fills its note in), or one where the Learner wrote a line or saved a reply or Widget. A Learner with none sees one short line instead of a column of empty cards. "Show all Topics" is a plain link to `/notes?all=1`, which lists every Topic so a line can be added to one not reached yet; on that view the link reads "Show only Topics with notes" and goes back to `/notes`. The filter runs on the server from the same notes, so there is no state in the browser to lose. Saving is safe both ways. After **Save to notes** in the Study Workspace or an old Session, the control reads "Saved ✓ · Undo · Open notes": there is no button to save the same thing again, Undo deletes that saved item (by the id the save answered with), and Open notes goes to `/notes#note-<Topic>`, the anchor on that Topic's card. On Notes, **Remove from notes** and a line's **Delete** take the item off at once and show one Undo toast at the bottom of the screen for eight seconds. Undo puts it back through the ordinary routes: a line is added again with its words, and a saved item is saved again from what the page was given with it (`again`: its Session, turn, Widget number and slider numbers, and for the explore Widget its Topic, so it goes back on that Topic even after the Learner has moved on), so the server checks it exactly as a fresh save, Learner ownership included. The item reappears where it was. A second removal replaces the toast, and neither the toast nor the toggle prints.
 
 **Scenario.** A Learner who has passed present value and saved one reply on bond prices opens Notes and sees two cards, not ninety-five. They remove the bond reply by mistake; the toast says "Removed from notes. Undo", they press Undo and the reply is back in its place. Later, in the Study Workspace, they save a Widget, see "Saved ✓ · Undo · Open notes", and press Open notes to land on that Topic's card.
 

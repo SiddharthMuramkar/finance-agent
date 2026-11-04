@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import type { CaseData } from "@/case-data/case-data";
 import { calculate, CALCULATOR_IDS, CALCULATORS } from "@/finance/calculators";
-import { annuitySchedule } from "@/finance/present-value";
+import { annuityPaymentCount, annuitySchedule } from "@/finance/present-value";
 import { caseLoader, splitReference } from "./case-data-client";
 import { formatUsd, formatValue } from "./case-data-view";
 import { EMPTY_RESULTS, MAX_RANGE_POINTS, WIDGET_TOOL_ARGS, type RangeRow, type WidgetToolName, type WidgetToolResults } from "./tool-specs";
@@ -205,7 +205,7 @@ export function createWidgetTools(options: WidgetToolOptions = {}): WidgetToolPr
         const parsed = schema.safeParse(withNumbers(args, schema.shape));
         if (!parsed.success) return fail("annuity_schedule", argumentProblem("annuity_schedule", parsed.error));
         // 1 to 60 yearly payments, as the AnnuityChart draws them.
-        const payments = Math.max(1, Math.min(60, Math.round(parsed.data.payments)));
+        const payments = annuityPaymentCount(parsed.data.payments);
         const schedule = annuitySchedule({ ...parsed.data, payments });
         const values = [schedule.presentValue, ...schedule.rows.flatMap((r) => [r.payment, r.presentValue])];
         if (!values.every(Number.isFinite)) return fail("annuity_schedule", "These inputs give no finite schedule: keep ratePercent and growthPercent above -100.");

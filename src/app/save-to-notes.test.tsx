@@ -9,7 +9,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }))
 
 const fence = (code: string) => ["```openui-lang", code, "```"].join("\n");
 const WIDGET = 'root = Widget("What a home loan costs", [calc])\ncalc = Calculator("emi", {principal: 5000000, ratePercent: 8.5, years: 20})';
-const EXPLORE = { code: 'root = Widget("Cash now or later", [calc])\ncalc = Calculator("emi", {principal: 5000000, ratePercent: 8.5, years: 20})' };
+const EXPLORE = { id: "cash-now-or-later", code: 'root = Widget("Cash now or later", [calc])\ncalc = Calculator("emi", {principal: 5000000, ratePercent: 8.5, years: 20})' };
 const reply = { role: "assistant" as const, text: `Here you go.\n\n${fence(WIDGET)}`, ref: { sessionId: 3, turnSeq: 0 } };
 const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
 

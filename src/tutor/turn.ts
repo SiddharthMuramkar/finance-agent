@@ -10,7 +10,8 @@ import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
 import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { droppedWidgets, newReplyWidgetProblems, openWidgetsIn, widgetCheckMessage, type OpenWidget } from "@/widgets/check";
+import { newReplyWidgetProblems, openWidgetsIn, widgetCheckMessage, type OpenWidget } from "@/widgets/check";
+import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
@@ -428,7 +429,9 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
     const widgetsNote = openWidgetsNote(drawn.map((w) => w.title));
     // The Topic's written-ahead Widgets, by title and id, which the Tutor opens with open_widget.
     const sessionTopic = session.topicId ? map.topic(session.topicId) : undefined;
-    const aheadNote = writtenAheadNote(sessionTopic ? writtenAheadWidgets(sessionTopic) : []);
+    // The explore Widget is left off until the explore step: the Tutor may not open it before then (ADR 0001).
+    const held = sessionTopic ? exploreHeldBack(sessionTopic, (await loadProgress(db, learnerId)).topics[sessionTopic.id]) : null;
+    const aheadNote = writtenAheadNote(sessionTopic ? writtenAheadWidgets(sessionTopic).filter((w) => w.id !== held) : []);
     const context = [widgetsNote, aheadNote, stepped].filter(Boolean).join("\n");
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = completed ? null : await pendingQuizNote(db, map, learnerId, session.topicId);
@@ -587,14 +590,15 @@ async function* runLockedTurn(deps: TurnDeps, input: TurnInput, turn: Turn, dead
   // Only the reply being written is checked, against the Widgets open before it; stored Widgets never are.
   // A Widget of the Tutor's own that uses a written-ahead Widget's parts is left out, and the Tutor told to open that one.
   const covering = activeSession.topicId ? map.topic(activeSession.topicId) : undefined;
+  // Before the explore step the explore Widget still covers its parts, but the correction does not send the Tutor to open it.
+  const heldBack = covering ? exploreHeldBack(covering, (await loadProgress(db, learnerId)).topics[covering.id]) : null;
+  const covered = covering ? coveredParts(covering).map((w) => (w.id === heldBack ? { ...w, held: true } : w)) : [];
   const broken =
-    stopReason === "refusal" || stopReason === "max_tokens"
-      ? []
-      : newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code), covering ? coveredParts(covering) : []);
+    stopReason === "refusal" || stopReason === "max_tokens" ? [] : newReplyWidgetProblems(reply, openWidgetsBefore(log, turnSeq).map((w) => w.code), covered);
   if (broken.length) {
     const message = widgetCheckMessage(broken);
     await log.append({ role: "user", content: message });
-    yield { type: "correction", widgets: broken.map((b) => b.index), leaveOut: droppedWidgets(message) };
+    yield { type: "correction", widgets: broken.map((b) => b.index), leaveOut: broken.flatMap((b) => (b.leaveOut ? [b.index] : [])) };
     yield* loop();
   }
 

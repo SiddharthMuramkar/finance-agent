@@ -2,7 +2,7 @@ import { createParser, createStore, evaluate, evaluateRoot, type LibraryJSONSche
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { WidgetView } from "@/app/widget-view";
-import { guidedTaskCheck } from "@/course/guided-task-check";
+import { writtenAheadCheck } from "@/course/written-ahead-check";
 import { annuityBreakEven } from "@/finance/present-value";
 import { presentValueOnly } from "@/test/present-value-map";
 import { widgetParts, widgetProblems, widgetTaskTexts } from "./check";
@@ -119,6 +119,9 @@ describe("the server's Widget check for Guided Tasks", () => {
   });
 });
 
+/** The course check on a Widget's Guided Tasks: since every explore Widget is a written-ahead Widget, the written-ahead check. */
+const guidedTaskCheck = (topicId: string, code: string) => writtenAheadCheck(topicId, { id: "w", code, parts: [] });
+
 describe("the course check for Guided Tasks", () => {
   const check = (...tasks: string[]) => guidedTaskCheck("pv", widget(...tasks));
 
@@ -137,9 +140,9 @@ describe("the course check for Guided Tasks", () => {
     expect(check("$rate >= 4").join("\n")).toMatch(/already done at the start/);
   });
 
-  it("fails a task no slider position can reach, past the range or between two steps", () => {
+  it("fails a task no slider position can reach, past the range or between two steps (a percent slider moves in 0.01 steps)", () => {
     expect(check("$rate > 10").join("\n")).toMatch(/can never be reached/);
-    expect(check("$rate == 2.1").join("\n")).toMatch(/can never be reached/);
+    expect(check("$rate == 2.123").join("\n")).toMatch(/can never be reached/);
   });
 
   it("fails a task that reads no slider", () => {
@@ -147,7 +150,7 @@ describe("the course check for Guided Tasks", () => {
   });
 
   it("names the Topic and the task", () => {
-    expect(check("$rate > 10")[0]).toContain('Topic "pv" Guided Task "Task 1"');
+    expect(check("$rate > 10")[0]).toContain('Topic "pv" written-ahead Widget "w" Guided Task "Task 1"');
   });
 });
 
@@ -194,7 +197,7 @@ describe("Guided Tasks inside a Stack", () => {
 
   it("are tried on their Slider by the course check", () => {
     expect(guidedTaskCheck("pv", nested("$rate == 0", "$rate > 9.5"))).toEqual([]);
-    expect(guidedTaskCheck("pv", nested("$rate == 2.1")).join("\n")).toMatch(/can never be reached/);
+    expect(guidedTaskCheck("pv", nested("$rate == 2.123")).join("\n")).toMatch(/can never be reached/);
     expect(guidedTaskCheck("pv", nested("$rate == 5")).join("\n")).toMatch(/already done at the start/);
   });
 });

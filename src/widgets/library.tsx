@@ -16,10 +16,10 @@ import { openuiLibrary } from "@openuidev/react-ui";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
-import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
+import { calculate, CALCULATOR_IDS } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 import { SecondaryButton } from "@/app/ui";
-import { AnnuityFigure, annuityAgainstCash, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
+import { AnnuityFigure, annuityAgainstCash, AssumptionTag, formatUnit, formatUsd, HistoryFigure } from "./case-data-view";
 import { InsightSettledContext } from "./insight-settled";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { useCaseLoad } from "./case-data-provider";
@@ -39,13 +39,6 @@ const UNITS = ["percent", "years", "usd", "inr"] as const;
 type Unit = (typeof UNITS)[number];
 
 export { formatUsd };
-
-function formatUnit(value: number, unit: Unit) {
-  if (unit === "percent") return `${value}%`;
-  if (unit === "years") return `${value} years`;
-  if (unit === "inr") return formatMoney(value, "inr");
-  return formatUsd(value);
-}
 
 const sliderProps = z.object({
   name: z.string().describe('Field name, e.g. "rate"'),
@@ -570,9 +563,11 @@ function SliderStart({ slider, resets }: { slider: SliderNode; resets: Map<strin
   const current = field.value;
   useEffect(() => {
     if (streaming || start.current !== null || typeof current !== "number" || !Number.isFinite(current)) return;
-    start.current = snappedValue(typeof declared === "number" && Number.isFinite(declared) ? declared : current, slider);
+    const known = typeof declared === "number" && Number.isFinite(declared);
+    start.current = snappedValue(known ? declared : current, slider);
+    // Only the declared default is moved onto a step: a value restored from Widget state may be one the Learner typed.
     const onStep = snappedValue(current, slider);
-    if (onStep !== current) field.setValue(onStep);
+    if (onStep !== current && (!known || current === declared)) field.setValue(onStep);
   });
   useEffect(() => {
     resets.set(slider.target, () => {

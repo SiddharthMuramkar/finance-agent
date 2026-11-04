@@ -43,7 +43,7 @@ export function LeftColumn({
   place: Place;
   review: ReviewState;
   quizOpen: boolean;
-  explore: { code: string; id?: string } | null;
+  explore: { code: string; id: string } | null;
   passed?: PassedTopic;
 }) {
   const { messages, running, refreshing, announcement, fixing, error, notice, canRetry, cutShort, waiting, passage, setPassage, send } = turn;
