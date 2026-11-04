@@ -1,5 +1,5 @@
 import { and, eq, gt } from "drizzle-orm";
-import { messages } from "@/db/schema";
+import { learnerState, messages } from "@/db/schema";
 import { isConverted, type CourseMap } from "@/course/map";
 import { finishFromWidget, navigate, nextOffer, practiceStep, STEP_NAMES, stepSetting, takeNext, type NextOffer, type Place, type TeachingStep } from "@/course/navigator";
 import type { Db } from "@/db/types";
@@ -62,6 +62,15 @@ export async function nextOfferNow(db: Db, map: CourseMap, learnerId: number, no
   return nextOffer(map, progress, { begun: await stepBegun(db, map, learnerId, place.topic.id, comingBack) });
 }
 
+/**
+ * Takes a row lock on the Learner's state for the rest of the transaction, so two writers that move the same Learner's
+ * progress (a Next, and the study page finishing a step from a Widget) run one after the other. The second then reads the
+ * progress the first saved and finds its step already finished, so a step divider is never stored twice.
+ */
+async function lockLearner(tx: Db, learnerId: number): Promise<void> {
+  await tx.select({ id: learnerState.id }).from(learnerState).where(eq(learnerState.learnerId, learnerId)).for("update");
+}
+
 /** `items` are the dividers it stored, in order: a coming-back divider the page drew (if any), then the step's. */
 export type TakenNext = { ok: true; note: string; sessionId: number; items: SessionItem[] } | { ok: false; reason: string };
 
@@ -73,6 +82,7 @@ export type TakenNext = { ok: true; note: string; sessionId: number; items: Sess
 export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number, turnId: number, named: NextName, now: Date): Promise<TakenNext> {
   return db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
+    await lockLearner(tx, learnerId);
     const progress = await loadProgress(tx, learnerId);
     const place = navigate(map, progress);
     // Next is offered only under a Tutor reply, so the Topic's Session already exists.
@@ -122,6 +132,7 @@ export async function finishStepFromWidget(db: Db, map: CourseMap, learnerId: nu
   if (!here || !stepSetting(here.topic, here.step, here.check)?.doneWhen) return [];
   return db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
+    await lockLearner(tx, learnerId);
     const progress = await loadProgress(tx, learnerId);
     const place = navigate(map, progress);
     const session = place ? await liveSession(tx, learnerId, place.topic.id) : undefined;
