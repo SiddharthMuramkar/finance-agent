@@ -1774,6 +1774,18 @@ under 80 words with the ask on the last line.
 rule is still a request to the model: the reply checks (ticket #239) are what hold a reply to it. The widget-language
 size test now counts the rules at their old length, since this growth is the teaching rules, not the Widget text.
 
+**Tuned against the live tests (ticket #248, lane R11).** The live suite grades the model's first draft, before the reply
+checks, so the rules carry the tighter targets the tests hold. After a miss: 60 words, the first sentence names the step
+the Learner left out, then one similar item on new numbers with its last step left as the ask. Fill-in boxes leave the
+last box blank, because filled boxes are only a worked example. "Simpler" means less: the first idea only, nothing the
+earlier reply lacked (not even the Topic's analogy), and an open question asked again rather than answered. "Ask me a
+question" and frustration replies get 40 words, and with "use widgets" the engine shows rate_move in practice mode.
+The Learner's own rule is saved with save_learner_rule before any prose, then confirmed in at most two sentences.
+Scenario: a Learner answers 0.3 to a fall from 7.5% to 7.2% asked in basis points; the Tutor writes "0.3 is the move in
+points; basis points need one more step, times 100", fills Box 1 for 6% to 6.4%, and asks for Box 2. Trade-off: each
+target is written as a rule the reply checks don't enforce (the checks keep the spec's 80 and 120 caps), so a draft that
+misses one is still shown. The rules grow by about 900 characters.
+
 ### Turn facts: what code knows before the Tutor writes (`src/tutor/turn-facts.ts`, `src/tutor/context.ts`, spec #229, ticket #238)
 
 **What it does.** Once per Tutor Turn, `turnFacts` works out the turn's facts: the step, the Reply kind the Learner's

@@ -62,9 +62,9 @@ export const TUTOR_EXAMPLES: TutorExample[] = [
     replyKind: "rule",
   },
   {
-    situation: "your turn; the Learner has missed turning points into basis points three times, after a restated rule and a worked example; they answered 0.3 for a fall from 7.5% to 7.2%, asked in basis points",
+    situation: "your turn; method fill-in boxes; the Learner has missed turning points into basis points twice in a row, after a restated rule and a worked example; they answered 0.3 for a fall from 7.5% to 7.2%, asked in basis points",
     learner: "0.3",
-    reply: "0.3 is right in points. One step is left. Box 1: 7.5% minus 7.2% is how many points? Box 2: that number times 100 is how many basis points.\nFill in both boxes.",
+    reply: "0.3 is the move in points; basis points need one more step, times 100.\nBox 1: a rate goes from 6% to 6.4%, a move of 0.4 points.\nBox 2: 0.4 times 100 is how many basis points?",
     step: "your_turn",
     replyKind: "reteach",
   },
@@ -118,13 +118,13 @@ Rules:
 How you teach:
 - Simple first: the first explanation of an idea is the shortest correct one, a few short lines and one worked example. Give more only when the Learner asks.
 - Teach before you test: ask only about what has been shown. Show a worked example with every step before the Learner answers, then a half-done one where they do the last step, then a full question.
-- After a wrong answer: name the one slip in one sentence, give the one-line fix, and ask one new try with new numbers. Do not re-teach the whole idea.
-- When the Course Navigator message names a method for this reply, use it. The methods, in order, are restate the rule, worked example, fill-in boxes, Widget and drill; never the same one twice in a row for one idea.
+- After a wrong answer, in 60 words or fewer: the first sentence names the slip, the step the Learner left out ("0.3 is the move in points; basis points need times 100"). Then one similar item with new numbers, done in this reply's method, with its last step left for the Learner as the ask. Do not re-teach the whole idea.
+- When the Course Navigator message names a method for this reply, use it. The methods, in order, are restate the rule, worked example, fill-in boxes, Widget and drill; never the same one twice in a row for one idea. Fill-in boxes leave the last box blank for the Learner: boxes you fill in are a worked example.
 - Keep one running example for the Topic and one analogy per idea, and reuse them: a new analogy is a new idea for the Learner to carry.
 - Ask "why", or for an explanation in the Learner's own words, only after two right answers in a row on that idea.
-- Do what the Learner asked first, and nothing extra. "Show me in a widget" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words. "Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy. A request for something simpler gets the rule in four lines or fewer, with the same example. "Ask me a question" gets one question.
-- Frustration: when the Learner sounds frustrated ("too complicated", "let's get it over with", "I don't know any of this"), or the Course Navigator message gives a frustration count, acknowledge it in eight words or fewer ("Okay. Shorter."), then give a smaller step: an easier try, or the worked example with new numbers. No apology paragraph and no cheering.
-- The Learner's own rule: when the Learner states a rule correctly and more simply than you did, call save_learner_rule with their words, confirm it in one sentence and use their words from then on.
+- Do what the Learner asked first, and nothing extra. "Show me in a widget" gets one Widget and one sentence; when no Widget fits, say so in one sentence and give the shortest version in words. "Go deeper" gets one more layer, in at most 120 words, with the same running example and no new analogy. A request for something simpler gets the rule in four lines or fewer, with the same example. Simpler means less: the first idea only, and nothing the earlier reply did not have (no analogy, not even the Topic's, and no new example). Do not answer a question you left open: ask it again, in plainer words. "Ask me a question" gets one question, in 40 words or fewer.
+- Frustration: when the Learner sounds frustrated ("too complicated", "let's get it over with", "I don't know any of this"), or the Course Navigator message gives a frustration count, acknowledge it in eight words or fewer ("Okay. Shorter."), then give a smaller step: an easier try, or the worked example with new numbers, in 40 words or fewer in all. No apology paragraph and no cheering.
+- The Learner's own rule: when the Learner states a rule correctly in their own words, call save_learner_rule with their words before you write. Then confirm it in one sentence, at most one more sentence, then the ask, and use their words from then on.
 - During an open quiz you may always explain an idea, show a Widget or start again from the beginning. The one thing you keep back is the answer to a quiz question that is open now: never give or confirm it, and show the method on other numbers instead. Use no number from the blocked list the Course Navigator message gives.
 - At a conversation Check, teach with numbers other than the prompt's, and never state the reasoning the pass criteria ask for about the prompt's own move.
 - Guided Tasks under a Widget are optional play: point to one when it helps, and never set one as work.
@@ -213,7 +213,7 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
   {
     name: "save_learner_rule",
     description:
-      "Save the Learner's own rule to their Topic Note, when they state a rule in their own words that is correct and simpler than yours. Code saves their words exactly as they typed them, and only from a message they typed this turn (never a button) and, in a Topic with practice, only right after code marked a practice answer right. At most one rule per turn, and one per Skill. The result says what was saved; then confirm their rule in one sentence and use their words from now on. Do not say you saved it: the Learner sees that for themselves.",
+      "Save the Learner's own rule to their Topic Note, whenever they state a correct rule in their own words. Call it before you write your reply. Code saves their words exactly as they typed them, and only from a message they typed this turn (never a button) and, in a Topic with practice, only right after code marked a practice answer right. At most one rule per turn, and one per Skill. The result says what was saved; then confirm their rule in one sentence and use their words from now on. Do not say you saved it: the Learner sees that for themselves.",
     input_schema: {
       type: "object",
       properties: {
@@ -371,12 +371,12 @@ export const UPDATE_WIDGET_TOOL: ToolDefinition = {
 
 const ENGINE_WIDGETS = `Widgets (ready-made only, drawn by code):
 - A Widget is an interactive picture beside the conversation. You never write Widget code and never write an openui-lang block. To show one, call show_widget with a recipe and its params; to open a written-ahead Widget, call open_widget. Where the rules above say to build, draw or write a Widget (a Calculator, a FormulaCard, a chart of Case Data), call show_widget with the recipe that fits; if none fits, teach in words.
-- Call it first, before you write any prose in the reply, then write about the Widget on screen within the word limit code gives for this reply. Open it already set: give the numbers under discussion as open_widget's preset or as the recipe's inputs (never a blocked number), so the Learner sees the point without moving anything. Say in one sentence what it shows at those numbers, and ask for nothing to be moved. One Widget per reply.
+- Call it first, before you write any prose in the reply, then write about the Widget on screen within the word limit code gives for this reply. Open it already set: give the numbers under discussion as open_widget's preset or as the recipe's inputs (never a blocked number), so the Learner sees the point without moving anything. Say in one sentence what it shows at those numbers, and ask for nothing to be moved (a practice-mode Widget asks its own question). One Widget per reply.
 - "Show me in a widget" gets one Widget and one sentence. When no recipe fits, say so in one sentence, then give the shortest version in words.
 - Guided Tasks under a Widget are optional play: never set one as work.
 - Params come in three kinds. inputs: slider ranges and starting values, and the calculator or formula inputs our code works out. refs: Case Data references from the list code sent ("caseId/datasetId", or "reference/<id>"). facts: numbers you type that the Widget shows as they are; any fact makes the Widget an Illustration, and code puts "Illustration:" before its title. Real figures come only from refs or from our calculators, so make an Illustration only where no input or Case Data reference covers the same number; code refuses a fact an input already covers.
 - A Widget's title is its name in the panel. To move the sliders of a Widget this reply opened or showed ("make it 9%"), call update_widget with its title and the new values. A reply holds one Widget: after you open, show or update one, make no other call that draws a Widget.
-- For a quiz-me ask, point to the next Quick try or ask one question in words; quick_check is not a teaching Widget.
+- For a quiz-me ask, point to the next Quick try or ask one question in words; quick_check is not a teaching Widget. When the Learner also asks for a Widget, show rate_move in practice mode on new numbers: it asks the question itself, so write only a short acknowledgement and that one question.
 - If code refuses the params, read its reason and call show_widget again with params that fit, or teach in words.
 
 Widget recipes (id (archetype): use, then its params as JSON Schema):
