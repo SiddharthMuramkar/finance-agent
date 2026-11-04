@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { parse, stringify } from "yaml";
 import { describe, expect, it } from "vitest";
+import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
 import { scriptedClient } from "@/test/scripted-client";
@@ -50,9 +51,9 @@ describe("Tutor Turn", () => {
 
     const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "What is present value?"));
 
+    // The reply is held until code has checked it (ADR 0008), then sent as one text.
     expect(events).toEqual([
-      { type: "text", text: "Present value " },
-      { type: "text", text: "starts with a story." },
+      { type: "text", text: "Present value starts with a story." },
       { type: "done", stopReason: "end_turn", usage: expect.any(Object), ref: { sessionId: expect.any(Number), turnSeq: 0 }, shown: { sessionId: expect.any(Number) } },
     ]);
     expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
@@ -66,6 +67,7 @@ describe("Tutor Turn", () => {
 
   it("uses claude-opus-5-5 at medium effort from stored settings, frozen at Session start and replayed every request", async () => {
     const db = await testDb();
+    await engineOff(db);
     const { client, requests } = scriptedClient([
       { content: [{ type: "text", text: "First." }] },
       { content: [{ type: "text", text: "Second." }] },
@@ -84,6 +86,8 @@ describe("Tutor Turn", () => {
       expect(request.tools).toEqual([
         { name: "finish_teaching_step" },
         { name: "record_insight_attempt" },
+        { name: "save_learner_rule" },
+        { name: "start_again" },
         { name: "record_check_verdict" },
         { name: "search_library" },
         { name: "record_misconception" },
@@ -96,7 +100,7 @@ describe("Tutor Turn", () => {
     }
   });
 
-  it("keeps a Session on the model it started with, even after idle hours, until a deploy refreezes it on the stored default", async () => {
+  it("keeps a Session on the model it started with, even after idle hours and a deploy that refreezes its instructions", async () => {
     const db = await testDb();
     let t = Date.parse("2026-11-03T09:00:00Z");
     const now = () => new Date(t);
@@ -104,6 +108,8 @@ describe("Tutor Turn", () => {
       { content: [{ type: "text", text: "One." }] },
       { content: [{ type: "text", text: "Two." }] },
       { content: [{ type: "text", text: "Three." }] },
+      // The first turn after the refreeze folds the history into a summary first.
+      { content: [{ type: "compaction", content: "Summary." }] },
       { content: [{ type: "text", text: "Four." }] },
     ]);
 
@@ -115,10 +121,10 @@ describe("Tutor Turn", () => {
     await collect(runTutorTurn({ db, client, now, learnerId: OWNER_LEARNER_ID }, "After a break"));
     expect(requests.map((r) => r.model)).toEqual(["claude-opus-5-5", "claude-opus-5-5", "claude-opus-5-5"]);
 
-    // A deploy that changes the instructions refreezes the Session at its next turn.
+    // A deploy that changes the instructions refreezes the Session at its next turn; its model stays (spec #229).
     await db.update(sessionsTable).set({ fingerprint: "an-earlier-build" });
     await collect(runTutorTurn({ db, client, now, learnerId: OWNER_LEARNER_ID }, "After a deploy"));
-    expect(requests.at(-1)!.model).toBe("claude-sonnet-5-5");
+    expect(requests.at(-1)!.model).toBe("claude-opus-5-5");
     expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
   });
 
@@ -773,19 +779,21 @@ describe("Tutor Turn", () => {
     it("sends a new Widget with a slider and no Guided Task back for one correction turn", async () => {
       const noTasks = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
       const db = await testDb();
-      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Try it.\n${noTasks}` }] }, { content: [{ type: "text", text: good }] }]);
+      await engineOff(db);
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Here it is.\n${noTasks}` }] }, { content: [{ type: "text", text: `Here it is.\n${good}` }] }]);
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(requests)).toMatch(/slider.*Guided Task/i);
-      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
-      // On reload the corrected Widget stands where the first one was.
+      // The reply is held until checked (ADR 0008): the Learner sees only the retry, as one text.
+      expect(events.map((e) => e.type)).toEqual(["text", "done"]);
       expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
         { role: "user", text: "Show me" },
-        { role: "assistant", text: `Try it.\n${good}` },
+        { role: "assistant", text: `Here it is.\n${good}` },
       ]);
     });
 
     it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
       const db = await testDb();
+    await engineOff(db);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hi." }] }]);
       await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hello"));
       expect(requests[0].system[0].text).toContain(frozenWidgets.instructions);
@@ -795,11 +803,13 @@ describe("Tutor Turn", () => {
       const unlabelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])])\n```';
       const labelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])], "grouped", "When", "Rate in percent")\n```';
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: unlabelled }] }, { content: [{ type: "text", text: labelled }] }]);
       await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(requests)).toMatch(/bars: this BarChart has no axis labels/);
 
       const fine = await testDb();
+      await engineOff(fine);
       const once = scriptedClient([{ content: [{ type: "text", text: labelled }] }]);
       await collect(runTutorTurn({ db: fine, client: once.client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(once.requests)).toBeUndefined();
@@ -813,6 +823,7 @@ describe("Tutor Turn", () => {
 
       it("tells the Tutor the open Widgets' titles and to update one by reusing its title", async () => {
         const db = await testDb();
+        await engineOff(db);
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text("Look at the chart.")]);
         await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         expect(sentText(requests[0])).not.toContain("Open Widgets");
@@ -824,15 +835,17 @@ describe("Tutor Turn", () => {
 
       it("sends a new Widget drawing the same Case Data as an open Widget back for one correction turn", async () => {
         const db = await testDb();
+        await engineOff(db);
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Rates around the draw")), text(queried("Long-term interest rates"))]);
         await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
-        expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+        expect(events.map((e) => e.type)).toEqual(["text", "done"]);
         expect(String(requests[2].messages.at(-1)!.content)).toMatch(/same Case Data \(mega-millions-2018\/treasury-30-year\) as the open Widget "Long-term interest rates"/);
       });
 
       it("lets the Tutor update an open Widget in place by reusing its title, with no correction turn", async () => {
         const db = await testDb();
+        await engineOff(db);
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Long-term interest rates"))]);
         await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
@@ -856,7 +869,8 @@ describe("Tutor Turn", () => {
 
     it("a valid widget needs no correction turn", async () => {
       const db = await testDb();
-      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Try it.\n${good}\nDrag the rate.` }] }]);
+      await engineOff(db);
+      const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Here it is.\n${good}\nDrag the rate.` }] }]);
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(requests).toHaveLength(1);
       expect(events.some((e) => e.type === "correction")).toBe(false);
@@ -864,9 +878,10 @@ describe("Tutor Turn", () => {
 
     it("detects an invalid widget on the server, allows one correction turn, and the corrected widget replaces the broken one on reload", async () => {
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([
-        { content: [{ type: "text", text: `Try it.\n${bad}\nDrag the rate.` }] },
-        { content: [{ type: "text", text: good }] },
+        { content: [{ type: "text", text: `Here it is.\n${bad}\nDrag the rate.` }] },
+        { content: [{ type: "text", text: `Here it is.\n${good}\nDrag the rate.` }] },
       ]);
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
 
@@ -874,38 +889,40 @@ describe("Tutor Turn", () => {
       const correction = requests[1].messages.at(-1)!;
       expect(correction.role).toBe("user");
       expect(String(correction.content)).toMatch(/LineChart/);
-      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+      expect(events.map((e) => e.type)).toEqual(["text", "done"]);
 
-      // History stays add-only: both replies and the correction request are stored.
+      // History stays add-only: both replies and the correction request are stored, and a reload shows the retry.
+      expect(await db.select().from(messages)).toHaveLength(4);
       expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
         { role: "user", text: "Show me" },
-        { role: "assistant", text: `Try it.\n${good}\nDrag the rate.` },
+        { role: "assistant", text: `Here it is.\n${good}\nDrag the rate.` },
       ]);
     });
 
     it("sends a Formula Card with a rate bound to no slider back for one correction turn, naming the symbol", async () => {
       const unbound = '```openui-lang\nroot = Widget("PV", [card])\ncard = FormulaCard("present-value", {ratePercent: 5}, {}, {amount: 1000, years: 5})\n```';
-      const fixed = '```openui-lang\nroot = Widget("PV", [rate, card])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.5, $rate, "percent")\ncard = FormulaCard("present-value", {ratePercent: $rate}, {}, {amount: 1000, years: 5})\n```';
+      const fixed = '```openui-lang\nroot = Widget("PV", [rate, card, steps])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.5, $rate, "percent")\ncard = FormulaCard("present-value", {ratePercent: $rate}, {}, {amount: 1000, years: 5})\nsteps = GuidedTasks([zero])\nzero = GuidedTask("Set the rate to 0%", $rate == 0)\n```';
       const db = await testDb();
+      await engineOff(db);
       const { client, requests } = scriptedClient([
-        { content: [{ type: "text", text: `Try it.\n${unbound}` }] },
+        { content: [{ type: "text", text: `Here it is.\n${unbound}` }] },
         { content: [{ type: "text", text: fixed }] },
       ]);
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me the formula"));
       expect(requests).toHaveLength(2);
       expect(String(requests[1].messages.at(-1)!.content)).toMatch(/input "ratePercent" is bound to no Slider/);
-      expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
+      expect(events.map((e) => e.type)).toEqual(["text", "done"]);
     });
 
-    it("gives up after one correction turn, leaving the browser to show a plain fallback", async () => {
+    it("gives up after one retry, and the fallback leaves the broken Widget out", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([
-        { content: [{ type: "text", text: bad }] },
-        { content: [{ type: "text", text: bad }] },
+        { content: [{ type: "text", text: `Here it is.\n${bad}` }] },
+        { content: [{ type: "text", text: `Here it is.\n${bad}` }] },
       ]);
       const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(requests).toHaveLength(2);
-      expect(events.filter((e) => e.type === "correction")).toHaveLength(1);
+      expect(events.filter((e) => e.type === "text")).toEqual([{ type: "text", text: "Here it is." }]);
     });
 
     it("a correction cut off by max_tokens is handled like any cut-off: Finish this reply is offered and a truncated tool call is not run", async () => {
@@ -959,7 +976,7 @@ describe("Tutor Turn", () => {
       await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const context = requests.at(-1)!.messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).map((b) => JSON.stringify(b)).join("\n");
       expect(context).toContain(`Check: quiz ${quizId}`);
-      expect(context).toContain("Do not write quiz questions");
+      expect(context).toContain("While the quiz is open, help freely");
       // Where the Learner sees it: on the right, in the Check tab, never "beside the conversation" or "the quiz panel".
       expect(context).toContain("on the right, in the Check tab");
       expect(context).not.toContain("panel beside the conversation");
@@ -1172,14 +1189,16 @@ describe("surviving cut-offs and failures", () => {
     expect(String(resultsIn(resume.requests[0]).at(-1)!.content)).toContain("Recorded by code: not yet");
   });
 
-  it("the resume replays the reply text saved so far, so text from the unsaved step is replaced on screen", async () => {
+  it("the resume clears what the browser showed and sends the whole reply once it is checked, the saved part included", async () => {
     const db = await testDb();
     const first = scriptedClient([{ content: [text("Saved part. "), finish("story")] }, { content: [text("Unsaved part.")], delayMs: 400 }]);
     const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150, learnerId: OWNER_LEARNER_ID }, "Go on."));
-    expect(events).toContainEqual({ type: "text", text: "Saved part. " });
+    // Nothing of a reply shows before its checks (ADR 0008).
+    expect(events.filter((e) => e.type === "text")).toEqual([]);
     const resume = scriptedClient([{ content: [text("Resumed part.")] }]);
     const resumed = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
-    expect(resumed[0]).toEqual({ type: "replay", text: "Saved part. " });
+    expect(resumed[0]).toEqual({ type: "replay", text: "" });
+    expect(resumed.filter((e) => e.type === "text")).toEqual([{ type: "text", text: "Saved part.\n\nResumed part." }]);
   });
 
   it("resuming a turn whose final reply was already saved asks the model nothing and marks it finished", async () => {
@@ -1190,8 +1209,10 @@ describe("surviving cut-offs and failures", () => {
     await db.update(turns).set({ status: "cut_off" });
     const resume = scriptedClient([]);
     const events = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
-    expect(types(events)).toEqual(["replay", "done"]);
-    expect(events[0]).toEqual({ type: "replay", text: "All done." });
+    // The stored reply is checked before it shows.
+    expect(types(events)).toEqual(["replay", "text", "done"]);
+    expect(events[0]).toEqual({ type: "replay", text: "" });
+    expect(events[1]).toEqual({ type: "text", text: "All done." });
     expect(resume.requests).toHaveLength(0);
     expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "finished" });
   });
@@ -1338,17 +1359,30 @@ describe("surviving cut-offs and failures", () => {
     expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: story");
   });
 
-  it("a changed fingerprint of instructions and tools refreezes them in the same Session, with no notice", async () => {
+  it("a changed fingerprint of instructions and tools refreezes them in the same Session, with no notice, and folds the history before the reply", async () => {
     const db = await testDb();
-    const { client, requests } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }]);
+    await engineOff(db);
+    const { client, requests } = scriptedClient([
+      { content: [text("One.")] },
+      { content: [{ type: "compaction", content: "Summary of the Session so far." }] },
+      { content: [text("Two.")] },
+    ]);
     await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hello"));
-    // As if the Session was frozen by an earlier build.
-    await db.update(sessionsTable).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
+    // As if the Session was frozen by an earlier build, on another model and effort.
+    await db.update(sessionsTable).set({ fingerprint: "an-earlier-build", instructions: "Old instructions.", model: "claude-sonnet-5-5", effort: "high" });
     const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hello again"));
     expect(events.map((e) => e.type)).toEqual(["text", "done"]);
     expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
+    // The fold runs under the new instructions; the reply's request carries the summary and no reply from before the change.
+    expect(requests).toHaveLength(3);
+    expect(requests[1].system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS, cache_control: { type: "ephemeral" } }]);
     expect(requests.at(-1)!.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS, cache_control: { type: "ephemeral" } }]);
-    expect(JSON.stringify(requests.at(-1)!.messages)).toContain("One.");
+    expect(JSON.stringify(requests.at(-1)!.messages)).toContain("Summary of the Session so far.");
+    expect(JSON.stringify(requests.at(-1)!.messages)).not.toContain("One.");
+    // The Session keeps its model and effort (spec #229: existing Sessions keep theirs).
+    expect(requests.at(-1)).toMatchObject({ model: "claude-sonnet-5-5", output_config: { effort: "high" } });
+    const [session] = await db.select().from(sessionsTable);
+    expect(session).toMatchObject({ model: "claude-sonnet-5-5", effort: "high", instructions: TUTOR_INSTRUCTIONS });
   });
 
   it("the calculate tool runs the tested formula and answers with formatted numbers; bad input is an error result the Tutor can read", async () => {
@@ -1467,9 +1501,9 @@ describe("Learner Profile in the Tutor Turn", () => {
     expect(requests[2].messages.filter((m) => m.role === "system")).toHaveLength(1);
   });
 
-  it("the instructions say the profile is for examples only, never advice", () => {
+  it("the instructions say the profile is used only when the Learner asks how an idea applies to them, never as advice", () => {
     expect(TUTOR_INSTRUCTIONS).toMatch(/Learner Profile/);
-    expect(TUTOR_INSTRUCTIONS).toMatch(/only to choose everyday examples/);
+    expect(TUTOR_INSTRUCTIONS).toMatch(/only when the Learner asks how an idea applies to them/);
     expect(TUTOR_INSTRUCTIONS).toMatch(/never advice/i);
   });
 });

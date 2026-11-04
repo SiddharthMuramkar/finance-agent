@@ -30,12 +30,21 @@ export const NEXT_PREFIX = "Next by code:";
  */
 export const FINISH_PREFIX = "Finish by code:";
 
+/**
+ * Opens the correction message the reply checks send for their one retry (reply-gate.ts). It is code's, never the
+ * Learner's: the thread never draws it, and later requests leave it out.
+ */
+export const REPLY_CHECK_PREFIX = "Reply check by code:";
+
+/** Opens the "Widget notes" block code adds to the Learner's message (widget-context.ts). It is code's, never the Learner's words. */
+export const WIDGET_NOTES_PREFIX = "Widget notes (code):";
+
 /** The note a Finish this reply turn sends, and sends again on Retry. */
 export const FINISH_NOTE = `${FINISH_PREFIX} the Learner pressed Finish this reply, and has written nothing. Your last reply was cut short at its length limit. Finish it from where it stopped, without repeating what you already wrote, then stop and wait for the Learner.`;
 
 /**
  * The fixed prefix of the note code writes for a quiz follow-up: the turn the page starts by itself after the Learner
- * misses a quiz, in which the Tutor goes over the missed questions. Never drawn as a Learner bubble.
+ * misses a quiz, in which the Tutor takes the first missed question only. Never drawn as a Learner bubble.
  */
 export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
 
@@ -45,16 +54,31 @@ export const QUIZ_FOLLOW_UP_PREFIX = "Quiz follow-up by code:";
  */
 export const WIDGET_REPORT_PREFIX = "Widget report by code:";
 
-/** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
-export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX] as const;
+/**
+ * The fixed prefix of the note code writes for a Quick-try follow-up: the short turn the page starts after a Quick try
+ * marked wrong with no Known mistake (name the slip), or after the try that finished Your turn. Never a Learner bubble.
+ */
+export const QUICK_TRY_FOLLOW_UP_PREFIX = "Quick try follow-up by code:";
 
 /**
- * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Explain
- * that more simply, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, the
+ * The fixed prefix of the note code writes for a drill turn: the page starts it when the Learner opens a Topic whose
+ * parked Skill's 20 hours have passed (spec #229, "Parking"). Code shows the drill; never a Learner bubble.
+ */
+export const DRILL_PREFIX = "Drill by code:";
+
+/** The note a drill turn sends. */
+export const DRILL_NOTE = `${DRILL_PREFIX} the Learner parked an idea and its time has come, so code shows a drill of five short Quick tries on it, one at a time, and marks them; then the step goes on. Add one sentence and one ask. Write no practice question of your own.`;
+
+/** The fixed prefixes of every note code writes as a turn's user message; the thread never draws these as bubbles. */
+export const CODE_WRITTEN_PREFIXES = [OPENER_PREFIX, NEXT_PREFIX, FINISH_PREFIX, QUIZ_FOLLOW_UP_PREFIX, WIDGET_REPORT_PREFIX, QUICK_TRY_FOLLOW_UP_PREFIX, DRILL_PREFIX] as const;
+
+/**
+ * What started a turn: the Learner's own message, a chip's words posted as their message (Just tell me, Go
+ * deeper, Show me in a widget), an opener the page started, the Learner's Next, Finish this reply, the
  * quiz follow-up after a missed quiz, or a widget report (Tell the Tutor what I found); the last five carry no
  * Learner message.
  */
-export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up" | "widget_report";
+export type TurnKind = "message" | "chip" | "opener" | "next" | "finish" | "quiz_follow_up" | "widget_report" | "quick_try_follow_up" | "drill";
 
 /** The kind a turn recorded: code-written turns save their note, with its fixed prefix, as the turn's input. Retry re-runs that kind. */
 export function turnKind(turn: Pick<Turn, "input">): TurnKind {
@@ -63,6 +87,8 @@ export function turnKind(turn: Pick<Turn, "input">): TurnKind {
   if (turn.input?.startsWith(FINISH_PREFIX)) return "finish";
   if (turn.input?.startsWith(QUIZ_FOLLOW_UP_PREFIX)) return "quiz_follow_up";
   if (turn.input?.startsWith(WIDGET_REPORT_PREFIX)) return "widget_report";
+  if (turn.input?.startsWith(QUICK_TRY_FOLLOW_UP_PREFIX)) return "quick_try_follow_up";
+  if (turn.input?.startsWith(DRILL_PREFIX)) return "drill";
   if (turn.input && isChipMessage(turn.input)) return "chip";
   return "message";
 }
@@ -133,7 +159,8 @@ export async function resumeTurn(db: Db, now: Date, learnerId: number): Promise<
   try {
     const [row] = await db
       .update(turns)
-      .set({ status: "running", startedAt: now, error: null, stopReason: null })
+      // A Stop that reached a turn at its deadline stays: the resumed turn sees it at its first look and ends there, not runs on.
+      .set({ status: "running", startedAt: now, error: null, ...(latest.status === "cut_off" && latest.stopReason === STOP_REQUESTED ? {} : { stopReason: null }) })
       .where(and(eq(turns.id, latest.id), eq(turns.status, latest.status)))
       .returning();
     return row ? { turn: row, alreadyFinished: false } : { turn: undefined };
@@ -149,12 +176,14 @@ export const STOP_REQUESTED = "stop_requested";
 /**
  * Asks the Learner's running turn to stop: it sees the flag at its next poll, ends its reply there and keeps what it
  * wrote. True when a turn was running to be stopped; false when none was (it had already finished, or never began).
+ * With `turnId` (the id the browser was told when its turn began), only that turn is stopped, so a Stop that arrives late
+ * or is asked again never stops the Learner's next turn.
  */
-export async function requestStop(db: Db, learnerId: number): Promise<boolean> {
+export async function requestStop(db: Db, learnerId: number, turnId?: number): Promise<boolean> {
   const rows = await db
     .update(turns)
     .set({ stopReason: STOP_REQUESTED })
-    .where(and(eq(turns.learnerId, learnerId), eq(turns.status, "running")))
+    .where(and(eq(turns.learnerId, learnerId), eq(turns.status, "running"), ...(turnId === undefined ? [] : [eq(turns.id, turnId)])))
     .returning({ id: turns.id });
   return rows.length > 0;
 }

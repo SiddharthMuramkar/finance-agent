@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FORMULAS, formulaById } from "@/finance/formulas";
+import { FORMULAS, formulaById, formulaCurrency } from "@/finance/formulas";
 import { caseDataRef, defineRecipe, obj, program, rangeProblems, sliderShape, sliderStatements, str, taskStatements, type CompiledSlider, type Recipe } from "../define";
 import { calculatorRecipe } from "./calculator-recipe";
 
@@ -95,6 +95,7 @@ export const formula = defineRecipe({
         const symbol = f.symbols.find((s) => s.key === p.slider.symbol);
         if (!symbol) issue(`slider.symbol must be one of ${p.formula}'s symbols: ${f.symbols.map((s) => s.key).join(", ")}`);
         else if (symbol.unit === "count") issue(`${symbol.key} is a count, which no slider shows; hold it instead`);
+        else if (symbol.unit === "value") issue(`${symbol.key} is a plain level, which no slider shows; hold it instead`);
       }),
     refs: z.object({ sourced: z.record(z.string(), caseDataRef).default({}).describe("Symbols taken from Case Data, by symbol key") }),
     facts: z.object({}),
@@ -118,7 +119,8 @@ export const formula = defineRecipe({
       );
     }
     const unit = f.symbols.find((s) => s.key === p.slider.symbol)?.unit;
-    const slider: CompiledSlider = { name: "control", variable: p.slider.symbol, label: p.slider.label, range: p.slider, unit: unit === "percent" || unit === "years" ? unit : "usd" };
+    // A money symbol slides in the formula's own currency, so a rupee card never shows "$" (#247).
+    const slider: CompiledSlider = { name: "control", variable: p.slider.symbol, label: p.slider.label, range: p.slider, unit: unit === "percent" || unit === "years" ? unit : formulaCurrency(f) };
     const tasks = taskStatements([slider])!;
     const card = `card = FormulaCard(${str(p.formula)}, ${obj({ [p.slider.symbol]: `$${p.slider.symbol}` })}, ${obj(Object.fromEntries(Object.entries(refs.sourced).map(([k, v]) => [k, str(v)])))}, ${obj(p.held)})`;
     return program(title, ["control", "card", tasks.name], [...sliderStatements(slider), card, ...tasks.statements]);

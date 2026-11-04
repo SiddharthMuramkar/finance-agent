@@ -3,6 +3,8 @@ import type { CourseMap } from "@/course/map";
 import { finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Jump, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
 import { checkResults, insightAttempts, learnerState, misconceptions, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { anyConverted, mistakeAccounts } from "./known-mistakes";
+import { ownRules } from "./own-rule";
 
 /**
  * Learner Memory: one Learner's place and results in SQL. Code reads and
@@ -192,6 +194,9 @@ export async function saveMisconception(
 /** How many misconceptions the summary lists, newest kept. */
 const SUMMARY_MISCONCEPTIONS = 8;
 
+/** How many of the Learner's own rules the summary lists, newest kept. */
+const SUMMARY_RULES = 5;
+
 /** Prerequisites of a Topic, and theirs in turn, that are not passed, nearest first. */
 function unmasteredPrerequisites(map: CourseMap, progress: Progress, topicId: string): string[] {
   const found: string[] = [];
@@ -240,6 +245,14 @@ export async function learnerSummary(db: Db, map: CourseMap, learnerId: number):
     lines.push("Misconceptions noted:");
     for (const m of noted) lines.push(`- ${title(m.topicId)}${m.topicId === topic.id ? "" : " (prerequisite)"}: ${m.description}`);
   }
+  // Known mistakes code marked, one plain line per Skill (never a tag id). Converted Topics only, so nothing reads the
+  // practice tables before a Topic is converted.
+  if (anyConverted(map)) {
+    for (const line of await mistakeAccounts(db, map, learnerId, relevant)) lines.push(`Slips so far: ${line}`);
+  }
+  // The Learner's own rules, newest five: the Tutor uses their words from then on.
+  const rules = (await ownRules(db, learnerId)).slice(-SUMMARY_RULES);
+  if (rules.length) lines.push(`Rules in the Learner's own words (use them): ${rules.map((r) => `${title(r.topicId)}: "${r.text}"`).join("; ")}`);
   if (step === "check" && check) {
     const [last] = await db
       .select()

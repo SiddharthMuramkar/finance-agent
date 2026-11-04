@@ -12,6 +12,8 @@ describe("hosted code execution", () => {
       finish_teaching_step: { run: async () => "", parse: (x) => x },
       record_check_verdict: { run: async () => "", parse: (x) => x },
       record_insight_attempt: { run: async () => "", parse: (x) => x },
+      save_learner_rule: { run: async () => "", parse: (x) => x },
+      start_again: { run: async () => "", parse: (x) => x },
       search_library: { run: async () => "", parse: (x) => x },
       record_misconception: { run: async () => "", parse: (x) => x },
       open_widget: { run: async () => "", parse: (x) => x },

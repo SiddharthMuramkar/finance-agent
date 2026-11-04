@@ -26,8 +26,8 @@ describe("the Topic file's teaching fields", () => {
     expect(testedSkills(t, t.checks[2])).toEqual(["wording"]);
   });
 
-  it("leaves every real Topic as it was: not converted, rupees, and no new teaching", () => {
-    for (const t of loadCourseMap().topics) {
+  it("leaves every real Topic not yet converted as it was: rupees, and no new teaching", () => {
+    for (const t of loadCourseMap().topics.filter((x) => LESSON_NOT_YET_CONVERTED.includes(x.id))) {
       expect(isConverted(t)).toBe(false);
       expect(t.exampleCurrency).toBe("INR");
       expect([t.terms, t.templates, ...t.checks.map((c) => c.quickTries)].every((list) => list.length === 0)).toBe(true);
@@ -98,10 +98,10 @@ describe("the lesson lint", () => {
     expect(lint(convertedTopic())).toEqual([]);
   });
 
-  it("passes the real Course Map, where every Topic is still on the not-yet-converted list", () => {
+  it("passes the real Course Map, where every Topic without Skills is on the not-yet-converted list", () => {
     const topics = loadCourseMap().topics;
     expect(lessonLintErrors(topics)).toEqual([]);
-    expect(LESSON_NOT_YET_CONVERTED).toHaveLength(topics.length);
+    expect(LESSON_NOT_YET_CONVERTED).toHaveLength(topics.filter((t) => !isConverted(t)).length);
   });
 
   it("only shrinks: a listed Topic with Skills comes off, an unlisted one without Skills fails, a gone Topic comes off", () => {
@@ -137,6 +137,20 @@ describe("the lesson lint", () => {
       `L1: Check "pct-demo-check-1" Quick try 8 (template "pct-change-move") practises Skill "pct-change", which no Concept card at or before it teaches${ON_TOPIC}`,
     ]);
     expect(lint(topicWith((x) => (x.terms = [])))).toEqual([`L1: the Topic lists no terms; a converted Topic lists the terms it introduces${ON_TOPIC}`]);
+  });
+
+  it("L1: fails a conversation Check with no skills, naming the Check", () => {
+    const t = topicWith((x) => {
+      (x.checks[2] as { skills: string[] }).skills = [];
+    });
+    expect(lint(t)).toEqual([`L1: Check "pct-demo-check-3" is a conversation Check with no skills; list the Skills it tests${ON_TOPIC}`]);
+  });
+
+  it("L5: reads the Topic's terms", () => {
+    const t = topicWith((x) => {
+      x.terms[0].means = "Worth $5 in a rupee Topic.";
+    });
+    expect(lint(t).join("\n")).toMatch(/L5: term .* uses "\$"/);
   });
 
   it("L2: fails a Skill with too few Quick tries or no half-done one, and a quiz Check too small for three attempts", () => {
@@ -186,6 +200,23 @@ describe("the lesson lint", () => {
       `L6: question "pct-demo-headline" prompt says "wrong"; ask "Which one is true?" instead: "A rate goes from 2% to 3%. Which description is wrong?"${ON_TOPIC}`,
     ]);
     expect(NEGATIVE_STEM.test("Which is **not** true?")).toBe(true);
+  });
+
+  it("L6: also runs on a Topic that is not converted, and on a question no Check lists", () => {
+    const notConverted = (prompt: string) =>
+      topicWith((x) => {
+        x.skills = [];
+        x.questions[0].prompt = prompt;
+        x.questions.push({ ...x.questions[0], id: "pct-demo-unlisted", prompt: "Which one is not a rate?" });
+      });
+    const bad = lessonLintErrors([notConverted("Which description is not right?")], { notYet: ["pct-demo"] });
+    expect(bad).toEqual([
+      `L6: question "pct-demo-headline" prompt says "not"; ask "Which one is true?" instead: "Which description is not right?"${ON_TOPIC}`,
+      `L6: question "pct-demo-unlisted" prompt says "not"; ask "Which one is true?" instead: "Which one is not a rate?"${ON_TOPIC}`,
+    ]);
+    const fixed = notConverted("Which one is true?");
+    fixed.questions[1].prompt = "Which one is a rate?";
+    expect(lessonLintErrors([fixed], { notYet: ["pct-demo"] })).toEqual([]);
   });
 
   it("L7: fails a Check question that holds the Running example's move, and a template that can draw a card's example", () => {

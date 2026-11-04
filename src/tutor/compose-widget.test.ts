@@ -1,6 +1,9 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { OWNER_LEARNER_ID, settings, usageRows } from "@/db/schema";
+import { loadCourseMap } from "@/course/map";
+import { navigate } from "@/course/navigator";
+import { OWNER_LEARNER_ID, sessions, settings, usageRows } from "@/db/schema";
+import { loadProgress } from "@/learner/memory";
 import type { Db } from "@/db/types";
 import { loadWidgetState } from "@/learner/widget-state";
 import { testDb } from "@/test/pglite";
@@ -8,8 +11,8 @@ import { scriptedClient } from "@/test/scripted-client";
 import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
 import { composeLimitMs, composePrompt, programIn, type ComposeClient, type ComposeRequest } from "./compose";
-import { ENGINE_TOOLS } from "./instructions";
-import { DEFAULT_SETTINGS, readSettings } from "./session-log";
+import { ENGINE_TOOLS_WITH_COMPOSE } from "./instructions";
+import { DEFAULT_SETTINGS, frozenNow, readSettings } from "./session-log";
 import { runTutorTurn, type TurnEvent } from "./turn";
 
 // The free-form lane and updates in place (UX audit ★.4): compose_widget and update_widget at the Tutor Turn seam.
@@ -20,9 +23,13 @@ async function collect(events: AsyncIterable<TurnEvent>) {
   return out;
 }
 
+/** The Session as an older build froze it, with compose_widget in its tools (new Sessions are not offered it, ADR 0007). */
 async function engineOn(db: Db) {
   await readSettings(db);
   await db.update(settings).set({ value: "on" }).where(eq(settings.key, "widget_engine"));
+  const place = navigate(loadCourseMap(), await loadProgress(db, OWNER_LEARNER_ID));
+  const frozen = await frozenNow(db, { tools: ENGINE_TOOLS_WITH_COMPOSE });
+  await db.insert(sessions).values({ ...frozen, learnerId: OWNER_LEARNER_ID, topicId: place?.topic.id ?? null, older: false, createdAt: new Date() });
 }
 
 const text = (t: string) => ({ type: "text", text: t });
@@ -62,7 +69,7 @@ const shownItem = (events: TurnEvent[]) => (events.find((e) => e.type === "item"
 
 describe("compose_widget", () => {
   it("is an engine tool, with the compose model a setting that defaults to Sonnet", async () => {
-    expect(ENGINE_TOOLS.map((t) => t.name)).toEqual(expect.arrayContaining(["show_widget", "compose_widget", "update_widget"]));
+    expect(ENGINE_TOOLS_WITH_COMPOSE.map((t) => t.name)).toEqual(expect.arrayContaining(["show_widget", "compose_widget", "update_widget"]));
     expect(DEFAULT_SETTINGS.widget_compose_model).toBe("claude-sonnet-5-5");
     expect((await readSettings(await testDb())).composeModel).toBe("claude-sonnet-5-5");
   });

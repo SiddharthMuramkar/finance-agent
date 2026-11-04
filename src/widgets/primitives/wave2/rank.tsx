@@ -3,7 +3,10 @@
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
 import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { z } from "zod/v4";
+import { rankProblem } from "../../part-rules";
 import { usePrefersReducedMotion } from "../wave1/motion";
+
+export { rankProblem };
 
 // Rank: put the items in order (of liquidity, of risk), then check. A row can be dragged, or moved by keyboard:
 // Space picks it up, the arrow keys move it, Space puts it down. Checking marks each row and shows the reason it
@@ -17,14 +20,6 @@ export const rankProps = z.object({
   lowLabel: z.string().describe('The low end, e.g. "Hardest to turn into cash"'),
   highLabel: z.string().describe('The high end, e.g. "Easiest to turn into cash"'),
 });
-
-/** What is wrong with a Rank's arguments, or null. Code-checked, like QuickCheck's answer index. */
-export function rankProblem(items: readonly unknown[], correctOrder: readonly number[], reasons: readonly unknown[]): string | null {
-  if (items.length < 2 || items.length > 8) return "Rank needs 2 to 8 items";
-  if (correctOrder.length !== items.length || [...correctOrder].sort((a, b) => a - b).some((v, i) => v !== i)) return "correctOrder must list every item index once";
-  if (reasons.length !== items.length) return "Rank needs one reason per item";
-  return null;
-}
 
 /** The order the Learner starts from: the right order, shifted and swapped so it is never already right. */
 export function startOrder(correctOrder: readonly number[]): number[] {
@@ -52,10 +47,19 @@ export function RankView({ prompt, items, correctOrder, reasons, lowLabel, highL
   const id = useId();
   const reduced = usePrefersReducedMotion();
   const problem = rankProblem(items, correctOrder, reasons);
-  const [order, setOrder] = useState(() => (problem ? [] : startOrder(correctOrder)));
   const [held, setHeld] = useState<number | null>(null); // the position of the row picked up by keyboard
   const [dragging, setDragging] = useState<number | null>(null); // the position of the row being dragged
   const [checked, setChecked] = useState(false);
+  const [order, setOrder] = useState<number[]>(() => (problem ? [] : startOrder(correctOrder)));
+  // Streaming hands over partial props first: start again from the full ones, whenever items or the order change.
+  const signature = `${items.join("\u0001")}|${correctOrder.join(",")}`;
+  const [seen, setSeen] = useState(signature);
+  if (seen !== signature) {
+    setSeen(signature);
+    setOrder(problem ? [] : startOrder(correctOrder));
+    setChecked(false);
+    setHeld(null);
+  }
   const [said, setSaid] = useState("");
   const rows = useRef<(HTMLLIElement | null)[]>([]);
 
@@ -196,7 +200,7 @@ export function RankView({ prompt, items, correctOrder, reasons, lowLabel, highL
         ) : (
           <>
             <p role="status" data-testid="rank-result" className="text-sm font-medium">
-              {right === order.length ? "All in the right place." : `${right} of ${order.length} in the right place.`}
+              {order.length > 0 && right === order.length ? "All in the right place." : `${right} of ${order.length} in the right place.`}
             </p>
             <button
               type="button"

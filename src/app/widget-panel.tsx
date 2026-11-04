@@ -32,6 +32,8 @@ export type WidgetItem = {
   save?: SaveTarget & { kind: "widget" };
   /** The keys of earlier Widgets with the same title that this one updated in place (see updatedInPlace). */
   replaces?: string[];
+  /** The slider values the Widget was opened or shown at (by $variable): its chip puts them back when pressed. */
+  preset?: Record<string, number>;
   /** Where the Widget came from: "recipe", "compose" or "fallback" for one the Tutor's tools made; absent for one written in the reply. */
   source?: string;
 };
@@ -49,10 +51,10 @@ const drawingSince = new Map<string, number>();
 export const WidgetRetryContext = createContext<((key: string) => void) | null>(null);
 
 /**
- * True once `drawing` has been true for DRAWING_TIMEOUT_MS (the Widget's fence or tool call began and nothing
+ * True once `drawing` has been true for DRAWING_TIMEOUT_MS since the last token (`received` grows with each) (the Widget's fence or tool call began and nothing
  * finished it). `retry` starts the wait again. Sends widget_timeout once per give-up.
  */
-function useDrawingGuard(key: string, drawing: boolean) {
+function useDrawingGuard(key: string, drawing: boolean, received = 0) {
   const [timedOut, setTimedOut] = useState(false);
   const [round, setRound] = useState(0);
   const retryWith = useContext(WidgetRetryContext);
@@ -64,7 +66,8 @@ function useDrawingGuard(key: string, drawing: boolean) {
       track("widget_timeout", { lane: "fence" });
     }, DRAWING_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [key, drawing, round]);
+    // `received` is how much of the Widget has arrived: each new token starts the wait again, so it counts from the last one.
+  }, [key, drawing, round, received]);
   return {
     timedOut: timedOut && drawing,
     retry: () => {
@@ -439,7 +442,14 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
   // A chip the Tutor's open_widget left names the Widget by title, even when it is the explore Widget's tab.
   const name = (item.writtenAhead && widgetParts(item.code).title?.trim()) || widgetName(item);
   const state: ChipState = !item.complete ? "drawing" : active ? "showing" : "idle";
-  const guard = useDrawingGuard(item.key, !item.complete);
+  const guard = useDrawingGuard(item.key, !item.complete, item.code.length);
+  const store = useWidgetStore();
+  // Pressing a chip reopens the Widget at the numbers it was opened with, not where the Learner left it since.
+  const reopenKey = item.complete && item.preset ? (item.writtenAhead ?? widgetKey(widgetParts(item.code).title)) : undefined;
+  const pick = (key: string) => {
+    if (store && reopenKey && item.preset) store.push(reopenKey, item.preset);
+    onPick(key);
+  };
   if (guard.timedOut) return <DrawingFailed retry={guard.retry} compact />;
   const look =
     state === "showing"
@@ -449,7 +459,7 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
         : "";
   return (
     <span className="my-3 block">
-      <Chip state={state} onClick={() => onPick(item.key)} data-testid="widget-chip" title={name} className={`min-h-9! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
+      <Chip state={state} onClick={() => pick(item.key)} data-testid="widget-chip" title={name} className={`min-h-9! w-full max-w-full justify-between gap-3 px-3! py-1.5! text-sm! ${look}`}>
         <span className="min-w-0 truncate font-medium">{name}</span>{" "}
         <span className="shrink-0 text-xs">{state === "drawing" ? "Drawing…" : state === "showing" ? "Showing" : "View widget →"}</span>
       </Chip>
@@ -569,7 +579,7 @@ export function WidgetPanel({
                 <WidgetWithSave item={shown} />
               </>
             ) : (
-              <DrawingCard itemKey={shown.key} title={widgetParts(shown.code).title?.trim()} />
+              <DrawingCard itemKey={shown.key} title={widgetParts(shown.code).title?.trim()} received={shown.code.length} />
             )}
           </div>
         </section>
@@ -579,8 +589,8 @@ export function WidgetPanel({
 }
 
 /** What the card shows as soon as a Widget's fence opens, until the Widget is written: a title, a figure and two lines, shimmering. */
-function DrawingCard({ itemKey, title }: { itemKey: string; title?: string }) {
-  const guard = useDrawingGuard(itemKey, true);
+function DrawingCard({ itemKey, title, received = 0 }: { itemKey: string; title?: string; received?: number }) {
+  const guard = useDrawingGuard(itemKey, true, received);
   if (guard.timedOut) return <DrawingFailed retry={guard.retry} />;
   return (
     <div data-testid="widget-skeleton" aria-busy="true" role="status" aria-label="Drawing the Widget">

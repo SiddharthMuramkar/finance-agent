@@ -227,6 +227,10 @@ describe("V2: one question and one ask", () => {
     expect(rules(draft("Open the Widget and set the old rate.\nTry 3% to 3.5%.\nHow many points did it move?"), ctx())).toContain("V2");
   });
 
+  it("fails two task lines when the reply has no ask", () => {
+    expect(rules(draft("Try 3% to 3.5% in your head.\nOpen the Widget and set the old rate.\nThat is a move of half a point."), ctx())).toContain("V2");
+  });
+
   it("allows a task line when the reply has no ask", () => {
     expect(rules(draft("Try 3% to 3.5% in your head.\nThat is a move of half a point."), ctx())).toEqual([]);
   });
@@ -279,6 +283,19 @@ describe("V5: no open quiz answer", () => {
 
   it("passes the same idea taught on other numbers", () => {
     expect(rules(draft("A point is 100 bp. So 0.2 of a point is 20 bp.\nHow many basis points is 0.7 of a point?"), quizOpen)).toEqual([]);
+  });
+
+  it("fails a reply that confirms the open answer without its question's numbers", () => {
+    expect(rules(draft("Yes, 60 is right."), quizOpen)).toContain("V5");
+    expect(rules(draft("The answer is 60 basis points."), quizOpen)).toContain("V5");
+    expect(rules(draft("Correct: 60 bp."), quizOpen)).toContain("V5");
+    expect(rules(draft("You got it, 60."), quizOpen)).toContain("V5");
+  });
+
+  it("passes teaching 0.6 into 60 bp while a question about 0.8 points is open", () => {
+    const open: OpenItem = { prompt: "How many basis points are there in 0.8 of a percentage point?", choices: ["8", "80", "800"], answer: "80" };
+    const c = ctx({ step: "check", openItems: [open] });
+    expect(rules(draft("Take 0.6 points: that is 60 bp, because a point is 100 bp.\nHow many bp is 0.3 of a point?"), c)).toEqual([]);
   });
 
   it("passes the open answer once no quiz is open", () => {

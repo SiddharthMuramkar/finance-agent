@@ -1,10 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { questionLookup } from "@/bank/lookup";
 import type { CourseMap } from "@/course/map";
-import { markAttempt, type Marking } from "@/course/quiz";
+import { markAttempt, type MarkedQuestion, type Marking } from "@/course/quiz";
 import { quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { pendingQuizNote, submitQuiz, type QuizResult } from "@/learner/quiz";
+import { missedLine, pendingQuizNote, submitQuiz, type QuizResult } from "@/learner/quiz";
+import { recordAnswer, type PracticeAnswer } from "@/learner/skill-state";
 import { currentTopicId, liveSession, saveShownSession } from "./session-log";
 import { saveItemAfterLatest, type SessionItem } from "./session-items";
 import { CHECK_RESULT } from "./session-item-kinds";
@@ -63,10 +64,21 @@ export async function submitQuizAnswers(
 ): Promise<QuizResult & { item?: SessionItem; complete?: SessionItem }> {
   let item: SessionItem | undefined;
   let complete = null as SessionItem | null;
-  const result = await submitQuiz(db, map, attemptId, answers, now, learnerId, async (tx, { checkId, marking }) => {
+  const result = await submitQuiz(db, map, attemptId, answers, now, learnerId, async (tx, { checkId, attemptId: attempt, marking }) => {
     const check = map.check(checkId);
     const n = checkNumber(map, checkId);
     const session = check && (await liveSession(tx, learnerId, check.topicId));
+    // Every answer to a question that tests a Skill goes into the Learner's Skill state, with the result or not at all.
+    // Only the first miss on a Skill in one attempt counts on the ladder; later misses on it are logged, not counted.
+    const missed = new Set<string>();
+    if (check)
+      for (const q of marking.questions) {
+        if (!q.skill) continue;
+        const answer = practiceAnswerOf(learnerId, check.topicId, session?.id, attempt, q);
+        const again = answer.verdict !== "right" && missed.has(q.skill);
+        if (answer.verdict !== "right") missed.add(q.skill);
+        await recordAnswer(tx, again ? { ...answer, countInState: false } : answer, now);
+      }
     if (!session || n === null) return;
     item = quizResultCard(n, marking);
     await saveItemAfterLatest(tx, learnerId, session.id, item, now);
@@ -76,6 +88,24 @@ export async function submitQuizAnswers(
     if (complete) await saveShownSession(tx, learnerId, session.id);
   });
   return result.ok && item ? { ...result, item, ...(complete ? { complete } : {}) } : result;
+}
+
+/** A marked question as a logged answer. A Known mistake with no tag counts as wrong. */
+function practiceAnswerOf(learnerId: number, topicId: string, sessionId: number | undefined, attemptId: number, q: MarkedQuestion): PracticeAnswer {
+  const verdict = q.correct ? "right" : q.mistake?.tag ? "known_mistake" : "wrong";
+  return {
+    learnerId,
+    topicId,
+    skillId: q.skill!,
+    sessionId: sessionId ?? null,
+    itemKey: `quiz:${attemptId}:${q.id}`,
+    itemId: q.id,
+    ...(q.templateId ? { templateId: q.templateId, params: q.params } : {}),
+    input: q.given ?? "",
+    verdict,
+    ...(verdict === "known_mistake" ? { mistakeTag: q.mistake!.tag } : {}),
+    source: "quiz",
+  };
 }
 
 /** What the turn says when there is no missed quiz to go over (it was gone over already, or the quiz was passed). */
@@ -97,8 +127,8 @@ async function firstMissed(db: Db, map: CourseMap, learnerId: number, attemptIds
   const marking = markAttempt(lookup, check, row.questionIds.filter((id) => lookup.question(id)), row.answers ?? {});
   const q = marking.questions.find((question) => !question.correct);
   if (!q) return null;
-  const text = (id: string | null) => q.choices.find((c) => c.id === id)?.text;
-  return `"${q.prompt}" The Learner chose ${q.chosen ? `"${text(q.chosen)}"` : "no answer"}; the right answer is "${text(q.answer)}".`;
+  // The prompt in quotes, then the rest of the line: what they gave, the right answer, the Skill's rule and the fix.
+  return `"${q.prompt}"${missedLine(map, check.topicId, q).slice(q.prompt.length)}`;
 }
 
 /**

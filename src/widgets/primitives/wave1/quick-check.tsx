@@ -1,8 +1,11 @@
 "use client";
 
 import { defineComponent, reactive, useStateField, type ComponentRenderProps } from "@openuidev/react-lang";
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { z } from "zod/v4";
+import { quickCheckProblem } from "../../part-rules";
+
+export { quickCheckProblem };
 
 // QuickCheck: tap-to-answer practice. Never marked and never saved as a score. Its option rows share the marked
 // Quiz's look (at least 44 px tall, an icon as well as a colour), so practice and marked quizzes read as one system.
@@ -18,13 +21,6 @@ export const quickCheckProps = z.object({
 
 export const MIN_OPTIONS = 2;
 export const MAX_OPTIONS = 4;
-
-/** What is wrong with a QuickCheck's options or answer, or null. library-v2 turns this into a hard error. */
-export function quickCheckProblem(options: readonly unknown[], answer: number): string | null {
-  if (options.length < MIN_OPTIONS || options.length > MAX_OPTIONS) return `QuickCheck needs ${MIN_OPTIONS} to ${MAX_OPTIONS} options, not ${options.length}.`;
-  if (!Number.isInteger(answer) || answer < -1 || answer > options.length - 1) return `QuickCheck answer ${answer} is outside -1 to ${options.length - 1}.`;
-  return null;
-}
 
 function Mark({ kind }: { kind: "right" | "wrong" | "none" }) {
   return (
@@ -55,6 +51,15 @@ export function QuickCheckView({
   const id = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const [focus, setFocus] = useState(0);
+  const refocus = useRef(false);
+  const unlocked = !(typeof picked === "number" && picked >= 0 && picked < options.length);
+  // Try again unmounts the button that was focused: put focus on the first option instead of dropping it.
+  useEffect(() => {
+    if (refocus.current && unlocked) {
+      refocus.current = false;
+      refs.current[0]?.focus();
+    }
+  }, [unlocked]);
   const problem = quickCheckProblem(options, answer);
   if (problem) return <p role="alert" className="py-2 text-sm text-[var(--danger)]">{problem}</p>;
 
@@ -126,7 +131,12 @@ export function QuickCheckView({
             <strong className={correct ? "text-[var(--you)]" : poll ? "" : "text-[var(--danger)]"}>{poll ? "Noted." : correct ? "Right." : "Not quite."}</strong>{" "}
             <span className="text-[var(--ink)]">{why}</span>
           </span>
-          <button type="button" onClick={() => onPick(-1)} className="min-h-6 rounded border border-[var(--border)] px-2 text-xs hover:bg-[var(--field)]">
+          <button type="button" onClick={() => {
+              refocus.current = true;
+              setFocus(0);
+              onPick(-1);
+            }}
+            className="min-h-6 rounded border border-[var(--border)] px-2 text-xs hover:bg-[var(--field)]">
             Try again
           </button>
         </div>

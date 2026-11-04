@@ -83,6 +83,37 @@ function useScaleMix(target: PlotScale): number {
   return reduced ? goal : mix;
 }
 
+/** How long newly revealed history takes to draw in. */
+const REVEAL_MS = 700;
+
+/**
+ * When points are added to the end of a line (the reveal lifting the as-of withholding), the new stretch wipes in
+ * from left to right over about 700 ms. Nothing animates at first render, when nothing is added, or when motion is
+ * reduced. Returns where the new stretch starts (an index into the points) and whether it has begun to draw.
+ */
+function useRevealedStretch(n: number): { from: number; drawn: boolean } | null {
+  const [seen, setSeen] = useState(n);
+  const [reveal, setReveal] = useState<{ from: number; drawn: boolean } | null>(null);
+  if (n !== seen) {
+    setSeen(n);
+    const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    setReveal(n > seen && seen >= 1 && !reduced ? { from: seen - 1, drawn: false } : null);
+  }
+  const waiting = reveal !== null && !reveal.drawn;
+  useEffect(() => {
+    if (!waiting || typeof requestAnimationFrame === "undefined") return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setReveal((r) => (r ? { ...r, drawn: true } : r)));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [waiting]);
+  return reveal;
+}
+
 /**
  * A sourced line readable at any width: values at the left (round-number ticks), dates below, each value above its
  * point when there are 12 or fewer, and a readout line. The line is spaced by time, so a decade between two points
@@ -117,6 +148,7 @@ export function HistoryPlot({
   const canLog = !!format && n >= 2 && lo > 0;
   const mode: PlotScale = canLog ? chosen : "linear";
   const mix = useScaleMix(mode);
+  const reveal = useRevealedStretch(n);
 
   // Linear and log axes, each with round-number ticks; the line is drawn between them while it eases.
   const linearTicks = format ? niceTicks(lo, hi, 5) : ticks.map((t) => t.value);
@@ -212,13 +244,25 @@ export function HistoryPlot({
               <line key={t} x1={0} x2={W} y1={y(t)} y2={y(t)} strokeWidth={1} vectorEffect="non-scaling-stroke" className="stroke-[var(--border)]" />
             ))}
             <polyline
-              points={points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")}
+              points={points.slice(0, reveal ? reveal.from + 1 : n).map((p, i) => `${x(i)},${y(p.value)}`).join(" ")}
               fill="none"
               strokeWidth={2}
               strokeLinejoin="round"
               vectorEffect="non-scaling-stroke"
               className="stroke-[var(--src)]"
             />
+            {reveal && (
+              <polyline
+                data-testid="history-reveal"
+                points={points.slice(reveal.from).map((p, i) => `${x(reveal.from + i)},${y(p.value)}`).join(" ")}
+                fill="none"
+                strokeWidth={2}
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+                className="stroke-[var(--src)]"
+                style={{ clipPath: reveal.drawn ? "inset(0 0 0 0)" : "inset(0 100% 0 0)", transition: `clip-path ${REVEAL_MS}ms var(--ease-out)` }}
+              />
+            )}
             {active !== null && (
               <line x1={x(active)} x2={x(active)} y1={0} y2={H} strokeWidth={1} strokeDasharray="3 3" vectorEffect="non-scaling-stroke" className="stroke-[var(--muted)]" />
             )}
