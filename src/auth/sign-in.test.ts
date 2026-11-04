@@ -284,7 +284,7 @@ describe("Settings", () => {
   it("Show developer details is off for a new Learner, is kept per Learner, and shows Under the hood under replies only when on", async () => {
     await ownersRows();
     await signIn(TEST_PASSCODE);
-    expect(await html(SettingsPage())).not.toMatch(/<input[^>]*checked/);
+    expect(await html(SettingsPage())).not.toMatch(/<input type="checkbox"[^>]*checked/);
     const { client } = scriptedClient([text("The test Learner's reply.")]);
     await drain(runTutorTurn({ db: as.db, client, map: as.map!, learnerId: await session.currentLearnerId() }, "A question"));
     const study = () => html(StudyPage());
@@ -292,7 +292,7 @@ describe("Settings", () => {
     expect(await study()).not.toContain("Under the hood");
 
     expect((await developerDetails(true)).status).toBe(200);
-    expect(await html(SettingsPage())).toMatch(/<input[^>]*checked/);
+    expect(await html(SettingsPage())).toMatch(/<input type="checkbox"[^>]*checked/);
     expect(await study()).toContain("Under the hood");
 
     // The owner's choice is their own: still off.

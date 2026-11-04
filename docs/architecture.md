@@ -1246,6 +1246,22 @@ would make React strip the attributes on the next refresh. With JavaScript off t
 "Theme" until hydration while following the computer, since the server cannot know its mode; the sun or moon follows the `dark`
 class, so it is right from first paint. The choice is per browser, not per Learner account.
 
+### Settings > Appearance (`AppearanceSettings` in `src/app/settings/settings-controls.tsx`)
+
+**What it does.** The Settings page has an Appearance section with a radio group "Theme" (Match my Mac, or Always use one
+theme). With Match my Mac it shows a Day theme group (Light, Paper) and a Night theme group (Midnight, Forest); with one
+theme it shows one group of all four. Each option is a small tile drawn from `THEME_SWATCH` (page colour, a line of text
+colour, a brand dot) beside its name. The radios are real `<input type="radio">` elements, so the arrow keys, Tab and
+Space work and a screen reader hears each label.
+
+**A concrete scenario.** A Learner picks Day = Paper and Night = Forest. On a Mac in light mode the page turns Paper at once;
+when the Mac goes dark it turns Forest, and the header menu reads "Paper by day, Forest at night". If they then pick Forest
+in the header menu, the Settings radios show "Always use one theme" and Forest without a reload.
+
+**Trade-off.** It writes to the same store and cookie as the header menu rather than keeping its own state, so the two cannot
+disagree, but the choice stays per browser, not per account. The tiles use inline colours from the swatch map because a theme
+can only be scoped to `:root`, not to a single tile.
+
 ## Design tokens (`src/app/globals.css`, `src/app/ui.tsx`, `src/app/theme-cookie.ts`)
 
 **What they are.** A short list of named colours (`--bg`, `--ink`, `--muted`, `--border`, `--brand`,
