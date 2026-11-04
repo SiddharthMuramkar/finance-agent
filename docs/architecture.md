@@ -3719,3 +3719,36 @@ modules and the server runs this check too.
 **Scenario.** Percent, percentage points and basis points says `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]`. The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic.
 
 **Trade-off.** A Widget can never settle the Insight early (ADR 0001): `doneWhen` is refused on explore, a Check and the principle, by the schema and again in `widgetDone`, and the explore Widget stays opened by code at explore only. The cost is that a finishing Widget needs a page render or a Next to be noticed; the saved state is the source of truth, so nothing is lost. `found` lines are the Learner's own saved numbers, never typed figures (ADR 0003), so an unticked or reset Widget says nothing. Left for later: a Widget opening at the very first step and when the Tutor itself finishes a step (both happen in the turn lane's files), a tool for the Tutor to mark an Off-Topic answer (`offTopicNote` in context.ts is ready for it), Predict and Breakeven results as turn events, and plan versioning.
+
+## Skill state and the repair ladder (`src/learner/skill-state.ts`, `src/teaching/ladder.ts`, tables `skill_state` and `practice_answers`, `drizzle/0029_skill_state.sql`, spec #229, ticket #232)
+
+**What it does.** Code keeps a record of how each Learner is doing on each Skill of a Topic, and code, not the Tutor,
+decides what comes after each answer. Every Quick-try or typed quiz answer that code marks goes through `recordAnswer`. In
+one transaction it logs the answer in `practice_answers` (the item, the numbers it was shown with, what the Learner typed,
+the verdict right, Known mistake or wrong, and the mistake's tag) and updates the Skill's row in `skill_state`: tries, right,
+the streak of right answers, misses in a row, the last Known mistake, the teaching methods used and the park-until time. Each
+answer has an item key, unique per Learner, so the same answer sent twice (a double press, a retried request) is logged and
+counted once. Misses in a row count across Quick tries and quiz questions on the same Skill, and a right answer resets them.
+
+The policy is the pure module `ladder.ts`. `nextMove(state, answer)` takes the state after the answer and returns the
+Reply kind and method. A right answer gets feedback, and two right in a row make the Skill fluent (`isFluent`). The first
+miss gets feedback: one slip, one fix, one new try. The second miss in a row brings a re-teach with the next method on
+the ladder: restate, worked example, fill-in boxes, the Skill's Widget, then a drill of five. It takes the first method not
+used yet, and once all five are used it goes on round the ladder, so the same method never comes twice in a row. The third
+miss in a row, and every miss after it, offers to park. `parkSkill` sets a park-until time 20 hours on and starts the miss
+count again. `drillDue` says when that time has passed, so the Topic opens on a drill of five, and `unparkSkill` ends the
+park once the drill is done. `yourTurnDone` is true once every Skill of the Check is fluent. This layer stores and decides
+only: nothing is shown yet, and later tickets wire it into the Tutor Turn and the Course Navigator.
+
+**Scenario.** The Learner is asked to turn 0.6 percentage points into basis points and types 6. Code marks it as the Known
+mistake "multiplied by 10" and records it: one miss in a row, so the reply is feedback with the fix and a new try. They type
+0.06 on a quiz question for the same Skill: two misses in a row, so the reply re-teaches by restating the rule, and code
+notes "restate" as used. After a right answer and two more misses, the re-teach is a worked example, not the restatement
+again. A third miss in a row brings "Park it, review tomorrow". They park at 6 pm; at 2 pm the next day `drillDue` turns
+true and the Topic opens on a drill of five.
+
+**Trade-off.** The state is a stored row, updated on each answer, not worked out again from the log each time. That keeps
+each turn to one small read, but the row and the log could drift if one were edited by hand; the log keeps every answer, so
+the state can be rebuilt from it. The ladder is the same for every Topic and lives in code, which keeps Topic files small
+but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
+never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
