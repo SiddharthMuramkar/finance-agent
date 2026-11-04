@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CONVERTED_TOPIC_DATA, convertedTopic, topicFileOf } from "./lesson-fixture";
+import { lintReadyTopic } from "./lesson-lint-fixture";
 import { LESSON_NOT_YET_CONVERTED, NEGATIVE_STEM, lessonLintErrors, type PresetCheck } from "./lesson-lint";
 import { isConverted, loadCourseMap, parseCourseMap, testedSkills, type QuizCheck, type Topic } from "./map";
 import { presetValueProblems } from "./written-ahead-check";
@@ -85,7 +86,7 @@ const lint = (t: Topic, opts?: Parameters<typeof lessonLintErrors>[1]) => lesson
 
 /** The converted fixture, changed by `edit` after it has loaded. */
 function topicWith(edit: (t: Topic) => void): Topic {
-  const t = convertedTopic();
+  const t = lintReadyTopic();
   edit(t);
   return t;
 }
@@ -94,8 +95,8 @@ const quiz = (t: Topic, i: number) => t.checks[i] as QuizCheck;
 const ON_TOPIC = ' (Topic "pct-demo")';
 
 describe("the lesson lint", () => {
-  it("passes a full converted Topic built from the gold cards", () => {
-    expect(lint(convertedTopic())).toEqual([]);
+  it("passes a full converted Topic built from the gold cards, once its Check 1 tests every Skill it has Quick tries for", () => {
+    expect(lint(lintReadyTopic())).toEqual([]);
   });
 
   it("passes the real Course Map, where every Topic without Skills is on the not-yet-converted list", () => {
@@ -124,16 +125,17 @@ describe("the lesson lint", () => {
       x.checks[1].quickTries = x.checks[1].quickTries.filter((q) => "id" in q);
       x.checks[2].card!.skills.push("pct-change");
       x.checks[2].quickTries.push({ template: "pct-change-move", halfDone: true });
+      (x.checks[2] as { skills: string[] }).skills.push("pct-change");
     });
     expect(lint(t)).toEqual([`L1: Check "pct-demo-check-2" tests Skill "pct-change", which no Concept card at or before it teaches${ON_TOPIC}`]);
   });
 
   it("L1: fails a Check with no card, a question with no Skill, a bank question, a Quick try ahead of its card, and no terms", () => {
     expect(lint(topicWith((x) => delete x.checks[2].card))).toEqual([`L1: Check "pct-demo-check-3" has no Concept card${ON_TOPIC}`]);
-    expect(lint(topicWith((x) => delete x.questions[0].skill))).toEqual([`L1: Check "pct-demo-check-2" question "pct-demo-headline" has no Skill${ON_TOPIC}`]);
+    expect(lint(topicWith((x) => delete x.questions[0].skill)).filter((e) => e.startsWith("L1"))).toEqual([`L1: Check "pct-demo-check-2" question "pct-demo-headline" has no Skill${ON_TOPIC}`]);
     expect(lint(topicWith((x) => quiz(x, 1).questions.push("bank:abc")))[0]).toMatch(/^L1: Check "pct-demo-check-2" uses Question Bank question "bank:abc"/);
     const early = topicWith((x) => x.checks[0].quickTries.push({ template: "pct-change-move" }));
-    expect(lint(early)).toEqual([
+    expect(lint(early).filter((e) => e.startsWith("L1"))).toEqual([
       `L1: Check "pct-demo-check-1" Quick try 8 (template "pct-change-move") practises Skill "pct-change", which no Concept card at or before it teaches${ON_TOPIC}`,
     ]);
     expect(lint(topicWith((x) => (x.terms = [])))).toEqual([`L1: the Topic lists no terms; a converted Topic lists the terms it introduces${ON_TOPIC}`]);
@@ -161,7 +163,7 @@ describe("the lesson lint", () => {
       `L2: Skill "pct-change" has no half-done Quick try (a fixed try with halfDone, or a template entry with halfDone: true)${ON_TOPIC}`,
     ]);
     const small = topicWith((x) => (quiz(x, 1).templates = []));
-    expect(lint(small)).toEqual([
+    expect(lint(small).filter((e) => e.startsWith("L2"))).toEqual([
       `L2: Check "pct-demo-check-2" shows 2 per attempt, so it needs 6 distinct questions or a template for three attempts; it has 1${ON_TOPIC}`,
     ]);
   });
@@ -179,7 +181,7 @@ describe("the lesson lint", () => {
     const off = topicWith((x) => (x.checks[2].card!.widget = { widget: "rate-play", values: { old: 3, $new: 12 } }));
     expect(lint(off)).toEqual([`L4: Check "pct-demo-check-3" card's Widget "rate-play" preset: new = 12 is outside 0 to 10${ON_TOPIC}`]);
     const noRecipes: PresetCheck = (p) => ("recipe" in p ? `no recipe "${p.recipe}" here` : null);
-    expect(lint(convertedTopic(), { presetOk: noRecipes })).toEqual([
+    expect(lint(lintReadyTopic(), { presetOk: noRecipes })).toEqual([
       `L4: Check "pct-demo-check-1" card's recipe "rate_move" preset: no recipe "rate_move" here${ON_TOPIC}`,
       `L4: Check "pct-demo-check-2" card's recipe "rate_move" preset: no recipe "rate_move" here${ON_TOPIC}`,
     ]);
@@ -240,6 +242,41 @@ describe("the lesson lint", () => {
       if ("id" in q) q.mistakes = [{ answer: 0.25, fix: "Same as the answer." }];
     });
     expect(lint(clash)).toEqual([`Draws: Check "pct-demo-check-1" Quick try "pct-demo-try-pts-2" has a Known mistake 0.25 that equals its answer${ON_TOPIC}`]);
+  });
+
+  it("L8: fails a Quick try whose Skill its own Check does not test, because it can never be shown", () => {
+    // The shared fixture's Check 1 has three Quick tries on "pts" but draws no "pts" question: the Percent bug of review item 0.
+    expect(lint(convertedTopic()).filter((e) => e.startsWith("L8"))).toEqual(
+      ["pct-demo-try-pts-1", "pct-demo-try-pts-2", "pct-demo-try-pts-3"].map(
+        (id) =>
+          `L8: Check "pct-demo-check-1" Quick try "${id}" practises Skill "pts", which the Check does not test (it tests pts-to-bp, bp-to-pts), so the try is never shown; add a question or template on "pts" to the Check${ON_TOPIC}`,
+      ),
+    );
+    const late = topicWith((x) => x.checks[2].quickTries.push({ template: "points-between" }));
+    expect(lint(late)).toEqual([
+      `L8: Check "pct-demo-check-3" Quick try 1 (template "points-between") practises Skill "pts", which the Check does not test (it tests wording), so the try is never shown; add a question or template on "pts" to the Check${ON_TOPIC}`,
+    ]);
+  });
+
+  it("L9: fails a template whose draw can repeat the numbers of a fixed question or Quick try in the same Check", () => {
+    // Only 3% to 3.5% can be drawn, which is Quick try pct-demo-try-pts-1's move.
+    const t = topicWith((x) => {
+      const template = x.templates.find((y) => y.id === "points-between")!;
+      template.params = { a: { min: 3, max: 3, step: 1 }, d: { min: 0.5, max: 0.5, step: 0.5 } };
+      template.avoid = [];
+    });
+    expect(lint(t)).toEqual([
+      `L9: Check "pct-demo-check-1" template "points-between" draws "A rate moves from 3% to 3.5%. How many percentage points ...", which repeats the numbers of Quick try "pct-demo-try-pts-1" (3, 3.5); add one of them to the template's avoid list${ON_TOPIC}`,
+    ]);
+    // A question in the same Check counts too.
+    const q = topicWith((x) => {
+      const template = x.templates.find((y) => y.id === "pct-change-move")!;
+      template.params = { a: { min: 2, max: 2, step: 1 }, d: { min: 1, max: 1, step: 1 } };
+      template.avoid = [];
+    });
+    expect(lint(q).filter((e) => e.startsWith("L9"))).toEqual([
+      expect.stringMatching(/^L9: Check "pct-demo-check-2" template "pct-change-move" draws .* question "pct-demo-headline" \(2, 3\)/),
+    ]);
   });
 
   it("fails a content-only restructure that makes a Check required, which would raise a Due Check", () => {

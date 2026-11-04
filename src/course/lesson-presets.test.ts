@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { widgetProblems, widgetRuleProblems } from "@/widgets/check";
 import { RECIPE_IDS, recipeById } from "@/widgets/recipes";
-import { convertedTopic } from "./lesson-fixture";
+import { lintReadyTopic } from "./lesson-lint-fixture";
 import { lessonLintErrors, writtenAheadPresetOk, type PresetCheck } from "./lesson-lint";
 import { loadCourseMap, type Topic } from "./map";
 
@@ -28,17 +28,17 @@ describe("Widget presets on Concept cards (L4, recipes built)", () => {
   });
 
   it("builds the converted fixture's rate_move presets, set to the Running example", () => {
-    expect(lint(convertedTopic())).toEqual([]);
+    expect(lint(lintReadyTopic())).toEqual([]);
   });
 
   it("fails a rate_move preset whose new rate is off the Widget's range", () => {
-    const t = convertedTopic();
+    const t = lintReadyTopic();
     t.checks[0].card!.widget = { recipe: "rate_move", inputs: { old: 4, new: 25 } };
     expect(lint(t)).toEqual([expect.stringMatching(/^L4: Check "pct-demo-check-1" card's recipe "rate_move" preset: inputs\.new: .*\(Topic "pct-demo"\)$/)]);
   });
 
   it("fails a preset that names no Widget recipe", () => {
-    const t = convertedTopic();
+    const t = lintReadyTopic();
     t.checks[1].card!.widget = { recipe: "rate_moves", inputs: { old: 4, new: 5 } };
     expect(lint(t)).toEqual([expect.stringMatching(/^L4: Check "pct-demo-check-2" card's recipe "rate_moves" preset: "rate_moves" is not a Widget recipe \(.*rate_move/)]);
   });
