@@ -48,6 +48,10 @@ _Avoid_: Example, scenario
 Checked historical datasets a Case is taught with, each with its source, kept in the private database. Until the reveal, nothing dated after the Case's as-of date is shown.
 _Avoid_: Market data, figures
 
+**Reference data**:
+Real, sourced series that belong to no one Case (gold, the rupee-dollar rate, inflation, the repo rate, index closes, typical deposit rates, US yields), stored as Case Data under the reserved Case `reference` and readable in any Topic. While the current Topic has an unrevealed Case, nothing dated after that Case's as-of date is shown.
+_Avoid_: Market data, background data
+
 **Session**:
 The whole conversation between one Learner and the Tutor about one Topic. Leaving and coming back, even days later, continues the same Session; every other Topic has its own. The one exception: a Learner who has passed every Topic talks to the Tutor in one Session with no Topic.
 _Avoid_: Login, thread, chat

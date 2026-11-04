@@ -1,4 +1,5 @@
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
+import { REFERENCE_CASE } from "@/case-data/reference";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 import type { Insight, Piece } from "@/course/map";
 import { plainFormulaText as plain } from "@/finance/formula-text";
@@ -94,6 +95,7 @@ export function stepContext(
     if (revealed) lines.push(`Reveal (what happened): ${plain(c.reveal.trim())}`);
     lines.push(...caseDataLines(caseData.find((d) => d.caseId === c.id)));
   }
+  lines.push(...referenceLines(caseData.find((d) => d.caseId === REFERENCE_CASE)));
   if (step === "concept" || step === "explore" || step === "your_turn") lines.push("", `Concept: ${plain(topic.concept.trim())}`);
   if (step === "explore" && topic.insight) lines.push(...exploreLines(topic.insight, explore, exploreWidgetOf(topic)?.code));
   // A Check's prompt and pass criteria go to the Tutor only while that Check is current.
@@ -215,6 +217,19 @@ function describeDataset(caseId: string, d: CaseDataset): string {
       ? d.points.map((p) => `${p.date} ${p.value}`).join("; ")
       : `${d.points.length} points from ${d.points[0].date} (${d.points[0].value}) to ${d.points.at(-1)!.date} (${d.points.at(-1)!.value})`;
   return `- "${caseId}/${d.id}": ${d.label} (${d.unit}): ${points}. Source: ${d.source}.`;
+}
+
+/**
+ * The reference datasets (real, sourced series that belong to no Case), as a short block: id, label, unit
+ * and latest date. The series are already under the as-of rule for the Learner's current Topic.
+ */
+function referenceLines(data: CaseData | undefined): string[] {
+  if (!data?.datasets.length) return [];
+  return [
+    "",
+    'Reference data you can show in any Topic (real, sourced series, read as Query("case_data", {dataset: "reference/<id>"}, …); never type these figures yourself):',
+    ...data.datasets.map((d) => `- "reference/${d.id}": ${d.label} (${d.unit}), latest ${d.points.at(-1)!.date}.`),
+  ];
 }
 
 /**

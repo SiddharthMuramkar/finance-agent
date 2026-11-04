@@ -3,6 +3,7 @@ import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
+import { REFERENCE_CASE } from "@/case-data/reference";
 import { calculate } from "@/finance/calculators";
 import type { CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
@@ -80,11 +81,11 @@ export async function navigatorContext(db: Db, map: CourseMap, place: Place | nu
   );
 }
 
-/** The Case Data of the place's Cases, under the as-of rule for this Learner's progress. */
+/** The Case Data of the place's Cases, then the reference datasets, under the as-of rule for this Learner's progress. */
 export async function caseDataFor(db: Db, map: CourseMap, place: Place | null, learnerId: number) {
   if (!place) return [];
   const progress = await loadProgress(db, learnerId);
-  const all = await Promise.all(place.topic.cases.map((c) => loadCaseData(db, map, progress, c.id)));
+  const all = await Promise.all([...place.topic.cases.map((c) => c.id), REFERENCE_CASE].map((id) => loadCaseData(db, map, progress, id)));
   return all.filter((d) => d !== undefined);
 }
 

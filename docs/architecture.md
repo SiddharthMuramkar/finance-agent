@@ -1321,6 +1321,31 @@ real move. The instructions now say that before the reveal no example or made-up
 the real outcome, and point the Tutor to the Topic's own Concept or Check prompt for hypothetical
 numbers (code already sends those, and they use neutral numbers).
 
+### Reference data (the reserved Case `reference`, `src/case-data/reference.ts`)
+
+**What it does.** Some real numbers belong to no one Case: the gold price, the rupee-dollar rate,
+India's inflation, the RBI repo rate, Sensex and Nifty closes, typical FD, PPF and savings rates, and
+US Treasury yields. They are stored as ordinary Case Data under one reserved Case id, `reference`, and
+read the same way (`reference/usd-inr` in `Query("case_data", …)` or `HistoryChart`; the route is
+`/api/case-data/reference`). No Topic may use that id as a Case (the Course Map check rejects it), and a
+written-ahead Widget may read `reference/<id>` only for ids in `REFERENCE_DATASET_IDS`. The data files
+stay outside git and are imported from the laptop like any Case Data. The step context lists them in a
+short block (id, label, unit, latest date) so the Tutor knows they exist.
+
+**Scenario.** A Learner asks what a gold bar was worth in rupees. The Tutor draws a chart from
+`reference/gold-inr-10g` instead of saying it has no real prices, and the Sourced strip credits the
+World Bank and the Federal Reserve. If the Learner is in the 1992 Topic before its reveal, the same
+request returns nothing dated after that Case's as-of date, so a later Sensex close cannot give the
+outcome away.
+
+**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while the current
+Topic has a Case whose reveal is not yet shown, code clips every reference series to the earliest such
+as-of date (and leaves out a series with nothing earlier). The page's Case Data cache still keys on
+reveals only, so a series fetched before a reveal stays clipped on that page until it is reloaded: safe,
+but slightly stale. Some series are derived or approximate (gold in rupees is the international price
+at the monthly exchange rate, without duty; typical rates are the middle of an RBI range), and each
+dataset's check note says so.
+
 ## Surviving cut-offs and failures (`src/tutor/turn.ts`, `turn-status.ts`, `tools.ts`, `failures.ts`, `src/app/turn-stream.ts`)
 
 **What it does.** Makes a turn safe to interrupt and safe to repeat.
