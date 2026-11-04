@@ -4,7 +4,7 @@ import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary, useTheme } from "@openuidev/react-ui";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { GENUI_THEMES, GenuiTheme, kitVariable } from "./genui-theme";
+import { GENUI_THEMES, GenuiTheme, kitVariable, rootDeclarations } from "./genui-theme";
 import { widgetLibrary } from "./library";
 
 const kitStylesheet = readFileSync(createRequire(import.meta.url).resolve("@openuidev/react-ui/layered/styles/index.css"), "utf8");
@@ -70,6 +70,26 @@ describe("OpenUI's kit drawn in our tokens", () => {
         if (Array.isArray(value)) continue; // chart palettes are read in code, not from CSS
         expect(kitStylesheet, key).toContain(`${kitVariable(key)}:`);
       }
+    }
+  });
+
+  it("keeps the kit's colours at :root in globals.css, equal to the widget wrapper's, so popovers and the dark class agree", () => {
+    const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+    const block = css.match(/:root,\s*:root\.dark \{([^}]*)\}/)?.[1] ?? "";
+    const declared = Object.fromEntries([...block.matchAll(/(--openui-[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
+    expect(declared).toEqual(rootDeclarations());
+  });
+
+  it("maps the callout families to navy and ink, not the kit's indigo, with only danger in red", () => {
+    const root = rootDeclarations();
+    expect(root["--openui-text-info-primary"]).toBe("var(--brand)");
+    expect(root["--openui-text-success-primary"]).toBe("var(--ink)");
+    expect(root["--openui-text-alert-primary"]).toBe("var(--ink)");
+    expect(root["--openui-text-danger-primary"]).toBe("var(--danger)");
+    for (const family of ["info", "success", "alert", "danger"]) {
+      expect(root[`--openui-${family}-background`], family).toBeDefined();
+      expect(root[`--openui-border-${family}`], family).toBeDefined();
+      expect(root[`--openui-border-${family}-emphasis`], family).toBeDefined();
     }
   });
 

@@ -17,21 +17,61 @@ const COLOURS: Theme = {
   background: "var(--bg)",
   foreground: "var(--field)",
   popoverBackground: "var(--field)",
+  // Washes and lifts: ink at low strength, so they darken on paper and lighten on the dark page.
+  sunkLight: "color-mix(in srgb, var(--ink) 2%, transparent)",
+  sunk: "color-mix(in srgb, var(--ink) 4%, transparent)",
+  sunkDeep: "color-mix(in srgb, var(--ink) 8%, transparent)",
+  elevatedLight: "color-mix(in srgb, var(--ink) 4%, transparent)",
+  elevated: "color-mix(in srgb, var(--ink) 8%, transparent)",
+  elevatedStrong: "color-mix(in srgb, var(--ink) 16%, transparent)",
+  elevatedIntense: "color-mix(in srgb, var(--ink) 32%, transparent)",
   textNeutralPrimary: "var(--ink)",
   textNeutralSecondary: "var(--muted)",
+  textNeutralTertiary: "var(--muted)",
   textNeutralLink: "var(--brand)",
   textBrand: "var(--brand)",
   textAccentPrimary: "var(--brand-ink)",
+  // Callout titles are navy or ink, never the kit's indigo or brown. Only a danger callout is red.
+  textInfoPrimary: "var(--brand)",
+  textInfoInverted: "var(--brand-ink)",
+  textSuccessPrimary: "var(--ink)",
+  textSuccessInverted: "var(--brand-ink)",
+  textAlertPrimary: "var(--ink)",
+  textAlertInverted: "var(--brand-ink)",
   textDangerPrimary: "var(--danger)",
+  textDangerSecondary: "var(--danger)",
+  textDangerTertiary: "var(--danger)",
   interactiveAccentDefault: "var(--brand)",
   interactiveAccentHover: "var(--brand-hover)",
-  interactiveAccentPressed: "var(--brand)",
+  interactiveAccentPressed: "var(--brand-pressed)",
   interactiveAccentDisabled: "color-mix(in srgb, var(--brand) 40%, transparent)",
+  infoBackground: "var(--brand-tint)",
+  successBackground: "var(--hairline)",
+  alertBackground: "var(--hairline)",
+  dangerBackground: "color-mix(in srgb, var(--danger) 8%, transparent)",
   borderDefault: "var(--border)",
   borderInteractive: "var(--border)",
+  borderInteractiveSelected: "var(--brand)",
   borderAccent: "var(--brand-line)",
   borderAccentEmphasis: "var(--brand)",
+  borderInfo: "var(--brand-line)",
+  borderInfoEmphasis: "var(--brand)",
+  borderSuccess: "var(--border)",
+  borderSuccessEmphasis: "var(--ink)",
+  borderAlert: "var(--border)",
+  borderAlertEmphasis: "var(--ink)",
+  borderDanger: "var(--danger)",
+  borderDangerEmphasis: "var(--danger)",
 };
+
+/**
+ * The same mapping, for globals.css to hold at :root (unlayered, so it beats the kit's own defaults, which follow the
+ * system's light or dark setting). Portaled popovers then read our tokens, and the kit follows the Learner's `dark`
+ * class only. A test keeps that block equal to this mapping.
+ */
+export function rootDeclarations(): Record<string, string> {
+  return Object.fromEntries(Object.entries(COLOURS).map(([key, value]) => [kitVariable(key), String(value)]));
+}
 
 /** The kit's type styles at its own sizes, in our font, without Inter's weight axis. */
 const FONTS = {

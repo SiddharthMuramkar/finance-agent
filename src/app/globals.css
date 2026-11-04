@@ -22,6 +22,8 @@
   --field: #ffffff;
   --brand: #002366;
   --brand-hover: #001e57;
+  --brand-pressed: #00184a;
+  --ring: #002366;
   --brand-ink: #ffffff;
   --brand-tint: #f0f5ff;
   --brand-line: #c2cde2;
@@ -42,6 +44,90 @@
   --navy-deeper: #001034;
   --navy-accent: #6699ff;
   --navy-muted: #a6a09b;
+  /* Interaction timing (one place, so every press, fade and panel move agrees). */
+  --dur-press: 90ms;
+  --dur-ui: 150ms;
+  --dur-panel: 200ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The same tokens as Tailwind colours (bg-brand, text-muted, border-border, bg-bubble, text-ink ...). "inline" keeps the
+   var() reference, so the .dark values still switch; the older bg-[var(--brand)] spelling keeps working beside them. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-bubble: var(--bubble);
+  --color-field: var(--field);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-pressed: var(--brand-pressed);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-line: var(--brand-line);
+  --color-ring: var(--ring);
+  --color-you: var(--you);
+  --color-you-line: var(--you-line);
+  --color-you-tint: var(--you-tint);
+  --color-src: var(--src);
+  --color-src-line: var(--src-line);
+  --color-src-tint: var(--src-tint);
+  --color-danger: var(--danger);
+}
+
+/* OpenUI's kit colours, mapped to the tokens above at :root. Unlayered, so this beats the kit's own defaults (which follow
+   the system's light or dark setting, not ours) and also reaches popovers the kit opens outside a widget. The tokens
+   switch under .dark, so one block serves both modes. genui-theme.tsx holds the same mapping; a test keeps them equal. */
+:root,
+:root.dark {
+  --openui-background: var(--bg);
+  --openui-foreground: var(--field);
+  --openui-popover-background: var(--field);
+  --openui-sunk-light: color-mix(in srgb, var(--ink) 2%, transparent);
+  --openui-sunk: color-mix(in srgb, var(--ink) 4%, transparent);
+  --openui-sunk-deep: color-mix(in srgb, var(--ink) 8%, transparent);
+  --openui-elevated-light: color-mix(in srgb, var(--ink) 4%, transparent);
+  --openui-elevated: color-mix(in srgb, var(--ink) 8%, transparent);
+  --openui-elevated-strong: color-mix(in srgb, var(--ink) 16%, transparent);
+  --openui-elevated-intense: color-mix(in srgb, var(--ink) 32%, transparent);
+  --openui-text-neutral-primary: var(--ink);
+  --openui-text-neutral-secondary: var(--muted);
+  --openui-text-neutral-tertiary: var(--muted);
+  --openui-text-neutral-link: var(--brand);
+  --openui-text-brand: var(--brand);
+  --openui-text-accent-primary: var(--brand-ink);
+  --openui-text-info-primary: var(--brand);
+  --openui-text-info-inverted: var(--brand-ink);
+  --openui-text-success-primary: var(--ink);
+  --openui-text-success-inverted: var(--brand-ink);
+  --openui-text-alert-primary: var(--ink);
+  --openui-text-alert-inverted: var(--brand-ink);
+  --openui-text-danger-primary: var(--danger);
+  --openui-text-danger-secondary: var(--danger);
+  --openui-text-danger-tertiary: var(--danger);
+  --openui-interactive-accent-default: var(--brand);
+  --openui-interactive-accent-hover: var(--brand-hover);
+  --openui-interactive-accent-pressed: var(--brand-pressed);
+  --openui-interactive-accent-disabled: color-mix(in srgb, var(--brand) 40%, transparent);
+  --openui-info-background: var(--brand-tint);
+  --openui-success-background: var(--hairline);
+  --openui-alert-background: var(--hairline);
+  --openui-danger-background: color-mix(in srgb, var(--danger) 8%, transparent);
+  --openui-border-default: var(--border);
+  --openui-border-interactive: var(--border);
+  --openui-border-interactive-selected: var(--brand);
+  --openui-border-accent: var(--brand-line);
+  --openui-border-accent-emphasis: var(--brand);
+  --openui-border-info: var(--brand-line);
+  --openui-border-info-emphasis: var(--brand);
+  --openui-border-success: var(--border);
+  --openui-border-success-emphasis: var(--ink);
+  --openui-border-alert: var(--border);
+  --openui-border-alert-emphasis: var(--ink);
+  --openui-border-danger: var(--danger);
+  --openui-border-danger-emphasis: var(--danger);
 }
 :root.dark {
   color-scheme: dark;
@@ -54,6 +140,8 @@
   --field: #1c1917;
   --brand: #6699ff;
   --brand-hover: #85adff;
+  --brand-pressed: #4f84ef;
+  --ring: #85adff;
   --brand-ink: #0c0a09;
   --brand-tint: #161b26;
   --brand-line: #2b3b5e;
@@ -70,6 +158,46 @@
   --data: #44403b;
   --danger: #ff6467;
 }
+/* Base rules: pointer cursor on whatever presses, no grey tap flash, no double-tap zoom delay. */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  [role="button"],
+  summary,
+  label[for],
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"] {
+    cursor: pointer;
+  }
+  button,
+  [role="button"],
+  summary,
+  a,
+  input,
+  select,
+  label {
+    touch-action: manipulation;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* The Study Workspace owns the window: the page itself never scrolls, so nothing outside the two columns can be dragged
+   or bounced. main[data-route="study"] is on /study and on a past Session. */
+html:has(main[data-route="study"]),
+html:has(main[data-route="study"]) body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
@@ -89,6 +217,140 @@ body {
   background: linear-gradient(to top, var(--bg), transparent);
 }
 
+/* Pressable: a press moves the control 1px down and in, and takes the pressed colour, within 90ms. It uses :active, not
+   :hover, so a finger on a touch screen gets it too. A control names its pressed colour with --pressed-bg (the primary
+   button sets --brand-pressed); without one the press goes to the quiet --hairline. */
+@utility pressable {
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background-color var(--dur-ui) var(--ease-out),
+    border-color var(--dur-ui) var(--ease-out),
+    color var(--dur-ui) var(--ease-out),
+    opacity var(--dur-ui) var(--ease-out);
+  &:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(1px) scale(0.98);
+    background-color: var(--pressed-bg, var(--hairline));
+  }
+}
+
+/* A ring that breathes once (600ms) around something that just changed, e.g. a Widget the Tutor opened. */
+@keyframes ring-pulse {
+  from {
+    box-shadow: 0 0 0 2px var(--brand-line);
+  }
+  to {
+    box-shadow: 0 0 0 2px transparent;
+  }
+}
+@utility animate-ring-pulse {
+  animation: ring-pulse 600ms var(--ease-out) 1;
+}
+
+/* New content rises 4px as it fades in (150ms). */
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility animate-fade-rise {
+  animation: fade-rise var(--dur-ui) var(--ease-out) both;
+}
+
+/* A loading block: a hairline with a quiet light sweeping across (a still hairline for reduced motion). */
+@keyframes skeleton-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@utility skeleton {
+  border-radius: 4px;
+  background-color: var(--hairline);
+  background-image: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--bg) 70%, transparent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s linear infinite;
+}
+
+/* Range input for a Learner's own number: a 20px teal thumb ("you set this") on a hairline track, a clear focus ring. */
+@utility range-you {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 20px;
+  background: transparent;
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--hairline);
+  }
+  &::-moz-range-track {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--hairline);
+  }
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -8px;
+    border-radius: 50%;
+    border: 2px solid var(--field);
+    background: var(--you);
+  }
+  &::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--field);
+    background: var(--you);
+  }
+  &:focus-visible {
+    outline: none;
+  }
+  &:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  &:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Tabs with a sliding underline: the strip is the positioned parent, and the script sets --tab-x and --tab-w (px) to the
+   active tab's offset and width. */
+@utility tab-underline {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: var(--tab-w, 0px);
+    transform: translateX(var(--tab-x, 0px));
+    background: var(--brand);
+    transition:
+      transform var(--dur-panel) var(--ease-out),
+      width var(--dur-panel) var(--ease-out);
+  }
+}
+
+/* Thin, quiet scrollbars for the chat and the Widget panel (the thumb shows on hover, not at rest). */
+@utility quiet-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  &:hover {
+    scrollbar-color: var(--border) transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -99,7 +361,7 @@ body {
 }
 
 /* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight.
-   Bold key terms and step headings take the button navy (--brand, lighter in dark mode); paragraphs stay --ink. */
+   Step headings take the button navy (--brand, lighter in dark mode); bold key terms and paragraphs stay --ink. */
 .md {
   @apply leading-relaxed break-words;
 }
@@ -116,8 +378,9 @@ body {
 .md h4 {
   @apply font-semibold text-[var(--brand)];
 }
+/* Bold is emphasis, not a link: it keeps the ink colour, so only links look pressable. */
 .md strong {
-  @apply font-semibold text-[var(--brand)];
+  @apply font-semibold text-[var(--ink)];
 }
 .md ul {
   @apply list-disc pl-6;
@@ -195,4 +458,9 @@ body {
     max-width: none;
     padding: 0;
   }
+}
+
+/* Steps in a generated widget: the step title reads as the step's name, in ink, not the kit's muted grey. */
+.genui .openui-step-title {
+  color: var(--ink);
 }
