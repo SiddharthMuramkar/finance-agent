@@ -17,6 +17,14 @@ describe("the rules tuned against the live tests", () => {
         expect(text).toContain("Never ask what a bond trader, a newspaper or anyone else would say: ask about the numbers in front of the Learner.");
       });
 
+      it("everyday finance words get a few plain words too, such as what a savings rate is", () => {
+        expect(text).toContain('Define each new term in plain words the first time it appears, everyday finance words too ("a savings rate, the interest a bank pays on savings").');
+      });
+
+      it("a simpler reply's ask uses only what that reply says", () => {
+        expect(text).toContain("Its ask uses only what the simpler reply itself says: no number or word it left out.");
+      });
+
       it("asked to start from the beginning, the Tutor teaches the first idea in words, without start_again", () => {
         expect(text).toContain('"Start from the beginning" gets the first idea only, taught in words in this reply with one worked example and one ask; do not call start_again for it.');
       });
@@ -74,6 +82,11 @@ describe("the rules tuned against the live tests", () => {
     const boxes = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
     expect(boxes.reply).not.toContain("7.5%");
     expect(boxes.reply.split("\n").at(-1)).toBe("Box 2: 0.4 times 100 is how many basis points?");
+  });
+
+  it("the start-from-the-beginning example says what a savings rate is, inside its one worked example", () => {
+    const start = TUTOR_EXAMPLES.find((e) => e.learner.includes("start from the beginning"))!;
+    expect(start.reply).toContain("A savings rate, the interest a bank pays on savings, goes from 4% to 5%.");
   });
 
   it("the own-rule example shows the save call before the reply, and confirms in one sentence before its ask", () => {

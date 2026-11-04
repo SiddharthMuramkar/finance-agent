@@ -1833,7 +1833,9 @@ saved), then is confirmed in one sentence that gives the rule back, with nothing
 the order of steps, no definition). "Start from the beginning" gets the first idea taught in words with one worked
 example: `start_again` is now for a Learner who asks to see the lesson or the cards again, and after it the Tutor
 teaches the first card's idea in its own words instead of pointing at cards. An ask is about the numbers, never about
-what a bond trader or a newspaper would say. Asked for the answer to one open question, the Tutor teaches only the
+what a bond trader or a newspaper would say. Everyday finance words get a few plain words too ("a savings rate, the
+interest a bank pays on savings"), and a simpler reply's ask uses only what that reply says, so it never brings back a
+number the reply dropped. Asked for the answer to one open question, the Tutor teaches only the
 idea that question tests. Code backs the numbers, because the Tutor writes up to the limit it
 is told: `turnFacts` reads a quiz-me ask ("ask me", "quiz me", "test me") as Reply kind quick_try and a request for the
 answer as hint, and gives some Reply kinds an `aim` under the cap (`AIMS`: 60 words for feedback, reteach and hint, 40
@@ -1849,7 +1851,7 @@ spec's 80 and 120 caps, so the Tutor is told a tighter limit than it is held to,
 shown, not retried. Reading a Reply kind from words is a guess: "don't ask me" reads as a quiz-me ask, and "give me a
 question" does not. On the boxes rung the reply's boxes and code's half-done try below carry the same numbers, so the
 Learner reads that question twice, once as boxes and once with an answer box. The ideas line says which Skill each open
-question tests, never its answer. The rules grow by about 1,700 characters.
+question tests, never its answer. The rules grow by about 2,000 characters.
 
 ### Turn facts: what code knows before the Tutor writes (`src/tutor/turn-facts.ts`, `src/tutor/context.ts`, spec #229, ticket #238)
 
@@ -3237,6 +3239,8 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 **Drawn questions.** Percent's Check 1 draws typed questions from templates and has no fixed questions, so T1, T2 and T11 no longer pin question ids: setup opens the attempt through the Check tab's own code and reads the drawn items back (a typed question's right answer is the number to type). `cases-prepare.test.ts` prepares every live case against the real Course Map with no model call, so a Check, question or Skill that a content change removes fails a test instead of crashing the live suite. The trade-off is that the open numbers differ each run.
 
 **Setting a case up as the app would have.** A converted Topic shows its Concept card and the card's Widget the moment the Learner enters the step, in the same turn as the first reply, and the app allows one Widget a reply. So T5 and T6 start with one earlier turn ("ok" and a scripted reply): the card is already on screen, and the graded turn is the Tutor's own. The pass condition "widget" then grades only a Widget the Tutor itself showed (code marks the ones it stored, by the tool calls of the turn), reads a recipe's mode where the recipe keeps it (`params.inputs.mode`), and passes when any of the Tutor's Widgets is in the mode. T6 has the Learner answer one Quick try on the percent-change Skill right after that turn (`state.answeredTries`, marked by the real Quick-try code), because in a converted Topic `save_learner_rule` saves only right after code has marked a right answer since the Tutor's last reply, and the Tutor is told of that answer with the Learner's message, as in the app. T2's missed typed quiz is submitted with each question's first Known mistake as the slip (the move in points where basis points were asked), not an odd number. T3 names the fixed Quick try its earlier turn talks about (`answer.try`, 7.5% to 7.2%), so the Learner's 0.3 is that try's Known mistake instead of a wrong answer to a 3% to 3.5% try the Tutor never mentioned, and the grader's note carries the try that was shown. The setup also takes out the unanswered try the earlier turn posted (code posts nothing below a reply while a try is open), so after a re-teach code shows its next try, and the grader is told of it ("code then showed the Learner, below the reply: a Quick try ...") so that "the try below" in the Tutor's reply points at something real. The grader is told a Widget's Guided Tasks are optional play, not asks. The trade-off is that these are scripted pasts: the earlier replies cost nothing, but they are ours, not the model's.
+
+**A Widget's sliders are no leak (lane R11).** When a reply shows a Widget, the grader is also told that its sliders are not a leak of an open quiz answer: the reply check V5 already keeps the open questions' numbers out of a Widget's inputs, so a Learner who could move the sliders to a quiz's numbers is playing, not being given the answer (a T1 run failed on this).
 
 **What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they were reported as pending until Percent was converted; they now name its Skill `pts-to-bp`. T8 runs: the course check passes on the repo and fails on the fixture folder `src/behaviour/tutor-eval/fixtures/untaught-skill/` (a Check that tests an untaught Skill), naming L1. `course:check` now runs the lesson lint before the typed-formula check, so the fixture's L1 errors show even though the fixture is not on the repo's not-yet-converted lists. Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
 

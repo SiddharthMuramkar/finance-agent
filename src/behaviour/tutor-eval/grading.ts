@@ -33,7 +33,7 @@ export type SeenReply = {
   savedRule: string | null;
   /** Code stored a park offer item in the turn. */
   parkOffer: boolean;
-  /** What code showed below the reply in the same turn (the next Quick try, a Concept card), as the Learner reads it. */
+  /** What code showed below the reply in the same turn (the next Quick try), as the Learner reads it. */
   alsoShown: string[];
 };
 
@@ -187,6 +187,8 @@ export function buildGraderPrompt(args: { stateNote: string; message: string; re
     // Not the Tutor's words: code shows the next Quick try below a reply, so "the try below" in a reply points at something real.
     ...(args.reply.alsoShown.length ? [`Code then showed the Learner, below the reply (the Tutor did not write it, and it is not the Tutor's ask): ${args.reply.alsoShown.join("; ")}.`] : []),
     ...(args.reply.widgets.length ? ["A Widget's Guided Tasks (lines such as \"Move the new rate to 4%\") are optional play the Learner may ignore. They are not asks and not extra ideas: do not count them against \"one idea and one ask\"."] : []),
+    // The reply check V5 keeps an open question's numbers out of a Widget's inputs, so sliders the Learner can move are not a leak.
+    ...(args.reply.widgets.length ? ["A Widget's sliders are not a leak of an open quiz answer: code's reply checks already keep the open questions' numbers out of its inputs."] : []),
     args.reply.savedRule ? `Saved to the Learner's notes: "${args.reply.savedRule}".` : "Nothing was saved to the Learner's notes.",
     "",
     "Questions:",
