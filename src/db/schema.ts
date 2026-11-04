@@ -646,8 +646,8 @@ export const noteItems = pgTable(
     id: serial("id").primaryKey(),
     learnerId: learnerId(),
     topicId: text("topic_id").notNull(),
-    kind: text("kind").notNull().$type<"line" | "reply" | "widget">(),
-    /** The Learner's own line; null for saved replies and Widgets. */
+    kind: text("kind").notNull().$type<"line" | "reply" | "widget" | "own_rule">(),
+    /** The Learner's own line, or their own rule the Tutor saved (kind own_rule, with its Session and turn); null for saved replies and Widgets. */
     text: text("text"),
     /** A saved reply or Widget: the Session and the turn (the seq of the Learner's message that began it). */
     sessionId: integer("session_id").references(() => sessions.id),
@@ -766,4 +766,43 @@ export const practiceAnswers = pgTable(
     uniqueIndex("practice_answers_once").on(t.learnerId, t.itemKey),
     index("practice_answers_skill").on(t.learnerId, t.topicId, t.skillId),
   ],
+);
+
+/**
+ * Reply checks (spec #229, ticket #239, ADR 0008): one row per Tutor turn whose reply code held back and changed
+ * before the Learner saw it. It keeps the draft's problems and the retry's (with their reasons), the correction code
+ * sent, whether the turn retried, fell back or was stopped, the seqs of the rows the Learner never saw (left out of
+ * every later request), and the text the Learner saw. Read and written fail-soft (reply-records.ts): a database
+ * without this table runs turns as if nothing had been rejected.
+ */
+export const replyChecks = pgTable(
+  "reply_checks",
+  {
+    id: serial("id").primaryKey(),
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => sessions.id),
+    /** The seq of the message that began the turn. */
+    turnSeq: integer("turn_seq").notNull(),
+    /** The words of the reply the Learner saw, and the cap it was held to. */
+    words: integer("words").notNull(),
+    cap: integer("cap").notNull(),
+    draftProblems: jsonb("draft_problems").notNull().$type<{ rule: string; message: string }[]>().default(sql`'[]'::jsonb`),
+    retryProblems: jsonb("retry_problems").notNull().$type<{ rule: string; message: string }[]>().default(sql`'[]'::jsonb`),
+    correction: text("correction"),
+    retried: boolean("retried").notNull().default(false),
+    fallback: boolean("fallback").notNull().default(false),
+    /** The Learner pressed Stop: the held reply was dropped. */
+    stopped: boolean("stopped").notNull().default(false),
+    /** Rows of the turn the Learner never saw: the draft's text, the correction message, a failed retry. */
+    rejectedSeqs: integer("rejected_seqs").array().notNull().default(sql`'{}'::integer[]`),
+    shownText: text("shown_text").notNull(),
+    /**
+     * The Reply kind code chose for the turn (spec #229: code records the kind it chose); a Learner's own typed message
+     * is `answer_question`. Null on rows from before migration 0031, and when code chose none.
+     */
+    replyKind: text("reply_kind"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("reply_checks_turn").on(t.sessionId, t.turnSeq)],
 );

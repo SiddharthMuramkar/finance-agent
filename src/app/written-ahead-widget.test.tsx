@@ -3,13 +3,13 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CaseData } from "@/case-data/case-data";
-import { loadCourseMap } from "@/course/map";
+import { oldPercentOnly } from "@/test/old-percent-map";
 import { WIDGET_OPENED, writtenAheadFor } from "@/course/written-ahead";
 import { Conversation, type Line } from "./conversation";
 
 // Seam 2: a written-ahead Widget the Tutor opened (spec #119, "Widgets › Written-ahead Widgets"), drawn in the Study
 // Workspace from the Session item its open_widget call stored, with the code the page worked out from the Topic file
-// and the Learner's Case Data. Percent's "One rate change, said three ways" holds no 1994 rate before the reveal.
+// and the Learner's Case Data. Percent's old "One rate change, said three ways" (a fixture) holds no 1994 rate before the reveal.
 // Drawn in a browser-like page (happy-dom), as only the browser fills a Widget's starting values into its readouts.
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
@@ -17,7 +17,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }))
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const noReview = { question: null, dueCount: 0, done: 0, cap: 5 };
-const percent = loadCourseMap().topic("num-percent-bps")!;
+const percent = oldPercentOnly().topic("num-percent-bps")!;
 const dataset = (points: { date: string; value: number }[]) => ({
   id: "fed-funds-target",
   label: "Federal funds target rate",

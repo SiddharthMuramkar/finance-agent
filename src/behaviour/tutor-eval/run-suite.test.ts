@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCourseMap } from "@/course/map";
+import { oldPercentOnly } from "@/test/old-percent-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { Budget } from "./budget";
@@ -9,9 +9,10 @@ import { runSuite, type SuiteDeps } from "./run-suite";
 
 /**
  * The whole suite with no network: the real Tutor Turn on in-memory Postgres with a scripted model, and a
- * stand-in grader. It covers the run path, the spend cap stopping runs, an unreadable grade and the aggregates.
+ * stand-in grader. It covers the run path, the spend cap stopping runs, an unreadable grade and the aggregates. It runs
+ * on Percent as it was before its conversion (a fixture), so T1's pinned questions and its written-ahead Widget stand.
  */
-const map = loadCourseMap();
+const map = oldPercentOnly();
 const all = loadCases(CASES_DIR).cases;
 const pick = (...ids: string[]) => ids.map((id) => all.find((c) => c.id === id)!) as EvalCase[];
 
@@ -73,10 +74,16 @@ describe("a suite run", () => {
   });
 
   it("reports cases that cannot run yet as pending, and checks the aggregates over the live replies", async () => {
-    const report = await runSuite(pick("T1", "T3", "T8", "T9", "T10"), deps({ reply: `## The idea\n${T1_REPLY.replace("Sure.", "Sure, see pb-quiz-language.")}` }));
+    const report = await runSuite(
+      pick("T1", "T3", "T8", "T9", "T10"),
+      deps({
+        reply: `## The idea\n${T1_REPLY.replace("Sure.", "Sure, see pb-quiz-language.")}`,
+        courseCheck: async (cwd) => (cwd.includes("fixtures") ? { passed: false, output: 'L1: Check "c" tests Skill "pts", which no Concept card teaches' } : { passed: true, output: "" }),
+      }),
+    );
     const byId = Object.fromEntries(report.cases.map((c) => [c.id, c]));
-    expect(byId.T3).toMatchObject({ status: "pending", pending: expect.stringMatching(/no Skill pts_to_bp/) });
-    expect(byId.T8).toMatchObject({ status: "pending", pending: expect.stringMatching(/#237/) });
+    expect(byId.T3).toMatchObject({ status: "pending", pending: expect.stringMatching(/no Skill pts-to-bp/) });
+    expect(byId.T8.status).toBe("pass");
     // T9 sees T1's replies (T3 did not run): the app word fails it in every run.
     expect(byId.T9.status).toBe("fail");
     expect(byId.T9.runs[0].reasons[0]).toMatch(/^T1: Style: .*pb-quiz-language/);

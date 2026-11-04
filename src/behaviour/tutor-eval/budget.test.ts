@@ -34,6 +34,18 @@ describe("the spend cap", () => {
     expect(b.estimate()).toBeCloseTo(0.15);
   });
 
+  it("does not let a run that spent nothing pull the estimate down to $0", () => {
+    const b = new Budget(5);
+    b.hold(b.estimate());
+    b.settle(FIRST_RUN_ESTIMATE_USD, 0);
+    expect(b.estimate()).toBe(FIRST_RUN_ESTIMATE_USD);
+    b.hold(b.estimate());
+    b.settle(FIRST_RUN_ESTIMATE_USD, 0.2);
+    b.hold(b.estimate());
+    b.settle(0.2, 0);
+    expect(b.estimate()).toBeCloseTo(0.2);
+  });
+
   it("counts spend that reaches the cap as a stop", () => {
     const b = new Budget(0.5);
     expect(b.hold(0.2)).toBe(true);

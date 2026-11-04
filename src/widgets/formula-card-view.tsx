@@ -1,6 +1,8 @@
 import { Fragment, type ReactNode } from "react";
 import { calculate } from "@/finance/calculators";
-import type { Formula, FormulaOutput, SymbolUnit } from "@/finance/formulas";
+import { formatSymbolValue } from "@/finance/formula-text";
+import { formulaCurrency, type Formula, type FormulaOutput, type SymbolUnit } from "@/finance/formulas";
+import { formatInr } from "@/finance/indian-format";
 import { AssumptionTag, formatUsd, SourcedTag } from "./case-data-view";
 
 // The pure drawing of a Formula Card. Every value is coloured by where it came from, as a separate
@@ -24,13 +26,12 @@ const LOOK: Record<Provenance, string> = {
 };
 
 export function formatSymbol(value: number, unit: SymbolUnit): string {
-  if (unit === "percent") return `${value}%`;
-  if (unit === "years") return `${value} ${value === 1 ? "year" : "years"}`;
   if (unit === "usd") return formatUsd(value);
-  return String(value);
+  if (unit === "inr") return formatInr(value);
+  return formatSymbolValue(value, unit);
 }
 
-const UNIT_WORDS: Record<SymbolUnit, string> = { percent: "percent a year", years: "years", usd: "dollars", count: "a count" };
+const UNIT_WORDS: Record<SymbolUnit, string> = { percent: "percent a year", years: "years", usd: "dollars", inr: "rupees", count: "a count", value: "a level" };
 
 function Value({ id, text, from }: { id: string; text: string; from: Provenance }) {
   return (
@@ -62,7 +63,7 @@ export function FormulaFigure({ formula, values }: { formula: Formula; values: R
   const run = calculate(
     formula.calculator,
     Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v.value])),
-    "usd",
+    formulaCurrency(formula),
   );
   const worked = run.ok ? Object.fromEntries(outputs.map((o) => [o.key, run.results.find((r) => r.label === o.resultLabel)?.text])) : {};
 

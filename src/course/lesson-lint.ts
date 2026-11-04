@@ -16,8 +16,6 @@ import { presetValueProblems } from "./written-ahead-check.ts";
  * never add one.
  */
 export const LESSON_NOT_YET_CONVERTED: readonly string[] = [
-  "num-percent-bps",
-  "num-compounding",
   "num-probability",
   "present-value",
   "fs-income",
@@ -151,6 +149,7 @@ export function lessonLintErrors(topics: Topic[], opts?: { notYet?: readonly str
     if (listed && isConverted(t)) errors.push(`List: Topic "${t.id}" has Skills, so it is converted: remove it from LESSON_NOT_YET_CONVERTED in src/course/lesson-lint.ts`);
     if (!listed && !isConverted(t)) errors.push(`List: Topic "${t.id}" has no Skills, so it must be on LESSON_NOT_YET_CONVERTED (the list only shrinks: convert the Topic instead)`);
     if (!listed && isConverted(t)) errors.push(...topicLint(t, presetOk));
+    else errors.push(...ruleFor(t, lintL6)); // L6 alone covers a Topic that is not converted (topicLint already ran it for a converted one)
   }
   return errors;
 }
@@ -159,6 +158,13 @@ export function lessonLintErrors(topics: Topic[], opts?: { notYet?: readonly str
 function restructureProblems(t: Topic): string[] {
   if (t.restructure !== "content-only") return [];
   return t.checks.filter((c) => c.required).map((c) => `Restructure: Check "${c.id}" is required, but Topic "${t.id}" is a content-only restructure, so it would raise a Due Check`);
+}
+
+/** Runs one rule over a Topic, with the same message shape as topicLint. */
+function ruleFor(t: Topic, rule: (t: Topic, add: Add) => void): string[] {
+  const errors: string[] = [];
+  rule(t, (r, text) => errors.push(`${r}: ${text} (Topic "${t.id}")`));
+  return errors;
 }
 
 /** The lint of one converted Topic. */
@@ -201,6 +207,7 @@ function lintL1(t: Topic, add: Add) {
     for (const s of testedSkills(t, c)) {
       if (!taught.has(s)) add("L1", `Check "${c.id}" tests Skill "${s}", which no Concept card at or before it teaches`);
     }
+    if (c.kind === "conversation" && c.skills.length === 0) add("L1", `Check "${c.id}" is a conversation Check with no skills; list the Skills it tests`);
     if (c.kind === "quiz") {
       for (const qid of c.questions) {
         if (isBankId(qid)) add("L1", `Check "${c.id}" uses Question Bank question "${qid}"; a converted Topic writes its own questions or templates, tagged with Skills`);
@@ -272,6 +279,7 @@ function stringsIn(value: unknown): string[] {
 function exampleTexts(t: Topic): { where: string; text: string }[] {
   const texts: { where: string; text: string }[] = [];
   if (t.runningExample) texts.push({ where: "the Running example", text: t.runningExample.text });
+  for (const x of t.terms) texts.push({ where: `term "${x.term}"`, text: `${x.term}: ${x.means}` });
   for (const s of t.skills) {
     texts.push({ where: `Skill "${s.id}" rule`, text: s.rule });
     if (s.analogy) texts.push({ where: `Skill "${s.id}" analogy`, text: s.analogy });
@@ -315,7 +323,11 @@ function lintL5(t: Topic, add: Add) {
   }
 }
 
-/** L6: no question prompt, template ask or fixed Quick-try ask says "wrong", "not" or "except". */
+/**
+ * L6: no question prompt, template ask or fixed Quick-try ask says "wrong", "not" or "except". It runs on every Topic,
+ * converted or not, and reads every question in the file, even one no Check lists. Question Bank items live in the
+ * database, so this rule cannot see them.
+ */
 function lintL6(t: Topic, add: Add) {
   const say = (where: string, text: string) => {
     const hit = NEGATIVE_STEM.exec(text);

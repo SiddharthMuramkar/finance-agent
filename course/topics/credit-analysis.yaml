@@ -104,9 +104,9 @@ questions:
 
   - id: ca-q-cash-vs-profit
     prompt: >
-      A firm reports healthy profits, but about half of its revenue is receivables that customers have not paid for years. Why should a lender worry?
+      A firm reports healthy profits, but about half of its revenue is receivables that customers have left unpaid for years. Why should a lender worry?
     choices:
-      - { id: a, text: "Profit that is not collected is not cash available to pay interest and principal" }
+      - { id: a, text: "Profit that stays uncollected cannot pay interest and principal" }
       - { id: b, text: "Receivables are always collected in full" }
       - { id: c, text: "Profit is irrelevant to lenders" }
       - { id: d, text: "Receivables lower the tax bill" }

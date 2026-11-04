@@ -6,8 +6,9 @@ import { WIDGET_OPENED, type WrittenAhead } from "@/course/written-ahead";
 import { NEXT_STEP } from "@/tutor/session-item-kinds";
 import type { TurnRef } from "@/tutor/transcript";
 import type { TurnUsage } from "@/tutor/usage";
-import { SaveToNotes } from "./save-to-notes";
+import { SaveToNotes, type SaveTarget } from "./save-to-notes";
 import { splitReply } from "@/widgets/split";
+import { declaredSettings } from "@/widgets/settings";
 import { shownWidgetOf, WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { ReplyMarkdown, type WidgetSlot } from "./reply-markdown";
 import { SessionItemView, type SessionItemData } from "./session-item-view";
@@ -47,6 +48,31 @@ export function withNextStepDividers<L extends Line>(lines: L[]): (L | ItemLine)
  * (`${itemId}:0`); one the Topic no longer has is left out. A Widget code drew from a recipe (a WIDGET_SHOWN item) is drawn
  * the same way, with the code the item carries; its Widget key is its title, as for a Widget in a reply.
  */
+/** A stored item's preset: its numeric entries by `$variable`, or undefined when it has none. */
+function presetOfItem(raw: unknown): Record<string, number> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const entries = Object.entries(raw).filter(([, v]) => typeof v === "number" && Number.isFinite(v)) as [string, number][];
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
+/**
+ * The Save to notes target of the Widget show_widget drew at `messages[at]`: its turn's reply (the nearest finished Tutor
+ * reply between the Learner's messages around it) and its number in that reply, which is after the reply's own fences and
+ * counts the turn's shown Widgets in order, as the server numbers them. None while the reply is still being written.
+ */
+function shownSaveTarget(messages: ThreadLine[], at: number): (SaveTarget & { kind: "widget" }) | undefined {
+  let from = at;
+  while (from > 0 && messages[from - 1].role !== "user") from--;
+  let to = at;
+  while (to < messages.length - 1 && messages[to + 1].role !== "user") to++;
+  const turn = messages.slice(from, to + 1);
+  const ref = turn.find((m): m is ThreadLine & MessageLine => m.role === "assistant" && !!m.ref)?.ref;
+  if (!ref) return undefined;
+  const fences = turn.reduce((n, m) => n + (m.role === "assistant" ? splitReply(m.text).filter((p) => p.type === "widget").length : 0), 0);
+  const before = messages.slice(from, at).filter((m) => m.role === "item" && m.kind === WIDGET_SHOWN && shownWidgetOf(m.data)).length;
+  return { kind: "widget", ...ref, widgetIndex: fences + before };
+}
+
 export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead: readonly WrittenAhead[] = []): WidgetItem[] {
   const out: WidgetItem[] = [];
   // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them for Save to notes.
@@ -55,13 +81,17 @@ export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead:
   messages.forEach((m, i) => {
     if (m.role === "item" && m.kind === WIDGET_OPENED) {
       const widget = writtenAhead.find((w) => w.id === m.data.id);
-      if (widget) out.push({ key: `${m.id}:0`, number: out.length + 1, code: widget.code, complete: true, writtenAhead: widget.id });
+      // A Widget opened already set carries its preset (on top of its declared settings), so its chip reopens those numbers.
+      const preset = presetOfItem(m.data.preset);
+      if (widget) out.push({ key: `${m.id}:0`, number: out.length + 1, code: widget.code, complete: true, writtenAhead: widget.id, ...(preset && { preset: { ...declaredSettings(widget.code), ...preset } }) });
       return;
     }
     // A Widget code drew from a recipe (show_widget, ADR 0005): its code is in the item, and its Widget key is its title.
     if (m.role === "item" && m.kind === WIDGET_SHOWN) {
       const shown = shownWidgetOf(m.data);
-      if (shown) out.push({ key: `${m.id}:0`, number: out.length + 1, code: shown.code, complete: true });
+      // Its chip reopens the recipe's own starting numbers.
+      const save = shown ? shownSaveTarget(messages, i) : undefined;
+      if (shown) out.push({ key: `${m.id}:0`, number: out.length + 1, code: shown.code, complete: true, ...(save && { save }), ...(Object.keys(declaredSettings(shown.code)).length && { preset: declaredSettings(shown.code) }) });
       return;
     }
     if (m.role !== "assistant") return;

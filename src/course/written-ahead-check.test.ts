@@ -24,9 +24,9 @@ const topic = (code: string, revealTask?: object): Pick<Topic, "id" | "widgets">
 const check = (code: string, revealTask?: object) => writtenAheadCheckErrors([topic(code, revealTask)]).join("\n");
 
 describe("the course check for written-ahead Widgets", () => {
-  it("passes every written-ahead Widget on the Course Map, Percent's included", () => {
+  it("passes every written-ahead Widget on the Course Map, present value's included", () => {
     const map = loadCourseMap();
-    expect(map.topic("num-percent-bps")!.widgets.map((w) => w.id)).toEqual(["rate-change-three-ways"]);
+    expect(map.topic("present-value")!.widgets.map((w) => w.id)).toEqual(["annuity-worth-today"]);
     expect(writtenAheadCheckErrors(map.topics)).toEqual([]);
   });
 
@@ -65,10 +65,10 @@ describe("the course check for written-ahead Widgets", () => {
   });
 
   it("is part of the Course Map's rules: a Topic file with a written-ahead Widget whose title repeats fails to load", () => {
-    const real = loadCourseMap().topic("num-percent-bps")!;
+    const real = loadCourseMap().topic("present-value")!;
     const twice = { ...real, stage: "foundation", path: 1, prerequisites: [], subject: undefined, connections: undefined, widgets: [...real.widgets, { ...real.widgets[0], id: "again" }] };
-    const { errors } = parseCourseMap([{ name: "num-percent-bps.yaml", text: stringify(twice) }]);
-    expect(errors.join("\n")).toMatch(/written-ahead Widget "again" repeats the title "One rate change, said three ways"/);
+    const { errors } = parseCourseMap([{ name: "present-value.yaml", text: stringify(twice) }]);
+    expect(errors.join("\n")).toMatch(/written-ahead Widget "again" repeats the title "What the annuity is worth today"/);
   });
 });
 

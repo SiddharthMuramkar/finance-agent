@@ -1,10 +1,12 @@
+import type { Currency } from "./calculators";
 import type { FormulaId } from "./formula-ids";
 
 // The formula registry: every named formula a Formula Card can show (ADR 0002). Each entry points at a
 // tested Finance Calculation, so the symbols' plain-word names and every result come from code and the
 // Tutor never types a formula. Adding a formula means writing and testing its calculator first.
 
-export type SymbolUnit = "percent" | "years" | "usd" | "count";
+/** "inr" is rupees (₹, Indian grouping); "value" is a plain level such as an index, never money. */
+export type SymbolUnit = "percent" | "years" | "usd" | "inr" | "count" | "value";
 
 export type FormulaSymbol = {
   /** The calculator's input name; also the key a Formula Card's maps use. */
@@ -93,7 +95,40 @@ export const FORMULAS: Formula[] = [
     ],
     example: { total: 3310, payments: 3, growthPercent: 10, ratePercent: 10 },
   },
+  {
+    id: "compound-growth",
+    title: "Compound growth of one amount",
+    calculator: "future_value",
+    symbols: [
+      { key: "amount", mark: "A", name: "Amount you start with", unit: "inr" },
+      { key: "ratePercent", mark: "g", name: "Yearly growth rate", unit: "percent" },
+      { key: "years", mark: "n", name: "Number of years it grows", unit: "years" },
+    ],
+    result: { key: "result", mark: "FV", name: "What it grows to (future value)", unit: "inr", resultLabel: "Future value" },
+    derived: [],
+    expression: ["{result} = {amount} × (1 + {ratePercent}) ^ {years}"],
+    example: { amount: 1000, ratePercent: 10, years: 3 },
+  },
+  {
+    id: "cagr",
+    title: "Compound annual growth rate (CAGR)",
+    calculator: "cagr",
+    symbols: [
+      { key: "start", mark: "S", name: "Level at the start", unit: "value" },
+      { key: "end", mark: "E", name: "Level at the end", unit: "value" },
+      { key: "years", mark: "n", name: "Years between the two", unit: "years" },
+    ],
+    result: { key: "result", mark: "CAGR", name: "Steady yearly growth rate", unit: "percent", resultLabel: "CAGR" },
+    derived: [],
+    expression: ["{result} = ({end} ÷ {start}) ^ (1 ÷ {years}) − 1"],
+    example: { start: 1000, end: 1331, years: 3 },
+  },
 ];
+
+/** The currency a formula's money is in: rupees when any of its values is in rupees, else dollars. */
+export function formulaCurrency(f: Formula): Currency {
+  return [...f.symbols, ...f.derived, f.result].some((s) => s.unit === "inr") ? "inr" : "usd";
+}
 
 export function formulaById(id: string): Formula | undefined {
   return FORMULAS.find((f) => f.id === id);

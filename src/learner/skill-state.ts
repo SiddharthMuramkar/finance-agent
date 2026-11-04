@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { practiceAnswers, skillState } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -28,6 +28,11 @@ export type PracticeAnswer = {
   /** The Known mistake's tag; required for a `known_mistake` verdict. */
   mistakeTag?: string | null;
   source: "quick_try" | "quiz";
+  /**
+   * False logs the answer but leaves the Skill's state as it is: a quiz attempt's second and later misses on one Skill
+   * (one miss per Skill per attempt). Defaults to true.
+   */
+  countInState?: boolean;
 };
 
 type Row = typeof skillState.$inferSelect;
@@ -61,6 +66,14 @@ function eventOf(a: PracticeAnswer): AnswerEvent {
  * after it. An item key already logged for this Learner changes nothing: the state as it stands is returned.
  */
 export async function recordAnswer(db: Db, a: PracticeAnswer, now = new Date()): Promise<SkillState> {
+  return (await recordAnswerLogged(db, a, now)).state;
+}
+
+/**
+ * `recordAnswer`, also saying whether this call logged a new row. `logged` false means the item key was already logged
+ * (a second send, perhaps at the same moment), so the caller must not act on the answer again.
+ */
+export async function recordAnswerLogged(db: Db, a: PracticeAnswer, now = new Date()): Promise<{ state: SkillState; logged: boolean }> {
   const event = eventOf(a);
   return db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
@@ -84,7 +97,7 @@ export async function recordAnswer(db: Db, a: PracticeAnswer, now = new Date()):
       .onConflictDoNothing()
       .returning({ id: practiceAnswers.id });
     const where = ofSkill(a.learnerId, a.topicId, a.skillId);
-    if (!logged.length) return toState((await tx.select().from(skillState).where(where))[0]);
+    if (!logged.length || a.countInState === false) return { state: toState((await tx.select().from(skillState).where(where))[0]), logged: logged.length > 0 };
 
     // The row is made first, then locked, so two answers on one Skill at the same moment are applied one after the other.
     await tx.insert(skillState).values({ learnerId: a.learnerId, topicId: a.topicId, skillId: a.skillId, updatedAt: now }).onConflictDoNothing();
@@ -94,7 +107,7 @@ export async function recordAnswer(db: Db, a: PracticeAnswer, now = new Date()):
       .update(skillState)
       .set({ tries: next.tries, right: next.right, streak: next.streak, missesInRow: next.missesInRow, lastMistake: next.lastMistake, updatedAt: now })
       .where(where);
-    return next;
+    return { state: next, logged: true };
   });
 }
 
@@ -142,4 +155,19 @@ export async function noteMethodUsed(db: Db, learnerId: number, topicId: string,
     { methodsUsed: sql`array_append(${skillState.methodsUsed}, ${method}::text)` },
     now,
   );
+}
+
+/**
+ * The Learner's parked Skills in the given Topics, by Topic id and then Skill id: when each comes back. Pass only
+ * converted Topics; with none, nothing is read, so a database without the skill_state table is never queried.
+ */
+export async function parkedSkills(db: Db, learnerId: number, topicIds: readonly string[]): Promise<Record<string, Record<string, Date>>> {
+  if (!topicIds.length) return {};
+  const rows = await db
+    .select({ topicId: skillState.topicId, skillId: skillState.skillId, until: skillState.parkedUntil })
+    .from(skillState)
+    .where(and(eq(skillState.learnerId, learnerId), inArray(skillState.topicId, [...topicIds]), isNotNull(skillState.parkedUntil)));
+  const out: Record<string, Record<string, Date>> = {};
+  for (const r of rows) if (r.until) (out[r.topicId] ??= {})[r.skillId] = r.until;
+  return out;
 }

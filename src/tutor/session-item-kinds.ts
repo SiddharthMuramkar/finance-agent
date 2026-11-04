@@ -32,3 +32,33 @@ export const OFF_TOPIC = "off_topic";
 export type OffTopicData = { topicId: string; title: string; step?: number };
 
 export { WIDGET_SHOWN } from "@/widgets/shown-widget";
+
+/** The kind of a Concept card: code stores it when the Learner enters a converted Concept step (spec #229). */
+export const CONCEPT_CARD = "concept_card";
+
+/** A Concept card's data, copied from the Topic file so a reload shows the same card. */
+export type ConceptCardData = { checkId: string; title: string; lines: string[]; writeDown: string };
+
+/** The kind of a Quick try: one short question at a converted Your turn, answered in its own input. */
+export const QUICK_TRY = "quick_try";
+
+/**
+ * A Quick try's data. Never its answer: the server works that out again from the Topic file, the key naming the item
+ * and seeding the draw. `halfDone` is the first step, shown done above the ask; `drill` places it in a drill of `of`.
+ */
+export type QuickTryData = {
+  key: string;
+  checkId: string;
+  skillId: string;
+  prompt: string;
+  kind: "number" | "truth";
+  unit?: string;
+  halfDone?: string;
+  drill?: { n: number; of: number; reason: string };
+};
+
+/** The kind of a Quick try's result: its verdict, and the line the Learner reads under it. */
+export const QUICK_TRY_RESULT = "quick_try_result";
+
+/** A Quick try result's data. The line is "Right.", the Known mistake's fix, or "Not quite.". */
+export type QuickTryResultData = { key: string; verdict: "right" | "known_mistake" | "wrong"; line: string };

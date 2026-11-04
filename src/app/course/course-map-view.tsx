@@ -1,4 +1,5 @@
 import type { TopicOverview } from "@/course/navigator";
+import { backAt } from "@/tutor/park-items";
 import { Card, Eyebrow, KeyValueRow, Pill } from "../ui";
 import { BackToPathButton, DoFirstLink, TopicRow, WhatComesNextButton } from "./jump-button";
 
@@ -52,6 +53,7 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
           {t.step && t.status === "in_progress" ? ` · Teaching Step: ${STEP[t.step]}` : ""}
         </span>
         {t.current && <Pill>You are here</Pill>}
+        {t.parkedUntil && <span data-parked={t.id}>Parked · back {backAt(t.parkedUntil)}</span>}
       </p>
       {t.status !== "not_started" && (
         <ul aria-label={`Checks in ${t.title}`} className="mt-2 flex flex-wrap gap-1.5">

@@ -1,7 +1,10 @@
 "use client";
 
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { QUICK_TRY_RESULT } from "@/tutor/session-item-kinds";
+import { QuickTryContext, type QuickTryHost } from "./quick-try-view";
+import type { SessionItemData } from "./session-item-view";
 import type { NextOffer, StepSequence } from "@/course/navigator";
 import type { WrittenAhead } from "@/course/written-ahead";
 import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
@@ -11,6 +14,7 @@ import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { InsightSettledContext } from "@/widgets/insight-settled";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { LeftColumn } from "./left-column";
+import { ParkActionsContext, type ParkActions } from "./park-offer-view";
 import { DeveloperDetails, type Line } from "./thread";
 import { useTurnStream, type PendingTurn } from "./turn-stream";
 import { useWidgetHost, WidgetHost } from "./widget-host";
@@ -43,13 +47,17 @@ export function Conversation({
   insightSettled = false,
   writtenAhead,
   revealed = [],
+  referenceClip,
   shown,
   widgetStates,
   passed = null,
   developerDetails = false,
   next = null,
   openQuestion = null,
+  drill = false,
 }: {
+  /** A parked Skill's 20 hours have passed (drillIsDue): the page starts the drill turn once, as soon as no turn runs. */
+  drill?: boolean;
   /** The Next the Course Navigator offers now (nextOfferNow), or null while a Check is open: the chip under the latest reply. */
   next?: NextOffer | null;
   initial: Line[];
@@ -69,6 +77,8 @@ export function Conversation({
   writtenAhead?: readonly WrittenAhead[];
   /** The Cases whose reveal the Learner has seen (revealedCases): the reveal state the page's Case Data cache keys on. */
   revealed?: readonly string[];
+  /** The date the reference Case is clipped to (referenceClip in case-data.ts): a later close is never drawn. */
+  referenceClip?: string | null;
   /** What the page shows (its Topic's Session, or the Topic before its first turn), carried by every turn request. */
   shown?: Shown;
   /** The shown Session's saved Widget state, by Widget key (loadWidgetStates): slider values and ticked Guided Tasks. */
@@ -95,6 +105,7 @@ export function Conversation({
     quiz,
     missed,
     writtenAhead,
+    onRetry: () => void turn.send({ resume: true }),
     onQuizSubmitted: ({ passed, item, complete }) => {
       // The result card goes in the conversation at once, where a reload draws it, and after it any Topic complete card.
       if (item) turn.appendItem(item);
@@ -109,20 +120,64 @@ export function Conversation({
     void send({ quizFollowUp: true });
   }, [misses, running, send]);
   const report: WidgetReport = { tell: (key) => void turn.send({ widgetReport: key }), busy: turn.running };
+  // Quick tries: locked while a turn runs and once marked; an answer appends its items, and may start the follow-up turn.
+  const { appendItem, messages } = turn;
+  const answered = useMemo(
+    () => new Set(messages.flatMap((m) => (m.role === "item" && m.kind === QUICK_TRY_RESULT && typeof m.data.key === "string" ? [m.data.key] : []))),
+    [messages],
+  );
+  const quickTries: QuickTryHost = useMemo(
+    () => ({
+      locked: running,
+      answered,
+      answer: async (key, input) => {
+        const response = await fetch("/api/quick-try", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, input }) }).catch(() => null);
+        const body = (await response?.json().catch(() => null)) as { items?: SessionItemData[]; followUp?: boolean; error?: string } | null;
+        if (!response?.ok || !body) return body?.error ?? "That answer could not be sent. Try again.";
+        for (const item of body.items ?? []) appendItem(item);
+        if (body.followUp) void send({ quickTryFollowUp: true });
+        return null;
+      },
+    }),
+    [running, answered, appendItem, send],
+  );
+  // The drill after a park runs first when the Learner opens the Topic: code shows its tries, the Tutor adds a sentence.
+  const drillStarted = useRef(false);
+  useEffect(() => {
+    if (!drill || passed || running || drillStarted.current) return;
+    drillStarted.current = true;
+    void send({ drill: true });
+  }, [drill, passed, running, send]);
+  // The park offer's buttons: each posts its choice to /api/quick-try and the page appends what code stored.
+  const park: ParkActions = {
+    busy: turn.running,
+    act: async (choice) => {
+      const response = await fetch("/api/quick-try", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(choice) }).catch(() => null);
+      if (!response?.ok) return false;
+      const result = (await response.json().catch(() => null)) as { items?: { kind: string; data: Record<string, unknown> }[] } | null;
+      for (const item of result?.items ?? []) turn.appendItem(item);
+      return true;
+    },
+  };
 
   return (
     <AssistantRuntimeProvider runtime={turn.runtime}>
       {/* One Case Data cache for the page, cleared as each turn ends. */}
-      <CaseDataProvider revealed={revealed} turnRunning={turn.running}>
+      <CaseDataProvider revealed={revealed} referenceClip={referenceClip} turnRunning={turn.running}>
         <DeveloperDetails on={developerDetails}>
           <WidgetStatesProvider store={widgetStore}>
             <InsightSettledContext.Provider value={insightSettled}>
             {/* Tell the Tutor what I found, under a Widget whose Guided Tasks are all ticked; a passed Topic's page sends no turns. */}
             <WidgetReportContext.Provider value={passed ? null : report}>
+            <ParkActionsContext.Provider value={passed ? null : park}>
+              {/* A passed Topic's page sends nothing, so its Quick tries draw read-only. */}
+              <QuickTryContext.Provider value={passed ? null : quickTries}>
               <WorkspaceFrame
                 left={<LeftColumn turn={turn} slot={host.slot} strip={strip} place={place} review={review} quizOpen={!!quiz} explore={explore} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
+              </QuickTryContext.Provider>
+            </ParkActionsContext.Provider>
             </WidgetReportContext.Provider>
             </InsightSettledContext.Provider>
           </WidgetStatesProvider>

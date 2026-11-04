@@ -1,6 +1,6 @@
 // The QuickCheck and Rank rules as their parts state them. Kept in a module with no React in it, because the server
-// runs the Widget check too and the parts' own files are client modules. check.test.ts and the parts' tests hold the
-// copies in quick-check.tsx and rank.tsx to the same cases.
+// runs the Widget check too and the parts' own files are client modules. quick-check.tsx and rank.tsx import these
+// and re-export them, so there is one copy of each rule.
 
 export function quickCheckProblem(options: readonly unknown[], answer: number): string | null {
   if (options.length < 2 || options.length > 4) return `QuickCheck needs 2 to 4 options, not ${options.length}.`;

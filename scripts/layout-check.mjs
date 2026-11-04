@@ -12,9 +12,13 @@
 // (a live Tutor turn, skipped with --skip-live) Stop ends a reply within a second and a reload keeps what was written.
 //
 // Environment:
-//   BASE_URL         where the server listens (default http://localhost:3000); localhost only
+//   BASE_URL         where the server listens (default http://localhost:3000); localhost, 127.0.0.1 or ::1 only
 //   DATABASE_URL     Part 2: the test branch's pooled connection string (the server needs the same one)
+//   EVAL_DB_OK       Part 2: must be "branch", your statement that DATABASE_URL is a Neon test branch. Part 2 prints the
+//                    database host and refuses without it (and refuses the host named by PROD_DB_HOST, if set)
 //   PASSCODES        Part 2: the passcode list the server was started with; it must list a tools:<passcode> pair
+//   STOP_BUDGET_MS   the live Stop check's click-to-end budget in ms (default 1000). The time is printed either way. A
+//                    local server far from Neon needs about 10 s, so run it with STOP_BUDGET_MS=15000 there
 //   PLAYWRIGHT_CORE  path to a playwright-core install when it is not in node_modules, for example
 //                    /Users/siddharth/Developer/skills/node_modules/playwright-core
 //                    (Chromium comes from ~/Library/Caches/ms-playwright)
@@ -23,6 +27,7 @@
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
+import { assertLocalBase, assertTestDatabase, assertToolsLearner } from "./script-guards.mjs";
 
 const out = process.argv[2];
 if (!out || out.startsWith("--")) {
@@ -32,13 +37,23 @@ if (!out || out.startsWith("--")) {
 const harnessOnly = process.argv.includes("--harness-only");
 const skipLive = process.argv.includes("--skip-live");
 const BASE = (process.env.BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
-if (!/localhost|127\.0\.0\.1/.test(BASE)) {
-  console.error(`Refusing to run against ${BASE}: this check only runs against a local server.`);
+try {
+  assertLocalBase(BASE);
+} catch (e) {
+  console.error(e.message);
   process.exit(2);
 }
 if (!harnessOnly && !process.env.DATABASE_URL) {
   console.error("Part 2 needs DATABASE_URL and PASSCODES (a Neon test branch); pass --harness-only to run Part 1 alone.");
   process.exit(2);
+}
+if (!harnessOnly) {
+  try {
+    assertTestDatabase(process.env.DATABASE_URL, process.env);
+  } catch (e) {
+    console.error(e.message);
+    process.exit(2);
+  }
 }
 mkdirSync(out, { recursive: true });
 
@@ -128,10 +143,13 @@ async function overflowOf(page) {
       .filter((el) => el.getClientRects().length > 0)
       .filter((el) => el.getBoundingClientRect().right > cardRight + 0.5)
       .filter((el) => {
-        // A control only clipped inside a horizontal scroll container that itself stays in the card is not overflow.
+        // A control inside a horizontal scroll container (auto or scroll) that itself stays in the card is not overflow; one clipped by overflow:hidden is.
         for (let a = el.parentElement; a && a !== card; a = a.parentElement) {
           const ox = getComputedStyle(a).overflowX;
-          if (ox === "auto" || ox === "scroll" || ox === "hidden") return a.getBoundingClientRect().right > cardRight + 0.5;
+          const right = a.getBoundingClientRect().right;
+          // A scroll container keeps its controls reachable; an overflow:hidden one hides what passes its edge for good.
+          if (ox === "auto" || ox === "scroll") return right > cardRight + 0.5;
+          if (ox === "hidden") return el.getBoundingClientRect().right > right + 0.5 || right > cardRight + 0.5;
         }
         return true;
       })
@@ -226,6 +244,7 @@ async function seededLongSession() {
   const { cookie, learnerId } = await signInAsToolsLearner(BASE);
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   try {
+    await assertToolsLearner(pool, learnerId);
     const topicId = "present-value";
     await pool.query(`insert into topic_progress (learner_id, topic_id, step, reveal_shown, status) values ($1, $2, 'explore', false, 'in_progress')`, [learnerId, topicId]);
     const { rows } = await pool.query(
@@ -303,20 +322,27 @@ async function studyChecks(browser, cookie) {
       await page.keyboard.press("Enter");
       await page.waitForTimeout(100);
       await assertNoDocumentScroll(page, "just after Send");
-      await page.waitForFunction(() => document.querySelector('[data-testid="turn-status"]')?.textContent?.trim() === "Reply ready", null, { timeout: 15_000 });
+      await page.waitForFunction(
+        () => {
+          const last = [...document.querySelectorAll('[data-testid="assistant-message"]')].pop();
+          const buttons = [...document.querySelectorAll("button")].map((b) => (b.getAttribute("aria-label") || b.textContent || "").trim());
+          // Send is back and Stop is gone: the turn is over. (Send stays disabled while the box is empty.)
+          return Boolean(last && last.textContent.includes("Mocked reply.") && buttons.some((t) => /^send/i.test(t)) && !buttons.some((t) => /^stop/i.test(t)));
+        },
+        null,
+        { timeout: 15_000 },
+      );
       await assertNoDocumentScroll(page, "after streaming ends");
       await page.unroute("**/api/turn");
     });
 
-    await step("markup: no role=status in a Tutor message, exactly one app-announcer and one turn-status", async () => {
+    await step("markup: no role=status in a Tutor message, and exactly one app-announcer", async () => {
       const counts = await page.evaluate(() => ({
         inMessages: document.querySelectorAll('[data-testid="assistant-message"] [role="status"]').length,
         announcers: document.querySelectorAll('[data-testid="app-announcer"]').length,
-        turnStatus: document.querySelectorAll('[data-testid="turn-status"]').length,
       }));
       if (counts.inMessages) throw new Error(`${counts.inMessages} role=status regions inside Tutor messages`);
       if (counts.announcers !== 1) throw new Error(`${counts.announcers} app-announcer elements, expected 1`);
-      if (counts.turnStatus !== 1) throw new Error(`${counts.turnStatus} turn-status elements, expected 1`);
     });
 
     await step("buttons: every visible enabled button, [role=button] and summary has cursor:pointer", async () => {
@@ -401,17 +427,20 @@ async function studyChecks(browser, cookie) {
 
 /** A live Tutor turn: Stop mid-reply ends within a second, and a reload keeps the partial reply with its Stopped note. */
 async function stopCheck(browser, cookie) {
+  const stopBudgetMs = Number(process.env.STOP_BUDGET_MS) > 0 ? Number(process.env.STOP_BUDGET_MS) : 1000;
   const { context, page } = await studyContext(browser, cookie);
   try {
-    await step("stop: a Stop mid-reply ends within 1s, and a reload keeps the partial reply with its Stopped note", async () => {
+    await step("stop: a Stop mid-reply ends within the budget, and a reload keeps the partial reply with its Stopped note", async () => {
       await page.getByRole("textbox", { name: "Message" }).fill("Explain present value in some detail, with an example.");
       await page.keyboard.press("Enter");
       await page.locator('[data-testid="assistant-message"]').last().getByText(/\S{3,}/).first().waitFor({ timeout: 60_000 });
       const stop = page.getByRole("button", { name: /^stop/i });
+      const clicked = Date.now();
       await stop.click({ timeout: 10_000 });
-      const stopped = Date.now();
-      await stop.waitFor({ state: "hidden", timeout: 1000 });
-      if (Date.now() - stopped > 1000) throw new Error("Stop took longer than a second");
+      await stop.waitFor({ state: "hidden", timeout: Math.max(stopBudgetMs, 60_000) });
+      const took = Date.now() - clicked;
+      console.log(`stop click-to-end ${took} ms (budget ${stopBudgetMs} ms)`);
+      if (took > stopBudgetMs) throw new Error(`Stop took ${took} ms, over the ${stopBudgetMs} ms budget`);
       await page.reload({ waitUntil: "networkidle" });
       const last = page.locator('[data-testid="assistant-message"]').last();
       if (!(await last.innerText()).trim()) throw new Error("the partial reply is gone after a reload");

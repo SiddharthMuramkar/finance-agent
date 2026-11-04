@@ -127,6 +127,8 @@ export function codedFailures(conditions: Condition[], reply: SeenReply, ctx: Re
       case "plainStyle": {
         const style = checkReply({ text: reply.text, widgets: [], savedRule: reply.savedRule }, { ...ctx, openItems: [] }).filter((p) => p.rule === "V3" || p.rule === "V6");
         out.push(...style.map((p) => `Style: ${p.message}`));
+        // The seen reply is the fixed one, so a slip that code fixed would pass the check above: the Tutor still made it.
+        if (reply.fixed.length) out.push(`Style: the raw reply needed fixing (${reply.fixed.join(", ")}); the Tutor should write plain text.`);
         break;
       }
       case "noDollar": {

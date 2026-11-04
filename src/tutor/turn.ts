@@ -2,24 +2,25 @@ import type { BetaContentBlock, BetaRawMessageStreamEvent } from "@anthropic-ai/
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
 import { and, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
-import { navigate } from "@/course/navigator";
+import { navigate, type Place } from "@/course/navigator";
 import { sessions, toolCalls } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress } from "@/learner/memory";
 import { profileBlock } from "@/learner/profile";
 import { loadExploreInfo } from "@/learner/insight";
-import { markQuizReported, pendingQuizNote, quizUnavailable } from "@/learner/quiz";
+import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
-import { newReplyWidgetProblems, widgetCheckMessage } from "@/widgets/check";
+import { newReplyWidgetProblems } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
 import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
-import { STOPPED } from "./session-item-kinds";
+import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
+import { afterReteachItems, drillIsDue, enterStepItems, methodInNote, pendingQuickTryNote, quickTryFollowUpNote, quizLadderNote } from "./practice";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
-import { splitReply } from "@/widgets/split";
+import { withoutOpenWidget } from "./open-widget";
 import { comingBackItems, DUE_CHECK, storeComingBack } from "./coming-back";
 import { storeTopicComplete } from "./topic-complete";
 import { describeFailure, type FailureKind } from "./failures";
@@ -32,6 +33,7 @@ import {
   openLog,
   readSettings,
   refreezeIfChanged,
+  withoutRejected,
   saveShownSession,
   sessionForTurn,
   showsCurrentTopic,
@@ -42,17 +44,24 @@ import {
   type Message,
   type Session,
   type Shown,
+  usesWidgetEngine,
 } from "./session-log";
 import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
-import { BUSY_MESSAGE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
+import { BUSY_MESSAGE, DRILL_NOTE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
+import { turnFacts, type TurnFacts } from "./turn-facts";
+import { CHECKING_LABEL, joinedEvents, judgeReply, REPLY_CHECK_PREFIX, replyTextAfter, replyWords, RETRY_WITHIN_MS, retryMessage, toolWidgets, trimmedFallback, widgetsOnScreen, type Judged } from "./reply-gate";
+import { cardFallback } from "./reply-fallback";
+import { saveReplyCheck, summaryOf } from "./reply-records";
+import { fixReply } from "./reply-checks";
+import { savedRuleOf } from "./own-rule-item";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
-import { loadStepUsages, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
+import { lastStepNumber, loadTurnUsages, saveStepUsage, saveTurnTotal, stepUsage, sumSteps, type ApiUsage, type StepUsage, type TurnUsage } from "./usage";
 
 /**
  * The Tutor Turn: one Learner action in, streamed events and saved state out. It takes the
@@ -147,15 +156,20 @@ export type TurnEvent =
   /** What the turn is doing now, in plain words ("Thinking…", "Searching the Library…"), for the writing indicator. */
   | ProgressEvent
   /**
-   * The Learner pressed Stop: the reply ends where it was, and what it had written is kept (less any Widget it had
-   * not finished). Always followed by "done", so the browser never resumes the turn.
+   * The Learner pressed Stop: the held reply is dropped, so no text is shown or saved as the Tutor's reply (ADR 0008).
+   * Always followed by "done", so the browser never resumes the turn.
    */
   | { type: "stopped" }
   /** A Widget's new slider values, by its Widget key: update_widget saved them, and the open Widget moves to them. */
   | { type: "widget_state"; widgetKey: string; values: Record<string, number> };
 
 /** What /api/turn streams to the browser, one JSON line each: the turn's events, with how long it ran on "done". */
-export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
+export type StreamEvent = Exclude<TurnEvent, { type: "done" }> | { type: "turn_started"; turnId: number } | (Extract<TurnEvent, { type: "done" }> & { elapsedMs: number });
+
+/** The not_allowed message when a Quick-try follow-up has nothing to follow up. */
+export const NO_QUICK_TRY_FOLLOW_UP = "There is no Quick try answer to go over.";
+/** A drill turn when no parked Skill of the current Topic is due. */
+export const NO_DRILL = "There is no drill due in this Topic.";
 
 export const CUT_SHORT_MESSAGE ="The reply was cut short because it reached its length limit. Press Finish this reply to have the Tutor finish it.";
 export const REFUSAL_MESSAGE = "The Tutor declined to answer that message. Nothing was changed, and your place is the same. Try asking another way.";
@@ -191,7 +205,18 @@ function requestFor(session: Session, msgs: Message[], code: Record<string, Tool
  * Widget with this Widget key; code writes its note), or a resume of the last turn after a cut-off or failure
  * (Retry), which sends again whatever note or message the turn saved.
  */
-export type TurnInput = string | { finish: true } | { opener: true } | { next: NextName } | { quizFollowUp: true } | { widgetReport: string } | { resume: true } | PastedInput;
+export type TurnInput =
+  | string
+  | { finish: true }
+  | { opener: true }
+  | { next: NextName }
+  | { quizFollowUp: true }
+  /** The short turn the page starts after a Quick try marked wrong with no Known mistake, or after the try that finished Your turn. */
+  | { quickTryFollowUp: true }
+  | { drill: true }
+  | { widgetReport: string }
+  | { resume: true }
+  | PastedInput;
 /** A message with text the Learner pasted (the part of a piece being studied), appended for the Tutor. */
 export type PastedInput = { message: string; paste: string };
 
@@ -204,6 +229,13 @@ export type TurnDeps = {
   now?: () => Date;
   /** How long this run may take before it cuts itself off; defaults to TIME_BUDGET_MS. */
   timeBudgetMs?: number;
+  /** How long into the run a failed reply may still get its one retry; defaults to RETRY_WITHIN_MS (tests shorten it). */
+  retryWithinMs?: number;
+  /**
+   * False shows the model's reply as it came, with no fixes, checks, retry or fallback: for the tutor eval, which replays
+   * recorded replies and grades the model's own first reply. Left out, every reply is checked (ADR 0008).
+   */
+  checkReplies?: boolean;
   /** Voyage query embeddings for Library search; without them search uses keyword results only. */
   embedQuery?: QueryEmbedder;
   /**
@@ -221,6 +253,8 @@ export type TurnDeps = {
    * the generator cannot yield while a tool runs or the model thinks. Left out, nothing is sent.
    */
   notify?: (event: ProgressEvent) => void;
+  /** Tells the route the id of the turn that holds the Learner's lock, once it does, so the browser can tie its Stop to that turn. */
+  onTurn?: (turnId: number) => void;
   /** compose_widget's model client (and a test's shorter limit); left out, the real Anthropic client, made on first use. */
   composer?: Composer;
 };
@@ -278,23 +312,7 @@ function watchForStop(db: Db, turnId: number) {
 }
 
 const WIDGET_OPEN = "```openui-lang\n";
-const WIDGET_CLOSE = "\n```";
-
-/**
- * The reply text without a Widget it had not finished: an unclosed openui-lang fence (and anything after it) is
- * cut off, so a stopped reply is never saved or replayed with a Widget that cannot draw.
- */
-export function withoutOpenWidget(text: string): string {
-  const kept = splitReply(text)
-    .flatMap((s) => (s.type === "prose" ? [s.text] : s.complete ? [WIDGET_OPEN + s.code + WIDGET_CLOSE] : []))
-    .join("");
-  // A fence only partly opened ("```openui") at the start of the last line goes too; a bare "```" may close a fence.
-  for (let k = WIDGET_OPEN.length - 1; k > 3; k--) {
-    const start = kept.length - k;
-    if (kept.endsWith(WIDGET_OPEN.slice(0, k)) && (start === 0 || kept[start - 1] === "\n")) return kept.slice(0, start).trimEnd();
-  }
-  return kept.trimEnd();
-}
+export { withoutOpenWidget };
 
 /**
  * Runs one Tutor turn for one Learner: refuses a request from a tab showing another Topic, takes
@@ -346,6 +364,16 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   } else if (typeof input === "object" && "quizFollowUp" in input) {
     // Code writes the follow-up's note inside the lock, once it has found the missed quiz to go over.
     started = QUIZ_FOLLOW_UP_PREFIX;
+  } else if (typeof input === "object" && "quickTryFollowUp" in input) {
+    // Code writes the follow-up's note inside the lock, from the latest Quick-try result.
+    started = QUICK_TRY_FOLLOW_UP_PREFIX;
+  } else if (typeof input === "object" && "drill" in input) {
+    // A parked Skill's drill: code shows the tries when the turn starts (enterStepItems); the Tutor adds one sentence.
+    if (!(await drillIsDue(db, deps.map ?? loadCourseMap(), learnerId, now()))) {
+      yield { type: "not_allowed", message: NO_DRILL };
+      return;
+    }
+    started = DRILL_NOTE;
   } else if (!resuming) started = learnerTextOf(input);
   const claim = resuming ? await resumeTurn(db, now(), learnerId) : { turn: await startTurn(db, now(), started, learnerId), alreadyFinished: false };
   if (!claim.turn) {
@@ -373,6 +401,21 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
       yield { type: "not_allowed", message: NO_MISSED_QUIZ };
       return;
     }
+    // The repair ladder covers quiz questions too: a second miss in a row on the first missed question's idea
+    // re-teaches it, and a third shows the park offer instead (ticket #245).
+    const climbed = await quizLadderNote(db, deps.map ?? loadCourseMap(), learnerId, note, now());
+    for (const item of climbed.items) yield { type: "item", item };
+    await updateTurn(db, turn.id, { input: climbed.note });
+    turn = { ...turn, input: climbed.note };
+  }
+  if (typeof input === "object" && "quickTryFollowUp" in input) {
+    const note = await quickTryFollowUpNote(db, deps.map ?? loadCourseMap(), learnerId);
+    if (note === null) {
+      // Already followed up (another tab), or the latest Quick try needs none: nothing ran, and the lock is free again.
+      await dropTurn(db, turn.id);
+      yield { type: "not_allowed", message: NO_QUICK_TRY_FOLLOW_UP };
+      return;
+    }
     await updateTurn(db, turn.id, { input: note });
     turn = { ...turn, input: note };
   }
@@ -384,6 +427,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
     return;
   }
   let ended = false;
+  deps.onTurn?.(turn.id);
   const stop = watchForStop(db, turn.id);
   try {
     const done = yield* runLockedTurn(deps, input, turn, deadline, stop.signal);
@@ -432,8 +476,9 @@ async function openerFor(db: Db, map: CourseMap, learnerId: number): Promise<str
   const live = await liveSession(db, learnerId, await currentTopicId(db, map, learnerId));
   if (live && (await openLog(db, live.id, () => new Date())).rows.length) return null;
   const place = navigate(map, await loadProgress(db, learnerId));
-  const quizOpen = place?.step === "check" && place.check?.kind === "quiz" && !(await quizUnavailable(db, map, place.check));
-  return openerNote(place, { quizOpen });
+  // The opener's own facts: this runs before the turn is claimed, at the place the page opened.
+  const facts = await turnFacts(db, map, learnerId, place);
+  return openerNote(place, { quizOpen: facts.quizOpen }, facts);
 }
 
 async function* runLockedTurn(
@@ -459,11 +504,15 @@ async function* runLockedTurn(
   let stepNo: number | undefined;
   let stepsReady = false;
   const saveStep = async (model: string, make: (n: number) => StepUsage) => {
-    stepNo ??= (await loadStepUsages(db, session.id, turnSeq)).length;
+    stepNo ??= await lastStepNumber(db, session.id, turnSeq);
     await saveStepUsage(db, session.id, turnSeq, model, make(++stepNo), now());
   };
   // A tool rerun for an earlier turn, before this one has its turn seq, saves no extra step.
   effects.saveStep = (model, make) => (stepsReady ? saveStep(model, make) : Promise.resolve());
+  // This turn's facts (turn-facts.ts), the place they were worked out for, and whether the turn closes a passed Topic.
+  let facts: TurnFacts | undefined;
+  let placeAtStart: Place | null = null;
+  let passedTopic = false;
   // A resume carries on from the last saved loop step, but only once the Learner's message is stored.
   let resumed: { session: Session; log: Log; turnSeq: number } | undefined;
   if (typeof input === "object" && "resume" in input && turn.sessionId !== null && turn.turnSeq !== null) {
@@ -476,7 +525,8 @@ async function* runLockedTurn(
     ({ session, log, turnSeq } = resumed);
     stepsReady = true;
     code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
-    yield { type: "replay", text: (await turnText(log.rows, turnSeq, { db, map, learnerId })) };
+    // What the browser showed is cleared: a stored draft not yet checked never shows before its checks (ADR 0008).
+    yield { type: "replay", text: "" };
     yield* repairToolCalls();
   } else {
     // A new message, or a retry of a turn that failed before the Learner's message was stored:
@@ -509,19 +559,27 @@ async function* runLockedTurn(
     const pastes = await pasteSummary(db, session.id, learnerId);
     if (place) progress("Looking up Case Data…");
     const caseData = await caseDataFor(db, map, place, learnerId);
-    const quizDown = place?.step === "check" && place.check?.kind === "quiz" && (await quizUnavailable(db, map, place.check));
-    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId));
+    // This turn's facts (turn-facts.ts), worked out once: the context names them, and later steps of the turn reuse them.
+    facts = await turnFacts(db, map, learnerId, place, { learnerText });
+    placeAtStart = place;
+    passedTopic = completed !== undefined;
+    const quizDown = place?.step === "check" && place.check?.kind === "quiz" && !facts.quizOpen;
+    const startFacts = facts;
+    const plainContext = stepContext(place, caseData, pastes, quizDown, await loadExploreInfo(db, place, turn.id, learnerId), startFacts);
     const stepped =
       place?.step === "check" && place.check?.kind === "conversation" && endedAtCheckWithoutVerdict(log.messages, place.check.id, plainContext)
-        ? noVerdictContext({ ...place, check: place.check }, caseData, pastes)
+        ? noVerdictContext({ ...place, check: place.check }, caseData, pastes, startFacts)
         : plainContext;
     const learnerBlocks: { type: "text"; text: string }[] = [{ type: "text", text: learnerText }, ...(paste ? [pasteBlock(paste.text)] : [])];
     code = toolCode(db, map, now, session.model, effects, turn, deps.embedQuery, deps.composer);
     // Tool calls left without results by an earlier cut-off are answered before anything follows them.
     yield* repairToolCalls();
+    // The first turn after a refreeze folds the history from before it into a summary, before the reply.
+    const fold = refreezeFold(session, log) ? yield* foldHistory() : undefined;
 
     turnSeq = log.nextSeq;
     stepsReady = true;
+    if (fold) await saveStep(session.model, (n) => stepUsage(session.model, n, fold.usage, ["compaction"], fold.ms, fold.stopReason));
     await updateTurn(db, turn.id, { sessionId: session.id, turnSeq });
     const items = await loadSessionItems(db, session.id, learnerId);
     const drawn = drawnWidgets(replyTexts(log.rows), items, turnSeq);
@@ -544,6 +602,8 @@ async function* runLockedTurn(
     const context = [widgetsNote, aheadNote, stepped].filter(Boolean).join("\n");
     // Quiz results marked by code since the Tutor's last call; each is told to the Tutor once.
     const quiz = completed ? null : await pendingQuizNote(db, map, learnerId, session.topicId);
+    // Quick-try results code marked since the Tutor's last reply ride along the same way (item order shows which are new).
+    const tries = completed ? null : await pendingQuickTryNote(db, map, learnerId, session.id);
     // A quiz pass moved the Learner onto a step the Tutor has not taught yet, so it cannot be finished in this turn.
     if (quiz?.passed) await updateTurn(db, turn.id, { freshStep: true });
     // Where the Learner stands: opens the Session, and is sent again as a new message whenever it changes.
@@ -552,18 +612,18 @@ async function* runLockedTurn(
       // The API rejects a system message as the first message, so a Session's opening context is
       // the first block of the Learner's first message.
       // Order: the Learner summary, the Learner Profile (if shared), then the Navigator context last.
-      const opening = [stands, quiz?.text, context].filter(Boolean).join("\n\n");
+      const opening = [stands, quiz?.text, tries, context].filter(Boolean).join("\n\n");
       await log.append({ role: "user", content: [{ type: "text", text: opening }, ...learnerBlocks] });
     } else {
       // The API accepts a system message only right after a user message (live 400 otherwise),
       // so changed context follows the Learner's message. Nothing already sent is rebuilt.
       // A quiz result or a changed stands block goes in the same system message as the context, which always ends it.
       const standsChanged = !standsAlreadySent(log.messages, stands);
-      const contextChanged = standsChanged || quiz !== null || !lastContextSent(log.messages)?.endsWith(context);
+      const contextChanged = standsChanged || quiz !== null || tries !== null || !lastContextSent(log.messages)?.endsWith(context);
       // Pasted text goes in the Learner's own message, as a marked block after what they typed.
       await log.append({ role: "user", content: learnerBlocks.length > 1 ? learnerBlocks : learnerText });
       // A completed Topic's note already tells the Tutor to stop: it gets no context for another Topic.
-      if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, context].filter(Boolean).join("\n\n") });
+      if (contextChanged && !completed) await log.append({ role: "system", content: [standsChanged ? stands : undefined, quiz?.text, tries, context].filter(Boolean).join("\n\n") });
     }
     // A typed message or help chip on a step not yet begun (a quiz pass moved the Learner on, or a Due Check reopened
     // the Topic) draws that step's divider before the reply that teaches it. A Next stores its own when it takes the move.
@@ -576,6 +636,11 @@ async function* runLockedTurn(
       }
     }
     if (quiz) await markQuizReported(db, quiz.attemptIds, now(), learnerId);
+    // A converted step shows what code shows on entering it (its Concept card and Widget, or the next Quick try) before
+    // the reply. A Quick-try follow-up posts its fresh try after the reply instead.
+    if (!completed && turnKind(turn) !== "quick_try_follow_up") {
+      for (const item of await enterStepItems(db, map, learnerId, session.id, now())) yield { type: "item", item };
+    }
   }
 
   async function* repairToolCalls(): AsyncGenerator<TurnEvent> {
@@ -588,18 +653,65 @@ async function* runLockedTurn(
   let saveFailureReported = false;
   // An item was reported since the reply's last text: the text after it starts a new part, with no paragraph break.
   let itemSinceText = false;
-  /** Tells the browser of a failed progress write once, and of each Session item the tools stored since the last report. */
-  async function* reportSaveFailure(): AsyncGenerator<TurnEvent> {
+  /**
+   * Tells the browser of a failed progress write once, and of each Session item the tools stored since the last report.
+   * During a reply the items and Widget states go to `held` instead: they are sent, in their order, with the checked reply.
+   */
+  async function* reportSaveFailure(held?: TurnEvent[]): AsyncGenerator<TurnEvent> {
     if (effects.saveFailed && !saveFailureReported) {
       saveFailureReported = true;
       yield { type: "save_failed", message: SAVE_FAILED_MESSAGE };
     }
+    const out: TurnEvent[] = [];
     for (const item of effects.items?.splice(0) ?? []) {
       itemSinceText = true;
-      yield { type: "item", item };
+      out.push({ type: "item", item });
+      // A tool moved the Learner onto a new step: what code shows on entering it follows the divider, held with it.
+      if (item.kind === STEP_DIVIDER) for (const entered of await enterStepItems(db, map, learnerId, session.id, now())) out.push({ type: "item", item: entered });
     }
     // update_widget saved new slider values: the open Widget moves to them.
-    for (const state of effects.widgetStates?.splice(0) ?? []) yield state;
+    for (const state of effects.widgetStates?.splice(0) ?? []) out.push(state);
+    if (held) held.push(...out);
+    else yield* out;
+  }
+
+  /**
+   * Whether this is the first turn after a refreeze (`refreezeIfChanged`): nothing but tool results (an earlier cut-off's
+   * repair) is stored since `refrozenAtSeq`, and there is a reply before it to fold.
+   */
+  function refreezeFold(s: Session, l: Log): boolean {
+    const at = s.refrozenAtSeq;
+    if (at === null || at <= 0 || l.messages.at(-1)?.role !== "assistant" || isCompaction(l.messages.at(-1)?.content)) return false;
+    return l.rows.filter((r) => r.seq >= at).every((r) => r.role === "user" && Array.isArray(r.content) && r.content.every((b) => b?.type === "tool_result"));
+  }
+
+  /**
+   * Folds the history into one compaction summary under the new instructions, so the reply's request carries the
+   * summary and no reply from before the change. No summary (or a failed call): the turn carries on uncompacted.
+   */
+  async function* foldHistory(): AsyncGenerator<TurnEvent, { usage?: ApiUsage; ms: number; stopReason: string | null } | undefined> {
+    progress("Thinking…");
+    const start = performance.now();
+    const runner = client.beta.messages.toolRunner(requestFor(session, [...log.messages], code), { signal: stop });
+    runner.compactBeforeNextTurn();
+    const steps = runner[Symbol.asyncIterator]();
+    try {
+      const next = await beforeDeadline(steps.next(), deadline, stop);
+      if (next.done) return undefined;
+      for await (const _ of next.value) void _;
+      const final = await beforeDeadline(next.value.finalMessage(), deadline, stop);
+      if (!isCompaction(final.content)) return undefined;
+      await log.append({ role: "assistant", content: final.content });
+      // The summary stands in for everything before it, from this turn's request on.
+      log.messages.splice(0, log.messages.length - 1);
+      return { usage: final.usage, ms: Math.round(performance.now() - start), stopReason: final.stop_reason };
+    } catch (error) {
+      if (error instanceof CutOff || error instanceof StopRequested || stop.aborted) throw error;
+      console.warn("The refreeze fold failed; the turn carries on uncompacted.", error);
+      return undefined;
+    } finally {
+      await Promise.resolve(steps.return?.()).catch(() => {});
+    }
   }
 
   const activeSession = session;
@@ -608,8 +720,12 @@ async function* runLockedTurn(
   // The Learner pressed Stop and the reply ended there.
   let stopped = false;
 
-  // Runs Tool Runner over the log's messages, streaming text and saving each loop step. Returns the replies' text.
-  async function* loop(): AsyncGenerator<TurnEvent, string> {
+  /**
+   * Runs Tool Runner over the log's messages and saves each loop step. Nothing of the reply streams: its text, items and
+   * Widget states go to `held`, in order, and are sent only once code has checked the reply (ADR 0008). Progress labels,
+   * pings and a failed save still reach the browser at once. Returns the replies' text.
+   */
+  async function* loop(held: TurnEvent[]): AsyncGenerator<TurnEvent, string> {
     const runner = client.beta.messages.toolRunner(requestFor(activeSession, [...log.messages], code), { signal: stop });
     // The runner's history, up to here, is stored.
     let saved = log.messages.length;
@@ -628,16 +744,13 @@ async function* runLockedTurn(
     const steps = runner[Symbol.asyncIterator]();
     // What the loop waits on now: on Stop, a tool inside it runs to its end before anything is saved.
     let pending: Promise<unknown> | undefined;
-    // The model's own text of the step being streamed, kept so a Stop can save it.
-    let stepText = "";
     try {
       for (;;) {
         const next = await beforeDeadline((pending = steps.next()), deadline, stop);
         if (next.done) break;
         const stream = next.value;
-        stepText = "";
         if (!compacting) await syncRunnerHistory();
-        yield* reportSaveFailure();
+        yield* reportSaveFailure(held);
         if (!compacting) progress("Thinking…");
         const events = stream[Symbol.asyncIterator]();
         let stepHasText = false;
@@ -660,11 +773,10 @@ async function* runLockedTurn(
           if (compacting) continue;
           if (e.type === "content_block_start" && e.content_block.type === "server_tool_use") progress("Running a sum…");
           if (e.type === "content_block_delta" && e.delta.type === "text_delta" && e.delta.text) {
-            stepText += e.delta.text;
-            yield* show(marks.add(e.delta.text));
+            held.push(...show(marks.add(e.delta.text)));
           }
           if (e.type === "content_block_delta" && e.delta.type === "citations_delta") cited.set(e.index, [...(cited.get(e.index) ?? []), e.delta.citation]);
-          if (e.type === "content_block_stop") yield* show(marks.markers(cited.get(e.index)));
+          if (e.type === "content_block_stop") held.push(...show(marks.markers(cited.get(e.index))));
         }
         const final = await beforeDeadline((pending = stream.finalMessage()), deadline, stop);
         const tools = compacting ? ["compaction"] : final.content.flatMap((b) => (b.type === "tool_use" ? [b.name] : []));
@@ -678,8 +790,7 @@ async function* runLockedTurn(
         }
         stopReason = final.stop_reason;
         saved++;
-        // The step has ended: its text is stored with it below (or discarded, if declined), never again by a Stop.
-        stepText = "";
+        // The step has ended: its text is stored with it below (or discarded, if declined).
         // A declined reply is incomplete: it is discarded, never stored (docs: "treat any partial output as incomplete and discard it").
         if (final.stop_reason === "refusal") continue;
         await log.append({ role: "assistant", content: final.content });
@@ -704,87 +815,242 @@ async function* runLockedTurn(
         saved = runner.params.messages.length;
       } else {
         // Every stored tool call gets its result; the reply being streamed was never stored, so it is not taken from the runner.
+        // The held reply is dropped (ADR 0008): what the step had written is never stored or shown.
         const all = runner.params.messages;
         for (; saved < all.length; saved++) if (all[saved].role !== "assistant") await log.append(all[saved]);
-        // What the step had written is kept, less any Widget it had not finished.
-        const kept = withoutOpenWidget(stepText);
-        if (kept && log.messages.at(-1)?.role !== "assistant") {
-          await log.append({ role: "assistant", content: [{ type: "text", text: kept }] });
-          text += text ? PARAGRAPH + kept : kept;
-        }
         stopReason = "stopped";
         stopped = true;
       }
     }
     if (!compacting && !stopped) await syncRunnerHistory();
-    yield* reportSaveFailure();
+    yield* reportSaveFailure(held);
     // The reply's sources fold into one line at its end (a declined reply is replayed whole instead).
-    if (stopReason !== "refusal") {
+    if (stopReason !== "refusal" && !stopped) {
       const fold = replyFold(marks, shownText, await sourceContext({ db, map, learnerId }, marks.cited()));
-      if (fold) yield { type: "text", text: fold };
+      if (fold) held.push({ type: "text", text: fold });
     }
     return text;
   }
 
-  // A resumed turn whose final reply was already saved has nothing left to ask the model.
+  // A resumed turn whose final reply was already saved has nothing left to ask the model; it is still checked below.
   const last = log.messages.at(-1);
   const complete = last?.role === "assistant" && unansweredToolCalls(log.messages).length === 0;
-  const reply = complete ? "" : yield* loop();
+  // Text a resumed turn had stored before its cut-off: the reply is then sent whole, as a reload draws it.
+  const storedBefore = resumed !== undefined && replyTextAfter(log.rows, turnSeq) !== "";
+  const draftHeld: TurnEvent[] = [];
+  if (!complete) yield* loop(draftHeld);
 
-  // A finished widget that would not render, or breaks a Widget rule, gets one correction turn. History stays add-only.
-  // Only the reply being written is checked, against the Widgets open before it; stored Widgets never are.
-  // A Widget of the Tutor's own that uses a written-ahead Widget's parts is left out, and the Tutor told to open that one.
+  // The reply checks (ADR 0008). Rows the Learner never sees: the draft's text, the correction, a failed retry.
+  const rejected = new Set<number>();
+  // The reply being checked is what was written after this seq: the turn's, or the correction's on the retry.
+  let replyFrom = turnSeq;
+  let retried = false;
+  let correction: string | null = null;
+  let draftProblems: Judged["problems"] = [];
+  let retryProblems: Judged["problems"] = [];
+  let fellBack = false;
+  // A resume after the retry had begun carries on with the retry: the draft before the correction is rejected.
+  const resumedCorrection = resumed ? log.rows.findLast((r) => r.seq > turnSeq && r.role === "user" && textOf(r.content).startsWith(REPLY_CHECK_PREFIX)) : undefined;
+  if (resumedCorrection) {
+    for (const r of log.rows) if (r.seq > turnSeq && r.seq <= resumedCorrection.seq) rejected.add(r.seq);
+    replyFrom = resumedCorrection.seq;
+    retried = true;
+    correction = textOf(resumedCorrection.content);
+  }
+  const rejectReplyRows = () => {
+    for (const r of log.rows) if (r.seq > replyFrom && r.role === "assistant") rejected.add(r.seq);
+  };
+  // A max_tokens reply is checked like any other; a tool call it was cut off in is never run, and is answered first.
+  const answerTruncated = async () => {
+    if (stopReason !== "max_tokens") return;
+    const truncated = unansweredToolCalls(log.messages);
+    if (truncated.length) {
+      await log.append({ role: "user", content: truncated.map((use) => ({ type: "tool_result" as const, tool_use_id: use.id, content: NOT_RUN, is_error: true })) });
+    }
+  };
+  await answerTruncated();
+  const stoppedNow = () => stopReason === "stopped" || stop.aborted;
+  const engine = usesWidgetEngine(activeSession);
   const covering = activeSession.topicId ? map.topic(activeSession.topicId) : undefined;
-  // Before the explore step the explore Widget still covers its parts, but the correction does not send the Tutor to open it.
-  const heldBack = covering ? exploreHeldBack(covering, (await loadProgress(db, learnerId)).topics[covering.id]) : null;
-  const covered = covering ? coveredParts(covering).map((w) => (w.id === heldBack ? { ...w, held: true } : w)) : [];
-  // A stopped reply is not checked either: the Learner asked for it to end, and a Stop that came after the reply ended starts no correction.
-  const checked = !(stopReason === "refusal" || stopReason === "max_tokens" || stopReason === "stopped" || stop.aborted);
-  if (checked && reply.includes(WIDGET_OPEN)) progress("Checking the Widget…");
-  // The Widgets open before the reply, and any code drew from a recipe in it (show_widget), so a fence that draws their Case Data is caught too.
-  const fenced = checked && reply.includes(WIDGET_OPEN);
-  const itemsNow = fenced ? await loadSessionItems(db, session.id, learnerId) : [];
-  const openBefore = fenced ? drawnWidgets(replyTexts(log.rows.filter((r) => r.seq < turnSeq)), itemsNow) : [];
-  // One Widget per reply: a fence after code showed a Widget from a recipe in this reply (show_widget) is left out.
-  const shownInReply = itemsNow.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= turnSeq);
-  const broken = checked ? newReplyWidgetProblems(reply, openBefore.map((w) => w.code), covered, shownInReply) : [];
-  // A formula marker the Tutor wrote that cannot be drawn shows as nothing on screen: say so in the server log.
-  if (hasMarkers(reply)) {
-    const problems = markerProblems(reply);
-    if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
-  }
-  if (broken.length) {
-    progress("Fixing the Widget…");
-    const message = widgetCheckMessage(broken);
-    await log.append({ role: "user", content: message });
-    yield { type: "correction", widgets: broken.map((b) => b.index), leaveOut: broken.flatMap((b) => (b.leaveOut ? [b.index] : [])) };
-    yield* loop();
-  }
+  // The facts the reply is held to: worked out again when a tool moved the Learner's step during the draft, or on a resume.
+  const moved = draftHeld.some((e) => e.type === "item" && e.item.kind === STEP_DIVIDER);
+  const placeNow = passedTopic ? null : navigate(map, await loadProgress(db, learnerId));
+  const gateFacts = facts && !moved ? facts : await turnFacts(db, map, learnerId, passedTopic ? placeAtStart : placeNow, { learnerText: turn.input ?? undefined });
 
-  // Runs after the last loop, the correction loop included, so a cut-off or refused correction is handled the same way.
+  /** Fixes and checks the reply written after `replyFrom`. */
+  const judgeNow = async (): Promise<Judged> => {
+    const text = replyTextAfter(log.rows, replyFrom);
+    const items = await loadSessionItems(db, session.id, learnerId);
+    // Without the widget engine an openui-lang fence is checked as before: it draws, keeps the Widget rules, leaves written-ahead parts alone.
+    let fenceProblems: ReturnType<typeof newReplyWidgetProblems> = [];
+    if (!engine && text.includes(WIDGET_OPEN)) {
+      const heldBack = covering ? exploreHeldBack(covering, (await loadProgress(db, learnerId)).topics[covering.id]) : null;
+      const covered = covering ? coveredParts(covering).map((w) => (w.id === heldBack ? { ...w, held: true } : w)) : [];
+      const openBefore = drawnWidgets(replyTexts(log.rows.filter((r) => r.seq < turnSeq)), items);
+      const shownInReply = items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= replyFrom);
+      fenceProblems = newReplyWidgetProblems(text, openBefore.map((w) => w.code), covered, shownInReply);
+    }
+    // A formula marker the Tutor wrote that cannot be drawn shows as nothing on screen: say so in the server log.
+    if (hasMarkers(text)) {
+      const problems = markerProblems(text);
+      if (problems.length) console.warn(`Formula markers in a Tutor reply that cannot be drawn (Session ${session.id}, turn ${turnSeq}):`, problems);
+    }
+    const judged = judgeReply(text, toolWidgets(log.rows, replyFrom, items), gateFacts, {
+      engine,
+      fenceProblems,
+      savedRule: savedRuleOf(items.filter((i) => i.afterSeq >= turnSeq)),
+      writtenAhead: covering ? writtenAheadWidgets(covering) : undefined,
+    });
+    return deps.checkReplies === false ? { ...judged, draft: { ...judged.draft, text }, changed: false, problems: [] } : judged;
+  };
+
+  /** Stores the fixed reply as the turn's final assistant text, keeping each block's citations; the rows it replaces are rejected. */
+  const storeFixed = async () => {
+    const blocks: { type: "text"; text: string; citations?: unknown }[] = [];
+    for (const r of log.rows.filter((r) => r.seq > replyFrom && r.role === "assistant" && !rejected.has(r.seq))) {
+      const texts = Array.isArray(r.content) ? (r.content as { type?: string; text?: string; citations?: unknown }[]).filter((b) => b?.type === "text" && b.text) : [];
+      texts.forEach((b, i) => {
+        const fixed = fixReply({ text: b.text!, widgets: [] }).text;
+        blocks.push({ type: "text", text: (blocks.length && i === 0 ? PARAGRAPH : "") + fixed, ...(b.citations !== undefined && { citations: b.citations }) });
+      });
+    }
+    rejectReplyRows();
+    await log.append({ role: "assistant", content: blocks as never });
+  };
+
+  /** Shows the fallback: the step's card when there is one, else the reply cut to its cap. It is stored as the turn's final text. */
+  const fallBack = async (text: string, problems: Judged["problems"]): Promise<TurnEvent[]> => {
+    fellBack = true;
+    const card = await cardFallback(db, map, learnerId, passedTopic ? null : placeNow);
+    rejectReplyRows();
+    // A Widget that failed its checks never shows in the fallback.
+    const shown = card ? card.text : trimmedFallback(text, gateFacts.cap, problems.some((p) => p.rule === "V4"));
+    await log.append({ role: "assistant", content: [{ type: "text", text: shown }] });
+    const out: TurnEvent[] = [];
+    for (const item of card?.items ?? []) {
+      await saveItemAfterLatest(db, learnerId, session.id, item, now());
+      out.push({ type: "item", item });
+    }
+    return out;
+  };
+
+  const nonText = (held: TurnEvent[]) => held.filter((e) => e.type !== "text");
+  const shownText = () => turnText(log.rows, turnSeq, { db, map, learnerId }, rejected);
+  // What the browser gets once the checks are done: the held items and Widget states in their order, with the checked reply.
+  let toSend: TurnEvent[] = [];
+  const replyEvent = async (): Promise<TurnEvent[]> => {
+    const text = await shownText();
+    return text ? [{ type: "text", text }] : [];
+  };
+
+  if (stoppedNow()) {
+    // Stop: the held reply is dropped. Every stored tool call has its result; the items tools stored stay.
+    stopReason = "stopped";
+    rejectReplyRows();
+    toSend = nonText(draftHeld);
+  } else if (stopReason === "refusal") {
+    // The declined step is discarded; earlier steps' text shows only if it passes its checks (it is never retried).
+    progress(CHECKING_LABEL);
+    const judged = await judgeNow();
+    draftProblems = judged.problems;
+    if (judged.problems.length || judged.changed) rejectReplyRows();
+    toSend = nonText(draftHeld);
+  } else {
+    progress(CHECKING_LABEL);
+    const judged = await judgeNow();
+    if (retried) retryProblems = judged.problems;
+    else draftProblems = judged.problems;
+    if (!judged.problems.length) {
+      if (judged.changed) {
+        // Fixes cost no retry.
+        await storeFixed();
+        toSend = [...nonText(draftHeld), ...(await replyEvent())];
+      } else toSend = storedBefore || resumedCorrection ? [...nonText(draftHeld), ...(await replyEvent())] : joinedEvents(draftHeld);
+    } else if (!retried && performance.now() - runStart < (deps.retryWithinMs ?? RETRY_WITHIN_MS)) {
+      // One retry: the correction carries every failed check's reason, the Widget correction's included.
+      correction = retryMessage(judged, widgetsOnScreen(log.rows, replyFrom, await loadSessionItems(db, session.id, learnerId)));
+      rejectReplyRows();
+      await log.append({ role: "user", content: correction });
+      replyFrom = log.nextSeq - 1;
+      rejected.add(replyFrom);
+      retried = true;
+      const retryHeld: TurnEvent[] = [];
+      yield* loop(retryHeld);
+      await answerTruncated();
+      if (stoppedNow()) {
+        stopReason = "stopped";
+        rejectReplyRows();
+        toSend = [...nonText(draftHeld), ...nonText(retryHeld)];
+      } else if (stopReason === "refusal") {
+        // A declined retry is a refusal like any other: the draft it replaced was rejected, so no unchecked text shows.
+        rejectReplyRows();
+        toSend = [...nonText(draftHeld), ...nonText(retryHeld)];
+      } else {
+        const again = await judgeNow();
+        retryProblems = again.problems;
+        if (!again.problems.length) {
+          if (again.changed) await storeFixed();
+          toSend = again.changed ? [...nonText(draftHeld), ...nonText(retryHeld), ...(await replyEvent())] : [...nonText(draftHeld), ...joinedEvents(retryHeld)];
+        } else {
+          const items = await fallBack(again.draft.text, again.problems);
+          toSend = [...nonText(draftHeld), ...nonText(retryHeld), ...items, ...(await replyEvent())];
+        }
+      }
+    } else {
+      // Over the time limit (or the retry already ran): straight to the fallback.
+      const items = await fallBack(judged.draft.text, judged.problems);
+      toSend = [...nonText(draftHeld), ...items, ...(await replyEvent())];
+    }
+  }
+  yield* toSend;
+
+  // The record of the checks: what failed and why, the retry, the fallback, and the rows the Learner never saw.
+  const seen = replyTextAfter(withoutRejected(log.rows, rejected), turnSeq);
+  const record = {
+    sessionId: session.id,
+    turnSeq,
+    words: replyWords(seen),
+    cap: gateFacts.cap,
+    draftProblems,
+    retryProblems,
+    correction,
+    retried,
+    fallback: fellBack,
+    stopped: stopReason === "stopped",
+    rejectedSeqs: [...rejected].sort((a, b) => a - b),
+    shownText: stopReason === "stopped" ? "" : await shownText(),
+    // The Reply kind code chose; a Learner's own typed message with none is an answer to their own question (spec #229).
+    replyKind: gateFacts.replyKind ?? (turnKind(turn) === "message" ? "answer_question" : null),
+  };
+  await saveReplyCheck(db, record);
+
   if (stopReason === "refusal") {
     // Loop steps before the declined one are stored, and so are their tool calls' effects.
     const saves = await db
       .select({ id: toolCalls.toolCallId })
       .from(toolCalls)
       .where(and(eq(toolCalls.turnId, turn.id), eq(toolCalls.isError, false)));
-    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: (await turnText(log.rows, turnSeq, { db, map, learnerId })) };
+    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: await shownText() };
   } else if (stopReason === "max_tokens") {
-    // Kept as sent; a tool call it was cut off in is never run, and is answered so the history stays valid.
-    const truncated = unansweredToolCalls(log.messages);
-    if (truncated.length) {
-      await log.append({ role: "user", content: truncated.map((use) => ({ type: "tool_result" as const, tool_use_id: use.id, content: NOT_RUN, is_error: true })) });
-    }
+    // Kept as checked; Finish this reply asks the Tutor to go on.
     yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
   } else if (stopReason === "stopped") {
     // A reload shows where the reply was stopped. A Next the Learner already took stays taken.
     await saveItemAfterLatest(db, learnerId, session.id, { kind: STOPPED, data: { label: "Stopped" } }, now());
     yield { type: "stopped" };
   }
+  // After a Quick-try follow-up (the slip named), code posts a fresh try under the reply. After a re-teach, code does
+  // its method's part: a half-done try, the Widget in practice mode, or the first of a drill of five. Stop drops only
+  // the reply text, so these still follow a stopped follow-up: Your turn is never left with no open try.
+  if (turnKind(turn) === "quick_try_follow_up") {
+    const method = methodInNote(turn.input);
+    const after = method ? await afterReteachItems(db, map, learnerId, session.id, method, now()) : await enterStepItems(db, map, learnerId, session.id, now());
+    for (const item of after) yield { type: "item", item };
+  }
   // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
   const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());
   if (passedCard) yield { type: "item", item: passedCard };
-  const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now());
+  const usage = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now(), summaryOf(record));
   return { type: "done", stopReason, usage, ref: { sessionId: session.id, turnSeq }, shown: await shownInWorkspace(db, map, learnerId) };
 }
 

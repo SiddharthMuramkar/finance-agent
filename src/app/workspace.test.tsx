@@ -227,7 +227,7 @@ describe("the Next chip", () => {
   it("is not there while a Check is open (the Course Navigator offers none)", () => {
     const html = workspace({ initial: conversation, next: null, quiz });
     expect(chips(html)).toHaveLength(0);
-    expect(html).toContain("Quiz open: the Tutor will help with these questions after you submit.");
+    expect(html).toContain("Quiz open. Stuck? Ask the Tutor: it can explain with other numbers.");
   });
 
   it("reads Just tell me at an unsettled Explore, and Complete this Topic at the Principle", () => {
@@ -424,7 +424,7 @@ describe("a quiz Check in the right panel", () => {
   });
 
   it("puts the quiz rule above the message box while the quiz is open, and the box stays usable", () => {
-    const note = "Quiz open: the Tutor will help with these questions after you submit.";
+    const note = "Quiz open. Stuck? Ask the Tutor: it can explain with other numbers.";
     const html = workspace({ quiz });
     const left = html.slice(0, html.indexOf('data-testid="widget-pane"'));
     expect(text(left)).toContain(note);
@@ -499,7 +499,7 @@ describe("Check results in the conversation", () => {
     expect(text(pane)).toContain("Your answer: Zero point two five");
     expect(text(pane)).toContain("Try Check 1 again →");
     expect(text(pane)).not.toContain("Submit answers");
-    expect(text(html)).not.toContain("Quiz open:");
+    expect(text(html)).not.toContain("Quiz open.");
   });
 });
 
@@ -819,7 +819,7 @@ describe("the Topic Start card", () => {
   });
 
   it("lists You'll use with the Topic's written-ahead Widget titles", () => {
-    expect(text(startCard(card("num-percent-bps")))).toContain("You’ll use: One rate change, said three ways");
+    expect(text(startCard(card("num-percent-bps")))).not.toContain("You’ll use");
     expect(text(startCard(card("present-value")))).toContain("You’ll use: What the annuity is worth today");
   });
 

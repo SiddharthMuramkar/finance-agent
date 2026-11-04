@@ -542,8 +542,8 @@ and `takeNext` (see "The Learner's Next and code-written turns"); the Topic bar'
   <title>"); else a Due Check ("New in <Topic>: Check N", or "New in <Topic>: Explore"); else the
   next unpassed Topic on the default path ("Next Topic: <title>").
 
-**Scenario.** In Percent (two Checks, no Insight) the sequence has nine steps, so the first Next
-draws "Step 2 of 9 · Concept". The Learner passes the first quiz; the Concept of Check 2 has not
+**Scenario.** In Percent (three Checks, no Insight) the sequence has twelve steps, so the first Next
+draws "Step 2 of 12 · Concept". The Learner passes the first quiz; the Concept of Check 2 has not
 begun, so the chip reads "Next: Concept" and pressing it teaches that Concept without skipping it.
 
 **Trade-off.** Progress does not record when a late Explore was taken, so once it is finished the
@@ -663,6 +663,8 @@ ones.
   tabs, "Chart" (a line chart) and "Table" (dates and closes), over a thin amber "Sourced" strip with
   the ⓘ credit. The values are Case Data, fetched from the server under the as-of rule, so before
   the reveal nothing after the Case's as-of date, 31 March 1992, appears.
+  When the reveal lifts, the newly shown part of the line wipes in from left to right over about
+  700 ms (a clip on just that stretch); under reduced motion it simply appears.
 - *A picture of an idea.* The Learner asks "draw me the difference between percent and percentage
   points". The Tutor builds a clearly made-up example, a rate moving from 5% to 5.5%, as bars plus a
   callout whose numbers the Widget works out: 50 basis points, and a rise of 10% of the old rate. The
@@ -774,6 +776,7 @@ only built together, and the package's per-file build is broken in 0.18.1 (a mis
 script is still over 1 MB and the stylesheet over 120 KB (our own CSS is 66 KB of it). The loader and stand-ins match
 this package version's text: after an OpenUI upgrade, run `npm run build` and read the sizes, and `openui-trim.test.ts`
 fails if the loader's patterns stop matching.
+The CSS trim itself lives in `openui-stubs/trim-openui.cjs` and `postcss.config.mjs` lists every plugin by path with an options object, the only form both Turbopack and `next dev --webpack` accept (`postcss-config.test.ts` guards it).
 
 **When a widget is broken.** When a reply finishes, the server checks each widget with OpenUI's
 parser and our own rules (`widgetProblems` in `check.ts`): a part or name that does not exist, a
@@ -898,24 +901,21 @@ sliders in 0.01 steps stay checkable. A Widget with a reveal task is checked aga
 max standing in for the Case Data. The Topic file check also refuses a repeated id or title, a reveal task whose Case
 or dataset the Topic does not have, and Case Data references outside the Topic's Cases.
 
-**Percent's "One rate change, said three ways"** (`rate-change-three-ways`): old and new rate, 0 to 10% in 0.01
-steps with number boxes, starting at 5% and 5.2%; readouts in percentage points, basis points and percent change of
-the old rate (worked out by the Widget, "none" when the old rate is 0%; for the Tutor and Tell the Tutor what I found,
-code works the same three out with the tested `rateChange` in `src/finance/rate-change.ts`, from the two sliders the
-Topic file names under `rateChange`, so the Tutor is told "40 bp" rather than left to do the sum). Its three Guided Tasks are made-up moves
-(6% to 6.4%, 8% to 7.1%, 0.5% to 0.9%) that tick on no Percent quiz question's move and never on the Case's outcome
-(a test checks both). After the reveal a fourth appears: "Set the Fed's move of February 1994: from 3% to 3.25%",
-its rates from the `fed-funds-target` dataset. A growth-rate calculator (`cagr`) drawn by the Tutor in Percent is
-sent back, so the Learner never sees a CAGR box there.
+**Percent's old "One rate change, said three ways"** (`rate-change-three-ways`) was the first written-ahead Widget:
+two rate sliders, readouts in points, basis points and percent change (the Topic file's `rateChange` names the two
+sliders, so code works the readouts out for the Tutor with the tested `rateChange` in `src/finance/rate-change.ts`),
+three made-up Guided Tasks, and after the reveal a fourth from the `fed-funds-target` dataset. Percent's conversion
+(spec #229, "Percent, converted" below) replaced it with `rate_move` presets, so no real Topic uses `rateChange` today.
+The feature stays, and the tests that read it use the old Widget as a fixture (`src/test/old-percent-map.ts`).
 
-**Scenario.** At Percent's concept step the Learner asks to try a move. The Tutor calls `open_widget` with
-`rate-change-three-ways`; the chip appears under its first sentence and the Widget opens on the right at 5% and
-5.2% (20 bp, 4%). The Learner ticks the 6% to 6.4% task. Later the Tutor draws a CAGR box of its own; the check
-sends it back, the Tutor opens the written-ahead Widget instead, and the box never reaches the screen. After the
-reveal the page draws the Widget with the February 1994 task; before it, nothing in the Widget mentions 1994.
+**Scenario.** At present value's explore step code puts "What the annuity is worth today" (`annuity-worth-today`) in
+the panel; later the Learner asks to see it again and the Tutor calls `open_widget` with that id, so its chip appears
+under the Tutor's first sentence. If the Tutor draws an annuity chart of its own, the check sends it back, the Tutor
+opens the written-ahead Widget instead, and the chart never reaches the screen. After the reveal the page draws the
+Widget with the 30-year Treasury task and quick button; before it, nothing in the Widget mentions that yield.
 
 **Trade-off.** Written-ahead Widgets are fixed text that cost no tokens and can be checked before they ship, but they
-cannot adapt to a Learner the way a Tutor Widget can, and only Percent and Present value have them (the annuity Widget,
+cannot adapt to a Learner the way a Tutor Widget can, and only Present value has one now (the annuity Widget,
 ticket #161, which is also Present value's explore Widget). Reading the code from the Topic file on every render keeps the reveal task honest and lets a Topic
 file fix reach old Sessions, but a Widget removed from a Topic file vanishes from Sessions that opened it (its chip
 draws nothing). The parts rule goes by named parts, so a Tutor Widget that does the same sum another way (typed
@@ -1051,10 +1051,9 @@ never unticks, but it starts from the saved ticks and reports new ones. Save to 
 and the server keeps the values saved under that key in that Session (the browser's numbers only when nothing is
 saved yet). Notes, Older sessions and Home draw Widgets with no store, so there nothing is saved, as before.
 
-**Scenario.** In Percent, the Tutor opens "One rate change, said three ways" (saved under its id,
-`rate-change-three-ways`). The Learner sets the old rate to 6% and the new to 6.4%, which ticks the first Guided
-Task, then opens another Widget's tab and comes back: the sliders are still at 6% and 6.4% and the task still
-ticked. They reload the page: the same. A Widget the Tutor drew, saved to notes, keeps the values saved under its
+**Scenario.** In present value, the Tutor opens "What the annuity is worth today" (saved under its id,
+`annuity-worth-today`). The Learner sets the rate to 0%, which ticks the first Guided Task, then opens another
+Widget's tab and comes back: the slider is still at 0% and the task still ticked. They reload the page: the same. A Widget the Tutor drew, saved to notes, keeps the values saved under its
 title in the same way.
 
 **Trade-off.** Keying by title is simple and is what the Tutor already uses to update in place, but a Widget
@@ -1282,6 +1281,23 @@ and every piece follows at once without a single per-component dark rule.
 **Trade-off.** Colours must go through the tokens, so a one-off shade needs a new token rather than
 a quick palette class. In return the look stays consistent and a colour change is one line.
 
+## Colour themes and the contrast check (`src/app/globals.css`, `scripts/check-theme-contrast.mjs`)
+
+**What it does.** There are four colour sets, each a full block of the 26 tokens above: Light (`:root`), Midnight
+(`:root.dark`, the dark theme, which replaced the old mirrored-Tailwind dark), Paper (`:root[data-theme="paper"]`, a warm
+low-glare light) and Forest (`:root.dark[data-theme="forest"]`, a soft green-grey dark). Midnight, Paper and Forest sit
+inside `@media screen`, so printing always falls back to Light's tokens (the print block also forces `color-scheme: light`).
+No block inherits colours from another. The palettes are adapted from Catppuccin Mocha, Rose Pine Dawn and Everforest (all
+MIT; credited in the CSS comments only). Nothing in the UI picks Paper or Forest yet; setting `data-theme` by hand shows them.
+`scripts/check-theme-contrast.mjs` reads the CSS and fails the `check` script if any theme drops below its contrast rules
+(body text, links, accents, tags, focus ring), if a token is missing, or if Light's colours change.
+
+**Scenario.** Someone edits `--muted` in Midnight to something a little too dark. `npm run check` prints which rule failed
+and for which theme, and exits non-zero, so the change cannot merge.
+
+**Trade-off.** Four full blocks repeat every token, so adding a token means editing four places; the checker flags a
+missing one. In return no theme can silently pick up another's colour, and the contrast numbers are enforced, not hoped for.
+
 ## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
 
 **What it does.** The app has one live region for screen readers (`AnnouncerProvider`, `data-testid="app-announcer"`),
@@ -1313,6 +1329,22 @@ reply. On Notes the reply text appears and the Loan cost Widget is drawn under i
 
 **Trade-off.** The shown Widget is rebuilt from the Session on every read, so it follows the Session items; a Session
 item that is later removed also leaves the note. Widgets are drawn at the end of the reply, not where they stood in it.
+
+### Widget Retry, the drawing guard and per-Widget Save for shown Widgets (`src/app/widget-host.tsx`, `src/app/widget-panel.tsx`, `src/app/thread.tsx`, `src/app/save-to-notes.tsx`, `src/tutor/tools.ts`)
+
+**What it does.** The Widget host gives chips and the panel a Retry: pressing it on a Widget that did not arrive resumes
+the last turn, which draws the reply again. The 12-second "drawing" wait now counts from the last token that arrived, so a
+slow but moving Widget is not given up on. A Widget show_widget drew gets the same per-Widget Save to notes as one written
+in the reply: `widgetsIn` finds its turn's reply and numbers it after the reply's own fences, as the server does. The
+Widget-drawing tool calls of a turn run one after another, so two calls in one message cannot both pass the
+"one Widget a reply" check. Save to notes keeps keyboard focus when it changes to Saved, and a failed Undo returns to the
+settled control with a short error.
+
+**Scenario.** A Widget stalls at "Drawing…". Twelve seconds after its last token the chip says "The Widget did not arrive"
+with Retry; Retry resumes the turn. A Learner who pressed Save with the keyboard hears "Saved to notes" and is still on
+the control.
+
+**Trade-off.** Retry resumes the whole last turn, not only the Widget, so the Tutor may word the reply differently.
 
 ## Usage and the "under the hood" panel (`src/tutor/usage.ts`, `src/tutor/pricing.ts`, `src/app/under-the-hood.tsx`)
 
@@ -1501,6 +1533,36 @@ and sourcing each one. The Tutor learns about a result late (on the next message
 of submission), which keeps the quiz free of model calls. Imported open question banks, spaced
 review and a Question Bank in the database come in later tickets.
 
+### Typed questions, fresh numbers and Known-mistake fixes (spec #229, ticket #241; `src/course/quiz.ts`, `src/bank/lookup.ts`, `src/learner/quiz.ts`, `src/tutor/check-results.ts`, `src/app/quiz-panel.tsx`)
+
+**What it does.** A quiz Check may list question templates beside its questions. A template slot in an attempt is
+stored in `question_ids` as `<templateId>#<seed>`; pure code rebuilds the numbers and the answer from the seed
+(`drawTemplate`), so nothing new is stored and there is no migration. `selectQuestions` still walks round the
+questions and then the templates and returns the bare template id for a slot; `openQuiz` turns each into an instance
+id (`instantiateSlots`) when it makes the attempt. The seed is made from the Learner, the Check, the attempt number and
+the slot, and a draw that repeats the numbers of the Learner's last attempt (or of an earlier slot) is stepped on until
+they differ. `questionLookup` resolves instance ids, so opening, marking, the Tutor's note and the Check tab after a
+miss all see the same numbers; a bare template id is never resolved, so the next attempt's numbers are not blocked
+before they are drawn. An instance's lookup entry carries the drawn prompt, no choices and its answer in words ("60 bp"),
+which is what the Tutor's blocked numbers read. A template that is gone counts as a removed question; templates make
+`quizUnavailable` false.
+
+**Scenario.** A Learner sees "A rate moves from 2% to 2.6%. How many basis points?" with a number box labelled "Answer
+in basis points". They type 0.6. Code marks "60 bp", "60" and "60.0" right and 0.6 as the Known mistake "stopped at
+points", so the Check tab shows "Your answer: 0.6 – right answer: 60 bp" and the template's one-line fix. A wrong
+multiple-choice option with a `mistake` shows its fix the same way. After a miss, the Tutor's note names the missed
+question's Skill as its rule in words, never its id, and the fix. Try again draws new numbers.
+
+**Skill state.** In the transaction that saves a first submission, every question with a Skill is logged with
+`recordAnswer` (source `quiz`, item key `quiz:<attemptId>:<questionId>`; a typed one also keeps its template and
+numbers). Right, a Known mistake that has a tag, and everything else (wrong) map to the three verdicts. A repeat
+submission records nothing. No real Topic has a Skill-tagged question until it is converted, so nothing is recorded in
+production before then.
+
+**Trade-off.** Seeds make a typed attempt cheap to store and exact to replay, but an instance cannot be edited once
+shown; and typed questions are left out of Reviews (see "Spaced review"), because a card needs a fixed question.
+
+
 ## Case Data (`src/case-data/`, `/api/case-data/[caseId]`, `npm run case-data:import`)
 
 **What it does.** Case Data is the checked historical data a Case is taught with: a few headline
@@ -1565,11 +1627,17 @@ World Bank and the Federal Reserve. If the Learner is in the 1992 Topic before i
 request returns nothing dated after that Case's as-of date, so a later Sensex close cannot give the
 outcome away.
 
-**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while the current
-Topic has a Case whose reveal is not yet shown, code clips every reference series to the earliest such
-as-of date (and leaves out a series with nothing earlier). The page's Case Data cache still keys on
-reveals only, so a series fetched before a reveal stays clipped on that page until it is reloaded: safe,
-but slightly stale. Some series are derived or approximate (gold in rupees is the international price
+**Trade-off.** Reference data is always readable, so it needs its own as-of rule: while any Topic the
+Learner has started has a Case whose reveal is not yet shown, code clips every reference series to the
+earliest such as-of date (`referenceClip`; a series with nothing earlier is left out). The payload carries
+that clip date, and the page's Case Data cache drops its held reference entry whenever the clip changes
+(`setReferenceClip`, driven by the provider's `referenceClip` prop), so the reference series is refetched
+at once instead of staying stale until a turn ends. An import writes new points first, in chunks of 2,000,
+and only then deletes dates missing from the new file, so a failure part-way leaves the old points in
+place; it refuses a reference dataset id that is not in `REFERENCE_DATASET_IDS`, and the import script
+prints its database host and needs `--yes`. The dev scripts `widget-eval` and `layout-check` share
+`scripts/script-guards.mjs` (local base URL only, tools Learner only, `EVAL_DB_OK=branch` and never the
+`PROD_DB_HOST` host). Some series are derived or approximate (gold in rupees is the international price
 at the monthly exchange rate, without duty; typical rates are the middle of an RBI range), and each
 dataset's check note says so.
 
@@ -1647,17 +1715,16 @@ writing indicator, the "Stopped" note) is built on these events separately.
   never a 409. The running turn reads its own row every 500 ms (the Stop may reach another function instance, so a
   flag in memory would not work; the column already existed, so no migration). When it sees the flag it aborts the
   Anthropic stream through the Tool Runner's signal. A tool already running finishes its transaction, and no new API
-  call starts. Then the turn saves: every stored tool call gets its result, the step's streamed text is stored as the
-  Tutor's message less any Widget it had not finished (an unclosed openui-lang fence is cut off), no Widget check or
-  correction runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
+  call starts. Then the turn saves: every stored tool call gets its result, the held reply is dropped (since #239 no
+  text is shown or saved as the Tutor's reply, see the reply gate), no check or retry runs, the turn is saved as finished with stop reason `stopped`, and a STOPPED Session item ("Stopped")
   is stored after the reply. It sends `stopped`, then the normal `done`, so the browser never resumes the turn. A
   Next the Learner already took stays taken. A resume clears an old flag.
 - **Pings.** While the stream is open the route sends `{ type: "ping" }` every 5 seconds from its own timer: the
   turn itself cannot, because it is blocked while a tool runs or the model thinks.
 - **Progress.** The turn tells the route what it is doing through `notify`, which goes straight to the stream:
   "Looking up Case Data…", "Thinking…" at each model call, each tool's plain name while it runs ("Searching the
-  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), "Checking the Widget…" and "Fixing the
-  Widget…". Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
+  Library…", "Working out the numbers…", from `TOOL_LABELS` in `tools.ts`), and, since #239,
+  "Checking the reply…" while code checks the held reply and runs its one retry. Progress only comes once the turn is past every refusal, so the route opens the stream on the first one
   rather than waiting for the first text.
 - **`widget_state`** is declared as an event type only; nothing sends it yet.
 - **Prompt caching.** The request keeps its automatic cache breakpoint (the growing conversation) and adds a second
@@ -1685,17 +1752,71 @@ answers every stored tool call and the next turn runs; a Stop with nothing runni
 through `notify`. `src/app/api/turn/route.test.ts`: `{ stopping: false }`, the stream opening on progress, a ping
 under fake timers, and a Stop through the route.
 
-### Replies of about 120 words, and the open question asked once (`src/tutor/instructions.ts`, `src/behaviour/grading.ts`, UX audit 5.12, 9.3, 9.10)
+### Teach simply: the Tutor's rules (`src/tutor/instructions.ts`, `src/behaviour/grading.ts`, spec #229, ticket #238; UX audit 5.12, 9.3, 9.10)
 
-**What it does.** The Tutor's instructions ask for at most about 120 words of prose per reply (`REPLY_WORD_LIMIT`;
-Widgets do not count), with longer answers given a part at a time or put into Steps or an Accordion; ask an open
-question once, and not again at the end of every reply; and use the Learner Profile for everyday examples in Widgets
-as well as in words. The behaviour report lists every reply over the limit (`longReplies`), counted by code at no cost.
+**What it does.** The Tutor's rules, shared by both instruction sets, now write for a beginner: the simplest correct
+idea first, any untaught term explained where it first appears, and MBA level as where the course ends up rather
+than where a reply starts. Every earlier rule stays (the past only, no advice, hindsight, Case Data, Citations,
+pacing, Formula Cards, Illustrations, the Library, the open question asked once). The new ones:
 
-**Scenario.** The Learner asks about SIPs while the break-even question is open. The Tutor answers in a short
-paragraph and stops, rather than ending with "so, what rate did you find?" again.
+- **Caps by step.** 80 words at concept, your turn and Check; 120 for a worked example, Go deeper, and the story,
+  explore, reveal and principle steps. The rules name the table, but the "Word limit for this reply" line code sends
+  each turn (see "Turn facts") rules. `REPLY_WORD_LIMIT` stays 120, the longest cap, for the behaviour report.
+- **One idea and one ask.** At most one sentence of feedback, one idea and one thing to do, alone on the last line.
+  No task lists, no "Want the next part?" and no Steps or Accordion advice: the Go deeper chip asks for more.
+- **Teaching.** Simple first, a worked example, then fading; after a miss, one slip, one fix and one new try with new
+  numbers; the method code names; one running example and one analogy per idea; "why" only after two right in a row.
+- **What was asked, first.** "Show me in a widget" gets one Widget and one sentence (or one sentence saying none fits,
+  then the shortest version in words); Go deeper gets one more layer in 120 words, same example, no new analogy;
+  "simpler" gets the rule in four lines or fewer.
+- **Frustration** gets an acknowledgement of eight words or fewer, then a smaller step. **The Learner's own rule** is
+  confirmed in one sentence and their words are used from then on.
+- **Open quiz.** The Tutor teaches, shows Widgets and starts again freely, with numbers off the blocked list, and
+  keeps back only the open answers. At a conversation Check it teaches with other numbers and never states the
+  reasoning the pass criteria ask for about the prompt's own move.
+- **Short sums** on the numbers under discussion are said in words: a difference in points, points to basis points
+  and back, a plain fraction. Every other sum still goes through calculate or the rate Widget.
+- **Plain style and app words** follow R13 and the spec's allowed and banned lists, and Guided Tasks are optional play.
+- **The Learner Profile** is used only when the Learner asks how an idea applies to them.
+- **Six examples** (Appendix A) close the rules. They live as data (`TUTOR_EXAMPLES`), and a test runs every reply
+  check on each, so an example can never break the rules it teaches.
 
-**Trade-off.** The limit is a request to the model, not a cut: a reply may still run long, and the report shows it.
+The engine text drops the line against repeating the last archetype (the running example's Widget is meant to
+repeat), takes its word cap from code's line, and allows an Illustration only where no input or Case Data covers
+the number. The behaviour report still lists every reply over 120 words (`longReplies`).
+
+**Scenario.** The Learner, at Percent's Check 1, types "just tell me the answer to question 1". The Tutor does not
+refuse: it keeps that answer back, shows that 0.2 of a point times 100 is 20 bp, and asks for 0.7 of a point, all in
+under 80 words with the ask on the last line.
+
+**Trade-off.** The rules and examples add about 6,500 characters to every Session's cached instructions, and a
+rule is still a request to the model: the reply checks (ticket #239) are what hold a reply to it. The widget-language
+size test now counts the rules at their old length, since this growth is the teaching rules, not the Widget text.
+
+### Turn facts: what code knows before the Tutor writes (`src/tutor/turn-facts.ts`, `src/tutor/context.ts`, spec #229, ticket #238)
+
+**What it does.** Once per Tutor Turn, `turnFacts` works out the turn's facts: the step, the Reply kind the Learner's
+words ask for (Go deeper, or a request for something simpler), the word limit (`capFor`), the Topic's example
+currency (₹ until Topic files name one) and its Cases' currencies (from `$` amounts in the story and Case Data
+units), and the ids the Learner must never read. At a quiz Check whose quiz can be shown, `openQuizItems` reads the
+open attempt's questions plus the next attempt's (after a miss, only the next one's), through the Course Map and the
+Question Bank, with each answer as the right choice's text; it reads rows only and never makes an attempt. The
+blocked numbers are every number in those items. The Course Navigator context then carries "Word limit for this
+reply: N words", the currency line, "Reply kind" when known, the method, frustration and Concept card lines once
+later tickets fill them, and at an open quiz the new rule, the blocked numbers and the Concept (or card) to teach
+from. The opener names the blocked numbers too, and the Check tab's note above the message box now offers help:
+"Quiz open. Stuck? Ask the Tutor: it can explain with other numbers." `replyCheckContext` turns the same facts into
+the reply checks' context, so the Tutor is told exactly the limits its reply is held to.
+
+**Scenario.** The Learner opens the present value quiz and asks how discounting works. The context says the limit is
+80 words and lists 1100, 10, 1000, 990, 1010, 1210 and the next attempt's numbers as blocked, so the Tutor explains
+with $500 over three years instead, and never confirms which choice is right.
+
+**Trade-off.** The word limit and Reply kind change from turn to turn, so a Go deeper press resends the whole context,
+and the turn after it sends it again. The next attempt's numbers are blocked as well, which leaves the Tutor fewer
+numbers but stops it rehearsing the questions a Try again would show. `tools.ts` still calls the context without facts
+after a step move (ticket #243 passes them); without facts the lines are left out, but the open-quiz rule has changed
+either way.
 
 ### Reply checks: the rules every Tutor reply must meet, as code (`src/tutor/reply-checks.ts`, spec #229, ticket #230)
 
@@ -1709,13 +1830,15 @@ Learner must never read. The seven checks are:
   120 for a worked example, a Go deeper reply and every other step (`capFor`). Words are counted the way the Learner
   reads them: Widget and sources fences, Citation markers and bare Markdown symbols do not count (`countWords`).
 - V2: at most one question in the message, an ask of 25 words or fewer, and no other line opening with a task verb
-  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask.
+  (Set, Open, Try, Do, Tell, Press, Say) when there is an ask. With no ask, more than one such line fails too.
 - V3: no "Great question", "Certainly", "Absolutely" or "Code recorded", no emoji or decorative arrows, no headings
   and at most one bold span.
 - V4: at most one Widget, and each one passes the Widget validator the caller hands in.
 - V5: no open quiz answer together with its question's numbers, in the text or the saved rule, and no Widget preset
   that uses a blocked number. The blocked numbers are every number in the open attempt's questions, choices and
   answers, normalised so that 4.5, 4.50 and 4.50% match (`blockedNumbersFrom`).
+  An answer number that sits within four words of a confirm cue ("is right", "correct", "yes", "that's it", "the
+  answer is", "you got it") also fails, even without the question's numbers: "Yes, 60 is right." gives the answer away.
 - V6: no app words: the ids passed in, snake_case tool and step names, "Course Navigator", "Session item",
   "Reply kind", "Skill state", and "Code" as the subject of a sentence. Topic, Check, Check tab, Widget, Next,
   Go deeper, Show me in a widget, Quick try and Concept card stay allowed.
@@ -1726,7 +1849,7 @@ Learner must never read. The seven checks are:
 span kept), so V3 then fails only on a banned phrase. `correctionText` writes what the one retry is told, one line
 per failed check with its limit ("Your reply was 142 words. The limit is 80. Keep one idea and one ask."), plus the
 numbers to keep away from after a leak. `trimToCap` is the fallback where no Concept card exists: the reply cut at its
-last full sentence within the cap, ask kept. Nothing calls the module yet; the Tutor Turn wires it in later (#239).
+last full sentence within the cap, ask kept. The Tutor Turn runs it on every reply through the reply gate (below, #239).
 
 **Scenario.** Check 1 of Percent is open with "How many basis points are there in 0.6 of a percentage point?". The
 Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach the idea on numbers other than 0.6,
@@ -1735,6 +1858,62 @@ Tutor writes "0.6 of a point is 60 bp". V5 fails, and the retry is told to teach
 **Trade-off.** The checks read words, not meaning. A reply can pass V5 by saying "sixty" in words, and a supposition
 that opens "Say the rate goes…" counts as a task line. Both are left to the live-model tests, which grade the
 meaning; code catches the common, cheap-to-spot slips on every reply at no cost.
+
+### The reply gate: replies checked before the Learner sees them (`src/tutor/reply-gate.ts`, `reply-records.ts`, `reply-fallback.ts`, `turn.ts`, `session-log.ts`, `transcript.ts`, `usage.ts`, `under-the-hood.tsx`, `drizzle/0030_reply_checks.sql`, spec #229, ticket #239, ADR 0008)
+
+**What it does.** The Tutor Turn no longer streams the reply word by word. `loop()` collects every loop step's text
+(with its Citation markers), the Session items the reply's tools stored and its Widget states in one held list;
+progress labels ("Checking the reply…" among them), pings and a failed save still go out at once. When the model has
+finished, code checks the whole reply:
+- `fixReply` first (emoji, arrows, headings, extra bold): fixes never cost a retry. A fixed reply is stored again as
+  the turn's final assistant text, each block keeping its citations.
+- `checkReply` with this turn's facts (`turnFacts`, worked out again when a tool moved the Learner's step during the
+  draft). The draft's Widgets are only those its own show_widget, compose_widget and open_widget calls stored, plus any
+  openui-lang fence in its text; code-stored items never count, and tool-stored Widgets pass V4 because code checked
+  them as it stored them. A fence fails V4 in an engine Session ("Write no Widget code; call open_widget or
+  show_widget, or teach in words."); without the engine it is checked by `newReplyWidgetProblems` as before.
+  - **The saved rule.** The gate sets `ReplyDraft.savedRule` from the Session items the turn stored
+    (`savedRuleOf`), so V5, V6 and V7 hold the Learner's saved rule to the same limits as the reply: a rule that gives
+    away an open quiz answer fails V5 and the reply is retried.
+  - **The Widget check.** A written-ahead Widget the draft named is checked by `widgetValidator` against the Topic's
+    own Widgets and the preset it carries (V4). A fence in an engine Session fails V4; with the engine off, an old
+    Session's fence still passes.
+- **One retry**, only while the run has used under 30 seconds (`RETRY_WITHIN_MS`). Code appends one correction
+  message ("Reply check by code:" with every failed check's reason, the old Widget correction's included, and the
+  Widgets already on screen) and runs the loop again. Tool effects from the draft stand.
+- **Fallback** when the retry fails too, or the draft fails past 30 seconds: the step's card when `cardFallback`
+  returns one (it returns null until #240 fills it), else the reply cut to its cap by `trimToCap`, ask kept, with any
+  Widget that failed V4 left out. It is stored as the turn's final assistant text, so the history holds what the
+  Learner saw.
+
+Then the browser gets the held items and Widget states in their order, and the checked reply as one text. Each checked
+turn writes one `reply_checks` row: words and cap, the draft's and the retry's problems with their reasons, the
+correction, whether it retried, fell back or was stopped, the rejected seqs and the text shown. `openLog` leaves the
+rejected seqs out of every later request: the draft's text-only messages and the correction go, and a rejected
+tool-use message keeps its tool calls but not its text, so every tool_use keeps its tool_result. The rows stay
+stored. `turnText`, `loadThread` and the resume and refusal paths show only what the Learner saw; a turn with no row
+(an old Session) shows as before. A resume clears the screen (`replay` with no text) and checks a stored draft before
+anything shows; a refusal shows earlier steps' text only when it passes. Stop drops the held reply: nothing is shown
+or saved as the Tutor's reply, every stored tool call still gets its result, and the Learner's message stays with the
+Stopped note. The Under the hood panel adds one line: the words, the failed checks, the retry and the fallback.
+
+The first turn after a refreeze (a deploy changed the instructions) folds the history into one compaction summary
+before the reply, so the reply's request carries the summary and no reply written under the old instructions. A
+refreeze now changes only the instructions, tools, fingerprint and `refrozenAtSeq`: an existing Session keeps its
+model and effort.
+
+**Scenario.** At the concept step the Tutor writes 150 words. The Learner sees "Checking the reply…". Code sends
+"Reply check by code: Your reply was 150 words. The limit is 80…", and the retry comes back at 40 words; the
+Learner sees only that, in one piece. The next turn's request holds neither the long draft nor the correction, and
+the `reply_checks` row keeps both with their reasons.
+
+**Trade-off.** The Learner waits for the whole reply instead of watching it type, and a retry adds a model call. In
+return nothing that breaks a rule ever reaches the screen. The 30 seconds count from the start of the run, refreeze
+fold included, so the first turn after a deploy may skip the retry when its draft fails and go to the fallback. The
+fold costs one compaction call per Session per instructions change. Production runs this code before the
+`reply_checks` migration is applied by hand: every read and write of the table fails soft on Postgres 42P01 (logged
+once), and the turn then runs as if nothing had been rejected, so a reload may show a rejected draft next to its
+retry until the table exists.
 
 ## The explore step (`insight` and `explore` in `course/topics/*.yaml`, `src/course/navigator.ts`, `src/course/map.ts`, ADR 0001)
 
@@ -2602,6 +2781,13 @@ Map are offered, so deleting a question quietly retires its card. A rolling 24 h
 calendar day means no time zone is needed and midnight never frees a second batch, at the price
 that the next review returns at a time of day the Learner may not expect.
 
+**Typed questions stay out (spec #229, ticket #241).** A typed Check question is a draw of a question template, kept in
+`question_ids` as `<templateId>#<seed>`. `enrollPassedQuestions` skips every such id, so only multiple-choice questions
+get a Review card, and Reviews behave exactly as before. The reason: a card holds a question id, and a typed question's
+numbers belong to one attempt, so there is nothing fixed to bring back later. The Skill state (see the quiz section)
+is what carries a typed miss forward instead.
+
+
 ## Library (`src/library/`, `search_library` tool, `npm run library:load`, `library:embed`, `library:score`)
 
 **What it does.** The Library is the private collection of real sources the Tutor searches when it
@@ -2916,7 +3102,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **What it does.** Two pieces tell the Learner where they are in a Topic.
 - **The Topic bar** is a slim bar above the chat that stays for the whole Topic, in place of the old status card (its "Course Map · Stage · Topic" eyebrow, its plain summary and its Continue are gone). It shows the Topic's title and a progress strip drawn from the Course Navigator's `stepSequence`: the steps in plain words, grouped by Check ("Story · Check 1: Concept, Your turn, Check · Check 2: Concept, Explore, Your turn, Check · Reveal · Principle"), with the current step highlighted. A finished step is a button that scrolls the chat back to where it began: the Story to the Topic Start card, any other step to its "Step k of N" divider, which now carries the anchor `step-k`. A finished step whose divider is not in this Session (one passed before dividers existed) is shown done but can't be pressed. The page works the strip out on every render, so it always reads the saved place; a passed Topic kept on screen shows every step as done.
-- **The Topic Start card** is the first item of a Topic's conversation and scrolls with the chat. It shows the title and the Subject (or the Stage, for a Topic with none); the You'll learn bullets; Before this, each prerequisite with "✓ passed" or "not passed yet · Study it first" (the link chooses that Topic and opens it, as the Course Map's "Do first" link does), or "Nothing — this is a starting Topic."; You'll use, the written-ahead Widget titles, left out while the Topic has none (Percent lists "One rate change, said three ways"); and "N Checks". `topicStart` builds it from course data and progress, and the page puts it in front of the Session's lines. It is never stored and never reaches the model: it travels as a display-only item like a divider, so the opener still starts by itself (the thread has no messages yet), and no Next chip stands under the card alone. A replayed reply (a resume or a refusal) replaces the reply and the items inside it but never the card.
+- **The Topic Start card** is the first item of a Topic's conversation and scrolls with the chat. It shows the title and the Subject (or the Stage, for a Topic with none); the You'll learn bullets; Before this, each prerequisite with "✓ passed" or "not passed yet · Study it first" (the link chooses that Topic and opens it, as the Course Map's "Do first" link does), or "Nothing — this is a starting Topic."; You'll use, the written-ahead Widget titles, left out while the Topic has none (present value lists "What the annuity is worth today"); and "N Checks". `topicStart` builds it from course data and progress, and the page puts it in front of the Session's lines. It is never stored and never reaches the model: it travels as a display-only item like a divider, so the opener still starts by itself (the thread has no messages yet), and no Next chip stands under the card alone. A replayed reply (a resume or a refusal) replaces the reply and the items inside it but never the card.
 
 **Scenario.** A Learner chooses Present value without having passed Growth, compounding and logs. The conversation opens with the card: "Present value", "Numbers & time value", three You'll learn bullets, "Growth, compounding and logs not passed yet · Study it first" and "2 Checks"; the Tutor's Story streams in under it. Later, at Explore, the bar reads Story · Check 1: Concept, Your turn, Check · Check 2: Concept, **Explore**, … They press Check 2's Concept on the strip and the chat scrolls up to "Step 5 of 10 · Concept".
 
@@ -2924,7 +3110,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 ## The fixed two-column layout and the Check tab (`workspace-frame.tsx`, `left-column.tsx`, `widget-host.tsx`, `quiz-panel.tsx`, `study/page.tsx`, spec #119, ticket #140)
 
-**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. After a miss the tab keeps the marking with Try Check k again →, even after a reload, and the next attempt is made only on that press (see "Check result cards and the quiz follow-up"). While a quiz is open, a one-line note above the message box reads "Quiz open: the Tutor will help with these questions after you submit.", and the box stays usable for any other question. The Tutor's context says the quiz is on the right, in the Check tab, and still forbids helping with its questions.
+**What it does.** The Study Workspace is exactly the viewport tall and the page itself never scrolls. Both columns are fixed to the space under the header and scroll inside themselves: the conversation in its own area on the left, the Widget panel on the right. Whatever stands above the chat (the Topic bar, an opened Review, the profile card for a new Learner) is capped at two fifths of its column and scrolls on its own, so it can't squeeze the chat. A quiz Check no longer folds into the left column. It opens in the right panel as a tab named "Check k of N" (its place among the Topic's Checks), first in the tab row and selected by itself. The tab stays selected through new turns unless the Learner picks a Widget's tab, and the quiz stays mounted while a Widget is shown, so answers picked so far survive a look at a Widget. After a pass the server sends no quiz any more, but the tab keeps the marking on screen until the Learner presses Done. After a miss the tab keeps the marking with Try Check k again →, even after a reload, and the next attempt is made only on that press (see "Check result cards and the quiz follow-up"). While a quiz is open, a one-line note above the message box reads "Quiz open. Stuck? Ask the Tutor: it can explain with other numbers.", and the box stays usable. The Tutor's context says the quiz is on the right, in the Check tab, and (since ticket #238) lets the Tutor teach with numbers off the blocked list, keeping back only the open answers (see "Turn facts").
 
 **Scenario.** The Learner reaches Check 1 of 2 on a 1024 × 640 laptop with three Reviews due. The right panel switches to "Check 1 of 2" with six questions that scroll inside the panel. They open the Review row: it scrolls inside its capped box, while the last Tutor message, the quiz note and the message box all stay on screen and the page stays 640 px tall. They ask "is a basis point a hundredth of a percent?"; the Tutor answers that but won't touch the quiz, and the Check tab is still selected when the reply ends.
 
@@ -2979,7 +3165,7 @@ The page (`src/app/study/page.tsx`) still renders `Conversation` with the same p
 
 **The CI job.** `.github/workflows/tutor-eval.yml` runs on pull requests that change the Tutor's instructions, tools or context, the quiz follow-up, the help chips, a Topic file or the suite itself. It is not one of the required checks (`check` and `build`), so a noisy model run never blocks a merge or a deploy. It has its own concurrency group that never cancels, so a paid run that started always reports. It reads `secrets.ANTHROPIC_API_KEY`; without it (a PR from a fork, since the repo is public, or the secret not set) it skips and says so in the job summary. It uses `pull_request` only, never `pull_request_target` or `workflow_run`, so no fork can reach the secret.
 
-**What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they are reported as pending with that reason and start running once the Skill `pts_to_bp` exists. T8 waits for the lesson lint and its fixture Topic (a Check that tests an untaught Skill, at `src/behaviour/tutor-eval/fixtures/untaught-skill/`). Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
+**What is pending.** T3 and T7 need Percent's Skills (the Topic file has none until it is converted), so they were reported as pending until Percent was converted; they now name its Skill `pts-to-bp`. T8 runs: the course check passes on the repo and fails on the fixture folder `src/behaviour/tutor-eval/fixtures/untaught-skill/` (a Check that tests an untaught Skill), naming L1. `course:check` now runs the lesson lint before the typed-formula check, so the fixture's L1 errors show even though the fixture is not on the repo's not-yet-converted lists. Most other cases are expected to fail until the Tutor's new rules land: the suite is built first, so each fix can be shown to work.
 
 **Trade-off.** A model grading a model is a first pass, not proof, and three runs are a small sample of a model that varies; the conditions code can tell are checked by code so the grader decides less. Replies have no move field (they stay text), so "offer to park" is read as a park offer item or both choices named in the reply, and "save to notes" as a note the turn added. T3's state reads "missed 3 times" as three misses in all with a right answer between, so the Learner's 0.3 is the second miss in a row, which brings a new method under the ladder; three in a row is T7's park offer. Offline tests cover the case files, the conditions and grade parsing, the cap, the report layout, the state set-up and a whole suite run with a scripted model and a stand-in grader, with no network.
 
@@ -3400,13 +3586,13 @@ through `/api/profile`, which sits behind the passcode like every other route. N
 Session's first message, after the Learner summary and before the Course Navigator context (which
 stays last, because the Tutor Turn compares against the end of that message), and again as a new
 block at the next turn after the Learner changes it. The block says what it is
-for. The Tutor's instructions say the same: use it only to choose everyday examples, in the Learner's
-currency when the example is about their life, and never as advice. Nothing is sent when the Learner
-shared nothing.
+for. The Tutor's instructions say the same: use it only when the Learner asks how an idea applies to
+them, and never as advice (spec #229, ticket #238; before, it chose everyday examples). Otherwise the Tutor keeps
+to the Topic's running example. Nothing is sent when the Learner shared nothing.
 
 **A concrete scenario.** A nurse in Pune saves "Home loan of about 40 lakh" and starts a Present value
-Session. The Tutor may now explain discounting with a loan repayment in rupees instead of an invented
-dollar example. If she then asks "so should I prepay my loan?", the Tutor teaches how to compare the
+Session. The Tutor teaches with the Topic's own example until she asks "how does this apply to my loan?";
+then it may explain discounting with a loan repayment in rupees. If she then asks "so should I prepay my loan?", the Tutor teaches how to compare the
 two choices and does not tell her which to pick. A behaviour rule, "profile turned into advice", has
 one direct and one indirect question that run with a saved profile.
 
@@ -3541,6 +3727,8 @@ backfill reload places the corrected readings.
 
 **Trade-off.** A formula costs a tested calculator before it can be taught, which is slower than typing it. In return the Tutor cannot show a formula that code cannot work out, and every symbol's name is written once by us, not improvised by the model each time. A Topic that lists no formulas shows none as cards; moving the other Topics over is done in batches.
 
+**Growth formulas and currency (issue #247).** Two more entries teach growth: `compound-growth` (one amount growing at a yearly rate, worked out by `future_value`) and `cagr` (the steady yearly rate between two levels, worked out by `cagr`). A symbol's unit can now be `inr` (rupees: ₹ with Indian grouping, "rupees" in words) or `value` (a plain level such as an index, never money). `formulaCurrency` reads a formula's currency from its units: rupees when any value is in rupees, else dollars. The card, the plain-word text sent to the Tutor (`describeFormula`), the `formula` recipe's slider and the Tutor's Widget readouts all use it. *Scenario:* the growth Topic's card shows ₹1,000 at 10% for 3 years giving ₹1,331, and the present value cards still show dollars. *Trade-off:* the currency belongs to the formula, not the Topic, so a rupee Topic that wanted the present value card would get dollars until a rupee entry is added; that keeps each card's units written once, by us.
+
 ## Formula Cards (`FormulaCard` in `src/widgets/library.tsx`, `formula-card-view.tsx`, `check.ts`, issue #64)
 
 **What it does.** A Widget that draws one registered formula: the formula with the symbols' letters, the same formula with the numbers filled in, and a list that names each symbol in plain words with its unit. Each value is coloured by where it came from: teal for the Learner's assumption (a slider), amber for a sourced Case Data figure (with its credit beside it), plain for a fixed number. The result, and values worked out on the way such as the first payment, come only from the formula's calculator, so moving a slider redraws them in the browser with no model call. The Tutor gives the card three small lists: `inputs` (symbol to a `$variable` bound to a Slider), `sourced` (symbol to a Case Data reference, whose latest point is used) and `fixed` (symbol to a number).
@@ -3548,6 +3736,16 @@ backfill reload places the corrected readings.
 **Scenario.** The Tutor writes a Slider for the discount rate and a card for present value with the cash option as a sourced amount and five years fixed. The Learner drags the rate from 5% to 8%: the teal rate, the filled-in formula and the amber-and-plain list all stay put except the result, which falls. If the Tutor instead types the rate as a plain number under `inputs`, or lists `amount` under both `inputs` and `sourced`, or leaves out `years`, the server's Widget check names the problem and the existing correction turn asks the Tutor to rewrite the Widget once.
 
 **Trade-offs.** The check is stricter than the language: it reads the parsed Widget, which is why a card can never show an assumption that no slider controls. The card does not do any arithmetic, so a formula whose calculator fails shows a plain "could not be worked out" message, not a guess. The frozen Widget instructions changed (a new component, a rule and an example), so each Session is refrozen at its next new turn after the deploy; a test checks that the instructions name only components the library has.
+
+**Rupee cards (issue #247).** A card draws money in its formula's currency (`formulaCurrency`): the growth card shows ₹1,000 and ₹1,331 with Indian grouping and says "rupees" beside the symbol, while the present value cards keep dollars. A plain level (`value`, such as an index) shows as a grouped number with no currency sign, and the `formula` recipe refuses a slider on one, since no slider unit fits it. *Scenario:* a Concept card in the growth Topic opens the `formula` recipe on `compound-growth` with years on a slider; the slider, the card and the line the Tutor reads all say rupees. *Trade-off:* one more unit to keep in step across the card, the recipe and the readouts, tested together in `formula-card-rupees.test.tsx`.
+
+## Growth, compounding and logs, converted (`course/topics/num-compounding.yaml`, `src/teaching/growth.ts`, issue #247)
+
+**What it does.** The second Topic in the new teaching shape (spec #229). It teaches six Skills: compound growth, a fall and a rise that do not cancel, the rule of 72, CAGR, log returns and a steady pace (comparing the CAGR of each stretch). They are spread over three Checks, each with a short Concept card that opens a rupee Formula Card already set. The first two Checks are quizzes that draw typed questions from templates, with new numbers each attempt. The third stays the Sensex conversation. It has Quick tries of its own on the steady pace, because a converted Your turn ends only once code's Quick tries show fluency. The teaching engine gained three answer functions (`compound_value`, `rule_of_72_years`, `cagr_percent`) and three Known mistakes (`simple_growth`, `simple_doubling`, `averaged_gain`). Compound growth over whole years is worked exactly; CAGR, a root, is worked in floating point. A draw whose answer lies within 0.001 of a rounding boundary is dropped, so a Learner's own rounding can never be marked wrong. Logs have no Formula Card, so they are taught in words only: back-to-back log returns add up. The change is content-only, so every Check id stays and no pass is lost. Old question ids stay defined so earlier attempts and Reviews still load.
+
+**Scenario.** The Learner reads "Growth on growth" (₹1,000 at 10% a year becomes ₹1,100, ₹1,210, ₹1,331) with the growth card open. A half-done Quick try shows the first year done and asks for ₹2,000 after two years. Typing 2400 gets the simple-growth fix: the second year's 10% is on ₹2,200. The quiz then draws, say, "₹7,000 grows 8% a year for 3 years", marked by code to the nearest rupee.
+
+**Trade-off.** Quiz numbers come from templates, so the Tutor never invents them, but the templates keep to friendly ranges (whole-percent rates, CAGR over two years from perfect squares) so a beginner can check them by hand. A test fails if any card, Quick try, template draw, fix line or preset holds a number only the reveal or the outline's outcome knows (the 4,467 peak, the 56% fall, the 33% long-run rate). The conversation Check and the story keep the Sensex's own figures. The beginner-reader review that shaped the cards is recorded in `docs/reviews/num-compounding-beginner-reader.md`.
 
 ## Connections (`connections` in `course/topics/*.yaml`, `src/course/map.ts`, `src/tutor/context.ts`)
 
@@ -3607,16 +3805,16 @@ backfill reload places the corrected readings.
 
 The lesson lint (`lessonLintErrors`) then checks every converted Topic, after the typed-formula check, in `npm run course:check`:
 
-- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed.
+- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed; a conversation Check lists the Skills it tests.
 - **L2:** three Quick tries per Skill (a template is unlimited), one of them half-done, and three times the per-attempt count of distinct questions in each quiz Check (or a template).
 - **L3:** five lines at most on a card, with its write-down line; no sentence over 20 words.
 - **L4:** each Widget preset is valid.
 - **L5:** the currency matches the Topic: no $, USD, € or £ in a rupee Topic, no ₹ or Rs in a dollar one.
-- **L6:** no question prompt or ask says "wrong", "not" or "except", bold or not (the Check tab cannot show bold).
+- **L6:** no question prompt or ask says "wrong", "not" or "except", bold or not (the Check tab cannot show bold). Unlike the other rules it runs on every Topic, converted or not, and reads every question in a Topic file, even one no Check lists (such questions are kept only so old attempts load). The 19 older questions that had a negative stem were reworded with their ids and answer ids kept, so stored attempts and review cards still match. Question Bank items live in the database, so `course:check` cannot see them: L6 is out of their reach.
 - **L7:** no question a Check lists, and none of 50 draws of a template it lists, holds all the numbers of the Running example or of a card's own worked example.
 - **Draws:** every template draws 50 seeds and marks its own answer right; a fixed try's answer is exact at its decimals, and no Known mistake equals it.
 
-The rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 Topics today and can only shrink: a listed Topic that gains Skills must come off, and an unlisted one without Skills fails. A content-only restructure fails if any Check is required, so no Due Check appears. The typed-formula check also reads every new text (card lines, Skills, Quick tries, templates, choice fixes, the Running example), and a typed sum there fails even for a Topic still on its own not-yet-converted list.
+Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 Topics today and can only shrink: a listed Topic that gains Skills must come off, and an unlisted one without Skills fails. A content-only restructure fails if any Check is required, so no Due Check appears. The typed-formula check also reads every new text (card lines, Skills, Quick tries, templates, choice fixes, the Running example), and a typed sum there fails even for a Topic still on its own not-yet-converted list.
 
 **Scenario.** Someone converting Percent moves the percent-change rule from Check 2's card to Check 3's but leaves Check 2's percent-change template in place. CI fails with `L1: Check "num-percent-bps-check-2" tests Skill "pct-change", which no Concept card at or before it teaches (Topic "num-percent-bps")`, the gap the Percent Session showed. If a card line says "5 - 4 = 1 point", the typed-formula check names that line; if a template could draw "from 4% to 5%", L7 says to add those numbers to its avoid list.
 
@@ -3654,7 +3852,7 @@ The rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 
 
 **Scenario.** After a change to the Widget engine, run a local production build against the Neon test branch, then `npm run widgets:eval -- <folder>`. Prompt 3 ("SIP, 1000 a month for 20 years") comes back as a `grow_money` recipe, Grow archetype, 46 s to first pixel on a slow Tutor turn; the report shows that as a failed first-pixel target and the screenshot shows the Widget. `--only 3,11,19` runs a few prompts as a smoke test.
 
-**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The timings include the model's thinking time, so they measure the whole experience, not only the engine. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
+**Trade-off.** It makes 20 to 25 real Tutor turns, so it costs a few dollars and takes about 25 minutes, and it never retries a slow or poor answer, because that is the result. It only runs against a local server and the tools Learner. The raw timings include the model's thinking time and, on a laptop far from the database, about 35 s of database round trips per turn, so the report also gives production-equivalent timings: the model's step durations from the `usage` table plus 100 ms of tool work, 500 ms of server overhead and the locally measured client render. When the Tutor shows the Widget that is already on screen again, no arrival can be seen and the timing is left empty with a note. The checks load the app's TypeScript through `tsx`, which comes with the installed tools but is not a direct dependency.
 
 ## Present value pilot check (`src/tutor/pilot.test.ts`, `src/course/connections-check.ts`, `scripts/browser-check.mjs`, ticket #74)
 
@@ -3913,11 +4111,53 @@ the progress label, then the finished Widget, never half of one. Falling back to
 than the ask, which is why the Tutor is told to say so. update_widget cannot tick Guided Tasks, so the "all ticked" gate on Tell
 the Tutor what I found stays the Learner's own. Free-form Widgets get no Widget notes warnings yet (widgetNotes reads only fences).
 
+## Ready-made Widgets only: opened already set, one a reply (`src/tutor/ready-made-widgets.ts`, `tools.ts`, `written-ahead.ts`, `instructions.ts`, `session-log.ts`, `widgetsIn` in `src/app/thread.tsx`, `WidgetChip` in `widget-panel.tsx`, ADR 0007, spec #229, ticket #242)
+
+**What it does.** The Tutor opens only Widgets that are ready-made: a written-ahead Widget from the Topic's file (`open_widget`) or a
+Widget recipe drawn by code (`show_widget`). It writes no Widget code and `compose_widget` is not offered to new Sessions: a new
+Session freezes `open_widget`, `show_widget` and `update_widget` (the setting `widget_engine` now defaults to "on"; production keeps its
+stored row until the switch). A Session whose stored tools already list `compose_widget` keeps it on refreeze (`ENGINE_TOOLS_WITH_COMPOSE`,
+ADR 0005's one-way rule), and its code stays bound so a saved call resumes. The Tutor's catalogue (`TUTOR_RECIPE_IDS`) is every recipe
+except `quick_check` (a "quiz me" goes to the next Quick try) and `percent_points` (`rate_move` is the single rate Widget); a frozen
+Session that still calls `quick_check` is refused in words. **Presets:** `open_widget` takes an optional `preset`, slider values by
+`$variable` (the `$` is optional). `presetProblems` checks each key is one of the Widget's sliders and each value is in range and on
+its step (the runtime twin of the lesson lint's `presetValueProblems`, built on the parser rather than a file read). A bad preset is a
+tool error and nothing is stored. A good one is stored on the WIDGET_OPENED item (`{id, title, preset}`), saves the Widget state as the
+Widget's declared settings with the preset on top (replacing the Learner's last settings, keeping their ticked Guided Tasks) and
+streams `widget_state`, so the open Widget moves at once. `show_widget` does the same, to the recipe's own starting numbers, when its
+title already has saved state. **One Widget a reply:** every Widget the reply holds counts, whoever stored it (`open_widget`,
+`show_widget`, the one a Next or a step opened just before the Learner's message, a fence the Tutor wrote, or an `update_widget` on
+a Widget this reply did not open). A second `open_widget` or `show_widget` is a tool error; `update_widget` may move the reply's own
+Widget. **Open quiz:** a preset, recipe inputs or update values are checked with the reply check's V5 (`checkReply` on an empty text
+with that one Widget, only its V5 problems kept) against `turnFacts`' open items, so the tool and the reply check never disagree.
+**Illustrations:** `ILLUSTRATION_FACTS` is a small table, one row per recipe with facts; a fact that an input or a Case Data path of
+the same recipe already covers is refused with the input to use (for example `percent_points`' `before` is where `inputs.slider.start`
+already is). **After a move:** the context `finish_teaching_step` and `record_check_verdict` return carries the new step's word limit,
+currency and blocked numbers (`turnFacts`). `widgetValidator(writtenAhead)` is the reply check's V4 hook (a known written-ahead id or
+Tutor recipe, a valid preset or valid params, no `quick_check`); the tools refuse every invalid Widget before it is stored, so the hook
+is for a check that reads a finished reply. In the browser `widgetsIn` carries the item's preset (over the Widget's declared settings)
+onto the `WidgetItem`, and pressing a chip pushes that preset into the Widget store, so an earlier chip reopens its own numbers. A shown
+`rate_move` Widget gets the `rateChange` readouts through `rateMoveSliders`, the way Percent's written-ahead Widget does.
+
+**Scenario.** The Learner is on the annuity Topic and asks "what if the rate were 4%?". The Tutor calls `open_widget` with
+`{id: "annuity-worth-today", preset: {"$rate": 4}}`. The chip stands in the reply, the slider reads 4%, and the tool result says
+"It is set to $rate = 4". The Tutor says in one sentence what the chart shows at 4% and asks for nothing to be moved. If it then
+tries `show_widget` in the same reply, code refuses: the reply already has its Widget. Later the Learner presses the first chip again
+after trying 9%, and the slider goes back to 4%. At an open quiz whose question mentions 10%, a preset of 10 is refused and the Tutor
+picks other numbers.
+
+**Trade-off.** One Widget a reply is strict: the Widget a step or a Concept card opens is the reply's one Widget, so the Tutor cannot add
+its own on that reply, which keeps the picture simple at the cost of the odd case where two would help. A Tutor preset must avoid every
+blocked number, even one that is only a slider's edge, so it sometimes has to pick less natural numbers. The Illustration table only
+covers facts where a path exists, so a made-up number with no input or Case Data path (a vada pav price) still makes an Illustration.
+Chips that put their preset back overwrite what the Learner did since, on purpose. The engine-off path is unchanged, so Sessions frozen
+without the engine keep writing Widgets until the production switch (T18).
+
 ## Topics with a goal: steps that open their Widgets, finish from what you do, and remember what you found (`goal`, `steps`, `found` in `course/topics/*.yaml`, `src/course/map.ts`, `navigator.ts`, `outcome.ts`, `goal-check.ts`, `src/tutor/next.ts`, `off-topic.ts`, `past-sessions.ts`, UX audit 9.0, 9.4, 9.7, 11.5 to 11.9)
 
 **What it does.** Three optional keys extend the Topic, not a second "plan" format (a Topic is still the lesson, a Teaching Step is still the beat). `goal` is one line of words shown under the title in the Topic bar. `steps` is a list of settings, each for one Teaching Step (and optionally one Check): `opens` names a written-ahead Widget that code puts in the panel when the step begins (it stores the same Widget opened item the Tutor's open_widget stores, so a Widget is never opened twice), and `doneWhen` is a condition on the Learner's saved Widget state: a Guided Task ticked, a $variable that has a value (a Predict's guess), or one saved near a target (a Breakeven). The Course Navigator's `widgetDone` and `finishFromWidget` read that state; `finishStepFromWidget` (next.ts) finishes the step, stores the new step's divider and opens its Widget, and the study page calls it on each render (it returns at once for a step with no `doneWhen`). Because nothing has taught the new step yet, Next then names it without moving on, the way it does after a quiz pass. `found` is a list of lines (`when` plus `text`, with `{value}` for the Learner's own number) that `foundLines` (outcome.ts) works out from saved Widget state; Past Sessions rows, the Session header and the Topic complete card show them. An Off-Topic answer is a Session item (`off_topic`, off-topic.ts) drawn as a quiet block with "↩ Back to <Topic>". The Topic schema checks every setting (the Widget, Check and Guided Task must exist), `npm run course:check` also checks the goal and found lines are in words, and prints the written-ahead warnings beside its errors.
 
-**Scenario.** Percent, percentage points and basis points says `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]`. The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic.
+**Scenario.** Before its conversion, Percent said `steps: [{step: your_turn, opens: rate-change-three-ways, doneWhen: {kind: ticked, ..., task: 1}}]` (the tests keep that file as a fixture). The Learner presses Next into Your turn: code stores the divider and the "One rate change, said three ways" chip, and the Widget appears in the panel. They tick "Set a rise from 6% to 6.4%". On the next render code finishes the step and moves them to the Check; Next says "Next: Check" and the Tutor teaches it when pressed. A week later Past Sessions shows "You set a rate change on the sliders and read it in points, basis points and percent change." under that Topic. Converted Percent has no such setting: its Your turn ends on fluency in its Quick tries, and its found line went with its Widget. Present value's `found` line ("You found the rate where the annuity is worth the same as the cash.") is the real one today.
 
 **Trade-off.** A Widget can never settle the Insight early (ADR 0001): `doneWhen` is refused on explore, a Check and the principle, by the schema and again in `widgetDone`, and the explore Widget stays opened by code at explore only. The cost is that a finishing Widget needs a page render or a Next to be noticed; the saved state is the source of truth, so nothing is lost. `found` lines are the Learner's own saved numbers, never typed figures (ADR 0003), so an unticked or reset Widget says nothing. Left for later: a Widget opening at the very first step and when the Tutor itself finishes a step (both happen in the turn lane's files), a tool for the Tutor to mark an Off-Topic answer (`offTopicNote` in context.ts is ready for it), Predict and Breakeven results as turn events, and plan versioning.
 
@@ -3953,3 +4193,238 @@ each turn to one small read, but the row and the log could drift if one were edi
 the state can be rebuilt from it. The ladder is the same for every Topic and lives in code, which keeps Topic files small
 but means a Skill cannot pick its own order of methods. The ladder runs only on answers code marks, so conversation Checks
 never climb it. Parking never moves the Learner's place on the Course Map, and it is neither a Review nor a Due Check.
+
+## Percent, converted (`course/topics/num-percent-bps.yaml`, `revealWidget` in `src/course/map.ts` and `src/tutor/practice.ts`, `src/test/old-percent-map.ts`, spec #229, ticket #246)
+
+**What it does.** Percent is the first real Topic taught the new way. Its file lists the terms it introduces
+(percentage point, basis point, percent change, the base), five Skills (`pts`, `pts-to-bp`, `bp-to-pts`, `pct-change`,
+`wording`), the Running example (a savings rate going from 4% to 5%), rupees for every everyday example, and three
+question templates (basis points from a move, points from basis points, percent change), each with `avoid` numbers that
+keep the Running example, the Quick tries', the Check questions' and the Case's moves out of every draw. It has three
+Checks, each with a Concept card of at most five lines that says every sum in words and opens `rate_move` at 4% to 5%
+in show mode:
+- Check 1, `pb-quiz-language` (id kept), "One move, two ways": a typed quiz drawn from the two basis-point templates,
+  with new numbers each attempt, and Quick tries A1 to A4 from the spec plus enough more for three per Skill.
+- Check 2, `pb-quiz-change` (new), "Compared with the start": the percent-change template plus three "Which one is
+  true?" wording questions whose every wrong choice names its Known mistake, four a try (pass on three), so every attempt
+  has one typed percent change; and Quick tries B1 to B4 plus one more.
+- Check 3, `pb-fed-language` (id kept), "Say it so nobody misreads it": the conversation Check, which lists its
+  Skills. Cards 1 and 2 already teach them, so it has no Quick tries of its own. A Check with no Quick tries is not a
+  practice step (`practiceStep` in `src/course/navigator.ts`), so the Tutor finishes its Your turn as before; without
+  that, a Your turn that only fluency can end, with no tries to show, would never end.
+
+At the reveal, code opens the Topic's `revealWidget`: `rate_move` titled "The Fed's move of February 1994", its
+`{before}` and `{after}` inputs read from the `fed-funds-target` Case Data across the Case's as-of date (`revealMove`),
+so the file types neither figure. `enterStepItems` (`src/tutor/practice.ts`) stores it once a Session, as a shown
+Widget, so it opens on Next and also when a tool's step divider moves the Learner on, as `record_check_verdict`'s pass on
+Check 3 usually does. Any converted Topic can name a recipe and a Case dataset this way; `src/course/map.ts` checks that
+the Case is the Topic's and lists the dataset.
+
+The Known mistakes are the Percent Session's real wrong answers: 6 for 60 (`used_x10`), 12 for 1.2 (`divided_by_10`),
+0.12 for 1.2 (`divided_by_1000`), 0.3 for 30 (`stopped_at_points`) and "it should say up 1%" (`mixed_percent_points`),
+each with a one-line fix in words. The written-ahead "One rate change, said three ways", its Your-turn `steps` entry
+and its `found` line are gone. Percent is off both not-yet-converted lists, so the lesson lint (L1 to L7) and the
+typed-formula check now hold its whole file, the old questions' explanations included. The file is marked
+`restructure: content-only`: no Check is required, so nobody gets a Due Check.
+
+**Scenario.** A Learner who passed the old Check 1 and stood at the old Check 2's concept (the Fed conversation) comes
+back. The Course Navigator still has their saved step, `concept`, and the first Check without a pass is now
+`pb-quiz-change`, so they land on "Compared with the start" with its rate_move Widget. A Learner who had passed both
+old Checks and stood at the reveal stays at the reveal, and one who passed Percent stays passed. A Learner who was at
+the old Check 2's check step keeps the `check` step, which is now Check 2's quiz, and the Check tab opens it. A new
+Learner who passes the Fed conversation sees the divider and then the rate Widget at 3% and 3.25%, the numbers coming
+from Case Data now that the reveal has begun.
+
+**Trade-off.** Keeping every Check id and every old `pb-q-*` question means old attempts, Reviews and passes still
+load, but three questions (`pb-q-bp-definition`, `pb-q-bond-140`, `pb-q-mortgage-rate`) now sit in no Check, kept only
+so old records resolve. A content-only restructure keeps passes, so a Learner who passed Percent before never sees the
+new cards unless they open the Topic again. Each Check question moved to a fresh made-up move, so it shares no numbers
+with a card or Quick try; the Fed prompt moved to 6.25% to 6.75% for the same reason. The tests that read the old
+Widget's `rateChange` readouts and reveal task keep it as a fixture, since no real Topic uses those features now. The
+reveal Widget is stored once a Session, so a Learner who drags it away and comes back to the reveal in the same Session
+finds it where they left it, not reset. Behaviour and eval placement (`finishForPlacement` in `src/behaviour/place.ts`)
+walks past a converted Your turn as fluency would, since no report can finish it.
+## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
+
+## The ladder at work: re-teach, Park it, the drill, frustration and Start again (`src/tutor/practice.ts`, `ladder-moves.ts`, `frustration.ts`, `park-items.ts`, `turn.ts`, `turn-facts.ts`, `context.ts`, `tools.ts` (start_again), `next.ts`, `src/course/navigator.ts`, `src/learner/skill-state.ts` (`parkedSkills`), `src/app/park-offer-view.tsx`, `src/app/api/quick-try/route.ts`, `src/app/course/`, spec #229, ticket #245)
+
+**What it does.** This wires the repair ladder (the section above) into the conversation, for converted Topics only. After every answer code marks (a Quick try, or a Skill-tagged quiz question, which T13 records), `ladderAction` in `ladder-moves.ts` reads the Skill's state and picks code's move. A first miss gets the usual feedback. A second miss in a row starts a follow-up turn whose note says `Reply kind: reteach` and `Method: …` in plain words (`drill` for the drill-of-five rung), and code notes the method as used, so the next re-teach names another. After that turn code does the method's own part: restate and worked example are Tutor words only, fill-in boxes posts a half-done try, the Widget rung opens the card's preset in practice mode under "<card title> · practice" (so its Widget key never clashes with the show-mode card Widget), and the drill rung posts five tries one at a time (`drill.reason` "ladder"). A third miss in a row stores a `park_offer` item, code's own line with two buttons, and starts no Tutor turn. On a quiz the same counts apply: the quiz follow-up note gains the re-teach lines at two misses in a row, and at three it is replaced by one telling the Tutor that code has shown the park offer.
+
+The buttons post to `/api/quick-try`. `{ park: skillId }` parks the Skill for 20 hours and stores a `parked` line, "Back tomorrow after Thu 3:00 pm", with a Course Map link; `{ oneMore: skillId }` posts one more Quick try on that Skill now, and a miss on it offers the park again. Each offer is marked with the choice, so each button works once, and a reload shows it used. While a Skill of the current Check is parked, the Course Navigator (given the parked Skills as an optional input) holds the place: no Quick try is posted, `nextOffer` offers no Next, `takeNext` refuses one, and `finishFromPractice` will not finish Your turn. The context tells the Tutor when the Skill comes back, that it may still answer questions, and that it may suggest another Topic. The Course Map shows "Parked · back <time>" on the Topic. A quiz Check stays open while parked: attempts stay unlimited, and a pass moves the Learner on.
+
+Once 20 hours have passed, the study page sees the drill is due and starts a `{ drill: true }` turn, whose note begins `Drill by code:`. On entering the step code stores a "Drill · <rule>" divider and the first of five drill tries (`reason` "parked"); the Tutor adds one sentence and one ask. Five answered tries, right or wrong, end the drill: code calls `unparkSkill`, and the step goes on (the usual next try, or the open Check).
+
+The context now also carries, at a converted Your turn or Check, each Skill's state in one plain line (fluent or not, misses in a row, the last Known mistake by its fix line, never its tag), and the frustration count. `frustrationCount` counts the signal phrases ("get it over with", "too complicated", "over complicated", "don't know any of this") in the Learner's last three messages since their last right code-marked answer, plus 1 for two or more misses in a row on the current Skill. When it is 1 or more the context says `Frustration: N`, and code makes the smaller step itself: the next Quick try is half-done. These lines go in through `TurnFacts` (`replyKind`, `method`, `frustration`, `skillLines`, `parked`), so the reply checks and the context see the same values.
+
+The Tutor gains `start_again`: in a converted Topic it re-posts every Concept card in order, then the first Quick try, and leaves the step and any open quiz attempt as they were. In a Topic not converted it is refused with a tool error that says to teach the first idea again in words. `tools.ts`'s step divider now also stores what the new step shows (`enterStepItems`), so a card lands right after the divider mid-reply.
+
+**Scenario.** At Your turn the Learner types 6 for "0.6 points in basis points", then 7, then 8. The second miss brings a turn noted `Reply kind: reteach`, `Method: restate`; after it a fresh try appears. The third miss shows "This one is not landing yet…" with the two buttons, and no reply. They press Park it: "Back tomorrow after Thu 3:00 pm", and the Course Map shows Percent as "Parked · back Thu 3:00 pm". They study Compounding instead. The next afternoon they open Percent: a "Drill · Basis points are points times 100" divider and a first try appear, the Tutor says one line, and after the fifth answer the next normal try follows.
+
+**Trade-off.** All of this is code, so the Tutor cannot skip a rung or forget the park, but the methods' wording is fixed in one place for every Topic. The drill counts answered tries, not right ones, so a Learner can finish it with misses; the ladder starts again from zero after a park, so misses then climb it afresh. Parking holds only Quick tries, Next and finishing Your turn, never a quiz attempt, so a Learner who parks at a quiz Check can still pass it. The frustration window is three messages, so one early phrase does not count for the rest of a Session, and a phrase said four messages ago no longer shrinks the step. Nothing reads `skill_state` or `practice_answers` for a Topic that is not converted, so production reads none of it before a Topic is converted and the migration is applied.
+
+## Concept cards and Quick tries in the conversation (`src/tutor/practice.ts`, `session-item-kinds.ts`, `next.ts`, `turn.ts`, `context.ts`, `turn-facts.ts`, `src/course/navigator.ts`, `src/app/concept-card-view.tsx`, `quick-try-view.tsx`, `session-item-view.tsx`, `conversation.tsx`, `src/app/api/quick-try/route.ts`, spec #229, ticket #243)
+
+**What it does.** In a converted Topic (one whose file lists Skills), code shows two new things in the conversation, as
+Session items, with no model call. When the Learner enters a Concept step whose Check has a Concept card, code stores the
+card (a `concept_card` item: the title, the plain lines and the line to write down, copied from the file) and then its
+Widget preset. A `rate_move` preset is built exactly as the lesson lint builds it and stored as a shown Widget, titled with
+the card's title; a written-ahead preset opens that Widget with its sliders set. If the Widget's key already has saved state
+in the Session, code sets it back to the preset's numbers, so the card always opens at its own numbers. At Your turn, for a
+Check that lists Skills, code shows one Quick try at a time (a `quick_try` item): its ask, its unit, and, for the first try
+of each Skill, the first step shown done (R5). The item never holds the answer: its key names the fixed try or the template
+draw, and the server works the answer out again from the Topic file, with the key as the draw's seed.
+`enterStepItems` does this, and it is idempotent; Next, a step that finished from a Widget, the start of every Tutor Turn,
+and a step divider stored by a tool all call it. The pure `nextQuickTry` picks the try: the first Skill of the Check not yet
+fluent, in card order, a half-done try first, then unused fixed tries in file order, then fresh template draws.
+
+The Learner answers in the item itself: a number box or True and False buttons, locked while a Tutor turn runs and once
+marked, and read-only on old Sessions and Past Sessions pages. POST `/api/quick-try` marks the answer with the teaching
+engine, logs it once per key with `recordAnswer`, and stores a `quick_try_result` item: "Right.", the Known mistake's fix,
+or "Not quite.". A right answer posts the next try; a Known mistake posts a new try on the same Skill; a wrong answer with no
+Known mistake asks the page to start a short code-written follow-up turn ("Quick try follow-up by code:") that names the slip
+in one sentence, after which code posts a fresh try. Your turn finishes only when every Skill of the Check has two right
+answers in a row: the Course Navigator's `finishFromPractice` accepts it, while `finishStep` refuses `your_turn` from the
+Tutor and `nextOffer` gives no Next there. Code then stores the Check's divider and starts a follow-up turn that points to
+the Check. The Tutor hears what code showed: the card's text in place of the concept text, "add one sentence and one ask",
+that code shows and marks the Quick tries, and, with its next turn, the results marked since its last reply
+(`pendingQuickTryNote`), the way quiz results reach it. `practiceFallback` is the checked-replies fallback at these steps:
+the card's write-down line, then the next try.
+
+**Scenario.** Asha presses Next: Concept in a converted Percent Topic. The divider, the card "One move, two ways" and the
+rate Widget at 4% and 5% appear at once; she had dragged that Widget to 1% and 9% earlier, and it opens at 4% and 5% again.
+The Tutor adds one sentence and asks which number is bigger. At Your turn she sees "A rate moves from 4.5% to 3.45%. How
+many basis points?" with "the move is 1.05 points" shown done. She types 10.5; code shows "One point is 100 basis points,
+so multiply by 100, not 10." and a new try. Two right answers in a row on each idea later, the Check divider appears and the
+Tutor points her to the quiz.
+
+**Trade-off.** Items are stored, not worked out on each render, so a reload shows exactly what was shown, at the cost of
+copying the card into the Session. Re-deriving each try's answer from the file keeps answers out of the browser, but a
+Topic file edited after a try was shown marks that try against the new file. Results reach the Tutor by item order (those
+after its last reply), so no new table or column is needed, but a result stored during a turn is told in the next one.
+Only converted Topics touch `skill_state` and `practice_answers`; every other Topic behaves exactly as before.
+
+## Concept cards and Quick tries in the conversation (`src/tutor/practice.ts`, `session-item-kinds.ts`, `next.ts`, `turn.ts`, `context.ts`, `turn-facts.ts`, `src/course/navigator.ts`, `src/app/concept-card-view.tsx`, `quick-try-view.tsx`, `session-item-view.tsx`, `conversation.tsx`, `src/app/api/quick-try/route.ts`, spec #229, ticket #243)
+
+**What it does.** In a converted Topic (one whose file lists Skills), code shows two new things in the conversation, as
+Session items, with no model call. When the Learner enters a Concept step whose Check has a Concept card, code stores the
+card (a `concept_card` item: the title, the plain lines and the line to write down, copied from the file) and then its
+Widget preset. A `rate_move` preset is built exactly as the lesson lint builds it and stored as a shown Widget, titled with
+the card's title; a written-ahead preset opens that Widget with its sliders set. If the Widget's key already has saved state
+in the Session, code sets it back to the preset's numbers, so the card always opens at its own numbers. At Your turn, for a
+Check that lists Skills, code shows one Quick try at a time (a `quick_try` item): its ask, its unit, and, for the first try
+of each Skill, the first step shown done (R5). The item never holds the answer: its key names the fixed try or the template
+draw, and the server works the answer out again from the Topic file, with the key as the draw's seed.
+`enterStepItems` does this, and it is idempotent; Next, a step that finished from a Widget, the start of every Tutor Turn,
+and a step divider stored by a tool all call it. The pure `nextQuickTry` picks the try: the first Skill of the Check not yet
+fluent, in card order, a half-done try first, then unused fixed tries in file order, then fresh template draws.
+
+The Learner answers in the item itself: a number box or True and False buttons, locked while a Tutor turn runs and once
+marked, and read-only on old Sessions and Past Sessions pages. POST `/api/quick-try` marks the answer with the teaching
+engine, logs it once per key with `recordAnswer`, and stores a `quick_try_result` item: "Right.", the Known mistake's fix,
+or "Not quite.". A right answer posts the next try; a Known mistake posts a new try on the same Skill; a wrong answer with no
+Known mistake asks the page to start a short code-written follow-up turn ("Quick try follow-up by code:") that names the slip
+in one sentence, after which code posts a fresh try. Your turn finishes only when every Skill of the Check has two right
+answers in a row: the Course Navigator's `finishFromPractice` accepts it, while `finishStep` refuses `your_turn` from the
+Tutor and `nextOffer` gives no Next there. Code then stores the Check's divider and starts a follow-up turn that points to
+the Check. The Tutor hears what code showed: the card's text in place of the concept text, "add one sentence and one ask",
+that code shows and marks the Quick tries, and, with its next turn, the results marked since its last reply
+(`pendingQuickTryNote`), the way quiz results reach it. `practiceFallback` is the checked-replies fallback at these steps:
+the card's write-down line, then the next try.
+
+**Scenario.** Asha presses Next: Concept in a converted Percent Topic. The divider, the card "One move, two ways" and the
+rate Widget at 4% and 5% appear at once; she had dragged that Widget to 1% and 9% earlier, and it opens at 4% and 5% again.
+The Tutor adds one sentence and asks which number is bigger. At Your turn she sees "A rate moves from 4.5% to 3.45%. How
+many basis points?" with "the move is 1.05 points" shown done. She types 10.5; code shows "One point is 100 basis points,
+so multiply by 100, not 10." and a new try. Two right answers in a row on each idea later, the Check divider appears and the
+Tutor points her to the quiz.
+
+**Trade-off.** Items are stored, not worked out on each render, so a reload shows exactly what was shown, at the cost of
+copying the card into the Session. Re-deriving each try's answer from the file keeps answers out of the browser, but a
+Topic file edited after a try was shown marks that try against the new file. Results reach the Tutor by item order (those
+after its last reply), so no new table or column is needed, but a result stored during a turn is told in the next one.
+Only converted Topics touch `skill_state` and `practice_answers`; every other Topic behaves exactly as before.
+
+## The Learner's own rule (`save_learner_rule` in `src/tutor/tools.ts`, `src/learner/own-rule.ts`, `src/tutor/own-rule-item.ts`, `src/app/own-rule-line.tsx`, `note_items` kind `own_rule`, spec #229, ticket #244)
+
+**What it does.** When the Learner says a rule in their own words, more simply than the Tutor did, the Tutor can call
+`save_learner_rule` with those words. Code checks them before it keeps anything: the turn is a message the Learner typed
+(a chip, a note code wrote and the old "Continue." are refused); the words are found in that message, and are kept exactly
+as typed, symbols and all, up to 300 characters; no rule was already saved this turn. In a Topic with Skills, the Learner's
+latest practice answer in the Topic must be `right` and must have been recorded after this Session's previous turn began,
+and its Skill becomes the rule's Skill, so the Tutor never names one; a Skill takes one rule. In a Topic without Skills the
+Tutor judges the rule, and the Topic takes one. In one transaction code writes a `note_items` row of kind `own_rule` (the
+column is text, so no migration) and a Session item `OWN_RULE_SAVED` with `{noteId, topicId, text, skillId}`, which streams
+at once. "Once" counts the own-rule items in the Topic's Session, so an Undo does not free the slot. The tool result tells the
+Tutor what was saved, that the Learner sees "Saved to your notes" with Undo, and to confirm the rule in one sentence and use
+the Learner's words from then on. The turn passes the saved words to the reply checks as `ReplyDraft.savedRule`.
+
+The line under the reply reads "Saved to your notes · Undo · Open notes". It reuses the Save to notes control's view with a
+label, never has a Save button, and is never sent to the model. Undo calls `DELETE /api/notes` with the note id; the line then
+reads "Removed from your notes.", and an Undo on a note already gone says the same. On the Notes page `loadNotes` lists the
+rule among its Topic's lines with `ownRule: true`; the page marks it "Your rule", and it can be edited and removed like any
+line. `learnerSummary` adds "Rules in the Learner's own words (use them)" with the newest five, and the Where the Learner
+stands block is sent again when it changes, so the next turn carries them.
+
+**Scenario.** After a right answer on "points to basis points", the Learner types "so its basically change x 100 then divide
+by original". The Tutor calls the tool with "change x 100 then divide by original". Code saves it against that Skill and the
+Learner sees the line. The Tutor says "Yes, that is the rule" in one sentence and later says it in the Learner's words. If the
+Learner presses Undo, the rule leaves the note, and a later try at the same Skill is not saved a second time.
+
+**Trade-off.** The Skill lives only in the Session item, not in the note row, to keep the table as it is; a rule whose item is
+gone would show no Skill, which nothing reads. Saving the Learner's exact words, not a tidier version, keeps the note theirs
+but lets a clumsy or slightly wrong phrase in, and the Tutor is the judge of "correct" in a Topic without Skills. Counting the
+Session's items, not the note rows, means an Undo is final for that Skill or Topic: a Learner who took a rule off is not
+offered it again, and a fresh Session after Start again would be.
+
+## Known mistakes on the Topic Note and in the Learner summary (`src/learner/known-mistakes.ts`, `notes.ts`, `memory.ts`, table `practice_answers`, spec #229, ticket #244)
+
+**What it does.** Each answer code marks as a Known mistake is logged in `practice_answers` with the slip's tag. `loadNotes`
+adds every distinct Known mistake the Learner made in a Topic to that Topic Note's `mistakes`, once each, with the fix line
+the Topic file gives that tag (a template's, a quiz choice's or a fixed Quick try's). `learnerSummary` adds one line per Skill
+with hits, "Slips so far: <the Skill's rule>: twice multiplied by 10 instead of 100, stopped at points; fluent now", in plain
+words and never a tag id, so the Tutor cannot repeat one. Misconceptions the Tutor noted stay as they were. Both read only
+converted Topics, and skip the query when the Course Map has none, so no turn and no Notes page reads the practice tables
+before the migration that made them has been applied in production.
+
+**Scenario.** The Learner types 6 twice for "0.6 points in basis points" and 0.6 once. Their note for the Topic lists "One
+point is 100 basis points, so multiply by 100, not 10." and "That is the move in points. Times 100 gives basis points." once
+each, and the Tutor's summary says the Skill had two "multiplied by 10" slips and one "stopped at points", and is fluent now
+after two right answers.
+
+**Trade-off.** The note lists the fix, not the count, so a slip made ten times reads the same as one made once; the summary
+keeps the count for the Tutor. Slips are named in the summary by a small table of plain phrases, and any tag not in it reads
+as its words with the underscores taken out, which is clear but may be clumsy until the phrase is added. The note shows a
+mistake's fix only when the tag is still in the Topic file, so a tag a later edit removed is left out.
+
+
+## Turn and Session fixes from the UX run (`src/tutor/transcript.ts`, `turn-status.ts`, `open-widget.ts`, `usage.ts`, `next.ts`, `src/app/turn-stream.ts`, `message-box.tsx`, `session-item-view.tsx`, spec #229, ticket #248)
+
+**What it does.** Six small fixes to layers that already exist. (1) The "Widget notes (code): …" block code adds to the Learner's message is code's, so the transcript leaves it out of the Learner's bubble, in new Sessions and in old ones that stored it. (2) Finishing a step from a Widget (`finishStepFromWidget`, run while the study page draws) and a Next both take a row lock on the Learner's state first, so two renders at once store one step divider. (3) Stop is tied to its turn: the stream's first event tells the browser the turn's id, Stop names it, and a late or repeated Stop finds nothing to stop on the next turn; a Stop that reached a turn at its deadline stays on the cut-off turn, so the resumed turn ends where it should. A stopped reply drops a bare trailing code fence as well as an open Widget (one shared function for the server and the browser), and focus stays put when Send and Stop swap. (4) A resumed turn numbers its usage steps after the last saved step, not from a row count. (5) "Back to <Topic>" under an Off-Topic answer falls back to the latest Teaching Step divider, then to the end of the thread, when its anchor is missing. (6) The Study Workspace and the old Session page pass the reference-data clip to the Case Data cache, so a later close never shows before a reveal.
+
+**Scenario.** The Learner presses Stop at the moment the turn hits its time limit. The turn ends as cut off, the browser resumes it, and the resumed turn sees the Stop at its first look and ends as stopped, instead of writing on. Their next message, sent a second later, is not touched by the Stop's retry loop, because that loop ends with the send it was pressed for.
+
+**Trade-off.** Tying Stop to an id adds one event to the stream and one optional field to the Stop request; a Stop pressed before the id arrives still goes untied for its first ask, which is the old behaviour. The row lock makes a Next wait a few milliseconds behind a study-page render. Keeping a Stop across a cut-off means a resumed turn can stop at once, which is what the Learner asked for. After a failed turn the old Stop is cleared, so Retry runs.
+
+## The model sweep and the 50-turn replay (`src/behaviour/tutor-eval/sweep.ts`, `sweep-replay.ts`, `sweep.live.ts`, `sweep-replay.live.ts`, `scripts/tutor-replay.mjs`, `vitest.tutor-sweep.config.ts`, spec #229, ticket #248)
+
+**What it does.** Two commands turn the go-live checks into one step each, and neither runs in `npm run check`. `npm run tutor:sweep` runs the live Tutor tests (T1 to T11, three runs each) once for every model and effort pair in `TUTOR_EVAL_MODELS` (default: Opus 5.5 low, Opus 5.5 medium and Sonnet 5.5 medium), each pair on its own spend cap (`TUTOR_EVAL_BUDGET_USD`, $5 by default). It uses the suite's own runner, so a pair is judged exactly as `npm run tutor:eval` judges one. One combined report gives each pair's runs passed, cases passed, spend and cost per turn, and names the cheapest pair that passed every case three times out of three. `npm run tutor:replay` reads the last 50 Learner turns from the stored Sessions (read-only; the script starts the replay with the database address removed from its environment), turns each into a case with the state the Learner had, sends it through the real Tutor Turn on a throwaway in-memory database, runs `fixReply` and `checkReply` on the reply, and writes the pass rate for each rule V1 to V7, the longest reply in words, and every failure in full. Reports go to `evidence/tutor-eval/`, which git ignores because the replay holds Learner messages.
+
+**Scenario.** The owner runs `npm run tutor:sweep`. Opus low passes everything at $0.21 a turn, Opus medium at $0.34, and Sonnet medium fails T4 once in three runs. The report chooses Opus 5.5 low. The owner stores it in the settings table, then runs `npm run tutor:replay -- --model claude-opus-5-5 --effort low --engine on`. The report shows V1 at 50 of 50 and a longest reply of 97 words, so the widget engine goes on.
+
+**Trade-off.** The sweep spends real money (up to the cap for every pair), and the cap stops a pair rather than the whole sweep, so a bad pair costs at most its cap. The rule picks the cheapest passing pair, so a flaky pass at three runs can win by luck; the report shows the runs passed so the owner can see it. The replay re-sends only the Learner's message with the state rebuilt from the log (methods used come from today's Skill state), so it is close to the original turn, not identical. Stored turns that need a Skill the Topic no longer lists are skipped and listed, not counted as passes.
+
+## Go-live fixes: the turn, Quick tries and the ladder (`src/tutor/practice.ts`, `ladder-moves.ts`, `context.ts`, `turn.ts`, `check-results.ts`, `reply-checks.ts`, `reply-records.ts`, `src/learner/skill-state.ts`, table `reply_checks` (`reply_kind`), `drizzle/0031_reply_kind.sql`, spec #229, ticket #248)
+
+**What it does.** Eight small fixes found by the go-live review, each where the flow could stall or tell the Tutor the wrong limit:
+- Your turn never strands the Learner. It waits only on the Check's Skills that have Quick tries there (`practisedSkills`); a Skill with no tries is skipped by the picker. When nothing is left to practise, because every such Skill is already fluent (from a quiz, or an earlier Check), entering Your turn finishes it at once: code stores the divider and moves the Learner to the Check (`finishWhenDone`). The same check runs when an answer leaves no try to give.
+- A quiz attempt counts one miss per Skill on the ladder: three wrong answers on one Skill in one attempt are logged as three answers but move the Skill's state once (`countInState: false` on `recordAnswer` for the later ones). So a first failed quiz gives feedback, not a re-teach or the park offer.
+- The ladder's rungs carry their own Reply kind: the worked example goes out as `worked_example` (120 words), the drill as `drill` (the short cap), the others as `reteach` (`rungKind`).
+- A converted Topic's context names its Running example and the analogy of each Skill the current Check teaches, each marked "reuse it", so a re-teach uses them rather than a new one.
+- A template's next Quick try never repeats the numbers of the last try shown from that template: the key is bumped (`<n>b1`, `<n>b2`, ...) until the draw differs (`freshKey`).
+- Stop on a Quick-try follow-up turn drops only the reply: the fresh try, or the re-teach method's items, still follow.
+- One Quick try sent twice at the same moment is marked once: `recordAnswerLogged` says whether this call logged the answer, and the second send returns with nothing.
+- The turn's reply-check record keeps the Reply kind code chose (`reply_checks.reply_kind`), and `answer_question` for a Learner's own typed message.
+
+**Scenario.** A Learner got two right answers in a row on both Skills of a Check through an earlier quiz, and now reaches that Check's Your turn. Before, no try came and no Next showed, so the Learner was stuck. Now code shows the divider and the Check opens. Later the same Learner types 9999 into all three questions of a one-Skill quiz: the Tutor names one slip and gives one fix, as on any first miss.
+
+**Trade-off.** Migration 0031 is additive and applied by hand. Until it is, the record is saved through a copy of the table as 0030 made it (`replyChecksBefore0031`), and every read names its columns, so nothing fails; that copy should go once production has the column. Later misses in one quiz attempt are logged but not counted, so a Learner who gets every question on one idea wrong climbs the ladder no faster than one who gets one wrong. Finishing Your turn on entry means the Next note written just before can still name Your turn for that one turn; the context that follows names the Check.

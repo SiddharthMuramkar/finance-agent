@@ -17,7 +17,7 @@ The agent that teaches, explains and works through finance and economics with th
 _Avoid_: Assistant, bot
 
 **Reply kind**:
-What one Tutor reply sets out to do, such as feedback on an answer, a rule, a worked example, a hint, or an answer to the Learner's own question.
+What one Tutor reply sets out to do, such as feedback on an answer, a rule, a worked example, a hint, a drill, or an answer to the Learner's own question. Code chooses it when it knows the state, sends it to the Tutor, and records it with the turn's reply checks.
 _Avoid_: Move, teaching move, action
 
 **Course Map**:
@@ -44,12 +44,20 @@ _Avoid_: Lesson card, explainer, card (on its own)
 One short practice question at the your-turn step, set easiest first: the Learner types a number or picks True or False, and code marks it at once. It counts toward no Check.
 _Avoid_: Exercise, drill question, practice item
 
+**Quick-try follow-up**:
+The short Tutor turn code starts by itself after a Quick try marked wrong with no Known mistake to match: the Tutor names the slip in one sentence and gives the fix, then code shows a fresh Quick try. Code also starts one when Your turn finishes, to point the Learner to the Check.
+_Avoid_: Retry turn, feedback turn
+
 **Known mistake**:
 A wrong answer the Topic's file expects for a question, such as 6 for 60 (multiplied by 10, not 100), with a one-line fix that code shows the moment the Learner gives it.
 _Avoid_: Slip, error tag, misconception
 
+**Blocked numbers**:
+Every number in the open quiz questions and the next attempt's, which the Tutor keeps out of its examples and Widgets while a quiz Check is open, so it can teach freely without giving an answer away.
+_Avoid_: Forbidden numbers, quiz numbers
+
 **Parked Skill**:
-A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it. The Topic waits at its step while the Learner studies any other Topic, and the next day it starts with a drill of five on that Skill. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
+A Skill the Learner set aside by pressing "Park it, review tomorrow" after three misses in a row on it, on Quick tries or quiz questions. The Topic waits at its step while the Learner studies any other Topic: no Quick try, no Next, and Your turn cannot finish, though an open quiz can still be passed. Once 20 hours have passed, opening the Topic starts a drill of five on that Skill, and five answered tries end the park. A Parked Skill is neither a Review nor a Due Check, and it never lets the Learner past a Check.
 _Avoid_: Skipped Skill, deferred Skill, review queue
 
 **Converted Topic**:
@@ -91,6 +99,10 @@ _Avoid_: Related topic, see also
 **Topic Note**:
 The page kept for one Topic: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote, and any rule the Learner put more simply in their own words, which the Tutor saves for them.
 _Avoid_: Summary, recap, cheat sheet
+
+**Own rule**:
+A rule the Learner says in their own words, correctly and more simply than the Tutor did, which code saves word for word to that Topic's Note. The Learner sees "Saved to your notes" with Undo, and the Tutor uses their words from then on. At most one per turn, and one per Skill in a Topic with Skills.
+_Avoid_: Custom rule, user note
 
 **Case**:
 A real past episode that a Topic is taught through, with an outcome that is already known.
@@ -184,7 +196,7 @@ An interactive picture beside the conversation, either written ahead for a Topic
 _Avoid_: artifact, card (on its own)
 
 **Written-ahead Widget**:
-A Widget written in a Topic's file, such as Percent's "One rate change, said three ways". The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.
+A Widget written in a Topic's file, such as present value's "What the annuity is worth today" (`annuity-worth-today`). The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.
 _Avoid_: template, preset Widget
 
 **Widget recipe**:
@@ -196,19 +208,23 @@ The one Widget for a rate change, drawn from the rate_move recipe with its own p
 _Avoid_: rate calculator, Illustration
 
 **Free-form Widget**:
-A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
+A Widget no recipe covers, written by a second, faster model from the Tutor's brief with compose_widget, checked like any Widget. It is not offered to the Tutor any more (ADR 0007): only Sessions frozen while it was offered still have the tool. If it takes longer than 12 seconds or fails, code shows the closest Widget recipe instead (a fallback) and the Tutor says so.
 _Avoid_: custom Widget, freeform lane (in Learner-facing text)
+
+**Widget preset**:
+The slider values a ready-made Widget is opened at, by `$variable`. The Tutor gives one to open_widget (or its recipe's inputs to show_widget) for the numbers under discussion. It replaces the Learner's last settings, the Widget item records it, and the Widget's earlier chip reopens those numbers.
+_Avoid_: default values, starting state
 
 **Widget state**:
 A Learner's work on a Widget in a Session: the numbers on its sliders and the Guided Tasks it has ticked, kept so the Widget draws as they left it. It is kept under the Widget's key: a written-ahead Widget's id, or the title of a Widget the Tutor drew.
 _Avoid_: Widget data, saved Widget
 
 **Archetype**:
-The kind of idea a Widget teaches, named from the parts it uses: Grow, Compare, Convert, Chain, Predict, History, Rank, Check or Formula. Recipes carry one; code works out a written Widget's with archetypeOf and tells the Tutor the last two, so it does not draw the same kind back to back.
+The kind of idea a Widget teaches, named from the parts it uses: Grow, Compare, Convert, Chain, Predict, History, Rank, Check or Formula. Recipes carry one, and code works out a written Widget's with archetypeOf. The same kind may repeat: a Topic's running example keeps its one Widget.
 _Avoid_: Widget type, layout
 
 **Widget notes**:
-A short line code adds to the Learner's next message: the recent archetypes, and warnings about the Widgets of the Tutor's last reply (more than one control or visual, over 25 words, a number joined into text). Warnings never start a correction round; only errors that stop a Widget being right do.
+A short line code adds to the Learner's next message: warnings about the Widgets of the Tutor's last reply (more than one control or visual, over 25 words, a number joined into text), and the recent archetypes, which no rule asks the Tutor to avoid repeating. Warnings never start a correction round; only errors that stop a Widget being right do.
 _Avoid_: lint, Widget feedback
 
 **Widget tool**:

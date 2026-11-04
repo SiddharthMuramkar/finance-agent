@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return Response.json({ error: "Send one kind of turn: a message, finish, opener, next, widgetReport, quizFollowUp, resume or stop." }, { status: 400 });
   const body = parsed.data;
   // Stop runs no turn: it flags the Learner's running turn, which sees the flag within half a second and ends its reply.
-  if ("stop" in body) return Response.json({ stopping: await requestStop(getDb(), await currentLearnerId()) });
+  if ("stop" in body) return Response.json({ stopping: await requestStop(getDb(), await currentLearnerId(), body.turn) });
   const paste = "paste" in body ? body.paste?.trim() : undefined;
   if (paste && wordCount(paste) > MAX_PASTE_WORDS) return Response.json({ error: `A paste can hold at most ${MAX_PASTE_WORDS} words; paste the part being studied.` }, { status: 400 });
   const input = turnInputOf(body);
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     progressed();
   };
   const turn = runTutorTurn(
-    { db: getDb(), client: anthropicTutorClient(), learnerId, timeBudgetMs, embedQuery, shown, widgets, notify: (event) => notify(event) },
+    { db: getDb(), client: anthropicTutorClient(), learnerId, timeBudgetMs, embedQuery, shown, widgets, notify: (event) => notify(event), onTurn: (turnId) => notify({ type: "turn_started", turnId }) },
     input,
   );
   const firstEvent = turn.next();

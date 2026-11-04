@@ -23,7 +23,9 @@
 // Environment (the orchestrator sets these):
 //   DATABASE_URL     the test branch's pooled connection string (the server needs the same one)
 //   PASSCODES        the same passcode list the local server was started with; it must list a tools:<passcode> pair
-//   BASE_URL         where the server listens (default http://localhost:3101)
+//   BASE_URL         where the server listens (default http://localhost:3101); localhost, 127.0.0.1 or ::1 only
+//   EVAL_DB_OK       must be "branch", your statement that DATABASE_URL is a Neon test branch. The run prints the database
+//                    host and refuses without it (and refuses the host named by PROD_DB_HOST, if set)
 //   PLAYWRIGHT_CORE  optional path to a playwright-core install when it is not in node_modules
 //
 // The widget checks import src/widgets/check.ts, which uses the "@/" alias, so the script loads `tsx` (already in
@@ -34,6 +36,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
+import { assertLocalBase, assertTestDatabase, assertToolsLearner, textOf } from "./script-guards.mjs";
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -110,6 +113,11 @@ function summarize(rows) {
     recipeInteractiveP50: percentile(recipe.map((r) => r.interactiveMs), 50),
     recipeInteractiveP95: percentile(recipe.map((r) => r.interactiveMs), 95),
     freeformInteractiveP95: percentile(freeform.map((r) => r.interactiveMs), 95),
+    recipeFirstPixelProdEqP50: percentile(recipe.map((r) => r.prodEq?.firstPixelMs), 50),
+    recipeFirstPixelProdEqP95: percentile(recipe.map((r) => r.prodEq?.firstPixelMs), 95),
+    recipeInteractiveProdEqP50: percentile(recipe.map((r) => r.prodEq?.interactiveMs), 50),
+    recipeInteractiveProdEqP95: percentile(recipe.map((r) => r.prodEq?.interactiveMs), 95),
+    freeformInteractiveProdEqP95: percentile(freeform.map((r) => r.prodEq?.interactiveMs), 95),
     stuckOver12s: rows.filter((r) => r.stuck).length,
     numbersFromCodeOrDataPct: pct(served, (r) => r.checks.numbersFromCodeOrData),
     lintFailures: served.filter((r) => r.checks.validatorProblems.length > 0).length,
@@ -135,6 +143,11 @@ function summarize(rows) {
     t("Recipe interactive p50 (ms)", "<= 4000", summary.recipeInteractiveP50, summary.recipeInteractiveP50 <= 4000),
     t("Recipe interactive p95 (ms)", "<= 7000", summary.recipeInteractiveP95, summary.recipeInteractiveP95 <= 7000),
     t("Freeform interactive p95 (ms)", "<= 10000", summary.freeformInteractiveP95, summary.freeformInteractiveP95 <= 10000),
+    t("Recipe first pixel p50, production-equivalent (ms)", "<= 3000", summary.recipeFirstPixelProdEqP50, summary.recipeFirstPixelProdEqP50 <= 3000),
+    t("Recipe first pixel p95, production-equivalent (ms)", "<= 5000", summary.recipeFirstPixelProdEqP95, summary.recipeFirstPixelProdEqP95 <= 5000),
+    t("Recipe interactive p50, production-equivalent (ms)", "<= 4000", summary.recipeInteractiveProdEqP50, summary.recipeInteractiveProdEqP50 <= 4000),
+    t("Recipe interactive p95, production-equivalent (ms)", "<= 7000", summary.recipeInteractiveProdEqP95, summary.recipeInteractiveProdEqP95 <= 7000),
+    t("Freeform interactive p95, production-equivalent (ms)", "<= 10000", summary.freeformInteractiveProdEqP95, summary.freeformInteractiveProdEqP95 <= 10000),
     t("Widgets stuck > 12 s", "0", summary.stuckOver12s, summary.stuckOver12s === 0),
     t("Numbers from code or data (%)", "100", summary.numbersFromCodeOrDataPct, summary.numbersFromCodeOrDataPct === 100),
     t("Visual lint failures", "0", summary.lintFailures, summary.lintFailures === 0),
@@ -172,7 +185,7 @@ function writeReport(rows, extra) {
     const s = r.scores;
     const pcd = s ? ["purpose", "concrete", "delight"].map((k) => s[k]?.score ?? "-").join(" / ") : "-";
     md.push(
-      `| ${r.n} | ${r.prompt} | ${r.lane}${r.recipe ? ` (${r.recipe})` : ""} | ${r.archetype ?? "-"} (${r.expectedSet.join("/")}) ${mark(r.checks.archetypeExpected)} | ${sec(r.firstPixelMs)} | ${sec(r.interactiveMs)} | ${sec(r.doneMs)} | ${r.stuck ? "YES" : "no"} | ${r.checks.validatorProblems.length + r.checks.validatorWarnings.length ? "FAIL" : mark(r.lane === "none" ? null : true)} | ${mark(r.checks.withinBudget)} | ${r.checks.overflowAt480 == null ? "n/a" : r.checks.overflowAt480 ? "FAIL" : "pass"} | ${pcd} | ${r.screenshot ?? "-"} |`,
+      `| ${r.n} | ${r.prompt} | ${r.lane}${r.recipe ? ` (${r.recipe})` : ""} | ${r.archetype ?? "-"} (${r.expectedSet.join("/")}) ${mark(r.checks.archetypeExpected)} | ${sec(r.firstPixelMs)} (prod-eq ${sec(r.prodEq?.firstPixelMs)}) | ${sec(r.interactiveMs)} (prod-eq ${sec(r.prodEq?.interactiveMs)}) | ${sec(r.doneMs)} | ${r.stuck ? "YES" : "no"} | ${r.checks.validatorProblems.length + r.checks.validatorWarnings.length ? "FAIL" : mark(r.lane === "none" ? null : true)} | ${mark(r.checks.withinBudget)} | ${r.checks.overflowAt480 == null ? "n/a" : r.checks.overflowAt480 ? "FAIL" : "pass"} | ${pcd} | ${r.screenshot ?? "-"} |`,
     );
   }
   const notes = rows.filter((r) => r.error || r.stopped || r.checks.validatorProblems.length || r.checks.validatorWarnings.length || r.scores);
@@ -213,8 +226,11 @@ if (!DATABASE_URL) {
   console.error("DATABASE_URL must be set: run with node --env-file=.env (the test branch's .env).");
   process.exit(2);
 }
-if (!/localhost|127\.0\.0\.1/.test(BASE)) {
-  console.error(`Refusing to run against ${BASE}: this eval writes test data, so it only runs against a local server.`);
+try {
+  assertLocalBase(BASE);
+  assertTestDatabase(DATABASE_URL, process.env);
+} catch (e) {
+  console.error(e.message);
   process.exit(2);
 }
 
@@ -243,15 +259,21 @@ const FROM_CODE_PARTS = new Set(["Calculator", "FormulaCard", "HistoryChart", "A
 
 const squash = (text) => String(text ?? "").replace(/\s+/g, " ").trim();
 
+/** The highest message seq of the Learner's latest Session (0 when none): taken just before a prompt is sent, it marks where the prompt starts. */
+async function maxSeq(pool, learnerId) {
+  const { rows } = await pool.query(
+    `select coalesce(max(seq), 0)::int as seq from messages where session_id = (select id from sessions where learner_id = $1 order by id desc limit 1)`,
+    [learnerId],
+  );
+  return rows[0].seq;
+}
+
 /** Which lane served the Widget, and its code, from the Session's rows after the prompt. */
-async function readLane(pool, learnerId, prompt) {
+async function readLane(pool, learnerId, promptSeq) {
   const sessions = (await pool.query(`select id from sessions where learner_id = $1 order by id desc limit 1`, [learnerId])).rows;
   if (!sessions.length) return { lane: "none", note: "no Session" };
   const sessionId = sessions[0].id;
   const messages = (await pool.query(`select seq, role, content from messages where session_id = $1 order by seq`, [sessionId])).rows;
-  const textOf = (m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === "text").map((b) => b.text).join("\n") : "");
-  const promptMsg = [...messages].reverse().find((m) => m.role === "user" && squash(textOf(m)) === squash(prompt));
-  const promptSeq = promptMsg?.seq ?? 0;
   const after = messages.filter((m) => m.seq > promptSeq);
   const toolsUsed = after.flatMap((m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === "tool_use").map((b) => b.name) : []));
   const items = (await pool.query(`select kind, data, after_seq from session_items where session_id = $1 and kind = 'widget_shown' and after_seq >= $2 order by id`, [sessionId, promptSeq])).rows;
@@ -265,6 +287,39 @@ async function readLane(pool, learnerId, prompt) {
   const fences = after.filter((m) => m.role === "assistant").flatMap((m) => [...textOf(m).matchAll(/```openui-lang\n([\s\S]*?)\n```/g)].map((x) => x[1]));
   if (fences.length) return { ...base, lane: "fence", code: fences[fences.length - 1], widgetsShown: fences.length };
   return { ...base, lane: "none" };
+}
+
+/**
+ * Production-equivalent timings, from the database timeline (docs: run/latency-analysis.md). A local server sits far from
+ * the database, so every round trip adds time that production (Vercel next to Neon) does not have. Instead of the wall
+ * clock, this adds up what the model took (the `usage` step rows) plus 100 ms of tool work, 500 ms of server overhead and
+ * the client render measured locally (the gap between the Widget being stored and seen). Null when no Widget was served.
+ */
+async function prodEquivalent(pool, sessionId, row) {
+  if (!sessionId) return null;
+  const turn = (await pool.query(`select id, started_at, finished_at from turns where session_id = $1 order by id desc limit 1`, [sessionId])).rows[0];
+  if (!turn) return null;
+  const steps = (await pool.query(
+    `select step, duration_ms, tools, created_at from usage where session_id = $1 and kind = 'step' and turn_seq = (select max(turn_seq) from usage where session_id = $1) order by step`,
+    [sessionId],
+  )).rows;
+  if (!steps.length) return null;
+  const OVERHEAD_MS = 500;
+  const TOOL_MS = 100;
+  const modelMs = steps.reduce((s, x) => s + x.duration_ms, 0);
+  const startedAt = +new Date(turn.started_at);
+  const timeline = steps.map((s) => ({ step: s.step, durationMs: s.duration_ms, tools: s.tools, endedAfterTurnStartMs: +new Date(s.created_at) - startedAt }));
+  const out = { timeline, firstModelCallAfterTurnStartMs: timeline[0].endedAfterTurnStartMs - timeline[0].durationMs, modelMs, doneMs: modelMs + OVERHEAD_MS };
+  if (row.lane === "none") return out;
+  const item = (await pool.query(`select created_at from session_items where session_id = $1 and kind = 'widget_shown' and created_at >= $2 order by id desc limit 1`, [sessionId, turn.started_at])).rows[0];
+  const at = steps.findIndex((s) => (s.tools ?? []).some((t) => /widget/.test(t)));
+  if (!item || at < 0 || row.firstPixelMs == null) return out;
+  const itemAt = +new Date(item.created_at) - startedAt;
+  const clientRenderMs = Math.max(0, Math.min(row.firstPixelMs - itemAt, 2000));
+  const upToWidget = steps.slice(0, at + 1).reduce((s, x) => s + x.duration_ms, 0);
+  const firstPixelMs = upToWidget + TOOL_MS + OVERHEAD_MS + clientRenderMs;
+  const interactiveMs = firstPixelMs + Math.max(0, (row.interactiveMs ?? row.firstPixelMs) - row.firstPixelMs);
+  return { ...out, widgetStep: steps[at].step, clientRenderMs, firstPixelMs, interactiveMs, doneMs: modelMs + TOOL_MS + OVERHEAD_MS };
 }
 
 /** The automatic checks on a Widget's code (§13.3), minus the ones that need the browser. */
@@ -414,6 +469,8 @@ async function evalPrompt(browser, pool, p) {
   };
   const { context, page, learnerId } = await reachStudy(browser);
   try {
+    await assertToolsLearner(pool, learnerId);
+    const promptSeq = await maxSeq(pool, learnerId);
     const box = page.getByRole("textbox", { name: "Message" });
     await box.fill(p.prompt);
     await page.evaluate(WATCHER);
@@ -432,8 +489,9 @@ async function evalPrompt(browser, pool, p) {
     const approx = state.firstPixelMs == null && state.approxFirstPixelMs != null;
     Object.assign(row, { firstPixelApprox: approx || undefined, firstPixelMs: round(state.firstPixelMs ?? state.approxFirstPixelMs), interactiveMs: round(state.interactiveMs ?? state.approxInteractiveMs), doneMs: round(state.doneMs), stuckMs: round(state.stuckMs), stuck: state.stuckMs > 12_000, stopped: state.stopped });
 
-    const lane = await readLane(pool, learnerId, p.prompt);
+    const lane = await readLane(pool, learnerId, promptSeq);
     Object.assign(row, { lane: lane.lane, recipe: lane.recipe ?? null, params: lane.params ?? null, title: lane.title ?? null, code: lane.code ?? null, toolsUsed: lane.toolsUsed ?? [], widgetsShown: lane.widgetsShown ?? 0, sessionId: lane.sessionId ?? null });
+    row.prodEq = await prodEquivalent(pool, lane.sessionId, row);
     if (lane.turn?.error && !row.error) row.error = lane.turn.error;
     if (lane.turn?.status && lane.turn.status !== "done" && lane.turn.status !== "finished") row.turnStatus = lane.turn.status;
     if (lane.lane !== "none" && row.firstPixelMs == null) row.firstPixelNote = "the Widget on screen did not change, so no arrival was seen (the Tutor showed the one already open again)";

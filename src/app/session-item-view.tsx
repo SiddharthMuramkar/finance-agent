@@ -1,7 +1,26 @@
 import type { ReactNode } from "react";
 import { TOPIC_START, type TopicStartData } from "@/course/topic-start";
-import { CHECK_RESULT, DUE_CHECK, NEXT_STEP, OFF_TOPIC, PICKING_UP, STEP_DIVIDER, STOPPED, type OffTopicData, type SessionItem } from "@/tutor/session-item-kinds";
+import {
+  CHECK_RESULT,
+  CONCEPT_CARD,
+  DUE_CHECK,
+  NEXT_STEP,
+  OFF_TOPIC,
+  PICKING_UP,
+  QUICK_TRY,
+  QUICK_TRY_RESULT,
+  STEP_DIVIDER,
+  STOPPED,
+  type OffTopicData,
+  type SessionItem,
+} from "@/tutor/session-item-kinds";
+import { ConceptCardView, conceptCardOf } from "./concept-card-view";
+import { QuickTryResultView, QuickTryView, quickTryOf, quickTryResultOf } from "./quick-try-view";
+import { PARK_DRILL, PARK_OFFER, PARKED, type ParkedData, type ParkOfferData } from "@/tutor/park-items";
+import { ownRuleOf, OWN_RULE_SAVED } from "@/tutor/own-rule-item";
 import { TOPIC_COMPLETE, type TopicCompleteData } from "@/tutor/topic-complete-card";
+import { ParkedLine, ParkOfferView } from "./park-offer-view";
+import { OwnRuleLine } from "./own-rule-line";
 import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
@@ -38,6 +57,22 @@ function ResultCard({ label, passed }: { label: string; passed: boolean }) {
   );
 }
 
+/**
+ * Scrolls to the Topic's step (or start) anchor. Where that anchor is not on the page (an older Session never stored it), it
+ * falls back to the latest Teaching Step divider, else to the end of the thread, so the button always goes somewhere.
+ */
+export function scrollBackToTopic(anchor: string, from: HTMLElement) {
+  const toTop = { behavior: "smooth", block: "start" } as const;
+  const found = document.getElementById(anchor);
+  if (found) return found.scrollIntoView(toTop);
+  const dividers = document.querySelectorAll<HTMLElement>('[data-testid="step-divider"]');
+  const latest = dividers.item(dividers.length - 1);
+  if (latest) return latest.scrollIntoView(toTop);
+  const viewport = document.querySelector<HTMLElement>('[data-testid="thread-viewport"]');
+  if (viewport) return viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
+  from.scrollIntoView({ behavior: "smooth", block: "end" });
+}
+
 /** An Off-Topic answer's marker: a quiet line under the answer, with a way back to the Topic's step (or its start). */
 function OffTopicBlock({ data }: { data: OffTopicData }) {
   const target = typeof data.step === "number" ? stepAnchor(data.step) : TOPIC_START_ANCHOR;
@@ -47,7 +82,7 @@ function OffTopicBlock({ data }: { data: OffTopicData }) {
       <button
         type="button"
         data-testid="off-topic-back"
-        onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        onClick={(e) => scrollBackToTopic(target, e.currentTarget)}
         className="rounded underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--ink)]"
       >
         ↩ Back to {data.title}
@@ -76,12 +111,38 @@ const VIEWS: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   ),
   // Stored after a Tutor answer that left the Topic: "Off-Topic answer · ↩ Back to <Topic>".
   [OFF_TOPIC]: (data) => (typeof data.title === "string" && typeof data.topicId === "string" ? <OffTopicBlock data={data as OffTopicData} /> : null),
+  // Stored when the Tutor saves the Learner's own rule to their Topic Note: "Saved to your notes · Undo · Open notes".
+  [OWN_RULE_SAVED]: (data) => {
+    const rule = ownRuleOf({ kind: OWN_RULE_SAVED, data });
+    return rule ? <OwnRuleLine data={rule} /> : null;
+  },
   // Never stored: an old "Continue." message, drawn in the thread and on Past Sessions pages as where the next step began.
   [NEXT_STEP]: () => <Divider label="→ next step" testId="next-step-divider" />,
   // Stored when the Topic is passed, at the end of its conversation: the principle, Saved to your Notes ✓, What comes next and the Course Map.
   [TOPIC_COMPLETE]: (data) => (typeof data.title === "string" && typeof data.principle === "string" ? <TopicCompleteCard card={data as TopicCompleteData} /> : null),
+  // After a third miss in a row: code's park offer, "Park it, review tomorrow" and "One more short try".
+  [PARK_OFFER]: (data) => (typeof data.skillId === "string" && typeof data.line === "string" ? <ParkOfferView data={data as ParkOfferData} /> : null),
+  // Once parked: "Back tomorrow after Thu 3:00 pm", with the Course Map a click away.
+  [PARKED]: (data) => (typeof data.line === "string" ? <ParkedLine data={data as ParkedData} /> : null),
+  // Before a parked Skill's drill of five: "Drill · <Skill>".
+  [PARK_DRILL]: (data) => (typeof data.label === "string" ? <Divider label={data.label} testId="park-drill-divider" /> : null),
   // Never stored: the Topic Start card, worked out from course data on each render as the conversation's first item.
   [TOPIC_START]: (data) => (typeof data.title === "string" ? <TopicStartCard card={data as TopicStartData} /> : null),
+  // Stored when the Learner enters a converted Concept step: the card's plain lines, the write-down line in bold.
+  [CONCEPT_CARD]: (data) => {
+    const card = conceptCardOf(data);
+    return card ? <ConceptCardView card={card} /> : null;
+  },
+  // One Quick try at a converted Your turn, with its own input (QuickTryContext; read-only without one).
+  [QUICK_TRY]: (data) => {
+    const t = quickTryOf(data);
+    return t ? <QuickTryView data={t} /> : null;
+  },
+  // A Quick try's mark: "Right.", the Known mistake's fix, or "Not quite.".
+  [QUICK_TRY_RESULT]: (data) => {
+    const r = quickTryResultOf(data);
+    return r ? <QuickTryResultView data={r} /> : null;
+  },
 };
 
 /** The item drawn by its kind; nothing for a kind it does not know. */

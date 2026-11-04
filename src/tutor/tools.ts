@@ -1,39 +1,47 @@
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool";
 import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
 import { loadCaseData } from "@/case-data/case-data";
 import { REFERENCE_CASE } from "@/case-data/reference";
 import { calculate } from "@/finance/calculators";
-import type { CourseMap } from "@/course/map";
+import { isConverted, type CourseMap } from "@/course/map";
 import { navigate, TEACHING_STEPS, type Place, type Progress } from "@/course/navigator";
 import { exploreHeldBack } from "@/course/explore-widget";
 import { coveredParts, WIDGET_OPENED } from "@/course/written-ahead";
-import { messages, sessions, toolCalls, turns } from "@/db/schema";
-import { widgetControls, widgetNodes, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
+import { messages, practiceAnswers, sessions, toolCalls, turns } from "@/db/schema";
+import { widgetControls, widgetParts, widgetProblems, widgetRuleProblems, writtenAheadPartProblems } from "@/widgets/check";
 import { declaredSettings } from "@/widgets/settings";
+import { widgetKey } from "@/widgets/widget-state";
 import { ARCHETYPES } from "@/widgets/recipes/define";
-import { RECIPE_IDS, recipeById } from "@/widgets/recipes";
-import { WIDGET_SHOWN, type ComposeTimings, type ShownWidget } from "@/widgets/shown-widget";
+import { recipeById } from "@/widgets/recipes";
+import { shownWidgetOf, WIDGET_SHOWN, type ComposeTimings, type ShownWidget } from "@/widgets/shown-widget";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { loadWidgetState, saveWidgetState } from "@/learner/widget-state";
 import { anthropicComposeClient, COMPOSE_LABEL, composeLimitMs, composeProgram, fallbackCandidates, type ComposeClient, type Composed } from "./compose";
-import { readSettings } from "./session-log";
+import { readSettings, usesWidgetEngine, withoutRejected } from "./session-log";
+import { REPLY_CHECK_PREFIX } from "./turn-status";
 import { stepUsage, type StepUsage } from "./usage";
-import { loadWrittenAhead } from "./written-ahead";
+import { loadWrittenAhead, openedItem, saveOpenedState } from "./written-ahead";
+import { illustrationProblems, normalizePreset, presetProblems, QUICK_CHECK_REFUSAL, sliderSpecs, TUTOR_RECIPE_IDS } from "./ready-made-widgets";
+import { checkReply, type ReplyWidget } from "./reply-checks";
+import { replyCheckContext, turnFacts } from "./turn-facts";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult, saveFinishedStep, saveMisconception } from "@/learner/memory";
-import { loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
+import { exactWords, loadExploreInfo, saveInsightAttempt } from "@/learner/insight";
+import { MAX_RULE_LENGTH, saveOwnRule } from "@/learner/own-rule";
 import { quizUnavailable } from "@/learner/quiz";
 import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library/library";
 import { stepContext, topicCompleteContext } from "./context";
 import { verdictCard } from "./check-results";
 import { pasteSummary } from "./pasted";
 import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type ReplyText, type SessionItem, type StoredItem } from "./session-items";
+import { enterStepItems, startAgainItems } from "./practice";
 import { openWidgetsForTurn } from "./widget-context";
 import { textOf } from "./transcript";
 import type { ToolDefinition } from "./instructions";
 import { JUST_TELL_ME } from "./chips";
+import { ownRuleOf, OWN_RULE_SAVED } from "./own-rule-item";
 import { isCodeWritten, OLD_CONTINUE_TEXT, turnKind } from "./turn-status";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
@@ -98,6 +106,8 @@ export const TOOL_LABELS: Record<string, string> = {
   record_misconception: "Making a note…",
   record_check_verdict: "Recording the Check…",
   record_insight_attempt: "Recording your answer…",
+  save_learner_rule: "Saving to your notes…",
+  start_again: "Starting again…",
   open_widget: "Opening a Widget…",
   show_widget: "Drawing the Widget…",
   compose_widget: COMPOSE_LABEL,
@@ -129,6 +139,9 @@ export const NOTHING_RECORDED =
 export const PACING_REJECTION =
   "Cannot finish this step: it began during this turn. Teach it in your reply now, then stop and wait for the Learner to answer; you can finish it in your next turn.";
 
+/** Sent back when the Tutor calls start_again in a Topic with no Concept cards (not converted). */
+export const START_AGAIN_REFUSAL = "Not started again: this Topic has no Concept cards to show again. Teach its first idea again in words, simply, with one ask.";
+
 /** Sent back when the Tutor records a verdict at a Check step it only just reached, before the Learner could answer the prompt. */
 export const VERDICT_PACING_REJECTION =
   "Cannot record a verdict: this Check step began during this turn, so the Learner has not answered the Check prompt yet. Put the prompt in your reply now, then stop and wait for the Learner's answer; record the verdict in a later turn.";
@@ -156,6 +169,8 @@ export async function navigatorContext(db: Db, map: CourseMap, place: Place | nu
     await pasteSummary(db, sessionId, learnerId),
     false,
     await loadExploreInfo(db, place, turnId, learnerId),
+    // The new place's word limit, currency and blocked numbers, so the Tutor writes this same reply within them.
+    await turnFacts(db, map, learnerId, place),
   );
 }
 
@@ -194,6 +209,7 @@ export function toolCode(
   const verdictInput = z.object({ check_id: z.string(), verdict: z.enum(["pass", "not_yet"]), reasons: z.string().min(1) });
   const misconceptionInput = z.object({ description: z.string().min(1), topic_id: z.string().optional() });
   const searchInput = z.object({ query: z.string().min(1), source: z.string().optional() });
+  const ruleInput = z.object({ learner_words: z.string().min(1) });
   const insightInput = z.object({ outcome: z.enum(["found", "not_yet", "asked_to_be_told"]), learner_words: z.string().min(1) });
 
   /**
@@ -220,11 +236,19 @@ export function toolCode(
     return navigatorContext(tx, map, after, turnId, learnerId);
   }
 
-  /** Stores the divider for the Learner's new step in the turn's Session, when they are still in the Topic they were in. */
-  async function storeStepDivider(tx: Db, before: Place | null, progress: Progress): Promise<SessionItem | null> {
+  /**
+   * Stores the divider for the Learner's new step in the turn's Session, when they are still in the Topic they were in,
+   * then what code shows on entering that step (enterStepItems: a Concept card and its Widget, or the next Quick try),
+   * so a card lands right after the divider mid-reply. Returns them in order; empty when nothing was stored.
+   */
+  async function storeStepDivider(tx: Db, before: Place | null, progress: Progress): Promise<SessionItem[]> {
     const after = navigate(map, progress);
-    if (!before || after?.topic.id !== before.topic.id) return null;
-    return storeAfterLatest(tx, stepDivider(map, progress, after.topic.id));
+    if (!before || after?.topic.id !== before.topic.id) return [];
+    const divider = await storeAfterLatest(tx, stepDivider(map, progress, after.topic.id));
+    if (!divider) return [];
+    const [turn] = await tx.select({ sessionId: turns.sessionId }).from(turns).where(eq(turns.id, turnId));
+    const entered = turn?.sessionId == null ? [] : await enterStepItems(tx, map, learnerId, turn.sessionId, now());
+    return [divider, ...entered];
   }
 
   /** Stores a Session item after the latest message of the turn's Session; null when there is no item or no Session yet. */
@@ -235,7 +259,20 @@ export function toolCode(
     return item;
   }
 
-  async function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
+  /**
+   * The Widget-drawing calls of a turn, one after another: the Tool Runner runs a message's calls at once, and each checks
+   * "one Widget a reply" against what the others stored, so two calls in one message must not read the reply together.
+   */
+  let widgetLane: Promise<unknown> = Promise.resolve();
+  const WIDGET_CALLS = new Set(["show_widget", "compose_widget", "open_widget", "update_widget"]);
+  function once(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
+    if (!WIDGET_CALLS.has(name)) return onceNow(toolCallId, name, effect);
+    const run = widgetLane.then(() => onceNow(toolCallId, name, effect));
+    widgetLane = run.catch(() => undefined);
+    return run;
+  }
+
+  async function onceNow(toolCallId: string | undefined, name: string, effect: (tx: Db) => Promise<Outcome>): Promise<string> {
     if (!toolCallId) throw new Error("Missing tool call ID.");
     let outcome: Outcome;
     try {
@@ -260,28 +297,102 @@ export function toolCode(
   }
 
   /** The turn's Session, its reply so far and its items: what a shown Widget is checked against. */
-  type ReplyScope = { sessionId: number; turnSeq: number; topicId: string | null; rows: { seq: number; role: string; content: unknown }[]; items: StoredItem[] };
+  type ReplyScope = {
+    sessionId: number;
+    turnSeq: number;
+    topicId: string | null;
+    rows: { seq: number; role: string; content: unknown }[];
+    items: StoredItem[];
+    /** The Session was frozen with the widget engine: ready-made Widgets only, one a reply (ADR 0007). */
+    engine: boolean;
+    /** The turn took Next: the items Next stored (a step's Widget chip) sit just before its message. */
+    next: boolean;
+  };
 
   async function replyScope(tx: Db): Promise<ReplyScope | null> {
     const [row] = await tx
-      .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, topicId: sessions.topicId })
+      .select({ sessionId: turns.sessionId, turnSeq: turns.turnSeq, input: turns.input, topicId: sessions.topicId, tools: sessions.tools })
       .from(turns)
       .leftJoin(sessions, eq(sessions.id, turns.sessionId))
       .where(eq(turns.id, turnId));
     if (row?.sessionId == null || row.turnSeq == null) return null;
-    const rows = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
+    const stored = await tx.select({ seq: messages.seq, role: messages.role, content: messages.content }).from(messages).where(eq(messages.sessionId, row.sessionId));
+    // During the one retry the rejected draft is not the reply: its rows, up to the correction, are left out. The record
+    // of them is saved only when the turn ends, so the correction row is the marker (nothing to read, nothing to fail).
+    const turnSeq = row.turnSeq;
+    const correction = stored.findLast((r) => r.seq > turnSeq && r.role === "user" && textOf(r.content).startsWith(REPLY_CHECK_PREFIX));
+    const rows = correction ? withoutRejected(stored, new Set(stored.filter((r) => r.seq > turnSeq && r.seq <= correction.seq).map((r) => r.seq))) : stored;
     const items = await loadSessionItems(tx, row.sessionId, learnerId);
-    return { sessionId: row.sessionId, turnSeq: row.turnSeq, topicId: row.topicId ?? null, rows, items };
+    return {
+      sessionId: row.sessionId,
+      turnSeq: row.turnSeq,
+      topicId: row.topicId ?? null,
+      rows,
+      items,
+      engine: usesWidgetEngine({ tools: row.tools }),
+      next: turnKind({ input: row.input }) === "next",
+    };
+  }
+
+  /** The reply so far, as text: what the Tutor has written in this turn. */
+  const replySoFar = (scope: ReplyScope) => replyTexts(scope.rows.filter((r) => r.seq >= scope.turnSeq)).map((r) => r.text).join("\n");
+
+  /**
+   * The Widgets this reply holds, by Widget key: every Widget item stored for it, whoever stored it (a tool call, or code at
+   * a Next or a step: those sit just before the turn's message), and every fence in the reply so far. `slots` counts them.
+   */
+  async function replyWidgets(tx: Db, scope: ReplyScope): Promise<{ slots: number; keys: Set<string> }> {
+    const keys = new Set<string>();
+    let slots = 0;
+    for (const i of scope.items) {
+      const mine = i.afterSeq >= scope.turnSeq || (scope.next && i.afterSeq === scope.turnSeq - 1);
+      if (!mine) continue;
+      if (i.kind === WIDGET_OPENED && typeof i.data.id === "string") {
+        keys.add(i.data.id);
+        slots++;
+      } else if (i.kind === WIDGET_SHOWN) {
+        const key = widgetKey(shownWidgetOf(i.data)?.title);
+        if (key) keys.add(key);
+        slots++;
+      }
+    }
+    for (const fence of replySoFar(scope).split(FENCE_OPEN).slice(1)) {
+      const key = widgetKey(widgetParts(fence.split("```")[0]).title);
+      if (key) keys.add(key);
+      slots++;
+    }
+    // update_widget on a Widget this reply did not open or show is the reply's Widget too.
+    const updates = await tx.select({ result: toolCalls.result }).from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.name, "update_widget"), eq(toolCalls.isError, false)));
+    const moved = new Set(updates.flatMap((u) => u.result.match(/^Updated by code: "(.*)" now shows/)?.[1] ?? []));
+    for (const key of moved) {
+      if (!keys.has(key)) slots++;
+      keys.add(key);
+    }
+    return { slots, keys };
   }
 
   /** One Widget per reply: the reply so far has drawn one of its own, or code has shown one in it. */
-  function widgetInReply(scope: ReplyScope): boolean {
-    const replySoFar = replyTexts(scope.rows.filter((r) => r.seq >= scope.turnSeq)).map((r) => r.text).join("\n");
-    return replySoFar.includes(FENCE_OPEN) || scope.items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= scope.turnSeq);
+  async function widgetInReply(tx: Db, scope: ReplyScope): Promise<boolean> {
+    if (scope.engine) return (await replyWidgets(tx, scope)).slots > 0;
+    return replySoFar(scope).includes(FENCE_OPEN) || scope.items.some((i) => i.kind === WIDGET_SHOWN && i.afterSeq >= scope.turnSeq);
   }
 
   const ONE_WIDGET = "Not shown: this reply already has a Widget, and a reply shows one Widget. Talk about the one on screen; show another in a later reply if it still helps.";
-  const TALK_ABOUT_IT = "Write no openui-lang block in this reply. Now talk about the Widget on screen in a few sentences: what to look at, and what to move.";
+  const TALK_ABOUT_IT = "Write no openui-lang block in this reply. Say in one sentence what the Widget shows at these numbers; do not ask the Learner to move or set anything.";
+  const GUIDED_TASKS = "Its Guided Tasks (optional play, never set as work; they tick themselves):";
+
+  /**
+   * An open quiz keeps its numbers from the Widgets the Tutor sets (V5 of the reply checks, spec #229): the same rule the
+   * reply check uses, so the tool and the check never disagree. The problems are in words; none when no quiz is open.
+   */
+  async function openQuizProblems(tx: Db, w: ReplyWidget): Promise<string[]> {
+    const place = navigate(map, await loadProgress(tx, learnerId));
+    const facts = await turnFacts(tx, map, learnerId, place);
+    if (!facts.openItems.length) return [];
+    return checkReply({ text: "", widgets: [w] }, replyCheckContext(facts))
+      .filter((p) => p.rule === "V5")
+      .map((p) => p.message);
+  }
 
   /** The Case Data references the as-of rule allows the Learner now (ADR 0003). */
   async function allowedRefs(tx: Db): Promise<Set<string>> {
@@ -307,7 +418,7 @@ export function toolCode(
     const lines = [
       opening,
       ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
-      ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
+      ...(tasks.length ? [GUIDED_TASKS, ...tasks.map((t) => `- ${t}`)] : []),
     ];
     return { ok: true, text: lines.join("\n"), items: [item] };
   }
@@ -319,7 +430,7 @@ export function toolCode(
   async function showComposed(tx: Db, toolCallId: string, input: ComposeInput, composed: Composed | null): Promise<Outcome> {
     const scope = await replyScope(tx);
     if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
-    if (widgetInReply(scope)) return { ok: false, text: ONE_WIDGET };
+    if (await widgetInReply(tx, scope)) return { ok: false, text: ONE_WIDGET };
     if (!composed) return { ok: false, text: "Not shown: the Widget could not be drawn. Teach this in words." };
     if (!composed.ok && composed.reason === "stopped") return { ok: false, text: "Not shown: the Learner pressed Stop." };
     const allowed = await allowedRefs(tx);
@@ -377,17 +488,7 @@ export function toolCode(
     return { ok: false, text: `Not shown: ${why}, and no ready-made Widget fits. Teach this in words.` };
   }
 
-  /** The sliders of a Widget, by $variable, with their ranges; read by the parser. */
-  function sliderRanges(code: string): Map<string, { min: number; max: number }> {
-    const out = new Map<string, { min: number; max: number }>();
-    for (const n of widgetNodes(code)) {
-      const { value, min, max } = n.props as { value?: { k?: string; n?: string }; min?: unknown; max?: unknown };
-      if (n.typeName === "Slider" && value?.k === "StateRef" && typeof value.n === "string" && typeof min === "number" && typeof max === "number") out.set(value.n, { min, max });
-    }
-    return out;
-  }
-
-  const openInput = z.object({ id: z.string().min(1) });
+  const openInput = z.object({ id: z.string().min(1), preset: z.record(z.string(), z.number()).optional() });
   const showInput = z.object({ recipe: z.string(), params: z.unknown() });
   const composeInput = z.object({
     brief: z.string().min(1),
@@ -451,8 +552,8 @@ export function toolCode(
           // The Learner sees the result in the conversation: a card after the reply that recorded it, never sent to the model.
           const card = await storeAfterLatest(tx, verdictCard(map, check_id, passed));
           // A pass moves the Learner on: the divider for their new step follows the card (none once the Topic is passed).
-          const divider = passed ? await storeStepDivider(tx, before, await loadProgress(tx, learnerId)) : null;
-          const items = [card, divider].filter((i) => i !== null);
+          const divider = passed ? await storeStepDivider(tx, before, await loadProgress(tx, learnerId)) : [];
+          const items = [card, ...divider].filter((i) => i !== null);
           return { ok: true, began: passed, text: `${recorded}\n\n${await contextAfterMove(tx, before)}`, ...(items.length && { items }) };
         }),
     },
@@ -501,11 +602,68 @@ export function toolCode(
           };
         }),
     },
+    // The Learner's own rule (spec #229): code checks it is their typed words, then keeps them on the Topic Note.
+    save_learner_rule: {
+      parse: (input) => ruleInput.parse(input),
+      run: ({ learner_words }, context) =>
+        once(context?.toolUse.id, "save_learner_rule", async (tx) => {
+          const [turn] = await tx.select().from(turns).where(eq(turns.id, turnId));
+          const message = turn?.input ?? "";
+          // A chip, a note code wrote and the old "Continue." are never the Learner's own words.
+          if (!turn || message.trim() === OLD_CONTINUE_TEXT || isCodeWritten(message) || turnKind(turn) !== "message") {
+            return { ok: false, text: "Not saved: this turn is not a message the Learner typed. Save a rule only from words they wrote themselves." };
+          }
+          const words = exactWords(message, learner_words);
+          if (!words) return { ok: false, text: "Not saved: those words are not in the Learner's message this turn. Copy their rule exactly as they typed it." };
+          if (words.length > MAX_RULE_LENGTH) return { ok: false, text: `Not saved: a saved rule is at most ${MAX_RULE_LENGTH} characters. Copy only the sentence that states the rule.` };
+          const [row] = await tx.select({ topicId: sessions.topicId }).from(sessions).where(eq(sessions.id, turn.sessionId ?? -1));
+          if (turn.sessionId == null || turn.turnSeq == null || !row?.topicId) return { ok: false, text: "Not saved: this turn has no Topic Session yet." };
+          const topicId = row.topicId;
+          const rules = (await loadSessionItems(tx, turn.sessionId, learnerId)).flatMap((i) => {
+            const rule = ownRuleOf(i);
+            return rule && rule.topicId === topicId ? [{ ...rule, afterSeq: i.afterSeq }] : [];
+          });
+          if (rules.some((r) => r.afterSeq >= turn.turnSeq!)) return { ok: false, text: "Not saved: a rule was already saved in this turn. Save one rule per turn." };
+          let skillId: string | null = null;
+          const topic = map.topic(topicId);
+          if (topic && isConverted(topic)) {
+            // The Skill is the one the Learner just got right: code takes it from their latest marked answer, so the Tutor never names one.
+            const [answer] = await tx
+              .select({ skillId: practiceAnswers.skillId, verdict: practiceAnswers.verdict, createdAt: practiceAnswers.createdAt })
+              .from(practiceAnswers)
+              .where(and(eq(practiceAnswers.learnerId, learnerId), eq(practiceAnswers.topicId, topicId)))
+              .orderBy(desc(practiceAnswers.id))
+              .limit(1);
+            const [previous] = await tx
+              .select({ startedAt: turns.startedAt })
+              .from(turns)
+              .where(and(eq(turns.sessionId, turn.sessionId), lt(turns.id, turnId)))
+              .orderBy(desc(turns.id))
+              .limit(1);
+            if (!answer || answer.verdict !== "right" || (previous && answer.createdAt <= previous.startedAt)) {
+              return { ok: false, text: "Not saved: save the Learner's rule only right after they get a practice answer right. Code has not marked a right answer since your last reply, so teach on without saving." };
+            }
+            skillId = answer.skillId;
+            if (rules.some((r) => r.skillId === skillId)) return { ok: false, text: "Not saved: a rule for this Skill is already on the Learner's notes. Confirm their rule in a sentence without saving it." };
+          } else if (rules.length) {
+            return { ok: false, text: "Not saved: a rule is already on the Learner's notes for this Topic. Confirm their rule in a sentence without saving it." };
+          }
+          const saved = await saveOwnRule(tx, { learnerId, topicId, sessionId: turn.sessionId, turnSeq: turn.turnSeq, text: words, skillId }, now());
+          const item = { kind: OWN_RULE_SAVED, data: { noteId: saved.id, topicId, text: words, skillId } };
+          await saveItemAfterLatest(tx, learnerId, turn.sessionId, item, now());
+          return {
+            ok: true,
+            text: `Saved by code to the Learner's Topic Note: "${words}". The Learner sees "Saved to your notes" with Undo, so don't say you saved it. Confirm their rule in one sentence and use their words from now on.`,
+            items: [item],
+          };
+        }),
+    },
     open_widget: {
       parse: (input) => openInput.parse(input),
-      run: ({ id }, context) =>
+      run: ({ id, preset }, context) =>
         once(context?.toolUse.id, "open_widget", async (tx) => {
           // The Topic of the Session this turn runs in: its written-ahead Widgets are the ones that can be opened.
+          const scope = await replyScope(tx);
           const [row] = await tx.select({ sessionId: turns.sessionId, topicId: sessions.topicId }).from(turns).leftJoin(sessions, eq(sessions.id, turns.sessionId)).where(eq(turns.id, turnId));
           const topicId = row?.topicId ?? navigate(map, await loadProgress(tx, learnerId))?.topic.id;
           const progress = await loadProgress(tx, learnerId);
@@ -519,15 +677,38 @@ export function toolCode(
           if (topic && exploreHeldBack(topic, progress.topics[topic.id]) === widget.id) {
             return { ok: false, text: `Not opened: "${widget.title}" is this Topic's explore Widget, which code shows when the explore step begins. Do not open it or draw your own version before then; teach this in words.` };
           }
-          const item = { kind: WIDGET_OPENED, data: { id: widget.id, title: widget.title } };
+          // One Widget a reply (ADR 0007), in a Session frozen with the widget engine.
+          if (scope?.engine && (await widgetInReply(tx, scope))) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not opened") };
+          // A preset sets its sliders: each must be one of the Widget's, in range and on its step, and none may use an open quiz's numbers.
+          const set = preset && Object.keys(preset).length ? normalizePreset(preset) : undefined;
+          if (set) {
+            const problems = presetProblems(widget.code, set);
+            if (problems.length) {
+              const sliders = widgetControls(widget.code).sliders;
+              return { ok: false, text: `Not opened: ${problems.join(" ")} Its sliders: ${sliders.join("; ") || "none"}. Call open_widget again with a preset that fits, or without one.` };
+            }
+            const blocked = await openQuizProblems(tx, { kind: "written", id: widget.id, params: set });
+            if (blocked.length) return { ok: false, text: `Not opened: ${blocked.join(" ")}` };
+          }
+          const item = openedItem(widget, set);
           await saveItemAfterLatest(tx, learnerId, row.sessionId, item, now());
+          // Opened already set: the preset replaces what the Learner last set, and their ticked Guided Tasks stay.
+          let widgetStates: WidgetStateEvent[] | undefined;
+          if (set) {
+            const saved = await loadWidgetState(tx, row.sessionId, widget.id, learnerId);
+            const ticked = effects.pageWidgets?.[widget.id]?.ticked ?? saved?.ticked ?? [];
+            const result = await saveOpenedState(tx, learnerId, { sessionId: row.sessionId, widgetKey: widget.id, code: widget.code, preset: set, ticked }, now());
+            if (!result.ok) return { ok: false, text: `Not opened: ${result.reason}` };
+            widgetStates = [result.event];
+          }
           const { sliders, tasks } = widgetControls(widget.code);
+          const setTo = set ? ` It is set to ${Object.entries(set).map(([n, v]) => `${n} = ${v}`).join(", ")}.` : "";
           const lines = [
-            `Opened by code: "${widget.title}" is in the Widget panel, with a chip where you opened it. Point the Learner to it; do not draw a Widget of your own for the same idea. Ask only for numbers its sliders can show.`,
+            `Opened by code: "${widget.title}" is in the Widget panel, with a chip where you opened it.${setTo} Point the Learner to it; do not draw a Widget of your own for the same idea. Say in one sentence what it shows at these numbers; do not ask the Learner to move or set anything.`,
             ...(sliders.length ? ["Its sliders:", ...sliders.map((s) => `- ${s}`)] : []),
-            ...(tasks.length ? ["Its Guided Tasks (they tick themselves):", ...tasks.map((t) => `- ${t}`)] : []),
+            ...(tasks.length ? [GUIDED_TASKS, ...tasks.map((t) => `- ${t}`)] : []),
           ];
-          return { ok: true, text: lines.join("\n"), items: [item] };
+          return { ok: true, text: lines.join("\n"), items: [item], ...(widgetStates && { widgetStates }) };
         }),
     },
     // The widget engine (ADR 0005): the Tutor chooses a recipe and params, code compiles, checks and stores the Widget.
@@ -536,13 +717,17 @@ export function toolCode(
       parse: (input) => showInput.parse(input),
       run: ({ recipe: id, params }, context) =>
         once(context?.toolUse.id, "show_widget", async (tx) => {
+          if (id === "quick_check") return { ok: false, text: QUICK_CHECK_REFUSAL };
           const recipe = recipeById(id);
-          if (!recipe) return { ok: false, text: `Not shown: there is no Widget recipe "${id}". Recipes: ${RECIPE_IDS.join(", ")}.` };
+          if (!recipe) return { ok: false, text: `Not shown: there is no Widget recipe "${id}". Recipes: ${TUTOR_RECIPE_IDS.join(", ")}.` };
           const built = recipe.build(params);
           if (!built.ok) return { ok: false, text: `Not shown: these params do not fit the ${id} recipe. ${built.error}. Call show_widget again with params that fit, or teach this in words.` };
           const scope = await replyScope(tx);
           if (!scope) return { ok: false, text: "Not shown: this turn has no Session yet." };
-          if (widgetInReply(scope)) return { ok: false, text: ONE_WIDGET };
+          if (await widgetInReply(tx, scope)) return { ok: false, text: ONE_WIDGET };
+          // An Illustration only where no input or Case Data path covers the same number.
+          const covered = illustrationProblems(id, built.params);
+          if (covered.length) return { ok: false, text: `Not shown: ${covered.join(" ")} Call show_widget again without it, or teach this in words.` };
           // Real figures only from Case Data the as-of rule allows the Learner now (ADR 0003).
           const allowed = await allowedRefs(tx);
           const unknown = built.refs.filter((ref) => !allowed.has(ref));
@@ -551,8 +736,17 @@ export function toolCode(
           }
           const problems = await shownProblems(tx, scope, built.code);
           if (problems.length) return { ok: false, text: `Not shown: ${problems.join(" ")}` };
+          // An open quiz keeps its numbers: the recipe's inputs may not use them.
+          const blocked = await openQuizProblems(tx, { kind: "recipe", id, params: built.params });
+          if (blocked.length) return { ok: false, text: `Not shown: ${blocked.join(" ")}` };
           const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe" };
-          return storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${TALK_ABOUT_IT}`);
+          const outcome = await storeShown(tx, scope, data, `Shown by code: "${built.title}" is in the Widget panel, with a chip where you called show_widget. ${TALK_ABOUT_IT}`);
+          // A title the Learner already has saved state for opens at the recipe's own numbers, not where they last left it.
+          const key = widgetKey(built.title);
+          const had = key ? (effects.pageWidgets?.[key] ?? (await loadWidgetState(tx, scope.sessionId, key, learnerId))) : undefined;
+          if (!key || !had) return outcome;
+          const reset = await saveOpenedState(tx, learnerId, { sessionId: scope.sessionId, widgetKey: key, code: built.code, ticked: had.ticked }, now());
+          return reset.ok ? { ...outcome, widgetStates: [reset.event] } : outcome;
         }),
     },
     // The free-form lane (UX audit ★.4): the compose model writes the Widget within 12 s, outside the transaction, and
@@ -566,7 +760,7 @@ export function toolCode(
         const [done] = await db.select({ id: toolCalls.toolCallId }).from(toolCalls).where(eq(toolCalls.toolCallId, toolCallId));
         let composed: Composed | null = null;
         const scope = done ? null : await replyScope(db);
-        if (scope && !widgetInReply(scope)) {
+        if (scope && !(await widgetInReply(db, scope))) {
           const { composeModel } = await readSettings(db);
           composer ??= { client: anthropicComposeClient() };
           composed = await composeProgram(composer.client, {
@@ -601,7 +795,12 @@ export function toolCode(
           const open = await openWidgetsForTurn(tx, map, learnerId, drawn, false, { id: scope.sessionId, topicId: scope.topicId });
           const widget = open.find((w) => w.key === key.trim());
           if (!widget) return { ok: false, text: `Not updated: no open Widget has the key "${key}". Open Widgets: ${open.map((w) => `"${w.key}"`).join(", ") || "none"}.` };
-          const ranges = sliderRanges(widget.code);
+          // One Widget a reply: this one must be the reply's own, unless the reply has none yet.
+          if (scope.engine) {
+            const { slots, keys } = await replyWidgets(tx, scope);
+            if (slots > 0 && !keys.has(widget.key)) return { ok: false, text: ONE_WIDGET.replace("Not shown", "Not updated") };
+          }
+          const ranges = sliderSpecs(widget.code);
           const problems: string[] = [];
           const set: Record<string, number> = {};
           for (const [raw, value] of Object.entries(values)) {
@@ -623,12 +822,15 @@ export function toolCode(
           const merged = { ...Object.fromEntries(Object.entries(current).filter(([n]) => ranges.has(n))), ...set };
           // Ticks stay as they were: Guided Tasks tick themselves from their conditions.
           const ticked = page?.ticked ?? saved?.ticked ?? [];
+          // An open quiz keeps its numbers.
+          const blocked = await openQuizProblems(tx, { kind: "written", id: widget.key, params: set });
+          if (blocked.length) return { ok: false, text: `Not updated: ${blocked.join(" ")}` };
           const result = await saveWidgetState(tx, { sessionId: scope.sessionId, widgetKey: widget.key, values: merged, ticked }, learnerId, now());
           if (!result.ok) return { ok: false, text: `Not updated: ${result.reason}` };
           const moved = Object.entries(set).map(([n, v]) => `${n} = ${v}`).join(", ");
           return {
             ok: true,
-            text: `Updated by code: "${widget.key}" now shows ${moved}. Its Guided Tasks tick themselves from what it shows. Talk about what changed on screen in a few sentences.`,
+            text: `Updated by code: "${widget.key}" now shows ${moved}. Its Guided Tasks are optional play and tick themselves from what it shows. Say in one sentence what changed on screen at these numbers; do not ask the Learner to move or set anything.`,
             widgetStates: [{ type: "widget_state", widgetKey: widget.key, values: merged }],
           };
         }),
@@ -643,8 +845,24 @@ export function toolCode(
           if (!move.ok) return { ok: false, text: move.reason };
           // The Learner sees where the next step begins: a divider after the reply that finished this one.
           // None once the Topic is passed; its Topic complete card marks that.
-          const item = await storeStepDivider(tx, before, move.progress);
-          return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(item && { items: [item] }) };
+          const items = await storeStepDivider(tx, before, move.progress);
+          return { ok: true, began: true, text: await contextAfterMove(tx, before), ...(items.length && { items }) };
+        }),
+    },
+    // Start again (spec #229, ticket #245): in a converted Topic, code re-posts its Concept cards in order, then its first
+    // Quick try. The step and any open quiz attempt stay where they are.
+    start_again: {
+      parse: (input) => z.object({}).passthrough().parse(input ?? {}),
+      run: (_input, context) =>
+        once(context?.toolUse.id, "start_again", async (tx) => {
+          const [turn] = await tx.select({ sessionId: turns.sessionId }).from(turns).where(eq(turns.id, turnId));
+          const items = turn?.sessionId == null ? null : await startAgainItems(tx, map, learnerId, turn.sessionId, now());
+          if (!items) return { ok: false, text: START_AGAIN_REFUSAL };
+          return {
+            ok: true,
+            text: "Started again by code: the Learner now sees this Topic's Concept cards again, in order, then its first Quick try. Their step and any open quiz stay as they were. Add one sentence that points to the first card, and one ask. Do not repeat the cards' words.",
+            items,
+          };
         }),
     },
   }, effects);

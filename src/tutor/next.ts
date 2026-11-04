@@ -1,9 +1,10 @@
 import { and, eq, gt } from "drizzle-orm";
-import { messages } from "@/db/schema";
-import type { CourseMap } from "@/course/map";
-import { finishFromWidget, navigate, nextOffer, STEP_NAMES, stepSetting, takeNext, type NextOffer, type TeachingStep } from "@/course/navigator";
+import { learnerState, messages } from "@/db/schema";
+import { isConverted, type CourseMap } from "@/course/map";
+import { finishFromWidget, navigate, nextOffer, practiceStep, STEP_NAMES, stepSetting, takeNext, type NextOffer, type ParkedSkills, type Place, type Progress, type TeachingStep } from "@/course/navigator";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
+import { parkedSkills } from "@/learner/skill-state";
 import { pendingQuizNote } from "@/learner/quiz";
 import { loadWidgetStates } from "@/learner/widget-state";
 import { topicCompleteContext } from "./context";
@@ -12,6 +13,7 @@ import { liveSession } from "./session-log";
 import { loadSessionItems, stepDivider, STEP_DIVIDER, type SessionItem } from "./session-items";
 import { NEXT_PREFIX, updateTurn } from "./turn-status";
 import { openStepWidget } from "./written-ahead";
+import { enterStepItems } from "./practice";
 
 /**
  * The Learner's Next: the chip under the latest Tutor reply, and what pressing it does. Code checks the
@@ -58,7 +60,25 @@ export async function nextOfferNow(db: Db, map: CourseMap, learnerId: number, no
   const place = navigate(map, progress);
   if (!place) return null;
   const comingBack = await comingBackItems(db, map, learnerId, now);
-  return nextOffer(map, progress, { begun: await stepBegun(db, map, learnerId, place.topic.id, comingBack) });
+  return nextOffer(map, progress, { begun: await stepBegun(db, map, learnerId, place.topic.id, comingBack) }, await parkedIn(db, map, learnerId, progress));
+}
+
+/**
+ * The parked Skills of the Learner's current Topic, so no Next is offered or taken while one of its Check's Skills is
+ * parked (ticket #245). Only a converted Topic reads skill_state.
+ */
+async function parkedIn(db: Db, map: CourseMap, learnerId: number, progress: Progress): Promise<ParkedSkills> {
+  const topic = navigate(map, progress)?.topic;
+  return topic && isConverted(topic) ? parkedSkills(db, learnerId, [topic.id]) : {};
+}
+
+/**
+ * Takes a row lock on the Learner's state for the rest of the transaction, so two writers that move the same Learner's
+ * progress (a Next, and the study page finishing a step from a Widget) run one after the other. The second then reads the
+ * progress the first saved and finds its step already finished, so a step divider is never stored twice.
+ */
+async function lockLearner(tx: Db, learnerId: number): Promise<void> {
+  await tx.select({ id: learnerState.id }).from(learnerState).where(eq(learnerState.learnerId, learnerId)).for("update");
 }
 
 /** `items` are the dividers it stored, in order: a coming-back divider the page drew (if any), then the step's. */
@@ -72,6 +92,7 @@ export type TakenNext = { ok: true; note: string; sessionId: number; items: Sess
 export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number, turnId: number, named: NextName, now: Date): Promise<TakenNext> {
   return db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
+    await lockLearner(tx, learnerId);
     const progress = await loadProgress(tx, learnerId);
     const place = navigate(map, progress);
     // Next is offered only under a Tutor reply, so the Topic's Session already exists.
@@ -80,10 +101,11 @@ export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number
     // The Picking up or Due Check divider the page drew, worked out before the move: it is stored with this Next, first.
     const comingBack = await comingBackItems(tx, map, learnerId, now);
     const begun = await stepBegun(tx, map, learnerId, place.topic.id, comingBack);
-    const move = takeNext(map, progress, named, { begun });
+    const parked = await parkedIn(tx, map, learnerId, progress);
+    const move = takeNext(map, progress, named, { begun }, parked);
     if (!move.ok) return move;
     // takeNext accepted it, so the offer is a Next or Complete this Topic, never Just tell me.
-    const offer = nextOffer(map, progress, { begun }) as Exclude<NextOffer, { kind: "just_tell_me" }>;
+    const offer = nextOffer(map, progress, { begun }, parked) as Exclude<NextOffer, { kind: "just_tell_me" }>;
     const advances = offer.kind === "complete" || offer.advances;
     if (advances) {
       const saved = await saveFinishedStep(tx, map, place.step, now, learnerId);
@@ -97,10 +119,12 @@ export async function takeLearnersNext(db: Db, map: CourseMap, learnerId: number
     // The step that begins opens its Widget by itself (the Topic's `steps[].opens`): a chip after the divider.
     const opened = move.teach ? await openStepWidget(tx, map, moved, learnerId, session.id, now) : null;
     if (opened) items.push(opened);
+    // A converted step shows what code shows on entering it: the Concept card and its Widget, or the first Quick try.
+    if (move.teach) items.push(...(await enterStepItems(tx, map, learnerId, session.id, now)));
     const note =
       offer.kind === "complete"
         ? `${NEXT_PREFIX} the Learner pressed Complete this Topic. ${topicCompleteContext(place.topic.title)}`
-        : nextNote(offer.step, offer.advances);
+        : nextNote(offer.step, offer.advances, navigate(map, moved));
     // The Session is pinned on the turn, so a Retry of Complete this Topic still runs in the passed Topic's Session.
     await updateTurn(tx, turnId, { input: note, sessionId: session.id, freshStep: true });
     return { ok: true, note, sessionId: session.id, items };
@@ -119,6 +143,7 @@ export async function finishStepFromWidget(db: Db, map: CourseMap, learnerId: nu
   if (!here || !stepSetting(here.topic, here.step, here.check)?.doneWhen) return [];
   return db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
+    await lockLearner(tx, learnerId);
     const progress = await loadProgress(tx, learnerId);
     const place = navigate(map, progress);
     const session = place ? await liveSession(tx, learnerId, place.topic.id) : undefined;
@@ -133,15 +158,23 @@ export async function finishStepFromWidget(db: Db, map: CourseMap, learnerId: nu
     await storeComingBack(tx, learnerId, session.id, items, now);
     const opened = await openStepWidget(tx, map, moved, learnerId, session.id, now);
     if (opened) items.push(opened);
+    items.push(...(await enterStepItems(tx, map, learnerId, session.id, now)));
     return items;
   });
 }
 
 /** The note for a Next that names a step: what code did, and that the Tutor teaches the step now and can't finish it in this reply. */
-function nextNote(step: TeachingStep, advanced: boolean): string {
+function nextNote(step: TeachingStep, advanced: boolean, place: Place | null): string {
   const name = STEP_NAMES[step];
   const how = advanced
     ? `Code moved them on to the ${name} step.`
     : `They reached the ${name} step outside a Tutor turn (after a quiz pass, or a Check added to a Topic they had passed), so it has not begun; code did not move them on.`;
-  return `${NEXT_PREFIX} the Learner pressed Next: ${name}, and has written nothing. ${how} Nothing of this step has been taught yet: teach it now, then stop and wait for the Learner. You cannot finish this step, record a Check verdict or record an Insight attempt in this reply.`;
+  const converted = place && place.step === step && isConverted(place.topic) ? place : null;
+  const teach =
+    converted && step === "concept" && converted.check?.card
+      ? "Code has shown this step's Concept card and its Widget: add one sentence and one ask, then stop and wait for the Learner."
+      : converted && practiceStep(converted.topic, step, converted.check)
+        ? "Code shows the Quick tries: point the Learner to the first one in a sentence, then stop."
+        : "Nothing of this step has been taught yet: teach it now, then stop and wait for the Learner.";
+  return `${NEXT_PREFIX} the Learner pressed Next: ${name}, and has written nothing. ${how} ${teach} You cannot finish this step, record a Check verdict or record an Insight attempt in this reply.`;
 }
