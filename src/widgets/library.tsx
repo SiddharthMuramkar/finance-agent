@@ -16,10 +16,10 @@ import { openuiLibrary } from "@openuidev/react-ui";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { z } from "zod/v4";
 import type { CaseData, CaseDataset } from "@/case-data/case-data";
-import { calculate, CALCULATOR_IDS, formatMoney } from "@/finance/calculators";
+import { calculate, CALCULATOR_IDS } from "@/finance/calculators";
 import { FORMULAS, formulaById } from "@/finance/formulas";
 import { SecondaryButton } from "@/app/ui";
-import { AnnuityFigure, annuityAgainstCash, AssumptionTag, formatUsd, HistoryFigure } from "./case-data-view";
+import { AnnuityFigure, annuityAgainstCash, AssumptionTag, formatUnit, formatUsd, HistoryFigure } from "./case-data-view";
 import { InsightSettledContext } from "./insight-settled";
 import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { useCaseLoad } from "./case-data-provider";
@@ -39,13 +39,6 @@ const UNITS = ["percent", "years", "usd", "inr"] as const;
 type Unit = (typeof UNITS)[number];
 
 export { formatUsd };
-
-function formatUnit(value: number, unit: Unit) {
-  if (unit === "percent") return `${value}%`;
-  if (unit === "years") return `${value} years`;
-  if (unit === "inr") return formatMoney(value, "inr");
-  return formatUsd(value);
-}
 
 const sliderProps = z.object({
   name: z.string().describe('Field name, e.g. "rate"'),

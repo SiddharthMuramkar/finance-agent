@@ -938,8 +938,9 @@ appears; they press it, and the Tutor replies to what they found and asks them t
 words, which is what the Insight tool can record.
 
 **Trade-off.** Code, not the model, does every sum, at the cost of a block in each message while a Widget is
-open (a few hundred tokens, cached with the rest of the history). Readouts cover only our own parts and simple
-`$rate * 2` style arguments; a kit chart's typed numbers and anything a Query works out in the browser are left
+open (a few hundred tokens, cached with the rest of the history). Readouts cover only our own parts, their
+arguments worked out by OpenUI's own evaluator (as the browser does); slider values are printed with the Slider's own
+`formatUnit`, and the annuity's 1-to-60 payment count is one shared `annuityPaymentCount`; a kit chart's typed numbers and anything a Query works out in the browser are left
 to the slider values. Written-ahead Widgets get readouts the same way, from the parts they are built of, and one that
 says a rate change (`rateChange` in its Topic file) gets those from `rateChange` too. Trusting
 the page's numbers means a tampered request could tell the Tutor a wrong rate, but only about the Learner's own
