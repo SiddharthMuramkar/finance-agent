@@ -7,11 +7,124 @@ import { FORMULA_IDS } from "../finance/formula-ids.ts";
 import { markerProblems } from "../finance/formula-markers.ts";
 import { parseOutline, STAGES, type Outline, type OutlineTopic, type Subject } from "./outline.ts";
 import { guidedTaskTexts, widgetCodeTitle } from "./written-ahead.ts";
+import { MISTAKE_FNS } from "../teaching/mistakes.ts";
+import { ANSWER_FNS } from "../teaching/quantities.ts";
+import type { FixedItem, QuestionTemplate, SignRule, Unit } from "../teaching/index.ts";
 
 // This module imports only packages (no "@/" paths), so `scripts/check-course.mjs`
 // can run it directly with Node's type stripping.
 
 const id = z.string().regex(/^[a-z0-9-]+$/, "IDs use lower case letters, digits and hyphens");
+
+// ——— The teaching a converted Topic's file holds (spec #229, ADR 0006) ———
+// Every field is optional, so a Topic file written before it loads unchanged. A Topic with Skills is converted.
+
+const UNITS = ["points", "bp", "percent", "inr", "years", "ratio", "number"] as const satisfies readonly Unit[];
+const SIGN_RULES = ["magnitude", "signed", "either"] as const satisfies readonly SignRule[];
+
+/** A named engine function: the error names the bad one and every allowed name. */
+const engineName = <T extends string>(what: string, names: readonly [T, ...T[]]) =>
+  z.enum(names as [T, ...T[]], { error: (issue) => `${what} "${String(issue.input)}" is not one of ${names.join(", ")}` });
+
+const answerFn = engineName("answer function", ANSWER_FNS);
+const mistakeFn = engineName("mistake function", MISTAKE_FNS);
+
+/** The currency of a Topic's everyday examples: cards, Quick tries, templates, Skills and Widget presets. Case text keeps its own. */
+const EXAMPLE_CURRENCIES = ["INR", "USD"] as const;
+export type ExampleCurrency = (typeof EXAMPLE_CURRENCIES)[number];
+
+/** One idea a Check tests: its rule in plain words, and at most one analogy, reused. */
+const skillSchema = z.object({ id, rule: z.string().trim().min(1), analogy: z.string().trim().min(1).optional() });
+export type Skill = z.infer<typeof skillSchema>;
+
+/** A term the Topic introduces, and what it means in plain words. */
+const termSchema = z.object({ term: z.string().trim().min(1), means: z.string().trim().min(1) });
+export type Term = z.infer<typeof termSchema>;
+
+/** The Topic's one Running example, and its numbers: "A savings rate goes from 4% to 5%.", [4, 5]. */
+const runningExampleSchema = z.object({ text: z.string().trim().min(1), numbers: z.array(z.number()).min(1) });
+export type RunningExample = z.infer<typeof runningExampleSchema>;
+
+/**
+ * The Widget a Concept card opens, already set: a Widget recipe and its inputs (rate_move { old, new, mode }), or one of
+ * the Topic's written-ahead Widgets and its sliders' values (keys are slider names, "$" optional).
+ */
+const widgetPresetSchema = z.union([
+  z.object({ recipe: z.string().min(1), inputs: z.record(z.string(), z.unknown()), title: z.string().trim().min(1).optional() }).strict(),
+  z.object({ widget: id, values: z.record(z.string(), z.number()) }).strict(),
+]);
+export type WidgetPreset = { recipe: string; inputs: Record<string, unknown>; title?: string } | { widget: string; values: Record<string, number> };
+
+/** A Concept card: at most five plain lines with one worked example, one line to write down, and the Skills it teaches. */
+const conceptCardSchema = z.object({
+  title: z.string().trim().min(1),
+  lines: z.array(z.string().min(1)).min(1),
+  writeDown: z.string().trim().min(1),
+  skills: z.array(id).min(1),
+  /** The worked example's numbers, when it is not the Running example. */
+  example: z.array(z.number()).min(1).optional(),
+  widget: widgetPresetSchema.optional(),
+});
+export type ConceptCard = { title: string; lines: string[]; writeDown: string; skills: string[]; example?: number[]; widget?: WidgetPreset };
+
+/** A fixed item's Known mistake: a wrong answer the file predicts, with its one-line fix. */
+const fixedMistakeSchema = z.object({ answer: z.union([z.number(), z.boolean()]), fix: z.string().trim().min(1), tag: z.string().min(1).optional() });
+
+/** A Quick try written in full: a number to type or True or False, in the engine's FixedItem shape. */
+const fixedItemShape = {
+  id,
+  skill: id,
+  ask: z.string().trim().min(1),
+  kind: z.enum(["number", "truth"]),
+  answer: z.union([z.number(), z.boolean()]),
+  unit: z.enum(UNITS).optional(),
+  decimals: z.number().int().min(0).optional(),
+  sign: z.enum(SIGN_RULES).optional(),
+  mistakes: z.array(fixedMistakeSchema).optional(),
+};
+
+/**
+ * A Quick try: fixed, or one draw of a question template. A fixed try with `halfDone` is a half-done try (R5), the string
+ * being the first step code shows above the ask; a template entry with `halfDone: true` draws the template's half-done
+ * variant (drawTemplate(t, seed, { halfDone: true })).
+ */
+const quickTrySchema = z.union([
+  z.object({ ...fixedItemShape, halfDone: z.string().trim().min(1).optional() }).strict(),
+  z.object({ template: id, halfDone: z.literal(true).optional() }).strict(),
+]);
+export type FixedQuickTry = FixedItem & { halfDone?: string };
+export type QuickTry = FixedQuickTry | { template: string; halfDone?: true };
+
+const paramRange = z.object({ min: z.number(), max: z.number(), step: z.number() });
+
+/** A question template, in the engine's QuestionTemplate shape: code makes its numbers and answer. */
+const templateSchema = z.object({
+  id,
+  skill: id,
+  ask: z.string().trim().min(1),
+  params: z.record(z.string(), paramRange),
+  derived: z.record(z.string(), z.string()).optional(),
+  answer: answerFn,
+  unit: z.enum(UNITS),
+  decimals: z.number().int().min(0),
+  sign: z.enum(SIGN_RULES),
+  mistakes: z.array(z.object({ tag: mistakeFn, fix: z.string().trim().min(1) })).default([]),
+  halfDone: z.object({ shows: z.string().trim().min(1), asks: answerFn }).optional(),
+  avoid: z.array(z.number()).optional(),
+});
+
+// The typed items are the teaching engine's own shapes, so code marks and draws them as they are.
+const asTemplate = (t: z.output<typeof templateSchema>) => t satisfies QuestionTemplate;
+const asQuickTry = (q: z.output<typeof quickTrySchema>) => q satisfies QuickTry;
+const asCard = (c: z.output<typeof conceptCardSchema>) => c satisfies ConceptCard;
+void [asTemplate, asQuickTry, asCard];
+export type TopicTemplate = z.output<typeof templateSchema>;
+
+/** What each Check gains: its Concept card and its Quick tries. */
+const checkTeaching = {
+  card: conceptCardSchema.optional(),
+  quickTries: z.array(quickTrySchema).default([]),
+};
 
 const conversationCheck = z.object({
   id,
@@ -20,31 +133,42 @@ const conversationCheck = z.object({
   required: z.boolean().default(false),
   prompt: z.string().min(1),
   passCriteria: z.string().min(1),
+  /** The Skills this Check tests, which a Concept card at or before it must teach (lint L1). */
+  skills: z.array(id).default([]),
+  ...checkTeaching,
 });
 
 /** A Claude-written quiz question. The key (`answer`, `explanation`) stays on the server until the Learner has answered. */
 const quizQuestion = z.object({
   id,
   prompt: z.string().min(1),
-  choices: z.array(z.object({ id, text: z.string().min(1) })).min(2),
+  /** `mistake`: a wrong choice's Known mistake, whose one-line fix the marking shows. */
+  choices: z
+    .array(z.object({ id, text: z.string().min(1), mistake: z.object({ fix: z.string().trim().min(1), tag: z.string().min(1).optional() }).optional() }))
+    .min(2),
   /** The ID of the right choice. */
   answer: id,
   /** Shown only after the Learner has answered. */
   explanation: z.string().min(1),
   /** Where the answer was checked: a citation or URL. */
   source: z.string().min(1),
+  /** The Skill the question tests (converted Topics). */
+  skill: id.optional(),
 });
 
 const quizCheck = z.object({
   id,
   kind: z.literal("quiz"),
   required: z.boolean().default(false),
-  /** IDs of questions in the Topic's `questions` list, and of Question Bank questions (`bank:...`). */
-  questions: z.array(z.string().min(1)).min(1),
+  /** IDs of questions in the Topic's `questions` list, and of Question Bank questions (`bank:...`). Empty only with `templates`. */
+  questions: z.array(z.string().min(1)).default([]),
+  /** IDs of the Topic's question templates this Check draws typed questions from, with new numbers each attempt. */
+  templates: z.array(id).default([]),
   /** How many questions one attempt shows; defaults to the pass rule's `correct`. */
   perAttempt: z.number().int().min(1).optional(),
   passRule: z.object({ correct: z.number().int().min(1) }),
-});
+  ...checkTeaching,
+}).refine((c) => c.questions.length + c.templates.length > 0, { message: "A quiz Check lists questions, templates or both", path: ["questions"] });
 
 /**
  * A dated piece by a writer (an essay or blog post) that a Follow, Judge or Analyse Case studies:
@@ -273,6 +397,20 @@ const topicSchema = z.object({
     .optional(),
   /** Claude-written quiz questions that this Topic's quiz Checks draw on. */
   questions: z.array(quizQuestion).default([]),
+  /** The currency of the Topic's everyday examples; rupees unless the file says otherwise. Case text keeps its own. */
+  exampleCurrency: z.enum(EXAMPLE_CURRENCIES).default("INR"),
+  runningExample: runningExampleSchema.optional(),
+  /** The terms the Topic introduces (converted Topics list them). */
+  terms: z.array(termSchema).default([]),
+  /** The Topic's Skills. A Topic with any is converted: its Concept steps show cards. */
+  skills: z.array(skillSchema).default([]),
+  /** Question templates its Quick tries and quiz Checks draw from. */
+  templates: z.array(templateSchema).default([]),
+  /**
+   * A content-only restructure: new cards and Quick tries with every Check id kept, so passes stay and Learners keep
+   * their step. The lesson lint fails such a Topic if any Check is required, so no Due Check appears.
+   */
+  restructure: z.literal("content-only").optional(),
   checks: z.array(z.discriminatedUnion("kind", [conversationCheck, quizCheck])),
 }).superRefine((topic, ctx) => {
   // Formula markers ({{formula:...}}) must name a formula on this Topic's own list and give exactly its inputs.
@@ -288,7 +426,58 @@ const topicSchema = z.object({
     for (const problem of markerProblems(text, topic.formulas)) ctx.addIssue({ code: "custom", message: `formula marker ${problem}` });
   }
   for (const problem of stepSettingProblems(topic)) ctx.addIssue({ code: "custom", message: problem });
+  for (const problem of teachingProblems(topic)) ctx.addIssue({ code: "custom", message: problem });
 });
+
+/** References in a Topic's teaching that do not resolve (Skills, templates, written-ahead Widgets), and items that contradict themselves. */
+function teachingProblems(topic: {
+  skills: Skill[];
+  templates: TopicTemplate[];
+  widgets: { id: string }[];
+  questions: { id: string; skill?: string; answer: string; choices: { id: string; mistake?: unknown }[] }[];
+  checks: { id: string; skills?: string[]; templates?: string[]; card?: ConceptCard; quickTries: QuickTry[] }[];
+}): string[] {
+  const problems: string[] = [];
+  const skillIds = new Set<string>();
+  for (const s of topic.skills) {
+    if (skillIds.has(s.id)) problems.push(`Skill "${s.id}" is listed twice`);
+    skillIds.add(s.id);
+  }
+  const skill = (where: string, sid: string) => {
+    if (!skillIds.has(sid)) problems.push(`${where} names Skill "${sid}", which the Topic does not list under skills`);
+  };
+  const templates = new Map(topic.templates.map((t) => [t.id, t]));
+  for (const t of topic.templates) skill(`Template "${t.id}"`, t.skill);
+  for (const q of topic.questions) {
+    if (q.skill) skill(`Question "${q.id}"`, q.skill);
+    if (q.choices.some((c) => c.id === q.answer && c.mistake)) problems.push(`Question "${q.id}" gives its right choice "${q.answer}" a Known mistake`);
+  }
+  for (const c of topic.checks) {
+    const where = `Check "${c.id}"`;
+    for (const sid of c.skills ?? []) skill(where, sid);
+    for (const tid of c.templates ?? []) if (!templates.has(tid)) problems.push(`${where} draws from template "${tid}", which the Topic does not have`);
+    if (c.card) {
+      for (const sid of c.card.skills) skill(`${where} card`, sid);
+      const preset = c.card.widget;
+      if (preset && "widget" in preset && !topic.widgets.some((w) => w.id === preset.widget)) {
+        problems.push(`${where} card opens Widget "${preset.widget}", which is not one of the Topic's written-ahead Widgets`);
+      }
+    }
+    c.quickTries.forEach((q, i) => {
+      if ("template" in q) {
+        const t = templates.get(q.template);
+        if (!t) problems.push(`${where} Quick try ${i + 1} draws from template "${q.template}", which the Topic does not have`);
+        else if (q.halfDone && !t.halfDone) problems.push(`${where} Quick try ${i + 1} asks for the half-done variant of template "${q.template}", which has none`);
+        return;
+      }
+      const at = `${where} Quick try "${q.id}"`;
+      skill(at, q.skill);
+      if ((q.kind === "number") !== (typeof q.answer === "number")) problems.push(`${at} is a ${q.kind} item, so its answer must be ${q.kind === "number" ? "a number" : "true or false"}`);
+      if ((q.mistakes ?? []).some((m) => typeof m.answer !== typeof q.answer)) problems.push(`${at} has a Known mistake of a different kind from its answer`);
+    });
+  }
+  return problems;
+}
 
 /** A Connection with the titles of its linked Topics filled in by code. */
 export type Connection = { text: string; topics: string[]; titles: string[] };
@@ -306,6 +495,20 @@ export type Topic = Omit<z.infer<typeof topicSchema>, "stage" | "path" | "prereq
 export type Check = Topic["checks"][number];
 export type QuizCheck = Extract<Check, { kind: "quiz" }>;
 export type QuizQuestion = Topic["questions"][number];
+export type ConversationCheck = Extract<Check, { kind: "conversation" }>;
+
+/** A Topic is converted once its file lists Skills: its Concept steps show cards and the lesson lint covers it. */
+export function isConverted(topic: Pick<Topic, "skills">): boolean {
+  return topic.skills.length > 0;
+}
+
+/** The Skills a Check tests, in order and once each: its questions' and templates' Skills, or a conversation Check's own. */
+export function testedSkills(topic: Pick<Topic, "questions" | "templates">, check: Check): string[] {
+  if (check.kind === "conversation") return [...new Set(check.skills)];
+  const fromQuestions = check.questions.flatMap((qid) => topic.questions.find((q) => q.id === qid)?.skill ?? []);
+  const fromTemplates = check.templates.flatMap((tid) => topic.templates.find((t) => t.id === tid)?.skill ?? []);
+  return [...new Set([...fromQuestions, ...fromTemplates])];
+}
 export type CourseMap = {
   /** Topics in default-path order. */
   topics: Topic[];
@@ -313,6 +516,8 @@ export type CourseMap = {
   check(id: string): (Check & { topicId: string }) | undefined;
   /** A quiz question by ID, from whichever Topic holds it. */
   question(id: string): QuizQuestion | undefined;
+  /** A question template by ID, from whichever Topic holds it. */
+  template(id: string): (TopicTemplate & { topicId: string }) | undefined;
   /** Topics in the outline that are not written yet, in default-path order. Not teachable, shown as coming. */
   coming: OutlineTopic[];
 };
@@ -355,7 +560,9 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
 
   const seen = new Set<string>();
   for (const t of topics) {
-    for (const key of [t.id, ...t.cases.map((c) => c.id), ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id)]) {
+    const fixedTries = t.checks.flatMap((c) => c.quickTries.flatMap((q) => ("id" in q ? [q.id] : [])));
+    const keys = [t.id, ...t.cases.map((c) => c.id), ...t.checks.map((c) => c.id), ...t.questions.map((q) => q.id), ...t.templates.map((x) => x.id), ...fixedTries];
+    for (const key of keys) {
       if (seen.has(key)) errors.push(`Duplicate ID "${key}"`);
       seen.add(key);
     }
@@ -379,6 +586,7 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
   const sorted = [...topics].sort((a, b) => a.path - b.path || a.id.localeCompare(b.id));
   const checks = new Map(topics.flatMap((t) => t.checks.map((c) => [c.id, { ...c, topicId: t.id }] as const)));
   const questions = new Map(topics.flatMap((t) => t.questions.map((q) => [q.id, q] as const)));
+  const templates = new Map(topics.flatMap((t) => t.templates.map((x) => [x.id, { ...x, topicId: t.id }] as const)));
   return {
     errors,
     map: {
@@ -386,6 +594,7 @@ export function parseCourseMap(files: TopicFile[], outline?: Outline): { map?: C
       topic: (k) => byId.get(k),
       check: (k) => checks.get(k),
       question: (k) => questions.get(k),
+      template: (k) => templates.get(k),
       coming: outline ? outline.topics.filter((t) => !byId.has(t.id)) : [],
     },
   };
@@ -522,7 +731,8 @@ function quizProblems(t: Topic): string[] {
     for (const q of c.questions) if (!isBankId(q) && !known.has(q)) problems.push(`Check "${c.id}" uses question "${q}", which Topic "${t.id}" does not have`);
     if (new Set(c.questions).size !== c.questions.length) problems.push(`Check "${c.id}" lists a question twice`);
     const shown = c.perAttempt ?? c.passRule.correct;
-    if (shown > c.questions.length) problems.push(`Check "${c.id}" shows ${shown} questions per attempt but lists only ${c.questions.length}`);
+    // A template draws new numbers every attempt, so it counts as an unlimited pool.
+    if (c.templates.length === 0 && shown > c.questions.length) problems.push(`Check "${c.id}" shows ${shown} questions per attempt but lists only ${c.questions.length}`);
     if (c.passRule.correct > shown) problems.push(`Check "${c.id}" needs ${c.passRule.correct} correct but shows only ${shown} per attempt`);
   }
   return problems;

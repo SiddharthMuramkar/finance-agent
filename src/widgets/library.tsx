@@ -772,6 +772,7 @@ const BRIEF: Record<string, string> = {
   StepThrough: "A worked example or a cause-and-effect chain, one Step at a time with Back and Next.",
   Rank: "Put 2 to 8 items in order, then check; correctOrder lists item indexes from low end to high; one reason per item.",
   Waterfall: "A start, each change (costs negative) and the total bar, added up by code.",
+  RateMove: 'A rate move on a number line, with points, bp and percent of the old rate by code; "practice" asks for the bp first.',
 };
 
 /** A v2 part with its brief description (defineComponent's result is a plain object, so a copy is the same part). */
@@ -1012,7 +1013,7 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
   },
   {
     name: "Things to count",
-    components: ["MoneyStack", "Pictogram", "Waffle", "PriceTag", "ShrinkingNote", "TimeTravel", "Waterfall"],
+    components: ["MoneyStack", "Pictogram", "Waffle", "RateMove", "PriceTag", "ShrinkingNote", "TimeTravel", "Waterfall"],
   },
   {
     name: "Our parts: numbers from code",

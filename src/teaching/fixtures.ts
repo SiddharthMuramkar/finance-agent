@@ -2,7 +2,7 @@
  * Example question templates for the Percent Topic's Skills, used by the engine's tests and as a pattern for Topic
  * files. The running example (4% to 5%: 1 point, 100 bp, 25%) is kept out of every draw.
  */
-import type { QuestionTemplate } from "./templates";
+import type { QuestionTemplate } from "./templates.ts";
 
 /** The running example's numbers, which no drawn question may use. */
 export const RUNNING_EXAMPLE = [4, 5, 1, 100, 25];

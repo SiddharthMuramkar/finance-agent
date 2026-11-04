@@ -465,7 +465,9 @@ through the 2018 $1.537 billion Mega Millions jackpot and its $877.8 million cas
 A validator checks the files: every prerequisite must exist, prerequisites must not loop, IDs
 must be unique, every Topic needs at least one Check, and a quiz Check may use only questions its
 Topic holds, with an answer that is one of the choices and a pass rule it can actually meet. A Topic may also hold an
-`insight` and an `explore` block, both or neither, checked as described under "The explore step". It runs as part of `npm run check`,
+`insight` and an `explore` block, both or neither, checked as described under "The explore step". A Topic may also hold its
+teaching (Skills, a Concept card per Check, Quick tries, question templates and Known mistakes), checked by the lesson lint, as
+described under "Topic files carry the teaching". It runs as part of `npm run check`,
 so CI fails on a bad edit.
 
 **Scenario.** Someone adds a Topic that requires `bond-pricing`, which doesn't exist yet. CI
@@ -994,34 +996,41 @@ and the target of `breakeven_hunt` use a calculator's first result only, so a ca
 number you want cannot be compared yet. A sourced `buying_power` price assumes the series and the amount share a
 currency, which the recipe cannot check.
 
-### The rate-move recipe: the one rate Widget, in show and practice modes (`src/widgets/recipes/set-tutor.ts`, `rateMoveLines` in `src/finance/rate-change.ts`; spec #229, ticket #234)
+### The rate-move recipe and the RateMove part: the one rate Widget, in show and practice modes (`src/widgets/recipes/set-tutor.ts`, `src/widgets/primitives/wave2/rate-move.tsx`, `rate-move-marking.ts`, `rateMoveLines` in `src/finance/rate-change.ts`; spec #229, ticket #234)
 
 **What it does.** One recipe, `rate_move`, in its own set (`SET_TUTOR`) so it never touches sets A and B. It takes two
-rates, `old` and `new` (in percent, 0 to 20, steps of 0.01), and a `mode`. It draws the move as a line from the old rate
-to the new one on an axis that starts at 0%, and under it three worked lines, each labelled: points (new minus old),
-basis points (points times 100) and percent of the old rate. The lines are words, never typed sums (ADR 0002):
-"5.2% minus 5% is 0.2 points", "0.2 points times 100 is 20 bp", "0.2 divided by the old 5%, times 100, is 4%". A fall
-says "a fall of", and an old rate of 0% says the percent change has no value. `rateMoveLines` writes these words and is
-tested on its own. In **show** mode (the default) the lines are expressions of the two sliders, so they rewrite
-themselves as the Learner plays; the new rate's slider is in view, the old rate's sits under "More settings", and a test
-evaluates the expressions across the whole range and holds them to `rateMoveLines` word for word. In **practice** mode
-there are no sliders: a StepThrough asks "By how many basis points?", the Learner types a whole number, code marks it,
-and the three lines (written by `rateMoveLines` at compile time) come on the next steps. The numbers are inputs, not
-`facts`, so the Widget is never an Illustration, and there is no currency anywhere in it.
+rates, `old` and `new` (in percent, 0 to 20, steps of 0.01), and a `mode`, and in both modes it draws one part made for
+it, `RateMove(oldRate, newRate, mode?)`. The part draws a number line with an arrow, arrowhead and all, from the old
+rate to the new one, labelled "Old 4%" and "New 5%" (percent only, never a currency). Under it are three worked lines,
+each labelled: points (new minus old), basis points (points times 100) and percent of the old rate. The lines are
+words, never typed sums (ADR 0002): "5.2% minus 5% is 0.2 points", "0.2 points times 100 is 20 bp", "0.2 divided by the
+old 5%, times 100, is 4%". A fall says "a fall of", and an old rate of 0% says the percent change has no value. The
+part calls the tested `rateMoveLines` in the browser, so the words on screen are the tested words.
+
+In **show** mode (the default) the recipe binds the part to two sliders, `$new` in view and `$old` under "More settings",
+so the arrow and the lines follow the Learner's play, with two Guided Tasks. In **practice** mode the recipe gives the
+part the two numbers and no sliders. The part asks "By how many basis points?" in one typed box. The lines are not on
+the page at all until an answer is marked: there is no Next or any other way past the question. `markMove` marks the
+answer with T02's exact arithmetic (`parseAnswer`, and `matchesAnswer`, which uses `exactEquals`), in whole basis points
+for a move of any size: "20", "20bp" and "20 bp" are read the same, and a fall may be typed as its size, with a minus
+sign or as "a fall of 30". Text that is not one number is not marked. Once marked (right or wrong, with the right
+answer said), the three lines show, and two sliders appear for play. They are the part's own, so they move the arrow and
+the lines but never the marked question or its mark. The numbers are inputs, not `facts`, so the Widget is never an
+Illustration.
 
 **Scenario.** At Percent's Concept step the Tutor calls `show_widget` with `rate_move`, `old: 4`, `new: 5`. The panel
-shows the line rising from 4% to 5% and "5% minus 4% is 1 point", "1 point times 100 is 100 bp" and "1 divided by the
-old 4%, times 100, is 25%". The Learner drags the new rate to 3.5% and the lines turn into "a fall of 0.5 points" and so
-on, with no model call. Later the Tutor opens the same recipe at 7.5% to 7.2% with `mode: "practice"`; the Learner types
-3, sees "Not quite", types 30, sees "Right", and steps through the three lines.
+shows the arrow from 4% to 5% and "5% minus 4% is 1 point", "1 point times 100 is 100 bp" and "1 divided by the old
+4%, times 100, is 25%". The Learner drags the new rate to 3.5%: the arrow turns round and the lines say "a fall of 0.5
+points", with no model call. Later the Tutor opens the recipe at 2% to 4.5% with `mode: "practice"`. The Learner types
+"2.5", sees "Not quite. The move is 250 bp. 2.5 is the move in points; times 100 gives basis points.", and the three
+lines appear under it.
 
-**Trade-off.** It is built only from parts that exist, so three things are near rather than exact. The "arrow" is a
-line chart from Old rate to New rate, not a number line with an arrowhead. Practice uses StepThrough's typed answer
-rather than Predict (which takes a dragged guess, not a typed one), and StepThrough lets an answer be off by 0.5%, so
-practice refuses moves of 2 points or more, where that would let a wrong whole number through. And "hidden until
-answered" means hidden behind Next: the Learner can step past the question without answering. A dedicated part would
-close all three. Code reading a shown `rate_move` (the readouts sent to the Tutor) is not wired yet; the state names are
-exported as `RATE_MOVE_STATE`.
+**Trade-off.** A part of its own costs a line in the Widget instructions (about 240 characters, allowed for in the
+instructions' size test) and a frozen-library update, but it closes what the first build, made from StepThrough and a
+LineChart, left open: a real arrow, a reveal that waits for an answer, and exact marks for big moves. Practice gives
+one try: a wrong answer shows the lines rather than inviting guesses. The play sliders are part state, not Widget state,
+so they are not saved with the Session and a Guided Task cannot read them. Code reading a shown `rate_move` (the
+readouts sent to the Tutor) is T14's; the state names stay exported as `RATE_MOVE_STATE`.
 
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
@@ -3627,6 +3636,27 @@ backfill reload places the corrected readings.
 
 **Trade-off.** The detector is strict: it also catches worked sums such as "100 / 1.10 = 90.91", so 86 other Topics that type formulas are on a not-yet-converted list (`NOT_YET_CONVERTED`). That list can only shrink: a Topic on it that has become clean must come off, and a Topic off it that types a formula fails. A strict detector means a few false alarms in a converted Topic, which are fixed by rewording into worded steps; it never means a missed formula going out unnoticed. Question Bank items are not scanned yet (they live in the database), so a Topic's quiz that uses a bank item can still show one until its explanation is converted or the item is swapped. A marker is checked when the Course Map loads: it must name a formula on the Topic's own `formulas` list and give exactly that formula's inputs.
 
+## Topic files carry the teaching, checked by the lesson lint (`src/course/map.ts`, `lesson-lint.ts`, `lesson-presets.test.ts`, `lesson-fixture.ts`, `formula-check.ts`, `presetValueProblems` in `written-ahead-check.ts`, `scripts/check-course.mjs`, spec #229, ticket #237, ADR 0006)
+
+**What it does.** A Topic file can now hold its own teaching, in new fields that are all optional, so every Topic written before loads unchanged. A Topic gets an example currency (`exampleCurrency`, rupees by default, for its everyday examples; a Case keeps its own currency), one Running example with its numbers, the terms it introduces, its Skills (each a rule in plain words and at most one analogy) and its question templates. Each Check gets one Concept card (a title, a few lines, one line to write down, the Skills it teaches, and a Widget preset: a recipe such as `rate_move` with its inputs, or one of the Topic's written-ahead Widgets with its sliders' values) and its Quick tries, fixed or drawn from a template. A quiz Check can draw typed questions from templates, which count as an unlimited pool, and a conversation Check lists the Skills it tests. A quiz question can carry a Skill, and a wrong choice a Known mistake with its fix. A Topic that lists Skills is converted (`isConverted`); `testedSkills` says which Skills a Check tests, and the Course Map finds a template by id. Fixed items and templates use the teaching engine's own shapes (`FixedItem`, `QuestionTemplate`, src/teaching), so code marks and draws them as written. The schema rejects an answer or mistake function the engine does not have, naming it and the allowed list, and any Skill, template or written-ahead Widget that does not resolve. A file can mark a restructure as content-only: Check ids stay, so passes stay, and the Course Navigator already keeps each Learner's step.
+
+The lesson lint (`lessonLintErrors`) then checks every converted Topic, after the typed-formula check, in `npm run course:check`:
+
+- **L1:** every Skill a Check tests is on a card at or before it; every Check has a card; every listed question has a Skill; each Quick try's Skill is on its Check's card or an earlier one; no Question Bank questions; the terms are listed.
+- **L2:** three Quick tries per Skill (a template is unlimited), one of them half-done, and three times the per-attempt count of distinct questions in each quiz Check (or a template).
+- **L3:** five lines at most on a card, with its write-down line; no sentence over 20 words.
+- **L4:** each Widget preset is valid.
+- **L5:** the currency matches the Topic: no $, USD, € or £ in a rupee Topic, no ₹ or Rs in a dollar one.
+- **L6:** no question prompt or ask says "wrong", "not" or "except", bold or not (the Check tab cannot show bold).
+- **L7:** no question a Check lists, and none of 50 draws of a template it lists, holds all the numbers of the Running example or of a card's own worked example.
+- **Draws:** every template draws 50 seeds and marks its own answer right; a fixed try's answer is exact at its decimals, and no Known mistake equals it.
+
+The rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, which holds all 95 Topics today and can only shrink: a listed Topic that gains Skills must come off, and an unlisted one without Skills fails. A content-only restructure fails if any Check is required, so no Due Check appears. The typed-formula check also reads every new text (card lines, Skills, Quick tries, templates, choice fixes, the Running example), and a typed sum there fails even for a Topic still on its own not-yet-converted list.
+
+**Scenario.** Someone converting Percent moves the percent-change rule from Check 2's card to Check 3's but leaves Check 2's percent-change template in place. CI fails with `L1: Check "num-percent-bps-check-2" tests Skill "pct-change", which no Concept card at or before it teaches (Topic "num-percent-bps")`, the gap the Percent Session showed. If a card line says "5 - 4 = 1 point", the typed-formula check names that line; if a template could draw "from 4% to 5%", L7 says to add those numbers to its avoid list.
+
+**Trade-off.** Plain Node runs the course check, and it cannot load the Widget recipes (their imports have no extensions), so `course:check` checks written-ahead presets only (`presetValueProblems`: slider names, range and step, the same rules `open_widget` will use for a Tutor preset). Recipe presets are built with the recipe and run through the Widget checks in `lesson-presets.test.ts`, which is part of `npm run check` but not of `course:check` alone. The not-yet-converted list means the new rules guard nothing until a Topic converts; that is on purpose, as with the typed-formula list. L7 compares numbers, not moves, so a question that happens to use 4 and 5 for something else fails too; the fix is a different number. `src/course/lesson-fixture.ts` holds one full converted Topic, built from the spec's gold cards, for tests that need one.
+
 ## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
 
 **What it does.** A fifth header link, "Notes", opens a page titled "Notes" that lists the Topics in course order, each as a Topic Note (since spec #119 only the Topics that have a note, with "Show all Topics" for the rest: see "The Notes filter and Undo" below). When a Topic is passed, code fills in its note with no model call: its Formula Cards drawn with example numbers (the numbers from the first marker in the Topic's own text that names the formula, else the registry's working example, with results from the formula's calculator), the Insight in the Learner's own words (beside the written Insight only when the Tutor had to tell it), the principle, the Connections and the mistakes the Tutor noticed. Nothing of that part is stored: it is built from the current Topic file and the Learner's records every time the page opens. What is stored is only the Learner's own lines, in `note_items` (kind "line"), which they can add, edit and delete on any Topic, passed or not, through `/api/notes` behind the passcode. The table also has empty columns for the saved replies and Widgets of the next ticket. The page prints: the header, buttons and boxes for typing are hidden on paper, a Topic with nothing on it is left out, and the light look is forced onto white.
@@ -3788,7 +3818,8 @@ came next, then press "Show me what happened". `PriceTag` and `ShrinkingNote` sh
 and a note whose printed value stays put while its buying power shrinks inside it. `TimeTravel` drags one coin from today to
 year 30 (or, with payments, brings a row of coins to today where they stack up). `StepThrough` is a worked example with Back and
 Next, whose child `Step` can ask the Learner to type a number that code checks. `Rank` puts items in order by drag or keyboard,
-then checks and shows a reason for each. `Waterfall` takes revenue, then each cost, then adds up what is left. Every figure is
+then checks and shows a reason for each. `Waterfall` takes revenue, then each cost, then adds up what is left. An eighth part,
+`RateMove`, came later with the `rate_move` recipe (spec #229): see "The rate-move recipe and the RateMove part". Every figure is
 worked out by code: the tested present value and inflation formulas, or the Case Data the server sends.
 
 **Scenario.** On the Sensex story `DrawTheLine` shows 1979 to 1990. The Learner draws a gentle climb, and each stroke is written

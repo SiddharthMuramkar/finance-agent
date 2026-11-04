@@ -120,11 +120,11 @@ describe("widget instructions", () => {
     for (const old of ["make it rich", "A number the Learner changes is always a Slider"]) expect(frozen.instructions).not.toContain(old);
   });
 
-  it("with the widget engine off, grow the Tutor's instructions by at most 10% for the v2 language (44,836 characters before)", () => {
+  it("with the widget engine off, grow the Tutor's instructions by at most 10% for the v2 language (44,836 characters before), plus the RateMove part", () => {
     // Spec #229 (ticket #238) grew the teaching rules before the Widget text on purpose. This bound is about the Widget
     // language, so it counts the rules at the 11,194 characters they had when it was set.
     expect(TUTOR_INSTRUCTIONS.endsWith(frozen.instructions)).toBe(true);
-    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1);
+    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250);
   });
 
   it("group every part of the library, so none is listed under Other", () => {

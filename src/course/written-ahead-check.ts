@@ -94,6 +94,26 @@ function codeProblems(where: string, code: string): string[] {
   return problems;
 }
 
+/**
+ * Problems with a preset for a written-ahead Widget (a Concept card's, or the Tutor's through open_widget): each key, with
+ * or without "$", must be one of the Widget's sliders, and each value must lie within its min and max and on its step.
+ * None means the preset is valid.
+ */
+export function presetValueProblems(code: string, values: Record<string, number>): string[] {
+  const drawn = drawProblems(code);
+  if (drawn.length) return [`the Widget cannot be drawn: ${drawn.join("; ")}`];
+  const sliders = parsedSliders(parser.parse(code).root?.props.children);
+  const names = sliders.map((s) => s.variable.replace(/^\$/, ""));
+  return Object.entries(values).flatMap(([key, value]) => {
+    const name = key.replace(/^\$/, "");
+    const s = sliders.find((x) => x.variable.replace(/^\$/, "") === name);
+    if (!s) return [`"${name}" is not one of the Widget's sliders (${names.join(", ") || "it has none"})`];
+    if (!Number.isFinite(value) || value < s.min - 1e-9 || value > s.max + 1e-9) return [`${name} = ${value} is outside ${s.min} to ${s.max}`];
+    if (!onStep(value, s)) return [`${name} = ${value} is not on a step of ${sliderStep(s)} from ${s.min}`];
+    return [];
+  });
+}
+
 /** Problems in one written-ahead Widget, with its reveal task added too when it has one. */
 export function writtenAheadCheck(topicId: string, widget: Topic["widgets"][number]): string[] {
   const where = `Topic "${topicId}" written-ahead Widget "${widget.id}"`;

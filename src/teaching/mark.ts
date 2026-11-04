@@ -13,8 +13,8 @@ import {
   type Exact,
   type SignRule,
   type Unit,
-} from "./answers";
-import type { DrawnItem } from "./templates";
+} from "./answers.ts";
+import type { DrawnItem } from "./templates.ts";
 
 /** A Quick try or Check question written in full in the Topic file: a number to type, or True or False. */
 export interface FixedItem {
