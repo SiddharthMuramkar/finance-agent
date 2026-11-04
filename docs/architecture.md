@@ -953,6 +953,17 @@ compiles a Widget with one Years slider, the SIP Calculator and a Guided Task at
 the panel opens it at once; the Tutor's result lists the slider and task, and it writes two sentences about moving the
 years. Had it asked for a slider from 40 to 30 years, it would have got "min must be below max" and called again.
 
+**Recipe set B (`recipes/set-b.ts`, `recipes/b/`).** Five recipes on the new parts, plus two upgraded seeds.
+`price_over_time` (a PriceTag or ShrinkingNote with years or the yearly rise on the slider), `predict_number` (a
+Predict whose real figure is the first or last point of a Case Data series, so it waits while the data is withheld),
+`chain` (a StepThrough; digits and formulas in the words are refused unless facts.numbers makes it an Illustration),
+`rank` (a Rank: the Tutor lists the items from the low end to the high end with a reason each, and code scrambles them
+and writes the answer key), and `fx_convert` (a Pictogram of what rupees buy as the rupees-per-dollar slider moves,
+with the real rate from `reference/usd-inr` as outlines). `history_case` now takes a log axis or a DrawTheLine, and
+`formula` now says plainly which Formula Card symbol is missing, repeated or unknown. Scenario: the Tutor asks for
+`rank` with four ways to hold money; the Learner gets them mixed up and drags them into order, and code checks it. The
+trade-off is that the Tutor chooses among fixed shapes: a Widget that needs two controls does not fit these recipes.
+
 **Trade-off.** Code draws a designed, tested Widget in milliseconds, but only the ideas a recipe covers: with the
 engine on there is no freeform Widget until compose_widget arrives, so the rest is taught in words. The instructions
 are about 16.8K characters instead of 44.3K (tools 10.9K instead of 10.1K): roughly 7K tokens instead of 13.6K before
@@ -994,6 +1005,14 @@ numbers on `$variable` names, short task texts, at most 20 of each), not the Wid
 Tutor Widget is in a reply the route would have to find; what is saved is only ever read back into that Widget.
 A static page render cannot show saved values (OpenUI fills in state after the first browser render), so the
 workspace test draws in happy-dom, a browser-like page.
+
+### Widgets that update in place, the 12 second guard and the timing events (`turn-stream.ts`, `widget-states.tsx`, `widget-panel.tsx`, `analytics.ts`)
+
+**What it does.** Three browser behaviours for Widgets. First, when the turn stream carries a `widget_state` event (the Tutor changed a Widget's sliders), the browser saves those values under the Widget's key like a slider drag would (replacing any save still waiting), leaves ticked Guided Tasks alone, and bumps a per-key revision; the Widget is keyed by that revision, so its sliders remount at the new values. Second, a chip or card that has said "Drawing…" for 12 seconds turns into a quiet "The Widget did not arrive." with a Retry button instead of a spinner that never ends; Retry asks the page to draw it again if the page offers that, and always waits another 12 seconds. Third, `analytics.ts` wraps Vercel's `track` and sends five events: `turn_first_text` (ms to the first words), `widget_first_pixel` and `widget_interactive` (lane, recipe, ms from when the Widget began drawing), `widget_timeout` and `widget_fallback`. The lane is the Widget's source ("recipe", "compose", "fallback") or "fence" for one written in the reply.
+
+**Scenario.** The Learner has the rate slider at 3%. They say "show me 8%". The Tutor updates the Widget, the server sends `widget_state {rate: 8}`, and the slider jumps to 8 while the task they already ticked stays ticked. Another time a Widget's fence opens and the reply stalls: after 12 seconds the chip says it did not arrive and offers Retry.
+
+**Trade-off.** Remounting the Widget on a push is simple and always shows the right values, but a half-typed number in that Widget is lost. The timing events never throw and are off under tests, but Vercel only records custom events on the Pro plan or above, and Pro keeps two properties per event (Plus and Enterprise keep eight), so on Pro the third property of the Widget events is dropped.
 
 ### What the Tutor sees of the Widgets, and Tell the Tutor what I found (`src/widgets/widget-reading.ts`, `src/tutor/widget-context.ts`, `turn.ts`, `/api/turn`, `turn-stream.ts`, `WidgetWithSave` in `widget-panel.tsx`, spec #119, ticket #148)
 

@@ -9,7 +9,8 @@ import { widgetParts, widgetProblems } from "@/widgets/check";
 import { SavedTicksContext, type SavedTicks } from "@/widgets/saved-ticks";
 import { widgetKey } from "@/widgets/widget-state";
 import { allTasksTicked } from "@/widgets/widget-reading";
-import { Chip, Eyebrow, SecondaryButton, type ChipState } from "./ui";
+import { Button, Chip, Eyebrow, SecondaryButton, type ChipState } from "./ui";
+import { track, widgetLane } from "./analytics";
 import { SaveToNotes, type SaveTarget } from "./save-to-notes";
 import { useWidgetStore } from "./widget-states";
 import { WidgetView } from "./widget-view";
@@ -31,7 +32,64 @@ export type WidgetItem = {
   save?: SaveTarget & { kind: "widget" };
   /** The keys of earlier Widgets with the same title that this one updated in place (see updatedInPlace). */
   replaces?: string[];
+  /** Where the Widget came from: "recipe", "compose" or "fallback" for one the Tutor's tools made; absent for one written in the reply. */
+  source?: string;
 };
+
+/** How long a chip or card may say "Drawing…" before it admits the Widget did not arrive. */
+export const DRAWING_TIMEOUT_MS = 12_000;
+
+/** When each Widget (by key) was first seen drawing, so the timing events measure from the fence, not from the render. */
+const drawingSince = new Map<string, number>();
+
+/**
+ * Lets the page re-ask for a Widget that never arrived (the Retry on a timed-out chip). The Study Workspace may give
+ * it; without one, Retry only gives the Widget another 12 seconds.
+ */
+export const WidgetRetryContext = createContext<((key: string) => void) | null>(null);
+
+/**
+ * True once `drawing` has been true for DRAWING_TIMEOUT_MS (the Widget's fence or tool call began and nothing
+ * finished it). `retry` starts the wait again. Sends widget_timeout once per give-up.
+ */
+function useDrawingGuard(key: string, drawing: boolean) {
+  const [timedOut, setTimedOut] = useState(false);
+  const [round, setRound] = useState(0);
+  const retryWith = useContext(WidgetRetryContext);
+  useEffect(() => {
+    if (!drawing) return;
+    if (!drawingSince.has(key)) drawingSince.set(key, performance.now());
+    const timer = setTimeout(() => {
+      setTimedOut(true);
+      track("widget_timeout", { lane: "fence" });
+    }, DRAWING_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [key, drawing, round]);
+  return {
+    timedOut: timedOut && drawing,
+    retry: () => {
+      setTimedOut(false);
+      setRound((r) => r + 1);
+      retryWith?.(key);
+    },
+  };
+}
+
+/** The quiet failure a Widget shows when it has been drawing too long: a plain line and a Retry, never a spinner forever. */
+function DrawingFailed({ retry, compact = false }: { retry: () => void; compact?: boolean }) {
+  return (
+    <div
+      data-testid="widget-timeout"
+      role="status"
+      className={`flex items-center justify-between gap-3 text-sm text-[var(--muted)] ${compact ? "my-3 rounded border border-[var(--border)] px-3 py-1.5" : ""}`}
+    >
+      <span>The Widget did not arrive.</span>
+      <Button variant="secondary" size="sm" onClick={retry} data-testid="widget-retry">
+        Retry
+      </Button>
+    </div>
+  );
+}
 
 /** True when the Widget is the one `key` names: its own key, or that of an earlier Widget it updated in place. */
 export const holdsKey = (item: WidgetItem, key: string | undefined): boolean => key !== undefined && (item.key === key || !!item.replaces?.includes(key));
@@ -182,16 +240,28 @@ export const TELL_THE_TUTOR = "Tell the Tutor what I found →";
  * Save to notes keeps the same values under the same key. Elsewhere (Home, for one) they are kept only while it is
  * on screen, and with no `save` there is no Save to notes. It reads only these fields of the conversation's item.
  */
-export function WidgetWithSave({ item, bare = true }: { item: Pick<WidgetItem, "code" | "complete" | "explore" | "writtenAhead" | "save">; bare?: boolean }) {
+export function WidgetWithSave({
+  item,
+  bare = true,
+}: {
+  item: Pick<WidgetItem, "code" | "complete" | "explore" | "writtenAhead" | "save"> & Partial<Pick<WidgetItem, "key" | "source">>;
+  bare?: boolean;
+}) {
   const settings = useRef<Record<string, number>>({});
   const loadCase = useCaseLoad();
   const store = useWidgetStore();
   // Only a finished Widget has a key: a streaming one's title may not be complete yet.
   const key = store && item.complete ? (item.writtenAhead ?? widgetKey(widgetParts(item.code).title)) : undefined;
+  // Bumped when the server pushes new slider values (the Tutor updated this Widget): the sliders remount at them.
+  const revision = useSyncExternalStore(
+    (changed) => store?.subscribe(changed) ?? (() => {}),
+    () => (store && key ? store.revision(key) : 0),
+    () => 0,
+  );
   // What it starts from is read as it mounts, and again when its code changes (a reveal task joining the explore
   // Widget draws it afresh), so it starts from the Learner's work so far: later saves come from the Widget itself.
   // eslint-disable-next-line react-hooks/exhaustive-deps -- read again when the code changes, not on every save
-  const start = useMemo(() => (key ? store?.saved(key) : undefined), [store, key, item.code]);
+  const start = useMemo(() => (key ? store?.saved(key) : undefined), [store, key, item.code, revision]);
   // The ticked Guided Tasks so far, kept here too, so Tell the Tutor what I found shows the moment the last one ticks.
   const [ticked, setTicked] = useState<readonly string[]>(() => start?.ticked ?? []);
   const ticks = useMemo<SavedTicks | null>(
@@ -216,10 +286,11 @@ export function WidgetWithSave({ item, bare = true }: { item: Pick<WidgetItem, "
   // Only a finished Widget that passes the check is drawn, so only its Case Data gets the strip.
   const datasets = useMemo(() => (item.complete && !widgetProblems(item.code).length ? widgetParts(item.code).datasets : []), [item.code, item.complete]);
   const cases = useSourcedCases(datasets, loadCase);
+  const timing = useWidgetTiming(item.complete, item.key, widgetLane(item.source), widgetParts(item.code).title?.trim() ?? "", revision);
   return (
-    <>
+    <div className="contents" ref={timing}>
       <SavedTicksContext.Provider value={ticks}>
-        <WidgetView code={item.code} complete={item.complete} bare={bare} onSettings={onSettings} loadCase={loadCase} initialValues={start?.values} />
+        <WidgetView key={revision} code={item.code} complete={item.complete} bare={bare} onSettings={onSettings} loadCase={loadCase} initialValues={start?.values} />
       </SavedTicksContext.Provider>
       <SourcedStrip datasets={datasets} cases={cases} />
       {canReport && (
@@ -238,8 +309,46 @@ export function WidgetWithSave({ item, bare = true }: { item: Pick<WidgetItem, "
           />
         </div>
       )}
-    </>
+    </div>
   );
+}
+
+/**
+ * Sends widget_first_pixel when a finished Widget first renders and widget_interactive when its first control is
+ * enabled, once each per Widget, timed from when it began drawing (or from mounting, for one that never drew).
+ * widget_fallback goes once when the Widget is the fallback the server drew in place of a refused one.
+ */
+function useWidgetTiming(complete: boolean, key: string | undefined, lane: string, recipe: string, revision: number) {
+  const root = useRef<HTMLDivElement>(null);
+  const [mountedAt] = useState(() => performance.now());
+  const sent = useRef({ pixel: false, interactive: false });
+  useEffect(() => {
+    const el = root.current;
+    if (!complete || !el) return;
+    const since = (key && drawingSince.get(key)) || mountedAt;
+    const ms = () => Math.round(performance.now() - since);
+    if (!sent.current.pixel) {
+      sent.current.pixel = true;
+      track("widget_first_pixel", { lane, recipe, ms: ms() });
+      if (lane === "fallback") track("widget_fallback", { recipe });
+    }
+    if (sent.current.interactive) return;
+    const enabled = () => !!el.querySelector('input:not([disabled]), button:not([disabled]), select:not([disabled]), [role="slider"]');
+    const done = () => {
+      sent.current.interactive = true;
+      track("widget_interactive", { lane, recipe, ms: ms() });
+    };
+    if (enabled()) return done();
+    if (typeof MutationObserver === "undefined") return;
+    const watch = new MutationObserver(() => {
+      if (!enabled()) return;
+      watch.disconnect();
+      done();
+    });
+    watch.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
+    return () => watch.disconnect();
+  }, [complete, key, lane, recipe, revision, mountedAt]);
+  return root;
 }
 
 /**
@@ -330,6 +439,8 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
   // A chip the Tutor's open_widget left names the Widget by title, even when it is the explore Widget's tab.
   const name = (item.writtenAhead && widgetParts(item.code).title?.trim()) || widgetName(item);
   const state: ChipState = !item.complete ? "drawing" : active ? "showing" : "idle";
+  const guard = useDrawingGuard(item.key, !item.complete);
+  if (guard.timedOut) return <DrawingFailed retry={guard.retry} compact />;
   const look =
     state === "showing"
       ? "border-[var(--brand)]! bg-[var(--brand)]! text-[var(--brand-ink)]! hover:bg-[var(--brand-hover)]!"
@@ -458,7 +569,7 @@ export function WidgetPanel({
                 <WidgetWithSave item={shown} />
               </>
             ) : (
-              <DrawingCard title={widgetParts(shown.code).title?.trim()} />
+              <DrawingCard itemKey={shown.key} title={widgetParts(shown.code).title?.trim()} />
             )}
           </div>
         </section>
@@ -468,7 +579,9 @@ export function WidgetPanel({
 }
 
 /** What the card shows as soon as a Widget's fence opens, until the Widget is written: a title, a figure and two lines, shimmering. */
-function DrawingCard({ title }: { title?: string }) {
+function DrawingCard({ itemKey, title }: { itemKey: string; title?: string }) {
+  const guard = useDrawingGuard(itemKey, true);
+  if (guard.timedOut) return <DrawingFailed retry={guard.retry} />;
   return (
     <div data-testid="widget-skeleton" aria-busy="true" role="status" aria-label="Drawing the Widget">
       <Eyebrow className="mb-1">Drawing…</Eyebrow>
