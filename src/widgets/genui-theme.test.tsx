@@ -4,11 +4,11 @@ import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary, useTheme } from "@openuidev/react-ui";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { GENUI_THEMES, GenuiTheme, kitVariable, rootDeclarations } from "./genui-theme";
+import { THEMES } from "@/app/theme";
+import { CHART_PALETTES, GENUI_THEMES, GenuiTheme, kitVariable, rootDeclarations } from "./genui-theme";
 import { widgetLibrary } from "./library";
 
 const kitStylesheet = readFileSync(createRequire(import.meta.url).resolve("@openuidev/react-ui/layered/styles/index.css"), "utf8");
-const ourTokens = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8").toLowerCase();
 
 /** Each series colour in a server-drawn kit chart, in series order. */
 const seriesColours = (html: string) => [...html.matchAll(/--color-[\w-]+:(#[0-9a-f]{6})/gi)].map((m) => m[1].toLowerCase());
@@ -64,8 +64,8 @@ describe("OpenUI's kit drawn in our tokens", () => {
     expect(html).toMatch(/style="[^"]*--openui-border-default:var\(--border\)/);
   });
 
-  it("sets only variables the kit's stylesheet reads, in both modes", () => {
-    for (const theme of [GENUI_THEMES.light, GENUI_THEMES.dark]) {
+  it("sets only variables the kit's stylesheet reads, in every theme", () => {
+    for (const theme of Object.values(GENUI_THEMES)) {
       for (const [key, value] of Object.entries(theme)) {
         if (Array.isArray(value)) continue; // chart palettes are read in code, not from CSS
         expect(kitStylesheet, key).toContain(`${kitVariable(key)}:`);
@@ -93,11 +93,41 @@ describe("OpenUI's kit drawn in our tokens", () => {
     }
   });
 
-  it("takes every chart colour from our design tokens, with the dark palette led by the dark-mode teal, navy and amber", () => {
-    // Midnight replaced the old dark values in globals.css (T-01), but the dark PALETTE still holds them until T-04 gives each
-    // theme its own palette, so only the light palette can be read back from the tokens file for now.
-    for (const colour of GENUI_THEMES.light.defaultChartPalette!) expect(ourTokens).toContain(colour);
-    expect(GENUI_THEMES.dark.defaultChartPalette!.slice(2, 5)).toEqual(["#00d5be", "#6699ff", "#ffb900"]);
+  /** The declarations of one theme's block in globals.css: Light's is the plain :root block, the others are named by data-theme. */
+  const themeBlock = (id: string) => {
+    const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+    const selector = id === "light" ? ":root" : id === "midnight" ? ":root.dark" : id === "paper" ? ':root[data-theme="paper"]' : ':root.dark[data-theme="forest"]';
+    // The block that sets the page's colours (--bg); the kit's mapping block at :root.dark does not.
+    const blocks = css.split(`${selector} {`).slice(1).map((rest) => rest.slice(0, rest.indexOf("}")));
+    return (blocks.find((block) => block.includes("--bg:")) ?? "").toLowerCase();
+  };
+
+  it("takes every chart colour of each theme from that theme's own block in globals.css", () => {
+    for (const id of THEMES) {
+      const block = themeBlock(id);
+      for (const colour of CHART_PALETTES[id]) {
+        // Light's list also holds the landing page's #6699ff, which sits in the same :root block as its other tokens.
+        expect(block, `${id} ${colour}`).toContain(colour);
+      }
+    }
+  });
+
+  it("keeps Light's chart palette as it was, and gives every theme its own, with the learner accent, brand and sourced accent in the middle", () => {
+    expect(GENUI_THEMES.light.defaultChartPalette).toEqual(["#0b4f4a", "#79716b", "#00786f", "#002366", "#e17100", "#6699ff", "#7b3306"]);
+    const palettes = THEMES.map((id) => JSON.stringify(GENUI_THEMES[id].defaultChartPalette));
+    expect(new Set(palettes).size).toBe(THEMES.length);
+    expect(GENUI_THEMES.midnight.defaultChartPalette!.slice(2, 5)).toEqual(["#94e2d5", "#89b4fa", "#fab387"]);
+    expect(GENUI_THEMES.forest.defaultChartPalette!.slice(2, 5)).toEqual(["#a7c080", "#7fbbb3", "#dbbc7f"]);
+  });
+
+  it("maps the kit's formerly fixed black and white colours to ink and the learner's bubble", () => {
+    const root = rootDeclarations();
+    expect(root["--openui-highlight"]).toBe("color-mix(in srgb, var(--ink) 4%, transparent)");
+    expect(root["--openui-highlight-intense"]).toBe("color-mix(in srgb, var(--ink) 30%, transparent)");
+    expect(root["--openui-inverted-background"]).toBe("var(--ink)");
+    expect(root["--openui-chat-user-response-bg"]).toBe("var(--bubble)");
+    expect(root["--openui-border-interactive-emphasis"]).toBe("color-mix(in srgb, var(--ink) 40%, transparent)");
+    expect(root["--openui-text-accent-secondary"]).toBe("color-mix(in srgb, var(--brand-ink) 70%, transparent)");
   });
 
   // The widget library's kit components see GenuiTheme only when they come from "@openuidev/react-ui" itself:
