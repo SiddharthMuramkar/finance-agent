@@ -39,7 +39,7 @@ describe("the Widget harness page", () => {
   });
 
   it("finds a fixture by its name, with or without its extension or folder", () => {
-    expect(fixtureList()).toHaveLength(11);
+    expect(fixtureList().filter((f) => f.startsWith("audit/"))).toHaveLength(11);
     expect(resolveFixture("01-sensex-milestones")).toBe("audit/01-sensex-milestones.openui");
     expect(resolveFixture("01-sensex-milestones.openui")).toBe("audit/01-sensex-milestones.openui");
     expect(resolveFixture("audit/01-sensex-milestones.openui")).toBe("audit/01-sensex-milestones.openui");
@@ -48,9 +48,11 @@ describe("the Widget harness page", () => {
 
   it("lists every fixture, with a link at each of the three widths", async () => {
     const { host, done } = await draw({});
-    expect(host.querySelectorAll("[data-fixture]")).toHaveLength(11);
+    const all = fixtureList();
+    expect(all.length).toBeGreaterThanOrEqual(11);
+    expect(host.querySelectorAll("[data-fixture]")).toHaveLength(all.length);
     const links = [...host.querySelectorAll("[data-fixture] a")].map((a) => a.getAttribute("href"));
-    expect(links).toHaveLength(33);
+    expect(links).toHaveLength(all.length * 3);
     expect(links).toContain("/dev/widgets?fixture=07-sip-1000-month.openui&width=480");
     await done();
   });
