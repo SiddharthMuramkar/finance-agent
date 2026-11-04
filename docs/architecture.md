@@ -3967,3 +3967,23 @@ but lets a clumsy or slightly wrong phrase in, and the Tutor is the judge of "co
 Session's items, not the note rows, means an Undo is final for that Skill or Topic: a Learner who took a rule off is not
 offered it again, and a fresh Session after Start again would be.
 
+## Known mistakes on the Topic Note and in the Learner summary (`src/learner/known-mistakes.ts`, `notes.ts`, `memory.ts`, table `practice_answers`, spec #229, ticket #244)
+
+**What it does.** Each answer code marks as a Known mistake is logged in `practice_answers` with the slip's tag. `loadNotes`
+adds every distinct Known mistake the Learner made in a Topic to that Topic Note's `mistakes`, once each, with the fix line
+the Topic file gives that tag (a template's, a quiz choice's or a fixed Quick try's). `learnerSummary` adds one line per Skill
+with hits, "Slips so far: <the Skill's rule>: twice multiplied by 10 instead of 100, stopped at points; fluent now", in plain
+words and never a tag id, so the Tutor cannot repeat one. Misconceptions the Tutor noted stay as they were. Both read only
+converted Topics, and skip the query when the Course Map has none, so no turn and no Notes page reads the practice tables
+before the migration that made them has been applied in production.
+
+**Scenario.** The Learner types 6 twice for "0.6 points in basis points" and 0.6 once. Their note for the Topic lists "One
+point is 100 basis points, so multiply by 100, not 10." and "That is the move in points. Times 100 gives basis points." once
+each, and the Tutor's summary says the Skill had two "multiplied by 10" slips and one "stopped at points", and is fluent now
+after two right answers.
+
+**Trade-off.** The note lists the fix, not the count, so a slip made ten times reads the same as one made once; the summary
+keeps the count for the Tutor. Slips are named in the summary by a small table of plain phrases, and any tag not in it reads
+as its words with the underscores taken out, which is clear but may be clumsy until the phrase is added. The note shows a
+mistake's fix only when the tag is still in the Topic file, so a tag a later edit removed is left out.
+

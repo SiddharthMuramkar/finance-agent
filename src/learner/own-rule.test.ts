@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { noteItems, OWNER_LEARNER_ID, sessions } from "@/db/schema";
+import { convertedTopic, CONVERTED_TOPIC_DATA, topicFileOf } from "@/course/lesson-fixture";
+import { parseCourseMap } from "@/course/map";
+import { noteItems, OWNER_LEARNER_ID, sessions, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { OWN_RULE_SAVED } from "@/tutor/own-rule-item";
 import { saveItemAfterLatest } from "@/tutor/session-items";
@@ -7,7 +9,9 @@ import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { editLine, loadNotes, removeLine } from "./notes";
 import { learnerSummary } from "./memory";
+import { mistakeHits } from "./known-mistakes";
 import { MAX_RULE_LENGTH, ownRules, saveOwnRule } from "./own-rule";
+import { recordAnswer, type PracticeAnswer } from "./skill-state";
 
 const me = OWNER_LEARNER_ID;
 const map = presentValueOnly({ withoutQuiz: true });
@@ -94,5 +98,68 @@ describe("a Topic Note with the Learner's own rule", () => {
   it("adds no rule line to the summary when there is none", async () => {
     const db = await testDb();
     expect(await learnerSummary(db, map, me)).not.toContain("own words");
+  });
+});
+
+describe("Known-mistake hits", () => {
+  const converted = parseCourseMap([topicFileOf(CONVERTED_TOPIC_DATA)]).map!;
+  const id = convertedTopic().id;
+  let n = 0;
+  const answer = (verdict: PracticeAnswer["verdict"], skillId: string, tag?: string): PracticeAnswer => ({
+    learnerId: me,
+    topicId: id,
+    skillId,
+    itemKey: `hit-${++n}`,
+    itemId: "bp-from-move",
+    input: "6",
+    verdict,
+    mistakeTag: tag,
+    source: "quick_try",
+  });
+
+  async function played(passed = true) {
+    const db = await testDb();
+    if (passed) await db.insert(topicProgress).values({ learnerId: me, topicId: id, step: "principle", status: "passed" });
+    await recordAnswer(db, answer("known_mistake", "pts-to-bp", "used_x10"));
+    await recordAnswer(db, answer("known_mistake", "pts-to-bp", "used_x10"));
+    await recordAnswer(db, answer("known_mistake", "pts-to-bp", "stopped_at_points"));
+    await recordAnswer(db, answer("right", "pts-to-bp"));
+    await recordAnswer(db, answer("right", "pts-to-bp"));
+    return db;
+  }
+
+  it("lists each distinct Known mistake once in the Topic Note, with its fix line", async () => {
+    const db = await played();
+    const filled = (await loadNotes(db, converted, me)).find((note) => note.topicId === id)!.filled!;
+    expect(filled.mistakes).toHaveLength(2);
+    expect(filled.mistakes).toContain("One point is 100 basis points, so multiply by 100, not 10.");
+    expect(filled.mistakes).toContain("That is the move in points. Times 100 gives basis points.");
+  });
+
+  it("counts a repeat as one hit with its times", async () => {
+    const db = await played();
+    const hits = await mistakeHits(db, converted, me);
+    expect(hits.map((h) => [h.tag, h.times])).toEqual([
+      ["used_x10", 2],
+      ["stopped_at_points", 1],
+    ]);
+  });
+
+  it("gives the summary one plain line per Skill, with no tag id", async () => {
+    const db = await played(false);
+    const summary = await learnerSummary(db, converted, me);
+    const lines = summary.split("\n").filter((l) => l.startsWith("Slips so far:"));
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain("Basis points are points times 100");
+    expect(lines[0]).toContain("twice multiplied by 10 instead of 100");
+    expect(lines[0]).toContain("stopped at points");
+    expect(lines[0]).toContain("fluent now");
+    expect(summary).not.toMatch(/used_x10|stopped_at_points/);
+  });
+
+  it("reads no practice table in a Course Map with no converted Topic", async () => {
+    const db = await testDb();
+    expect(await mistakeHits(db, map, me)).toEqual([]);
+    expect((await loadNotes(db, map, me)).every((note) => note.lines.length === 0)).toBe(true);
   });
 });

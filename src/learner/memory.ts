@@ -3,6 +3,7 @@ import type { CourseMap } from "@/course/map";
 import { finishStep, jumpTo, navigate, recordCheckResult, returnToDefaultPath, type Jump, type Move, type Place, type Progress, type TeachingStep } from "@/course/navigator";
 import { checkResults, insightAttempts, learnerState, misconceptions, topicProgress, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { anyConverted, mistakeAccounts } from "./known-mistakes";
 import { ownRules } from "./own-rule";
 
 /**
@@ -243,6 +244,11 @@ export async function learnerSummary(db: Db, map: CourseMap, learnerId: number):
   if (noted.length) {
     lines.push("Misconceptions noted:");
     for (const m of noted) lines.push(`- ${title(m.topicId)}${m.topicId === topic.id ? "" : " (prerequisite)"}: ${m.description}`);
+  }
+  // Known mistakes code marked, one plain line per Skill (never a tag id). Converted Topics only, so nothing reads the
+  // practice tables before a Topic is converted.
+  if (anyConverted(map)) {
+    for (const line of await mistakeAccounts(db, map, learnerId, relevant)) lines.push(`Slips so far: ${line}`);
   }
   // The Learner's own rules, newest five: the Tutor uses their words from then on.
   const rules = (await ownRules(db, learnerId)).slice(-SUMMARY_RULES);

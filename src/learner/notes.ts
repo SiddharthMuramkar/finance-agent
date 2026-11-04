@@ -4,6 +4,7 @@ import { insightAttempts, misconceptions, noteItems, topicProgress } from "@/db/
 import type { Db } from "@/db/types";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
+import { anyConverted, mistakeHits } from "./known-mistakes";
 import { loadSaved, type SavedItem } from "./saved";
 
 /**
@@ -86,7 +87,7 @@ export function buildFilledNote(topic: Topic, records: NoteRecords): FilledNote 
 
 /** Every Topic in course order with this Learner's note: the filled-in part for a Topic they passed, and their own lines. */
 export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Promise<TopicNote[]> {
-  const [progress, attempts, noticed, items, saved] = await Promise.all([
+  const [progress, attempts, noticed, items, saved, slips] = await Promise.all([
     db.select().from(topicProgress).where(eq(topicProgress.learnerId, learnerId)),
     db
       .select()
@@ -100,6 +101,8 @@ export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Prom
       .where(and(eq(noteItems.learnerId, learnerId), inArray(noteItems.kind, [...OWN_KINDS])))
       .orderBy(asc(noteItems.id)),
     loadSaved(db, map, learnerId),
+    // Known mistakes come from the practice tables, which only converted Topics write: no converted Topic, no query.
+    anyConverted(map) ? mistakeHits(db, map, learnerId) : Promise.resolve([]),
   ]);
   return map.topics.map((topic) => {
     const passed = progress.find((p) => p.topicId === topic.id)?.status === "passed";
@@ -107,7 +110,11 @@ export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Prom
     const records: NoteRecords = {
       passed,
       settled: settledRow ? { released: settledRow.released as "found" | "told", words: settledRow.words } : undefined,
-      mistakes: noticed.filter((m) => m.topicId === topic.id).map((m) => m.description),
+      // The Tutor's misconceptions as before, then each distinct Known mistake code marked, once, with its fix line.
+      mistakes: [
+        ...noticed.filter((m) => m.topicId === topic.id).map((m) => m.description),
+        ...slips.filter((h) => h.topicId === topic.id && h.fix).map((h) => h.fix as string),
+      ],
     };
     return {
       topicId: topic.id,
