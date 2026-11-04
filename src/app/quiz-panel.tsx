@@ -104,10 +104,15 @@ export function QuizPanel({
           {result.questions.map((q) => (
             <li key={q.id}>
               <p>{q.prompt}</p>
-              <p className={q.correct ? "text-[var(--you)]" : "text-[var(--danger)]"}>
-                {q.correct ? "Correct" : `Your answer: ${q.choices.find((c) => c.id === q.chosen)?.text ?? "none"}`}
-                {" – "}
-                right answer: {q.choices.find((c) => c.id === q.answer)?.text}
+              <p data-correct={q.correct} className={`flex min-h-11 items-start gap-2 rounded border px-3 py-2 ${q.correct ? "border-[var(--you-line)] bg-[var(--you-tint)] text-[var(--you)]" : "border-[var(--danger)] text-[var(--danger)]"}`}>
+                <span aria-hidden="true" className="mt-px shrink-0 font-semibold">
+                  {q.correct ? "✓" : "✗"}
+                </span>
+                <span>
+                  {q.correct ? "Correct" : `Your answer: ${q.choices.find((c) => c.id === q.chosen)?.text ?? "none"}`}
+                  {" – "}
+                  right answer: {q.choices.find((c) => c.id === q.answer)?.text}
+                </span>
               </p>
               <MarkedText text={q.explanation} className="text-[var(--muted)]" />
               {q.credit && (
@@ -142,12 +147,24 @@ export function QuizPanel({
           <li key={q.id}>
             <fieldset>
               <legend className="mb-1 text-sm leading-5">{q.prompt}</legend>
-              {q.choices.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 py-1 text-sm leading-5">
-                  <input type="radio" className="accent-[var(--brand)]" name={`${active.attemptId}-${q.id}`} checked={picked[q.id] === c.id} onChange={() => setPicked({ ...picked, [q.id]: c.id })} />
-                  {c.text}
-                </label>
-              ))}
+              <div className="flex flex-col gap-2">
+                {q.choices.map((c) => {
+                  const on = picked[q.id] === c.id;
+                  return (
+                    <label
+                      key={c.id}
+                      data-selected={on || undefined}
+                      className={`pressable flex min-h-11 cursor-pointer items-center gap-3 rounded border px-3 py-2 text-sm leading-5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--ring)] ${on ? "border-[var(--brand)] bg-[var(--brand-tint)]" : "border-[var(--border)] hover:bg-[var(--hairline)]"}`}
+                    >
+                      <input type="radio" className="peer sr-only" name={`${active.attemptId}-${q.id}`} checked={on} onChange={() => setPicked({ ...picked, [q.id]: c.id })} />
+                      <span aria-hidden="true" className={`grid size-4 shrink-0 place-items-center rounded-full border ${on ? "border-[var(--brand)] bg-[var(--brand)]" : "border-[var(--border)]"}`}>
+                        {on && <span className="size-1.5 rounded-full bg-[var(--brand-ink)]" />}
+                      </span>
+                      <span className="min-w-0 flex-1">{c.text}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </fieldset>
           </li>
         ))}
