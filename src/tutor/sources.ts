@@ -27,7 +27,7 @@ export type SourceContext = {
 /**
  * Looks up the credit of these cited passages, which of them the as-of rule hides and, given the
  * Course Map, the Case Data allowed now. Without the Course Map nothing is withheld. The as-of rule
- * reads the given Learner's progress (the owner's when none is named).
+ * reads the given Learner's progress.
  */
 export async function sourceContext(deps: SourceDeps, cited: number[], topicTitle?: string): Promise<SourceContext> {
   const { db, map, learnerId } = deps;
@@ -37,7 +37,7 @@ export async function sourceContext(deps: SourceDeps, cited: number[], topicTitl
 }
 
 /** What a reply's sources are looked up with: the Learner whose progress the as-of rule reads, and the Course Map. */
-export type SourceDeps = { db: Db; map?: CourseMap; learnerId?: number };
+export type SourceDeps = { db: Db; map?: CourseMap; learnerId: number };
 
 /**
  * The Case Data of a Topic, under the as-of rule as it applies now to the Learner. `topicTitle` is the Topic a

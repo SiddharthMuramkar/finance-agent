@@ -1,5 +1,5 @@
 import { and, asc, desc, eq } from "drizzle-orm";
-import { messages, OWNER_LEARNER_ID, sessions } from "@/db/schema";
+import { messages, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { leaveOutWidgets, replaceBrokenWidgets, WIDGET_CHECK_PREFIX } from "@/widgets/check";
 import { WIDGETS_PREFIX } from "@/widgets/widget-reading";
@@ -76,18 +76,18 @@ export type Line = { role: "user" | "assistant"; text: string; /** On a turn's l
  * The Learner's live Session for their current Topic, if its first turn has made it: what the Study
  * Workspace shows. Rendering makes no Session. Without a Course Map, the real one is read.
  */
-export async function currentTopicSession(db: Db, map?: CourseMap, learnerId = OWNER_LEARNER_ID) {
+export async function currentTopicSession(db: Db, map: CourseMap | undefined, learnerId: number) {
   return liveSession(db, learnerId, await currentTopicId(db, map ?? loadCourseMap(), learnerId));
 }
 
 /** The Learner's live Session for their current Topic as plain text lines, for showing after a reload. No model call. */
-export async function loadCurrentSession(db: Db, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<Line[]> {
+export async function loadCurrentSession(db: Db, map: CourseMap | undefined, learnerId: number): Promise<Line[]> {
   const session = await currentTopicSession(db, map, learnerId);
   return session ? loadSession(db, session.id, map, learnerId) : [];
 }
 
 /** Every Session of the Learner's, newest first, for reading old ones. */
-export async function listSessions(db: Db, learnerId = OWNER_LEARNER_ID): Promise<{ id: number; createdAt: Date }[]> {
+export async function listSessions(db: Db, learnerId: number): Promise<{ id: number; createdAt: Date }[]> {
   return db
     .select({ id: sessions.id, createdAt: sessions.createdAt })
     .from(sessions)
@@ -100,7 +100,7 @@ export async function listSessions(db: Db, learnerId = OWNER_LEARNER_ID): Promis
  * A widget correction is shown in place of the broken widget it replaced. Given the Course Map, a cited
  * passage the as-of rule hides now (for this Learner) is listed without its heading.
  */
-export async function loadSession(db: Db, sessionId: number, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<Line[]> {
+export async function loadSession(db: Db, sessionId: number, map: CourseMap | undefined, learnerId: number): Promise<Line[]> {
   return (await sessionEntries(db, sessionId, map, learnerId, [])) as Line[];
 }
 
@@ -117,7 +117,7 @@ export type ThreadEntry = (Line & { more?: true }) | ItemEntry;
  * lines with the Session's items in place, each after the message it follows. An item that falls inside a
  * reply (a step finished partway through it) cuts the reply in two there. No model call.
  */
-export async function loadThread(db: Db, sessionId: number, map?: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<ThreadEntry[]> {
+export async function loadThread(db: Db, sessionId: number, map: CourseMap | undefined, learnerId: number): Promise<ThreadEntry[]> {
   return sessionEntries(db, sessionId, map, learnerId, await loadSessionItems(db, sessionId, learnerId));
 }
 

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { learnerState, topicProgress } from "@/db/schema";
+import { learnerState, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted } from "@/learner/memory";
 import { presentValueOnly } from "@/test/present-value-map";
@@ -246,7 +246,7 @@ describe("Home's page, signed in", () => {
   });
   it("shows Resume for a Topic begun before and chosen on the Course Map", async () => {
     getDbMock.mockReturnValue(db);
-    await ensureTopicStarted(db, map);
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID);
     expect(await render()).toContain(`Resume: ${title}`);
   });
   it("logs the error and shows Open Study Workspace when progress can't be loaded", async () => {

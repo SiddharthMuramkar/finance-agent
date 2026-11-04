@@ -3,7 +3,7 @@ import type { BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages
 import { and, asc, eq, isNotNull, isNull, max } from "drizzle-orm";
 import type { CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { learnerState, messages, OWNER_LEARNER_ID, sessions, settings, turns } from "@/db/schema";
+import { learnerState, messages, sessions, settings, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { TUTOR_INSTRUCTIONS, TUTOR_TOOLS, type ToolDefinition } from "./instructions";
@@ -47,7 +47,7 @@ export function fingerprint(instructions: string, tools: unknown[]) {
  * The Topic the Learner's next turn talks about: the Course Navigator's current Topic, or null when
  * every Topic is passed (the one Session with no Topic).
  */
-export async function currentTopicId(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<string | null> {
+export async function currentTopicId(db: Db, map: CourseMap, learnerId: number): Promise<string | null> {
   return navigate(map, await loadProgress(db, learnerId))?.topic.id ?? null;
 }
 

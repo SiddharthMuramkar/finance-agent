@@ -1,6 +1,6 @@
 import { asc } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { insightAttempts } from "@/db/schema";
+import { insightAttempts, OWNER_LEARNER_ID } from "@/db/schema";
 import { navigate } from "@/course/navigator";
 import { loadProgress } from "@/learner/memory";
 import { loadNotes } from "@/learner/notes";
@@ -45,10 +45,10 @@ describe("present value pilot, end to end", () => {
     const db = await testDb();
     const turn = async (message: string | { opener: true }, replies: ScriptedReply[]) => {
       const { client, requests } = scriptedClient(replies);
-      await collect(runTutorTurn({ db, client, map }, message));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, message));
       return requests;
     };
-    const stepNow = async () => navigate(map, await loadProgress(db))?.step;
+    const stepNow = async () => navigate(map, await loadProgress(db, OWNER_LEARNER_ID))?.step;
 
     // Story and concept.
     expect(await stepNow()).toBe("story");
@@ -87,7 +87,7 @@ describe("present value pilot, end to end", () => {
 
     // Finishing the principle passes the Topic.
     await turn("That makes sense", [finish("f-principle", "principle"), say("Present value is done.")]);
-    expect((await loadProgress(db)).topics["present-value"]?.status).toBe("passed");
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"]?.status).toBe("passed");
 
     // The Learner's words were saved as found.
     const rows = await db.select().from(insightAttempts).orderBy(asc(insightAttempts.id));
@@ -97,7 +97,7 @@ describe("present value pilot, end to end", () => {
     ]);
 
     // The Topic Note: the Learner's words, the Connections, and a Formula Card computed by code.
-    const note = (await loadNotes(db, map)).find((n) => n.topicId === "present-value")!;
+    const note = (await loadNotes(db, map, OWNER_LEARNER_ID)).find((n) => n.topicId === "present-value")!;
     expect(note.passed).toBe(true);
     const filled = note.filled!;
     expect(filled.insight).toEqual({ ownWords: WORDS });

@@ -64,16 +64,16 @@ async function libraryDb(): Promise<Db> {
 }
 
 async function passRevealOf(db: Db) {
-  for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
-  await saveCheckResult(db, map, { checkId: "pv-check", passed: true, evidence: "Explained.", model: "m", toolCallId: "t1" });
-  await saveFinishedStep(db, map, "reveal");
+  for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
+  await saveCheckResult(db, map, { checkId: "pv-check", passed: true, evidence: "Explained.", model: "m", toolCallId: "t1" }, new Date(), OWNER_LEARNER_ID);
+  await saveFinishedStep(db, map, "reveal", new Date(), OWNER_LEARNER_ID);
 }
 
 describe("Library search", () => {
   it("before the reveal returns no dated passage from after the Case's as-of date, but keeps earlier and timeless passages", async () => {
     const db = await libraryDb();
 
-    const found = await searchLibrary({ db, map }, "jackpot cash option annuity");
+    const found = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity");
 
     expect(found.asOf).toBe("2018-10-24");
     expect(found.results.map((r) => r.ref).sort()).toEqual(["before", "ch1"]);
@@ -90,9 +90,9 @@ describe("Library search", () => {
       ],
     });
 
-    const before = await searchLibrary({ db, map }, "jackpot cash option annuity");
+    const before = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity");
     await passRevealOf(db);
-    const after = await searchLibrary({ db, map }, "jackpot cash option annuity");
+    const after = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity");
 
     expect(before.results.map((r) => r.ref)).not.toContain("ch2");
     expect(before.results.map((r) => r.ref)).toContain("ch3");
@@ -109,7 +109,7 @@ describe("Library search", () => {
       ],
     });
 
-    const before = await searchLibrary({ db, map }, "jackpot cash option annuity");
+    const before = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity");
 
     expect(before.asOf).toBe("2018-10-24");
     expect(before.results.map((r) => r.ref)).not.toContain("ch4");
@@ -120,7 +120,7 @@ describe("Library search", () => {
     const db = await libraryDb();
     await passRevealOf(db);
 
-    const found = await searchLibrary({ db, map }, "jackpot cash option annuity");
+    const found = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity");
 
     expect(found.asOf).toBeNull();
     expect(found.results.map((r) => r.ref)).toContain("after");
@@ -138,7 +138,7 @@ describe("Library search", () => {
     const db = await libraryDb();
     await embedAll(db, { before: axis(1), after: axis(2), ch1: axis(3) });
 
-    const found = await searchLibrary({ db, map, embedQuery: async () => axis(3, 0.1) }, "lump sum");
+    const found = await searchLibrary({ db, map, embedQuery: async () => axis(3, 0.1), learnerId: OWNER_LEARNER_ID }, "lump sum");
 
     expect(found.mode).toBe("combined");
     expect(found.fallback).toBeNull();
@@ -149,7 +149,7 @@ describe("Library search", () => {
     const db = await libraryDb();
     await embedAll(db, { before: axis(1), after: axis(2), ch1: axis(3) });
 
-    const found = await searchLibrary({ db, map, embedQuery: async () => axis(2) }, "who won");
+    const found = await searchLibrary({ db, map, embedQuery: async () => axis(2), learnerId: OWNER_LEARNER_ID }, "who won");
 
     expect(found.results.map((r) => r.ref)).not.toContain("after");
   });
@@ -161,7 +161,7 @@ describe("Library search", () => {
       throw new Error("503 Service Unavailable");
     };
 
-    const found = await searchLibrary({ db, map, embedQuery: down }, "annuity instalment");
+    const found = await searchLibrary({ db, map, embedQuery: down, learnerId: OWNER_LEARNER_ID }, "annuity instalment");
 
     expect(found.mode).toBe("keyword");
     expect(found.fallback).toBe(VOYAGE_DOWN);
@@ -169,14 +169,14 @@ describe("Library search", () => {
   });
 
   it("without a Voyage key searches keywords only and says so", async () => {
-    const found = await searchLibrary({ db: await libraryDb(), map }, "annuity");
+    const found = await searchLibrary({ db: await libraryDb(), map, learnerId: OWNER_LEARNER_ID }, "annuity");
 
     expect(found.mode).toBe("keyword");
     expect(found.fallback).toBe(NO_VOYAGE_KEY);
   });
 
   it("each result carries its source, licence, credit and publication date", async () => {
-    const found = await searchLibrary({ db: await libraryDb(), map }, "annuity present value");
+    const found = await searchLibrary({ db: await libraryDb(), map, learnerId: OWNER_LEARNER_ID }, "annuity present value");
 
     expect(found.results.find((r) => r.ref === "ch1")).toMatchObject({
       sourceTitle: "A textbook",
@@ -193,7 +193,7 @@ describe("scoping a search to one source or writer", () => {
   it("returns only passages from sources whose id, title or credit match, whatever the query's other words", async () => {
     const db = await libraryDb();
 
-    const found = await searchLibrary({ db, map }, "jackpot annuity", { source: "a. writer" });
+    const found = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot annuity", { source: "a. writer" });
 
     expect(found.results.map((r) => r.sourceId)).toEqual(["a-blog"]);
     expect(found.source).toBe("a. writer");
@@ -202,20 +202,20 @@ describe("scoping a search to one source or writer", () => {
   it("matches a source by its title too, and treats % and _ as plain characters", async () => {
     const db = await libraryDb();
 
-    expect((await searchLibrary({ db, map }, "annuity", { source: "textbook" })).results.map((r) => r.ref)).toEqual(["ch1"]);
-    expect((await searchLibrary({ db, map }, "annuity", { source: "%" })).results).toEqual([]);
+    expect((await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "annuity", { source: "textbook" })).results.map((r) => r.ref)).toEqual(["ch1"]);
+    expect((await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "annuity", { source: "%" })).results).toEqual([]);
   });
 
   it("still applies the as-of rule inside the scope", async () => {
     const db = await libraryDb();
 
-    const found = await searchLibrary({ db, map }, "jackpot winner cash option", { source: "blog" });
+    const found = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot winner cash option", { source: "blog" });
 
     expect(found.results.map((r) => r.ref)).toEqual(["before"]);
   });
 
   it("tells the Tutor which sources exist when none matches the name", async () => {
-    const found = await searchLibrary({ db: await libraryDb(), map }, "annuity", { source: "Nobody" });
+    const found = await searchLibrary({ db: await libraryDb(), map, learnerId: OWNER_LEARNER_ID }, "annuity", { source: "Nobody" });
     const text = searchResultText(found);
 
     expect(found.results).toEqual([]);
@@ -255,7 +255,7 @@ describe("short quotes only", () => {
     await importLibrary(db, { ...blog, source: { ...blog.source, quoteWords: 40 } });
     await importLibrary(db, book);
 
-    const found = await searchLibrary({ db, map }, "jackpot annuity instalments");
+    const found = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot annuity instalments");
     const text = searchResultText(found);
 
     expect(found.results.find((r) => r.ref === "before")?.quoteWords).toBe(40);
@@ -267,11 +267,11 @@ describe("short quotes only", () => {
 
 describe("passage view (where a citation leads)", () => {
   async function idOf(db: Db, ref: string): Promise<number> {
-    const found = await searchLibrary({ db, map }, "jackpot cash option annuity instalments");
+    const found = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity instalments");
     const hit = found.results.find((r) => r.ref === ref);
     if (hit) return hit.id;
     await passRevealOf(db);
-    return (await searchLibrary({ db, map }, "jackpot cash option annuity instalments")).results.find((r) => r.ref === ref)!.id;
+    return (await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "jackpot cash option annuity instalments")).results.find((r) => r.ref === ref)!.id;
   }
 
   it("shows a passage with no quote limit in full, with its credit, licence, date and link, and marks the cited sentences", async () => {
@@ -282,7 +282,7 @@ describe("passage view (where a citation leads)", () => {
     });
     const id = await idOf(db, "ch1");
 
-    const view = await loadPassageView({ db, map }, id, { from: 2, to: 3 });
+    const view = await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, id, { from: 2, to: 3 });
 
     expect(view).toMatchObject({
       status: "shown",
@@ -309,7 +309,7 @@ describe("passage view (where a citation leads)", () => {
     });
     const id = await idOf(db, "before");
 
-    const view = await loadPassageView({ db, map }, id, { from: 2, to: 3 });
+    const view = await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, id, { from: 2, to: 3 });
 
     if (view.status !== "shown") throw new Error("not shown");
     expect(view.quoteWords).toBe(5);
@@ -324,8 +324,8 @@ describe("passage view (where a citation leads)", () => {
     // idOf passed the reveal to find it; start again before the reveal.
     const fresh = await libraryDb();
 
-    expect(await loadPassageView({ db: fresh, map }, id)).toEqual({ status: "hidden", asOf: "2018-10-24" });
-    expect((await loadPassageView({ db, map }, id)).status).toBe("shown");
+    expect(await loadPassageView({ db: fresh, map, learnerId: OWNER_LEARNER_ID }, id)).toEqual({ status: "hidden", asOf: "2018-10-24" });
+    expect((await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, id)).status).toBe("shown");
   });
 
   it("reads the given Learner's progress: one Learner's reveal shows another nothing extra in search, citations or the passage view", async () => {
@@ -346,6 +346,6 @@ describe("passage view (where a citation leads)", () => {
   });
 
   it("says a passage that does not exist is missing", async () => {
-    expect(await loadPassageView({ db: await testDb(), map }, 999)).toEqual({ status: "missing" });
+    expect(await loadPassageView({ db: await testDb(), map, learnerId: OWNER_LEARNER_ID }, 999)).toEqual({ status: "missing" });
   });
 });

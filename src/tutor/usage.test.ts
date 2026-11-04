@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
-import { usageRows } from "@/db/schema";
+import { OWNER_LEARNER_ID, usageRows } from "@/db/schema";
 import { loadCurrentSession } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 
@@ -30,7 +30,7 @@ describe("usage per Tutor turn", () => {
       { content: [{ type: "text", text: "Now the concept." }], usage: usage(300, 100, { cache_read_input_tokens: 5000 }) },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client }, "Go on"));
+    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Go on"));
     const done = events.at(-1);
 
     const rows = await db.select().from(usageRows);
@@ -60,9 +60,9 @@ describe("usage per Tutor turn", () => {
   it("shows a past turn's usage on its last reply when a Session is reloaded", async () => {
     const db = await testDb();
     const { client } = scriptedClient([{ content: [{ type: "text", text: "Hello." }], usage: usage(10, 5) }]);
-    await collect(runTutorTurn({ db, client }, "Hi"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hi"));
 
-    const lines = await loadCurrentSession(db);
+    const lines = await loadCurrentSession(db, undefined, OWNER_LEARNER_ID);
     expect(lines[0].usage).toBeUndefined();
     expect(lines[1].usage).toMatchObject({ inputTokens: 10, outputTokens: 5, steps: [{ step: 1, tools: [] }] });
   });
@@ -70,7 +70,7 @@ describe("usage per Tutor turn", () => {
   it("records a step with no usage report as zero tokens", async () => {
     const db = await testDb();
     const { client } = scriptedClient([{ content: [{ type: "text", text: "Hello." }] }]);
-    await collect(runTutorTurn({ db, client }, "Hi"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hi"));
     const [step] = (await db.select().from(usageRows)).filter((r) => r.kind === "step");
     expect(step).toMatchObject({ inputTokens: 0, outputTokens: 0 });
   });

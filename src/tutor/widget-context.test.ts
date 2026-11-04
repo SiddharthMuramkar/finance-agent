@@ -38,7 +38,7 @@ const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messag
 async function turn(db: Db, input: TurnInput, replies: ScriptedReply[], extra: Partial<TurnDeps> = {}, courseMap: CourseMap = map) {
   const { client, requests } = scriptedClient(replies);
   const events: TurnEvent[] = [];
-  for await (const e of runTutorTurn({ db, client, map: courseMap, ...extra }, input)) events.push(e);
+  for await (const e of runTutorTurn({ db, client, map: courseMap, ...extra, learnerId: OWNER_LEARNER_ID }, input)) events.push(e);
   return { events, requests };
 }
 
@@ -89,7 +89,7 @@ describe("the Widget context sent with a Learner's message", () => {
     expect(said("What rate do I have set?")).not.toContain("Interest rate: 1%");
     expect(said("And now?")).toContain("Interest rate: 1%");
 
-    const thread = await loadThread(db, await sessionId(db), map);
+    const thread = await loadThread(db, await sessionId(db), map, OWNER_LEARNER_ID);
     expect(thread.filter((e) => e.role === "user").map((e) => e.role === "user" && e.text)).toEqual(["Show me a rate.", "What rate do I have set?", "And now?"]);
   });
 
@@ -120,7 +120,7 @@ describe("the readouts code works out for the Tutor", () => {
   async function atExplore(db: Db) {
     await turn(db, "Hi", [say("Once upon a time.")], {}, withInsight);
     for (const step of ["story", "concept"] as TeachingStep[]) {
-      const moved = await saveFinishedStep(db, withInsight, step);
+      const moved = await saveFinishedStep(db, withInsight, step, new Date(), OWNER_LEARNER_ID);
       if (!moved.ok) throw new Error(moved.reason);
     }
   }
@@ -194,8 +194,8 @@ describe("Tell the Tutor what I found", () => {
     const request = sent(report.requests[0]);
     expect(request).toContain("Widget report by code:");
     expect(request).toContain("I set the interest rate to 3%.");
-    expect(turnKind((await latestTurn(db))!)).toBe("widget_report");
-    const thread = await loadThread(db, await sessionId(db), map);
+    expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("widget_report");
+    const thread = await loadThread(db, await sessionId(db), map, OWNER_LEARNER_ID);
     expect(thread.filter((e) => e.role === "user").map((e) => e.role === "user" && e.text)).toEqual(["Show me a rate."]);
     expect(thread.at(-1)).toMatchObject({ role: "assistant", text: "You found it." });
   });
@@ -204,7 +204,7 @@ describe("Tell the Tutor what I found", () => {
     const withInsight = presentValueOnly({ withoutQuiz: true });
     const db = await testDb();
     await turn(db, "Hi", [say("Once upon a time.")], {}, withInsight);
-    for (const step of ["story", "concept"] as TeachingStep[]) await saveFinishedStep(db, withInsight, step);
+    for (const step of ["story", "concept"] as TeachingStep[]) await saveFinishedStep(db, withInsight, step, new Date(), OWNER_LEARNER_ID);
     await turn(db, "Show me.", [say(`Here.\n\n${fence(RATES)}`)], {}, withInsight);
 
     const report = await turn(
@@ -215,7 +215,7 @@ describe("Tell the Tutor what I found", () => {
       withInsight,
     );
     expect(JSON.stringify(report.requests.at(-1)!.messages.at(-1))).toContain(NOT_THE_LEARNERS_ATTEMPT);
-    expect((await loadProgress(db)).topics["present-value"].insight).toBeUndefined();
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"].insight).toBeUndefined();
   });
 
   it("is not allowed until every Guided Task under the Widget is ticked, and nothing is stored", async () => {
@@ -224,6 +224,6 @@ describe("Tell the Tutor what I found", () => {
     const report = await turn(db, { widgetReport: "Rates" }, [], { widgets: { Rates: { values: { $rate: 3 }, ticked: [] } } });
     expect(report.events.map((e) => e.type)).toEqual(["not_allowed"]);
     expect(report.requests).toEqual([]);
-    expect(turnKind((await latestTurn(db))!)).toBe("message");
+    expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("message");
   });
 });

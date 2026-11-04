@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { CourseMap, Topic } from "@/course/map";
-import { insightAttempts, misconceptions, noteItems, OWNER_LEARNER_ID, topicProgress } from "@/db/schema";
+import { insightAttempts, misconceptions, noteItems, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { splitMarkers } from "@/finance/formula-markers";
 import { formulaById } from "@/finance/formulas";
@@ -81,7 +81,7 @@ export function buildFilledNote(topic: Topic, records: NoteRecords): FilledNote 
 }
 
 /** Every Topic in course order with this Learner's note: the filled-in part for a Topic they passed, and their own lines. */
-export async function loadNotes(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<TopicNote[]> {
+export async function loadNotes(db: Db, map: CourseMap, learnerId: number): Promise<TopicNote[]> {
   const [progress, attempts, noticed, items, saved] = await Promise.all([
     db.select().from(topicProgress).where(eq(topicProgress.learnerId, learnerId)),
     db
@@ -129,7 +129,7 @@ function cleanLine(text: string): { ok: true; text: string } | { ok: false; reas
 }
 
 /** Adds the Learner's own line to a Topic's note. Any Topic of the Course Map takes lines, passed or not. */
-export async function addLine(db: Db, map: CourseMap, topicId: string, text: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<LineResult> {
+export async function addLine(db: Db, map: CourseMap, topicId: string, text: string, now = new Date(), learnerId: number): Promise<LineResult> {
   if (!map.topic(topicId)) return { ok: false, reason: "That Topic is not on the Course Map.", status: 404 };
   const clean = cleanLine(text);
   if (!clean.ok) return clean;
@@ -138,7 +138,7 @@ export async function addLine(db: Db, map: CourseMap, topicId: string, text: str
 }
 
 /** Changes the words of one of this Learner's own lines. Only a line can be edited; another Learner's is not found. */
-export async function editLine(db: Db, id: number, text: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<LineResult> {
+export async function editLine(db: Db, id: number, text: string, now = new Date(), learnerId: number): Promise<LineResult> {
   const clean = cleanLine(text);
   if (!clean.ok) return clean;
   const [row] = await db
@@ -151,7 +151,7 @@ export async function editLine(db: Db, id: number, text: string, now = new Date(
 }
 
 /** Deletes one of this Learner's own lines. Returns false when they have no such line. */
-export async function removeLine(db: Db, id: number, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
+export async function removeLine(db: Db, id: number, learnerId: number): Promise<boolean> {
   const rows = await db
     .delete(noteItems)
     .where(and(eq(noteItems.id, id), eq(noteItems.learnerId, learnerId), eq(noteItems.kind, "line")))

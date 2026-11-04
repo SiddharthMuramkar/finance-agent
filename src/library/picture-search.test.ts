@@ -4,6 +4,7 @@ import { testDb } from "@/test/pglite";
 import { importLibrary, type LibraryFile } from "./ingest";
 import { loadPassageView, searchLibrary, searchResultBlocks, searchResultText } from "./library";
 import { MACHINE_READ_NOTE } from "./pictures";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 const map = parseCourseMap([
   {
@@ -44,8 +45,8 @@ describe("picture text marked as machine-read", () => {
   it("adds the note to the first result's credit block when a result holds picture text, and not otherwise", async () => {
     const db = await testDb();
     await importLibrary(db, pictureBlog);
-    const withPicture = await searchLibrary({ db, map }, "Tesla revenue growth jackpot table");
-    const without = await searchLibrary({ db, map }, "plain prose annuity discount");
+    const withPicture = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "Tesla revenue growth jackpot table");
+    const without = await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, "plain prose annuity discount");
 
     const blocks = searchResultBlocks(withPicture);
     if (typeof blocks === "string") throw new Error("expected search results");
@@ -59,9 +60,9 @@ describe("picture text marked as machine-read", () => {
   it("flags the Passage view of a passage with picture text, even when the quote limit cuts it", async () => {
     const db = await testDb();
     await importLibrary(db, { ...pictureBlog, source: { ...pictureBlog.source, quoteWords: 3 } });
-    const idOf = async (query: string) => (await searchLibrary({ db, map }, query)).results[0].id;
+    const idOf = async (query: string) => (await searchLibrary({ db, map, learnerId: OWNER_LEARNER_ID }, query)).results[0].id;
 
-    expect(await loadPassageView({ db, map }, await idOf("Tesla revenue growth"))).toMatchObject({ status: "shown", machineRead: true });
-    expect(await loadPassageView({ db, map }, await idOf("plain prose"))).toMatchObject({ status: "shown", machineRead: false });
+    expect(await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, await idOf("Tesla revenue growth"))).toMatchObject({ status: "shown", machineRead: true });
+    expect(await loadPassageView({ db, map, learnerId: OWNER_LEARNER_ID }, await idOf("plain prose"))).toMatchObject({ status: "shown", machineRead: false });
   });
 });

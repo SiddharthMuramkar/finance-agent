@@ -7,6 +7,7 @@ import { importCaseData } from "@/case-data/import";
 import { foldText, HIDDEN_SOURCE_TITLE } from "./citations";
 import { loadCurrentSession } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
@@ -59,13 +60,13 @@ describe("Tutor replies cite Library passages", () => {
       },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "What is present value?"));
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "What is present value?"));
 
     const expected =
       "As A textbook by B. Author puts it, present value discounts each payment back to today[1](/passages/1?blocks=1-2), and a higher rate lowers it[1](/passages/1?blocks=2-3)." +
       foldText([{ n: 1, title: "Present value", href: "/passages/1", credit: book.source.credit }]);
     expect(streamed(events)).toBe(expected);
-    const lines = await loadCurrentSession(db);
+    const lines = await loadCurrentSession(db, undefined, OWNER_LEARNER_ID);
     expect(lines.at(-1)?.text).toBe(expected);
   });
 
@@ -80,7 +81,7 @@ describe("Tutor replies cite Library passages", () => {
       },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     expect(streamed(events)).toBe(
       "One[1](/passages/7?blocks=1-2) two[2](/passages/3?blocks=1-3)[1](/passages/7?blocks=2-3)" +
@@ -105,7 +106,7 @@ describe("Tutor replies cite Library passages", () => {
       },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     expect(streamed(events)).toBe(`Prose[1](/passages/2?blocks=1-2)\n\n${widget}\n\nAfter.${foldText([{ n: 1, title: "PV", href: "/passages/2", credit: null }])}`);
   });
@@ -127,7 +128,7 @@ describe("Tutor replies cite Library passages", () => {
       },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     const expected =
       "Timeless[1](/passages/1?blocks=1-2) and later[2](/passages/2?blocks=1-2)" +
@@ -136,7 +137,7 @@ describe("Tutor replies cite Library passages", () => {
         { n: 2, title: HIDDEN_SOURCE_TITLE, href: "/passages/2", credit: null },
       ]);
     expect(streamed(events)).toBe(expected);
-    expect((await loadCurrentSession(db, presentValueOnly())).at(-1)?.text).toBe(expected);
+    expect((await loadCurrentSession(db, presentValueOnly(), OWNER_LEARNER_ID)).at(-1)?.text).toBe(expected);
   });
 
   it("folds a reply that cites in two loop steps into one list with one numbering, live and after a reload", async () => {
@@ -153,7 +154,7 @@ describe("Tutor replies cite Library passages", () => {
       },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     const expected =
       "First[1](/passages/1?blocks=1-2)\n\nSecond[2](/passages/2?blocks=1-1) third[1](/passages/1?blocks=2-3)" +
@@ -162,7 +163,7 @@ describe("Tutor replies cite Library passages", () => {
         { n: 2, title: "Rates", href: "/passages/2", credit: "C. Other, Other book" },
       ]);
     expect(streamed(events)).toBe(expected);
-    const lines = (await loadCurrentSession(db, presentValueOnly())).filter((l) => l.role === "assistant");
+    const lines = (await loadCurrentSession(db, presentValueOnly(), OWNER_LEARNER_ID)).filter((l) => l.role === "assistant");
     expect(lines.map((l) => l.text)).toEqual([expected]);
     expect(expected.match(/```sources/g)).toHaveLength(1);
   });
@@ -185,18 +186,18 @@ describe("Tutor replies cite Library passages", () => {
     await importCaseData(db, [data("long-yield", "US Treasury, par yield curve", 3.37), data("other", "Another source", 2.11)]);
     const { client } = scriptedClient([{ content: [{ type: "text", text: "The 30-year yield was 3.37% that day." }] }]);
 
-    const events = await collect(runTutorTurn({ db, client, map }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     const expected = "The 30-year yield was 3.37% that day." + foldText([{ n: null, title: "Label long-yield", href: "https://example.org/long-yield", credit: "US Treasury, par yield curve" }]);
     expect(streamed(events)).toBe(expected);
-    expect((await loadCurrentSession(db, map)).at(-1)?.text).toBe(expected);
+    expect((await loadCurrentSession(db, map, OWNER_LEARNER_ID)).at(-1)?.text).toBe(expected);
   });
 
   it("leaves a reply with no citations, or citations of something other than a Library passage, unchanged", async () => {
     const db = await testDb();
     const { client } = scriptedClient([{ content: [{ type: "text", text: "Plain", citations: [{ type: "web_search_result_location", url: "https://x", title: "X", cited_text: "c", encrypted_index: "e" }] }] }]);
 
-    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly() }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map: presentValueOnly(), learnerId: OWNER_LEARNER_ID }, "Hi"));
 
     expect(streamed(events)).toBe("Plain");
   });

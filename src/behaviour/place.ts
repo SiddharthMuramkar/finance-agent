@@ -1,6 +1,6 @@
 import type { CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { insightAttempts, OWNER_LEARNER_ID } from "@/db/schema";
+import { insightAttempts } from "@/db/schema";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import type { Db } from "@/db/types";
 
@@ -8,7 +8,7 @@ import type { Db } from "@/db/types";
  * Puts a fresh Learner at the Teaching Step a test question needs, by saving progress directly. The comparison
  * and behaviour runs pass the tools Learner (`freshToolsLearner`), so they never place anyone else.
  */
-export async function placeLearner(db: Db, map: CourseMap, at: "story" | "explore" | "your_turn" | "check", learnerId = OWNER_LEARNER_ID) {
+export async function placeLearner(db: Db, map: CourseMap, at: "story" | "explore" | "your_turn" | "check", learnerId: number) {
   await ensureTopicStarted(db, map, new Date(), learnerId);
   for (let i = 0; i < 20; i++) {
     const place = navigate(map, await loadProgress(db, learnerId));

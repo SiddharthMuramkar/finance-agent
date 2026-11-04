@@ -1,5 +1,5 @@
 import { and, desc, eq, lt } from "drizzle-orm";
-import { OWNER_LEARNER_ID, turns } from "@/db/schema";
+import { turns } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { isChipMessage } from "./chips";
 
@@ -81,19 +81,19 @@ export const BUSY_MESSAGE = "A turn is in progress, perhaps on another device. W
 export const STALE_RUN_MS = 330_000;
 
 /** The Learner's most recent turn and its saved status. */
-export async function latestTurn(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Turn | undefined> {
+export async function latestTurn(db: Db, learnerId: number): Promise<Turn | undefined> {
   const [row] = await db.select().from(turns).where(eq(turns.learnerId, learnerId)).orderBy(desc(turns.id)).limit(1);
   return row;
 }
 
 /** Whether one of the Learner's turns is running now (one older than any function can live is not). Choosing a Topic waits for it. */
-export async function turnRunning(db: Db, now: Date, learnerId = OWNER_LEARNER_ID): Promise<boolean> {
+export async function turnRunning(db: Db, now: Date, learnerId: number): Promise<boolean> {
   const turn = await latestTurn(db, learnerId);
   return turn?.status === "running" && now.getTime() - turn.startedAt.getTime() < STALE_RUN_MS;
 }
 
 /** The same Learner's turn before this one, if any. */
-export async function turnBefore(db: Db, id: number, learnerId = OWNER_LEARNER_ID): Promise<Turn | undefined> {
+export async function turnBefore(db: Db, id: number, learnerId: number): Promise<Turn | undefined> {
   const [row] = await db
     .select()
     .from(turns)
@@ -112,7 +112,7 @@ async function expireStaleRuns(db: Db, now: Date, learnerId: number) {
 }
 
 /** Takes the Learner's lock for a new turn, saving what they sent; undefined if another of their turns is running. */
-export async function startTurn(db: Db, now: Date, input: string, learnerId = OWNER_LEARNER_ID): Promise<Turn | undefined> {
+export async function startTurn(db: Db, now: Date, input: string, learnerId: number): Promise<Turn | undefined> {
   await expireStaleRuns(db, now, learnerId);
   const [row] = await db.insert(turns).values({ learnerId, status: "running", startedAt: now, input }).onConflictDoNothing().returning();
   return row;
@@ -125,7 +125,7 @@ export type ResumeClaim = { turn: Turn; alreadyFinished: boolean } | { turn: und
  * already finished (for example, it kept running after the browser lost the stream) is
  * returned as finished, without taking the lock.
  */
-export async function resumeTurn(db: Db, now: Date, learnerId = OWNER_LEARNER_ID): Promise<ResumeClaim> {
+export async function resumeTurn(db: Db, now: Date, learnerId: number): Promise<ResumeClaim> {
   await expireStaleRuns(db, now, learnerId);
   const latest = await latestTurn(db, learnerId);
   if (!latest || latest.status === "running") return { turn: undefined };

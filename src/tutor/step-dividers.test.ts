@@ -7,6 +7,7 @@ import type { Db } from "@/db/types";
 import { saveCheckResult, saveFinishedStep } from "@/learner/memory";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 /**
  * Seam 1, Tutor Turn: when the Tutor finishes a Teaching Step with finish_teaching_step, a "Step k of N · <step>"
@@ -37,15 +38,15 @@ describe("step dividers when the Tutor moves on", () => {
       say("Now the concept: money today is worth more."),
       say("Because it can earn interest."),
     ]);
-    await collect(runTutorTurn({ db, client, map }, "Hi"));
-    const events = await collect(runTutorTurn({ db, client, map }, "I'd take the lump sum."));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "I'd take the lump sum."));
 
     const divider = { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } };
     // The browser hears it as it is stored, between the reply's two parts.
     expect(events.map((e) => e.type)).toEqual(["text", "item", "text", "done"]);
     expect(events[1]).toEqual({ type: "item", item: { kind: divider.kind, data: divider.data } });
 
-    const thread = await loadThread(db, sessionOf(events), map);
+    const thread = await loadThread(db, sessionOf(events), map, OWNER_LEARNER_ID);
     expect(seen(thread)).toEqual([
       { role: "user", text: "Hi" },
       { role: "assistant", text: "Once, a lottery winner had a choice." },
@@ -55,21 +56,21 @@ describe("step dividers when the Tutor moves on", () => {
       { role: "assistant", text: "Now the concept: money today is worth more." },
     ]);
 
-    await collect(runTutorTurn({ db, client, map }, "Why?"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Why?"));
     const sent = JSON.stringify(requests.at(-1)!.messages);
     expect(sent).toContain("Now the concept: money today is worth more.");
     expect(sent).not.toContain("Step 2 of");
     // A reload draws the same divider in the same place.
-    expect(seen(await loadThread(db, sessionOf(events), map)).slice(0, 6)).toEqual(seen(thread));
+    expect(seen(await loadThread(db, sessionOf(events), map, OWNER_LEARNER_ID)).slice(0, 6)).toEqual(seen(thread));
   });
 
   it("a reply that moves on before writing anything has the divider before it, right after the Learner's message", async () => {
     const db = await testDb();
     const { client } = scriptedClient([say("Once, a lottery winner had a choice."), { content: [finish("story")] }, say("Now the concept.")]);
-    await collect(runTutorTurn({ db, client, map }, "Hi"));
-    const events = await collect(runTutorTurn({ db, client, map }, "Go on."));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
 
-    expect(seen(await loadThread(db, sessionOf(events), map)).slice(2)).toEqual([
+    expect(seen(await loadThread(db, sessionOf(events), map, OWNER_LEARNER_ID)).slice(2)).toEqual([
       { role: "user", text: "Go on." },
       { role: "item", kind: "step", data: { step: "concept", number: 2, label: "Step 2 of 6 · Concept" } },
       { role: "assistant", text: "Now the concept." },
@@ -83,28 +84,28 @@ describe("step dividers when the Tutor moves on", () => {
       { content: [{ type: "text", text: "Once upon a time." }, finish("story", "toolu_early")] },
       say("Let's stay with the story."),
     ]);
-    const first = await collect(runTutorTurn({ db, client, map }, "Hi"));
+    const first = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
     expect(first.map((e) => e.type)).not.toContain("item");
-    expect((await loadThread(db, sessionOf(first), map)).filter((e) => e.role === "item")).toEqual([]);
+    expect((await loadThread(db, sessionOf(first), map, OWNER_LEARNER_ID)).filter((e) => e.role === "item")).toEqual([]);
 
     // At the Principle, finishing passes the Topic: no next step, so no divider; only its Topic complete card.
     for (const step of ["story", "concept", "your_turn"] as const) await saveStep(db, step);
     await passCheck(db);
     for (const step of ["reveal"] as const) await saveStep(db, step);
     const { client: last } = scriptedClient([{ content: [{ type: "text", text: "That is the principle." }, finish("principle")] }, say("Well done.")]);
-    const done = await collect(runTutorTurn({ db, client: last, map }, "Money today is worth more."));
+    const done = await collect(runTutorTurn({ db, client: last, map, learnerId: OWNER_LEARNER_ID }, "Money today is worth more."));
     expect(done.filter((e) => e.type === "item").map((e) => e.type === "item" && e.item.kind)).toEqual(["topic_complete"]);
-    expect((await loadThread(db, sessionOf(done), map)).flatMap((e) => (e.role === "item" ? [e.kind] : []))).toEqual(["topic_complete"]);
+    expect((await loadThread(db, sessionOf(done), map, OWNER_LEARNER_ID)).flatMap((e) => (e.role === "item" ? [e.kind] : []))).toEqual(["topic_complete"]);
   });
 });
 
 async function saveStep(db: Db, step: TeachingStep) {
-  const moved = await saveFinishedStep(db, map, step);
+  const moved = await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
   if (!moved.ok) throw new Error(moved.reason);
 }
 
 async function passCheck(db: Db) {
   const check = map.topic("present-value")!.checks[0];
-  const saved = await saveCheckResult(db, map, { checkId: check.id, passed: true });
+  const saved = await saveCheckResult(db, map, { checkId: check.id, passed: true }, new Date(), OWNER_LEARNER_ID);
   if (!saved.ok) throw new Error(saved.reason);
 }

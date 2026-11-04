@@ -35,7 +35,7 @@ function withoutQuizChecks(real: CourseMap): CourseMap {
 
 /** Moves the Learner to the Check step by saving progress directly, as earlier turns would have (one step per turn). */
 async function advanceToCheck(db: Awaited<ReturnType<typeof testDb>>, map: CourseMap) {
-  for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+  for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
 }
 
 /** Lines without the usage panel data, which has its own tests. */
@@ -48,19 +48,19 @@ describe("Tutor Turn", () => {
       { content: [{ type: "text", text: "Present value " }, { type: "text", text: "starts with a story." }] },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client }, "What is present value?"));
+    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "What is present value?"));
 
     expect(events).toEqual([
       { type: "text", text: "Present value " },
       { type: "text", text: "starts with a story." },
       { type: "done", stopReason: "end_turn", usage: expect.any(Object), ref: { sessionId: expect.any(Number), turnSeq: 0 }, shown: { sessionId: expect.any(Number) } },
     ]);
-    expect(noUsage(await loadCurrentSession(db))).toEqual([
+    expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "What is present value?" },
       { role: "assistant", text: "Present value starts with a story." },
     ]);
     // The finished reply says where it sits, so it can be saved to notes.
-    const line = (await loadCurrentSession(db)).at(-1)!;
+    const line = (await loadCurrentSession(db, undefined, OWNER_LEARNER_ID)).at(-1)!;
     expect(line.ref).toEqual((events.at(-1) as { ref: unknown }).ref);
   });
 
@@ -71,10 +71,10 @@ describe("Tutor Turn", () => {
       { content: [{ type: "text", text: "Second." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client }, "Hello"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hello"));
     await db.update(settings).set({ value: "claude-haiku-5-5" }).where(eq(settings.key, "model"));
     await db.update(settings).set({ value: "high" }).where(eq(settings.key, "effort"));
-    await collect(runTutorTurn({ db, client }, "And again"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "And again"));
 
     for (const request of requests) {
       expect(request.model).toBe("claude-opus-5-5");
@@ -107,19 +107,19 @@ describe("Tutor Turn", () => {
       { content: [{ type: "text", text: "Four." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client, now }, "Hello"));
+    await collect(runTutorTurn({ db, client, now, learnerId: OWNER_LEARNER_ID }, "Hello"));
     await db.update(settings).set({ value: "claude-sonnet-5-5" }).where(eq(settings.key, "model"));
     t += 60_000;
-    await collect(runTutorTurn({ db, client, now }, "Same Session"));
+    await collect(runTutorTurn({ db, client, now, learnerId: OWNER_LEARNER_ID }, "Same Session"));
     t += 7 * 3600_000;
-    await collect(runTutorTurn({ db, client, now }, "After a break"));
+    await collect(runTutorTurn({ db, client, now, learnerId: OWNER_LEARNER_ID }, "After a break"));
     expect(requests.map((r) => r.model)).toEqual(["claude-opus-5-5", "claude-opus-5-5", "claude-opus-5-5"]);
 
     // A deploy that changes the instructions refreezes the Session at its next turn.
     await db.update(sessionsTable).set({ fingerprint: "an-earlier-build" });
-    await collect(runTutorTurn({ db, client, now }, "After a deploy"));
+    await collect(runTutorTurn({ db, client, now, learnerId: OWNER_LEARNER_ID }, "After a deploy"));
     expect(requests.at(-1)!.model).toBe("claude-sonnet-5-5");
-    expect(await listSessions(db)).toHaveLength(1);
+    expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
   });
 
   it("shows text written before a tool call to the Learner and saves it in the reply", async () => {
@@ -135,11 +135,11 @@ describe("Tutor Turn", () => {
       { content: [{ type: "text", text: "On to the Check." }] },
     ]);
 
-    const events = await collect(runTutorTurn({ db, client }, "I think higher rates make later money worth less"));
+    const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "I think higher rates make later money worth less"));
 
     const shown = events.filter((e) => e.type === "text").map((e) => (e as { text: string }).text);
     expect(shown.join("")).toContain("You found it: a higher rate shrinks later money.");
-    const lines = await loadCurrentSession(db);
+    const lines = await loadCurrentSession(db, undefined, OWNER_LEARNER_ID);
     expect(lines.filter((l) => l.role === "assistant").map((l) => l.text).join("\n")).toContain("You found it: a higher rate shrinks later money.");
   });
 
@@ -155,9 +155,9 @@ describe("Tutor Turn", () => {
       { content: [{ type: "text", text: "Exactly." }] },
     ]);
 
-    await collect(runTutorTurn({ db, client }, "Why discount?"));
-    await collect(runTutorTurn({ db, client }, "Why is that?"));
-    await collect(runTutorTurn({ db, client }, "Got it"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Why discount?"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Why is that?"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Got it"));
 
     // The first message opens with code's context (where the Learner stands and the Teaching Step), then the Learner's words.
     const [first, ...rest] = requests[1].messages;
@@ -205,7 +205,7 @@ describe("Tutor Turn", () => {
     it("opening the workspace makes no model call and shows a plain-text summary", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([]);
-      const summary = await learnerSummary(db, map);
+      const summary = await learnerSummary(db, map, OWNER_LEARNER_ID);
       expect(summary).toContain("Present value");
       expect(summary).toContain("Teaching Step: story");
       expect(requests).toHaveLength(0);
@@ -215,7 +215,7 @@ describe("Tutor Turn", () => {
     it("tells the Tutor the Topic and Teaching Step in an appended message, withholding the reveal", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-      await collect(runTutorTurn({ db, client, map }, "Go on."));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const [context] = systemTexts(requests[0]);
       expect(context).toContain("Present value");
       expect(context).toContain("Teaching Step: story");
@@ -226,7 +226,7 @@ describe("Tutor Turn", () => {
     it("tells the Tutor which formulas the Topic teaches, and that they appear only as Formula Cards", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-      await collect(runTutorTurn({ db, client, map }, "Go on."));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const [context] = systemTexts(requests[0]);
       expect(context).toContain("Formulas this Topic teaches");
       expect(context).toContain('"growing-annuity-present-value"');
@@ -239,9 +239,9 @@ describe("Tutor Turn", () => {
       expect(TUTOR_INSTRUCTIONS).toContain("Take hypothetical numbers from the Concept or Check prompt in the Course Navigator message");
       // The step where a live run leaked the outcome: code sends the Topic's Concept, never the reveal.
       const db = await testDb();
-      for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step);
+      for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Suppose a rate went from 4% to 4.5%." }] }]);
-      await collect(runTutorTurn({ db, client, map }, "Give me a move to practise on."));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Give me a move to practise on."));
       const [context] = systemTexts(requests[0]);
       expect(context).toContain("Teaching Step: your_turn");
       expect(context).toContain(`Concept: ${plainFormulaText(pv.concept.trim())}`);
@@ -250,13 +250,13 @@ describe("Tutor Turn", () => {
 
     it("the Tutor reports a finished Teaching Step through a tool, and code accepts only the next legal one", async () => {
       const db = await testDb();
-    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
       const { client, requests } = scriptedClient([
         { content: [finish("reveal")] },
         { content: [finish("story")] },
         { content: [{ type: "text", text: "Now the concept." }] },
       ]);
-      await collect(runTutorTurn({ db, client, map }, "Go on"));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on"));
 
       const results = requests[2].messages.flatMap((m) =>
         Array.isArray(m.content) ? (m.content as { type: string }[]).filter((b) => b.type === "tool_result") : [],
@@ -267,12 +267,12 @@ describe("Tutor Turn", () => {
       });
       expect(results[1]).not.toHaveProperty("is_error");
       expect(String((results[1] as unknown as { content: unknown }).content)).toContain("Teaching Step: concept");
-      expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+      expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
     });
 
     it("rejects finishing a Teaching Step that began during the same turn, so each step is taught in a reply the Learner answers", async () => {
       const db = await testDb();
-    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
       const { client, requests } = scriptedClient([
         { content: [finish("story")] },
         { content: [finish("concept")] },
@@ -280,18 +280,18 @@ describe("Tutor Turn", () => {
         { content: [finish("concept", "toolu_concept_again")] },
         { content: [{ type: "text", text: "Your turn." }] },
       ]);
-      await collect(runTutorTurn({ db, client, map }, "Go on."));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const results = requests[2].messages.flatMap((m) =>
         Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
       );
       expect(results[0]).not.toHaveProperty("is_error");
       expect(results[1]).toMatchObject({ is_error: true });
       expect(String(results[1].content)).toContain("began during this turn");
-      expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+      expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
 
       // After the Learner replies, a new turn may finish the step.
-      await collect(runTutorTurn({ db, client, map }, "Understood."));
-      expect(await learnerSummary(db, map)).toContain("Teaching Step: your turn");
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Understood."));
+      expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: your turn");
     });
 
     it("starts text written after a tool call on a new paragraph, so the streamed reply does not run two steps' sentences together", async () => {
@@ -300,7 +300,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Story told." }, finish("story")] },
         { content: [{ type: "text", text: "Now the concept." }] },
       ]);
-      const events = await collect(runTutorTurn({ db, client, map }, "Go on."));
+      const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const streamed = events.flatMap((e) => (e.type === "text" ? [e.text] : [])).join("");
       expect(streamed).toBe("Story told.\n\nNow the concept.");
     });
@@ -308,12 +308,12 @@ describe("Tutor Turn", () => {
     it("a Topic started by this turn cannot have its first step finished in the same turn", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [finish("story")] }, { content: [{ type: "text", text: "The story." }] }]);
-      await collect(runTutorTurn({ db, client, map }, "Go on."));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const [result] = requests[1].messages.flatMap((m) =>
         Array.isArray(m.content) ? (m.content as { type: string; is_error?: boolean; content?: unknown }[]).filter((b) => b.type === "tool_result") : [],
       );
       expect(result).toMatchObject({ is_error: true });
-      expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
+      expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: story");
     });
 
     it("tells the Tutor the pacing rule in its instructions", () => {
@@ -328,16 +328,16 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Your Check." }] },
         { content: [{ type: "text", text: "Here is what happened." }] },
       ]);
-      await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
+      await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Go on."));
       // A Check result saved outside a turn (as a quiz will be).
-      expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true })).toEqual({ ok: true, repeated: false });
-      const summary = await learnerSummary(db, map);
+      expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true }, new Date(), OWNER_LEARNER_ID)).toEqual({ ok: true, repeated: false });
+      const summary = await learnerSummary(db, map, OWNER_LEARNER_ID);
       expect(summary).toContain("Teaching Step: reveal");
       expect(summary).toContain("The reveal has been shown.");
 
       time.advance(7 * HOUR);
-      await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
-      const sessions = await listSessions(db);
+      await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Go on."));
+      const sessions = await listSessions(db, OWNER_LEARNER_ID);
       expect(sessions).toHaveLength(1);
       const later = requests.at(-1)!;
       // The API rejects a system message as the first message (live 400), so the opening context rides in the first user message.
@@ -354,10 +354,10 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: "Your Check." }] },
         { content: [{ type: "text", text: "Here is what happened." }] },
       ]);
-      await collect(runTutorTurn({ db, client, map }, "Go on."));
-      await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true });
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
+      await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true }, new Date(), OWNER_LEARNER_ID);
 
-      await collect(runTutorTurn({ db, client, map }, "What happened next?"));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "What happened next?"));
       const sent = requests.at(-1)!.messages;
       expect(sent.at(-1)).toMatchObject({ role: "system" });
       expect(String(sent.at(-1)!.content)).toContain("Teaching Step: reveal");
@@ -397,65 +397,65 @@ describe("Tutor Turn", () => {
 
       it("a jump warns of unmet prerequisites, then the opener teaches the chosen Topic", async () => {
         const db = await testDb();
-        await ensureTopicStarted(db, twoTopics);
-        expect(await saveJump(db, twoTopics, "bonds")).toMatchObject({ ok: true, unmetPrerequisites: ["present-value"] });
+        await ensureTopicStarted(db, twoTopics, new Date(), OWNER_LEARNER_ID);
+        expect(await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID)).toMatchObject({ ok: true, unmetPrerequisites: ["present-value"] });
         const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Bonds, then." }] }]);
-        await collect(runTutorTurn({ db, client, map: twoTopics }, { opener: true }));
+        await collect(runTutorTurn({ db, client, map: twoTopics, learnerId: OWNER_LEARNER_ID }, { opener: true }));
         const [context] = systemTexts(requests[0]);
         expect(context).toContain("Topic: Bond prices");
         expect(context).toContain("Prerequisites not yet passed: present-value.");
         expect(JSON.stringify(requests[0].messages)).toContain("Opener by code:");
-        expect(await learnerSummary(db, twoTopics)).toContain("Bond prices");
+        expect(await learnerSummary(db, twoTopics, OWNER_LEARNER_ID)).toContain("Bond prices");
       });
 
       it("a step reached in a part-finished Topic the Learner chose cannot be finished in its opener", async () => {
         const db = await testDb();
-        await ensureTopicStarted(db, twoTopics);
-        await saveFinishedStep(db, twoTopics, "story"); // present value is at its concept step
-        await saveJump(db, twoTopics, "bonds");
-        await ensureTopicStarted(db, twoTopics); // an earlier turn began bonds
-        await saveJump(db, twoTopics, "present-value"); // back into present value, at its concept step
+        await ensureTopicStarted(db, twoTopics, new Date(), OWNER_LEARNER_ID);
+        await saveFinishedStep(db, twoTopics, "story", new Date(), OWNER_LEARNER_ID); // present value is at its concept step
+        await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
+        await ensureTopicStarted(db, twoTopics, new Date(), OWNER_LEARNER_ID); // an earlier turn began bonds
+        await saveJump(db, twoTopics, "present-value", new Date(), OWNER_LEARNER_ID); // back into present value, at its concept step
         const { client, requests } = scriptedClient([
           { content: [finish("concept")] },
           { content: [{ type: "text", text: "The concept, again." }] },
           { content: [finish("concept", "toolu_concept_later")] },
           { content: [{ type: "text", text: "Your turn." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map: twoTopics }, { opener: true }));
+        await collect(runTutorTurn({ db, client, map: twoTopics, learnerId: OWNER_LEARNER_ID }, { opener: true }));
         expect(toolResults(requests[1])[0]).toMatchObject({ is_error: true });
         expect(String(toolResults(requests[1])[0].content)).toContain("began during this turn");
-        expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: concept");
+        expect(await learnerSummary(db, twoTopics, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
 
         // The next turn has taught it, so the step can now finish; the opener's note is sent once only.
-        await collect(runTutorTurn({ db, client, map: twoTopics }, "Understood."));
-        expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: your turn");
+        await collect(runTutorTurn({ db, client, map: twoTopics, learnerId: OWNER_LEARNER_ID }, "Understood."));
+        expect(await learnerSummary(db, twoTopics, OWNER_LEARNER_ID)).toContain("Teaching Step: your turn");
         expect(JSON.stringify(requests[2].messages).match(/Opener by code:/g)).toHaveLength(1);
       });
 
       it("going back to the default path opens its Topic afresh, and the Topic left keeps its progress", async () => {
         const db = await testDb();
-        await ensureTopicStarted(db, twoTopics);
-        await saveFinishedStep(db, twoTopics, "story");
-        await saveJump(db, twoTopics, "bonds");
-        await ensureTopicStarted(db, twoTopics);
-        await saveFinishedStep(db, twoTopics, "story"); // bonds at concept
-        await saveReturnToDefaultPath(db, twoTopics);
+        await ensureTopicStarted(db, twoTopics, new Date(), OWNER_LEARNER_ID);
+        await saveFinishedStep(db, twoTopics, "story", new Date(), OWNER_LEARNER_ID);
+        await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
+        await ensureTopicStarted(db, twoTopics, new Date(), OWNER_LEARNER_ID);
+        await saveFinishedStep(db, twoTopics, "story", new Date(), OWNER_LEARNER_ID); // bonds at concept
+        await saveReturnToDefaultPath(db, twoTopics, new Date(), OWNER_LEARNER_ID);
         const { client, requests } = scriptedClient([{ content: [finish("concept")] }, { content: [{ type: "text", text: "Back to present value." }] }]);
-        await collect(runTutorTurn({ db, client, map: twoTopics }, { opener: true }));
+        await collect(runTutorTurn({ db, client, map: twoTopics, learnerId: OWNER_LEARNER_ID }, { opener: true }));
         expect(toolResults(requests[1])[0]).toMatchObject({ is_error: true });
         expect(String(systemTexts(requests[0]).at(-1))).toContain("Topic: Present value");
-        await saveJump(db, twoTopics, "bonds");
-        expect(await learnerSummary(db, twoTopics)).toContain("Teaching Step: concept");
+        await saveJump(db, twoTopics, "bonds", new Date(), OWNER_LEARNER_ID);
+        expect(await learnerSummary(db, twoTopics, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
       });
 
       it("an off-map question changes nothing: no tool call, same place", async () => {
         const db = await testDb();
-        await ensureTopicStarted(db, twoTopics);
-        await saveFinishedStep(db, twoTopics, "story");
-        const before = await learnerSummary(db, twoTopics);
+        await ensureTopicStarted(db, twoTopics, new Date(), OWNER_LEARNER_ID);
+        await saveFinishedStep(db, twoTopics, "story", new Date(), OWNER_LEARNER_ID);
+        const before = await learnerSummary(db, twoTopics, OWNER_LEARNER_ID);
         const { client } = scriptedClient([{ content: [{ type: "text", text: "Inflation is a general rise in prices." }] }]);
-        await collect(runTutorTurn({ db, client, map: twoTopics }, "Off topic: what is inflation?"));
-        expect(await learnerSummary(db, twoTopics)).toBe(before);
+        await collect(runTutorTurn({ db, client, map: twoTopics, learnerId: OWNER_LEARNER_ID }, "Off topic: what is inflation?"));
+        expect(await learnerSummary(db, twoTopics, OWNER_LEARNER_ID)).toBe(before);
       });
     });
 
@@ -483,7 +483,7 @@ describe("Tutor Turn", () => {
         const db = await testDb();
         await seed(db);
         const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-        await collect(runTutorTurn({ db, client, map }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
         const [context] = systemTexts(requests[0]);
         expect(context).toContain(`"${caseId}/cash-option"`);
         expect(context).toContain("Source of cash-option");
@@ -503,9 +503,9 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Your Check." }] },
           { content: [{ type: "text", text: "Here is what happened." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, "Go on."));
-        await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true });
-        await collect(runTutorTurn({ db, client, map }, "What happened next?"));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
+        await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true }, new Date(), OWNER_LEARNER_ID);
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "What happened next?"));
         const context = String(requests.at(-1)!.messages.at(-1)!.content);
         expect(context).toContain("Teaching Step: reveal");
         expect(context).toContain(`"${caseId}/winner-choice"`);
@@ -515,7 +515,7 @@ describe("Tutor Turn", () => {
       it("when a Case has no Case Data, the context says so and tells the Tutor to say data is missing", async () => {
         const db = await testDb();
         const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Picture October 2018." }] }]);
-        await collect(runTutorTurn({ db, client, map }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
         const [context] = systemTexts(requests[0]);
         expect(context).toMatch(/Case Data: none is available for this Case/);
         expect(context).toMatch(/say plainly that it is not available/i);
@@ -554,7 +554,7 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: first.id, verdict: "pass", reasons: "Discounted the payments." })] },
           { content: [{ type: "text", text: "On to the next part." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map: twoChecks }, "Go on."));
+        await collect(runTutorTurn({ db, client, map: twoChecks, learnerId: OWNER_LEARNER_ID }, "Go on."));
 
         // What the Tutor had seen at each request: context messages and tool results.
         const seen = requests.map((r) => [...systemTexts(r), ...toolResults(r).map((b) => String(b.content))].join("\n"));
@@ -575,28 +575,28 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: checkId, verdict: "pass", reasons: "Discounted each payment and named the rate." })] },
           { content: [{ type: "text", text: "Well reasoned." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, "Go on."));
-        await collect(runTutorTurn({ db, client, map }, "Later payments are worth less today."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Later payments are worth less today."));
 
         expect(requests[0].tools).toContainEqual({ name: "record_check_verdict" });
         expect(String(toolResults(requests.at(-1)!).at(-1)!.content)).toContain("Teaching Step: reveal");
-        expect(await learnerSummary(db, map)).toContain("Teaching Step: reveal");
+        expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: reveal");
       });
 
       it("rejects a verdict in the turn that reached the Check step, so the Learner answers the prompt before a pass can be recorded", async () => {
         const db = await testDb();
-        for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step);
+        for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
         const { client, requests } = scriptedClient([
           { content: [finish("your_turn")] },
           { content: [verdict({ check_id: checkId, verdict: "pass", reasons: "Too soon." })] },
           { content: [{ type: "text", text: "Here is the Check." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, "My working is done."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "My working is done."));
         const result = toolResults(requests.at(-1)!).at(-1)!;
         expect(result).toMatchObject({ is_error: true });
         expect(String(result.content)).toContain("has not answered the Check prompt");
-        expect(await loadCheckResults(db)).toHaveLength(0);
-        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
+        expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toHaveLength(0);
+        expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: check");
       });
 
       it("code rejects a verdict for any other Check with a tool error, and saves nothing", async () => {
@@ -605,14 +605,14 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: checkId, verdict: "pass", reasons: "Too early." }, "toolu_early")] },
           { content: [{ type: "text", text: "Story first." }] },
         ]);
-        await collect(runTutorTurn({ db, client: early.client, map }, "Go on."));
+        await collect(runTutorTurn({ db, client: early.client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
         const earlyResults = toolResults(early.requests.at(-1)!);
         await advanceToCheck(db, map);
         const { client, requests } = scriptedClient([
           { content: [verdict({ check_id: "some-other-check", verdict: "pass", reasons: "Wrong Check." }, "toolu_other")] },
           { content: [{ type: "text", text: "Let us take the Check." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, "Ready."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Ready."));
 
         const results = toolResults(requests.at(-1)!);
         expect(earlyResults[0]).toMatchObject({ is_error: true, content: 'Error: No Check is being taken; the current Teaching Step is "story".' });
@@ -620,8 +620,8 @@ describe("Tutor Turn", () => {
           is_error: true,
           content: `Error: Check "some-other-check" is not the current Check; the current Check is "${checkId}".`,
         });
-        expect(await loadCheckResults(db)).toEqual([]);
-        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
+        expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toEqual([]);
+        expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: check");
       });
 
       it("a Learner who doesn't pass stays at the Check, and evidence and the teaching model are saved", async () => {
@@ -631,11 +631,11 @@ describe("Tutor Turn", () => {
           { content: [verdict({ check_id: checkId, verdict: "not_yet", reasons: "Added the payments without discounting." })] },
           { content: [{ type: "text", text: "Not yet. Try again." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
 
         expect(String(toolResults(requests.at(-1)!).at(-1)!.content)).toContain("not yet");
-        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
-        expect(await loadCheckResults(db)).toEqual([
+        expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: check");
+        expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toEqual([
           expect.objectContaining({
             checkId,
             topicId: "present-value",
@@ -656,19 +656,19 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Not yet." }] },
           { content: [{ type: "text", text: "Go on." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, "Go on."));
-        await collect(runTutorTurn({ db, client, map }, "Because of interest."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Because of interest."));
 
         const second = requests[1].messages;
         expect(second.at(-2)).toMatchObject({ role: "user", content: "Because of interest." });
         expect(second.at(-1)).toMatchObject({ role: "system" });
         expect(String(second.at(-1)!.content)).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
         expect(String(second.at(-1)!.content)).toContain("Teaching Step: check");
-        expect(await learnerSummary(db, map)).toContain("Teaching Step: check");
+        expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: check");
 
         // The next turn recorded a verdict (not yet), so the turn after gets no such note.
-        await collect(runTutorTurn({ db, client, map }, "Interest compounds."));
-        await collect(runTutorTurn({ db, client, map }, "Let me try again."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Interest compounds."));
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Let me try again."));
         const fourth = requests.at(-1)!.messages;
         const fromLast = fourth.slice(fourth.findLastIndex((m) => m.role === "user" && m.content === "Let me try again."));
         expect(fromLast.length).toBeGreaterThan(0);
@@ -683,10 +683,10 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Why can both figures describe one prize?" }] },
           { content: [{ type: "text", text: "Welcome back." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Go on."));
         time.advance(7 * HOUR);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
-        expect(await listSessions(db)).toHaveLength(1);
+        await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Go on."));
+        expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
         expect(systemTexts(requests.at(-1)!).at(-1)).toMatch(/No verdict was recorded for Check pv-jackpot-choice/);
       });
 
@@ -706,11 +706,11 @@ describe("Tutor Turn", () => {
           { content: [{ type: "text", text: "Not yet." }] },
           { content: [{ type: "text", text: "Welcome back." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Go on."));
         expect(String(toolResults(requests[1]).at(-2)!.content)).toContain("Recorded by code: misconception noted");
 
         time.advance(7 * HOUR);
-        await collect(runTutorTurn({ db, client, map, now: time.now }, "Go on."));
+        await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Go on."));
         const opening = systemTexts(requests.at(-1)!).at(-1)!;
         expect(opening.startsWith(OPENING_PREFIX)).toBe(true);
         // Saved once despite the repeated tool call ID.
@@ -728,14 +728,14 @@ describe("Tutor Turn", () => {
           { content: [same] },
           { content: [{ type: "text", text: "Try again." }] },
         ]);
-        await collect(runTutorTurn({ db, client, map }, "Go on."));
-        expect(await loadCheckResults(db)).toHaveLength(1);
+        await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
+        expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toHaveLength(1);
       });
     });
 
     it("rejects a Check result for a Check that is not current", async () => {
       const db = await testDb();
-      expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true })).toEqual({
+      expect(await saveCheckResult(db, map, { checkId: pv.checks[0].id, passed: true }, new Date(), OWNER_LEARNER_ID)).toEqual({
         ok: false,
         reason: 'No Check is being taken; the current Teaching Step is "story".',
       });
@@ -747,16 +747,16 @@ describe("Tutor Turn", () => {
       const { client, requests } = scriptedClient(
         Array.from({ length: 3 }, (_, i) => ({ content: [{ type: "text", text: `Reply ${i}` }] })),
       );
-      await collect(runTutorTurn({ db, client, map, now: time.now }, "First"));
+      await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "First"));
       time.advance(7 * HOUR);
-      await collect(runTutorTurn({ db, client, map, now: time.now }, "Second"));
+      await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Second"));
       time.advance(30 * 24 * HOUR);
-      await collect(runTutorTurn({ db, client, map, now: time.now }, "Third"));
+      await collect(runTutorTurn({ db, client, map, now: time.now, learnerId: OWNER_LEARNER_ID }, "Third"));
 
-      const all = await listSessions(db);
+      const all = await listSessions(db, OWNER_LEARNER_ID);
       expect(all).toHaveLength(1);
       expect(JSON.stringify(requests.at(-1)!.messages)).toContain("Reply 1");
-      expect(noUsage(await loadSession(db, all[0].id)).map((l) => l.text)).toEqual(["First", "Reply 0", "Second", "Reply 1", "Third", "Reply 2"]);
+      expect(noUsage(await loadSession(db, all[0].id, undefined, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["First", "Reply 0", "Second", "Reply 1", "Third", "Reply 2"]);
     });
   });
 
@@ -773,11 +773,11 @@ describe("Tutor Turn", () => {
       const noTasks = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Try it.\n${noTasks}` }] }, { content: [{ type: "text", text: good }] }]);
-      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(requests)).toMatch(/slider.*Guided Task/i);
       expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
       // On reload the corrected Widget stands where the first one was.
-      expect(noUsage(await loadCurrentSession(db))).toEqual([
+      expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
         { role: "user", text: "Show me" },
         { role: "assistant", text: `Try it.\n${good}` },
       ]);
@@ -786,7 +786,7 @@ describe("Tutor Turn", () => {
     it("freezes the generated widget instructions into the Session with the Tutor's instructions", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Hi." }] }]);
-      await collect(runTutorTurn({ db, client }, "Hello"));
+      await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hello"));
       expect(requests[0].system[0].text).toContain(frozenWidgets.instructions);
     });
 
@@ -795,12 +795,12 @@ describe("Tutor Turn", () => {
       const labelled = '```openui-lang\nroot = Widget("Illustration: two rates", [bars])\nbars = BarChart(["Before", "After"], [Series("Rate", [5, 5.5])], "grouped", "When", "Rate in percent")\n```';
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: unlabelled }] }, { content: [{ type: "text", text: labelled }] }]);
-      await collect(runTutorTurn({ db, client }, "Show me"));
+      await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(requests)).toMatch(/bars: this BarChart has no axis labels/);
 
       const fine = await testDb();
       const once = scriptedClient([{ content: [{ type: "text", text: labelled }] }]);
-      await collect(runTutorTurn({ db: fine, client: once.client }, "Show me"));
+      await collect(runTutorTurn({ db: fine, client: once.client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(correctionAsked(once.requests)).toBeUndefined();
     });
 
@@ -813,9 +813,9 @@ describe("Tutor Turn", () => {
       it("tells the Tutor the open Widgets' titles and to update one by reusing its title", async () => {
         const db = await testDb();
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text("Look at the chart.")]);
-        await collect(runTutorTurn({ db, client }, "Show me rates"));
+        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
         expect(sentText(requests[0])).not.toContain("Open Widgets");
-        await collect(runTutorTurn({ db, client }, "And now?"));
+        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "And now?"));
         const context = requests[1].messages.filter((m) => m.role === "system").map((m) => String(m.content)).join("\n");
         expect(context).toContain('Open Widgets (tabs in the Widget panel): "Long-term interest rates".');
         expect(context).toMatch(/write it again in full under exactly the same title: code replaces it in its tab/);
@@ -824,8 +824,8 @@ describe("Tutor Turn", () => {
       it("sends a new Widget drawing the same Case Data as an open Widget back for one correction turn", async () => {
         const db = await testDb();
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Rates around the draw")), text(queried("Long-term interest rates"))]);
-        await collect(runTutorTurn({ db, client }, "Show me rates"));
-        const events = await collect(runTutorTurn({ db, client }, "Show them as a line"));
+        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
+        const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
         expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
         expect(String(requests[2].messages.at(-1)!.content)).toMatch(/same Case Data \(mega-millions-2018\/treasury-30-year\) as the open Widget "Long-term interest rates"/);
       });
@@ -833,8 +833,8 @@ describe("Tutor Turn", () => {
       it("lets the Tutor update an open Widget in place by reusing its title, with no correction turn", async () => {
         const db = await testDb();
         const { client, requests } = scriptedClient([text(history("Long-term interest rates")), text(queried("Long-term interest rates"))]);
-        await collect(runTutorTurn({ db, client }, "Show me rates"));
-        const events = await collect(runTutorTurn({ db, client }, "Show them as a line"));
+        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me rates"));
+        const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show them as a line"));
         expect(requests).toHaveLength(2);
         expect(events.some((e) => e.type === "correction")).toBe(false);
       });
@@ -844,11 +844,11 @@ describe("Tutor Turn", () => {
         const old = '```openui-lang\nroot = Widget("PV", [rate, chart])\n$rate = 3\nrate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")\nchart = AnnuityChart(1537000000, 30, 5, $rate)\n```';
         // Stored before the rule: written straight to the Session, as an earlier deploy's turn saved it.
         const { client } = scriptedClient([text("Hello."), text("Still here.")]);
-        await collect(runTutorTurn({ db, client }, "Hi"));
+        await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Hi"));
         const [session] = await db.select().from(sessionsTable);
         await db.insert(messages).values({ sessionId: session.id, seq: 99, role: "assistant", content: [{ type: "text", text: old }] });
-        expect(noUsage(await loadCurrentSession(db)).at(-1)).toEqual({ role: "assistant", text: `Hello.\n\n${old}` });
-        const events = await collect(runTutorTurn({ db, client }, "Thanks"));
+        expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID)).at(-1)).toEqual({ role: "assistant", text: `Hello.\n\n${old}` });
+        const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Thanks"));
         expect(events.some((e) => e.type === "correction")).toBe(false);
       });
     });
@@ -856,7 +856,7 @@ describe("Tutor Turn", () => {
     it("a valid widget needs no correction turn", async () => {
       const db = await testDb();
       const { client, requests } = scriptedClient([{ content: [{ type: "text", text: `Try it.\n${good}\nDrag the rate.` }] }]);
-      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(requests).toHaveLength(1);
       expect(events.some((e) => e.type === "correction")).toBe(false);
     });
@@ -867,7 +867,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: `Try it.\n${bad}\nDrag the rate.` }] },
         { content: [{ type: "text", text: good }] },
       ]);
-      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
 
       expect(requests).toHaveLength(2);
       const correction = requests[1].messages.at(-1)!;
@@ -876,7 +876,7 @@ describe("Tutor Turn", () => {
       expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
 
       // History stays add-only: both replies and the correction request are stored.
-      expect(noUsage(await loadCurrentSession(db))).toEqual([
+      expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
         { role: "user", text: "Show me" },
         { role: "assistant", text: `Try it.\n${good}\nDrag the rate.` },
       ]);
@@ -890,7 +890,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: `Try it.\n${unbound}` }] },
         { content: [{ type: "text", text: fixed }] },
       ]);
-      const events = await collect(runTutorTurn({ db, client }, "Show me the formula"));
+      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me the formula"));
       expect(requests).toHaveLength(2);
       expect(String(requests[1].messages.at(-1)!.content)).toMatch(/input "ratePercent" is bound to no Slider/);
       expect(events.map((e) => e.type)).toEqual(["text", "correction", "text", "done"]);
@@ -902,7 +902,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: bad }] },
         { content: [{ type: "text", text: bad }] },
       ]);
-      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(requests).toHaveLength(2);
       expect(events.filter((e) => e.type === "correction")).toHaveLength(1);
     });
@@ -910,21 +910,21 @@ describe("Tutor Turn", () => {
     it("a correction cut off by max_tokens is handled like any cut-off: Finish this reply is offered and a truncated tool call is not run", async () => {
       const db = await testDb();
       const map = withoutQuizChecks(loadCourseMap());
-      await ensureTopicStarted(db, map); // an earlier turn has shown the story
+      await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
       const truncated = { type: "tool_use", id: "toolu_cut_fix", name: "finish_teaching_step", input: { step: "story" } };
       const { client, requests } = scriptedClient([
         { content: [{ type: "text", text: bad }] },
         { content: [{ type: "text", text: "```openui-lang\nroot =" }, truncated], stop_reason: "max_tokens" },
         { content: [{ type: "text", text: "Carrying on." }] },
       ]);
-      const events = await collect(runTutorTurn({ db, client, map }, "Show me"));
+      const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(events).toContainEqual({ type: "cut_short", message: expect.stringMatching(/cut short/i) });
       expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "max_tokens" });
 
-      await collect(runTutorTurn({ db, client, map }, { finish: true }));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, { finish: true }));
       const results = requests[2].messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).filter((b) => b.type === "tool_result");
       expect(results).toEqual([{ type: "tool_result", tool_use_id: "toolu_cut_fix", is_error: true, content: expect.stringMatching(/Not run/) }]);
-      expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
+      expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: story");
     });
 
     it("a refused correction tells the Learner, like any refusal", async () => {
@@ -933,7 +933,7 @@ describe("Tutor Turn", () => {
         { content: [{ type: "text", text: bad }] },
         { content: [{ type: "text", text: "I can't" }], stop_reason: "refusal" },
       ]);
-      const events = await collect(runTutorTurn({ db, client }, "Show me"));
+      const events = await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Show me"));
       expect(events).toContainEqual(expect.objectContaining({ type: "refusal" }));
       expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "refusal" });
     });
@@ -955,7 +955,7 @@ describe("Tutor Turn", () => {
       const db = await testDb();
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Your quiz is below.")]);
-      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const context = requests.at(-1)!.messages.flatMap((m) => (Array.isArray(m.content) ? m.content : [])).map((b) => JSON.stringify(b)).join("\n");
       expect(context).toContain(`Check: quiz ${quizId}`);
       expect(context).toContain("Do not write quiz questions");
@@ -973,16 +973,16 @@ describe("Tutor Turn", () => {
       const db = await testDb();
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Your quiz is below."), text("Good. Now the next idea.")]);
-      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
       const callsBefore = requests.length;
 
-      const quiz = (await openQuiz(db, real))!;
+      const quiz = (await openQuiz(db, real, new Date(), OWNER_LEARNER_ID))!;
       const answers = Object.fromEntries(quiz.questions.map((q) => [q.id, real.question(q.id)!.answer]));
-      const result = await submitQuiz(db, real, quiz.attemptId, answers);
+      const result = await submitQuiz(db, real, quiz.attemptId, answers, new Date(), OWNER_LEARNER_ID);
       expect(result).toMatchObject({ ok: true, passed: true });
       expect(requests).toHaveLength(callsBefore);
 
-      await collect(runTutorTurn({ db, client, map: real }, "Done."));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Done."));
       const sent = requests.at(-1)!.messages;
       expect(sent.at(-2)).toMatchObject({ role: "user", content: "Done." });
       expect(sent.at(-1)).toMatchObject({ role: "system" });
@@ -1003,19 +1003,19 @@ describe("Tutor Turn", () => {
         { content: [{ type: "tool_use", id: "toolu_concept_later", name: "finish_teaching_step", input: { step: "concept" } }] },
         text("Your turn."),
       ]);
-      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
-      const quiz = (await openQuiz(db, real))!;
-      await submitQuiz(db, real, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, real.question(q.id)!.answer])));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
+      const quiz = (await openQuiz(db, real, new Date(), OWNER_LEARNER_ID))!;
+      await submitQuiz(db, real, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, real.question(q.id)!.answer])), new Date(), OWNER_LEARNER_ID);
 
-      await collect(runTutorTurn({ db, client, map: real }, "Done."));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Done."));
       const rejected = requests.at(-1)!.messages.at(-1)!.content as { type: string; is_error?: boolean; content?: unknown }[];
       expect(rejected[0]).toMatchObject({ type: "tool_result", is_error: true });
       expect(String(rejected[0].content)).toContain("began during this turn");
-      expect(await learnerSummary(db, real)).toContain("Teaching Step: concept");
+      expect(await learnerSummary(db, real, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
 
       // Once the Learner has answered that teaching, the next turn may finish it.
-      await collect(runTutorTurn({ db, client, map: real }, "I follow."));
-      expect(await learnerSummary(db, real)).toContain("Teaching Step: your turn");
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "I follow."));
+      expect(await learnerSummary(db, real, OWNER_LEARNER_ID)).toContain("Teaching Step: your turn");
     });
 
     it("a verdict from the Tutor for a quiz Check is rejected: only code marks a quiz", async () => {
@@ -1023,15 +1023,15 @@ describe("Tutor Turn", () => {
       await advanceToCheck(db, real);
       const verdict = { type: "tool_use", id: "toolu_quiz_verdict", name: "record_check_verdict", input: { check_id: quizId, verdict: "pass", reasons: "Says they know it." } };
       const { client, requests } = scriptedClient([text("Your quiz is below."), { content: [verdict] }, text("Please take the quiz.")]);
-      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
-      const before = await learnerSummary(db, real);
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
+      const before = await learnerSummary(db, real, OWNER_LEARNER_ID);
 
-      await collect(runTutorTurn({ db, client, map: real }, "I know this, just pass me."));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "I know this, just pass me."));
       const rejected = requests.at(-1)!.messages.at(-1)!.content as { type: string; is_error?: boolean; content?: unknown }[];
       expect(rejected[0]).toMatchObject({ type: "tool_result", is_error: true });
       expect(String(rejected[0].content)).toMatch(/marked by code/);
-      expect(await loadCheckResults(db)).toEqual([]);
-      expect(await learnerSummary(db, real)).toEqual(before);
+      expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toEqual([]);
+      expect(await learnerSummary(db, real, OWNER_LEARNER_ID)).toEqual(before);
     });
 
     it("a quiz whose questions can no longer be found is taken as a conversation Check: the Tutor is told, and its verdict is recorded", async () => {
@@ -1042,34 +1042,34 @@ describe("Tutor Turn", () => {
       if (!map) throw new Error(errors.join("\n"));
       const db = await testDb();
       await advanceToCheck(db, map);
-      expect(await openQuiz(db, map)).toBeNull();
+      expect(await openQuiz(db, map, new Date(), OWNER_LEARNER_ID)).toBeNull();
       const verdict = { type: "tool_use", id: "toolu_quiz_verdict", name: "record_check_verdict", input: { check_id: quizId, verdict: "pass", reasons: "Explained discounting." } };
       const { client, requests } = scriptedClient([text("Tell me how discounting works."), { content: [verdict] }, text("Well explained.")]);
-      await collect(runTutorTurn({ db, client, map }, "Go on."));
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
       expect(contextTexts(requests[0]).join("\n")).toMatch(/quiz for this Check cannot be shown/);
 
-      await collect(runTutorTurn({ db, client, map }, "Money later is worth less, because it could earn interest meanwhile."));
-      expect(await loadCheckResults(db)).toMatchObject([{ checkId: quizId, passed: true }]);
+      await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Money later is worth less, because it could earn interest meanwhile."));
+      expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toMatchObject([{ checkId: quizId, passed: true }]);
     });
 
     it("tells the Tutor about a miss, even though the Learner's place did not change, and only once", async () => {
       const db = await testDb();
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Quiz below."), text("Let us look at it."), text("Fine.")]);
-      await collect(runTutorTurn({ db, client, map: real }, "Go on."));
-      const quiz = (await openQuiz(db, real))!;
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "Go on."));
+      const quiz = (await openQuiz(db, real, new Date(), OWNER_LEARNER_ID))!;
       const first = quiz.questions[0];
       const wrong = first.choices.find((c) => c.id !== real.question(first.id)!.answer)!;
-      await submitQuiz(db, real, quiz.attemptId, { [first.id]: wrong.id });
+      await submitQuiz(db, real, quiz.attemptId, { [first.id]: wrong.id }, new Date(), OWNER_LEARNER_ID);
 
-      await collect(runTutorTurn({ db, client, map: real }, "I missed some."));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "I missed some."));
       const note = String(requests.at(-1)!.messages.at(-1)!.content);
       expect(note).toContain("0 of 3 correct (needs 2).");
       expect(note).toContain("Not passed");
       expect(note).toContain(`The Learner chose "${wrong.text}"`);
       expect(note).not.toContain("No verdict was recorded");
 
-      await collect(runTutorTurn({ db, client, map: real }, "And now?"));
+      await collect(runTutorTurn({ db, client, map: real, learnerId: OWNER_LEARNER_ID }, "And now?"));
       expect(requests.at(-1)!.messages.filter((m) => m.role === "system")).toHaveLength(1);
       expect(contextTexts(requests.at(-1)!).filter((t) => t.includes("Quiz result by code"))).toHaveLength(1);
     });
@@ -1080,11 +1080,11 @@ describe("Tutor Turn", () => {
       const now = () => new Date(t);
       await advanceToCheck(db, real);
       const { client, requests } = scriptedClient([text("Quiz below."), text("Welcome back.")]);
-      await collect(runTutorTurn({ db, client, map: real, now }, "Go on."));
-      const quiz = (await openQuiz(db, real, now()))!;
-      await submitQuiz(db, real, quiz.attemptId, {}, now());
+      await collect(runTutorTurn({ db, client, map: real, now, learnerId: OWNER_LEARNER_ID }, "Go on."));
+      const quiz = (await openQuiz(db, real, now(), OWNER_LEARNER_ID))!;
+      await submitQuiz(db, real, quiz.attemptId, {}, now(), OWNER_LEARNER_ID);
       t += 7 * 3600_000;
-      await collect(runTutorTurn({ db, client, map: real, now }, "Go on."));
+      await collect(runTutorTurn({ db, client, map: real, now, learnerId: OWNER_LEARNER_ID }, "Go on."));
       expect(requests.at(-1)!.messages[0].role).toBe("user");
       expect(contextTexts(requests.at(-1)!).at(-1)).toContain("Quiz result by code");
     });
@@ -1101,24 +1101,24 @@ describe("surviving cut-offs and failures", () => {
     let release!: () => void;
     const hold = new Promise<void>((r) => (release = r));
     const first = scriptedClient([{ content: [text("Slow reply.")], hold }]);
-    const running = collect(runTutorTurn({ db, client: first.client, map }, "First message"));
+    const running = collect(runTutorTurn({ db, client: first.client, map, learnerId: OWNER_LEARNER_ID }, "First message"));
     await new Promise((r) => setTimeout(r, 20));
 
     const other = scriptedClient([{ content: [text("Should not run.")] }]);
-    const events = await collect(runTutorTurn({ db, client: other.client, map }, "From my phone"));
+    const events = await collect(runTutorTurn({ db, client: other.client, map, learnerId: OWNER_LEARNER_ID }, "From my phone"));
     expect(events).toEqual([{ type: "busy", message: expect.stringMatching(/turn is in progress/i) }]);
     expect(other.requests).toHaveLength(0);
 
     release();
     await running;
-    expect(noUsage(await loadCurrentSession(db))).toEqual([
+    expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "First message" },
       { role: "assistant", text: "Slow reply." },
     ]);
-    expect(await latestTurn(db)).toMatchObject({ status: "finished", stopReason: "end_turn" });
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "finished", stopReason: "end_turn" });
     // Once the first turn has finished, the next send runs.
     const after = scriptedClient([{ content: [text("Now it runs.")] }]);
-    expect((await collect(runTutorTurn({ db, client: after.client, map }, "Again"))).at(-1)).toMatchObject({ type: "done" });
+    expect((await collect(runTutorTurn({ db, client: after.client, map, learnerId: OWNER_LEARNER_ID }, "Again"))).at(-1)).toMatchObject({ type: "done" });
   });
 
   const types = (events: TurnEvent[]) => events.map((e) => e.type);
@@ -1129,15 +1129,15 @@ describe("surviving cut-offs and failures", () => {
 
   it("a turn cut off by its time limit is saved as cut off, and the resume continues from the last saved loop step without repeating a write", async () => {
     const db = await testDb();
-    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
     const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Never saved.")], delayMs: 400 }]);
-    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "Go on."));
+    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150, learnerId: OWNER_LEARNER_ID }, "Go on."));
     expect(events.at(-1)).toEqual({ type: "cut_off" });
-    expect(await latestTurn(db)).toMatchObject({ status: "cut_off" });
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "cut_off" });
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
 
     const resume = scriptedClient([{ content: [text("Now the concept.")] }]);
-    const resumed = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
+    const resumed = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
     expect(types(resumed)).toEqual(["replay", "text", "done"]);
     // The finish_teaching_step call ran before the cut-off, but its result was never saved: it is re-run
     // under its tool call ID, returns the saved result, and the Learner moves on only once.
@@ -1145,10 +1145,10 @@ describe("surviving cut-offs and failures", () => {
     expect(results).toHaveLength(1);
     expect(results[0]).not.toHaveProperty("is_error");
     expect(String(results[0].content)).toContain("Teaching Step: concept");
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
-    expect(await latestTurn(db)).toMatchObject({ status: "finished" });
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "finished" });
     // The Learner's message is stored once, and the unsaved step's text never was.
-    expect(noUsage(await loadCurrentSession(db))).toEqual([
+    expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "Go on." },
       { role: "assistant", text: "Now the concept." },
     ]);
@@ -1161,61 +1161,61 @@ describe("surviving cut-offs and failures", () => {
     await advanceToCheck(db, map);
     const verdict = { type: "tool_use", id: "toolu_v", name: "record_check_verdict", input: { check_id: checkId, verdict: "not_yet", reasons: "No discounting." } };
     const first = scriptedClient([{ content: [text("Your Check.")] }, { content: [verdict] }, { content: [text("Lost.")], delayMs: 400 }]);
-    await collect(runTutorTurn({ db, client: first.client, map }, "Go on."));
-    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "The bigger number wins."));
-    expect(await loadCheckResults(db)).toHaveLength(1);
+    await collect(runTutorTurn({ db, client: first.client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
+    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150, learnerId: OWNER_LEARNER_ID }, "The bigger number wins."));
+    expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toHaveLength(1);
 
     const resume = scriptedClient([{ content: [text("Not yet. Think about timing.")] }]);
-    await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
-    expect(await loadCheckResults(db)).toHaveLength(1);
+    await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
+    expect(await loadCheckResults(db, OWNER_LEARNER_ID)).toHaveLength(1);
     expect(String(resultsIn(resume.requests[0]).at(-1)!.content)).toContain("Recorded by code: not yet");
   });
 
   it("the resume replays the reply text saved so far, so text from the unsaved step is replaced on screen", async () => {
     const db = await testDb();
     const first = scriptedClient([{ content: [text("Saved part. "), finish("story")] }, { content: [text("Unsaved part.")], delayMs: 400 }]);
-    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "Go on."));
+    const events = await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150, learnerId: OWNER_LEARNER_ID }, "Go on."));
     expect(events).toContainEqual({ type: "text", text: "Saved part. " });
     const resume = scriptedClient([{ content: [text("Resumed part.")] }]);
-    const resumed = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
+    const resumed = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
     expect(resumed[0]).toEqual({ type: "replay", text: "Saved part. " });
   });
 
   it("resuming a turn whose final reply was already saved asks the model nothing and marks it finished", async () => {
     const db = await testDb();
     const first = scriptedClient([{ content: [text("All done.")] }]);
-    await collect(runTutorTurn({ db, client: first.client, map }, "Hi"));
+    await collect(runTutorTurn({ db, client: first.client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
     // The function was killed after the final save, before the turn was marked finished.
     await db.update(turns).set({ status: "cut_off" });
     const resume = scriptedClient([]);
-    const events = await collect(runTutorTurn({ db, client: resume.client, map }, { resume: true }));
+    const events = await collect(runTutorTurn({ db, client: resume.client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
     expect(types(events)).toEqual(["replay", "done"]);
     expect(events[0]).toEqual({ type: "replay", text: "All done." });
     expect(resume.requests).toHaveLength(0);
-    expect(await latestTurn(db)).toMatchObject({ status: "finished" });
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "finished" });
   });
 
   it("a resume after the turn already finished elsewhere just replays the saved reply", async () => {
     const db = await testDb();
     const first = scriptedClient([{ content: [text("Finished while you were offline.")] }]);
-    await collect(runTutorTurn({ db, client: first.client, map }, "Hi"));
-    const events = await collect(runTutorTurn({ db, client: scriptedClient([]).client, map }, { resume: true }));
+    await collect(runTutorTurn({ db, client: first.client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client: scriptedClient([]).client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
     expect(events[0]).toEqual({ type: "replay", text: "Finished while you were offline." });
     expect(events.at(-1)).toMatchObject({ type: "done" });
   });
 
   it("a new message after a cut-off first answers the saved tool calls that had no result, then carries on", async () => {
     const db = await testDb();
-    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
     const first = scriptedClient([{ content: [finish("story")] }, { content: [text("Lost.")], delayMs: 400 }]);
-    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150 }, "Go on."));
+    await collect(runTutorTurn({ db, client: first.client, map, timeBudgetMs: 150, learnerId: OWNER_LEARNER_ID }, "Go on."));
     const next = scriptedClient([{ content: [text("Where were we? The concept.")] }]);
-    expect((await collect(runTutorTurn({ db, client: next.client, map }, "Hello?"))).at(-1)).toMatchObject({ type: "done" });
+    expect((await collect(runTutorTurn({ db, client: next.client, map, learnerId: OWNER_LEARNER_ID }, "Hello?"))).at(-1)).toMatchObject({ type: "done" });
     const sent = next.requests[0].messages;
     expect(sent.findIndex((m) => m.role === "user" && m.content === "Hello?")).toBeGreaterThan(
       sent.findIndex((m) => JSON.stringify(m.content).includes('"tool_result"')),
     );
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
   });
 
   it("a turn left running by a killed function no longer blocks the next send", async () => {
@@ -1225,19 +1225,19 @@ describe("surviving cut-offs and failures", () => {
     await db.insert(turns).values({ learnerId: OWNER_LEARNER_ID, status: "running", startedAt: now() });
     t += 6 * 60_000;
     const { client } = scriptedClient([{ content: [text("Here.")] }]);
-    expect((await collect(runTutorTurn({ db, client, map, now }, "Hello"))).at(-1)).toMatchObject({ type: "done" });
+    expect((await collect(runTutorTurn({ db, client, map, now, learnerId: OWNER_LEARNER_ID }, "Hello"))).at(-1)).toMatchObject({ type: "done" });
   });
 
   it("max_tokens: the partial reply is kept as sent, the Learner is told it was cut short, a truncated tool call is not run, and Finish this reply carries on", async () => {
     const db = await testDb();
     const partial = [text("A rupee today is worth"), finish("story", "toolu_cut")];
     const { client, requests } = scriptedClient([{ content: partial, stop_reason: "max_tokens" }, { content: [text("...more than a rupee next year.")] }]);
-    const events = await collect(runTutorTurn({ db, client, map }, "Go on."));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
     expect(events).toContainEqual({ type: "cut_short", message: expect.stringMatching(/cut short/i) });
     expect(events.at(-1)).toMatchObject({ type: "done", stopReason: "max_tokens" });
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: story");
 
-    await collect(runTutorTurn({ db, client, map }, { finish: true }));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, { finish: true }));
     const sent = requests[1].messages;
     expect(sent).toContainEqual({ role: "assistant", content: partial });
     expect(resultsIn(requests[1])).toEqual([{ type: "tool_result", tool_use_id: "toolu_cut", is_error: true, content: expect.stringMatching(/Not run/) }]);
@@ -1250,31 +1250,31 @@ describe("surviving cut-offs and failures", () => {
       { content: [text("I can help with tha")], stop_reason: "refusal" },
       { content: [text("Back to present value.")] },
     ]);
-    await collect(runTutorTurn({ db, client, map }, "Hi"));
-    const events = await collect(runTutorTurn({ db, client, map }, "Something declined"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Something declined"));
     expect(events).toContainEqual({ type: "refusal", message: expect.stringMatching(/Nothing was changed/), text: "" });
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: story");
     // The partial reply is never stored.
-    expect(noUsage(await loadCurrentSession(db)).map((l) => l.text)).not.toContain("I can help with tha");
+    expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID)).map((l) => l.text)).not.toContain("I can help with tha");
 
-    await collect(runTutorTurn({ db, client, map }, "Let us go on"));
-    expect(await listSessions(db)).toHaveLength(1);
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Let us go on"));
+    expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     expect(requests.at(-1)!.messages.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
     expect(String(JSON.stringify(requests.at(-1)!.messages))).not.toContain("Something declined");
   });
 
   it("refusal after earlier loop steps saved progress: the Learner is told it was kept, and the saved reply text stays on screen", async () => {
     const db = await testDb();
-    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
     const { client } = scriptedClient([
       { content: [text("Story done."), finish("story")] },
       { content: [text("I can help with tha")], stop_reason: "refusal" },
     ]);
-    const events = await collect(runTutorTurn({ db, client, map }, "Go on"));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on"));
     const refusal = events.find((e) => e.type === "refusal");
     expect(refusal).toEqual({ type: "refusal", message: expect.stringMatching(/kept/), text: "Story done." });
     expect(refusal && "message" in refusal ? refusal.message : "").not.toContain("Nothing was changed");
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
   });
 
   it("a turn that fails before the Learner's message is stored can be retried, and the retry sends that message", async () => {
@@ -1282,15 +1282,15 @@ describe("surviving cut-offs and failures", () => {
     await db.execute(sql`CREATE FUNCTION refuse_start() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'connection lost'; END $$ LANGUAGE plpgsql`);
     await db.execute(sql`CREATE TRIGGER refuse_start BEFORE INSERT ON topic_progress FOR EACH ROW EXECUTE FUNCTION refuse_start()`);
     const { client, requests } = scriptedClient([{ content: [text("Picture October 2018.")] }]);
-    const failed = await collect(runTutorTurn({ db, client, map }, "Why discount?"));
+    const failed = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Why discount?"));
     expect(failed.at(-1)).toMatchObject({ type: "error" });
-    expect(await latestTurn(db)).toMatchObject({ status: "failed", sessionId: null });
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "failed", sessionId: null });
     await db.execute(sql`DROP TRIGGER refuse_start ON topic_progress`);
 
-    const retried = await collect(runTutorTurn({ db, client, map }, { resume: true }));
+    const retried = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
     expect(retried.at(-1)).toMatchObject({ type: "done" });
     expect(JSON.stringify(requests.at(-1)!.messages[0].content)).toContain("Why discount?");
-    expect(noUsage(await loadCurrentSession(db))).toEqual([
+    expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "Why discount?" },
       { role: "assistant", text: "Picture October 2018." },
     ]);
@@ -1300,15 +1300,15 @@ describe("surviving cut-offs and failures", () => {
     const db = await testDb();
     const credits = APIError.generate(402, { type: "error", error: { type: "billing_error", message: "Your credit balance is too low" } }, "402 billing", new Headers());
     const { client, requests } = scriptedClient([{ content: [text("First reply.")] }, { error: credits }, { content: [text("Answer after retry.")] }]);
-    await collect(runTutorTurn({ db, client, map }, "Hello"));
-    const failed = await collect(runTutorTurn({ db, client, map }, "Why discount?"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hello"));
+    const failed = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Why discount?"));
     expect(failed.at(-1)).toEqual({ type: "error", kind: "credits", message: expect.stringMatching(/credits/i) });
-    expect(await latestTurn(db)).toMatchObject({ status: "failed" });
+    expect(await latestTurn(db, OWNER_LEARNER_ID)).toMatchObject({ status: "failed" });
 
-    const retried = await collect(runTutorTurn({ db, client, map }, { resume: true }));
+    const retried = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, { resume: true }));
     expect(retried.at(-1)).toMatchObject({ type: "done" });
     expect(requests.at(-1)!.messages.at(-1)).toMatchObject({ role: "user", content: "Why discount?" });
-    expect(noUsage(await loadCurrentSession(db))).toEqual([
+    expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "Hello" },
       { role: "assistant", text: "First reply." },
       { role: "user", text: "Why discount?" },
@@ -1326,26 +1326,26 @@ describe("surviving cut-offs and failures", () => {
 
   it("if a progress write fails, the Tutor is told nothing was recorded, the Learner sees an error, and the Course Navigator doesn't advance", async () => {
     const db = await testDb();
-    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
     await db.execute(sql`CREATE FUNCTION refuse_write() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'disk full'; END $$ LANGUAGE plpgsql`);
     await db.execute(sql`CREATE TRIGGER refuse_progress BEFORE UPDATE ON topic_progress FOR EACH ROW EXECUTE FUNCTION refuse_write()`);
     const { client, requests } = scriptedClient([{ content: [finish("story")] }, { content: [text("Sorry, that was not saved.")] }]);
-    const events = await collect(runTutorTurn({ db, client, map }, "Go on."));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
     expect(events).toContainEqual({ type: "save_failed", message: expect.stringMatching(/could not be saved/i) });
     expect(resultsIn(requests[1])[0]).toMatchObject({ is_error: true, content: expect.stringMatching(/Nothing was recorded/) });
     await db.execute(sql`DROP TRIGGER refuse_progress ON topic_progress`);
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: story");
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: story");
   });
 
   it("a changed fingerprint of instructions and tools refreezes them in the same Session, with no notice", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }]);
-    await collect(runTutorTurn({ db, client, map }, "Hello"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hello"));
     // As if the Session was frozen by an earlier build.
     await db.update(sessionsTable).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
-    const events = await collect(runTutorTurn({ db, client, map }, "Hello again"));
+    const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hello again"));
     expect(events.map((e) => e.type)).toEqual(["text", "done"]);
-    expect(await listSessions(db)).toHaveLength(1);
+    expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     expect(requests.at(-1)!.system).toEqual([{ type: "text", text: TUTOR_INSTRUCTIONS }]);
     expect(JSON.stringify(requests.at(-1)!.messages)).toContain("One.");
   });
@@ -1355,7 +1355,7 @@ describe("surviving cut-offs and failures", () => {
     const emi = { type: "tool_use", id: "toolu_emi", name: "calculate", input: { calculator: "emi", inputs: { principal: 5_000_000, ratePercent: 8.5, years: 20 } } };
     const bad = { type: "tool_use", id: "toolu_bad", name: "calculate", input: { calculator: "emi", inputs: { principal: 5_000_000 } } };
     const { client, requests } = scriptedClient([{ content: [emi] }, { content: [bad] }, { content: [text("Done.")] }]);
-    await collect(runTutorTurn({ db, client, map }, "What is the EMI on 50 lakh?"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "What is the EMI on 50 lakh?"));
     expect(JSON.stringify(resultsIn(requests[1])[0])).toContain("₹43,391.16");
     const failed = resultsIn(requests[2]).find((r) => (r as { tool_use_id: string }).tool_use_id === "toolu_bad");
     expect(failed).toMatchObject({ is_error: true });
@@ -1367,9 +1367,9 @@ describe("surviving cut-offs and failures", () => {
     const time = Date.parse("2026-11-02T09:00:00Z");
     const note = { type: "tool_use", id: "toolu_m", name: "record_misconception", input: { description: "Adds payments without discounting.", topic_id: "Present value" } };
     const { client, requests } = scriptedClient([{ content: [note] }, { content: [text("Noted.")] }, { content: [text("Welcome back.")] }]);
-    await collect(runTutorTurn({ db, client, map, now: () => new Date(time) }, "Go on."));
+    await collect(runTutorTurn({ db, client, map, now: () => new Date(time), learnerId: OWNER_LEARNER_ID }, "Go on."));
     expect(resultsIn(requests[1])[0]).not.toHaveProperty("is_error");
-    await collect(runTutorTurn({ db, client, map, now: () => new Date(time + 7 * 3600_000) }, "Go on."));
+    await collect(runTutorTurn({ db, client, map, now: () => new Date(time + 7 * 3600_000), learnerId: OWNER_LEARNER_ID }, "Go on."));
     expect(String(requests.at(-1)!.messages.at(-1)!.content)).toContain("Adds payments without discounting.");
   });
 
@@ -1383,16 +1383,16 @@ describe("surviving cut-offs and failures", () => {
       { content: [summary], stop_reason: "compaction", usage: { input_tokens: 0, output_tokens: 0, iterations: [{ input_tokens: 2100, output_tokens: 300 }] } },
       { content: [text("Carrying on.")] },
     ]);
-    await collect(runTutorTurn({ db, client, map }, "First"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "First"));
     expect(requests.filter((r) => r.compaction)).toHaveLength(0);
-    const second = await collect(runTutorTurn({ db, client, map }, "Second"));
+    const second = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Second"));
     expect(requests.filter((r) => r.compaction)).toHaveLength(1);
     // The summary is not streamed to the Learner, and its cost shows in the panel.
     expect(second.filter((e) => e.type === "text").map((e) => (e as { text: string }).text)).toEqual(["Long reply."]);
     const done = second.at(-1) as Extract<TurnEvent, { type: "done" }>;
     expect(done.usage.steps.at(-1)).toMatchObject({ tools: ["compaction"], inputTokens: 2100, outputTokens: 300 });
 
-    await collect(runTutorTurn({ db, client, map }, "Third"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Third"));
     const third = requests.at(-1)!;
     expect(third.betas).toContain("compact-2026-09-04");
     expect(third.messages[0]).toEqual({ role: "assistant", content: [summary] });
@@ -1401,19 +1401,19 @@ describe("surviving cut-offs and failures", () => {
     expect(third.messages[2]).toMatchObject({ role: "system" });
     expect(String(third.messages[2].content)).toContain("Course Navigator:");
     // Nothing is deleted: the whole Session still reads back in full.
-    expect(noUsage(await loadCurrentSession(db)).map((l) => l.text)).toEqual(["First", "Short reply.", "Second", "Long reply.", "Third", "Carrying on."]);
+    expect(noUsage(await loadCurrentSession(db, undefined, OWNER_LEARNER_ID)).map((l) => l.text)).toEqual(["First", "Short reply.", "Second", "Long reply.", "Third", "Carrying on."]);
   });
 
   it("a repeated finish_teaching_step under the same tool call ID has no second effect", async () => {
     const db = await testDb();
-    await ensureTopicStarted(db, map); // an earlier turn has shown the story
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID); // an earlier turn has shown the story
     const same = finish("story", "toolu_same");
     const { client, requests } = scriptedClient([{ content: [same] }, { content: [same] }, { content: [text("Concept.")] }]);
-    await collect(runTutorTurn({ db, client, map }, "Go on."));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Go on."));
     const results = resultsIn(requests.at(-1)!);
     expect(results.map((r) => r.is_error ?? false)).toEqual([false, false]);
     expect(results[1].content).toEqual(results[0].content);
-    expect(await learnerSummary(db, map)).toContain("Teaching Step: concept");
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toContain("Teaching Step: concept");
   });
 });
 
@@ -1424,9 +1424,9 @@ describe("Learner Profile in the Tutor Turn", () => {
 
   it("opens a new Session with the profile after the Learner summary and before the Course Navigator context", async () => {
     const db = await testDb();
-    await saveProfile(db, profileInput.parse({ work: "Nurse", location: "Pune, India", loan: "Home loan", savingFor: "School fees" }));
+    await saveProfile(db, profileInput.parse({ work: "Nurse", location: "Pune, India", loan: "Home loan", savingFor: "School fees" }), new Date(), OWNER_LEARNER_ID);
     const { client, requests } = scriptedClient([{ content: [text("Hello.")] }]);
-    await collect(runTutorTurn({ db, client, map }, "Hi"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
     const opening = openingOf(requests[0]);
     const profile = opening.indexOf("Learner Profile");
     expect(opening.indexOf(OPENING_PREFIX)).toBe(0);
@@ -1441,28 +1441,28 @@ describe("Learner Profile in the Tutor Turn", () => {
   it("has no profile block when the Learner shared nothing", async () => {
     const db = await testDb();
     const { client, requests } = scriptedClient([{ content: [text("Hello.")] }]);
-    await collect(runTutorTurn({ db, client, map }, "Hi"));
+    await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, "Hi"));
     expect(openingOf(requests[0])).not.toContain("Learner Profile");
   });
 
   it("an edit in the middle of a Session takes effect at the next turn, as a new block; the opening is not rebuilt", async () => {
     const db = await testDb();
-    await saveProfile(db, profileInput.parse({ work: "Nurse" }));
+    await saveProfile(db, profileInput.parse({ work: "Nurse" }), new Date(), OWNER_LEARNER_ID);
     let t = Date.parse("2026-11-03T09:00:00Z");
     const now = () => new Date(t);
     const { client, requests } = scriptedClient([{ content: [text("One.")] }, { content: [text("Two.")] }, { content: [text("Three.")] }]);
-    await collect(runTutorTurn({ db, client, map, now }, "Hi"));
-    await saveProfile(db, profileInput.parse({ work: "Teacher" }));
+    await collect(runTutorTurn({ db, client, map, now, learnerId: OWNER_LEARNER_ID }, "Hi"));
+    await saveProfile(db, profileInput.parse({ work: "Teacher" }), new Date(), OWNER_LEARNER_ID);
     t += 60_000;
-    await collect(runTutorTurn({ db, client, map, now }, "Again"));
+    await collect(runTutorTurn({ db, client, map, now, learnerId: OWNER_LEARNER_ID }, "Again"));
     // The same Session replays the opening it started with, and the edit follows as a new block.
-    expect(await listSessions(db)).toHaveLength(1);
+    expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     expect(openingOf(requests[1])).toContain("- Work: Nurse");
     expect(openingOf(requests[1])).not.toContain("Teacher");
     expect(String(requests[1].messages.at(-1)!.content)).toContain("- Work: Teacher");
     t += 7 * 3600_000;
-    await collect(runTutorTurn({ db, client, map, now }, "Third"));
-    expect(await listSessions(db)).toHaveLength(1);
+    await collect(runTutorTurn({ db, client, map, now, learnerId: OWNER_LEARNER_ID }, "Third"));
+    expect(await listSessions(db, OWNER_LEARNER_ID)).toHaveLength(1);
     expect(requests[2].messages.filter((m) => m.role === "system")).toHaveLength(1);
   });
 

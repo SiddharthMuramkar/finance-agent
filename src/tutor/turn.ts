@@ -3,7 +3,7 @@ import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { and, eq } from "drizzle-orm";
 import { loadCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { OWNER_LEARNER_ID, sessions, toolCalls } from "@/db/schema";
+import { sessions, toolCalls } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { ensureTopicStarted, learnerSummary, loadProgress } from "@/learner/memory";
 import { profileBlock } from "@/learner/profile";
@@ -177,8 +177,8 @@ export type PastedInput = { message: string; paste: string };
 export type TurnDeps = {
   db: Db;
   client: TutorClient;
-  /** The Learner taking the turn (the current Learner of the request); the owner when none is named. */
-  learnerId?: number;
+  /** The Learner taking the turn (the current Learner of the request). */
+  learnerId: number;
   map?: CourseMap;
   now?: () => Date;
   /** How long this run may take before it cuts itself off; defaults to TIME_BUDGET_MS. */
@@ -227,7 +227,7 @@ export async function* runTutorTurn(deps: TurnDeps, input: TurnInput): AsyncGene
   const now = deps.now ?? (() => new Date());
   const deadline = performance.now() + (deps.timeBudgetMs ?? TIME_BUDGET_MS);
   const resuming = typeof input === "object" && "resume" in input;
-  const learnerId = deps.learnerId ?? OWNER_LEARNER_ID;
+  const { learnerId } = deps;
   if (deps.shown && !(await showsCurrentTopic(db, deps.map ?? loadCourseMap(), learnerId, deps.shown))) {
     // A resume may still carry on the tab's own unfinished turn, which may itself have moved the Learner to the next Topic.
     const latest = resuming ? await latestTurn(db, learnerId) : undefined;

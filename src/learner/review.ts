@@ -5,7 +5,7 @@ import type { CourseMap, QuizCheck } from "@/course/map";
 import { publicQuestions, type PublicQuestion } from "@/course/quiz";
 import type { State } from "ts-fsrs";
 import { newCard, rate, type ReviewCardState } from "@/course/review";
-import { checkResults, OWNER_LEARNER_ID, quizAttempts, reviewCards, reviewLog } from "@/db/schema";
+import { checkResults, quizAttempts, reviewCards, reviewLog } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { readSettings } from "@/tutor/session-log";
 
@@ -50,7 +50,7 @@ const toRow = (learnerId: number, questionId: string, c: ReviewCardState): CardR
  * by replaying the Learner's answers to that question in the Check's attempts: correct is Good,
  * incorrect is Again. Only this Learner's passes, attempts and cards count. Safe to call any number of times.
  */
-export async function enrollPassedQuestions(db: Db, map: CourseMap, learnerId = OWNER_LEARNER_ID): Promise<void> {
+export async function enrollPassedQuestions(db: Db, map: CourseMap, learnerId: number): Promise<void> {
   const passed = await db
     .select({ checkId: checkResults.checkId })
     .from(checkResults)
@@ -105,7 +105,7 @@ async function doneLastDay(db: Db, now: Date, learnerId: number): Promise<number
 }
 
 /** What the fixed review page shows this Learner: their next review, if any. Opening it makes no model call. */
-export async function reviewState(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<ReviewState> {
+export async function reviewState(db: Db, map: CourseMap, now = new Date(), learnerId: number): Promise<ReviewState> {
   await enrollPassedQuestions(db, map, learnerId);
   const [cards, done, settings] = await Promise.all([
     db.select().from(reviewCards).where(eq(reviewCards.learnerId, learnerId)),
@@ -123,7 +123,7 @@ export type ReviewAnswer =
   | { ok: false; reason: string };
 
 /** Marks a review on the server and reschedules this Learner's card. Only the question currently offered them is accepted. */
-export async function answerReview(db: Db, map: CourseMap, questionId: string, choiceId: string, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<ReviewAnswer> {
+export async function answerReview(db: Db, map: CourseMap, questionId: string, choiceId: string, now = new Date(), learnerId: number): Promise<ReviewAnswer> {
   const state = await reviewState(db, map, now, learnerId);
   const question = (await questionLookup(db, map, [questionId])).question(questionId);
   if (!question || state.question?.id !== questionId) return { ok: false, reason: "That question is not up for review right now." };

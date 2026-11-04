@@ -31,7 +31,7 @@ async function collect(events: AsyncIterable<TurnEvent>) {
 
 async function turn(db: Db, input: TurnInput, replies: ScriptedReply[]) {
   const { client, requests } = scriptedClient(replies);
-  const events = await collect(runTutorTurn({ db, client, map }, input));
+  const events = await collect(runTutorTurn({ db, client, map, learnerId: OWNER_LEARNER_ID }, input));
   return { events, requests };
 }
 
@@ -42,7 +42,7 @@ const sent = (request: { messages: unknown[] }) => JSON.stringify(request.messag
 /** Starts the Topic and walks to the quiz Check (Check 1 of 2); returns the Session and the open quiz. */
 async function atQuiz(db: Db) {
   const first = await turn(db, "Hi", [say("Once, a lottery winner had a choice.")]);
-  for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+  for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
   const tab = await checkTabNow(db, map, new Date(), OWNER_LEARNER_ID);
   return { sessionId: sessionOf(first.events), quiz: tab.quiz! };
 }
@@ -71,14 +71,14 @@ describe("a quiz result card", () => {
     // Code runs the follow-up turn: a code-written note, no Learner message, and the Tutor hears the missed questions.
     const followUp = await turn(db, { quizFollowUp: true }, [say("Let's look at question 2 together.")]);
     expect(followUp.events.at(-1)).toMatchObject({ type: "done" });
-    expect(turnKind((await latestTurn(db))!)).toBe("quiz_follow_up");
+    expect(turnKind((await latestTurn(db, OWNER_LEARNER_ID))!)).toBe("quiz_follow_up");
     const request = sent(followUp.requests[0]);
     expect(request).toContain("Quiz follow-up by code:");
     expect(request).toContain("Quiz result by code");
     expect(request).toContain("Missed:");
     // The card is drawn, never sent.
     expect(request).not.toContain("not passed yet · let's look at question");
-    expect(seen(await loadThread(db, sessionId, map))).toEqual([
+    expect(seen(await loadThread(db, sessionId, map, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "Hi" },
       { role: "assistant", text: "Once, a lottery winner had a choice." },
       { role: "item", ...card },
@@ -104,7 +104,7 @@ describe("a quiz result card", () => {
     const result = await submitQuizAnswers(db, map, quiz.attemptId, missing(quiz, 3), new Date(), OWNER_LEARNER_ID);
     const card = { kind: "check_result", data: { check: 1, passed: true, label: "2 of 3 — passed ✓ · let's look at question 3" } };
     expect(result).toMatchObject({ ok: true, passed: true, item: card });
-    expect(seen(await loadThread(db, sessionId, map)).at(-1)).toEqual({ role: "item", ...card });
+    expect(seen(await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).at(-1)).toEqual({ role: "item", ...card });
     expect(await nextOfferNow(db, map, OWNER_LEARNER_ID, new Date())).toEqual({ kind: "next", step: "concept", label: "Next: Concept", advances: false });
     expect(await checkTabNow(db, map, new Date(), OWNER_LEARNER_ID)).toEqual({ quiz: null, missed: null });
 
@@ -123,12 +123,12 @@ describe("a quiz result card", () => {
     const divider = { role: "item", kind: "step", data: { step: "concept", number: 5, label: "Step 5 of 9 · Concept" } };
     // The browser draws it as it is stored, before the reply, as a reload does.
     expect(typed.events.filter((e) => e.type === "item")).toEqual([{ type: "item", item: { kind: divider.kind, data: divider.data } }]);
-    expect(seen(await loadThread(db, sessionId, map)).slice(-3)).toEqual([{ role: "user", text: "What comes now?" }, divider, { role: "assistant", text: "The second concept." }]);
+    expect(seen(await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).slice(-3)).toEqual([{ role: "user", text: "What comes now?" }, divider, { role: "assistant", text: "The second concept." }]);
     expect(sent(typed.requests[0])).not.toContain("Step 5 of 9");
 
     // The next message is in the middle of that step: no second divider.
     await turn(db, "Go on.", [say("Money later is worth less.")]);
-    expect((await loadThread(db, sessionId, map)).filter((e) => e.role === "item" && e.kind === "step")).toHaveLength(1);
+    expect((await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item" && e.kind === "step")).toHaveLength(1);
   });
 
   it("with every question right reads \"3 of 3 — passed ✓\", and a repeat submission stores no second card", async () => {
@@ -139,7 +139,7 @@ describe("a quiz result card", () => {
     const again = await submitQuizAnswers(db, map, quiz.attemptId, right(quiz), new Date(), OWNER_LEARNER_ID);
     expect(again).toMatchObject({ ok: true, passed: true });
     expect(again).not.toHaveProperty("item");
-    expect((await loadThread(db, sessionId, map)).filter((e) => e.role === "item")).toHaveLength(1);
+    expect((await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).filter((e) => e.role === "item")).toHaveLength(1);
   });
 });
 
@@ -153,13 +153,13 @@ describe("a conversation Check's result card", () => {
     const { sessionId, quiz } = await atQuiz(db);
     await submitQuizAnswers(db, map, quiz.attemptId, right(quiz), new Date(), OWNER_LEARNER_ID);
     await turn(db, { next: "concept" }, [say("The second concept.")]);
-    for (const step of ["concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    for (const step of ["concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
     const checkId = map.topic("present-value")!.checks[1].id;
     await turn(db, "Ready.", [say("Explain why money later is worth less.")]);
 
     await turn(db, "Because of risk.", [verdict("toolu_v1", "not_yet", checkId), say("Not quite yet.")]);
     const miss = { role: "item", kind: "check_result", data: { check: 2, passed: false, label: "Check 2 — not passed yet" } };
-    expect(seen(await loadThread(db, sessionId, map)).slice(-2)).toEqual([miss, { role: "assistant", text: "Not quite yet." }]);
+    expect(seen(await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).slice(-2)).toEqual([miss, { role: "assistant", text: "Not quite yet." }]);
 
     const passed = await turn(db, "Because it could earn interest meanwhile.", [verdict("toolu_v2", "pass", checkId), say("Exactly.")]);
     const pass = { role: "item", kind: "check_result", data: { check: 2, passed: true, label: "Check 2 — passed ✓" } };
@@ -169,8 +169,8 @@ describe("a conversation Check's result card", () => {
       { type: "item", item: { kind: pass.kind, data: pass.data } },
       { type: "item", item: { kind: divider.kind, data: divider.data } },
     ]);
-    expect(seen(await loadThread(db, sessionId, map)).slice(-3)).toEqual([pass, divider, { role: "assistant", text: "Exactly." }]);
+    expect(seen(await loadThread(db, sessionId, map, OWNER_LEARNER_ID)).slice(-3)).toEqual([pass, divider, { role: "assistant", text: "Exactly." }]);
     expect(sent(passed.requests.at(-1)!)).not.toContain("Check 2 — not passed yet");
-    expect((await loadProgress(db)).topics["present-value"]).toMatchObject({ step: "reveal" });
+    expect((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"]).toMatchObject({ step: "reveal" });
   });
 });

@@ -3,7 +3,7 @@ import type { CourseMap, QuizCheck } from "@/course/map";
 import { markAttempt, publicQuestions, selectQuestions, type Marking, type PublicQuestion } from "@/course/quiz";
 import { navigate } from "@/course/navigator";
 import { questionLookup } from "@/bank/lookup";
-import { OWNER_LEARNER_ID, quizAttempts } from "@/db/schema";
+import { quizAttempts } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveCheckResult } from "./memory";
 
@@ -18,7 +18,7 @@ import { loadProgress, saveCheckResult } from "./memory";
 export type OpenQuiz = { attemptId: number; checkId: string; checkNumber: number; checkCount: number; attemptNo: number; questions: PublicQuestion[] };
 
 /** The quiz to show now: the current Check, if it is a quiz at its Check step. Creates the attempt the first time. */
-export async function openQuiz(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<OpenQuiz | null> {
+export async function openQuiz(db: Db, map: CourseMap, now = new Date(), learnerId: number): Promise<OpenQuiz | null> {
   const place = navigate(map, await loadProgress(db, learnerId));
   const check = place?.step === "check" ? place.check : null;
   if (!check || check.kind !== "quiz") return null;
@@ -71,7 +71,7 @@ export type CheckTab = { quiz: OpenQuiz | null; missed: MissedQuiz | null };
  * What the Study Workspace's Check tab shows now. At a quiz Check whose last attempt was missed, that attempt's
  * marking, and no new attempt is made; otherwise the open quiz, its first attempt made the first time it is shown.
  */
-export async function checkTabNow(db: Db, map: CourseMap, now = new Date(), learnerId = OWNER_LEARNER_ID): Promise<CheckTab> {
+export async function checkTabNow(db: Db, map: CourseMap, now = new Date(), learnerId: number): Promise<CheckTab> {
   const place = navigate(map, await loadProgress(db, learnerId));
   const check = place?.step === "check" ? place.check : null;
   if (!place || !check || check.kind !== "quiz") return { quiz: null, missed: null };
@@ -127,7 +127,7 @@ export async function submitQuiz(
   attemptId: number,
   answers: Record<string, string>,
   now = new Date(),
-  learnerId = OWNER_LEARNER_ID,
+  learnerId: number,
   /** Runs inside the transaction that saves a first submission (never a repeat), so what it stores goes with the result or not at all. */
   onSaved?: (tx: Db, saved: { checkId: string; marking: Marking }) => Promise<void>,
 ): Promise<QuizResult> {
@@ -169,7 +169,7 @@ export async function submitQuiz(
 export async function pendingQuizNote(
   db: Db,
   map: CourseMap,
-  learnerId = OWNER_LEARNER_ID,
+  learnerId: number,
   /**
    * The Topic of the Session the note goes to: only results of that Topic's Checks reach it (one
    * Session per Topic, ADR 0004); the others wait for their own Topic's Session. Null (the
@@ -212,7 +212,7 @@ export async function pendingQuizNote(
 }
 
 /** Marks the Learner's results as told to the Tutor, so each one reaches it once. */
-export async function markQuizReported(db: Db, attemptIds: number[], now = new Date(), learnerId = OWNER_LEARNER_ID) {
+export async function markQuizReported(db: Db, attemptIds: number[], now = new Date(), learnerId: number) {
   for (const id of attemptIds) {
     await db
       .update(quizAttempts)

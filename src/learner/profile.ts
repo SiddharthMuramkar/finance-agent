@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { learnerProfile, OWNER_LEARNER_ID } from "@/db/schema";
+import { learnerProfile } from "@/db/schema";
 import type { Db } from "@/db/types";
 
 /**
@@ -36,14 +36,14 @@ export type ProfileInput = z.output<typeof profileInput>;
 
 const EMPTY: Profile = { work: null, location: null, loan: null, savingFor: null, offerDismissed: false };
 
-export async function loadProfile(db: Db, learnerId = OWNER_LEARNER_ID): Promise<Profile> {
+export async function loadProfile(db: Db, learnerId: number): Promise<Profile> {
   const [row] = await db.select().from(learnerProfile).where(eq(learnerProfile.learnerId, learnerId));
   if (!row) return EMPTY;
   return { work: row.work, location: row.location, loan: row.loan, savingFor: row.savingFor, offerDismissed: row.offerDismissed };
 }
 
 /** Saves all four answers. (It also sets `offerDismissed`, the flag of the old first-visit card, which nothing reads now.) */
-export async function saveProfile(db: Db, input: ProfileInput, now: Date = new Date(), learnerId = OWNER_LEARNER_ID): Promise<void> {
+export async function saveProfile(db: Db, input: ProfileInput, now: Date = new Date(), learnerId: number): Promise<void> {
   const values = { ...input, offerDismissed: true, updatedAt: now };
   await db.insert(learnerProfile).values({ id: learnerId, learnerId, ...values }).onConflictDoUpdate({ target: learnerProfile.id, set: values });
 }
@@ -56,7 +56,7 @@ export const PROFILE_BLOCK_HEADING =
   "Learner Profile (shared by the Learner; use it only to choose everyday examples, in the Learner's currency when an example is about their life, and never as advice):";
 
 /** The Tutor's own block in a Session's opening message, from this Learner's profile; null when they have shared nothing. */
-export async function profileBlock(db: Db, learnerId = OWNER_LEARNER_ID): Promise<string | null> {
+export async function profileBlock(db: Db, learnerId: number): Promise<string | null> {
   const p = await loadProfile(db, learnerId);
   if (!hasProfile(p)) return null;
   const lines = PROFILE_FIELDS.filter((f) => p[f.key] !== null).map((f) => `- ${f.label}: ${p[f.key]}`);

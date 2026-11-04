@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { testDb } from "@/test/pglite";
 import { ensureTopicStarted, learnerSummary, saveCheckResult, saveFinishedStep, saveMisconception } from "./memory";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 /** A small Course Map: "bonds" is first on the default path but requires "present-value", which requires "interest". */
 function testMap(): CourseMap {
@@ -28,13 +29,13 @@ describe("Learner Memory summary", () => {
   it("is plain text naming the Topic, Teaching Step, unmastered prerequisites, misconceptions and the last verdict", async () => {
     const db = await testDb();
     const map = testMap();
-    await ensureTopicStarted(db, map);
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
-    await saveCheckResult(db, map, { checkId: "bonds-check", passed: false, evidence: "Thought price and yield move together.", model: "m" });
-    await saveMisconception(db, map, { topicId: "bonds", description: "Believes a bond's price rises when yields rise.", model: "m", toolCallId: "t1" });
-    await saveMisconception(db, map, { topicId: "pv", description: "Adds future payments without discounting.", model: "m", toolCallId: "t2" });
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), OWNER_LEARNER_ID);
+    await saveCheckResult(db, map, { checkId: "bonds-check", passed: false, evidence: "Thought price and yield move together.", model: "m" }, new Date(), OWNER_LEARNER_ID);
+    await saveMisconception(db, map, { topicId: "bonds", description: "Believes a bond's price rises when yields rise.", model: "m", toolCallId: "t1" }, new Date(), OWNER_LEARNER_ID);
+    await saveMisconception(db, map, { topicId: "pv", description: "Adds future payments without discounting.", model: "m", toolCallId: "t2" }, new Date(), OWNER_LEARNER_ID);
 
-    expect(await learnerSummary(db, map)).toBe(
+    expect(await learnerSummary(db, map, OWNER_LEARNER_ID)).toBe(
       [
         "Bond prices (foundation Stage).",
         "Teaching Step: check, for Check 1 of 1.",
@@ -50,15 +51,15 @@ describe("Learner Memory summary", () => {
   it("a repeated misconception under the same tool call ID is saved once, and an unknown Topic is rejected", async () => {
     const db = await testDb();
     const map = testMap();
-    await ensureTopicStarted(db, map);
+    await ensureTopicStarted(db, map, new Date(), OWNER_LEARNER_ID);
     const input = { topicId: "bonds", description: "Confuses coupon and yield.", model: "m", toolCallId: "same" };
-    expect(await saveMisconception(db, map, input)).toEqual({ ok: true });
-    expect(await saveMisconception(db, map, input)).toEqual({ ok: true });
-    expect(await saveMisconception(db, map, { ...input, topicId: "nope", toolCallId: "other" })).toEqual({
+    expect(await saveMisconception(db, map, input, new Date(), OWNER_LEARNER_ID)).toEqual({ ok: true });
+    expect(await saveMisconception(db, map, input, new Date(), OWNER_LEARNER_ID)).toEqual({ ok: true });
+    expect(await saveMisconception(db, map, { ...input, topicId: "nope", toolCallId: "other" }, new Date(), OWNER_LEARNER_ID)).toEqual({
       ok: false,
       reason: 'Topic "nope" is not on the Course Map.',
     });
-    expect((await learnerSummary(db, map)).match(/Confuses coupon and yield/g)).toHaveLength(1);
+    expect((await learnerSummary(db, map, OWNER_LEARNER_ID)).match(/Confuses coupon and yield/g)).toHaveLength(1);
   });
 });
 

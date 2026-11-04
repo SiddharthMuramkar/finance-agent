@@ -132,31 +132,32 @@ describe("database expand: Learners", () => {
     expect(await db.select({ shown: learnerState.shownSessionId }).from(learnerState)).toEqual([{ shown: null }]);
   });
 
-  it("rows written by code that never names a Learner belong to the owner, and its Sessions belong to their Topic", async () => {
+  it("rows written by today's code belong to the Learner it names, never the owner, and its Sessions belong to their Topic", async () => {
     const db = await testDb();
+    const [learner] = await db.insert(learners).values({ name: "test" }).returning();
     const map = presentValueOnly({ withoutInsight: true });
     const text = (t: string) => ({ content: [{ type: "text", text: t }] });
     const { client } = scriptedClient([text("A story."), text("Your quiz is below."), text("Read it.")]);
     const run = async (input: Parameters<typeof runTutorTurn>[1]) => {
-      for await (const e of runTutorTurn({ db, client, map }, input)) void e;
+      for await (const e of runTutorTurn({ db, client, map, learnerId: learner.id }, input)) void e;
     };
 
     await run("Hello");
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step);
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, map, step, new Date(), learner.id);
     await run("Go on.");
-    const quiz = (await openQuiz(db, map))!;
-    await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])));
-    await reviewState(db, map); // the Review panel enrolls the passed questions
-    await saveMisconception(db, map, { topicId: "present-value", description: "d", model: "m", toolCallId: "toolu_x" });
-    await saveProfile(db, { work: "teacher", location: null, loan: null, savingFor: null });
-    await addLine(db, map, "present-value", "my line");
+    const quiz = (await openQuiz(db, map, new Date(), learner.id))!;
+    await submitQuiz(db, map, quiz.attemptId, Object.fromEntries(quiz.questions.map((q) => [q.id, map.question(q.id)!.answer])), new Date(), learner.id);
+    await reviewState(db, map, new Date(), learner.id); // the Review panel enrolls the passed questions
+    await saveMisconception(db, map, { topicId: "present-value", description: "d", model: "m", toolCallId: "toolu_x" }, new Date(), learner.id);
+    await saveProfile(db, { work: "teacher", location: null, loan: null, savingFor: null }, new Date(), learner.id);
+    await addLine(db, map, "present-value", "my line", new Date(), learner.id);
     await run({ message: "Look at this", paste: "A pasted passage." });
 
     const owners = await ownersOf(db);
     for (const [name, ids] of Object.entries(owners)) {
       if (name === "insight_attempts") continue; // the map has no Insight, so today's code writes none
       expect(ids.length, name).toBeGreaterThan(0);
-      expect(new Set(ids), name).toEqual(new Set([OWNER_LEARNER_ID]));
+      expect(new Set(ids), name).toEqual(new Set([learner.id]));
     }
     expect(new Set((await db.select({ older: sessions.older, topicId: sessions.topicId }).from(sessions)).map((s) => JSON.stringify(s)))).toEqual(
       new Set([JSON.stringify({ older: false, topicId: "present-value" })]),

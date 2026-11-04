@@ -26,7 +26,7 @@ const at = (hours: number) => new Date(t0.getTime() + hours * HOUR);
 async function turn(db: Db, input: TurnInput, when: Date, replies: ScriptedReply[], m: CourseMap = map) {
   const { client, requests } = scriptedClient(replies);
   const events: TurnEvent[] = [];
-  for await (const e of runTutorTurn({ db, client, map: m, now: () => when }, input)) events.push(e);
+  for await (const e of runTutorTurn({ db, client, map: m, now: () => when, learnerId: OWNER_LEARNER_ID }, input)) events.push(e);
   const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
   return { events, requests, sessionId: done.ref.sessionId };
 }
@@ -46,11 +46,11 @@ describe("coming back after a break", () => {
     const label = "Picking up where you left off · Step 1 of 6 · Story";
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(7))).toEqual([{ kind: "picking_up", data: expect.objectContaining({ label }) }]);
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(7))).toHaveLength(1);
-    expect(items(await loadThread(db, sessionId, map))).toEqual([]);
+    expect(items(await loadThread(db, sessionId, map, OWNER_LEARNER_ID))).toEqual([]);
 
     const back = await turn(db, "I'm back.", at(7), [say("Welcome back. Where were we?")]);
     expect(back.sessionId).toBe(sessionId);
-    expect(seen(await loadThread(db, sessionId, map))).toEqual([
+    expect(seen(await loadThread(db, sessionId, map, OWNER_LEARNER_ID))).toEqual([
       { role: "user", text: "Hi" },
       { role: "assistant", text: "Once, a lottery winner had a choice." },
       pickingUp(label),
@@ -66,13 +66,13 @@ describe("coming back after a break", () => {
   it("gives a Topic carried over at the switch-over the same divider, stored by its opener before the Tutor's reply", async () => {
     const db = await testDb();
     // Started (and moved on) before one Session per Topic: progress, but no message in a Session of its own.
-    await ensureTopicStarted(db, map, at(0));
-    expect((await saveFinishedStep(db, map, "story", at(0))).ok).toBe(true);
+    await ensureTopicStarted(db, map, at(0), OWNER_LEARNER_ID);
+    expect((await saveFinishedStep(db, map, "story", at(0), OWNER_LEARNER_ID)).ok).toBe(true);
 
     const label = "Picking up where you left off · Step 2 of 6 · Concept";
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(1))).toEqual([{ kind: "picking_up", data: expect.objectContaining({ label }) }]);
     const opened = await turn(db, { opener: true }, at(1), [say("Last time we met the lottery winner. Now, the concept.")]);
-    expect(seen(await loadThread(db, opened.sessionId, map))).toEqual([pickingUp(label), { role: "assistant", text: "Last time we met the lottery winner. Now, the concept." }]);
+    expect(seen(await loadThread(db, opened.sessionId, map, OWNER_LEARNER_ID))).toEqual([pickingUp(label), { role: "assistant", text: "Last time we met the lottery winner. Now, the concept." }]);
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(1))).toEqual([]);
   });
 
@@ -80,7 +80,7 @@ describe("coming back after a break", () => {
     const db = await testDb();
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(0))).toEqual([]);
     const opened = await turn(db, { opener: true }, at(0), [say("Once, a lottery winner had a choice.")]);
-    expect(items(await loadThread(db, opened.sessionId, map))).toEqual([]);
+    expect(items(await loadThread(db, opened.sessionId, map, OWNER_LEARNER_ID))).toEqual([]);
   });
 
   it("draws nothing after a gap shorter than the idle setting", async () => {
@@ -88,7 +88,7 @@ describe("coming back after a break", () => {
     const { sessionId } = await turn(db, "Hi", at(0), [say("Once upon a time.")]);
     expect(await comingBackItems(db, map, OWNER_LEARNER_ID, at(5))).toEqual([]);
     await turn(db, "Go on.", at(5), [say("And then.")]);
-    expect(items(await loadThread(db, sessionId, map))).toEqual([]);
+    expect(items(await loadThread(db, sessionId, map, OWNER_LEARNER_ID))).toEqual([]);
   });
 });
 
@@ -103,17 +103,17 @@ function edited(change: (topic: Record<string, unknown>) => Record<string, unkno
 
 /** Takes the present value Topic to passed, by code, as the Tutor's tools would. */
 async function passTopic(db: Db, m: CourseMap) {
-  await ensureTopicStarted(db, m, at(0));
+  await ensureTopicStarted(db, m, at(0), OWNER_LEARNER_ID);
   for (const check of m.topic("present-value")!.checks) {
-    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, m, step, at(0));
-    const saved = await saveCheckResult(db, m, { checkId: check.id, passed: true });
+    for (const step of ["story", "concept", "your_turn"] as const) await saveFinishedStep(db, m, step, at(0), OWNER_LEARNER_ID);
+    const saved = await saveCheckResult(db, m, { checkId: check.id, passed: true }, new Date(), OWNER_LEARNER_ID);
     if (!saved.ok) throw new Error(saved.reason);
   }
   for (const step of ["reveal", "principle"] as const) {
-    const moved = await saveFinishedStep(db, m, step, at(0));
+    const moved = await saveFinishedStep(db, m, step, at(0), OWNER_LEARNER_ID);
     if (!moved.ok) throw new Error(moved.reason);
   }
-  if ((await loadProgress(db)).topics["present-value"].status !== "passed") throw new Error("not passed");
+  if ((await loadProgress(db, OWNER_LEARNER_ID)).topics["present-value"].status !== "passed") throw new Error("not passed");
 }
 
 describe("a Due Check reopens the Topic's own Session", () => {
@@ -128,12 +128,12 @@ describe("a Due Check reopens the Topic's own Session", () => {
     // A required Check is added to the passed Topic: it comes up, and the page draws why the Learner is back.
     const label = "New Check · Check 2";
     expect(await comingBackItems(db, withNewCheck, OWNER_LEARNER_ID, at(1))).toEqual([{ kind: "due_check", data: expect.objectContaining({ label }) }]);
-    expect(items(await loadThread(db, first.sessionId, map))).toEqual([]);
+    expect(items(await loadThread(db, first.sessionId, map, OWNER_LEARNER_ID))).toEqual([]);
 
     const finishConcept = { type: "tool_use", id: "toolu_concept", name: "finish_teaching_step", input: { step: "concept" } };
     const back = await turn(db, "What's new?", at(1), [{ content: [{ type: "text", text: "A new Check." }, finishConcept] }, say("Let's take the concept first.")], withNewCheck);
     expect(back.sessionId).toBe(first.sessionId);
-    const thread = seen(await loadThread(db, first.sessionId, withNewCheck));
+    const thread = seen(await loadThread(db, first.sessionId, withNewCheck, OWNER_LEARNER_ID));
     // The new Check's concept has not begun, so its step divider comes before the reply that teaches it.
     expect(thread.slice(0, 5)).toEqual([
       { role: "user", text: "Hi" },
@@ -145,7 +145,7 @@ describe("a Due Check reopens the Topic's own Session", () => {
     // Fresh: the Tutor teaches the new Check's concept and cannot finish it in the same reply.
     // Its finish was refused, so no further step divider follows and the Learner is still at the new Check's concept.
     expect(items(thread)).toHaveLength(2);
-    expect(navigate(withNewCheck, await loadProgress(db))).toMatchObject({ step: "concept", check: { id: "pv-new" } });
+    expect(navigate(withNewCheck, await loadProgress(db, OWNER_LEARNER_ID))).toMatchObject({ step: "concept", check: { id: "pv-new" } });
     expect(await comingBackItems(db, withNewCheck, OWNER_LEARNER_ID, at(1))).toEqual([]);
   });
 

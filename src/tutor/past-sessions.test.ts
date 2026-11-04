@@ -66,11 +66,11 @@ describe("the Past Sessions list", () => {
       { role: "user", content: "Topic: Present value (Foundation Stage).\nWhy discount?" },
       { role: "assistant", content: "Because money now earns." },
     ]);
-    await saveJump(db, map, "present-value");
+    await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Tell me about the lottery.", "Picture October 2018.");
-    await saveJump(db, map, "bonds");
+    await saveJump(db, map, "bonds", new Date(), OWNER_LEARNER_ID);
     await turn(db, "And bonds?", "Prices fall when rates rise.");
-    await saveJump(db, map, "present-value");
+    await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Back to the lottery.", "Where were we?");
 
     const past = await loadPastSessions(db, map, OWNER_LEARNER_ID);
@@ -81,7 +81,7 @@ describe("the Past Sessions list", () => {
 
   it("lists nothing of another Learner's", async () => {
     const db = await testDb();
-    await saveJump(db, map, "present-value");
+    await saveJump(db, map, "present-value", new Date(), OWNER_LEARNER_ID);
     await turn(db, "Tell me about the lottery.", "Picture October 2018.");
     await olderSession(db, new Date("2026-09-05T08:00:00Z"), [{ role: "user", content: "Hi" }]);
     const [second] = await db.insert(learners).values({ name: "second" }).returning();
@@ -92,7 +92,7 @@ describe("the Past Sessions list", () => {
 describe("one Past Session's header", () => {
   it("names a Topic Session's Topic and last activity, unpassed until the Topic passes", async () => {
     const db = await testDb();
-    await saveJump(db, map, "bonds");
+    await saveJump(db, map, "bonds", new Date(), OWNER_LEARNER_ID);
     await turn(db, "And bonds?", "Prices fall when rates rise.");
     const [row] = (await loadPastSessions(db, map, OWNER_LEARNER_ID)).topics;
 

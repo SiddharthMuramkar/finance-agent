@@ -14,8 +14,8 @@ export type LibraryDeps = {
   db: Db;
   map: CourseMap;
   embedQuery?: QueryEmbedder;
-  /** The Learner whose progress the as-of rule reads (the owner when none is named). */
-  learnerId?: number;
+  /** The Learner whose progress the as-of rule reads. */
+  learnerId: number;
 };
 
 export type LibrarySearch = {

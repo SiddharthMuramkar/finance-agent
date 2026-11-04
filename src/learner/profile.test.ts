@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { testDb } from "@/test/pglite";
 import { hasProfile, loadProfile, profileBlock, profileInput, saveProfile } from "./profile";
+import { OWNER_LEARNER_ID } from "@/db/schema";
 
 const parse = (v: unknown) => profileInput.parse(v);
 
@@ -19,23 +20,23 @@ describe("Learner Profile", () => {
 
   it("is one row: saving twice replaces the first", async () => {
     const db = await testDb();
-    expect(await loadProfile(db)).toEqual({ work: null, location: null, loan: null, savingFor: null, offerDismissed: false });
-    await saveProfile(db, parse({ work: "Nurse", location: "Pune" }));
-    await saveProfile(db, parse({ work: "Teacher" }));
-    expect(await loadProfile(db)).toMatchObject({ work: "Teacher", location: null });
+    expect(await loadProfile(db, OWNER_LEARNER_ID)).toEqual({ work: null, location: null, loan: null, savingFor: null, offerDismissed: false });
+    await saveProfile(db, parse({ work: "Nurse", location: "Pune" }), new Date(), OWNER_LEARNER_ID);
+    await saveProfile(db, parse({ work: "Teacher" }), new Date(), OWNER_LEARNER_ID);
+    expect(await loadProfile(db, OWNER_LEARNER_ID)).toMatchObject({ work: "Teacher", location: null });
   });
 
   it("has no profile when every answer is left empty", async () => {
     const db = await testDb();
-    await saveProfile(db, parse({}));
-    expect(hasProfile(await loadProfile(db))).toBe(false);
+    await saveProfile(db, parse({}), new Date(), OWNER_LEARNER_ID);
+    expect(hasProfile(await loadProfile(db, OWNER_LEARNER_ID))).toBe(false);
   });
 
   it("builds the Tutor's block from the shared answers only, and none when nothing is shared", async () => {
     const db = await testDb();
-    expect(await profileBlock(db)).toBeNull();
-    await saveProfile(db, parse({ work: "Nurse", savingFor: "School fees" }));
-    const block = (await profileBlock(db))!;
+    expect(await profileBlock(db, OWNER_LEARNER_ID)).toBeNull();
+    await saveProfile(db, parse({ work: "Nurse", savingFor: "School fees" }), new Date(), OWNER_LEARNER_ID);
+    const block = (await profileBlock(db, OWNER_LEARNER_ID))!;
     expect(block).toContain("Learner Profile");
     expect(block).toContain("only to choose everyday examples");
     expect(block).toContain("never as advice");
