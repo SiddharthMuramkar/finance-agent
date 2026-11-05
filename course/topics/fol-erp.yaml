@@ -72,30 +72,31 @@ youllLearn:
 questions:
   - id: fe-q-fed-gap
     prompt: >
-      Some traders use the "Fed model" to guess how much extra reward stocks must pay over a safe
-      government bond, the "equity risk premium". How does it get that extra?
+      Your uncle swears by the "Fed model" to tell if stocks are cheap. It sizes up the "equity risk
+      premium": the extra reward stocks pay over a safe government bond. Where does it find that
+      extra?
     choices:
-      - { id: a, text: "It takes stocks' profit yield, subtracts the bond's yield, and calls the gap the premium" }
-      - { id: b, text: "It adds the bond's yield to stocks' profit yield and calls the total the premium, since both are rewards", mistake: { tag: premium_as_total, fix: "The premium is the extra return over the Treasury, a gap, not a total." } }
-      - { id: c, text: "It averages the bond's yield and stocks' profit yield, since both are returns", mistake: { tag: premium_as_average, fix: "An average blends the two yields; the premium is the extra stocks earn over the Treasury." } }
-      - { id: d, text: "It ignores today's profit yield and uses only how stocks did in the past", mistake: { tag: fed_as_history, fix: "That is the historical-average method. The Fed model starts from the earnings yield." } }
+      - { id: a, text: "Stocks' earnings yield (profit against price), less the bond's yield" }
+      - { id: b, text: "Stocks' earnings yield plus the bond's yield, since both are rewards to owners", mistake: { tag: premium_as_total, fix: "The premium is the extra return over the Treasury, a gap, not a total." } }
+      - { id: c, text: "Halfway between the two yields", mistake: { tag: premium_as_average, fix: "An average blends the two yields; the premium is the extra stocks earn over the Treasury." } }
+      - { id: d, text: "Only in how stocks did in the past", mistake: { tag: fed_as_history, fix: "That is the historical-average method. The Fed model starts from the earnings yield." } }
     answer: a
     explanation: >
       The Fed model reads the gap between the earnings yield and the Treasury rate as the premium. It
-      treats the earnings yield as the expected return on stocks, which is accurate only if earnings
-      do not grow and all of them are paid out.
+      treats the earnings yield as the expected return on stocks, which is fair only if profits never
+      grow and are all paid out.
     source: >
       Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
-      5 August 2023 (section "The Fed Model: Earnings Yield and ERP"); the figures are hypothetical.
+      5 August 2023 (section "The Fed Model: Earnings Yield and ERP").
   - id: fe-q-why-too-low
     prompt: >
-      Why does the earnings-yield (Fed model) approach tend to give a lower premium than a model that
-      discounts expected cash flows?
+      Your uncle's Fed model says the premium is tiny. Damodaran says that method leaves something
+      out, so it tends to come in lower than a model built on expected cash flows. What does it miss?
     choices:
-      - { id: a, text: "It uses a higher risk-free rate than other models do, which shrinks the gap" }
-      - { id: b, text: "It leaves out growth and returns above the cost of equity" }
-      - { id: c, text: "It counts share buybacks twice, which inflates the earnings" }
-      - { id: d, text: "It uses a longer stretch of historical data than other models" }
+      - { id: a, text: "It plugs in a higher safe rate than the other methods do", mistake: { tag: higher_riskfree_blamed, fix: "Both methods use the same safe rate; the gap comes from ignoring growth." } }
+      - { id: b, text: "Growth: it treats today's profit as if it never grows" }
+      - { id: c, text: "It counts share buybacks twice", mistake: { tag: buybacks_double, fix: "The Fed model uses earnings, not buybacks; what it leaves out is growth." } }
+      - { id: d, text: "It leans on a longer stretch of history", mistake: { tag: history_blamed, fix: "The Fed model uses today's yields, not history; it misses growth." } }
     answer: b
     explanation: >
       The earnings yield equals the expected return only when growth is zero or companies earn
@@ -106,13 +107,13 @@ questions:
       5 August 2023 (sections on the Fed model and the implied ERP).
   - id: fe-q-implied-direction
     prompt: >
-      The expected dividends and buybacks of an index, and the risk-free rate, stay the same, but the
-      index price falls 20%. What happens to the implied equity risk premium?
+      Stocks crash 20%, yet companies still expect to pay out the same dividends and buybacks, and
+      bond yields stay put. What do traders say happens to the implied equity risk premium?
     choices:
-      - { id: a, text: "It rises: the same cash flows now cost less, so they earn more" }
-      - { id: b, text: "It falls, because a lower price means the market sees lower risk" }
-      - { id: c, text: "It stays the same, because the cash flows did not change" }
-      - { id: d, text: "It becomes negative, since the price went down" }
+      - { id: a, text: "It rises: you pay less for the same cash, so you expect to earn more" }
+      - { id: b, text: "It falls: a lower price means the market now sees much less risk ahead", mistake: { tag: lower_price_less_risk, fix: "A lower price for the same cash means a higher expected return, not less risk." } }
+      - { id: c, text: "It stays put, because the cash did not change", mistake: { tag: price_ignored, fix: "The premium depends on the price paid too, not only on the cash." } }
+      - { id: d, text: "It turns negative, since prices went down", mistake: { tag: fall_means_negative, fix: "A cheaper price raises the expected return; nothing here makes it negative." } }
     answer: a
     explanation: >
       An implied premium is like a yield to maturity: the discount rate that makes expected cash
@@ -123,22 +124,21 @@ questions:
       5 August 2023 (section "Implied ERP"); the bond-yield analogy is his.
   - id: fe-q-interval
     prompt: >
-      Over a long stretch, stocks beat bonds by a good margin on average. But the "standard error",
-      a measure of how far that average could be off, is large. What does that tell you about the
-      historical premium?
+      Over many decades, stocks have beaten bonds on average. But single years swing so wildly that
+      the average comes with a wide band of doubt. What does that mean for the "historical premium"?
     choices:
-      - { id: a, text: "It is an estimate, and the true figure could sit well away from it" }
-      - { id: b, text: "It is exactly that average, since decades of data settle the matter", mistake: { tag: average_as_fact, fix: "Even decades of data leave a wide range, so the average is only an estimate." } }
-      - { id: c, text: "It will stay at least that high next year, since the past repeats", mistake: { tag: past_as_forecast, fix: "A historical average says nothing certain about next year's premium." } }
-      - { id: d, text: "The error is small enough to ignore, since an average is an average", mistake: { tag: error_ignored, fix: "The band around an average is wide here, so the error cannot be ignored." } }
+      - { id: a, text: "It is a rough estimate; the true figure could be well off" }
+      - { id: b, text: "It is exact: decades of data settle it", mistake: { tag: average_as_fact, fix: "Even decades of data leave a wide range, so the average is only an estimate." } }
+      - { id: c, text: "It will be at least that high again next year, since the past repeats", mistake: { tag: past_as_forecast, fix: "A historical average says nothing certain about next year's premium." } }
+      - { id: d, text: "The doubt is small enough to ignore", mistake: { tag: error_ignored, fix: "The band around an average is wide here, so the error cannot be ignored." } }
     answer: a
     explanation: >
-      A rough 95% range is the average plus or minus twice the standard error, and here that band is
-      wide. Even decades of data leave a wide range, which is why a historical average is an
-      estimate and not a fact.
+      Statisticians call that band of doubt the standard error, and for stock returns it is wide.
+      Even decades of data leave a wide range, which is why a historical average is an estimate and
+      not a fact.
     source: >
       Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
-      5 August 2023 (section "Historical Risk Premium"); the figures are hypothetical.
+      5 August 2023 (section "Historical Risk Premium").
 
 checks:
   - id: fe-quiz-erp-measures

@@ -74,13 +74,13 @@ youllLearn:
 questions:
   - id: fsa-q-price-cost
     prompt: >
-      A firm sells a service for $1.00 per use, and each use costs it $1.50 to serve. Which sentence
-      describes the firm's position?
+      Your friend Riya's app charges $1.00 each time someone uses it, but every use costs her $1.50
+      in computing. She is thrilled that usage is soaring. What should you tell her?
     choices:
-      - { id: a, text: "It loses money on every use, so someone has to fund the gap" }
-      - { id: b, text: "It makes money on volume: the more uses it sells, the more profit it makes", mistake: { tag: volume_fixes_loss, fix: "Each use loses money, so more uses means a bigger loss, not a profit." } }
-      - { id: c, text: "It breaks even once it has enough users", mistake: { tag: breakeven_assumed, fix: "A price below the cost per use never breaks even; only a new price or cost can change that." } }
-      - { id: d, text: "Its revenue shows a healthy business, so its cost to serve hardly matters", mistake: { tag: revenue_only, fix: "Revenue alone hides the loss; compare the price with the cost to serve." } }
+      - { id: a, text: "Every use loses money, so someone has to fund the gap" }
+      - { id: b, text: "Great news: more uses means more profit", mistake: { tag: volume_fixes_loss, fix: "Each use loses money, so more uses means a bigger loss, not a profit." } }
+      - { id: c, text: "She breaks even once enough people sign up", mistake: { tag: breakeven_assumed, fix: "A price below the cost per use never breaks even; only a new price or cost can change that." } }
+      - { id: d, text: "Sales are growing fast, so the cost to serve hardly matters", mistake: { tag: revenue_only, fix: "Revenue alone hides the loss; compare the price with the cost to serve." } }
     answer: a
     explanation: >
       The price is below the cost to serve, so every use adds to the loss. A business like that
@@ -88,13 +88,13 @@ questions:
     source: Price against cost to serve; see the income statement in the course Topic fs-income.
   - id: fsa-q-run-rate
     prompt: >
-      A company earns $200 million of revenue in its latest month. A report quotes an annualised
-      revenue of $2.4 billion, the latest month times twelve. What does this figure assume?
+      An AI start-up made $200 million last month. Its press release boasts "$2.4 billion in
+      annualised revenue": last month times twelve. What is that headline quietly betting on?
     choices:
-      - { id: a, text: "That the company earned $2.4 billion in the past 12 months", mistake: { tag: run_rate_as_earned, fix: "An annualised figure is a recent month scaled up, not revenue already earned." } }
-      - { id: b, text: "That the latest month's pace continues for a full year" }
-      - { id: c, text: "That revenue will fall back to average", mistake: { tag: run_rate_as_fall, fix: "Annualising assumes the pace holds, not that it fades." } }
-      - { id: d, text: "That the company is profitable", mistake: { tag: revenue_as_profit, fix: "A run rate is about revenue only; it says nothing about profit." } }
+      - { id: a, text: "That it already earned $2.4 billion this past year", mistake: { tag: run_rate_as_earned, fix: "An annualised figure is a recent month scaled up, not revenue already earned." } }
+      - { id: b, text: "That last month's pace holds for a whole year" }
+      - { id: c, text: "That sales will drift back to normal", mistake: { tag: run_rate_as_fall, fix: "Annualising assumes the pace holds, not that it fades." } }
+      - { id: d, text: "That the company makes a profit", mistake: { tag: revenue_as_profit, fix: "A run rate is about revenue only; it says nothing about profit." } }
     answer: b
     explanation: >
       An annualised run rate is a recent period scaled up. If the company was smaller earlier in the
@@ -103,12 +103,12 @@ questions:
     source: Run-rate definition (latest period scaled to a year); see the course Topic fs-revenue-runrate.
   - id: fsa-q-spread
     prompt: >
-      A government bond yields 4.0% and a company's bond of the same maturity yields 9.0%. What do
-      traders call the gap between the two yields, and what does a wide gap signal?
+      Your bank offers you a government bond yielding 4.0% and a company's bond of the same length
+      yielding 9.0%. What do traders call the gap between the two, and what does a wide gap signal?
     choices:
-      - { id: a, text: "The credit spread; a wide one means a higher risk of non-repayment" }
-      - { id: b, text: "The credit spread; it means the company is safer than the government", mistake: { tag: spread_reversed, fix: "A wider spread means more risk of not being repaid, not less." } }
-      - { id: c, text: "The coupon; the company's bond has a shorter maturity", mistake: { tag: spread_as_coupon, fix: "The coupon is the interest a bond promises. The gap between two yields is the spread." } }
+      - { id: a, text: "The credit spread; a wide one means a higher risk of not being repaid" }
+      - { id: b, text: "The credit spread; a wide one means the company is safer than the government", mistake: { tag: spread_reversed, fix: "A wider spread means more risk of not being repaid, not less." } }
+      - { id: c, text: "The coupon; the company's bond is shorter", mistake: { tag: spread_as_coupon, fix: "The coupon is the interest a bond promises. The gap between two yields is the spread." } }
       - { id: d, text: "The duration; the company's bond is nearly risk free", mistake: { tag: spread_as_duration, fix: "Duration measures sensitivity to rates. The gap between two yields is the credit spread." } }
     answer: a
     explanation: >
@@ -118,30 +118,30 @@ questions:
     source: Spread = yield minus the government yield of the same maturity; 100 basis points = 1 percentage point.
   - id: fsa-q-price-shock
     prompt: >
-      A start-up sells an app at $20 per user a month and pays its supplier $12 a month to serve
-      each user. The supplier now says it will raise its charge to $36 a month per user, and the
-      start-up cannot change its price. What happens?
+      Riya's app charges $20 a month per user and pays an AI supplier $12 a month to serve each one.
+      Then the supplier emails: the charge is going up to $36. She cannot raise her own price. What
+      just happened to her business?
     choices:
-      - { id: a, text: "Each user now costs more than they pay, so every user loses money" }
-      - { id: b, text: "Little changes: the $20 price is still above the old $12 charge", mistake: { tag: used_old_cost, fix: "That is today's charge. At the new charge, each user costs more than $20." } }
-      - { id: c, text: "The start-up earns more, because its costs and its revenue both rise", mistake: { tag: revenue_also_rises, fix: "Only the cost rises; the price the start-up collects stays at $20." } }
-      - { id: d, text: "The start-up passes the rise on, so it carries no risk", mistake: { tag: pass_on_assumed, fix: "Here the start-up cannot change its price, so it has to absorb the rise." } }
+      - { id: a, text: "Every user now costs more than they pay" }
+      - { id: b, text: "Not much: $20 is still above the old $12", mistake: { tag: used_old_cost, fix: "That is the old charge. At the new charge, each user costs more than $20." } }
+      - { id: c, text: "She earns more, since costs and sales both rise", mistake: { tag: revenue_also_rises, fix: "Only the cost rises; the price she collects stays at $20." } }
+      - { id: d, text: "She passes the rise on, so there is no risk", mistake: { tag: pass_on_assumed, fix: "Here she cannot change her price, so she has to absorb the rise." } }
     answer: a
     explanation: >
-      The new charge is above the $20 the start-up collects, so each user turns from a profit into a
-      loss. Customers that survive on today's low supplier price depend on it staying low, which is
-      the dependence the word subprime points at; whether the price in fact rises is a separate
+      The new charge is above the $20 she collects, so each user turns from a profit into a loss.
+      Customers that survive on today's low supplier price depend on it staying low, which is the
+      dependence the word subprime points at; whether the price in fact rises is a separate
       question.
     source: Margin per unit when an input cost changes; see the course Topic fs-income.
   - id: fsa-q-valuation-revenue
     prompt: >
-      A company with $4 billion of annual revenue is valued at $100 billion. What does a value that
-      high, set against revenue, suggest?
+      At dinner your uncle says an AI company with $4 billion of yearly sales is "worth $100
+      billion". What does a price that high, next to its sales, bet on?
     choices:
-      - { id: a, text: "The price assumes much faster growth to come" }
-      - { id: b, text: "The company is cheap compared with its revenue today", mistake: { tag: high_means_cheap, fix: "A value far above revenue is expensive, not cheap; it prices in growth to come." } }
-      - { id: c, text: "Revenue is about to fall sharply in the next year", mistake: { tag: high_means_fall, fix: "A high price against revenue reflects hoped-for growth, not an expected fall." } }
-      - { id: d, text: "The company is already making a large profit", mistake: { tag: value_means_profit, fix: "Value against revenue says nothing about current profit." } }
+      - { id: a, text: "Much faster growth to come" }
+      - { id: b, text: "Nothing: it means the company is cheap", mistake: { tag: high_means_cheap, fix: "A value far above revenue is expensive, not cheap; it prices in growth to come." } }
+      - { id: c, text: "Sales falling sharply next year", mistake: { tag: high_means_fall, fix: "A high price against revenue reflects hoped-for growth, not an expected fall." } }
+      - { id: d, text: "A big profit it already makes", mistake: { tag: value_means_profit, fix: "Value against revenue says nothing about current profit." } }
     answer: a
     explanation: >
       A value many times revenue is justified only if revenue and margins grow a long way from here;

@@ -66,14 +66,14 @@ youllLearn:
 questions:
   - id: fsr-q-cash-received
     prompt: >
-      A start-up announces a $400 million funding round. The terms say $100 million is paid now,
-      $200 million by the end of the year, and the last $100 million only if it completes a
-      restructuring by that date. Which headline gets it right on the day of the announcement?
+      An AI start-up announces a $400 million funding round. The small print: $100 million arrives
+      now, $200 million by the end of the year, and the last $100 million only if it restructures by
+      then. Which headline gets it right on announcement day?
     choices:
-      - { id: a, text: "Start-up has secured $400 million and now holds it all in the bank", mistake: { tag: counted_announced, fix: "An announced round is the most it may get, not cash received." } }
-      - { id: b, text: "Start-up is promised up to $400 million; the first payment is in" }
-      - { id: c, text: "Start-up has $300 million in hand, with nothing attached to any of it", mistake: { tag: counted_promises, fix: "A payment due later is still a promise, not cash in hand today." } }
-      - { id: d, text: "Start-up has $200 million, which is half of the round", mistake: { tag: counted_half, fix: "Half is not in the terms; only the first payment has arrived." } }
+      - { id: a, text: "\"Start-up banks $400 million\"", mistake: { tag: counted_announced, fix: "An announced round is the most it may get, not cash received." } }
+      - { id: b, text: "\"Start-up promised up to $400 million; first payment in\"" }
+      - { id: c, text: "\"Start-up has $300 million in hand, with no strings attached\"", mistake: { tag: counted_promises, fix: "A payment due later is still a promise, not cash in hand today." } }
+      - { id: d, text: "\"Start-up has half the round in the bank\"", mistake: { tag: counted_half, fix: "Half is not in the terms; only the first payment has arrived." } }
     answer: b
     explanation: >
       Only the first payment has arrived. The $200 million due later is a promise, and the last
@@ -82,13 +82,13 @@ questions:
     source: The stated hypothetical terms (staged commitments versus cash received).
   - id: fsr-q-customer-share
     prompt: >
-      A computing-services firm had revenue of $2 billion last year. One customer accounted for 60%
-      of it and a second for 15%. What does that make a careful reader worry about?
+      Your uncle wants to buy shares in a cloud-computing firm. Its filing says one customer brought
+      in 60% of last year's sales and a second customer 15%. What should worry him?
     choices:
-      - { id: a, text: "Its results lean on two customers; losing one could hurt badly" }
-      - { id: b, text: "Nothing: a big customer is proof that the product is popular", mistake: { tag: popularity_not_risk, fix: "Reliance on one buyer is a risk; it shows concentration, not broad demand." } }
-      - { id: c, text: "Its revenue is overstated, because customers are counted twice", mistake: { tag: double_count_assumed, fix: "Nothing here says revenue is counted twice; the worry is dependence on few buyers." } }
-      - { id: d, text: "It must be a small firm, because large firms have many customers", mistake: { tag: size_assumed, fix: "Size does not settle it; many large firms depend on a few customers." } }
+      - { id: a, text: "The firm leans on two customers; losing one could hurt badly" }
+      - { id: b, text: "Nothing: a big customer proves the product is popular", mistake: { tag: popularity_not_risk, fix: "Reliance on one buyer is a risk; it shows concentration, not broad demand." } }
+      - { id: c, text: "Its sales are overstated, because customers are counted twice", mistake: { tag: double_count_assumed, fix: "Nothing here says revenue is counted twice; the worry is dependence on few buyers." } }
+      - { id: d, text: "It must be a small firm, since big firms have many customers", mistake: { tag: size_assumed, fix: "Size does not settle it; many large firms depend on a few customers." } }
     answer: a
     explanation: >
       When a few customers supply most of a firm's revenue, the firm's results depend on them. US
@@ -99,13 +99,13 @@ questions:
       its figures are hypothetical.
   - id: fsr-q-lease-pv
     prompt: >
-      A data-centre operator signs a 15-year lease with payments of $100 million at the end of each
-      year. Which sentence about the lease is right?
+      A data-centre company signs a 15-year lease, paying $100 million at the end of each year. Its
+      own customers are young AI start-ups. Which sentence about the lease is right?
     choices:
       - { id: a, text: "A large commitment that is owed whether or not its customers pay" }
       - { id: b, text: "It is not a debt, because the building is rented rather than bought", mistake: { tag: lease_not_debt, fix: "Lease payments are a promise to pay, so the operator owes them like a loan." } }
       - { id: c, text: "It matters only in a year when a payment falls due", mistake: { tag: due_dates_only, fix: "The payments are promised for all 15 years, so the commitment exists from signing." } }
-      - { id: d, text: "It is cancelled if the operator's customers stop paying", mistake: { tag: customers_cancel, fix: "The landlord's claim does not depend on whether the operator's customers pay." } }
+      - { id: d, text: "It is cancelled if its customers stop paying", mistake: { tag: customers_cancel, fix: "The landlord's claim does not depend on whether the operator's customers pay." } }
     answer: a
     explanation: >
       The payments are a promise for fifteen years, however large the operator's own sales are. The
@@ -113,14 +113,14 @@ questions:
     source: Lease commitments as obligations; see the course Topic fs-leases-debt.
   - id: fsr-q-spend-gap
     prompt: >
-      A company brings in $50 million of revenue a month, which is $600 million a year at that pace.
-      It has signed commitments to spend $1.2 billion on computing over the next twelve months. If
-      revenue stays where it is, where must the money for the commitments come from?
+      An AI company brings in about $600 million a year at today's pace. It has signed contracts to
+      spend twice that on computing over the next twelve months. If sales stay flat, where must the
+      rest of the money come from?
     choices:
-      - { id: a, text: "From cash, new funding or higher revenue: the current pace falls short" }
-      - { id: b, text: "From the commitments themselves: signing a contract brings cash in", mistake: { tag: contract_as_cash, fix: "Signing a commitment creates a bill, not cash." } }
-      - { id: c, text: "From nowhere, since commitments are optional and can be dropped without any cost", mistake: { tag: commitments_optional, fix: "Signed commitments are promises to pay; walking away usually has a cost." } }
-      - { id: d, text: "From profit, because a company with revenue is profitable", mistake: { tag: revenue_as_profit, fix: "Revenue is not profit; costs come out of revenue first." } }
+      - { id: a, text: "Cash in the bank, new funding or higher sales" }
+      - { id: b, text: "The contracts themselves: signing one brings cash in", mistake: { tag: contract_as_cash, fix: "Signing a commitment creates a bill, not cash." } }
+      - { id: c, text: "Nowhere: it can drop the contracts at no cost", mistake: { tag: commitments_optional, fix: "Signed commitments are promises to pay; walking away usually has a cost." } }
+      - { id: d, text: "Profit, because a company with sales is profitable", mistake: { tag: revenue_as_profit, fix: "Revenue is not profit; costs come out of revenue first." } }
     answer: a
     explanation: >
       The commitments are far larger than a year of revenue at the current pace. That gap has to be

@@ -70,12 +70,15 @@ youllLearn:
 questions:
   - id: jrb-q-mislabel
     prompt: >
-      A made-up agency, Agency Z, rates debt Z1 (best) down to Z8. Its published scale says Z1 to Z4 are "investment grade" and Z5 to Z8 are "non-investment grade". A writer says "non-investment grade debt (Z4 and below) defaulted far more often than investment grade debt (Z1 to Z3)". Which statement about the sentence is true?
+      A made-up rater, Agency Z, grades debt from Z1 (best) down to Z8. Its rulebook says Z1 to Z4
+      are "investment grade" and Z5 to Z8 are "non-investment grade". A blogger writes that
+      "non-investment grade debt (Z4 and below) defaulted far more often than investment grade (Z1
+      to Z3)". Which reading of that sentence is true?
     choices:
-      - { id: a, text: "The sentence is correct: Z4 is the weakest of the top group, so it belongs with what follows" }
-      - { id: b, text: "It places the dividing line one notch too high; by Agency Z's scale Z4 is investment grade" }
-      - { id: c, text: "It places the dividing line one notch too low; by Agency Z's scale Z5 is investment grade" }
-      - { id: d, text: "Agency Z's scale cannot be used to say where the line is" }
+      - { id: a, text: "Nothing: Z4 is the weakest of the top group, so it goes below", mistake: { tag: weakest_moved_down, fix: "The rater's own scale decides; it puts Z4 inside investment grade." } }
+      - { id: b, text: "The line is one notch too high: Z4 is still investment grade" }
+      - { id: c, text: "The line is one notch too low: Z5 is investment grade", mistake: { tag: line_wrong_way, fix: "The scale puts Z5 below the line; the blogger moved Z4 down." } }
+      - { id: d, text: "The rater's own scale cannot say where the line is", mistake: { tag: scale_ignored, fix: "The published scale is exactly what decides where the line falls." } }
     answer: b
     explanation: >
       The agency's own scale decides where the line is. By that scale Z4 is the last investment-grade
@@ -101,14 +104,13 @@ questions:
       Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf
   - id: jrb-q-ratio
     prompt: >
-      A writer says a study found a default rate of 24% for one group of bonds against 1.8% for
-      another, and calls the first group "about 13 times as likely to default". What is the most
-      careful reading of that claim?
+      A blogger says a study found 24% of one group of bonds defaulted against 1.8% of another, and
+      calls the first group "about 13 times as likely to default". What is the careful reading?
     choices:
-      - { id: a, text: "The first group defaulted far more often, but the ratio does not show the groups were drawn alike" }
-      - { id: b, text: "The ratio proves the first group is the riskier rating, since the gap is so large", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
-      - { id: c, text: "The ratio is wrong, because two rates taken from different studies can never be compared side by side at all", mistake: { tag: rates_incomparable, fix: "Setting one rate against another is a normal comparison; the question is what each covers." } }
-      - { id: d, text: "The ratio matters only if it comes out as a whole number, which this one nearly does", mistake: { tag: whole_number_fixation, fix: "Whether the ratio is round does not matter; what the groups cover does." } }
+      - { id: a, text: "One group defaulted far more, but check how each group was drawn" }
+      - { id: b, text: "The big gap proves the first group's rating is the riskier one of the two", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
+      - { id: c, text: "Two default rates can never be set side by side", mistake: { tag: rates_incomparable, fix: "Setting one rate against another is a normal comparison; the question is what each covers." } }
+      - { id: d, text: "It only counts if the ratio is a whole number", mistake: { tag: whole_number_fixation, fix: "Whether the ratio is round does not matter; what the groups cover does." } }
     answer: a
     explanation: >
       "About 13 times" is a fair way to set the two quoted rates side by side. It says nothing about
@@ -116,14 +118,13 @@ questions:
     source: The two figures as the writer quotes them; no outside data is used.
   - id: jrb-q-inference
     prompt: >
-      A rating agency's published definition says debt in a certain class "may possess certain
-      weaker characteristics". A writer says the agency "defines this class as weak". What kind of
-      slip is that?
+      A rating agency says debt in one class "may possess certain weaker characteristics". A blogger
+      writes that the agency "defines this class as weak". What slip did the blogger make?
     choices:
-      - { id: a, text: "A unit error: the writer mixed up two units of measure" }
-      - { id: b, text: "A period mismatch: the writer set unlike years side by side" }
-      - { id: c, text: "Going beyond the text: the writer dropped the hedge" }
-      - { id: d, text: "No slip: the two sentences mean the same" }
+      - { id: a, text: "Mixed up two units of measure", mistake: { tag: unit_blamed, fix: "No units are involved; the blogger changed what the sentence claims." } }
+      - { id: b, text: "Set two different years side by side", mistake: { tag: period_blamed, fix: "No years are compared; the slip is in the wording." } }
+      - { id: c, text: "Dropped the hedge: \"may\" became \"is\"" }
+      - { id: d, text: "No slip: the two sentences mean the same", mistake: { tag: hedge_ignored, fix: "\"May possess\" is a possibility; \"defines as weak\" is a firm statement." } }
     answer: c
     explanation: >
       The source says debt "may possess" the characteristic; the writer says it is defined as having
@@ -133,29 +134,30 @@ questions:
       Method of comparing a claim with the source's wording; the quoted definition is hypothetical. The style of Moody's definitions is at https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
   - id: jrb-q-period
     prompt: >
-      One study reports that 6% of bonds in a rating group defaulted within five years. Another
-      reports that 2% of bonds in a rating group defaulted in one year. A writer says the first group
-      is "three times as risky". What is the main problem?
+      A blogger reads two studies. One says 6% of bonds in a rating group defaulted within five
+      years. The other says 2% of bonds in another group defaulted within one year. The blogger calls
+      the first group "three times as risky". What is the main problem?
     choices:
-      - { id: a, text: "The percentages are rounded, so the ratio is off" }
-      - { id: b, text: "The figures cover different periods, five years against one" }
-      - { id: c, text: "6 divided by 2 is not 3, so the ratio is miscalculated" }
-      - { id: d, text: "Percentages cannot be compared at all, whatever they measure" }
+      - { id: a, text: "The figures are rounded, so the comparison between them is off", mistake: { tag: rounding_blamed, fix: "Rounding is minor; the real issue is a five-year window against a one-year window." } }
+      - { id: b, text: "The two cover different windows: five years against one" }
+      - { id: c, text: "A default rate says nothing about risk", mistake: { tag: default_not_risk, fix: "Default rates are a core risk measure; the problem is the unequal time windows." } }
+      - { id: d, text: "Percentages can never be compared", mistake: { tag: percent_incomparable, fix: "Percentages compare fine when they measure the same thing over the same window." } }
     answer: b
     explanation: >
-      6 / 2 = 3 is correct arithmetic, but a five-year cumulative figure and a one-year figure are not
-      measured over the same period. Always check what window each number covers before dividing one
-      by the other.
+      A five-year figure piles up defaults over five years; a one-year figure covers a single year.
+      They are not measured over the same window, so setting one against the other misleads. Always
+      check what window each number covers first.
     source: >
       Method of matching the period of compared figures; numbers are hypothetical. Default-study definitions of cumulative and annual rates: Moody's Ratings, Understanding credit ratings, https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
   - id: jrb-q-what-survives
     prompt: >
-      A writer mislabels where a rating agency's grade line falls, but then quotes two default rates taken from an agency study with its own grouping. You have yet to see the study. Which statement is the most careful?
+      A blogger draws the grade line one notch off, then quotes two default rates from an agency
+      study you have yet to read. What is the most careful verdict?
     choices:
-      - { id: a, text: "The two rates are wrong because the label is wrong" }
-      - { id: b, text: "The two rates are right, because the study comes from the agency itself and so is reliable" }
-      - { id: c, text: "The label is wrong; the rates are unchecked until you see the study's grouping" }
-      - { id: d, text: "The label does not matter if the arithmetic is right" }
+      - { id: a, text: "Both rates are wrong, because the label is wrong", mistake: { tag: one_slip_all_wrong, fix: "A wrong label does not make the quoted rates wrong; they are unchecked." } }
+      - { id: b, text: "Both rates are right, since the agency itself wrote the study they come from", mistake: { tag: source_as_proof, fix: "A good source still has to be read; the rates' grouping is unseen." } }
+      - { id: c, text: "The label is wrong; the rates stay unchecked until you see the study" }
+      - { id: d, text: "The label does not matter if the maths adds up", mistake: { tag: label_unimportant, fix: "A mislabelled group changes what the figures describe, whatever the maths." } }
     answer: c
     explanation: >
       A judge separates what has been shown wrong (the label, against the scale), what has been shown

@@ -94,49 +94,51 @@ youllLearn:
 questions:
   - id: ja-q-value-pb
     prompt: >
-      A small firm turns every rupee its owners put in into more than they could earn anywhere else
-      at the same risk. Traders say it earns more than its "cost of equity", the least its owners
-      will accept. If the market prices it fairly, where should its price sit against its book
-      value, the money the owners put in?
+      Your uncle owns part of a small spice company. Every rupee the owners put in earns more than
+      they could get anywhere else at the same risk. If the market prices it fairly, what should a
+      share cost next to its "book value", the money the owners put in?
     choices:
-      - { id: a, text: "Above book value, since it beats what owners demand" }
-      - { id: b, text: "Below book value, since the firm is a risky bet for its owners", mistake: { tag: pb_inverted, fix: "Below book is for firms earning less than their cost of equity, not more." } }
-      - { id: c, text: "Exactly at book value, since book is what the owners put in", mistake: { tag: pb_at_one, fix: "Price equals book only when return on equity equals the cost of equity." } }
-      - { id: d, text: "No one can say until next year's price shows up on the screen", mistake: { tag: pb_needs_future_price, fix: "With steady earnings and fair pricing, the return on equity against the cost of equity decides it." } }
+      - { id: a, text: "More than book value" }
+      - { id: b, text: "Less than book value", mistake: { tag: pb_inverted, fix: "Below book is for firms that earn less than owners could get elsewhere." } }
+      - { id: c, text: "Exactly book value", mistake: { tag: pb_at_one, fix: "Price equals book only when the firm earns just what owners could get elsewhere." } }
+      - { id: d, text: "No one can say until next year", mistake: { tag: pb_needs_future_price, fix: "With steady earnings and a fair price, what it earns against what owners demand decides it." } }
     answer: a
     explanation: >
-      With constant earnings forever, a fair price is above book value when the return on equity is
-      above the cost of equity, and below it when the return is lower. This firm earns more than its
-      shareholders require, so the market should pay more than book.
+      Traders call the least the owners will accept their cost of equity. A firm that earns more
+      than that on its owners' money is worth more than the money put in, so a fair price sits above
+      book value; one that earns less sits below it.
     source: >
       Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
       on Markets, 18 February 2025 (value as net income over cost of equity); Damodaran, Determinants
       of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
   - id: ja-q-mislabel
     prompt: >
-      A commenter says a company's "return on equity" is low. But the figure divides its profit by
-      what the stock market says the company is worth, instead of the money its owners put in. What do
-      analysts call that figure?
+      A commenter says a company's "return on equity" is low. But he divided its profit by what the
+      stock market says the company is worth, instead of by the money its owners put in. What is his number
+      really called?
     choices:
-      - { id: a, text: "The earnings yield: profit set against the market's price" }
-      - { id: b, text: "The return on equity: the market's price is the true value of the owners' stake", mistake: { tag: roe_on_market_value, fix: "Return on equity divides net income by book equity, not by market value." } }
-      - { id: c, text: "The cost of equity: the least the owners will accept for their risk", mistake: { tag: yield_as_cost, fix: "The cost of equity is what shareholders require; the 8% is earnings over market value." } }
-      - { id: d, text: "The payout ratio: the share of profit handed to the owners", mistake: { tag: yield_as_payout, fix: "A payout ratio is dividends over earnings; this 8% is earnings over market value." } }
+      - { id: a, text: "The earnings yield: profit against market price" }
+      - { id: b, text: "Return on equity, since the market price is the owners' true stake", mistake: { tag: roe_on_market_value, fix: "Return on equity divides net income by book equity, not by market value." } }
+      - { id: c, text: "The cost of equity: the least owners will accept", mistake: { tag: yield_as_cost, fix: "The cost of equity is what owners require; this figure is profit over market value." } }
+      - { id: d, text: "The payout ratio: the share of profit paid out", mistake: { tag: yield_as_payout, fix: "A payout ratio is dividends over profit; this is profit over market value." } }
     answer: a
     explanation: >
       Net income over market value is the earnings yield. Return on equity divides net income by book
-      equity, which gives a much higher figure here. The error is a mislabel of the denominator.
+      equity, which can give a very different figure. The error is a mislabel of what sits
+      underneath the ratio.
     source: >
       Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
       on Markets, 18 February 2025.
   - id: ja-q-period
     prompt: >
-      A writer compares Firm P's ROE of 30% with Firm Q's ROE of -20% and concludes that P is the far better business. Q's figure is from its first year, when it expensed a one-off Rs 40 crore of research spending; P's is an ordinary year. Which statement about the comparison is true?
+      A blogger compares two firms. Firm P earned 30% on its owners' money in an ordinary year. Firm
+      Q shows -20%, but that was its first year, when it booked a one-off Rs 40 crore research bill.
+      The blogger calls P "the far better business". What should you say about that comparison?
     choices:
-      - { id: a, text: "The periods differ: Q's year includes a one-off charge that P's year lacks" }
-      - { id: b, text: "The comparison is fair: both are return on equity, so the figures can be compared directly" }
-      - { id: c, text: "A negative return on equity is impossible, so Q's figure must be a typing error" }
-      - { id: d, text: "P's figure must be restated at market value first, and Q's must not" }
+      - { id: a, text: "Different kinds of year: Q's has a one-off bill that P's lacks" }
+      - { id: b, text: "Nothing: both are return on equity, so they compare directly as they are", mistake: { tag: same_label_same_basis, fix: "Same name, different years: one carries a one-off charge, so they are not alike." } }
+      - { id: c, text: "Q's figure must be a typo: a negative return is impossible", mistake: { tag: negative_impossible, fix: "Return on equity goes negative whenever a firm makes a loss." } }
+      - { id: d, text: "Only P's figure needs restating at market value", mistake: { tag: market_value_restate, fix: "Market value is not the issue; the years being unlike is." } }
     answer: a
     explanation: >
       One figure carries a one-off expense and the other does not, so they describe different
@@ -147,14 +149,14 @@ questions:
       on Markets, 18 February 2025 (the effect of expensed research spending on reported returns).
   - id: ja-q-beyond-text
     prompt: >
-      A passage shows that, for a firm with constant earnings forever and a fair price, the earnings
-      yield equals the cost of equity. A reader writes: "So any stock whose earnings yield is above
-      its cost of equity is undervalued." How should the reader's step be judged?
+      A passage shows that for a firm whose profit never changes, priced fairly, the earnings yield
+      equals the cost of equity. A reader concludes: "So any stock whose earnings yield beats its
+      cost of equity is a bargain." How should you judge that step?
     choices:
-      - { id: a, text: "It goes beyond the text: the passage assumed constant earnings and a fair price" }
-      - { id: b, text: "It is valid, because the same arithmetic applies to every stock" }
-      - { id: c, text: "It is invalid, because an earnings yield can never be compared with a cost of equity" }
-      - { id: d, text: "It is valid only for shares listed in India" }
+      - { id: a, text: "It goes beyond the text: the passage assumed steady profit and a fair price" }
+      - { id: b, text: "Nothing: the same logic fits every stock", mistake: { tag: rule_overextended, fix: "The equality was shown only under stated assumptions, not for every stock." } }
+      - { id: c, text: "A yield and a cost of equity can never be compared, whatever the passage says", mistake: { tag: yield_cost_incomparable, fix: "The passage compares them itself; the slip is dropping its assumptions." } }
+      - { id: d, text: "It holds only for shares listed in India", mistake: { tag: market_assumed, fix: "Nothing in the passage is about where shares are listed." } }
     answer: a
     explanation: >
       The equality was derived under stated assumptions. Outside them, an earnings yield above the cost
@@ -165,29 +167,29 @@ questions:
       equity and risk): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/peratio.htm
   - id: ja-q-sustainable
     prompt: >
-      A bakery hands most of its profit to its owners and keeps the rest to buy new ovens. It sells
-      no new shares. What sets how fast its profit can grow?
+      Meera's bakery hands most of its profit to its owners and keeps the rest to buy new ovens. It
+      never sells new shares. What decides how fast its profit can grow?
     choices:
-      - { id: a, text: "How much it keeps for new ovens, and what those ovens earn" }
-      - { id: b, text: "How much it hands out to the owners, and nothing else about it", mistake: { tag: payout_only, fix: "Payout is half the story; growth also needs a return on the money kept." } }
-      - { id: c, text: "What the owners would demand elsewhere, and nothing else about it", mistake: { tag: cost_sets_growth, fix: "The cost of equity prices the shares; it does not set how fast earnings grow." } }
-      - { id: d, text: "Nothing, because growth has no link to profit kept in the firm", mistake: { tag: growth_unlinked, fix: "With no new shares, retained earnings are the money that funds growth." } }
+      - { id: a, text: "The share it keeps for ovens, and what those ovens earn" }
+      - { id: b, text: "Only the share it hands to the owners", mistake: { tag: payout_only, fix: "Paying out is half the story; growth also needs a return on the money kept." } }
+      - { id: c, text: "Only what the owners could earn elsewhere", mistake: { tag: cost_sets_growth, fix: "That is what owners demand; it does not set how fast profit grows." } }
+      - { id: d, text: "Nothing: growth has no link to the profit the bakery keeps", mistake: { tag: growth_unlinked, fix: "With no new shares, the profit it keeps is what pays for growth." } }
     answer: a
     explanation: >
-      With no new shares, growth is funded by the earnings kept, so it depends on how much is
-      retained and on the return that money earns. Mixing up the retained share with the paid-out share is the usual slip.
+      With no new shares, growth is funded by the profit kept, so it depends on the share kept and
+      on what that money earns. Mixing up the share kept with the share paid out is the usual slip.
     source: >
       Damodaran, Determinants of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
   - id: ja-q-implied-price
     prompt: >
-      A company's profit never changes. Its "earnings yield", profit set against its price, comes
-      out higher than the least its owners will accept for the risk, its "cost of equity". With
-      steady profit, what does that gap suggest about the price?
+      Your uncle spots a company whose profit is the same every year. Its earnings yield (profit
+      against the share price) is higher than its cost of equity (the least owners accept for the
+      risk). What does that hint about the price?
     choices:
-      - { id: a, text: "The price looks low for steady profit like this" }
-      - { id: b, text: "The price looks high for steady profit like this", mistake: { tag: yield_gap_inverted, fix: "A higher yield than the cost of equity means a lower price, not a higher one." } }
-      - { id: c, text: "Nothing, because a yield and a cost of equity cannot be compared", mistake: { tag: yield_cost_incomparable, fix: "With steady earnings and a fair price the two are equal, so a gap is informative." } }
-      - { id: d, text: "The owners' book equity must have been counted too high", mistake: { tag: book_blamed, fix: "Book equity does not enter earnings over market value." } }
+      - { id: a, text: "It looks low for profit this steady" }
+      - { id: b, text: "It looks high for profit this steady", mistake: { tag: yield_gap_inverted, fix: "A higher yield than the cost of equity means a lower price, not a higher one." } }
+      - { id: c, text: "Nothing: the two can't be compared", mistake: { tag: yield_cost_incomparable, fix: "With steady earnings and a fair price the two are equal, so a gap is informative." } }
+      - { id: d, text: "The owners' book value must be wrong", mistake: { tag: book_blamed, fix: "Book value does not enter profit over market price." } }
     answer: a
     explanation: >
       For steady earnings forever, a fair price makes the earnings yield equal the cost of equity.
@@ -207,22 +209,18 @@ checks:
   - id: ja-judge-post
     kind: conversation
     prompt: >
-      You have read Damodaran's 18 February 2025 post on return on equity and earnings yield. First
-      say, in your own words, what his businesses A and B are meant to show about return on equity,
-      value, price to book and earnings yield, and what sits on top of and underneath each ratio.
-      Then take his statements on marking to market, the research-spending example and the 50%
-      growth for ten years, and for each one say whether it follows from his stated inputs, which
-      assumptions you would have to add, and whether any slip is a mislabel, a period mismatch or an
-      inference beyond the text. For the growth statement, say what has to be true about
-      reinvestment for it to hold. Finally, say which of his statements depend on the
-      efficient-pricing assumption.
+      You've read Damodaran's 18 February 2025 post on return on equity and earnings yield. Tell me
+      in your own words what his two businesses, A and B, are there to show. Then pick one of his
+      claims (marking to market, the research-spending example, or 50% growth for ten years): does it
+      follow from what he says, or does it lean on something he doesn't state?
     passCriteria: >
-      The Learner explains in words, from the post's inputs, what return on equity, value, price to
-      book and earnings yield each measure, names what sits on top of and underneath each ratio, and
-      says how A and B differ and why. They explain the marking-to-market and research-spending
-      statements in words and state every assumption they would have to add. For growth they say what
-      reinvestment it needs and what return that reinvestment earns, and say in their own terms
-      whether the post's sentence follows. They classify any slip they find as a mislabel, a period
-      mismatch or an inference beyond the text, and they separate the post's statements that depend
-      on fair pricing from those that do not. They do not take any figure from the Tutor, do not claim to know what any market
-      did afterwards, and make no buy, sell or hold call.
+      The Learner explains in words, from the post, what return on equity (profit over the owners'
+      money on the books), earnings yield (profit over market value), price to book and value each
+      measure, names what sits on top of and underneath each ratio, and says how A and B differ and
+      why. For the one claim they pick, they say in their own terms whether it follows from his
+      stated inputs and name any assumption they had to add; if they find a slip they call it a
+      mislabel, a period mismatch or an inference beyond the text. If they pick the growth claim,
+      they say it needs reinvestment and depends on what that reinvestment earns. They say whether
+      their claim depends on the market pricing shares fairly. They are not asked to redo any sum,
+      do not take any figure from the Tutor, do not claim to know what any market did afterwards,
+      and make no buy, sell or hold call.

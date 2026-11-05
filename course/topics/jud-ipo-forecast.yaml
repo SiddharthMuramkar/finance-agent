@@ -115,50 +115,49 @@ youllLearn:
 questions:
   - id: jip-q-ttm
     prompt: >
-      A company's filing gives revenue of $200 million for the year 2012, $80 million for the first
-      six months of 2012 and $150 million for the first six months of 2013. Which description builds
-      the "twelve months to 30 June 2013" the way analysts do?
+      You are checking a tech company's 2013 listing. Its filing gives revenue for all of 2012, for
+      January to June 2012, and for January to June 2013. How do analysts build the "trailing twelve
+      months" to 30 June 2013?
     choices:
-      - { id: a, text: "The last full year, plus the new part-year, less the old one" }
-      - { id: b, text: "All three figures added together to get a full total", mistake: { tag: counted_twice, fix: "That counts the first half of 2012 twice." } }
-      - { id: c, text: "The first six months of 2013, doubled to give a twelve-month figure", mistake: { tag: doubled_half, fix: "Doubling six months assumes the pace holds; that is a run rate, not twelve months earned." } }
-      - { id: d, text: "The 2012 year on its own", mistake: { tag: old_year_only, fix: "The 2012 year leaves out the half-year already earned in 2013." } }
+      - { id: a, text: "Take 2012, add the first half of 2013, take away the first half of 2012" }
+      - { id: b, text: "Add all three figures together to get the full twelve-month total", mistake: { tag: counted_twice, fix: "That counts the first half of 2012 twice." } }
+      - { id: c, text: "Double the first half of 2013, since a year is two halves of six months", mistake: { tag: doubled_half, fix: "Doubling six months assumes the pace holds; that is a run rate, not twelve months earned." } }
+      - { id: d, text: "Use 2012 on its own", mistake: { tag: old_year_only, fix: "The 2012 year leaves out the half-year already earned in 2013." } }
     answer: a
     explanation: >
-      The twelve months to June 2013 roll the last full year forward: start with the year 2012, add
-      the new part-year and take away the part-year a year earlier. That gives $270 million. Adding
-      all three counts the first half of 2012 twice.
+      The trailing twelve months roll the last full year forward: start with the year 2012, add the
+      new part-year and take away the same part-year a year earlier. Adding all three counts the
+      first half of 2012 twice.
     source: >
       Trailing twelve months as built from the revenue table of Twitter, Inc., Form S-1 (3 October 2013) in
       Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-new-shares
     prompt: >
-      Before an offering a company has 100 million shares and is worth $1,000 million. It sells 20
-      million new shares at $10 each and keeps the cash. A writer divides the new, larger value by
-      the old 100 million shares and says each share is now worth more. What did the writer leave
-      out?
+      A company with 100 million shares sells 20 million new ones when it lists, and keeps the cash.
+      A blogger adds the cash to the company's value but still shares it out over the old 100
+      million, and cheers that each share is now worth more. What did the blogger leave out?
     choices:
-      - { id: a, text: "The new shares: the value is spread over more shares" }
-      - { id: b, text: "The cash: an offering raises none at all for the company", mistake: { tag: cash_ignored, fix: "The offering did raise cash; the writer's slip is in the share count." } }
-      - { id: c, text: "The old shares: they should be dropped from the count", mistake: { tag: old_shares_dropped, fix: "The old shares still exist; the new ones join them." } }
-      - { id: d, text: "Nothing: added cash always lifts the value per share", mistake: { tag: cash_always_lifts, fix: "New shares share the cash too, so the value per share rises far less." } }
+      - { id: a, text: "The new shares: the value is spread over more of them" }
+      - { id: b, text: "The cash: a listing raises no money at all for the company itself", mistake: { tag: cash_ignored, fix: "The listing did raise cash; the slip is in the share count." } }
+      - { id: c, text: "The old shares: they drop out of the count", mistake: { tag: old_shares_dropped, fix: "The old shares still exist; the new ones join them." } }
+      - { id: d, text: "Nothing: new cash always lifts each share", mistake: { tag: cash_always_lifts, fix: "New shares share the cash too, so the value per share rises far less." } }
     answer: a
     explanation: >
-      Value after the sale is $1,200 million, but it is shared by 120 million shares, which is $10.00
-      each. Dividing by the old 100 million shares adds the cash raised and leaves out the shares
-      sold to raise it.
+      The cash raised belongs to all 120 million shares, old and new. Counting the cash but not the
+      shares sold to raise it makes each share look worth more than it is.
     source: >
       The pro forma and pro forma as adjusted share counts are the two columns of the
       capitalization table in Twitter, Inc., Form S-1 (3 October 2013).
   - id: jip-q-pro-forma
     prompt: >
-      A prospectus gives a share count "actual", one "pro forma" (the preferred stock converted into
-      common) and one "pro forma as adjusted". Which of them includes the shares sold in the offering?
+      Before a listing, a prospectus shows three share counts: "actual", "pro forma" (after the
+      preferred stock turns into common) and "pro forma as adjusted". Which one counts the new shares
+      sold in the listing?
     choices:
-      - { id: a, text: "Actual, the shares in issue on the cover date" }
-      - { id: b, text: "Pro forma, the shares once the preferred stock converts" }
+      - { id: a, text: "Actual, the shares in issue on the cover date", mistake: { tag: actual_as_after, fix: "Actual is before anything changes; it counts no new shares." } }
+      - { id: b, text: "Pro forma, after the preferred stock converts", mistake: { tag: pro_forma_as_adjusted, fix: "Pro forma adds the conversion only; the sale comes in the next column." } }
       - { id: c, text: "Pro forma as adjusted" }
-      - { id: d, text: "All three, since each one is a share count" }
+      - { id: d, text: "All three, since each is a share count", mistake: { tag: all_columns_same, fix: "Each column is a different moment; only the last adds the sale." } }
     answer: c
     explanation: >
       "Pro forma" changes the count for the conversion of preferred stock only. "Pro forma as adjusted"
@@ -168,14 +167,14 @@ questions:
       The capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted.
   - id: jip-q-growth
     prompt: >
-      A writer assumes revenue of $200 million grows 60% a year for five years and ends near $2.1
-      billion. A friend says the growth only adds 60% of the starting revenue five times, ending near
-      $800 million. What has the friend missed?
+      A blogger expects a company's $200 million of revenue to grow 60% a year for five years,
+      ending near $2.1 billion. Your friend scoffs: take the first year's gain and repeat that same
+      amount five times, and you end near $800 million. What has your friend missed?
     choices:
       - { id: a, text: "Compounding: each year's growth builds on the year before" }
-      - { id: b, text: "Inflation: revenue must be adjusted for it before it grows", mistake: { tag: inflation_assumed, fix: "Inflation is not the issue; the friend applied growth to the starting revenue only." } }
-      - { id: c, text: "Taxes: growth is measured after tax is paid", mistake: { tag: tax_assumed, fix: "Revenue growth is measured before tax; the issue is what the growth is applied to." } }
-      - { id: d, text: "Nothing: growth is simply added each year", mistake: { tag: simple_adding, fix: "Each year's growth builds on a larger base, so adding the same amount understates it." } }
+      - { id: b, text: "Inflation", mistake: { tag: inflation_assumed, fix: "Inflation is not the issue; the friend applied growth to the starting revenue only." } }
+      - { id: c, text: "Taxes", mistake: { tag: tax_assumed, fix: "Revenue growth is measured before tax; the issue is what the growth is applied to." } }
+      - { id: d, text: "Nothing: growth simply adds the same amount on top each year", mistake: { tag: simple_adding, fix: "Each year's growth builds on a larger base, so adding the same amount understates it." } }
     answer: a
     explanation: >
       Each year's 60% is earned on the larger revenue of the year before, which is compounding, so five
@@ -185,63 +184,61 @@ questions:
       CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
   - id: jip-q-share-of-total
     prompt: >
-      A filing shows one revenue line of $48 million out of total revenue of $400 million, which is
-      12.0% of it. A writer calls that line "12.8% of revenue". What should a careful judge do?
+      A filing shows that one revenue line is 12.0% of total revenue. A blogger writes "12.8%". What
+      should a careful judge do?
     choices:
       - { id: a, text: "Note the small slip, then check whether the value depends on it" }
-      - { id: b, text: "Throw out the whole valuation, since even one figure is off", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
-      - { id: c, text: "Ignore it: any figure within a point of the right one is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
-      - { id: d, text: "Assume the writer used a different base, with no check", mistake: { tag: base_assumed, fix: "Do not guess a base; check it against the filing." } }
+      - { id: b, text: "Throw out the whole valuation", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
+      - { id: c, text: "Ignore it: within a point is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
+      - { id: d, text: "Assume the blogger used another base, and move on without checking", mistake: { tag: base_assumed, fix: "Do not guess a base; check it against the filing." } }
     answer: a
     explanation: >
       The gap is real but small, so the next step is to ask whether the figure feeds anything that
-      matters. A different base, such as the line as a share of the other revenue, would give 13.6%,
-      not 12.8%.
+      matters. Guessing that the blogger used a different base is not a check; the filing is.
     source: >
       The revenue table of Twitter, Inc., Form S-1 (3 October 2013) (a line as a share of total revenue).
   - id: jip-q-weighted
     prompt: >
-      A writer values a company with two businesses: most of its revenue (80%) comes from one with a
-      risk measure (beta) of 1.30, and the rest (20%) from one with 0.90. How should the writer reach
-      one beta for the company?
+      A company runs two businesses. Most of its revenue (80%) comes from a jumpy one with a beta (how
+      hard it swings with the market) of 1.30; the rest (20%) from a calmer one at 0.90. How should a
+      blogger give the whole company one beta?
     choices:
-      - { id: a, text: "Weight each beta by its revenue share, landing nearer 1.30 than 0.90" }
-      - { id: b, text: "Take the simple average of the two betas", mistake: { tag: simple_average, fix: "A simple average ignores the weights; the bigger business should count for more." } }
-      - { id: c, text: "Use the higher beta, to be safe", mistake: { tag: higher_beta_only, fix: "The higher beta ignores that part of the company is less risky." } }
-      - { id: d, text: "Use the lower beta, because it belongs to the steadier business of the two", mistake: { tag: lower_beta_only, fix: "The lower beta belongs to the smaller business, so it should count for less." } }
+      - { id: a, text: "Weight each by its share of revenue, landing nearer 1.30" }
+      - { id: b, text: "Take the plain average of the two", mistake: { tag: simple_average, fix: "A simple average ignores the weights; the bigger business should count for more." } }
+      - { id: c, text: "Use the higher one, to be safe", mistake: { tag: higher_beta_only, fix: "The higher beta ignores that part of the company is less risky." } }
+      - { id: d, text: "Use the lower one, since that business is the steadier of the two", mistake: { tag: lower_beta_only, fix: "The lower beta belongs to the smaller business, so it should count for less." } }
     answer: a
     explanation: >
       A company's beta is the weighted average of its businesses' betas, with revenue shares as the
-      weights, so the bigger business counts for more. Here that lands near 1.22, much closer to the
-      larger business's 1.30 than a simple average would.
+      weights, so the bigger business counts for more and the result sits much closer to 1.30 than a
+      plain average would.
     source: >
       Weighted-average beta as used in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-basis
     prompt: >
-      A writer's target is a 25% operating margin measured after treating research spending as an
-      investment, capitalised and written off over three years. A later report shows a 15% operating
-      margin with research spending expensed in the year it is incurred. What should a judge do first?
+      A blogger's target was a 25% operating margin, counting research spending as an investment
+      spread over three years. A later report shows 15%, with research spending counted in full in
+      the year it happens. Before calling it a miss, what should you do?
     choices:
-      - { id: a, text: "Conclude the target was missed by 10 points" }
-      - { id: b, text: "Put both margins on the same basis before comparing them" }
-      - { id: c, text: "Set the later report aside because it is a different document" }
-      - { id: d, text: "Conclude that the writer's arithmetic was wrong" }
+      - { id: a, text: "Call it a clear miss: 15% is below 25%", mistake: { tag: basis_ignored, fix: "The two margins treat research differently, so part of the gap is accounting." } }
+      - { id: b, text: "Put both margins on the same basis first" }
+      - { id: c, text: "Ignore the report: it is a different document", mistake: { tag: report_dismissed, fix: "The report is the evidence; restate it, do not set it aside." } }
+      - { id: d, text: "Say the blogger's arithmetic was wrong", mistake: { tag: arithmetic_blamed, fix: "Nothing shows an arithmetic slip; the bases differ." } }
     answer: b
     explanation: >
-      The two margins are measured differently, so the 10-point gap mixes a real difference with an
-      accounting one. Restating one margin to the other's basis (for example, capitalising the research
-      spending in the report) makes the comparison fair.
+      The two margins are measured differently, so the gap mixes a real difference with an
+      accounting one. Restating one margin to the other's basis (for example, capitalising the
+      research spending in the report) makes the comparison fair.
     source: >
       Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life); Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
   - id: jip-q-arithmetic-story
     prompt: >
-      Suppose every number in a writer's valuation ties out to the inputs he states. What does that
-      show?
+      Every number in a blogger's valuation ties out to the inputs he states. What does that prove?
     choices:
       - { id: a, text: "That his inputs must be right too", mistake: { tag: inputs_from_ties, fix: "Numbers that tie out show the calculation, not that the inputs are right." } }
-      - { id: b, text: "That his arithmetic is right; his inputs and story are a separate question" }
-      - { id: c, text: "That the market price must equal his value, since his arithmetic is clean and exact", mistake: { tag: value_equals_price, fix: "His value is his estimate; the market price is set by buyers and sellers." } }
-      - { id: d, text: "That he made a mislabel somewhere in the work", mistake: { tag: ties_means_mislabel, fix: "Numbers that tie out say nothing about a mislabel." } }
+      - { id: b, text: "His arithmetic is right; his inputs and story are a separate question" }
+      - { id: c, text: "That the market price must equal his value, since the sums are so clean", mistake: { tag: value_equals_price, fix: "His value is his estimate; the market price is set by buyers and sellers." } }
+      - { id: d, text: "That he made a mislabel somewhere", mistake: { tag: ties_means_mislabel, fix: "Numbers that tie out say nothing about a mislabel." } }
     answer: b
     explanation: >
       Numbers that tie out check the calculation from inputs to value. The inputs (growth, margin,
@@ -268,25 +265,22 @@ checks:
   - id: jip-judge-valuation
     kind: conversation
     prompt: >
-      Take Damodaran's 5 October 2013 valuation of Twitter back to the first S-1. Choose at least
-      five of the claims and say, in your own words, whether each one matches the filing. For any
-      that do not, say what kind of difference it is (an arithmetic slip, a mislabel, a period or
-      basis mismatch, or an inference beyond the filing) and whether it is big enough to change the
-      value of $17.36 a share. Then say what you can and cannot conclude from the post alone.
+      Let's take Damodaran's 5 October 2013 valuation of Twitter back to its first S-1. Pick three of
+      his claims and tell me: does each one match the filing? If one doesn't, what kind of slip is
+      it, and is it big enough to move his $17.36 a share? What can't you tell from the post alone?
     passCriteria: >
       The Learner takes figures from the filing as the Case gives them, not from the Tutor's own
-      knowledge. They check at least five claims against the filing, including: twelve-month revenue
-      (the year 2012 rolled forward with the first six months of 2013 and without the first six
-      months of 2012, about $448 million) and first-half growth (about 107%); the share count (the
-      four lines the post adds up, about 574.44 million in all) behind the $17.36 a share; and data
-      licensing as a share of first-half revenue (about 12.7% in the filing, a small difference from
-      the post's 12.6% that does not move the value). They check the share count against the
-      capitalization table: which column the post's 472.613 million comes from, whether the post's
-      label for it matches that column, and whether the shares sold in the offering are counted
-      alongside the offering cash the post adds. If they find a difference they name its kind (a
-      mislabel, an inference beyond the filing or an arithmetic slip), say whether the corrected
-      count would change the per-share value enough to matter, and compare its size with the smaller
-      differences. They say that the post alone cannot show whether his spreadsheet counted the new
-      shares elsewhere, and that a calculation that ties out shows the arithmetic, not whether his
-      growth and margin story is right. They do not claim to know how Twitter's offering or later
-      results turned out.
+      knowledge, and is not asked to redo any sum: the Tutor may show the filing's figure beside the
+      post's, and the Learner judges whether they match and why. They check at least three claims,
+      for example twelve-month revenue (built from the year 2012 rolled forward with the first six
+      months of 2013 and without the first six months of 2012), the share count behind the $17.36 a
+      share, or data licensing as a share of first-half revenue (the filing and the post differ only
+      slightly, which does not move the value). If they pick the share count, they say which column
+      of the capitalization table the post's 472.613 million comes from, whether the post's label
+      for it matches that column, and whether the shares sold in the offering are counted alongside
+      the offering cash the post adds. For any difference they name its kind (a mislabel, an
+      inference beyond the filing, a period or basis mismatch, or an arithmetic slip) and say in
+      words whether it is big enough to matter, compared with smaller differences. They say that
+      the post alone cannot show whether his spreadsheet counted the new shares elsewhere, and that
+      a calculation that ties out shows the arithmetic, not whether his growth and margin story is
+      right. They do not claim to know how Twitter's offering or later results turned out.
