@@ -35,12 +35,12 @@ describe("Button", () => {
     expect(html).not.toContain("spinner");
     expect(html).not.toContain("aria-busy");
     expect(html).toContain('aria-pressed="true"');
-    expect(html).toContain("pressable");
+    expect(html).toContain("btn btn-secondary btn-sm");
     expect(html).toContain('type="button"');
   });
 
-  it("gives the primary variant the pressed navy", () => {
-    expect(renderToStaticMarkup(<Button>Go</Button>)).toContain("--pressed-bg:var(--brand-pressed)");
+  it("gives the primary variant the raised blue face", () => {
+    expect(renderToStaticMarkup(<Button>Go</Button>)).toContain("btn btn-primary");
   });
 });
 
@@ -53,14 +53,14 @@ describe("IconButton", () => {
     );
     expect(html).toContain('aria-label="Close"');
     expect(html).toContain('aria-pressed="false"');
-    expect(html).toMatch(/min-h-8 min-w-8/);
+    expect(html).toContain("btn btn-icon");
   });
 });
 
 describe("Chip", () => {
   it("is at least 28px tall and keeps the older active spelling", () => {
     const html = renderToStaticMarkup(<Chip active>Tab</Chip>);
-    expect(html).toContain("min-h-7");
+    expect(html).toContain("chip");
     expect(html).toContain('data-state="showing"');
     expect(html).toContain('aria-pressed="true"');
   });

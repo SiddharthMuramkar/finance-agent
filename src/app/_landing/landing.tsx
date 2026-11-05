@@ -70,7 +70,7 @@ export function LandingView({ stats, button, widget }: { stats: LandingStats; bu
               <a href="/study" className={topBarLink}>
                 {copy.studyWorkspace}
               </a>
-              <SignOutButton className={topBarLink}>{copy.signOut}</SignOutButton>
+              <SignOutButton unstyled className={topBarLink}>{copy.signOut}</SignOutButton>
             </div>
           ) : (
             <a href="/login" className={topBarLink}>
