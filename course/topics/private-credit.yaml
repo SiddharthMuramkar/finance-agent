@@ -79,7 +79,7 @@ questions:
     prompt: >
       Which description fits a shadow bank best?
     choices:
-      - { id: a, text: "A lender that transforms credit, maturity and liquidity like a bank, but has no access to the central bank's lender-of-last-resort facility or to government deposit insurance" }
+      - { id: a, text: "A lender that acts like a bank but has no central bank rescue and no deposit insurance behind it" }
       - { id: b, text: "A bank that keeps part of its assets off its books to avoid regulators", mistake: { tag: off_books_trick, fix: "Hiding assets is a tactic. Shadow means sitting outside the safety net." } }
       - { id: c, text: "Any lender whose loans are illegal", mistake: { tag: shadow_is_illegal, fix: "Shadow banks are not illegal. They just lack the central bank backstop." } }
       - { id: d, text: "Any lender that is listed on a stock exchange", mistake: { tag: listed_lender, fix: "Being listed has nothing to do with it." } }
@@ -105,7 +105,7 @@ questions:
 
   - id: pc-q-nav
     prompt: >
-      A fund has net assets of Rs 1,000 crore and holds Rs 50 crore of one issuer's paper. That paper is marked down by 40 per cent and nothing else changes. Which headline gets it right?
+      A fund has put only a small slice of its money into one issuer's paper. That paper is marked down by 40 per cent and nothing else changes. What happens to the fund's NAV, the value of what it owns minus what it owes?
     choices:
       - { id: a, text: "The fund's NAV falls by 40 per cent", mistake: { tag: whole_fund_marked_down, fix: "The 40 per cent applies only to the paper, a small part of the fund." } }
       - { id: b, text: "The fund's NAV dips a little, because the markdown hits only the small part held in that paper" }
@@ -119,7 +119,7 @@ questions:
 
   - id: pc-q-remaining-share
     prompt: >
-      A fund holds Rs 90 crore of easy-to-sell government securities and Rs 10 crore of one troubled issuer's paper that no one will buy. Investors redeem Rs 20 crore, and the fund pays them by selling government securities. What does that do to the investors who stay?
+      A fund holds mostly easy-to-sell government securities and a small amount of one troubled issuer's paper that no one will buy. Some investors redeem, and the fund pays them by selling government securities. What does that do to the investors who stay?
     choices:
       - { id: a, text: "Nothing: their share of the troubled paper stays the same", mistake: { tag: share_unchanged, fix: "Paying out in liquid assets leaves the unsellable paper as a bigger slice of what remains." } }
       - { id: b, text: "They are left holding a bigger share of paper nobody wants to buy" }
@@ -135,7 +135,7 @@ questions:
     prompt: >
       A group puts each of its projects into a separate SPV with its own lenders. What is the main advantage, and what is the main cost for an outsider?
     choices:
-      - { id: a, text: "Each SPV's lenders can claim only on that project's assets, which shields the parent; the cost is that it is hard to see the group's total debt" }
+      - { id: a, text: "It shields the parent, since lenders claim only on that project; but total debt is hard to see" }
       - { id: b, text: "SPV lenders can claim on every asset of the group; the cost is higher tax", mistake: { tag: claims_on_whole_group, fix: "SPV lenders can claim only on that SPV's assets, unless the parent guarantees the debt." } }
       - { id: c, text: "SPVs cannot borrow, so the group's debt falls; the cost is slower construction", mistake: { tag: spv_cannot_borrow, fix: "SPVs can borrow. The group's total debt does not fall, it only gets harder to see." } }
       - { id: d, text: "SPVs guarantee that all projects are repaid; the cost is a lower credit rating", mistake: { tag: spv_guarantees_all, fix: "Each SPV stands on its own. It guarantees nothing for the other projects." } }

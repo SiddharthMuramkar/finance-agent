@@ -67,15 +67,15 @@ youllLearn:
 questions:
   - id: bk-q-net-worth
     prompt: >
-      A bank has assets of $120 million and deposits of $110 million, so only a thin cushion of net worth. Then the market value of its assets falls 10%. Which headline gets it right?
+      A bank's assets are worth only a little more than it owes its depositors, so its cushion of net worth is thin. Then the market value of its assets drops by more than that whole cushion. What happens to the bank?
     choices:
       - { id: a, text: "It is now insolvent: its assets are worth less than it owes its depositors" }
       - { id: b, text: "It is fine, because its deposits fell by 10% too", mistake: { tag: deposits_fall_too, fix: "Deposits are fixed sums owed. They do not fall when asset values do." } }
-      - { id: c, text: "It is fine, because a 10% fall is smaller than the deposits", mistake: { tag: compared_to_deposits, fix: "What matters is the thin cushion. A 10% fall in $120 million wipes out more than it." } }
+      - { id: c, text: "It is fine, because the drop is small next to the size of its deposits", mistake: { tag: compared_to_deposits, fix: "What matters is the thin cushion. A drop bigger than the cushion wipes it out." } }
       - { id: d, text: "Its net worth doubles, because assets are cheaper to buy", mistake: { tag: net_worth_rises, fix: "A fall in asset value cuts net worth. It never raises it." } }
     answer: a
     explanation: >
-      Assets fall to $108 million, which is less than the $110 million owed, so net worth (assets less liabilities) is -$2 million. A fall of less than 8.3% would have left the bank solvent.
+      Net worth is assets less liabilities. Once the fall is bigger than the cushion, assets are worth less than the deposits owed. For example, $120 million of assets against $110 million of deposits leaves a $10 million cushion, and a 10% fall ($12 million) wipes it out and more.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 27.3 The Role of Banks (balance sheet and net worth): https://openstax.org/books/principles-economics-3e/pages/27-3-the-role-of-banks ; figures are hypothetical
 
@@ -111,7 +111,7 @@ questions:
     prompt: >
       Why can a rumour cause even a healthy bank to fail?
     choices:
-      - { id: a, text: "Banks hold only a fraction of deposits in liquid form, so if many depositors withdraw at once the bank cannot pay without selling assets at a loss" }
+      - { id: a, text: "It keeps only a little in cash, so a rush of withdrawals forces fire sales" }
       - { id: b, text: "Healthy banks cannot fail", mistake: { tag: healthy_cannot_fail, fix: "Even a healthy bank has lent most deposits out, so a rush of withdrawals can sink it." } }
       - { id: c, text: "Rumours change the interest rate the bank pays", mistake: { tag: rumour_moves_rates, fix: "A rumour does not change rates. It triggers withdrawals." } }
       - { id: d, text: "Banks keep all deposits as cash, so a rumour makes them lose it", mistake: { tag: all_deposits_in_cash, fix: "Banks lend out most deposits. They do not keep them all as cash." } }

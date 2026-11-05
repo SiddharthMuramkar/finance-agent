@@ -102,10 +102,10 @@ questions:
 
   - id: vi-q-crp
     prompt: >
-      An analyst values an Indian stock in rupees. Besides the rupee riskfree rate, she has a mature market equity risk premium of 5.5 percent and a country risk premium of 3.0 percent. How do the two premiums enter the cost of equity?
+      An analyst values an Indian stock in rupees. Besides the rupee riskfree rate (what a safe government bond pays), she has the usual premium for owning shares in a mature market and an extra premium for India's country risk. How do the two premiums enter the cost of equity?
     choices:
       - { id: a, text: "The country premium replaces the mature one", mistake: { tag: replaced_premium, fix: "The country premium is an extra layer on top of the mature one, not a replacement." } }
-      - { id: b, text: "Both sit on top of the riskfree rate, scaled by the stock's beta, so country risk raises the cost of equity" }
+      - { id: b, text: "Both sit on top of the riskfree rate, so country risk raises the cost of equity" }
       - { id: c, text: "The country premium is taken off, because India is growing fast", mistake: { tag: subtracted_country_risk, fix: "Country risk is extra danger, so it raises the cost of equity and never lowers it." } }
       - { id: d, text: "Neither: the riskfree rate alone is the cost of equity", mistake: { tag: riskfree_only, fix: "The riskfree rate is only the floor. Premiums add the reward for risk." } }
     answer: b

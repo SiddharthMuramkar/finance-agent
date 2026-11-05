@@ -68,12 +68,12 @@ youllLearn:
 questions:
   - id: br-q-cet1
     prompt: >
-      Regulators ask a bank for a minimum CET1 ratio of 4.5% plus a 2.5% conservation buffer. A bank has $9 billion of common equity tier 1 capital against $100 billion of risk-weighted assets, a CET1 ratio of about 9%. Which headline gets it right?
+      Regulators ask a bank to hold a minimum of its own strongest capital (called CET1), plus a conservation buffer on top. This bank holds comfortably more than the minimum and the buffer together. What is the right reading?
     choices:
-      - { id: a, text: "It has a cushion: 9% is above the 7% it needs once the buffer is added" }
-      - { id: b, text: "It only just meets the minimum, with no cushion", mistake: { tag: no_cushion, fix: "With the buffer the requirement is 7%, so 9% leaves a 2-point cushion." } }
-      - { id: c, text: "It falls short, because the buffer is added on top of its 9%", mistake: { tag: buffer_on_top_of_bank, fix: "The buffer is added to the 4.5% minimum, making 7%. It is not added to the bank's ratio." } }
-      - { id: d, text: "Nobody can say without its total assets", mistake: { tag: needs_total_assets, fix: "The ratio uses risk-weighted assets, which are given. Total assets belong to the leverage ratio." } }
+      - { id: a, text: "It has a cushion: it clears the minimum even with the buffer added" }
+      - { id: b, text: "It only just meets the minimum, with no cushion", mistake: { tag: no_cushion, fix: "Minimum plus buffer is the full requirement, and the bank is well above it." } }
+      - { id: c, text: "It falls short, because the buffer is added on top of its 9%", mistake: { tag: buffer_on_top_of_bank, fix: "The buffer is added to the minimum requirement. It is not added to the bank's own ratio." } }
+      - { id: d, text: "Nobody can say without its total assets", mistake: { tag: needs_total_assets, fix: "This ratio uses risk-weighted assets, not total assets. Total assets belong to the leverage ratio." } }
     answer: a
     explanation: >
       CET1 ratio = 9 / 100 = 9%. The requirement with the buffer is 4.5% + 2.5% = 7%, so the bank has a 2-point cushion above it. Dividing by capital instead of by risk-weighted assets gives the wrong 11.1%.
@@ -96,10 +96,10 @@ questions:
 
   - id: br-q-lcr
     prompt: >
-      A bank holds $60 billion of high-quality liquid assets. The regulator's 30-day stress test says it could see $50 billion of net cash outflows. The liquidity coverage ratio rule says its liquid assets must at least cover those outflows. Which headline gets it right?
+      A bank holds a big pile of high-quality liquid assets, such as cash and government bonds it can sell fast. The regulator's 30-day stress test says it could lose less cash than that pile. The liquidity coverage ratio rule says the pile must at least cover those outflows. What is the right reading?
     choices:
       - { id: a, text: "It passes: its liquid assets cover the stress outflows with room to spare" }
-      - { id: b, text: "It fails: the outflows are bigger than its liquid assets", mistake: { tag: outflows_bigger, fix: "Its liquid assets, $60 billion, are bigger than the $50 billion outflows, not smaller." } }
+      - { id: b, text: "It fails: the outflows are bigger than its liquid assets", mistake: { tag: outflows_bigger, fix: "Its liquid assets are bigger than the stress outflows, not smaller." } }
       - { id: c, text: "Nobody can say until the outflows really happen", mistake: { tag: waits_for_outflows, fix: "The test is forward-looking. It uses the regulator's stress outflows, not real ones." } }
       - { id: d, text: "It passes only if all the assets are cash", mistake: { tag: cash_only, fix: "Government bonds and other high-quality liquid assets count too, not cash alone." } }
     answer: a
@@ -110,9 +110,9 @@ questions:
 
   - id: br-q-leverage
     prompt: >
-      A bank has $10 billion of tier 1 capital, $100 billion of risk-weighted assets and $200 billion of total assets. Why do supervisors look at the leverage ratio as well as the risk-based ratio?
+      A bank is judged on two capital ratios. The risk-based ratio gives safe-looking assets a low weight. The leverage ratio counts every asset the same. Why do supervisors look at both?
     choices:
-      - { id: a, text: "The leverage ratio ignores risk weights, so it is a backstop when risk weights make assets look safer than they are" }
+      - { id: a, text: "Leverage ignores risk weights, so it backstops weights that flatter" }
       - { id: b, text: "The leverage ratio counts only the risky assets, so it is stricter", mistake: { tag: leverage_counts_risky_only, fix: "It does the opposite: it counts all assets, with no risk weights." } }
       - { id: c, text: "The two ratios always give the same answer", mistake: { tag: ratios_always_agree, fix: "They differ whenever risk weights differ from 100%, which is why both are used." } }
       - { id: d, text: "It replaces the risk-based ratio, which is no longer used", mistake: { tag: replaces_risk_based, fix: "Both apply. The leverage ratio backs up the risk-based one and does not replace it." } }

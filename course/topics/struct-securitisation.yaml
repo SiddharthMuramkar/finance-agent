@@ -84,12 +84,12 @@ questions:
 
   - id: ss-q-partial-loss
     prompt: >
-      In the same pool, losses reach 10% of the pool ($100 million), far more than the residual tranche can absorb. Which tranches are hurt, and which is left untouched?
+      In the same pool, bad loans keep piling up. They wipe out the two lowest tranches and then run a little further, but nowhere near enough to threaten the top. Which tranches are hurt, and which is left untouched?
     choices:
       - { id: a, text: "The residual and BBB tranches are wiped out, A loses a slice, and AAA is untouched" }
       - { id: b, text: "All four tranches lose 10% each", mistake: { tag: even_losses, fix: "Losses go from the bottom up, not evenly across the tranches." } }
-      - { id: c, text: "The residual, BBB and A tranches are all wiped out", mistake: { tag: a_wiped_out, fix: "The residual and BBB take $80 million, so A loses only the last $20 million of its $150 million." } }
-      - { id: d, text: "Only the residual tranche is hurt", mistake: { tag: residual_only, fix: "The residual holds just $30 million. After that BBB and then A take the loss." } }
+      - { id: c, text: "The residual, BBB and A tranches are all wiped out", mistake: { tag: a_wiped_out, fix: "The loss only runs a little past the two lowest tranches, so A loses a slice, not all." } }
+      - { id: d, text: "Only the residual tranche is hurt", mistake: { tag: residual_only, fix: "The residual is the smallest tranche. After it, BBB and then A take the loss." } }
     answer: a
     explanation: >
       The residual ($30 million) and BBB ($50 million) tranches absorb the first $80 million. The remaining $20 million falls on the A tranche, a bit over a tenth of it (20 of 150). The AAA tranche is untouched.
