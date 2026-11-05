@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCourseMap } from "@/course/map";
 import { checkTabNow } from "@/learner/quiz";
-import { exactFrom, type DrawnItem } from "@/teaching";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { CONCEPT_CARD, QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData, type QuickTryResultData } from "@/tutor/session-item-kinds";

@@ -9,7 +9,7 @@ import { and, eq, gt, max, sql } from "drizzle-orm";
 import { loadCourseMap, type Check, type CourseMap, type Topic } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
 import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
-import { choicesFor, plainExact, type DrawnItem, type FixedItem } from "@/teaching";
+import { choicesFor, type DrawnItem, type FixedItem } from "@/teaching";
 import { choiceForTyped } from "@/teaching/typed-to-choice";
 import { questionLookup } from "@/bank/lookup";
 import { insightAttempts, noteItems, quizAttempts, sessionItems, settings, toolCalls, turns } from "@/db/schema";

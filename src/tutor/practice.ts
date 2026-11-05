@@ -87,8 +87,7 @@ function skillOfTry(topic: Topic, q: QuickTry): string | undefined {
  */
 function showable(topic: Topic, q: QuickTry): boolean {
   if (isFixed(q)) {
-    const { halfDone: _half, ...item } = q;
-    return choicesFor(item, "") !== null;
+    return choicesFor(q, "") !== null;
   }
   const t = topic.templates.find((x) => x.id === q.template);
   return Boolean(t && t.mistakes.length > 0 && (!q.halfDone || t.halfDone));
