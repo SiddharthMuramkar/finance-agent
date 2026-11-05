@@ -55,6 +55,11 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
         <section aria-label="Review result">
           <p className="text-sm font-medium leading-5">{result.correct ? "Correct." : `Not quite. You chose: ${text(result.chosen) ?? "no answer"}.`}</p>
           <p className="mt-1 text-sm leading-5">Right answer: {text(result.answer)}</p>
+          {result.mistake && (
+            <p data-testid="review-fix" className="mt-1 text-sm leading-5 text-[var(--danger)]">
+              {result.mistake.fix}
+            </p>
+          )}
           <MarkedText text={result.explanation} className="mt-1 text-sm leading-5 text-[var(--muted)]" />
           {result.credit && (
             <p className="mt-1 text-xs leading-4 text-[var(--muted)]">

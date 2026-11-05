@@ -13,7 +13,8 @@ const fluent: SkillState = { ...freshSkillState(), tries: 2, right: 2, streak: 2
 describe("nextQuickTry", () => {
   it("opens the first Skill not yet fluent, in card order, with a half-done try", () => {
     const t = nextQuickTry(topic, check1, {}, [], { session: 7 })!;
-    expect(t).toMatchObject({ checkId: check1.id, skillId: "pts-to-bp", kind: "number", unit: "bp" });
+    expect(t).toMatchObject({ checkId: check1.id, skillId: "pts-to-bp", kind: "choice", choices: expect.any(Array) });
+    expect(t.choices!.length).toBeGreaterThanOrEqual(2);
     expect(t.halfDone).toMatch(/^First step, done for you: the move is [\d.]+ points\.$/);
     expect(t.prompt).toMatch(/^A rate moves from [\d.]+% to [\d.]+%\. How many basis points\?$/);
   });
@@ -34,8 +35,9 @@ describe("nextQuickTry", () => {
       skillId: "bp-to-pts",
       prompt: "120 bp is how many points?",
       halfDone: "First step, done for you: 100 bp make 1 point, so divide by 100.",
-      unit: "points",
+      kind: "choice",
     });
+    expect(t.choices!.map((c) => c.text).sort()).toEqual(["1.2 points", "12 points"]);
   });
 
   it("returns null once every Skill of the Check is fluent", () => {

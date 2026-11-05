@@ -10,7 +10,8 @@ import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { nextOfferNow } from "./next";
 import { PARK_DRILL, PARK_OFFER, PARKED } from "./park-items";
-import { answerQuickTry, enterStepItems, oneMoreFromOffer, parkFromOffer } from "./practice";
+import { enterStepItems, oneMoreFromOffer, parkFromOffer } from "./practice";
+import { answerTyped } from "@/test/answer-typed";
 import { QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData, type SessionItem } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
@@ -54,18 +55,21 @@ const openTry = async (db: Db, sessionId: number) => {
 /** The text of the last context-bearing message the turn sent. */
 const sent = (requests: readonly { messages: unknown }[]) => JSON.stringify(requests[0].messages);
 
-/** Three wrong answers in a row on the first try's Skill, with the follow-up turns code starts after the first two. */
+/**
+ * Three misses in a row on the first try's Skill. Every number choice is a named mix-up, so a miss shows its fix and the
+ * next try with no Tutor turn; the second miss in a row brings the re-teach turn, the third the park offer.
+ */
 async function threeMisses(db: Db, sessionId: number, first: QuickTryData) {
-  const a1 = await answerQuickTry(db, map, me, first.key, "7777", t0);
-  expect(a1).toMatchObject({ ok: true, followUp: true });
-  await turn(db, { quickTryFollowUp: true });
+  const a1 = await answerTyped(db, map, me, first.key, "7777", t0);
+  expect(a1).toMatchObject({ ok: true, followUp: false });
+  expect(a1.ok && a1.items[0].data).toMatchObject({ verdict: "known_mistake" });
   const second = (await openTry(db, sessionId))!;
   expect(second.skillId).toBe(first.skillId);
-  const a2 = await answerQuickTry(db, map, me, second.key, "7777", t0);
+  const a2 = await answerTyped(db, map, me, second.key, "7777", t0);
   expect(a2).toMatchObject({ ok: true, followUp: true });
   const reteach = await turn(db, { quickTryFollowUp: true }, "Points times 100 give basis points.\n\nTry it now?");
   const third = (await openTry(db, sessionId))!;
-  const a3 = await answerQuickTry(db, map, me, third.key, "7777", t0);
+  const a3 = await answerTyped(db, map, me, third.key, "7777", t0);
   return { reteach, a3 };
 }
 
@@ -115,7 +119,7 @@ describe("the repair ladder on Quick tries", () => {
     const more = await oneMoreFromOffer(db, map, me, first.skillId, t0);
     const extra = tryIn(more.ok ? more.items : [])!;
     expect(extra.skillId).toBe(first.skillId);
-    const miss = await answerQuickTry(db, map, me, extra.key, "7777", t0);
+    const miss = await answerTyped(db, map, me, extra.key, "7777", t0);
     expect(miss.ok && miss.items.map((i) => i.kind)).toEqual([QUICK_TRY_RESULT, PARK_OFFER]);
   });
 
@@ -131,7 +135,7 @@ describe("the repair ladder on Quick tries", () => {
     let t = tryIn(drill.items)!;
     for (let n = 1; n <= 5; n++) {
       expect(t.drill).toMatchObject({ n, of: 5, reason: "parked" });
-      const a = await answerQuickTry(db, map, me, t.key, n % 2 ? "1" : "2", hours(21));
+      const a = await answerTyped(db, map, me, t.key, n % 2 ? "1" : "2", hours(21));
       if (a.ok && a.followUp) await turn(db, { quickTryFollowUp: true }, "One slip, one fix.\n\nNext?", hours(21));
       if (n < 5) t = (await openTry(db, sessionId))!;
     }
@@ -148,10 +152,9 @@ describe("the widget rung", () => {
     // Three methods already used: the next re-teach is the Widget.
     const { noteMethodUsed } = await import("@/learner/skill-state");
     for (const m of ["restate", "worked", "boxes"] as const) await noteMethodUsed(db, me, "pct-demo", first.skillId, m, t0);
-    await answerQuickTry(db, map, me, first.key, "7777", t0);
-    await turn(db, { quickTryFollowUp: true });
+    await answerTyped(db, map, me, first.key, "7777", t0);
     const second = (await openTry(db, sessionId))!;
-    await answerQuickTry(db, map, me, second.key, "7777", t0);
+    await answerTyped(db, map, me, second.key, "7777", t0);
     const reteach = await turn(db, { quickTryFollowUp: true }, "Move the rates and watch the basis points.\n\nTry it?");
     expect(sent(reteach.requests)).toContain("Method: widget");
     const widget = reteach.items.find((i) => i.kind === WIDGET_SHOWN);

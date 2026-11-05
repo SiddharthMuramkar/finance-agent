@@ -39,7 +39,7 @@ export const CONCEPT_CARD = "concept_card";
 /** A Concept card's data, copied from the Topic file so a reload shows the same card. */
 export type ConceptCardData = { checkId: string; title: string; lines: string[]; writeDown: string };
 
-/** The kind of a Quick try: one short question at a converted Your turn, answered in its own input. */
+/** The kind of a Quick try: one short question at a converted Your turn, answered by tapping a choice. */
 export const QUICK_TRY = "quick_try";
 
 /**
@@ -51,7 +51,10 @@ export type QuickTryData = {
   checkId: string;
   skillId: string;
   prompt: string;
-  kind: "number" | "truth";
+  /** "choice" or "truth": the Learner taps. An older stored try may read "number" and has no `choices`: it draws read-only. */
+  kind: "choice" | "truth" | "number";
+  /** The choices to tap, in the order shown: ids and words only, never which is right or any fix. */
+  choices?: { id: string; text: string }[];
   unit?: string;
   halfDone?: string;
   drill?: { n: number; of: number; reason: string };

@@ -70,13 +70,22 @@ export type ConceptCard = { title: string; lines: string[]; writeDown: string; s
 /** A fixed item's Known mistake: a wrong answer the file predicts, with its one-line fix. */
 const fixedMistakeSchema = z.object({ answer: z.union([z.number(), z.boolean()]), fix: z.string().trim().min(1), tag: z.string().min(1).optional() });
 
-/** A Quick try written in full: a number to type or True or False, in the engine's FixedItem shape. */
+/** A written-out choice: its id, its words, and for a wrong one the Known mistake it stands for. */
+const fixedChoiceSchema = z.object({
+  id,
+  text: z.string().trim().min(1),
+  mistake: z.object({ tag: z.string().min(1), fix: z.string().trim().min(1) }).optional(),
+});
+
+/** A Quick try written in full: a number (shown as choices), True or False, or a choice written out, in the engine's FixedItem shape. */
 const fixedItemShape = {
   id,
   skill: id,
   ask: z.string().trim().min(1),
-  kind: z.enum(["number", "truth"]),
-  answer: z.union([z.number(), z.boolean()]),
+  kind: z.enum(["number", "truth", "choice"]),
+  answer: z.union([z.number(), z.boolean(), z.string()]),
+  choices: z.array(fixedChoiceSchema).min(2).max(4).optional(),
+  label: z.string().trim().min(1).optional(),
   unit: z.enum(UNITS).optional(),
   decimals: z.number().int().min(0).optional(),
   sign: z.enum(SIGN_RULES).optional(),
@@ -108,6 +117,7 @@ const templateSchema = z.object({
   unit: z.enum(UNITS),
   decimals: z.number().int().min(0),
   sign: z.enum(SIGN_RULES),
+  label: z.string().trim().min(1).optional(),
   mistakes: z.array(z.object({ tag: mistakeFn, fix: z.string().trim().min(1) })).default([]),
   halfDone: z.object({ shows: z.string().trim().min(1), asks: answerFn }).optional(),
   avoid: z.array(z.number()).optional(),
@@ -486,8 +496,14 @@ function teachingProblems(topic: {
       }
       const at = `${where} Quick try "${q.id}"`;
       skill(at, q.skill);
-      if ((q.kind === "number") !== (typeof q.answer === "number")) problems.push(`${at} is a ${q.kind} item, so its answer must be ${q.kind === "number" ? "a number" : "true or false"}`);
+      const answerKind = { number: "number", truth: "boolean", choice: "string" }[q.kind];
+      if (typeof q.answer !== answerKind) problems.push(`${at} is a ${q.kind} item, so its answer must be ${{ number: "a number", truth: "true or false", choice: "a choice id" }[q.kind]}`);
       if ((q.mistakes ?? []).some((m) => typeof m.answer !== typeof q.answer)) problems.push(`${at} has a Known mistake of a different kind from its answer`);
+      if (q.kind === "choice") {
+        if (!q.choices) problems.push(`${at} is a choice item, so it needs choices`);
+        else if (!q.choices.some((c) => c.id === q.answer)) problems.push(`${at} answers "${q.answer}", which is not one of its choices`);
+
+      } else if (q.choices) problems.push(`${at} is a ${q.kind} item, so it takes no choices`);
     });
   }
   return problems;

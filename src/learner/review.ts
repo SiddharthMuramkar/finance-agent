@@ -120,7 +120,7 @@ export async function reviewState(db: Db, map: CourseMap, now = new Date(), lear
 }
 
 export type ReviewAnswer =
-  | { ok: true; correct: boolean; answer: string; explanation: string; choices: { id: string; text: string }[]; chosen: string | null; nextDue: Date; credit?: string; verified: boolean }
+  | { ok: true; correct: boolean; answer: string; explanation: string; choices: { id: string; text: string }[]; chosen: string | null; nextDue: Date; credit?: string; verified: boolean; mistake?: { tag?: string; fix: string } }
   | { ok: false; reason: string };
 
 /** Marks a review on the server and reschedules this Learner's card. Only the question currently offered them is accepted. */
@@ -132,11 +132,13 @@ export async function answerReview(db: Db, map: CourseMap, questionId: string, c
   const [row] = await db.select().from(reviewCards).where(thisCard);
   const chosen = question.choices.some((c) => c.id === choiceId) ? choiceId : null;
   const correct = chosen === question.answer;
+  // A wrong pick that is a Known mistake shows its one-line fix, as a quiz Check does.
+  const hit = !correct && chosen ? question.choices.find((c) => c.id === chosen)?.mistake : undefined;
   const card = rate(toState(row), correct, now);
   await db.transaction(async (transaction) => {
     const tx = transaction as unknown as Db;
     await tx.update(reviewCards).set(toRow(learnerId, questionId, card)).where(thisCard);
     await tx.insert(reviewLog).values({ learnerId, questionId, rating: correct ? 3 : 1, source: "review", reviewedAt: now });
   });
-  return { ok: true, correct, answer: question.answer, explanation: question.explanation, choices: question.choices.map(({ id, text }) => ({ id, text })), chosen, nextDue: card.due, ...(question.credit ? { credit: question.credit } : {}), verified: question.verified ?? true };
+  return { ok: true, correct, answer: question.answer, explanation: question.explanation, choices: question.choices.map(({ id, text }) => ({ id, text })), chosen, nextDue: card.due, ...(question.credit ? { credit: question.credit } : {}), verified: question.verified ?? true, ...(hit ? { mistake: { ...(hit.tag ? { tag: hit.tag } : {}), fix: hit.fix } } : {}) };
 }

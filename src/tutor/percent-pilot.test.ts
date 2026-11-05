@@ -17,7 +17,8 @@ import { plainExact } from "@/teaching";
 import { testDb } from "@/test/pglite";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
-import { answerQuickTry, enterStepItems, quickTryItem } from "./practice";
+import { enterStepItems, quickTryItem } from "./practice";
+import { answerTyped } from "@/test/answer-typed";
 import { CONCEPT_CARD, QUICK_TRY, STEP_DIVIDER, type ConceptCardData, type QuickTryData, type QuickTryResultData, type SessionItem } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn } from "./turn";
@@ -131,7 +132,7 @@ describe("Percent, converted, end to end", () => {
           let how = plan.shift() ?? "right";
           let typed = answerFor(open, how);
           if (typed === null) [how, typed] = ["right", answerFor(open, "right")!];
-          const answered = await answerQuickTry(db, map, me, open.key, typed, now());
+          const answered = await answerTyped(db, map, me, open.key, typed, now());
           expect(answered.ok).toBe(true);
           if (!answered.ok) break;
           verdicts.push((answered.items[0].data as QuickTryResultData).verdict);

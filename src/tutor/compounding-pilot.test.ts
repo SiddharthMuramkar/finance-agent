@@ -11,7 +11,8 @@ import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
-import { answerQuickTry, enterStepItems, quickTryItem } from "./practice";
+import { enterStepItems, quickTryItem } from "./practice";
+import { answerTyped } from "@/test/answer-typed";
 import { CONCEPT_CARD, QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData } from "./session-item-kinds";
 import { runTutorTurn } from "./turn";
 import { calculate } from "@/finance/calculators";
@@ -278,7 +279,7 @@ describe("Growth, compounding and logs, converted", () => {
         const mistake: string | undefined =
           "templateId" in item ? (item.mistakes[0] ? plainExact(item.mistakes[0].value) : undefined) : item.mistakes?.[0] ? String(item.mistakes[0].answer) : undefined;
         const input: string = !slipped && mistake ? mistake : right;
-        const answered = await answerQuickTry(db, one, OWNER_LEARNER_ID, open.key, input, new Date());
+        const answered = await answerTyped(db, one, OWNER_LEARNER_ID, open.key, input, new Date());
         if (!answered.ok) throw new Error(answered.error);
         const result = answered.items.find((i) => i.kind === QUICK_TRY_RESULT)!.data as { verdict: string };
         expect(result.verdict, open.prompt).toBe(input === right ? "right" : "known_mistake");

@@ -19,17 +19,6 @@ export type QuizSubmitted = {
   complete?: SessionItemData;
 };
 
-/** What a typed answer is counted in, in words, for the box's label ("Answer in basis points"). */
-const UNIT_WORDS: Record<string, string> = {
-  points: "percentage points",
-  bp: "basis points",
-  percent: "percent",
-  inr: "rupees",
-  years: "years",
-  ratio: "a ratio",
-  number: "a number",
-};
-
 /** The name of the right panel's tab for an open quiz: "Check 1 of 2". */
 export const checkTabName = (
   quiz: Pick<OpenQuiz, "checkNumber" | "checkCount">,
@@ -165,12 +154,9 @@ export function QuizPanel({
                 <span>
                   {q.correct
                     ? "Correct"
-                    : `Your answer: ${q.kind === "number" ? q.given?.trim() || "none" : (q.choices.find((c) => c.id === q.chosen)?.text ?? "none")}`}
+                    : `Your answer: ${q.choices.find((c) => c.id === q.chosen)?.text ?? "none"}`}
                   {" – "}
-                  right answer:{" "}
-                  {q.kind === "number"
-                    ? q.expected
-                    : q.choices.find((c) => c.id === q.answer)?.text}
+                  right answer: {q.choices.find((c) => c.id === q.answer)?.text}
                 </span>
               </p>
               {q.mistake && (
@@ -231,58 +217,35 @@ export function QuizPanel({
           <li key={q.id}>
             <fieldset>
               <legend className="mb-1 text-sm leading-5">{q.prompt}</legend>
-              {q.kind === "number" ? (
-                <label className="flex flex-col gap-1 text-sm leading-5">
-                  <span className="text-[var(--muted)]">
-                    Answer in {UNIT_WORDS[q.unit ?? "number"] ?? "a number"}
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    maxLength={40}
-                    name={`${active.attemptId}-${q.id}`}
-                    data-testid="quiz-number"
-                    value={picked[q.id] ?? ""}
-                    onChange={(e) =>
-                      setPicked({ ...picked, [q.id]: e.target.value })
-                    }
-                    className="min-h-11 w-full rounded border border-[var(--border)] bg-transparent px-3 py-2 text-sm leading-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
-                  />
-                </label>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {q.choices.map((c) => {
-                    const on = picked[q.id] === c.id;
-                    return (
-                      <label
-                        key={c.id}
-                        data-selected={on || undefined}
-                        className={`pressable flex min-h-11 cursor-pointer items-center gap-3 rounded border px-3 py-2 text-sm leading-5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--ring)] ${on ? "border-[var(--brand)] bg-[var(--brand-tint)]" : "border-[var(--border)] hover:bg-[var(--hairline)]"}`}
+              <div className="flex flex-col gap-2">
+                {q.choices.map((c) => {
+                  const on = picked[q.id] === c.id;
+                  return (
+                    <label
+                      key={c.id}
+                      data-selected={on || undefined}
+                      className={`pressable flex min-h-11 cursor-pointer items-center gap-3 rounded border px-3 py-2 text-sm leading-5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--ring)] ${on ? "border-[var(--brand)] bg-[var(--brand-tint)]" : "border-[var(--border)] hover:bg-[var(--hairline)]"}`}
+                    >
+                      <input
+                        type="radio"
+                        className="peer sr-only"
+                        name={`${active.attemptId}-${q.id}`}
+                        checked={on}
+                        onChange={() => setPicked({ ...picked, [q.id]: c.id })}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`grid size-4 shrink-0 place-items-center rounded-full border ${on ? "border-[var(--brand)] bg-[var(--brand)]" : "border-[var(--border)]"}`}
                       >
-                        <input
-                          type="radio"
-                          className="peer sr-only"
-                          name={`${active.attemptId}-${q.id}`}
-                          checked={on}
-                          onChange={() =>
-                            setPicked({ ...picked, [q.id]: c.id })
-                          }
-                        />
-                        <span
-                          aria-hidden="true"
-                          className={`grid size-4 shrink-0 place-items-center rounded-full border ${on ? "border-[var(--brand)] bg-[var(--brand)]" : "border-[var(--border)]"}`}
-                        >
-                          {on && (
-                            <span className="size-1.5 rounded-full bg-[var(--brand-ink)]" />
-                          )}
-                        </span>
-                        <span className="min-w-0 flex-1">{c.text}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
+                        {on && (
+                          <span className="size-1.5 rounded-full bg-[var(--brand-ink)]" />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">{c.text}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </fieldset>
           </li>
         ))}

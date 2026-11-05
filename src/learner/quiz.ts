@@ -218,10 +218,7 @@ export async function pendingQuizNote(
  */
 export function missedLine(map: Pick<CourseMap, "topic">, topicId: string | undefined, q: MarkedQuestion): string {
   const text = (id: string | null) => q.choices.find((c) => c.id === id)?.text;
-  const said =
-    q.kind === "number"
-      ? `The Learner typed ${q.given?.trim() ? `"${q.given.trim()}"` : "no answer"}; the right answer is "${q.expected ?? q.answer}".`
-      : `The Learner chose ${q.chosen ? `"${text(q.chosen)}"` : "no answer"}; the right answer is "${text(q.answer)}".`;
+  const said = `The Learner chose ${q.chosen ? `"${text(q.chosen)}"` : "no answer"}; the right answer is "${text(q.answer)}".`;
   const rule = q.skill && topicId ? map.topic(topicId)?.skills.find((sk) => sk.id === q.skill)?.rule : undefined;
   return [`${q.prompt} ${said}`, rule && `The Skill it tests: ${rule}`, q.mistake && `This is a Known mistake; the fix: ${q.mistake.fix}`].filter(Boolean).join(" ");
 }

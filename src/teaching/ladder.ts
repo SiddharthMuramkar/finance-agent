@@ -6,7 +6,11 @@
  * The ladder runs only on answers code marks (Quick tries and quiz questions), never on conversation Checks.
  */
 
-/** A way of teaching one Skill again: restate the rule, a worked example, fill-in boxes, the Skill's Widget, a drill of five. */
+/**
+ * A way of teaching one Skill again: restate the rule, a worked example, a half-done choice (`boxes`: the first step is
+ * shown and the last step is a tap), the Skill's Widget, a choice drill of five (`drill5`). The ids are stored in
+ * `skill_state.methodsUsed`, so they stay; only their meaning changed (ADR 0009).
+ */
 export type Method = "restate" | "worked" | "boxes" | "widget" | "drill5";
 
 /** The methods in the order the ladder climbs them, the same for every Topic. */

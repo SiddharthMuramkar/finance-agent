@@ -10,6 +10,7 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { reteachNote } from "./ladder-moves";
 import { answerQuickTry, enterStepItems } from "./practice";
+import { plainWrongMap, PLAIN_WRONG } from "@/test/plain-wrong-map";
 import { QUICK_TRY, QUICK_TRY_RESULT, STEP_DIVIDER, type QuickTryData } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnEvent } from "./turn";
@@ -101,13 +102,13 @@ describe("the Reply kind of a re-teach rung", () => {
 
 describe("one Quick try sent twice at once", () => {
   it("is marked once: one result and one next try", async () => {
-    const map = mapOf(CONVERTED_TOPIC_DATA);
+    const map = plainWrongMap();
     const db = await testDb();
     const sessionId = await started(db, map);
     for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, now(), me);
     const [first] = await enterStepItems(db, map, me, sessionId, now());
     const key = (first.data as QuickTryData).key;
-    const answers = await Promise.all([answerQuickTry(db, map, me, key, "7777", now()), answerQuickTry(db, map, me, key, "7777", now())]);
+    const answers = await Promise.all([answerQuickTry(db, map, me, key, PLAIN_WRONG, now()), answerQuickTry(db, map, me, key, PLAIN_WRONG, now())]);
     expect(answers.filter((a) => a.ok && a.items.length).length).toBe(1);
     expect(answers.filter((a) => a.ok && a.followUp).length).toBe(1);
     const stored = await loadSessionItems(db, sessionId, me);
@@ -117,12 +118,12 @@ describe("one Quick try sent twice at once", () => {
 
 describe("Stop on a Quick-try follow-up turn", () => {
   it("drops the reply but still posts the fresh try", async () => {
-    const map = mapOf(CONVERTED_TOPIC_DATA);
+    const map = plainWrongMap();
     const db = await testDb();
     const sessionId = await started(db, map);
     for (const step of ["story", "concept"] as const) await saveFinishedStep(db, map, step, now(), me);
     const [first] = await enterStepItems(db, map, me, sessionId, now());
-    const answer = await answerQuickTry(db, map, me, (first.data as QuickTryData).key, "7777", now());
+    const answer = await answerQuickTry(db, map, me, (first.data as QuickTryData).key, PLAIN_WRONG, now());
     expect(answer).toMatchObject({ ok: true, followUp: true });
 
     const never = new Promise<never>(() => {});

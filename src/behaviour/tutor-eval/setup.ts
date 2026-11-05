@@ -9,7 +9,8 @@ import { and, eq, gt, max, sql } from "drizzle-orm";
 import { loadCourseMap, type Check, type CourseMap, type Topic } from "@/course/map";
 import { navigate, type Place } from "@/course/navigator";
 import { WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
-import { plainExact, type DrawnItem, type FixedItem } from "@/teaching";
+import { choicesFor, plainExact, type DrawnItem, type FixedItem } from "@/teaching";
+import { choiceForTyped } from "@/teaching/typed-to-choice";
 import { questionLookup } from "@/bank/lookup";
 import { insightAttempts, noteItems, quizAttempts, sessionItems, settings, toolCalls, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -161,8 +162,6 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
     const items = ids.flatMap((id) => {
       const q = lookup.question(id);
       if (!q) return [];
-      // A typed question (a drawn template instance) has no choices: its right answer is the number to type, and a miss is a slip a Learner makes.
-      if (q.drawn) return [{ id, prompt: q.prompt.trim(), choices: [] as string[], answer: q.answer, answerId: plainExact(q.drawn.answer), wrongId: slipFor(q.drawn) }];
       const wrong = q.choices.find((ch) => ch.id !== q.answer);
       return [{ id, prompt: q.prompt.trim(), choices: q.choices.map((ch) => ch.text), answer: q.choices.find((ch) => ch.id === q.answer)?.text, answerId: q.answer, wrongId: wrong?.id ?? "" }];
     });
@@ -178,7 +177,7 @@ export async function prepareCase(db: Db, c: LiveCase, opts: { map?: CourseMap; 
       if (!result.ok) throw new Error(`${c.id}: could not submit the quiz: ${result.reason}`);
       if (result.correctCount !== correct) throw new Error(`${c.id}: the submitted quiz scored ${result.correctCount} right, not the ${correct} the case says.`);
       // What was typed on the questions that were missed, so the grader reads the slips the Tutor was told.
-      const typed = result.questions.flatMap((q, i) => (q.kind === "number" && !q.correct ? [`${i + 1}. they typed "${q.given}" (right: ${q.expected})`] : []));
+      const typed = result.questions.flatMap((q, i) => (q.templateId && !q.correct ? [`${i + 1}. they picked "${q.given}" (right: ${q.expected})`] : []));
       notes.push(`The Learner just submitted Check ${c.state.check}'s quiz and got ${correct} of ${items.length} right${typed.length ? `; ${typed.join("; ")}` : ""}. No quiz is open now.`);
     }
   }
@@ -295,8 +294,16 @@ export async function seenReply(db: Db, args: { learnerId: number; topic: Topic;
 function shownTry(check: Check, key: string, found: { item: FixedItem | DrawnItem; halfDone?: string }): QuickTryData {
   const { item, halfDone } = found;
   const drawn = "templateId" in item;
-  const unit = drawn ? item.unit : item.kind === "number" ? item.unit : undefined;
-  return { key, checkId: check.id, skillId: item.skill, prompt: drawn ? item.prompt : item.ask, kind: item.kind, ...(unit && { unit }), ...(halfDone && { halfDone }) };
+  const set = choicesFor(item, key);
+  return {
+    key,
+    checkId: check.id,
+    skillId: item.skill,
+    prompt: drawn ? item.prompt : item.ask,
+    kind: drawn || item.kind !== "truth" ? "choice" : "truth",
+    ...(set && { choices: set.choices.map(({ id, text }) => ({ id, text })) }),
+    ...(halfDone && { halfDone }),
+  };
 }
 
 /** A Quick try's words as the Learner reads them: the ask, then the first step shown done when it has one. */
@@ -346,7 +353,8 @@ async function showAndMark(
   }
   if (!data || (want.skill && data.skillId !== want.skill)) throw new Error(`${c.id}: no Quick try can be shown${want.skill ? ` on ${want.skill}` : ""}${want.tryId ? ` as "${want.tryId}"` : ""}.`);
   await saveItemAfterLatest(db, p.learnerId, session.id, { kind: QUICK_TRY, data: data as unknown as Record<string, unknown> }, now);
-  const out = await answerQuickTry(db, map, p.learnerId, data.key, want.input, now);
+  const found = quickTryItem(p.topic, data.key);
+  const out = await answerQuickTry(db, map, p.learnerId, data.key, found ? choiceForTyped(found.item, want.input) : want.input, now);
   if (!out.ok) throw new Error(`${c.id}: the Quick try answer was refused: ${out.error}`);
   return { data, followUp: out.followUp, result: out.items.find((i) => i.kind === QUICK_TRY_RESULT)?.data as unknown as QuickTryResultData | undefined };
 }

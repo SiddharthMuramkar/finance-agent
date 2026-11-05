@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { CONVERTED_TOPIC_DATA, topicFileOf } from "@/course/lesson-fixture";
-import { parseCourseMap, type CourseMap } from "@/course/map";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { saveFinishedStep } from "@/learner/memory";
@@ -8,6 +6,7 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { answerQuickTry, enterStepItems } from "./practice";
+import { plainWrongMap, PLAIN_WRONG } from "@/test/plain-wrong-map";
 import { CONCEPT_CARD, QUICK_TRY, STEP_DIVIDER, type QuickTryData } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { NO_QUICK_TRY_FOLLOW_UP, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
@@ -17,7 +16,7 @@ import { NO_QUICK_TRY_FOLLOW_UP, runTutorTurn, type TurnEvent, type TurnInput } 
  * Quick tries; the Tutor hears the card's text and the marked tries, and never writes practice of its own.
  */
 
-const map = parseCourseMap([topicFileOf(CONVERTED_TOPIC_DATA)]).map as CourseMap;
+const map = plainWrongMap();
 const me = OWNER_LEARNER_ID;
 
 async function turn(db: Db, input: TurnInput, text = "Okay.") {
@@ -66,10 +65,10 @@ describe("a converted Your turn", () => {
   it("passes the results marked since the last reply into the next turn", async () => {
     const db = await testDb();
     const first = await atYourTurn(db);
-    await answerQuickTry(db, map, me, first.key, "7777", new Date());
+    await answerQuickTry(db, map, me, first.key, PLAIN_WRONG, new Date());
     const { sent } = await turn(db, "Hmm.");
     expect(sent).toContain("Quick try results since your last reply");
-    expect(sent).toContain('The Learner gave \\"7777\\": not right; the answer is');
+    expect(sent).toContain('The Learner gave \\"Up 1\\": not right; the answer is');
     // Told once: the turn after has nothing new.
     expect((await turn(db, "Okay.")).sent.match(/Quick try results since your last reply/g)).toHaveLength(1);
   });
@@ -77,7 +76,7 @@ describe("a converted Your turn", () => {
   it("follows a wrong answer with a short code-started turn that names the slip, then posts a fresh try", async () => {
     const db = await testDb();
     const first = await atYourTurn(db);
-    await answerQuickTry(db, map, me, first.key, "7777", new Date());
+    await answerQuickTry(db, map, me, first.key, PLAIN_WRONG, new Date());
     const { events, sent } = await turn(db, { quickTryFollowUp: true }, "You typed the rates, not the move. Take the old rate from the new one first.");
     expect(sent).toContain("Quick try follow-up by code:");
     expect(sent).toContain("Name the slip in one sentence");
