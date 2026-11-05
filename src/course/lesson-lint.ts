@@ -1,6 +1,9 @@
 import { exactFrom, formatExact, roundTo, sameValue } from "../teaching/answers.ts";
 import { markAnswer } from "../teaching/mark.ts";
 import { drawTemplate, templateProblems } from "../teaching/templates.ts";
+import { choicesFor } from "../teaching/choices.ts";
+import { sumAsk } from "../teaching/no-sums.ts";
+import { L10_NOT_YET_STORY } from "./l10-allowlist.ts";
 import { isBankId, isConverted, testedSkills, type QuickTry, type Topic, type WidgetPreset } from "./map.ts";
 import { presetValueProblems } from "./written-ahead-check.ts";
 import { isEmojiName } from "../emoji/registry.ts";
@@ -9,7 +12,7 @@ import { isEmojiName } from "../emoji/registry.ts";
 // L1 a Check tests only what a card at or before it teaches; L2 enough Quick tries and questions; L3 short cards;
 // L4 valid Widget presets; L5 the Topic's currency; L6 no negative stems; L7 Check questions move apart from the
 // worked examples; L8 every Quick try's Skill is one its own Check tests; L9 template draws move apart from the fixed
-// questions and Quick tries of the same Check; L11 every emoji name in a Topic file is in the emoji registry; Draws: every template draws and marks its own answer right, and fixed
+// questions and Quick tries of the same Check; L10 no typed number and no sum (ADR 0009); L11 every emoji name in a Topic file is in the emoji registry; Draws: every template draws and marks its own answer right, and fixed
 // tries are sound.
 // Pure, with no "@/" imports, so `scripts/check-course.mjs` runs it under plain Node.
 
@@ -140,13 +143,17 @@ export const writtenAheadPresetOk: PresetCheck = (preset, topic) => {
 };
 
 /** Every problem the lesson lint finds in these Topics, each starting with its rule. */
-export function lessonLintErrors(topics: Topic[], opts?: { notYet?: readonly string[]; presetOk?: PresetCheck }): string[] {
+export function lessonLintErrors(topics: Topic[], opts?: { notYet?: readonly string[]; l10NotYet?: readonly string[]; presetOk?: PresetCheck }): string[] {
   const notYet = opts?.notYet ?? LESSON_NOT_YET_CONVERTED;
+  const l10NotYet = opts?.l10NotYet ?? L10_NOT_YET_STORY;
   const presetOk = opts?.presetOk ?? writtenAheadPresetOk;
   const errors: string[] = [];
   const ids = new Set(topics.map((t) => t.id));
   for (const id of notYet) {
     if (!ids.has(id)) errors.push(`List: "${id}" is on the lesson lint's not-yet-converted list but is not a Topic: remove it from src/course/lesson-lint.ts`);
+  }
+  for (const id of l10NotYet) {
+    if (!ids.has(id)) errors.push(`List: "${id}" is on L10_NOT_YET_STORY but is not a Topic: remove it from src/course/l10-allowlist.ts`);
   }
   for (const t of topics) {
     errors.push(...restructureProblems(t));
@@ -156,6 +163,11 @@ export function lessonLintErrors(topics: Topic[], opts?: { notYet?: readonly str
     if (!listed && isConverted(t)) errors.push(...topicLint(t, presetOk));
     else errors.push(...ruleFor(t, lintL6)); // L6 alone covers a Topic that is not converted (topicLint already ran it for a converted one)
     errors.push(...ruleFor(t, lintL11)); // L11 covers every Topic, converted or not
+    // L10 covers every Topic too; an allowlisted Topic is skipped, and must still have a hit (the list only shrinks).
+    const hits = ruleFor(t, lintL10);
+    if (l10NotYet.includes(t.id)) {
+      if (!hits.length) errors.push(`List: Topic "${t.id}" is on L10_NOT_YET_STORY but has no L10 hit: remove it from src/course/l10-allowlist.ts`);
+    } else errors.push(...hits);
   }
   return errors;
 }
@@ -513,5 +525,49 @@ export function topicEmojiNames(t: Topic): string[] {
 function lintL11(t: Topic, add: Add) {
   for (const name of topicEmojiNames(t)) {
     if (!isEmojiName(name)) add("L11", `emoji "${name}" is not in src/emoji/registry.ts`);
+  }
+}
+
+/** How many seeded draws L10 takes of each template. */
+const L10_DRAWS = 20;
+
+/**
+ * L10 (ADR 0009): the Learner never types a number and a stem never asks for a sum. It fails a Quick try with kind
+ * number, a template whose draws do not each give two distinct choices, and any question prompt, Quick-try ask, template
+ * ask or conversation Check prompt that `sumAsk` matches. It runs on every Topic; `L10_NOT_YET_STORY` lists those still
+ * to be rewritten.
+ */
+function lintL10(t: Topic, add: Add) {
+  const say = (where: string, text: string) => {
+    const hit = sumAsk(text);
+    if (hit) add("L10", `${where} asks for a sum ("${hit}"); ask about the story or the words instead (ADR 0009): ${quoted(text)}`);
+  };
+  for (const q of t.questions) say(`question "${q.id}" prompt`, q.prompt);
+  for (const x of t.templates) {
+    say(`template "${x.id}" ask`, x.ask);
+    if (templateProblems(x).length) continue; // the Draws rule reports a template that cannot draw
+    for (const halfDone of x.halfDone ? [false, true] : [false]) {
+      let bad: string | null = null;
+      for (let i = 0; i < L10_DRAWS && !bad; i++) {
+        try {
+          const item = drawTemplate(x, `l10-${i}`, { halfDone });
+          if (!choicesFor(item, `l10-${i}`)) bad = item.prompt;
+        } catch {
+          break; // the Draws rule reports it
+        }
+      }
+      if (bad) {
+        add("L10", `template "${x.id}" gives fewer than 2 distinct choices${halfDone ? " (half-done)" : ""} when it draws ${quoted(bad)}; add a Known mistake that gives another value (ADR 0009)`);
+        break;
+      }
+    }
+  }
+  for (const c of t.checks) {
+    if (c.kind === "conversation") say(`Check "${c.id}" prompt`, c.prompt);
+    for (const q of c.quickTries) {
+      if (!isFixed(q)) continue;
+      if (q.kind === "number") add("L10", `Quick try "${q.id}" is typed (kind: number): make it kind: choice (ADR 0009)`);
+      say(`Quick try "${q.id}" ask`, q.ask);
+    }
   }
 }

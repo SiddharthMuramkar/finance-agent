@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CONVERTED_TOPIC_DATA, convertedTopic, topicFileOf } from "./lesson-fixture";
 import { lintReadyTopic } from "./lesson-lint-fixture";
 import { LESSON_NOT_YET_CONVERTED, NEGATIVE_STEM, lessonLintErrors, type PresetCheck } from "./lesson-lint";
+import { L10_NOT_YET_STORY } from "./l10-allowlist";
 import { isConverted, loadCourseMap, parseCourseMap, testedSkills, type QuizCheck, type Topic } from "./map";
 import { presetValueProblems } from "./written-ahead-check";
 
@@ -82,7 +83,9 @@ describe("the Topic file's teaching fields", () => {
   });
 });
 
-const lint = (t: Topic, opts?: Parameters<typeof lessonLintErrors>[1]) => lessonLintErrors([t], { notYet: [], ...opts });
+// The fixture's tries are typed on purpose (they pin the rate-move engine), so it sits on the L10 allowlist unless a test says otherwise.
+const lint = (t: Topic, opts?: Parameters<typeof lessonLintErrors>[1]) => lessonLintErrors([t], { notYet: [], l10NotYet: ["pct-demo"], ...opts });
+const l10 = (t: Topic, l10NotYet: readonly string[] = []) => lessonLintErrors([t], { notYet: [], l10NotYet }).filter((e) => e.startsWith("L10") || (e.startsWith("List") && e.includes("L10")));
 
 /** The converted fixture, changed by `edit` after it has loaded. */
 function topicWith(edit: (t: Topic) => void): Topic {
@@ -106,7 +109,7 @@ describe("the lesson lint", () => {
   });
 
   it("only shrinks: a listed Topic with Skills comes off, an unlisted one without Skills fails, a gone Topic comes off", () => {
-    expect(lessonLintErrors([convertedTopic()], { notYet: ["pct-demo"] })).toEqual([
+    expect(lessonLintErrors([convertedTopic()], { notYet: ["pct-demo"], l10NotYet: ["pct-demo"] })).toEqual([
       'List: Topic "pct-demo" has Skills, so it is converted: remove it from LESSON_NOT_YET_CONVERTED in src/course/lesson-lint.ts',
     ]);
     expect(lint(topicWith((x) => (x.skills = [])))).toEqual([
@@ -211,14 +214,14 @@ describe("the lesson lint", () => {
         x.questions[0].prompt = prompt;
         x.questions.push({ ...x.questions[0], id: "pct-demo-unlisted", prompt: "Which one is not a rate?" });
       });
-    const bad = lessonLintErrors([notConverted("Which description is not right?")], { notYet: ["pct-demo"] });
+    const bad = lessonLintErrors([notConverted("Which description is not right?")], { notYet: ["pct-demo"], l10NotYet: ["pct-demo"] });
     expect(bad).toEqual([
       `L6: question "pct-demo-headline" prompt says "not"; ask "Which one is true?" instead: "Which description is not right?"${ON_TOPIC}`,
       `L6: question "pct-demo-unlisted" prompt says "not"; ask "Which one is true?" instead: "Which one is not a rate?"${ON_TOPIC}`,
     ]);
     const fixed = notConverted("Which one is true?");
     fixed.questions[1].prompt = "Which one is a rate?";
-    expect(lessonLintErrors([fixed], { notYet: ["pct-demo"] })).toEqual([]);
+    expect(lessonLintErrors([fixed], { notYet: ["pct-demo"], l10NotYet: ["pct-demo"] })).toEqual([]);
   });
 
   it("L7: fails a Check question that holds the Running example's move, and a template that can draw a card's example", () => {
@@ -306,6 +309,76 @@ describe("the lesson lint", () => {
       x.checks[2].required = true;
     });
     expect(lint(t)).toEqual(['Restructure: Check "pct-demo-check-3" is required, but Topic "pct-demo" is a content-only restructure, so it would raise a Due Check']);
+  });
+});
+
+describe("lint L10: no typed number and no sum (ADR 0009)", () => {
+  /** Turns every fixed Quick try into a True or False one, so no typed try is left. */
+  const allTruth = (x: Topic) => {
+    for (const c of x.checks)
+      for (const q of c.quickTries) {
+        if (!("id" in q)) continue;
+        const loose = q as unknown as Record<string, unknown>;
+        loose.kind = "truth";
+        loose.answer = true;
+        delete loose.mistakes;
+        delete loose.unit;
+        delete loose.sign;
+        loose.ask = "True or false: the move is called a rise.";
+      }
+  };
+
+  it("fails a Quick try with kind: number, in the spec's words", () => {
+    expect(l10(lintReadyTopic())).toContain(
+      'L10: Quick try "pct-demo-try-pts-1" is typed (kind: number): make it kind: choice (ADR 0009) (Topic "pct-demo")',
+    );
+  });
+
+  it("fails a stem that asks for a sum: a question prompt, a template ask and a conversation Check prompt", () => {
+    const t = topicWith((x) => {
+      allTruth(x);
+      x.questions[0].prompt = "Calculate the move from 4% to 5% in basis points.";
+      x.templates[0].ask = "A rate moves from {a}% to {b}%. Work it out in basis points.";
+      (x.checks[2] as { prompt: string }).prompt = "Multiply 25 by 4 and say what you get.";
+    });
+    const text = l10(t).join("\n");
+    expect(text).toContain(`L10: question "${t.questions[0].id}" prompt asks for a sum ("Calculate")`);
+    expect(text).toContain(`L10: template "${t.templates[0].id}" ask asks for a sum`);
+    expect(text).toContain('L10: Check "pct-demo-check-3" prompt asks for a sum ("Multiply")');
+  });
+
+  it("fails a template that gives fewer than 2 distinct choices on a draw", () => {
+    const t = topicWith((x) => {
+      allTruth(x);
+      x.templates[0].mistakes = [];
+    });
+    expect(l10(t).join("\n")).toMatch(/L10: template "[\w-]+" gives fewer than 2 distinct choices/);
+  });
+
+  it("skips an allowlisted Topic, fails an allowlisted clean one with 'remove it', and fails an id that is not a Topic", () => {
+    expect(l10(lintReadyTopic(), ["pct-demo"])).toEqual([]);
+    const cleaner = topicWith((x) => {
+      allTruth(x);
+      x.questions.forEach((q) => (q.prompt = "Which word names one hundredth of a point?"));
+      x.templates.forEach((tpl) => (tpl.ask = "Which reading of the move is right?"));
+    });
+    expect(l10(cleaner)).toEqual([]);
+    expect(l10(cleaner, ["pct-demo"])).toEqual(['List: Topic "pct-demo" is on L10_NOT_YET_STORY but has no L10 hit: remove it from src/course/l10-allowlist.ts']);
+    expect(lessonLintErrors([], { notYet: [], l10NotYet: ["ghost"] })).toEqual([
+      'List: "ghost" is on L10_NOT_YET_STORY but is not a Topic: remove it from src/course/l10-allowlist.ts',
+    ]);
+  });
+
+  it("the real course passes with the allowlist: sorted, unique, every id a Topic with at least one L10 hit", () => {
+    const topics = loadCourseMap().topics;
+    expect(lessonLintErrors(topics)).toEqual([]);
+    expect([...L10_NOT_YET_STORY]).toEqual([...L10_NOT_YET_STORY].sort());
+    expect(new Set(L10_NOT_YET_STORY).size).toBe(L10_NOT_YET_STORY.length);
+    for (const id of L10_NOT_YET_STORY) {
+      const t = topics.find((x) => x.id === id);
+      expect(t, id).toBeDefined();
+      expect(l10(t!), id).not.toEqual([]);
+    }
   });
 });
 
