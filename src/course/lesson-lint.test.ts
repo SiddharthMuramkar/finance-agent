@@ -279,6 +279,27 @@ describe("the lesson lint", () => {
     ]);
   });
 
+  it("L11: fails an emoji name that is not in the registry, in terms, scenes and the Running example; passes money-bag", () => {
+    type Loose = Record<string, unknown>;
+    const withEmoji = (name: string, where: "terms" | "scenes" | "runningExample") =>
+      topicWith((x) => {
+        const loose = x as unknown as Loose;
+        if (where === "terms") loose.terms = [{ term: "Basis point", means: "One hundredth of a point", emoji: name }];
+        if (where === "scenes") loose.scenes = [{ recipe: "story_scene", params: { cast: [{ id: "a", emoji: name, name: "Ana" }], beats: [{ who: "a", says: "Hi", emoji: "speech-balloon" }] } }];
+        if (where === "runningExample") loose.runningExample = { ...(x.runningExample as object), scene: { cast: [{ id: "a", emoji: name, name: "Ana" }] } };
+      });
+    expect(lint(withEmoji("money-bag", "terms"))).toEqual([]);
+    expect(lint(withEmoji("money-bag", "scenes"))).toEqual([]);
+    for (const where of ["terms", "scenes", "runningExample"] as const) {
+      expect(lint(withEmoji("pizza-slice", where))).toEqual([`L11: emoji "pizza-slice" is not in src/emoji/registry.ts${ON_TOPIC}`]);
+    }
+  });
+
+  it("L11: covers a Topic that is not converted, like L6", () => {
+    const t = topicWith((x) => ((x as unknown as Record<string, unknown>).terms = [{ term: "Yield", means: "x", emoji: "pizza-slice" }]));
+    expect(lessonLintErrors([t], { notYet: [t.id] }).filter((e) => e.startsWith("L11"))).toHaveLength(1);
+  });
+
   it("fails a content-only restructure that makes a Check required, which would raise a Due Check", () => {
     const t = topicWith((x) => {
       x.restructure = "content-only";
