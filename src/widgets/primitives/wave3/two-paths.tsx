@@ -42,7 +42,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
     <div
       data-testid="path"
       data-side={tone}
-      className="flex min-w-0 flex-col gap-2 rounded-xl border border-[var(--brand-line)] bg-[var(--field)] p-3"
+      className={`flex min-w-0 flex-col gap-2 rounded-xl border border-t-4 border-[var(--brand-line)] bg-[var(--field)] p-3 ${tone === "left" ? "border-t-[var(--sun)]" : "border-t-[var(--violet)]"}`}
     >
       <div className="flex items-center gap-3">
         <span className="shrink-0">
@@ -60,7 +60,7 @@ function PathCard({ path, tone }: { path: Path; tone: "left" | "right" }) {
       </div>
       <div aria-live="polite">
         {shown && (
-          <div data-testid="path-outcome" className={`rounded-lg bg-[var(--brand-tint)] px-3 py-2 ${reduced ? "" : "story-pop"}`}>
+          <div data-testid="path-outcome" className={`rounded-lg px-3 py-2 ${tone === "left" ? "bg-[var(--sun-tint)]" : "bg-[var(--violet-tint)]"} ${reduced ? "" : "story-pop"}`}>
             <p className="flex flex-wrap items-center gap-1" aria-hidden="true">
               {objects.map((name, i) => (
                 <Pic key={i} name={name} size={32} />

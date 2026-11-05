@@ -71,7 +71,7 @@ export function LingoCardView({ term, pro, means, example, emoji, inStory }: Pro
       </div>
       {inStory && (
         <div className="mt-2">
-          <Button variant="secondary" size="sm" pressed={turned} onClick={() => setFlipped((v) => !v)} data-testid="lingo-flip">
+          <Button variant="secondary" size="sm" pressed={turned} onClick={() => setFlipped((v) => !v)} className="story-toggle" data-testid="lingo-flip">
             In the story
           </Button>
         </div>

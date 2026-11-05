@@ -7,6 +7,14 @@ import { describe, expect, it } from "vitest";
 const DIR = __dirname;
 const sources = readdirSync(DIR).filter((f) => /\.(ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f));
 
+describe("pressed toggle", () => {
+  it("the LingoCard's In the story button has a visible pressed face in the stylesheet", () => {
+    const css = readFileSync(join(DIR, "../../../app/globals.css"), "utf8");
+    expect(css).toMatch(/\.story-toggle\[aria-pressed="true"\]/);
+    expect(readFileSync(join(DIR, "lingo-card.tsx"), "utf8")).toContain("story-toggle");
+  });
+});
+
 describe("wave 3 sources", () => {
   it("has the five parts' files", () => {
     expect(sources).toEqual(expect.arrayContaining(["story-scene.tsx", "lingo-card.tsx", "timeline-strip.tsx", "two-paths.tsx", "money-jar.tsx", "index.ts"]));

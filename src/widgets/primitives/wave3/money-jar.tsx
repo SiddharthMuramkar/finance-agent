@@ -25,6 +25,9 @@ const MAX_OBJECTS = 20;
 const OBJECT_MS = 150;
 const ALL_MS = 400;
 
+/** A small tilt for each coin in turn, so the pile looks tossed in rather than a printed row. */
+const TILTS = [-8, 5, -3, 9, -6, 3];
+
 const count = (n: number) => (Number.isFinite(n) ? Math.max(0, Math.min(MAX_OBJECTS, Math.round(n))) : 0);
 
 /** Gap between one object and the next: 40 ms, squeezed so the last one still finishes inside 400 ms. */
@@ -64,7 +67,7 @@ export function MoneyJarView({ label, start, end, unit, each, words }: Props) {
               key={i}
               data-leaving={leaving ? "true" : undefined}
               className={entering ? "jar-in" : leaving ? "jar-out" : ""}
-              style={entering || leaving ? { animationDelay: `${delay}ms` } : undefined}
+              style={{ ...(entering || leaving ? { animationDelay: `${delay}ms` } : null), rotate: `${TILTS[i % TILTS.length]}deg` }}
             >
               <Pic name={unit} size={32} />
             </span>

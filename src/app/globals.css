@@ -790,6 +790,7 @@ body {
     --lip-colour: var(--coral-deep);
   }
   .chip[aria-pressed="true"],
+  .story-toggle[aria-pressed="true"],
   .chip[data-state="showing"],
   .chip[aria-current="page"],
   .btn-icon[aria-pressed="true"] {

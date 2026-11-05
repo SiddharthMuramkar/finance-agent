@@ -22,6 +22,9 @@ type Props = z.infer<typeof timelineStripProps>;
 
 const LOCKED_NOTE = "After the story's date";
 
+/** Each marker's ring in turn: the colours of stories (sun), lingo (violet), gains (mint) and losses (coral), so the strip is not one colour. */
+const RINGS = ["border-[var(--sun)]", "border-[var(--violet)]", "border-[var(--mint)]", "border-[var(--coral)]"];
+
 export function TimelineStripView({ beats, hideAfter }: Props) {
   const reduced = usePrefersReducedMotion();
   const [open, setOpen] = useState<number | null>(null);
@@ -71,7 +74,7 @@ export function TimelineStripView({ beats, hideAfter }: Props) {
                 setOpen(i);
                 setRoving(i);
               }}
-              className="size-11 min-h-11 shrink-0 rounded-full p-0!"
+              className={`size-11 min-h-11 shrink-0 rounded-full border-2 p-0! ${m.locked ? "" : RINGS[i % RINGS.length]}`}
             >
               {m.locked ? <span aria-hidden="true" className="text-lg font-bold text-[var(--muted)]">?</span> : <Pic name={m.emoji} size={24} />}
             </Button>
