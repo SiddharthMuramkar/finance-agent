@@ -68,12 +68,12 @@ youllLearn:
 questions:
   - id: br-q-cet1
     prompt: >
-      A bank has $9 billion of common equity tier 1 capital and $100 billion of risk-weighted assets. The minimum CET1 ratio is 4.5% plus a 2.5% conservation buffer. What is its CET1 ratio, and does it meet the requirement?
+      Regulators ask a bank for a minimum CET1 ratio of 4.5% plus a 2.5% conservation buffer. A bank has $9 billion of common equity tier 1 capital against $100 billion of risk-weighted assets, a CET1 ratio of about 9%. Which headline gets it right?
     choices:
-      - { id: a, text: "9%; it exceeds the 7% requirement" }
-      - { id: b, text: "9%; it falls short of the requirement" }
-      - { id: c, text: "11.1%; it exceeds the requirement" }
-      - { id: d, text: "4.5%; it just meets the requirement" }
+      - { id: a, text: "It has a cushion: 9% is above the 7% it needs once the buffer is added" }
+      - { id: b, text: "It only just meets the minimum, with no cushion", mistake: { tag: no_cushion, fix: "With the buffer the requirement is 7%, so 9% leaves a 2-point cushion." } }
+      - { id: c, text: "It falls short, because the buffer is added on top of its 9%", mistake: { tag: buffer_on_top_of_bank, fix: "The buffer is added to the 4.5% minimum, making 7%. It is not added to the bank's ratio." } }
+      - { id: d, text: "Nobody can say without its total assets", mistake: { tag: needs_total_assets, fix: "The ratio uses risk-weighted assets, which are given. Total assets belong to the leverage ratio." } }
     answer: a
     explanation: >
       CET1 ratio = 9 / 100 = 9%. The requirement with the buffer is 4.5% + 2.5% = 7%, so the bank has a 2-point cushion above it. Dividing by capital instead of by risk-weighted assets gives the wrong 11.1%.
@@ -82,40 +82,40 @@ questions:
 
   - id: br-q-aoci
     prompt: >
-      A bank has CET1 capital of $14 billion and risk-weighted assets of $100 billion. Its available-for-sale securities have an unrealised loss of $2 billion that is left out of capital. If the rules required the loss to be counted, what would its CET1 ratio be?
+      A bank has $14 billion of CET1 capital against $100 billion of risk-weighted assets. It also has $2 billion of unrealised losses on securities that the rules let it leave out of capital. If the rules required the loss to be counted, what would happen to its CET1 ratio?
     choices:
-      - { id: a, text: "12%" }
-      - { id: b, text: "14%" }
-      - { id: c, text: "16%" }
-      - { id: d, text: "2%" }
+      - { id: a, text: "It would be lower, because the loss would reduce its capital" }
+      - { id: b, text: "It would be higher, because losses lower the risk-weighted assets", mistake: { tag: losses_cut_assets, fix: "Counting the loss cuts capital. Risk-weighted assets stay as they are." } }
+      - { id: c, text: "It would not change, because the loss has not been realised", mistake: { tag: unrealised_ignored, fix: "The loss exists on paper. Counting it makes the ratio reflect it, even unsold." } }
+      - { id: d, text: "It would fall to zero", mistake: { tag: all_capital_gone, fix: "The loss is $2 billion of $14 billion. It dents capital without erasing it." } }
     answer: a
     explanation: >
-      Counting the loss cuts capital to 14 - 2 = $12 billion, so the ratio is 12 / 100 = 12% instead of 14%. Which losses count in capital is a rule, not a fact of nature.
+      Counting the loss cuts capital to $12 billion, so the ratio is 12 / 100 = 12% instead of 14%. Which losses count in capital is a rule, not a fact of nature.
     source: >
       Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023), section on the AOCI opt-out: https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; example figures are hypothetical
 
   - id: br-q-lcr
     prompt: >
-      A bank holds $60 billion of high-quality liquid assets and expects net cash outflows of $50 billion over the next 30 days under the regulator's stress assumptions. What is its liquidity coverage ratio, and does it meet the 100% minimum?
+      A bank holds $60 billion of high-quality liquid assets. The regulator's 30-day stress test says it could see $50 billion of net cash outflows. The liquidity coverage ratio rule says its liquid assets must at least cover those outflows. Which headline gets it right?
     choices:
-      - { id: a, text: "120%; it meets the minimum" }
-      - { id: b, text: "83%; it falls short" }
-      - { id: c, text: "110%; it meets the minimum" }
-      - { id: d, text: "60%; it falls short" }
+      - { id: a, text: "It passes: its liquid assets cover the stress outflows with room to spare" }
+      - { id: b, text: "It fails: the outflows are bigger than its liquid assets", mistake: { tag: outflows_bigger, fix: "Its liquid assets, $60 billion, are bigger than the $50 billion outflows, not smaller." } }
+      - { id: c, text: "Nobody can say until the outflows really happen", mistake: { tag: waits_for_outflows, fix: "The test is forward-looking. It uses the regulator's stress outflows, not real ones." } }
+      - { id: d, text: "It passes only if all the assets are cash", mistake: { tag: cash_only, fix: "Government bonds and other high-quality liquid assets count too, not cash alone." } }
     answer: a
     explanation: >
-      LCR = HQLA / net cash outflows over 30 days = 60 / 50 = 120%. Dividing the other way gives 83%, which would fail.
+      LCR = high-quality liquid assets over net cash outflows in 30 days = 60 / 50 = 120%, above the 100% minimum. Setting it the other way up gives 83%, which would fail.
     source: >
       Basel Committee on Banking Supervision, Basel III: The Liquidity Coverage Ratio and liquidity risk monitoring tools (January 2013), BIS: https://www.bis.org/publ/bcbs238.htm ; ratio calculated
 
   - id: br-q-leverage
     prompt: >
-      A bank has $10 billion of tier 1 capital, $100 billion of risk-weighted assets and $200 billion of total assets. What are its tier 1 risk-based ratio and its leverage ratio?
+      A bank has $10 billion of tier 1 capital, $100 billion of risk-weighted assets and $200 billion of total assets. Why do supervisors look at the leverage ratio as well as the risk-based ratio?
     choices:
-      - { id: a, text: "10% and 5%" }
-      - { id: b, text: "5% and 10%" }
-      - { id: c, text: "10% and 10%" }
-      - { id: d, text: "20% and 5%" }
+      - { id: a, text: "The leverage ratio ignores risk weights, so it is a backstop when risk weights make assets look safer than they are" }
+      - { id: b, text: "The leverage ratio counts only the risky assets, so it is stricter", mistake: { tag: leverage_counts_risky_only, fix: "It does the opposite: it counts all assets, with no risk weights." } }
+      - { id: c, text: "The two ratios always give the same answer", mistake: { tag: ratios_always_agree, fix: "They differ whenever risk weights differ from 100%, which is why both are used." } }
+      - { id: d, text: "It replaces the risk-based ratio, which is no longer used", mistake: { tag: replaces_risk_based, fix: "Both apply. The leverage ratio backs up the risk-based one and does not replace it." } }
     answer: a
     explanation: >
       The risk-based ratio divides by risk-weighted assets: 10 / 100 = 10%. The leverage ratio divides by total assets with no risk weights: 10 / 200 = 5%. The leverage ratio acts as a backstop when risk weights make assets look safe.
@@ -127,9 +127,9 @@ questions:
       What is the main purpose of deposit insurance?
     choices:
       - { id: a, text: "To protect depositors up to a limit even if the bank has negative net worth, so they have less reason to run" }
-      - { id: b, text: "To guarantee that a bank will never lose money" }
-      - { id: c, text: "To set the interest rate a bank pays on deposits" }
-      - { id: d, text: "To cover every deposit of any size in full" }
+      - { id: b, text: "To guarantee that a bank will never lose money", mistake: { tag: insurance_stops_losses, fix: "Insurance protects depositors, not the bank's profits or survival." } }
+      - { id: c, text: "To set the interest rate a bank pays on deposits", mistake: { tag: insurance_sets_rates, fix: "Insurance does not set interest rates. Banks and markets do." } }
+      - { id: d, text: "To cover every deposit of any size in full", mistake: { tag: full_cover, fix: "Cover stops at a limit. Balances above it stay at risk." } }
     answer: a
     explanation: >
       Insurance up to a limit makes small depositors safe whatever happens to the bank, removing the reason to rush for the door. It does not protect the bank's shareholders, and balances above the limit stay at risk.

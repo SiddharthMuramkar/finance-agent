@@ -80,9 +80,9 @@ questions:
       Which description fits a shadow bank best?
     choices:
       - { id: a, text: "A lender that transforms credit, maturity and liquidity like a bank, but has no access to the central bank's lender-of-last-resort facility or to government deposit insurance" }
-      - { id: b, text: "A bank that keeps part of its assets off its books to avoid regulators" }
-      - { id: c, text: "Any lender whose loans are illegal" }
-      - { id: d, text: "Any lender that is listed on a stock exchange" }
+      - { id: b, text: "A bank that keeps part of its assets off its books to avoid regulators", mistake: { tag: off_books_trick, fix: "Hiding assets is a tactic. Shadow means sitting outside the safety net." } }
+      - { id: c, text: "Any lender whose loans are illegal", mistake: { tag: shadow_is_illegal, fix: "Shadow banks are not illegal. They just lack the central bank backstop." } }
+      - { id: d, text: "Any lender that is listed on a stock exchange", mistake: { tag: listed_lender, fix: "Being listed has nothing to do with it." } }
     answer: a
     explanation: >
       The New York Fed's definition is a financial intermediary that conducts maturity, credit and liquidity transformation without access to central bank liquidity or public credit guarantees. The word "shadow" says it sits outside the safety net, not that it is hidden or illegal.
@@ -94,9 +94,9 @@ questions:
       A non-bank lender builds a ten-year road loan and funds it by selling 90-day commercial paper, replacing each batch as it falls due. The road is sound. What is the main risk in this structure?
     choices:
       - { id: a, text: "Rollover risk: if investors stop buying new paper, it cannot repay the old paper, even though the road is sound" }
-      - { id: b, text: "Currency risk, because commercial paper is always issued in foreign currency" }
-      - { id: c, text: "None, because short-term funding is always cheaper and so always safer" }
-      - { id: d, text: "Inflation risk, because the paper is repaid in 90 days" }
+      - { id: b, text: "Currency risk, because commercial paper is always issued in foreign currency", mistake: { tag: currency_risk, fix: "Commercial paper is not always foreign. The danger is renewing it." } }
+      - { id: c, text: "None, because short-term funding is always cheaper and so always safer", mistake: { tag: cheap_is_safe, fix: "Short funding is cheaper but has to be renewed, which is the danger." } }
+      - { id: d, text: "Inflation risk, because the paper is repaid in 90 days", mistake: { tag: inflation_risk, fix: "A 90-day repayment makes renewal the risk, not inflation." } }
     answer: a
     explanation: >
       Long assets funded by short liabilities depend on lenders renewing. The loan can be good and the lender still fail if the market will not refinance it, which is how a run on a non-bank starts. Lower cost today does not remove the risk.
@@ -105,29 +105,29 @@ questions:
 
   - id: pc-q-nav
     prompt: >
-      A fund has net assets of Rs 1,000 crore. It holds Rs 50 crore of one issuer's paper. The paper is marked down by 40 per cent and nothing else changes. By how much does the fund's NAV fall?
+      A fund has net assets of Rs 1,000 crore and holds Rs 50 crore of one issuer's paper. That paper is marked down by 40 per cent and nothing else changes. Which headline gets it right?
     choices:
-      - { id: a, text: "0.4 per cent" }
-      - { id: b, text: "2 per cent" }
-      - { id: c, text: "4 per cent" }
-      - { id: d, text: "40 per cent" }
+      - { id: a, text: "The fund's NAV falls by 40 per cent", mistake: { tag: whole_fund_marked_down, fix: "The 40 per cent applies only to the paper, a small part of the fund." } }
+      - { id: b, text: "The fund's NAV dips a little, because the markdown hits only the small part held in that paper" }
+      - { id: c, text: "The NAV does not change, because the paper was not sold", mistake: { tag: unsold_no_change, fix: "Marking down changes value on paper, so NAV falls even before any sale." } }
+      - { id: d, text: "The fund must close at once", mistake: { tag: must_close, fix: "A small dip in NAV does not by itself close a fund." } }
     answer: b
     explanation: >
-      The markdown is 0.40 x 50 = Rs 20 crore. As a share of Rs 1,000 crore of net assets, that is 20 / 1,000 = 2 per cent. The 40 per cent applies only to the part of the portfolio held in that paper.
+      The markdown is 40 per cent of Rs 50 crore, Rs 20 crore. Against Rs 1,000 crore of net assets that is a 2 per cent fall in NAV. The 40 per cent applies only to the part of the portfolio held in that paper.
     source: >
       Arithmetic from the stated figures; NAV is the value of a fund's assets minus liabilities (Investor.gov, SEC): https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24
 
   - id: pc-q-remaining-share
     prompt: >
-      A fund holds Rs 90 crore of easy-to-sell government securities and Rs 10 crore of one troubled issuer's paper that no one will buy. Investors redeem Rs 20 crore, and the fund pays them by selling government securities (assume the paper is still valued at Rs 10 crore). What share of the remaining portfolio is the troubled paper?
+      A fund holds Rs 90 crore of easy-to-sell government securities and Rs 10 crore of one troubled issuer's paper that no one will buy. Investors redeem Rs 20 crore, and the fund pays them by selling government securities. What does that do to the investors who stay?
     choices:
-      - { id: a, text: "10 per cent, as before" }
-      - { id: b, text: "12.5 per cent" }
-      - { id: c, text: "20 per cent" }
-      - { id: d, text: "8 per cent" }
+      - { id: a, text: "Nothing: their share of the troubled paper stays the same", mistake: { tag: share_unchanged, fix: "Paying out in liquid assets leaves the unsellable paper as a bigger slice of what remains." } }
+      - { id: b, text: "They are left holding a bigger share of paper nobody wants to buy" }
+      - { id: c, text: "They are better off, because the fund is smaller", mistake: { tag: smaller_is_better, fix: "Smaller and less liquid is worse: the investors who stay hold the hard-to-sell part." } }
+      - { id: d, text: "They are repaid first, ahead of those who left", mistake: { tag: stayers_paid_first, fix: "Those who redeem are paid out of liquid assets. The ones who stay are left with the rest." } }
     answer: b
     explanation: >
-      After paying out Rs 20 crore, the fund has Rs 70 crore of government securities and the same Rs 10 crore of troubled paper: Rs 80 crore in all, and 10 / 80 = 12.5 per cent. Each wave of redemptions paid from the liquid assets leaves the remaining investors holding a larger share of what cannot be sold.
+      After paying out Rs 20 crore, the fund has Rs 70 crore of government securities and the same Rs 10 crore of troubled paper: Rs 80 crore in all, so the paper is 12.5 per cent of the fund, up from 10. Each wave of redemptions paid from the liquid assets leaves the remaining investors holding a larger share of what cannot be sold.
     source: >
       Arithmetic from the stated figures.
 
@@ -136,9 +136,9 @@ questions:
       A group puts each of its projects into a separate SPV with its own lenders. What is the main advantage, and what is the main cost for an outsider?
     choices:
       - { id: a, text: "Each SPV's lenders can claim only on that project's assets, which shields the parent; the cost is that it is hard to see the group's total debt" }
-      - { id: b, text: "SPV lenders can claim on every asset of the group; the cost is higher tax" }
-      - { id: c, text: "SPVs cannot borrow, so the group's debt falls; the cost is slower construction" }
-      - { id: d, text: "SPVs guarantee that all projects are repaid; the cost is a lower credit rating" }
+      - { id: b, text: "SPV lenders can claim on every asset of the group; the cost is higher tax", mistake: { tag: claims_on_whole_group, fix: "SPV lenders can claim only on that SPV's assets, unless the parent guarantees the debt." } }
+      - { id: c, text: "SPVs cannot borrow, so the group's debt falls; the cost is slower construction", mistake: { tag: spv_cannot_borrow, fix: "SPVs can borrow. The group's total debt does not fall, it only gets harder to see." } }
+      - { id: d, text: "SPVs guarantee that all projects are repaid; the cost is a lower credit rating", mistake: { tag: spv_guarantees_all, fix: "Each SPV stands on its own. It guarantees nothing for the other projects." } }
     answer: a
     explanation: >
       An SPV is a separate legal entity, so its creditors are limited to its own assets and cash flows unless the parent has guaranteed the debt. With many SPVs the group's total borrowing, and who has guaranteed whom, is hard for outsiders to add up.

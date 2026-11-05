@@ -77,54 +77,54 @@ questions:
       You forecast a company's cash flows in rupees, with prices rising at the rate you expect in India. Which discount rate is consistent with those cash flows?
     choices:
       - { id: a, text: "A rupee rate, built on the rupee riskfree rate, which includes expected Indian inflation" }
-      - { id: b, text: "A dollar rate, built on the US Treasury yield" }
-      - { id: c, text: "Either one; the currency does not matter" }
-      - { id: d, text: "A rate of zero, because inflation is already in the cash flows" }
+      - { id: b, text: "A dollar rate, built on the US Treasury yield", mistake: { tag: wrong_currency, fix: "A dollar rate carries US inflation, which does not match rupee cash flows." } }
+      - { id: c, text: "Either one; the currency does not matter", mistake: { tag: currency_ignored, fix: "Currency matters: each rate carries its own country's inflation." } }
+      - { id: d, text: "A rate of zero, because inflation is already in the cash flows", mistake: { tag: zero_rate, fix: "Money still has a time value. Match a rupee rate to rupee cash flows." } }
     answer: a
     explanation: >
-      Rupee cash flows already include expected Indian inflation. A rupee rate includes the same inflation, so the two cancel consistently. A dollar rate has US inflation in it, and mixing the currencies counts inflation wrongly.
+      Rupee cash flows already include expected Indian inflation. A rupee rate includes the same inflation, so the two match. A dollar rate has US inflation in it, and mixing the currencies counts inflation wrongly.
     source: >
       Damodaran, Country Risk (Library), on consistency of currency in valuation: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
   - id: vi-q-depreciation
     prompt: >
-      One-year riskless rates are 9 percent in rupees and 4 percent in dollars. If the two investments are to be equally attractive, by roughly how much must the rupee be expected to fall against the dollar over a year?
+      One-year riskless rates are 9 percent in rupees and 4 percent in dollars. Traders say the two investments are only equally attractive if the rupee is expected to do what over the year?
     choices:
-      - { id: a, text: "About 4.8 percent" }
-      - { id: b, text: "About 13 percent" }
-      - { id: c, text: "About 2.5 percent" }
-      - { id: d, text: "It need not fall" }
+      - { id: a, text: "Weaken against the dollar, by roughly the gap between the two rates" }
+      - { id: b, text: "Strengthen against the dollar, because rupee interest is higher", mistake: { tag: rupee_strengthens, fix: "Higher rupee interest is paid because the rupee is expected to weaken, not strengthen." } }
+      - { id: c, text: "Stay exactly flat", mistake: { tag: flat_rupee, fix: "If flat, rupee savers would simply win. The rate gap should be offset by expected weakening." } }
+      - { id: d, text: "Weaken by the whole 9 percent rupee rate", mistake: { tag: used_whole_rate, fix: "Only the gap between the two rates matters, not the rupee rate alone." } }
     answer: a
     explanation: >
-      The expected change is (1 + rupee rate) / (1 + dollar rate) - 1 = 1.09 / 1.04 - 1 = 4.8 percent. If the rupee fell less, the rupee investment would be better; if more, worse.
+      The extra rupee interest is paid because the rupee is expected to fall. The expected fall is (1.09 / 1.04) - 1, about 4.8 percent. If the rupee fell less, the rupee investment would be better; if more, worse.
     source: >
       Damodaran, Country Risk (Library), on riskfree rates in different currencies and inflation differentials: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
   - id: vi-q-crp
     prompt: >
-      The mature market equity risk premium is 5.5 percent, a country's risk premium is 3.0 percent, the rupee riskfree rate is 7.5 percent and a stock's beta is 1. What is its cost of equity in rupees?
+      An analyst values an Indian stock in rupees. Besides the rupee riskfree rate, she has a mature market equity risk premium of 5.5 percent and a country risk premium of 3.0 percent. How do the two premiums enter the cost of equity?
     choices:
-      - { id: a, text: "13.0 percent" }
-      - { id: b, text: "16.0 percent" }
-      - { id: c, text: "18.5 percent" }
-      - { id: d, text: "8.5 percent" }
+      - { id: a, text: "The country premium replaces the mature one", mistake: { tag: replaced_premium, fix: "The country premium is an extra layer on top of the mature one, not a replacement." } }
+      - { id: b, text: "Both sit on top of the riskfree rate, scaled by the stock's beta, so country risk raises the cost of equity" }
+      - { id: c, text: "The country premium is taken off, because India is growing fast", mistake: { tag: subtracted_country_risk, fix: "Country risk is extra danger, so it raises the cost of equity and never lowers it." } }
+      - { id: d, text: "Neither: the riskfree rate alone is the cost of equity", mistake: { tag: riskfree_only, fix: "The riskfree rate is only the floor. Premiums add the reward for risk." } }
     answer: b
     explanation: >
-      Cost of equity = riskfree rate + beta x (mature premium + country risk premium) = 7.5% + 1 x (5.5% + 3.0%) = 16.0%.
+      Cost of equity = riskfree rate + beta x (mature premium + country risk premium). With a beta of 1 that is 7.5% + 5.5% + 3.0% = 16.0 percent: country risk is added on top, in one place only.
     source: >
       Damodaran, Country Risk (Library), the country risk premium approach: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
   - id: vi-q-crp-method
     prompt: >
-      A country's sovereign default spread is 2.0 percent, and its equities are 1.5 times as volatile as its government bonds. What country risk premium does the scaled default spread method give?
+      In the scaled default spread method, analysts start from a country's sovereign default spread of 2.0 percent. Its equities are 1.5 times as volatile as its government bonds. How do they turn the spread into a country risk premium for equities?
     choices:
-      - { id: a, text: "1.3 percent" }
-      - { id: b, text: "2.0 percent" }
-      - { id: c, text: "3.0 percent" }
-      - { id: d, text: "3.5 percent" }
+      - { id: a, text: "Use the spread as it stands, since it already measures country risk", mistake: { tag: unscaled_spread, fix: "Equities swing more than bonds, so the spread is scaled up for them." } }
+      - { id: b, text: "Scale it down, because shares are less risky than bonds", mistake: { tag: scaled_down, fix: "Shares are riskier than bonds, so the spread is scaled up, not down." } }
+      - { id: c, text: "Scale it up, because equities are more volatile than government bonds" }
+      - { id: d, text: "Add the stock market's past average return to it", mistake: { tag: added_history, fix: "No history is added. The spread is only scaled by relative volatility." } }
     answer: c
     explanation: >
-      Country risk premium = default spread x (volatility of equities / volatility of bonds) = 2.0% x 1.5 = 3.0%.
+      Country risk premium = default spread x (volatility of equities / volatility of bonds). With a 2.0 percent spread and equities 1.5 times as volatile, the premium works out to 3.0 percent.
     source: >
       Damodaran, Country Risk (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
@@ -133,9 +133,9 @@ questions:
       An analyst converts rupee cash flows into dollars using the exchange rates implied by the two currencies' riskfree rates, then discounts them at a dollar rate. Compared with discounting the rupee cash flows at a rupee rate, the value should be:
     choices:
       - { id: a, text: "About the same, if both are done consistently" }
-      - { id: b, text: "Much higher, because dollar rates are lower" }
-      - { id: c, text: "Much lower, because the rupee is expected to fall" }
-      - { id: d, text: "Impossible to compare" }
+      - { id: b, text: "Much higher, because dollar rates are lower", mistake: { tag: ignored_conversion, fix: "The lower dollar rate is offset by cash flows that shrink as the rupee is expected to fall." } }
+      - { id: c, text: "Much lower, because the rupee is expected to fall", mistake: { tag: double_counted_fall, fix: "The expected fall is already offset by the lower dollar rate. Count it once." } }
+      - { id: d, text: "Impossible to compare", mistake: { tag: cannot_compare, fix: "Both routes can be compared, and consistent ones agree." } }
     answer: a
     explanation: >
       The lower dollar rate is offset by the lower value of the converted cash flows as the rupee is expected to fall, in proportion to the difference between the two riskfree rates. Both routes give the same value; mixing the routes is the mistake.
