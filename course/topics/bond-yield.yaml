@@ -58,7 +58,7 @@ youllLearn:
 questions:
   - id: by-q-current-yield
     prompt: >
-      A bond with an 8% coupon trades below face value. Traders measure the yearly coupon against the price they actually pay. What do traders call that, and how does it compare with 8%?
+      Meera buys a bond with an 8% coupon, but she pays less than its face value for it. Her broker says the yearly coupon looks bigger against what she paid. Is that bigger than 8%, and what is it called?
     choices:
       - { id: a, text: "Current yield, and it is above 8%" }
       - { id: b, text: "Current yield, and it is exactly 8%", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
@@ -108,13 +108,13 @@ questions:
       - { id: d, text: "Yes: a bond's price is fixed until it matures", mistake: { tag: price_fixed_before_maturity, fix: "Bond prices move every day. When rates rise, older bonds with lower coupons sell for less." } }
     answer: a
     explanation: >
-      A yield to maturity is a promise only to someone who holds the bond to the end. Once rates rose, buyers would pay less for Asha's 6% bond, because new bonds paid more. Selling early locked in that lower price, which cancelled much of the coupon she had collected.
+      A yield to maturity is a promise only to someone who holds the bond to the end. Once rates rose, buyers would pay less for Asha's 6% bond, because new bonds paid more. Selling early locked in that lower price, which cancelled part of the coupon she had collected.
     source: >
       Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: by-q-leverage
     prompt: >
-      A pool has $100 of depositors' money and borrows another $100 through repurchase agreements, then buys $200 of bonds. Bond prices fall 5%. Who takes the hit, and how hard?
+      A county pool holds depositors' money, borrows an equal amount overnight, then buys twice as many bonds as it has deposits. Bond prices dip 5%. Who feels it, and how hard?
     choices:
       - { id: a, text: "The depositors, harder than the bonds fell" }
       - { id: b, text: "The depositors, by the same 5% as the bonds", mistake: { tag: ignored_leverage, fix: "The depositors' $100 carries the whole loss, so the percentage is magnified, not matched." } }

@@ -77,7 +77,7 @@ questions:
 
   - id: hmr-q-tight-or-easy
     prompt: >
-      Two central banks both set their policy rate at 12%. In country A prices rise 4% a year; in country B, 15%. Bond traders size up each stance with inflation counted. What do they call them?
+      Two central banks both set their policy rate at 12%. In country A prices rise 4% a year; in country B, 15%. Traders count inflation before judging each stance. Which bank are they calling tight, and which easy?
     choices:
       - { id: a, text: "A is tight, B is easy" }
       - { id: b, text: "B is tighter: more inflation, same rate", mistake: { tag: inflation_as_tightness, fix: "When inflation tops the policy rate, borrowers repay in cheaper money. That is easy money, not tight." } }
@@ -91,11 +91,11 @@ questions:
 
   - id: hmr-q-fixed-borrower
     prompt: >
-      A household borrows at a fixed 9% a year. Inflation then turns out to be 12% a year for the life of the loan, higher than anyone expected. Who benefits?
+      Priya's family takes a loan at a fixed 9% a year. Prices then climb 12% a year for the whole loan, far more than anyone expected. Who comes out ahead?
     choices:
-      - { id: a, text: "The lender, who is repaid more than expected" }
+      - { id: a, text: "The lender, who is repaid more than expected", mistake: { tag: lender_gains_from_inflation, fix: "The lender is repaid in money that buys less than when it was lent, so the lender loses." } }
       - { id: b, text: "The borrower, who repays in money worth less than expected" }
-      - { id: c, text: "Neither, because the nominal rate was fixed" }
+      - { id: c, text: "Neither, because the nominal rate was fixed", mistake: { tag: nominal_as_stance, fix: "A fixed rate does not fix what the money buys. Inflation moves value from lender to borrower." } }
     answer: b
     explanation: >
       Inflation outran the 9% interest, so the real rate paid is negative. The borrower repays with money that buys less than when it was borrowed, so value moves from lender to borrower.
