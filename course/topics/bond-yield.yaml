@@ -58,7 +58,7 @@ youllLearn:
 questions:
   - id: by-q-current-yield
     prompt: >
-      A 10-year bond with an 8% coupon on $1,000 face value trades at $900. Traders measure the yearly coupon against the price they actually pay. What do they call that, and how does it compare with the 8% coupon rate?
+      A bond with an 8% coupon trades below face value. Traders measure the yearly coupon against the price they actually pay. What is that called, and is it above or below 8%?
     choices:
       - { id: a, text: "Current yield: higher than the 8% coupon rate, because you paid less than face value" }
       - { id: b, text: "Current yield: exactly the 8% coupon rate, because the coupon is fixed", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
@@ -66,7 +66,7 @@ questions:
       - { id: d, text: "Current yield: lower than the 8% coupon rate, because the price is lower", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
     answer: a
     explanation: >
-      Current yield is the yearly coupon over the price you pay. Paying less than face value makes it come out above the 8% coupon rate, at about 8.9%. It ignores the $100 gain as the price returns to par at maturity, which is why the yield to maturity (about 9.6% with half-yearly coupons) is higher.
+      Current yield is the yearly coupon over the price you pay. Paying less than face value makes it come out above the 8% coupon rate. It ignores the gain as the price returns to par at maturity, which is why the yield to maturity is higher still.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation (yield and coupon definitions): https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
@@ -100,15 +100,15 @@ questions:
 
   - id: by-q-sell-early
     prompt: >
-      You buy a 10-year bond at par with a 6% coupon, paid yearly. A year later you must sell it because you need cash, and the market yield on 9-year bonds is now 7%. The bond sells for about $935, and you have received the $60 coupon. Which description of your year is right?
+      You buy a 10-year bond at par with a 6% coupon, paid yearly. A year later you must sell it because you need cash, and the market yield on 9-year bonds is now 7%. The bond now sells for less than the $1,000 you paid, by roughly the size of the coupon you received. Which description of your year is right?
     choices:
-      - { id: a, text: "A small loss: the coupon did not cover the price drop, so the 6% yield to maturity was not earned" }
+      - { id: a, text: "About nothing gained: the price drop cancelled the coupon, so the 6% yield to maturity was not earned" }
       - { id: b, text: "A 6% return, the yield to maturity you paid for", mistake: { tag: ytm_without_holding, fix: "Yield to maturity is earned only if you hold to the end. You sold early." } }
       - { id: c, text: "A 7% return, the new market yield", mistake: { tag: new_yield_as_return, fix: "The new market yield is what new buyers earn, not what you earned over the year." } }
-      - { id: d, text: "A big loss of about 6.5%, from the price drop alone", mistake: { tag: ignored_coupon, fix: "You also kept the $60 coupon, which softens the price loss to about half a percent." } }
+      - { id: d, text: "A big loss, from the price drop alone", mistake: { tag: ignored_coupon, fix: "You also kept the coupon, which cancels most of the price loss." } }
     answer: a
     explanation: >
-      You end the year with $935 of bond plus $60 of coupon, about the $1,000 you paid, so a small loss of around half a percent. A yield to maturity of 6% is earned only if you hold to maturity. Selling early after yields rose crystallises the price loss.
+      The coupon you collected was roughly cancelled by the fall in the bond's price, so you end the year about where you started. A yield to maturity of 6% is earned only if you hold to maturity. Selling early after yields rose crystallises the price loss.
     source: >
       Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 

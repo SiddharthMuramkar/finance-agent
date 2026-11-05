@@ -22,8 +22,8 @@ cases:
       positions, it held about $30 of debt for every $1 of capital. It traded government
       bonds, mortgage-backed securities and equities, and used swaps, forwards and options.
       Financial trouble that had started in Southeast Asia in 1997 was still working through
-      markets. Suppose the spreads LTCM was betting on narrowing, instead widen. How much does
-      the fund have to lose before its capital is gone?
+      markets. Suppose the spreads LTCM was betting on narrowing, instead widen. Why does a
+      small fall in the value of its assets threaten the fund's own capital?
     reveal: >
       In August 1998 Russia suddenly devalued its currency and stopped payments on its debt.
       Investors rushed to safer and more liquid investments, and the spreads LTCM had bet on
@@ -117,7 +117,7 @@ questions:
     prompt: >
       A fund holds $31 of assets for every $1 of its own capital, the rest borrowed. Which statement about how far its assets can fall before its capital is gone is right?
     choices:
-      - { id: a, text: "Only a few percent: the borrowed money must still be repaid in full" }
+      - { id: a, text: "Only a small fall: the borrowed money must still be repaid in full" }
       - { id: b, text: "About half: the fund and its lenders share the loss equally", mistake: { tag: lenders_share_loss, fix: "Lenders are repaid first. The owners' thin slice of capital takes every loss until it is gone." } }
       - { id: c, text: "About 30%: the debt is thirty times the capital", mistake: { tag: ratio_as_percent, fix: "Thirty-to-one leverage means a small fall is enough, not a fall of thirty percent." } }
       - { id: d, text: "Not until all of the assets are lost", mistake: { tag: ignored_leverage, fix: "Lenders must be repaid first, so the owners' small capital is gone long before that." } }
