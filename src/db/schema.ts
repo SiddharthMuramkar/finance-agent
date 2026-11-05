@@ -71,7 +71,17 @@ export const sessions = pgTable(
   ],
 );
 
-/** Add-only history. Content is stored exactly as sent or received. */
+/**
+ * jsonb read back as the driver returns it. Both drivers (neon-serverless in the app, PGlite in tests) already parse
+ * jsonb, and drizzle's own jsonb parses a string once more: a Learner's stored "0.8" came back as the number 0.8,
+ * which the API refuses as message content.
+ */
+const storedJson = customType<{ data: unknown; driverData: unknown }>({
+  dataType: () => "jsonb",
+  toDriver: (value) => JSON.stringify(value),
+});
+
+/** Add-only history. Content is stored, and read back, exactly as sent or received. */
 export const messages = pgTable(
   "messages",
   {
@@ -81,7 +91,7 @@ export const messages = pgTable(
       .references(() => sessions.id),
     seq: integer("seq").notNull(),
     role: text("role").notNull().$type<"user" | "assistant" | "system">(),
-    content: jsonb("content").notNull(),
+    content: storedJson("content").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("messages_session_seq").on(t.sessionId, t.seq)],

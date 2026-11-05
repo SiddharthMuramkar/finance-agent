@@ -184,6 +184,30 @@ describe("Tutor Turn", () => {
     });
   });
 
+  it("replays a Learner message that reads like JSON as the text they typed", async () => {
+    // Both drivers hand jsonb back already parsed, and drizzle's own jsonb parsed a stored string again: a Learner's
+    // "0.8" came back as the number 0.8, the API refused every later request of the Session, and the Learner's
+    // transcript lost the message.
+    const db = await testDb();
+    const { client, requests } = scriptedClient([
+      { content: [{ type: "text", text: "80 bp is how many points?" }] },
+      { content: [{ type: "text", text: "Yes, 0.8 points." }] },
+      { content: [{ type: "text", text: "Right again." }] },
+    ]);
+
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "Ask me one"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "0.8"));
+    await collect(runTutorTurn({ db, client, learnerId: OWNER_LEARNER_ID }, "true"));
+
+    // Read back from the database, the history is what the earlier request sent, "0.8" still text.
+    expect(requests[1].messages.filter((m) => m.role === "user").at(-1)).toEqual({ role: "user", content: "0.8" });
+    expect(requests[2].messages.slice(0, requests[1].messages.length)).toEqual(requests[1].messages);
+    const lines = await loadCurrentSession(db, undefined, OWNER_LEARNER_ID);
+    const learnerSaid = lines.filter((l) => l.role === "user").map((l) => l.text);
+    expect(learnerSaid).toContain("0.8");
+    expect(learnerSaid).toContain("true");
+  });
+
   describe("led by the Course Navigator", () => {
     // These tests follow the conversation Check alone; the quiz Check has its own tests below.
     const map = withoutQuizChecks(loadCourseMap());
