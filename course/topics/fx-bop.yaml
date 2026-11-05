@@ -89,15 +89,15 @@ questions:
 
   - id: bop-q-overall
     prompt: >
-      In a year a country's current account is -$6.0 billion and its capital account is +$7.0 billion. Which headline gets it right?
+      A country runs a current account deficit, but the foreign money coming in is larger than that deficit. What happens to its reserves?
     choices:
-      - { id: a, text: "The current account deficit drained reserves, so they fell", mistake: { tag: ignored_capital_account, fix: "The capital inflow more than covered the deficit, so reserves gained rather than lost." } }
-      - { id: b, text: "Foreign money more than covered the deficit, so reserves rise" }
-      - { id: c, text: "The two accounts cancelled out, so reserves are unchanged", mistake: { tag: assumed_exact_cancel, fix: "They cancel only if the inflow equals the deficit. Here the inflow is larger." } }
-      - { id: d, text: "A deficit always means the country is in crisis", mistake: { tag: deficit_means_crisis, fix: "A deficit covered by enough inflow is not a crisis; the overall balance is what changes reserves." } }
+      - { id: a, text: "They fall, because of the deficit", mistake: { tag: ignored_capital_account, fix: "The inflow more than covers the deficit, so reserves gain rather than lose." } }
+      - { id: b, text: "They rise, because the inflow is bigger than the deficit" }
+      - { id: c, text: "They stay the same, because the two cancel out", mistake: { tag: assumed_exact_cancel, fix: "They cancel only when the inflow just matches the deficit. Here it is bigger." } }
+      - { id: d, text: "The country must be in crisis", mistake: { tag: deficit_means_crisis, fix: "A deficit covered by enough inflow is not a crisis; the overall balance is what moves reserves." } }
     answer: b
     explanation: >
-      Overall balance = current account + capital account = -6.0 + 7.0 = +1.0. A surplus is added to reserves (the change in reserves has the opposite sign in the accounting table).
+      The overall balance is the current account plus the capital account. When the inflow is bigger than the deficit, the overall balance is a surplus, and a surplus is added to reserves (the change in reserves has the opposite sign in the accounting table).
     source: >
       RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.2: http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
 

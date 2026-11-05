@@ -117,29 +117,29 @@ questions:
 
   - id: fx-q-compound
     prompt: >
-      A currency is devalued by 15% and then, two days later, by a further 20% of its new value. Which headline gets it right about the total fall?
+      A government cuts its currency's value, then two days later cuts the new, lower value again. How does the total fall compare with the two cuts added up?
     choices:
-      - { id: a, text: "The total fall is exactly the two cuts put together", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
-      - { id: b, text: "The total fall is a little less than the two cuts added" }
-      - { id: c, text: "The total fall is more than the two cuts put together", mistake: { tag: compounding_goes_up, fix: "The second cut applies to a smaller base, so it takes less than 20% of the original." } }
-      - { id: d, text: "Nobody can say without the exchange rate", mistake: { tag: needs_the_rate, fix: "The two percentages are enough to say the total is a little below the cuts put together." } }
+      - { id: a, text: "Exactly the two cuts added", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
+      - { id: b, text: "A little less than the two cuts added" }
+      - { id: c, text: "More than the two cuts added", mistake: { tag: compounding_goes_up, fix: "The second cut applies to a smaller base, so it takes away less of the original." } }
+      - { id: d, text: "Nobody can tell", mistake: { tag: needs_the_rate, fix: "The second cut always bites a smaller value, so the total is a little below the two added." } }
     answer: b
     explanation: >
-      The second cut bites a currency that is already worth less, so the total fall is about a third, not the 35% you get by adding. Putting the cuts together as 35% overstates it.
+      The second cut bites a currency that is already worth less, so it takes away less of the original value. India did this in July 1991: cuts of about 9% and 11% left a total fall of about 19%, not 20%.
     source: >
       Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-ppp
     prompt: >
-      A car sells for $20,000 in the United States. In Canada, where one US dollar buys 1.30 Canadian dollars, the same car sells for C$26,000. What does purchasing power parity mean here?
+      The same car is sold in the US and in Canada. Economists say exchange rates drift toward purchasing power parity. For this car, what would parity mean?
     choices:
-      - { id: a, text: "The two price tags show the same number", mistake: { tag: same_number_means_parity, fix: "Parity is about value after converting currencies, not matching numbers." } }
-      - { id: b, text: "Canada is cheaper, so buyers should go there", mistake: { tag: bigger_number_cheaper, fix: "At parity the converted prices are equal. Neither side is cheaper." } }
-      - { id: c, text: "The two prices match once the exchange rate is applied" }
-      - { id: d, text: "Canada must devalue its dollar", mistake: { tag: parity_is_an_order, fix: "Parity describes prices lining up. It is not an order to any government." } }
+      - { id: a, text: "The two price tags show the same number", mistake: { tag: same_number_means_parity, fix: "Parity is about value after changing the money, not matching numbers." } }
+      - { id: b, text: "One country is cheaper", mistake: { tag: bigger_number_cheaper, fix: "At parity the converted prices are equal. Neither side is cheaper." } }
+      - { id: c, text: "The prices match once the money is changed" }
+      - { id: d, text: "A government must change its rate", mistake: { tag: parity_is_an_order, fix: "Parity describes prices lining up. It is not an order to any government." } }
     answer: c
     explanation: >
-      At USD 1 = CAD 1.30, a $20,000 car costs 20,000 x 1.30 = C$26,000. If it were much cheaper in Canada, buyers would shift there until prices and exchange rates aligned.
+      A $20,000 car at C$1.30 to the dollar should cost about C$26,000 in Canada. If it were much cheaper there, buyers would shift there until prices and exchange rates lined up.
     source: >
       OpenStax, Principles of Economics 3e (CC BY-NC-SA), 29.2 Demand and Supply Shifts in Foreign Exchange Markets: https://openstax.org/books/principles-economics-3e/pages/29-2-demand-and-supply-shifts-in-foreign-exchange-markets
 
@@ -168,5 +168,5 @@ checks:
     passCriteria: >
       The Learner says imports cost more in the home currency and exports cost less in foreign currency, so imports
       are discouraged and exports encouraged. They say the second cut bites an already smaller value, so the total fall
-      is a little less than the two cuts put together (the story's figure is 28%, not 30%). They connect it to the crisis: a cheaper
+      is a little less than the two cuts put together (in this example 28%, not 30%; in the real 1991 steps of about 9% and 11%, about 19%). They connect it to the crisis: a cheaper
       currency improves the trade balance and the incentive to hold the home currency, which helps restore reserves.

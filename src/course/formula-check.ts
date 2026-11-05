@@ -33,7 +33,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "bond-credit-spreads",
   "fx-basics",
   "eco-trade",
-  "fx-bop",
   "in-economy",
   "sov-default-country-risk",
   "eq-history",
