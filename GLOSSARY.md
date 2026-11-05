@@ -132,6 +132,14 @@ _Avoid_: Login, thread, chat
 A Session from before each Topic had one Session of its own. Older sessions are kept and can be read, listed apart from the Topic Sessions, but are never continued.
 _Avoid_: Legacy session, archived session
 
+**Start a Topic over**:
+The Learner clears one Topic's progress and begins it again from its Story step. The Topic's progress is saved as an Earlier attempt first, and the notes, review cards and the old conversation stay.
+_Avoid_: Reset a Topic, delete progress
+
+**Earlier attempt**:
+A Session the Learner restarted, with the Topic's progress as it stood then. It is read-only, and a Topic can have several.
+_Avoid_: Old attempt, backup
+
 **Opener**:
 The Tutor's first reply in a Topic's Session, which starts by itself when the Learner opens a Topic they have not begun, before they write anything.
 _Avoid_: Greeting, intro message
