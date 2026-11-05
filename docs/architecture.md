@@ -4621,3 +4621,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A Learner sees a raised blue "Check" button and a flat "In progress" tag. Only the button looks pressable, and only the button has a pointer. A developer who writes `<button>` in a new screen gets a lint error that names the primitives.
 
 **Trade-off.** The 9 Widget files and 12 `src/app` files that still hold raw buttons stay on the allowlist until the A3b sweep (`src/app`) and E2a/E5 (Widgets) migrate them, so for now those screens keep their old flat buttons next to the new raised ones. The `Button` anatomy uses a 3px lip, so a row of buttons needs a little more height than before.
+
+## Story-first questions, batch D2i (`course/topics/jud-predicted-outcomes.yaml`, `jud-units-periods.yaml`, `jud-filing-vs-claim.yaml`, `jud-rating-conflict.yaml`, `ana-build-valuation.yaml`, `src/course/l10-allowlist.ts`, spec 2026-11-05, ticket D2i)
+
+**What it does.** Five Judge and Analyse Topics stop asking the Learner for sums. The 20 places lint L10 flagged (12 questions, 7 conversation Check prompts or pass rules, 1 prompt) now ask "which headline gets it right?", "what do traders call that move?" or "say it in your own words". Every wrong choice of a rewritten question carries a Known mistake with a one-line fix of 20 words or fewer. The five ids leave `L10_NOT_YET_STORY`, so L10 now guards these files for good.
+
+**Scenario.** "A bond yield rises from 5.00% to 5.25%. How many basis points?" is now "In basis points, what do traders call that move?" with four labelled choices. A Learner who taps "2.5 basis points" sees "One point is 100 basis points, so a quarter point is 25 bp, not 2.5", and the right label is still a number they can recognise, not one they work out on paper.
+
+**Trade-off.** Choices are easier to guess than a typed number, accepted in ADR 0009 because a Check still needs its pass rule and Skill state still needs two right in a row. Cases, sources and `asOf` dates are untouched, so a few Case stories still say "work out" in their own words; L10 does not read stories, and the questions and Checks no longer ask for it.

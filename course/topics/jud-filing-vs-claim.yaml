@@ -209,13 +209,14 @@ questions:
   - id: jfc-q-ttm
     prompt: >
       Halloran Inc. reports revenue (USD millions) of 900 for the year 2025 and 250 for the first
-      half of 2025. For the first half of 2026 it reports 700. What was its revenue for the twelve
-      months to 30 June 2026?
+      half of 2025. For the first half of 2026 it reports 700. Analysts call revenue for the latest
+      twelve months "trailing twelve months". Which headline gets Halloran's twelve months to
+      30 June 2026 right?
     choices:
-      - { id: a, text: "1,350" }
-      - { id: b, text: "1,600" }
-      - { id: c, text: "650" }
-      - { id: d, text: "1,850" }
+      - { id: a, text: "1,350 million: the second half of 2025 together with the first half of 2026" }
+      - { id: b, text: "1,600 million: the full year 2025 together with the first half of 2026", mistake: { tag: counted_first_half_twice, fix: "That brings in the first half of 2025, which ended before the twelve months began." } }
+      - { id: c, text: "650 million: the second half of 2025 on its own", mistake: { tag: left_out_latest_half, fix: "The twelve months also include the latest half, the first half of 2026." } }
+      - { id: d, text: "1,850 million: the year 2025, its first half and the 2026 half, all together", mistake: { tag: counted_a_half_in_both, fix: "The first half of 2025 is already inside the full year. Count each half once." } }
     answer: a
     explanation: >
       Twelve months to 30 June 2026 = second half of 2025 plus first half of 2026. The second half
@@ -315,14 +316,14 @@ checks:
     kind: conversation
     prompt: >
       Choose two statements from the pieces you read, one you expect to hold and one you doubt.
-      For each, say which line or sentence of the filing you went to, what you recomputed with the
-      Case Data, and what you found: it ties out, a mislabel, a period or unit mismatch, or more
-      than the text says. Then say what your finding changes about the writer's point, and what you
+      For each, say which line or sentence of the filing you went to, which figure in the Case Data
+      you checked it against, and what you found: it ties out, a mislabel, a period or unit
+      mismatch, or more than the text says. Then say what your finding changes about the writer's point, and what you
       could not check.
     passCriteria: >
       For both statements the Learner names the filing line or sentence it rests on, with its label
       and period, and uses figures from the Case Data or from Library passages, not from memory or
-      from the writer. They redo the arithmetic and get it right. They sort each finding correctly
+      from the writer. They match each statement to its Case Data figure and read it correctly. They sort each finding correctly
       into ties out, mislabel, period or unit mismatch, or more than the text says, and they can
       say why, in their own words. They separate what the filing says from what the writer adds, and
       they do not call something an error unless they have shown it. They say what the finding does

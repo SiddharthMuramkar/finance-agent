@@ -147,12 +147,12 @@ youllLearn:
 questions:
   - id: abv-q-revenue
     prompt: >
-      A young firm has revenue of $1,000 million. An analyst assumes it grows 100% in year 1, 50% in year 2 and 20% in year 3. What is revenue in year 3?
+      A young firm has revenue of $1,000 million. An analyst assumes it grows 100% in year 1, 50% in year 2 and 20% in year 3, and writes "$3,600 million in year 3". Which statement about that line is right?
     choices:
-      - { id: a, text: "$3,600 million" }
-      - { id: b, text: "$1,700 million" }
-      - { id: c, text: "$2,700 million" }
-      - { id: d, text: "$3,000 million" }
+      - { id: a, text: "Right: each year's growth builds on the year before, so the growth compounds" }
+      - { id: b, text: "Wrong: the three growth rates should be added into one, 170%, and applied to the first year", mistake: { tag: added_growth_rates, fix: "Each year grows from a bigger base, so growth compounds. Adding the rates undercounts." } }
+      - { id: c, text: "Wrong: only the last year's 20% matters for year 3", mistake: { tag: used_last_growth_only, fix: "Year 3 starts where year 2 ended, so all three years of growth count." } }
+      - { id: d, text: "Wrong: revenue cannot come from growth rates; the margin has to be set first", mistake: { tag: margin_before_revenue, fix: "Revenue comes first. The growth path builds it, and the margin is applied to it." } }
     answer: a
     explanation: >
       Growth compounds: 1,000 x 2.00 x 1.50 x 1.20 = 3,600. Adding the growth rates (170%) would give 2,700, which is wrong.
@@ -161,12 +161,12 @@ questions:
 
   - id: abv-q-reinvest
     prompt: >
-      A firm assumes it needs $1 of new capital for every $3 of added revenue (sales-to-capital of 3). Revenue rises from $1,000 million to $1,600 million. How much does it reinvest that year?
+      A firm assumes it needs $1 of new capital for every $3 of added revenue, which analysts call a sales-to-capital ratio of 3. Its revenue rises from $1,000 million to $1,600 million. Which sentence describes its reinvestment that year?
     choices:
-      - { id: a, text: "$200 million" }
-      - { id: b, text: "$600 million" }
-      - { id: c, text: "$1,800 million" }
-      - { id: d, text: "$533 million" }
+      - { id: a, text: "$200 million: one dollar of new capital for every three dollars of the $600 million of added revenue" }
+      - { id: b, text: "$600 million: all of the added revenue is put back into the firm", mistake: { tag: reinvested_all_the_growth, fix: "Added revenue is not spent in full. Only a third of it is needed as new capital." } }
+      - { id: c, text: "$1,800 million: three dollars of new capital for every dollar of added revenue", mistake: { tag: flipped_sales_to_capital, fix: "The ratio is sales per dollar of capital: $3 of sales needs $1 of capital, not the reverse." } }
+      - { id: d, text: "$533 million: a third of all the revenue the firm has after the rise", mistake: { tag: used_total_revenue, fix: "Only the added revenue needs new capital, not the revenue the firm already had." } }
     answer: a
     explanation: >
       Reinvestment = added revenue / sales-to-capital = (1,600 - 1,000) / 3 = 200. It is subtracted from after-tax operating income to give free cash flow.
@@ -189,12 +189,12 @@ questions:
 
   - id: abv-q-options
     prompt: >
-      A hypothetical valuation gives operating assets of $5,000 million. The firm has cash of $100 million, debt of $300 million, employee options worth $400 million and 100 million shares. What is the value per share?
+      A hypothetical valuation gives operating assets of $5,000 million. The firm holds cash of $100 million, owes debt of $300 million, has employee options worth $400 million and has 100 million shares. Which sentence describes the value per share that belongs to its shareholders?
     choices:
-      - { id: a, text: "$44" }
-      - { id: b, text: "$48" }
-      - { id: c, text: "$50" }
-      - { id: d, text: "$52" }
+      - { id: a, text: "$44: operating assets, with the cash added and the debt and the options taken off, shared among the shares" }
+      - { id: b, text: "$48: the same, but leaving the employee options out", mistake: { tag: left_out_options, fix: "Options are a claim on shareholders' value too, so they come off before sharing it out." } }
+      - { id: c, text: "$50: the operating assets alone, shared among the shares", mistake: { tag: skipped_the_bridge, fix: "Cash adds to the equity and debt takes from it, so operating assets alone is not equity." } }
+      - { id: d, text: "$52: the options added to the value instead of taken off", mistake: { tag: added_options, fix: "Options are a claim on shareholders, so they are taken off the value, not added." } }
     answer: a
     explanation: >
       Equity = 5,000 + 100 - 300 = 4,800; less the options, 4,400; divided by 100 million shares = $44. Leaving out the options would give $48.
@@ -246,8 +246,8 @@ checks:
   - id: abv-build-webvan
     kind: conversation
     prompt: >
-      Using the Webvan figures from 4 November 1999, state the inputs of your own valuation (how
-      many distribution centres open and when, how full each one gets and how fast, the average
+      Using the Webvan figures from 4 November 1999, state the inputs of your own valuation (the
+      number of distribution centres and when they open, how full each one gets and how fast, the average
       order, the operating margin you reach, the discount rate and stable growth), show how you get
       from them to a value per share (use the dcf calculator for a quick version, and count the
       cash from the offering, the debt and the options), and say which input moves your value most.

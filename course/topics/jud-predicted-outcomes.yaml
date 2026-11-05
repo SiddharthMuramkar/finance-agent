@@ -129,13 +129,13 @@ questions:
   - id: jud-po-q-required-pace
     prompt: >
       A company has booked $4 billion of revenue in the first seven months of a year. Its target for
-      the full year is $9 billion. About how much must it book each month for the remaining five
-      months to reach the target?
+      the full year is $9 billion. A writer says it must now book "$1.0 billion a month" for the
+      five months left. Which description of that figure is right?
     choices:
-      - { id: a, text: "$1.0 billion a month" }
-      - { id: b, text: "$1.8 billion a month" }
-      - { id: c, text: "$1.3 billion a month" }
-      - { id: d, text: "$0.6 billion a month" }
+      - { id: a, text: "The required pace: the $5 billion still to book, spread over the five months left" }
+      - { id: b, text: "The pace so far: what is already booked, spread over the seven months gone", mistake: { tag: used_pace_so_far, fix: "That is the pace so far. The required pace looks forward, at what is still to book." } }
+      - { id: c, text: "The whole $9 billion target spread over the five months left", mistake: { tag: ignored_booked_revenue, fix: "That ignores the $4 billion already booked. Only the gap to the target is left." } }
+      - { id: d, text: "A run rate: the best month so far, taken for a whole year", mistake: { tag: mixed_pace_and_run_rate, fix: "A run rate scales one recent month. A required pace is the gap over the months left." } }
     answer: a
     explanation: >
       The gap is $9 billion less $4 billion, which is $5 billion, spread over five months: $1.0
@@ -249,22 +249,22 @@ checks:
     prompt: >
       Open the pasted piece at the section on Cursor and on OpenAI's revenue. Pick four claims and,
       for each, quote the writer's words, then say which kind it is: a fact about the date, a
-      number you can recompute, a forecast, or a fork that cannot lose. For each, say which record
+      number the writer used, a forecast, or a fork that cannot lose. For each, say which record
       would settle it (a filing, a funding announcement, a company statement, a dataset), what
       result would count as right and what as wrong, and which words in the claim need a precise
-      measure. Then recompute one number from the piece yourself, such as the monthly revenue the
-      rest of 2025 would need to reach a stated target given the revenue so far. Do not use
-      anything that happened after 6 August 2025.
+      measure. Then say in your own words why the writer doubted OpenAI would reach its target, and
+      what the "required pace" for the rest of 2025 is being compared with. Do not use anything
+      that happened after 6 August 2025.
     passCriteria: >
       The Learner quotes the writer's actual words from their pasted text and sorts at least four
-      claims into the right kinds: a fact about the date, a number to recompute, a forecast, or a
+      claims into the right kinds: a fact about the date, a number the writer used, a forecast, or a
       fork with no way to lose. For each they name a specific kind of record, such as a funding
       announcement, a company statement, an audited statement or an acquisition filing, and say
       what result would count as right or wrong. They point out at least two words that need a
       precise measure (for example revenue versus an annualised run rate, an operating loss
       versus a cash burn, or what counts as an exit), and note that a claim with no date or number
-      cannot be scored sharply. They recompute the required monthly pace correctly: the target
-      less the revenue so far, divided by the months left, and compare it with a monthly pace from
-      the figures given. They keep to what was known on 6 August 2025, treat the reasoning
+      cannot be scored sharply. They explain in their own words that the writer's doubt rests on a
+      required pace (what is still to book, spread over the months left) set against the latest
+      monthly pace from the figures given. They keep to what was known on 6 August 2025, treat the reasoning
       separately from any later result, and make no forecast and no recommendation to buy, sell or
       hold.

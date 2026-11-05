@@ -128,14 +128,14 @@ questions:
   - id: jrc-q-notches-line
     prompt: >
       On the Fitch and KBRA ladder (AAA, AA+, AA, AA-, A+, A, A-, BBB+, BBB, BBB-, BB+, BB, BB-, B+,
-      B, B-, CCC+, CCC and so on), BBB- is the last investment-grade notch. How many notches below
-      BBB- is B?
+      B, B-, CCC+, CCC and so on), BBB- is the last investment-grade notch. A writer says a company
+      rated B is "deep in junk". Which description of where B sits is right?
     choices:
-      - { id: a, text: "Three" }
-      - { id: b, text: "Four" }
-      - { id: c, text: "Five" }
-      - { id: d, text: "Six" }
-    answer: c
+      - { id: a, text: "Four notches below BBB-, with B+ as the last stop before B", mistake: { tag: left_out_a_notch, fix: "B+ is a notch of its own. BB+, BB, BB-, B+ make four, so B is the fifth." } }
+      - { id: b, text: "Five notches below BBB-, after BB+, BB, BB- and B+" }
+      - { id: c, text: "One notch below BBB-: BB is the next class down", mistake: { tag: counted_by_letter_class, fix: "Each plus and minus is its own notch, so BB+, BB and BB- come before B." } }
+      - { id: d, text: "Six notches below BBB-, after B- as well", mistake: { tag: counted_past_the_target, fix: "B- sits below B. B is reached after B+, so stop there." } }
+    answer: b
     explanation: >
       Counting down from BBB-: BB+ (1), BB (2), BB- (3), B+ (4), B (5). Each plus or minus is a notch of
       its own, so counting by letter class alone gives the wrong answer.
@@ -144,12 +144,12 @@ questions:
 
   - id: jrc-q-notches-apart
     prompt: >
-      Using the same ladder, how many notches apart are BB+ and CCC+?
+      Using the same ladder, which description of BB+ and CCC+ is right?
     choices:
-      - { id: a, text: "Four" }
-      - { id: b, text: "Five" }
-      - { id: c, text: "Six" }
-      - { id: d, text: "Seven" }
+      - { id: a, text: "Four notches apart, ending at B", mistake: { tag: stopped_early, fix: "The ladder goes on past B to B- and then CCC+. Four notches only reach B." } }
+      - { id: b, text: "Two notches apart, one class each: BB, then B, then CCC", mistake: { tag: counted_by_letter_class, fix: "Each plus and minus is its own notch. Counting classes alone hides most of the steps." } }
+      - { id: c, text: "Six notches apart, passing BB, BB-, B+, B and B- on the way" }
+      - { id: d, text: "Seven notches apart, counting BB+ itself as a step", mistake: { tag: counted_the_start, fix: "BB+ is where you start. Only the steps after it count, so six." } }
     answer: c
     explanation: >
       From BB+ down: BB (1), BB- (2), B+ (3), B (4), B- (5), CCC+ (6). Six notches.
@@ -242,13 +242,13 @@ questions:
 
   - id: jrc-q-margin
     prompt: >
-      A firm has revenue of $2,000 million and an operating loss of $3,200 million. What is its
-      operating margin?
+      A firm has revenue of $2,000 million and an operating loss of $3,200 million. A writer says
+      its operating margin is "negative 160%". Which reading of that sentence is right?
     choices:
-      - { id: a, text: "Negative 160%" }
-      - { id: b, text: "Negative 62.5%" }
-      - { id: c, text: "Negative 60%" }
-      - { id: d, text: "Positive 160%" }
+      - { id: a, text: "Right: operating margin sets the operating result against revenue, and a loss makes it negative" }
+      - { id: b, text: "Wrong: margin sets revenue against the loss, so it should be about 62.5%", mistake: { tag: flipped_the_ratio, fix: "Margin puts the operating result over revenue, not revenue over the loss." } }
+      - { id: c, text: "Wrong: a loss cannot be shown as a percentage, only in dollars", mistake: { tag: only_profits_get_margins, fix: "A margin can be negative. The minus sign is how it shows a loss." } }
+      - { id: d, text: "Wrong: a margin is always shown positive, so it is plain 160%", mistake: { tag: dropped_the_sign, fix: "Dropping the sign hides the loss. A loss gives a negative margin." } }
     answer: a
     explanation: >
       Operating margin is operating income divided by revenue: -3,200 / 2,000 = -1.6, or negative 160%.
@@ -280,7 +280,7 @@ checks:
       back to what each writer and the filing actually say, and tell me what you can confirm, what
       slips you find and of what kind, and what you could not check.
     passCriteria: >
-      The Learner puts the statements on the ladder with correct notch counts (BB+ is one notch below
+      The Learner puts the statements in the right places on the ladder (BB+ is one notch below
       the last investment-grade notch; B is four notches and CCC+ six notches below BB+) and notes
       that both statements are on the speculative side of the line. They go back to the sources and
       supply no figure of their own: the first writer's section is conditional (negative margin, no

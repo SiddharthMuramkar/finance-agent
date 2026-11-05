@@ -196,13 +196,13 @@ questions:
 
   - id: ju-q-bp-fraction
     prompt: >
-      A loan is priced 150 basis points over its reference rate. Written as a decimal fraction of
-      the rate, what is the margin?
+      A loan is priced 150 basis points over its reference rate. A regulator's form asks for that
+      margin as a decimal fraction. Which entry matches what the loan says?
     choices:
       - { id: a, text: "0.015" }
-      - { id: b, text: "0.15" }
-      - { id: c, text: "0.0015" }
-      - { id: d, text: "1.5" }
+      - { id: b, text: "0.15", mistake: { tag: used_x10, fix: "One basis point is 0.0001, so 150 basis points is 0.015, not 0.15." } }
+      - { id: c, text: "0.0015", mistake: { tag: used_x1, fix: "150 basis points is 1.5%, which is 0.015. 0.0015 would be 15 basis points." } }
+      - { id: d, text: "1.5", mistake: { tag: left_as_percent, fix: "1.5 is the margin in percent. A decimal fraction of the rate is 0.015." } }
     answer: a
     explanation: >
       One basis point is 0.01% = 0.0001, so 150 basis points is 1.5% = 0.015. In the ECB's own
@@ -212,12 +212,12 @@ questions:
 
   - id: ju-q-bp-move
     prompt: >
-      A bond yield rises from 5.00% to 5.25%. How many basis points is that?
+      A bond yield rises from 5.00% to 5.25%. In basis points, what do traders call that move?
     choices:
-      - { id: a, text: "25" }
-      - { id: b, text: "2.5" }
-      - { id: c, text: "250" }
-      - { id: d, text: "0.25" }
+      - { id: a, text: "A rise of 25 basis points" }
+      - { id: b, text: "A rise of 2.5 basis points", mistake: { tag: used_x10, fix: "One point is 100 basis points, so a quarter point is 25 bp, not 2.5." } }
+      - { id: c, text: "A rise of 250 basis points", mistake: { tag: used_x1000, fix: "One point is 100 basis points, so a quarter point is 25 bp, not 250." } }
+      - { id: d, text: "A rise of 0.25 basis points", mistake: { tag: stopped_at_points, fix: "0.25 is the move in points. Traders say it in basis points: 25." } }
     answer: a
     explanation: >
       The rise is 0.25 percentage points. A basis point is 0.01 percentage points, so 0.25 / 0.01 = 25.
@@ -241,13 +241,13 @@ questions:
 
   - id: ju-q-spread-bp
     prompt: >
-      A corporate bond yields 6.10% and a Treasury of similar maturity yields 4.85%. How many
-      basis points is the bond's spread over the Treasury?
+      A corporate bond yields 6.10% and a Treasury of similar maturity yields 4.85%. A trader says
+      the bond trades at a spread over the Treasury. Which quote of that spread is right?
     choices:
-      - { id: a, text: "125" }
-      - { id: b, text: "12.5" }
-      - { id: c, text: "1.25" }
-      - { id: d, text: "1,250" }
+      - { id: a, text: "125 basis points" }
+      - { id: b, text: "12.5 basis points", mistake: { tag: used_x10, fix: "The gap is 1.25 points. One point is 100 basis points, so 125 bp." } }
+      - { id: c, text: "1.25 basis points", mistake: { tag: stopped_at_points, fix: "1.25 is the gap in points. Traders quote a spread in basis points: 125." } }
+      - { id: d, text: "1,250 basis points", mistake: { tag: used_x1000, fix: "One point is 100 basis points, so a 1.25 point gap is 125 bp." } }
     answer: a
     explanation: >
       The gap is 6.10 - 4.85 = 1.25 percentage points. One basis point is 0.01 percentage points,
@@ -274,19 +274,18 @@ checks:
     kind: conversation
     prompt: >
       Take the two claims in the pasted piece about the run rate: the percentage by which the
-      run rate exceeds the second quarter's revenue, and the gap left after adding up both
-      companies' first-half revenue. Using only the figures the piece itself gives, recompute each
-      claim, say what your percentage measures, and explain whether an annual run rate can be
-      set against one quarter's revenue as it stands. Then say what, if anything, your
-      recomputation changes about the writer's wider point.
+      run rate is said to exceed the second quarter's revenue, and the gap said to be left by both
+      companies' first-half revenue. Using only the figures the piece itself gives, say in your own
+      words what each claim measures, and whether an annual run rate can be set against one
+      quarter's revenue as it stands. Then say what, if anything, that changes about the writer's
+      wider point.
     passCriteria: >
-      The Learner recomputes both claims from the piece's own figures rather than from memory or
-      a guess: they divide the run rate by the quarter's revenue and convert the ratio to "percent
-      more" (subtracting the base, not stating the ratio as a percentage); they add the four
-      quarterly figures and subtract from the run rate; and they compare each result with what the
-      piece states, naming how large any difference is. They explain that a run rate is a yearly
-      pace while the quarter covers three months, so a like-for-like comparison scales the quarter
-      by four first. They separate a slip in the arithmetic from the writer's wider point, that a
+      The Learner works from the piece's own figures rather than from memory or a guess. In their
+      own words they say that "percent more" means the amount above the base, not the ratio stated
+      as a percentage, and that the gap claim sets the first-half total against a yearly pace; they
+      compare each claim with what the piece states, naming how large any difference looks. They
+      explain that a run rate is a yearly pace while the quarter covers three months, so a
+      like-for-like comparison scales the quarter to a year first. They separate a slip in the arithmetic from the writer's wider point, that a
       run rate is not revenue already earned, and say which survives. The Tutor supplies no
       figure of its own: every number comes from the Case or from a source the Learner retrieves.
   - id: ju-recompute-units-labels
@@ -294,15 +293,15 @@ checks:
     prompt: >
       Two statements in the other pasted pieces use a unit or a label. In one, a basis point is
       given as a number; in the other, SOFR is described in a parenthesis. For the first, use the
-      Case Data to find how many basis points the 10-year Treasury yield rose between 22 and 29
-      September 2026, and show what that is in percentage points and as a fraction. For the
+      Case Data to read the 10-year Treasury yield on 22 and 29 September 2026, and say what
+      traders would call that move and how it reads in percentage points and as a fraction. For the
       second, check the description against how the New York Fed describes SOFR. Say, for each
-      statement, whether it holds, how large any error is, and whether it changes the writer's
+      statement, whether it holds, how large any error looks, and whether it changes the writer's
       conclusion.
     passCriteria: >
-      For the yield move the Learner reads both dates from the Case Data, takes the difference in
-      percentage points, converts it to basis points (multiplying by 100) and expresses it as a
-      fraction (dividing by 10,000), showing the unit conversion rather than only stating it; they
+      For the yield move the Learner reads both dates from the Case Data, names the move in
+      percentage points, says in words how that reads in basis points (a basis point is a hundredth
+      of a point) and as a fraction, explaining the unit change rather than only stating it; they
       then apply the same definition to test the sidenote's basis-point statement and say whether it
       holds and by what factor any error is out. For SOFR the Learner retrieves the New York Fed's
       description (the Tutor may help them find it in the Library) and compares the wording with the
