@@ -4621,3 +4621,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A Learner sees a raised blue "Check" button and a flat "In progress" tag. Only the button looks pressable, and only the button has a pointer. A developer who writes `<button>` in a new screen gets a lint error that names the primitives.
 
 **Trade-off.** The 9 Widget files and 12 `src/app` files that still hold raw buttons stay on the allowlist until the A3b sweep (`src/app`) and E2a/E5 (Widgets) migrate them, so for now those screens keep their old flat buttons next to the new raised ones. The `Button` anatomy uses a 3px lip, so a row of buttons needs a little more height than before.
+
+## Foundation Topics, story questions batch D2f (`course/topics/val-distress.yaml` and seven more, spec 2026-11-05, ticket D2f)
+
+**What it does.** Eight Foundation Topics (`val-distress`, `val-implied-erp`, `val-india`, `cf-venture`, `bank-regulation`, `crisis-bank-runs`, `struct-securitisation`, `private-credit`) now ask about the story and the words. A quiz question that used to ask for a figure ("What is its CET1 ratio?") asks which headline gets it right or what a word means, and the numbers stay as facts in the story or in the choice labels. Every wrong choice carries a Known mistake, a tag and a one-line fix that shows when it is tapped. The two conversation Checks that asked for a sum ask the Learner to say it in their own words. The batch's ids leave `L10_NOT_YET_STORY`, and three that no longer type a formula leave `NOT_YET_CONVERTED` in `src/course/formula-check.ts`.
+
+**Scenario.** A Learner on Bank regulation meets "A bank has a CET1 ratio of about 9% and must hold 7%: which headline gets it right?" They tap "It only just meets the minimum" and see "With the buffer the requirement is 7%, so 9% leaves a 2-point cushion." They learn the word and the idea and never divide anything.
+
+**Trade-off.** A question about a reading is easier to guess than a sum, so the Check's two-in-a-row rule and the fixes on wrong taps carry more of the weight. Every wrong choice has to be a plausible slip a beginner really makes, which takes more writing than a number distractor.
