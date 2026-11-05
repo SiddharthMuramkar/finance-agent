@@ -28,7 +28,7 @@ export function EmojiSheet({ theme }: { theme: "light" | "dark" }) {
       </p>
       <ul className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3">
         {EMOJI_NAMES.map((name) => (
-          <li key={name} data-emoji={name} className="flex flex-col items-center gap-1 rounded-lg border border-[var(--border)] p-2 text-center">
+          <li key={name} data-emoji={name} className="flex flex-col items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--bubble)] p-2 text-center">
             <Emoji name={name} size={48} label />
             <span className="text-xs leading-4 text-[var(--muted)]">{name}</span>
             <span className="sr-only">{EMOJI[name].alt}</span>
