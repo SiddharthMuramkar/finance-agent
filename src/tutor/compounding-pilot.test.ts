@@ -297,7 +297,7 @@ describe("Growth, compounding and logs, converted", () => {
           const parsed = parseTemplateInstanceId(id);
           if (parsed) {
             const drawn = drawTemplate(one.template(parsed.templateId)!, parsed.seed);
-            return [id, formatExact(drawn.answer, drawn.unit)];
+            return [id, plainExact(drawn.answer)];
           }
           return [id, topic.questions.find((q) => q.id === id)!.answer];
         }),
@@ -309,7 +309,7 @@ describe("Growth, compounding and logs, converted", () => {
       await yourTurn(checkId);
       const open = (await openQuiz(db, one, new Date(), OWNER_LEARNER_ID))!;
       expect(open.checkId).toBe(checkId);
-      const typed = open.questions.filter((q) => q.kind === "number");
+      const typed = open.questions.filter((q) => parseTemplateInstanceId(q.id));
       if (templates.length) expect(typed.length, checkId).toBeGreaterThan(0);
       const answers = rightAnswers(open.questions.map((q) => q.id));
       if (i === 0) {

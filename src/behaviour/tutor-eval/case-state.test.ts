@@ -11,7 +11,7 @@ import { runTutorTurn, type TurnEvent } from "@/tutor/turn";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { CASES_DIR, loadCases, type LiveCase } from "./case";
 import { buildGraderPrompt, codedFailures } from "./grading";
-import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply, slipFor } from "./setup";
+import { answerDrawnTry, noteMark, pendingReason, prepareCase, seenReply } from "./setup";
 
 /**
  * Seam: the Tutor Turn on in-memory Postgres with a scripted model, on today's Course Map. T3, T5 and T6 are set up so that
@@ -87,7 +87,7 @@ describe("T6: the Learner's own rule is saved after a right practice answer", ()
     const { client, requests } = scripted({ id: "toolu_t6", name: "save_learner_rule", input: { learner_words: c.message } }, "Yes, that is the rule.\nWhat is the percent change from 50 to 60?");
     const events = await collect(runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: false }, c.message));
     // The Tutor is told of the right answer with the Learner's message, as the app tells it.
-    expect(JSON.stringify(requests[0])).toMatch(/Quick try results since your last reply[\s\S]*The Learner gave \\"50\\": right/);
+    expect(JSON.stringify(requests[0])).toMatch(/Quick try results since your last reply[\s\S]*The Learner gave \\"50%\\": right/);
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const reply = await seenReply(db, { learnerId: p.learnerId, topic: p.topic, ...done.ref, text: textOf(events), notesAfter });
     expect(reply.savedRule).toBe(c.message);
@@ -117,22 +117,14 @@ describe("T2: a missed typed quiz holds the slips a Learner makes", () => {
     expect(questions).toHaveLength(3);
     for (const q of questions) {
       expect(q.correct).toBe(false);
-      expect(q.given).toMatch(/^\d+(\.\d+)?$/);
+      expect(q.given).toMatch(/^[\d.,]+ ?[a-z%]*$/);
       expect(q.mistake?.tag, `"${q.given}" on "${q.prompt}" is not one of its Known mistakes`).toBeTruthy();
     }
-    expect(p.stateNote).toMatch(/got 0 of 3 right; 1\. they typed "[\d.]+" \(right: /);
+    expect(p.stateNote).toMatch(/got 0 of 3 right; 1\. they picked "[\d.,]+ ?[a-z%]*" \(right: /);
 
     const { client, requests } = scriptedClient([{ content: [{ type: "text", text: "Okay.\nWhat is 5% minus 4%?" }] }]);
     await collect(runTutorTurn({ db, client, map, learnerId: p.learnerId, checkReplies: false }, c.message));
     expect(JSON.stringify(requests[0])).not.toContain("987654");
-  });
-
-  it("falls back to 0 for a question with no Known mistake, and to 1 when 0 is the answer", () => {
-    const drawn = (answer: number, mistakes: number[]) => ({ answer: exactFrom(answer), mistakes: mistakes.map((m) => ({ value: exactFrom(m), tag: "x", fix: "y" })) }) as unknown as DrawnItem;
-    expect(slipFor(drawn(95, [0.95, 9.5]))).toBe("0.95");
-    expect(slipFor(drawn(95, []))).toBe("0");
-    expect(slipFor(drawn(0, []))).toBe("1");
-    expect(slipFor(drawn(95, [95, 9.5]))).toBe("9.5");
   });
 });
 
@@ -166,7 +158,7 @@ describe("T3: the Quick try code shows is the one the earlier turn talks about",
     const sent = JSON.stringify(requests[0]);
     expect(sent).toMatch(/missed a Quick try on the same idea twice in a row/);
     expect(sent).toMatch(/A rate falls from 7\.5% to 7\.2%\./);
-    expect(sent).toMatch(/The Learner gave \\"0\.3\\": a Known mistake/);
+    expect(sent).toMatch(/The Learner gave \\"0\.3 bp\\": a Known mistake/);
 
     // The next Quick try code posts below the reply is part of what the Learner sees, and the grader is told of it.
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;

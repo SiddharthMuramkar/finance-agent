@@ -11,7 +11,7 @@ export const PLAIN_WRONG = "plain";
  */
 export function plainWrongMap(): CourseMap {
   const data = structuredClone(CONVERTED_TOPIC_DATA);
-  data.checks[0].quickTries.unshift({
+  (data.checks[0] as { quickTries: unknown[] }).quickTries.unshift({
     id: "pct-demo-try-pick",
     skill: "pts-to-bp",
     ask: "A rate goes from 2% to 3%. Which one says the move?",
@@ -22,7 +22,7 @@ export function plainWrongMap(): CourseMap {
       { id: PLAIN_WRONG, text: "Up 1" },
     ],
     halfDone: "First step, done for you: the move is 1 point.",
-  } as never);
+  });
   const { map, errors } = parseCourseMap([topicFileOf(data)]);
   if (!map) throw new Error(errors.join("\n"));
   return map;

@@ -1,7 +1,10 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import type { QuickTryData, QuickTryResultData } from "@/tutor/session-item-kinds";
+import type {
+  QuickTryData,
+  QuickTryResultData,
+} from "@/tutor/session-item-kinds";
 
 /**
  * What the Study Workspace gives each Quick try (conversation.tsx): whether a Tutor turn is running (the input is
@@ -20,14 +23,26 @@ export const QuickTryContext = createContext<QuickTryHost | null>(null);
 /** The try's data when it is one (an older or broken row draws nothing). */
 export function quickTryOf(data: Record<string, unknown>): QuickTryData | null {
   const { key, prompt, kind } = data;
-  if (typeof key !== "string" || typeof prompt !== "string" || (kind !== "number" && kind !== "truth" && kind !== "choice")) return null;
+  if (
+    typeof key !== "string" ||
+    typeof prompt !== "string" ||
+    (kind !== "number" && kind !== "truth" && kind !== "choice")
+  )
+    return null;
   return data as unknown as QuickTryData;
 }
 
 /** A result's data when it is one. */
-export function quickTryResultOf(data: Record<string, unknown>): QuickTryResultData | null {
+export function quickTryResultOf(
+  data: Record<string, unknown>,
+): QuickTryResultData | null {
   const { key, verdict, line } = data;
-  if (typeof key !== "string" || typeof line !== "string" || (verdict !== "right" && verdict !== "known_mistake" && verdict !== "wrong")) return null;
+  if (
+    typeof key !== "string" ||
+    typeof line !== "string" ||
+    (verdict !== "right" && verdict !== "known_mistake" && verdict !== "wrong")
+  )
+    return null;
   return { key, verdict, line };
 }
 
@@ -44,7 +59,14 @@ export function QuickTryView({ data }: { data: QuickTryData }) {
   const [error, setError] = useState<string | null>(null);
   const done = host?.answered.has(data.key) ?? false;
   const disabled = !host || host.locked || done || sending;
-  const choices = data.choices ?? (data.kind === "truth" ? [{ id: "true", text: "True" }, { id: "false", text: "False" }] : []);
+  const choices =
+    data.choices ??
+    (data.kind === "truth"
+      ? [
+          { id: "true", text: "True" },
+          { id: "false", text: "False" },
+        ]
+      : []);
   const send = async (choice: string) => {
     if (!host || disabled) return;
     setPicked(choice);
@@ -54,7 +76,11 @@ export function QuickTryView({ data }: { data: QuickTryData }) {
     setSending(false);
   };
   return (
-    <section data-testid="quick-try" aria-label="Quick try" className="self-stretch rounded-lg border border-[var(--brand-line)] bg-[var(--brand-tint)] px-4 py-3 text-sm leading-6">
+    <section
+      data-testid="quick-try"
+      aria-label="Quick try"
+      className="self-stretch rounded-lg border border-[var(--brand-line)] bg-[var(--brand-tint)] px-4 py-3 text-sm leading-6"
+    >
       <h3 className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
         Quick try{data.drill ? ` · ${data.drill.n} of ${data.drill.of}` : ""}
       </h3>
@@ -65,12 +91,18 @@ export function QuickTryView({ data }: { data: QuickTryData }) {
         </p>
       )}
       {host && choices.length > 0 && (
-        <div role="group" aria-label="Choose an answer" className="mt-2 flex flex-wrap gap-2">
+        <div
+          role="group"
+          aria-label="Choose an answer"
+          className="mt-2 flex flex-wrap gap-2"
+        >
           {choices.map((c) => (
             <button
               key={c.id}
               type="button"
-              data-testid={data.kind === "truth" ? `quick-try-${c.id}` : "quick-try-choice"}
+              data-testid={
+                data.kind === "truth" ? `quick-try-${c.id}` : "quick-try-choice"
+              }
               aria-pressed={picked === c.id}
               disabled={disabled}
               onClick={() => void send(c.id)}
@@ -81,7 +113,11 @@ export function QuickTryView({ data }: { data: QuickTryData }) {
           ))}
         </div>
       )}
-      {host && choices.length === 0 && <p className="mt-1 text-xs text-[var(--muted)]">This is an older question. Ask the Tutor for a fresh Quick try.</p>}
+      {host && choices.length === 0 && (
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          This is an older question. Ask the Tutor for a fresh Quick try.
+        </p>
+      )}
       {error && (
         <p role="alert" className="mt-1 text-xs text-[var(--color-danger)]">
           {error}
@@ -94,7 +130,11 @@ export function QuickTryView({ data }: { data: QuickTryData }) {
 /** A Quick try's result: "Right.", the Known mistake's fix, or "Not quite.". */
 export function QuickTryResultView({ data }: { data: QuickTryResultData }) {
   return (
-    <p data-testid="quick-try-result" data-verdict={data.verdict} className={`self-start text-sm leading-5 ${data.verdict === "right" ? "text-[var(--you)]" : "text-[var(--color-danger)]"}`}>
+    <p
+      data-testid="quick-try-result"
+      data-verdict={data.verdict}
+      className={`self-start text-sm leading-5 ${data.verdict === "right" ? "text-[var(--you)]" : "text-[var(--color-danger)]"}`}
+    >
       {data.line}
     </p>
   );

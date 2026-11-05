@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { questionLookup } from "@/bank/lookup";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
+import { parseTemplateInstanceId } from "@/course/quiz";
 import { widgetsIn, type ThreadLine } from "@/app/thread";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { caseDataPoints, caseDatasets, messages, OWNER_LEARNER_ID, sessionItems, sessions } from "@/db/schema";
@@ -79,7 +80,7 @@ function answerFor(t: QuickTryData, how: "right" | "known" | "wrong"): string | 
 }
 
 describe("Percent, converted, end to end", () => {
-  it("plays story to principle: cards with presets, Quick tries to fluency, typed quizzes, the conversation Check, the reveal Widget, passed", async () => {
+  it("plays story to principle: cards with presets, Quick tries to fluency, template quizzes, the conversation Check, the reveal Widget, passed", async () => {
     const db = await testDb();
     await seedFedFunds(db);
     let sessionId = 0;
@@ -121,10 +122,10 @@ describe("Percent, converted, end to end", () => {
         await turn("Got it", [finish((await place())!.step), say("Over to you.")]);
       }
 
-      // Your turn: Quick tries until every Skill is fluent. The first Check sees a right answer, a Known mistake and an
-      // unknown wrong answer (two misses in a row), then right answers.
+      // Your turn: Quick tries until every Skill is fluent. The first Check sees a right answer and two Known mistakes
+      // in a row (every number choice is a named mix-up), then right answers.
       if ((await place())?.step === "your_turn" && check.quickTries.length) {
-        const plan: ("right" | "known" | "wrong")[] = missedOnce ? [] : ["right", "known", "wrong"];
+        const plan: ("right" | "known" | "wrong")[] = missedOnce ? [] : ["right", "known", "known"];
         missedOnce = true;
         const verdicts: string[] = [];
         for (let i = 0; i < 40 && (await place())?.step === "your_turn"; i++) {
@@ -136,10 +137,10 @@ describe("Percent, converted, end to end", () => {
           expect(answered.ok).toBe(true);
           if (!answered.ok) break;
           verdicts.push((answered.items[0].data as QuickTryResultData).verdict);
-          // An unknown wrong answer asks for the code-written follow-up turn, which posts the next try.
+          // A second miss in a row asks for the code-written re-teach turn, which posts the next try.
           if (answered.followUp && (await place())?.step === "your_turn") await turn("Quick try follow-up by code: name the slip.", [say("You divided where you should multiply. Try this one.")]);
         }
-        if (check.id === percent.checks[0].id) expect(verdicts.slice(0, 3)).toEqual(["right", "known_mistake", "wrong"]);
+        if (check.id === percent.checks[0].id) expect(verdicts.slice(0, 3)).toEqual(["right", "known_mistake", "known_mistake"]);
         expect((await stored()).at(-1)?.kind === STEP_DIVIDER || (await place())?.step === "check").toBe(true);
       }
       for (let i = 0; i < 2 && (await place())?.step === "your_turn"; i++) await turn("Done", [finish("your_turn"), say("To the Check.")]);
@@ -150,7 +151,7 @@ describe("Percent, converted, end to end", () => {
         const quiz = (await openQuiz(db, map, now(), me))!;
         expect(quiz.checkId).toBe(check.id);
         // The wording Check asks "which is true" questions only; every other quiz here draws a typed question.
-        if (check.id !== "pb-quiz-wording") expect(quiz.questions.some((q) => q.kind === "number")).toBe(true);
+        if (check.id !== "pb-quiz-wording") expect(quiz.questions.some((q) => parseTemplateInstanceId(q.id))).toBe(true);
         const lookup = await questionLookup(db, map, quiz.questions.map((q) => q.id));
         let slipped = false;
         const answers = Object.fromEntries(

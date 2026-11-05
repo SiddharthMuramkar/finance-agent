@@ -108,17 +108,6 @@ async function walkTo(db: Db, map: CourseMap, topic: Topic, c: LiveCase, learner
   throw new Error(`${c.id}: could not place the Learner at ${c.state.step} of Check ${c.state.check}.`);
 }
 
-/**
- * A wrong answer a Learner would type to a typed question: the question's first Known mistake (the move in points where
- * basis points were asked, say 0.95), else 0, or 1 when 0 is the answer. Never the right answer, and never an odd number
- * the Tutor would remark on.
- */
-export function slipFor(drawn: DrawnItem): string {
-  const right = plainExact(drawn.answer);
-  const slip = drawn.mistakes.map((m) => plainExact(m.value)).find((v) => v !== right);
-  return slip ?? (right === "0" ? "1" : "0");
-}
-
 async function drain(events: AsyncIterable<TurnEvent>): Promise<TurnEvent[]> {
   const out: TurnEvent[] = [];
   for await (const e of events) out.push(e);
