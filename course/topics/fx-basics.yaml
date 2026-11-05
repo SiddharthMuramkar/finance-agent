@@ -61,15 +61,15 @@ youllLearn:
 questions:
   - id: fx-q-invert
     prompt: >
-      A bank quotes one Mexican peso at $0.0625. What is the price of one US dollar in pesos?
+      A bank quotes one Mexican peso at $0.0625. The trader at the next desk reads out the same rate as "16 pesos to the dollar". What do traders call that second way of quoting?
     choices:
-      - { id: a, text: "16 pesos" }
-      - { id: b, text: "0.0625 pesos" }
-      - { id: c, text: "6.25 pesos" }
-      - { id: d, text: "160 pesos" }
+      - { id: a, text: "The inverse quote: the same rate, read from the dollar's side" }
+      - { id: b, text: "A second, different rate for the peso", mistake: { tag: flip_is_new_rate, fix: "Flipping the quote changes nothing. It is the same rate read from the other currency's side." } }
+      - { id: c, text: "A devaluation of the peso", mistake: { tag: flip_is_devaluation, fix: "A devaluation is a government cutting a fixed rate. Reading a quote the other way moves nothing." } }
+      - { id: d, text: "A forward rate", mistake: { tag: flip_is_forward, fix: "A forward rate is for a later date. This is the same rate, today, quoted the other way." } }
     answer: a
     explanation: >
-      Divide both sides of MXN 1 = USD 0.0625 by 0.0625: MXN 16 = USD 1. The quote the other way round is the reciprocal.
+      Divide both sides of MXN 1 = USD 0.0625 by 0.0625 and you get MXN 16 = USD 1. The quote the other way round is the reciprocal: the same rate, quoted from the other currency.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
@@ -89,12 +89,12 @@ questions:
 
   - id: fx-q-exporter
     prompt: >
-      A Mexican potter sells goods for $20,000. The exchange rate moves from MXN 16 = USD 1 to MXN 20 = USD 1. How many pesos does the $20,000 buy after the move, and what happened to the peso?
+      A Mexican potter sells goods for $20,000. The exchange rate moves from MXN 16 = USD 1 to MXN 20 = USD 1. Which headline gets it right?
     choices:
-      - { id: a, text: "400,000 pesos; the peso depreciated" }
-      - { id: b, text: "320,000 pesos; the peso depreciated" }
-      - { id: c, text: "400,000 pesos; the peso appreciated" }
-      - { id: d, text: "250,000 pesos; the peso appreciated" }
+      - { id: a, text: "The peso weakened, so the same dollars now buy more pesos and the potter gains in pesos" }
+      - { id: b, text: "The peso strengthened, so the potter gains in pesos", mistake: { tag: read_the_rate_backwards, fix: "More pesos per dollar means each peso buys fewer dollars. The peso weakened." } }
+      - { id: c, text: "The peso weakened, so the potter earns fewer pesos", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more in pesos." } }
+      - { id: d, text: "Nothing changes for the potter, because the dollar price is the same", mistake: { tag: ignored_conversion, fix: "The dollars are the same, but converting them now gives a different number of pesos." } }
     answer: a
     explanation: >
       At 16 per dollar $20,000 buys 320,000 pesos; at 20 per dollar it buys 400,000. More pesos per dollar means each peso is worth fewer dollars: the peso depreciated, and the exporter earns more in pesos.
@@ -103,40 +103,40 @@ questions:
 
   - id: fx-q-percent
     prompt: >
-      The rupee goes from INR 75 = USD 1 to INR 80 = USD 1. By what percentage has the rupee lost value against the dollar?
+      The rupee goes from INR 75 = USD 1 to INR 80 = USD 1. Which headline gets it right?
     choices:
-      - { id: a, text: "6.25%" }
-      - { id: b, text: "6.67%" }
-      - { id: c, text: "5%" }
-      - { id: d, text: "7.5%" }
+      - { id: a, text: "The rupee lost value and the dollar gained, though the two percentage moves are not equal" }
+      - { id: b, text: "The rupee gained value, because 80 is a bigger number than 75", mistake: { tag: bigger_number_stronger, fix: "A bigger number of rupees per dollar means each rupee buys less. The rupee lost value." } }
+      - { id: c, text: "The rupee and the dollar moved by exactly the same percentage", mistake: { tag: same_percent_both_ways, fix: "Each move is measured from a different starting point, so the two percentages differ." } }
+      - { id: d, text: "The rupee was revalued by its government", mistake: { tag: revalued_means_up, fix: "Revaluation raises a fixed rate. Here the rupee lost value against the dollar." } }
     answer: a
     explanation: >
-      One rupee was worth 1/75 = $0.013333 and is now worth 1/80 = $0.0125, a fall of 0.0008333 / 0.013333 = 6.25%. The 6.67% figure (80/75 - 1) is the rise in the rupee price of a dollar, which is the dollar's gain, not the rupee's loss.
+      One rupee was worth 1/75 = $0.013333 and is now worth 1/80 = $0.0125, a fall of 6.25%. The rise in the rupee price of a dollar is 6.67% (80/75 - 1). Both describe one move, measured from different sides.
     source: >
       Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-compound
     prompt: >
-      A currency is devalued by 15% and then, two days later, by 20% of its new value. What is the total fall in its value, to the nearest whole percent?
+      A currency is devalued by 15% and then, two days later, by a further 20% of its new value. Which headline gets it right about the total fall?
     choices:
-      - { id: a, text: "32%" }
-      - { id: b, text: "35%" }
-      - { id: c, text: "30%" }
-      - { id: d, text: "28%" }
+      - { id: a, text: "The total fall is a little less than the two cuts put together, because the second cut bites a smaller value" }
+      - { id: b, text: "The total fall is exactly the two cuts put together", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
+      - { id: c, text: "The total fall is more than the two cuts put together", mistake: { tag: compounding_goes_up, fix: "The second cut applies to a smaller base, so it takes less than 20% of the original." } }
+      - { id: d, text: "Nobody can say without the exchange rate", mistake: { tag: needs_the_rate, fix: "The two percentages are enough to say the total is a little below the cuts put together." } }
     answer: a
     explanation: >
-      After the first cut the currency is worth 85% of its old value; after the second, 80% of that: 0.85 x 0.80 = 0.68, a total fall of 32%. Adding 15 and 20 gives 35%, which overstates it.
+      After the first cut the currency is worth 85% of its old value; after the second, 80% of that: 0.85 x 0.80 = 0.68, a total fall of 32%. Putting the cuts together as 35% overstates it.
     source: >
       Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
   - id: fx-q-ppp
     prompt: >
-      One US dollar is worth 1.30 Canadian dollars. A car sells for $20,000 in the United States. At what Canadian price would purchasing power parity hold for the same car?
+      A car sells for $20,000 in the United States. In Canada, where one US dollar buys 1.30 Canadian dollars, the same car sells for C$26,000. What does purchasing power parity mean here?
     choices:
-      - { id: a, text: "C$26,000" }
-      - { id: b, text: "C$15,385" }
-      - { id: c, text: "C$20,000" }
-      - { id: d, text: "C$21,300" }
+      - { id: a, text: "The two prices match once the exchange rate is applied, so buyers have no reason to shop across the border" }
+      - { id: b, text: "The two price tags show the same number", mistake: { tag: same_number_means_parity, fix: "Parity is about value after converting currencies, not matching numbers." } }
+      - { id: c, text: "Canada is cheaper, so buyers should go there", mistake: { tag: bigger_number_cheaper, fix: "At parity the converted prices are equal. Neither side is cheaper." } }
+      - { id: d, text: "Canada must devalue its dollar", mistake: { tag: parity_is_an_order, fix: "Parity describes prices lining up. It is not an order to any government." } }
     answer: a
     explanation: >
       At USD 1 = CAD 1.30, a $20,000 car costs 20,000 x 1.30 = C$26,000. If it were much cheaper in Canada, buyers would shift there until prices and exchange rates aligned.
@@ -162,11 +162,11 @@ checks:
     kind: conversation
     prompt: >
       Suppose a country with a fixed exchange rate cuts its currency's value by 10% and then
-      by a further 20% of the new value. Explain what this does to the price of imports and to
-      the foreign-currency price of exports, why the total fall is 28% and not 30%, and how
-      it could help with a payments crisis like India's in 1991.
+      by a further 20% of the new value. In your own words, say what this does to the price of
+      imports and to the foreign-currency price of exports, why the total fall is a little less
+      than the two cuts put together, and how it could help with a payments crisis like India's in 1991.
     passCriteria: >
       The Learner says imports cost more in the home currency and exports cost less in foreign currency, so imports
-      are discouraged and exports encouraged. They say the two cuts multiply (0.90 x 0.80 = 0.72)
-      for a 28% fall in the currency's value. They connect it to the crisis: a cheaper
+      are discouraged and exports encouraged. They say the second cut bites an already smaller value, so the total fall
+      is a little less than the two cuts put together (the story's figure is 28%, not 30%). They connect it to the crisis: a cheaper
       currency improves the trade balance and the incentive to hold the home currency, which helps restore reserves.

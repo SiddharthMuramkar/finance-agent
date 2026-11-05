@@ -45,7 +45,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "cf-wacc",
   "cf-capital-structure",
   "cf-payout",
-  "credit-analysis",
   "val-dcf",
   "val-multiples",
   "val-young",
