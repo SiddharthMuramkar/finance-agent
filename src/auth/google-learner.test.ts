@@ -6,6 +6,7 @@ import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { learnerForAuthUser } from "./google-learner";
 import { addInvite, setSignupOpen } from "./invites";
+import { signInAs } from "./learners";
 
 type GoogleUser = { id: string; email: string; name: string };
 
@@ -72,6 +73,24 @@ describe("learnerForAuthUser", () => {
     await setSignupOpen(db, true);
     const u = await googleUser(db, { id: "u9", email: "stranger@x.com", name: "Stranger" });
     expect(await learnerForAuthUser(db, u)).toMatchObject({ name: "Stranger", authUserId: "u9" });
+  });
+
+  it("same display name, two people", async () => {
+    const db = await testDb();
+    const tools = await signInAs(db, "tools");
+    for (const email of ["a1@x.com", "a2@x.com", "o@x.com", "t@x.com"]) await addInvite(db, email);
+    const a1 = await learnerForAuthUser(db, await googleUser(db, { id: "u1", email: "a1@x.com", name: "Asha" }));
+    const a2 = await learnerForAuthUser(db, await googleUser(db, { id: "u2", email: "a2@x.com", name: "Asha" }));
+    expect(a1?.name).toBe("Asha");
+    expect(a2?.name).toBe("Asha (2)");
+    expect(a1?.id).not.toBe(a2?.id);
+    for (const l of [a1, a2]) expect([1, tools.id]).not.toContain(l?.id);
+    const owner = await learnerForAuthUser(db, await googleUser(db, { id: "u3", email: "o@x.com", name: "Owner" }));
+    expect(owner?.name).toBe("Owner (2)");
+    expect(owner?.id).not.toBe(1);
+    const t = await learnerForAuthUser(db, await googleUser(db, { id: "u4", email: "t@x.com", name: "tools" }));
+    expect(t?.name).toBe("tools (2)");
+    expect(t?.id).not.toBe(tools.id);
   });
 });
 
