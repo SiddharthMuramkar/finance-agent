@@ -68,67 +68,65 @@ questions:
     prompt: >
       A start-up announces a $400 million funding round. The terms say $100 million is paid now,
       $200 million by the end of the year, and the last $100 million only if it completes a
-      restructuring by that date. On the day of the announcement, how much cash has it received?
+      restructuring by that date. Which headline gets it right on the day of the announcement?
     choices:
-      - { id: a, text: "$400 million" }
-      - { id: b, text: "$300 million" }
-      - { id: c, text: "$100 million" }
-      - { id: d, text: "$200 million" }
-    answer: c
+      - { id: a, text: "Start-up has $400 million in the bank", mistake: { tag: counted_announced, fix: "An announced round is the most it may get, not cash received." } }
+      - { id: b, text: "Start-up is promised up to $400 million, and only the first payment has arrived" }
+      - { id: c, text: "Start-up has $300 million, everything with no condition attached", mistake: { tag: counted_promises, fix: "A payment due later is still a promise, not cash in hand today." } }
+      - { id: d, text: "Start-up has $200 million, half of the round", mistake: { tag: counted_half, fix: "Half is not in the terms; only the first payment has arrived." } }
+    answer: b
     explanation: >
       Only the first payment has arrived. The $200 million due later is a promise, and the last
       $100 million is a promise that depends on a condition. An announced round is the most the
       company may receive, not the cash it holds.
-    source: Arithmetic on the stated hypothetical terms (staged commitments versus cash received).
+    source: The stated hypothetical terms (staged commitments versus cash received).
   - id: fsr-q-customer-share
     prompt: >
-      A computing-services firm had revenue of $2 billion last year. One customer accounted for
-      60% of it and a second for 15%. How much revenue came from those two customers together?
+      A computing-services firm had revenue of $2 billion last year. One customer accounted for 60%
+      of it and a second for 15%. What does that make a careful reader worry about?
     choices:
-      - { id: a, text: "$1.5 billion" }
-      - { id: b, text: "$1.2 billion" }
-      - { id: c, text: "$0.3 billion" }
-      - { id: d, text: "$0.75 billion" }
+      - { id: a, text: "Its results depend on two customers, so losing either could cut revenue sharply" }
+      - { id: b, text: "Nothing: a big customer proves the product is popular", mistake: { tag: popularity_not_risk, fix: "Reliance on one buyer is a risk; it shows concentration, not broad demand." } }
+      - { id: c, text: "Its revenue is overstated, because customers are counted twice", mistake: { tag: double_count_assumed, fix: "Nothing here says revenue is counted twice; the worry is dependence on few buyers." } }
+      - { id: d, text: "It must be a small firm, because large firms have many customers", mistake: { tag: size_assumed, fix: "Size does not settle it; many large firms depend on a few customers." } }
     answer: a
     explanation: >
-      60% + 15% = 75%, and 75% of $2 billion is $1.5 billion. When a few customers supply most of
-      a firm's revenue, the firm's results depend on them. US accounting rules require a company
-      to disclose any customer that makes up 10% or more of its revenue so readers can see this.
+      When a few customers supply most of a firm's revenue, the firm's results depend on them. US
+      accounting rules require a company to disclose any customer that makes up 10% or more of its
+      revenue so readers can see this.
     source: >
-      FASB ASC 280-10-50-42 (disclosure of major customers at 10% or more of revenue); arithmetic
-      on the stated hypothetical figures.
+      FASB ASC 280-10-50-42 (disclosure of major customers at 10% or more of revenue); the firm and
+      its figures are hypothetical.
   - id: fsr-q-lease-pv
     prompt: >
       A data-centre operator signs a 15-year lease with payments of $100 million at the end of each
-      year. Using a discount rate of 8% a year, which figure is closest to the present value of the
-      payments?
+      year. Which sentence about the lease is right?
     choices:
-      - { id: a, text: "$1,500 million" }
-      - { id: b, text: "$1,200 million" }
-      - { id: c, text: "$428 million" }
-      - { id: d, text: "$856 million" }
-    answer: d
-    explanation: >
-      The present value of an annuity is payment x (1 - (1 + r)^-n) / r = 100 x (1 - 1.08^-15) /
-      0.08, about $856 million. The $1,500 million is the undiscounted total. The commitment is
-      still large, and it is owed whether or not the tenant's own customers pay.
-    source: Annuity present-value formula; checked with the calculate tool's present value function.
-  - id: fsr-q-spend-gap
-    prompt: >
-      A company brings in $50 million of revenue a month. It has signed commitments to spend $1.2
-      billion on computing over the next twelve months. If revenue stays at $50 million a month,
-      by how much do the commitments exceed twelve months of revenue?
-    choices:
-      - { id: a, text: "$600 million" }
-      - { id: b, text: "$1,150 million" }
-      - { id: c, text: "$1,200 million" }
-      - { id: d, text: "$550 million" }
+      - { id: a, text: "It is a large commitment the operator owes whether or not its own customers pay" }
+      - { id: b, text: "It is not a debt, because the building is rented rather than bought", mistake: { tag: lease_not_debt, fix: "Lease payments are a promise to pay, so the operator owes them like a loan." } }
+      - { id: c, text: "It matters only in a year when a payment falls due", mistake: { tag: due_dates_only, fix: "The payments are promised for all 15 years, so the commitment exists from signing." } }
+      - { id: d, text: "It is cancelled if the operator's customers stop paying", mistake: { tag: customers_cancel, fix: "The landlord's claim does not depend on whether the operator's customers pay." } }
     answer: a
     explanation: >
-      Twelve months of revenue is 12 x $50 million = $600 million. The commitments are $1,200
-      million, so they exceed it by $600 million. That gap has to be met from cash on hand, new
-      funding or higher revenue, which is why where the cash comes from matters.
-    source: Arithmetic on the stated hypothetical figures (revenue against commitments).
+      The payments are a promise for fifteen years, however large the operator's own sales are. The
+      commitment is still large, and it is owed whether or not the tenant's own customers pay.
+    source: Lease commitments as obligations; see the course Topic fs-leases-debt.
+  - id: fsr-q-spend-gap
+    prompt: >
+      A company brings in $50 million of revenue a month, which is $600 million a year at that pace.
+      It has signed commitments to spend $1.2 billion on computing over the next twelve months. If
+      revenue stays where it is, where must the money for the commitments come from?
+    choices:
+      - { id: a, text: "From cash on hand, new funding or higher revenue, because the current pace does not cover them" }
+      - { id: b, text: "From the commitments themselves: signing a contract brings cash in", mistake: { tag: contract_as_cash, fix: "Signing a commitment creates a bill, not cash." } }
+      - { id: c, text: "From nowhere: commitments are optional and can be dropped freely", mistake: { tag: commitments_optional, fix: "Signed commitments are promises to pay; walking away usually has a cost." } }
+      - { id: d, text: "From profit, because a company with revenue is profitable", mistake: { tag: revenue_as_profit, fix: "Revenue is not profit; costs come out of revenue first." } }
+    answer: a
+    explanation: >
+      The commitments are far larger than a year of revenue at the current pace. That gap has to be
+      met from cash on hand, new funding or higher revenue, which is why where the cash comes from
+      matters.
+    source: The stated hypothetical figures (revenue against commitments).
 
 checks:
   - id: fsr-quiz-follow-the-money

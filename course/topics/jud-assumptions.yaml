@@ -94,35 +94,36 @@ youllLearn:
 questions:
   - id: ja-q-value-pb
     prompt: >
-      A firm has book equity of Rs 80 crore and expects net income of Rs 12 crore every year forever.
-      Its cost of equity is 12%. If the market prices it fairly, what is its price to book?
+      A firm earns Rs 12 crore a year forever on book equity of Rs 80 crore, a return on equity of
+      15%. Its cost of equity is 12%. If the market prices it fairly, where should its price sit
+      against its book value?
     choices:
-      - { id: a, text: "1.25" }
-      - { id: b, text: "0.80" }
-      - { id: c, text: "1.50" }
-      - { id: d, text: "0.15" }
+      - { id: a, text: "Above book value: its price to book should be above 1" }
+      - { id: b, text: "Below book value: its price to book should be under 1", mistake: { tag: pb_inverted, fix: "Below book is for firms earning less than their cost of equity, not more." } }
+      - { id: c, text: "Exactly at book value", mistake: { tag: pb_at_one, fix: "Price equals book only when return on equity equals the cost of equity." } }
+      - { id: d, text: "It cannot be said without next year's price", mistake: { tag: pb_needs_future_price, fix: "With steady earnings and fair pricing, the return on equity against the cost of equity decides it." } }
     answer: a
     explanation: >
-      With constant earnings forever, value = net income / cost of equity = 12 / 0.12 = Rs 100
-      crore. Price to book = 100 / 80 = 1.25. The 0.80 inverts the ratio.
+      With constant earnings forever, a fair price is above book value when the return on equity is
+      above the cost of equity, and below it when the return is lower. This firm earns more than its
+      shareholders require, so the market should pay more than book.
     source: >
       Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
       on Markets, 18 February 2025 (value as net income over cost of equity); Damodaran, Determinants
       of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
   - id: ja-q-mislabel
     prompt: >
-      A commenter says a company's "return on equity" is 8%, computed as net income of Rs 16 crore
-      divided by a market value of Rs 200 crore. Its book equity is Rs 50 crore. What is the 8%,
-      and what is the return on equity?
+      A commenter says a company's "return on equity" is 8%, taken as net income of Rs 16 crore over
+      a market value of Rs 200 crore. Its book equity is Rs 50 crore. What do analysts call the 8%?
     choices:
-      - { id: a, text: "8% is the earnings yield; the return on equity is 32%" }
-      - { id: b, text: "8% is the return on equity; the earnings yield is 32%" }
-      - { id: c, text: "8% is the cost of equity; the return on equity is 32%" }
-      - { id: d, text: "8% is correct as a return on equity, because market value is the true equity" }
+      - { id: a, text: "The earnings yield: net income over market value, not over book equity" }
+      - { id: b, text: "The return on equity: market value is the true equity", mistake: { tag: roe_on_market_value, fix: "Return on equity divides net income by book equity, not by market value." } }
+      - { id: c, text: "The cost of equity: what shareholders require", mistake: { tag: yield_as_cost, fix: "The cost of equity is what shareholders require; the 8% is earnings over market value." } }
+      - { id: d, text: "The payout ratio: the share of earnings paid out", mistake: { tag: yield_as_payout, fix: "A payout ratio is dividends over earnings; this 8% is earnings over market value." } }
     answer: a
     explanation: >
-      Net income over market value is the earnings yield: 16 / 200 = 8%. Return on equity divides net
-      income by book equity: 16 / 50 = 32%. The error is a mislabel of the denominator.
+      Net income over market value is the earnings yield. Return on equity divides net income by book
+      equity, which gives a much higher figure here. The error is a mislabel of the denominator.
     source: >
       Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
       on Markets, 18 February 2025.
@@ -162,32 +163,35 @@ questions:
       equity and risk): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/peratio.htm
   - id: ja-q-sustainable
     prompt: >
-      A firm keeps 40% of its earnings and earns a 15% return on equity. With no new shares issued,
-      about how fast can its earnings grow?
+      A firm pays out 60% of its earnings and keeps 40% to reinvest, earning a 15% return on
+      equity. With no new shares issued, what sets how fast its earnings can grow?
     choices:
-      - { id: a, text: "6% a year" }
-      - { id: b, text: "9% a year" }
-      - { id: c, text: "15% a year" }
-      - { id: d, text: "40% a year" }
+      - { id: a, text: "How much it reinvests, and the return that money earns" }
+      - { id: b, text: "How much it pays out, and nothing else", mistake: { tag: payout_only, fix: "Payout is half the story; growth also needs a return on the money kept." } }
+      - { id: c, text: "The cost of equity alone", mistake: { tag: cost_sets_growth, fix: "The cost of equity prices the shares; it does not set how fast earnings grow." } }
+      - { id: d, text: "Nothing: growth has no link to retained earnings", mistake: { tag: growth_unlinked, fix: "With no new shares, retained earnings are the money that funds growth." } }
     answer: a
     explanation: >
-      Expected growth = retention ratio x return on equity = 0.40 x 15% = 6%. The 9% multiplies the
-      payout (60%) by the return instead of the retention.
+      With no new shares, growth is funded by the earnings kept, so it depends on how much is
+      retained and on the return that money earns. Here the retained 40% earning 15% gives growth of
+      6% a year. Mixing up the retained share with the paid-out share is the usual slip.
     source: >
       Damodaran, Determinants of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
   - id: ja-q-implied-price
     prompt: >
-      A company earns Rs 30 crore a year forever, has a cost of equity of 15% and a market value of
-      Rs 150 crore. What market value would make its earnings yield equal its cost of equity?
+      A company earns Rs 30 crore a year forever and has a cost of equity of 15%. The market values
+      it at Rs 150 crore, so its earnings yield is 20%, above its cost of equity. With steady
+      earnings, what does that gap suggest about the price?
     choices:
-      - { id: a, text: "Rs 200 crore" }
-      - { id: b, text: "Rs 150 crore" }
-      - { id: c, text: "Rs 450 crore" }
-      - { id: d, text: "Rs 4.5 crore" }
+      - { id: a, text: "The price is lower than steady earnings at a 15% cost of equity would justify" }
+      - { id: b, text: "The price is higher than steady earnings at a 15% cost of equity would justify", mistake: { tag: yield_gap_inverted, fix: "A higher yield than the cost of equity means a lower price, not a higher one." } }
+      - { id: c, text: "Nothing: an earnings yield cannot be set beside a cost of equity", mistake: { tag: yield_cost_incomparable, fix: "With steady earnings and a fair price the two are equal, so a gap is informative." } }
+      - { id: d, text: "The company's book equity must be too high", mistake: { tag: book_blamed, fix: "Book equity does not enter earnings over market value." } }
     answer: a
     explanation: >
-      Earnings yield = net income / market value, so value = 30 / 0.15 = Rs 200 crore. At Rs 150 crore
-      the yield is 20%, above the 15% cost of equity.
+      For steady earnings forever, a fair price makes the earnings yield equal the cost of equity.
+      A yield above it means the price is below that fair value, which could be cheapness or an
+      expectation that earnings will shrink.
     source: >
       Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
       on Markets, 18 February 2025 (value of a no-growth firm as net income over cost of equity).
@@ -203,21 +207,21 @@ checks:
     kind: conversation
     prompt: >
       You have read Damodaran's 18 February 2025 post on return on equity and earnings yield. First
-      recompute, from the inputs he gives for businesses A and B, the return on equity, the value, the
-      price to book and the earnings yield. Then take his statements on marking to market, the
-      research-spending example and the 50% growth for ten years, and for each one say whether it
-      follows from his stated inputs, which assumptions you had to add to reproduce it, and whether
-      any slip is a mislabel, a period mismatch or an inference beyond the text. For the growth
-      statement, choose your own inputs. Finally, say which of his statements depend on the
+      say, in your own words, what his businesses A and B are meant to show about return on equity,
+      value, price to book and earnings yield, and what sits on top of and underneath each ratio.
+      Then take his statements on marking to market, the research-spending example and the 50%
+      growth for ten years, and for each one say whether it follows from his stated inputs, which
+      assumptions you would have to add, and whether any slip is a mislabel, a period mismatch or an
+      inference beyond the text. For the growth statement, say what has to be true about
+      reinvestment for it to hold. Finally, say which of his statements depend on the
       efficient-pricing assumption.
     passCriteria: >
-      The Learner recomputes the toy figures from the post's inputs themselves, with correct ROE,
-      value, price to book and earnings yield, and names the numerator and denominator of each ratio.
-      They reproduce the marking-to-market and research-spending figures from the post's inputs and
-      state every assumption they had to add. For growth they choose their own growth path, say what
-      reinvestment it needs and what return that reinvestment earns, compute a value and an earnings
-      yield from those choices, and say in terms of their own numbers whether the post's sentence
-      follows. They classify any slip they find as a mislabel, a period mismatch or an inference
-      beyond the text, and they separate the post's statements that depend on fair pricing from those
-      that do not. They do not take any figure from the Tutor, do not claim to know what any market
+      The Learner explains in words, from the post's inputs, what return on equity, value, price to
+      book and earnings yield each measure, names what sits on top of and underneath each ratio, and
+      says how A and B differ and why. They explain the marking-to-market and research-spending
+      statements in words and state every assumption they would have to add. For growth they say what
+      reinvestment it needs and what return that reinvestment earns, and say in their own terms
+      whether the post's sentence follows. They classify any slip they find as a mislabel, a period
+      mismatch or an inference beyond the text, and they separate the post's statements that depend
+      on fair pricing from those that do not. They do not take any figure from the Tutor, do not claim to know what any market
       did afterwards, and make no buy, sell or hold call.

@@ -117,39 +117,40 @@ youllLearn:
 questions:
   - id: jn-q-recompute-slice
     prompt: >
-      A writer states: "A ride company with $8 billion of gross receipts that keeps 25% of each fare
-      has revenue of $3 billion." Redo the calculation. What do you find?
+      A ride company collects $8 billion of fares (its gross receipts) and keeps 25% of each fare,
+      passing the rest on to drivers. A writer says its revenue is $8 billion. What has the writer
+      mixed up?
     choices:
-      - { id: a, text: "The claim is right: revenue is $3 billion" }
-      - { id: b, text: "The claim is wrong: revenue is $2 billion" }
-      - { id: c, text: "The claim is wrong: revenue is $32 billion" }
-      - { id: d, text: "The claim is wrong: revenue is $0.5 billion" }
-    answer: b
+      - { id: a, text: "Gross receipts with revenue: revenue is only the slice the company keeps" }
+      - { id: b, text: "Revenue with profit: revenue is what is left after all costs", mistake: { tag: revenue_as_profit, fix: "Profit is what is left after costs; the mix-up here is receipts versus revenue." } }
+      - { id: c, text: "A year with a month: the figure should be monthly", mistake: { tag: period_assumed, fix: "Nothing says the period is wrong; the mix-up is in what the figure counts." } }
+      - { id: d, text: "Nothing: every fare the company collects counts as its revenue", mistake: { tag: receipts_as_revenue, fix: "Fares passed on to drivers are not revenue; only the slice kept is." } }
+    answer: a
     explanation: >
-      Revenue is gross receipts times the share kept: 8 x 0.25 = 2.0, so $2 billion. $3 billion
-      does not follow from the writer's own inputs, so this is an arithmetic slip that shows up as
-      soon as the claim is restated as a calculation.
+      Gross receipts are the whole fare; revenue is the slice the company keeps. Damodaran's 2014
+      chain ran the same way, from gross receipts through the slice kept to revenue, so the writer's
+      figure does not follow from the writer's own inputs.
     source: >
-      Arithmetic on the gross receipts times slice chain used in Damodaran, "Up, Up and Away! A
-      Crowd Valuation of Uber!", Musings on Markets, 2 December 2014 ($3.5 billion x 20% = $700
-      million).
+      The gross receipts and slice chain used in Damodaran, "Up, Up and Away! A Crowd Valuation of
+      Uber!", Musings on Markets, 2 December 2014 ($3.5 billion of gross receipts, 20% kept, $700
+      million of revenue).
 
   - id: jn-q-take-rate
     prompt: >
-      A filing defines Take Rate as adjusted net revenue divided by gross bookings. A company's
-      figures for a year are: gross bookings $80 billion, revenue $18 billion, adjusted net revenue
-      $16 billion. A blogger writes "the take rate was 22.5%". What does the filing's definition
-      give, and what did the blogger do?
+      A filing defines Take Rate as adjusted net revenue over gross bookings. For one year the
+      company reports gross bookings of $80 billion, revenue of $18 billion and adjusted net revenue
+      of $16 billion. A blogger writes "the take rate was 22.5%", using revenue. What did the
+      blogger do?
     choices:
-      - { id: a, text: "20%; the blogger divided revenue, not adjusted net revenue, by gross bookings" }
-      - { id: b, text: "22.5%; the blogger is right because revenue is the main figure" }
-      - { id: c, text: "88.9%; the blogger should have divided adjusted net revenue by revenue" }
-      - { id: d, text: "20%; the blogger divided by the wrong year's gross bookings" }
+      - { id: a, text: "Used revenue in place of adjusted net revenue, so the name no longer matches the filing's definition" }
+      - { id: b, text: "Used the right measure: revenue is the main figure, so any ratio of it is the take rate", mistake: { tag: any_ratio_is_take_rate, fix: "A defined term means the filing's own measure, not any ratio that looks close." } }
+      - { id: c, text: "Used the wrong year's gross bookings", mistake: { tag: year_assumed, fix: "Nothing says the year differs. The slip is the top of the ratio, not the year." } }
+      - { id: d, text: "Turned the ratio upside down, with bookings over revenue", mistake: { tag: ratio_inverted, fix: "The blogger kept bookings underneath; the slip is the measure on top." } }
     answer: a
     explanation: >
-      By the filing's definition, 16 / 80 = 20%. The blogger's 22.5% is 18 / 80, revenue over
-      gross bookings: a real ratio, but not the defined Take Rate. When a figure carries a name
-      the filing defines, use the filing's definition before comparing.
+      The filing's Take Rate uses adjusted net revenue. The blogger's 22.5% is revenue over gross
+      bookings: a real ratio, but not the defined Take Rate. When a figure carries a name the filing
+      defines, use the filing's definition before comparing.
     source: >
       Uber Technologies, Form S-1 (11 April 2019), definitions of Gross Bookings, Core Platform
       Adjusted Net Revenue and Take Rate, https://www.sec.gov/Archives/edgar/data/1543151/000119312519103850/d647752ds1.htm
@@ -246,51 +247,50 @@ checks:
     prompt: >
       Read the starting numbers in Damodaran's 2 December 2014 post. Sort each number he uses to
       describe Uber's position into three piles: stated by the company, leaked, and assumed by him.
-      Redo his arithmetic for 2014 revenue from his own figures, and test his statement that the
-      leaked 2015 figure is "three times" 2014. Then say which of these numbers a later audited
-      filing could check, and what measure, definition and period you would need it on.
+      Then say in your own words how his figure for 2014 revenue is built from the gross receipts and
+      the slice he assumes, and why he calls the leaked 2015 figure "three times" 2014. Then say
+      which of these numbers a later audited filing could check, and what measure, definition and
+      period you would need it on.
     passCriteria: >
       The Learner puts the 51 countries and about 230 cities in the company's own statements (its
       website); the $10 billion of 2015 gross receipts, "up three times" from 2014 and 2014 having
       more than tripled from 2013, in the leaked pile (a Business Insider article); and the $3.5
       billion of 2014 gross receipts and the continued 20% slice in his own assumptions (the 20%
       originally kept by the company, with him saying he does not know whether it has slipped). They
-      redo the arithmetic: $3.5 billion times 20% is $700 million, which ties; $10 billion divided
-      by $3.5 billion is about 2.9, so "three times" is a fair rounding, not a slip. They say a
-      filing could check 2014 and 2015 revenue and, only if it reports them, gross receipts or
-      bookings, and that they would need the same definition (gross receipts against revenue), the
-      same calendar year and the same scope. They do not bring in anything that happened after 2
-      December 2014.
+      explain in words that revenue is the slice the company keeps of the gross receipts, so the $700
+      million he states follows from the $3.5 billion and the 20% slice, and that $10 billion set
+      against $3.5 billion is a little under three times, so "three times" is a fair rounding, not a
+      slip. They say a filing could check 2014 and 2015 revenue and, only if it reports them, gross
+      receipts or bookings, and that they would need the same definition (gross receipts against
+      revenue), the same calendar year and the same scope. They do not bring in anything that happened
+      after 2 December 2014.
 
   - id: jn-judge-against-filing
     kind: conversation
     prompt: >
-      Use the Case Data from Uber's first public filing (11 April 2019). (1) Recompute 2018 revenue
-      divided by Gross Bookings, then Core Platform Adjusted Net Revenue divided by Gross Bookings,
-      and say which the filing means by Take Rate and why the two differ. (2) Compare the 2014
-      revenue of about $700 million that the post's inputs imply with the filing's 2014 revenue, and
-      say whether the comparison is like for like. (3) Suppose a summary of the filing says "Uber
-      lost $1.8 billion in 2018". Which measure gives that figure, and what do the operating loss
-      and net income show? (4) Name one thing the filing cannot tell you about whether the 2014
+      Use the Case Data from Uber's first public filing (11 April 2019). (1) Say in your own words
+      which ratio the filing means by Take Rate, and why revenue over Gross Bookings is a different
+      ratio. (2) Say whether the 2014 revenue of about $700 million that the post's inputs imply and
+      the filing's 2014 revenue are like for like, and why. (3) Suppose a summary of the filing says
+      "Uber lost $1.8 billion in 2018". Which measure gives that figure, and what do the operating
+      loss and net income show? (4) Name one thing the filing cannot tell you about whether the 2014
       story was right.
     passCriteria: >
-      (1) The Learner takes revenue and Gross Bookings from the Case Data: 11,270 / 49,799 is about
-      22.6%; Core Platform Adjusted Net Revenue 10,025 / 49,799 is about 20.1%. They say the
-      filing's Take Rate is adjusted net revenue (Gross Bookings less Driver earnings, incentives
-      and referrals) over Core Platform Gross Bookings, which the filing states as 20% for 2018, so
-      revenue over bookings is a different ratio and not the filing's Take Rate. (2) The filing's
-      2014 revenue is 495, against 700 implied by the post ($3.5 billion x 20%), a gap of 205 or
-      about 41% of the filing's figure; but the comparison is not like for like because the
-      filing's 2014 column is unaudited, kept under the accounting rules then in force (not
-      recast for the 2017 revenue standard) and excludes the China business sold in 2016. They also
-      say the filing gives no 2014 Gross Bookings, so the $3.5 billion and the 20% slice cannot be
-      checked directly; if they note that 2015 revenue of 1,995 is about 20% of the leaked $10
-      billion, they call it consistent, not confirmed, since there is no 2015 bookings figure. (3)
-      The $1.8 billion is the 2018 Adjusted EBITDA of -1,847, a company-defined non-GAAP measure;
-      the loss from operations was -3,033 and net income attributable to Uber was +997, helped by
-      other income of 4,993 (gains on a divestiture and on investments), so "lost $1.8 billion"
-      uses a measure without naming it and a net-income reader would find a profit. (4) They say
-      something like: the filing tests inputs one at a time but cannot say whether the market-size,
-      share or risk story was right, or what the company would be worth; it covers 2016 to 2018
-      only on an audited basis. They do not use any fact dated after 11 April 2019, make a
-      forecast, or give a buy, sell or hold view.
+      (1) The Learner takes the figures from the Case Data and says the filing's Take Rate is
+      adjusted net revenue (Gross Bookings less Driver earnings, incentives and referrals) over Core
+      Platform Gross Bookings, which the filing states as 20% for 2018. Revenue of 11,270 set against
+      Gross Bookings of 49,799 comes out a little higher, at about 22.6%, so it is a different ratio
+      and not the filing's Take Rate. (2) The filing's 2014 revenue is 495, against about 700 implied
+      by the post, and the Learner says the comparison is not like for like because the filing's 2014
+      column is unaudited, kept under the accounting rules then in force (not recast for the 2017
+      revenue standard) and excludes the China business sold in 2016. They also say the filing gives
+      no 2014 Gross Bookings, so the $3.5 billion and the 20% slice cannot be checked directly; if
+      they note that 2015 revenue of 1,995 is about 20% of the leaked $10 billion, they call it
+      consistent, not confirmed, since there is no 2015 bookings figure. (3) The $1.8 billion is the
+      2018 Adjusted EBITDA of -1,847, a company-defined non-GAAP measure; the loss from operations
+      was -3,033 and net income attributable to Uber was +997, helped by other income of 4,993 (gains
+      on a divestiture and on investments), so "lost $1.8 billion" uses a measure without naming it
+      and a net-income reader would find a profit. (4) They say something like: the filing tests
+      inputs one at a time but cannot say whether the market-size, share or risk story was right, or
+      what the company would be worth; it covers 2016 to 2018 only on an audited basis. They do not
+      use any fact dated after 11 April 2019, make a forecast, or give a buy, sell or hold view.

@@ -4621,3 +4621,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A Learner sees a raised blue "Check" button and a flat "In progress" tag. Only the button looks pressable, and only the button has a pointer. A developer who writes `<button>` in a new screen gets a lint error that names the primitives.
 
 **Trade-off.** The 9 Widget files and 12 `src/app` files that still hold raw buttons stay on the allowlist until the A3b sweep (`src/app`) and E2a/E5 (Widgets) migrate them, so for now those screens keep their old flat buttons next to the new raised ones. The `Button` anatomy uses a 3px lip, so a row of buttons needs a little more height than before.
+
+## Follow and Judge Topics, story questions (`course/topics/fol-subprime-ai.yaml` and seven more, spec 2026-11-05, ticket D2h)
+
+**What it does.** Eight Follow and Judge Topics (`fol-subprime-ai`, `fol-systemic-risk`, `fol-money-trap`, `fol-erp`, `jud-rating-boundary`, `jud-assumptions`, `jud-narrative-numbers`, `jud-ipo-forecast`) ask about the story and the words, not for a sum. Every old "what is the value?" stem is now a choice about what a term means, which headline gets it right, or what a writer mixed up; numbers stay only as facts in the story or as choice labels (ADR 0009). Each wrong choice of a rewritten question carries a Known mistake of one line, and the conversation Checks ask the Learner to explain in their own words instead of recomputing. Seven of the eight ids leave `L10_NOT_YET_STORY` (`fol-erp` was never on it); four leave the formula-check list too.
+
+**Scenario.** In `fol-money-trap` a Learner meets a company whose monthly revenue rose from $10 million to $32 million, and a report that scales December up to a year. The question used to ask for the year's revenue and the annualised figure. It now asks "Which headline gets it right?", and a Learner who picks "annualised revenue is the sum of the twelve months" is told that annualising scales one month up.
+
+**Trade-off.** A choice question about what a number means tests understanding, not working-out, so a Learner can no longer show the calculation. The cost is accepted because the owner wants comprehension, and the Case still carries the figures for anyone who wants to check them.

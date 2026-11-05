@@ -115,39 +115,40 @@ youllLearn:
 questions:
   - id: jip-q-ttm
     prompt: >
-      A company's revenue was $200 million for the year 2012, $80 million for the first six months of
-      2012 and $150 million for the first six months of 2013. What was its revenue for the twelve
-      months to 30 June 2013?
+      A company's filing gives revenue of $200 million for the year 2012, $80 million for the first
+      six months of 2012 and $150 million for the first six months of 2013. Which description builds
+      the "twelve months to 30 June 2013" the way analysts do?
     choices:
-      - { id: a, text: "$430 million" }
-      - { id: b, text: "$270 million" }
-      - { id: c, text: "$350 million" }
-      - { id: d, text: "$130 million" }
-    answer: b
+      - { id: a, text: "The last full year, plus the new part-year, less the same part-year a year earlier" }
+      - { id: b, text: "All three figures added together", mistake: { tag: counted_twice, fix: "That counts the first half of 2012 twice." } }
+      - { id: c, text: "The first six months of 2013, doubled", mistake: { tag: doubled_half, fix: "Doubling six months assumes the pace holds; that is a run rate, not twelve months earned." } }
+      - { id: d, text: "The 2012 year on its own", mistake: { tag: old_year_only, fix: "The 2012 year leaves out the half-year already earned in 2013." } }
+    answer: a
     explanation: >
-      Twelve months to June 2013 = the last full year plus the new part-year less the part-year a year
-      earlier: 200 + 150 - 80 = $270 million. Adding all three ($430 million) counts the first half of
-      2012 twice.
+      The twelve months to June 2013 roll the last full year forward: start with the year 2012, add
+      the new part-year and take away the part-year a year earlier. That gives $270 million. Adding
+      all three counts the first half of 2012 twice.
     source: >
       Trailing twelve months as built from the revenue table of Twitter, Inc., Form S-1 (3 October 2013) in
-      Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013; arithmetic.
+      Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-new-shares
     prompt: >
       Before an offering a company has 100 million shares and is worth $1,000 million. It sells 20
-      million new shares at $10 each and keeps the $200 million. What is the value per share once the
-      new shares are counted?
+      million new shares at $10 each and keeps the cash. A writer divides the new, larger value by
+      the old 100 million shares and says each share is now worth more. What did the writer leave
+      out?
     choices:
-      - { id: a, text: "$12.00" }
-      - { id: b, text: "$10.00" }
-      - { id: c, text: "$11.00" }
-      - { id: d, text: "$9.17" }
-    answer: b
+      - { id: a, text: "The new shares: the extra value is shared among more shares" }
+      - { id: b, text: "The cash: an offering raises none", mistake: { tag: cash_ignored, fix: "The offering did raise cash; the writer's slip is in the share count." } }
+      - { id: c, text: "The old shares: they should be dropped from the count", mistake: { tag: old_shares_dropped, fix: "The old shares still exist; the new ones join them." } }
+      - { id: d, text: "Nothing: added cash always lifts the value per share", mistake: { tag: cash_always_lifts, fix: "New shares share the cash too, so the value per share rises far less." } }
+    answer: a
     explanation: >
-      Value after the sale is 1,000 + 200 = $1,200 million, shared by 100 + 20 = 120 million shares,
-      which is $10.00 each. Dividing the $1,200 million by the old 100 million shares gives $12.00,
-      which adds the cash raised but leaves out the shares sold to raise it.
+      Value after the sale is $1,200 million, but it is shared by 120 million shares, which is $10.00
+      each. Dividing by the old 100 million shares adds the cash raised and leaves out the shares
+      sold to raise it.
     source: >
-      Arithmetic; the pro forma and pro forma as adjusted share counts are the two columns of the
+      The pro forma and pro forma as adjusted share counts are the two columns of the
       capitalization table in Twitter, Inc., Form S-1 (3 October 2013).
   - id: jip-q-pro-forma
     prompt: >
@@ -167,49 +168,54 @@ questions:
       The capitalization table of Twitter, Inc., Form S-1 (3 October 2013): columns Actual, Pro Forma and Pro Forma as Adjusted.
   - id: jip-q-growth
     prompt: >
-      A company's revenue is $200 million and is assumed to grow 60% a year for five years. What is it
-      after the five years?
+      A writer assumes revenue of $200 million grows 60% a year for five years and ends near $2.1
+      billion. A friend says the growth only adds 60% of the starting revenue five times, ending near
+      $800 million. What has the friend missed?
     choices:
-      - { id: a, text: "$800 million" }
-      - { id: b, text: "$2.10 billion" }
-      - { id: c, text: "$1.25 billion" }
-      - { id: d, text: "$3.36 billion" }
-    answer: b
+      - { id: a, text: "Compounding: each year's growth is earned on the bigger revenue of the year before" }
+      - { id: b, text: "Inflation: revenue must be adjusted before it grows", mistake: { tag: inflation_assumed, fix: "Inflation is not the issue; the friend applied growth to the starting revenue only." } }
+      - { id: c, text: "Taxes: growth is measured after tax", mistake: { tag: tax_assumed, fix: "Revenue growth is measured before tax; the issue is what the growth is applied to." } }
+      - { id: d, text: "Nothing: growth is simply added each year", mistake: { tag: simple_adding, fix: "Each year's growth builds on a larger base, so adding the same amount understates it." } }
+    answer: a
     explanation: >
-      200 x 1.6^5 = 200 x 10.486 = about $2,097 million. Adding 60% of $200 million five times gives
-      only $800 million and ignores compounding; 1.6^6 would give $3.36 billion, one year too many.
+      Each year's 60% is earned on the larger revenue of the year before, which is compounding, so five
+      years of it lands near $2.1 billion. Adding the same slice each year ignores compounding and ends
+      near $800 million.
     source: >
       CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
   - id: jip-q-share-of-total
     prompt: >
-      A filing shows one revenue line of $48 million out of total revenue of $400 million. A writer
-      calls that line "12.8% of revenue". What do you find?
+      A filing shows one revenue line of $48 million out of total revenue of $400 million, which is
+      12.0% of it. A writer calls that line "12.8% of revenue". What should a careful judge do?
     choices:
-      - { id: a, text: "He is right" }
-      - { id: b, text: "It is 12.0%, so he is 0.8 points high; check whether anything in his value depends on it" }
-      - { id: c, text: "It is 12.0%, so his whole valuation is wrong" }
-      - { id: d, text: "It is 13.6%, so he is 0.8 points low" }
-    answer: b
+      - { id: a, text: "Note the small slip, then check whether anything in the writer's value depends on it" }
+      - { id: b, text: "Throw out the whole valuation, since one figure is off", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
+      - { id: c, text: "Ignore it: any figure within a point is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
+      - { id: d, text: "Assume the writer used a different base, with no check", mistake: { tag: base_assumed, fix: "Do not guess a base; check it against the filing." } }
+    answer: a
     explanation: >
-      48 / 400 = 12.0%. The gap is real but small, so the next step is to ask whether the figure feeds
-      anything that matters. 13.6% is 48 / 352, the line as a share of the other revenue, not of the total.
+      The gap is real but small, so the next step is to ask whether the figure feeds anything that
+      matters. A different base, such as the line as a share of the other revenue, would give 13.6%,
+      not 12.8%.
     source: >
-      Arithmetic on the revenue table of Twitter, Inc., Form S-1 (3 October 2013) (a line as a share of total revenue).
+      The revenue table of Twitter, Inc., Form S-1 (3 October 2013) (a line as a share of total revenue).
   - id: jip-q-weighted
     prompt: >
-      A writer values an 80/20 business mix: 80% of revenue from a business with a risk measure (beta)
-      of 1.30 and 20% from one with 0.90. What beta do the weights give?
+      A writer values a company with two businesses: most of its revenue (80%) comes from one with a
+      risk measure (beta) of 1.30, and the rest (20%) from one with 0.90. How should the writer reach
+      one beta for the company?
     choices:
-      - { id: a, text: "1.10" }
-      - { id: b, text: "1.22" }
-      - { id: c, text: "1.30" }
-      - { id: d, text: "1.04" }
-    answer: b
+      - { id: a, text: "Weight each beta by its share of revenue, so the result sits nearer 1.30 than 0.90" }
+      - { id: b, text: "Take the simple average of the two betas", mistake: { tag: simple_average, fix: "A simple average ignores the weights; the bigger business should count for more." } }
+      - { id: c, text: "Use the higher beta, to be safe", mistake: { tag: higher_beta_only, fix: "The higher beta ignores that part of the company is less risky." } }
+      - { id: d, text: "Use the lower beta, because it belongs to the steadier business", mistake: { tag: lower_beta_only, fix: "The lower beta belongs to the smaller business, so it should count for less." } }
+    answer: a
     explanation: >
-      0.8 x 1.30 + 0.2 x 0.90 = 1.04 + 0.18 = 1.22. A simple average (1.10) ignores the weights, and 1.04
-      is only the first term.
+      A company's beta is the weighted average of its businesses' betas, with revenue shares as the
+      weights, so the bigger business counts for more. Here that lands near 1.22, much closer to the
+      larger business's 1.30 than a simple average would.
     source: >
-      Weighted-average beta as used in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013; arithmetic.
+      Weighted-average beta as used in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-basis
     prompt: >
       A writer's target is a 25% operating margin measured after treating research spending as an
@@ -229,17 +235,18 @@ questions:
       Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life); Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
   - id: jip-q-arithmetic-story
     prompt: >
-      Suppose a writer's valuation recomputes exactly from the inputs he states. What does that show?
+      Suppose every number in a writer's valuation ties out to the inputs he states. What does that
+      show?
     choices:
-      - { id: a, text: "That his inputs are right" }
+      - { id: a, text: "That his inputs are right", mistake: { tag: inputs_from_ties, fix: "Numbers that tie out show the calculation, not that the inputs are right." } }
       - { id: b, text: "That his arithmetic is right; whether his inputs and story are right is a separate question" }
-      - { id: c, text: "That the market price must be the same as his value" }
-      - { id: d, text: "That he made a mislabel" }
+      - { id: c, text: "That the market price must be the same as his value", mistake: { tag: value_equals_price, fix: "His value is his estimate; the market price is set by buyers and sellers." } }
+      - { id: d, text: "That he made a mislabel", mistake: { tag: ties_means_mislabel, fix: "Numbers that tie out say nothing about a mislabel." } }
     answer: b
     explanation: >
-      Recomputing checks the calculation from inputs to value. The inputs (growth, margin, risk) are
-      judgements, and they can only be tested against the filing and, later, against what the company
-      does.
+      Numbers that tie out check the calculation from inputs to value. The inputs (growth, margin,
+      risk) are judgements, and they can only be tested against the filing and, later, against what the
+      company does.
     source: >
       The valuation method (inputs, then value) as laid out in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
 
@@ -261,24 +268,25 @@ checks:
   - id: jip-judge-valuation
     kind: conversation
     prompt: >
-      Take the figures in Damodaran's 5 October 2013 valuation of Twitter back to the first S-1.
-      Choose at least five of the claims, recompute each from the filing's numbers, and say for
-      each whether it ties out. For any that do not, say what kind of difference it is (an
-      arithmetic slip, a mislabel, a period or basis mismatch, or an inference beyond the filing)
-      and how much it changes the value of $17.36 a share. Then say what you can and cannot
-      conclude from the post alone.
+      Take Damodaran's 5 October 2013 valuation of Twitter back to the first S-1. Choose at least
+      five of the claims and say, in your own words, whether each one matches the filing. For any
+      that do not, say what kind of difference it is (an arithmetic slip, a mislabel, a period or
+      basis mismatch, or an inference beyond the filing) and whether it is big enough to change the
+      value of $17.36 a share. Then say what you can and cannot conclude from the post alone.
     passCriteria: >
       The Learner takes figures from the filing as the Case gives them, not from the Tutor's own
-      knowledge. They recompute at least five claims, including: twelve-month revenue ($316.9 +
-      $253.6 - $122.4 = about $448 million) and first-half growth (about 107%); the share count
-      (472.613 + 86.915 + 0.117 + 14.791 = 574.44 million) and $9.97 billion divided by 574.44
-      million = about $17.36; and data licensing as a share of first-half revenue (32.2 / 253.6 =
-      12.7%, a small difference from 12.6% that does not move the value). They check the share count against the capitalization
-      table: which column the post's 472.613 million comes from, whether the post's label for it
-      matches that column, and whether the shares sold in the offering are counted alongside the
-      offering cash the post adds. If they find a difference they name its kind (a mislabel, an
-      inference beyond the filing or an arithmetic slip), put the corrected count back into the
-      per-share value to size it, and compare its size with the smaller differences. They say that
-      the post alone cannot show whether his spreadsheet counted the new shares elsewhere, and that
-      recomputing shows the arithmetic, not whether his growth and margin story is right. They do not claim to know how Twitter's offering or later
+      knowledge. They check at least five claims against the filing, including: twelve-month revenue
+      (the year 2012 rolled forward with the first six months of 2013 and without the first six
+      months of 2012, about $448 million) and first-half growth (about 107%); the share count (the
+      four lines the post adds up, about 574.44 million in all) behind the $17.36 a share; and data
+      licensing as a share of first-half revenue (about 12.7% in the filing, a small difference from
+      the post's 12.6% that does not move the value). They check the share count against the
+      capitalization table: which column the post's 472.613 million comes from, whether the post's
+      label for it matches that column, and whether the shares sold in the offering are counted
+      alongside the offering cash the post adds. If they find a difference they name its kind (a
+      mislabel, an inference beyond the filing or an arithmetic slip), say whether the corrected
+      count would change the per-share value enough to matter, and compare its size with the smaller
+      differences. They say that the post alone cannot show whether his spreadsheet counted the new
+      shares elsewhere, and that a calculation that ties out shows the arithmetic, not whether his
+      growth and margin story is right. They do not claim to know how Twitter's offering or later
       results turned out.

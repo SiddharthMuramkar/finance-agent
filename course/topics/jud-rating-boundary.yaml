@@ -86,35 +86,34 @@ questions:
       card (investment grade and non-investment grade brackets): https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; Agency Z is hypothetical.
   - id: jrb-q-notches
     prompt: >
-      On Moody's ladder (Aaa, Aa1, Aa2, Aa3, A1, A2, A3, Baa1, Baa2, Baa3, Ba1, Ba2, Ba3, B1 and
-      so on), how many notches lower is Baa3 than Aa1?
+      On Moody's ladder (Aaa, Aa1, Aa2, Aa3, A1, A2, A3, Baa1, Baa2, Baa3, Ba1 and so on), what do
+      raters call each single step down, such as Aa1 to Aa2?
     choices:
-      - { id: a, text: "Six" }
-      - { id: b, text: "Seven" }
-      - { id: c, text: "Eight" }
-      - { id: d, text: "Nine" }
-    answer: c
+      - { id: a, text: "A notch" }
+      - { id: b, text: "A class", mistake: { tag: notch_as_class, fix: "A class is a whole letter group like Aa. Each numbered step inside it is a notch." } }
+      - { id: c, text: "A basis point", mistake: { tag: notch_as_bp, fix: "Basis points measure yields and spreads, not steps on a rating ladder." } }
+      - { id: d, text: "A tranche", mistake: { tag: notch_as_tranche, fix: "A tranche is a slice of a bond issue, not a step on the ladder." } }
+    answer: a
     explanation: >
-      Counting down from Aa1: Aa2 (1), Aa3 (2), A1 (3), A2 (4), A3 (5), Baa1 (6), Baa2 (7), Baa3 (8).
-      Each numbered modifier is a notch of its own, so it is easy to be one out when counting by letter
-      class instead.
+      Each numbered modifier is a notch of its own, so Aa1 to Aa2 is one notch and Aa3 to A1 is
+      another. Counting by letter class instead of by notch misses the numbered steps.
     source: >
-      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; counting is arithmetic on that list.
+      Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf
   - id: jrb-q-ratio
     prompt: >
       A writer says a study found a default rate of 24% for one group of bonds against 1.8% for
-      another, and calls the first group "about 13 times as likely to default". Recompute the ratio.
+      another, and calls the first group "about 13 times as likely to default". What is the most
+      careful reading of that claim?
     choices:
-      - { id: a, text: "About 13.3 times: 24 divided by 1.8" }
-      - { id: b, text: "About 22 times: 24 minus 1.8" }
-      - { id: c, text: "About 0.075 times: 1.8 divided by 24" }
-      - { id: d, text: "About 43 times: 24 times 1.8" }
+      - { id: a, text: "The first group defaulted far more often, but a ratio of two rates says nothing about whether the groups and periods were drawn alike" }
+      - { id: b, text: "The ratio proves the first group is the riskier rating", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
+      - { id: c, text: "The ratio is wrong, because rates cannot be compared side by side", mistake: { tag: rates_incomparable, fix: "Setting one rate against another is a normal comparison; the question is what each covers." } }
+      - { id: d, text: "The ratio matters only if it comes out as a whole number", mistake: { tag: whole_number_fixation, fix: "Whether the ratio is round does not matter; what the groups cover does." } }
     answer: a
     explanation: >
-      The ratio of two rates is one divided by the other: 24 / 1.8 = 13.33. So "about 13 times" is
-      right as arithmetic. It says nothing about whether the groups were defined correctly, or
-      whether the two rates cover the same period.
-    source: Arithmetic on the two figures as the writer quotes them; no outside data is used.
+      "About 13 times" is a fair way to set the two quoted rates side by side. It says nothing about
+      whether the groups were defined correctly, or whether the two rates cover the same period.
+    source: The two figures as the writer quotes them; no outside data is used.
   - id: jrb-q-inference
     prompt: >
       A rating agency's published definition says debt in a certain class "may possess certain

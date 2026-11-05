@@ -72,21 +72,21 @@ youllLearn:
 questions:
   - id: fe-q-fed-gap
     prompt: >
-      An index has an earnings yield of 5.0% and the 10-year Treasury bond yields 3.5%. What equity
-      risk premium does the "Fed model" give?
+      An index has an earnings yield of 5.0% and the 10-year Treasury bond yields 3.5%. How does the
+      "Fed model" turn those two figures into an equity risk premium, and what does it assume?
     choices:
-      - { id: a, text: "1.5%" }
-      - { id: b, text: "8.5%" }
-      - { id: c, text: "3.5%" }
-      - { id: d, text: "5.0%" }
+      - { id: a, text: "It treats the earnings yield as the expected return on stocks and calls the gap above the Treasury yield the premium; that fits only with no growth and full payout" }
+      - { id: b, text: "It adds the Treasury yield to the earnings yield and calls the total the premium", mistake: { tag: premium_as_total, fix: "The premium is the extra return over the Treasury, a gap, not a total." } }
+      - { id: c, text: "It averages the two yields, since both are returns", mistake: { tag: premium_as_average, fix: "An average blends the two yields; the premium is the extra stocks earn over the Treasury." } }
+      - { id: d, text: "It ignores the earnings yield and uses past stock returns", mistake: { tag: fed_as_history, fix: "That is the historical-average method. The Fed model starts from the earnings yield." } }
     answer: a
     explanation: >
-      The Fed model subtracts the Treasury rate from the earnings yield: 5.0% - 3.5% = 1.5%. It
+      The Fed model reads the gap between the earnings yield and the Treasury rate as the premium. It
       treats the earnings yield as the expected return on stocks, which is accurate only if earnings
       do not grow and all of them are paid out.
     source: >
       Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
-      5 August 2023 (section "The Fed Model: Earnings Yield and ERP"); arithmetic on hypothetical figures.
+      5 August 2023 (section "The Fed Model: Earnings Yield and ERP"); the figures are hypothetical.
   - id: fe-q-why-too-low
     prompt: >
       Why does the earnings-yield (Fed model) approach tend to give a lower premium than a model that
@@ -124,20 +124,21 @@ questions:
   - id: fe-q-interval
     prompt: >
       Over a long period, stocks beat bonds by an average of 6.0% a year, with a standard error of
-      2.0 points. A rough 95% range for the true premium is the average plus or minus twice the
-      standard error. What is that range?
+      2.0 points. A rough 95% range around that average is wide. What does that tell you about the
+      historical premium?
     choices:
-      - { id: a, text: "2.0% to 10.0%" }
-      - { id: b, text: "4.0% to 8.0%" }
-      - { id: c, text: "0.0% to 12.0%" }
-      - { id: d, text: "5.0% to 7.0%" }
+      - { id: a, text: "It is an estimate, not a fact: the true premium could sit well away from 6.0%" }
+      - { id: b, text: "It is exactly 6.0%, since decades of data settle it", mistake: { tag: average_as_fact, fix: "Even decades of data leave a wide range, so the average is only an estimate." } }
+      - { id: c, text: "It will stay above 6.0% next year", mistake: { tag: past_as_forecast, fix: "A historical average says nothing certain about next year's premium." } }
+      - { id: d, text: "A standard error of 2.0 points is small enough to ignore", mistake: { tag: error_ignored, fix: "Two points either side of 6.0% is a wide band, so it cannot be ignored." } }
     answer: a
     explanation: >
-      6.0 - 2 x 2.0 = 2.0 and 6.0 + 2 x 2.0 = 10.0. Even decades of data leave a wide range, which
-      is why a historical average is an estimate and not a fact.
+      A rough 95% range is the average plus or minus twice the standard error, which here runs from
+      about 2% to about 10%. Even decades of data leave a wide range, which is why a historical
+      average is an estimate and not a fact.
     source: >
       Damodaran, "The Price of Risk: With Equity Risk Premiums, Caveat Emptor!", Musings on Markets,
-      5 August 2023 (section "Historical Risk Premium"); arithmetic on hypothetical figures.
+      5 August 2023 (section "Historical Risk Premium"); the figures are hypothetical.
 
 checks:
   - id: fe-quiz-erp-measures

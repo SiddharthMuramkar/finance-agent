@@ -74,77 +74,79 @@ youllLearn:
 questions:
   - id: fsa-q-price-cost
     prompt: >
-      A firm sells a service for $1.00 per use. Serving one use costs it $1.50. It serves 10 million
-      uses in a year. What is its yearly loss on serving alone, ignoring all other costs?
+      A firm sells a service for $1.00 per use, and each use costs it $1.50 to serve. Which sentence
+      describes the firm's position?
     choices:
-      - { id: a, text: "$5 million" }
-      - { id: b, text: "$15 million" }
-      - { id: c, text: "$10 million" }
-      - { id: d, text: "$0.5 million" }
+      - { id: a, text: "It loses money on every use, so someone has to fund the gap for the business to go on" }
+      - { id: b, text: "It makes money on volume: the more uses it sells, the more profit it makes", mistake: { tag: volume_fixes_loss, fix: "Each use loses money, so more uses means a bigger loss, not a profit." } }
+      - { id: c, text: "It breaks even once it has enough users", mistake: { tag: breakeven_assumed, fix: "A price below the cost per use never breaks even; only a new price or cost can change that." } }
+      - { id: d, text: "Its revenue shows a healthy business, so its cost to serve hardly matters", mistake: { tag: revenue_only, fix: "Revenue alone hides the loss; compare the price with the cost to serve." } }
     answer: a
     explanation: >
-      Each use loses $1.50 - $1.00 = $0.50, so 10 million uses lose $5 million. Revenue was $10
-      million and the cost to serve was $15 million.
-    source: Arithmetic on revenue and cost per unit; see the income statement in the course Topic fs-income.
+      The price is below the cost to serve, so every use adds to the loss. A business like that
+      survives only while someone, such as an investor, pays the difference.
+    source: Price against cost to serve; see the income statement in the course Topic fs-income.
   - id: fsa-q-run-rate
     prompt: >
-      A company earns $200 million of revenue in its latest month. Multiplying by 12 gives an
-      annualised revenue of $2.4 billion. What does this figure assume?
+      A company earns $200 million of revenue in its latest month. A report quotes an annualised
+      revenue of $2.4 billion, the latest month times twelve. What does this figure assume?
     choices:
-      - { id: a, text: "That the company earned $2.4 billion in the past 12 months" }
+      - { id: a, text: "That the company earned $2.4 billion in the past 12 months", mistake: { tag: run_rate_as_earned, fix: "An annualised figure is a recent month scaled up, not revenue already earned." } }
       - { id: b, text: "That the latest month's pace continues for a full year" }
-      - { id: c, text: "That revenue will fall back to average" }
-      - { id: d, text: "That the company is profitable" }
+      - { id: c, text: "That revenue will fall back to average", mistake: { tag: run_rate_as_fall, fix: "Annualising assumes the pace holds, not that it fades." } }
+      - { id: d, text: "That the company is profitable", mistake: { tag: revenue_as_profit, fix: "A run rate is about revenue only; it says nothing about profit." } }
     answer: b
     explanation: >
       An annualised run rate is a recent period scaled up. If the company was smaller earlier in the
       year, past 12 months of revenue is lower; if growth slows, next year's revenue is lower too. It
       says nothing about profit.
-    source: Run-rate arithmetic (latest period x periods per year); see the course Topic fs-revenue-runrate.
+    source: Run-rate definition (latest period scaled to a year); see the course Topic fs-revenue-runrate.
   - id: fsa-q-spread
     prompt: >
-      A government bond yields 4.0% and a company's bond of the same maturity yields 9.0%. What is
-      the credit spread, and what does a wider spread signal?
+      A government bond yields 4.0% and a company's bond of the same maturity yields 9.0%. What do
+      traders call the gap between the two yields, and what does a wide gap signal?
     choices:
-      - { id: a, text: "500 basis points; investors ask more for the risk of not being repaid" }
-      - { id: b, text: "50 basis points; the company is safer than the government" }
-      - { id: c, text: "500 basis points; the company's bond has a shorter maturity" }
-      - { id: d, text: "5 basis points; the bond is nearly risk free" }
+      - { id: a, text: "The credit spread; investors ask more for the risk of not being repaid" }
+      - { id: b, text: "The credit spread; the company is safer than the government", mistake: { tag: spread_reversed, fix: "A wider spread means more risk of not being repaid, not less." } }
+      - { id: c, text: "The coupon; the company's bond has a shorter maturity", mistake: { tag: spread_as_coupon, fix: "The coupon is the interest a bond promises. The gap between two yields is the spread." } }
+      - { id: d, text: "The duration; the company's bond is nearly risk free", mistake: { tag: spread_as_duration, fix: "Duration measures sensitivity to rates. The gap between two yields is the credit spread." } }
     answer: a
     explanation: >
-      9.0% - 4.0% = 5.0 percentage points = 500 basis points. A wider spread is the extra yield
-      investors demand for the chance that the borrower does not repay, among other things.
+      The gap between a company bond's yield and the government yield of the same maturity is the
+      credit spread, quoted in basis points. A wider spread is the extra yield investors demand for
+      the chance that the borrower does not repay, among other things.
     source: Spread = yield minus the government yield of the same maturity; 100 basis points = 1 percentage point.
   - id: fsa-q-price-shock
     prompt: >
-      A start-up sells an app at $20 per user a month. Its supplier's charge to serve each user is $12
-      a month today. If the supplier's charge rises to three times what it is today, and the start-up
-      cannot change its price, what does it earn on each user a month?
+      A start-up sells an app at $20 per user a month and pays its supplier $12 a month to serve
+      each user. The supplier now says it will raise its charge to $36 a month per user, and the
+      start-up cannot change its price. What happens?
     choices:
-      - { id: a, text: "A profit of $8" }
-      - { id: b, text: "A loss of $16" }
-      - { id: c, text: "A loss of $4" }
-      - { id: d, text: "A profit of $4" }
-    answer: b
-    explanation: >
-      The charge becomes 3 x $12 = $36, against $20 of revenue, a loss of $16 per user. Customers that
-      survive on today's low supplier price depend on it staying low, which is the dependence the
-      word subprime points at; whether the price in fact rises is a separate question.
-    source: Arithmetic on margin per unit when an input cost changes.
-  - id: fsa-q-valuation-revenue
-    prompt: >
-      A company with $4 billion of annual revenue is valued at $100 billion. What is its value as a
-      multiple of revenue, and what does a high multiple suggest?
-    choices:
-      - { id: a, text: "25 times; the price assumes much faster future growth or margins" }
-      - { id: b, text: "0.04 times; the company is cheap" }
-      - { id: c, text: "4 times; revenue is about to fall" }
-      - { id: d, text: "25 times; the company is already profitable" }
+      - { id: a, text: "Each user now costs more than they pay, so the start-up loses money on every user" }
+      - { id: b, text: "Little changes: the $20 price is still above the $12 charge", mistake: { tag: used_old_cost, fix: "That is today's charge. At the new charge, each user costs more than $20." } }
+      - { id: c, text: "The start-up earns more, because its costs and its revenue both rise", mistake: { tag: revenue_also_rises, fix: "Only the cost rises; the price the start-up collects stays at $20." } }
+      - { id: d, text: "The start-up passes the rise on, so it carries no risk", mistake: { tag: pass_on_assumed, fix: "Here the start-up cannot change its price, so it has to absorb the rise." } }
     answer: a
     explanation: >
-      $100 billion / $4 billion = 25. A multiple that high is justified only if revenue and margins
-      grow a long way from here; it says nothing about current profit.
-    source: Value-to-sales multiple, value divided by revenue; see the course Topic val-multiples.
+      The new charge is above the $20 the start-up collects, so each user turns from a profit into a
+      loss. Customers that survive on today's low supplier price depend on it staying low, which is
+      the dependence the word subprime points at; whether the price in fact rises is a separate
+      question.
+    source: Margin per unit when an input cost changes; see the course Topic fs-income.
+  - id: fsa-q-valuation-revenue
+    prompt: >
+      A company with $4 billion of annual revenue is valued at $100 billion. What does a value that
+      high, set against revenue, suggest?
+    choices:
+      - { id: a, text: "The price assumes much faster future growth or margins" }
+      - { id: b, text: "The company is cheap", mistake: { tag: high_means_cheap, fix: "A value far above revenue is expensive, not cheap; it prices in growth to come." } }
+      - { id: c, text: "Revenue is about to fall", mistake: { tag: high_means_fall, fix: "A high price against revenue reflects hoped-for growth, not an expected fall." } }
+      - { id: d, text: "The company is already profitable", mistake: { tag: value_means_profit, fix: "Value against revenue says nothing about current profit." } }
+    answer: a
+    explanation: >
+      A value many times revenue is justified only if revenue and margins grow a long way from here;
+      it says nothing about current profit.
+    source: Value-to-sales multiple, value set against revenue; see the course Topic val-multiples.
 
 checks:
   - id: fsa-quiz-subsidy-arithmetic
