@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { ReviewPanel } from "./review-panel";
+import { ReviewPanel, ReviewResultView } from "./review-panel";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
@@ -16,5 +16,30 @@ describe("review panel", () => {
     const html = renderToStaticMarkup(<ReviewPanel review={review} />);
     expect(html).toContain("Up to 10 a day; 2 done so far.");
     expect(html).not.toMatch(/Session/);
+  });
+});
+
+describe("a marked review", () => {
+  const result = {
+    ok: true as const,
+    correct: false,
+    answer: "a",
+    chosen: "b",
+    choices: review.question.choices,
+    explanation: "A quarter of a point is 25 basis points.",
+    nextDue: new Date(0),
+    verified: true,
+  };
+
+  it("shows the picked wrong choice's mix-up fix", () => {
+    const html = renderToStaticMarkup(<ReviewResultView review={review} onNext={() => {}} result={{ ...result, mistake: { tag: "stopped_at_points", fix: "That is the move in points. Times 100 gives basis points." } }} />);
+    expect(html).toContain('data-testid="review-fix"');
+    expect(html).toContain("That is the move in points. Times 100 gives basis points.");
+    expect(html).toContain("You chose: Zero point two five");
+  });
+
+  it("shows no fix line when the pick names no mix-up, or was right", () => {
+    expect(renderToStaticMarkup(<ReviewResultView review={review} onNext={() => {}} result={result} />)).not.toContain("review-fix");
+    expect(renderToStaticMarkup(<ReviewResultView review={review} onNext={() => {}} result={{ ...result, correct: true, chosen: "a" }} />)).toContain("Correct.");
   });
 });

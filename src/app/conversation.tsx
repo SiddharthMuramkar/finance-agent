@@ -132,8 +132,8 @@ export function Conversation({
     () => ({
       locked: running,
       answered,
-      answer: async (key, input) => {
-        const response = await fetch("/api/quick-try", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, input }) }).catch(() => null);
+      answer: async (key, choice) => {
+        const response = await fetch("/api/quick-try", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, choice }) }).catch(() => null);
         const body = (await response?.json().catch(() => null)) as { items?: SessionItemData[]; followUp?: boolean; error?: string } | null;
         if (!response?.ok || !body) return body?.error ?? "That answer could not be sent. Try again.";
         for (const item of body.items ?? []) appendItem(item);

@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { startOver } from "@/auth/learners";
 import { ACCESS_COOKIE, ACCESS_COOKIE_MAX_AGE, ACCESS_COOKIE_OPTIONS, TOOLS_NAME, learnerToken } from "@/auth/passcode";
@@ -6,13 +7,15 @@ import { type CourseMap, loadCourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
 import { finishForPlacement } from "@/behaviour/place";
 import { getDb } from "@/db/client";
-import { insightAttempts } from "@/db/schema";
+import { insightAttempts, reviewCards } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { e2eEnabled } from "@/dev/e2e-mode";
 import { E2E_SCRIPTS, chooseE2eScript, isE2eScript } from "@/dev/e2e-tutor";
 import { ensureTopicStarted, loadProgress, openCurrentTopic, saveCheckResult, saveJump } from "@/learner/memory";
-import { openQuiz } from "@/learner/quiz";
+import { openQuiz, submitQuiz } from "@/learner/quiz";
+import { reviewState } from "@/learner/review";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
+import { enterStepItems } from "@/tutor/practice";
 import { sessionForTurn } from "@/tutor/session-log";
 import { runTutorTurn } from "@/tutor/turn";
 
@@ -88,6 +91,33 @@ const STATES: Record<string, Build> = {
     await story(db, map, learnerId, now);
     await walk(db, map, learnerId, now, TOPIC, (step) => step === "check");
     if (!(await openQuiz(db, map, now, learnerId))) throw new Error(`${TOPIC}'s first Check is not a quiz.`);
+  },
+  /** The Topic at Your turn of its first Check, with the first Quick try shown and open (D1a). */
+  "your-turn": async (db, map, learnerId, now) => {
+    await story(db, map, learnerId, now);
+    await walk(db, map, learnerId, now, TOPIC, (step) => step === "your_turn");
+    const session = await sessionForTurn(db, now, learnerId, TOPIC);
+    await enterStepItems(db, map, learnerId, session.id, now);
+  },
+  /** The first quiz Check with a written question, missed once, so that question is enrolled and one Review is due (D1a). */
+  "review-due": async (db, map, learnerId, now) => {
+    await story(db, map, learnerId, now);
+    // Only a written question is enrolled for Review (a template draw is not), so stop at the first quiz that has one.
+    for (let i = 0; i < 10; i++) {
+      await walk(db, map, learnerId, now, TOPIC, (step) => step === "check");
+      const at = navigate(map, await loadProgress(db, learnerId));
+      if (!at?.check || (at.check.kind === "quiz" && at.check.questions.length > 0)) break;
+      await saveCheckResult(db, map, { checkId: at.check.id, passed: true, evidence: "Test bed fixture." }, now, learnerId);
+    }
+    const open = await openQuiz(db, map, now, learnerId);
+    if (!open) throw new Error(`${TOPIC} has no quiz Check with a written question.`);
+    const submitted = await submitQuiz(db, map, open.attemptId, {}, now, learnerId);
+    if (!submitted.ok) throw new Error(`The test bed could not submit ${TOPIC}'s first quiz: ${submitted.reason}`);
+    // Only a passed quiz Check enrols its questions, so the fixture passes it after the missed attempt.
+    await saveCheckResult(db, map, { checkId: open.checkId, passed: true, evidence: "Test bed fixture." }, now, learnerId);
+    await reviewState(db, map, now, learnerId);
+    await db.update(reviewCards).set({ due: new Date(now.getTime() - 86_400_000) }).where(eq(reviewCards.learnerId, learnerId));
+    if (!(await reviewState(db, map, now, learnerId)).question) throw new Error(`${TOPIC}'s quiz enrolled no question for Review.`);
   },
   /** The Topic passed; the next Topic is recommended. */
   "topic-complete": async (db, map, learnerId, now) => {

@@ -14,15 +14,21 @@ import {
   type SignRule,
   type Unit,
 } from "./answers.ts";
+import { choiceSet } from "./choices.ts";
 import type { DrawnItem } from "./templates.ts";
 
-/** A Quick try or Check question written in full in the Topic file: a number to type, or True or False. */
+/** A Quick try or Check question written in full in the Topic file: a number (shown as choices), True or False, or a choice written out. */
 export interface FixedItem {
   id: string;
   skill: string;
   ask: string;
-  kind: "number" | "truth";
-  answer: number | boolean;
+  kind: "number" | "truth" | "choice";
+  /** A number for a number item, true or false for a truth item, the right choice's id for a choice item. */
+  answer: number | boolean | string;
+  /** Choice items only: the answers to tap, a wrong one with its Known mistake. */
+  choices?: { id: string; text: string; mistake?: { tag: string; fix: string } }[];
+  /** Number items only: how each choice reads, with {value} for the number in its unit ("Up {value}"). */
+  label?: string;
   /** Number items only; "number" when left out. */
   unit?: Unit;
   /**
@@ -133,5 +139,20 @@ function markNumber(c: NumberCase, input: string): Verdict & { expected: string 
 export function markAnswer(item: FixedItem | DrawnItem, input: string): Verdict & { expected: string } {
   if ("templateId" in item) return markNumber(item, input);
   if (item.kind === "truth") return markTruth(item, input);
+  if (item.kind === "choice") return markChoice(item, input);
   return markNumber(fixedCase(item), input);
+}
+
+/**
+ * Marks a tapped choice by its id, with no typing: right, a Known mistake with its one-line fix, or wrong. An id that
+ * is not one of the item's choices is wrong. `expected` is the right choice as the Learner reads it.
+ */
+export function markChoice(item: FixedItem | DrawnItem, choiceId: string): Verdict & { expected: string } {
+  const set = choiceSet(item);
+  const expected = set?.choices.find((c) => c.id === set.answer)?.text ?? "";
+  if (!set || choiceId === "" || !set.choices.some((c) => c.id === choiceId)) return { verdict: "wrong", expected };
+  if (choiceId === set.answer) return { verdict: "right", expected };
+  const picked = set.choices.find((c) => c.id === choiceId)!;
+  if (picked.mistake) return { verdict: "known_mistake", tag: picked.mistake.tag, fix: picked.mistake.fix, expected };
+  return { verdict: "wrong", expected };
 }

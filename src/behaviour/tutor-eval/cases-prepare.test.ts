@@ -27,7 +27,7 @@ describe("every live case prepares against today's Course Map", () => {
     60_000,
   );
 
-  it("T1, T2 and T11 open Percent's Check 1 on drawn typed questions", async () => {
+  it("T1, T2 and T11 open Percent's Check 1 on drawn choice questions", async () => {
     for (const id of ["T1", "T2", "T11"]) {
       const c = live.find((x) => x.id === id)!;
       const db = await testDb();
@@ -35,8 +35,8 @@ describe("every live case prepares against today's Course Map", () => {
       expect(p.place.check?.id).toBe("pb-quiz-language");
       if (c.state.quiz?.state === "open") {
         expect(p.openItems).toHaveLength(3);
-        // Typed questions have no choices: the grader's note says so instead of listing none.
-        expect(p.stateNote).toMatch(/the Learner types the answer; right answer, which the Tutor must keep back: /);
+        // Every drawn question is served as choices, so the grader's note lists them.
+        expect(p.stateNote).toMatch(/choices: [^;]+ \/ [^;]+; right answer, which the Tutor must keep back: /);
         expect(p.stateNote).not.toMatch(/choices: ;/);
         expect((await checkTabNow(db, map, new Date(), p.learnerId)).quiz?.questions).toHaveLength(3);
       } else expect(p.openItems).toEqual([]);

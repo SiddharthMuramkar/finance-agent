@@ -15,7 +15,7 @@ const day = 86_400_000;
 const question = (n: number) => `
   - id: q${n}
     prompt: Question ${n}?
-    choices: [{ id: a, text: Right ${n} }, { id: b, text: Wrong ${n} }]
+    choices: [{ id: a, text: Right ${n} }, { id: b, text: Wrong ${n}, mistake: { tag: slip, fix: "Fix ${n}." } }]
     answer: a
     explanation: Because ${n}.
     source: Source ${n}`;
@@ -111,6 +111,10 @@ describe("spaced review", () => {
     const now = new Date(passAt.getTime() + 60 * day);
     const wrong = await answerReview(db, map, "q3", "b", now, OWNER_LEARNER_ID);
     expect(wrong).toMatchObject({ ok: true, correct: false, answer: "a", explanation: "Because 3." });
+    // The wrong pick is a Known mistake: its one-line fix comes back with the marking.
+    expect(wrong).toMatchObject({ mistake: { tag: "slip", fix: "Fix 3." } });
+    // The wrong pick is a Known mistake: its one-line fix comes back with the marking.
+    expect(wrong).toMatchObject({ mistake: { tag: "slip", fix: "Fix 3." } });
     const [card] = await db.select().from(reviewCards).where(eq(reviewCards.questionId, "q3"));
     expect(card.lapses).toBe(1);
     expect(card.due.getTime()).toBeGreaterThan(now.getTime());

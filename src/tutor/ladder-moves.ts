@@ -19,9 +19,9 @@ const METHOD_WORDS: Record<Method, string> = {
   restate: "restate the rule in new words, with new numbers. No new analogy.",
   worked: "a worked example with new numbers, step by step. No new analogy.",
   boxes:
-    "fill-in boxes. Code posts a half-done try after your reply, with its first step shown. In your reply, name the slip in one sentence, then one similar item on new numbers as boxes: fill the first box and leave the last one blank. Explain nothing else.",
+    "a half-done choice. Code posts a half-done try after your reply, with its first step shown and the last step a tap. In your reply, name the slip in one sentence and write no question of your own. Explain nothing else.",
   widget: "the Widget. Code has opened it in practice mode; say in one sentence what to move and what to watch.",
-  drill5: "a drill of five. Code posts five short tries one at a time; add one sentence and one ask.",
+  drill5: "a choice drill of five. Code posts five tap-to-choose tries one at a time; add one sentence and no question of your own.",
 };
 
 /** The Reply kind of a re-teach rung: a worked example (the long cap), a drill, or a re-teach. */

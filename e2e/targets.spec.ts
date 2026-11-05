@@ -84,11 +84,11 @@ test("[B2a] /notebook renders", async ({ page }) => {
 });
 
 test("[D1a] typed-number inputs in the Learner UI: none on an open quiz", async ({ page }) => {
-  test.fail(true, "[D1a] tap-to-choose quiz Checks");
   await study(page, "quiz-open");
   await page.waitForLoadState("networkidle");
   await expect(page.locator('input[inputmode="decimal"]')).toHaveCount(0);
-  await expect(page.locator('input[type="number"], input[inputmode="numeric"]')).toHaveCount(0);
+  // The OpenUI devtools overlay (dev server only) has a disabled "Chunk seed" number box; it is not the Learner's UI.
+  await expect(page.locator('input[type="number"]:not([aria-label="Chunk seed"]), input[inputmode="numeric"]')).toHaveCount(0);
 });
 
 test("[E4a] Widget on 100 % of replies (scripted): 4 of 4", async ({ page }) => {

@@ -9,7 +9,7 @@ import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { noteMethodUsed, parkedSkills, parkSkill, recordAnswerLogged, skillStates, unparkSkill } from "@/learner/skill-state";
 import { loadWidgetStates, saveWidgetState } from "@/learner/widget-state";
-import { drawTemplate, markAnswer, type DrawnItem, type FixedItem, type Verdict } from "@/teaching";
+import { choiceSet, choicesFor, drawTemplate, markChoice, type DrawnItem, type FixedItem, type Verdict } from "@/teaching";
 import { drillDue, freshSkillState, isFluent, LADDER, yourTurnDone, type AnswerEvent, type Method, type SkillState } from "@/teaching/ladder";
 import { recipeById } from "@/widgets/recipes";
 import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
@@ -81,9 +81,25 @@ function skillOfTry(topic: Topic, q: QuickTry): string | undefined {
   return isFixed(q) ? q.skill : topic.templates.find((t) => t.id === q.template)?.skill;
 }
 
+/**
+ * True when code can show the try: it makes 2 or more choices (ADR 0009). A fixed number try with no Known mistake, or a
+ * template with none, makes only the right answer, so code never shows it (and lint L10 fails it).
+ */
+function showable(topic: Topic, q: QuickTry): boolean {
+  if (isFixed(q)) {
+    return choicesFor(q, "") !== null;
+  }
+  const t = topic.templates.find((x) => x.id === q.template);
+  return Boolean(t && t.mistakes.length > 0 && (!q.halfDone || t.halfDone));
+}
+
+/** The Quick tries of a Check that code can show. */
+const showableTries = (topic: Topic, check: Check) => check.quickTries.filter((q) => showable(topic, q));
+
 /** The Skills of a Check that have Quick tries there, in card order: the ones Your turn waits on. */
 function practisedSkills(topic: Topic, check: Check): string[] {
-  return skillsInCardOrder(topic, check).filter((s) => check.quickTries.some((q) => skillOfTry(topic, q) === s));
+  const tries = showableTries(topic, check);
+  return skillsInCardOrder(topic, check).filter((s) => tries.some((q) => skillOfTry(topic, q) === s));
 }
 
 /**
@@ -112,7 +128,7 @@ export function nextQuickTry(
   const open = practisedSkills(topic, check).filter((s) => !(states[s] && isFluent(states[s])));
   const skillId = opts.skillId && open.includes(opts.skillId) ? opts.skillId : open[0];
   if (!skillId) return null;
-  const tries = check.quickTries.filter((q) => skillOfTry(topic, q) === skillId);
+  const tries = showableTries(topic, check).filter((q) => skillOfTry(topic, q) === skillId);
   const used = new Set(shown.map((s) => refOfKey(s.key)).flatMap((r) => (r ? [refText(r)] : [])));
   const ofSkill = shown.filter((s) => s.skillId === skillId).length;
   const ref = pick(tries, used, opts.easier || ofSkill === 0, ofSkill);
@@ -203,14 +219,15 @@ function dataOf(topic: Topic, check: Check, key: string, ref: Ref): QuickTryData
   if (!found) throw new Error(`Quick try ${refText(ref)} in Topic ${topic.id} cannot be shown`);
   const { item, halfDone } = found;
   const prompt = "templateId" in item ? item.prompt : item.ask;
-  const unit = "templateId" in item ? item.unit : item.kind === "number" ? item.unit : undefined;
+  const set = choicesFor(item, key);
+  if (!set) throw new Error(`Quick try ${refText(ref)} in Topic ${topic.id} makes fewer than 2 choices`);
   return {
     key,
     checkId: check.id,
     skillId: item.skill,
     prompt,
-    kind: item.kind,
-    ...(unit && { unit }),
+    kind: "templateId" in item || item.kind !== "truth" ? "choice" : "truth",
+    choices: set.choices.map(({ id, text }) => ({ id, text })),
     ...(halfDone && { halfDone }),
   };
 }
@@ -509,8 +526,8 @@ const lineOf = (v: Verdict) => (v.verdict === "right" ? "Right." : v.verdict ===
  * A Known mistake shows its fix, then a new try on the same Skill. A wrong answer with no Known mistake shows "Not
  * quite." and asks for a follow-up turn, after which code posts a fresh try.
  */
-export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, key: string, input: string, now: Date): Promise<QuickTryAnswer> {
-  if (!input.trim()) return { ok: false, status: 400, error: "Type an answer, or pick True or False." };
+export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, key: string, choice: string, now: Date): Promise<QuickTryAnswer> {
+  if (!choice.trim()) return { ok: false, status: 400, error: "Pick one of the choices." };
   if (await turnRunning(db, now, learnerId)) return { ok: false, status: 409, error: "Wait for the Tutor to finish, then answer." };
   const row = await itemByKey(db, learnerId, QUICK_TRY, key);
   const shown = row ? dataOfItem<QuickTryData>(row) : undefined;
@@ -520,7 +537,10 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
   if (!row || !shown || !check || !topic || !found) return { ok: false, status: 404, error: "That Quick try does not exist." };
   if (await itemByKey(db, learnerId, QUICK_TRY_RESULT, key)) return { ok: true, items: [], followUp: false };
 
-  const marked = markAnswer(found.item, input);
+  const set = choiceSet(found.item);
+  const picked = set?.choices.find((c) => c.id === choice);
+  if (!picked) return { ok: false, status: 400, error: "Pick one of the choices." };
+  const marked = markChoice(found.item, choice);
   const drawn = "templateId" in found.item ? found.item : null;
   const { state: after, logged } = await recordAnswerLogged(
     db,
@@ -533,7 +553,7 @@ export async function answerQuickTry(db: Db, map: CourseMap, learnerId: number, 
       itemId: found.item.id,
       templateId: drawn?.templateId ?? null,
       params: drawn?.params ?? {},
-      input: input.trim(),
+      input: picked.text,
       verdict: marked.verdict,
       mistakeTag: marked.verdict === "known_mistake" ? marked.tag : null,
       source: "quick_try",
@@ -624,7 +644,7 @@ async function resultLines(db: Db, map: CourseMap, learnerId: number, items: rea
     const topic = check ? map.topic(check.topicId) : undefined;
     const found = topic ? quickTryItem(topic, r.key) : null;
     const input = inputs.get(r.key) ?? "";
-    const expected = found ? markAnswer(found.item, input).expected : undefined;
+    const expected = found ? markChoice(found.item, "").expected || undefined : undefined;
     const verdict =
       r.verdict === "right"
         ? "right"
@@ -717,8 +737,8 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
   await noteMethodUsed(db, learnerId, tried.topicId, tried.data.skillId, action.method);
   const [line] = await resultLines(db, map, learnerId, items, [result]);
   const rule = map.topic(tried.topicId)?.skills.find((s) => s.id === tried.data.skillId)?.rule;
-  // On the boxes rung the reply sets out boxes whose blank last box is the ask (ticket #248, T3), on the numbers of the
-  // half-done try code posts after the reply, so the reply and that try are one item, not two.
+  // On the half-done choice rung the reply teaches on the numbers of the half-done try code posts after the reply, so the
+  // reply and that try are one item, not two; the try's last step is a tap, so the reply asks nothing (ADR 0009).
   const posted = action.method === "boxes" ? await halfDoneTryAfterReteach(db, map, learnerId, sessionId, tried.data.skillId) : null;
   return [
     `${QUICK_TRY_FOLLOW_UP_PREFIX} the Learner missed a Quick try on the same idea twice in a row:`,
@@ -729,10 +749,10 @@ async function reteachFor(db: Db, map: CourseMap, learnerId: number, items: read
       ? [
           ...(posted
             ? [
-                `The half-done try code posts after your reply: "${[posted.prompt, posted.halfDone].filter(Boolean).join(" ")}". Set your boxes on its numbers, so they and the try are one item. Box 1 says its rate move in full ("a rate goes from A% to B%") and its first step; Box 2 is its blank last step. Never give its answer.`,
+                `The half-done try code posts after your reply: "${[posted.prompt, posted.halfDone].filter(Boolean).join(" ")}". Teach on its numbers, so your reply and the try are one item: say its rate move in full ("a rate goes from A% to B%") and its first step, and stop before the last step, which the Learner taps. Never give its answer.`,
               ]
             : []),
-          "Teach it again this way only, in a few short lines. The blank last box is your one ask: write no other question.",
+          "Teach it again this way only, in a few short lines. The last step is the Learner's tap: write no practice question of your own.",
         ]
       : ["Teach it again this way only, in a few short lines with numbers other than the try's, then one ask. Write no practice question of your own: code shows the next Quick try after your reply."]),
   ].join("\n");
@@ -921,12 +941,18 @@ export async function frustrationEvents(db: Db, learnerId: number, sessionId: nu
 /** What the ladder tells the Tutor this turn, through TurnFacts and the context. */
 export type LadderFacts = { replyKind?: "feedback" | "offer_park" | RungKind; method?: string; frustration?: number; skillLines: string[]; parked?: string };
 
-const METHOD_NAMES: Record<Method, string> = { restate: "restate the rule", worked: "a worked example", boxes: "fill-in boxes", widget: "the Widget in practice mode", drill5: "a drill of five" };
+const METHOD_NAMES: Record<Method, string> = { restate: "restate the rule", worked: "a worked example", boxes: "a half-done choice", widget: "the Widget in practice mode", drill5: "a choice drill of five" };
 
 /** A Known mistake's fix line, by its tag, from the Topic file: never the tag itself, which the Tutor must not repeat. */
 function mistakeWords(topic: Topic, tag: string): string | undefined {
   for (const t of topic.templates) for (const m of t.mistakes) if (m.tag === tag) return m.fix;
-  for (const c of topic.checks) for (const q of c.quickTries) if (isFixed(q)) for (const m of q.mistakes ?? []) if (m.tag === tag) return m.fix;
+  for (const c of topic.checks) {
+    for (const q of c.quickTries) {
+      if (!isFixed(q)) continue;
+      for (const m of q.mistakes ?? []) if (m.tag === tag) return m.fix;
+      for (const ch of q.choices ?? []) if (ch.mistake?.tag === tag) return ch.mistake.fix;
+    }
+  }
   for (const q of topic.questions) for (const c of q.choices) if (c.mistake?.tag === tag) return c.mistake.fix;
   return undefined;
 }

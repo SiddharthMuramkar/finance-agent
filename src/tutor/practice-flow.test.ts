@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
+import { describe, expect, it, vi } from "vitest";
 import { CONVERTED_TOPIC_DATA, topicFileOf } from "@/course/lesson-fixture";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
-import { OWNER_LEARNER_ID } from "@/db/schema";
+import { OWNER_LEARNER_ID, practiceAnswers } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { noteMethodUsed, recordAnswer, skillStates } from "@/learner/skill-state";
@@ -11,6 +12,8 @@ import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
 import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 import { afterReteachItems, answerQuickTry, enterStepItems, pendingQuickTryNote, quickTryFollowUpNote } from "./practice";
+import { answerTyped } from "@/test/answer-typed";
+import { plainWrongMap, PLAIN_WRONG } from "@/test/plain-wrong-map";
 import { CONCEPT_CARD, QUICK_TRY, QUICK_TRY_RESULT, STEP_DIVIDER, type QuickTryData, type SessionItem } from "./session-item-kinds";
 import { loadSessionItems, saveItemAfterLatest } from "./session-items";
 import { runTutorTurn } from "./turn";
@@ -20,6 +23,15 @@ import { startTurn } from "./turn-status";
  * Seam: practice in Learner Memory (spec #229, ticket #243). Entering a converted step stores its Concept card, Widget
  * preset and Quick tries as Session items; POST /api/quick-try's handler marks an answer exactly, once per key.
  */
+
+// The route's database, Course Map and current Learner; the rest of the file calls the functions directly.
+const as = vi.hoisted(() => ({ db: undefined as unknown as Db, map: undefined as CourseMap | undefined }));
+vi.mock("@/db/client", () => ({ getDb: () => as.db }));
+vi.mock("@/auth/session", () => ({ currentLearnerId: async () => 1 }));
+vi.mock("@/course/map", async (original) => {
+  const real = await original<typeof import("@/course/map")>();
+  return { ...real, loadCourseMap: () => as.map ?? real.loadCourseMap() };
+});
 
 const { map: parsed } = parseCourseMap([topicFileOf(CONVERTED_TOPIC_DATA)]);
 const map = parsed as CourseMap;
@@ -87,28 +99,28 @@ describe("Your turn with Quick tries", () => {
     const db = await testDb();
     const { sessionId, first } = await atYourTurn(db);
     const points = Number(first.halfDone!.match(/([\d.]+) points/)![1]);
-    const a1 = await answerQuickTry(db, map, me, first.key, `${Math.round(points * 100)} bp`, now());
+    const a1 = await answerTyped(db, map, me, first.key, `${Math.round(points * 100)} bp`, now());
     expect(a1).toMatchObject({ ok: true, followUp: false });
     expect(a1.ok && a1.items[0]).toEqual({ kind: QUICK_TRY_RESULT, data: { key: first.key, verdict: "right", line: "Right." } });
     // The same key again changes nothing.
-    expect(await answerQuickTry(db, map, me, first.key, "0", now())).toEqual({ ok: true, items: [], followUp: false });
+    expect(await answerTyped(db, map, me, first.key, "0", now())).toEqual({ ok: true, items: [], followUp: false });
     expect((await skillStates(db, me, "pct-demo"))["pts-to-bp"]).toMatchObject({ tries: 1, streak: 1 });
 
     const second = tryIn(a1.ok ? a1.items : [])!;
     expect(second.halfDone).toBeUndefined();
-    const a2 = await answerQuickTry(db, map, me, second.key, String(bpOf(second) / 10), now());
+    const a2 = await answerTyped(db, map, me, second.key, String(bpOf(second) / 10), now());
     expect(a2.ok && a2.items[0].data).toMatchObject({ verdict: "known_mistake", line: "One point is 100 basis points, so multiply by 100, not 10." });
     const third = tryIn(a2.ok ? a2.items : [])!;
     expect(third.skillId).toBe("pts-to-bp");
-    const a3 = await answerQuickTry(db, map, me, third.key, String(bpOf(third)), now());
+    const a3 = await answerTyped(db, map, me, third.key, String(bpOf(third)), now());
     const fourth = tryIn(a3.ok ? a3.items : [])!;
-    const a4 = await answerQuickTry(db, map, me, fourth.key, `${bpOf(fourth)}bp`, now());
+    const a4 = await answerTyped(db, map, me, fourth.key, `${bpOf(fourth)}bp`, now());
     const fifth = tryIn(a4.ok ? a4.items : [])!;
     expect(fifth).toMatchObject({ skillId: "bp-to-pts", prompt: "120 bp is how many points?" });
-    const a5 = await answerQuickTry(db, map, me, fifth.key, "1.2", now());
+    const a5 = await answerTyped(db, map, me, fifth.key, "1.2", now());
     const sixth = tryIn(a5.ok ? a5.items : [])!;
     const bp6 = Number(sixth.prompt.match(/by (\d+) basis/)![1]);
-    const a6 = await answerQuickTry(db, map, me, sixth.key, String(bp6 / 100), now());
+    const a6 = await answerTyped(db, map, me, sixth.key, String(bp6 / 100), now());
     expect(a6).toMatchObject({ ok: true, followUp: true });
     expect(a6.ok && a6.items.map((i) => i.kind)).toEqual([QUICK_TRY_RESULT, STEP_DIVIDER]);
     expect(navigate(map, await loadProgress(db, me))).toMatchObject({ step: "check", check: { id: "pct-demo-check-1" } });
@@ -116,23 +128,61 @@ describe("Your turn with Quick tries", () => {
     // Every result since the Tutor's last reply goes to the next turn.
     const note = await pendingQuickTryNote(db, map, me, sessionId);
     expect(note?.split("\n")).toHaveLength(7);
-    expect(note).toContain(`"120 bp is how many points? First step, done for you: 100 bp make 1 point, so divide by 100." The Learner gave "1.2": right.`);
+    expect(note).toContain(`"120 bp is how many points? First step, done for you: 100 bp make 1 point, so divide by 100." The Learner gave "1.2 points": right.`);
   });
 
-  it("answers a wrong answer with no Known mistake with Not quite and a follow-up that names the slip", async () => {
+  it("answers a wrong tap with no Known mistake with Not quite and a follow-up that names the slip", async () => {
+    // A written choice try whose wrong option carries no Known mistake: the only way to be wrong with no mix-up to name.
+    const pick = plainWrongMap();
+    const db = await testDb();
+    const sessionId = await started(db);
+    for (const step of ["story", "concept"] as const) await saveFinishedStep(db, pick, step, now(), me);
+    const [shown] = await enterStepItems(db, pick, me, sessionId, now());
+    const first = shown.data as QuickTryData;
+    expect(first.choices!.map((c) => c.text).sort()).toEqual(["Up 1", "Up 1 point"]);
+    const answer = await answerQuickTry(db, pick, me, first.key, PLAIN_WRONG, now());
+    expect(answer).toEqual({ ok: true, followUp: true, items: [{ kind: QUICK_TRY_RESULT, data: { key: first.key, verdict: "wrong", line: "Not quite." } }] });
+    expect(await quickTryFollowUpNote(db, pick, me)).toMatch(/The Learner gave "Up 1": not right; the answer is Up 1 point.*Reply kind: feedback\. Name the slip in one sentence/s);
+  });
+
+  it("refuses a choice that is not one of the try's choices", async () => {
     const db = await testDb();
     const { first } = await atYourTurn(db);
-    const answer = await answerQuickTry(db, map, me, first.key, "7777", now());
-    expect(answer).toEqual({ ok: true, followUp: true, items: [{ kind: QUICK_TRY_RESULT, data: { key: first.key, verdict: "wrong", line: "Not quite." } }] });
-    expect(await quickTryFollowUpNote(db, map, me)).toMatch(/The Learner gave "7777": not right; the answer is .*Reply kind: feedback\. Name the slip in one sentence/s);
+    expect(await answerQuickTry(db, map, me, first.key, "7777", now())).toMatchObject({ ok: false, status: 400 });
+    expect(await answerQuickTry(db, map, me, first.key, " ", now())).toMatchObject({ ok: false, status: 400 });
   });
 
   it("refuses while a turn runs, and a key that is not the Learner's", async () => {
     const db = await testDb();
     const { first } = await atYourTurn(db);
-    expect(await answerQuickTry(db, map, me, "qt:1:0:pct-demo-try-bp-half", "1.2", now())).toMatchObject({ ok: false, status: 404 });
+    expect(await answerTyped(db, map, me, "qt:1:0:pct-demo-try-bp-half", "1.2", now())).toMatchObject({ ok: false, status: 404 });
     await startTurn(db, now(), "Hi", me);
-    expect(await answerQuickTry(db, map, me, first.key, "60", now())).toMatchObject({ ok: false, status: 409 });
+    expect(await answerTyped(db, map, me, first.key, "60", now())).toMatchObject({ ok: false, status: 409 });
+  });
+});
+
+describe("POST /api/quick-try", () => {
+  const post = async (body: unknown) => {
+    const { POST } = await import("@/app/api/quick-try/route");
+    return POST(new Request("https://app.example/api/quick-try", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+  };
+
+  it("marks a tapped choice and stores its label as the answer, and a typed input answers 400", async () => {
+    const db = await testDb();
+    as.db = db;
+    as.map = map;
+    const { first } = await atYourTurn(db);
+    expect((await post({ key: first.key, input: "50" })).status).toBe(400);
+    expect((await post({ key: first.key, choice: "not-a-choice" })).status).toBe(400);
+    // The half-done try says its move in points; the right choice is that move in basis points.
+    const points = Number(first.halfDone!.match(/([\d.]+) points/)![1]);
+    const right = first.choices!.find((c) => c.text === `${Math.round(points * 100)} bp`)!;
+    const response = await post({ key: first.key, choice: right.id });
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { items: SessionItem[] };
+    expect(body.items[0]).toEqual({ kind: QUICK_TRY_RESULT, data: { key: first.key, verdict: "right", line: "Right." } });
+    const [row] = await db.select().from(practiceAnswers).where(eq(practiceAnswers.itemKey, first.key));
+    expect(row).toMatchObject({ input: `${Math.round(points * 100)} bp`, verdict: "right", source: "quick_try" });
   });
 });
 
@@ -143,25 +193,25 @@ describe("the re-teach note after a second miss in a row (ticket #248, lane R11)
     const { sessionId, first } = await atYourTurn(db);
     for (const method of used) await noteMethodUsed(db, me, "pct-demo", first.skillId, method);
     await recordAnswer(db, { learnerId: me, topicId: "pct-demo", skillId: first.skillId, itemKey: `quiz:91:${first.skillId}`, itemId: first.skillId, input: "x", verdict: "wrong", source: "quiz" });
-    await answerQuickTry(db, map, me, first.key, "999", now());
+    await answerTyped(db, map, me, first.key, "999", now());
     return { db, sessionId, note: await quickTryFollowUpNote(db, map, me) };
   }
 
-  it("on the fill-in boxes rung, has the Tutor name the slip and leave the last box blank as its one ask", async () => {
+  it("on the half-done choice rung, has the Tutor name the slip and leave the last step to the Learner's tap", async () => {
     const { note } = await secondMiss(["restate", "worked"]);
-    expect(note).toContain("Method: boxes, fill-in boxes. Code posts a half-done try after your reply");
+    expect(note).toContain("Method: boxes, a half-done choice. Code posts a half-done try after your reply");
     expect(note).toContain("name the slip in one sentence");
-    expect(note).toContain("The blank last box is your one ask");
-    expect(note).not.toContain("Write no practice question of your own");
+    expect(note).toContain("The last step is the Learner's tap: write no practice question of your own.");
+    expect(note).not.toContain("blank");
   });
 
-  it("on the fill-in boxes rung, names the very half-done try code posts after the reply, so the boxes can be set on it", async () => {
+  it("on the half-done choice rung, names the very half-done try code posts after the reply, so the reply is set on it", async () => {
     const { db, sessionId, note } = await secondMiss(["restate", "worked"]);
     const [posted] = await afterReteachItems(db, map, me, sessionId, "boxes", now());
     const data = posted.data as QuickTryData;
     expect(data.halfDone).toBeTruthy();
-    expect(note).toContain(`The half-done try code posts after your reply: "${data.prompt} ${data.halfDone}". Set your boxes on its numbers`);
-    expect(note).toContain('Box 1 says its rate move in full ("a rate goes from A% to B%") and its first step; Box 2 is its blank last step. Never give its answer.');
+    expect(note).toContain(`The half-done try code posts after your reply: "${data.prompt} ${data.halfDone}". Teach on its numbers`);
+    expect(note).toContain('say its rate move in full ("a rate goes from A% to B%") and its first step, and stop before the last step, which the Learner taps. Never give its answer.');
   });
 
   it("on another rung, still has the Tutor write no practice question of its own", async () => {

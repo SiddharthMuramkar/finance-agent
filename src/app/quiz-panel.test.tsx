@@ -11,7 +11,7 @@ const quiz: OpenQuiz = {
   checkNumber: 1,
   checkCount: 2,
   attemptNo: 0,
-  questions: [{ id: "t#1", prompt: "A rate moves from 2% to 2.6%. How many basis points?", choices: [], kind: "number", unit: "bp", decimals: 0 }],
+  questions: [{ id: "t#1", prompt: "A rate moves from 2% to 2.6%. How many basis points?", choices: [{ id: "60", text: "60 bp" }, { id: "0.6", text: "0.6 bp" }] }],
 };
 
 const missed: MissedQuiz = {
@@ -29,14 +29,14 @@ const missed: MissedQuiz = {
       {
         id: "t#1",
         prompt: "A rate moves from 2% to 2.6%. How many basis points?",
-        kind: "number",
-        chosen: null,
-        given: "0.6",
-        answer: "60 bp",
+        kind: "choice",
+        chosen: "0.6",
+        given: "0.6 bp",
+        answer: "60",
         expected: "60 bp",
         correct: false,
         explanation: "The right answer is 60 bp.",
-        choices: [],
+        choices: [{ id: "60", text: "60 bp" }, { id: "0.6", text: "0.6 bp" }],
         verified: true,
         mistake: { tag: "stopped_at_points", fix: "That is the move in points. Times 100 gives basis points." },
       },
@@ -61,20 +61,22 @@ const missed: MissedQuiz = {
   },
 };
 
-describe("QuizPanel typed questions", () => {
-  it("draws a labelled number box with the unit in words, and a Submit that waits for it", () => {
+describe("QuizPanel template questions", () => {
+  it("draws the choices to tap and a Submit that waits for them: no number box, no typed-number test id", () => {
     const html = renderToStaticMarkup(<QuizPanel quiz={quiz} />);
     expect(html).toContain('data-testid="quiz"');
-    expect(html).toContain("Answer in basis points");
-    expect(html).toContain('inputMode="decimal"');
-    expect(html).toContain('maxLength="40"');
-    expect(html).not.toContain('type="radio"');
+    expect(html).toContain("60 bp");
+    expect(html).toContain("0.6 bp");
+    expect(html).toContain('type="radio"');
+    expect(html).not.toMatch(/inputMode|inputmode/i);
+    expect(html).not.toContain("quiz-number");
+    expect(html).not.toContain("<input type=\"text\"");
     expect(html).toMatch(/<button[^>]*disabled[^>]*>Submit answers/);
   });
 
-  it("shows what was typed beside the right answer, then the fix line, and a wrong option's fix the same way", () => {
+  it("shows the picked choice beside the right answer, then the fix line, and a wrong option's fix the same way", () => {
     const html = renderToStaticMarkup(<QuizPanel quiz={null} missed={missed} />);
-    expect(html).toContain("Your answer: 0.6");
+    expect(html).toContain("Your answer: 0.6 bp");
     expect(html).toContain("right answer: 60 bp");
     expect(html).toContain("That is the move in points. Times 100 gives basis points.");
     expect(html).toContain("Your answer: A flat fee");

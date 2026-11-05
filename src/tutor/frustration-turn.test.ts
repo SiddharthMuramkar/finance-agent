@@ -6,7 +6,8 @@ import type { Db } from "@/db/types";
 import { saveFinishedStep } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
-import { answerQuickTry, enterStepItems } from "./practice";
+import { enterStepItems } from "./practice";
+import { answerTyped } from "@/test/answer-typed";
 import { QUICK_TRY, type QuickTryData } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnInput } from "./turn";
@@ -46,7 +47,7 @@ describe("frustration in the context", () => {
     const t = (await loadSessionItems(db, sessionId, me)).findLast((i) => i.kind === QUICK_TRY)?.data as QuickTryData | undefined;
     // The open try's first step is shown done, so its answer is in its half-done line: "the move is N points".
     const points = Number(t?.halfDone?.match(/([\d.]+) points/)?.[1]);
-    expect(await answerQuickTry(db, map, me, t!.key, String(Math.round(points * 100)), now())).toMatchObject({ ok: true });
+    expect(await answerTyped(db, map, me, t!.key, String(Math.round(points * 100)), now())).toMatchObject({ ok: true });
     expect((await contextOf(db, "ok")).context).not.toContain("Frustration:");
   });
 });

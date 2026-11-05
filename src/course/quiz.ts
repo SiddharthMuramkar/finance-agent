@@ -1,4 +1,4 @@
-import { drawTemplate, formatExact, markAnswer, type DrawnItem, type Unit } from "@/teaching";
+import { choicesFor, choiceSet, drawTemplate, type DrawnItem } from "@/teaching";
 import type { CourseMap, QuizCheck } from "./map";
 
 /**
@@ -13,7 +13,7 @@ import type { CourseMap, QuizCheck } from "./map";
 export type KeyedQuestion = {
   id: string;
   prompt: string;
-  /** A wrong choice's `mistake` is a Known mistake: its one-line fix shows in the marking. A typed question has no choices. */
+  /** A wrong choice's `mistake` is a Known mistake: its one-line fix shows in the marking. A template draw's choices come from `choicesFor`. */
   choices: { id: string; text: string; mistake?: { fix: string; tag?: string } }[];
   answer: string;
   explanation: string;
@@ -21,7 +21,7 @@ export type KeyedQuestion = {
   verified?: boolean;
   /** The Skill the question tests (converted Topics). */
   skill?: string;
-  /** Set for a typed question: one draw of a question template. `answer` is then its right answer in words ("60 bp"). */
+  /** Set for a template slot: one draw of a question template, served as choices. `answer` is then the right choice's id. */
   drawn?: DrawnItem;
 };
 
@@ -33,10 +33,6 @@ export type PublicQuestion = {
   id: string;
   prompt: string;
   choices: { id: string; text: string }[];
-  /** "number" for a typed question (it has `choices: []`, a `unit` and the `decimals` its ask states); a choice question leaves it out. */
-  kind?: "choice" | "number";
-  unit?: Unit;
-  decimals?: number;
 };
 
 export type MarkedQuestion = {
@@ -52,16 +48,16 @@ export type MarkedQuestion = {
   credit?: string;
   /** False while a bank question's key has not been checked by a person. */
   verified: boolean;
-  /** Absent in a hand-built marking: read it as "choice". `markAttempt` always sets it. */
-  kind?: "choice" | "number";
-  /** What the Learner gave: the picked choice's ID, or the text they typed. Empty when nothing. */
+  /** `markAttempt` always sets it. */
+  kind?: "choice";
+  /** What the Learner picked: the choice's ID, or for a template slot the choice's label ("50 bp"). Empty when nothing. */
   given?: string;
-  /** The right answer in words, e.g. "60 bp". For a choice question, the right choice's text. */
+  /** The right answer in words, e.g. "60 bp": the right choice's text. */
   expected?: string;
   skill?: string;
   /** The Known mistake the wrong answer matched, with its one-line fix. */
   mistake?: { tag?: string; fix: string };
-  /** A typed question's template and the numbers it was drawn with. */
+  /** A template slot's template and the numbers it was drawn with. */
   templateId?: string;
   params?: Record<string, string>;
 };
@@ -99,8 +95,8 @@ export function templateDraws(map: Pick<CourseMap, "template">, templateId: stri
   const t = map.template(templateId);
   if (!t) return false;
   try {
-    drawTemplate(t, "probe", {});
-    return true;
+    // A draw with fewer than 2 choices (a template with no Known mistakes) is never shown.
+    return choicesFor(drawTemplate(t, "probe", {}), "probe") !== null;
   } catch {
     return false;
   }
@@ -120,7 +116,10 @@ export function instantiateSlots(
 ): string[] {
   const numbersOf = (templateId: string, seed: string) => {
     const t = map.template(templateId);
-    return t ? JSON.stringify(drawTemplate(t, seed, {}).params) : null;
+    if (!t) return null;
+    const drawn = drawTemplate(t, seed, {});
+    if (!choicesFor(drawn, seed)) throw new Error(`Template ${t.id} makes fewer than 2 choices`);
+    return JSON.stringify(drawn.params);
   };
   const avoid = new Map<string, Set<string>>();
   const note = (templateId: string, numbers: string | null) => {
@@ -155,14 +154,18 @@ export function instantiateSlots(
   return out;
 }
 
-/** The lookup entry for one draw of a template: what `questionLookup` returns for an instance ID. */
+/**
+ * The lookup entry for one draw of a template: what `questionLookup` returns for an instance ID. The draw is served as
+ * 2 to 4 choices (`choicesFor`, ordered by the instance ID), each Known-mistake value carrying its fix.
+ */
 export function instanceQuestion(id: string, drawn: DrawnItem): KeyedQuestion {
-  const expected = markAnswer(drawn, "").expected;
+  const set = choicesFor(drawn, id) ?? choiceSet(drawn)!;
+  const expected = set.choices.find((c) => c.id === set.answer)?.text ?? "";
   return {
     id,
     prompt: drawn.prompt,
-    choices: [],
-    answer: formatExact(drawn.answer, drawn.unit),
+    choices: set.choices.map((c) => ({ id: c.id, text: c.text, ...(c.mistake && { mistake: c.mistake }) })),
+    answer: set.answer,
     explanation: `The right answer is ${expected}.`,
     skill: drawn.skill,
     drawn,
@@ -174,7 +177,6 @@ export function publicQuestions(map: QuestionLookup, ids: string[]): PublicQuest
   return ids.map((id) => {
     const q = map.question(id);
     if (!q) throw new Error(`Question "${id}" is not on the Course Map or in the Question Bank.`);
-    if (q.drawn) return { id: q.id, prompt: q.prompt, choices: [], kind: "number" as const, unit: q.drawn.unit, decimals: q.drawn.decimals };
     return { id: q.id, prompt: q.prompt, choices: q.choices.map(({ id, text }) => ({ id, text })) };
   });
 }
@@ -185,24 +187,6 @@ export function markAttempt(map: QuestionLookup, check: QuizCheck, ids: string[]
     const q = map.question(id);
     if (!q) throw new Error(`Question "${id}" is not on the Course Map or in the Question Bank.`);
     const shared = { id, prompt: q.prompt, verified: q.verified ?? true, ...(q.credit ? { credit: q.credit } : {}), ...(q.skill ? { skill: q.skill } : {}) };
-    if (q.drawn) {
-      const given = answers[id] ?? "";
-      const verdict = markAnswer(q.drawn, given);
-      return {
-        ...shared,
-        kind: "number",
-        chosen: null,
-        given,
-        answer: q.answer,
-        expected: verdict.expected,
-        correct: verdict.verdict === "right",
-        explanation: `The right answer is ${verdict.expected}.`,
-        choices: [],
-        ...(verdict.verdict === "known_mistake" ? { mistake: { tag: verdict.tag, fix: verdict.fix } } : {}),
-        templateId: q.drawn.templateId,
-        params: q.drawn.params,
-      };
-    }
     const picked = answers[id];
     const chosen = q.choices.some((c) => c.id === picked) ? picked : null;
     const correct = chosen === q.answer;
@@ -211,13 +195,15 @@ export function markAttempt(map: QuestionLookup, check: QuizCheck, ids: string[]
       ...shared,
       kind: "choice",
       chosen,
-      given: chosen ?? "",
+      // A template slot stores the picked label ("50 bp"), a written question the picked choice's id.
+      given: q.drawn ? (q.choices.find((c) => c.id === chosen)?.text ?? "") : (chosen ?? ""),
       answer: q.answer,
       expected: q.choices.find((c) => c.id === q.answer)?.text ?? q.answer,
       correct,
       explanation: q.explanation,
       choices: q.choices.map(({ id, text }) => ({ id, text })),
       ...(hit ? { mistake: { ...(hit.tag ? { tag: hit.tag } : {}), fix: hit.fix } } : {}),
+      ...(q.drawn ? { templateId: q.drawn.templateId, params: q.drawn.params } : {}),
     };
   });
   const correctCount = questions.filter((q) => q.correct).length;
