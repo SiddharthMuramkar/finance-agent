@@ -924,7 +924,7 @@ async function* runLockedTurn(
     const card = await cardFallback(db, map, learnerId, passedTopic ? null : placeNow);
     rejectReplyRows();
     // A Widget that failed its checks never shows in the fallback.
-    const shown = card ? card.text : trimmedFallback(text, gateFacts.cap, problems.some((p) => p.rule === "V4"));
+    const shown = card ? card.text : trimmedFallback(text, gateFacts.cap, problems.some((p) => p.rule === "V4"), problems.some((p) => p.rule === "V8"));
     await log.append({ role: "assistant", content: [{ type: "text", text: shown }] });
     const out: TurnEvent[] = [];
     for (const item of card?.items ?? []) {

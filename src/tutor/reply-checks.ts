@@ -274,6 +274,25 @@ export function sumAsked(text: string): string | null {
 }
 
 /**
+ * The reply with every sentence that asks for a sum (V8) taken out, and any line left empty by it: the fallback after a
+ * failed V8 retry. Statements and fences stay; the Choices under the reply carry the next move.
+ */
+export function dropSumAsks(text: string): string {
+  const out = mapProse(text, (chunk) =>
+    chunk
+      .split("\n")
+      .map((line) => {
+        const sentences = sentencesOf(line);
+        const kept = sentences.filter((s) => !((asksOrInstructs(s) || opensWithVerb(s, SUM_VERBS)) && sumAsk(prose(s))));
+        return kept.length === sentences.length ? line : kept.length ? kept.join(" ") : null;
+      })
+      .filter((line): line is string => line !== null)
+      .join("\n"),
+  );
+  return out.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/**
  * Every rule (V1 to V8) the reply breaks, with a reason a retry can be told. Run it on the fixed draft
  * (`fixReply`), so that V3 fails only on what code cannot fix.
  */
