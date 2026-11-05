@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { say, seed, type Script } from "./support/app";
+import { hydrated, say, seed, type Script } from "./support/app";
 import { auditAffordances, measureLayout } from "./support/measure";
 
 /**
@@ -51,6 +51,7 @@ test("[A2] header height is 56 px or less and the chat body font is 15 px", asyn
 
 test("[A3b] interactive elements without a signifier and non-interactive elements with cursor:pointer are 0", async ({ page }) => {
   await study(page, "concept-widget");
+  await hydrated(page);
   const audit = await auditAffordances(page);
   expect(audit.interactiveWithoutSignifier).toEqual([]);
   expect(audit.pointerOnStatic).toEqual([]);

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { seed, type State } from "./support/app";
+import { hydrated, quietDevtools, seed, type State } from "./support/app";
 import { auditAffordances } from "./support/measure";
 
 /**
@@ -9,10 +9,7 @@ import { auditAffordances } from "./support/measure";
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "measured at 1512×982");
-  // The OpenUI kit mounts its own "Inspect" button on a development server; it is not part of the app, and a production build has none.
-  await page.addInitScript(() => {
-    (globalThis as Record<symbol, unknown>)[Symbol.for("openui.devtools.autoMount")] = true;
-  });
+  await quietDevtools(page);
 });
 
 async function clean(page: Page, where: string) {
@@ -32,7 +29,7 @@ async function clean(page: Page, where: string) {
 async function visit(page: Page, state: State, path: string) {
   await seed(page, state);
   await page.goto(path);
-  await page.waitForLoadState("networkidle");
+  await hydrated(page);
 }
 
 test.describe("affordance audit is clean", () => {
@@ -41,7 +38,7 @@ test.describe("affordance audit is clean", () => {
     for (const path of ["/", "/login"]) {
       test(`[A3b] ${path}`, async ({ page }) => {
         await page.goto(path);
-        await page.waitForLoadState("networkidle");
+        await hydrated(page);
         await clean(page, path);
       });
     }

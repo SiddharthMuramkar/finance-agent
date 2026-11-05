@@ -1,7 +1,7 @@
 "use client";
 
 import { createTheme, defaultLightTheme, ThemeProvider, type Theme } from "@openuidev/react-ui";
-import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { THEME_KIND, isTheme, type ThemeId } from "@/app/theme";
 
 // OpenUI's component kit (charts, tables, tabs) drawn in our design tokens. Its colours read our CSS
@@ -154,7 +154,8 @@ export function GenuiTheme({ children }: { children: ReactNode }) {
   const kitTheme = GENUI_THEMES[theme];
   const root = useRef<HTMLDivElement>(null);
   // The kit's accordion trigger is a button we do not render, so we name it for the affordance audit ourselves; globals.css gives it the raised edge.
-  useEffect(() => {
+  // A layout effect, so the trigger is named before the first paint and an audit never sees it bare.
+  useLayoutEffect(() => {
     const host = root.current;
     if (!host) return;
     const tag = () => host.querySelectorAll(".openui-accordion-trigger:not([data-affordance])").forEach((el) => el.setAttribute("data-affordance", "button"));
