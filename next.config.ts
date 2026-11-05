@@ -8,6 +8,9 @@ import type { NextConfig } from "next";
 const STUBS = "./src/widgets/openui-stubs";
 
 const nextConfig: NextConfig = {
+  // The browser test bed (E2E=1, spec 2026-11-05 T-00) builds into its own folder, so it never shares a lock or a
+  // cache with a normal `npm run dev`.
+  distDir: process.env.E2E === "1" ? ".next-e2e" : ".next",
   turbopack: {
     rules: {
       "*.mjs": { condition: { path: /@openuidev\/react-ui\/dist\/index\.mjs$/ }, loaders: [`${STUBS}/pure-loader.cjs`], as: "*.js" },
