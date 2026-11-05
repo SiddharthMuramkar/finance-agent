@@ -28,13 +28,12 @@ const tag = (markup: string, pattern: RegExp) => markup.match(new RegExp(`<[^>]*
 describe("a Slider as a container-query component", () => {
   const markup = html(sliders('"column"'));
 
-  it("sits in a @container, with the number box shown only from 22rem and the value tappable below it", () => {
+  it("sits in a @container with a three-column row (button, range, button) and no number box at any width", () => {
     expect(markup).toContain("@container");
-    expect(tag(markup, /aria-label="Old rate, exact value"/)).toContain("hidden");
-    expect(tag(markup, /aria-label="Old rate, exact value"/)).toContain("@[22rem]:block");
     expect(markup).toContain("grid-cols-[auto_minmax(0,1fr)_auto]");
-    expect(markup).toContain("@[22rem]:grid-cols-[auto_minmax(0,1fr)_auto_5rem]");
-    expect(markup).toContain('title="Tap to type a value"');
+    expect(markup).not.toContain("@[22rem]");
+    expect(markup).not.toContain("exact value");
+    expect(markup).not.toContain('title="Tap to type a value"');
   });
 
   it("lets the range shrink, takes the teal range-you thumb, and has 32 px steppers", () => {

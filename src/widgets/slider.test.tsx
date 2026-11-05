@@ -4,9 +4,9 @@ import { createParser, evaluate, type LibraryJSONSchema } from "@openuidev/lang-
 import { WidgetView } from "@/app/widget-view";
 import frozen from "./frozen.generated.json";
 import { parsedTasks } from "./guided-tasks";
-import { readingValue, settledValue, sliderStep, snappedValue, steppedValue, typedValue } from "./slider-steps";
+import { readingValue, settledValue, sliderStep, snappedValue, steppedValue } from "./slider-steps";
 
-// Every slider takes an exact value (spec #119, "Widgets › Sliders").
+// Every slider reaches every step with the range, the −/+ buttons and the quick chips; nothing is typed (ADR 0009).
 
 const rates = [
   'root = Widget("Rates", [old, years])',
@@ -22,13 +22,19 @@ const text = (markup: string) => markup.replace(/<[^>]+>/g, "").replace(/\s+/g, 
 const tag = (markup: string, pattern: RegExp) => markup.match(new RegExp(`<[^>]*${pattern.source}[^>]*>`))?.[0] ?? "";
 
 describe("a slider in a Widget", () => {
-  it("has a number box beside it that takes any value from its minimum to its maximum", () => {
-    const box = tag(html, /aria-label="Old rate, exact value"/);
-    expect(box).toContain('type="number"');
-    expect(box).toContain('min="0"');
-    expect(box).toContain('max="10"');
-    expect(box).toContain('step="any"');
-    expect(tag(html, /aria-label="Years, exact value"/)).toContain('max="30"');
+  it("has no box to type a value in: no exact-value box, no tap-to-type value", () => {
+    expect(html).not.toContain("exact value");
+    expect(html).not.toContain("type a value");
+    expect(html).not.toContain('type="number"');
+    expect(html).not.toContain("inputmode");
+    expect(html.match(/<input/g)).toHaveLength(2);
+    expect(tag(html, /aria-label="Old rate"/)).toContain('type="range"');
+  });
+
+  it("shows its value as a reading, not a button", () => {
+    expect(html).toContain("<output");
+    expect(text(html)).toMatch(/Old rate \d+%/);
+    expect(html).not.toContain('title="Tap to type a value"');
   });
 
   it("has − and + buttons that move it by one step", () => {
@@ -65,18 +71,12 @@ const years = { min: 1, max: 30, step: 1, unit: "years" };
 const quarters = { min: 0, max: 10, step: 0.25, unit: "usd" };
 
 describe("the values a slider takes", () => {
-  it("takes any typed value from min to max, rounding typed percents to two decimals", () => {
-    expect(typedValue("3.33", percent)).toBe(3.33);
-    expect(typedValue("3.3333", percent)).toBe(3.33);
-    expect(typedValue("3.386", quarters)).toBe(3.39);
-    expect(typedValue("12.4", years)).toBe(12);
-  });
-
-  it("clamps typed values outside the range and rejects text that is no number", () => {
-    expect(typedValue("15", percent)).toBe(10);
-    expect(typedValue("-2", percent)).toBe(0);
-    expect(typedValue("", percent)).toBeNull();
-    expect(typedValue("abc", percent)).toBeNull();
+  it("settles a value inside min..max on the step's decimals, rounding percents to two decimals", () => {
+    expect(settledValue(3.3333, percent)).toBe(3.33);
+    expect(settledValue(3.386, quarters)).toBe(3.39);
+    expect(settledValue(12.4, years)).toBe(12);
+    expect(settledValue(15, percent)).toBe(10);
+    expect(settledValue(-2, percent)).toBe(0);
   });
 
   it("− and + move by exactly one step and stop at min and max", () => {
@@ -121,10 +121,9 @@ describe("a Guided Task with an equality target", () => {
   const [task] = parsedTasks(parser.parse(code).root!.props.children);
   const ticksAt = (rate: number | null) => evaluate(task.condition as never, { getState: () => rate, resolveRef: () => undefined }) === true;
 
-  it("ticks when the value is typed into the number box, and when + reaches it", () => {
-    expect(ticksAt(typedValue("3.38", percent))).toBe(true);
-    expect(ticksAt(typedValue("3.3800001", percent))).toBe(true);
+  it("ticks when + reaches the value or the range lands on it, and not a step short", () => {
     expect(ticksAt(steppedValue(3.37, 1, percent))).toBe(true);
-    expect(ticksAt(typedValue("3.37", percent))).toBe(false);
+    expect(ticksAt(settledValue(3.3800001, percent))).toBe(true);
+    expect(ticksAt(settledValue(3.37, percent))).toBe(false);
   });
 });

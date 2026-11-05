@@ -74,11 +74,11 @@ describe("a written-ahead Widget opened by the Tutor", () => {
     expect(pane).toContain("One rate change, said three ways");
   });
 
-  it("is Percent's: old and new rate in 0.01 steps with number boxes, read in points, basis points and percent change", async () => {
+  it("is Percent's: old and new rate in 0.01 steps with no number boxes, read in points, basis points and percent change", async () => {
     const { pane } = await workspace([beforeReveal]);
     for (const label of ["Old rate", "New rate"]) {
       expect(host.querySelector(`input[type="range"][aria-label="${label}"]`)?.getAttribute("step")).toBe("0.01");
-      expect(host.querySelector(`input[type="number"][aria-label="${label}, exact value"]`)).not.toBeNull();
+      expect(host.querySelector(`input[type="number"][aria-label="${label}, exact value"]`)).toBeNull();
     }
     expect(pane).toContain("In percentage points: 0.2 points");
     expect(pane).toContain("In basis points: 20 bp");
