@@ -534,7 +534,7 @@ const L10_DRAWS = 20;
 /**
  * L10 (ADR 0009): the Learner never types a number and a stem never asks for a sum. It fails a Quick try with kind
  * number, a template whose draws do not each give two distinct choices, and any question prompt, Quick-try ask, template
- * ask or conversation Check prompt that `sumAsk` matches. It runs on every Topic; `L10_NOT_YET_STORY` lists those still
+ * ask, conversation Check prompt or conversation Check passCriteria that `sumAsk` matches. It runs on every Topic; `L10_NOT_YET_STORY` lists those still
  * to be rewritten.
  */
 function lintL10(t: Topic, add: Add) {
@@ -563,7 +563,10 @@ function lintL10(t: Topic, add: Add) {
     }
   }
   for (const c of t.checks) {
-    if (c.kind === "conversation") say(`Check "${c.id}" prompt`, c.prompt);
+    if (c.kind === "conversation") {
+      say(`Check "${c.id}" prompt`, c.prompt);
+      say(`Check "${c.id}" passCriteria`, c.passCriteria);
+    }
     for (const q of c.quickTries) {
       if (!isFixed(q)) continue;
       if (q.kind === "number") add("L10", `Quick try "${q.id}" is typed (kind: number): make it kind: choice (ADR 0009)`);

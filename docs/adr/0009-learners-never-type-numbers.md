@@ -15,7 +15,7 @@ We chose this because the owner's Learners are young beginners who dislike maths
 ## Consequences
 
 - The Quick try box, the typed quiz question, StepThrough's "Your number", the rate-move answer box and the Slider's exact-value boxes go. Sliders keep their −/+ steppers and quick chips.
-- About 68 Topics start on the L10 list. Ten batches rewrite them, and the first 12 path Topics are rewritten with their story scenes.
+- About 72 Topics start on the L10 list (the detector also asks for a figure in a stem that gives numbers, a recompute ask and a conversation Check passCriteria that demands a recompute). Ten batches rewrite them, and the first 12 path Topics are rewritten with their story scenes.
 - The ladder keeps its order and stored ids; "fill-in boxes" becomes a half-done choice, and "a drill of five" becomes a choice drill of five.
 - A template must yield at least two distinct choices on every draw; the lesson lint's Draws rule checks it.
 - Guessing is easier with choices. A Check still needs its pass rule, and Skill state still needs two right in a row, so one lucky tap passes nothing.
