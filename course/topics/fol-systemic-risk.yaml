@@ -70,10 +70,10 @@ questions:
       $200 million by the end of the year, and the last $100 million only if it completes a
       restructuring by that date. Which headline gets it right on the day of the announcement?
     choices:
-      - { id: a, text: "Start-up has $400 million in the bank", mistake: { tag: counted_announced, fix: "An announced round is the most it may get, not cash received." } }
-      - { id: b, text: "Start-up is promised up to $400 million, and only the first payment has arrived" }
-      - { id: c, text: "Start-up has $300 million, everything with no condition attached", mistake: { tag: counted_promises, fix: "A payment due later is still a promise, not cash in hand today." } }
-      - { id: d, text: "Start-up has $200 million, half of the round", mistake: { tag: counted_half, fix: "Half is not in the terms; only the first payment has arrived." } }
+      - { id: a, text: "Start-up has secured $400 million and now holds it all in the bank", mistake: { tag: counted_announced, fix: "An announced round is the most it may get, not cash received." } }
+      - { id: b, text: "Start-up is promised up to $400 million; the first payment is in" }
+      - { id: c, text: "Start-up has $300 million in hand, with nothing attached to any of it", mistake: { tag: counted_promises, fix: "A payment due later is still a promise, not cash in hand today." } }
+      - { id: d, text: "Start-up has $200 million, which is half of the round", mistake: { tag: counted_half, fix: "Half is not in the terms; only the first payment has arrived." } }
     answer: b
     explanation: >
       Only the first payment has arrived. The $200 million due later is a promise, and the last
@@ -85,8 +85,8 @@ questions:
       A computing-services firm had revenue of $2 billion last year. One customer accounted for 60%
       of it and a second for 15%. What does that make a careful reader worry about?
     choices:
-      - { id: a, text: "Its results depend on two customers, so losing either could cut revenue sharply" }
-      - { id: b, text: "Nothing: a big customer proves the product is popular", mistake: { tag: popularity_not_risk, fix: "Reliance on one buyer is a risk; it shows concentration, not broad demand." } }
+      - { id: a, text: "Its results lean on two customers; losing one could hurt badly" }
+      - { id: b, text: "Nothing: a big customer is proof that the product is popular", mistake: { tag: popularity_not_risk, fix: "Reliance on one buyer is a risk; it shows concentration, not broad demand." } }
       - { id: c, text: "Its revenue is overstated, because customers are counted twice", mistake: { tag: double_count_assumed, fix: "Nothing here says revenue is counted twice; the worry is dependence on few buyers." } }
       - { id: d, text: "It must be a small firm, because large firms have many customers", mistake: { tag: size_assumed, fix: "Size does not settle it; many large firms depend on a few customers." } }
     answer: a
@@ -102,7 +102,7 @@ questions:
       A data-centre operator signs a 15-year lease with payments of $100 million at the end of each
       year. Which sentence about the lease is right?
     choices:
-      - { id: a, text: "It is a large commitment the operator owes whether or not its own customers pay" }
+      - { id: a, text: "A large commitment that is owed whether or not its customers pay" }
       - { id: b, text: "It is not a debt, because the building is rented rather than bought", mistake: { tag: lease_not_debt, fix: "Lease payments are a promise to pay, so the operator owes them like a loan." } }
       - { id: c, text: "It matters only in a year when a payment falls due", mistake: { tag: due_dates_only, fix: "The payments are promised for all 15 years, so the commitment exists from signing." } }
       - { id: d, text: "It is cancelled if the operator's customers stop paying", mistake: { tag: customers_cancel, fix: "The landlord's claim does not depend on whether the operator's customers pay." } }
@@ -117,9 +117,9 @@ questions:
       It has signed commitments to spend $1.2 billion on computing over the next twelve months. If
       revenue stays where it is, where must the money for the commitments come from?
     choices:
-      - { id: a, text: "From cash on hand, new funding or higher revenue, because the current pace does not cover them" }
+      - { id: a, text: "From cash, new funding or higher revenue: the current pace falls short" }
       - { id: b, text: "From the commitments themselves: signing a contract brings cash in", mistake: { tag: contract_as_cash, fix: "Signing a commitment creates a bill, not cash." } }
-      - { id: c, text: "From nowhere: commitments are optional and can be dropped freely", mistake: { tag: commitments_optional, fix: "Signed commitments are promises to pay; walking away usually has a cost." } }
+      - { id: c, text: "From nowhere, since commitments are optional and can be dropped without any cost", mistake: { tag: commitments_optional, fix: "Signed commitments are promises to pay; walking away usually has a cost." } }
       - { id: d, text: "From profit, because a company with revenue is profitable", mistake: { tag: revenue_as_profit, fix: "Revenue is not profit; costs come out of revenue first." } }
     answer: a
     explanation: >

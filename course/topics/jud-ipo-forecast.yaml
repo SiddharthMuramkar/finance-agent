@@ -119,9 +119,9 @@ questions:
       six months of 2012 and $150 million for the first six months of 2013. Which description builds
       the "twelve months to 30 June 2013" the way analysts do?
     choices:
-      - { id: a, text: "The last full year, plus the new part-year, less the same part-year a year earlier" }
-      - { id: b, text: "All three figures added together", mistake: { tag: counted_twice, fix: "That counts the first half of 2012 twice." } }
-      - { id: c, text: "The first six months of 2013, doubled", mistake: { tag: doubled_half, fix: "Doubling six months assumes the pace holds; that is a run rate, not twelve months earned." } }
+      - { id: a, text: "The last full year, plus the new part-year, less the old one" }
+      - { id: b, text: "All three figures added together to get a full total", mistake: { tag: counted_twice, fix: "That counts the first half of 2012 twice." } }
+      - { id: c, text: "The first six months of 2013, doubled to give a twelve-month figure", mistake: { tag: doubled_half, fix: "Doubling six months assumes the pace holds; that is a run rate, not twelve months earned." } }
       - { id: d, text: "The 2012 year on its own", mistake: { tag: old_year_only, fix: "The 2012 year leaves out the half-year already earned in 2013." } }
     answer: a
     explanation: >
@@ -138,8 +138,8 @@ questions:
       the old 100 million shares and says each share is now worth more. What did the writer leave
       out?
     choices:
-      - { id: a, text: "The new shares: the extra value is shared among more shares" }
-      - { id: b, text: "The cash: an offering raises none", mistake: { tag: cash_ignored, fix: "The offering did raise cash; the writer's slip is in the share count." } }
+      - { id: a, text: "The new shares: the value is spread over more shares" }
+      - { id: b, text: "The cash: an offering raises none at all for the company", mistake: { tag: cash_ignored, fix: "The offering did raise cash; the writer's slip is in the share count." } }
       - { id: c, text: "The old shares: they should be dropped from the count", mistake: { tag: old_shares_dropped, fix: "The old shares still exist; the new ones join them." } }
       - { id: d, text: "Nothing: added cash always lifts the value per share", mistake: { tag: cash_always_lifts, fix: "New shares share the cash too, so the value per share rises far less." } }
     answer: a
@@ -155,10 +155,10 @@ questions:
       A prospectus gives a share count "actual", one "pro forma" (the preferred stock converted into
       common) and one "pro forma as adjusted". Which of them includes the shares sold in the offering?
     choices:
-      - { id: a, text: "Actual" }
-      - { id: b, text: "Pro forma" }
+      - { id: a, text: "Actual, the shares in issue on the cover date" }
+      - { id: b, text: "Pro forma, the shares once the preferred stock converts" }
       - { id: c, text: "Pro forma as adjusted" }
-      - { id: d, text: "All three" }
+      - { id: d, text: "All three, since each one is a share count" }
     answer: c
     explanation: >
       "Pro forma" changes the count for the conversion of preferred stock only. "Pro forma as adjusted"
@@ -172,9 +172,9 @@ questions:
       billion. A friend says the growth only adds 60% of the starting revenue five times, ending near
       $800 million. What has the friend missed?
     choices:
-      - { id: a, text: "Compounding: each year's growth is earned on the bigger revenue of the year before" }
-      - { id: b, text: "Inflation: revenue must be adjusted before it grows", mistake: { tag: inflation_assumed, fix: "Inflation is not the issue; the friend applied growth to the starting revenue only." } }
-      - { id: c, text: "Taxes: growth is measured after tax", mistake: { tag: tax_assumed, fix: "Revenue growth is measured before tax; the issue is what the growth is applied to." } }
+      - { id: a, text: "Compounding: each year's growth builds on the year before" }
+      - { id: b, text: "Inflation: revenue must be adjusted for it before it grows", mistake: { tag: inflation_assumed, fix: "Inflation is not the issue; the friend applied growth to the starting revenue only." } }
+      - { id: c, text: "Taxes: growth is measured after tax is paid", mistake: { tag: tax_assumed, fix: "Revenue growth is measured before tax; the issue is what the growth is applied to." } }
       - { id: d, text: "Nothing: growth is simply added each year", mistake: { tag: simple_adding, fix: "Each year's growth builds on a larger base, so adding the same amount understates it." } }
     answer: a
     explanation: >
@@ -188,9 +188,9 @@ questions:
       A filing shows one revenue line of $48 million out of total revenue of $400 million, which is
       12.0% of it. A writer calls that line "12.8% of revenue". What should a careful judge do?
     choices:
-      - { id: a, text: "Note the small slip, then check whether anything in the writer's value depends on it" }
-      - { id: b, text: "Throw out the whole valuation, since one figure is off", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
-      - { id: c, text: "Ignore it: any figure within a point is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
+      - { id: a, text: "Note the small slip, then check whether the value depends on it" }
+      - { id: b, text: "Throw out the whole valuation, since even one figure is off", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
+      - { id: c, text: "Ignore it: any figure within a point of the right one is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
       - { id: d, text: "Assume the writer used a different base, with no check", mistake: { tag: base_assumed, fix: "Do not guess a base; check it against the filing." } }
     answer: a
     explanation: >
@@ -205,10 +205,10 @@ questions:
       risk measure (beta) of 1.30, and the rest (20%) from one with 0.90. How should the writer reach
       one beta for the company?
     choices:
-      - { id: a, text: "Weight each beta by its share of revenue, so the result sits nearer 1.30 than 0.90" }
+      - { id: a, text: "Weight each beta by its revenue share, landing nearer 1.30 than 0.90" }
       - { id: b, text: "Take the simple average of the two betas", mistake: { tag: simple_average, fix: "A simple average ignores the weights; the bigger business should count for more." } }
       - { id: c, text: "Use the higher beta, to be safe", mistake: { tag: higher_beta_only, fix: "The higher beta ignores that part of the company is less risky." } }
-      - { id: d, text: "Use the lower beta, because it belongs to the steadier business", mistake: { tag: lower_beta_only, fix: "The lower beta belongs to the smaller business, so it should count for less." } }
+      - { id: d, text: "Use the lower beta, because it belongs to the steadier business of the two", mistake: { tag: lower_beta_only, fix: "The lower beta belongs to the smaller business, so it should count for less." } }
     answer: a
     explanation: >
       A company's beta is the weighted average of its businesses' betas, with revenue shares as the
@@ -238,10 +238,10 @@ questions:
       Suppose every number in a writer's valuation ties out to the inputs he states. What does that
       show?
     choices:
-      - { id: a, text: "That his inputs are right", mistake: { tag: inputs_from_ties, fix: "Numbers that tie out show the calculation, not that the inputs are right." } }
-      - { id: b, text: "That his arithmetic is right; whether his inputs and story are right is a separate question" }
-      - { id: c, text: "That the market price must be the same as his value", mistake: { tag: value_equals_price, fix: "His value is his estimate; the market price is set by buyers and sellers." } }
-      - { id: d, text: "That he made a mislabel", mistake: { tag: ties_means_mislabel, fix: "Numbers that tie out say nothing about a mislabel." } }
+      - { id: a, text: "That his inputs must be right too", mistake: { tag: inputs_from_ties, fix: "Numbers that tie out show the calculation, not that the inputs are right." } }
+      - { id: b, text: "That his arithmetic is right; his inputs and story are a separate question" }
+      - { id: c, text: "That the market price must equal his value, since his arithmetic is clean and exact", mistake: { tag: value_equals_price, fix: "His value is his estimate; the market price is set by buyers and sellers." } }
+      - { id: d, text: "That he made a mislabel somewhere in the work", mistake: { tag: ties_means_mislabel, fix: "Numbers that tie out say nothing about a mislabel." } }
     answer: b
     explanation: >
       Numbers that tie out check the calculation from inputs to value. The inputs (growth, margin,

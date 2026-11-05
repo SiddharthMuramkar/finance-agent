@@ -77,7 +77,7 @@ questions:
       A firm sells a service for $1.00 per use, and each use costs it $1.50 to serve. Which sentence
       describes the firm's position?
     choices:
-      - { id: a, text: "It loses money on every use, so someone has to fund the gap for the business to go on" }
+      - { id: a, text: "It loses money on every use, so someone has to fund the gap" }
       - { id: b, text: "It makes money on volume: the more uses it sells, the more profit it makes", mistake: { tag: volume_fixes_loss, fix: "Each use loses money, so more uses means a bigger loss, not a profit." } }
       - { id: c, text: "It breaks even once it has enough users", mistake: { tag: breakeven_assumed, fix: "A price below the cost per use never breaks even; only a new price or cost can change that." } }
       - { id: d, text: "Its revenue shows a healthy business, so its cost to serve hardly matters", mistake: { tag: revenue_only, fix: "Revenue alone hides the loss; compare the price with the cost to serve." } }
@@ -106,8 +106,8 @@ questions:
       A government bond yields 4.0% and a company's bond of the same maturity yields 9.0%. What do
       traders call the gap between the two yields, and what does a wide gap signal?
     choices:
-      - { id: a, text: "The credit spread; investors ask more for the risk of not being repaid" }
-      - { id: b, text: "The credit spread; the company is safer than the government", mistake: { tag: spread_reversed, fix: "A wider spread means more risk of not being repaid, not less." } }
+      - { id: a, text: "The credit spread; a wide one means a higher risk of non-repayment" }
+      - { id: b, text: "The credit spread; it means the company is safer than the government", mistake: { tag: spread_reversed, fix: "A wider spread means more risk of not being repaid, not less." } }
       - { id: c, text: "The coupon; the company's bond has a shorter maturity", mistake: { tag: spread_as_coupon, fix: "The coupon is the interest a bond promises. The gap between two yields is the spread." } }
       - { id: d, text: "The duration; the company's bond is nearly risk free", mistake: { tag: spread_as_duration, fix: "Duration measures sensitivity to rates. The gap between two yields is the credit spread." } }
     answer: a
@@ -122,8 +122,8 @@ questions:
       each user. The supplier now says it will raise its charge to $36 a month per user, and the
       start-up cannot change its price. What happens?
     choices:
-      - { id: a, text: "Each user now costs more than they pay, so the start-up loses money on every user" }
-      - { id: b, text: "Little changes: the $20 price is still above the $12 charge", mistake: { tag: used_old_cost, fix: "That is today's charge. At the new charge, each user costs more than $20." } }
+      - { id: a, text: "Each user now costs more than they pay, so every user loses money" }
+      - { id: b, text: "Little changes: the $20 price is still above the old $12 charge", mistake: { tag: used_old_cost, fix: "That is today's charge. At the new charge, each user costs more than $20." } }
       - { id: c, text: "The start-up earns more, because its costs and its revenue both rise", mistake: { tag: revenue_also_rises, fix: "Only the cost rises; the price the start-up collects stays at $20." } }
       - { id: d, text: "The start-up passes the rise on, so it carries no risk", mistake: { tag: pass_on_assumed, fix: "Here the start-up cannot change its price, so it has to absorb the rise." } }
     answer: a
@@ -138,10 +138,10 @@ questions:
       A company with $4 billion of annual revenue is valued at $100 billion. What does a value that
       high, set against revenue, suggest?
     choices:
-      - { id: a, text: "The price assumes much faster future growth or margins" }
-      - { id: b, text: "The company is cheap", mistake: { tag: high_means_cheap, fix: "A value far above revenue is expensive, not cheap; it prices in growth to come." } }
-      - { id: c, text: "Revenue is about to fall", mistake: { tag: high_means_fall, fix: "A high price against revenue reflects hoped-for growth, not an expected fall." } }
-      - { id: d, text: "The company is already profitable", mistake: { tag: value_means_profit, fix: "Value against revenue says nothing about current profit." } }
+      - { id: a, text: "The price assumes much faster growth to come" }
+      - { id: b, text: "The company is cheap compared with its revenue today", mistake: { tag: high_means_cheap, fix: "A value far above revenue is expensive, not cheap; it prices in growth to come." } }
+      - { id: c, text: "Revenue is about to fall sharply in the next year", mistake: { tag: high_means_fall, fix: "A high price against revenue reflects hoped-for growth, not an expected fall." } }
+      - { id: d, text: "The company is already making a large profit", mistake: { tag: value_means_profit, fix: "Value against revenue says nothing about current profit." } }
     answer: a
     explanation: >
       A value many times revenue is justified only if revenue and margins grow a long way from here;

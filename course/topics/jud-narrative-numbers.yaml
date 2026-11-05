@@ -121,8 +121,8 @@ questions:
       passing the rest on to drivers. A writer says its revenue is $8 billion. What has the writer
       mixed up?
     choices:
-      - { id: a, text: "Gross receipts with revenue: revenue is only the slice the company keeps" }
-      - { id: b, text: "Revenue with profit: revenue is what is left after all costs", mistake: { tag: revenue_as_profit, fix: "Profit is what is left after costs; the mix-up here is receipts versus revenue." } }
+      - { id: a, text: "Gross receipts with revenue: revenue is only the slice kept" }
+      - { id: b, text: "Revenue with profit: revenue is what is left after all the costs", mistake: { tag: revenue_as_profit, fix: "Profit is what is left after costs; the mix-up here is receipts versus revenue." } }
       - { id: c, text: "A year with a month: the figure should be monthly", mistake: { tag: period_assumed, fix: "Nothing says the period is wrong; the mix-up is in what the figure counts." } }
       - { id: d, text: "Nothing: every fare the company collects counts as its revenue", mistake: { tag: receipts_as_revenue, fix: "Fares passed on to drivers are not revenue; only the slice kept is." } }
     answer: a
@@ -142,7 +142,7 @@ questions:
       of $16 billion. A blogger writes "the take rate was 22.5%", using revenue. What did the
       blogger do?
     choices:
-      - { id: a, text: "Used revenue in place of adjusted net revenue, so the name no longer matches the filing's definition" }
+      - { id: a, text: "Used revenue instead of adjusted net revenue, so the name no longer fits the filing" }
       - { id: b, text: "Used the right measure: revenue is the main figure, so any ratio of it is the take rate", mistake: { tag: any_ratio_is_take_rate, fix: "A defined term means the filing's own measure, not any ratio that looks close." } }
       - { id: c, text: "Used the wrong year's gross bookings", mistake: { tag: year_assumed, fix: "Nothing says the year differs. The slip is the top of the ratio, not the year." } }
       - { id: d, text: "Turned the ratio upside down, with bookings over revenue", mistake: { tag: ratio_inverted, fix: "The blogger kept bookings underneath; the slip is the measure on top." } }
@@ -159,10 +159,10 @@ questions:
     prompt: >
       A company reports, for one year: loss from operations $5.0 billion; Adjusted EBITDA loss $3.0 billion; and net income of +$1.0 billion, because it booked a one-off $6.0 billion gain on selling a business in other income. A summary says "the company lost $3.0 billion that year." Which statement about the summary is true?
     choices:
-      - { id: a, text: "It gives the Adjusted EBITDA loss as though it were the company's loss; the operating loss was $5.0 billion and net income was positive" }
-      - { id: b, text: "It is exact: loss from operations, Adjusted EBITDA and net income are the same measure" }
-      - { id: c, text: "The company lost $5.0 billion after tax, so the summary understates the net loss" }
-      - { id: d, text: "The company made a $1.0 billion operating profit, so the summary should have said so" }
+      - { id: a, text: "It gives the Adjusted EBITDA loss as the company's loss; operating loss was $5.0 billion" }
+      - { id: b, text: "It is exact: loss from operations, Adjusted EBITDA and net income are all the same measure" }
+      - { id: c, text: "The company lost $5.0 billion after tax, so the summary understates the net loss of the year" }
+      - { id: d, text: "The company made a $1.0 billion operating profit, so the summary should have said so instead" }
     answer: a
     explanation: >
       The three lines are different measures. Adjusted EBITDA is a company-defined figure that
@@ -178,10 +178,10 @@ questions:
     prompt: >
       A writer assumed revenue of $900 million for year 0. The company's first filing shows $650 million for year 0, with a note: "reported under the accounting rules then in force, never recast, unaudited, and excluding a business sold later." What is the fair judgement?
     choices:
-      - { id: a, text: "The writer was wrong by $250 million, and the note changes nothing" }
-      - { id: b, text: "The two may not be like for like; rebuild the writer's number on the filing's basis, or state the difference, before calling it a miss" }
-      - { id: c, text: "The filing is always right, so the writer was wrong" }
-      - { id: d, text: "Footnotes about accounting rules can be ignored when comparing a year" }
+      - { id: a, text: "The writer was wrong by $250 million, and the note changes nothing about that" }
+      - { id: b, text: "The two may not be like for like; restate on one basis before calling it a miss" }
+      - { id: c, text: "The filing is always right, so the writer was wrong, whatever the note says" }
+      - { id: d, text: "Footnotes about accounting rules can be ignored when comparing one year with another" }
     answer: b
     explanation: >
       A figure reported under older rules, unaudited and leaving out a business that was later
@@ -197,10 +197,10 @@ questions:
       for this year I will assume $4 billion." Judging this post later against an audited filing,
       how should you treat these two numbers?
     choices:
-      - { id: a, text: "Both are audited facts" }
-      - { id: b, text: "The $12 billion is a fact because it came from the company's own document" }
-      - { id: c, text: "The $12 billion is second-hand and a projection; the $4 billion is the writer's own assumption; neither is a fact until a filing gives the same measure for the same period" }
-      - { id: d, text: "Both are guidance the company has published" }
+      - { id: a, text: "Both are audited facts, since both are stated as numbers in the post" }
+      - { id: b, text: "The $12 billion is a fact because it came from the company's own internal document, and the $4 billion is a guess" }
+      - { id: c, text: "The $12 billion is a second-hand projection; the $4 billion is the writer's assumption; neither is a fact yet" }
+      - { id: d, text: "Both are guidance the company has published, so both can be trusted" }
     answer: c
     explanation: >
       A leaked projection is unaudited and may not be the company's final plan; an assumption is the
@@ -216,7 +216,7 @@ questions:
       a value that differs a lot from the writer's. Which conclusion does that evidence support?
     choices:
       - { id: a, text: "The writer's assumptions about market share and margins were wrong, because the values differ" }
-      - { id: b, text: "The values differ; whether any of the writer's inputs were off has to be tested by comparing each input with the filings" }
+      - { id: b, text: "The values differ; each of the writer's inputs must be tested against the filings" }
       - { id: c, text: "The listing value is the correct value, so the writer's value was wrong" }
       - { id: d, text: "Nothing can be learned from comparing a valuation with a later listing" }
     answer: b

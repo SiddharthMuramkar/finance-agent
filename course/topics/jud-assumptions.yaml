@@ -94,14 +94,15 @@ youllLearn:
 questions:
   - id: ja-q-value-pb
     prompt: >
-      A firm earns Rs 12 crore a year forever on book equity of Rs 80 crore, a return on equity of
-      15%. Its cost of equity is 12%. If the market prices it fairly, where should its price sit
-      against its book value?
+      A small firm turns every rupee its owners put in into more than they could earn anywhere else
+      at the same risk. Traders say it earns more than its "cost of equity", the least its owners
+      will accept. If the market prices it fairly, where should its price sit against its book
+      value, the money the owners put in?
     choices:
-      - { id: a, text: "Above book value: its price to book should be above 1" }
-      - { id: b, text: "Below book value: its price to book should be under 1", mistake: { tag: pb_inverted, fix: "Below book is for firms earning less than their cost of equity, not more." } }
-      - { id: c, text: "Exactly at book value", mistake: { tag: pb_at_one, fix: "Price equals book only when return on equity equals the cost of equity." } }
-      - { id: d, text: "It cannot be said without next year's price", mistake: { tag: pb_needs_future_price, fix: "With steady earnings and fair pricing, the return on equity against the cost of equity decides it." } }
+      - { id: a, text: "Above book value, since it beats what owners demand" }
+      - { id: b, text: "Below book value, since the firm is a risky bet for its owners", mistake: { tag: pb_inverted, fix: "Below book is for firms earning less than their cost of equity, not more." } }
+      - { id: c, text: "Exactly at book value, since book is what the owners put in", mistake: { tag: pb_at_one, fix: "Price equals book only when return on equity equals the cost of equity." } }
+      - { id: d, text: "No one can say until next year's price shows up on the screen", mistake: { tag: pb_needs_future_price, fix: "With steady earnings and fair pricing, the return on equity against the cost of equity decides it." } }
     answer: a
     explanation: >
       With constant earnings forever, a fair price is above book value when the return on equity is
@@ -113,13 +114,14 @@ questions:
       of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
   - id: ja-q-mislabel
     prompt: >
-      A commenter says a company's "return on equity" is 8%, taken as net income of Rs 16 crore over
-      a market value of Rs 200 crore. Its book equity is Rs 50 crore. What do analysts call the 8%?
+      A commenter says a company's "return on equity" is low. But the figure divides its profit by
+      what the stock market says the company is worth, instead of the money its owners put in. What do
+      analysts call that figure?
     choices:
-      - { id: a, text: "The earnings yield: net income over market value, not over book equity" }
-      - { id: b, text: "The return on equity: market value is the true equity", mistake: { tag: roe_on_market_value, fix: "Return on equity divides net income by book equity, not by market value." } }
-      - { id: c, text: "The cost of equity: what shareholders require", mistake: { tag: yield_as_cost, fix: "The cost of equity is what shareholders require; the 8% is earnings over market value." } }
-      - { id: d, text: "The payout ratio: the share of earnings paid out", mistake: { tag: yield_as_payout, fix: "A payout ratio is dividends over earnings; this 8% is earnings over market value." } }
+      - { id: a, text: "The earnings yield: profit set against the market's price" }
+      - { id: b, text: "The return on equity: the market's price is the true value of the owners' stake", mistake: { tag: roe_on_market_value, fix: "Return on equity divides net income by book equity, not by market value." } }
+      - { id: c, text: "The cost of equity: the least the owners will accept for their risk", mistake: { tag: yield_as_cost, fix: "The cost of equity is what shareholders require; the 8% is earnings over market value." } }
+      - { id: d, text: "The payout ratio: the share of profit handed to the owners", mistake: { tag: yield_as_payout, fix: "A payout ratio is dividends over earnings; this 8% is earnings over market value." } }
     answer: a
     explanation: >
       Net income over market value is the earnings yield. Return on equity divides net income by book
@@ -149,9 +151,9 @@ questions:
       yield equals the cost of equity. A reader writes: "So any stock whose earnings yield is above
       its cost of equity is undervalued." How should the reader's step be judged?
     choices:
-      - { id: a, text: "It goes beyond the text: the passage assumed constant earnings and a fair price, and a high yield can also come from low expected growth or higher risk" }
-      - { id: b, text: "It is valid: the same arithmetic applies to every stock" }
-      - { id: c, text: "It is invalid because an earnings yield can never be compared with a cost of equity" }
+      - { id: a, text: "It goes beyond the text: the passage assumed constant earnings and a fair price" }
+      - { id: b, text: "It is valid, because the same arithmetic applies to every stock" }
+      - { id: c, text: "It is invalid, because an earnings yield can never be compared with a cost of equity" }
       - { id: d, text: "It is valid only for shares listed in India" }
     answer: a
     explanation: >
@@ -163,30 +165,29 @@ questions:
       equity and risk): https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/peratio.htm
   - id: ja-q-sustainable
     prompt: >
-      A firm pays out 60% of its earnings and keeps 40% to reinvest, earning a 15% return on
-      equity. With no new shares issued, what sets how fast its earnings can grow?
+      A bakery hands most of its profit to its owners and keeps the rest to buy new ovens. It sells
+      no new shares. What sets how fast its profit can grow?
     choices:
-      - { id: a, text: "How much it reinvests, and the return that money earns" }
-      - { id: b, text: "How much it pays out, and nothing else", mistake: { tag: payout_only, fix: "Payout is half the story; growth also needs a return on the money kept." } }
-      - { id: c, text: "The cost of equity alone", mistake: { tag: cost_sets_growth, fix: "The cost of equity prices the shares; it does not set how fast earnings grow." } }
-      - { id: d, text: "Nothing: growth has no link to retained earnings", mistake: { tag: growth_unlinked, fix: "With no new shares, retained earnings are the money that funds growth." } }
+      - { id: a, text: "How much it keeps for new ovens, and what those ovens earn" }
+      - { id: b, text: "How much it hands out to the owners, and nothing else about it", mistake: { tag: payout_only, fix: "Payout is half the story; growth also needs a return on the money kept." } }
+      - { id: c, text: "What the owners would demand elsewhere, and nothing else about it", mistake: { tag: cost_sets_growth, fix: "The cost of equity prices the shares; it does not set how fast earnings grow." } }
+      - { id: d, text: "Nothing, because growth has no link to profit kept in the firm", mistake: { tag: growth_unlinked, fix: "With no new shares, retained earnings are the money that funds growth." } }
     answer: a
     explanation: >
       With no new shares, growth is funded by the earnings kept, so it depends on how much is
-      retained and on the return that money earns. Here the retained 40% earning 15% gives growth of
-      6% a year. Mixing up the retained share with the paid-out share is the usual slip.
+      retained and on the return that money earns. Mixing up the retained share with the paid-out share is the usual slip.
     source: >
       Damodaran, Determinants of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
   - id: ja-q-implied-price
     prompt: >
-      A company earns Rs 30 crore a year forever and has a cost of equity of 15%. The market values
-      it at Rs 150 crore, so its earnings yield is 20%, above its cost of equity. With steady
-      earnings, what does that gap suggest about the price?
+      A company's profit never changes. Its "earnings yield", profit set against its price, comes
+      out higher than the least its owners will accept for the risk, its "cost of equity". With
+      steady profit, what does that gap suggest about the price?
     choices:
-      - { id: a, text: "The price is lower than steady earnings at a 15% cost of equity would justify" }
-      - { id: b, text: "The price is higher than steady earnings at a 15% cost of equity would justify", mistake: { tag: yield_gap_inverted, fix: "A higher yield than the cost of equity means a lower price, not a higher one." } }
-      - { id: c, text: "Nothing: an earnings yield cannot be set beside a cost of equity", mistake: { tag: yield_cost_incomparable, fix: "With steady earnings and a fair price the two are equal, so a gap is informative." } }
-      - { id: d, text: "The company's book equity must be too high", mistake: { tag: book_blamed, fix: "Book equity does not enter earnings over market value." } }
+      - { id: a, text: "The price looks low for steady profit like this" }
+      - { id: b, text: "The price looks high for steady profit like this", mistake: { tag: yield_gap_inverted, fix: "A higher yield than the cost of equity means a lower price, not a higher one." } }
+      - { id: c, text: "Nothing, because a yield and a cost of equity cannot be compared", mistake: { tag: yield_cost_incomparable, fix: "With steady earnings and a fair price the two are equal, so a gap is informative." } }
+      - { id: d, text: "The owners' book equity must have been counted too high", mistake: { tag: book_blamed, fix: "Book equity does not enter earnings over market value." } }
     answer: a
     explanation: >
       For steady earnings forever, a fair price makes the earnings yield equal the cost of equity.

@@ -88,7 +88,7 @@ questions:
       January to $32 million in December. A report quotes "annualised revenue" using December alone.
       Which headline gets it right?
     choices:
-      - { id: a, text: "December scaled up to a year runs well ahead of what the company actually earned that year" }
+      - { id: a, text: "December scaled up to a year runs well ahead of the real year" }
       - { id: b, text: "Annualised revenue is the sum of the twelve months, so it is exact", mistake: { tag: run_rate_as_sum, fix: "Annualising scales one month up; it does not add the twelve real months." } }
       - { id: c, text: "Annualised revenue falls short of the real year, because December is only one month", mistake: { tag: growth_ignored, fix: "In a growing company the last month is the biggest, so scaling it up overshoots." } }
       - { id: d, text: "Annualised and real revenue match whenever growth is steady", mistake: { tag: steady_means_equal, fix: "Even steady growth leaves the last month above the year's average month." } }
@@ -118,10 +118,10 @@ questions:
       resells, and $10 to run its own servers. What does the model supplier's pricing power mean for
       the company?
     choices:
-      - { id: a, text: "A price rise by the supplier comes straight out of the company's thin gross margin, unless it can pass the rise on" }
-      - { id: b, text: "Nothing: the company's revenue stays at $100 either way", mistake: { tag: revenue_unchanged, fix: "Revenue stays but costs rise, so what is left for the company shrinks." } }
-      - { id: c, text: "The company gains, because it resells a more expensive model", mistake: { tag: dearer_is_better, fix: "A dearer input is a bigger cost for the company, not a gain." } }
-      - { id: d, text: "The supplier pays for the rise, since the company is its customer", mistake: { tag: supplier_pays, fix: "The supplier sets the price; the company, as buyer, pays it." } }
+      - { id: a, text: "A price rise by the supplier comes straight out of the company's thin margin" }
+      - { id: b, text: "Nothing happens to the company: its revenue stays at $100 either way, so it is safe", mistake: { tag: revenue_unchanged, fix: "Revenue stays but costs rise, so what is left for the company shrinks." } }
+      - { id: c, text: "The company gains, because it now resells a more valuable model", mistake: { tag: dearer_is_better, fix: "A dearer input is a bigger cost for the company, not a gain." } }
+      - { id: d, text: "The supplier pays for the rise, since the company is its paying customer", mistake: { tag: supplier_pays, fix: "The supplier sets the price; the company, as buyer, pays it." } }
     answer: a
     explanation: >
       The company keeps only a thin slice of each $100 after paying its supplier and its servers, so

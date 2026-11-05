@@ -105,10 +105,10 @@ questions:
       another, and calls the first group "about 13 times as likely to default". What is the most
       careful reading of that claim?
     choices:
-      - { id: a, text: "The first group defaulted far more often, but a ratio of two rates says nothing about whether the groups and periods were drawn alike" }
-      - { id: b, text: "The ratio proves the first group is the riskier rating", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
-      - { id: c, text: "The ratio is wrong, because rates cannot be compared side by side", mistake: { tag: rates_incomparable, fix: "Setting one rate against another is a normal comparison; the question is what each covers." } }
-      - { id: d, text: "The ratio matters only if it comes out as a whole number", mistake: { tag: whole_number_fixation, fix: "Whether the ratio is round does not matter; what the groups cover does." } }
+      - { id: a, text: "The first group defaulted far more often, but the ratio does not show the groups were drawn alike" }
+      - { id: b, text: "The ratio proves the first group is the riskier rating, since the gap is so large", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
+      - { id: c, text: "The ratio is wrong, because two rates taken from different studies can never be compared side by side at all", mistake: { tag: rates_incomparable, fix: "Setting one rate against another is a normal comparison; the question is what each covers." } }
+      - { id: d, text: "The ratio matters only if it comes out as a whole number, which this one nearly does", mistake: { tag: whole_number_fixation, fix: "Whether the ratio is round does not matter; what the groups cover does." } }
     answer: a
     explanation: >
       "About 13 times" is a fair way to set the two quoted rates side by side. It says nothing about
@@ -120,9 +120,9 @@ questions:
       weaker characteristics". A writer says the agency "defines this class as weak". What kind of
       slip is that?
     choices:
-      - { id: a, text: "A unit error" }
-      - { id: b, text: "A period mismatch" }
-      - { id: c, text: "An inference beyond the text: the writer dropped the hedge" }
+      - { id: a, text: "A unit error: the writer mixed up two units of measure" }
+      - { id: b, text: "A period mismatch: the writer set unlike years side by side" }
+      - { id: c, text: "Going beyond the text: the writer dropped the hedge" }
       - { id: d, text: "No slip: the two sentences mean the same" }
     answer: c
     explanation: >
@@ -137,10 +137,10 @@ questions:
       reports that 2% of bonds in a rating group defaulted in one year. A writer says the first group
       is "three times as risky". What is the main problem?
     choices:
-      - { id: a, text: "The percentages are rounded" }
-      - { id: b, text: "The figures cover different periods, five years against one, so the ratio compares unlike things" }
-      - { id: c, text: "6 divided by 2 is not 3" }
-      - { id: d, text: "Percentages cannot be compared at all" }
+      - { id: a, text: "The percentages are rounded, so the ratio is off" }
+      - { id: b, text: "The figures cover different periods, five years against one" }
+      - { id: c, text: "6 divided by 2 is not 3, so the ratio is miscalculated" }
+      - { id: d, text: "Percentages cannot be compared at all, whatever they measure" }
     answer: b
     explanation: >
       6 / 2 = 3 is correct arithmetic, but a five-year cumulative figure and a one-year figure are not
@@ -153,8 +153,8 @@ questions:
       A writer mislabels where a rating agency's grade line falls, but then quotes two default rates taken from an agency study with its own grouping. You have yet to see the study. Which statement is the most careful?
     choices:
       - { id: a, text: "The two rates are wrong because the label is wrong" }
-      - { id: b, text: "The two rates are right because the study is by the agency" }
-      - { id: c, text: "The label is wrong; the rates are unchecked, and you need the study's own grouping to know" }
+      - { id: b, text: "The two rates are right, because the study comes from the agency itself and so is reliable" }
+      - { id: c, text: "The label is wrong; the rates are unchecked until you see the study's grouping" }
       - { id: d, text: "The label does not matter if the arithmetic is right" }
     answer: c
     explanation: >
