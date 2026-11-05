@@ -78,15 +78,15 @@ questions:
 
   - id: mb-q-multiplier-ratio
     prompt: >
-      What is the money multiplier when the reserve ratio is 10%?
+      Banks keep a fraction of deposits as reserves, here 10%, and lend out the rest. What do economists call the factor by which an initial deposit can grow the money supply?
     choices:
-      - { id: a, text: "0.1" }
-      - { id: b, text: "10" }
-      - { id: c, text: "90" }
-      - { id: d, text: "100" }
-    answer: b
+      - { id: a, text: "The money multiplier, which is one divided by the reserve ratio" }
+      - { id: b, text: "The money multiplier, which gets smaller as the reserve ratio falls", mistake: { tag: reversed_the_link, fix: "A bank that keeps less in reserve lends more, so the multiplier gets bigger." } }
+      - { id: c, text: "Velocity of money, how fast money changes hands", mistake: { tag: confused_with_velocity, fix: "Velocity is how often money is spent; the multiplier is how lending expands deposits." } }
+      - { id: d, text: "The discount rate, what banks pay to borrow from the central bank", mistake: { tag: confused_with_discount_rate, fix: "The discount rate is a borrowing cost for banks, not an expansion factor." } }
+    answer: a
     explanation: >
-      The multiplier is 1 divided by the reserve ratio: 1 / 0.10 = 10.
+      The multiplier is one divided by the reserve ratio, so a 10% ratio gives a multiplier of 10. The lower the ratio, the more is lent out again and the bigger the multiplier.
     source: >
       OpenStax, Principles of Economics 3e (CC BY 4.0), 27.4 How Banks Create Money: https://openstax.org/books/principles-economics-3e/pages/27-4-how-banks-create-money
 

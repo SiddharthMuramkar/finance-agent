@@ -46,48 +46,43 @@ youllLearn:
 questions:
   - id: ir-q-approx
     prompt: >
-      A deposit pays a nominal 8% a year while consumer prices rise 10% a year. What is the real interest
-      rate, approximately?
+      A deposit pays a nominal 8% a year while consumer prices rise 10% a year. How would you describe the saver's real return?
     choices:
-      - { id: a, text: "About +2%" }
-      - { id: b, text: "About -2%" }
-      - { id: c, text: "About 18%" }
-      - { id: d, text: "8%" }
-    answer: b
+      - { id: a, text: "Negative, so the saver loses buying power" }
+      - { id: b, text: "Positive, so the saver gains buying power", mistake: { tag: ignored_inflation, fix: "Prices rose by more than the interest, so buying power falls." } }
+      - { id: c, text: "The same as the nominal rate", mistake: { tag: mixed_real_and_nominal, fix: "The nominal rate is the headline; the real rate takes out the rise in prices." } }
+      - { id: d, text: "Higher than the nominal rate, because prices rose", mistake: { tag: added_inflation, fix: "Rising prices lower the real return; they never add to it." } }
+    answer: a
     explanation: >
-      The real rate is approximately the nominal rate minus the inflation rate: 8 - 10 = -2 per cent. The
-      exact value is 1.08 / 1.10 - 1 = -1.8 per cent.
+      The real rate is approximately the nominal rate minus the inflation rate, 8 less 10, about -2 per cent. The exact value is 1.08 / 1.10 - 1 = -1.8 per cent. Either way it is negative.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
 
   - id: ir-q-purchasing-power
     prompt: >
-      You put Rs 1,00,000 in a one-year deposit at 6%. Consumer prices rise 10% over the year. What is the
-      deposit worth at the end of the year in terms of today's purchasing power?
+      You put Rs 1,00,000 in a one-year deposit at 6% while consumer prices rise 10% over the year. At year end, which headline gets it right?
     choices:
-      - { id: a, text: "Rs 1,06,000" }
-      - { id: b, text: "Rs 1,00,000" }
-      - { id: c, text: "About Rs 96,400" }
-      - { id: d, text: "Rs 94,000" }
-    answer: c
+      - { id: a, text: "More rupees, but they buy less than before" }
+      - { id: b, text: "More rupees, and they buy more than before", mistake: { tag: ignored_inflation, fix: "Prices rose 10% and interest only 6%, so the extra rupees buy less." } }
+      - { id: c, text: "The same buying power, because interest was paid", mistake: { tag: thought_interest_protects, fix: "Interest was paid, but prices rose faster, so buying power still fell." } }
+      - { id: d, text: "Fewer rupees, so a loss in rupees too", mistake: { tag: confused_rupees_and_power, fix: "Interest adds rupees; it is the buying power of those rupees that falls." } }
+    answer: a
     explanation: >
-      The deposit grows to Rs 1,06,000, but prices are 1.10 times higher, so in today's money it is worth
-      1,06,000 / 1.10 = about Rs 96,364. The saver is poorer in real terms despite earning interest.
+      The deposit grows to Rs 1,06,000, but prices are 1.10 times higher, so in today's money it is worth about Rs 96,364. The saver is poorer in real terms despite earning interest.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
 
   - id: ir-q-real-growth
     prompt: >
-      An economy's nominal GDP grows 12% in a year while the price level rises 7%. What is real GDP growth,
-      approximately?
+      Nominal GDP grows 12% in a year while the price level rises 7%. Which statement gets real GDP growth right?
     choices:
-      - { id: a, text: "About 5%" }
-      - { id: b, text: "About 19%" }
-      - { id: c, text: "About 12%" }
-      - { id: d, text: "About 7%" }
+      - { id: a, text: "Real growth is well below 12%, because part of the 12% is only higher prices" }
+      - { id: b, text: "Real growth is the full 12%", mistake: { tag: ignored_prices, fix: "12% is nominal; part of it is only higher prices, so real growth is smaller." } }
+      - { id: c, text: "Real output shrank, because prices rose", mistake: { tag: thought_inflation_means_shrinking, fix: "Nominal growth beat the price rise, so real output still grew." } }
+      - { id: d, text: "The 12% is already adjusted for prices", mistake: { tag: mixed_real_and_nominal, fix: "Nominal means not adjusted for prices; the 12% includes the price rise." } }
     answer: a
     explanation: >
-      Real growth is approximately nominal growth minus inflation: 12 - 7 = 5 per cent.
+      Real growth is approximately nominal growth minus inflation, 12 less 7, about 5 per cent. Part of the 12% is only higher prices.
     source: >
       OpenStax, Principles of Macroeconomics 3e (CC BY 4.0), 6.2 Adjusting Nominal Values to Real Values: https://openstax.org/books/principles-macroeconomics-3e/pages/6-2-adjusting-nominal-values-to-real-values
 

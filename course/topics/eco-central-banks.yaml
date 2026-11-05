@@ -89,16 +89,15 @@ questions:
 
   - id: cb-q-basis-points
     prompt: >
-      In a made-up example, a 10-year government bond yield moves from 4.10% to 6.31%. How many basis
-      points is that?
+      In a made-up example, a 10-year government bond yield climbs from 4.10% to 6.31%. How would traders describe that move?
     choices:
-      - { id: a, text: "2.21 basis points" }
-      - { id: b, text: "221 basis points" }
-      - { id: c, text: "22 basis points" }
-      - { id: d, text: "2,210 basis points" }
-    answer: b
+      - { id: a, text: "Up 221 basis points" }
+      - { id: b, text: "Up 2.21 basis points", mistake: { tag: left_it_in_points, fix: "2.21 is the move in percentage points; one point is 100 basis points." } }
+      - { id: c, text: "Up 22 basis points", mistake: { tag: divided_by_10, fix: "One point is 100 basis points, so 2.21 points is 221, not 22." } }
+      - { id: d, text: "Up 2,210 basis points", mistake: { tag: multiplied_by_1000, fix: "One point is 100 basis points, not 1,000." } }
+    answer: a
     explanation: >
-      6.31 - 4.10 = 2.21 percentage points, and one percentage point is 100 basis points, so 221 basis points.
+      The yield moved 2.21 percentage points, and one percentage point is 100 basis points, so traders call it 221 basis points.
     source: >
       Constructed example with hypothetical yields; a basis point is one hundredth of a percentage point.
 

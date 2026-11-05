@@ -64,15 +64,15 @@ questions:
 
   - id: st-q-sigma
     prompt: >
-      Suppose daily stock returns are normally distributed with a mean of 0% and a standard deviation of 1%. A one-day fall of 12% is how many standard deviations below the mean?
+      Daily stock returns typically stray about 1% from their average; that typical stray is the standard deviation. A one-day fall of 12% is what, in a normal model?
     choices:
-      - { id: a, text: "12" }
-      - { id: b, text: "1.2" }
-      - { id: c, text: "0.12" }
-      - { id: d, text: "3" }
+      - { id: a, text: "A move of many standard deviations, which the model treats as effectively impossible" }
+      - { id: b, text: "A routine move of about one standard deviation", mistake: { tag: took_it_for_routine, fix: "A typical day strays about 1%; a 12% fall is twelve times that." } }
+      - { id: c, text: "A move of a fraction of a standard deviation", mistake: { tag: flipped_big_and_small, fix: "A 12% fall is far bigger than the 1% typical stray, not smaller." } }
+      - { id: d, text: "A move of three standard deviations, rare but expected", mistake: { tag: understated_the_move, fix: "Three standard deviations is already rare; 12% is twelve times the typical stray." } }
     answer: a
     explanation: >
-      12% / 1% = 12 standard deviations. In a normal model, a move beyond about three standard deviations happens on well under one day in a hundred, so 12 is effectively impossible. The 1% figure is an assumption for the exercise, not a measured one.
+      A 12% fall against a 1% typical stray is twelve standard deviations. In a normal model, a move beyond about three standard deviations happens on well under one day in a hundred, so this is effectively impossible. The 1% figure is an assumption for the story, not a measured one.
     source: >
       The normal-curve rule is in OpenStax 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the numbers are made up.
 

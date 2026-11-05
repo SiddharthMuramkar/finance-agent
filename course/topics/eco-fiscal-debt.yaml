@@ -68,17 +68,15 @@ questions:
 
   - id: fd-q-ratio
     prompt: >
-      A country's government debt is Rs 800 lakh crore and its GDP is Rs 1,000 lakh crore. If next year the
-      debt is unchanged and GDP rises to Rs 1,100 lakh crore, what is the debt-to-GDP ratio?
+      A country's government debt is Rs 800 lakh crore and its GDP is Rs 1,000 lakh crore. Next year the debt is unchanged and GDP rises to Rs 1,100 lakh crore. What happens to the debt-to-GDP ratio?
     choices:
-      - { id: a, text: "80%" }
-      - { id: b, text: "About 73%" }
-      - { id: c, text: "About 88%" }
-      - { id: d, text: "110%" }
-    answer: b
+      - { id: a, text: "It falls, because the economy grew while the debt did not" }
+      - { id: b, text: "It rises, because the economy is bigger", mistake: { tag: flipped_the_ratio, fix: "A bigger GDP is the bottom of the ratio, so the ratio gets smaller." } }
+      - { id: c, text: "It stays the same, because the debt did not move", mistake: { tag: forgot_gdp_is_in_it, fix: "The ratio divides debt by GDP, so a change in GDP moves it." } }
+      - { id: d, text: "It cannot be compared, since the ratio only uses debt", mistake: { tag: forgot_gdp_is_in_it, fix: "The ratio is debt divided by GDP, so GDP matters." } }
+    answer: a
     explanation: >
-      Start: 800 / 1,000 = 80 per cent. After: 800 / 1,100 = 72.7 per cent, about 73. The ratio falls
-      because GDP grew while the debt did not.
+      At the start the ratio was 800 / 1,000 = 80 per cent. After: 800 / 1,100 = about 73 per cent. The ratio falls because GDP grew while the debt did not.
     source: >
       OpenStax, Principles of Macroeconomics 3e (CC BY 4.0), 17.3 Federal Deficits and the National Debt: https://openstax.org/books/principles-macroeconomics-3e/pages/17-3-federal-deficits-and-the-national-debt
 

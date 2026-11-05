@@ -4613,3 +4613,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A Learner guessed through Percent, passed two Checks by luck and now feels lost. They start Percent over: the Study Workspace opens on a clean Story step with an empty chat, the Topic bar shows no Checks passed, and the first attempt is a `topic_restarts` row (attempt 1) pointing at the old Session, which stays readable. Their saved notes and due review cards are untouched.
 
 **Trade-off.** The snapshot repeats data that already exists in the old Session, accepted because it makes "nothing is lost" true (the live tables can then be cleared, so their keys and unique indexes never clash with the new attempt) and keeps the live tables simple. A turn that starts in the instant between the route's running-turn check and the restart would write to the Session being closed; the Learner's one-turn lock makes that a double-tap case only.
+
+## Foundation Topics, story-first questions, batch D2a (`course/topics/`, spec 2026-11-05, ticket D2a)
+
+**What it does.** Twelve Topics (`num-statistics`, `num-econometrics`, `fs-filings`, `fs-earnings-quality`, `fs-tax`, `eco-supply-demand`, `eco-micro-competition`, `eco-money-banking`, `eco-central-banks`, `eco-inflation-real`, `eco-gdp-cycles`, `eco-fiscal-debt`) leave the L10 not-yet-story list. Thirteen stems or passCriteria that asked for a sum now ask what a word means, which headline gets it right, or what happened in the story. Each wrong choice of a rewritten question carries a one-line Known mistake fix. Two Topics also left the old typed-formula list in `formula-check.ts`.
+
+**Scenario.** Eco-inflation-real used to ask "What is the real interest rate?" for 8% against 10% prices. It now asks how to describe the saver's real return, and a tap on "Positive" shows "Prices rose by more than the interest, so buying power falls."
+
+**Trade-off.** Choices are easier to guess than typed numbers, so a Check still needs its pass rule. The arithmetic stays in the explanation as a story fact, not as the ask.

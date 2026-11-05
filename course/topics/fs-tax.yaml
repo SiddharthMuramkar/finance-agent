@@ -49,29 +49,29 @@ youllLearn:
 questions:
   - id: tx-q-after-tax-profit
     prompt: >
-      A company earns profit before tax of Rs 1,000 crore. At an effective tax rate of 34.94%, what is its profit after tax?
+      A company reports profit before tax of Rs 1,000 crore and pays Rs 349.4 crore in tax at an effective rate of 34.94%. What do accountants call the Rs 650.6 crore that is left?
     choices:
-      - { id: a, text: "Rs 650.6 crore" }
-      - { id: b, text: "Rs 349.4 crore" }
-      - { id: c, text: "Rs 700.0 crore" }
-      - { id: d, text: "Rs 1,349.4 crore" }
+      - { id: a, text: "Profit after tax" }
+      - { id: b, text: "Operating profit", mistake: { tag: called_it_operating_profit, fix: "Operating profit comes before interest and tax; what is left after tax is profit after tax." } }
+      - { id: c, text: "Gross profit", mistake: { tag: called_it_gross_profit, fix: "Gross profit is revenue less direct costs, long before tax is taken." } }
+      - { id: d, text: "The tax charge", mistake: { tag: called_it_the_tax, fix: "The Rs 349.4 crore is the tax charge; the Rs 650.6 crore is what is left." } }
     answer: a
     explanation: >
-      Tax = 1,000 x 0.3494 = 349.4. Profit after tax = 1,000 - 349.4 = 650.6. Rs 349.4 crore is the tax, not what is left.
+      Profit before tax less the tax charge is profit after tax: 1,000 less 349.4 leaves 650.6. The Rs 349.4 crore is the tax itself, not what is left.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement (taxes and net income): https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: tx-q-saving
     prompt: >
-      A company earns Rs 1,000 crore profit before tax. By how much does its tax bill fall if the effective rate drops from 40% to 30%?
+      A headline reads: 'Tax cut lifts profits.' The effective tax rate falls from 40% to 30% while a company's profit before tax stays at Rs 1,000 crore. Which statement gets it right?
     choices:
-      - { id: a, text: "Rs 100 crore" }
-      - { id: b, text: "Rs 300 crore" }
-      - { id: c, text: "Rs 400 crore" }
-      - { id: d, text: "Rs 10 crore" }
+      - { id: a, text: "The tax bill falls, so profit after tax rises, though profit before tax is unchanged" }
+      - { id: b, text: "Profit before tax rises, because tax is lower", mistake: { tag: moved_profit_before_tax, fix: "Profit before tax is set before tax is charged, so a rate cut does not move it." } }
+      - { id: c, text: "The tax bill falls, but profit after tax is unchanged", mistake: { tag: lost_the_saving, fix: "What the company no longer pays in tax stays with it as profit after tax." } }
+      - { id: d, text: "Nothing changes, because the rate is only a label", mistake: { tag: ignored_the_rate, fix: "The effective rate decides how much of the profit goes to tax, so a cut matters." } }
     answer: a
     explanation: >
-      Old tax 400, new tax 300; the difference is 100, which is 10 percentage points of profit.
+      At 40% the tax bill was Rs 400 crore; at 30% it is Rs 300 crore. The Rs 100 crore it no longer pays stays with the company as profit after tax, while profit before tax is the same.
     source: >
       A made-up example; the arithmetic is a multiplication.
 
@@ -91,15 +91,15 @@ questions:
 
   - id: tx-q-shield
     prompt: >
-      A company records Rs 40 crore of depreciation. At a 25% tax rate, how much tax does that depreciation save?
+      A company records Rs 40 crore of depreciation, which involves no cash leaving the company. Why do analysts still say depreciation gives a 'tax shield'?
     choices:
-      - { id: a, text: "Rs 10 crore" }
-      - { id: b, text: "Rs 40 crore" }
-      - { id: c, text: "Rs 30 crore" }
-      - { id: d, text: "Nothing, because depreciation is not a cash cost" }
+      - { id: a, text: "It is deducted before tax, so it lowers the tax bill even though no cash went out" }
+      - { id: b, text: "It is paid in cash to the tax office", mistake: { tag: thought_depreciation_is_paid, fix: "Depreciation is not a payment; it only lowers taxable profit, which cuts the tax bill." } }
+      - { id: c, text: "It raises profit before tax", mistake: { tag: reversed_the_effect, fix: "Depreciation is a cost, so it lowers profit before tax, and with it the tax." } }
+      - { id: d, text: "It gives none, because depreciation is a non-cash cost", mistake: { tag: stopped_at_not_cash, fix: "Depreciation itself is non-cash, but the tax it saves is real cash." } }
     answer: a
     explanation: >
-      Depreciation is deducted before tax, so it lowers taxable profit by 40 and tax by 40 x 25% = 10. Depreciation itself is not cash, but the tax it saves is.
+      Depreciation is deducted before tax, so it lowers taxable profit and the tax bill. At a 25% rate, Rs 40 crore of depreciation saves Rs 10 crore of tax. Depreciation itself is not cash, but the tax it saves is.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
@@ -139,8 +139,8 @@ checks:
       rate (say from 35% to 30%) would do to them.
     passCriteria: >
       The Learner explains that tax is charged on profit, so after-tax cash flow is profit x (1 - tax
-      rate) plus any depreciation add-back. They compute or reason that a cut from 35% to 30%
-      raises after-tax profit on Rs 100 crore from Rs 65 crore to Rs 70 crore, an increase of
-      roughly 8%, which lifts the project's value; and note that depreciation and
+      rate) plus any depreciation add-back. They say in their own words that a cut from 35% to 30%
+      leaves more of the Rs 100 crore profit with the company (the story's figures are Rs 65 crore
+      before and Rs 70 crore after), which lifts the project's value; and note that depreciation and
       interest shields are worth somewhat less at a lower rate. Mentioning that weak demand, not tax,
       may still limit investment is a plus.
