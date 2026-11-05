@@ -113,6 +113,25 @@ describe("learnerForAuthUser", () => {
 
     await expect(db.insert(learners).values({ name: "Someone else", authUserId: "u1" })).rejects.toThrow();
   });
+
+  it("two first requests at once make one Learner", async () => {
+    const db = await testDb();
+    await addInvite(db, "a@x.com");
+    const u = await googleUser(db, { id: "u1", email: "a@x.com", name: "Asha" });
+    const got = await Promise.all(Array.from({ length: 5 }, () => learnerForAuthUser(db, u)));
+    const { rows } = (await db.execute(sql`select count(*)::int as n from learners where auth_user_id = 'u1'`)) as unknown as { rows: { n: number }[] };
+    expect(rows[0].n).toBe(1);
+    expect(new Set(got.map((l) => l?.id)).size).toBe(1);
+  });
+
+  it("two first requests at once for the owner's invite link Learner 1 once", async () => {
+    const db = await testDb();
+    await addInvite(db, "o@x.com", { learnerName: "owner" });
+    const u = await googleUser(db, { id: "u1", email: "o@x.com", name: "Siddharth" });
+    const got = await Promise.all(Array.from({ length: 5 }, () => learnerForAuthUser(db, u)));
+    expect(got.map((l) => l?.id)).toEqual([1, 1, 1, 1, 1]);
+    expect(await db.select().from(learners)).toHaveLength(1);
+  });
 });
 
 async function learnerCount(db: Db): Promise<number> {
