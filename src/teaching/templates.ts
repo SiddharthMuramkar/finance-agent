@@ -46,6 +46,8 @@ export interface QuestionTemplate {
   decimals: number;
   sign: SignRule;
   mistakes: KnownMistakeSpec[];
+  /** How each choice reads, with {value} for the number in its unit ("Up {value}"); the bare value when left out. */
+  label?: string;
   /** The half-done variant (R5): `shows` is the first step done for the Learner, and the Learner gives `asks`. */
   halfDone?: { shows: string; asks: AnswerFnId };
   /** Numbers a draw must not use, such as the running example's and the Concept card's. */
@@ -68,6 +70,8 @@ export interface DrawnItem {
   /** Every parameter and derived value, as plain decimals, so the draw can be stored and shown again. */
   params: Record<string, string>;
   mistakes: { value: Exact; tag: MistakeFnId; fix: string }[];
+  /** The template's label pattern, if it has one. */
+  label?: string;
 }
 
 /** Functions a derived value may use, written "plus(a, d)". Each is exact. */
@@ -233,6 +237,7 @@ function attempt(t: QuestionTemplate, random: () => number, halfDone: boolean, s
     rounded,
     params: Object.fromEntries(Object.entries(values).map(([name, value]) => [name, plainExact(value)])),
     mistakes,
+    ...(t.label && { label: t.label }),
   };
 }
 

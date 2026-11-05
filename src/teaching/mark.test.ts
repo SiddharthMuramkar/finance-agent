@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { markAnswer, type FixedItem } from ".";
+import { markAnswer, markChoice, type FixedItem } from ".";
 
 /** Quick try A3 of the Percent Topic: a fall, so 30 and -30 are both right. */
 const fallOf30: FixedItem = {
@@ -87,5 +87,39 @@ describe("marking a True or False Quick try", () => {
     for (const input of ["false", "False", "F", "no", " NO "]) expect(markAnswer(b4, input).verdict, input).toBe("right");
     expect(markAnswer(b4, "True")).toEqual({ verdict: "known_mistake", tag: "mixed_percent_points", fix: "The move is 2 points, which is 50% of 4.", expected: "False" });
     expect(markAnswer(b4, "maybe")).toEqual({ verdict: "wrong", expected: "False" });
+  });
+});
+
+describe("marking a tapped choice", () => {
+  const a2: FixedItem = {
+    id: "pb-try-a2",
+    skill: "pts-to-bp",
+    ask: "Same move, 3% to 3.5%. How many basis points did it move?",
+    kind: "number",
+    answer: 50,
+    unit: "bp",
+    mistakes: [{ answer: 5, fix: "One point is 100 basis points, so multiply by 100, not 10.", tag: "used_x10" }],
+  };
+  const noFix: FixedItem = { ...a2, mistakes: [{ answer: 5, fix: "f", tag: "used_x10" }, { answer: 7, fix: "g" }] };
+
+  it("marks the right id right", () => {
+    expect(markChoice(a2, "50")).toEqual({ verdict: "right", expected: "50 bp" });
+  });
+
+  it("marks a wrong id with a mistake as that Known mistake, and one with none as wrong", () => {
+    expect(markChoice(a2, "5")).toEqual({ verdict: "known_mistake", tag: "used_x10", fix: "One point is 100 basis points, so multiply by 100, not 10.", expected: "50 bp" });
+    expect(markChoice({ ...a2, mistakes: [] }, "5")).toEqual({ verdict: "wrong", expected: "50 bp" });
+    expect(markChoice(noFix, "7")).toMatchObject({ verdict: "known_mistake", tag: "pb-try-a2#1" });
+  });
+
+  it("marks an unknown id wrong", () => {
+    expect(markChoice(a2, "99")).toEqual({ verdict: "wrong", expected: "50 bp" });
+    expect(markChoice(a2, "")).toEqual({ verdict: "wrong", expected: "50 bp" });
+  });
+
+  it("marks True and False items and written choices by id", () => {
+    const truth: FixedItem = { id: "t", skill: "s", ask: "q", kind: "truth", answer: true, mistakes: [{ answer: false, fix: "A point is 100 bp.", tag: "pt" }] };
+    expect(markChoice(truth, "true").verdict).toBe("right");
+    expect(markChoice(truth, "false")).toMatchObject({ verdict: "known_mistake", tag: "pt" });
   });
 });
