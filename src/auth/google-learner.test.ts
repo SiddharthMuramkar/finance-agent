@@ -6,7 +6,7 @@ import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { learnerForAuthUser } from "./google-learner";
 import { addInvite, setSignupOpen } from "./invites";
-import { signInAs } from "./learners";
+import { signInAs, startOver } from "./learners";
 
 type GoogleUser = { id: string; email: string; name: string };
 
@@ -91,6 +91,27 @@ describe("learnerForAuthUser", () => {
     const t = await learnerForAuthUser(db, await googleUser(db, { id: "u4", email: "t@x.com", name: "tools" }));
     expect(t?.name).toBe("tools (2)");
     expect(t?.id).not.toBe(tools.id);
+  });
+
+  it("an archived Learner is not returned; Start over keeps the link", async () => {
+    const db = await testDb();
+    await addInvite(db, "a@x.com");
+    const u = await googleUser(db, { id: "u1", email: "a@x.com", name: "Asha" });
+    const first = (await learnerForAuthUser(db, u))!;
+    await db.update(learners).set({ archivedAt: new Date() }).where(eq(learners.id, first.id));
+    const second = (await learnerForAuthUser(db, u))!;
+    expect(second.id).not.toBe(first.id);
+    expect(second.authUserId).toBe("u1");
+
+    const fresh = (await startOver(db, second.id))!;
+    expect(fresh.id).not.toBe(second.id);
+    expect(fresh.authUserId).toBe("u1");
+    const [old] = await db.select().from(learners).where(eq(learners.id, second.id));
+    expect(old.archivedAt).not.toBeNull();
+    expect(old.authUserId).toBe("u1");
+    expect((await learnerForAuthUser(db, u))?.id).toBe(fresh.id);
+
+    await expect(db.insert(learners).values({ name: "Someone else", authUserId: "u1" })).rejects.toThrow();
   });
 });
 
