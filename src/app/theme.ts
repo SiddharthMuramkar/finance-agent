@@ -25,8 +25,8 @@ export const OS_DARK_QUERY = "(prefers-color-scheme: dark)";
 export const isTheme = (v: unknown): v is ThemeId => THEMES.includes(v as ThemeId);
 
 /**
- * Reads a saved choice. Values saved before there were two themes still open: the old light kinds (Paper) become Light,
- * the old dark kinds (Midnight, Forest) become Dark, and an old day and night pair becomes Match my Mac. Anything
+ * Reads a saved choice. Values saved before there were two themes still open: the old light themes become Light,
+ * the old dark themes become Dark, and an old day and night pair becomes Match my Mac. Anything
  * unreadable is the default, Match my Mac. The cookie is rewritten on the next change.
  */
 export function parsePref(raw: string | null | undefined): ThemePref {
@@ -59,4 +59,4 @@ export function applyTheme(theme: ThemeId, root: HTMLElement = document.document
  * attributes at all, so React has none to strip when router.refresh() redraws the layout. A test runs this string through
  * every kind of saved value and both computer modes against the functions above, so the two copies cannot drift.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=([^;]*)/),r=m?m[1]:"",p=r.split(":"),d=matchMedia("${OS_DARK_QUERY}").matches,t;if(r==="dark")t="dark";else if(r==="light")t="light";else if(p[0]==="single"&&/^(light|paper)$/.test(p[1]))t="light";else if(p[0]==="single"&&/^(dark|midnight|forest)$/.test(p[1]))t="dark";else t=d?"dark":"light";var h=document.documentElement;h.dataset.theme=t;h.classList.toggle("dark",t==="dark");h.style.colorScheme=t;h.dataset.openuiTheme=t}catch(e){}})()`;
+export const THEME_INIT_SCRIPT = `(function(){try{var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=([^;]*)/),r=m?decodeURIComponent(m[1]):"",p=r.split(":"),d=matchMedia("${OS_DARK_QUERY}").matches,t;if(r==="dark")t="dark";else if(r==="light")t="light";else if(p[0]==="single"&&/^(light|paper)$/.test(p[1]))t="light";else if(p[0]==="single"&&/^(dark|midnight|forest)$/.test(p[1]))t="dark";else t=d?"dark":"light";var h=document.documentElement;h.dataset.theme=t;h.classList.toggle("dark",t==="dark");h.style.colorScheme=t;h.dataset.openuiTheme=t}catch(e){}})()`;

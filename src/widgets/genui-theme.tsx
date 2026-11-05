@@ -18,7 +18,7 @@ const COLOURS: Theme = {
   background: "var(--bg)",
   foreground: "var(--field)",
   popoverBackground: "var(--field)",
-  // Washes and lifts: ink at low strength, so they darken on paper and lighten on the dark page.
+  // Washes and lifts: ink at low strength, so they darken on the light page and lighten on the dark page.
   sunkLight: "color-mix(in srgb, var(--ink) 2%, transparent)",
   sunk: "color-mix(in srgb, var(--ink) 4%, transparent)",
   sunkDeep: "color-mix(in srgb, var(--ink) 8%, transparent)",

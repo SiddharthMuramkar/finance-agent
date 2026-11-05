@@ -21,8 +21,8 @@ describe("Branded not-found page", () => {
   });
 
   it("keeps the remembered theme in its menu", async () => {
-    theme = "midnight";
-    expect(await render()).toContain('aria-label="Theme: Midnight"');
+    theme = "dark";
+    expect(await render()).toContain('aria-label="Theme: Dark"');
     theme = "light";
     expect(await render()).toContain('aria-label="Theme: Light"');
   });

@@ -8,9 +8,16 @@ import { DEFAULT_PREF, OS_DARK_QUERY, THEME_COOKIE, applyTheme, parsePref, resol
 
 const YEAR = 31536000;
 
-const readCookie = (name: string) => new RegExp(`(?:^|; )${name}=([^;]*)`).exec(document.cookie)?.[1];
+const readCookie = (name: string) => {
+  const raw = new RegExp(`(?:^|; )${name}=([^;]*)`).exec(document.cookie)?.[1];
+  try {
+    return raw === undefined ? raw : decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+};
 const writeCookie = (name: string, value: string) => {
-  document.cookie = `${name}=${value}; path=/; max-age=${YEAR}; samesite=lax`;
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${YEAR}; samesite=lax`;
 };
 const osMedia = () => (typeof matchMedia === "function" ? matchMedia(OS_DARK_QUERY) : undefined);
 

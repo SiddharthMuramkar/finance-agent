@@ -32,7 +32,7 @@ export function WidgetHarness({
   // The tokens switch on the page's root, so this page's own light or dark replaces what the head script set there.
   useEffect(() => {
     const before = document.documentElement.dataset.theme;
-    applyTheme(theme === "dark" ? "midnight" : "light");
+    applyTheme(theme);
     return () => {
       applyTheme(isTheme(before) ? before : "light");
     };

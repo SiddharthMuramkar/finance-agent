@@ -224,7 +224,7 @@
   --openui-border-danger: var(--coral);
   --openui-border-danger-emphasis: var(--coral-ink);
 }
-/* Dark (replaces Midnight). Screen only: print falls back to Light. A deep navy, soft blue-white text, DESATURATED
+/* Dark. Screen only: print falls back to Light. A deep navy, soft blue-white text, DESATURATED
    accents (the checker caps OKLCH chroma at 0.135 so nothing vibrates). On dark, an accent is already text-safe,
    so --X-ink equals --X. Tints are 8% alpha, so they sit on whatever surface is under them. */
 @media screen {
@@ -280,6 +280,15 @@
     --danger: #f28b7d;
     --shadow: rgb(0 0 0 / 0.5);
     --hi: 0.06;               /* white at 6%: the label stays 4.55:1 */
+  }
+
+  /* Bridge until the button sweep (A3b) moves every fill to --brand-main: in Dark --brand is the light blue for TEXT, so
+     a fill that still uses it under white text would read at 2:1. This gives those fills the main blue instead. */
+  :root.dark .bg-\[var\(--brand\)\] {
+    background-color: var(--brand-main);
+  }
+  :root.dark .bg-\[var\(--brand\)\]\! {
+    background-color: var(--brand-main) !important;
   }
 }
 
@@ -571,10 +580,10 @@ body {
     --border: #a8a29e;
     --hairline: #d6d3d1;
     --field: #ffffff;
-    --you-tint: #f5fcf9;
-    --src-tint: #fdfbf2;
-    --you-line: #009689;
-    --src-line: #fe9a00;
+    --you-tint: #ddf7ec;
+    --src-tint: #fff1c9;
+    --you-line: #12b886;
+    --src-line: #ffc233;
   }
   body {
     background: #ffffff;
