@@ -744,7 +744,8 @@ body {
   .btn:disabled,
   .btn[aria-disabled="true"],
   .chip:disabled {
-    box-shadow: none;
+    /* Dimmed and flat on the page, but it keeps its lip: a button that cannot be pressed yet still looks like a button. */
+    box-shadow: 0 var(--lip) 0 var(--lip-colour);
     transform: none;
     opacity: 0.55;
     cursor: not-allowed;
@@ -755,6 +756,43 @@ body {
   }
   .btn[aria-busy="true"] {
     cursor: progress;
+  }
+
+  /* The big landing button (Home's hero). */
+  .btn-lg {
+    min-height: 48px;
+    padding: 0 24px;
+    border-radius: 14px;
+    font-size: 16px;
+    line-height: 24px;
+    --lip: 4px;
+  }
+
+  /* The button sheet at /dev/widgets#buttons shows each state without a mouse: data-force pins the look. */
+  .btn[data-force="hover"],
+  .chip[data-force="hover"] {
+    transform: translateY(-1px);
+    box-shadow:
+      0 calc(var(--lip) + 1px) 0 var(--lip-colour),
+      0 calc(var(--lip) + 5px) 12px -2px var(--shadow);
+  }
+  .btn-primary[data-force="hover"] {
+    --face: var(--brand-hover);
+  }
+  .btn[data-force="pressed"],
+  .chip[data-force="pressed"] {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 var(--lip-colour),
+      0 2px 4px -1px var(--shadow);
+  }
+  .btn-primary[data-force="pressed"] {
+    --face: var(--brand-pressed);
+  }
+  .btn[data-force="focus"],
+  .chip[data-force="focus"] {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   /* Inline links are underlined, so they never read as plain words. */
@@ -769,6 +807,53 @@ body {
   .link:hover {
     text-decoration-thickness: 2px;
     color: color-mix(in srgb, var(--brand) 80%, var(--ink));
+  }
+  /* A button that acts like a link (Edit, Delete, Undo, a row title that posts a form): same underline, no button chrome. */
+  .link-button {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: inherit;
+  }
+
+  /* Fields say so with a border: native radios, checkboxes and sliders get a visible edge too. */
+  input[type="radio"],
+  input[type="checkbox"] {
+    appearance: none;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid var(--edge);
+    background: var(--field);
+  }
+  input[type="radio"] {
+    border-radius: 999px;
+  }
+  input[type="checkbox"] {
+    border-radius: 5px;
+  }
+  input[type="radio"]:checked {
+    border-color: var(--brand);
+    background: radial-gradient(circle, var(--brand) 0 38%, var(--field) 42%);
+  }
+  input[type="checkbox"]:checked {
+    border-color: var(--brand);
+    background: var(--brand-main)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E")
+      center / 12px no-repeat;
+  }
+  input[type="radio"]:focus-visible,
+  input[type="checkbox"]:focus-visible,
+  input[type="range"]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  input[type="range"] {
+    border: 1px solid var(--edge);
+    border-radius: 999px;
   }
 
   /* Static tags: flat, square-ish (6px; chips are fully round), no shadow, no pointer, a dot instead of a lip. */
@@ -842,4 +927,12 @@ body {
       box-shadow: none;
     }
   }
+}
+
+/* A Widget's "More settings" accordion trigger is a button (the kit's): give it the raised edge the rest of the app's buttons have. */
+.genui .openui-accordion-trigger {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  box-shadow: 0 2px 0 var(--edge);
+  padding: 6px 12px !important;
 }
