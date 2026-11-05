@@ -116,7 +116,7 @@ export function WidgetPager({
       <IconButton label="Next widget" onClick={() => go(next)} disabled={at >= paged.length - 1 && at !== -1} data-testid="pager-next">
         <Chevron dir="right" />
       </IconButton>
-      <Button ref={toggle} variant="ghost" size="sm" aria-haspopup="listbox" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen((o) => !o)} data-testid="pager-all" className="gap-1">
+      <Button ref={toggle} variant="secondary" size="sm" aria-haspopup="listbox" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen((o) => !o)} data-testid="pager-all" className="gap-1">
         All
         <Chevron dir="down" />
       </Button>
