@@ -411,6 +411,93 @@ body {
   animation: fade-rise var(--dur-ui) var(--ease-out) both;
 }
 
+/* Story parts (wave 3 Widget parts, ticket E2a). Motion is transform and opacity only: feedback 100 to 150 ms, entrances
+   200 to 300 ms, nothing over 400 ms. The reduced-motion rule below turns every animation and transition off. */
+@keyframes story-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes story-bounce {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+@keyframes story-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes jar-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes jar-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+}
+@utility story-bubble-in {
+  animation: story-bubble-in 200ms var(--ease-out) both;
+}
+@utility story-bounce {
+  animation: story-bounce 240ms var(--ease-out) both;
+}
+@utility story-pop {
+  animation: story-pop 200ms var(--ease-out) both;
+}
+@utility jar-in {
+  animation: jar-in 150ms var(--ease-out) both;
+}
+@utility jar-out {
+  animation: jar-out 150ms var(--ease-out) both;
+}
+/* The LingoCard: two faces on one card that turns over (300 ms). Both faces share one grid cell, so the card is as tall as the taller. */
+.lingo-turn {
+  perspective: 900px;
+}
+.lingo-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 300ms var(--ease-out);
+}
+.lingo-inner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+.lingo-face {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.lingo-face-back {
+  transform: rotateY(180deg);
+}
+
 /* A loading block: a hairline with a quiet light sweeping across (a still hairline for reduced motion). */
 @keyframes skeleton-sweep {
   from {
