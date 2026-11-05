@@ -19,6 +19,8 @@ export type ReadingMark = {
 };
 
 const SLIP_FIX = "One point is 100 basis points, so multiply by 100, not 10.";
+const NO_MOVE_FIX = "The two rates are the same, so nothing moved: new minus old is 0 points, which is 0 basis points.";
+const POINTS_AS_BPS_FIX = "That reads points as basis points. One point is 100 basis points, so points times 100 gives basis points.";
 const PERCENT_FIX = "That is a percent. The move in points is the new rate minus the old rate; basis points are points times 100.";
 
 /**
@@ -39,7 +41,7 @@ export function moveReadings(oldRate: number, newRate: number, seed: string): Ch
           answer: "none",
           choices: [
             { id: "none", text: "No change, 0 bps" },
-            { id: "up-point", text: "Up 1 point, or 100 bps" },
+            { id: "up-point", text: "Up 1 point, or 100 bps", mistake: { tag: "saw_a_move_that_is_not_there", fix: NO_MOVE_FIX } },
             { id: "up-percent", text: "Up 1%", mistake: { tag: "mixed_percent_points", fix: PERCENT_FIX } },
           ],
         }
@@ -48,7 +50,10 @@ export function moveReadings(oldRate: number, newRate: number, seed: string): Ch
           answer: "right",
           choices: [
             { id: "right", text: `${way} ${points} ${points === 1 ? "point" : "points"}, or ${size} bps` },
-            { id: "x10", text: `${way} ${size / 10} bps`, mistake: { tag: "used_x10", fix: SLIP_FIX } },
+            // A whole number of tenths gives the x10 slip; a move like 5 bps would read "0.5 bps", so it gets the points-as-bps slip.
+            size % 10 === 0
+              ? { id: "x10", text: `${way} ${size / 10} bps`, mistake: { tag: "used_x10", fix: SLIP_FIX } }
+              : { id: "x10", text: `${way} ${points} bps`, mistake: { tag: "forgot_to_convert", fix: POINTS_AS_BPS_FIX } },
             { id: "percent", text: `${way} ${points}%`, mistake: { tag: "mixed_percent_points", fix: PERCENT_FIX } },
           ],
         };

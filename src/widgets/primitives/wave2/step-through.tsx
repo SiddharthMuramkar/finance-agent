@@ -107,7 +107,7 @@ export function StepThroughView({ steps }: { steps: StepData[] }) {
         {hasAsk && (
           <div data-testid="step-ask" data-status={state.status} className="mt-2">
             {state.status === "idle" && (
-              <button type="button" onClick={() => setState({ status: "shown" })} className={`${button} border border-[var(--border)]`}>
+              <button type="button" onClick={() => setState({ status: "shown" })} className={`${button} pressable border border-b-[3px] border-[var(--border)]`}>
                 Show the number
               </button>
             )}

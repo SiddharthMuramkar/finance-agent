@@ -26,6 +26,20 @@ describe("the readings offered for a rate move (ADR 0009: a tap, never a typed n
   });
 });
 
+describe("every wrong reading names a Known mistake with a fix", () => {
+  it.each([[4, 4], [5, 5.05], [4, 5], [7.5, 7.2]])("%s to %s", (a, b) => {
+    const set = moveReadings(a, b, "s1");
+    for (const c of set.choices.filter((x) => x.id !== set.answer)) {
+      expect(c.mistake?.tag).toBeTruthy();
+      expect(c.mistake?.fix).toBeTruthy();
+    }
+  });
+
+  it("a 5 bp move never reads as a fraction of a basis point", () => {
+    expect(moveReadings(5, 5.05, "s1").choices.some((c) => /0\.5 bps/.test(c.text))).toBe(false);
+  });
+});
+
 describe("marking a tapped reading", () => {
   it("marks the right reading right, by id, whatever the order", () => {
     const set = moveReadings(5, 5.2, "s1");
