@@ -74,12 +74,12 @@ questions:
 
   - id: bd-q-rule
     prompt: >
-      Your bond has a modified duration of 7.4. Overnight, market yields rise by one percentage point. You open your account this morning. What do you find?
+      Your bond has a modified duration of 7.4. Overnight, market yields rise one percentage point. You open your app this morning. What do you see?
     choices:
-      - { id: a, text: "Your bond's price has fallen by several percent: a duration of 7.4 magnifies every point of yield" }
-      - { id: b, text: "Your bond's price has risen, because higher yields mean the bond is worth more", mistake: { tag: wrong_direction, fix: "Prices move opposite to yields. A rise in yield means a fall in price." } }
-      - { id: c, text: "Your bond's price has barely moved, because a one point change is tiny", mistake: { tag: ignored_duration, fix: "Duration is the size of the reaction. A duration of 7.4 turns one point of yield into a fall of several percent." } }
-      - { id: d, text: "Your bond's price has not moved: the coupon is fixed, so only the yield changed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price adjusts when market yields move." } }
+      - { id: a, text: "Its price has dropped by several percent" }
+      - { id: b, text: "Its price has risen along with the yield", mistake: { tag: wrong_direction, fix: "Prices move opposite to yields. A rise in yield means a fall in price." } }
+      - { id: c, text: "Its price has barely moved; one point is tiny", mistake: { tag: ignored_duration, fix: "Duration is the size of the reaction. At 7.4, one point of yield costs several percent." } }
+      - { id: d, text: "Its price is unchanged; the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price adjusts when market yields move." } }
     answer: a
     explanation: >
       Duration is the rule of thumb for the percentage a price changes for each one-point move in yield, in the opposite direction. So a one-point rise cuts this bond's price by several percent, about 7.4%. A 10-year 6% bond at a 6% yield has a modified duration of 7.44; when its yield rises one point the price actually falls 7.1%, because of convexity.
@@ -88,12 +88,12 @@ questions:
 
   - id: bd-q-svb
     prompt: >
-      Silicon Valley Bank held a big pile of bonds it meant to keep to maturity, with a duration of 6.2 years. Then, through 2022, the 10-year Treasury yield rose about 2.4 percentage points. If its bonds' yields moved with the 10-year, what happened to what that pile would sell for?
+      Silicon Valley Bank held a big pile of bonds it meant to keep to maturity, with a duration of 6.2 years. Then, through 2022, the 10-year Treasury yield rose about 2.4 percentage points. If its bonds' yields moved with the 10-year, what would the pile now fetch?
     choices:
-      - { id: a, text: "It fell by far more than 2.4%: a duration of 6.2 years magnified the rise" }
-      - { id: b, text: "It barely moved, because the bonds were safe from default", mistake: { tag: credit_vs_rate_risk, fix: "Safe from default is not safe from rates. Duration measures rate risk, not credit risk." } }
-      - { id: c, text: "It rose, because higher yields mean the bonds pay more", mistake: { tag: yield_up_price_up, fix: "Bonds already held keep their old coupons, so higher yields push their prices down." } }
-      - { id: d, text: "It fell by about 2.4%, one-for-one with the yield", mistake: { tag: ignored_duration, fix: "Duration multiplies the move: each point of yield costs about 6% of the price here." } }
+      - { id: a, text: "Far less: duration magnified the rise" }
+      - { id: b, text: "About the same: the bonds were safe from default", mistake: { tag: credit_vs_rate_risk, fix: "Safe from default is not safe from rates. Duration measures rate risk, not credit risk." } }
+      - { id: c, text: "More: higher yields mean the bonds pay more", mistake: { tag: yield_up_price_up, fix: "Bonds already held keep their old coupons, so higher yields push their prices down." } }
+      - { id: d, text: "About 2.4% less, one-for-one with the yield", mistake: { tag: ignored_duration, fix: "Duration multiplies the move: each point of yield costs about 6% of the price here." } }
     answer: a
     explanation: >
       Duration is the rule of thumb for how far a price falls for each point of yield rise. At 6.2 years, each point of rise costs several percent of the price, so a rise of about 2.4 points cuts the value by far more than 2.4%. It is an estimate, because the actual securities' yields differ from the 10-year Treasury's.
@@ -104,10 +104,10 @@ questions:
     prompt: >
       Meera holds a plain 10-year bond. Tomorrow, yields might fall one point, or rise one point. Bond people say her bond has convexity. What does that mean for her?
     choices:
-      - { id: a, text: "Her gain if yields fall is bigger than her loss if they rise: the price curve bends her way" }
-      - { id: b, text: "The gain and the loss are exactly the same size", mistake: { tag: linear_price, fix: "Duration's straight line says so, but the real price curve bends, so the two differ." } }
-      - { id: c, text: "Her loss if yields rise is bigger than her gain if they fall", mistake: { tag: convexity_backwards, fix: "Convexity works for the holder: for equal yield moves, the price rises more than it falls." } }
-      - { id: d, text: "Nothing: the price barely moves for one point", mistake: { tag: small_moves_ignored, fix: "One point of yield moves a 10-year bond's price by several percent." } }
+      - { id: a, text: "Her gain if yields fall beats her loss if they rise" }
+      - { id: b, text: "Her gain and her loss would be exactly equal", mistake: { tag: linear_price, fix: "Duration's straight line says so, but the real price curve bends, so the two differ." } }
+      - { id: c, text: "Her loss if yields rise beats her gain if they fall", mistake: { tag: convexity_backwards, fix: "Convexity works for the holder: for equal yield moves, the price rises more than it falls." } }
+      - { id: d, text: "Nothing much: one point barely moves the price", mistake: { tag: small_moves_ignored, fix: "One point of yield moves a 10-year bond's price by several percent." } }
     answer: a
     explanation: >
       Price is a curved function of yield. For a 10-year 6% bond priced at a 6% yield, a one-point fall lifts the price about 7.8%, while a one-point rise cuts it about 7.1%. Duration's straight line (7.4%) sits between the two. This curvature is convexity, and it works in the holder's favour.

@@ -58,12 +58,12 @@ youllLearn:
 questions:
   - id: by-q-current-yield
     prompt: >
-      A bond with an 8% coupon trades below face value. Traders measure the yearly coupon against the price they actually pay. What is that called, and is it above or below 8%?
+      A bond with an 8% coupon trades below face value. Traders measure the yearly coupon against the price they actually pay. What do traders call that, and how does it compare with 8%?
     choices:
-      - { id: a, text: "Current yield: higher than the 8% coupon rate, because you paid less than face value" }
-      - { id: b, text: "Current yield: exactly the 8% coupon rate, because the coupon is fixed", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
-      - { id: c, text: "Yield to maturity: it counts only the coupon, not the gain at maturity", mistake: { tag: mixed_up_ytm, fix: "Yield to maturity includes the gain at maturity. Current yield counts only the coupon." } }
-      - { id: d, text: "Current yield: lower than the 8% coupon rate, because the price is lower", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
+      - { id: a, text: "Current yield, and it is above 8%" }
+      - { id: b, text: "Current yield, and it is exactly 8%", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
+      - { id: c, text: "Yield to maturity, and it is exactly 8%", mistake: { tag: mixed_up_ytm, fix: "Yield to maturity includes the gain at maturity. Current yield counts only the coupon." } }
+      - { id: d, text: "Current yield, and it is below 8%", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
     answer: a
     explanation: >
       Current yield is the yearly coupon over the price you pay. Paying less than face value makes it come out above the 8% coupon rate. It ignores the gain as the price returns to par at maturity, which is why the yield to maturity is higher still.
@@ -102,10 +102,10 @@ questions:
     prompt: >
       Asha buys a 10-year bond paying 6% a year, planning to hold it to the end. One year in, she needs the cash and has to sell. Interest rates have gone up since she bought. Did her 6% a year come true?
     choices:
-      - { id: a, text: "Not this year: with rates up, her bond sold for less than she paid, and that ate into the coupon she collected" }
-      - { id: b, text: "Yes: the 6% was locked in the day she bought", mistake: { tag: ytm_without_holding, fix: "The 6% is earned only by holding to the end. Selling early exposes her to the price." } }
-      - { id: c, text: "Better than 6%: she now earns the higher market rate", mistake: { tag: new_yield_as_return, fix: "Higher rates help new buyers. Her bond keeps its old coupon, so its price falls." } }
-      - { id: d, text: "Yes: a bond's price cannot change before it matures", mistake: { tag: price_fixed_before_maturity, fix: "Bond prices move every day. When rates rise, older bonds with lower coupons sell for less." } }
+      - { id: a, text: "No: rates rose, so she sold at a loss" }
+      - { id: b, text: "Yes: the 6% was locked in on day one", mistake: { tag: ytm_without_holding, fix: "The 6% is earned only by holding to the end. Selling early exposes her to the price." } }
+      - { id: c, text: "Better: she now earns the higher market rate", mistake: { tag: new_yield_as_return, fix: "Higher rates help new buyers. Her bond keeps its old coupon, so its price falls." } }
+      - { id: d, text: "Yes: a bond's price is fixed until it matures", mistake: { tag: price_fixed_before_maturity, fix: "Bond prices move every day. When rates rise, older bonds with lower coupons sell for less." } }
     answer: a
     explanation: >
       A yield to maturity is a promise only to someone who holds the bond to the end. Once rates rose, buyers would pay less for Asha's 6% bond, because new bonds paid more. Selling early locked in that lower price, which cancelled much of the coupon she had collected.
@@ -114,12 +114,12 @@ questions:
 
   - id: by-q-leverage
     prompt: >
-      A pool has $100 of depositors' money and borrows another $100 through repurchase agreements, then buys $200 of bonds. Bond prices fall 5%. Which statement about the depositors' $100 is right?
+      A pool has $100 of depositors' money and borrows another $100 through repurchase agreements, then buys $200 of bonds. Bond prices fall 5%. Who takes the hit, and how hard?
     choices:
-      - { id: a, text: "It loses twice as much in percentage terms, because the borrowed $100 must still be repaid in full" }
-      - { id: b, text: "It falls 5%, the same as the bonds", mistake: { tag: ignored_leverage, fix: "The depositors' $100 carries the whole loss, so the percentage is magnified, not matched." } }
-      - { id: c, text: "It falls less than 5%, because the lenders share the loss", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The whole loss lands on the depositors' money." } }
-      - { id: d, text: "It does not fall, because the bonds are held to maturity", mistake: { tag: held_to_maturity_safe, fix: "Lenders can demand collateral or repayment sooner, so holding to maturity may not be possible." } }
+      - { id: a, text: "The depositors, harder than the bonds fell" }
+      - { id: b, text: "The depositors, by the same 5% as the bonds", mistake: { tag: ignored_leverage, fix: "The depositors' $100 carries the whole loss, so the percentage is magnified, not matched." } }
+      - { id: c, text: "Both sides, so the depositors lose under 5%", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The whole loss lands on the depositors' money." } }
+      - { id: d, text: "Nobody: the bonds are held to maturity", mistake: { tag: held_to_maturity_safe, fix: "Lenders can demand collateral or repayment sooner, so holding to maturity may not be possible." } }
     answer: a
     explanation: >
       A 5% fall on $200 of bonds is a loss of $10. The $100 of borrowing is still owed, so the whole loss falls on the depositors' $100, which is now worth $90. Leverage of two to one doubles the percentage loss, just as it doubles the extra yield. Holding to maturity does not erase a loss when the lenders can demand collateral or repayment sooner.

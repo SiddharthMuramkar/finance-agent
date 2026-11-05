@@ -69,12 +69,12 @@ questions:
 
   - id: bp-q-par
     prompt: >
-      Ravi holds a bond paying 6% a year on its $1,000 face value. Today buyers want exactly 6% from bonds like it, no more and no less. He wants to sell. What price would a fair buyer pay, and why?
+      Ravi holds a $1,000 bond paying 6% a year. Today buyers want exactly 6% from bonds like it. He wants to sell. Which asking price would you pick for him?
     choices:
-      - { id: a, text: "$1,000, its face value: the coupon is just what buyers want, so no discount and no premium" }
-      - { id: b, text: "More than $1,000, because the bond pays a coupon on top", mistake: { tag: coupon_as_premium, fix: "Every bond pays a coupon. A premium appears only when the coupon beats what buyers demand." } }
-      - { id: c, text: "Less than $1,000, because buyers always want a bargain", mistake: { tag: discount_by_default, fix: "A discount appears only when buyers want more than the coupon pays. Here the two match." } }
-      - { id: d, text: "It depends only on how long until the bond matures", mistake: { tag: maturity_alone, fix: "When the coupon matches what buyers demand, the bond sells at face value whatever its maturity." } }
+      - { id: a, text: "$1,000: the coupon matches what buyers want" }
+      - { id: b, text: "More than $1,000: the bond pays a coupon on top", mistake: { tag: coupon_as_premium, fix: "Every bond pays a coupon. A premium appears only when the coupon beats what buyers demand." } }
+      - { id: c, text: "Less than $1,000: buyers always want a bargain", mistake: { tag: discount_by_default, fix: "A discount appears only when buyers want more than the coupon pays. Here the two match." } }
+      - { id: d, text: "It depends only on the years left to maturity", mistake: { tag: maturity_alone, fix: "When the coupon matches what buyers demand, the bond sells at face value whatever its maturity." } }
     answer: a
     explanation: >
       When the coupon rate equals the market yield, the present value of the payments equals the face value, so the bond sells at par.
@@ -98,10 +98,10 @@ questions:
     prompt: >
       Your bond pays a 6% coupon and has five years left. New bonds like it now pay only 5%. A buyer walks up and asks your price. What do you tell her, and why?
     choices:
-      - { id: a, text: "It sells at a premium, above $1,000, because its coupon beats the market yield" }
-      - { id: b, text: "It sells at par, $1,000, because the face value is repaid in full", mistake: { tag: confused_face_with_price, fix: "Face value is only what is repaid. A coupon above the market yield pushes the price up." } }
-      - { id: c, text: "It sells at a discount, below $1,000, because the market yield is lower", mistake: { tag: flipped_yield_effect, fix: "A lower market yield makes the fixed coupon more attractive, so the price rises, not falls." } }
-      - { id: d, text: "Nobody can say until the bond matures, because its price is only fixed at the end", mistake: { tag: price_fixed_at_maturity, fix: "A bond is priced every day. Buyers compare its coupon with what new bonds pay today." } }
+      - { id: a, text: "Above $1,000: your coupon beats new bonds" }
+      - { id: b, text: "Exactly $1,000: that is what gets repaid", mistake: { tag: confused_face_with_price, fix: "Face value is only what is repaid. A coupon above the market yield pushes the price up." } }
+      - { id: c, text: "Below $1,000: the market yield is lower", mistake: { tag: flipped_yield_effect, fix: "A lower market yield makes the fixed coupon more attractive, so the price rises, not falls." } }
+      - { id: d, text: "Nobody can say until the bond matures", mistake: { tag: price_fixed_at_maturity, fix: "A bond is priced every day. Buyers compare its coupon with what new bonds pay today." } }
     answer: a
     explanation: >
       The coupon is above the market yield, so buyers pay more than face value: a premium. OpenStax's worked example puts the price near $1,044. The longer the bond, the bigger the premium, because the better coupon lasts longer.
@@ -123,12 +123,12 @@ questions:
 
   - id: bp-q-1994
     prompt: >
-      You buy a 10-year bond at par with a 5% coupon, paid half-yearly. Later the market yield on 10-year bonds rises to 7%. What would a buyer offer for your bond now, and why?
+      You bought a 10-year bond at par with a 5% coupon, paid half-yearly. Now new 10-year bonds pay 7%. A buyer wants yours. What will she offer?
     choices:
-      - { id: a, text: "It is worth less than you paid: new bonds pay 7%, so buyers offer less for your 5%" }
-      - { id: b, text: "It is still worth what you paid, because the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price is not. It adjusts when market yields move." } }
-      - { id: c, text: "It is worth more than you paid, because yields are higher", mistake: { tag: yield_up_price_up, fix: "Higher yields push bond prices down, because buyers can get 7% elsewhere." } }
-      - { id: d, text: "It is worth what you paid plus the two extra points a year", mistake: { tag: added_yield_gap, fix: "Yield and price move in opposite directions. The yield gap is not added to the price." } }
+      - { id: a, text: "Less than you paid: new bonds pay 7%" }
+      - { id: b, text: "What you paid: the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price is not. It adjusts when market yields move." } }
+      - { id: c, text: "More than you paid: yields are higher", mistake: { tag: yield_up_price_up, fix: "Higher yields push bond prices down, because buyers can get 7% elsewhere." } }
+      - { id: d, text: "What you paid, plus two points a year", mistake: { tag: added_yield_gap, fix: "Yield and price move in opposite directions. The yield gap is not added to the price." } }
     answer: a
     explanation: >
       New bonds pay 7%, so buyers will pay less than face value for your 5% coupon. A rise of two points in the yield costs the holder a sizeable slice of the price.

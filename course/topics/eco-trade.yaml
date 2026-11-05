@@ -75,12 +75,12 @@ questions:
 
   - id: et-q-opportunity
     prompt: >
-      Country A's resources can make either 100 bushels of corn or 50 barrels of oil. Which statement describes A's opportunity cost of making oil?
+      Country A's land and workers can make either 100 bushels of corn or 50 barrels of oil. It chooses oil. What does that oil really cost A?
     choices:
-      - { id: a, text: "The corn it gives up: resources used for oil cannot make corn" }
+      - { id: a, text: "The corn it could have grown instead" }
       - { id: b, text: "The money A pays for the oil's inputs", mistake: { tag: money_not_opportunity, fix: "Opportunity cost is the next best use given up, not the money spent." } }
-      - { id: c, text: "Nothing, because the resources are already owned", mistake: { tag: free_resources, fix: "Resources used for oil cannot make corn, so something is always given up." } }
-      - { id: d, text: "The oil A could have made instead of corn", mistake: { tag: flipped_goods, fix: "Here the cost of making oil is the corn given up, not the oil." } }
+      - { id: c, text: "Nothing: A already owns the resources", mistake: { tag: free_resources, fix: "Resources used for oil cannot make corn, so something is always given up." } }
+      - { id: d, text: "The oil it could have made instead", mistake: { tag: flipped_goods, fix: "Here the cost of making oil is the corn given up, not the oil." } }
     answer: a
     explanation: >
       Resources used for oil cannot make corn. Choosing 50 barrels of oil means giving up 100 bushels of corn, so about 2 bushels of corn per barrel. That lost corn is the opportunity cost of the oil.

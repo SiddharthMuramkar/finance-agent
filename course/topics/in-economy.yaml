@@ -72,10 +72,10 @@ questions:
     prompt: >
       Last year a US dollar cost Rs 20. Now it costs Rs 25. A newspaper says the rupee fell. Is it right?
     choices:
-      - { id: a, text: "Yes: the rupee weakened, because each rupee now buys fewer dollars" }
-      - { id: b, text: "No: the rupee strengthened, because the number went up", mistake: { tag: number_up_means_strong, fix: "A higher rupee price per dollar means each rupee buys fewer dollars, so the rupee is weaker." } }
-      - { id: c, text: "No: it was the dollar that weakened, since it now costs more rupees", mistake: { tag: dollar_dearer_not_weaker, fix: "More rupees per dollar means the dollar got dearer in rupees, so the rupee got weaker." } }
-      - { id: d, text: "No: nothing changed in value, only how it is quoted", mistake: { tag: quote_only, fix: "A dollar now costs more rupees. That is a real fall in the rupee's value." } }
+      - { id: a, text: "Yes: each rupee now buys fewer dollars" }
+      - { id: b, text: "No: the rupee got stronger, the number rose", mistake: { tag: number_up_means_strong, fix: "A higher rupee price per dollar means each rupee buys fewer dollars, so the rupee is weaker." } }
+      - { id: c, text: "No: the dollar weakened, it costs more rupees", mistake: { tag: dollar_dearer_not_weaker, fix: "More rupees per dollar means the dollar got dearer in rupees, so the rupee got weaker." } }
+      - { id: d, text: "No: only the way it is quoted changed", mistake: { tag: quote_only, fix: "A dollar now costs more rupees. That is a real fall in the rupee's value." } }
     answer: a
     explanation: >
       A dollar now costs more rupees, so each rupee buys fewer dollars: the rupee has lost value. Economists call this depreciation. The dollar became dearer in rupees, and the rupee lost about a fifth of its dollar value.
@@ -98,12 +98,12 @@ questions:
 
   - id: ie-q-cash-margin
     prompt: >
-      The central bank requires importers to deposit a cash margin of 50% of an import's value before the bank will open a letter of credit. What is the likely effect on imports?
+      The central bank tells importers: park cash worth 50% of the goods with your bank before it opens a letter of credit. Which headline gets it right?
     choices:
-      - { id: a, text: "It ties up the importer's funds up front and discourages imports" }
-      - { id: b, text: "It encourages imports, because banks become more willing to lend", mistake: { tag: margin_as_lending, fix: "A margin is cash locked up by the importer. It raises the cost of importing." } }
-      - { id: c, text: "It makes imports cheaper, because the importer holds a deposit", mistake: { tag: deposit_as_discount, fix: "The deposit is the importer's own cash tied up, not a discount on the goods." } }
-      - { id: d, text: "No effect, because the margin is paid by the exporter", mistake: { tag: wrong_payer, fix: "The importer pays the margin, before the bank will open the letter of credit." } }
+      - { id: a, text: "Cash locked up, imports slow down" }
+      - { id: b, text: "Banks lend more, imports pick up", mistake: { tag: margin_as_lending, fix: "A margin is cash locked up by the importer. It raises the cost of importing." } }
+      - { id: c, text: "Deposit cuts the price of imports", mistake: { tag: deposit_as_discount, fix: "The deposit is the importer's own cash tied up, not a discount on the goods." } }
+      - { id: d, text: "Exporters foot the bill, imports unchanged", mistake: { tag: wrong_payer, fix: "The importer pays the margin, before the bank will open the letter of credit." } }
     answer: a
     explanation: >
       The importer must put part of the import's value with the bank before the import is paid for. The money is locked up, which raises the cost of importing and holds imports back.
@@ -112,12 +112,12 @@ questions:
 
   - id: ie-q-dual-rate
     prompt: >
-      Under a dual exchange rate system an exporter must sell half its dollar earnings at the official rate, and may sell the rest at the market rate, where the dollar fetches more rupees. What does the exporter end up getting per dollar, overall?
+      Under a dual exchange rate, an exporter must sell half her dollars at the official rate. She sells the rest at the market rate, where a dollar fetches more rupees. What does she get per dollar overall?
     choices:
-      - { id: a, text: "A blended rate, between the official rate and the market rate" }
-      - { id: b, text: "The official rate on every dollar, because the central bank sets it", mistake: { tag: official_on_all, fix: "Only the surrendered half goes at the official rate. The rest sells at the market rate." } }
-      - { id: c, text: "The market rate on every dollar, because the rest is free", mistake: { tag: market_on_all, fix: "Half the dollars must still go at the official rate, which pulls the average down." } }
-      - { id: d, text: "A rate above the market rate, as a reward for exporting", mistake: { tag: bonus_rate, fix: "No rate above the market rate is offered. The average falls between the two." } }
+      - { id: a, text: "Somewhere between the two rates" }
+      - { id: b, text: "The official rate on every dollar", mistake: { tag: official_on_all, fix: "Only the surrendered half goes at the official rate. The rest sells at the market rate." } }
+      - { id: c, text: "The market rate on every dollar", mistake: { tag: market_on_all, fix: "Half the dollars must still go at the official rate, which pulls the average down." } }
+      - { id: d, text: "More than the market rate, as a reward", mistake: { tag: bonus_rate, fix: "No rate above the market rate is offered. The average falls between the two." } }
     answer: a
     explanation: >
       Part of the dollars sells at the official rate and part at the market rate, so the exporter's average rupees per dollar falls between the two: a blended rate. A dual rate was a step on the way from an official rate to a market-set one.

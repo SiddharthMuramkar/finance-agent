@@ -65,10 +65,10 @@ questions:
     prompt: >
       You lend a friend money for a year at 8% interest. That year, prices rise 12%. When your friend pays you back, with interest, what has the loan really done for you?
     choices:
-      - { id: a, text: "Made you richer: you got 8% more money back", mistake: { tag: ignored_inflation, fix: "Money paid back buys less when inflation is 12%. Interest of 8% does not cover that." } }
-      - { id: b, text: "Made you poorer: the money you get back buys less than what you lent" }
-      - { id: c, text: "Made you much richer: inflation adds to the interest, about 20% in all", mistake: { tag: added_not_subtracted, fix: "Inflation eats into the interest. It takes away from the real return, it does not add." } }
-      - { id: d, text: "Earned you exactly 8%, the rate on the loan", mistake: { tag: nominal_as_real, fix: "8% is the nominal rate. The real rate takes inflation off it." } }
+      - { id: a, text: "Richer: you got 8% more money back", mistake: { tag: ignored_inflation, fix: "Money paid back buys less when inflation is 12%. Interest of 8% does not cover that." } }
+      - { id: b, text: "Poorer: it buys less than you lent" }
+      - { id: c, text: "Much richer: inflation adds to the interest", mistake: { tag: added_not_subtracted, fix: "Inflation eats into the interest. It takes away from the real return, it does not add." } }
+      - { id: d, text: "Even: you earned exactly the 8%", mistake: { tag: nominal_as_real, fix: "8% is the nominal rate. The real rate takes inflation off it." } }
     answer: b
     explanation: >
       The real rate is the nominal rate less inflation, roughly. Here inflation outruns the interest, so the real rate is negative, about minus 4%. The lender is repaid in money that buys less.
@@ -77,12 +77,12 @@ questions:
 
   - id: hmr-q-tight-or-easy
     prompt: >
-      Central bank A holds its policy rate at 12% while inflation is 4%. Central bank B also holds 12% while inflation is 15%. Which stance is tighter once inflation is taken into account?
+      Two central banks both set their policy rate at 12%. In country A prices rise 4% a year; in country B, 15%. Bond traders size up each stance with inflation counted. What do they call them?
     choices:
-      - { id: a, text: "A: its rate is well above inflation, so money is dear in real terms" }
-      - { id: b, text: "B: the same rate, with more inflation, so money is even tighter", mistake: { tag: inflation_as_tightness, fix: "When inflation tops the policy rate, borrowers repay in cheaper money. That is easy money, not tight." } }
-      - { id: c, text: "Both are equally tight, since the nominal rates are equal", mistake: { tag: nominal_as_stance, fix: "Equal headline rates can hide very different real rates once inflation is taken off." } }
-      - { id: d, text: "A is easier, because low inflation means little pressure", mistake: { tag: low_inflation_easy, fix: "A high rate with low inflation is a high real rate, which is tight, not easy." } }
+      - { id: a, text: "A is tight, B is easy" }
+      - { id: b, text: "B is tighter: more inflation, same rate", mistake: { tag: inflation_as_tightness, fix: "When inflation tops the policy rate, borrowers repay in cheaper money. That is easy money, not tight." } }
+      - { id: c, text: "Both equally tight: the rates match", mistake: { tag: nominal_as_stance, fix: "Equal headline rates can hide very different real rates once inflation is taken off." } }
+      - { id: d, text: "A is easy, B is tight", mistake: { tag: low_inflation_easy, fix: "A high rate with low inflation is a high real rate, which is tight, not easy." } }
     answer: a
     explanation: >
       A's real rate is clearly positive, about +8%, so money is dear. B's is negative, about -3%, which is easy money despite the high nominal rate. Equal nominal rates can mean very different stances.
