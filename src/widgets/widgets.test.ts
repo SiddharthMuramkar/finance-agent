@@ -128,11 +128,12 @@ describe("widget instructions", () => {
     expect(TUTOR_INSTRUCTIONS.endsWith(frozen.instructions)).toBe(true);
     // The five story parts (spec 2026-11-05, ticket E2a) add their signatures, descriptions and a "Story" group: about
     // 1,650 characters, allowed on purpose (the Widget text still stays far under the 12k-token plan above).
-    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700);
+    // The four more story parts (ticket E2b) add about 900 characters of signatures and descriptions.
+    expect(11_194 + 2 + frozen.instructions.length).toBeLessThanOrEqual(44_836 * 1.1 + 250 + 1_700 + 1_000);
   });
 
-  it("include the five story parts (wave 3, ticket E2a), in a group of their own", () => {
-    for (const name of ["StoryScene", "LingoCard", "TimelineStrip", "TwoPaths", "MoneyJar"]) {
+  it("include all nine story parts (wave 3, tickets E2a and E2b), in a group of their own", () => {
+    for (const name of ["StoryScene", "LingoCard", "TimelineStrip", "TwoPaths", "MoneyJar", "WhoPaysWhom", "MythOrFact", "Headline", "ChoiceCards"]) {
       expect(frozen.instructions, name).toContain(`${name}(`);
       expect(JSON.stringify(frozen.schema), name).toContain(`"${name}"`);
     }

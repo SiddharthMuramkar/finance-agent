@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 // E2a: the five story parts, drawn from their /dev/widgets fixtures. Layout at two widths, controls that read as
 // buttons, and motion that stops under reduced motion and plays otherwise.
 
-const FIXTURES = ["story-scene", "lingo-card", "timeline-strip", "two-paths", "money-jar"];
+const FIXTURES = ["story-scene", "lingo-card", "timeline-strip", "two-paths", "money-jar", "who-pays-whom", "myth-or-fact", "headline", "choice-cards"];
 const WIDTHS = [560, 860];
 
 async function open(page: Page, fixture: string, width: number) {
