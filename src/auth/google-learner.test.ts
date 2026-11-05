@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { learners, topicProgress, user as authUser } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { learnerForAuthUser } from "./google-learner";
-import { addInvite } from "./invites";
+import { addInvite, setSignupOpen } from "./invites";
 
 type GoogleUser = { id: string; email: string; name: string };
 
@@ -57,4 +57,18 @@ describe("learnerForAuthUser", () => {
     expect(one.authUserId).toBe("u1");
     expect(await db.select().from(learners)).toHaveLength(1);
   });
+
+  it("not invited and closed gives nothing", async () => {
+    const db = await testDb();
+    await setSignupOpen(db, false);
+    const before = await learnerCount(db);
+    const u = await googleUser(db, { id: "u9", email: "stranger@x.com", name: "Stranger" });
+    expect(await learnerForAuthUser(db, u)).toBeNull();
+    expect(await learnerCount(db)).toBe(before);
+  });
 });
+
+async function learnerCount(db: Db): Promise<number> {
+  const { rows } = (await db.execute(sql`select count(*)::int as n from learners`)) as unknown as { rows: { n: number }[] };
+  return rows[0].n;
+}
