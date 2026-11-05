@@ -19,7 +19,7 @@ const googleUser = (email: string, emailVerified = true) => ({ id: "ignored", na
 function gate(db: Db) {
   const before = authOptions(db, ENV).databaseHooks?.user?.create?.before;
   if (!before) throw new Error("no invite gate");
-  return (u: ReturnType<typeof googleUser>) => before(u, null);
+  return (u: ReturnType<typeof googleUser>) => before(u);
 }
 
 async function count(db: Db, table: "user" | "account" | "learners") {
@@ -41,7 +41,11 @@ async function signInWithGoogle(db: Db, profile: { email: string; emailVerified:
   const auth = betterAuth({
     ...options,
     socialProviders: {
-      google: { ...google, getUserInfo: async () => ({ user: { id: "g-123", name: "Asha", image: null, ...profile }, data: { sub: "g-123" } }) },
+      google: {
+        ...google,
+        // The provider's account subject is the profile's `sub`, as in a real Google id token.
+        getUserInfo: async () => ({ user: { name: "Asha", ...profile }, data: { sub: "g-123" } as never }),
+      },
     },
   });
   const start = await auth.handler(
