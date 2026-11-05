@@ -18,3 +18,4 @@ A Session is now the whole conversation between one Learner and the Tutor about 
 - The one exception is the existing every-Topic-passed mode: a Learner with no place on the Course Map talks to the Tutor in one Session with no Topic.
 - A deploy that changes the instructions refreezes them inside the Session, and earlier thinking blocks are left out of later requests, because the API rejects thinking blocks made under different instructions or tools.
 - Reviews were capped per Session, which assumed Sessions restart after idle gaps; they are now capped per day.
+- Amended 5 November 2026: a Learner can start a Topic over. The live Session becomes an Older session marked `restarted_at`, the Topic's progress rows are snapshotted to `topic_restarts` and cleared, and the next turn opens a fresh Session.
