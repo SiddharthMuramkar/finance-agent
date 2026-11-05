@@ -4547,3 +4547,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A1 makes the Study Workspace fill the screen. Its PR deletes the expected-to-fail markers from its three `[A1]` lines in `e2e/targets.spec.ts`; `npm run ui:test` seeds `story`, `many-topics` and `concept-widget`, measures gutters of about 24 px and a Widget panel of about 57 %, and the three lines pass. Had A1 fixed the layout but kept the markers, the passing lines would turn the run red.
 
 **Trade-off.** PGlite is one connection and not Neon: the test bed proves the screen, not the production database (pooling, timeouts and Neon's WebSocket driver are not exercised). The tests share one server and one tools Learner, so they run one at a time. Screenshots are attached, never compared pixel by pixel, because macOS and Linux draw text differently; the pass or fail signal is the measured numbers. The `[A2]` target checks the chat font as well as the header, because the header alone already measures 36 px today.
+
+## Critics (`docs/critics/*.md`, `src/dev/critics.test.ts`, spec 2026-11-05 ticket T-01)
+
+**What it does.** Nine prompt files, one per critic of spec section 8 (affordance, space, colour-liveliness, beginner-persona, math-police, historian, security, final-review, widget-fit), plus a README. Each has Inputs, Rubric, Output (one JSON example), Pass bar and Tier. A Workflow agent reads the file, gets the inputs as paths (screenshots, course files, a diff), and answers with JSON only. A test checks the headings, that the JSON parses, and that the folder holds exactly these files.
+
+**Scenario.** A3b's PR runs `affordance.md` on nine screenshots and gets a JSON list of buttons that look like text. A second agent then tries to refute each finding before it becomes a fix.
+
+**Trade-off.** A critic is a model's judgement, so every finding is verified before it becomes a fix (three votes when it is high-stakes). The cost is extra agent runs; the gain is that the same critic judges the same way on every ticket.
