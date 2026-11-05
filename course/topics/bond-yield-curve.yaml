@@ -66,7 +66,7 @@ questions:
 
   - id: yc-q-spread
     prompt: >
-      On 3 February 1994, lending to the US government for 2 years paid 4.28% a year, and lending for 10 years paid 5.81%. Draw a line between those two points. What would a trader call its shape?
+      On 3 February 1994, lending to the US government for 2 years paid 4.28% a year, and lending for 10 years paid 5.81%. A trader draws a line between those two points. What does she call its shape?
     choices:
       - { id: a, text: "Normal, sloping up: lenders got paid more for tying their money up longer" }
       - { id: b, text: "Inverted: the 2-year paid more than the 10-year", mistake: { tag: slope_backwards, fix: "The 10-year yield was higher, so the curve sloped up, not down." } }

@@ -74,15 +74,15 @@ questions:
 
   - id: bd-q-rule
     prompt: >
-      Your bond has a modified duration of 7.4. Overnight, market yields rise by one percentage point. What does the duration tell you about your bond's price this morning?
+      Your bond has a modified duration of 7.4. Overnight, market yields rise by one percentage point. You open your account this morning. What do you find?
     choices:
-      - { id: a, text: "It falls by about 7.4%: duration is the percentage change in price for each point of yield" }
-      - { id: b, text: "It rises by about 7.4%", mistake: { tag: wrong_direction, fix: "Prices move opposite to yields. A rise in yield means a fall in price." } }
-      - { id: c, text: "It falls by about 0.74%", mistake: { tag: slipped_decimal, fix: "A duration of 7.4 means about 7.4% per point, not a tenth of that." } }
-      - { id: d, text: "It falls by about 74%", mistake: { tag: slipped_decimal_up, fix: "A duration of 7.4 means about 7.4% per point, not ten times that." } }
+      - { id: a, text: "Your bond's price has fallen by several percent: a duration of 7.4 magnifies every point of yield" }
+      - { id: b, text: "Your bond's price has risen, because higher yields mean the bond is worth more", mistake: { tag: wrong_direction, fix: "Prices move opposite to yields. A rise in yield means a fall in price." } }
+      - { id: c, text: "Your bond's price has barely moved, because a one point change is tiny", mistake: { tag: ignored_duration, fix: "Duration is the size of the reaction. A duration of 7.4 turns one point of yield into a fall of several percent." } }
+      - { id: d, text: "Your bond's price has not moved: the coupon is fixed, so only the yield changed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price adjusts when market yields move." } }
     answer: a
     explanation: >
-      Duration is the rule of thumb for the percentage a price changes for each one-point move in yield, in the opposite direction. So a one-point rise cuts this bond's price by about 7.4%. A 10-year 6% bond at a 6% yield has a modified duration of 7.44; when its yield rises one point the price actually falls 7.1%, because of convexity.
+      Duration is the rule of thumb for the percentage a price changes for each one-point move in yield, in the opposite direction. So a one-point rise cuts this bond's price by several percent, about 7.4%. A 10-year 6% bond at a 6% yield has a modified duration of 7.44; when its yield rises one point the price actually falls 7.1%, because of convexity.
     source: >
       Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 

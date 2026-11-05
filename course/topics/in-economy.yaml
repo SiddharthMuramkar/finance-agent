@@ -112,7 +112,7 @@ questions:
 
   - id: ie-q-dual-rate
     prompt: >
-      Under a dual exchange rate system an exporter must sell half its dollar earnings at the official rate, and may sell the rest at the market rate, where the dollar fetches more rupees. Which statement about what the exporter gets per dollar overall is right?
+      Under a dual exchange rate system an exporter must sell half its dollar earnings at the official rate, and may sell the rest at the market rate, where the dollar fetches more rupees. What does the exporter end up getting per dollar, overall?
     choices:
       - { id: a, text: "A blended rate, between the official rate and the market rate" }
       - { id: b, text: "The official rate on every dollar, because the central bank sets it", mistake: { tag: official_on_all, fix: "Only the surrendered half goes at the official rate. The rest sells at the market rate." } }

@@ -69,7 +69,7 @@ questions:
 
   - id: bp-q-par
     prompt: >
-      Ravi holds a bond paying 6% a year on its $1,000 face value. Today buyers want exactly 6% from bonds like it, no more and no less. He wants to sell. Which price is fair, and why?
+      Ravi holds a bond paying 6% a year on its $1,000 face value. Today buyers want exactly 6% from bonds like it, no more and no less. He wants to sell. What price would a fair buyer pay, and why?
     choices:
       - { id: a, text: "$1,000, its face value: the coupon is just what buyers want, so no discount and no premium" }
       - { id: b, text: "More than $1,000, because the bond pays a coupon on top", mistake: { tag: coupon_as_premium, fix: "Every bond pays a coupon. A premium appears only when the coupon beats what buyers demand." } }
@@ -96,15 +96,15 @@ questions:
 
   - id: bp-q-five-year
     prompt: >
-      Your bond pays a 6% coupon and has five years left. New bonds like it now pay only 5%. Someone wants to buy yours. Should you ask for more or less than $1,000?
+      Your bond pays a 6% coupon and has five years left. New bonds like it now pay only 5%. A buyer walks up and asks your price. What do you tell her, and why?
     choices:
       - { id: a, text: "It sells at a premium, above $1,000, because its coupon beats the market yield" }
       - { id: b, text: "It sells at par, $1,000, because the face value is repaid in full", mistake: { tag: confused_face_with_price, fix: "Face value is only what is repaid. A coupon above the market yield pushes the price up." } }
       - { id: c, text: "It sells at a discount, below $1,000, because the market yield is lower", mistake: { tag: flipped_yield_effect, fix: "A lower market yield makes the fixed coupon more attractive, so the price rises, not falls." } }
-      - { id: d, text: "It sells at a big premium, like a 30-year bond with the same coupon", mistake: { tag: ignored_maturity, fix: "Five years of extra coupon is a short wait, so the premium is smaller than a 30-year bond's." } }
+      - { id: d, text: "Nobody can say until the bond matures, because its price is only fixed at the end", mistake: { tag: price_fixed_at_maturity, fix: "A bond is priced every day. Buyers compare its coupon with what new bonds pay today." } }
     answer: a
     explanation: >
-      The coupon is above the market yield, so buyers pay more than face value: a premium. OpenStax's worked example puts the price near $1,044. A 30-year bond with the same coupon carries a much bigger premium, near $1,155.
+      The coupon is above the market yield, so buyers pay more than face value: a premium. OpenStax's worked example puts the price near $1,044. The longer the bond, the bigger the premium, because the better coupon lasts longer.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk (worked example: 6% coupon, 5-year bond $1,043.76 at 5%): https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
 
@@ -123,7 +123,7 @@ questions:
 
   - id: bp-q-1994
     prompt: >
-      You buy a 10-year bond at par with a 5% coupon, paid half-yearly. Later the market yield on 10-year bonds rises to 7%. Which statement about your bond's price now is right?
+      You buy a 10-year bond at par with a 5% coupon, paid half-yearly. Later the market yield on 10-year bonds rises to 7%. What would a buyer offer for your bond now, and why?
     choices:
       - { id: a, text: "It is worth less than you paid: new bonds pay 7%, so buyers offer less for your 5%" }
       - { id: b, text: "It is still worth what you paid, because the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price is not. It adjusts when market yields move." } }
