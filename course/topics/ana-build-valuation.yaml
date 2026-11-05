@@ -25,8 +25,8 @@ cases:
       it grows; assume it needs about $1 of new capital for every $3 of added revenue. Choose
       your own path for ten years: how fast revenue grows, when the margin turns positive and
       where it settles, what rate you discount at, and what stable growth rate you use after year
-      10. Then work out free cash flow each year, a terminal value, and a value per share, taking
-      cash, debt and the options into account. Write your inputs down before you compute
+      10. Then follow the cash the business would free up each year into a terminal value and a value per share, taking
+      cash, debt and the options into account. Write your inputs down before you build
       anything. How does your value compare with $84, and which of your inputs moves it most?
       (You are valuing the firm as of February 2000 only. Do not try to say what happens next.)
     reveal: >
@@ -78,8 +78,8 @@ cases:
       10-year Treasury yield is 5.95% and the marginal tax rate is 35%. Choose your own path for ten
       years: how many centres open and when, how full each one gets and how fast, the average order,
       where the operating margin settles, the discount rate, and the stable growth rate after year 10.
-      Work out free cash flow each year, a terminal value and a value per share, allowing for the cash,
-      debt and options. Write your inputs down before you compute anything. How does your value compare
+      Follow the cash the business would free up each year into a terminal value and a value per share, allowing for the cash,
+      debt and options. Write your inputs down before you build anything. How does your value compare
       with $15, and which input moves it most? What would you have to believe for $15 to be a fair
       price? (You are valuing the firm as of November 1999 only. Do not try to say what happens next.)
     reveal: >
@@ -161,46 +161,43 @@ questions:
 
   - id: abv-q-reinvest
     prompt: >
-      A firm assumes it needs $1 of new capital for every $3 of added revenue, which analysts call a sales-to-capital ratio of 3. Its revenue rises from $1,000 million to $1,600 million. Which sentence describes its reinvestment that year?
+      A firm assumes a sales-to-capital ratio of 3. Its revenue rises. Which sentence describes its reinvestment that year?
     choices:
-      - { id: a, text: "$200 million: one dollar of new capital for every three dollars of the $600 million of added revenue" }
-      - { id: b, text: "$600 million: all of the added revenue is put back into the firm", mistake: { tag: reinvested_all_the_growth, fix: "Added revenue is not spent in full. Only a third of it is needed as new capital." } }
-      - { id: c, text: "$1,800 million: three dollars of new capital for every dollar of added revenue", mistake: { tag: flipped_sales_to_capital, fix: "The ratio is sales per dollar of capital: $3 of sales needs $1 of capital, not the reverse." } }
-      - { id: d, text: "$533 million: a third of all the revenue the firm has after the rise", mistake: { tag: used_total_revenue, fix: "Only the added revenue needs new capital, not the revenue the firm already had." } }
+      - { id: a, text: "A third of the added revenue is needed as new capital" }
+      - { id: b, text: "All of the added revenue is put back into the firm", mistake: { tag: all_of_the_added_revenue_is, fix: "Added revenue is not spent in full. Only a third of it is needed as new capital." } }
+      - { id: c, text: "Three times the added revenue is needed as new capital", mistake: { tag: three_times_the_added_revenu, fix: "The ratio is sales per dollar of capital: $3 of sales needs $1 of capital, not the reverse." } }
+      - { id: d, text: "A third of all the revenue the firm has after the rise", mistake: { tag: a_third_of_all_the_revenue_t, fix: "Only the added revenue needs new capital, not the revenue the firm already had." } }
     answer: a
     explanation: >
-      Reinvestment = added revenue / sales-to-capital = (1,600 - 1,000) / 3 = 200. It is subtracted from after-tax operating income to give free cash flow.
+      Reinvestment is the added revenue divided by the sales-to-capital ratio. With a ratio of 3, that is a third of the added revenue. It is subtracted from after-tax operating income to give free cash flow.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where reinvestment is set by a sales-to-capital ratio of 3.0: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-
   - id: abv-q-terminal-share
     prompt: >
-      In a valuation of a hypothetical young company, the present value of the ten forecast years of free cash flow is $200 million and the present value of the terminal value is $800 million. What share of the operating value comes from beyond year 10?
+      In a valuation of a young company, most of the operating value comes from the terminal value, beyond year 10. What does a high terminal share tell the judge?
     choices:
-      - { id: a, text: "80%" }
-      - { id: b, text: "20%" }
-      - { id: c, text: "40%" }
-      - { id: d, text: "It cannot be worked out" }
+      - { id: a, text: "The stable-growth and margin assumptions deserve the most testing" }
+      - { id: b, text: "The ten forecast years are now certain", mistake: { tag: the_ten_forecast_years_are_n, fix: "A big terminal share means the opposite: the later, less certain years carry the value." } }
+      - { id: c, text: "The company has already matured", mistake: { tag: the_company_has_already_matu, fix: "A young company with most of its value late is far from mature." } }
+      - { id: d, text: "The valuation must be wrong", mistake: { tag: the_valuation_must_be_wrong, fix: "A high share is a signal to test, not proof of an error." } }
     answer: a
     explanation: >
-      The operating value is 200 + 800 = 1,000, and 800 / 1,000 = 80% comes from beyond year 10. When this share is high, the stable-growth and margin assumptions deserve the most testing.
+      When most of the value sits beyond year 10, the stable-growth and margin assumptions drive the result, so they deserve the most testing. It is a prompt to test, not proof of an error.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-
   - id: abv-q-options
     prompt: >
-      A hypothetical valuation gives operating assets of $5,000 million. The firm holds cash of $100 million, owes debt of $300 million, has employee options worth $400 million and has 100 million shares. Which sentence describes the value per share that belongs to its shareholders?
+      A valuation gives a young firm's operating assets. The firm holds cash, owes debt and has employee options outstanding. Which sentence describes the path to the value per share that belongs to its shareholders?
     choices:
-      - { id: a, text: "$44: operating assets, with the cash added and the debt and the options taken off, shared among the shares" }
-      - { id: b, text: "$48: the same, but leaving the employee options out", mistake: { tag: left_out_options, fix: "Options are a claim on shareholders' value too, so they come off before sharing it out." } }
-      - { id: c, text: "$50: the operating assets alone, shared among the shares", mistake: { tag: skipped_the_bridge, fix: "Cash adds to the equity and debt takes from it, so operating assets alone is not equity." } }
-      - { id: d, text: "$52: the options added to the value instead of taken off", mistake: { tag: added_options, fix: "Options are a claim on shareholders, so they are taken off the value, not added." } }
+      - { id: a, text: "Start from the operating assets, add the cash, take off the debt and the options, then share the rest among the shares" }
+      - { id: b, text: "The same, but leave the employee options out", mistake: { tag: the_same_but_leave_the_emplo, fix: "Options are a claim on shareholders' value too, so they come off before sharing it out." } }
+      - { id: c, text: "Take the operating assets alone and share them among the shares", mistake: { tag: take_the_operating_assets_al, fix: "Cash adds to the equity and debt takes from it, so operating assets alone is not equity." } }
+      - { id: d, text: "The same, but add the options instead of taking them off", mistake: { tag: the_same_but_add_the_options, fix: "Options are a claim on shareholders, so they are taken off the value, not added." } }
     answer: a
     explanation: >
-      Equity = 5,000 + 100 - 300 = 4,800; less the options, 4,400; divided by 100 million shares = $44. Leaving out the options would give $48.
+      Equity is the operating assets plus cash less debt. The value of the employee options then comes off before dividing by the shares, because options are a claim on shareholders' value.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), pages 31-34 (the bridge from operating value to value per share, with options subtracted): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
-
   - id: abv-q-stable-growth
     prompt: >
       The Treasury bond yield is 6.5%. Which stable growth rate after year 10 is hardest to defend?
@@ -230,15 +227,15 @@ checks:
   - id: abv-build-explain
     kind: conversation
     prompt: >
-      Using the Amazon figures from February 2000, state the inputs of your own valuation (revenue
-      growth path, the margin you reach in year 10, the discount rate, stable growth), show how
-      you get from them to a value per share (use the dcf calculator for a quick version), and
-      say which input moves your value most. Then compare your value with the $84 price.
+      Using the Amazon figures from February 2000, tell the story of your own valuation: where you
+      think revenue goes, how profitable the business gets, how risky it is, and which of those
+      beliefs moves your value most (the dcf calculator is there for a quick version). Then say how your value
+      sits beside the $84 price.
     passCriteria: >
       The Learner writes their inputs down before giving a result: a revenue path that fades,
       an operating margin that improves towards a level justified by mature firms, a discount
-      rate and a stable growth rate no higher than the risk-free rate. They get from free cash
-      flow to value per share through a terminal value, cash, debt and the options. They name
+      rate and a stable growth rate no higher than the risk-free rate. They explain in their own words how free cash
+      flow becomes a value per share through a terminal value, cash, debt and the options. They name
       the input that drives the value (usually the long-run margin, the discount rate or
       terminal growth) and test it with a different value. They treat the gap with the price as a
       question, not proof that the price is wrong, and make no forecast of the share price and no
@@ -246,13 +243,11 @@ checks:
   - id: abv-build-webvan
     kind: conversation
     prompt: >
-      Using the Webvan figures from 4 November 1999, state the inputs of your own valuation (the
-      number of distribution centres and when they open, how full each one gets and how fast, the average
-      order, the operating margin you reach, the discount rate and stable growth), show how you get
-      from them to a value per share (use the dcf calculator for a quick version, and count the
-      cash from the offering, the debt and the options), and say which input moves your value most.
-      Then compare your value with the $15 offer price and say what you would have to believe for
-      $15 to be a fair price.
+      Using the Webvan figures from 4 November 1999, tell the story of your own valuation: when the distribution
+      centres open, how full they get, how profitable the business becomes
+      and how risky it is (the dcf calculator is there for a quick version), and which belief moves your value
+      most. Then say how your value sits beside the $15 offer price and what you would have to
+      believe for $15 to be fair.
     passCriteria: >
       The Learner writes their inputs down before giving a result: the number and timing of
       centres (no faster than the plan in the story unless they say why), how full each centre gets
@@ -260,7 +255,7 @@ checks:
       a full centre sells, an operating margin that they set against both the company's 12% and a
       supermarket's 4%, the cost of building each centre ($25 million to $35 million) as
       reinvestment, a discount rate above the Treasury yield and a stable growth rate no higher
-      than the Treasury yield. They get from free cash flow to value per share through a terminal
+      than the Treasury yield. They explain in their own words how free cash flow becomes a value per share through a terminal
       value, the cash (counting the offering), the loans and the options (which cover about a fifth
       as many shares as are outstanding, so leaving them out is a clear error). They name the input
       that drives the value (usually how full the centres get, the long-run margin or the discount

@@ -4628,7 +4628,7 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Scenario.** "A bond yield rises from 5.00% to 5.25%. How many basis points?" is now "In basis points, what do traders call that move?" with four labelled choices. A Learner who taps "2.5 basis points" sees "One point is 100 basis points, so a quarter point is 25 bp, not 2.5", and the right label is still a number they can recognise, not one they work out on paper.
 
-**Trade-off.** Choices are easier to guess than a typed number, accepted in ADR 0009 because a Check still needs its pass rule and Skill state still needs two right in a row. Cases, sources and `asOf` dates are untouched, so a few Case stories still say "work out" in their own words; L10 does not read stories, and the questions and Checks no longer ask for it.
+**Trade-off.** Choices now separate on the idea (what a basis point is, why a multiple is not a percent rise), never on a decimal shift or a sum the Learner must redo. They are easier to guess than a typed number, accepted in ADR 0009 because a Check still needs its pass rule and Skill state still needs two right in a row. Cases, sources and `asOf` dates are untouched, so a few Case stories still say "work out" in their own words; L10 does not read stories, and the questions and Checks no longer ask for it.
 
 ## Page frame (`src/app/globals.css` (`--gutter`, `--gap`, `--page-max`, `measure`, `card-grid`), `workspace-frame.tsx`, `study/page.tsx`, `ui.tsx` (`ReadingPage`), `old-session.tsx`, `route-skeleton.tsx`, `src/app/no-width-caps.test.ts`, spec 2026-11-05, ticket A1)
 

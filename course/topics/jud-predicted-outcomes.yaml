@@ -77,9 +77,9 @@ cases:
       Microsoft licensing revenue and large one-time deals, and The Information reported on 30 July
       that it had reached $12 billion annualised, about $1 billion a month, with a 2025 cash burn
       projection of $8 billion. The Learner takes the claim back to these figures. Is $5.26 billion
-      so far, against $12.7 billion for the year, a sensible reason to doubt the target? Work out
-      the average monthly revenue the rest of the year would need, compare it with the latest
-      monthly pace, and say which words in the claim ("revenue", "so far", "lose") need a precise
+      so far, against $12.7 billion for the year, a sensible reason to doubt the target? Does the
+      pace the rest of the year would need look like a stretch against the latest monthly pace?
+      Say which words in the claim ("revenue", "so far", "lose") need a precise
       measure before the claim can be scored.
     reveal: >
       The arithmetic on 6 August: $12.7 billion less $5.26 billion leaves $7.44 billion for the
@@ -135,7 +135,7 @@ questions:
       - { id: a, text: "The required pace: the $5 billion still to book, spread over the five months left" }
       - { id: b, text: "The pace so far: what is already booked, spread over the seven months gone", mistake: { tag: used_pace_so_far, fix: "That is the pace so far. The required pace looks forward, at what is still to book." } }
       - { id: c, text: "The whole $9 billion target spread over the five months left", mistake: { tag: ignored_booked_revenue, fix: "That ignores the $4 billion already booked. Only the gap to the target is left." } }
-      - { id: d, text: "A run rate: the best month so far, taken for a whole year", mistake: { tag: mixed_pace_and_run_rate, fix: "A run rate scales one recent month. A required pace is the gap over the months left." } }
+      - { id: d, text: "A run rate: the latest period, scaled up to a year", mistake: { tag: mixed_pace_and_run_rate, fix: "A run rate scales the latest period. A required pace is the gap over the months left." } }
     answer: a
     explanation: >
       The gap is $9 billion less $4 billion, which is $5 billion, spread over five months: $1.0
@@ -179,55 +179,45 @@ questions:
       when), applied to the numbers in the question; no outside figure is used.
   - id: jud-po-q-all-stock
     prompt: >
-      A buyer agrees to pay for a target with 100 million of its own shares. On the announcement day
-      its shares trade at $50. By the closing day they trade at $40. What does the deal's headline
-      price change to in dollars, other things equal?
+      A buyer agrees to pay for a target with a fixed number of its own shares. Between the announcement and the closing, the buyer's share price falls. What happens to the deal's headline price in dollars, other things equal?
     choices:
-      - { id: a, text: "From $5.0 billion to $4.0 billion" }
-      - { id: b, text: "It stays at $5.0 billion, because the share count is fixed" }
-      - { id: c, text: "From $5.0 billion to $6.25 billion" }
-      - { id: d, text: "From $4.0 billion to $5.0 billion" }
+      - { id: a, text: "It falls with the share price, because the number of shares is fixed" }
+      - { id: b, text: "It stays the same, because the share count was agreed on announcement day", mistake: { tag: it_stays_the_same_because_th, fix: "The count is fixed, but each share is worth less, so the dollar value falls." } }
+      - { id: c, text: "It rises, because the buyer must issue more shares", mistake: { tag: it_rises_because_the_buyer_m, fix: "A fixed-share deal never adds shares. The dollar value simply follows the price." } }
+      - { id: d, text: "It cannot change, because the target's board set the price", mistake: { tag: it_cannot_change_because_the, fix: "The board fixed the share count, not the dollars. The dollar value moves." } }
     answer: a
     explanation: >
-      With a fixed number of shares, the dollar value follows the share price: 100 million x $50 is
-      $5.0 billion and 100 million x $40 is $4.0 billion. Some deals instead fix the dollar value and
-      let the number of shares move with the price; the Learner should read which one the deal uses.
+      With a fixed number of shares, the dollar value follows the share price down. Some deals instead fix the dollar value and let the number of shares move with the price; the Learner should read which one the deal uses.
     source: >
       Arithmetic on the numbers in the question (shares x price); the distinction between fixed-share
       and fixed-value exchange ratios is described in the merger-agreement summaries that companies
       file on SEC Form 8-K.
   - id: jud-po-q-operating-margin
     prompt: >
-      A company has revenue of $10 billion and total costs and expenses of $25 billion. A writer
-      calls the gap "a $15 billion loss" and says the company "has a margin of -150%". Which
-      description is the most precise?
+      A writer says a company "lost billions", meaning its revenue was smaller than all its operating costs. What should a careful judge ask the writer to name?
     choices:
-      - { id: a, text: "A loss from operations of $15 billion, an operating margin of -150%" }
-      - { id: b, text: "A net loss of $15 billion, an operating margin of -60%" }
-      - { id: c, text: "A cash burn of $15 billion, an operating margin of 150%" }
-      - { id: d, text: "An operating loss of $15 billion, an operating margin of -250%" }
+      - { id: a, text: "Which measure: an operating loss, a net loss, or a cash burn" }
+      - { id: b, text: "Nothing: every kind of loss is the same", mistake: { tag: nothing_every_kind_of_loss_i, fix: "They differ. Net loss adds interest and tax; cash burn counts cash that left." } }
+      - { id: c, text: "Only the currency the loss was reported in", mistake: { tag: only_the_currency_the_loss_w, fix: "The currency matters less than which line of the statements the loss is." } }
+      - { id: d, text: "Only the year, since a loss in any measure means the same", mistake: { tag: only_the_year_since_a_loss_i, fix: "The year matters, but so does the measure: operating, net or cash." } }
     answer: a
     explanation: >
-      Revenue less all operating costs is an operating result: 10 - 25 = -15, and -15 / 10 = -150%.
-      A net loss also includes interest, tax and non-operating items, and a cash burn counts cash
-      that actually left, which can differ from the accounting loss. Always name the measure.
+      Revenue less all operating costs is an operating result. A net loss also includes interest, tax and non-operating items, and a cash burn counts cash that actually left, which can differ from the accounting loss. Always name the measure.
     source: >
       Arithmetic on the numbers in the question (revenue less total costs and expenses, divided by
       revenue); the operating-loss line as defined in the SEC's income statement building blocks:
       https://www.sec.gov/files/income-statement-building-blocks.pdf
   - id: jud-po-q-percent-change
     prompt: >
-      A private company was valued at $4 billion in one funding round and at $10 billion in the next.
-      By what percent did the valuation rise?
+      A private company's valuation goes from one funding round to the next, and a headline says it "rose 250%" when the new value is 2.5 times the old one. What is the slip?
     choices:
-      - { id: a, text: "150%" }
-      - { id: b, text: "250%" }
-      - { id: c, text: "60%" }
-      - { id: d, text: "40%" }
+      - { id: a, text: "A multiple read as a percent rise: 2.5 times the old value is a rise of 150%" }
+      - { id: b, text: "Nothing: \"times\" and \"percent rise\" always match", mistake: { tag: nothing_times_and_percent_ri, fix: "They do not. A multiple counts the whole new value; a percent rise counts only the extra." } }
+      - { id: c, text: "A valuation can only be quoted in dollars, never in percent", mistake: { tag: a_valuation_can_only_be_quot, fix: "Valuations can be compared in percent. The slip is in which percent." } }
+      - { id: d, text: "The headline should have used basis points", mistake: { tag: the_headline_should_have_use, fix: "Basis points suit small rate moves, not a change in a company's value." } }
     answer: a
     explanation: >
-      The rise is (10 - 4) / 4 = 1.5, which is 150%. The new value is 2.5 times the old one, so
-      saying "250%" mixes up a multiple with a percent increase.
+      The new value is 2.5 times the old one, so the extra on top is 1.5 times the old value, a 150% rise. Saying "250%" mixes up a multiple with a percent increase.
     source: >
       Arithmetic on the numbers in the question (percent change = change divided by starting value).
 
@@ -247,12 +237,10 @@ checks:
   - id: jud-po-judge-claims
     kind: conversation
     prompt: >
-      Open the pasted piece at the section on Cursor and on OpenAI's revenue. Pick four claims and,
-      for each, quote the writer's words, then say which kind it is: a fact about the date, a
-      number the writer used, a forecast, or a fork that cannot lose. For each, say which record
-      would settle it (a filing, a funding announcement, a company statement, a dataset), what
-      result would count as right and what as wrong, and which words in the claim need a precise
-      measure. Then say in your own words why the writer doubted OpenAI would reach its target, and
+      Open the pasted piece at the section on Cursor and on OpenAI's revenue. Pick three claims and,
+      for each, quote the writer's words and say what kind it is: a fact about the date, a number
+      the writer used, a forecast, or a fork that cannot lose. Say which record would settle each
+      and which words need a precise measure. Then say in your own words why the writer doubted OpenAI would reach its target, and
       what the "required pace" for the rest of 2025 is being compared with. Do not use anything
       that happened after 6 August 2025.
     passCriteria: >
