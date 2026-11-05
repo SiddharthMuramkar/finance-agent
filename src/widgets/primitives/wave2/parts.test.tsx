@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { CaseDataset } from "@/case-data/case-data";
 import { allById, byId, click, draw, key, redraw, setRange, settle, stubReducedMotion, type Page } from "../wave1/test-kit";
