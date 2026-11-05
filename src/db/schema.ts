@@ -163,6 +163,8 @@ export const sessions = pgTable(
     older: boolean("older").notNull().default(true),
     /** The seq of the first message after the instructions were last refrozen on a deploy; null if never. */
     refrozenAtSeq: integer("refrozen_at_seq"),
+    /** Set when the Learner started this Topic over: the Session is then an Earlier attempt, read-only (ADR 0004). */
+    restartedAt: timestamp("restarted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -170,6 +172,27 @@ export const sessions = pgTable(
       .on(t.learnerId, t.topicId)
       .where(sql`${t.older} = false and ${t.topicId} is not null`),
   ],
+);
+
+/**
+ * One row per Topic restart: the Topic's progress rows as they stood when the Learner started it over, so
+ * nothing is lost. `snapshot` is a `TopicSnapshot` (src/learner/restart.ts); `attempt_no` is 1 for the first
+ * attempt that ended. `session_id` is the Session that became the Earlier attempt.
+ */
+export const topicRestarts = pgTable(
+  "topic_restarts",
+  {
+    id: serial("id").primaryKey(),
+    learnerId: learnerId(),
+    topicId: text("topic_id").notNull(),
+    sessionId: integer("session_id")
+      .references(() => sessions.id)
+      .unique(),
+    attemptNo: integer("attempt_no").notNull(),
+    restartedAt: timestamp("restarted_at", { withTimezone: true }).notNull().defaultNow(),
+    snapshot: jsonb("snapshot").notNull().$type<Record<string, unknown>>(),
+  },
+  (t) => [index("topic_restarts_learner_topic").on(t.learnerId, t.topicId)],
 );
 
 /**
