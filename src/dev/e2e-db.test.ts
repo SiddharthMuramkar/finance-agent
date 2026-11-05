@@ -14,10 +14,10 @@ afterAll(async () => {
 describe("the test bed's database", () => {
   it("the test database is migrated, has pgvector and is a singleton", async () => {
     const db = await installE2eDb();
-    const tables = await db.execute<{ table_name: string }>(sql`select table_name from information_schema.tables where table_schema = 'public'`);
-    const names = tables.rows.map((r) => r.table_name);
-    expect(names).toEqual(expect.arrayContaining(["learners", "sessions", "settings"]));
-    const extensions = await db.execute<{ extname: string }>(sql`select extname from pg_extension`);
+    type Rows<T> = { rows: T[] };
+    const tables = (await db.execute(sql`select table_name from information_schema.tables where table_schema = 'public'`)) as unknown as Rows<{ table_name: string }>;
+    expect(tables.rows.map((r) => r.table_name)).toEqual(expect.arrayContaining(["learners", "sessions", "settings"]));
+    const extensions = (await db.execute(sql`select extname from pg_extension`)) as unknown as Rows<{ extname: string }>;
     expect(extensions.rows.map((r) => r.extname)).toContain("vector");
     expect(await installE2eDb()).toBe(db);
     expect(globalThis.__faE2eDb).toBe(db);

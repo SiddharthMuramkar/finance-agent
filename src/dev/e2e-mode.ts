@@ -22,3 +22,8 @@ export function assertE2eSafe(env: Env): void {
     throw new Error("E2E_TUTOR=scripted is set with ANTHROPIC_API_KEY: the test bed never holds a real key.");
   }
 }
+
+/** True when the test bed asks for the scripted Tutor (`E2E_TUTOR=scripted`) and the test bed is allowed at all. */
+export function scriptedTutor(env: Env): boolean {
+  return e2eEnabled(env) && env.E2E_TUTOR === "scripted";
+}

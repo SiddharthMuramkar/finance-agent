@@ -2,6 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import frozenWidgets from "@/widgets/frozen.generated.json";
 import { ARCHETYPES, type Archetype } from "@/widgets/recipes/define";
 import { RECIPES, recipeById } from "@/widgets/recipes";
+import { scriptedTutor } from "@/dev/e2e-mode";
+import { e2eComposeClient } from "@/dev/e2e-tutor";
 import type { ApiUsage } from "./usage";
 
 /**
@@ -32,8 +34,9 @@ export type ComposeMessage = { content: { type: string; text?: string }[]; stop_
 /** The slice of the Anthropic client compose_widget uses; tests pass a stub. */
 export type ComposeClient = { messages: { create(params: ComposeRequest, options?: { signal?: AbortSignal }): Promise<ComposeMessage> } };
 
-/** The real client, made on first use so the build never reads the API key. */
+/** The real client, made on first use so the build never reads the API key. The browser test bed's always refuses. */
 export function anthropicComposeClient(): ComposeClient {
+  if (scriptedTutor(process.env)) return e2eComposeClient();
   let anthropic: Anthropic | undefined;
   return {
     messages: {
