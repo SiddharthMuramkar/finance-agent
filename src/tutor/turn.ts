@@ -1017,9 +1017,10 @@ async function* runLockedTurn(
   }
   yield* toSend;
 
-  // Two or three Choices under every checked reply (ADR 0010), stored after it; none once the turn passed its Topic.
+  // Two or three Choices under every checked reply (ADR 0010), stored after it. None once the turn passed its Topic, or
+  // after a Stop (the page then shows code's own set).
   let droppedChoice: string | null = null;
-  if (!passedTopic) {
+  if (!passedTopic && stopReason !== "stopped") {
     const stored = await storeReplyChoices(db, map, { learnerId, sessionId: session.id, turnSeq, input: turn.input, rows: log.rows, now: now() });
     droppedChoice = stored.dropped;
     yield { type: "item", item: stored.item };
