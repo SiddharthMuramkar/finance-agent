@@ -53,7 +53,7 @@ describe("the emoji registry and the vendored files (E1)", () => {
   });
 
   it("leaves no stray file in public/emoji/", () => {
-    const wanted = new Set(EMOJI_NAMES.map((n) => EMOJI[n].file));
+    const wanted = new Set<string>(EMOJI_NAMES.map((n) => EMOJI[n].file));
     const strays = readdirSync(DIR).filter((f) => f.endsWith(".webp") && !wanted.has(f));
     expect(strays).toEqual([]);
     expect(statSync(DIR).isDirectory()).toBe(true);

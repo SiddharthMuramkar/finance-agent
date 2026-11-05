@@ -19,7 +19,7 @@ export function Emoji({ name, size, label }: { name: EmojiName; size: EmojiSize;
     return null;
   }
   const entry = EMOJI[name];
-  const meaningful = label !== undefined && label !== false;
+  const meaningful = label !== undefined;
   const alt = label === true ? entry.alt : (label ?? "");
   return (
     // eslint-disable-next-line @next/next/no-img-element -- a fixed 160 px WebP from /public, already sized
