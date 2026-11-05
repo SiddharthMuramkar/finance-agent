@@ -14,9 +14,10 @@ const COMPUTE = String.raw`compute(?!\s+(?:costs?|capacity|power|spend|agreement
 
 /**
  * "work out" is a sum-verb when it has an object that is a number word ("work it out") or when it is asked of someone
- * ("can you work out", "to work out"). "ETFs work out a NAV each day" states a fact and is left alone.
+ * ("can you work out", "to work out"), or when it opens the text as an instruction ("Work out the EMI"). "ETFs work out
+ * a NAV each day" states a fact and is left alone.
  */
-const WORK_OUT = String.raw`(?:work(?:ed|ing)?\s+(?:it|this|that)\s+out|(?:you|to|please|let['’]s|we can|can|could|try|then)\s+work(?:ed|ing)?\s+out)`;
+const WORK_OUT = String.raw`(?:^\s*work\s+out|work(?:ed|ing)?\s+(?:it|this|that)\s+out|(?:you|to|please|let['’]s|we can|can|could|try|then)\s+work(?:ed|ing)?\s+out)`;
 
 /** Patterns that match anywhere in the text, tried in order; the first match is the phrase returned. */
 const ANYWHERE: RegExp[] = [

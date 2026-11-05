@@ -26,6 +26,7 @@ describe("sumAsk", () => {
     "They redo the arithmetic and get it right.",
     "They name correct notch counts.",
     "Say what you recomputed with the Case Data.",
+    "Work out the EMI",
   ])("flags a sum: %s", (text) => {
     expect(sumAsk(text)).not.toBeNull();
   });
