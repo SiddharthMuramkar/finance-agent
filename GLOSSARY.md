@@ -256,3 +256,7 @@ The Theme (Midnight or Forest) shown while the computer is in dark mode, for a L
 **Market Workbench**:
 A possible later section for analysing real companies with real data alongside the Tutor.
 _Avoid_: Dashboard, terminal
+
+**Test bed**:
+The whole app run in a browser on a throw-away database with a scripted Tutor, so a test can measure what a Learner would see without touching real data or calling a model. Never runs in production.
+_Avoid_: Staging, sandbox, test server
