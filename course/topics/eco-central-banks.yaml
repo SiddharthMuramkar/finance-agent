@@ -93,8 +93,8 @@ questions:
     choices:
       - { id: a, text: "One hundredth of a percentage point, so it is a small, careful cut" }
       - { id: b, text: "One whole percentage point, so it is a large cut", mistake: { tag: took_bp_for_a_point, fix: "A basis point is only a hundredth of a percentage point." } }
-      - { id: c, text: "One tenth of a percentage point, so it is a medium cut", mistake: { tag: divided_by_10, fix: "It is one hundredth, smaller than a tenth." } }
-      - { id: d, text: "One thousandth of a percentage point, so it is hardly a cut", mistake: { tag: multiplied_by_1000, fix: "It is one hundredth, not one thousandth." } }
+      - { id: c, text: "One tenth of a percentage point, so it is a medium cut", mistake: { tag: took_bp_for_a_tenth, fix: "It is one hundredth, smaller than a tenth." } }
+      - { id: d, text: "One thousandth of a percentage point, so it is hardly a cut", mistake: { tag: took_bp_for_a_thousandth, fix: "It is one hundredth, not one thousandth." } }
     answer: a
     explanation: >
       A basis point is a hundredth of a percentage point, so 100 of them make one point. Central banks usually move rates in steps of 25 basis points, which is a small, careful step.

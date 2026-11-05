@@ -46,18 +46,19 @@ youllLearn:
 questions:
   - id: ir-q-approx
     prompt: >
-      A deposit pays a nominal 8% a year while consumer prices rise 10% a year. How would you describe the saver's real return?
+      Priya keeps her savings in a bank deposit that pays interest every year. But prices at her grocer rise
+      faster than that interest. Which headline gets her year right?
     choices:
-      - { id: a, text: "Negative, so the saver loses buying power" }
-      - { id: b, text: "Positive, so the saver gains buying power", mistake: { tag: ignored_inflation, fix: "Prices rose by more than the interest, so buying power falls." } }
-      - { id: c, text: "The same as the nominal rate", mistake: { tag: mixed_real_and_nominal, fix: "The nominal rate is the headline; the real rate takes out the rise in prices." } }
-      - { id: d, text: "Higher than the nominal rate, because prices rose", mistake: { tag: added_inflation, fix: "Rising prices lower the real return; they never add to it." } }
-    answer: a
+      - { id: a, text: "'Saver gets ahead: interest was paid'", mistake: { tag: ignored_inflation, fix: "Prices rose by more than the interest, so her money buys less." } }
+      - { id: b, text: "'Real return is the same as the interest rate'", mistake: { tag: mixed_real_and_nominal, fix: "The interest rate is the headline; the real return takes out the rise in prices." } }
+      - { id: c, text: "'Saver falls behind: real return negative'" }
+      - { id: d, text: "'Rising prices boost her real return'", mistake: { tag: added_inflation, fix: "Rising prices lower the real return; they never add to it." } }
+    answer: c
     explanation: >
-      The real rate is approximately the nominal rate minus the inflation rate, 8 less 10, about -2 per cent. The exact value is 1.08 / 1.10 - 1 = -1.8 per cent. Either way it is negative.
+      The real return is roughly the interest rate minus inflation. When prices rise faster than the interest
+      she earns, that real return is below zero: she has more rupees, but they buy less.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
-
   - id: ir-q-purchasing-power
     prompt: >
       You put Rs 1,00,000 in a one-year deposit at 6% while consumer prices rise 10% over the year. At year end, which headline gets it right?
@@ -88,16 +89,18 @@ questions:
 
   - id: ir-q-real-policy-rate
     prompt: >
-      In a made-up example, a central bank's policy rate is 6% and consumer price inflation is about 9%. How
-      would you describe its monetary policy in real terms?
+      In a made-up example, a central bank keeps its policy rate below the rate at which prices are rising.
+      How would economists describe its policy, in real terms?
     choices:
-      - { id: a, text: "Tight, because the rate is above 5%" }
-      - { id: b, text: "Loose, because the real policy rate is negative" }
-      - { id: c, text: "Neutral, because inflation will fall anyway" }
-    answer: b
+      - { id: a, text: "Tight, because the rate looks high", mistake: { tag: looked_at_headline_rate, fix: "Judge a rate against inflation; a rate below inflation is cheap money." } }
+      - { id: b, text: "Neutral, because inflation will fall anyway", mistake: { tag: guessed_the_future, fix: "Policy is judged on the real rate now, not on a hoped-for fall in inflation." } }
+      - { id: c, text: "Tight, because savers lose out", mistake: { tag: mixed_savers_and_policy, fix: "Savers lose when rates trail inflation; that is loose policy, not tight." } }
+      - { id: d, text: "Loose: the real rate is negative" }
+    answer: d
     explanation: >
-      The real policy rate is roughly 6 - 9 = -3 per cent. Borrowing is cheap once inflation is
-      taken into account, which supports demand rather than restraining it.
+      The real policy rate is the policy rate minus inflation. With the rate below inflation it is negative,
+      so borrowing is cheap once rising prices are taken into account, which supports demand rather than
+      restraining it.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
 
@@ -116,10 +119,10 @@ checks:
     kind: conversation
     prompt: >
       India's consumer inflation was near 10 per cent while a one-year fixed deposit paid about 9 per cent
-      and the repo rate was 7.75 per cent. Who gains and who loses from that gap, and what should the RBI
-      look at when deciding whether policy is tight enough?
+      and the repo rate was 7.75 per cent. In your own words: who gains and who loses from that gap, and
+      what should the RBI look at when deciding whether policy is tight enough?
     passCriteria: >
-      The Learner calculates or states that the real return on the deposit is about -1 per cent and the real
-      repo rate about -2 per cent, so savers lose purchasing power and borrowers gain. They say the RBI
+      The Learner says, in their own words, that the deposit and the repo rate both sit below inflation, so
+      the real return is negative: savers lose purchasing power and borrowers gain. They say the RBI
       should judge policy by the real rate, compared with inflation (and expected inflation), not the
       nominal rate, and may mention core inflation excluding food and fuel.

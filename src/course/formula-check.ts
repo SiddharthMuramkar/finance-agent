@@ -21,7 +21,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "num-statistics",
   "eco-inflation-real",
   "eco-gdp-cycles",
-  "eco-fiscal-debt",
   "bond-yield",
   "bond-yield-curve",
   "bond-duration",

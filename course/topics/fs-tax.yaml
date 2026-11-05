@@ -49,18 +49,19 @@ youllLearn:
 questions:
   - id: tx-q-after-tax-profit
     prompt: >
-      A company reports profit before tax of Rs 1,000 crore and pays Rs 349.4 crore in tax at an effective rate of 34.94%. What do accountants call the Rs 650.6 crore that is left?
+      A company's year ends with a profit. It pays its tax bill to the government, and whatever is left
+      belongs to its shareholders. What do accountants call that leftover?
     choices:
-      - { id: a, text: "Profit after tax" }
-      - { id: b, text: "Operating profit", mistake: { tag: called_it_operating_profit, fix: "Operating profit comes before interest and tax; what is left after tax is profit after tax." } }
+      - { id: a, text: "Operating profit", mistake: { tag: called_it_operating_profit, fix: "Operating profit comes before interest and tax; what is left after tax is profit after tax." } }
+      - { id: b, text: "Profit after tax" }
       - { id: c, text: "Gross profit", mistake: { tag: called_it_gross_profit, fix: "Gross profit is revenue less direct costs, long before tax is taken." } }
-      - { id: d, text: "The tax charge", mistake: { tag: called_it_the_tax, fix: "The Rs 349.4 crore is the tax charge; the Rs 650.6 crore is what is left." } }
-    answer: a
+      - { id: d, text: "The tax charge", mistake: { tag: called_it_the_tax, fix: "The tax charge is what goes to the government; the leftover is profit after tax." } }
+    answer: b
     explanation: >
-      Profit before tax less the tax charge is profit after tax: 1,000 less 349.4 leaves 650.6. The Rs 349.4 crore is the tax itself, not what is left.
+      Profit before tax less the tax charge is profit after tax, also called net profit. It is the part of
+      the year's profit that belongs to shareholders, to keep in the business or pay out as dividends.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement (taxes and net income): https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
-
   - id: tx-q-saving
     prompt: >
       A headline reads: 'Tax cut lifts profits.' The effective tax rate falls from 40% to 30% while a company's profit before tax stays at Rs 1,000 crore. Which statement gets it right?
