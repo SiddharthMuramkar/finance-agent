@@ -1565,13 +1565,13 @@ id (`instantiateSlots`) when it makes the attempt. The seed is made from the Lea
 the slot, and a draw that repeats the numbers of the Learner's last attempt (or of an earlier slot) is stepped on until
 they differ. `questionLookup` resolves instance ids, so opening, marking, the Tutor's note and the Check tab after a
 miss all see the same numbers; a bare template id is never resolved, so the next attempt's numbers are not blocked
-before they are drawn. An instance's lookup entry carries the drawn prompt, no choices and its answer in words ("60 bp"),
-which is what the Tutor's blocked numbers read. A template that is gone counts as a removed question; templates make
+before they are drawn. An instance's lookup entry carries the drawn prompt, its two to four choices (see "Template
+questions are served as choices" below) and the right choice, which is what the Tutor's blocked numbers read. A template that is gone counts as a removed question; templates make
 `quizUnavailable` false.
 
-**Scenario.** A Learner sees "A rate moves from 2% to 2.6%. How many basis points?" with a number box labelled "Answer
-in basis points". They type 0.6. Code marks "60 bp", "60" and "60.0" right and 0.6 as the Known mistake "stopped at
-points", so the Check tab shows "Your answer: 0.6 – right answer: 60 bp" and the template's one-line fix. A wrong
+**Scenario.** A Learner sees "A rate moves from 2% to 2.6%. How many basis points?" with the choices "60 bp" and
+"0.6 bp". They tap "0.6 bp". Code marks "60 bp" right and "0.6 bp" as the Known mistake "stopped at points", so the
+Check tab shows "Your answer: 0.6 bp – right answer: 60 bp" and the template's one-line fix. A wrong
 multiple-choice option with a `mistake` shows its fix the same way. After a miss, the Tutor's note names the missed
 question's Skill as its rule in words, never its id, and the fix. Try again draws new numbers.
 
@@ -1584,6 +1584,13 @@ production before then.
 **Trade-off.** Seeds make a typed attempt cheap to store and exact to replay, but an instance cannot be edited once
 shown; and typed questions are left out of Reviews (see "Spaced review"), because a card needs a fixed question.
 
+
+
+**Template questions are served as choices (D1a, ADR 0009).** A question template no longer gives a box to type in. When an attempt opens, each template slot is drawn from its seed as before, and `choicesFor` (`src/teaching/choices.ts`) turns the draw into two to four choices: the right answer plus each Known mistake's value, written in the question's unit ("60 bp", "0.6 bp"). The slot goes to the browser as an ordinary question with choices, so `PublicQuestion` lost its `kind`, `unit` and `decimals`, and the quiz panel lost its number box and its unit words. A choice's id is its value, not its place, so `markAttempt` marks a tap with no seed, and the picked label ("0.6 bp") is what `practice_answers.input` keeps. The same order comes back on a reload, because the instance id seeds the shuffle. A Review shows the mix-up fix of a wrong pick too, as a quiz result does.
+
+*Scenario.* Asha opens a quiz on a Percent question: "A rate moves from 2% to 2.6%. How many basis points?" She sees "60 bp" and "0.6 bp". She taps "0.6 bp" and the result says: "That is the move in points. Times 100 gives basis points." No keyboard was needed, and the Tutor is told she chose "0.6 bp", a stopped-at-points slip.
+
+*Trade-off.* A tap is easier to guess than a typed number, so a lucky guess is possible; the pass rule and two right answers in a row on a Skill still decide progress. A template with no Known mistake makes only one choice, so code never shows it: a Topic keeps a template honest by giving it at least one mistake.
 
 ## Case Data (`src/case-data/`, `/api/case-data/[caseId]`, `npm run case-data:import`)
 
@@ -3903,6 +3910,13 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 
 **Trade-off.** Plain Node runs the course check, and it cannot load the Widget recipes (their imports have no extensions), so `course:check` checks written-ahead presets only (`presetValueProblems`: slider names, range and step, the same rules `open_widget` will use for a Tutor preset). Recipe presets are built with the recipe and run through the Widget checks in `lesson-presets.test.ts`, which is part of `npm run check` but not of `course:check` alone. The not-yet-converted list means the new rules guard nothing until a Topic converts; that is on purpose, as with the typed-formula list. L7 compares numbers, not moves, so a question that happens to use 4 and 5 for something else fails too; the fix is a different number. `src/course/lesson-fixture.ts` holds one full converted Topic, built from the spec's gold cards, for tests that need one.
 
+
+**Quick tries are taps, not typed numbers (D1a, ADR 0009).** A Quick try is now two to four choices, or True and False. `kind: number` stays in the Topic file for now (the Topics rewritten by D2a to D2j and E6a to E6c change them to `kind: choice`), and code shows such an item through `choicesFor`; a new `kind: choice` carries its own `choices` and an `answer` that is a choice id. `/api/quick-try` takes `{ key, choice }`, and `{ key, input }` answers 400. `markChoice` marks the tap with no model call (right, a Known mistake with its fix, or wrong), and the choices are stored in the Quick try's Session item (ids and words only, never which is right) so a reload draws the same row. A try that makes fewer than two distinct choices (a number item with no Known mistake) is never shown, and `nextQuickTry` and `practiceDone` skip it. The repair ladder keeps its rung ids: `boxes` now means a half-done choice (the first step is shown and the last is a tap) and `drill5` a choice drill of five. One shared detector, `sumAsk` (`src/teaching/no-sums.ts`), finds text that asks for a sum; lint L10, reply check V8 and the story recipes will all call it.
+
+*Scenario.* At Percent's Your turn the Learner reads "A rate goes from 3% to 3.5%. How many points did it move?" and taps "50 points". At once the line under the try reads "That is basis points. Points are the new rate minus the old rate.", and the next try comes. Had she tapped "0.5 points", it would say "Right.".
+
+*Trade-off.* Every wrong choice of a number item is a named mix-up, because a choice exists only if the file predicted it. So "wrong with no mix-up to name" now happens only on a written choice item with a plain wrong option, and a number item needs at least one Known mistake to be shown. The gain is a fix on every wrong tap; the cost is that Topic files must predict their slips, which the lesson lint (D1b) will check.
+
 ## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
 
 **What it does.** A fifth header link, "Notes", opens a page titled "Notes" that lists the Topics in course order, each as a Topic Note (since spec #119 only the Topics that have a note, with "Show all Topics" for the rest: see "The Notes filter and Undo" below). When a Topic is passed, code fills in its note with no model call: its Formula Cards drawn with example numbers (the numbers from the first marker in the Topic's own text that names the formula, else the registry's working example, with results from the formula's calculator), the Insight in the Learner's own words (beside the written Insight only when the Tutor had to tell it), the principle, the Connections and the mistakes the Tutor noticed. Nothing of that part is stored: it is built from the current Topic file and the Learner's records every time the page opens. What is stored is only the Learner's own lines, in `note_items` (kind "line"), which they can add, edit and delete on any Topic, passed or not, through `/api/notes` behind the passcode. The table also has empty columns for the saved replies and Widgets of the next ticket. The page prints: the header, buttons and boxes for typing are hidden on paper, a Topic with nothing on it is left out, and the light look is forced onto white.
@@ -4135,8 +4149,9 @@ modules and the server runs this check too.
 
 ## The teaching engine: exact answers, question templates and Known mistakes (`src/teaching/answers.ts`, `quantities.ts`, `mistakes.ts`, `templates.ts`, `mark.ts`, `fixtures.ts`, spec #229, ticket #231)
 
-**What it does.** A pure module (no database, no model, no env) that marks a Learner's typed number or True/False, so
-Quick tries and typed Check questions need no model call. `parseAnswer` reads what was typed as an exact decimal (a
+**What it does.** A pure module (no database, no model, no env) that marks a Learner's tapped choice (and, for the lesson
+lint's Draws rule only, a typed number), so Quick tries and template Check questions need no model call. `choicesFor`
+builds the choices and `markChoice` marks a tap (see "Quick tries are taps, not typed numbers"). `parseAnswer` reads what was typed as an exact decimal (a
 scaled bigint), accepting %, bp, ₹, Rs, points, years, Indian or Western commas, a decimal comma, a sign and the words
 "fall", "down", "up" and "rise"; a unit word is decoration, so "0.3 points" for a basis-point ask is read as 0.3.
 `markAnswer` gives right, a Known mistake with its one-line fix, or wrong, under the item's sign rule (magnitude, either,
@@ -4365,9 +4380,9 @@ draw, and the server works the answer out again from the Topic file, with the ke
 and a step divider stored by a tool all call it. The pure `nextQuickTry` picks the try: the first Skill of the Check not yet
 fluent, in card order, a half-done try first, then unused fixed tries in file order, then fresh template draws.
 
-The Learner answers in the item itself: a number box or True and False buttons, locked while a Tutor turn runs and once
-marked, and read-only on old Sessions and Past Sessions pages. POST `/api/quick-try` marks the answer with the teaching
-engine, logs it once per key with `recordAnswer`, and stores a `quick_try_result` item: "Right.", the Known mistake's fix,
+The Learner answers in the item itself: choice buttons or True and False buttons (never a number box), locked while a Tutor
+turn runs and once marked, and read-only on old Sessions and Past Sessions pages. POST `/api/quick-try` takes the tapped
+choice's id, marks it with the teaching engine, logs it once per key with `recordAnswer`, and stores a `quick_try_result` item: "Right.", the Known mistake's fix,
 or "Not quite.". A right answer posts the next try; a Known mistake posts a new try on the same Skill; a wrong answer with no
 Known mistake asks the page to start a short code-written follow-up turn ("Quick try follow-up by code:") that names the slip
 in one sentence, after which code posts a fresh try. Your turn finishes only when every Skill of the Check has two right

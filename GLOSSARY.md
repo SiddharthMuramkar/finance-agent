@@ -41,7 +41,7 @@ A short explanation of one idea, written ahead in the Topic's file and shown by 
 _Avoid_: Lesson card, explainer, card (on its own)
 
 **Quick try**:
-One short practice question at the your-turn step, set easiest first: the Learner types a number or picks True or False, and code marks it at once. It counts toward no Check.
+One short practice question at the your-turn step, set easiest first: the Learner taps one of two to four choices, or True or False, and code marks the tap at once. The Learner never types a number. It counts toward no Check.
 _Avoid_: Exercise, drill question, practice item
 
 **Quick-try follow-up**:
@@ -49,7 +49,7 @@ The short Tutor turn code starts by itself after a Quick try marked wrong with n
 _Avoid_: Retry turn, feedback turn
 
 **Known mistake**:
-A wrong answer the Topic's file expects for a question, such as 6 for 60 (multiplied by 10, not 100), with a one-line fix that code shows the moment the Learner gives it.
+A wrong choice the Topic's file expects for a question, such as "6 bp" for 60 bp (multiplied by 10, not 100), with a one-line mix-up fix that code shows the moment the Learner taps it.
 _Avoid_: Slip, error tag, misconception
 
 **Blocked numbers**:
@@ -240,7 +240,7 @@ A small instruction under a Widget, such as "set the rate to 0%", that ticks its
 _Avoid_: Exercise, challenge, step
 
 **Question template**:
-A Quick try or Check question written once in the Topic's file with ranges in place of numbers ("A rate moves from {a}% to {b}%. How many basis points?"). Code draws the numbers and works out the answer and each Known mistake, so every try or attempt gets fresh numbers that code can mark.
+A Quick try or Check question written once in the Topic's file with ranges in place of numbers ("A rate moves from {a}% to {b}%. How many basis points?"). Code draws the numbers, works out the answer and each Known mistake, and builds the choices from them (the right answer plus each Known mistake's value, in the question's unit), so every try or attempt gets fresh numbers that code can mark.
 _Avoid_: Question generator, item model
 
 **Theme**:
