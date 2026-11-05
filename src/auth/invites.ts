@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { invites, settings } from "../db/schema.ts";
+import { and, asc, eq, isNull } from "drizzle-orm";
+import { invites, learners, settings } from "../db/schema.ts";
 import type { Db } from "../db/types.ts";
 
 // The invite list and the Sign-up switch (ADR 0011). Imports only packages and relative files with
@@ -42,6 +42,70 @@ export async function inviteFor(db: Db, email: string) {
 
 export async function isInvited(db: Db, email: string): Promise<boolean> {
   return (await inviteFor(db, email)) !== null;
+}
+
+export const INVITES_USAGE = [
+  "Usage: npm run invites -- <command>",
+  '  add <email> [--learner <name>] [--note "..."]   invite an email; --learner links an existing Learner (the owner: --learner owner)',
+  "  remove <email>                                   take an email off the list (someone already signed up keeps access)",
+  "  list                                             the invite list, oldest first, and the Sign-up switch",
+  "  open | close                                     turn the Sign-up switch on (anyone with Google) or off (invites only)",
+].join("\n");
+
+/** The value after `--flag`, or null; throws when the flag is there without a value. */
+function flag(args: string[], name: string): string | null {
+  const at = args.indexOf(name);
+  if (at < 0) return null;
+  const value = args[at + 1];
+  if (value === undefined || value.startsWith("--")) throw new Error(`${name} needs a value.\n${INVITES_USAGE}`);
+  return value;
+}
+
+/**
+ * The invites CLI (scripts/invites.mjs is a thin wrapper): one command, its output through `log`.
+ * Throws with a plain reason on a refusal, having changed nothing.
+ */
+export async function runInvites(db: Db, argv: string[], log: (line: string) => void): Promise<void> {
+  const [command, ...args] = argv;
+  if (command === "add") {
+    const email = args[0] && !args[0].startsWith("--") ? inviteEmail(args[0]) : "";
+    if (!email.includes("@")) throw new Error(`add needs an email.\n${INVITES_USAGE}`);
+    const learnerName = flag(args, "--learner");
+    const note = flag(args, "--note");
+    if (learnerName) {
+      const [learner] = await db
+        .select()
+        .from(learners)
+        .where(and(eq(learners.name, learnerName), isNull(learners.archivedAt)))
+        .limit(1);
+      if (!learner) throw new Error(`No active Learner is named "${learnerName}": nothing was added.`);
+      if (learner.authUserId) throw new Error(`Learner ${learner.id} ("${learnerName}") is already linked to a Google account: nothing was added.`);
+      await addInvite(db, email, { learnerName, note });
+      log(`Invited ${email}, linked to Learner ${learner.id} ("${learnerName}").`);
+      return;
+    }
+    await addInvite(db, email, { note });
+    log(`Invited ${email}.`);
+    return;
+  }
+  if (command === "remove") {
+    if (!args[0]) throw new Error(`remove needs an email.\n${INVITES_USAGE}`);
+    const gone = await removeInvite(db, args[0]);
+    log(gone ? `Removed ${inviteEmail(args[0])}. If they already signed up they keep access; archive their Learner to lock them out.` : `${inviteEmail(args[0])} was not on the list.`);
+    return;
+  }
+  if (command === "list") {
+    const rows = await db.select().from(invites).orderBy(asc(invites.invitedAt), asc(invites.id));
+    for (const r of rows) log([r.email, r.learnerName ? `-> ${r.learnerName}` : "", r.note ? `(${r.note})` : ""].filter(Boolean).join("  "));
+    log(`${rows.length} invite(s). Sign-up is ${(await signupOpen(db)) ? "open to anyone with Google" : "closed (invites only)"}.`);
+    return;
+  }
+  if (command === "open" || command === "close") {
+    await setSignupOpen(db, command === "open");
+    log(command === "open" ? "Sign-up is open: anyone with a Google account can become a Learner." : "Sign-up is closed: only invited emails can become a Learner.");
+    return;
+  }
+  throw new Error(INVITES_USAGE);
 }
 
 /** Takes an email off the list. A Learner who already signed up keeps access (archive them to lock them out). */
