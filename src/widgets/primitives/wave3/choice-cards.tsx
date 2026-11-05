@@ -1,7 +1,8 @@
 "use client";
 
 import { defineComponent, useStateField, type ComponentRenderProps } from "@openuidev/react-lang";
-import { useId } from "react";
+import { useId, type CSSProperties } from "react";
+import { Button } from "@/app/primitives";
 import { z } from "zod/v4";
 import { usePrefersReducedMotion } from "../wave1/motion";
 import { motionFlag, Pic } from "./shared";
@@ -40,22 +41,16 @@ export function ChoiceCardsView({ question, choices, answer, picked, onPick }: P
           const isPick = c.id === picked;
           const state = !isPick ? "idle" : right ? "right" : "wrong";
           return (
-            <button
+            <Button
               key={c.id}
-              type="button"
-              data-affordance="button"
+              variant="secondary"
               data-testid="choice"
               data-state={state}
-              aria-pressed={isPick}
+              pressed={isPick}
               disabled={right && !isPick}
               onClick={() => onPick(c.id)}
-              className={`flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2 text-left text-base font-medium leading-6 text-[var(--ink)] shadow-[0_2px_0_var(--brand-line)] transition-colors hover:bg-[var(--brand-tint)] disabled:cursor-default disabled:opacity-60 ${
-                state === "right"
-                  ? `border-[var(--mint)] bg-[var(--mint-tint)] ${reduced ? "" : "choice-pop"}`
-                  : state === "wrong"
-                    ? "border-[var(--coral)] bg-[var(--coral-tint)]"
-                    : "border-[var(--brand-line)] bg-[var(--field)]"
-              }`}
+              style={state === "right" ? ({ "--face": "var(--mint-tint)" } as CSSProperties) : state === "wrong" ? ({ "--face": "var(--coral-tint)" } as CSSProperties) : undefined}
+              className={`!h-auto min-h-12 w-full !justify-start gap-3 !py-2 text-left !text-base ${state === "right" && !reduced ? "choice-pop" : ""}`}
             >
               {c.emoji && (
                 <span className="shrink-0">
@@ -68,7 +63,7 @@ export function ChoiceCardsView({ question, choices, answer, picked, onPick }: P
                   {state === "right" ? "✓" : "✗"}
                 </span>
               )}
-            </button>
+            </Button>
           );
         })}
       </div>
