@@ -41,6 +41,12 @@ export function SettingsView({ profile, developerDetails, theme = DEFAULT_PREF }
         <p className="mb-3 text-sm leading-5">Begin again as a new learner, from the Welcome. Your current progress, Notes and Sessions are kept, not deleted.</p>
         <StartOverButton confirmValue={START_OVER_CONFIRM} />
       </section>
+      <p className="text-xs leading-4 text-[var(--muted)]" data-testid="emoji-credit">
+        Emoji artwork: Fluent Emoji by Microsoft, MIT License,{" "}
+        <a href="https://github.com/microsoft/fluentui-emoji" className="underline" target="_blank" rel="noreferrer">
+          https://github.com/microsoft/fluentui-emoji
+        </a>
+      </p>
     </div>
   );
 }
