@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { safeDestination } from "@/auth/destination";
-import { PrimaryButton } from "../ui";
+import { PrimaryButton, TextLink } from "../ui";
 import { PasscodeField } from "./passcode-field";
 
 export default async function LoginPage({
@@ -32,9 +31,9 @@ export default async function LoginPage({
         )}
         <PrimaryButton type="submit">Enter</PrimaryButton>
       </form>
-      <Link href="/" className="text-sm text-[var(--muted)] underline-offset-4 hover:text-[var(--ink)] hover:underline">
+      <TextLink href="/" className="self-start text-sm">
         ← Back to home
-      </Link>
+      </TextLink>
     </main>
   );
 }

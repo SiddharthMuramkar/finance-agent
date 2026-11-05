@@ -1,8 +1,7 @@
-import Link from "next/link";
 import type { Topic } from "@/course/map";
 import { STEP_NAMES, TEACHING_STEPS } from "@/course/navigator";
 import { PROFILE_PRIVACY, ProfileForm } from "../profile/profile-form";
-import { Card, Eyebrow, primaryButtonClass, secondaryButtonClass } from "../ui";
+import { ButtonLink, Card, Eyebrow } from "../ui";
 import { StartTopicButton } from "./start-topic-button";
 
 /** The Welcome's three panels, in order. Each is its own address, so Next and Skip are plain links. */
@@ -22,8 +21,10 @@ const SKIP = welcomeHref("first-topic");
 function Buttons({ next }: { next: WelcomePanel }) {
   return (
     <div className="mt-6 flex items-center gap-2">
-      <Link href={welcomeHref(next)} className={primaryButtonClass}>Next</Link>
-      <Link href={SKIP} className={secondaryButtonClass}>Skip</Link>
+      <ButtonLink href={welcomeHref(next)}>Next</ButtonLink>
+      <ButtonLink href={SKIP} variant="secondary">
+        Skip
+      </ButtonLink>
     </div>
   );
 }

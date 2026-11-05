@@ -4,7 +4,7 @@ import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from
 import { HELP_CHIPS, JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
-import { Button, Chevron } from "./ui";
+import { Button, Chevron, Chip } from "./ui";
 
 // Small presentational pieces of the workspace's left column (issue #44).
 
@@ -44,16 +44,15 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
     }
     if (target) {
       return (
-        <button
-          type="button"
+        <Chip
           data-step-number={s.number}
           data-scroll-to={target}
           title={`Back to ${s.label}`}
           onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="pressable inline-block rounded px-1 underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--brand)]"
+          className="!px-2"
         >
           {STEP_NAMES[s.step]}
-        </button>
+        </Chip>
       );
     }
     return (

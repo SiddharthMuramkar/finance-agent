@@ -1,6 +1,6 @@
 import type { TopicOverview } from "@/course/navigator";
 import { backAt } from "@/tutor/park-items";
-import { Card, Eyebrow, KeyValueRow, Pill } from "../ui";
+import { Card, Chevron, Eyebrow, KeyValueRow, LinkButton, Pill } from "../ui";
 import { BackToPathButton, DoFirstLink, TopicRow, WhatComesNextButton } from "./jump-button";
 
 const STATUS: Record<TopicOverview["status"], string> = { not_started: "Not started", in_progress: "In progress", passed: "Passed" };
@@ -91,8 +91,11 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
 function Group({ label, topics, open, attrs, children }: { label: React.ReactNode; topics: TopicOverview[]; open: boolean; attrs?: Record<string, string>; children: React.ReactNode }) {
   return (
     <details open={open} className="group mb-3" {...attrs}>
-      <summary className="flex cursor-pointer items-baseline justify-between gap-3 rounded py-2 text-sm leading-5">
-        <span className="font-medium">{label}</span>
+      <summary className="flex cursor-pointer items-center justify-between gap-3 rounded py-2 text-sm leading-5">
+        <span className="flex items-center gap-2 font-medium">
+          <Chevron />
+          {label}
+        </span>
         <span className="text-xs text-[var(--muted)]">{passedCount(topics)}</span>
       </summary>
       <ol className="border-t border-[var(--hairline)]">{children}</ol>
@@ -182,8 +185,11 @@ export function CourseMapView({
         );
       })}
       {coming.length > 0 && (
-        <details className="mt-4 text-sm">
-          <summary className="cursor-pointer font-medium">Coming ({coming.length} more Topics, in path order)</summary>
+        <details className="group mt-4 text-sm">
+          <summary className="flex cursor-pointer items-center gap-2 font-medium">
+            <Chevron />
+            Coming ({coming.length} more Topics, in path order)
+          </summary>
           <ol className="mt-3 space-y-1.5 text-[var(--muted)]">
             {coming.map((t) => (
               <li key={t.id} data-coming={t.id}>
@@ -220,7 +226,9 @@ export function ProgressView({ topics, next = null }: { topics: TopicOverview[];
               <>
                 <form method="post" action="/api/open" className="inline">
                   <input type="hidden" name="topic" value={t.id} />
-                  <button type="submit" data-open-topic={t.id} className="text-left text-[var(--ink)] underline decoration-[var(--hairline)] underline-offset-4 hover:text-[var(--brand)] hover:decoration-current">{t.title}</button>
+                  <LinkButton type="submit" data-open-topic={t.id} className="!text-[var(--ink)]">
+                    {t.title}
+                  </LinkButton>
                 </form>{" "}
                 <span className="text-xs">· {STAGE[t.stage]}</span>
               </>

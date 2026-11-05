@@ -50,7 +50,6 @@ test("[A2] header height is 56 px or less and the chat body font is 15 px", asyn
 });
 
 test("[A3b] interactive elements without a signifier and non-interactive elements with cursor:pointer are 0", async ({ page }) => {
-  test.fail(true, "[A3b] buttons look like buttons");
   await study(page, "concept-widget");
   const audit = await auditAffordances(page);
   expect(audit.interactiveWithoutSignifier).toEqual([]);
