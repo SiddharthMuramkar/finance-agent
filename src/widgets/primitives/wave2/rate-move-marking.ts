@@ -1,9 +1,9 @@
-import { rateChange } from "@/finance/rate-change";
-import { exactFrom, parseAnswer } from "@/teaching/answers";
-import { expectedText, matchesAnswer } from "@/teaching/mark";
+import { choicesFor, type ChoiceSet } from "@/teaching/choices";
+import type { FixedItem } from "@/teaching/mark";
 
 // What the RateMove part says and marks, kept out of the "use client" part so the rate_move recipe (run on the
-// server) can read the same labels. Marking is T02's exact arithmetic: no floating point decides a mark.
+// server) can read the same labels. Practice is a tap (ADR 0009): code builds the readings and marks the tapped
+// id, so no typed number is ever read.
 
 /** The labels of the three worked lines, in order. */
 export const RATE_MOVE_LABELS = ["Points: new minus old", "Basis points: points times 100", "Percent of the old rate"] as const;
@@ -11,26 +11,52 @@ export const RATE_MOVE_LABELS = ["Points: new minus old", "Basis points: points 
 /** The highest rate the part draws and its play sliders reach, in percent. */
 export const RATE_MOVE_MAX = 20;
 
-export type MoveMark = {
-  /** right or wrong once read; unread when the typed text is not one number, which is never marked. */
-  status: "right" | "wrong" | "unread";
-  /** The move as the answer is written back: "20 bp", or "30 bp (a fall)". */
-  expected: string;
-  /** True when a wrong answer is the move in points (0.2 for 20 bp): the Learner stopped before times 100. */
-  inPoints: boolean;
+export type ReadingMark = {
+  /** right when the tapped reading is the move; wrong otherwise. */
+  status: "right" | "wrong";
+  /** The one-line fix of a Known mistake the tapped reading names; null for the right reading or an unnamed wrong one. */
+  fix: string | null;
 };
 
+const SLIP_FIX = "One point is 100 basis points, so multiply by 100, not 10.";
+const PERCENT_FIX = "That is a percent. The move in points is the new rate minus the old rate; basis points are points times 100.";
+
 /**
- * Marks a typed answer to "by how many basis points did the rate move from oldRate to newRate?", exactly in whole
- * basis points for a move of any size. "20", "20bp" and "20 bp" are all read; a fall may be typed as its size, with
- * a minus sign, or in words ("a fall of 30"), but a fall (-20) is never right for a rise.
+ * The readings of "which reading is right?" for a rate move, built with the choice engine (ADR 0009): the right
+ * reading in points and basis points, the x10 slip (points times 10, said in bps) and the percent mix-up (the points
+ * said as a percent). 4% to 5% gives "Up 1 point, or 100 bps", "Up 10 bps", "Up 1%". Same seed, same order.
  */
-export function markMove(typed: string, oldRate: number, newRate: number): MoveMark {
-  const { basisPoints, points } = rateChange(oldRate, newRate);
-  const answer = exactFrom(basisPoints);
-  const expected = expectedText(answer, "bp", "either");
-  const input = parseAnswer(typed, "bp");
-  if (!input) return { status: "unread", expected, inPoints: false };
-  if (matchesAnswer(input, answer, 0, "either")) return { status: "right", expected, inPoints: false };
-  return { status: "wrong", expected, inPoints: basisPoints !== 0 && matchesAnswer(input, exactFrom(points), 2, "either") };
+export function moveReadings(oldRate: number, newRate: number, seed: string): ChoiceSet {
+  const bp = Math.round((newRate - oldRate) * 100);
+  const size = Math.abs(bp);
+  const way = bp < 0 ? "Down" : "Up";
+  const points = size / 100;
+  const base = { id: "rate-move-practice", skill: "rate-move", ask: "Which reading is right?", kind: "choice" as const };
+  const item: FixedItem =
+    bp === 0
+      ? {
+          ...base,
+          answer: "none",
+          choices: [
+            { id: "none", text: "No change, 0 bps" },
+            { id: "up-point", text: "Up 1 point, or 100 bps" },
+            { id: "up-percent", text: "Up 1%", mistake: { tag: "mixed_percent_points", fix: PERCENT_FIX } },
+          ],
+        }
+      : {
+          ...base,
+          answer: "right",
+          choices: [
+            { id: "right", text: `${way} ${points} ${points === 1 ? "point" : "points"}, or ${size} bps` },
+            { id: "x10", text: `${way} ${size / 10} bps`, mistake: { tag: "used_x10", fix: SLIP_FIX } },
+            { id: "percent", text: `${way} ${points}%`, mistake: { tag: "mixed_percent_points", fix: PERCENT_FIX } },
+          ],
+        };
+  return choicesFor(item, seed)!;
+}
+
+/** Marks the tapped reading by its id (never by its place), with the fix of the Known mistake it names. */
+export function markReading(set: ChoiceSet, tapped: string): ReadingMark {
+  if (tapped === set.answer) return { status: "right", fix: null };
+  return { status: "wrong", fix: set.choices.find((c) => c.id === tapped)?.mistake?.fix ?? null };
 }

@@ -17,8 +17,8 @@ export { actualSlices, DrawTheLine, gapLine, horizonMs, splitHistory, valueAt } 
 export { futurePrice, PriceTag } from "./price-tag";
 export { moved, Rank, rankProblem, rightPlaces, startOrder } from "./rank";
 export { RateMove } from "./rate-move";
-export { markMove, RATE_MOVE_LABELS } from "./rate-move-marking";
+export { markReading, moveReadings, RATE_MOVE_LABELS } from "./rate-move-marking";
 export { buyingPower, ShrinkingNote } from "./shrinking-note";
-export { answerMatches, looksLikeFormula, parseTyped, Step, StepThrough } from "./step-through";
+export { looksLikeFormula, Step, StepThrough } from "./step-through";
 export { coinSize, paymentRows, TimeTravel } from "./time-travel";
 export { Waterfall, waterfallBars } from "./waterfall";
