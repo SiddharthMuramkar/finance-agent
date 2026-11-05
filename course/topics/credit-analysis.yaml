@@ -64,13 +64,13 @@ questions:
     prompt: >
       A lender reads a company's accounts and sees a line called interest cover. What does that phrase mean?
     choices:
-      - { id: a, text: "How comfortably operating profit (EBIT) covers the interest bill: the higher, the safer" }
-      - { id: b, text: "How much interest the company earns on its own cash", mistake: { tag: flipped_interest, fix: "Interest cover is about interest the company owes, not interest it earns." } }
-      - { id: c, text: "How many years of EBITDA it would take to repay the debt", mistake: { tag: mixed_with_leverage, fix: "That is a debt-to-EBITDA idea. Interest cover sets profit against the interest bill." } }
+      - { id: a, text: "How much interest the company earns on its own cash", mistake: { tag: flipped_interest, fix: "Interest cover is about interest the company owes, not interest it earns." } }
+      - { id: b, text: "How comfortably profit covers the interest bill: higher is safer" }
+      - { id: c, text: "How many years of operating profit it would take to repay the debt", mistake: { tag: mixed_with_leverage, fix: "That is a debt-to-EBITDA idea. Interest cover sets profit against the interest bill." } }
       - { id: d, text: "How much of the debt a guarantee protects", mistake: { tag: mixed_with_guarantee, fix: "Guarantees are a separate idea. Cover here means profit covering the interest bill." } }
-    answer: a
+    answer: b
     explanation: >
-      Interest cover is EBIT divided by the interest expense. A company with EBIT of 120 and interest of 40 has a cover of 3.0: profit can fall a long way before interest goes unpaid. The higher the cover, the safer the lender.
+      Interest cover is operating profit (before interest and tax) divided by the interest expense. A company with profit of 120 and interest of 40 has a cover of 3.0: profit can fall a long way before interest goes unpaid. The higher the cover, the safer the lender.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 10.4 Risks of Interest Rates and Default: https://openstax.org/books/principles-finance-2e/pages/10-4-risks-of-interest-rates-and-default ; the ratio is by definition.
 
@@ -78,11 +78,11 @@ questions:
     prompt: >
       An analyst says a company's net debt looks manageable, even though its gross debt looks large. What is net debt?
     choices:
-      - { id: a, text: "Debt minus the cash the company holds" }
-      - { id: b, text: "Debt plus the interest due this year", mistake: { tag: added_not_subtracted, fix: "Net means something is taken off. Net debt subtracts cash; it does not add interest." } }
-      - { id: c, text: "Only the debt owed to banks, leaving out bonds", mistake: { tag: net_means_bank_only, fix: "Net is not about who lent the money. It is debt after cash is taken off." } }
-      - { id: d, text: "Debt after tax has been deducted", mistake: { tag: netted_off_tax, fix: "Tax is not netted off. Net debt is debt less cash." } }
-    answer: a
+      - { id: a, text: "Debt plus the interest due this year", mistake: { tag: added_not_subtracted, fix: "Net means something is taken off. Net debt subtracts cash; it does not add interest." } }
+      - { id: b, text: "Only the debt owed to banks, leaving out bonds", mistake: { tag: net_means_bank_only, fix: "Net is not about who lent the money. It is debt after cash is taken off." } }
+      - { id: c, text: "Debt after tax has been deducted", mistake: { tag: netted_off_tax, fix: "Tax is not netted off. Net debt is debt less cash." } }
+      - { id: d, text: "Debt minus the cash the company holds" }
+    answer: d
     explanation: >
       Net debt is debt less cash. A company with debt of 500 and cash of 100 has net debt of 400. Net debt to EBITDA then tells a lender, roughly, how many years of EBITDA it would take to repay what is owed.
     source: >

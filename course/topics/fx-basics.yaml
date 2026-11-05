@@ -91,11 +91,11 @@ questions:
     prompt: >
       A Mexican potter sells goods for $20,000. The exchange rate moves from MXN 16 = USD 1 to MXN 20 = USD 1. Which headline gets it right?
     choices:
-      - { id: a, text: "The peso weakened, so the same dollars now buy more pesos and the potter gains in pesos" }
-      - { id: b, text: "The peso strengthened, so the potter gains in pesos", mistake: { tag: read_the_rate_backwards, fix: "More pesos per dollar means each peso buys fewer dollars. The peso weakened." } }
-      - { id: c, text: "The peso weakened, so the potter earns fewer pesos", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more in pesos." } }
+      - { id: a, text: "The peso strengthened, so the potter gains in pesos", mistake: { tag: read_the_rate_backwards, fix: "More pesos per dollar means each peso buys fewer dollars. The peso weakened." } }
+      - { id: b, text: "The peso weakened, so the potter earns fewer pesos", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more in pesos." } }
+      - { id: c, text: "The peso weakened, so the same dollars now buy more pesos and the potter gains in pesos" }
       - { id: d, text: "Nothing changes for the potter, because the dollar price is the same", mistake: { tag: ignored_conversion, fix: "The dollars are the same, but converting them now gives a different number of pesos." } }
-    answer: a
+    answer: c
     explanation: >
       At 16 per dollar $20,000 buys 320,000 pesos; at 20 per dollar it buys 400,000. More pesos per dollar means each peso is worth fewer dollars: the peso depreciated, and the exporter earns more in pesos.
     source: >
@@ -105,11 +105,11 @@ questions:
     prompt: >
       The rupee goes from INR 75 = USD 1 to INR 80 = USD 1. Which headline gets it right?
     choices:
-      - { id: a, text: "The rupee lost value and the dollar gained, though the two percentage moves are not equal" }
-      - { id: b, text: "The rupee gained value, because 80 is a bigger number than 75", mistake: { tag: bigger_number_stronger, fix: "A bigger number of rupees per dollar means each rupee buys less. The rupee lost value." } }
-      - { id: c, text: "The rupee and the dollar moved by exactly the same percentage", mistake: { tag: same_percent_both_ways, fix: "Each move is measured from a different starting point, so the two percentages differ." } }
-      - { id: d, text: "The rupee was revalued by its government", mistake: { tag: revalued_means_up, fix: "Revaluation raises a fixed rate. Here the rupee lost value against the dollar." } }
-    answer: a
+      - { id: a, text: "The rupee gained value, because 80 is a bigger number than 75", mistake: { tag: bigger_number_stronger, fix: "A bigger number of rupees per dollar means each rupee buys less. The rupee lost value." } }
+      - { id: b, text: "The rupee and the dollar moved by exactly the same percentage", mistake: { tag: same_percent_both_ways, fix: "Each move is measured from a different starting point, so the two percentages differ." } }
+      - { id: c, text: "The rupee was revalued by its government", mistake: { tag: revalued_means_up, fix: "Revaluation raises a fixed rate. Here the rupee lost value against the dollar." } }
+      - { id: d, text: "The rupee lost value; the dollar gained" }
+    answer: d
     explanation: >
       One rupee was worth 1/75 = $0.013333 and is now worth 1/80 = $0.0125, a fall of 6.25%. The rise in the rupee price of a dollar is 6.67% (80/75 - 1). Both describe one move, measured from different sides.
     source: >
@@ -119,13 +119,13 @@ questions:
     prompt: >
       A currency is devalued by 15% and then, two days later, by a further 20% of its new value. Which headline gets it right about the total fall?
     choices:
-      - { id: a, text: "The total fall is a little less than the two cuts put together, because the second cut bites a smaller value" }
-      - { id: b, text: "The total fall is exactly the two cuts put together", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
+      - { id: a, text: "The total fall is exactly the two cuts put together", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
+      - { id: b, text: "The total fall is a little less than the two cuts added" }
       - { id: c, text: "The total fall is more than the two cuts put together", mistake: { tag: compounding_goes_up, fix: "The second cut applies to a smaller base, so it takes less than 20% of the original." } }
       - { id: d, text: "Nobody can say without the exchange rate", mistake: { tag: needs_the_rate, fix: "The two percentages are enough to say the total is a little below the cuts put together." } }
-    answer: a
+    answer: b
     explanation: >
-      After the first cut the currency is worth 85% of its old value; after the second, 80% of that: 0.85 x 0.80 = 0.68, a total fall of 32%. Putting the cuts together as 35% overstates it.
+      The second cut bites a currency that is already worth less, so the total fall is about a third, not the 35% you get by adding. Putting the cuts together as 35% overstates it.
     source: >
       Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
@@ -133,11 +133,11 @@ questions:
     prompt: >
       A car sells for $20,000 in the United States. In Canada, where one US dollar buys 1.30 Canadian dollars, the same car sells for C$26,000. What does purchasing power parity mean here?
     choices:
-      - { id: a, text: "The two prices match once the exchange rate is applied, so buyers have no reason to shop across the border" }
-      - { id: b, text: "The two price tags show the same number", mistake: { tag: same_number_means_parity, fix: "Parity is about value after converting currencies, not matching numbers." } }
-      - { id: c, text: "Canada is cheaper, so buyers should go there", mistake: { tag: bigger_number_cheaper, fix: "At parity the converted prices are equal. Neither side is cheaper." } }
+      - { id: a, text: "The two price tags show the same number", mistake: { tag: same_number_means_parity, fix: "Parity is about value after converting currencies, not matching numbers." } }
+      - { id: b, text: "Canada is cheaper, so buyers should go there", mistake: { tag: bigger_number_cheaper, fix: "At parity the converted prices are equal. Neither side is cheaper." } }
+      - { id: c, text: "The two prices match once the exchange rate is applied" }
       - { id: d, text: "Canada must devalue its dollar", mistake: { tag: parity_is_an_order, fix: "Parity describes prices lining up. It is not an order to any government." } }
-    answer: a
+    answer: c
     explanation: >
       At USD 1 = CAD 1.30, a $20,000 car costs 20,000 x 1.30 = C$26,000. If it were much cheaper in Canada, buyers would shift there until prices and exchange rates aligned.
     source: >

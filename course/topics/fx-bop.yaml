@@ -91,11 +91,11 @@ questions:
     prompt: >
       In a year a country's current account is -$6.0 billion and its capital account is +$7.0 billion. Which headline gets it right?
     choices:
-      - { id: a, text: "Foreign money more than covered the deficit, so the overall balance is a surplus and reserves rise" }
-      - { id: b, text: "The current account deficit drained reserves, so they fell", mistake: { tag: ignored_capital_account, fix: "The capital inflow more than covered the deficit, so reserves gained rather than lost." } }
+      - { id: a, text: "The current account deficit drained reserves, so they fell", mistake: { tag: ignored_capital_account, fix: "The capital inflow more than covered the deficit, so reserves gained rather than lost." } }
+      - { id: b, text: "Foreign money more than covered the deficit, so reserves rise" }
       - { id: c, text: "The two accounts cancelled out, so reserves are unchanged", mistake: { tag: assumed_exact_cancel, fix: "They cancel only if the inflow equals the deficit. Here the inflow is larger." } }
       - { id: d, text: "A deficit always means the country is in crisis", mistake: { tag: deficit_means_crisis, fix: "A deficit covered by enough inflow is not a crisis; the overall balance is what changes reserves." } }
-    answer: a
+    answer: b
     explanation: >
       Overall balance = current account + capital account = -6.0 + 7.0 = +1.0. A surplus is added to reserves (the change in reserves has the opposite sign in the accounting table).
     source: >
@@ -119,13 +119,13 @@ questions:
     prompt: >
       Reports often quote a country's current account deficit as a share of its GDP (CAD/GDP). Why do they do that, rather than quote dollars alone?
     choices:
-      - { id: a, text: "It shows the gap relative to the size of the economy, so countries and years can be compared" }
-      - { id: b, text: "GDP is the pot the deficit has to be repaid from in one year", mistake: { tag: gdp_is_repayment_pot, fix: "GDP is a yardstick for size. It is not a repayment rule." } }
-      - { id: c, text: "Dollar amounts cannot be compared between countries", mistake: { tag: dollars_cannot_compare, fix: "Dollars can be compared. A share also lets a small and a large economy be compared by size." } }
-      - { id: d, text: "The IMF refuses figures in dollars", mistake: { tag: imf_rule, fix: "Nothing forbids dollar figures. The share is used because it adjusts for the economy's size." } }
-    answer: a
+      - { id: a, text: "GDP is the pot the deficit has to be repaid from in one year", mistake: { tag: gdp_is_repayment_pot, fix: "GDP is a yardstick for size. It is not a repayment rule." } }
+      - { id: b, text: "Dollar amounts cannot be compared between countries", mistake: { tag: dollars_cannot_compare, fix: "Dollars can be compared. A share also lets a small and a large economy be compared by size." } }
+      - { id: c, text: "The IMF refuses figures in dollars", mistake: { tag: imf_rule, fix: "Nothing forbids dollar figures. The share is used because it adjusts for the economy's size." } }
+      - { id: d, text: "It shows the gap relative to the size of the economy" }
+    answer: d
     explanation: >
-      A deficit of $6 billion is large for a $240 billion economy (2.5% of GDP) but small for a much larger one. Table 12.3 of the RBI chapter reports the current account deficit in just this way.
+      A deficit of $6 billion is large for a $240 billion economy (2.5% of GDP) but small for a much larger one. Central banks report the current account deficit in just this way.
     source: >
       RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.3 (CAD/GDP): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
 

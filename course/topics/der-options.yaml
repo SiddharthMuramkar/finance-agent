@@ -78,11 +78,11 @@ questions:
     prompt: >
       You buy a put option with a strike of $100 for a premium of $4. At expiry the share price is $80. Which headline gets it right?
     choices:
-      - { id: a, text: "The put is in the money: it lets you sell above the market, and the premium comes off that gain" }
-      - { id: b, text: "The put is out of the money and expires worthless", mistake: { tag: put_pays_on_a_rise, fix: "A put gains when the share ends below the strike. $80 is below $100." } }
+      - { id: a, text: "The put is out of the money and expires worthless", mistake: { tag: put_pays_on_a_rise, fix: "A put gains when the share ends below the strike. $80 is below $100." } }
+      - { id: b, text: "The put is in the money; the premium comes off the gain" }
       - { id: c, text: "The put pays you the full strike of $100", mistake: { tag: paid_strike_not_gap, fix: "A put pays the gap between the strike and the share price, not the strike itself." } }
       - { id: d, text: "The put is in the money and the premium no longer counts", mistake: { tag: forgot_premium, fix: "The premium was paid up front, so it still comes off the gain." } }
-    answer: a
+    answer: b
     explanation: >
       The put pays 100 - 80 = $20. After the $4 premium the profit is $16. The loss is $4 only if the share ends at or above $100.
     source: >
@@ -106,11 +106,11 @@ questions:
     prompt: >
       You own a share bought at $100 and also buy a put with a strike of $90 for $3. What does the put do for you?
     choices:
-      - { id: a, text: "It puts a floor under your loss: below $90 the put makes up the fall, so the worst case is capped" }
-      - { id: b, text: "It removes every loss: you cannot lose money", mistake: { tag: insurance_is_free, fix: "You still lose the premium and the drop down to the strike." } }
-      - { id: c, text: "It gains when the share rises", mistake: { tag: put_gains_on_a_rise, fix: "A put gains when the share falls, not when it rises." } }
-      - { id: d, text: "It only works if you also sell the share", mistake: { tag: must_sell_share, fix: "The put works as insurance while you keep the share." } }
-    answer: a
+      - { id: a, text: "It removes every loss: you cannot lose money", mistake: { tag: insurance_is_free, fix: "You still lose the premium and the drop down to the strike." } }
+      - { id: b, text: "It gains when the share rises", mistake: { tag: put_gains_on_a_rise, fix: "A put gains when the share falls, not when it rises." } }
+      - { id: c, text: "It only works if you also sell the share", mistake: { tag: must_sell_share, fix: "The put works as insurance while you keep the share." } }
+      - { id: d, text: "It puts a floor under your loss: the worst case is capped" }
+    answer: d
     explanation: >
       If the share falls to $90 or below, the put lets you sell at $90: you lose 100 - 90 = $10 on the share plus the $3 premium, $13 in all. The floor holds however far the share falls.
     source: >
