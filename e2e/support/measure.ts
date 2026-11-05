@@ -37,7 +37,8 @@ export function measureLayout(page: Page): Promise<Layout> {
     const panel = box('[data-testid="widget-pane"]');
     const header = box("header");
     const pct = (r: DOMRect | null) => (r ? Math.round((r.width / vw) * 1000) / 10 : null);
-    const para = document.querySelector('[data-testid="assistant-message"] p');
+    // The Tutor's reply text, not its "Tutor" label (also a <p>): the longest paragraph, so a short opener is not picked.
+    const para = [...document.querySelectorAll('[data-testid="assistant-message"] p:not([data-testid="tutor-label"])')].sort((x, y) => (y.textContent || "").length - (x.textContent || "").length)[0] ?? null;
     const input = document.querySelector("textarea");
     const fontOf = (el: Element | null) => (el ? parseFloat(getComputedStyle(el).fontSize) : null);
     const perLine = (el: Element | null) => {                       // median characters on the full lines of a paragraph (needs 3+ lines)
