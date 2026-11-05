@@ -25,6 +25,14 @@ export async function learnerForAuthUser(db: Db, user: AuthUser): Promise<Learne
   if (linked) return linked;
   const invite = await inviteFor(db, user.email);
   if (!invite) return null;
+  if (invite.learnerName) {
+    const [named] = await db
+      .update(learners)
+      .set({ authUserId: user.id })
+      .where(and(eq(learners.name, invite.learnerName), isNull(learners.archivedAt)))
+      .returning();
+    if (named) return named;
+  }
   const [made] = await db.insert(learners).values({ name: user.name, authUserId: user.id }).returning();
   return made;
 }
