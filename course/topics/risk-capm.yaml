@@ -59,12 +59,12 @@ youllLearn:
 questions:
   - id: cm-q-capm
     prompt: >
-      In the capital asset pricing model (CAPM), what is a share's expected return made of?
+      Neha holds two shares: a steady one, and a jumpy one that swings far more with the market. The capital asset pricing model says each share's expected return starts from the safe rate. What does it add on top?
     choices:
-      - { id: a, text: "The risk-free rate, plus the market risk premium scaled up or down by the share's beta" }
-      - { id: b, text: "The risk-free rate alone, because beta only measures noise", mistake: { tag: beta_ignored, fix: "Beta sets how much of the market risk premium the share earns on top of the risk-free rate." } }
-      - { id: c, text: "The market's average return, whatever the share's beta", mistake: { tag: beta_ignored, fix: "A share with a higher beta carries more market risk and so is expected to earn more." } }
-      - { id: d, text: "The share's own average return over the past five years", mistake: { tag: past_is_expected, fix: "CAPM builds the expected return from the risk-free rate, beta and the premium, not from past returns." } }
+      - { id: a, text: "A slice of the market's extra reward for risk, bigger for the share that swings more with the market" }
+      - { id: b, text: "Nothing, because beta only measures noise", mistake: { tag: beta_ignored, fix: "Beta sets how much of the market's extra reward the share earns on top of the safe rate." } }
+      - { id: c, text: "The market's average return, the same for both shares", mistake: { tag: beta_ignored, fix: "The jumpy share carries more market risk and so is expected to earn more than the steady one." } }
+      - { id: d, text: "Each share's own average return over the past five years", mistake: { tag: past_is_expected, fix: "The model builds the expected return from the safe rate, beta and the market's reward, not from past returns." } }
     answer: a
     explanation: >
       The CAPM expected return is the risk-free rate plus the share's beta times the market risk premium. A higher beta earns more of the premium; for example 5% + 1.2 x 6% = 12.2%.

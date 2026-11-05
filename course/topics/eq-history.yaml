@@ -57,10 +57,10 @@ youllLearn:
 questions:
   - id: eh-q-cagr
     prompt: >
-      An index rises from 500 to 2,000 over two years. What do analysts call the single steady yearly rate that, repeated each year, would take it from the start to the end?
+      Riya's index fund went from 500 to 2,000 in two years. Her friend says it grew "150% a year on average". Riya says that overstates the pace, because each year's growth builds on the year before. What does she want to use instead?
     choices:
-      - { id: a, text: "Compound annual growth rate" }
-      - { id: b, text: "The simple average of the two years' changes", mistake: { tag: averaged_changes, fix: "A plain average ignores that each year's growth builds on the last; compounding does not." } }
+      - { id: a, text: "The compound annual growth rate: the one steady yearly rate that, repeated, links the start to the end" }
+      - { id: b, text: "The simple average of the two years' changes", mistake: { tag: averaged_changes, fix: "A plain average ignores that each year's growth builds on the last; that is what her friend did." } }
       - { id: c, text: "The real return", mistake: { tag: mixed_up_terms, fix: "Real return allows for rising prices; it is not the steady rate that links start and end." } }
       - { id: d, text: "The standard deviation", mistake: { tag: mixed_up_terms, fix: "Standard deviation measures how much returns swing, not the steady pace of growth." } }
     answer: a
@@ -99,12 +99,12 @@ questions:
 
   - id: eh-q-real
     prompt: >
-      An investment earns 15% in a year when prices rise 10%. Which name do analysts give to what it earned once the rise in prices is allowed for?
+      Dev's savings earned 15% last year, but prices in the shops rose 10%. His grandfather says, "You are far less than 15% richer." What is the grandfather pointing at?
     choices:
-      - { id: a, text: "The real return" }
-      - { id: b, text: "The nominal return", mistake: { tag: mixed_up_terms, fix: "Nominal return is the figure before allowing for rising prices, so it is the 15%." } }
-      - { id: c, text: "The risk premium", mistake: { tag: mixed_up_terms, fix: "A risk premium is the extra return for taking risk, not an adjustment for rising prices." } }
-      - { id: d, text: "The expected return", mistake: { tag: mixed_up_terms, fix: "Expected return looks forward at what is likely; this adjusts what was earned for rising prices." } }
+      - { id: a, text: "The real return: what he earned once the rise in prices is allowed for" }
+      - { id: b, text: "The nominal return: the headline figure before allowing for prices", mistake: { tag: mixed_up_terms, fix: "The headline 15% is the nominal return, which Dev already has; his grandfather means the figure after prices." } }
+      - { id: c, text: "The risk premium: the extra return for taking risk", mistake: { tag: mixed_up_terms, fix: "A risk premium is the extra return for taking risk, not an adjustment for rising prices." } }
+      - { id: d, text: "The expected return: what is likely in future", mistake: { tag: mixed_up_terms, fix: "Expected return looks forward at what is likely; his grandfather is adjusting what was already earned." } }
     answer: a
     explanation: >
       Real return allows for rising prices: (1.15 / 1.10) - 1 = 4.5%. Simply taking away the price rise (15 - 10 = 5%) is a rough approximation that overstates it when inflation is high.

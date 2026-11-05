@@ -77,12 +77,12 @@ questions:
 
   - id: bf-q-first-day
     prompt: >
-      A new share issue is priced at $20 and closes its first day of trading at $28. What is it called when a new share closes its first day well above its issue price?
+      Meera's cousin is allotted shares in a new company at $20 each. By the first evening they trade at $28, and the papers say the company left money on the table. What had happened to the issue price?
     choices:
-      - { id: a, text: "Underpricing, often called a first-day pop" }
-      - { id: b, text: "Overpricing", mistake: { tag: reversed_term, fix: "Overpricing would be a first-day close below the issue price, the opposite of this." } }
-      - { id: c, text: "A stock split", mistake: { tag: mixed_up_terms, fix: "A stock split divides shares into more shares; it says nothing about a first-day rise." } }
-      - { id: d, text: "A lock-in", mistake: { tag: mixed_up_terms, fix: "A lock-in stops insiders selling for a while; it is not the first-day price move." } }
+      - { id: a, text: "It was set low compared with what buyers were willing to pay, which is called underpricing" }
+      - { id: b, text: "It was set too high, so buyers had to be talked into paying it", mistake: { tag: reversed_term, fix: "A price set too high would show a first-day close below the issue price, the opposite of this." } }
+      - { id: c, text: "The company split each share into more shares", mistake: { tag: mixed_up_terms, fix: "A stock split divides shares into more shares; it says nothing about a first-day rise." } }
+      - { id: d, text: "Insiders were stopped from selling for a while", mistake: { tag: mixed_up_terms, fix: "A lock-in stops insiders selling for a while; it is not the first-day price move." } }
     answer: a
     explanation: >
       The first-day return of an issue priced at $20 that closes at $28 is 28 / 20 - 1 = 40%. Issues that close their first day well above their issue price are said to be underpriced. Dividing the gain by the closing price (8 / 28 = 28.6%) measures it from the wrong base.

@@ -119,12 +119,12 @@ questions:
 
   - id: hr-q-hedge-ratio
     prompt: >
-      What is the minimum-variance hedge ratio meant to do?
+      A jam maker protects herself from fruit-price swings with a futures contract on a similar but different fruit. Her adviser says, "Just match it one-for-one, one contract per unit." A colleague suggests the minimum-variance hedge ratio instead. What is the colleague's method aiming for?
     choices:
-      - { id: a, text: "Pick the size of hedge that leaves the least leftover swing in the hedged position" }
-      - { id: b, text: "Match the hedge one-for-one to the exposure", mistake: { tag: one_for_one, fix: "Hedging one-for-one ignores how the two prices differ in size of swing and in how closely they move." } }
-      - { id: c, text: "Remove the exposure's risk completely", mistake: { tag: removes_all_risk, fix: "A hedge on a different instrument leaves some risk behind; the ratio only makes it as small as possible." } }
-      - { id: d, text: "Make the hedge cost nothing to hold", mistake: { tag: cost_not_risk, fix: "The ratio is about leaving the least risk, not about the cost of the hedge." } }
+      - { id: a, text: "The size of hedge that leaves the least leftover swing in her position" }
+      - { id: b, text: "A hedge matched one-for-one to her exposure", mistake: { tag: one_for_one, fix: "One-for-one ignores how the two prices differ in size of swing and in how closely they move." } }
+      - { id: c, text: "A hedge that removes her risk completely", mistake: { tag: removes_all_risk, fix: "A hedge on a different instrument leaves some risk behind; the ratio only makes it as small as possible." } }
+      - { id: d, text: "A hedge that costs her nothing to hold", mistake: { tag: cost_not_risk, fix: "The ratio is about leaving the least risk, not about the cost of the hedge." } }
     answer: a
     explanation: >
       The hedge ratio h = rho x (sigma of exposure / sigma of hedge) sets the hedge that leaves the least risk. For example 0.9 x (12 / 10) = 1.08: hedging one-for-one (1.0) leaves a little risk unhedged because the exposure is more volatile than the hedge instrument.
