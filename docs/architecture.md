@@ -4621,3 +4621,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A Learner sees a raised blue "Check" button and a flat "In progress" tag. Only the button looks pressable, and only the button has a pointer. A developer who writes `<button>` in a new screen gets a lint error that names the primitives.
 
 **Trade-off.** The 9 Widget files and 12 `src/app` files that still hold raw buttons stay on the allowlist until the A3b sweep (`src/app`) and E2a/E5 (Widgets) migrate them, so for now those screens keep their old flat buttons next to the new raised ones. The `Button` anatomy uses a 3px lip, so a row of buttons needs a little more height than before.
+
+## Story and lingo questions, batch D2g (`course/topics/{ins-risk-transfer,crisis-leverage,fol-uber-2014,fol-twitter-ipo,fol-tesla-2020,fol-roe,fol-sov-ratings}.yaml`, `src/course/l10-allowlist.ts`, spec 2026-11-05, ticket D2g)
+
+**What it does.** Eight Topics (the seven above and `gov-ethics`, which already asked only about the story and the words) no longer ask the Learner for a sum. The 22 questions whose stems said "what is its leverage ratio" or "how much must it reinvest" now ask "which headline gets it right?" or "what does the phrase mean?", and the numbers stay as story facts or choice labels. Every wrong choice carries a Known mistake with a fix of 20 words or fewer. Five of the Topics came off `L10_NOT_YET_STORY`, and `crisis-leverage` came off the formula list as well, because its explanations no longer type a formula. No ids, sources, Cases or `asOf` dates changed.
+
+**Scenario.** A Learner in Crisis and leverage meets a fund with $100 of assets and $4 of its own capital. Before, the question asked "by how much must the assets fall to wipe out its capital?" and a Learner who skipped the sum guessed. Now it asks which description of the danger is right; tapping "debts shrink with the assets" shows "Lenders are owed the same sum whatever the assets are worth."
+
+**Trade-off.** A choice that reads "about $2 billion" still carries a number, so a Learner can pick it by working it out. That is allowed (ADR 0009: numbers may be choice labels), and the wrong choices are the real slips, so a wrong tap teaches. The cost is longer choices to read.

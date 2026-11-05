@@ -59,46 +59,41 @@ youllLearn:
 questions:
   - id: fu-q-revenue-chain
     prompt: >
-      A car-service market is worth $100 billion a year. Suppose a company wins a 10% share of the
-      money customers spend and keeps 20% of every fare as its own revenue. What is its revenue?
+      A car-service market is worth $100 billion a year. Suppose a company wins a 10% share of the money customers spend and keeps 20% of every fare as its own revenue. Which statement about its revenue is right?
     choices:
-      - { id: a, text: "$2 billion" }
-      - { id: b, text: "$10 billion" }
-      - { id: c, text: "$20 billion" }
-      - { id: d, text: "$30 billion" }
+      - { id: a, text: "Revenue is the 20% slice of the company's 10% share: about $2 billion" }
+      - { id: b, text: "Revenue is the whole 10% share of the market: about $10 billion", mistake: { tag: gross_for_revenue, fix: "That is what customers pay in total. Revenue is only the slice the company keeps." } }
+      - { id: c, text: "Revenue is the 20% slice of the whole market: about $20 billion", mistake: { tag: skipped_the_share, fix: "The company wins only 10% of the market first. The 20% slice applies to that share." } }
+      - { id: d, text: "Revenue is the share and the slice added together: about $30 billion", mistake: { tag: added_not_chained, fix: "Share and slice chain: the slice applies to the share. They are not added." } }
     answer: a
     explanation: >
-      Gross receipts are 10% of $100 billion, or $10 billion; the company keeps 20% of that, so its
-      revenue is $2 billion. Gross receipts and revenue are different numbers.
+      Gross receipts are 10% of $100 billion, or $10 billion; the company keeps 20% of that, so its revenue is $2 billion. Gross receipts and revenue are different numbers.
     source: >
       Arithmetic on the market x share x slice chain set out in Damodaran, "Up, Up and Away! A Crowd
       Valuation of Uber!", Musings on Markets, 2 December 2014.
   - id: fu-q-market-growth
     prompt: >
-      A market of $100 billion grows 10.39% a year for ten years. About how big is it at the end?
+      A market of $100 billion grows 10.39% a year for ten years. Which line about its size at the end is right?
     choices:
-      - { id: a, text: "About $204 billion" }
-      - { id: b, text: "About $269 billion" }
-      - { id: c, text: "About $110 billion" }
-      - { id: d, text: "About $1,039 billion" }
-    answer: b
+      - { id: a, text: "About $269 billion, because each year's growth builds on the growth before it" }
+      - { id: b, text: "About $204 billion, from ten equal additions of 10.39% of today's size", mistake: { tag: simple_not_compound, fix: "Adding the same slice ten times misses growth on earlier growth, so it understates." } }
+      - { id: c, text: "About $110 billion, because the market grows once, by about a tenth", mistake: { tag: grew_once, fix: "The market grows every year for ten years, not just once." } }
+      - { id: d, text: "About $1,039 billion, ten times the yearly growth rate", mistake: { tag: rate_times_years, fix: "Ten years of growth does not multiply the size by ten. Each year adds a modest step." } }
+    answer: a
     explanation: >
-      1.1039 to the power 10 is about 2.69, so the market grows to about $269 billion. Simply adding
-      10.39% ten times would give about $204 billion and understates compounding.
+      1.1039 to the power 10 is about 2.69, so the market grows to about $269 billion. Simply adding 10.39% ten times would give about $204 billion and understates compounding.
     source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
   - id: fu-q-reinvestment
     prompt: >
-      A company expects revenue to rise by $5 billion. Each dollar of new capital it invests supports
-      $2.50 of extra revenue (a sales-to-capital ratio of 2.5). How much must it reinvest?
+      A company expects revenue to rise by $5 billion. Each dollar of new capital it invests supports $2.50 of extra revenue (analysts call this a sales-to-capital ratio of 2.5). Which statement about the new capital it must put in is right?
     choices:
-      - { id: a, text: "$12.5 billion" }
-      - { id: b, text: "$2 billion" }
-      - { id: c, text: "$5 billion" }
-      - { id: d, text: "$0.5 billion" }
+      - { id: a, text: "About $12.5 billion, because each dollar of revenue needs $2.50 of capital", mistake: { tag: ratio_upside_down, fix: "It is the other way round: each dollar of capital supports $2.50 of revenue." } }
+      - { id: b, text: "About $2 billion, because each dollar of capital supports $2.50 of revenue, so less capital than revenue is needed" }
+      - { id: c, text: "About $5 billion, one dollar of capital for each dollar of new revenue", mistake: { tag: ratio_of_one, fix: "Here each capital dollar supports $2.50 of revenue, not $1." } }
+      - { id: d, text: "About $0.5 billion, a tenth of the new revenue", mistake: { tag: too_little, fix: "That is far too little: $0.5 billion of capital would support only about $1.25 billion of sales." } }
     answer: b
     explanation: >
-      Reinvestment = change in revenue / sales to capital = 5 / 2.5 = $2 billion. A higher ratio
-      means growth needs less capital, which raises value.
+      Reinvestment = change in revenue / sales to capital = 5 / 2.5 = $2 billion. A higher ratio means growth needs less capital, which raises value.
     source: Sales-to-capital reinvestment, as used in Damodaran's young-company valuations (Musings on Markets, 2014).
   - id: fu-q-why-gap
     prompt: >

@@ -72,92 +72,71 @@ youllLearn:
 questions:
   - id: fr-q-roe-excess
     prompt: >
-      A company has book equity of Rs 400 crore and earns net income of Rs 60 crore. Its cost of
-      equity is 12%. What are its return on equity and its excess return?
+      A company has book equity of Rs 400 crore and earns net income of Rs 60 crore, which is a return on equity of 15%. Investors in businesses of the same risk expect 12%. Analysts call the gap between the two its "excess return". Which reading is right?
     choices:
-      - { id: a, text: "ROE 15%, excess return 3 percentage points" }
-      - { id: b, text: "ROE 12%, excess return 0" }
-      - { id: c, text: "ROE 6.7%, excess return -5.3 percentage points" }
-      - { id: d, text: "ROE 15%, excess return 15 percentage points" }
+      - { id: a, text: "It earns more on its book equity than investors could expect elsewhere, so the business looks like a good one" }
+      - { id: b, text: "It earns less than investors expect, so it is destroying value", mistake: { tag: gap_sign, fix: "The company's 15% is above the 12%, so the gap is in its favour." } }
+      - { id: c, text: "It earns just what investors expect, so its excess return is zero", mistake: { tag: ignored_gap, fix: "The 15% is above the 12%, so the excess return is not zero." } }
+      - { id: d, text: "Its excess return is 15%, the whole of its return on equity", mistake: { tag: excess_is_roe, fix: "Excess return is what is left after taking off the 12% investors expect." } }
     answer: a
     explanation: >
-      ROE = 60 / 400 = 15%. The excess return is ROE minus the cost of equity, 15% - 12% = 3
-      percentage points. The business earns more than the 12% investors could expect from other
-      investments of the same risk.
+      ROE = 60 / 400 = 15%. The excess return is ROE minus the cost of equity, 15% - 12% = 3 percentage points. The business earns more than the 12% investors could expect from other investments of the same risk.
     source: >
       Arithmetic on the definitions in Damodaran, "Return on Equity, Earnings Yield and Market
       Efficiency: Back to Basics!", Musings on Markets, 18 February 2025.
   - id: fr-q-fair-value
     prompt: >
-      A company expects net income of Rs 60 crore every year for ever, with no growth and a cost of
-      equity of 12%. Its book equity is Rs 400 crore. If the market prices it fairly, what is the
-      value of its equity and its price to book ratio?
+      A company expects net income of Rs 60 crore every year for ever, with no growth and a cost of equity of 12%. Its book equity is Rs 400 crore. If the market prices it fairly, which statement about its price against its book value is right?
     choices:
-      - { id: a, text: "Rs 500 crore, price to book 1.25" }
-      - { id: b, text: "Rs 400 crore, price to book 1.00" }
-      - { id: c, text: "Rs 720 crore, price to book 1.80" }
-      - { id: d, text: "Rs 60 crore, price to book 0.15" }
+      - { id: a, text: "The price is above book value, because the business earns more than the 12% investors want (about Rs 500 crore, 1.25 times book)" }
+      - { id: b, text: "The price equals book value, because a fair price is always the money put in", mistake: { tag: price_equals_book, fix: "A fair price depends on what the business earns, not only on what was put in." } }
+      - { id: c, text: "The price is far above book value, about 1.8 times, since income is multiplied by the cost of equity", mistake: { tag: multiplied_by_cost, fix: "Value is income divided by the cost of equity, not multiplied by it." } }
+      - { id: d, text: "The price is far below book value, because one year's income is only Rs 60 crore", mistake: { tag: one_year_only, fix: "The income repeats for ever, so the value counts many years of it." } }
     answer: a
     explanation: >
-      With constant income for ever and no growth, net income equals cash flow, so value = 60 /
-      0.12 = Rs 500 crore. Price to book is 500 / 400 = 1.25. A business earning more than its
-      cost of equity is worth more than the capital put in.
+      With constant income for ever and no growth, net income equals cash flow, so value = 60 / 0.12 = Rs 500 crore. Price to book is 500 / 400 = 1.25. A business earning more than its cost of equity is worth more than the capital put in.
     source: >
       Perpetuity value = income / required return, as applied in Damodaran, "Return on Equity,
       Earnings Yield and Market Efficiency: Back to Basics!", 18 February 2025.
   - id: fr-q-yield
     prompt: >
-      A company has book equity of Rs 800 crore and a market value of equity of Rs 1,600 crore. Its
-      net income is Rs 120 crore. What is its earnings yield?
+      A company has book equity of Rs 800 crore and a market value of equity of Rs 1,600 crore. Its net income is Rs 120 crore. Which headline gets its "earnings yield" right?
     choices:
-      - { id: a, text: "15%" }
-      - { id: b, text: "7.5%" }
-      - { id: c, text: "10%" }
-      - { id: d, text: "2%" }
+      - { id: a, text: "\"15%: net income set against book equity\"", mistake: { tag: roe_for_yield, fix: "That is return on equity, which uses book value. Earnings yield uses market value." } }
+      - { id: b, text: "\"7.5%: net income set against what the market values the equity at\"" }
+      - { id: c, text: "\"10%: net income set against the average of book and market values\"", mistake: { tag: averaged_values, fix: "Earnings yield uses market value alone, not an average of book and market." } }
+      - { id: d, text: "\"About 2%: the gap between book value and market value\"", mistake: { tag: wrong_base, fix: "Earnings yield compares income with price. The gap between book and market is a different matter." } }
     answer: b
     explanation: >
-      The earnings yield divides net income by the market value of equity: 120 / 1,600 = 7.5%. The
-      15% (120 / 800) is the return on equity, which divides by book value. People who use the two
-      names for one number are mixing book and market value.
+      The earnings yield divides net income by the market value of equity: 120 / 1,600 = 7.5%. The 15% (120 / 800) is the return on equity, which divides by book value. People who use the two names for one number are mixing book and market value.
     source: >
       Definitions in Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to
       Basics!", 18 February 2025 (earnings to price ratio, return on equity).
   - id: fr-q-research
     prompt: >
-      A business invests Rs 200 crore up front. Half goes into research and development, which the
-      accountants expense in the first year, and the other half is recorded as equity capital of
-      Rs 100 crore. From the second year the business earns Rs 50 crore of net income a year, and its
-      book equity stays at Rs 100 crore. What return on equity does it report from the second year,
-      and how does that compare with what it earns on the full Rs 200 crore invested?
+      A business invests Rs 200 crore up front. Half goes into research and development (R&D), which the accountants expense in the first year, and the other half is recorded as equity capital of Rs 100 crore. From the second year the business earns Rs 50 crore of net income a year, and its book equity stays at Rs 100 crore. Which reading of its reported return on equity is right?
     choices:
-      - { id: a, text: "Reports 25%, equal to its return on the full Rs 200 crore" }
-      - { id: b, text: "Reports 50%, twice its 25% return on the full Rs 200 crore" }
-      - { id: c, text: "Reports 50%, equal to its return on the full Rs 200 crore" }
-      - { id: d, text: "Reports 100%, four times its return on the full Rs 200 crore" }
+      - { id: a, text: "It reports 25%, equal to its return on the full Rs 200 crore", mistake: { tag: wrong_base, fix: "The reported figure divides by Rs 100 crore of book equity, not the full Rs 200 crore." } }
+      - { id: b, text: "It reports 50%, twice its 25% return on the full Rs 200 crore, because the research never reached book equity" }
+      - { id: c, text: "It reports 50%, equal to its return on the full Rs 200 crore", mistake: { tag: ignored_expensed_rd, fix: "Rs 200 crore went in, so the return on all of it is lower than the reported figure." } }
+      - { id: d, text: "It reports 100%, four times its return on the full Rs 200 crore", mistake: { tag: overcounted, fix: "Income against book equity gives half that. Four times is too many." } }
     answer: b
     explanation: >
-      Reported ROE = 50 / 100 = 50%. The return on all the money invested is 50 / 200 = 25%. Expensing
-      the research leaves it out of book equity, so the accounting return overstates what the
-      owners earn on what they put in.
+      Reported ROE = 50 / 100 = 50%. The return on all the money invested is 50 / 200 = 25%. Expensing the research leaves it out of book equity, so the accounting return overstates what the owners earn on what they put in.
     source: >
       Arithmetic on the accounting-inconsistency example in Damodaran, "Return on Equity, Earnings
       Yield and Market Efficiency: Back to Basics!", 18 February 2025.
   - id: fr-q-mark-to-market
     prompt: >
-      A company earns Rs 30 crore a year for ever, with a cost of equity of 10% and book equity of
-      Rs 500 crore. An accountant restates its assets to their market value, so book equity becomes
-      the value of the business. What is its return on equity afterwards?
+      A company earns Rs 30 crore a year for ever, with a cost of equity of 10% and book equity of Rs 500 crore, a return on equity of 6%. An accountant restates its assets to market value, so book equity becomes the value of the business. What happens to its return on equity?
     choices:
-      - { id: a, text: "6%" }
-      - { id: b, text: "10%" }
-      - { id: c, text: "30%" }
-      - { id: d, text: "5%" }
+      - { id: a, text: "It stays at 6%, the old figure", mistake: { tag: old_book_value, fix: "Book equity changes to the new value, so the return on equity changes too." } }
+      - { id: b, text: "It becomes the cost of equity, 10%, so it no longer separates good businesses from bad ones" }
+      - { id: c, text: "It jumps to 30%, the whole income", mistake: { tag: income_as_return, fix: "Rs 30 crore is income. Return on equity sets it against book equity." } }
+      - { id: d, text: "It halves to 5%, because book value fell", mistake: { tag: wrong_direction, fix: "A lower book equity makes the same income a bigger share, not a smaller one." } }
     answer: b
     explanation: >
-      Market value = 30 / 0.10 = Rs 300 crore. Restated book equity is Rs 300 crore, so ROE = 30 /
-      300 = 10%, the cost of equity. The earlier 6% (30 / 500) is gone. If every firm is marked to
-      market, every firm's return on equity equals its cost of equity, which stops it separating good
-      businesses from bad ones.
+      Market value = 30 / 0.10 = Rs 300 crore. Restated book equity is Rs 300 crore, so ROE = 30 / 300 = 10%, the cost of equity. The earlier 6% (30 / 500) is gone. If every firm is marked to market, every firm's return on equity equals its cost of equity, which stops it separating good businesses from bad ones.
     source: >
       Arithmetic on the fair value accounting example in Damodaran, "Return on Equity, Earnings
       Yield and Market Efficiency: Back to Basics!", 18 February 2025.

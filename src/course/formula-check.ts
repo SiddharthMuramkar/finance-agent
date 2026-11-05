@@ -68,7 +68,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "ins-risk-transfer",
   "real-assets",
   "hist-macro-regimes",
-  "crisis-leverage",
   "fol-uber-2014",
   "fol-twitter-ipo",
   "fol-tesla-2020",

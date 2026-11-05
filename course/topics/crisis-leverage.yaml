@@ -81,26 +81,26 @@ youllLearn:
 questions:
   - id: cl-q-leverage-ratio
     prompt: >
-      A fund has $200 million of assets and $8 million of its own capital; the rest is borrowed. What is its balance-sheet leverage ratio?
+      A fund has $200 million of assets and $8 million of its own capital; the rest is borrowed. Traders would say it is "leveraged 25 to 1". What does that phrase tell you?
     choices:
-      - { id: a, text: "8 to 1" }
-      - { id: b, text: "25 to 1" }
-      - { id: c, text: "24 to 1" }
-      - { id: d, text: "200 to 1" }
-    answer: b
+      - { id: a, text: "It holds $25 of assets for every $1 of its own capital" }
+      - { id: b, text: "It owes $25 of debt for every $1 of its own capital", mistake: { tag: debt_for_assets, fix: "The 25 counts all assets per $1 of capital. Debt per $1 is one less." } }
+      - { id: c, text: "It earns 25 per cent a year on its own capital", mistake: { tag: leverage_is_return, fix: "Leverage describes how much is borrowed, not what the fund earns." } }
+      - { id: d, text: "It can lose 25 per cent of its assets before it fails", mistake: { tag: multiple_is_a_loss, fix: "A 25 to 1 fund fails after a fall of about 4 per cent, not 25." } }
+    answer: a
     explanation: >
-      The ratio is total assets divided by capital: 200 / 8 = 25, or 25 to 1. The fund has $192 million of borrowing, so 24 to 1 is its debt per dollar of capital, not the ratio of assets to capital.
+      Balance-sheet leverage compares total assets with the fund's own capital, here $200 million against $8 million, which traders call 25 to 1. The fund has $192 million of borrowing, so 24 to 1 would be its debt per dollar of capital, not the ratio of assets to capital.
     source: >
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), which states the balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
 
   - id: cl-q-wipeout
     prompt: >
-      A fund has assets of $100 and capital of $4, the rest borrowed. By how much must the value of its assets fall to wipe out all its capital?
+      A fund has assets of $100 and only $4 of its own capital; the rest is borrowed. The price of its assets starts to slide. Which description of its danger is right?
     choices:
-      - { id: a, text: "4 per cent" }
-      - { id: b, text: "25 per cent" }
-      - { id: c, text: "96 per cent" }
-      - { id: d, text: "100 per cent" }
+      - { id: a, text: "Its debts stay the same, so a fall of only about 4 per cent in its assets uses up all of its own capital" }
+      - { id: b, text: "Its debts shrink along with its assets, so the lenders share the loss", mistake: { tag: debts_shrink, fix: "Lenders are owed the same sum whatever the assets are worth. The owner takes losses first." } }
+      - { id: c, text: "It is safe until its assets lose more than half their value, since it started with $100", mistake: { tag: forgot_the_debt, fix: "Only $4 is the fund's own. A fall of $4 on the $100 leaves nothing." } }
+      - { id: d, text: "It loses its capital only if its assets fall by about 96 per cent", mistake: { tag: used_debt_share, fix: "96 is the borrowed part. A fall equal to the $4 of capital already wipes out the owner." } }
     answer: a
     explanation: >
       Debts of $96 stay the same when asset values change. Assets of $96 just cover the debt, so a fall of $4 on $100, or 4 per cent, leaves nothing for the owner.
@@ -109,13 +109,13 @@ questions:
 
   - id: cl-q-gain-and-loss
     prompt: >
-      A fund holds assets 10 times the size of its capital. Its assets rise 3 per cent in a year, and borrowing costs are ignored. What is the change in the fund's capital?
+      A fund holds assets 10 times the size of its own capital, and borrowing costs are ignored. Its assets rise 3 per cent in a year. Which headline gets it right?
     choices:
-      - { id: a, text: "A rise of 3 per cent" }
-      - { id: b, text: "A rise of 30 per cent" }
-      - { id: c, text: "A rise of 10 per cent" }
-      - { id: d, text: "A rise of 0.3 per cent" }
-    answer: b
+      - { id: a, text: "\"Fund's own capital up about 30 per cent: borrowing magnified the gain\"" }
+      - { id: b, text: "\"Fund's own capital up 3 per cent, the same as its assets\"", mistake: { tag: ignored_leverage, fix: "Borrowing means the gain lands on a much smaller base of the fund's own money." } }
+      - { id: c, text: "\"Fund's own capital up 10 per cent, the size of its leverage\"", mistake: { tag: leverage_is_gain, fix: "10 is the multiple, not the gain. The 3 per cent is multiplied by it." } }
+      - { id: d, text: "\"Fund's own capital up a tiny 0.3 per cent: debt dilutes the gain\"", mistake: { tag: leverage_shrinks, fix: "Leverage multiplies a gain on the owner's capital. It does not shrink it." } }
+    answer: a
     explanation: >
       With $10 of assets per $1 of capital, a 3 per cent gain is $0.30 on $1 of capital, or 30 per cent. The same leverage turns a 3 per cent fall into a 30 per cent loss of capital, which is why leverage cuts both ways.
     source: >
@@ -123,12 +123,12 @@ questions:
 
   - id: cl-q-haircut
     prompt: >
-      A fund borrows against a bond worth $100 and the lender allows a haircut of 10 per cent, so it lends $90. Later the lender raises the haircut to 20 per cent on the same bond, still worth $100. How much more cash must the fund find, or how much bond must it sell?
+      A fund borrows against a bond worth $100. The lender allows a haircut of 10 per cent, so it lends $90. Later the lender raises the haircut to 20 per cent on the same bond, still worth $100. What does the fund have to do?
     choices:
-      - { id: a, text: "$10" }
-      - { id: b, text: "$20" }
-      - { id: c, text: "$0, because the bond price has not changed" }
-      - { id: d, text: "$90" }
+      - { id: a, text: "Find more cash or sell some bond, even though the bond's price has not moved" }
+      - { id: b, text: "Nothing, because the bond's price has not changed", mistake: { tag: price_only, fix: "A bigger haircut means a smaller loan on the same bond, so the fund must repay." } }
+      - { id: c, text: "Borrow more, because the lender now lends against a larger share of the bond", mistake: { tag: haircut_backwards, fix: "The haircut is the part the lender will not lend against. Bigger means a smaller loan." } }
+      - { id: d, text: "Repay the whole loan at once, because the lender now distrusts the bond", mistake: { tag: repay_all, fix: "The loan allowed shrinks, so only the gap is called, not the whole loan." } }
     answer: a
     explanation: >
       The loan allowed falls from $90 to $80, so the fund must repay $10 or hand over more collateral even though the bond's price has not moved. A higher haircut means the borrower needs more of its own capital for the same assets, and the usual way to raise it is to sell.

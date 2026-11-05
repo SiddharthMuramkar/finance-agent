@@ -69,65 +69,51 @@ youllLearn:
 questions:
   - id: ft-q-compounding
     prompt: >
-      A company has revenue of $10 billion today and expects it to grow 40% a year for five years.
-      About how large is its revenue at the end of the fifth year?
+      A company has revenue of $10 billion today and expects it to grow 40% a year for five years. Which line about its revenue at the end of the fifth year is right?
     choices:
-      - { id: a, text: "About $30 billion" }
-      - { id: b, text: "About $54 billion" }
-      - { id: c, text: "About $20 billion" }
-      - { id: d, text: "About $100 billion" }
+      - { id: a, text: "About $30 billion, from adding 40% of today's revenue five times", mistake: { tag: simple_not_compound, fix: "Growth also grows: each year's 40% applies to a bigger base, so adding understates." } }
+      - { id: b, text: "About $54 billion, because each year's growth builds on the year before" }
+      - { id: c, text: "About $20 billion, a doubling", mistake: { tag: doubling_only, fix: "Revenue passes double within two years at 40%. Five years take it much higher." } }
+      - { id: d, text: "About $100 billion, ten times today's revenue", mistake: { tag: overshoot, fix: "Ten times needs far faster growth. Five years at 40% gives about five times." } }
     answer: b
     explanation: >
-      1.4 to the power 5 is about 5.38, so revenue grows to about $54 billion. Adding 40% five times
-      would give $30 billion and understates compounding; this is why the post suggests judging the
-      dollar revenue in ten years rather than the growth rate.
+      1.4 to the power 5 is about 5.38, so revenue grows to about $54 billion. Adding 40% five times would give $30 billion and understates compounding; this is why the post suggests judging the dollar revenue in ten years rather than the growth rate.
     source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
   - id: ft-q-reinvestment
     prompt: >
-      A company expects its revenue to rise by $9 billion over the next five years. Each dollar of new
-      investment supports $3 of extra revenue (a sales-to-capital ratio of 3). How much must it
-      invest to grow?
+      A company expects its revenue to rise by $9 billion over the next five years. Each dollar of new investment supports $3 of extra revenue (a sales-to-capital ratio of 3). Which statement about the investment it must make to grow is right?
     choices:
-      - { id: a, text: "$27 billion" }
-      - { id: b, text: "$3 billion" }
-      - { id: c, text: "$9 billion" }
-      - { id: d, text: "$12 billion" }
+      - { id: a, text: "About $27 billion, three dollars of capital for each dollar of new revenue", mistake: { tag: ratio_upside_down, fix: "Each dollar of capital supports $3 of revenue, not the other way round." } }
+      - { id: b, text: "About $3 billion, because each dollar of capital supports $3 of new revenue" }
+      - { id: c, text: "About $9 billion, one dollar of capital for each dollar of new revenue", mistake: { tag: ratio_of_one, fix: "Here one dollar of capital supports $3 of revenue, so less than $9 billion is needed." } }
+      - { id: d, text: "About $12 billion, the revenue gain and the ratio added together", mistake: { tag: added_not_divided, fix: "The ratio says how much revenue each capital dollar supports. It is not added on." } }
     answer: b
     explanation: >
-      Reinvestment = change in revenue / sales to capital = 9 / 3 = $3 billion. A lower ratio, such
-      as the $1.37 the post gives for the median carmaker, would need far more capital for the same
-      growth.
+      Reinvestment = change in revenue / sales to capital = 9 / 3 = $3 billion. A lower ratio, such as the $1.37 the post gives for the median carmaker, would need far more capital for the same growth.
     source: Sales-to-capital reinvestment, as set out in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
   - id: ft-q-failure
     prompt: >
-      A company is worth $400 a share if it survives. If it fails, assets are sold and a share is
-      worth $100. The chance of failure is 10%. What is the probability-weighted value per share?
+      A company is worth $400 a share if it survives. If it fails, assets are sold and a share is worth $100. The chance of failure is 10%. Which statement about a fair single value per share is right?
     choices:
-      - { id: a, text: "$370" }
-      - { id: b, text: "$360" }
-      - { id: c, text: "$390" }
-      - { id: d, text: "$300" }
+      - { id: a, text: "About $370: each outcome counts in proportion to its chance, so a small risk of failure trims the value a little" }
+      - { id: b, text: "About $360: failure is treated as worth nothing", mistake: { tag: failure_worth_nothing, fix: "If it fails a share still fetches $100. That $100 has to be counted." } }
+      - { id: c, text: "About $390: the risk takes off a flat $10", mistake: { tag: wrong_loss_base, fix: "Failure costs 10% of the $300 lost, not 10% of $100." } }
+      - { id: d, text: "About $300: the amount lost if the company fails", mistake: { tag: value_is_the_gap, fix: "$300 is only the loss if it fails. The value still depends on how likely failure is." } }
     answer: a
     explanation: >
-      0.9 x $400 + 0.1 x $100 = $360 + $10 = $370. Adding a chance of failure lowers the value by
-      the probability times the value lost, here 10% x $300 = $30. This is the second part of the
-      risk lever, apart from the cost of capital.
+      0.9 x $400 + 0.1 x $100 = $360 + $10 = $370. Adding a chance of failure lowers the value by the probability times the value lost, here 10% x $300 = $30. This is the second part of the risk lever, apart from the cost of capital.
     source: Expected value of two outcomes; the failure-probability adjustment is the second risk input in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", 6 February 2020.
   - id: ft-q-rd
     prompt: >
-      A company reports operating income of $3 billion after expensing $2 billion of research and
-      development (R&D) in full. Treated as an investment, the R&D would be written off at $1.2
-      billion this year instead. What is its operating income with R&D treated as an investment?
+      A company reports operating income of $3 billion after expensing $2 billion of research and development (R&D) in full. Treated as an investment, only $1.2 billion of that R&D would be written off this year. How does that treatment change the picture of the company?
     choices:
-      - { id: a, text: "$3.8 billion" }
-      - { id: b, text: "$5 billion" }
-      - { id: c, text: "$1.8 billion" }
-      - { id: d, text: "$4.2 billion" }
+      - { id: a, text: "Operating income looks higher, about $3.8 billion, because most of this year's R&D is no longer charged at once" }
+      - { id: b, text: "Operating income looks higher by the whole $2 billion, about $5 billion, because the R&D is ignored", mistake: { tag: ignored_writeoff, fix: "The R&D is written off over time. The $2 billion comes back, then $1.2 billion is charged." } }
+      - { id: c, text: "Operating income looks lower, about $1.8 billion, because the write-off is a new charge", mistake: { tag: subtracted_only, fix: "The full $2 billion expense is added back first, then the smaller write-off is charged." } }
+      - { id: d, text: "Operating income looks higher, about $4.2 billion, because the write-off is added to it", mistake: { tag: writeoff_sign, fix: "A write-off is a charge, so it comes off income. Adding it has the sign backwards." } }
     answer: a
     explanation: >
-      Add back the R&D expense ($2 billion) and subtract the write-off for the year ($1.2 billion):
-      3 + 2 - 1.2 = $3.8 billion. Treating R&D as a capital expense raises operating income when R&D
-      is growing, which is how Damodaran's story improves Tesla's margin.
+      Add back the R&D expense ($2 billion) and subtract the write-off for the year ($1.2 billion): 3 + 2 - 1.2 = $3.8 billion. Treating R&D as a capital expense raises operating income when R&D is growing, which is how Damodaran's story improves Tesla's margin.
     source: R&D capitalisation, as described in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
 
 checks:
