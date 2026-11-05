@@ -733,6 +733,17 @@ describe("the Topic bar", () => {
     expect(text(html)).not.toMatch(/Continue/);
   });
 
+  it("frame is 2fr / 3fr, with the chat column first and the Topic bar in the second child", () => {
+    const html = workspace({ strip });
+    const tag = (testid: string) => html.match(new RegExp(`<[^>]*data-testid="${testid}"[^>]*>`))?.[0] ?? "";
+    expect(tag("workspace-frame")).toContain("grid-cols-[minmax(360px,2fr)_minmax(0,3fr)]");
+    expect(tag("workspace-frame")).toContain("gap-[var(--gap)]");
+    const frame = html.slice(html.indexOf('data-testid="workspace-frame"'));
+    expect(frame.indexOf('data-testid="chat-column"')).toBeGreaterThan(-1);
+    expect(frame.indexOf('data-testid="chat-column"')).toBeLessThan(frame.indexOf('data-testid="above-widgets"'));
+    expect(frame.indexOf('data-testid="topic-bar"')).toBeGreaterThan(frame.indexOf('data-testid="above-widgets"'));
+  });
+
   it("stands in the right column, not the chat column, and the chat column starts with the thread", () => {
     const html = workspace({ strip });
     const frame = html.slice(html.indexOf('data-testid="workspace-frame"'));
