@@ -109,9 +109,9 @@ questions:
 
   - id: wpw-q-pv-rent
     prompt: >
-      A tenant owes a landlord 200 at the end of each of the next three years, 600 on paper. Finance
-      people still say the "present value" of those three payments is lower than 600. What do they
-      mean by present value here?
+      WeWork owed its landlords rent for years ahead, and the S-1 gave the total undiscounted. In
+      small: a tenant owes a landlord 200 at the end of each of the next three years, 600 on paper.
+      Finance people say the "present value" of those payments is lower than 600. What do they mean?
     choices:
       - { id: a, text: "The payments added up as they stand, because money is money in any year", mistake: { tag: ignores-time, fix: "Money due later is worth less than money in hand now, so later payments are discounted." } }
       - { id: b, text: "Each payment shrunk to what it is worth today, the later ones shrunk more" }
@@ -154,10 +154,8 @@ checks:
   - id: wpw-trace-chain
     kind: conversation
     prompt: >
-      Using only what the S-1 showed on 14 August 2019 (half-year revenue of $1.54 billion, a
-      loss of about $905 million, $47.2 billion of undiscounted lease payments, member contracts
-      of about 15 months, and SoftBank's payments into WeWork), draw the chain of who pays whom
-      and say which payment is the weakest link and why. Do not predict what will happen.
+      As the S-1 showed it in August 2019: who pays whom at WeWork, and which link looks
+      weakest?
     passCriteria: >
       The Learner draws the chain correctly: members pay WeWork (revenue), WeWork pays landlords
       (lease payments) and others, and the shortfall is covered by investors, mainly SoftBank,

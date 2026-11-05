@@ -87,7 +87,7 @@ youllLearn:
 questions:
   - id: cd-q-pv-annuity
     prompt: >
-      A company must pay $1 million at the end of each of the next five years, $5 million on paper. An analyst treats these commitments as debt, discounted at the company's pre-tax cost of borrowing, 10%. How does that debt-equivalent compare with the $5 million on paper?
+      Anthropic's filing lists cloud and equipment contracts it must pay for year after year. Shrink that to a small company that must pay $1 million at the end of each of the next five years, $5 million on paper. An analyst counts these payments like a loan and asks what that loan is worth today: its 'debt-equivalent', using the company's 10% borrowing rate. How does the debt-equivalent compare with the $5 million on paper?
     choices:
       - { id: a, text: "It is lower, because each later payment is shrunk to what it is worth today" }
       - { id: b, text: "It is the same, because the payments are fixed and certain", mistake: { tag: ignores-time, fix: "Fixed payments still arrive later, and money later is worth less than money now." } }
@@ -101,7 +101,7 @@ questions:
 
   - id: cd-q-rate
     prompt: >
-      To turn a schedule of fixed commitments into a debt-equivalent, which discount rate does Damodaran's approach use?
+      An analyst wants to treat a list of fixed yearly payments like a loan and say what that loan is worth today (its 'debt-equivalent'). That means shrinking each later payment by a rate, called discounting. Which rate does Damodaran's approach use?
     choices:
       - { id: a, text: "The firm's pre-tax cost of debt" }
       - { id: b, text: "The firm's cost of equity" }
@@ -129,7 +129,7 @@ questions:
 
   - id: cd-q-longer-is-less
     prompt: >
-      Two obligations each total $100 billion in undiscounted payments, paid in equal yearly amounts. One runs for 3 years and the other for 20 years. At the same positive discount rate, which has the lower present value?
+      Some of Anthropic's contracts run a few years and some run up to 20. Picture two of them, each adding up to $100 billion on paper, paid in equal yearly amounts: one over 3 years, the other over 20. Shrinking each payment to its worth today at the same rate gives each one's 'present value'. Which is worth less today?
     choices:
       - { id: a, text: "The 20-year obligation" }
       - { id: b, text: "The 3-year obligation" }
@@ -143,7 +143,7 @@ questions:
 
   - id: cd-q-other-side
     prompt: >
-      An analyst converts a firm's operating lease commitments into debt at their present value. What happens on the other side of the balance sheet?
+      Anthropic leases equipment from Broadcom. An analyst counts a firm's lease payments as debt, at their worth today (their 'present value'). The balance sheet must still balance. What appears on the other side?
     choices:
       - { id: a, text: "An asset of the same value is recognised" }
       - { id: b, text: "Equity falls by the same amount" }
@@ -157,7 +157,7 @@ questions:
 
   - id: cd-q-cancelable
     prompt: >
-      Contract A obliges a company to spend at least $10 billion over eight years whatever it uses. Contract B lets either side cancel on 90 days' notice after the first year, with spending of up to $10 billion. Which is the stronger candidate for a debt-like total, and why?
+      Anthropic's filing mixes contracts it must pay 'regardless of actual usage' with deals worth 'up to' a figure that can be cancelled. In small: Contract A obliges a company to spend at least $10 billion over eight years whatever it uses. Contract B lets either side cancel on 90 days' notice after the first year, with spending of up to $10 billion. Which is the stronger candidate for a debt-like total, and why?
     choices:
       - { id: a, text: "A, because the payments are fixed and cannot be avoided by not using the service" }
       - { id: b, text: "B, because its stated ceiling is the same", mistake: { tag: ceiling-as-commitment, fix: "An up-to ceiling that can be cancelled is an option, not a fixed claim." } }
@@ -186,9 +186,8 @@ checks:
   - id: cd-commitments-explain
     kind: conversation
     prompt: >
-      Looking at the schedule in the filing as of 31 December 2025, say in your own words how a
-      list of fixed yearly payments becomes a debt-like total, and which contract you would
-      leave out of it or keep separate, and why.
+      In your own words: why is a list of fixed yearly payments like a loan, and which contract
+      would you leave out?
     passCriteria: >
       The Learner explains in words that each year's payment is shrunk to what it is worth today,
       or that a stated assumed split of the "thereafter" amount is needed first, so the debt-like

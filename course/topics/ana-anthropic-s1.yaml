@@ -166,9 +166,10 @@ youllLearn:
 questions:
   - id: s1r-q-operating-vs-net
     prompt: >
-      A hypothetical company spends a little more running its business than it earns from customers,
-      and separately books a huge loss from revaluing its investments and pays interest on its debt.
-      Which headline describes its operating result correctly?
+      Writers fought over which loss figure to quote from Anthropic's S-1. Take a made-up company:
+      it spends a little more running its business than it earns from customers, and separately
+      books a huge loss from revaluing its investments and pays interest on its debt. Which
+      headline describes its operating result correctly?
     choices:
       - { id: a, text: "A small operating loss: revenue fell short of operating expenses, and the revaluation and interest sit below that line" }
       - { id: b, text: "An operating loss that includes the interest expense, since interest is a cost of running the business", mistake: { tag: interest-above-line, fix: "Interest is financing and sits below the operating line." } }
@@ -268,9 +269,10 @@ questions:
 
   - id: s1r-q-period
     prompt: >
-      A hypothetical filing gives revenue of $5bn for the first quarter and $12bn for the second.
-      A writer sets an annualised revenue figure beside "quarterly revenue of $12bn" as if the two
-      were the same kind of number. What is the main problem with that comparison?
+      Damodaran and Zitron quoted Anthropic's revenue over different periods. Take a made-up
+      filing with revenue of $5bn in the first quarter and $12bn in the second. A writer sets a
+      yearly-rate ('annualised') figure beside "quarterly revenue of $12bn" as if the two were the
+      same kind of number. What is the main problem with that comparison?
     choices:
       - { id: a, text: "Nothing: a bigger number is simply a bigger business", mistake: { tag: ignores-period, fix: "A yearly rate and one quarter cover different periods, so they are not comparable." } }
       - { id: b, text: "It sets a yearly rate beside a single quarter; both should be put on the same period first" }

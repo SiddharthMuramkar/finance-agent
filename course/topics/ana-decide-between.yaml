@@ -40,8 +40,8 @@ cases:
       diluted shares.
       Your job today is to decide between the two writers' arguments using only what was known on 12
       June 2000, never to guess what happened afterwards. Sort B1 to B5 and G1 to G5 into checkable
-      facts, definitions that need pinning down, forecasts, and framing. Check what you can, using
-      the calculator for the arithmetic. Then say which argument is better supported and what you
+      facts, definitions that need pinning down, forecasts, and framing. Say where each checkable
+      claim could be looked up. Then say which argument is better supported and what you
       still could not know.
     reveal: >
       The Nasdaq Composite closed at 1,114.11 on 9 October 2002 by one count (an intraday low of 1,108.49 is also quoted),
@@ -128,7 +128,7 @@ questions:
 
   - id: adb-q-pe-arithmetic
     prompt: >
-      A share sells for $60. The company earned $0.50 per share over the last four quarters. Traders set the price against those four quarters of earnings and quote one figure. What do they call it?
+      Blodget said Yahoo sold at '340 times earnings'. Take a simpler share: it sells for $60, and the company earned $0.50 a share over the last four quarters. Traders set the price against those past four quarters of earnings and quote it as one 'times earnings' figure. What do they call it?
     choices:
       - { id: a, text: "The dividend yield", mistake: { tag: wrong-ratio, fix: "Dividend yield sets the payout against the price, not the earnings." } }
       - { id: b, text: "The trailing price-to-earnings ratio, or trailing P/E" }
@@ -142,7 +142,7 @@ questions:
 
   - id: adb-q-which-earnings
     prompt: >
-      A share sells for $60. Reported earnings per share were $0.50, but $0.10 of that came from a one-off gain, so a writer quotes 'adjusted' earnings of $0.40. One writer says the stock sells at 120 times earnings and another says 150 times. What explains the difference?
+      Yahoo's April 2000 release gave two earnings figures, one with a one-off gain and one without. Here is the same puzzle in small: a share sells for $60. Reported earnings per share were $0.50, but $0.10 of that came from a one-off gain, so a writer quotes 'adjusted' earnings of $0.40. One writer says the stock sells at 120 times earnings and another says 150 times. What explains the difference?
     choices:
       - { id: a, text: "One of them has made an arithmetic error" }
       - { id: b, text: "They divide the same price by different earnings: reported ($0.50) against adjusted ($0.40)" }
@@ -188,7 +188,7 @@ questions:
     choices:
       - { id: a, text: "They stack: the level falls by more than either change would cause alone" }
       - { id: b, text: "Only the bigger change counts, and the smaller one is lost in it", mistake: { tag: ignores-second-change, fix: "Both changes act on the level, because it is the multiple times earnings." } }
-      - { id: c, text: "They cancel, because a lower multiple makes up for lower earnings", mistake: { tag: cancels, fix: "Both push the level down, so they add to each other and do not offset." } }
+      - { id: c, text: "They cancel, because a lower multiple makes up for lower earnings", mistake: { tag: cancels, fix: "Both push the level down, so each one deepens the other instead of offsetting it." } }
       - { id: d, text: "Only the multiple counts, because earnings are already in the price", mistake: { tag: earnings-priced-in, fix: "The level is multiple times earnings, so lower earnings lower it as well." } }
     answer: a
     explanation: >
@@ -198,7 +198,7 @@ questions:
 
   - id: adb-q-starting-point
     prompt: >
-      A market index is up 40% over the last twelve months and down 20% from its highest level of the last two months. One writer says it is 'still up 40%' and another says it is 'down 20%'. Which best describes how the two writers differ?
+      Blodget told Forbes the Nasdaq was 'still up 40%' over the past year, while it had also slid sharply from its March record. Picture one index that is up 40% on the year and down 20% from its peak two months ago. One writer says 'still up 40%'; another says 'down 20%'. Which best describes how the two writers differ?
     choices:
       - { id: a, text: "One of them is stating something false", mistake: { tag: both-true, fix: "Both figures are true; they just count from different starting dates." } }
       - { id: b, text: "Both are true and they choose different starting points, which is framing" }
@@ -244,9 +244,8 @@ checks:
   - id: adb-writers-sorted
     kind: conversation
     prompt: >
-      Take the Forbes debate as it stood on 12 June 2000. Pick one claim a reader could check,
-      say where you would look, and say which writer is better supported on what was known that
-      day. Do not predict what happened next.
+      On 12 June 2000, which writer looked better supported to you, and which one claim would you
+      check first?
     passCriteria: >
       The Learner picks at least one checkable fact from each writer (for example the Nasdaq's 1999
       rise against its published year-end figures, Yahoo's earnings against its April release, or

@@ -152,10 +152,10 @@ questions:
 
   - id: ana-india-q-cost-of-equity
     prompt: >
-      An Indian company is more sensitive to markets than average (its beta is 1.2), and it carries the extra risk of its country. When investors set the return they demand, which sentence describes how that country risk is treated?
+      Back to the dollar investor eyeing an Indian company in 2013. The company's shares swing more than the market (traders say its 'beta' is 1.2). It also carries the extra risk of doing business in India, which analysts price as a 'country risk premium'. In Damodaran's method, how does the beta treat that country premium?
     choices:
-      - { id: a, text: "It sits inside the bracket, so beta scales it together with the mature-market premium" }
-      - { id: b, text: "It is added once at the end, the same for every company whatever its beta", mistake: { tag: unscaled-premium, fix: "In this method the country premium sits in the bracket and is scaled by beta too." } }
+      - { id: a, text: "Beta scales it up, just as it scales the ordinary reward for owning shares" }
+      - { id: b, text: "It is added once at the end, the same for every company whatever its beta", mistake: { tag: unscaled-premium, fix: "In this method beta scales the country premium too, so a jumpier company carries more of it." } }
       - { id: c, text: "It is left out, because a country's risk shows up in the risk-free rate alone", mistake: { tag: leaves-out-country, fix: "A rupee or dollar risk-free rate does not stand in for country risk." } }
       - { id: d, text: "It lowers the cost of equity, because a riskier country offers higher returns", mistake: { tag: reverses-risk, fix: "More risk means investors ask for a higher return, so the cost of equity goes up." } }
     answer: a
@@ -166,7 +166,7 @@ questions:
 
   - id: ana-india-q-country-premium
     prompt: >
-      A country's dollar bonds carry a default spread of 2%. Its stock market swings more than its government bond does (30% against 20%). One method scales the default spread by that relative swing to get a country equity risk premium. Which statement about the result is right?
+      Investors want extra reward for owning shares in a riskier country. One way to size it starts from the country's dollar bonds, which pay 2% more than safe US bonds (the 'default spread'). The country's shares swing more than those bonds (30% against 20%), so the method scales the 2% by that bigger swing. What does that say about the premium for shares?
     choices:
       - { id: a, text: "It is larger than the 2% spread, because equity is the riskier asset" }
       - { id: b, text: "It equals the 2% spread, because the spread already measures country risk", mistake: { tag: skips-scaling, fix: "The spread is for bonds; equity swings more, so the method scales it up." } }
@@ -180,7 +180,7 @@ questions:
 
   - id: ana-india-q-gross-npa
     prompt: >
-      A bank has Rs 5,000 crore of bad loans out of Rs 80,000 crore lent. Indian banks report this as one figure, bad loans as a share of all loans lent, before any provisions are taken off. What do bankers call it?
+      When Yes Bank reported in February 2020, readers went first to one figure: bad loans as a share of all loans lent, before any money set aside for losses is taken off. Picture a bank with Rs 5,000 crore of bad loans out of Rs 80,000 crore lent. What do bankers call that figure?
     choices:
       - { id: a, text: "The gross NPA ratio" }
       - { id: b, text: "The net NPA ratio", mistake: { tag: gross-vs-net, fix: "Net NPA takes provisions off first; gross NPA does not." } }
@@ -223,9 +223,8 @@ checks:
   - id: ana-india-currency-consistency
     kind: conversation
     prompt: >
-      A dollar-based investor values a company's rupee cash flows. Explain how you would keep the
-      valuation consistent, where country risk enters, and whether the rupee's earlier 17% fall
-      changes the method.
+      Tell the dollar investor in a sentence or two: how does she keep rupees and dollars from
+      getting mixed up?
     passCriteria: >
       The Learner says cash flows and discount rate must be in the same currency, lifts the
       dollar cost of equity for the inflation gap before using it on rupee flows (or values in
