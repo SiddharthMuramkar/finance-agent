@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { CaseDataset } from "@/case-data/case-data";
 import { allById, byId, click, draw, key, redraw, setRange, settle, stubReducedMotion, type Page } from "../wave1/test-kit";
@@ -8,7 +7,7 @@ import { actualSlices, DrawTheLineView, gapLine, horizonMs, SLICES, splitHistory
 import { futurePrice, PriceTagView } from "./price-tag";
 import { moved, RankView, rankProblem, rightPlaces, startOrder } from "./rank";
 import { buyingPower, ShrinkingNoteView } from "./shrinking-note";
-import { answerMatches, looksLikeFormula, parseTyped, StepThroughView } from "./step-through";
+import { looksLikeFormula, StepThroughView } from "./step-through";
 import { coinSize, paymentRows, TimeTravelView } from "./time-travel";
 import { WaterfallView, waterfallBars } from "./waterfall";
 
@@ -239,15 +238,6 @@ describe("StepThrough", () => {
     expect(looksLikeFormula("Rate = 5% a year")).toBe(false);
   });
 
-  it("reads typed answers and accepts them within half a percent", () => {
-    expect(parseTyped("₹12,100")).toBe(12100);
-    expect(parseTyped("12100.5")).toBe(12100.5);
-    expect(parseTyped("about 12100")).toBeNull();
-    expect(answerMatches(12100, 12100)).toBe(true);
-    expect(answerMatches(12150, 12100)).toBe(true);
-    expect(answerMatches(12300, 12100)).toBe(false);
-  });
-
   it("goes Back and Next and lights up the numbers in the step's tone", () => {
     show(<StepThroughView steps={steps} />);
     expect(byId(page!, "step-count")!.textContent).toBe("Step 1 of 3");
@@ -268,40 +258,18 @@ describe("StepThrough", () => {
     expect(byId(page!, "step-through")!.getAttribute("data-step")).toBe("0");
   });
 
-  it("makes a step with ask a faded step: the Learner types the number and code checks it", () => {
+  it("makes a step with ask a faded step: a Show the number button reveals the number, nothing is typed", () => {
     show(<StepThroughView steps={steps} />);
     click(next());
     click(next());
-    const input = page!.host.querySelector<HTMLInputElement>("input")!;
-    const type = (value: string) => {
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
-      act(() => {
-        setter.call(input, value);
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-      });
-    };
-    const check = () => click([...page!.host.querySelectorAll("button")].find((b) => b.textContent === "Check")!);
-    type("12000");
-    check();
-    expect(byId(page!, "step-ask")!.getAttribute("data-status")).toBe("wrong");
-    expect(byId(page!, "step-ask-result")!.textContent).toContain("Not quite");
-    type("₹12,100");
-    check();
-    expect(byId(page!, "step-ask")!.getAttribute("data-status")).toBe("right");
-    expect(byId(page!, "step-ask-result")!.textContent).toBe("Right. It is ₹12,100.");
-  });
-
-  it("can show the answer after a wrong try", () => {
-    show(<StepThroughView steps={steps.slice(2)} />);
-    const input = page!.host.querySelector<HTMLInputElement>("input")!;
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
-    act(() => {
-      setter.call(input, "5");
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    click([...page!.host.querySelectorAll("button")].find((b) => b.textContent === "Check")!);
-    click([...page!.host.querySelectorAll("button")].find((b) => b.textContent === "Show me the answer")!);
+    expect(page!.host.querySelectorAll("input")).toHaveLength(0);
+    expect(page!.host.textContent).not.toContain("Your number");
+    expect(byId(page!, "step-ask")!.getAttribute("data-status")).toBe("idle");
+    expect(byId(page!, "step-ask-result")!.textContent).toBe("");
+    click([...page!.host.querySelectorAll("button")].find((b) => b.textContent === "Show the number")!);
+    expect(byId(page!, "step-ask")!.getAttribute("data-status")).toBe("shown");
     expect(byId(page!, "step-ask-result")!.textContent).toBe("It is ₹12,100.");
+    expect([...page!.host.querySelectorAll("button")].some((b) => b.textContent === "Show the number")).toBe(false);
   });
 
   it("will not show a formula typed in symbols (ADR 0002) and points to the Formula Card", () => {

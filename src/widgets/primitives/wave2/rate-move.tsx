@@ -1,16 +1,17 @@
 "use client";
 
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { z } from "zod/v4";
 import { rateMoveLines } from "@/finance/rate-change";
 import { useChangeFlash, usePrefersReducedMotion } from "../wave1/motion";
-import { markMove, RATE_MOVE_LABELS, RATE_MOVE_MAX, type MoveMark } from "./rate-move-marking";
+import { markReading, moveReadings, RATE_MOVE_LABELS, RATE_MOVE_MAX, type ReadingMark } from "./rate-move-marking";
 
 // RateMove: one rate moving from old to new. A number line draws the move as an arrow, and three worked lines say it
 // in points, in basis points and as a percent of the old rate, all written by the tested rateMoveLines. In practice
-// mode the lines stay hidden until the Learner types the move in basis points and code marks it exactly; only then
-// do the lines show, with sliders for play that move the lines, never the marked question. Rates only: no currency.
+// mode the lines stay hidden until the Learner taps the right reading of the move (the right one, the x10 slip and
+// the percent mix-up, ADR 0009) and code marks the tap; only then do the lines show, with sliders for play that move
+// the lines, never the marked question. Nothing is typed. Rates only: no currency.
 
 export const rateMoveProps = z.object({
   oldRate: z.number().describe("The old rate in percent: a number, or a $variable bound to a Slider"),
@@ -129,65 +130,48 @@ function PlaySlider({ label, value, onChange }: { label: string; value: number; 
   );
 }
 
-type Marked = { mark: MoveMark; typed: string; question: { oldRate: number; newRate: number } };
+type Marked = { mark: ReadingMark; tapped: string; question: { oldRate: number; newRate: number } };
 
 function Practice({ oldRate, newRate }: { oldRate: number; newRate: number }) {
-  const id = useId();
-  const [typed, setTyped] = useState("");
-  const [unread, setUnread] = useState(false);
   const [marked, setMarked] = useState<Marked | null>(null);
   const [play, setPlay] = useState({ oldRate, newRate });
   const question = marked?.question ?? { oldRate, newRate };
-  const check = () => {
-    const mark = markMove(typed, oldRate, newRate);
-    if (mark.status === "unread") {
-      setUnread(true);
-      return;
-    }
-    setMarked({ mark, typed, question: { oldRate, newRate } });
+  const readings = useMemo(() => moveReadings(question.oldRate, question.newRate, `${question.oldRate}>${question.newRate}`), [question.oldRate, question.newRate]);
+  const tap = (id: string) => {
+    if (marked) return;
+    setMarked({ mark: markReading(readings, id), tapped: id, question: { oldRate, newRate } });
     setPlay({ oldRate, newRate });
   };
-  const status = marked?.mark.status ?? (unread ? "unread" : "idle");
+  const status = marked?.mark.status ?? "idle";
   const shown = marked ? play : question;
+  const bp = Math.round((question.newRate - question.oldRate) * 100);
+  const moveBp = `${Math.abs(bp)} bp${bp < 0 ? " (a fall)" : ""}`;
   return (
     <>
       <NumberLine oldRate={shown.oldRate} newRate={shown.newRate} />
       <div data-testid="rate-move-answer" data-status={status} className="mt-2">
-        <label htmlFor={id} className="text-sm font-medium">
-          The rate moves from {rateText(question.oldRate)}% to {rateText(question.newRate)}%. By how many basis points?
-        </label>
-        <div className="mt-1 flex flex-wrap items-center gap-2">
-          <input
-            id={id}
-            inputMode="decimal"
-            value={marked ? marked.typed : typed}
-            disabled={marked !== null}
-            onChange={(e) => {
-              setTyped(e.target.value);
-              setUnread(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && typed.trim()) check();
-            }}
-            aria-invalid={status === "wrong" || status === "unread"}
-            className="min-h-10 w-40 rounded-md border border-[var(--border)] bg-[var(--field)] px-2 text-sm tabular-nums"
-          />
-          {!marked && (
+        <p className="text-sm font-medium">
+          The rate moves from {rateText(question.oldRate)}% to {rateText(question.newRate)}%. Which reading is right?
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Readings of the move">
+          {readings.choices.map((c) => (
             <button
+              key={c.id}
               type="button"
-              onClick={check}
-              disabled={!typed.trim()}
-              className="min-h-10 rounded-md bg-[var(--brand)] px-4 text-sm font-medium text-[var(--brand-ink)] hover:bg-[var(--brand-hover)] disabled:opacity-40"
+              data-testid="rate-move-choice"
+              aria-pressed={marked?.tapped === c.id}
+              disabled={marked !== null}
+              onClick={() => tap(c.id)}
+              className="pressable min-h-10 rounded-md border border-[var(--border)] border-b-[3px] bg-[var(--bg)] px-3 py-1 text-sm font-medium enabled:hover:bg-[var(--hairline)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] disabled:opacity-60 aria-pressed:border-[var(--brand)] aria-pressed:bg-[var(--brand-tint)] aria-pressed:font-semibold aria-pressed:opacity-100 aria-pressed:before:content-['✓_']"
             >
-              Check
+              {c.text}
             </button>
-          )}
+          ))}
         </div>
-        <p role="status" data-testid="rate-move-result" className="mt-1 text-sm">
-          {status === "unread" && "Type the move as a number of basis points, like 20."}
-          {status === "right" && `Right. The move is ${marked!.mark.expected}.`}
-          {status === "wrong" && `Not quite. The move is ${marked!.mark.expected}.`}
-          {status === "wrong" && marked!.mark.inPoints && ` ${marked!.typed.trim()} is the move in points; times 100 gives basis points.`}
+        <p role="status" data-testid="rate-move-result" className="mt-2 text-sm">
+          {status === "right" && `Right. The move is ${moveBp}.`}
+          {status === "wrong" && `Not quite. The move is ${moveBp}.`}
+          {status === "wrong" && marked!.mark.fix && ` ${marked!.mark.fix}`}
         </p>
       </div>
       {marked && (
@@ -223,7 +207,7 @@ export function RateMoveView({ oldRate, newRate, mode }: Props) {
 export const RateMove = defineComponent({
   name: "RateMove",
   description:
-    'One rate moving from old to new, in percent: RateMove(oldRate, newRate, mode?). A number line with an arrow, and three lines code works out: points, basis points, percent of the old rate. mode "practice" hides the lines until the Learner types the move in basis points, which code marks.',
+    'One rate moving from old to new, in percent: RateMove(oldRate, newRate, mode?). A number line with an arrow, and three lines code works out: points, basis points, percent of the old rate. mode "practice" hides the lines until the Learner taps the right reading of the move, which code marks.',
   props: rateMoveProps,
   component: ({ props }: ComponentRenderProps<z.infer<typeof rateMoveProps>>) => (
     <RateMoveView oldRate={typeof props.oldRate === "number" ? props.oldRate : NaN} newRate={typeof props.newRate === "number" ? props.newRate : NaN} mode={props.mode} />

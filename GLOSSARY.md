@@ -220,7 +220,7 @@ A Widget design written in code, such as grow_money or history_case. The Tutor n
 _Avoid_: template, preset Widget
 
 **Rate-move Widget**:
-The one Widget for a rate change, drawn from the rate_move recipe with its own part, RateMove: an arrow on a number line from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the lines stay hidden until the Learner types the move in basis points and code marks it exactly, then the lines follow, with sliders for play.
+The one Widget for a rate change, drawn from the rate_move recipe with its own part, RateMove: an arrow on a number line from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the lines stay hidden until the Learner picks the right reading of the move (three buttons: the right reading, the times-10 slip and the percent mix-up) and code marks the tap, then the lines follow, with sliders for play. Nothing is typed.
 _Avoid_: rate calculator, Illustration
 
 **Free-form Widget**:

@@ -44,19 +44,11 @@ const text = () => (host.textContent ?? "").replace(/\s+/g, " ");
 
 const status = () => host.querySelector('[data-testid="rate-move-answer"]')!.getAttribute("data-status");
 
-function type(value: string) {
-  const input = host.querySelector<HTMLInputElement>('[data-testid="rate-move-answer"] input')!;
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+function tap(name: string) {
   act(() => {
-    setter.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    [...host.querySelectorAll('[data-testid="rate-move-choice"]')].find((b) => b.textContent?.trim() === name)!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   });
 }
-
-const press = (name: string) =>
-  act(() => {
-    [...host.querySelectorAll("button")].find((b) => b.textContent?.trim() === name)!.click();
-  });
 
 describe("the rate_move recipe", () => {
   it("is in the catalog once, in its own set", () => {
@@ -120,50 +112,46 @@ describe("the rate_move recipe", () => {
     expect(text()).toContain("The old rate is 0%, so the percent change has no value");
   });
 
-  it("practice mode hides the worked lines until the Learner types an answer, with nothing to step past it, then marks it and reveals them", async () => {
+  it("practice mode hides the worked lines until the Learner taps a reading, then marks it and reveals them", async () => {
     await draw(show(4, 5, "practice").code);
     expect(text()).not.toContain("could not be drawn");
     expect(host.querySelector('[data-testid="rate-move-arrow"]')).not.toBeNull();
     expect(host.querySelectorAll('[data-testid="rate-move-readout"]')).toHaveLength(0);
     expect(text()).not.toContain("is 100 bp");
     expect(text()).not.toContain("is 25%");
-    expect([...host.querySelectorAll("button")].map((b) => b.textContent?.trim())).toEqual(["Check"]);
-    expect(text()).toContain("By how many basis points?");
+    expect([...host.querySelectorAll("button")].map((b) => b.textContent?.trim()).sort()).toEqual(["Up 1 point, or 100 bps", "Up 1%", "Up 10 bps"]);
+    expect(host.querySelectorAll("input")).toHaveLength(0);
+    expect(text()).toContain("Which reading is right?");
 
-    type("100 bp");
-    press("Check");
+    tap("Up 1 point, or 100 bps");
     expect(status()).toBe("right");
     expect(text()).toContain("5% minus 4% is 1 point");
     expect(text()).toContain("1 point times 100 is 100 bp");
     expect(text()).toContain("1 divided by the old 4%, times 100, is 25%");
   });
 
-  it("practice mode marks a wrong answer as wrong and still reveals the lines", async () => {
+  it("practice mode marks a wrong reading as wrong and still reveals the lines", async () => {
     await draw(show(4, 5, "practice").code);
-    type("10");
-    press("Check");
+    tap("Up 10 bps");
     expect(status()).toBe("wrong");
     expect(text()).toContain("1 point times 100 is 100 bp");
   });
 
-  it("practice mode takes a move of any size and marks it in whole basis points: 250 bp, and one basis point off", async () => {
+  it("practice mode takes a move of any size and marks it in whole basis points: 250 bp, and the x10 slip", async () => {
     expect(widgetProblems(show(2, 4.5, "practice").code)).toEqual([]);
     await draw(show(2, 4.5, "practice").code);
-    type("249");
-    press("Check");
+    tap("Up 25 bps");
     expect(status()).toBe("wrong");
     act(() => root.unmount());
     root = createRoot(host);
     await draw(show(2, 4.5, "practice").code);
-    type("250");
-    press("Check");
+    tap("Up 2.5 points, or 250 bps");
     expect(status()).toBe("right");
   });
 
-  it("practice mode takes the size of a fall, or the fall with its sign", async () => {
+  it("practice mode offers a fall's readings", async () => {
     await draw(show(7.5, 7.2, "practice").code);
-    type("-30");
-    press("Check");
+    tap("Down 0.3 points, or 30 bps");
     expect(status()).toBe("right");
   });
 

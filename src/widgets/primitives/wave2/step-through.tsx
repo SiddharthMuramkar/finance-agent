@@ -1,22 +1,22 @@
 "use client";
 
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
-import { Fragment, useId, useState, type KeyboardEvent, type ReactNode } from "react";
+import { Fragment, useState, type KeyboardEvent, type ReactNode } from "react";
 import { z } from "zod/v4";
 import { formatAmount } from "../wave1/format";
 import { useChangeFlash, usePrefersReducedMotion } from "../wave1/motion";
 import type { Tone } from "../wave1/tones";
 
 // StepThrough: a worked example with Back and Next. The numbers in a step's words light up in teal (yours), amber
-// (sourced) or neutral (worked out). A step with `ask` is a faded step: the Learner types the number and code checks
-// it. Formulas are never typed here (ADR 0002): a step whose words contain one is replaced by a pointer to the
+// (sourced) or neutral (worked out). A step with `ask` is a faded step: the number stays hidden until the Learner
+// taps Show the number (nothing is typed, ADR 0009). Formulas are never typed here (ADR 0002): a step whose words contain one is replaced by a pointer to the
 // Formula Card. Practice only: nothing is marked or saved.
 
 export const stepProps = z.object({
   title: z.string(),
   body: z.string().describe("A few plain words. No formulas with symbols: those are Formula Cards"),
   highlight: z.enum(["you", "src", "neutral"]).optional().describe("Lights up the numbers in the body: you = the Learner's assumption (teal), src = sourced (amber), neutral = worked out"),
-  ask: z.number().optional().describe("Makes this a faded step: the number the Learner types, from a calculator, never typed by hand"),
+  ask: z.number().optional().describe("Makes this a faded step: the number a Show the number button reveals, from a calculator, never typed by hand"),
   askUnit: z.string().optional().describe("The unit of the asked number, as for Stat (inr, percent, years ...)"),
 });
 
@@ -36,18 +36,6 @@ export type StepData = z.infer<typeof stepProps>;
 /** True when text holds a formula in symbols ("PV = FV / (1 + r)^n"): those belong on a Formula Card. */
 export function looksLikeFormula(text: string): boolean {
   return /\b[A-Za-z][A-Za-z_]{0,3}\s*=\s*[^.;\n]*[\/*^×÷]/.test(text) || /[A-Za-z0-9)]\s*\^\s*[A-Za-z(]/.test(text);
-}
-
-/** The typed answer as a number: rupee and dollar signs, commas and spaces are ignored; null when it is not one. */
-export function parseTyped(text: string): number | null {
-  const cleaned = text.replace(/[₹$,\s%]/g, "");
-  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return null;
-  return Number(cleaned);
-}
-
-/** Whether a typed number is the answer, within half a percent (or half a paisa for tiny answers). */
-export function answerMatches(typed: number, answer: number): boolean {
-  return Math.abs(typed - answer) <= Math.max(Math.abs(answer) * 0.005, 0.005);
 }
 
 const NUMBER = /[₹$]?\d[\d,]*(?:\.\d+)?(?:\s?(?:%|lakh|crore|years?|months?|percent))?/g;
@@ -77,10 +65,9 @@ export function lit(body: string, tone: Tone | undefined): ReactNode {
   return parts;
 }
 
-type Asked = { typed: string; status: "idle" | "right" | "wrong" | "shown" };
+type Asked = { status: "idle" | "shown" };
 
 export function StepThroughView({ steps }: { steps: StepData[] }) {
-  const id = useId();
   const reduced = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
   const [asked, setAsked] = useState<Record<number, Asked>>({});
@@ -90,14 +77,10 @@ export function StepThroughView({ steps }: { steps: StepData[] }) {
   const step = steps[at];
   const formula = looksLikeFormula(step.body);
   const hasAsk = typeof step.ask === "number" && Number.isFinite(step.ask);
-  const state = asked[at] ?? { typed: "", status: "idle" as const };
+  const state = asked[at] ?? { status: "idle" as const };
   const unit = step.askUnit ?? "";
   const setState = (next: Asked) => setAsked({ ...asked, [at]: next });
 
-  const check = () => {
-    const typed = parseTyped(state.typed);
-    setState({ ...state, status: typed !== null && answerMatches(typed, step.ask!) ? "right" : "wrong" });
-  };
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).tagName === "INPUT") return;
     if (e.key === "ArrowRight") setIndex(Math.min(steps.length - 1, at + 1));
@@ -123,36 +106,12 @@ export function StepThroughView({ steps }: { steps: StepData[] }) {
         )}
         {hasAsk && (
           <div data-testid="step-ask" data-status={state.status} className="mt-2">
-            <label htmlFor={`${id}-ask`} className="text-sm font-medium">
-              Your number{unit ? ` (${unit === "inr" ? "₹" : unit === "usd" ? "$" : unit})` : ""}
-            </label>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <input
-                id={`${id}-ask`}
-                inputMode="decimal"
-                value={state.typed}
-                disabled={state.status === "right" || state.status === "shown"}
-                onChange={(e) => setState({ typed: e.target.value, status: "idle" })}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && state.status !== "right" && state.typed.trim()) check();
-                }}
-                aria-invalid={state.status === "wrong"}
-                className="min-h-10 w-40 rounded-md border border-[var(--border)] bg-[var(--field)] px-2 text-sm tabular-nums"
-              />
-              {state.status !== "right" && state.status !== "shown" && (
-                <button type="button" onClick={check} disabled={!state.typed.trim()} className={`${button} bg-[var(--brand)] text-[var(--brand-ink)] hover:bg-[var(--brand-hover)]`}>
-                  Check
-                </button>
-              )}
-              {state.status === "wrong" && (
-                <button type="button" onClick={() => setState({ ...state, status: "shown" })} className={`${button} border border-[var(--border)]`}>
-                  Show me the answer
-                </button>
-              )}
-            </div>
+            {state.status === "idle" && (
+              <button type="button" onClick={() => setState({ status: "shown" })} className={`${button} pressable border border-b-[3px] border-[var(--border)]`}>
+                Show the number
+              </button>
+            )}
             <p role="status" data-testid="step-ask-result" className="mt-1 text-sm">
-              {state.status === "right" && `Right. It is ${formatAmount(step.ask!, unit)}.`}
-              {state.status === "wrong" && "Not quite. Try again, or ask to be shown."}
               {state.status === "shown" && `It is ${formatAmount(step.ask!, unit)}.`}
             </p>
           </div>
@@ -182,7 +141,7 @@ function StepThroughBound({ props }: ComponentRenderProps<z.infer<typeof stepThr
 export const StepThrough = defineComponent({
   name: "StepThrough",
   description:
-    "A worked example with Back and Next: StepThrough([Step(title, body, highlight?, ask?, askUnit?)]). highlight lights up the numbers in the body (you = teal, src = amber, neutral). A step with ask is a faded step: the Learner types the number, code checks it; ask must come from a calculator. No formulas in symbols in a body: use a FormulaCard.",
+    "A worked example with Back and Next: StepThrough([Step(title, body, highlight?, ask?, askUnit?)]). highlight lights up the numbers in the body (you = teal, src = amber, neutral). A step with ask is a faded step: a Show the number button reveals the number; ask must come from a calculator. No formulas in symbols in a body: use a FormulaCard.",
   props: stepThroughProps,
   component: StepThroughBound,
 });

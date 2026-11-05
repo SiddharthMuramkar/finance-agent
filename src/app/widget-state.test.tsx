@@ -94,15 +94,14 @@ async function click(button: HTMLElement) {
   await act(async () => button.click());
 }
 
-/** Types an exact value into the slider's number box and presses Enter, as a Learner does. */
+/** Moves the rate slider's range to an exact value, as a Learner does. */
 async function setRate(value: number) {
-  const box = card().querySelector<HTMLInputElement>('input[type="number"][aria-label="Interest rate, exact value"]')!;
+  const box = card().querySelector<HTMLInputElement>('input[type="range"][aria-label="Interest rate"]')!;
   await act(async () => {
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
     setter.call(box, String(value));
     box.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await act(async () => box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
 }
 
 async function afterSaving() {
@@ -141,7 +140,7 @@ describe("a Widget in the Study Workspace with saved Widget state", () => {
     ].join("\n");
     await open([{ role: "assistant", text: fence(loan) }], { Loan: { values: { $amount: 5050000 }, ticked: [] } });
     await afterSaving();
-    expect(card().querySelector<HTMLInputElement>('input[type="number"][aria-label="Loan amount, exact value"]')!.value).toBe("5050000");
+    expect(card().querySelector<HTMLInputElement>('input[type="range"][aria-label="Loan amount"]')!.value).toBe("5050000");
     expect(posts).not.toContainEqual(expect.objectContaining({ values: { $amount: 5100000 } }));
   });
 
