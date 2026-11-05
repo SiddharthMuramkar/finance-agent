@@ -69,57 +69,81 @@ youllLearn:
 questions:
   - id: ra-q-rent-value
     prompt: >
-      A building brings in net rent of Rs 6,00,000 a year, and buyers of similar buildings require a yield of 5 per cent on the price. What price does this simple rent-based method give?
+      A building brings in net rent of Rs 6,00,000 a year, and buyers of similar buildings want a yield of 5 per cent on the price. Which description fits the simple rent-based method of pricing it?
     choices:
-      - { id: a, text: "Rs 30,00,000" }
-      - { id: b, text: "Rs 1.2 crore" }
-      - { id: c, text: "Rs 1.5 crore" }
-      - { id: d, text: "Rs 12 lakh" }
+      - id: a
+        text: "The price is the rent times the yield, so a higher yield means a higher price"
+        mistake: { fix: "A higher required yield means buyers pay less for the same rent." }
+      - { id: b, text: "The price is the rent divided by the yield, treating the rent as a payment that goes on for ever, about Rs 1.2 crore" }
+      - id: c
+        text: "The price is the rent times five years, whatever the yield"
+        mistake: { fix: "The yield sets the multiple. Five years is not a rule." }
+      - id: d
+        text: "The price is the rent alone, since the yield only describes the buyer's mood"
+        mistake: { fix: "The required yield is what turns a rent into a price." }
     answer: b
     explanation: >
-      Price = net rent / required yield = Rs 6,00,000 / 0.05 = Rs 1,20,00,000, which is Rs 1.2 crore. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate.
+      Price = net rent / required yield = Rs 6,00,000 / 0.05 = Rs 1.2 crore. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate.
     source: >
       Arithmetic from the stated figures, using the present-value principle that an asset's value is the present value of its expected cash flows; Damodaran, valuation introduction slides: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
 
   - id: ra-q-yield-falls
     prompt: >
-      A flat rents out for Rs 3,00,000 a year while its price is Rs 50 lakh, a rent yield of 6 per cent. The price rises by half to Rs 75 lakh and the rent stays the same. What is the rent yield now?
+      A flat rents out for Rs 3,00,000 a year at a price of Rs 50 lakh, a rent yield of 6 per cent. The price then rises by half to Rs 75 lakh while the rent stays the same. What happens to the rent yield?
     choices:
-      - { id: a, text: "9 per cent" }
-      - { id: b, text: "6 per cent" }
-      - { id: c, text: "4 per cent" }
-      - { id: d, text: "3 per cent" }
+      - id: a
+        text: "It rises, since the flat is now worth more"
+        mistake: { fix: "The rent is unchanged but the price is higher, so each rupee paid earns less rent." }
+      - id: b
+        text: "It stays the same, since the rent has not changed"
+        mistake: { fix: "Yield compares rent with price. A higher price lowers it." }
+      - { id: c, text: "It falls, so the buyer leans more on the price rising than on the rent" }
+      - id: d
+        text: "It falls to nothing, since rent does not count"
+        mistake: { fix: "Rent still counts. The yield falls but does not vanish." }
     answer: c
     explanation: >
-      Yield = Rs 3,00,000 / Rs 75,00,000 = 0.04, or 4 per cent. With the rent unchanged, a higher price means a lower yield; a buyer at the new price is relying more on the price rising than on the rent.
+      With the rent unchanged, a higher price means a lower yield, here 4 per cent. A buyer at the new price is relying more on the price rising than on the rent.
     source: >
       Arithmetic from the stated figures; yield as rent divided by price, as in the rent-based valuation in Damodaran, valuation introduction slides: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
 
   - id: ra-q-leverage-ratio
     prompt: >
-      A buyer puts down 4 per cent of a house's price and borrows the other 96 per cent. For every rupee of their own money, how many rupees of house do they control?
+      A buyer puts down 4 per cent of a house's price and borrows the other 96 per cent. Traders have a word for controlling a big asset with a small deposit. Which description fits?
     choices:
-      - { id: a, text: "Rs 4" }
-      - { id: b, text: "Rs 25" }
-      - { id: c, text: "Rs 96" }
-      - { id: d, text: "Rs 100" }
+      - id: a
+        text: "Unleveraged: the buyer controls only what the deposit pays for"
+        mistake: { fix: "Borrowing 96 per cent is leverage. The buyer controls the whole house." }
+      - { id: b, text: "Leveraged about 25 to 1: each rupee of the buyer's own money controls about Rs 25 of house" }
+      - id: c
+        text: "Hedged: the loan protects the buyer when prices fall"
+        mistake: { fix: "Borrowing does not protect. It magnifies gains and losses." }
+      - id: d
+        text: "Diversified: the buyer's money is spread over many houses"
+        mistake: { fix: "One house is one bet. Leverage is about borrowed money, not many assets." }
     answer: b
     explanation: >
-      The house is 100 for every 4 of the buyer's own money: 100 / 4 = 25, so 25 to 1. In his Yale lecture Shiller gives the same sum for three per cent down, 100 / 3, about 33 to 1.
+      The house is 100 for every 4 of the buyer's own money, so about 25 to 1. In his Yale lecture Shiller gives the same picture for three per cent down, about 33 to 1.
     source: >
       Yale ECON 251 (Shiller), Lecture 1, Why Finance? (a hundred-dollar house with three dollars down is leveraged 30:1 or 33:1): https://oyc.yale.edu/economics/econ-251/lecture-1
 
   - id: ra-q-leverage-gain
     prompt: >
-      You buy a flat for Rs 1 crore with Rs 5 lakh of your own money and a Rs 95 lakh loan. A year later it is worth Rs 1.1 crore. Ignoring rent, interest and costs, what is your return on your own Rs 5 lakh?
+      You buy a flat for Rs 1 crore with Rs 5 lakh of your own money and a Rs 95 lakh loan. A year later it is worth Rs 1.1 crore. Ignoring rent, interest and costs, which headline describes what happened to your own Rs 5 lakh?
     choices:
-      - { id: a, text: "10 per cent" }
-      - { id: b, text: "100 per cent" }
-      - { id: c, text: "200 per cent" }
-      - { id: d, text: "20 per cent" }
+      - id: a
+        text: "It grew 10 per cent, the same as the flat's price"
+        mistake: { fix: "10 per cent is the flat's rise. Your own money is only a small slice of the flat." }
+      - id: b
+        text: "It doubled, a 100 per cent gain"
+        mistake: { fix: "The Rs 10 lakh gain is twice your Rs 5 lakh, so it more than doubled." }
+      - { id: c, text: "It tripled, a 200 per cent gain: leverage multiplied the flat's 10 per cent rise" }
+      - id: d
+        text: "It grew 20 per cent, because the loan shares the profit"
+        mistake: { fix: "The lender is repaid Rs 95 lakh. The whole price rise stays with you." }
     answer: c
     explanation: >
-      The price rose Rs 10 lakh, all of which belongs to you after repaying the Rs 95 lakh loan. Rs 10 lakh on Rs 5 lakh of your own money is 200 per cent. Leverage multiplies a loss in the same way.
+      The price rose Rs 10 lakh, all of which belongs to you after repaying the Rs 95 lakh loan. That is 200 per cent on your Rs 5 lakh. Leverage multiplies a loss in the same way.
     source: >
       Arithmetic from the stated figures; the multiplying effect of leverage is the point of Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
 

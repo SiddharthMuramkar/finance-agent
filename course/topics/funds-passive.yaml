@@ -72,15 +72,21 @@ youllLearn:
 questions:
   - id: fp-q-nav
     prompt: >
-      A mutual fund has assets of Rs 520 crore and liabilities of Rs 20 crore. It has 10 crore units outstanding. What is its NAV per unit?
+      A mutual fund has assets of Rs 520 crore and liabilities of Rs 20 crore, shared among 10 crore units. How do you describe the NAV per unit?
     choices:
-      - { id: a, text: "Rs 52" }
-      - { id: b, text: "Rs 50" }
-      - { id: c, text: "Rs 5" }
-      - { id: d, text: "Rs 54" }
+      - id: a
+        text: "It is the value of the assets alone, shared among the units"
+        mistake: { fix: "The liabilities must come off first, because the fund owes them." }
+      - { id: b, text: "It is the assets less the liabilities, shared among the units" }
+      - id: c
+        text: "It is the liabilities shared among the units"
+        mistake: { fix: "The liabilities are what the fund owes. NAV is what is left for unit-holders." }
+      - id: d
+        text: "It is the assets plus the liabilities, shared among the units"
+        mistake: { fix: "Liabilities are owed, so they are taken away, never added." }
     answer: b
     explanation: >
-      NAV per unit is (assets minus liabilities) divided by units: (520 - 20) / 10 = Rs 50. Rs 52 forgets to deduct the liabilities.
+      NAV per unit is what is left after the fund pays what it owes, shared among the units. Here that is about Rs 50, since 500 crore is left for 10 crore units.
     source: >
       Investor.gov (US SEC), Updated Investor Bulletin: Exchange-Traded Funds (NAV per share is the value of all assets minus all liabilities, divided by the number of shares): https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24
 
@@ -114,43 +120,61 @@ questions:
 
   - id: fp-q-fund-of-funds
     prompt: >
-      An investor owns a fund of funds. Each underlying hedge fund charges 2% of assets a year, and the fund of funds charges another 1% a year. Ignoring any performance fee, what do the fixed fees take from each Rs 100 invested, per year?
+      An investor owns a fund of funds. Each hedge fund inside it charges a yearly fee, and the fund of funds charges another on top. Ignoring any performance fee, how do these fixed fees behave?
     choices:
-      - { id: a, text: "Rs 1" }
-      - { id: b, text: "Rs 2" }
-      - { id: c, text: "Rs 3" }
-      - { id: d, text: "Rs 20" }
+      - id: a
+        text: "Only the outer fund's fee counts, because the inner funds are hidden"
+        mistake: { fix: "The inner funds' fees come out of the same assets, so the investor bears them too." }
+      - id: b
+        text: "Only the inner funds' fees count, because the outer fund just picks them"
+        mistake: { fix: "The outer fund charges its own fee on top of the inner ones." }
+      - { id: c, text: "The two layers of fees stack up, and they are paid every year whether or not the funds make money" }
+      - id: d
+        text: "They are paid only in years when the funds make a profit"
+        mistake: { fix: "Fixed fees are taken from assets every year. Only performance fees depend on profit." }
     answer: c
     explanation: >
-      The two layers of fixed fees add: 2% + 1% = 3%, or Rs 3 for each Rs 100, every year, whether or not the funds make money.
+      The two layers of fixed fees stack: a 2% fee inside and a 1% fee outside take about 3% of the assets every year, whether or not the funds make money.
     source: >
       Arithmetic from the stated figures (two layers of fees, as described in the Long Bets terms and Berkshire's 2017 letter): https://www.berkshirehathaway.com/letters/2017ltr.pdf
 
   - id: fp-q-compounding-cost
     prompt: >
-      Rs 1,00,000 is invested for 20 years. In one fund it grows at 7.9% a year after costs; in another at 6.5% a year after costs. About how much more does the first investor have at the end?
+      Rs 1,00,000 is invested for 20 years. One fund grows at 7.9% a year after costs and another at 6.5% a year after costs. Which headline about the difference is fair?
     choices:
-      - { id: a, text: "About Rs 28,000, which is 1.4% for each of 20 years" }
-      - { id: b, text: "About Rs 1,05,000" }
-      - { id: c, text: "About Rs 1,40,000" }
-      - { id: d, text: "About Rs 2,10,000" }
+      - id: a
+        text: "The first investor ends up with only a little more, because the gap is just 1.4% a year"
+        mistake: { fix: "A small yearly gap compounds over 20 years into a large difference." }
+      - { id: b, text: "The first investor ends up with about Rs 1,05,000 more, far above 1.4% a year added up, because the gap compounds" }
+      - id: c
+        text: "The first investor ends up with about double the second"
+        mistake: { fix: "The first ends up well ahead but not double. Compare the two final amounts." }
+      - id: d
+        text: "The two end up the same, because both funds charge costs"
+        mistake: { fix: "Both funds charge costs, but the lower-cost fund compounds faster and ends well ahead." }
     answer: b
     explanation: >
-      At 7.9%, Rs 1,00,000 grows to 1,00,000 x 1.079^20, about Rs 4,57,500. At 6.5% it grows to 1,00,000 x 1.065^20, about Rs 3,52,400. The gap is about Rs 1,05,000, far more than 1.4% x 20 because the difference compounds.
+      At 7.9% the money grows to about Rs 4,57,500 and at 6.5% to about Rs 3,52,400. The gap, about Rs 1,05,000, is far more than 1.4% a year over 20 years because it compounds.
     source: >
       Compound growth: OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance-2e/pages/7-3-methods-for-solving-time-value-of-money-problems
 
   - id: fp-q-zero-return
     prompt: >
-      A zero-coupon bond pays Rs 5,00,000 in ten years and costs Rs 3,18,250 today. About what annual return does a buyer who holds it to maturity earn?
+      A zero-coupon bond pays Rs 5,00,000 in ten years and costs Rs 3,18,250 today. It pays no interest in between. How should a buyer who holds it to maturity think of the return?
     choices:
-      - { id: a, text: "About 3.1%" }
-      - { id: b, text: "About 4.6%" }
-      - { id: c, text: "About 5.7%" }
-      - { id: d, text: "About 57%" }
+      - id: a
+        text: "It earns nothing, because a zero-coupon bond pays no interest"
+        mistake: { fix: "The return comes from buying at a discount and getting the full face value back." }
+      - { id: b, text: "It earns a modest yearly return, found by compounding the discount over the ten years" }
+      - id: c
+        text: "It earns the whole gain divided by ten, a simple average each year"
+        mistake: { fix: "Dividing the gain by ten ignores compounding and overstates the yearly return." }
+      - id: d
+        text: "It earns the whole gain in one go, so the yearly return is the total gain"
+        mistake: { fix: "The total gain is spread over ten years. The yearly return is much smaller." }
     answer: b
     explanation: >
-      The price grows by 5,00,000 / 3,18,250 = 1.571 over ten years, so the annual return is 1.571^(1/10) - 1, about 4.6%. The total gain is 57%; dividing it by ten gives 5.7%, which ignores compounding.
+      The price grows by about 1.57 times over ten years, a yearly return of about 4.6%. The total gain is 57%, but dividing it by ten gives 5.7%, which ignores compounding.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance-2e/pages/7-3-methods-for-solving-time-value-of-money-problems
 

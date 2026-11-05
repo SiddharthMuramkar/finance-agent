@@ -56,43 +56,61 @@ youllLearn:
 questions:
   - id: wc-q-calc
     prompt: >
-      A firm has equity worth $600 million at market value and debt worth $400 million. The cost of equity is 12%, the pre-tax cost of debt 6% and the tax rate 25%. What is its WACC?
+      A firm is funded 60% by equity and 40% by debt at market values. Equity costs 12%, debt costs 6% before tax and the tax rate is 25%. Which description of its WACC is right?
     choices:
-      - { id: a, text: "9.0%" }
-      - { id: b, text: "9.6%" }
-      - { id: c, text: "8.4%" }
-      - { id: d, text: "10.2%" }
+      - { id: a, text: "A weighted blend of the two costs, with the debt cost taken after tax, so it lands between 6% and 12%" }
+      - id: b
+        text: "A weighted blend with the debt cost before tax, so the tax rate does not matter"
+        mistake: { fix: "Interest is tax-deductible, so the debt cost enters after tax." }
+      - id: c
+        text: "The plain middle of 12% and 6%, since the weights do not matter"
+        mistake: { fix: "The weights matter: the bigger piece of funding pulls the blend toward its cost." }
+      - id: d
+        text: "The cost of equity alone, because owners come first"
+        mistake: { fix: "WACC blends all funding, debt as well as equity." }
     answer: a
     explanation: >
-      WACC = 0.6 x 12% + 0.4 x 6% x (1 - 0.25) = 7.2% + 1.8% = 9.0%. Ignoring the tax shield would give 9.6%.
+      WACC blends the costs by the market-value weights, with debt after tax: 0.6 x 12% + 0.4 x 6% x 0.75 = 9.0%. Ignoring the tax shield would give 9.6%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.3 Calculating the Weighted Average Cost of Capital: https://openstax.org/books/principles-finance-2e/pages/17-3-calculating-the-weighted-average-cost-of-capital
 
   - id: wc-q-capm
     prompt: >
-      The risk-free rate is 4%, the equity risk premium is 5% and a stock's beta is 1.5. What cost of equity does the CAPM give?
+      The risk-free rate is 4%, the equity risk premium is 5% and a stock's beta is 1.5. How does the CAPM build the cost of equity?
     choices:
-      - { id: a, text: "11.5%" }
-      - { id: b, text: "7.5%" }
-      - { id: c, text: "9.0%" }
-      - { id: d, text: "13.0%" }
+      - { id: a, text: "It starts from the risk-free rate and adds the premium, scaled up by the beta of 1.5 because the stock is riskier than the market" }
+      - id: b
+        text: "It starts from the risk-free rate and adds the premium once, ignoring the beta"
+        mistake: { fix: "Beta scales the premium. A beta above 1 means more risk, so a larger premium." }
+      - id: c
+        text: "It averages the risk-free rate and the premium"
+        mistake: { fix: "The premium is added on top of the risk-free rate, not averaged with it." }
+      - id: d
+        text: "It multiplies the risk-free rate by the beta and drops the premium"
+        mistake: { fix: "The premium is the reward for market risk. Beta scales that premium, not the risk-free rate." }
     answer: a
     explanation: >
-      Re = 4% + 1.5 x 5% = 11.5%.
+      The CAPM builds the cost of equity as the risk-free rate plus beta times the premium: 4% + 1.5 x 5% = 11.5%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
 
   - id: wc-q-tax-shield
     prompt: >
-      A firm pays 8% interest on its debt and its tax rate is 25%. What is its after-tax cost of debt?
+      A firm pays 8% interest on its debt and its tax rate is 25%. Interest is tax-deductible. What do finance people call the cost of that debt once the tax saving is counted, and how does it compare with 8%?
     choices:
-      - { id: a, text: "6%" }
-      - { id: b, text: "8%" }
-      - { id: c, text: "10.7%" }
-      - { id: d, text: "2%" }
+      - { id: a, text: "The after-tax cost of debt, and it is lower than 8% because the tax bill shrinks" }
+      - id: b
+        text: "The after-tax cost of debt, and it stays at 8% because tax ignores interest"
+        mistake: { fix: "Interest is deductible, so the tax bill falls and the real cost drops below 8%." }
+      - id: c
+        text: "The after-tax cost of debt, and it is higher than 8% because the firm also pays tax"
+        mistake: { fix: "Tax is not added to interest. Deducting interest saves tax, which lowers the cost." }
+      - id: d
+        text: "The cost of equity, and it is lower than 8%"
+        mistake: { fix: "Cost of equity is what shareholders expect. Lenders are paid the cost of debt." }
     answer: a
     explanation: >
-      Interest is deductible, so the tax bill falls by 25% of the interest. The cost after tax is 8% x (1 - 0.25) = 6%.
+      Interest is deductible, so the tax bill falls by a quarter of the interest. This tax shield leaves the after-tax cost of debt at about 6%, below the 8% the lender charges.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
 

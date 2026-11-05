@@ -65,15 +65,21 @@ youllLearn:
 questions:
   - id: cb-q-npv-calc
     prompt: >
-      A project costs $900 today and pays $1,210 in two years. The discount rate is 10% a year. What is its net present value?
+      A project costs $900 today and pays $1,210 in two years. At a 10% yearly discount rate, that $1,210 is worth $1,000 today. What do finance people call the $100 left over after the cost, and what should the firm do?
     choices:
-      - { id: a, text: "$100" }
-      - { id: b, text: "$310" }
-      - { id: c, text: "-$100" }
-      - { id: d, text: "$0" }
+      - { id: a, text: "Net present value of $100: positive, so accept" }
+      - id: b
+        text: "Net present value of $310: the plain profit, so accept"
+        mistake: { fix: "$310 is the plain profit. Net present value uses the later $1,210 at its smaller worth today." }
+      - id: c
+        text: "Net present value of -$100: negative, so reject"
+        mistake: { fix: "The sign is flipped. Worth $1,000 today for a $900 cost leaves a gain." }
+      - id: d
+        text: "Net present value of $0: the firm is indifferent"
+        mistake: { fix: "Net present value is zero only when worth today equals the cost. Here it is higher." }
     answer: a
     explanation: >
-      The present value of $1,210 in two years is 1,210 / 1.10^2 = 1,000. Subtracting the cost of $900 gives an NPV of $100. Accept, because it is positive.
+      The $1,210 arriving in two years is worth $1,000 today. Set against the $900 cost, that leaves a net present value of $100. Accept, because it is positive.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 16.2 Net Present Value (NPV) Method: https://openstax.org/books/principles-finance-2e/pages/16-2-net-present-value-npv-method
 

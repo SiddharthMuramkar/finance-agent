@@ -75,29 +75,41 @@ youllLearn:
 questions:
   - id: vm-q-apply
     prompt: >
-      Listed companies in a business trade at 2.0 times revenue. A private company in the same business, with similar growth, margins and risk, has revenue of $150 million. What equity value does the relative method suggest?
+      Listed companies in a business trade at 2.0 times revenue. A private company in the same business, with similar growth, margins and risk, has revenue of $150 million. How does the relative method value it, and what must hold for that to be fair?
     choices:
-      - { id: a, text: "$75 million" }
-      - { id: b, text: "$150 million" }
-      - { id: c, text: "$300 million" }
-      - { id: d, text: "$600 million" }
+      - id: a
+        text: "About half its revenue, because a multiple below 1 means a discount"
+        mistake: { fix: "A multiple of 2.0 means two times revenue, not half." }
+      - id: b
+        text: "About its revenue, because the multiple only describes the listed companies"
+        mistake: { fix: "The multiple borrowed from comparables is applied to the private company's revenue." }
+      - { id: c, text: "About twice its revenue, and only if the comparables truly resemble the company" }
+      - id: d
+        text: "About four times its revenue, to allow for being private"
+        mistake: { fix: "Being private usually calls for a discount. The method uses the same multiple." }
     answer: c
     explanation: >
-      Value = multiple x measure = 2.0 x $150 million = $300 million. The method only works if the comparables really resemble the company being valued.
+      Value = multiple x measure, here 2.0 x $150 million = $300 million. The method only works if the comparables really resemble the company being valued.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 11.1 Multiple Approaches to Stock Valuation: https://openstax.org/books/principles-finance/pages/11-1-multiple-approaches-to-stock-valuation
 
   - id: vm-q-annualised
     prompt: >
-      A company is valued at $6,000 million. Its revenue last year was $300 million, and in the first half of this year it was $200 million. What is the value as a multiple of last year's revenue, and as a multiple of this year's first-half revenue doubled?
+      A company is valued at $6,000 million. Its revenue last year was $300 million, and in the first half of this year it was $200 million. Analysts compare the value with revenue two ways. Which statement gets it right?
     choices:
-      - { id: a, text: "20 times, and 15 times" }
-      - { id: b, text: "20 times, and 30 times" }
-      - { id: c, text: "15 times, and 20 times" }
-      - { id: d, text: "20 times, and 10 times" }
+      - { id: a, text: "Double the half-year revenue to match a full year. The multiple on that is lower than on last year's revenue, so say which revenue you used" }
+      - id: b
+        text: "Use the half-year revenue as it is. That makes the multiple look higher, but it is still fair"
+        mistake: { fix: "Half a year of revenue is not comparable with a full year. Annualise it first." }
+      - id: c
+        text: "Always use last year's revenue, because newer figures are unreliable"
+        mistake: { fix: "For a fast-growing firm last year's revenue is stale and makes the multiple look inflated." }
+      - id: d
+        text: "The multiple is the same either way, so no need to say which revenue"
+        mistake: { fix: "Different revenue gives different multiples: 20 times on last year, 15 on this year's pace." }
     answer: a
     explanation: >
-      6,000 / 300 = 20 times last year's revenue. First-half revenue doubled is $400 million, and 6,000 / 400 = 15 times. For a fast-growing company the multiple looks smaller on the newer revenue, so always say which revenue a multiple uses.
+      On last year's revenue the multiple is 20 times. First-half revenue doubled is $400 million, which gives 15 times. For a fast-growing company the multiple looks smaller on the newer revenue, so always say which revenue a multiple uses.
     source: >
       Damodaran, Relative Valuation (Investment Valuation, chapter on multiples; Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/multiples.pdf
 

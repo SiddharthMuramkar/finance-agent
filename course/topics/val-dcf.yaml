@@ -64,43 +64,61 @@ youllLearn:
 questions:
   - id: dcf-q-pv
     prompt: >
-      A project is expected to produce free cash flows of $110 in year 1 and $121 in year 2. What is their combined present value at a 10% discount rate?
+      A project will produce $110 in year 1 and $121 in year 2. At a 10% discount rate, finance people give the worth of those two payments today a name. Which name, and why is it smaller than the plain total of $231?
     choices:
-      - { id: a, text: "$200" }
-      - { id: b, text: "$231" }
-      - { id: c, text: "$210" }
-      - { id: d, text: "$190.91" }
+      - { id: a, text: "Present value: later money is worth less today, so each payment is shrunk back" }
+      - id: b
+        text: "Future value: each payment is grown forward with interest"
+        mistake: { fix: "Future value looks forward. Here later cash is brought back to today." }
+      - id: c
+        text: "Terminal value: the worth of all cash flows beyond the forecast"
+        mistake: { fix: "Terminal value covers years after the forecast. These two years sit inside it." }
+      - id: d
+        text: "Book value: what the accounts record for the project"
+        mistake: { fix: "Book value is an accounting record, not discounted future cash." }
     answer: a
     explanation: >
-      110 / 1.10 = 100 and 121 / 1.10^2 = 100, so the total is $200.
+      Each payment is worth $100 today, so together they are worth $200, less than the plain total of $231. This is their present value.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
   - id: dcf-q-terminal
     prompt: >
-      After the explicit forecast, free cash flow in year 11 is expected to be $50 and to grow at 3% a year forever. The discount rate is 10%. What is the terminal value at the end of year 10?
+      After the forecast years, free cash flow is expected to keep growing at 3% a year forever, and the discount rate is 10%. What do analysts call the single lump that stands in for all those later years, and what drives its size?
     choices:
-      - { id: a, text: "$714" }
-      - { id: b, text: "$500" }
-      - { id: c, text: "$1,667" }
-      - { id: d, text: "$385" }
+      - { id: a, text: "Terminal value: the narrower the gap between discount rate and growth, the bigger it is" }
+      - id: b
+        text: "Terminal value: the wider the gap between discount rate and growth, the bigger it is"
+        mistake: { fix: "A wider gap shrinks it. A narrower gap makes the lump balloon." }
+      - id: c
+        text: "Salvage value: what the assets would fetch if sold at the end"
+        mistake: { fix: "Salvage value assumes a sale. Terminal value assumes the business carries on." }
+      - id: d
+        text: "Present value of year 1 only: later years are ignored"
+        mistake: { fix: "Later years are not ignored. Terminal value packs them into one lump." }
     answer: a
     explanation: >
-      TV = FCFF(11) / (r - g) = 50 / (0.10 - 0.03) = 714.3. It is then discounted back to today with the year-10 discount factor.
+      The year-11 cash flow of $50 over a 7-point gap between the 10% rate and 3% growth is about $714. That lump is then discounted back to today.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), Ch. 11 Summary (growing-perpetuity valuation, the same formula): https://openstax.org/books/principles-finance-2e/pages/11-summary
 
   - id: dcf-q-bridge
     prompt: >
-      A DCF gives the value of a firm's operations as 1,000. It has debt of 300 and cash of 50. What is the value of its equity?
+      A DCF gives the value of a firm's operations as 1,000. The firm owes lenders 300 and holds 50 in cash. Which story tells how that becomes the value to its shareholders?
     choices:
-      - { id: a, text: "750" }
-      - { id: b, text: "1,250" }
-      - { id: c, text: "650" }
-      - { id: d, text: "1,000" }
+      - { id: a, text: "Add the cash and take away the debt: lenders are paid first and spare cash belongs to owners" }
+      - id: b
+        text: "Add the debt and take away the cash"
+        mistake: { fix: "Debt is owed to lenders, so it comes off. Cash goes on." }
+      - id: c
+        text: "Take away both the debt and the cash"
+        mistake: { fix: "Cash belongs to the owners, so it is added, not removed." }
+      - id: d
+        text: "Keep the 1,000 as it is: operations are all that matter"
+        mistake: { fix: "Owners get what is left after lenders, so debt and cash change the answer." }
     answer: a
     explanation: >
-      Equity = operating value + cash - debt = 1,000 + 50 - 300 = 750.
+      Equity = operating value + cash - debt. Here that leaves 750 for the shareholders.
     source: >
       CFA Institute, refresher readings on equity valuation: https://www.cfainstitute.org/insights/professional-learning/refresher-readings ; the bridge is by definition.
 
@@ -149,13 +167,15 @@ checks:
   - id: dcf-amazon-explain
     kind: conversation
     prompt: >
-      Using the inputs given for Amazon, set out the steps of a discounted cash flow valuation from
-      free cash flow to a value per share. Say which two assumptions you think matter most and what
-      you would do to test them before comparing the result with the $84 price.
+      Using the inputs given for Amazon, say in your own words how a discounted cash flow valuation
+      gets from the cash the business makes to a value for each share. Which two assumptions would
+      you pick as the ones that matter most, and how would you test them before comparing the result
+      with the $84 price?
     passCriteria: >
-      The Learner gives the steps: discount each year's free cash flow to the firm at the cost of
-      capital, add a terminal value using stable growth, add cash and subtract debt, subtract the
-      value of options, and divide by shares. They name key assumptions (long-run operating margin,
-      growth rate, terminal growth or cost of capital) and propose sensitivity tests with different
-      values. They treat the gap with the price as a question to explain, not as proof that the
-      price is wrong.
+      The Learner tells the story in their own words: later free cash flows are brought back to
+      today at the cost of capital, a terminal value stands in for the years after the forecast, the
+      firm's cash and debt move the value from the whole business to its owners, the options are
+      allowed for, and the total is spread over the shares. They name key assumptions (long-run
+      operating margin, growth rate, terminal growth or cost of capital) and propose sensitivity
+      tests with different values. They treat the gap with the price as a question to explain, not
+      as proof that the price is wrong.

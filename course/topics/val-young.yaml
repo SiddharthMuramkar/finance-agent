@@ -79,12 +79,18 @@ youllLearn:
 questions:
   - id: vy-q-revenue-path
     prompt: >
-      A start-up believes its market will be $200 billion in ten years and that it can win 5 percent of it. What yearly revenue does that story imply once it reaches that share?
+      A start-up believes its market will be $200 billion in ten years and that it can win 5 percent of it. Which two parts of the story set the revenue it expects, and what size of revenue do they point to?
     choices:
-      - { id: a, text: "$1 billion" }
-      - { id: b, text: "$10 billion" }
-      - { id: c, text: "$100 billion" }
-      - { id: d, text: "$200 billion" }
+      - id: a
+        text: "The market's size and the firm's share of it, pointing to about $1 billion a year"
+        mistake: { fix: "The share is 5 percent of $200 billion, which is far more than $1 billion." }
+      - { id: b, text: "The market's size and the firm's share of it, pointing to about $10 billion a year" }
+      - id: c
+        text: "The market's size alone, pointing to about $100 billion a year"
+        mistake: { fix: "The firm wins only a share of the market, not all of it." }
+      - id: d
+        text: "The firm's share alone, pointing to about $200 billion a year"
+        mistake: { fix: "The share is applied to the market's size to give revenue." }
     answer: b
     explanation: >
       Revenue = market size x share = $200 billion x 0.05 = $10 billion. In a young-company valuation, the market-size and market-share choices set the revenue path.
@@ -93,12 +99,18 @@ questions:
 
   - id: vy-q-margin
     prompt: >
-      That firm expects revenue of $10 billion and a long-run operating margin of 20 percent. What operating income does the story imply, before tax?
+      That firm expects revenue of $10 billion and a long-run operating margin of 20 percent. What part of the story does the margin tell, and what does it say about the firm's profit before tax?
     choices:
-      - { id: a, text: "$0.2 billion" }
-      - { id: b, text: "$2 billion" }
-      - { id: c, text: "$8 billion" }
-      - { id: d, text: "$20 billion" }
+      - id: a
+        text: "It tells how big the market is, so revenue is a fifth of the market"
+        mistake: { fix: "Market size sets revenue. The margin says how much of the revenue is kept as profit." }
+      - { id: b, text: "It tells how profitable the business becomes once mature, so about a fifth of revenue becomes operating profit" }
+      - id: c
+        text: "It tells the chance of survival, so a fifth of the firms fail"
+        mistake: { fix: "Survival is a separate part of the story. Margin is about profitability." }
+      - id: d
+        text: "It tells the tax rate, so a fifth of profit goes to tax"
+        mistake: { fix: "Margin is before tax, so the tax rate is a separate input." }
     answer: b
     explanation: >
       Operating income = revenue x operating margin = $10 billion x 0.20 = $2 billion. Margin is the part of the story about how profitable the business becomes when it matures.
@@ -107,15 +119,21 @@ questions:
 
   - id: vy-q-survival
     prompt: >
-      A discounted cash flow valuation says a young firm is worth $500 million if it survives and $20 million if it fails. You judge the chance of survival at 40 percent. What is its expected value?
+      A discounted cash flow valuation says a young firm is worth $500 million if it survives and $20 million if it fails. You judge the chance of survival at 40 percent. Which headline about its value is fair?
     choices:
-      - { id: a, text: "$212 million" }
-      - { id: b, text: "$260 million" }
-      - { id: c, text: "$500 million" }
-      - { id: d, text: "$20 million" }
+      - { id: a, text: "Weigh both outcomes by their chances: the fair value sits far below $500 million" }
+      - id: b
+        text: "It is worth $500 million, because DCF shows the firm at its best"
+        mistake: { fix: "A value that assumes survival overstates a firm that may fail." }
+      - id: c
+        text: "It is worth $20 million, because failure is the safest guess"
+        mistake: { fix: "Ignoring the survival case understates it. Both outcomes count, by their chances." }
+      - id: d
+        text: "It is worth halfway between, whatever the chances"
+        mistake: { fix: "Halfway ignores your odds. The likelier outcome pulls the value toward itself." }
     answer: a
     explanation: >
-      Expected value = 0.40 x 500 + 0.60 x 20 = 200 + 12 = $212 million. A value that assumes survival overstates a firm that may not survive.
+      Weighing 40 percent on $500 million and 60 percent on $20 million gives about $212 million. A value that assumes survival overstates a firm that may not survive.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), on survival and failure: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
