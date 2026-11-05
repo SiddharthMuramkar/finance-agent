@@ -3,10 +3,10 @@ import { say, seed } from "./support/app";
 
 test.describe("the test bed", () => {
   test("the fixture Learner signs in, studies and gets a scripted reply", async ({ page }) => {
+    await seed(page, "story");
     const db = await page.request.get("/api/dev-e2e");
     expect(await db.json()).toEqual({ db: "pglite" });
 
-    await seed(page, "story");
     await page.goto("/study");
     await expect(page.locator('[data-testid="topic-bar"]')).toBeVisible();
 

@@ -16,6 +16,8 @@ export async function signIn(page: Page) {
 
 /** Starts the tools Learner over and builds the named state on the fresh Learner; this browser is signed in as it. */
 export async function seed(page: Page, state: State) {
+  // An earlier test's seed started the tools Learner over, which signs the saved cookie out: sign in as the active one.
+  await signIn(page);
   const response = await page.request.post("/api/dev-e2e", { data: { state } });
   expect(response.status(), `seed("${state}"): ${await response.text()}`).toBe(200);
   return (await response.json()) as { state: State; learnerId: number };
