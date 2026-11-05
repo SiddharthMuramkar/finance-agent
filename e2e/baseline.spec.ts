@@ -11,7 +11,11 @@ import { measureLayout } from "./support/measure";
 const columns = (page: Page) =>
   page.locator('[data-testid="workspace-frame"] > *').evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().width)));
 
-const near = (actual: number | null, expected: number) => expect(actual).toBeGreaterThanOrEqual(expected - 2) && expect(actual).toBeLessThanOrEqual(expected + 2);
+/** Within 2 px of the spec's figure. */
+function near(actual: number | null | undefined, expected: number) {
+  expect(actual).toBeGreaterThanOrEqual(expected - 2);
+  expect(actual).toBeLessThanOrEqual(expected + 2);
+}
 
 test.describe("today's numbers, measured", () => {
   test("side gutters and columns at mbp14 on /study and /course", async ({ page }, info) => {
