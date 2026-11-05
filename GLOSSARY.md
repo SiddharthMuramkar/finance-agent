@@ -73,7 +73,7 @@ A Topic whose file lists Skills, and with them a Concept card for each Check, Qu
 _Avoid_: New-style Topic, carded Topic
 
 **Lesson lint**:
-The course check's rules for a Converted Topic's teaching: a Check tests only Skills a card at or before it teaches (L1), enough Quick tries and questions (L2), short cards (L3), valid Widget presets (L4), the Topic's currency (L5), no negative stems (L6), Check questions whose numbers differ from the worked examples (L7), every Quick try on a Skill its own Check tests (L8) and template draws that never repeat a fixed question or Quick try of the same Check (L9).
+The course check's rules for a Converted Topic's teaching: a Check tests only Skills a card at or before it teaches (L1), enough Quick tries and questions (L2), short cards (L3), valid Widget presets (L4), the Topic's currency (L5), no negative stems (L6), Check questions whose numbers differ from the worked examples (L7), every Quick try on a Skill its own Check tests (L8), template draws that never repeat a fixed question or Quick try of the same Check (L9), and, for every Topic, emoji names that all exist in the emoji registry (L11).
 _Avoid_: Content lint, card check
 
 **Widget preset**:

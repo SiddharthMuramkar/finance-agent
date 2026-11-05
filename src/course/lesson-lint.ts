@@ -3,12 +3,13 @@ import { markAnswer } from "../teaching/mark.ts";
 import { drawTemplate, templateProblems } from "../teaching/templates.ts";
 import { isBankId, isConverted, testedSkills, type QuickTry, type Topic, type WidgetPreset } from "./map.ts";
 import { presetValueProblems } from "./written-ahead-check.ts";
+import { isEmojiName } from "../emoji/registry.ts";
 
 // The lesson lint (spec #229, ADR 0006): the course check's rules for the teaching a converted Topic's file holds.
 // L1 a Check tests only what a card at or before it teaches; L2 enough Quick tries and questions; L3 short cards;
 // L4 valid Widget presets; L5 the Topic's currency; L6 no negative stems; L7 Check questions move apart from the
 // worked examples; L8 every Quick try's Skill is one its own Check tests; L9 template draws move apart from the fixed
-// questions and Quick tries of the same Check; Draws: every template draws and marks its own answer right, and fixed
+// questions and Quick tries of the same Check; L11 every emoji name in a Topic file is in the emoji registry; Draws: every template draws and marks its own answer right, and fixed
 // tries are sound.
 // Pure, with no "@/" imports, so `scripts/check-course.mjs` runs it under plain Node.
 
@@ -154,6 +155,7 @@ export function lessonLintErrors(topics: Topic[], opts?: { notYet?: readonly str
     if (!listed && !isConverted(t)) errors.push(`List: Topic "${t.id}" has no Skills, so it must be on LESSON_NOT_YET_CONVERTED (the list only shrinks: convert the Topic instead)`);
     if (!listed && isConverted(t)) errors.push(...topicLint(t, presetOk));
     else errors.push(...ruleFor(t, lintL6)); // L6 alone covers a Topic that is not converted (topicLint already ran it for a converted one)
+    errors.push(...ruleFor(t, lintL11)); // L11 covers every Topic, converted or not
   }
   return errors;
 }
@@ -486,5 +488,30 @@ function lintDraws(t: Topic, add: Add) {
         if (m.answer === q.answer || markAnswer(q, String(m.answer)).verdict === "right") add("Draws", `${at} has a Known mistake ${m.answer} that equals its answer`);
       }
     }
+  }
+}
+
+/** Every value of an `emoji` key anywhere inside `value` (a scene's cast and beats, a term, the Running example's scene). */
+function emojiNamesIn(value: unknown, out: string[]): string[] {
+  if (Array.isArray(value)) for (const v of value) emojiNamesIn(v, out);
+  else if (value && typeof value === "object") {
+    for (const [key, v] of Object.entries(value)) {
+      if (key === "emoji" && typeof v === "string") out.push(v);
+      else emojiNamesIn(v, out);
+    }
+  }
+  return out;
+}
+
+/** The emoji names a Topic file uses: `scenes:`, `terms[].emoji` and `runningExample.scene`. */
+export function topicEmojiNames(t: Topic): string[] {
+  const loose = t as unknown as { scenes?: unknown; terms?: unknown; runningExample?: { scene?: unknown } };
+  return [...new Set([...emojiNamesIn(loose.scenes, []), ...emojiNamesIn(loose.terms, []), ...emojiNamesIn(loose.runningExample?.scene, [])])];
+}
+
+/** L11: every emoji name in the Topic file exists in src/emoji/registry.ts. */
+function lintL11(t: Topic, add: Add) {
+  for (const name of topicEmojiNames(t)) {
+    if (!isEmojiName(name)) add("L11", `emoji "${name}" is not in src/emoji/registry.ts`);
   }
 }

@@ -51,4 +51,12 @@ describe("the Settings page", () => {
     expect(html).not.toContain("Yes, start over");
     expect(html).not.toContain('action="/api/start-over"');
   });
+
+  it("credits Fluent Emoji at the foot of the page, under Start over (E1)", () => {
+    const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} />);
+    const t = text(html);
+    expect(t).toContain("Emoji artwork: Fluent Emoji by Microsoft, MIT License,");
+    expect(html).toContain('href="https://github.com/microsoft/fluentui-emoji"');
+    expect(t.indexOf("Emoji artwork")).toBeGreaterThan(t.indexOf("Start over as a new learner"));
+  });
 });
