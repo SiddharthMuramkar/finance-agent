@@ -110,21 +110,21 @@ questions:
 
   - id: vb-q-leverage
     prompt: >
-      A bank has assets of Rs 100,000 crore, funded by only Rs 8,000 crore of equity, with the rest deposits and borrowings. Bad loans cost it 5 percent of its assets. What does that do to the owners' equity?
+      A bank holds huge assets but funds them with only a thin layer of owners' equity, the rest being deposits and borrowings. Bad loans then cost it a small slice of its assets. What does that do to the owners' equity?
     choices:
       - id: a
-        text: "It trims 5 percent from the equity, the same as from the assets"
+        text: "It trims the equity by the same small slice as the assets"
         mistake: { fix: "Equity is a small cushion under big assets, so the same loss hits it much harder." }
       - id: b
-        text: "It trims 8 percent from the equity, matching the equity share"
-        mistake: { fix: "The equity share does not set the loss. The loss falls on the equity cushion alone." }
-      - { id: c, text: "It wipes out most of the equity, because a small loss on assets is a large one on a thin cushion" }
-      - id: d
-        text: "It trims about 12 percent from the equity, since depositors share the loss"
+        text: "It does not touch the equity, because depositors share the loss"
         mistake: { fix: "Depositors are paid first, so the owners' equity takes the hit alone." }
+      - { id: c, text: "It can wipe out most of the equity, because a small loss on assets is a large one on a thin cushion" }
+      - id: d
+        text: "It only matters if the bank pays a dividend"
+        mistake: { fix: "A loss reduces equity whether or not a dividend is paid." }
     answer: c
     explanation: >
-      The loss is 5 percent of Rs 100,000 crore, Rs 5,000 crore, against equity of Rs 8,000 crore. High leverage turns a small loss on assets into a large loss of equity: about 62 percent.
+      High leverage turns a small loss on assets into a large loss of equity. For example, a loss of 5 percent of Rs 100,000 crore of assets is Rs 5,000 crore, against equity of Rs 8,000 crore: about 62 percent of the cushion gone.
     source: >
       Damodaran, Valuing Financial Service Firms (Library), on regulatory capital and equity as a cushion: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/finfirm.pdf
 

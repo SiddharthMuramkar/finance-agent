@@ -82,21 +82,21 @@ questions:
 
   - id: cs-q-roe
     prompt: >
-      A firm earns 10 a year on assets of 100. It funds 40 of them with debt at 6% interest and the rest with its owners' money. The assets earn more than the debt costs. What happens to the owners' return, and what is this called?
+      A firm borrows part of the money for its assets. The assets earn more than the interest on the debt costs. What happens to the owners' return, and what is this called?
     choices:
-      - { id: a, text: "It rises above 10%: leverage is working in the owners' favour" }
+      - { id: a, text: "It rises above what the assets earn: leverage is working in the owners' favour" }
       - id: b
-        text: "It stays at 10%: borrowing changes nothing for owners"
-        mistake: { fix: "The assets earn 10% but the debt costs 6%, so the gap goes to the owners." }
+        text: "It stays the same: borrowing changes nothing for owners"
+        mistake: { fix: "The assets earn more than the debt costs, so the gap goes to the owners." }
       - id: c
-        text: "It falls below 10%: interest eats into the owners' return"
-        mistake: { fix: "Interest is only 6% while the assets earn 10%, so owners keep the gap." }
+        text: "It falls: interest eats into the owners' return"
+        mistake: { fix: "Interest is less than the assets earn, so owners keep the gap." }
       - id: d
-        text: "It becomes 6%: owners earn the lender's rate"
+        text: "It becomes the lender's rate: owners earn what the lender earns"
         mistake: { fix: "Owners keep what the assets earn after interest, not the lender's rate." }
     answer: a
     explanation: >
-      Interest takes only 2.4 of the 10 earned, so the owners keep 7.6 on their 60, about 12.7%. Borrowing at less than the assets earn lifts the owners' return, and would lower it if the assets earned less than 6%.
+      Borrowing at less than the assets earn lifts the owners' return, and would lower it if the assets earned less than the interest. For example, assets earning 10 on 100, with 40 borrowed at 6%, leave owners 7.6 on their 60, about 12.7%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.1 The Concept of Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-1-the-concept-of-capital-structure
 

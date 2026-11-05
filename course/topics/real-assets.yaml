@@ -69,21 +69,21 @@ youllLearn:
 questions:
   - id: ra-q-rent-value
     prompt: >
-      A building brings in net rent of Rs 6,00,000 a year, and buyers of similar buildings want a yield of 5 per cent on the price. Which description fits the simple rent-based method of pricing it?
+      A building brings in steady rent every year, and buyers of similar buildings want a certain yield on the price. How does the simple rent-based method turn that rent into a price?
     choices:
       - id: a
-        text: "The price is the rent times the yield, so a higher yield means a higher price"
+        text: "Price is rent times the yield, so a higher yield means a higher price"
         mistake: { fix: "A higher required yield means buyers pay less for the same rent." }
-      - { id: b, text: "The price is the rent divided by the yield, treating the rent as a payment that goes on for ever, about Rs 1.2 crore" }
+      - { id: b, text: "Price is rent divided by the yield, treating the rent as a payment that goes on for ever" }
       - id: c
-        text: "The price is the rent times five years, whatever the yield"
+        text: "Price is the rent times five years, whatever the yield"
         mistake: { fix: "The yield sets the multiple. Five years is not a rule." }
       - id: d
-        text: "The price is the rent alone, since the yield only describes the buyer's mood"
+        text: "Price is the rent alone, since the yield only describes the buyer's mood"
         mistake: { fix: "The required yield is what turns a rent into a price." }
     answer: b
     explanation: >
-      Price = net rent / required yield = Rs 6,00,000 / 0.05 = Rs 1.2 crore. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate.
+      Price = net rent / required yield. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate. For example, Rs 6,00,000 of rent at a 5 per cent yield gives about Rs 1.2 crore.
     source: >
       Arithmetic from the stated figures, using the present-value principle that an asset's value is the present value of its expected cash flows; Damodaran, valuation introduction slides: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
 
@@ -129,37 +129,43 @@ questions:
 
   - id: ra-q-leverage-gain
     prompt: >
-      You buy a flat for Rs 1 crore with Rs 5 lakh of your own money and a Rs 95 lakh loan. A year later it is worth Rs 1.1 crore. Ignoring rent, interest and costs, which headline describes what happened to your own Rs 5 lakh?
+      You buy a flat mostly with a bank loan, putting in only a small slice of your own money. The flat's price rises a little. What happens to the return on your own money?
     choices:
       - id: a
-        text: "It grew 10 per cent, the same as the flat's price"
-        mistake: { fix: "10 per cent is the flat's rise. Your own money is only a small slice of the flat." }
-      - id: b
-        text: "It doubled, a 100 per cent gain"
-        mistake: { fix: "The Rs 10 lakh gain is twice your Rs 5 lakh, so it more than doubled." }
-      - { id: c, text: "It tripled, a 200 per cent gain: leverage multiplied the flat's 10 per cent rise" }
+        text: "It rises by the same small percentage as the flat's price"
+        mistake: { fix: "Your own money is only a small slice of the flat, so the same rise is a bigger share of it." }
+      - { id: b, text: "It rises by many times the flat's percentage: leverage multiplies the gain" }
+      - id: c
+        text: "It does not rise, because the lender takes the profit"
+        mistake: { fix: "The lender is repaid the loan and interest. The whole price rise stays with you." }
       - id: d
-        text: "It grew 20 per cent, because the loan shares the profit"
-        mistake: { fix: "The lender is repaid Rs 95 lakh. The whole price rise stays with you." }
-    answer: c
+        text: "It rises less than the flat's percentage, because the loan shares the profit"
+        mistake: { fix: "The loan is a fixed amount owed. It does not share the gain." }
+    answer: b
     explanation: >
-      The price rose Rs 10 lakh, all of which belongs to you after repaying the Rs 95 lakh loan. That is 200 per cent on your Rs 5 lakh. Leverage multiplies a loss in the same way.
+      The whole price rise belongs to you after the loan is repaid, but it is earned on only your small slice. So the return on your own money is a multiple of the flat's rise. Leverage multiplies a loss in the same way.
     source: >
-      Arithmetic from the stated figures; the multiplying effect of leverage is the point of Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
+      The multiplying effect of leverage is the point of Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
 
   - id: ra-q-leverage-loss
     prompt: >
-      You buy a flat for Rs 1 crore with Rs 5 lakh of your own money and a Rs 95 lakh loan. The flat later sells for Rs 90 lakh. Ignoring rent, interest and costs, and after repaying the loan out of the sale, what is left of your Rs 5 lakh?
+      You buy a flat mostly with a bank loan, putting in only a small slice of your own money. The flat's price then falls by more than your slice is worth. What happens to your own money?
     choices:
-      - { id: a, text: "Rs 4.5 lakh: you lose 10 per cent" }
-      - { id: b, text: "Rs 0, and you still owe Rs 5 lakh to the lender" }
-      - { id: c, text: "Rs 0, and the loan is fully repaid" }
-      - { id: d, text: "Rs 5 lakh, because the loan was fixed" }
+      - id: a
+        text: "You lose a little, in line with the flat's small fall"
+        mistake: { fix: "Your slice is small, so a small fall in the flat can wipe out all of it." }
+      - { id: b, text: "It is wiped out, and a debt can remain: leverage multiplies a loss as it does a gain" }
+      - id: c
+        text: "It is safe, because the loan was fixed in advance"
+        mistake: { fix: "The loan is fixed, but that is why the fall lands entirely on your slice." }
+      - id: d
+        text: "The lender takes the whole loss"
+        mistake: { fix: "You lose first. The lender is exposed only if the fall is bigger than your slice." }
     answer: b
     explanation: >
-      The sale brings Rs 90 lakh but the loan is Rs 95 lakh. Your Rs 5 lakh is gone and a Rs 5 lakh shortfall remains. A fall of 10 per cent in the price took away 100 per cent of the deposit, and the lender is exposed to the shortfall.
+      The loan stays the same size whatever the flat sells for. A fall in the price bigger than your small slice wipes out your money and may leave a shortfall, which is the lender's risk. A fall of 10 per cent can take away 100 per cent of a 5 per cent deposit.
     source: >
-      Arithmetic from the stated figures; leverage as in Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
+      Leverage as in Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
 
   - id: ra-q-gold-valuation
     prompt: >

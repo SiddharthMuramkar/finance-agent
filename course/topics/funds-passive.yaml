@@ -106,15 +106,22 @@ questions:
 
   - id: fp-q-sharpe
     prompt: >
-      Suppose the market's return is 8% a year before costs. Index funds earn it and charge 0.1% a year. Active funds, taken together, hold the rest of the market and charge 1.5% a year. What do passive and active investors earn after costs?
+      Index funds simply own the whole market and charge a tiny fee. Active funds, taken together, own the rest of the market and charge a much bigger fee. Before fees the two groups earn the same. What follows after fees?
     choices:
-      - { id: a, text: "Passive 7.9%; active investors as a group 6.5%" }
-      - { id: b, text: "Passive 7.9%; active investors as a group 8%" }
-      - { id: c, text: "Passive 8%; active investors as a group 9.5%" }
-      - { id: d, text: "Both earn 8%, because costs do not matter" }
+      - id: a
+        text: "Active investors as a group earn less than passive investors, by the difference in fees"
+      - id: b
+        text: "Active investors as a group earn more, because they are paid to pick winners"
+        mistake: { fix: "Together they hold the rest of the market, so before fees they earn the market return, no more." }
+      - id: c
+        text: "Both earn the same, because costs do not matter"
+        mistake: { fix: "Costs come straight out of what each group earns." }
+      - id: d
+        text: "Passive investors earn less, because they do no research"
+        mistake: { fix: "Passive investors keep more, since their fee is far smaller." }
     answer: a
     explanation: >
-      Before costs, the active investors in aggregate hold what the passive investors do not, so together they earn the market return of 8%. Costs then come out: 8 - 0.1 = 7.9% for passive and 8 - 1.5 = 6.5% for the active group. Some active investors beat the index; others fall short by more.
+      Before costs, the active investors in aggregate hold what the passive investors do not, so together they earn the market return. Costs then come out, and the active group's bigger fee leaves it with less. Some active investors beat the index; others fall short by more.
     source: >
       Damodaran, "Active Investing: Rest in Peace or Resurgent Force?" (Musings on Markets, December 2016): https://aswathdamodaran.blogspot.com/2016/12/active-investing-rest-in-peace-or.html
 
@@ -140,21 +147,21 @@ questions:
 
   - id: fp-q-compounding-cost
     prompt: >
-      Rs 1,00,000 is invested for 20 years. One fund grows at 7.9% a year after costs and another at 6.5% a year after costs. Which headline about the difference is fair?
+      Two funds start with the same money and are held for 20 years. One charges a little less each year, so it grows a little faster. Which headline about the gap is fair?
     choices:
       - id: a
-        text: "The first investor ends up with only a little more, because the gap is just 1.4% a year"
+        text: "A small yearly gap stays small, so the two end up close"
         mistake: { fix: "A small yearly gap compounds over 20 years into a large difference." }
-      - { id: b, text: "The first investor ends up with about Rs 1,05,000 more, far above 1.4% a year added up, because the gap compounds" }
+      - { id: b, text: "The small yearly gap compounds, so the cheaper fund ends up far further ahead than the yearly gap suggests" }
       - id: c
-        text: "The first investor ends up with about double the second"
-        mistake: { fix: "The first ends up well ahead but not double. Compare the two final amounts." }
+        text: "The cheaper fund always ends up with double the other"
+        mistake: { fix: "It ends well ahead but not by a fixed multiple. The gap depends on the rates and the years." }
       - id: d
         text: "The two end up the same, because both funds charge costs"
         mistake: { fix: "Both funds charge costs, but the lower-cost fund compounds faster and ends well ahead." }
     answer: b
     explanation: >
-      At 7.9% the money grows to about Rs 4,57,500 and at 6.5% to about Rs 3,52,400. The gap, about Rs 1,05,000, is far more than 1.4% a year over 20 years because it compounds.
+      Growth builds on earlier growth, so a small yearly gap widens every year. For example, Rs 1,00,000 growing at 7.9% a year for 20 years reaches about Rs 4,57,500, against about Rs 3,52,400 at 6.5%.
     source: >
       Compound growth: OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance-2e/pages/7-3-methods-for-solving-time-value-of-money-problems
 

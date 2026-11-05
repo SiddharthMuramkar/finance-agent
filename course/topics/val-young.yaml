@@ -79,21 +79,22 @@ youllLearn:
 questions:
   - id: vy-q-revenue-path
     prompt: >
-      A start-up believes its market will be $200 billion in ten years and that it can win 5 percent of it. Which two parts of the story set the revenue it expects, and what size of revenue do they point to?
+      A start-up tells a story: its market will be huge in ten years, and it will win a small slice of it. Which two parts of that story set the revenue it expects?
     choices:
       - id: a
-        text: "The market's size and the firm's share of it, pointing to about $1 billion a year"
-        mistake: { fix: "The share is 5 percent of $200 billion, which is far more than $1 billion." }
-      - { id: b, text: "The market's size and the firm's share of it, pointing to about $10 billion a year" }
+        text: "The size of the market, and the slice the firm wins of it"
+      - id: b
+        text: "The size of the market alone"
+        mistake: { fix: "The firm wins only a slice of the market, not all of it." }
       - id: c
-        text: "The market's size alone, pointing to about $100 billion a year"
-        mistake: { fix: "The firm wins only a share of the market, not all of it." }
+        text: "The firm's slice alone"
+        mistake: { fix: "A slice means nothing until it is applied to the size of the market." }
       - id: d
-        text: "The firm's share alone, pointing to about $200 billion a year"
-        mistake: { fix: "The share is applied to the market's size to give revenue." }
-    answer: b
+        text: "The founders' confidence in the story"
+        mistake: { fix: "Confidence is not a number in the story. Market size and slice are." }
+    answer: a
     explanation: >
-      Revenue = market size x share = $200 billion x 0.05 = $10 billion. In a young-company valuation, the market-size and market-share choices set the revenue path.
+      Revenue is the market's size times the firm's share of it. In a young-company valuation, the market-size and market-share choices set the revenue path. A big market with a tiny slice and a small market with a big slice can tell very different stories.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), steps for estimating revenues: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
@@ -153,15 +154,22 @@ questions:
 
   - id: vy-q-runway
     prompt: >
-      A loss-making company has $300 million in cash and loses $100 million a year in cash. If nothing changes, how long can it operate before it needs new money?
+      A loss-making company has a pile of cash and burns through it every year. Investors have a word for how long the cash lasts before new money is needed. What is it, and why does it matter for the company's story?
     choices:
-      - { id: a, text: "One year" }
-      - { id: b, text: "Three years" }
-      - { id: c, text: "Five years" }
-      - { id: d, text: "Thirty years" }
-    answer: b
+      - id: a
+        text: "Runway: if it runs out before the story pays off, the company may not survive to tell it"
+      - id: b
+        text: "Margin: it shows how much profit each sale leaves"
+        mistake: { fix: "Margin is profit per sale. The time the cash lasts is the runway." }
+      - id: c
+        text: "Dividend: it is what the company pays shareholders from its cash"
+        mistake: { fix: "A loss-making company has no profit to pay out. The time its cash lasts is the runway." }
+      - id: d
+        text: "Runway: it matters only to lenders, never to the value of the company"
+        mistake: { fix: "Survival is part of the value. A company that runs out of cash first is worth much less." }
+    answer: a
     explanation: >
-      Runway = cash / yearly cash burn = $300 million / $100 million = 3 years. A young company's survival depends on raising new money before this runs out, which is why survival probability belongs in the valuation.
+      The runway is how long the cash lasts at the current burn. A young company's survival depends on raising new money before it runs out, which is why survival probability belongs in the valuation.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 

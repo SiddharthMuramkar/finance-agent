@@ -95,21 +95,21 @@ questions:
 
   - id: vm-q-annualised
     prompt: >
-      A company is valued at $6,000 million. Its revenue last year was $300 million, and in the first half of this year it was $200 million. Analysts compare the value with revenue two ways. Which statement gets it right?
+      A fast-growing company has last year's full revenue and only half of this year's so far. Analysts compare its value with revenue. How should they handle the half year?
     choices:
-      - { id: a, text: "Double the half-year revenue to match a full year. The multiple on that is lower than on last year's revenue, so say which revenue you used" }
+      - { id: a, text: "Scale it up to a full year, and say which revenue the multiple uses" }
       - id: b
-        text: "Use the half-year revenue as it is. That makes the multiple look higher, but it is still fair"
+        text: "Use the half-year revenue as it is, since it is the newest"
         mistake: { fix: "Half a year of revenue is not comparable with a full year. Annualise it first." }
       - id: c
         text: "Always use last year's revenue, because newer figures are unreliable"
         mistake: { fix: "For a fast-growing firm last year's revenue is stale and makes the multiple look inflated." }
       - id: d
-        text: "The multiple is the same either way, so no need to say which revenue"
-        mistake: { fix: "Different revenue gives different multiples: 20 times on last year, 15 on this year's pace." }
+        text: "It makes no difference, so no need to say which revenue"
+        mistake: { fix: "Different revenue gives different multiples, so say which one you used." }
     answer: a
     explanation: >
-      On last year's revenue the multiple is 20 times. First-half revenue doubled is $400 million, which gives 15 times. For a fast-growing company the multiple looks smaller on the newer revenue, so always say which revenue a multiple uses.
+      Half a year is not comparable with a full one, so double it first. For a fast-growing company the multiple looks smaller on the newer revenue: for example, $6,000 million of value is 20 times $300 million of last year's revenue but 15 times $400 million of annualised revenue. Always say which revenue a multiple uses.
     source: >
       Damodaran, Relative Valuation (Investment Valuation, chapter on multiples; Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/multiples.pdf
 
