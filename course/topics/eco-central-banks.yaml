@@ -89,17 +89,17 @@ questions:
 
   - id: cb-q-basis-points
     prompt: >
-      In a made-up example, a 10-year government bond yield climbs from 4.10% to 6.31%. How would traders describe that move?
+      A headline reads: 'Central bank cuts its policy rate by 25 basis points.' What is a basis point, and is that a big cut?
     choices:
-      - { id: a, text: "Up 221 basis points" }
-      - { id: b, text: "Up 2.21 basis points", mistake: { tag: left_it_in_points, fix: "2.21 is the move in percentage points; one point is 100 basis points." } }
-      - { id: c, text: "Up 22 basis points", mistake: { tag: divided_by_10, fix: "One point is 100 basis points, so 2.21 points is 221, not 22." } }
-      - { id: d, text: "Up 2,210 basis points", mistake: { tag: multiplied_by_1000, fix: "One point is 100 basis points, not 1,000." } }
+      - { id: a, text: "One hundredth of a percentage point, so it is a small, careful cut" }
+      - { id: b, text: "One whole percentage point, so it is a large cut", mistake: { tag: took_bp_for_a_point, fix: "A basis point is only a hundredth of a percentage point." } }
+      - { id: c, text: "One tenth of a percentage point, so it is a medium cut", mistake: { tag: divided_by_10, fix: "It is one hundredth, smaller than a tenth." } }
+      - { id: d, text: "One thousandth of a percentage point, so it is hardly a cut", mistake: { tag: multiplied_by_1000, fix: "It is one hundredth, not one thousandth." } }
     answer: a
     explanation: >
-      The yield moved 2.21 percentage points, and one percentage point is 100 basis points, so traders call it 221 basis points.
+      A basis point is a hundredth of a percentage point, so 100 of them make one point. Central banks usually move rates in steps of 25 basis points, which is a small, careful step.
     source: >
-      Constructed example with hypothetical yields; a basis point is one hundredth of a percentage point.
+      Constructed headline; a basis point is one hundredth of a percentage point.
 
 checks:
   - id: eco-cb-quiz-policy

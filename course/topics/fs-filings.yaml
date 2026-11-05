@@ -119,7 +119,7 @@ questions:
     explanation: >
       Dual-class (or multi-class) shares give some holders more votes per share, so insiders can hold control with a small share of the economic ownership. At We Company, Class C shares carried 20 votes each.
     source: >
-      Fortune, Due to an Unusual Clause, WeWork Founder Could Make Millions If the Company Hits a Market Cap of $90 Billion, 15 August 2019: https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann
+      WeWork (The We Company) Form S-1, 14 August 2019, on Class A and Class C votes: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html ; Fortune, Due to an Unusual Clause, WeWork Founder Could Make Millions If the Company Hits a Market Cap of $90 Billion, 15 August 2019: https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann
 
 checks:
   - id: fl-quiz-filings

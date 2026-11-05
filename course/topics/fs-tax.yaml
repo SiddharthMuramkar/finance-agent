@@ -77,18 +77,18 @@ questions:
 
   - id: tx-q-effective-rate
     prompt: >
-      A base corporate tax rate of 20% plus a 10% surcharge on the tax and a 4% cess gives an effective rate of about what?
+      Indian corporate tax can carry a surcharge and a cess, both charged on the tax itself rather than on profit.
+      So why does the effective rate land only a little above the base rate (say 20%)?
     choices:
-      - { id: a, text: "22.88%" }
-      - { id: b, text: "34%" }
-      - { id: c, text: "22.00%" }
-      - { id: d, text: "20.80%" }
+      - { id: a, text: "Because each extra charge is a small percentage of the tax bill, so it lifts the base rate only a little" }
+      - { id: b, text: "Because the extra charges are simply added to the base rate as points", mistake: { tag: added_the_points, fix: "They are percentages of the tax, not of profit, so they scale the tax rather than adding points." } }
+      - { id: c, text: "Because the surcharge and cess replace the base rate", mistake: { tag: replaced_the_base, fix: "They sit on top of the base tax; they do not take its place." } }
+      - { id: d, text: "Because the company gets the surcharge and cess refunded", mistake: { tag: assumed_a_refund, fix: "They are paid, and they are why the effective rate is above the base rate." } }
     answer: a
     explanation: >
-      The surcharge and cess are charged on the tax, so they multiply: 20% x 1.10 x 1.04 = 22.88%. Adding them as 20% + 10% + 4% = 34% is wrong because they are percentages of the tax, not of profit.
+      The surcharge and cess are charged on the tax, so they scale the bill up by a modest factor instead of adding whole percentage points of profit. The effective rate therefore sits only a little above the base rate.
     source: >
-      A made-up example of the compounding that Indian surcharge and cess work through; the arithmetic is a multiplication.
-
+      A made-up example of how Indian surcharge and cess work on the tax bill.
   - id: tx-q-shield
     prompt: >
       A company records Rs 40 crore of depreciation, which involves no cash leaving the company. Why do analysts still say depreciation gives a 'tax shield'?
@@ -105,17 +105,17 @@ questions:
 
   - id: tx-q-ocf
     prompt: >
-      A project has revenue of Rs 500 crore, cash costs of Rs 300 crore and depreciation of Rs 50 crore, and a tax rate of 25%. What is its after-tax operating cash flow?
+      A project's revenue less its cash costs leaves Rs 200 crore, and it also records Rs 50 crore of depreciation. When an analyst builds its after-tax operating cash flow, what happens to the depreciation?
     choices:
-      - { id: a, text: "Rs 162.5 crore" }
-      - { id: b, text: "Rs 112.5 crore" }
-      - { id: c, text: "Rs 150.0 crore" }
-      - { id: d, text: "Rs 200.0 crore" }
+      - { id: a, text: "It is deducted to find taxable profit, then added back because no cash went out" }
+      - { id: b, text: "It is ignored completely", mistake: { tag: ignored_depreciation, fix: "Ignoring it overstates the tax bill; depreciation lowers taxable profit." } }
+      - { id: c, text: "It is deducted twice, once for tax and once for cash", mistake: { tag: deducted_twice, fix: "No cash left the company, so it is deducted once for tax and then added back." } }
+      - { id: d, text: "It is paid to the tax office as cash", mistake: { tag: thought_depreciation_is_paid, fix: "Depreciation is an accounting cost, not a payment." } }
     answer: a
     explanation: >
-      Profit before tax = 500 - 300 - 50 = 150. Tax = 37.5. After-tax profit = 112.5. Add back depreciation, which is not cash: 112.5 + 50 = 162.5.
+      Depreciation reduces profit before tax, so it cuts the tax bill. But the company never paid it in cash, so after tax is worked out it is added back. Cash flow is therefore better than the after-tax profit by the depreciation amount.
     source: >
-      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement ; the exercise is worked from the formula in the Topic.
+      OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement ; worked from the formula in the Topic.
 
 checks:
   - id: tx-quiz-after-tax
@@ -139,8 +139,7 @@ checks:
       rate (say from 35% to 30%) would do to them.
     passCriteria: >
       The Learner explains that tax is charged on profit, so after-tax cash flow is profit x (1 - tax
-      rate) plus any depreciation add-back. They say in their own words that a cut from 35% to 30%
-      leaves more of the Rs 100 crore profit with the company (the story's figures are Rs 65 crore
-      before and Rs 70 crore after), which lifts the project's value; and note that depreciation and
+      rate) plus any depreciation add-back. They say in their own words that a cut in the rate
+      leaves more of the profit with the company, which lifts the project's value; and note that depreciation and
       interest shields are worth somewhat less at a lower rate. Mentioning that weak demand, not tax,
       may still limit investment is a plus.

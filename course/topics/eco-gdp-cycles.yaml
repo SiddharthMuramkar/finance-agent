@@ -58,21 +58,17 @@ youllLearn:
 questions:
   - id: gdp-q-components
     prompt: >
-      An economy has consumption of Rs 60 lakh crore, investment of Rs 20 lakh crore, government spending of
-      Rs 15 lakh crore, exports of Rs 10 lakh crore and imports of Rs 5 lakh crore. What is GDP by the
-      spending approach?
+      Economists measure GDP by adding up what is spent in the economy. Which description of the spending approach is right?
     choices:
-      - { id: a, text: "Rs 100 lakh crore" }
-      - { id: b, text: "Rs 110 lakh crore" }
-      - { id: c, text: "Rs 105 lakh crore" }
-      - { id: d, text: "Rs 95 lakh crore" }
+      - { id: a, text: "Consumption, investment and government spending, plus exports, minus imports" }
+      - { id: b, text: "Consumption, investment and government spending, plus exports and imports", mistake: { tag: added_imports, fix: "Imports are spending on goods made abroad, so they are taken away." } }
+      - { id: c, text: "Only what households spend and firms invest", mistake: { tag: left_out_government_and_trade, fix: "Government spending and net exports are part of the total too." } }
+      - { id: d, text: "Wages, rent, interest and profit added together", mistake: { tag: used_income_approach, fix: "That is the income approach; the spending approach adds up what is bought." } }
     answer: a
     explanation: >
-      GDP = C + I + G + (X - M) = 60 + 20 + 15 + (10 - 5) = 100. Adding imports instead of subtracting
-      them would give 110.
+      GDP by spending is C + I + G + (X - M): what households, firms and government buy, plus what foreigners buy from us, less what we buy from abroad. Imports come out because they are not made at home.
     source: >
       OpenStax, Principles of Macroeconomics 2e (CC BY 4.0), 6.1 Measuring the Size of the Economy: Gross Domestic Product: https://openstax.org/books/principles-macroeconomics-2e/pages/6-1-measuring-the-size-of-the-economy-gross-domestic-product
-
   - id: gdp-q-recession
     prompt: >
       Historically, how was a recession defined in the United States?
