@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { Button, Chip, IconButton, Pill, Tag, TextLink } from "./index";
+import { Button, Chip, IconButton, LinkButton, Pill, Tag, TextLink } from "./index";
 
 describe("primitives", () => {
   it("carry their signifier", () => {
@@ -27,5 +27,8 @@ describe("primitives", () => {
       expect(html).not.toContain("rounded-full");
     }
     expect(renderToStaticMarkup(<TextLink href="/x">Go</TextLink>)).toContain('data-affordance="link"');
+    const linkButton = renderToStaticMarkup(<LinkButton>Edit</LinkButton>);
+    expect(linkButton).toContain('data-affordance="link"');
+    expect(linkButton).toContain('type="button"');
   });
 });

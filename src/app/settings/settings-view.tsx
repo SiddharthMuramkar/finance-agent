@@ -1,6 +1,7 @@
 import { START_OVER_CONFIRM } from "@/auth/learners";
 import { PROFILE_PRIVACY, ProfileForm, type ProfileValues } from "../profile/profile-form";
 import { DEFAULT_PREF, type ThemePref } from "../theme";
+import { TextLink } from "../ui";
 import { AppearanceSettings, DeveloperDetailsSwitch, StartOverButton } from "./settings-controls";
 
 const section = "border-t border-[var(--hairline)] pt-6";
@@ -43,9 +44,9 @@ export function SettingsView({ profile, developerDetails, theme = DEFAULT_PREF }
       </section>
       <p className="text-xs leading-4 text-[var(--muted)]" data-testid="emoji-credit">
         Emoji artwork: Fluent Emoji by Microsoft, MIT License,{" "}
-        <a href="https://github.com/microsoft/fluentui-emoji" className="underline" target="_blank" rel="noreferrer">
+        <TextLink href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noreferrer">
           https://github.com/microsoft/fluentui-emoji
-        </a>
+        </TextLink>
       </p>
     </div>
   );

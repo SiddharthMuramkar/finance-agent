@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { SavedItem } from "@/learner/saved";
 import type { WidgetSlot } from "../reply-markdown";
 import { ReadOnlyThread } from "../thread";
+import { LinkButton } from "../ui";
 import { WidgetView } from "../widget-view";
 import { useOfferUndo } from "./undo";
 
@@ -65,14 +66,9 @@ export function SavedItems({ items }: { items: SavedItem[] }) {
                 <WidgetView code={item.code} complete bare />
               </>
             )}
-            <button
-              type="button"
-              data-remove-saved={item.id}
-              onClick={() => void removeItem(item)}
-              className="mt-2 cursor-pointer text-xs leading-4 text-[var(--muted)] underline underline-offset-2 hover:text-[var(--ink)] print:hidden"
-            >
+            <LinkButton data-remove-saved={item.id} onClick={() => void removeItem(item)} className="mt-2 block text-xs leading-4 print:hidden">
               Remove from notes
-            </button>
+            </LinkButton>
           </li>
         ))}
       </ul>
