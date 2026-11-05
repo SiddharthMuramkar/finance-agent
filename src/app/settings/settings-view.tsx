@@ -8,7 +8,7 @@ const heading = "mb-2 text-base font-semibold leading-6";
 
 /**
  * The Settings page's body: About you (the Learner Profile form), Show developer details and Start
- * over, with Appearance (day and night themes) after About you. The header's Theme menu shares its choice. No model call.
+ * over, with Appearance (Light, Dark or Match my Mac) after About you. The header's Theme menu shares its choice. No model call.
  */
 export function SettingsView({ profile, developerDetails, theme = DEFAULT_PREF }: { profile: ProfileValues; developerDetails: boolean; theme?: ThemePref }) {
   return (

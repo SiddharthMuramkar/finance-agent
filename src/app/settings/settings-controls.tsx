@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { send } from "../profile/profile-form";
-import { THEMES, THEME_LABEL, THEME_SWATCH, type DayTheme, type NightTheme, type ThemeId, type ThemePref } from "../theme";
-import { followSystem, pinTheme, setThemePref, useThemeState } from "../theme-store";
+import { THEMES, THEME_LABEL, THEME_SWATCH, type ThemeId, type ThemePref } from "../theme";
+import { followSystem, pinTheme, useThemeState } from "../theme-store";
 import { PrimaryButton, SecondaryButton } from "../ui";
 
 /** The Show developer details switch: saved at once, for this Learner on every device. */
@@ -85,56 +85,40 @@ function Choice({ name, label, checked, onPick, children }: { name: string; labe
   );
 }
 
-/** A theme's preview tile: its page colour, a line of its text colour and a dot of its brand colour, drawn from the swatch map. */
-function Tile({ theme }: { theme: ThemeId }) {
-  const { bg, ink, brand } = THEME_SWATCH[theme];
+/** A theme's preview tile: its page colour, a line of its text colour and a dot of its brand colour, drawn from the swatch map. Match my Mac shows both halves. */
+function Tile({ theme }: { theme: ThemeId | "system" }) {
+  const halves = theme === "system" ? [THEME_SWATCH.light, THEME_SWATCH.dark] : [THEME_SWATCH[theme]];
   return (
-    <span aria-hidden="true" data-testid={`tile-${theme}`} className="flex h-8 w-12 shrink-0 items-center gap-1 rounded border border-[var(--border)] px-1.5" style={{ backgroundColor: bg }}>
-      <span className="h-1 flex-1 rounded-full" style={{ backgroundColor: ink }} />
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: brand }} />
+    <span aria-hidden="true" data-testid={`tile-${theme}`} className="flex h-8 w-12 shrink-0 overflow-hidden rounded border border-[var(--border)]" style={{ backgroundColor: halves[0].bg }}>
+      {halves.map(({ bg, ink, brand }, i) => (
+        <span key={i} className="flex flex-1 items-center gap-1 px-1.5" style={{ backgroundColor: bg }}>
+          <span className="h-1 flex-1 rounded-full" style={{ backgroundColor: ink }} />
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: brand }} />
+        </span>
+      ))}
     </span>
   );
 }
 
-function ThemeGroup({ legend, name, options, value, onPick }: { legend: string; name: string; options: readonly ThemeId[]; value: ThemeId | null; onPick: (t: ThemeId) => void }) {
+/**
+ * The Appearance section: three tiles, Light, Dark and Match my Mac. It reads and writes the same store as the header's
+ * Theme menu, so a pick in either shows in the other at once. Saved per browser, in the cookie.
+ */
+export function AppearanceSettings({ initial }: { initial: ThemePref }) {
+  const { pref } = useThemeState(initial);
   return (
-    <fieldset className="space-y-2">
-      <legend className="mb-1 text-sm font-medium leading-5">{legend}</legend>
+    <fieldset className="space-y-2 text-sm">
+      <legend className="mb-1 text-sm font-medium leading-5">Theme</legend>
       <div className="flex flex-wrap gap-2">
-        {options.map((t) => (
-          <Choice key={t} name={name} label={THEME_LABEL[t]} checked={value === t} onPick={() => onPick(t)}>
+        {THEMES.map((t) => (
+          <Choice key={t} name="theme" label={THEME_LABEL[t]} checked={pref.mode === "single" && pref.theme === t} onPick={() => pinTheme(t)}>
             <Tile theme={t} />
           </Choice>
         ))}
+        <Choice name="theme" label="Match my Mac" checked={pref.mode === "system"} onPick={followSystem}>
+          <Tile theme="system" />
+        </Choice>
       </div>
     </fieldset>
-  );
-}
-
-/**
- * The Appearance section: Match my Mac (with a day theme and a night theme) or one theme always. It reads and writes the
- * same store as the header's Theme menu, so a pick in either shows in the other at once. Saved per browser, in the cookie.
- */
-export function AppearanceSettings({ initial }: { initial: ThemePref }) {
-  const { pref, pair, theme } = useThemeState(initial);
-  const following = pref.mode === "system";
-  return (
-    <div className="space-y-4 text-sm">
-      <fieldset className="space-y-2">
-        <legend className="mb-1 text-sm font-medium leading-5">Theme</legend>
-        <div className="flex flex-wrap gap-2">
-          <Choice name="theme-mode" label="Match my Mac" checked={following} onPick={followSystem} />
-          <Choice name="theme-mode" label="Always use one theme" checked={!following} onPick={() => pinTheme(theme ?? pair.day)} />
-        </div>
-      </fieldset>
-      {pref.mode === "system" ? (
-        <>
-          <ThemeGroup legend="Day theme" name="theme-day" options={["light", "paper"]} value={pref.day} onPick={(t) => setThemePref({ ...pref, day: t as DayTheme })} />
-          <ThemeGroup legend="Night theme" name="theme-night" options={["midnight", "forest"]} value={pref.night} onPick={(t) => setThemePref({ ...pref, night: t as NightTheme })} />
-        </>
-      ) : (
-        <ThemeGroup legend="Theme to use" name="theme-one" options={THEMES} value={pref.theme} onPick={pinTheme} />
-      )}
-    </div>
   );
 }

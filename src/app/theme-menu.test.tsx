@@ -4,10 +4,10 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeMenu } from "./theme-menu";
 import { DEFAULT_PREF } from "./theme";
-import { ThemeFollower, setThemePref } from "./theme-store";
+import { ThemeFollower, pinTheme } from "./theme-store";
 
 // The header's Theme menu and the store behind it: picks apply at once and save, the keyboard works, and a Learner
-// following the computer follows it live, on every page and with a pair that survives pinning a theme.
+// following the computer follows it live, on every page.
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -56,7 +56,7 @@ afterEach(async () => {
   await act(async () => root.unmount());
   host.remove();
   vi.unstubAllGlobals();
-  for (const name of ["theme", "theme-pair"]) document.cookie = `${name}=; path=/; max-age=0`;
+  document.cookie = "theme=; path=/; max-age=0";
   for (const name of ["data-theme", "data-openui-theme", "style", "class"]) html.removeAttribute(name);
 });
 
@@ -64,47 +64,48 @@ describe("the Theme menu", () => {
   it("names the button for the theme in use, and for what the computer gives while following it", async () => {
     osDark = true;
     await mount();
-    expect(button().getAttribute("aria-label")).toBe("Theme: Midnight");
+    expect(button().getAttribute("aria-label")).toBe("Theme: Dark");
     expect(button().getAttribute("aria-haspopup")).toBe("menu");
   });
 
-  it("offers Match my Mac with the pair, then the four themes, each with three dots", async () => {
+  it("three choices: Light, Dark, Match my Mac, in that order, each with three dots", async () => {
     await mount();
     await click(button());
     expect(button().getAttribute("aria-expanded")).toBe("true");
-    expect(items().map((i) => i.textContent)).toEqual(["Match my MacLight by day, Midnight at night", "Light", "Paper", "Midnight", "Forest"]);
+    expect(items().map((i) => i.textContent)).toEqual(["Light", "Dark", "Match my Mac"]);
     for (const row of items()) expect(row.querySelectorAll('[data-testid^="swatch-"] > span')).toHaveLength(3);
-    expect(checked()).toEqual(["Match my MacLight by day, Midnight at night"]);
+    expect(checked()).toEqual(["Match my Mac"]);
   });
 
   it("applies a pick at once, saves it, closes and returns focus to the button", async () => {
     await mount();
     await click(button());
-    await click(item("Forest"));
-    expect(html.dataset.theme).toBe("forest");
+    await click(item("Dark"));
+    expect(html.dataset.theme).toBe("dark");
     expect(html.classList.contains("dark")).toBe(true);
     expect(html.style.colorScheme).toBe("dark");
     expect(html.dataset.openuiTheme).toBe("dark");
-    expect(cookie("theme")).toBe("single:forest");
+    expect(cookie("theme")).toBe("single%3Adark");
     expect(host.querySelector("[role=menu]")).toBeNull();
     expect(document.activeElement).toBe(button());
-    expect(button().getAttribute("aria-label")).toBe("Theme: Forest");
+    expect(button().getAttribute("aria-label")).toBe("Theme: Dark");
   });
 
   it("works from the keyboard alone: ArrowDown opens on the checked item, the arrows move and wrap, Escape returns", async () => {
-    await mount("single:paper");
+    await mount("single:light");
     button().focus();
     await press(button(), "ArrowDown");
-    expect(document.activeElement).toBe(item("Paper"));
-    expect(item("Paper").getAttribute("aria-checked")).toBe("true");
-    await press(item("Paper"), "ArrowDown");
-    expect(document.activeElement).toBe(item("Midnight"));
-    await press(item("Midnight"), "End");
-    await press(item("Forest"), "ArrowDown");
+    expect(document.activeElement).toBe(item("Light"));
+    expect(item("Light").getAttribute("aria-checked")).toBe("true");
+    await press(item("Light"), "ArrowDown");
+    expect(document.activeElement).toBe(item("Dark"));
+    await press(item("Dark"), "End");
     expect(document.activeElement).toBe(item("Match my Mac"));
-    await press(item("Match my Mac"), "ArrowUp");
-    expect(document.activeElement).toBe(item("Forest"));
-    await press(item("Forest"), "Escape");
+    await press(item("Match my Mac"), "ArrowDown");
+    expect(document.activeElement).toBe(item("Light"));
+    await press(item("Light"), "ArrowUp");
+    expect(document.activeElement).toBe(item("Match my Mac"));
+    await press(item("Match my Mac"), "Escape");
     expect(host.querySelector("[role=menu]")).toBeNull();
     expect(document.activeElement).toBe(button());
     expect(html.dataset.theme).toBeUndefined();
@@ -117,25 +118,22 @@ describe("the Theme menu", () => {
     expect(host.querySelector("[role=menu]")).toBeNull();
   });
 
-  it("Match my Mac comes back to the saved pair after a theme was pinned", async () => {
-    await mount("system:paper:forest");
-    await act(async () => setThemePref({ mode: "system", day: "paper", night: "forest" }));
+  it("Match my Mac follows the computer again after a theme was pinned", async () => {
+    osDark = true;
+    await mount("single:light");
     await click(button());
-    await click(item("Midnight"));
-    expect(cookie("theme")).toBe("single:midnight");
-    await click(button());
-    expect(item("Match my Mac").textContent).toContain("Paper by day, Forest at night");
+    expect(checked()).toEqual(["Light"]);
     await click(item("Match my Mac"));
-    expect(cookie("theme")).toBe("system:paper:forest");
-    expect(html.dataset.theme).toBe("paper");
+    expect(cookie("theme")).toBe("system");
+    expect(html.dataset.theme).toBe("dark");
   });
 
-  it("uses Light and Midnight when no pair was ever saved, as after an old dark cookie", async () => {
-    await mount("dark");
+  it("opens an old saved Paper, Forest or Midnight as Light or Dark", async () => {
+    await mount("single:forest");
     await click(button());
-    expect(checked()).toEqual(["Midnight"]);
-    await click(item("Match my Mac"));
-    expect(cookie("theme")).toBe("system:light:midnight");
+    expect(checked()).toEqual(["Dark"]);
+    await click(item("Light"));
+    expect(cookie("theme")).toBe("single%3Alight");
   });
 });
 
@@ -143,25 +141,25 @@ describe("following the computer live", () => {
   it("switches the theme and the button's name while following", async () => {
     await mount();
     await flipOs(true);
-    expect(html.dataset.theme).toBe("midnight");
-    expect(button().getAttribute("aria-label")).toBe("Theme: Midnight");
+    expect(html.dataset.theme).toBe("dark");
+    expect(button().getAttribute("aria-label")).toBe("Theme: Dark");
     await flipOs(false);
     expect(html.dataset.theme).toBe("light");
     expect(html.classList.contains("dark")).toBe(false);
   });
 
   it("leaves a pinned theme alone", async () => {
-    await mount("single:paper");
-    await act(async () => setThemePref({ mode: "single", theme: "paper" }));
+    await mount("single:light");
+    await act(async () => pinTheme("light"));
     await flipOs(true);
-    expect(html.dataset.theme).toBe("paper");
-    expect(button().getAttribute("aria-label")).toBe("Theme: Paper");
+    expect(html.dataset.theme).toBe("light");
+    expect(button().getAttribute("aria-label")).toBe("Theme: Light");
   });
 
   it("follows on a page with no header, through ThemeFollower", async () => {
     await act(async () => root.render(<ThemeFollower />));
     await flipOs(true);
-    expect(html.dataset.theme).toBe("midnight");
+    expect(html.dataset.theme).toBe("dark");
     await act(async () => root.render(<></>));
     expect(changeListeners.size).toBe(0);
   });

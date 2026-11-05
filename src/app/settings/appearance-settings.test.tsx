@@ -41,7 +41,6 @@ beforeEach(async () => {
     removeEventListener: (_: string, listener: (e: { matches: boolean }) => void) => changeListeners.delete(listener),
   }));
   document.cookie = "theme=; path=/; max-age=0";
-  document.cookie = "theme-pair=; path=/; max-age=0";
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -63,43 +62,35 @@ afterEach(() => {
 });
 
 describe("Settings > Appearance", () => {
-  it("starts on Match my Mac with Light by day and Midnight at night", () => {
-    expect(checkedIn("theme-mode")).toEqual(["Match my Mac"]);
-    expect(checkedIn("theme-day")).toEqual(["Light"]);
-    expect(checkedIn("theme-night")).toEqual(["Midnight"]);
+  it("three tiles, no day/night pickers: Light, Dark and Match my Mac, starting on Match my Mac", () => {
+    const labels = [...host.querySelectorAll<HTMLInputElement>('input[name="theme"]')].map((i) => i.closest("label")!.textContent!.trim());
+    expect(labels).toEqual(["Light", "Dark", "Match my Mac"]);
+    expect(host.querySelectorAll("input[type=radio]")).toHaveLength(3);
+    expect(checkedIn("theme")).toEqual(["Match my Mac"]);
+    expect(host.textContent).not.toMatch(/Day theme|Night theme|Always use one theme/);
   });
 
-  it("pairs Paper by day with Forest at night, follows the Mac live and tells the header menu", async () => {
-    await click(radio("theme-day", "Paper"));
-    await click(radio("theme-night", "Forest"));
+  it("picking Dark pins it, and the header menu shows it checked; picking Match my Mac follows the Mac live", async () => {
+    await click(radio("theme", "Dark"));
     const html = document.documentElement;
-    expect(html.dataset.theme).toBe("paper");
+    expect(html.dataset.theme).toBe("dark");
+    expect(cookie("theme")).toBe("single%3Adark");
+    await click(menuButton());
+    expect(menuChecked()).toEqual(["Dark"]);
+    await click(menuItems().find((i) => i.textContent === "Light")!);
+    expect(checkedIn("theme")).toEqual(["Light"]);
+    await click(radio("theme", "Match my Mac"));
+    expect(cookie("theme")).toBe("system");
     await flipOs(true);
-    expect(html.dataset.theme).toBe("forest");
-    expect(cookie("theme")).toBe("system:paper:forest");
-    await click(menuButton());
-    expect(menuItems()[0].textContent).toContain("Paper by day, Forest at night");
-    expect(menuChecked()[0]).toContain("Match my Mac");
-  });
-
-  it("pins one theme from Settings and the header menu shows it checked, and the other way round", async () => {
-    await click(radio("theme-mode", "Always use one theme"));
-    await click(radio("theme-one", "Forest"));
-    expect(cookie("theme")).toBe("single:forest");
-    await click(menuButton());
-    expect(menuChecked()).toEqual(["Forest"]);
-    await click(menuItems().find((i) => i.textContent === "Paper")!);
-    expect(checkedIn("theme-mode")).toEqual(["Always use one theme"]);
-    expect(checkedIn("theme-one")).toEqual(["Paper"]);
-    await click(menuButton());
-    await click(menuItems()[0]);
-    expect(checkedIn("theme-mode")).toEqual(["Match my Mac"]);
+    expect(html.dataset.theme).toBe("dark");
+    await flipOs(false);
+    expect(html.dataset.theme).toBe("light");
   });
 
   it("gives every radio a label and previews each theme from its swatch colours", () => {
     for (const input of host.querySelectorAll("input[type=radio]")) expect(input.closest("label")?.textContent?.trim()).toBeTruthy();
-    const tile = host.querySelector<HTMLElement>('[data-testid="tile-paper"]')!;
+    const tile = host.querySelector<HTMLElement>('[data-testid="tile-dark"]')!;
     expect(tile.style.backgroundColor).not.toBe("");
-    expect(THEME_SWATCH.paper.bg).toBe("#faf4ed");
+    expect(THEME_SWATCH.dark.bg).toBe("#141a33");
   });
 });

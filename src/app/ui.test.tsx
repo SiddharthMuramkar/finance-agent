@@ -90,9 +90,9 @@ describe("AppHeader", () => {
   });
 
   it("makes the theme control an icon button named for the current theme, which opens a menu", () => {
-    const midnight = renderToStaticMarkup(<AppHeader current="workspace" theme={{ mode: "single", theme: "midnight" }} />);
-    expect(midnight).toMatch(/<button[^>]*aria-label="Theme: Midnight"[^>]*aria-haspopup="menu"[^>]*aria-expanded="false"/);
-    expect(midnight).not.toContain("aria-pressed");
+    const dark = renderToStaticMarkup(<AppHeader current="workspace" theme={{ mode: "single", theme: "dark" }} />);
+    expect(dark).toMatch(/<button[^>]*aria-label="Theme: Dark"[^>]*aria-haspopup="menu"[^>]*aria-expanded="false"/);
+    expect(dark).not.toContain("aria-pressed");
   });
 
   it("names the theme control just Theme on the server while the Learner follows the computer, whose mode it cannot know", () => {

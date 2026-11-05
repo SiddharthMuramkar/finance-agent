@@ -16,20 +16,20 @@ describe("the Settings page", () => {
     expect(html).not.toMatch(/Dark mode/);
   });
 
-  it("has an Appearance section with Match my Mac, a Day theme and a Night theme, each option labelled", () => {
+  it("has an Appearance section with three tiles: Light, Dark and Match my Mac", () => {
     const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} />);
     const t = text(html);
     expect(t).toContain("Appearance");
-    for (const w of ["Match my Mac", "Always use one theme", "Day theme", "Night theme", "Light", "Paper", "Midnight", "Forest"]) expect(t).toContain(w);
-    expect(html.match(/type="radio"/g)).toHaveLength(6);
-    expect(html).toContain('data-testid="tile-paper"');
+    for (const w of ["Match my Mac", "Light", "Dark"]) expect(t).toContain(w);
+    for (const w of ["Day theme", "Night theme", "Always use one theme", "Paper", "Midnight", "Forest"]) expect(t).not.toContain(w);
+    expect(html.match(/type="radio"/g)).toHaveLength(3);
+    expect(html).toContain('data-testid="tile-dark"');
   });
 
-  it("shows one group of all four themes when one theme is pinned", () => {
-    const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} theme={{ mode: "single", theme: "forest" }} />);
-    expect(text(html)).not.toContain("Day theme");
-    expect(html.match(/type="radio"/g)).toHaveLength(6);
-    expect(html).toMatch(/name="theme-one"[^>]*checked/);
+  it("checks the pinned theme's tile", () => {
+    const html = renderToStaticMarkup(<SettingsView profile={empty} developerDetails={false} theme={{ mode: "single", theme: "dark" }} />);
+    expect(html.match(/type="radio"/g)).toHaveLength(3);
+    expect(html).toMatch(/name="theme"[^>]*checked/);
   });
 
   it("fills About you with what was saved, says it is private and never that changes wait for the next Session", () => {

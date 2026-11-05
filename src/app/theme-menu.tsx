@@ -2,13 +2,10 @@
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { IconButton } from "./icon-button";
-import { THEMES, THEME_LABEL, THEME_SWATCH, resolveTheme, type SystemPref, type ThemeId, type ThemePref } from "./theme";
+import { THEMES, THEME_LABEL, THEME_SWATCH, resolveTheme, type ThemeId, type ThemePref } from "./theme";
 import { followSystem, pinTheme, useThemeState } from "./theme-store";
 
 const icon = { viewBox: "0 0 20 20", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
-
-/** "Light by day, Midnight at night": what Match my Mac does with this pair. */
-export const pairLabel = (pair: SystemPref) => `${THEME_LABEL[pair.day]} by day, ${THEME_LABEL[pair.night]} at night`;
 
 /** The three dots of a theme: its page, text and brand colours, drawn whichever theme the page is in. */
 function Swatch({ theme }: { theme: ThemeId }) {
@@ -41,13 +38,13 @@ function Item({ checked, swatch, onPick, children }: { checked: boolean; swatch:
 }
 
 /**
- * The header's Theme menu: an icon button named "Theme: Midnight" that opens Match my Mac and the four themes. A pick
- * applies at once and saves. Enter, Space or ArrowDown opens; the arrows, Home and End move; Enter or Space picks; Escape
- * closes and returns focus to the button. The sun or moon follows the `dark` class, not React, so it is right from first
- * paint even when the server cannot know the computer's mode. `initial` comes from readTheme().
+ * The header's Theme menu: an icon button named "Theme: Dark" that opens Light, Dark and Match my Mac. The button shows
+ * the sun, the moon or the laptop of the current choice. A pick applies at once and saves. Enter, Space or ArrowDown
+ * opens; the arrows, Home and End move; Enter or Space picks; Escape closes and returns focus to the button. `initial`
+ * comes from readTheme(), so the right icon is there from the first frame.
  */
 export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; className?: string }) {
-  const { pref, pair, osDark, theme } = useThemeState(initial);
+  const { pref, osDark, theme } = useThemeState(initial);
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
   const root = useRef<HTMLDivElement>(null);
@@ -108,13 +105,21 @@ export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; cla
         data-testid="theme-menu-button"
         className={className}
       >
-        <svg {...icon} className="h-4 w-4 dark:hidden">
-          <circle cx="10" cy="10" r="3.5" />
-          <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" />
-        </svg>
-        <svg {...icon} className="hidden h-4 w-4 dark:block">
-          <path d="M16.5 11.5A6.5 6.5 0 0 1 8.5 3.5a6.5 6.5 0 1 0 8 8Z" />
-        </svg>
+        {pref.mode === "system" ? (
+          <svg {...icon} className="h-4 w-4" data-testid="theme-icon-system">
+            <rect x="3" y="4" width="14" height="9" rx="1.5" />
+            <path d="M7 16.5h6M10 13v3.5" />
+          </svg>
+        ) : pref.theme === "light" ? (
+          <svg {...icon} className="h-4 w-4" data-testid="theme-icon-light">
+            <circle cx="10" cy="10" r="3.5" />
+            <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" />
+          </svg>
+        ) : (
+          <svg {...icon} className="h-4 w-4" data-testid="theme-icon-dark">
+            <path d="M16.5 11.5A6.5 6.5 0 0 1 8.5 3.5a6.5 6.5 0 1 0 8 8Z" />
+          </svg>
+        )}
       </IconButton>
       {open && (
         <div
@@ -124,17 +129,16 @@ export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; cla
           aria-label="Theme"
           onKeyDown={onMenuKey}
           data-testid="theme-menu"
-          className="absolute top-full right-0 z-20 mt-1 w-72 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
+          className="absolute top-full right-0 z-20 mt-1 w-56 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
         >
-          <Item checked={pref.mode === "system"} swatch={resolveTheme(pair, osDark ?? false)} onPick={() => pick(followSystem)}>
-            Match my Mac
-            <span className="block text-xs leading-4 text-[var(--muted)]">{pairLabel(pair)}</span>
-          </Item>
           {THEMES.map((id) => (
             <Item key={id} checked={pref.mode === "single" && pref.theme === id} swatch={id} onPick={() => pick(() => pinTheme(id))}>
               {THEME_LABEL[id]}
             </Item>
           ))}
+          <Item checked={pref.mode === "system"} swatch={resolveTheme({ mode: "system" }, osDark ?? false)} onPick={() => pick(followSystem)}>
+            Match my Mac
+          </Item>
         </div>
       )}
     </div>

@@ -751,10 +751,10 @@ accent; three are accent, brand and sourced). It follows the page's theme (`data
 `useHtmlTheme`, which also redraws the charts when the theme changes), never the computer's own setting, so a
 Widget always matches the rest of the page: the kit's `mode` is that theme's kind (light or dark), and the kit's
 last fixed black-and-white colours (highlights, the inverted fill, the chat bubble) are mapped to ink and the
-bubble token. Charts are SVG, whose colours cannot always read CSS variables, so each of the four themes
-(Light, Paper, Midnight, Forest) has its own list of fixed hex values, copied from that theme's block in
-`globals.css`; Light's is unchanged, and a test fails if a hex drifts from the tokens file. *Scenario.* A Mac in
-Dark Mode with the app on Paper draws a cream card with Paper's blue and ochre bars, not the Mac's dark kit.
+bubble token. Charts are SVG, whose colours cannot always read CSS variables, so each of the two themes
+(Light, Dark) has its own list of fixed hex values, copied from that theme's block in `globals.css` and ordered
+brand-main, mint, sunflower, violet, coral, edge; a test fails if a hex drifts from the tokens file. *Scenario.* A Mac in
+Dark Mode with the app pinned to Light draws a pale card with Light's blue and mint bars, not the Mac's dark kit.
 *Trade-off.* The hex lists are a second copy of some colours, kept honest by the test, because SVG attributes
 cannot read a CSS variable on every browser. Tabs open on their first
 view and stay on the one the Learner picks: the browser draws Widgets with the same library and
@@ -1226,43 +1226,42 @@ knows the flip point, is not built yet.
 
 ## Themes and switching (`src/app/theme.ts`, `src/app/theme-store.ts`, `src/app/theme-menu.tsx`)
 
-**What it does.** There are four themes: Light and Paper by day, Midnight and Forest at night. By default the site follows
-the computer: Light in light mode, Midnight in dark mode, and it switches live if the computer switches. The header's Theme
-menu picks Match my Mac or pins any one theme, in one click and without a reload. The choice is saved in the `theme` cookie
-for a year, as `system:light:midnight` or `single:forest`. The old saved values still work: `dark` opens Midnight and `light`
-opens Light. A second cookie, `theme-pair`, keeps the day and night pair while one theme is pinned, so Match my Mac can come
-back to it.
+**What it does.** There are two themes, Light and Dark. By default the site follows the computer (Match my Mac): Light in
+light mode, Dark in dark mode, and it switches live if the computer switches. The header's Theme menu offers Light, Dark and
+Match my Mac, in that order, in one click and without a reload; its button shows the sun, the moon or the laptop of the
+current choice. The choice is saved in the `theme` cookie for a year, as `system` or `single:light` / `single:dark`. Stored
+values from the four-theme days still open: `single:paper` becomes Light, `single:forest` and `single:midnight` become Dark,
+the old `dark` and `light` still work, and a day-and-night pair such as `system:paper:forest` becomes Match my Mac. The cookie
+is rewritten (as `single%3Adark`) only on the Learner's next change.
 
 **How the parts fit.** `theme.ts` is the one place that knows the themes, how a saved value becomes a theme (`parsePref`,
 `resolveTheme`) and what a theme puts on `<html>` (`applyTheme`: `data-theme`, the `dark` class, `color-scheme` and
 `data-openui-theme`). `theme-store.ts` is the browser's side: every control reads and changes the choice through
-`useThemeState` and `setThemePref`, so they stay in step, and `ThemeFollower` in the root layout keeps following the computer
-on pages with no header. `theme-menu.tsx` is the menu. `readTheme()` is the server's reading of the cookie, which only draws
-the menu's button until the browser takes over.
+`useThemeState`, `pinTheme` and `followSystem`, so they stay in step, and `ThemeFollower` in the root layout keeps following
+the computer on pages with no header. `theme-menu.tsx` is the menu. `readTheme()` is the server's reading of the cookie, which
+only draws the menu's button until the browser takes over.
 
-**A concrete scenario.** A Learner on a Mac in dark mode opens `/study` with no cookie. A small script at the top of `<head>`
-reads the cookie, asks the browser about dark mode and sets the attributes before anything paints, so the page is Midnight
-from the first frame. They pick Forest, then Match my Mac, and then finish a Tutor turn, which runs `router.refresh()`. The
-page stays Midnight, because the layout gives `<html>` no theme attributes for React to change.
+**A concrete scenario.** A Learner who had pinned Forest last month opens `/study` on a Mac in light mode. A small script at the
+top of `<head>` reads the old `single:forest` cookie, maps it to Dark and sets the attributes before anything paints, so the
+page is Dark from the first frame. They pick Match my Mac, and then finish a Tutor turn, which runs `router.refresh()`. The page
+becomes Light, because the Mac is light, and stays so, because the layout gives `<html>` no theme attributes for React to change.
 
 **Trade-off.** The server never draws the theme, so the head script holds a second copy of the logic, written by hand because
-it runs before any bundle loads. A test runs it against the real functions for every kind of saved value, so the copies cannot
-drift. The price of the other way, the server drawing `data-theme` for a pinned theme, is a bug: going from pinned to following
-would make React strip the attributes on the next refresh. With JavaScript off the page is Light. The button's name is just
-"Theme" until hydration while following the computer, since the server cannot know its mode; the sun or moon follows the `dark`
-class, so it is right from first paint. The choice is per browser, not per Learner account.
+it runs before any bundle loads. A test runs it against the real functions for every kind of saved value, old ones included, and
+both computer modes, so the copies cannot drift. The price of the other way, the server drawing `data-theme` for a pinned theme,
+is a bug: going from pinned to following would make React strip the attributes on the next refresh. With JavaScript off the page
+is Light. The button's name is just "Theme" until hydration while following the computer, since the server cannot know its
+mode. The choice is per browser, not per Learner account.
 
 ### Settings > Appearance (`AppearanceSettings` in `src/app/settings/settings-controls.tsx`)
 
-**What it does.** The Settings page has an Appearance section with a radio group "Theme" (Match my Mac, or Always use one
-theme). With Match my Mac it shows a Day theme group (Light, Paper) and a Night theme group (Midnight, Forest); with one
-theme it shows one group of all four. Each option is a small tile drawn from `THEME_SWATCH` (page colour, a line of text
-colour, a brand dot) beside its name. The radios are real `<input type="radio">` elements, so the arrow keys, Tab and
-Space work and a screen reader hears each label.
+**What it does.** The Settings page has an Appearance section with a radio group "Theme" of three tiles: Light, Dark and Match
+my Mac. Each tile is drawn from `THEME_SWATCH` (page colour, a line of text colour, a brand dot; Match my Mac shows both
+halves). The radios are real `<input type="radio">` elements, so the arrow keys, Tab and Space work and a screen reader hears
+each label. There are no Day or Night pickers any more.
 
-**A concrete scenario.** A Learner picks Day = Paper and Night = Forest. On a Mac in light mode the page turns Paper at once;
-when the Mac goes dark it turns Forest, and the header menu reads "Paper by day, Forest at night". If they then pick Forest
-in the header menu, the Settings radios show "Always use one theme" and Forest without a reload.
+**A concrete scenario.** A Learner picks Dark in Settings. The page turns Dark at once and the header menu shows Dark checked;
+if they then pick Match my Mac in the header menu, the Settings tile for Match my Mac is checked without a reload.
 
 **Trade-off.** It writes to the same store and cookie as the header menu rather than keeping its own state, so the two cannot
 disagree, but the choice stays per browser, not per account. The tiles use inline colours from the swatch map because a theme
@@ -1283,7 +1282,7 @@ Home at `/`, then Study Workspace (`/study`) · Course Map · Progress · Past S
 Settings, a thin divider, the Theme menu, Sign out. What is clickable looks clickable: "Finance Agent" has a small
 mark, the title "Home" and a hover wash; each page link is a pill (`NavLink`, which marks the current page with
 `aria-current` and fills its pill, the Study Workspace included, and shows a small dot inside while its page is
-loading); the Theme menu is an icon button named for the current theme ("Theme: Midnight"); Sign
+loading); the Theme menu is an icon button named for the current theme ("Theme: Dark"); Sign
 out (`SignOutButton`) is a plain form posting to `/api/logout`, styled as a small outlined button (Home's signed-in
 top bar uses the same component). No other link points at `/`. The Study Workspace and Course Map links are
 prefetched in full, so they open at once; the others use the default. A 2px bar across the top of the window
@@ -1305,20 +1304,25 @@ a quick palette class. In return the look stays consistent and a colour change i
 
 ## Colour themes and the contrast check (`src/app/globals.css`, `scripts/check-theme-contrast.mjs`)
 
-**What it does.** There are four colour sets, each a full block of the 26 tokens above: Light (`:root`), Midnight
-(`:root.dark`, the dark theme, which replaced the old mirrored-Tailwind dark), Paper (`:root[data-theme="paper"]`, a warm
-low-glare light) and Forest (`:root.dark[data-theme="forest"]`, a soft green-grey dark). Midnight, Paper and Forest sit
-inside `@media screen`, so printing always falls back to Light's tokens (the print block also forces `color-scheme: light`).
-No block inherits colours from another. The palettes are adapted from Catppuccin Mocha, Rose Pine Dawn and Everforest (all
-MIT; credited in the CSS comments only). Nothing in the UI picks Paper or Forest yet; setting `data-theme` by hand shows them.
-`scripts/check-theme-contrast.mjs` reads the CSS and fails the `check` script if any theme drops below its contrast rules
-(body text, links, accents, tags, focus ring), if a token is missing, or if Light's colours change.
+**What it does.** There are two colour sets, each a full block of tokens: Light (`:root`) and Dark (`:root.dark`, inside
+`@media screen`, so printing always falls back to Light's tokens; the print block also forces `color-scheme: light`). Both use
+one royal blue in three tones (deep `#1E3A8A`, main `#2F5BEA`, soft `#DCE6FF`) and four Accents that each carry a meaning: mint
+for the Learner and gains, coral for losses and warnings, sunflower for history and stories, violet for lingo. An accent's
+fill (`--mint`) never carries text; its `-ink` variant does, because the owner's hexes fail 4.5:1 as text (mint is 2.4:1 on the
+page). `--brand` is the blue for text and links, `--brand-main` the blue for fills. The older names stay, remapped, so no
+component changed: `--you` is mint, `--src` is sunflower, `--danger` is coral-ink. Dark uses desaturated accents. `scripts/check-theme-contrast.mjs`
+reads the CSS and fails the `check` script if any pair drops below its contrast minimum in either theme (Appendix A.3 of the
+2026-11-05 spec), if a Dark colour is too saturated, if a token is missing, or if one of Light's frozen values changes.
+`src/dev/check-theme-contrast.test.ts` runs the script on the real stylesheet and on three deliberately broken copies.
 
-**Scenario.** Someone edits `--muted` in Midnight to something a little too dark. `npm run check` prints which rule failed
-and for which theme, and exits non-zero, so the change cannot merge.
+**Scenario.** Someone edits Dark's `--mint-ink` to a neon green. `npm run check` prints "dark: --mint-ink chroma 0.19 (max
+0.135, no neon)" and exits non-zero, so the change cannot merge.
 
-**Trade-off.** Four full blocks repeat every token, so adding a token means editing four places; the checker flags a
-missing one. In return no theme can silently pick up another's colour, and the contrast numbers are enforced, not hoped for.
+**Trade-off.** Two full blocks repeat every token, so adding a token means editing both; the checker flags a missing one. Light
+is no longer frozen forever (ADR 0012): the script freezes the new values instead, and changing one needs an ADR note. In
+return no theme can silently pick up another's colour, and the contrast numbers are enforced, not hoped for. Until the button
+sweep (A3b) moves every fill to `--brand-main`, a small bridge rule in `globals.css` gives Dark's `bg-[var(--brand)]` fills the
+main blue, since in Dark `--brand` is a light blue meant for text.
 
 ## One announcer, and Save to notes as a state machine (`src/app/announcer.tsx`, `src/app/save-to-notes.tsx`, `src/app/layout.tsx`, UX audit 4.1d, 4.2f, 8.5)
 
