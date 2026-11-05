@@ -66,15 +66,15 @@ youllLearn:
 questions:
   - id: rx-q-cip
     prompt: >
-      The spot rate is Rs 60 per dollar, and one-year interest rates are higher in rupees than in dollars. According to covered interest parity, how does the one-year forward rate compare with today's spot rate?
+      Anil imports laptops and must pay a supplier in dollars a year from now. Today a dollar costs Rs 60. Rupee deposits pay 8 percent a year and dollar deposits 3 percent. His bank offers to fix today the price he will pay for dollars in a year. Will that fixed price ask for more or fewer rupees per dollar than today?
     choices:
-      - { id: a, text: "It is higher: the rupee trades at a forward discount, so more rupees per dollar" }
-      - { id: b, text: "It is lower: the rupee trades at a forward premium, so fewer rupees per dollar", mistake: { tag: inverted_parity, fix: "The currency with the higher interest rate trades at a forward discount, not a premium." } }
-      - { id: c, text: "It is the same as spot, because the interest rates cancel out", mistake: { tag: rates_ignored, fix: "The gap in interest rates is exactly what the forward rate must make up." } }
-      - { id: d, text: "It cannot be fixed today, because the future spot rate is unknown", mistake: { tag: forward_unfixed, fix: "A forward contract fixes the rate today; interest parity says where it must sit." } }
+      - { id: a, text: "More rupees per dollar, because the fixed price makes up for the higher rupee interest" }
+      - { id: b, text: "Fewer rupees per dollar, because rupees earn more interest", mistake: { tag: inverted_parity, fix: "The higher rupee interest is cancelled by a fixed price that asks for more rupees per dollar, not fewer." } }
+      - { id: c, text: "The same Rs 60, because the two interest rates cancel out", mistake: { tag: rates_ignored, fix: "The gap in interest rates is exactly what the fixed price must make up." } }
+      - { id: d, text: "No bank can fix it today, because nobody knows next year's rate", mistake: { tag: forward_unfixed, fix: "A forward contract fixes the price today; the interest-rate gap says where it must sit." } }
     answer: a
     explanation: >
-      Forward = spot x (1 + rupee rate) / (1 + dollar rate) = 60 x 1.08 / 1.03 = 62.91. The rupee, with the higher interest rate, trades at a forward discount: more rupees per dollar. Rs 57.22 inverts the ratio.
+      The fixed price is a forward rate, and covered interest parity sets it. If it stayed at Rs 60, anyone could borrow dollars at 3 percent, change them into rupees, earn 8 percent and lock in a sure profit. To close that gap the forward asks for more rupees per dollar: 60 x 1.08 / 1.03 is about Rs 62.91. Traders say the rupee is at a forward discount.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (forward contracts for currency): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; forward rate calculated from covered interest parity
 

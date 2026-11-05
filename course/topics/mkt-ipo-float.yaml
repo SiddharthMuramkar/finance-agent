@@ -106,12 +106,12 @@ questions:
 
   - id: ip-q-retail
     prompt: >
-      SEBI's rules reserve part of a net issue for retail individual bidders. What does the rule say about their share?
+      Ravi, a student with Rs 15,000 saved, wants to bid in a hot IPO but fears the big funds will grab every share first. His uncle says SEBI's rules keep a part of the issue for small bidders like him. What do those rules promise Ravi's group?
     choices:
-      - { id: a, text: "At least 35 percent of the net issue must be offered to them" }
-      - { id: b, text: "No more than 35 percent may be offered to them", mistake: { tag: floor_not_ceiling, fix: "The rule sets a minimum for retail bidders, not a ceiling." } }
-      - { id: c, text: "Half the issue is reserved for them", mistake: { tag: mixed_up_shares, fix: "Half is the institutions' share in the same prospectus, not the retail share." } }
-      - { id: d, text: "Nothing is reserved; they compete with institutions for every share", mistake: { tag: no_reservation, fix: "The rules reserve a minimum share for retail bidders so institutions cannot take it all." } }
+      - { id: a, text: "A floor: at least 35 percent of the net issue is kept for small retail bidders" }
+      - { id: b, text: "A cap: small bidders may get no more than 35 percent", mistake: { tag: floor_not_ceiling, fix: "The rule sets a minimum for retail bidders, not a ceiling." } }
+      - { id: c, text: "Half the issue is kept for small bidders", mistake: { tag: mixed_up_shares, fix: "Half is the institutions' share in the same prospectus, not the retail share." } }
+      - { id: d, text: "Nothing is kept aside; Ravi competes with the big funds for every share", mistake: { tag: no_reservation, fix: "The rules reserve a minimum share for retail bidders so institutions cannot take it all." } }
     answer: a
     explanation: >
       The rule reserves at least 35 percent of the net issue for retail bidders; for a net issue of 10 crore shares that is 3.5 crore shares. The same prospectus reserved 50 percent for institutions and at least 15 percent for non-institutional bidders.

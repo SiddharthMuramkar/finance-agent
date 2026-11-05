@@ -101,15 +101,15 @@ questions:
 
   - id: cm-q-stderr
     prompt: >
-      A regression gives a share a beta of 1.8 with a standard error of 0.6. What does a standard error that large tell you?
+      Rohan is valuing a delivery start-up whose share has traded for only two years. His spreadsheet says the share swings 1.8 times as much as the market (its beta), but warns the figure could easily be off by 0.6 either way. Rohan wants to use 1.8 as if it were certain. What should his colleague tell him?
     choices:
-      - { id: a, text: "The true beta could lie well away from 1.8, so the estimate is a weak basis for a cost of equity" }
-      - { id: b, text: "The beta is exactly 1.8, because the regression found it", mistake: { tag: false_precision, fix: "A regression gives an estimate, and the standard error shows how far off it could be." } }
-      - { id: c, text: "The share carries little risk, because the error is small", mistake: { tag: error_is_risk, fix: "The standard error describes how reliable the beta is, not how risky the share is." } }
-      - { id: d, text: "The beta must be below 1, because errors pull it down", mistake: { tag: error_direction, fix: "The error can push the true beta either way; it does not pull it below 1." } }
+      - { id: a, text: "The real figure could be far from 1.8, so lean on similar firms' betas rather than this one number" }
+      - { id: b, text: "Use 1.8: the spreadsheet worked it out, so it is exact", mistake: { tag: false_precision, fix: "Two years of prices give only an estimate, and the warning shows how far off it could be." } }
+      - { id: c, text: "The share is low risk, because the warning is only 0.6", mistake: { tag: error_is_risk, fix: "The warning is about how reliable the 1.8 is, not about how risky the share is." } }
+      - { id: d, text: "The real figure must be below 1, because errors pull it down", mistake: { tag: error_direction, fix: "The error can push the true beta either way; it does not pull it below 1." } }
     answer: a
     explanation: >
-      Two standard errors either side of 1.8 gives a range of about 0.6 to 3.0. A range this wide shows why an estimate from a short history is a weak basis for a cost of equity.
+      The 0.6 is the estimate's standard error. Two of them either side of 1.8 gives a range of about 0.6 to 3.0: the share could swing less than the market or three times as much. A range this wide is why analysts borrow betas from similar, longer-listed firms before building a cost of equity.
     source: >
       Damodaran, Amazon.com valuation paper, section 5 (regression betas for firms with limited history carry substantial error; Amazon's 2.29 beta had a standard error of 0.50): http://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
 
