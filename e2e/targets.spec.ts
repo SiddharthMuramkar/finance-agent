@@ -20,7 +20,6 @@ async function study(page: Page, state: Parameters<typeof seed>[1] = "story") {
 }
 
 test("[A1] side gutter at 1512×982 on /study is 32 px or less each side", async ({ page }) => {
-  test.fail(true, "[A1] full-screen workspace");
   await study(page);
   const m = await measureLayout(page);
   expect(m.gutterLeft).toBeLessThanOrEqual(32);
@@ -28,7 +27,6 @@ test("[A1] side gutter at 1512×982 on /study is 32 px or less each side", async
 });
 
 test("[A1] side gutter at 1512×982 on /course is 32 px or less each side", async ({ page }) => {
-  test.fail(true, "[A1] full-screen reading pages");
   await seed(page, "many-topics");
   await page.goto("/course");
   await expect(page.getByTestId("reading-column")).toBeVisible();
@@ -38,7 +36,6 @@ test("[A1] side gutter at 1512×982 on /course is 32 px or less each side", asyn
 });
 
 test("[A1] Widget panel width at 1512 is 55 % of the viewport or more", async ({ page }) => {
-  test.fail(true, "[A1] the Widget panel is the star");
   await study(page, "concept-widget");
   expect((await measureLayout(page)).panelWidthPct).toBeGreaterThanOrEqual(55);
 });

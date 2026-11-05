@@ -164,15 +164,15 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
 }
 
 /**
- * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Settings, Passage): the header sits in the
- * same 6xl box as the workspace's, so the title and nav stay put between pages, and only the content
- * below it uses the narrower reading column.
+ * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Settings, Passage): the header and the
+ * content share the workspace's one box (the page's gutters, up to --page-max), so the title and nav stay put between
+ * pages and the content uses the whole window. Running paragraphs inside cards cap themselves with `measure`.
  */
 export function ReadingPage({ current, theme, children }: { current?: HeaderPage; theme: ThemePref; children: ReactNode }) {
   return (
-    <main className="mx-auto max-w-6xl px-4 pb-12 pt-4 lg:px-6 lg:pt-6">
+    <main className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-12 pt-3">
       <AppHeader current={current} theme={theme} className="mb-6" />
-      <div data-testid="reading-column" className="mx-auto max-w-2xl">
+      <div data-testid="reading-column" className="w-full">
         {children}
       </div>
     </main>

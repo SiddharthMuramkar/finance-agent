@@ -32,12 +32,12 @@ function FilledPart({ filled }: { filled: NonNullable<TopicNote["filled"]> }) {
       {filled.insight && (
         <div data-insight className="break-inside-avoid">
           <Heading>The Insight</Heading>
-          <p className="mt-1 text-sm leading-6">
+          <p className="measure mt-1 text-sm leading-6">
             <span className="text-[var(--muted)]">In your words: </span>
             {filled.insight.ownWords}
           </p>
           {filled.insight.written && (
-            <p data-written-insight className="mt-1 text-sm leading-6">
+            <p data-written-insight className="measure mt-1 text-sm leading-6">
               <span className="text-[var(--muted)]">As written: </span>
               {filled.insight.written}
             </p>
@@ -95,7 +95,7 @@ export function NotesView({ notes, showAll = false }: { notes: TopicNote[]; show
               {showAll ? "Show only Topics with notes" : "Show all Topics"}
             </Link>
           </div>
-          <p className="mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
+          <p className="measure mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
             A note fills in when you pass a Topic. Add lines of your own to any Topic. Print this page for a paper copy.
           </p>
           {shown.length === 0 && (
