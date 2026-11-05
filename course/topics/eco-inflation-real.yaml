@@ -61,7 +61,7 @@ questions:
       OpenStax, Principles of Finance (CC BY 4.0), 3.4 Interest Rates: https://openstax.org/books/principles-finance/pages/3-4-interest-rates
   - id: ir-q-purchasing-power
     prompt: >
-      You put Rs 1,00,000 in a one-year deposit at 6% while consumer prices rise 10% over the year. At year end, which headline gets it right?
+      Kabir puts Rs 1,00,000 in a one-year deposit at 6% while consumer prices rise 10% over the year. A newspaper writes about his year-end. Which headline gets it right?
     choices:
       - { id: a, text: "More rupees, but they buy less than before" }
       - { id: b, text: "More rupees, and they buy more than before", mistake: { tag: ignored_inflation, fix: "Prices rose 10% and interest only 6%, so the extra rupees buy less." } }
@@ -75,7 +75,7 @@ questions:
 
   - id: ir-q-real-growth
     prompt: >
-      Nominal GDP grows 12% in a year while the price level rises 7%. Which statement gets real GDP growth right?
+      A minister boasts that the economy's money value grew 12% this year, but shop prices rose 7% in the same year. Which statement gets real growth right?
     choices:
       - { id: a, text: "Real growth is well below 12%, because part of the 12% is only higher prices" }
       - { id: b, text: "Real growth is the full 12%", mistake: { tag: ignored_prices, fix: "12% is nominal; part of it is only higher prices, so real growth is smaller." } }

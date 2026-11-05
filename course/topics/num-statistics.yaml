@@ -49,12 +49,12 @@ youllLearn:
 questions:
   - id: st-q-sd
     prompt: >
-      A fund's daily returns over one week were +2%, -1%, +3%, 0% and -4%. An analyst reports that the
-      standard deviation of these returns is about 2.7%. What does that figure tell you?
+      A fund's daily returns bounced around all week, some up and some down. An analyst reports that the
+      standard deviation of those returns is about 2.7%. What does that figure tell you?
     choices:
       - { id: a, text: "How far a typical day strays from the week's average return" }
       - { id: b, text: "The average daily return for the week", mistake: { tag: confused_with_mean, fix: "The average is the mean; the standard deviation measures the spread around it." } }
-      - { id: c, text: "The size of the worst day in the week", mistake: { tag: confused_with_worst_day, fix: "The worst day was a 4% fall; the standard deviation describes a typical stray, not the extreme." } }
+      - { id: c, text: "The size of the worst day in the week", mistake: { tag: confused_with_worst_day, fix: "The worst day is only one point; the standard deviation describes a typical stray, not the extreme." } }
       - { id: d, text: "The total return earned over the week", mistake: { tag: confused_with_total, fix: "A total adds the returns up; the standard deviation says how widely they scatter." } }
     answer: a
     explanation: >

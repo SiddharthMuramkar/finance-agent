@@ -64,7 +64,7 @@ questions:
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement (taxes and net income): https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
   - id: tx-q-saving
     prompt: >
-      A headline reads: 'Tax cut lifts profits.' The effective tax rate falls from 40% to 30% while a company's profit before tax stays at Rs 1,000 crore. Which statement gets it right?
+      A headline reads: 'Tax cut lifts profits.' A shareholder wonders why. The effective tax rate falls from 40% to 30% while a company's profit before tax stays at Rs 1,000 crore. Which statement gets it right?
     choices:
       - { id: a, text: "The tax bill falls, so profit after tax rises, though profit before tax is unchanged" }
       - { id: b, text: "Profit before tax rises, because tax is lower", mistake: { tag: moved_profit_before_tax, fix: "Profit before tax is set before tax is charged, so a rate cut does not move it." } }
