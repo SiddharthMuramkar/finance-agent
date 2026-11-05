@@ -21,7 +21,7 @@ export function NavLink({ current, children, ...props }: ComponentProps<typeof L
   const href = typeof props.href === "string" ? props.href : (props.href.pathname ?? "");
   const here = current ?? (pathname !== null && pathname === href);
   return (
-    <Link {...props} aria-current={here ? "page" : undefined}>
+    <Link data-affordance="nav" {...props} aria-current={here ? "page" : undefined}>
       {children}
       <PendingDot />
     </Link>

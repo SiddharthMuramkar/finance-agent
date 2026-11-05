@@ -60,12 +60,12 @@ const press = async (el: Element, key: string) => act(async () => void el.dispat
 const click = async (el: Element) => act(async () => (el as HTMLElement).click());
 
 describe("the Widget panel's pager", () => {
-  it("reads '2 of 3 · title' with ‹ and › as 32px icon buttons, and pages with them", async () => {
+  it("reads '2 of 3 · title' with ‹ and › as round icon buttons, and pages with them", async () => {
     await render();
     expect(position()).toBe("2 of 3 · Title 2");
     const prev = q('[data-testid="pager-prev"]');
     expect(prev.getAttribute("aria-label")).toBe("Previous widget");
-    expect(prev.className).toMatch(/min-h-8/);
+    expect(prev.className).toMatch(/\bbtn-icon\b/);
     await click(q('[data-testid="pager-next"]'));
     expect(position()).toBe("3 of 3 · Title 3");
     expect(q('[data-testid="pager-next"]').hasAttribute("disabled")).toBe(true);
