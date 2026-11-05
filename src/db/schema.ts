@@ -10,10 +10,91 @@ export const settings = pgTable("settings", {
 /** The owner's Learner, made by the expand migration, which gave it every row from before Learners. */
 export const OWNER_LEARNER_ID = 1;
 
+// Better Auth's four core tables (Google sign-in, ADR 0011), as `auth generate` makes them for Drizzle
+// on Postgres: text ids, kept apart from `learners`. Better Auth reads and writes them; our code only
+// reads `user` through `learners.auth_user_id`.
+
+/** One Google account that has signed in (Better Auth's `user`). Made only when the invite gate lets it through. */
+export const user = pgTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  image: text("image"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+/** One signed-in browser (Better Auth's `session`); sign-out deletes the row. */
+export const session = pgTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+  },
+  (t) => [index("session_userId_idx").on(t.userId)],
+);
+
+/** The provider side of a `user` (for us, always Google). */
+export const account = pgTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [index("account_userId_idx").on(t.userId)],
+);
+
+/** Short-lived values Better Auth checks once (the OAuth state of a sign-in in progress). */
+export const verification = pgTable(
+  "verification",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [index("verification_identifier_idx").on(t.identifier)],
+);
+
 /**
  * One Learner: a person with their own Learner Profile, progress, Notes, Sessions and Widget state.
  * A name (from the passcode list) signs in as its one active Learner; Start over archives that
  * Learner and makes a fresh one under the same name, so at most one per name is not archived.
+ * A Learner made through Google sign-in carries its Google user in `auth_user_id`.
  */
 export const learners = pgTable(
   "learners",
@@ -24,10 +105,30 @@ export const learners = pgTable(
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     /** Settings > Show developer details: "Under the hood" under each reply. Off by default. */
     showDeveloperDetails: boolean("show_developer_details").notNull().default(false),
+    /** The Google user (Better Auth `user.id`) this Learner belongs to; null for a passcode Learner. */
+    authUserId: text("auth_user_id").references(() => user.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("learners_one_active_per_name").on(t.name).where(sql`${t.archivedAt} is null`)],
+  (t) => [
+    uniqueIndex("learners_one_active_per_name").on(t.name).where(sql`${t.archivedAt} is null`),
+    uniqueIndex("learners_one_active_per_auth_user")
+      .on(t.authUserId)
+      .where(sql`${t.archivedAt} is null and ${t.authUserId} is not null`),
+  ],
 );
+
+/**
+ * The invite list (ADR 0011): the emails that may become a Learner through Google while the Sign-up
+ * switch (`signup_open`) is off. `email` is stored lowercase and trimmed. `learner_name` links an
+ * existing Learner by name (the owner's email names `owner`), because ids differ per database.
+ */
+export const invites = pgTable("invites", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  learnerName: text("learner_name"),
+  invitedAt: timestamp("invited_at", { withTimezone: true }).notNull().defaultNow(),
+  note: text("note"),
+});
 
 /**
  * The Learner a row belongs to. It has no default (the contract step of spec #119 dropped the
