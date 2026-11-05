@@ -8,6 +8,14 @@ An AI tutor that teaches an adult learner finance and economics seriously, from 
 A person the Tutor teaches, signed in with their own passcode. Each Learner's Learner Profile, progress, Topic Notes and Sessions are theirs alone. Starting over archives a Learner and gives their passcode a fresh one; nothing is deleted. The owner's test tools play their own Learner, the tools Learner, started over before each run.
 _Avoid_: User, student, account
 
+**Invite list**:
+The emails allowed to sign in with Google while the Sign-up switch is off. An invite may name an existing Learner (the owner's email names `owner`, so the owner keeps their progress); otherwise signing in makes a new Learner. Taking an email off the list stops new sign-ups only: a Learner already in keeps access until archived.
+_Avoid_: Whitelist, allowlist, waitlist
+
+**Sign-up switch**:
+The setting `signup_open`: "off" (the default) lets only invited emails become Learners through Google; "on" lets anyone with a Google account in. Turned with `npm run invites -- open` and `close`.
+_Avoid_: Registration flag, open beta
+
 **Learner Profile**:
 What the Learner chooses to share about their own life (work, where they live, any loan, what they are saving for), used only when the Learner asks how an idea applies to them, never to give advice.
 _Avoid_: Account, user profile, persona
