@@ -560,7 +560,7 @@ async function* runLockedTurn(
     if (place) progress("Looking up Case Data…");
     const caseData = await caseDataFor(db, map, place, learnerId);
     // This turn's facts (turn-facts.ts), worked out once: the context names them, and later steps of the turn reuse them.
-    facts = await turnFacts(db, map, learnerId, place, { learnerText });
+    facts = await turnFacts(db, map, learnerId, place, { learnerText, now: now() });
     placeAtStart = place;
     passedTopic = completed !== undefined;
     const quizDown = place?.step === "check" && place.check?.kind === "quiz" && !facts.quizOpen;
@@ -875,7 +875,7 @@ async function* runLockedTurn(
   // The facts the reply is held to: worked out again when a tool moved the Learner's step during the draft, or on a resume.
   const moved = draftHeld.some((e) => e.type === "item" && e.item.kind === STEP_DIVIDER);
   const placeNow = passedTopic ? null : navigate(map, await loadProgress(db, learnerId));
-  const gateFacts = facts && !moved ? facts : await turnFacts(db, map, learnerId, passedTopic ? placeAtStart : placeNow, { learnerText: turn.input ?? undefined });
+  const gateFacts = facts && !moved ? facts : await turnFacts(db, map, learnerId, passedTopic ? placeAtStart : placeNow, { learnerText: turn.input ?? undefined, now: now() });
 
   /** Fixes and checks the reply written after `replyFrom`. */
   const judgeNow = async (): Promise<Judged> => {
