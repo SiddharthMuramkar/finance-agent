@@ -140,7 +140,7 @@ export function MessageBox({
       <ComposerPrimitive.Root className="flex gap-2">
         <Button
           type="button"
-          variant="ghost"
+          variant="secondary"
           pressed={open}
           onClick={() => onPassage(open ? null : "")}
           className={open ? "bg-[var(--brand-tint)] text-[var(--brand)]" : ""}

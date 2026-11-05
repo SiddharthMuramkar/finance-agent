@@ -99,8 +99,8 @@ describe("AppHeader", () => {
     expect(renderToStaticMarkup(<AppHeader current="workspace" theme={DEFAULT_PREF} />)).toContain('aria-label="Theme"');
   });
 
-  it("styles Sign out as a small outlined button", () => {
-    expect(renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />)).toMatch(/<button type="submit" class="[^"]*border[^"]*min-h-8[^"]*">Sign out/);
+  it("styles Sign out as a small raised secondary button", () => {
+    expect(renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />)).toMatch(/<button type="submit" data-affordance="button" class="btn btn-secondary btn-sm[^"]*">Sign out/);
   });
 });
 

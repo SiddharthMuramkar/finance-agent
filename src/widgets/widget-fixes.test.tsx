@@ -36,14 +36,13 @@ describe("a Slider as a container-query component", () => {
     expect(markup).not.toContain('title="Tap to type a value"');
   });
 
-  it("lets the range shrink, takes the teal range-you thumb, and has 32 px steppers", () => {
+  it("lets the range shrink, takes the teal range-you thumb, and has round icon-button steppers", () => {
     const range = tag(markup, /type="range" aria-label="Old rate"/);
     expect(range).toContain("range-you");
     expect(range).toContain("min-w-0");
     const stepper = tag(markup, /aria-label="Increase Old rate by one step"/);
-    expect(stepper).toContain("min-h-8");
-    expect(stepper).toContain("min-w-8");
-    expect(stepper).toContain("pressable");
+    expect(stepper).toContain("btn-icon");
+    expect(stepper).toContain('data-affordance="icon"');
   });
 
   it("keeps its positional order, so a saved program still renders", () => {

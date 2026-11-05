@@ -84,7 +84,7 @@ export function SaveToNotesView({
           </Button>
         </>
       ) : (
-        <Button variant="ghost" size="sm" onClick={press(onSave)} loading={state.status === "saving"} aria-label={label} className="-ml-3" data-focus-target>
+        <Button variant="secondary" size="sm" onClick={press(onSave)} loading={state.status === "saving"} aria-label={label} className="-ml-3" data-focus-target>
           {state.status !== "saving" && <Bookmark />}
           {state.status === "saving" ? "Saving…" : "Save to notes"}
         </Button>
@@ -102,7 +102,7 @@ export function SaveToNotesView({
             </span>
           )}
           <span aria-hidden>·</span>
-          <Button variant="ghost" size="sm" data-undo-save onClick={press(onUndo)} aria-label={`Undo: take this ${what} off your notes`} className="-my-2">
+          <Button variant="secondary" size="sm" data-undo-save onClick={press(onUndo)} aria-label={`Undo: take this ${what} off your notes`} className="-my-2">
             Undo
           </Button>
           <span aria-hidden>·</span>
