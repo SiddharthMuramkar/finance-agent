@@ -1,6 +1,6 @@
 import type { TopicOverview } from "@/course/navigator";
 import { backAt } from "@/tutor/park-items";
-import { Card, Chevron, Eyebrow, KeyValueRow, LinkButton, Pill } from "../ui";
+import { Card, Chevron, Eyebrow, KeyValueRow, LinkButton, Pill, Tag } from "../ui";
 import { BackToPathButton, DoFirstLink, TopicRow, WhatComesNextButton } from "./jump-button";
 
 const STATUS: Record<TopicOverview["status"], string> = { not_started: "Not started", in_progress: "In progress", passed: "Passed" };
@@ -62,12 +62,12 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
               key={c.id}
               data-check={c.passed ? "passed" : c.here ? "here" : "open"}
               title={c.passed ? "Passed" : c.here ? "Your place" : "Not passed yet"}
-              className={`rounded border px-1.5 py-0.5 text-xs tabular-nums ${
-                c.passed ? "border-[var(--brand)] text-[var(--brand)]" : c.here ? "border-[var(--ink)] text-[var(--ink)]" : "border-[var(--border)] text-[var(--muted)]"
-              }`}
+              className="tabular-nums"
             >
-              Check {i + 1}
-              {c.passed ? " ✓" : ""}
+              <Tag tone={c.passed ? "brand" : "neutral"} className={c.here ? "!text-[var(--ink)] font-semibold" : ""}>
+                Check {i + 1}
+                {c.passed ? " ✓" : ""}
+              </Tag>
             </li>
           ))}
         </ul>
@@ -91,7 +91,7 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
 function Group({ label, topics, open, attrs, children }: { label: React.ReactNode; topics: TopicOverview[]; open: boolean; attrs?: Record<string, string>; children: React.ReactNode }) {
   return (
     <details open={open} className="group mb-3" {...attrs}>
-      <summary className="flex cursor-pointer items-center justify-between gap-3 rounded py-2 text-sm leading-5">
+      <summary className="flex cursor-pointer items-center justify-between gap-3 rounded border border-[var(--border)] px-3 py-2 text-sm leading-5 hover:bg-[var(--brand-tint)]">
         <span className="flex items-center gap-2 font-medium">
           <Chevron />
           {label}
@@ -186,7 +186,7 @@ export function CourseMapView({
       })}
       {coming.length > 0 && (
         <details className="group mt-4 text-sm">
-          <summary className="flex cursor-pointer items-center gap-2 font-medium">
+          <summary className="flex cursor-pointer items-center gap-2 rounded border border-[var(--border)] px-3 py-2 font-medium hover:bg-[var(--brand-tint)]">
             <Chevron />
             Coming ({coming.length} more Topics, in path order)
           </summary>

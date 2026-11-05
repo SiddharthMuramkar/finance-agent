@@ -1,7 +1,7 @@
 import type { Topic } from "@/course/map";
 import { STEP_NAMES, TEACHING_STEPS } from "@/course/navigator";
 import { PROFILE_PRIVACY, ProfileForm } from "../profile/profile-form";
-import { ButtonLink, Card, Eyebrow } from "../ui";
+import { ButtonLink, Card, Eyebrow, Tag } from "../ui";
 import { StartTopicButton } from "./start-topic-button";
 
 /** The Welcome's three panels, in order. Each is its own address, so Next and Skip are plain links. */
@@ -37,8 +37,8 @@ function HowATopicWorks() {
       <ol data-step-strip aria-label="Teaching Steps" className="mt-3 flex flex-wrap gap-1.5">
         {/* The seven kinds of Teaching Step, in the order a Topic meets them (the Course Navigator's). */}
         {TEACHING_STEPS.map((step) => (
-          <li key={step} className="rounded border border-[var(--border)] px-2 py-1 text-xs font-medium leading-4">
-            {STEP_NAMES[step]}
+          <li key={step}>
+            <Tag>{STEP_NAMES[step]}</Tag>
           </li>
         ))}
       </ol>

@@ -4,7 +4,7 @@ import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from
 import { HELP_CHIPS, JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
-import { Button, Chevron, Chip } from "./ui";
+import { Button, Chevron, Chip, Tag } from "./ui";
 
 // Small presentational pieces of the workspace's left column (issue #44).
 
@@ -37,8 +37,8 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
     const target = finished(s) ? targetOf(s, marked) : null;
     if (strip?.current === s.number - 1) {
       return (
-        <span aria-current="step" data-step-number={s.number} title={s.label} className="rounded bg-[var(--brand-tint)] px-1.5 font-semibold text-[var(--brand)]">
-          {STEP_NAMES[s.step]}
+        <span aria-current="step" data-step-number={s.number} title={s.label} className="font-semibold">
+          <Tag tone="brand">{STEP_NAMES[s.step]}</Tag>
         </span>
       );
     }
@@ -56,8 +56,8 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
       );
     }
     return (
-      <span data-step-number={s.number} title={s.label} className={finished(s) ? "px-1" : "px-1 text-[var(--muted)]"}>
-        {STEP_NAMES[s.step]}
+      <span data-step-number={s.number} title={s.label}>
+        <Tag>{STEP_NAMES[s.step]}</Tag>
       </span>
     );
   };
