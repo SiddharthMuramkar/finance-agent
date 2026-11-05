@@ -95,35 +95,33 @@ questions:
 
   - id: cl-q-wipeout
     prompt: >
-      A fund has assets of $100 and only $4 of its own capital; the rest is borrowed. The price of its assets starts to slide. Which description of its danger is right?
+      A fund has borrowed almost all the money it invests, so only a thin slice of its assets is its own capital. The price of its assets starts to slide. Which description of its danger is right?
     choices:
-      - { id: a, text: "Its debts stay the same, so a fall of only about 4 per cent in its assets uses up all of its own capital" }
+      - { id: a, text: "Its debts stay the same, so a small fall in its assets can use up all of its own capital" }
       - { id: b, text: "Its debts shrink along with its assets, so the lenders share the loss", mistake: { tag: debts_shrink, fix: "Lenders are owed the same sum whatever the assets are worth. The owner takes losses first." } }
-      - { id: c, text: "It is safe until its assets lose more than half their value, since it started with $100", mistake: { tag: forgot_the_debt, fix: "Only $4 is the fund's own. A fall of $4 on the $100 leaves nothing." } }
-      - { id: d, text: "It loses its capital only if its assets fall by about 96 per cent", mistake: { tag: used_debt_share, fix: "96 is the borrowed part. A fall equal to the $4 of capital already wipes out the owner." } }
+      - { id: c, text: "It is safe until its assets lose half their value, since it holds a lot of them", mistake: { tag: forgot_the_debt, fix: "Only the thin slice is the fund's own. A small fall already wipes it out." } }
+      - { id: d, text: "It loses its capital only if its assets fall almost to nothing", mistake: { tag: used_debt_share, fix: "The borrowed part is large, but a small fall already wipes out the owner's thin slice." } }
     answer: a
     explanation: >
-      Debts of $96 stay the same when asset values change. Assets of $96 just cover the debt, so a fall of $4 on $100, or 4 per cent, leaves nothing for the owner.
+      Debts do not shrink when asset values fall, so the owner's thin slice takes the first losses. A small fall in the assets is enough to use up all of it.
     source: >
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
-
   - id: cl-q-gain-and-loss
     prompt: >
-      A fund holds assets 10 times the size of its own capital, and borrowing costs are ignored. Its assets rise 3 per cent in a year. Which headline gets it right?
+      A fund holds assets many times the size of its own capital, and borrowing costs are ignored. Its assets rise a little in a year. Which headline gets it right?
     choices:
-      - { id: a, text: "\"Fund's own capital up about 30 per cent: borrowing magnified the gain\"" }
-      - { id: b, text: "\"Fund's own capital up 3 per cent, the same as its assets\"", mistake: { tag: ignored_leverage, fix: "Borrowing means the gain lands on a much smaller base of the fund's own money." } }
-      - { id: c, text: "\"Fund's own capital up 10 per cent, the size of its leverage\"", mistake: { tag: leverage_is_gain, fix: "10 is the multiple, not the gain. The 3 per cent is multiplied by it." } }
-      - { id: d, text: "\"Fund's own capital up a tiny 0.3 per cent: debt dilutes the gain\"", mistake: { tag: leverage_shrinks, fix: "Leverage multiplies a gain on the owner's capital. It does not shrink it." } }
+      - { id: a, text: "\"Fund's own capital up by much more than its assets: borrowing magnified the gain\"" }
+      - { id: b, text: "\"Fund's own capital up by the same as its assets\"", mistake: { tag: ignored_leverage, fix: "Borrowing means the gain lands on a much smaller base of the fund's own money." } }
+      - { id: c, text: "\"Fund's own capital unchanged: the gain goes to its lenders\"", mistake: { tag: gain_to_lenders, fix: "Lenders are owed a fixed sum. The gain belongs to the owner." } }
+      - { id: d, text: "\"Fund's own capital up by less than its assets: debt dilutes the gain\"", mistake: { tag: leverage_shrinks, fix: "Leverage multiplies a gain on the owner's capital. It does not shrink it." } }
     answer: a
     explanation: >
-      With $10 of assets per $1 of capital, a 3 per cent gain is $0.30 on $1 of capital, or 30 per cent. The same leverage turns a 3 per cent fall into a 30 per cent loss of capital, which is why leverage cuts both ways.
+      Lenders are owed a fixed sum, so the whole gain on the assets lands on the fund's small slice of its own capital. The same leverage turns a small fall into a big loss of capital, which is why leverage cuts both ways.
     source: >
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999): https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
-
   - id: cl-q-haircut
     prompt: >
-      A fund borrows against a bond worth $100. The lender allows a haircut of 10 per cent, so it lends $90. Later the lender raises the haircut to 20 per cent on the same bond, still worth $100. What does the fund have to do?
+      A fund borrows against a bond. The lender allows a haircut, the slice of the bond's value it keeps back from the loan. Later the lender raises the haircut on the same bond, whose price is unchanged. What does the fund have to do?
     choices:
       - { id: a, text: "Find more cash or sell some bond, even though the bond's price has not moved" }
       - { id: b, text: "Nothing, because the bond's price has not changed", mistake: { tag: price_only, fix: "A bigger haircut means a smaller loan on the same bond, so the fund must repay." } }
@@ -131,10 +129,9 @@ questions:
       - { id: d, text: "Repay the whole loan at once, because the lender now distrusts the bond", mistake: { tag: repay_all, fix: "The loan allowed shrinks, so only the gap is called, not the whole loan." } }
     answer: a
     explanation: >
-      The loan allowed falls from $90 to $80, so the fund must repay $10 or hand over more collateral even though the bond's price has not moved. A higher haircut means the borrower needs more of its own capital for the same assets, and the usual way to raise it is to sell.
+      A bigger haircut means a smaller loan on the same bond, so the fund must repay the gap or hand over more collateral even though the bond's price has not moved. The usual way to raise the cash is to sell.
     source: >
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), on repo and reverse repo as the funding of the fund's positions: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
-
   - id: cl-q-spiral
     prompt: >
       Many leveraged funds hold the same asset. Lenders ask for more collateral, and the funds all sell the asset to raise cash. What is the most likely effect on the asset's price, and on the other funds?
