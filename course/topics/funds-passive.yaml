@@ -72,21 +72,21 @@ youllLearn:
 questions:
   - id: fp-q-nav
     prompt: >
-      A mutual fund has assets of Rs 520 crore and liabilities of Rs 20 crore, shared among 10 crore units. How do you describe the NAV per unit?
+      You hold units of a mutual fund. The fund owns shares and bonds, and it also owes some bills. What does its NAV per unit measure?
     choices:
       - id: a
         text: "It is the value of the assets alone, shared among the units"
-        mistake: { fix: "The liabilities must come off first, because the fund owes them." }
+        mistake: { tag: liabilities_ignored, fix: "The liabilities must come off first, because the fund owes them." }
       - { id: b, text: "It is the assets less the liabilities, shared among the units" }
       - id: c
         text: "It is the liabilities shared among the units"
-        mistake: { fix: "The liabilities are what the fund owes. NAV is what is left for unit-holders." }
+        mistake: { tag: nav_as_debt, fix: "The liabilities are what the fund owes. NAV is what is left for unit-holders." }
       - id: d
         text: "It is the assets plus the liabilities, shared among the units"
-        mistake: { fix: "Liabilities are owed, so they are taken away, never added." }
+        mistake: { tag: liabilities_added, fix: "Liabilities are owed, so they are taken away, never added." }
     answer: b
     explanation: >
-      NAV per unit is what is left after the fund pays what it owes, shared among the units. Here that is about Rs 50, since 500 crore is left for 10 crore units.
+      NAV per unit is what is left after the fund pays what it owes, shared among the units. For example, Rs 520 crore of assets less Rs 20 crore owed leaves Rs 500 crore for 10 crore units, about Rs 50 a unit.
     source: >
       Investor.gov (US SEC), Updated Investor Bulletin: Exchange-Traded Funds (NAV per share is the value of all assets minus all liabilities, divided by the number of shares): https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24
 
@@ -112,13 +112,13 @@ questions:
         text: "Active investors as a group earn less than passive investors, by the difference in fees"
       - id: b
         text: "Active investors as a group earn more, because they are paid to pick winners"
-        mistake: { fix: "Together they hold the rest of the market, so before fees they earn the market return, no more." }
+        mistake: { tag: active_beats_market, fix: "Together they hold the rest of the market, so before fees they earn the market return, no more." }
       - id: c
         text: "Both earn the same, because costs do not matter"
-        mistake: { fix: "Costs come straight out of what each group earns." }
+        mistake: { tag: costs_ignored, fix: "Costs come straight out of what each group earns." }
       - id: d
         text: "Passive investors earn less, because they do no research"
-        mistake: { fix: "Passive investors keep more, since their fee is far smaller." }
+        mistake: { tag: research_pays, fix: "Passive investors keep more, since their fee is far smaller." }
     answer: a
     explanation: >
       Before costs, the active investors in aggregate hold what the passive investors do not, so together they earn the market return. Costs then come out, and the active group's bigger fee leaves it with less. Some active investors beat the index; others fall short by more.
@@ -131,14 +131,14 @@ questions:
     choices:
       - id: a
         text: "Only the outer fund's fee counts, because the inner funds are hidden"
-        mistake: { fix: "The inner funds' fees come out of the same assets, so the investor bears them too." }
+        mistake: { tag: inner_fees_hidden, fix: "The inner funds' fees come out of the same assets, so the investor bears them too." }
       - id: b
         text: "Only the inner funds' fees count, because the outer fund just picks them"
-        mistake: { fix: "The outer fund charges its own fee on top of the inner ones." }
+        mistake: { tag: outer_fee_ignored, fix: "The outer fund charges its own fee on top of the inner ones." }
       - { id: c, text: "The two layers of fees stack up, and they are paid every year whether or not the funds make money" }
       - id: d
         text: "They are paid only in years when the funds make a profit"
-        mistake: { fix: "Fixed fees are taken from assets every year. Only performance fees depend on profit." }
+        mistake: { tag: fees_on_profit_only, fix: "Fixed fees are taken from assets every year. Only performance fees depend on profit." }
     answer: c
     explanation: >
       The two layers of fixed fees stack: a 2% fee inside and a 1% fee outside take about 3% of the assets every year, whether or not the funds make money.
@@ -147,18 +147,18 @@ questions:
 
   - id: fp-q-compounding-cost
     prompt: >
-      Two funds start with the same money and are held for 20 years. One charges a little less each year, so it grows a little faster. Which headline about the gap is fair?
+      You and a friend each put the same money into a different fund for 20 years. Yours charges a little less each year, so it grows a little faster. Which headline gets it right?
     choices:
       - id: a
         text: "A small yearly gap stays small, so the two end up close"
-        mistake: { fix: "A small yearly gap compounds over 20 years into a large difference." }
+        mistake: { tag: gap_stays_small, fix: "A small yearly gap compounds over 20 years into a large difference." }
       - { id: b, text: "The small yearly gap compounds, so the cheaper fund ends up far further ahead than the yearly gap suggests" }
       - id: c
         text: "The cheaper fund always ends up with double the other"
-        mistake: { fix: "It ends well ahead but not by a fixed multiple. The gap depends on the rates and the years." }
+        mistake: { tag: fixed_multiple, fix: "It ends well ahead but not by a fixed multiple. The gap depends on the rates and the years." }
       - id: d
         text: "The two end up the same, because both funds charge costs"
-        mistake: { fix: "Both funds charge costs, but the lower-cost fund compounds faster and ends well ahead." }
+        mistake: { tag: costs_cancel, fix: "Both funds charge costs, but the lower-cost fund compounds faster and ends well ahead." }
     answer: b
     explanation: >
       Growth builds on earlier growth, so a small yearly gap widens every year. For example, Rs 1,00,000 growing at 7.9% a year for 20 years reaches about Rs 4,57,500, against about Rs 3,52,400 at 6.5%.
@@ -167,21 +167,21 @@ questions:
 
   - id: fp-q-zero-return
     prompt: >
-      A zero-coupon bond pays Rs 5,00,000 in ten years and costs Rs 3,18,250 today. It pays no interest in between. How should a buyer who holds it to maturity think of the return?
+      You buy a zero-coupon bond well below its face value and hold it for ten years. It pays no interest along the way, only the face value at the end. How should you think of your yearly return?
     choices:
       - id: a
         text: "It earns nothing, because a zero-coupon bond pays no interest"
-        mistake: { fix: "The return comes from buying at a discount and getting the full face value back." }
+        mistake: { tag: no_coupon_no_return, fix: "The return comes from buying at a discount and getting the full face value back." }
       - { id: b, text: "It earns a modest yearly return, found by compounding the discount over the ten years" }
       - id: c
         text: "It earns the whole gain divided by ten, a simple average each year"
-        mistake: { fix: "Dividing the gain by ten ignores compounding and overstates the yearly return." }
+        mistake: { tag: simple_average, fix: "Dividing the gain by ten ignores compounding and overstates the yearly return." }
       - id: d
         text: "It earns the whole gain in one go, so the yearly return is the total gain"
-        mistake: { fix: "The total gain is spread over ten years. The yearly return is much smaller." }
+        mistake: { tag: total_as_yearly, fix: "The total gain is spread over ten years. The yearly return is much smaller." }
     answer: b
     explanation: >
-      The price grows by about 1.57 times over ten years, a yearly return of about 4.6%. The total gain is 57%, but dividing it by ten gives 5.7%, which ignores compounding.
+      For example, a bond bought for Rs 3,18,250 that pays Rs 5,00,000 in ten years grows by about 1.57 times, a yearly return of about 4.6%. The total gain is 57%, but dividing it by ten gives 5.7%, which ignores compounding.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance-2e/pages/7-3-methods-for-solving-time-value-of-money-problems
 

@@ -90,18 +90,18 @@ questions:
 
   - id: vb-q-pb
     prompt: >
-      A bank has book equity of Rs 10,000 crore, but the stock market values it at Rs 15,000 crore. What do analysts call the market value set beside the book value, and what does the market's higher figure say?
+      A bank's books show equity of Rs 10,000 crore, but the stock market values its shares at Rs 15,000 crore. Which headline gets it right?
     choices:
       - id: a
         text: "Price-to-book: the market values the bank below what its books show"
-        mistake: { fix: "The market value is above the book equity, so the market values the bank higher." }
+        mistake: { tag: below_book, fix: "The market value is above the book equity, so the market values the bank higher." }
       - id: b
         text: "Price-to-book: the market values the bank exactly at its books"
-        mistake: { fix: "Equal would mean the market pays book value. Here the market pays more." }
+        mistake: { tag: at_book, fix: "Equal would mean the market pays book value. Here the market pays more." }
       - { id: c, text: "Price-to-book: the market values the bank above what its books show" }
       - id: d
         text: "Leverage ratio: the bank borrows heavily against its equity"
-        mistake: { fix: "Leverage compares assets with equity. Market value against book value is price-to-book." }
+        mistake: { tag: pb_as_leverage, fix: "Leverage compares assets with equity. Market value against book value is price-to-book." }
     answer: c
     explanation: >
       Price-to-book compares the market value of equity with its book value, here 1.5. A ratio above 1 means the market values the bank at more than the book equity.
@@ -114,14 +114,14 @@ questions:
     choices:
       - id: a
         text: "It trims the equity by the same small slice as the assets"
-        mistake: { fix: "Equity is a small cushion under big assets, so the same loss hits it much harder." }
+        mistake: { tag: leverage_ignored, fix: "Equity is a small cushion under big assets, so the same loss hits it much harder." }
       - id: b
         text: "It does not touch the equity, because depositors share the loss"
-        mistake: { fix: "Depositors are paid first, so the owners' equity takes the hit alone." }
+        mistake: { tag: depositors_share_loss, fix: "Depositors are paid first, so the owners' equity takes the hit alone." }
       - { id: c, text: "It can wipe out most of the equity, because a small loss on assets is a large one on a thin cushion" }
       - id: d
         text: "It only matters if the bank pays a dividend"
-        mistake: { fix: "A loss reduces equity whether or not a dividend is paid." }
+        mistake: { tag: loss_via_dividend, fix: "A loss reduces equity whether or not a dividend is paid." }
     answer: c
     explanation: >
       High leverage turns a small loss on assets into a large loss of equity. For example, a loss of 5 percent of Rs 100,000 crore of assets is Rs 5,000 crore, against equity of Rs 8,000 crore: about 62 percent of the cushion gone.

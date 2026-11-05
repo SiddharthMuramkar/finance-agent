@@ -62,38 +62,38 @@ youllLearn:
 questions:
   - id: cs-q-tax-shield
     prompt: >
-      A firm has permanent debt of 1,000 at 8% interest and pays tax at 25%. Interest is deducted before tax. Which description of the yearly tax saving is right?
+      A firm borrows for good and pays interest every year. Interest is taken off profit before tax, and tax is 25%. Which headline about the tax saving gets it right?
     choices:
       - { id: a, text: "The tax saving is a quarter of the interest paid, a gain for owners that grows as the firm borrows more" }
       - id: b
         text: "The tax saving is all of the interest paid, so debt is free"
-        mistake: { fix: "Only the tax on the interest is saved, a quarter of it here, so debt is not free." }
+        mistake: { tag: debt_is_free, fix: "Only the tax on the interest is saved, a quarter of it here, so debt is not free." }
       - id: c
         text: "The tax saving is a quarter of the debt itself"
-        mistake: { fix: "The saving comes from the interest, not the debt amount." }
+        mistake: { tag: saving_on_debt, fix: "The saving comes from the interest, not the debt amount." }
       - id: d
         text: "There is no saving, because tax is charged on earnings before interest"
-        mistake: { fix: "Interest is deducted before tax, which is why the tax bill falls." }
+        mistake: { tag: interest_after_tax, fix: "Interest is deducted before tax, which is why the tax bill falls." }
     answer: a
     explanation: >
-      Interest is 80 a year. It is deducted before tax, so the tax bill falls by a quarter of 80, which is 20.
+      Interest is deducted before tax, so the tax bill falls by a quarter of the interest. For example, debt of 1,000 at 8% costs 80 of interest a year and saves 20 of tax.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
 
   - id: cs-q-roe
     prompt: >
-      A firm borrows part of the money for its assets. The assets earn more than the interest on the debt costs. What happens to the owners' return, and what is this called?
+      You buy a shop partly with a loan. The shop earns more each year than the loan's interest costs. Which headline about your return gets it right?
     choices:
       - { id: a, text: "It rises above what the assets earn: leverage is working in the owners' favour" }
       - id: b
         text: "It stays the same: borrowing changes nothing for owners"
-        mistake: { fix: "The assets earn more than the debt costs, so the gap goes to the owners." }
+        mistake: { tag: borrowing_neutral, fix: "The assets earn more than the debt costs, so the gap goes to the owners." }
       - id: c
         text: "It falls: interest eats into the owners' return"
-        mistake: { fix: "Interest is less than the assets earn, so owners keep the gap." }
+        mistake: { tag: interest_always_hurts, fix: "Interest is less than the assets earn, so owners keep the gap." }
       - id: d
         text: "It becomes the lender's rate: owners earn what the lender earns"
-        mistake: { fix: "Owners keep what the assets earn after interest, not the lender's rate." }
+        mistake: { tag: owners_get_loan_rate, fix: "Owners keep what the assets earn after interest, not the lender's rate." }
     answer: a
     explanation: >
       Borrowing at less than the assets earn lifts the owners' return, and would lower it if the assets earned less than the interest. For example, assets earning 10 on 100, with 40 borrowed at 6%, leave owners 7.6 on their 60, about 12.7%.
@@ -102,21 +102,21 @@ questions:
 
   - id: cs-q-cover
     prompt: >
-      A firm earns 50 before interest and tax and pays 25 of interest. Lenders look at how many times its earnings cover the interest. What do they call this, and what does a low figure signal?
+      A firm's yearly earnings are only twice its interest bill. Lenders watch the gap between the two closely. Which headline gets it right?
     choices:
       - { id: a, text: "Interest cover, and a low figure signals a thin margin of safety" }
       - id: b
         text: "Interest cover, and a low figure signals that the firm is very safe"
-        mistake: { fix: "A low cover means little room for earnings to fall before interest goes unpaid." }
+        mistake: { tag: low_cover_safe, fix: "A low cover means little room for earnings to fall before interest goes unpaid." }
       - id: c
         text: "Debt to equity, and a low figure signals a thin margin of safety"
-        mistake: { fix: "Debt to equity compares funding sources. Earnings against interest is interest cover." }
+        mistake: { tag: cover_as_gearing, fix: "Debt to equity compares funding sources. Earnings against interest is interest cover." }
       - id: d
         text: "Return on equity, and a low figure signals a thin margin of safety"
-        mistake: { fix: "Return on equity is what owners earn. Earnings against interest is interest cover." }
+        mistake: { tag: cover_as_roe, fix: "Return on equity is what owners earn. Earnings against interest is interest cover." }
     answer: a
     explanation: >
-      Interest cover is earnings before interest and tax divided by interest, here 2 times. A fall of half in earnings would leave nothing for shareholders, so a low cover is a thin margin of safety.
+      Interest cover sets earnings before interest and tax against the interest bill, here 2 times. A fall of half in earnings would leave nothing for shareholders, so a low cover is a thin margin of safety.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
 

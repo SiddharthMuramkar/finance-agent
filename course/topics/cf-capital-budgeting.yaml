@@ -65,18 +65,18 @@ youllLearn:
 questions:
   - id: cb-q-npv-calc
     prompt: >
-      A project costs money today and pays more later. Once the later payment is shrunk to what it is worth today, it is still bigger than the cost. What do finance people call the gain that is left, and what should the firm do?
+      Your firm can pay for a machine today that brings in more money later. Even shrunk to what it is worth today, that later money beats the cost. Which headline gets it right?
     choices:
       - { id: a, text: "Net present value, and it is positive, so accept" }
       - id: b
         text: "Net present value, and it is the plain profit before shrinking, so accept"
-        mistake: { fix: "The plain profit uses the later money at full size. Net present value uses it at its smaller worth today." }
+        mistake: { tag: unshrunk_profit, fix: "The plain profit uses the later money at full size. Net present value uses it at its smaller worth today." }
       - id: c
         text: "Net present value, and it is negative, so reject"
-        mistake: { fix: "The sign is flipped. Worth more today than the cost leaves a gain." }
+        mistake: { tag: sign_flipped, fix: "The sign is flipped. Worth more today than the cost leaves a gain." }
       - id: d
         text: "Net present value, and it is zero, so the firm is indifferent"
-        mistake: { fix: "Net present value is zero only when worth today equals the cost. Here it is higher." }
+        mistake: { tag: npv_zero, fix: "Net present value is zero only when worth today equals the cost. Here it is higher." }
     answer: a
     explanation: >
       Net present value is the later payment's worth today, minus the cost. If that is above zero, accept. For example, $1,210 in two years is worth $1,000 today at 10%, so a $900 cost leaves $100.

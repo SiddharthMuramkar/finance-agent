@@ -69,18 +69,18 @@ youllLearn:
 questions:
   - id: ra-q-rent-value
     prompt: >
-      A building brings in steady rent every year, and buyers of similar buildings want a certain yield on the price. How does the simple rent-based method turn that rent into a price?
+      You are offered an office block that pays steady rent, and buyers of blocks like it want a set yield on what they pay. How does the rent-based method turn that rent into a price?
     choices:
       - id: a
         text: "Price is rent times the yield, so a higher yield means a higher price"
-        mistake: { fix: "A higher required yield means buyers pay less for the same rent." }
+        mistake: { tag: yield_times_rent, fix: "A higher required yield means buyers pay less for the same rent." }
       - { id: b, text: "Price is rent divided by the yield, treating the rent as a payment that goes on for ever" }
       - id: c
         text: "Price is the rent times five years, whatever the yield"
-        mistake: { fix: "The yield sets the multiple. Five years is not a rule." }
+        mistake: { tag: fixed_years_rule, fix: "The yield sets the multiple. Five years is not a rule." }
       - id: d
         text: "Price is the rent alone, since the yield only describes the buyer's mood"
-        mistake: { fix: "The required yield is what turns a rent into a price." }
+        mistake: { tag: yield_ignored, fix: "The required yield is what turns a rent into a price." }
     answer: b
     explanation: >
       Price = net rent / required yield. This treats the rent as a payment that goes on for ever, whose present value is the rent divided by the rate. For example, Rs 6,00,000 of rent at a 5 per cent yield gives about Rs 1.2 crore.
@@ -89,41 +89,41 @@ questions:
 
   - id: ra-q-yield-falls
     prompt: >
-      A flat rents out for Rs 3,00,000 a year at a price of Rs 50 lakh, a rent yield of 6 per cent. The price then rises by half to Rs 75 lakh while the rent stays the same. What happens to the rent yield?
+      You own a flat. House prices in the city shoot up and your flat's price rises by half, but the tenant still pays the same rent. What happens to your rent yield?
     choices:
       - id: a
         text: "It rises, since the flat is now worth more"
-        mistake: { fix: "The rent is unchanged but the price is higher, so each rupee paid earns less rent." }
+        mistake: { tag: yield_follows_price, fix: "The rent is unchanged but the price is higher, so each rupee paid earns less rent." }
       - id: b
         text: "It stays the same, since the rent has not changed"
-        mistake: { fix: "Yield compares rent with price. A higher price lowers it." }
+        mistake: { tag: yield_is_rent, fix: "Yield compares rent with price. A higher price lowers it." }
       - { id: c, text: "It falls, so the buyer leans more on the price rising than on the rent" }
       - id: d
         text: "It falls to nothing, since rent does not count"
-        mistake: { fix: "Rent still counts. The yield falls but does not vanish." }
+        mistake: { tag: rent_ignored, fix: "Rent still counts. The yield falls but does not vanish." }
     answer: c
     explanation: >
-      With the rent unchanged, a higher price means a lower yield, here 4 per cent. A buyer at the new price is relying more on the price rising than on the rent.
+      With the rent unchanged, a higher price means a lower yield: a flat earning Rs 3,00,000 of rent on a Rs 50 lakh price yields 6 per cent, and at Rs 75 lakh only 4 per cent. A buyer at the new price is relying more on the price rising than on the rent.
     source: >
       Arithmetic from the stated figures; yield as rent divided by price, as in the rent-based valuation in Damodaran, valuation introduction slides: https://pages.stern.nyu.edu/~adamodar/podcasts/valUGspr22/session3slides.pdf
 
   - id: ra-q-leverage-ratio
     prompt: >
-      A buyer puts down 4 per cent of a house's price and borrows the other 96 per cent. Traders have a word for controlling a big asset with a small deposit. Which description fits?
+      You put down a tiny deposit on a house and the bank lends you all the rest. What do traders call controlling a big asset with a small slice of your own money?
     choices:
       - id: a
         text: "Unleveraged: the buyer controls only what the deposit pays for"
-        mistake: { fix: "Borrowing 96 per cent is leverage. The buyer controls the whole house." }
-      - { id: b, text: "Leveraged about 25 to 1: each rupee of the buyer's own money controls about Rs 25 of house" }
+        mistake: { tag: deposit_only, fix: "Borrowing most of the price is leverage. The buyer controls the whole house." }
+      - { id: b, text: "Leverage: each rupee of the buyer's own money controls many rupees of house" }
       - id: c
         text: "Hedged: the loan protects the buyer when prices fall"
-        mistake: { fix: "Borrowing does not protect. It magnifies gains and losses." }
+        mistake: { tag: loan_as_hedge, fix: "Borrowing does not protect. It magnifies gains and losses." }
       - id: d
         text: "Diversified: the buyer's money is spread over many houses"
-        mistake: { fix: "One house is one bet. Leverage is about borrowed money, not many assets." }
+        mistake: { tag: leverage_as_spread, fix: "One house is one bet. Leverage is about borrowed money, not many assets." }
     answer: b
     explanation: >
-      The house is 100 for every 4 of the buyer's own money, so about 25 to 1. In his Yale lecture Shiller gives the same picture for three per cent down, about 33 to 1.
+      With a 4 per cent deposit the house is 100 for every 4 of the buyer's own money, about 25 to 1. In his Yale lecture Shiller gives the same picture for three per cent down, about 33 to 1.
     source: >
       Yale ECON 251 (Shiller), Lecture 1, Why Finance? (a hundred-dollar house with three dollars down is leveraged 30:1 or 33:1): https://oyc.yale.edu/economics/econ-251/lecture-1
 
@@ -133,14 +133,14 @@ questions:
     choices:
       - id: a
         text: "It rises by the same small percentage as the flat's price"
-        mistake: { fix: "Your own money is only a small slice of the flat, so the same rise is a bigger share of it." }
+        mistake: { tag: leverage_ignored, fix: "Your own money is only a small slice of the flat, so the same rise is a bigger share of it." }
       - { id: b, text: "It rises by many times the flat's percentage: leverage multiplies the gain" }
       - id: c
         text: "It does not rise, because the lender takes the profit"
-        mistake: { fix: "The lender is repaid the loan and interest. The whole price rise stays with you." }
+        mistake: { tag: lender_takes_gain, fix: "The lender is repaid the loan and interest. The whole price rise stays with you." }
       - id: d
         text: "It rises less than the flat's percentage, because the loan shares the profit"
-        mistake: { fix: "The loan is a fixed amount owed. It does not share the gain." }
+        mistake: { tag: loan_shares_gain, fix: "The loan is a fixed amount owed. It does not share the gain." }
     answer: b
     explanation: >
       The whole price rise belongs to you after the loan is repaid, but it is earned on only your small slice. So the return on your own money is a multiple of the flat's rise. Leverage multiplies a loss in the same way.
@@ -153,14 +153,14 @@ questions:
     choices:
       - id: a
         text: "You lose a little, in line with the flat's small fall"
-        mistake: { fix: "Your slice is small, so a small fall in the flat can wipe out all of it." }
+        mistake: { tag: leverage_ignored, fix: "Your slice is small, so a small fall in the flat can wipe out all of it." }
       - { id: b, text: "It is wiped out, and a debt can remain: leverage multiplies a loss as it does a gain" }
       - id: c
         text: "It is safe, because the loan was fixed in advance"
-        mistake: { fix: "The loan is fixed, but that is why the fall lands entirely on your slice." }
+        mistake: { tag: fixed_loan_safe, fix: "The loan is fixed, but that is why the fall lands entirely on your slice." }
       - id: d
         text: "The lender takes the whole loss"
-        mistake: { fix: "You lose first. The lender is exposed only if the fall is bigger than your slice." }
+        mistake: { tag: lender_loses_first, fix: "You lose first. The lender is exposed only if the fall is bigger than your slice." }
     answer: b
     explanation: >
       The loan stays the same size whatever the flat sells for. A fall in the price bigger than your small slice wipes out your money and may leave a shortfall, which is the lender's risk. A fall of 10 per cent can take away 100 per cent of a 5 per cent deposit.
