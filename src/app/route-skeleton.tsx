@@ -24,9 +24,9 @@ export function SkeletonLines({ count = 3, className = "" }: { count?: number; c
 /** A reading page's frame (Course Map, Progress, Past Sessions, Notes, Settings): same box and header as ReadingPage. */
 export async function ReadingSkeleton({ current, children }: { current: HeaderPage; children: ReactNode }) {
   return (
-    <main data-testid="route-skeleton" aria-busy="true" className="mx-auto max-w-6xl px-4 pb-12 pt-4 lg:px-6 lg:pt-6">
+    <main data-testid="route-skeleton" aria-busy="true" className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-12 pt-3">
       <AppHeader current={current} theme={await readTheme()} className="mb-6" />
-      <div className="mx-auto max-w-2xl space-y-6">{children}</div>
+      <div className="w-full space-y-6">{children}</div>
     </main>
   );
 }
@@ -35,9 +35,9 @@ export async function ReadingSkeleton({ current, children }: { current: HeaderPa
 export async function WorkspaceSkeleton() {
   return (
     <SignedInFrame>
-      <main data-testid="route-skeleton" data-route="study" aria-busy="true" className="mx-auto flex h-dvh max-w-6xl flex-col overflow-hidden px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
+      <main data-testid="route-skeleton" data-route="study" aria-busy="true" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3 pt-3">
         <AppHeader current="workspace" theme={await readTheme()} className="mb-6" />
-        <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] gap-6 overflow-hidden lg:gap-8">
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(360px,2fr)_minmax(0,3fr)] grid-rows-[minmax(0,1fr)] gap-[var(--gap)] overflow-hidden">
           <div className="flex min-h-0 flex-col gap-4">
             <SkeletonBlock className="h-8 w-1/2" />
             <SkeletonLines count={4} />

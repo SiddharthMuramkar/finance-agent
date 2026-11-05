@@ -106,7 +106,7 @@ export function Chips({ offer, onNext, onSay }: { offer: NextOffer | null; onNex
     else onNext(offer.kind === "complete" ? "complete" : offer.step);
   };
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="measure mt-3 flex flex-wrap gap-2">
       {offer && (
         <Button variant="secondary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →

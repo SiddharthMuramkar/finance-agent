@@ -137,7 +137,7 @@ export function MessageBox({
           />
         </div>
       )}
-      <ComposerPrimitive.Root className="flex gap-2">
+      <ComposerPrimitive.Root className="measure flex gap-2">
         <Button
           type="button"
           variant="secondary"
