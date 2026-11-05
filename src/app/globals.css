@@ -598,3 +598,232 @@ body {
 .genui .openui-step-title {
   color: var(--ink);
 }
+
+/* Design primitives (spec Appendix B, ticket A3a). src/app/primitives/ picks these classes and sets data-affordance;
+   the look lives here. Tokens only: --brand-main, --brand-deep, --edge, --field, --ink, --coral-fill, --coral-deep,
+   --shadow, --hi, --ring. A raised face with a darker lip says "press me"; a flat tag with a dot says "just a label". */
+@layer components {
+  /* Raised controls: .btn (button or link-as-button), .chip, .btn-icon */
+  .btn,
+  .chip {
+    --lip: 3px; /* depth of the darker edge under the face */
+    --face: var(--field);
+    --label: var(--ink);
+    --rim: var(--edge); /* 1px border, 3:1 or better against the page */
+    --lip-colour: var(--edge);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--rim);
+    color: var(--label);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / var(--hi)) 0%, rgb(255 255 255 / 0) 60%), var(--face);
+    box-shadow:
+      0 var(--lip) 0 var(--lip-colour),
+      0 calc(var(--lip) + 3px) 8px -1px var(--shadow);
+    font-weight: 600;
+    text-decoration: none;
+    user-select: none;
+    touch-action: manipulation;
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      box-shadow var(--dur-press) var(--ease-out),
+      background-color var(--dur-ui) var(--ease-out);
+  }
+  .btn {
+    min-height: 36px;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-size: var(--text-ui);
+    line-height: 20px;
+  }
+  .btn-sm {
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: var(--text-small);
+    --lip: 2px;
+  }
+  .btn-icon {
+    --lip: 2px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 999px;
+  }
+  .btn-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .chip {
+    min-height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: var(--text-small);
+    line-height: 16px;
+    font-weight: 500;
+    --lip: 2px;
+  }
+  .chip[data-affordance="nav"] {
+    min-height: 32px;
+  }
+
+  /* Variants. Secondary is the default above: field face, --edge rim and lip, ink label. */
+  .btn-secondary {
+    --face: var(--field);
+    --label: var(--ink);
+  }
+  .btn-primary {
+    --face: var(--brand-main);
+    --label: var(--brand-ink);
+    --rim: var(--brand-deep);
+    --lip-colour: var(--brand-deep);
+  }
+  .btn-danger {
+    --face: var(--coral-fill);
+    --label: var(--brand-ink);
+    --rim: var(--coral-deep);
+    --lip-colour: var(--coral-deep);
+  }
+  .chip[aria-pressed="true"],
+  .chip[data-state="showing"],
+  .chip[aria-current="page"],
+  .btn-icon[aria-pressed="true"] {
+    --face: var(--brand-tint);
+    --label: var(--brand);
+    --rim: var(--brand);
+    --lip-colour: var(--brand);
+  }
+
+  /* States */
+  @media (hover: hover) {
+    .btn:hover:not(:disabled),
+    .chip:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow:
+        0 calc(var(--lip) + 1px) 0 var(--lip-colour),
+        0 calc(var(--lip) + 5px) 12px -2px var(--shadow);
+    }
+    .btn-primary:hover:not(:disabled) {
+      --face: var(--brand-hover);
+    }
+  }
+  .btn:active:not(:disabled),
+  .chip:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 var(--lip-colour),
+      0 2px 4px -1px var(--shadow);
+  }
+  .btn-primary:active:not(:disabled) {
+    --face: var(--brand-pressed);
+  }
+  .btn:focus-visible,
+  .chip:focus-visible,
+  .link:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"],
+  .chip:disabled {
+    box-shadow: none;
+    transform: none;
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn:not(:disabled),
+  .chip:not(:disabled) {
+    cursor: pointer;
+  }
+  .btn[aria-busy="true"] {
+    cursor: progress;
+  }
+
+  /* Inline links are underlined, so they never read as plain words. */
+  .link {
+    color: var(--brand);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .link:hover {
+    text-decoration-thickness: 2px;
+    color: color-mix(in srgb, var(--brand) 80%, var(--ink));
+  }
+
+  /* Static tags: flat, square-ish (6px; chips are fully round), no shadow, no pointer, a dot instead of a lip. */
+  .tag {
+    --tag-bg: var(--hairline);
+    --tag-ink: var(--muted);
+    --tag-dot: var(--edge);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    color: var(--tag-ink);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    box-shadow: none;
+    cursor: default;
+  }
+  .tag::before {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tag-dot);
+  }
+  .tag[data-tone="mint"] {
+    --tag-bg: var(--mint-tag);
+    --tag-ink: var(--mint-ink);
+    --tag-dot: var(--mint);
+  }
+  .tag[data-tone="coral"] {
+    --tag-bg: var(--coral-tag);
+    --tag-ink: var(--coral-ink);
+    --tag-dot: var(--coral);
+  }
+  .tag[data-tone="sun"] {
+    --tag-bg: var(--sun-tag);
+    --tag-ink: var(--sun-ink);
+    --tag-dot: var(--sun);
+  }
+  .tag[data-tone="violet"] {
+    --tag-bg: var(--violet-tag);
+    --tag-ink: var(--violet-ink);
+    --tag-dot: var(--violet);
+  }
+  .tag[data-tone="brand"] {
+    --tag-bg: var(--brand-tint);
+    --tag-ink: var(--brand);
+    --tag-dot: var(--brand-main);
+  }
+
+  /* Motion and forced colours */
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .chip {
+      transition: none;
+    }
+    .btn:hover:not(:disabled),
+    .chip:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .btn,
+    .chip {
+      border-color: ButtonText;
+      box-shadow: none;
+    }
+  }
+}
