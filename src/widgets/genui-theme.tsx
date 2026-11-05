@@ -46,34 +46,34 @@ const COLOURS: Theme = {
   // Callout titles are navy or ink, never the kit's indigo or brown. Only a danger callout is red.
   textInfoPrimary: "var(--brand)",
   textInfoInverted: "var(--brand-ink)",
-  textSuccessPrimary: "var(--ink)",
+  textSuccessPrimary: "var(--mint-ink)",
   textSuccessInverted: "var(--brand-ink)",
-  textAlertPrimary: "var(--ink)",
+  textAlertPrimary: "var(--sun-ink)",
   textAlertInverted: "var(--brand-ink)",
-  textDangerPrimary: "var(--danger)",
-  textDangerSecondary: "var(--danger)",
-  textDangerTertiary: "var(--danger)",
-  interactiveAccentDefault: "var(--brand)",
+  textDangerPrimary: "var(--coral-ink)",
+  textDangerSecondary: "var(--coral-ink)",
+  textDangerTertiary: "var(--coral-ink)",
+  interactiveAccentDefault: "var(--brand-main)",
   interactiveAccentHover: "var(--brand-hover)",
   interactiveAccentPressed: "var(--brand-pressed)",
-  interactiveAccentDisabled: "color-mix(in srgb, var(--brand) 40%, transparent)",
-  infoBackground: "var(--brand-tint)",
-  successBackground: "var(--hairline)",
-  alertBackground: "var(--hairline)",
-  dangerBackground: "color-mix(in srgb, var(--danger) 8%, transparent)",
+  interactiveAccentDisabled: "color-mix(in srgb, var(--brand-main) 40%, transparent)",
+  infoBackground: "var(--brand-soft)",
+  successBackground: "var(--mint-tint)",
+  alertBackground: "var(--sun-tint)",
+  dangerBackground: "var(--coral-tint)",
   borderDefault: "var(--border)",
   borderInteractive: "var(--border)",
-  borderInteractiveSelected: "var(--brand)",
+  borderInteractiveSelected: "var(--brand-main)",
   borderAccent: "var(--brand-line)",
-  borderAccentEmphasis: "var(--brand)",
+  borderAccentEmphasis: "var(--brand-main)",
   borderInfo: "var(--brand-line)",
-  borderInfoEmphasis: "var(--brand)",
-  borderSuccess: "var(--border)",
-  borderSuccessEmphasis: "var(--ink)",
-  borderAlert: "var(--border)",
-  borderAlertEmphasis: "var(--ink)",
-  borderDanger: "var(--danger)",
-  borderDangerEmphasis: "var(--danger)",
+  borderInfoEmphasis: "var(--brand-main)",
+  borderSuccess: "var(--mint)",
+  borderSuccessEmphasis: "var(--mint-ink)",
+  borderAlert: "var(--sun)",
+  borderAlertEmphasis: "var(--sun-ink)",
+  borderDanger: "var(--coral)",
+  borderDangerEmphasis: "var(--coral-ink)",
 };
 
 /**
@@ -96,17 +96,12 @@ const FONTS = {
 
 /**
  * Chart colours for each theme, as hex (charts set them as SVG attributes), each taken from that theme's block in
- * globals.css (a test checks it). The kit hands them out from the middle of the list: one series is the brand colour,
- * two are the learner's accent and the sourced-history accent, three are accent, brand and sourced, and more reach the
- * quieter colours at either end. In each list the order is: learner tag text, muted, learner accent, brand, sourced
- * accent, brand line, sourced tag text. Light's list is the one it always had. Paper uses its softer learner rule
- * colour for the third, because its learner accent is too close to its blue.
+ * globals.css (a test checks it). The series order is the spec's: brand-main, mint, sunflower, violet, coral, edge.
+ * Mint stays the Learner's own series and sunflower history, as everywhere else.
  */
 const PALETTE: Record<ThemeId, string[]> = {
-  light: ["#0b4f4a", "#79716b", "#00786f", "#002366", "#e17100", "#6699ff", "#7b3306"],
-  paper: ["#2f5f68", "#66617f", "#56949f", "#286983", "#94580f", "#b1c2c8", "#7d4a12"],
-  midnight: ["#abe8dd", "#a6adc8", "#94e2d5", "#89b4fa", "#fab387", "#465579", "#fcc29f"],
-  forest: ["#b8cd9a", "#b3bcb2", "#a7c080", "#7fbbb3", "#dbbc7f", "#4d6768", "#e2c999"],
+  light: ["#2f5bea", "#12b886", "#ffc233", "#8b5cf6", "#ff6b57", "#6677a3"],
+  dark: ["#4466d8", "#66cdaa", "#e8be5c", "#b09af2", "#f28b7d", "#6b7aae"],
 };
 
 /** The chart colours of each theme, for the test that ties them to globals.css. */
@@ -141,7 +136,7 @@ function htmlTheme(): ThemeId {
   const root = document.documentElement;
   const named = root.dataset.theme;
   if (isTheme(named)) return named;
-  return root.classList.contains("dark") ? "midnight" : "light";
+  return root.classList.contains("dark") ? "dark" : "light";
 }
 const lightOnServer = (): ThemeId => "light";
 

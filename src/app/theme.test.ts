@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_PREF, THEMES, THEME_INIT_SCRIPT, THEME_KIND, THEME_SWATCH, applyTheme, parsePref, resolveTheme, serializePref } from "./theme";
+import { DEFAULT_PREF, THEMES, THEME_INIT_SCRIPT, THEME_KIND, THEME_SWATCH, applyTheme, parsePref, resolveTheme, serializePref, type ThemePref } from "./theme";
 
 const root = document.documentElement;
 const attributes = () => ({ theme: root.dataset.theme, dark: root.classList.contains("dark"), scheme: root.style.colorScheme, openui: root.dataset.openuiTheme });
@@ -19,57 +19,64 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** Every saved value the migration table of spec A4 names, with what parsePref must give. */
+const MIGRATION: [string | null, ThemePref][] = [
+  ["dark", { mode: "single", theme: "dark" }],
+  ["light", { mode: "single", theme: "light" }],
+  ["single:paper", { mode: "single", theme: "light" }],
+  ["single:forest", { mode: "single", theme: "dark" }],
+  ["single:midnight", { mode: "single", theme: "dark" }],
+  ["single:light", { mode: "single", theme: "light" }],
+  ["single:dark", { mode: "single", theme: "dark" }],
+  ["system", { mode: "system" }],
+  ["system:paper:forest", { mode: "system" }],
+  ["system:light:midnight", { mode: "system" }],
+  [null, { mode: "system" }],
+  ["", { mode: "system" }],
+  ["banana", { mode: "system" }],
+];
+
 describe("parsePref", () => {
-  it("moves the old saved values to a pinned theme", () => {
-    expect(parsePref("dark")).toEqual({ mode: "single", theme: "midnight" });
-    expect(parsePref("light")).toEqual({ mode: "single", theme: "light" });
+  it("stored preferences migrate", () => {
+    for (const [raw, want] of MIGRATION) expect(parsePref(raw), String(raw)).toEqual(want);
+    expect(parsePref(undefined)).toEqual({ mode: "system" });
+    expect(parsePref("single:neon")).toEqual({ mode: "system" });
   });
 
-  it("reads a pinned theme and a day and night pair", () => {
-    expect(parsePref("single:forest")).toEqual({ mode: "single", theme: "forest" });
-    expect(parsePref("system:paper:forest")).toEqual({ mode: "system", day: "paper", night: "forest" });
-  });
-
-  it("falls back to following the computer on anything unreadable", () => {
-    for (const raw of ["system:midnight:light", "", "garbage", "single:neon", "system:light", null, undefined]) expect(parsePref(raw)).toEqual(DEFAULT_PREF);
-  });
-
-  it("reads back what it saves", () => {
-    for (const pref of [DEFAULT_PREF, { mode: "system", day: "paper", night: "forest" } as const, ...THEMES.map((theme) => ({ mode: "single", theme }) as const)]) {
-      expect(parsePref(serializePref(pref))).toEqual(pref);
-    }
+  it("saves as system or single:<theme>, and reads back what it saves", () => {
+    expect(serializePref({ mode: "system" })).toBe("system");
+    expect(serializePref({ mode: "single", theme: "dark" })).toBe("single:dark");
+    for (const pref of [DEFAULT_PREF, ...THEMES.map((theme) => ({ mode: "single", theme }) as const)]) expect(parsePref(serializePref(pref))).toEqual(pref);
   });
 });
 
 describe("resolveTheme", () => {
   it("gives a pinned theme whatever the computer's mode", () => {
-    expect(resolveTheme({ mode: "single", theme: "paper" }, true)).toBe("paper");
-    expect(resolveTheme({ mode: "single", theme: "forest" }, false)).toBe("forest");
+    expect(resolveTheme({ mode: "single", theme: "light" }, true)).toBe("light");
+    expect(resolveTheme({ mode: "single", theme: "dark" }, false)).toBe("dark");
   });
 
-  it("gives the day theme in light mode and the night theme in dark mode", () => {
-    const pair = { mode: "system", day: "paper", night: "forest" } as const;
-    expect(resolveTheme(pair, false)).toBe("paper");
-    expect(resolveTheme(pair, true)).toBe("forest");
+  it("follows the computer: Light in light mode, Dark in dark mode", () => {
+    expect(resolveTheme({ mode: "system" }, false)).toBe("light");
+    expect(resolveTheme({ mode: "system" }, true)).toBe("dark");
   });
 });
 
 describe("applyTheme", () => {
   it("sets the four things on <html>, and takes off what the last theme set", () => {
-    applyTheme("forest");
-    expect(attributes()).toEqual({ theme: "forest", dark: true, scheme: "dark", openui: "dark" });
-    applyTheme("paper");
-    expect(attributes()).toEqual({ theme: "paper", dark: false, scheme: "light", openui: "light" });
+    applyTheme("dark");
+    expect(attributes()).toEqual({ theme: "dark", dark: true, scheme: "dark", openui: "dark" });
+    applyTheme("light");
+    expect(attributes()).toEqual({ theme: "light", dark: false, scheme: "light", openui: "light" });
   });
 });
 
 describe("THEME_INIT_SCRIPT, the head script's copy of the logic", () => {
-  const SAVED = ["dark", "light", "", "garbage", "single:neon", "system:midnight:light", "system:light", ...THEMES.map((t) => `single:${t}`)];
-  for (const day of ["light", "paper"]) for (const night of ["midnight", "forest"]) SAVED.push(`system:${day}:${night}`);
+  const SAVED = [...MIGRATION.map(([raw]) => raw ?? ""), "single:neon", "system:midnight:light"];
 
   for (const raw of SAVED) {
     for (const osDark of [false, true]) {
-      it(`matches parsePref, resolveTheme and applyTheme for "${raw}" with the computer ${osDark ? "dark" : "light"}`, () => {
+      it(`the first-paint script agrees for "${raw}" with the computer ${osDark ? "dark" : "light"}`, () => {
         clear();
         if (raw) document.cookie = `theme=${raw}; path=/`;
         const media = vi.fn(() => ({ matches: osDark }));
@@ -85,11 +92,11 @@ describe("THEME_INIT_SCRIPT, the head script's copy of the logic", () => {
   }
 
   it("finds the theme cookie among others, not one whose name only ends in theme", () => {
-    document.cookie = "not-theme=single:forest; path=/";
+    document.cookie = "not-theme=single:dark; path=/";
     document.cookie = "theme=single:paper; path=/";
-    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
     new Function(THEME_INIT_SCRIPT)();
-    expect(root.dataset.theme).toBe("paper");
+    expect(root.dataset.theme).toBe("light");
     document.cookie = "not-theme=; path=/; max-age=0";
   });
 
@@ -109,13 +116,13 @@ describe("THEME_SWATCH", () => {
     if (at < 0) throw new Error(`no ${selector} block in globals.css`);
     return css.slice(at, css.indexOf("}", at));
   };
-  const SELECTOR = { light: ":root", paper: ':root[data-theme="paper"]', midnight: ":root.dark", forest: ':root.dark[data-theme="forest"]' } as const;
+  const SELECTOR = { light: ":root", dark: ":root.dark" } as const;
 
-  it("copies each theme's colours from globals.css", () => {
+  it("swatches equal the stylesheet", () => {
     for (const id of THEMES) {
       const tokens = block(SELECTOR[id]);
       const token = (name: string) => new RegExp(`--${name}:\\s*(#[0-9a-f]+)`, "i").exec(tokens)?.[1];
-      expect({ id, bg: token("bg"), ink: token("ink"), brand: token("brand") }).toEqual({ id, ...THEME_SWATCH[id] });
+      expect({ id, bg: token("bg"), ink: token("ink"), brand: token("brand-main") }).toEqual({ id, ...THEME_SWATCH[id] });
       expect(tokens).toContain(`color-scheme: ${THEME_KIND[id]}`);
     }
   });

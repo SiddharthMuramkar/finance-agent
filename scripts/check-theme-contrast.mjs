@@ -1,24 +1,27 @@
 // scripts/check-theme-contrast.mjs
-// Zero-dependency guard for the four colour themes. Run: node scripts/check-theme-contrast.mjs [path/to/tokens.css]
-// Exits 1 if any rule fails. Rules come from docs/specs/2026-11-04-themes-and-topic-bar.md (T-01).
+// Zero-dependency guard for the two colour themes, Light and Dark. Run: node scripts/check-theme-contrast.mjs [path/to/tokens.css]
+// Exits 1 if any rule fails. Rules: docs/specs/2026-11-05-story-first-full-screen-google-sign-in.md, Appendix A.3.
 import { readFileSync } from 'node:fs';
 
 const CSS_PATH = process.argv[2] ?? 'src/app/globals.css'; // <-- the file that defines the :root token blocks
 
-const TOKENS = ['bg', 'field', 'bubble', 'hairline', 'border', 'data', 'muted', 'ink', 'brand', 'brand-hover', 'brand-pressed', 'ring', 'brand-ink', 'brand-tint', 'brand-line',
+const TOKENS = ['bg', 'field', 'bubble', 'hairline', 'border', 'edge', 'data', 'muted', 'ink',
+  'brand-main', 'brand', 'brand-hover', 'brand-pressed', 'brand-deep', 'ring', 'brand-ink', 'brand-tint', 'brand-soft', 'brand-line',
+  'mint', 'mint-ink', 'mint-tint', 'mint-tag', 'coral', 'coral-ink', 'coral-tint', 'coral-tag', 'coral-fill', 'coral-deep',
+  'sun', 'sun-ink', 'sun-tint', 'sun-tag', 'violet', 'violet-ink', 'violet-tint', 'violet-tag',
   'you', 'you-line', 'you-tint', 'you-tag', 'you-tag-ink', 'src', 'src-line', 'src-tint', 'src-tag', 'src-tag-ink', 'danger'];
 
-// Light is frozen: its values must not change.
-const LIGHT_FROZEN = { bg: '#fafaf9', field: '#ffffff', bubble: '#e7e5e4', hairline: '#e7e5e4', border: '#d6d3d1', data: '#d6d3d1', muted: '#79716b', ink: '#1c1917',
-  brand: '#002366', 'brand-hover': '#001e57', 'brand-pressed': '#00184a', ring: '#002366', 'brand-ink': '#ffffff', 'brand-tint': '#f0f5ff', 'brand-line': '#c2cde2',
-  you: '#00786f', 'you-line': '#009689', 'you-tint': '#f5fcf9', 'you-tag': '#cbfbf1', 'you-tag-ink': '#0b4f4a',
-  src: '#e17100', 'src-line': '#fe9a00', 'src-tint': '#fdfbf2', 'src-tag': '#fef3c6', 'src-tag-ink': '#7b3306', danger: '#c10007' };
+// Light is frozen: its values are Appendix A.1's and change only with a note in ADR 0012.
+const LIGHT_FROZEN = { bg: '#f6f8ff', field: '#ffffff', bubble: '#e6ecff', hairline: '#e4e9f7', border: '#c5cee6', edge: '#6677a3', data: '#c5cee6', muted: '#44527a', ink: '#121a33',
+  'brand-main': '#2f5bea', brand: '#2449c4', 'brand-hover': '#2a52d6', 'brand-pressed': '#2347be', 'brand-deep': '#1e3a8a', ring: '#2f5bea', 'brand-ink': '#ffffff', 'brand-tint': '#dce6ff', 'brand-soft': '#dce6ff', 'brand-line': '#afc3f7',
+  mint: '#12b886', 'mint-ink': '#0b7a5a', 'mint-tint': '#ddf7ec', 'mint-tag': '#d2f4e6', coral: '#ff6b57', 'coral-ink': '#bd2f1e', 'coral-tint': '#ffe6e1', 'coral-tag': '#ffddd6', 'coral-fill': '#bd2f1e', 'coral-deep': '#8f2012',
+  sun: '#ffc233', 'sun-ink': '#8a5a00', 'sun-tint': '#fff1c9', 'sun-tag': '#ffe49a', violet: '#8b5cf6', 'violet-ink': '#6d3ad9', 'violet-tint': '#ebe2ff', 'violet-tag': '#e4d9ff',
+  you: '#0b7a5a', 'you-line': '#12b886', 'you-tint': '#ddf7ec', 'you-tag': '#d2f4e6', 'you-tag-ink': '#0b7a5a',
+  src: '#8a5a00', 'src-line': '#ffc233', 'src-tint': '#fff1c9', 'src-tag': '#ffe49a', 'src-tag-ink': '#8a5a00', danger: '#bd2f1e' };
 
 const THEMES = [
   { id: 'light', kind: 'light', selector: ':root', frozen: LIGHT_FROZEN },
-  { id: 'paper', kind: 'light', selector: ':root[data-theme="paper"]' },
-  { id: 'midnight', kind: 'dark', selector: ':root.dark' },
-  { id: 'forest', kind: 'dark', selector: ':root.dark[data-theme="forest"]' },
+  { id: 'dark', kind: 'dark', selector: ':root.dark' },
 ];
 
 // ---------- parsing ----------
@@ -77,11 +80,17 @@ function apca(txt, bg) {
   const s = (yb ** 0.65 - yt ** 0.62) * 1.14; return s > -0.1 ? 0 : (s + 0.027) * 100;
 }
 // ---------- rules ----------
-const TEXT = [ // [fg, bg, minimum WCAG ratio]
-  ['ink', 'bg', 7], ['ink', 'field', 7], ['ink', 'bubble', 7], ['ink', 'src-tint', 7], ['ink', 'you-tint', 7],
-  ['muted', 'bg', 4.5], ['muted', 'field', 4.5], ['muted', 'hairline', 4.5], ['muted', 'src-tint', 4.5], ['muted', 'you-tint', 4.5],
-  ['brand', 'bg', 4.5], ['brand', 'field', 4.5], ['brand', 'brand-tint', 4.5], ['brand-ink', 'brand', 4.5],
+const ACCENTS = ['mint', 'coral', 'sun', 'violet'];
+const TINTS = [...ACCENTS.map(a => `${a}-tint`), 'you-tint', 'src-tint'];
+const TAGS = ACCENTS.map(a => `${a}-tag`);
+const TEXT = [ // [fg, bg, minimum WCAG ratio], Appendix A.3
+  ...['bg', 'field', 'bubble', 'brand-tint', ...TINTS, ...TAGS].map(b => ['ink', b, 7]),
+  ...['bg', 'field', 'hairline', 'bubble', 'brand-tint', ...TINTS].map(b => ['muted', b, 4.5]),
+  ['brand', 'bg', 4.5], ['brand', 'field', 4.5], ['brand', 'brand-tint', 4.5],
+  ...['brand-main', 'brand-hover', 'brand-pressed', 'coral-fill'].map(b => ['brand-ink', b, 4.5]),
+  ...ACCENTS.flatMap(a => ['bg', 'field', `${a}-tint`, `${a}-tag`].map(b => [`${a}-ink`, b, 4.5])),
   ['you', 'bg', 4.5], ['src', 'bg', 4.5], ['danger', 'bg', 4.5], ['you-tag-ink', 'you-tag', 4.5], ['src-tag-ink', 'src-tag', 4.5],
+  ['edge', 'bg', 3], ['edge', 'field', 3], ['ring', 'bg', 3], ['ring', 'field', 3], ['brand-main', 'bg', 3], ['coral-fill', 'bg', 3],
 ];
 const css = readFileSync(CSS_PATH, 'utf8');
 const fails = [];
@@ -98,10 +107,8 @@ for (const th of THEMES) {
   const bg = C.bg, S = k => over(C[k], bg);
   if (th.frozen) { // Light must stay exactly as it is today
     for (const [k, v] of Object.entries(th.frozen)) { const a = S(k), b = parseColor(v); check(a.r === b.r && a.g === b.g && a.b === b.b, `${th.id}: --${k} is unchanged (${v})`); }
-    continue;
   }
   for (const [f, b, min] of TEXT) { const r = wcag(S(f), S(b)); check(r >= min, `${th.id}: --${f} on --${b} ${r.toFixed(2)}:1 (min ${min})`); }
-  { const r = wcag(S('ring'), bg); check(r >= 3, `${th.id}: --ring vs --bg ${r.toFixed(2)}:1 (min 3, focus must be visible)`); }
   const L = k => oklch(S(k)).L;
   if (th.kind === 'dark') {
     const r = wcag(S('ink'), bg), lc = Math.abs(apca(S('ink'), bg));
@@ -109,8 +116,9 @@ for (const th of THEMES) {
     check(lc >= 75, `${th.id}: body text APCA Lc ${lc.toFixed(1)} (min 75)`);
     check(L('bg') >= 0.2 && L('bg') <= 0.34, `${th.id}: --bg OKLCH lightness ${L('bg').toFixed(3)} is within 0.20–0.34 (never near-black)`);
     check(L('bg') < L('field') && L('field') < L('hairline') && L('hairline') < L('border'), `${th.id}: surfaces get lighter as they rise (bg < field < hairline < border)`);
-    for (const k of ['brand', 'you', 'you-line', 'src', 'src-line', 'danger']) { const c = oklch(S(k)).C; check(c <= 0.135, `${th.id}: --${k} chroma ${c.toFixed(3)} (max 0.135, no neon)`); }
-    for (const k of ['you-tint', 'src-tint']) check(C[k].a <= 0.1, `${th.id}: --${k} alpha ${C[k].a.toFixed(2)} (max 0.10)`);
+    for (const k of ['brand', 'you', 'you-line', 'src', 'src-line', 'danger', ...ACCENTS, ...ACCENTS.map(a => `${a}-ink`)]) { const c = oklch(S(k)).C; check(c <= 0.135, `${th.id}: --${k} chroma ${c.toFixed(3)} (max 0.135, no neon)`); }
+    { const c = oklch(S('brand-main')).C; check(c <= 0.2, `${th.id}: --brand-main chroma ${c.toFixed(3)} (a button fill, max 0.20)`); }
+    for (const k of TINTS) check(C[k].a <= 0.1, `${th.id}: --${k} alpha ${C[k].a.toFixed(2)} (max 0.10)`);
   } else {
     check(L('field') >= L('bg') && L('bg') > L('hairline') && L('hairline') > L('border'), `${th.id}: light surfaces order (field ≥ bg > hairline > border)`);
   }
