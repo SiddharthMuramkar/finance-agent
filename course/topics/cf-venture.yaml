@@ -100,7 +100,7 @@ questions:
 
   - id: cv-q-price
     prompt: >
-      A company with 8 million shares is valued at $32 million pre-money. New investors put in $10 million and receive newly issued shares at a price set from that pre-money value. What happens to the founders' and earlier holders' stake?
+      A start-up raises a new round. New investors put in money and receive newly issued shares at a price set from the pre-money value. What happens to the founders' and earlier holders' stake?
     choices:
       - { id: a, text: "It is diluted: they keep the same number of shares but own a smaller slice of a bigger total" }
       - { id: b, text: "It is untouched, because the new money goes into the company", mistake: { tag: no_dilution, fix: "New shares are added, so every earlier holder's slice gets smaller." } }
@@ -108,7 +108,7 @@ questions:
       - { id: d, text: "It grows, because the company now holds more cash", mistake: { tag: cash_raises_stake, fix: "More cash does not raise a percentage. More shares dilute it." } }
     answer: a
     explanation: >
-      The price is the pre-money value over the shares before, $32 million over 8 million, so $4 a share. The $10 million buys 2.5 million new shares, so earlier holders go from owning all of the company to 8 of 10.5 million shares, about 76 percent.
+      The round creates new shares. Earlier holders keep every share they had, but the total number of shares grows, so their slice of the company shrinks. That is dilution. They accept it because the new money should make the whole company worth more.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
@@ -128,7 +128,7 @@ questions:
 
   - id: cv-q-vc-method
     prompt: >
-      A venture investor puts in $2 million and wants the stake to be worth ten times that at exit, when the company is expected to be worth $50 million. In the venture capital method, how does the investor reason?
+      A venture investor puts money into a young start-up with little profit yet. The investor wants the stake to be worth many times the money at exit, when the company is sold or lists. In the venture capital method, how does the investor reason?
     choices:
       - { id: a, text: "Forward from today's profits, as for a share on the stock market", mistake: { tag: forward_from_profits, fix: "A start-up has little profit yet. The method works back from the exit." } }
       - { id: b, text: "From the founders' wish for a high valuation", mistake: { tag: founders_ask, fix: "The investor's target return sets the stake, not the founders' wish." } }
@@ -136,7 +136,7 @@ questions:
       - { id: d, text: "From the headline valuation of the last round", mistake: { tag: last_round_headline, fix: "The last round's headline is not the starting point. The exit and target return are." } }
     answer: c
     explanation: >
-      The investor needs $20 million at exit (ten times $2 million). On a company worth $50 million, that takes 20 / 50 = 40 percent. This is the venture capital approach: work backward from the exit value and the target return to the stake required.
+      The investor starts at the end: what the company might be worth at exit, and how much the stake must be worth by then. Working back from those gives the share of the company the money must buy today. That is the venture capital approach.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), the venture capital approach: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 

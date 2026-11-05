@@ -70,18 +70,18 @@ questions:
       A bank's assets are worth only a little more than it owes its depositors, so its cushion of net worth is thin. Then the market value of its assets drops by more than that whole cushion. What happens to the bank?
     choices:
       - { id: a, text: "It is now insolvent: its assets are worth less than it owes its depositors" }
-      - { id: b, text: "It is fine, because its deposits fell by 10% too", mistake: { tag: deposits_fall_too, fix: "Deposits are fixed sums owed. They do not fall when asset values do." } }
+      - { id: b, text: "It is fine, because its deposits fell by the same amount", mistake: { tag: deposits_fall_too, fix: "Deposits are fixed sums owed. They do not fall when asset values do." } }
       - { id: c, text: "It is fine, because the drop is small next to the size of its deposits", mistake: { tag: compared_to_deposits, fix: "What matters is the thin cushion. A drop bigger than the cushion wipes it out." } }
       - { id: d, text: "Its net worth doubles, because assets are cheaper to buy", mistake: { tag: net_worth_rises, fix: "A fall in asset value cuts net worth. It never raises it." } }
     answer: a
     explanation: >
-      Net worth is assets less liabilities. Once the fall is bigger than the cushion, assets are worth less than the deposits owed. For example, $120 million of assets against $110 million of deposits leaves a $10 million cushion, and a 10% fall ($12 million) wipes it out and more.
+      Net worth is what the bank owns less what it owes. The deposits stay the same when asset prices fall, so the whole drop comes out of the cushion. Once the drop is bigger than the cushion, the bank owns less than it owes: it is insolvent.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 27.3 The Role of Banks (balance sheet and net worth): https://openstax.org/books/principles-economics-3e/pages/27-3-the-role-of-banks ; figures are hypothetical
 
   - id: bk-q-sell-loss
     prompt: >
-      A bank holds $50 billion of bonds carried at their cost, but the market now values them at only $42 billion. Deposit withdrawals force it to sell half of them. What does selling do?
+      A bank bought long-term bonds when interest rates were low. Rates have since risen, so the market now values the bonds below what the bank paid. While it keeps them, the loss is only on paper. Then deposit withdrawals force it to sell half of them. What does selling do?
     choices:
       - { id: a, text: "It turns a loss on paper into a real loss that hits the bank's capital" }
       - { id: b, text: "Nothing, because bonds held to maturity cannot lose money", mistake: { tag: held_to_maturity_safe, fix: "Holding to maturity hid the loss on paper. Selling makes it real." } }
@@ -89,7 +89,7 @@ questions:
       - { id: d, text: "It cancels the loss on the half the bank keeps", mistake: { tag: cancels_other_half, fix: "The unsold half still carries its own unrealised loss." } }
     answer: a
     explanation: >
-      Half the bonds cost $25 billion and sell for $21 billion, a $4 billion loss. Holding to maturity hid the loss on paper, but selling makes it real. The other half still carries an unrealised loss of $4 billion.
+      Selling at the lower market price turns the paper loss on that half into a real one, and it comes straight out of the bank's capital. The half it keeps still carries its own paper loss.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 27.3 The Role of Banks (banks lose when asset values fall): https://openstax.org/books/principles-economics-3e/pages/27-3-the-role-of-banks ; figures are hypothetical
 
