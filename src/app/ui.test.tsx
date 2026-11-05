@@ -78,14 +78,14 @@ describe("AppHeader", () => {
     expect(html).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
   });
 
-  it("has a Home brand link with a hover shape and the title Home", () => {
+  it("has a Home brand link drawn as a raised nav pill, with the title Home", () => {
     const html = renderToStaticMarkup(<AppHeader current="workspace" theme={LIGHT} />);
-    expect(html).toMatch(/<a title="Home"[^>]*hover:bg-\[var\(--hairline\)\][^>]*href="\/"/);
+    expect(html).toMatch(/<a title="Home" data-affordance="nav" class="chip[^"]*" href="\/"/);
   });
 
-  it("draws the page links as pills, the current one filled, each with a pending dot", () => {
+  it("draws the page links as raised chips, the current one marked, each with a pending dot", () => {
     const html = renderToStaticMarkup(<AppHeader current="notes" theme={LIGHT} />);
-    expect(html.match(/rounded-full/g)?.length).toBeGreaterThanOrEqual(6);
+    expect(html.match(/data-affordance="nav" class="chip /g)).toHaveLength(7);
     expect(html.match(/data-\[link-pending=true\]/g)).toHaveLength(6);
     expect(html).toMatch(/aria-current="page"[^>]*href="\/notes"/);
     expect(html).not.toContain("underline");

@@ -197,6 +197,21 @@
     "RateMove": {
       "$ref": "#/$defs/RateMove"
     },
+    "StoryScene": {
+      "$ref": "#/$defs/StoryScene"
+    },
+    "LingoCard": {
+      "$ref": "#/$defs/LingoCard"
+    },
+    "TimelineStrip": {
+      "$ref": "#/$defs/TimelineStrip"
+    },
+    "TwoPaths": {
+      "$ref": "#/$defs/TwoPaths"
+    },
+    "MoneyJar": {
+      "$ref": "#/$defs/MoneyJar"
+    },
     "GuidedTask": {
       "$ref": "#/$defs/GuidedTask"
     },
@@ -270,6 +285,11 @@
     "Rank",
     "Waterfall",
     "RateMove",
+    "StoryScene",
+    "LingoCard",
+    "TimelineStrip",
+    "TwoPaths",
+    "MoneyJar",
     "GuidedTask",
     "Step"
   ],
@@ -353,6 +373,21 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
               },
               {
                 "$ref": "#/$defs/Stack"
@@ -1244,6 +1279,248 @@
       "additionalProperties": false,
       "description": "A rate move on a number line, with points, bp and percent of the old rate by code; \"practice\" asks for the bp first."
     },
+    "StoryScene": {
+      "type": "object",
+      "properties": {
+        "cast": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "emoji",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "who": {
+                "type": "string"
+              },
+              "says": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "who",
+              "says"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "caption": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cast",
+        "beats"
+      ],
+      "additionalProperties": false,
+      "description": "A story one beat at a time: cast of 1 to 4 {id, emoji, name, role}, 2 to 5 beats {who: a cast id or \"narrator\", says, emoji}, an ISO date stamp. No numbers."
+    },
+    "LingoCard": {
+      "type": "object",
+      "properties": {
+        "term": {
+          "type": "string"
+        },
+        "pro": {
+          "type": "string"
+        },
+        "means": {
+          "type": "string"
+        },
+        "example": {
+          "type": "string"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "inStory": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "term",
+        "pro",
+        "means",
+        "example",
+        "emoji"
+      ],
+      "additionalProperties": false,
+      "description": "One piece of lingo: say it like a pro, plain meaning, everyday example; inStory turns the card to the word in the story."
+    },
+    "TimelineStrip": {
+      "type": "object",
+      "properties": {
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "date",
+              "label",
+              "emoji"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "hideAfter": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "beats"
+      ],
+      "additionalProperties": false,
+      "description": "Emoji moments on a line, oldest first: beats {date (ISO), label, emoji}; beats after hideAfter are locked."
+    },
+    "TwoPaths": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "left": {
+          "type": "object",
+          "properties": {
+            "emoji": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "choice": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "outcomeLine": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "emoji",
+            "name",
+            "choice",
+            "outcome",
+            "outcomeLine"
+          ],
+          "additionalProperties": false
+        },
+        "right": {
+          "type": "object",
+          "properties": {
+            "emoji": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "choice": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "outcomeLine": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "emoji",
+            "name",
+            "choice",
+            "outcome",
+            "outcomeLine"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "question",
+        "left",
+        "right"
+      ],
+      "additionalProperties": false,
+      "description": "Two characters, two choices; each reveals its outcome as 1 to 6 emoji and a line with no digits."
+    },
+    "MoneyJar": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "start": {
+          "type": "number"
+        },
+        "end": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "each": {
+          "type": "string"
+        },
+        "words": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "start",
+        "end",
+        "unit",
+        "words"
+      ],
+      "additionalProperties": false,
+      "description": "A jar that fills or drains 0 to 20 objects (unit: an emoji name), sized in words; numerals only in each."
+    },
     "Stack": {
       "type": "object",
       "properties": {
@@ -1452,6 +1729,21 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
               }
             ]
           }
@@ -2319,6 +2611,21 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
               }
             ]
           }
@@ -2467,6 +2774,21 @@
               },
               {
                 "$ref": "#/$defs/RateMove"
+              },
+              {
+                "$ref": "#/$defs/StoryScene"
+              },
+              {
+                "$ref": "#/$defs/LingoCard"
+              },
+              {
+                "$ref": "#/$defs/TimelineStrip"
+              },
+              {
+                "$ref": "#/$defs/TwoPaths"
+              },
+              {
+                "$ref": "#/$defs/MoneyJar"
               }
             ]
           }

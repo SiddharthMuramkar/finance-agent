@@ -85,6 +85,7 @@ export function auditAffordances(page: Page): Promise<Affordances> {
     let interactive = 0, tags = 0;
     for (const el of root.querySelectorAll(INTERACTIVE)) {
       if (!visible(el)) continue;
+      if (el.closest("svg") && !el.matches("a[href]")) continue;   // a chart mark that takes focus so arrow keys can read it is not a control
       interactive++;
       const s = getComputedStyle(el), r = el.getBoundingClientRect(), kind = kindOf(el);
       const raised = s.boxShadow !== "none";

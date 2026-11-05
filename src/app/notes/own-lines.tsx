@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PrimaryButton, SecondaryButton } from "../ui";
+import { LinkButton, PrimaryButton, SecondaryButton } from "../ui";
 import { useOfferUndo } from "./undo";
 
 /** `ownRule`: a rule in the Learner's own words that the Tutor saved; the page labels it "Your rule". */
@@ -106,12 +106,12 @@ export function OwnLines({ topicId, initial }: { topicId: string; initial: OwnLi
                       {line.text}
                     </span>
                     <span className="flex shrink-0 gap-3 text-xs print:hidden">
-                      <button type="button" data-edit-line={line.id} onClick={() => setEditing({ id: line.id, text: line.text })} className="text-[var(--muted)] underline hover:text-[var(--brand)]">
+                      <LinkButton data-edit-line={line.id} onClick={() => setEditing({ id: line.id, text: line.text })}>
                         Edit
-                      </button>
-                      <button type="button" data-delete-line={line.id} onClick={() => void remove(line)} className="text-[var(--muted)] underline hover:text-[var(--danger)]">
+                      </LinkButton>
+                      <LinkButton data-delete-line={line.id} onClick={() => void remove(line)} className="!text-[var(--danger)]">
                         Delete
-                      </button>
+                      </LinkButton>
                     </span>
                   </div>
                 )}

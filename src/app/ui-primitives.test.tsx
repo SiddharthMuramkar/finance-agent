@@ -88,6 +88,12 @@ describe("NavLink", () => {
     expect(renderToStaticMarkup(<NavLink href="/notes">Notes</NavLink>)).not.toContain("aria-current");
   });
 
+  it("is a raised chip that says it is a nav control and keeps the caller's size classes", () => {
+    const html = renderToStaticMarkup(<NavLink href="/notes" className="px-2">Notes</NavLink>);
+    expect(html).toContain('data-affordance="nav"');
+    expect(html).toMatch(/class="chip px-2"/);
+  });
+
   it("flags the link while its page is loading", () => {
     link.pending = true;
     expect(renderToStaticMarkup(<NavLink href="/notes">Notes</NavLink>)).toContain('data-link-pending="true"');

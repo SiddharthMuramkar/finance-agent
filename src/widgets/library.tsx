@@ -33,6 +33,7 @@ import { PlotResetContext } from "./plot/domain";
 import { WIDGET_TOOL_SPECS } from "./tool-specs";
 import { ICON_NAMES, WAVE1_PARTS } from "./primitives/wave1";
 import { Step, WAVE2_PARTS } from "./primitives/wave2";
+import { WAVE3_PARTS } from "./primitives/wave3";
 
 // The OpenUI component library the Tutor writes widgets with: OpenUI's ready-made kit (charts,
 // tables, tabs, callouts) beside our own code-backed parts (Slider, Calculator, AnnuityChart,
@@ -720,6 +721,11 @@ const BRIEF: Record<string, string> = {
   Rank: "Put 2 to 8 items in order, then check; correctOrder lists item indexes from low end to high; one reason per item.",
   Waterfall: "A start, each change (costs negative) and the total bar, added up by code.",
   RateMove: 'A rate move on a number line, with points, bp and percent of the old rate by code; "practice" asks for the bp first.',
+  StoryScene: 'A story one beat at a time: cast of 1 to 4 {id, emoji, name, role}, 2 to 5 beats {who: a cast id or "narrator", says, emoji}, an ISO date stamp. No numbers.',
+  LingoCard: "One piece of lingo: say it like a pro, plain meaning, everyday example; inStory turns the card to the word in the story.",
+  TimelineStrip: "Emoji moments on a line, oldest first: beats {date (ISO), label, emoji}; beats after hideAfter are locked.",
+  TwoPaths: "Two characters, two choices; each reveals its outcome as 1 to 6 emoji and a line with no digits.",
+  MoneyJar: "A jar that fills or drains 0 to 20 objects (unit: an emoji name), sized in words; numerals only in each.",
 };
 
 /** A v2 part with its brief description (defineComponent's result is a plain object, so a copy is the same part). */
@@ -732,7 +738,7 @@ function briefly<T extends { name: string; description: string }>(part: T): T {
  * The Widget language v2 parts (UX audit §7.3), appended after our first parts and never renamed: Saved Sessions
  * and Notes may hold programs that use them. Step is StepThrough's child, like GuidedTask under GuidedTasks.
  */
-const NEW_PARTS = [...WAVE1_PARTS, ...WAVE2_PARTS].map(briefly);
+const NEW_PARTS = [...WAVE1_PARTS, ...WAVE2_PARTS, ...WAVE3_PARTS].map(briefly);
 
 /**
  * OpenUI's kit with our parts in its containers. Our Slider replaces the kit's (same name), so every slider
@@ -957,6 +963,11 @@ export const WIDGET_COMPONENT_GROUPS: ComponentGroup[] = [
     notes: [
       '- Before an answer the Learner could guess, ask for the guess with Predict. Check understanding with 1 to 3 QuickChecks and a Stat score, never with Select. A "find where it flips" task is a Breakeven, not a GuidedTask.',
     ],
+  },
+  {
+    name: "Story",
+    components: ["StoryScene", "LingoCard", "TimelineStrip", "TwoPaths", "MoneyJar"],
+    notes: ["- Story parts tell it with pictures and words, never a sum: emoji are names like bank or coin, and no part asks for a number."],
   },
   {
     name: "Things to count",
