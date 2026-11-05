@@ -3,8 +3,8 @@ import { seed } from "./support/app";
 import { measureLayout } from "./support/measure";
 
 /**
- * Today's numbers, measured (spec 2026-11-05 §2.1, T-00 test 8). Green on main until A1 lands: it fails loudly if the
- * layout drifts before then. A1 replaces these expectations with its own targets (e2e/targets.spec.ts).
+ * The page frame's numbers, measured (spec 2026-11-05 §2.1, T-00 test 8; rewritten by A1). The gutter is
+ * clamp(12px, 1.6vw, 32px): 24.2 px at 1512 and 20.5 px at 1280. The columns are 2fr / 3fr inside it.
  */
 
 /** The widths of the workspace frame's two columns, in px. */
@@ -17,26 +17,26 @@ function near(actual: number | null | undefined, expected: number) {
   expect(actual).toBeLessThanOrEqual(expected + 2);
 }
 
-test.describe("today's numbers, measured", () => {
+test.describe("the page frame's numbers, measured", () => {
   test("side gutters and columns at mbp14 on /study and /course", async ({ page }, info) => {
     test.skip(info.project.name !== "mbp14", "measured at 1512×982");
     await seed(page, "story");
     await page.goto("/study");
     await expect(page.getByTestId("workspace-frame")).toBeVisible();
     const study = await measureLayout(page);
-    near(study.gutterLeft, 204);
-    near(study.gutterRight, 204);
+    near(study.gutterLeft, 24);
+    near(study.gutterRight, 24);
     const [chat, panel] = await columns(page);
-    near(chat, 536);
-    near(panel, 536);
+    near(chat, 576);
+    near(panel, 864);
 
     await page.goto("/course");
     await expect(page.getByTestId("reading-column")).toBeVisible();
     const course = await measureLayout(page);
     const column = await page.getByTestId("reading-column").evaluate((el) => el.getBoundingClientRect().width);
-    near(column, 672);
-    near(course.gutterLeft, 420);
-    near(course.gutterRight, 420);
+    expect(column).toBeGreaterThanOrEqual(1448);
+    near(course.gutterLeft, 24);
+    near(course.gutterRight, 24);
   });
 
   test("side gutters at w1280 on /study and /course", async ({ page }, info) => {
@@ -45,13 +45,13 @@ test.describe("today's numbers, measured", () => {
     await page.goto("/study");
     await expect(page.getByTestId("workspace-frame")).toBeVisible();
     const study = await measureLayout(page);
-    near(study.gutterLeft, 88);
-    near(study.gutterRight, 88);
+    near(study.gutterLeft, 20);
+    near(study.gutterRight, 20);
 
     await page.goto("/course");
     await expect(page.getByTestId("reading-column")).toBeVisible();
     const course = await measureLayout(page);
-    near(course.gutterLeft, 304);
-    near(course.gutterRight, 304);
+    near(course.gutterLeft, 20);
+    near(course.gutterRight, 20);
   });
 });

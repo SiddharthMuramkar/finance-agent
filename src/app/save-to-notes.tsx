@@ -84,7 +84,7 @@ export function SaveToNotesView({
           </Button>
         </>
       ) : (
-        <Button variant="secondary" size="sm" onClick={press(onSave)} loading={state.status === "saving"} aria-label={label} className="-ml-3" data-focus-target>
+        <Button variant="secondary" size="sm" onClick={press(onSave)} loading={state.status === "saving"} aria-label={label} data-focus-target>
           {state.status !== "saving" && <Bookmark />}
           {state.status === "saving" ? "Saving…" : "Save to notes"}
         </Button>
