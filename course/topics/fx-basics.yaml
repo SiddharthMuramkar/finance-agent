@@ -61,7 +61,7 @@ youllLearn:
 questions:
   - id: fx-q-invert
     prompt: >
-      A bank quotes one Mexican peso at $0.0625. The trader at the next desk reads out the same rate as "16 pesos to the dollar". What do traders call that second way of quoting?
+      Lena lands in Mexico City. Her bank's app shows one peso at $0.0625, but the airport board says 16 pesos to the dollar. She fears she is being shown two different prices. What is really going on?
     choices:
       - { id: a, text: "The inverse quote: the same rate, read from the dollar's side" }
       - { id: b, text: "A second, different rate for the peso", mistake: { tag: flip_is_new_rate, fix: "Flipping the quote changes nothing. It is the same rate read from the other currency's side." } }
@@ -117,7 +117,7 @@ questions:
 
   - id: fx-q-compound
     prompt: >
-      A government cuts its currency's value, then soon after cuts the new, lower value again. How does the total fall compare with the two cuts added up?
+      Ravi has saved for a year of study abroad. One Monday his government cuts his currency's value; a few days later it cuts the new, lower value again. His roommate says the hit to his savings is just the two cuts added up. Is it?
     choices:
       - { id: a, text: "Exactly the two cuts added", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
       - { id: b, text: "A little less than the two cuts added" }
@@ -131,7 +131,7 @@ questions:
 
   - id: fx-q-ppp
     prompt: >
-      The same car is sold in the US and in Canada. Economists say exchange rates drift toward purchasing power parity. For this car, what would parity mean?
+      Priya drives from Seattle to Vancouver and spots the same car model at a dealer on each side of the border. Her economist uncle says exchange rates drift toward purchasing power parity. If parity held for this car, what would Priya find?
     choices:
       - { id: a, text: "The two price tags show the same number", mistake: { tag: same_number_means_parity, fix: "Parity is about value after changing the money, not matching numbers." } }
       - { id: b, text: "One country is cheaper", mistake: { tag: bigger_number_cheaper, fix: "At parity the converted prices are equal. Neither side is cheaper." } }

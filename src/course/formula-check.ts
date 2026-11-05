@@ -54,7 +54,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "cf-venture",
   "mkt-ipo-float",
   "der-forwards",
-  "der-options",
   "der-option-pricing",
   "der-rates-fx",
   "der-hedging",

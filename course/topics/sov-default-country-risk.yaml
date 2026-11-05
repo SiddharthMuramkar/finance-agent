@@ -68,7 +68,7 @@ youllLearn:
 questions:
   - id: sd-q-spread
     prompt: >
-      A government's 10-year dollar bond yields 9.5%, while the US Treasury 10-year yields 4.5%. What do traders call the gap between the two yields?
+      Ana is choosing between two 10-year dollar bonds: one from a young emerging country, one from the US Treasury. The emerging country's bond pays far more, and her broker warns that the extra comes with a catch. Why does that bond pay so much more?
     choices:
       - { id: a, text: "The coupon: the interest printed on the bond", mistake: { tag: spread_is_coupon, fix: "The coupon is the bond's own interest rate. The gap between two yields is the spread." } }
       - { id: b, text: "The haircut: the cut in value after a default", mistake: { tag: spread_is_haircut, fix: "A haircut comes after a default. The spread is the extra yield priced in beforehand." } }
@@ -76,7 +76,7 @@ questions:
       - { id: d, text: "The default spread: the extra yield asked for the risk of not being repaid" }
     answer: d
     explanation: >
-      The default spread is the yield on the country's bond minus the yield on a default-free bond in the same currency: 9.5% - 4.5% = 5.0 percentage points, or 500 basis points.
+      The default spread is the extra yield a country pays over a default-free bond in the same currency. If Ana's emerging-country bond yields 9.5% and the Treasury 4.5%, the spread is 5 percentage points, or 500 basis points: her pay for the risk of not being repaid.
     source: >
       Damodaran, Country Risk (Measuring Country Risk Premiums, country bond default spreads): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
@@ -96,7 +96,7 @@ questions:
 
   - id: sd-q-haircut
     prompt: >
-      After a default, creditors are offered new bonds worth 40 cents for every dollar of face value of the old bonds. What do creditors call the loss they take?
+      Carlos's grandmother held bonds from a government that defaulted. A letter arrives: she can swap them for new bonds worth 40 cents for every dollar she was owed. Carlos's banker friend winces: "That is a deep one." What is he talking about?
     choices:
       - { id: a, text: "A coupon", mistake: { tag: haircut_is_coupon, fix: "A coupon is a bond's interest payment, not the loss taken in a restructuring." } }
       - { id: b, text: "A spread", mistake: { tag: haircut_is_spread, fix: "A spread is the extra yield before a default. The loss taken in the swap is the haircut." } }

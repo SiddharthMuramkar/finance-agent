@@ -62,7 +62,7 @@ youllLearn:
 questions:
   - id: ca-q-cover
     prompt: >
-      A lender reads a company's accounts and sees a line called interest cover. What does that phrase mean?
+      Meera runs two bakeries and asks a bank for a loan to open a third. The loan officer skims her accounts, stops at a line marked interest cover, and smiles. What has the officer just read there?
     choices:
       - { id: a, text: "How much interest the company earns on its own cash", mistake: { tag: flipped_interest, fix: "Interest cover is about interest the company owes, not interest it earns." } }
       - { id: b, text: "How comfortably profit covers the interest bill: higher is safer" }
@@ -76,7 +76,7 @@ questions:
 
   - id: ca-q-net-debt
     prompt: >
-      An analyst says a company's net debt looks manageable, even though its gross debt looks large. What is net debt?
+      Two shoe companies owe the same large sum. One has a pile of cash in the bank nearly as big; the other has almost none. A lender shrugs at the first one: "Its net debt is small." What is she counting when she says net debt?
     choices:
       - { id: a, text: "Debt plus the interest due this year", mistake: { tag: added_not_subtracted, fix: "Net means something is taken off. Net debt subtracts cash; it does not add interest." } }
       - { id: b, text: "Only the debt owed to banks, leaving out bonds", mistake: { tag: net_means_bank_only, fix: "Net is not about who lent the money. It is debt after cash is taken off." } }

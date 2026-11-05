@@ -89,7 +89,7 @@ questions:
 
   - id: bop-q-overall
     prompt: >
-      A country buys more from abroad than it sells, a current account deficit, but investors pour in even more money than the gap. A newspaper asks what this does to the central bank's reserves. What happens to them?
+      A country buys more from abroad than it sells, a current account deficit. This year, though, foreign investors are so keen that they pour in even more money than the gap. A reporter rings the central bank expecting bad news about its reserves. What has really happened to them?
     choices:
       - { id: a, text: "They fall, because of the deficit", mistake: { tag: ignored_capital_account, fix: "The inflow more than covers the deficit, so reserves gain rather than lose." } }
       - { id: b, text: "They rise, because the inflow is bigger than the deficit" }
@@ -117,7 +117,7 @@ questions:
 
   - id: bop-q-share-gdp
     prompt: >
-      Reports often quote a country's current account deficit as a share of its GDP (CAD/GDP). Why do they do that, rather than quote dollars alone?
+      Two finance ministers meet: one runs a small island economy, the other a giant. Both report the same current account deficit in dollars, yet the island's minister looks far more worried. Reporters write each deficit as a share of GDP (CAD/GDP). Why does that help?
     choices:
       - { id: a, text: "GDP is the pot the deficit has to be repaid from in one year", mistake: { tag: gdp_is_repayment_pot, fix: "GDP is a yardstick for size. It is not a repayment rule." } }
       - { id: b, text: "Dollar amounts cannot be compared between countries", mistake: { tag: dollars_cannot_compare, fix: "Dollars can be compared. A share also lets a small and a large economy be compared by size." } }
@@ -131,7 +131,7 @@ questions:
 
   - id: bop-q-import-cover
     prompt: >
-      RBI tables report the reserves as "months of import cover". What does "3 months" mean there?
+      A finance minister wakes to a headline: "Reserves down to 3 months of import cover." His aide says that is about where markets start to worry. What is the headline telling him?
     choices:
       - { id: a, text: "The reserves could pay for about three months of imports if no foreign money came in" }
       - { id: b, text: "The country can import for three months before it must export again", mistake: { tag: import_cover_is_a_timetable, fix: "Cover is about reserves paying the import bill. It is not an export timetable." } }

@@ -65,7 +65,7 @@ youllLearn:
 questions:
   - id: fw-q-fair-forward
     prompt: >
-      A metal costs $100 today, with no storage cost or income, and money earns 5% a year. Traders say a fair one-year forward price sits above $100. Why?
+      A jeweller agrees today to buy a metal in a year's time. The metal costs $100 now, costs nothing to store, and her cash would earn 5% a year in the bank. The dealer quotes a forward price above $100 and she suspects a rip-off. Why is the higher price fair?
     choices:
       - { id: a, text: "Your cash earns interest while you wait, so the price carries it (cost of carry)" }
       - { id: b, text: "Traders expect the metal's price to rise by that much", mistake: { tag: forecast_not_carry, fix: "The forward price reflects interest on the cash, not a forecast of the spot price." } }

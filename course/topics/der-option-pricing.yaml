@@ -64,7 +64,7 @@ youllLearn:
 questions:
   - id: ox-q-binomial-value
     prompt: >
-      Traders price a call option by building the same payoff from shares and a loan. Which statement about its price today is right?
+      A client asks Lucia to sell her a call option at a fair price. Lucia skips guessing the odds. Instead she builds the very same payoff from shares and a loan. What should she charge for the call?
     choices:
       - { id: a, text: "Its best-case payoff", mistake: { tag: ignored_the_down_case, fix: "The best case may not happen, so the value today is lower than that." } }
       - { id: b, text: "Its payoff at the trader's own odds", mistake: { tag: used_own_odds, fix: "Pricing uses the cost of copying the payoff, not a guess at the odds." } }
@@ -78,7 +78,7 @@ questions:
 
   - id: ox-q-delta-shares
     prompt: >
-      Traders call the number of shares that copies one call its "delta". What does a delta of one half mean?
+      Nina sells a call to a client and buys shares to cover it. Her screen says the call's delta is one half. A new hire asks what that number is telling them. What does it mean?
     choices:
       - { id: a, text: "The call has a 50% chance of paying off", mistake: { tag: delta_as_probability, fix: "Delta is a share count, not the chance of the call paying off." } }
       - { id: b, text: "The call moves about half as much as the share" }
@@ -92,7 +92,7 @@ questions:
 
   - id: ox-q-hedge-count
     prompt: >
-      A trader owns shares and sells calls to protect them. Each call moves less than the share does. Compared with the number of shares, what does the trader need?
+      Omar owns a block of shares and sells calls on the same company to cushion a fall. Each call moves only part as much as the share. A colleague says one call per share will do. What does Omar really need, compared with his shares?
     choices:
       - { id: a, text: "Fewer calls than shares", mistake: { tag: calls_stronger_than_shares, fix: "Each call moves less than the share, so one call covers less than one share." } }
       - { id: b, text: "One call per share", mistake: { tag: one_for_one, fix: "One-for-one works only if a call moves dollar for dollar. Here it does not." } }
