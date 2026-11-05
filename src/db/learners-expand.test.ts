@@ -67,7 +67,7 @@ describe("database expand: Learners", () => {
     await migrateToLatest(client);
 
     expect(await db.select().from(learners)).toEqual([
-      { id: OWNER_LEARNER_ID, name: "owner", archivedAt: null, showDeveloperDetails: false, createdAt: expect.any(Date) },
+      { id: OWNER_LEARNER_ID, name: "owner", archivedAt: null, showDeveloperDetails: false, authUserId: null, createdAt: expect.any(Date) },
     ]);
     const owners = await ownersOf(db);
     for (const [name, ids] of Object.entries(owners)) {
