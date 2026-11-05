@@ -75,7 +75,7 @@ youllLearn:
 questions:
   - id: bop-q-identity
     prompt: >
-      A country spends more abroad than it earns there (a current account deficit), and foreign money coming in on the capital account covers only part of the gap. Where does the rest have to come from?
+      A country is running short of dollars: it spends more abroad than it earns there (a current account deficit), and the foreign money coming in on the capital account covers only part of the gap. Where does the rest have to come from?
     choices:
       - { id: a, text: "Its reserves, or a loan from the IMF" }
       - { id: b, text: "Nothing: the accounts balance on their own", mistake: { tag: forgot_reserves, fix: "The accounts always net to zero, so reserves or IMF credit take up what is left." } }
@@ -83,13 +83,13 @@ questions:
       - { id: d, text: "The merchandise trade balance", mistake: { tag: trade_is_the_gap, fix: "Trade is part of the current account, which is the gap itself." } }
     answer: a
     explanation: >
-      The current account, the capital account and the change in reserves and IMF credit net to zero. A deficit that foreign money covers only in part leaves the rest to be met from reserves or IMF credit. (With a deficit of $9 billion and $6 billion of capital inflow, that is $3 billion.)
+      The current account, the capital account and the change in reserves and IMF credit net to zero. A deficit that foreign money covers only in part leaves the rest to be met from reserves or IMF credit.
     source: >
       RBI, The Reserve Bank of India 1981-1997, ch. 12, Table 12.2 (overall balance = current account + capital account; monetary movements offset it): http://rbidocs.rbi.org.in/rdocs/content/PDFs/Chapter12_04122018.pdf
 
   - id: bop-q-overall
     prompt: >
-      A country runs a current account deficit, but the foreign money coming in is larger than that deficit. What happens to its reserves?
+      A country buys more from abroad than it sells, a current account deficit, but investors pour in even more money than the gap. A newspaper asks what this does to the central bank's reserves. What happens to them?
     choices:
       - { id: a, text: "They fall, because of the deficit", mistake: { tag: ignored_capital_account, fix: "The inflow more than covers the deficit, so reserves gain rather than lose." } }
       - { id: b, text: "They rise, because the inflow is bigger than the deficit" }

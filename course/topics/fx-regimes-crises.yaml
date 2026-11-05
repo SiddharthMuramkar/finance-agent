@@ -107,7 +107,7 @@ questions:
 
   - id: fr-q-dollar-debt
     prompt: >
-      A company earns revenue in local currency and owes $1 million. The local currency then loses half its value against the dollar. Which headline gets it right?
+      A company earns revenue in local currency and owes $1 million. The local currency then loses half its value against the dollar, and the finance chief has to explain it to the board. What does she tell them?
     choices:
       - { id: a, text: "The debt gets lighter: a weaker currency shrinks debts", mistake: { tag: weak_currency_shrinks_debt, fix: "A debt in dollars does not shrink. It costs more local currency to repay." } }
       - { id: b, text: "Nothing changes, because the debt is fixed", mistake: { tag: fixed_in_dollars_only, fix: "The debt is fixed in dollars, but its cost in local currency is not." } }

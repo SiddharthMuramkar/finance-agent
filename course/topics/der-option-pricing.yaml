@@ -92,7 +92,7 @@ questions:
 
   - id: ox-q-hedge-count
     prompt: >
-      A trader owns shares and sells calls to protect them. Each call moves less than the share does. How many calls does the trader need?
+      A trader owns shares and sells calls to protect them. Each call moves less than the share does. Compared with the number of shares, what does the trader need?
     choices:
       - { id: a, text: "Fewer calls than shares", mistake: { tag: calls_stronger_than_shares, fix: "Each call moves less than the share, so one call covers less than one share." } }
       - { id: b, text: "One call per share", mistake: { tag: one_for_one, fix: "One-for-one works only if a call moves dollar for dollar. Here it does not." } }

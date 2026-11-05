@@ -62,7 +62,7 @@ youllLearn:
 questions:
   - id: op-q-call-profit
     prompt: >
-      You buy a call option with a strike of $50 for a premium of $3. At expiry the share price is $58. Which headline gets it right?
+      You buy a call option with a strike of $50 for a premium of $3. At expiry the share price is $58, and your friend asks how you did. What is the honest answer?
     choices:
       - { id: a, text: "The call is in the money, but the premium you paid comes out of the gain" }
       - { id: b, text: "The call is in the money and the whole gain is yours: the premium no longer counts", mistake: { tag: forgot_premium, fix: "The premium was paid up front, so it still comes off the gain." } }
@@ -76,7 +76,7 @@ questions:
 
   - id: op-q-put-profit
     prompt: >
-      You buy a put option with a strike of $100 for a premium of $4. At expiry the share price is $80. Which headline gets it right?
+      You buy a put option with a strike of $100 for a premium of $4. At expiry the share price is $80, and your friend asks how the bet went. What is the honest answer?
     choices:
       - { id: a, text: "The put is out of the money and expires worthless", mistake: { tag: put_pays_on_a_rise, fix: "A put gains when the share ends below the strike. $80 is below $100." } }
       - { id: b, text: "The put is in the money; the premium comes off the gain" }

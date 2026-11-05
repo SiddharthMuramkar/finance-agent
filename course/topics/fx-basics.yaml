@@ -89,7 +89,7 @@ questions:
 
   - id: fx-q-exporter
     prompt: >
-      A Mexican potter sells goods for $20,000. The exchange rate moves from MXN 16 = USD 1 to MXN 20 = USD 1. Which headline gets it right?
+      A Mexican potter sells goods to a buyer in Texas for $20,000. Then the peso slides from MXN 16 = USD 1 to MXN 20 = USD 1, and a local paper runs a story on the potter's luck. What does the story say?
     choices:
       - { id: a, text: "The peso strengthened, so the potter gains in pesos", mistake: { tag: read_the_rate_backwards, fix: "More pesos per dollar means each peso buys fewer dollars. The peso weakened." } }
       - { id: b, text: "The peso weakened, so the potter earns fewer pesos", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more in pesos." } }
@@ -103,7 +103,7 @@ questions:
 
   - id: fx-q-percent
     prompt: >
-      The rupee goes from INR 75 = USD 1 to INR 80 = USD 1. Which headline gets it right?
+      An Indian student pays fees in dollars. The rupee goes from INR 75 = USD 1 to INR 80 = USD 1, and her father reads the news. What did the rupee just do?
     choices:
       - { id: a, text: "The rupee gained value, because 80 is a bigger number than 75", mistake: { tag: bigger_number_stronger, fix: "A bigger number of rupees per dollar means each rupee buys less. The rupee lost value." } }
       - { id: b, text: "The rupee and the dollar moved by exactly the same percentage", mistake: { tag: same_percent_both_ways, fix: "Each move is measured from a different starting point, so the two percentages differ." } }
@@ -117,7 +117,7 @@ questions:
 
   - id: fx-q-compound
     prompt: >
-      A government cuts its currency's value, then two days later cuts the new, lower value again. How does the total fall compare with the two cuts added up?
+      A government cuts its currency's value, then soon after cuts the new, lower value again. How does the total fall compare with the two cuts added up?
     choices:
       - { id: a, text: "Exactly the two cuts added", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
       - { id: b, text: "A little less than the two cuts added" }
@@ -125,7 +125,7 @@ questions:
       - { id: d, text: "Nobody can tell", mistake: { tag: needs_the_rate, fix: "The second cut always bites a smaller value, so the total is a little below the two added." } }
     answer: b
     explanation: >
-      The second cut bites a currency that is already worth less, so it takes away less of the original value. India did this in July 1991: cuts of about 9% and 11% left a total fall of about 19%, not 20%.
+      The second cut bites a currency that is already worth less, so it takes away less of the original value. A 10% cut followed by a 10% cut of the new value leaves a total fall of 19%, not 20%.
     source: >
       Arithmetic on the definitions in OpenStax, Principles of Finance (CC BY 4.0), 3.5 Foreign Exchange Rates: https://openstax.org/books/principles-finance-2e/pages/3-5-foreign-exchange-rates
 
@@ -168,5 +168,5 @@ checks:
     passCriteria: >
       The Learner says imports cost more in the home currency and exports cost less in foreign currency, so imports
       are discouraged and exports encouraged. They say the second cut bites an already smaller value, so the total fall
-      is a little less than the two cuts put together (in this example 28%, not 30%; in the real 1991 steps of about 9% and 11%, about 19%). They connect it to the crisis: a cheaper
+      is a little less than the two cuts put together (in this example 28%, not 30%). They connect it to the crisis: a cheaper
       currency improves the trade balance and the incentive to hold the home currency, which helps restore reserves.
