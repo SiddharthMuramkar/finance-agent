@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { choicesFor, type ChoiceStep } from "./choices";
+import { isChipMessage } from "./chips";
 
 /** Seam 3: the Choices picker (spec 2026-11-05, D3a). Labels, says and emoji are the spec's code set. */
 
@@ -49,6 +50,10 @@ describe("choicesFor", () => {
     expect(concept.find((c) => c.id === "deeper")).toEqual({ id: "deeper", label: "Go deeper", says: "Go deeper.", emoji: "magnifying-glass-tilted-left" });
     expect(concept.find((c) => c.id === "show")).toEqual({ id: "show", label: "Show me", says: "Show me.", emoji: "eyes" });
     expect(choicesFor("your_turn", null, null)[0]).toEqual({ id: "quiz", label: "Quiz me", says: "Quiz me.", emoji: "direct-hit" });
+  });
+
+  it("posts only chip words for code's set, so a press is never an Insight attempt", () => {
+    for (const step of STEPS) for (const c of choicesFor(step, null, null)) expect(isChipMessage(c.says), c.says).toBe(true);
   });
 
   it("always returns two or three Choices, for every step, suggestion and last press", () => {

@@ -23,9 +23,6 @@ export const CODE_CHOICES: Record<Exclude<ChoiceId, "tutor">, Choice> = {
   deeper: { id: "deeper", label: "Go deeper", says: GO_DEEPER, emoji: "magnifying-glass-tilted-left" },
 };
 
-/** Every word code's Choices post: each is a chip message (chips.ts), so a press is never an Insight attempt. */
-export const CODE_CHOICE_WORDS = Object.values(CODE_CHOICES).map((c) => c.says);
-
 /** Each step's set, in order. Every set has three, so skipping the last press still leaves two. A Check never offers Quiz me. */
 const STEP_SETS: Record<ChoiceStep, Exclude<ChoiceId, "tutor">[]> = {
   story: ["next", "word", "life"],

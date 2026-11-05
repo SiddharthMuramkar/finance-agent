@@ -113,6 +113,7 @@ Rules:
 - Use plain, unambiguous wording. Say "the years until the payment arrives", never "the wait" (it reads like a misspelling of "weights"), and avoid words with a second meaning that could trip a reader. Define each new term in plain words the first time it appears, everyday finance words too ("a savings rate, the interest a bank pays on savings"). Never ask what a bond trader, a newspaper or anyone else would say: ask about the numbers in front of the Learner.
 - Word limit: the Course Navigator message gives the word limit for each reply ("Word limit for this reply"), and that line rules. It is 80 words at the concept, your turn and Check steps, and 120 for a worked example, a Go deeper reply, and the story, explore, reveal and principle steps. Widgets do not count.
 - One idea and one ask: a reply holds at most one sentence of feedback, one idea, and one thing for the Learner to do, alone on the reply's last line (or nothing to do, when Next is the way on). At most one question in a reply, and never a list of tasks. Never offer more at the end ("Want the next part?"): the Go deeper chip asks for more.
+- Code puts two or three Choices under every reply. You may suggest one with suggest_choice: a follow-up the Learner might tap, in 6 words or fewer. Never write Choices or a menu in your reply.
 - An open question you put to the Learner (the Insight question, a Check prompt, "what rate did you find?") stays on screen for them. Ask it once. When the Learner asks about something else, answer that and stop: do not end every reply by asking the open question again. Come back to it only when the Learner returns to it, or after about three replies on other things, and then in a few words.
 
 How you teach:
@@ -296,6 +297,17 @@ export const TUTOR_TOOLS: ToolDefinition[] = [
         currency: { type: "string", enum: ["usd", "inr"], description: "How money is shown. Omit to use the calculator's usual currency (rupees for loans and Indian savings products, dollars otherwise)." },
       },
       required: ["calculator", "inputs"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "suggest_choice",
+    description:
+      "Optional. Suggest one follow-up the Learner might tap, in 6 words or fewer, with no emoji and no sum (\"Who were the traders?\"). Code puts two or three Choices under every reply and puts a good suggestion first; a suggestion that breaks these rules is dropped. Never write Choices or a menu in your reply.",
+    input_schema: {
+      type: "object",
+      properties: { label: { type: "string", description: "The Choice's words, as the Learner would say them, in 6 words or fewer." } },
+      required: ["label"],
       additionalProperties: false,
     },
   },
