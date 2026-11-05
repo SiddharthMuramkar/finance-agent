@@ -109,16 +109,17 @@ questions:
 
   - id: wpw-q-pv-rent
     prompt: >
-      A tenant must pay a landlord 200 at the end of each of the next three years. At a discount
-      rate of 10% a year, what is the present value of the three payments?
+      A tenant owes a landlord 200 at the end of each of the next three years, 600 on paper. Finance
+      people still say the "present value" of those three payments is lower than 600. What do they
+      mean by present value here?
     choices:
-      - { id: a, text: "600.00" }
-      - { id: b, text: "497.37" }
-      - { id: c, text: "545.45" }
-      - { id: d, text: "451.31" }
+      - { id: a, text: "The payments added up as they stand, because money is money in any year", mistake: { tag: ignores-time, fix: "Money due later is worth less than money in hand now, so later payments are discounted." } }
+      - { id: b, text: "Each payment shrunk to what it is worth today, the later ones shrunk more" }
+      - { id: c, text: "Only the first payment, because it is the one nearest to today", mistake: { tag: first-only, fix: "Every payment counts; the later ones are just discounted harder." } }
+      - { id: d, text: "The landlord's profit once the building costs are taken off", mistake: { tag: wrong-thing, fix: "Present value is about when money arrives, not about anyone's profit." } }
     answer: b
     explanation: >
-      200 / 1.10 = 181.82, 200 / 1.21 = 165.29 and 200 / 1.331 = 150.26, which add to 497.37. The plain sum, 600, ignores the time value of money.
+      Present value shrinks each future payment to its worth today, because money that arrives later is worth less than money in hand now. At a 10% discount rate the three payments of 200 come to about 497 today, not 600. Adding them as they stand ignores the time value of money.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
@@ -165,6 +166,6 @@ checks:
       arrow is promised: leases of about 15 years with $47.2 billion of fixed payments against
       member contracts of about 15 months, and investor payments that are scheduled but are not
       customer revenue (for example the $1.5 billion due in April 2020). They name the dependence on
-      the financier as the weak point and ask for further facts (cash burn, how much of the
+      the financier as the weak point and ask for further facts (cash burn, what share of the
       investor money is still to come and on what conditions, what happens to the leases in a
       downturn) without forecasting an outcome or giving a buy, sell or hold call.

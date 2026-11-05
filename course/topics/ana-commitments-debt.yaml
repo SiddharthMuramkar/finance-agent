@@ -86,15 +86,15 @@ youllLearn:
 questions:
   - id: cd-q-pv-annuity
     prompt: >
-      A company must pay $1 million at the end of each of the next five years. Its pre-tax cost of borrowing is 10%. What is the present value of these commitments?
+      A company must pay $1 million at the end of each of the next five years, $5 million on paper. An analyst treats these commitments as debt, discounted at the company's pre-tax cost of borrowing, 10%. How does that debt-equivalent compare with the $5 million on paper?
     choices:
-      - { id: a, text: "About $3.79 million" }
-      - { id: b, text: "$5.00 million" }
-      - { id: c, text: "About $4.55 million" }
-      - { id: d, text: "About $3.00 million" }
+      - { id: a, text: "It is lower, because each later payment is shrunk to what it is worth today" }
+      - { id: b, text: "It is the same, because the payments are fixed and certain", mistake: { tag: ignores-time, fix: "Fixed payments still arrive later, and money later is worth less than money now." } }
+      - { id: c, text: "It is higher, because the interest is added on top of the payments", mistake: { tag: adds-interest, fix: "Discounting shrinks later payments; it does not add interest on top of them." } }
+      - { id: d, text: "It cannot be compared until the company reports a profit", mistake: { tag: profit-confusion, fix: "Debt-equivalent depends on payment dates and the rate, not on profit." } }
     answer: a
     explanation: >
-      1/1.10 + 1/1.10^2 + 1/1.10^3 + 1/1.10^4 + 1/1.10^5 = 3.7908, so $3,790,787. The undiscounted total of $5 million overstates the debt-equivalent.
+      Each payment is shrunk to its worth today, so the debt-equivalent of five yearly payments of $1 million is about $3.79 million, below the $5 million on paper. The undiscounted total overstates the debt-equivalent.
     source: >
       Damodaran, Dealing with Operating Leases in Valuation (Table 1, $1 million a year for five years at 10%): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/oplev.pdf
 
@@ -114,15 +114,15 @@ questions:
 
   - id: cd-q-two-payments
     prompt: >
-      A firm owes $600 at the end of year 1 and $600 at the end of year 2. At a discount rate of 10%, what is the present value of the two payments together?
+      A firm owes $600 at the end of year 1 and $600 at the end of year 2. Treated as debt at a 10% discount rate, which of the two payments counts for more today, and why?
     choices:
-      - { id: a, text: "$1,041" }
-      - { id: b, text: "$1,200" }
-      - { id: c, text: "$1,090" }
-      - { id: d, text: "$1,000" }
+      - { id: a, text: "Year 1, because it is nearer and so is shrunk less" }
+      - { id: b, text: "Year 2, because money paid later has had longer to grow", mistake: { tag: reverses-discounting, fix: "The firm owes the same $600 either way; the later one is simply worth less today." } }
+      - { id: c, text: "Neither; both are $600, so they count the same", mistake: { tag: ignores-time, fix: "Equal amounts on paper are not equal today; the later payment is discounted more." } }
+      - { id: d, text: "Neither; discounting leaves out fixed payments", mistake: { tag: wrong-thing, fix: "Fixed payments are exactly what gets discounted and counted as debt." } }
     answer: a
     explanation: >
-      600 / 1.10 = 545.45 and 600 / 1.10^2 = 495.87, which add to 1,041.32.
+      The nearer payment is shrunk less, so it counts for more today. Together the two payments are worth about $1,041, below the $1,200 on paper.
     source: >
       OpenStax, Principles of Finance, 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
@@ -156,12 +156,12 @@ questions:
 
   - id: cd-q-cancelable
     prompt: >
-      Contract A obliges a company to spend at least $10 billion over eight years regardless of how much it uses. Contract B lets either side cancel on 90 days' notice after the first year, with spending of up to $10 billion. Which is the stronger candidate for a debt-like total, and why?
+      Contract A obliges a company to spend at least $10 billion over eight years whatever it uses. Contract B lets either side cancel on 90 days' notice after the first year, with spending of up to $10 billion. Which is the stronger candidate for a debt-like total, and why?
     choices:
       - { id: a, text: "A, because the payments are fixed and cannot be avoided by not using the service" }
-      - { id: b, text: "B, because its stated ceiling is the same" }
-      - { id: c, text: "Both equally, because both headline figures are $10 billion" }
-      - { id: d, text: "Neither, because purchase contracts are never debt-like" }
+      - { id: b, text: "B, because its stated ceiling is the same", mistake: { tag: ceiling-as-commitment, fix: "An up-to ceiling that can be cancelled is an option, not a fixed claim." } }
+      - { id: c, text: "Both equally, because both headline figures are $10 billion", mistake: { tag: headline-figure, fix: "Equal headline figures hide that only A is fixed and cannot be cancelled." } }
+      - { id: d, text: "Neither, because purchase contracts are never debt-like", mistake: { tag: never-debt, fix: "A fixed minimum owed whatever the usage is a commitment like a loan repayment." } }
     answer: a
     explanation: >
       A fixed minimum that must be paid whatever the usage is a commitment like a loan repayment. An "up to" amount that either party can cancel on short notice is closer to an option, not a fixed claim.
@@ -185,20 +185,21 @@ checks:
   - id: cd-commitments-explain
     kind: conversation
     prompt: >
-      Using the schedule in the filing as of 31 December 2025, show how you would turn the
-      commitments into a present value, naming the rate you chose and why. Then say which
-      of the named contracts (Microsoft, Google, Amazon, Broadcom, SpaceXAI) you would count in a
-      debt-like total and which you would leave out or keep separate, and what you would need
-      from the filing to do the same for the larger later figure.
+      Looking at the schedule in the filing as of 31 December 2025, say in your own words how a
+      list of fixed yearly payments becomes a debt-like total, and which kind of interest rate
+      you would use to shrink the later payments, and why. Then say which of the named contracts
+      (Microsoft, Google, Amazon, Broadcom, SpaceXAI) you would count in a debt-like total and
+      which you would leave out or keep separate, and what you would still want from the filing
+      for the larger later figure.
     passCriteria: >
-      The Learner discounts each year's payment, or a stated assumed split of the "thereafter"
-      amount, at a stated rate and gets a present value below the undiscounted total, and
-      shows or describes the working. They justify the rate as a pre-tax borrowing rate for fixed,
-      unsecured claims (or give a reasoned alternative) and recognise the answer changes with
-      the rate and with the assumed tail. They separate fixed, non-cancelable or pay-regardless
-      commitments and finance leases from "up to" or short-notice-cancelable amounts and from
-      amounts not yet fixed, and say the totals depend on that scope. They say a total with no
-      payment dates cannot be discounted without a stated assumption, and name the payment
-      schedule as the missing item. They make no forecast about the company and no buy, sell or
-      hold call. The Learner does not need exact decimals; a present value between roughly 70% and
-      85% of the undiscounted total for rates of 5% to 10% is reasonable.
+      The Learner explains in words that each year's payment is shrunk to what it is worth today,
+      or that a stated assumed split of the "thereafter" amount is needed first, so the debt-like
+      total comes out below the undiscounted total. They justify the rate as a pre-tax borrowing
+      rate for fixed, unsecured claims (or give a reasoned alternative) and recognise the answer
+      moves with the rate and with the assumed tail. They separate fixed, non-cancelable or
+      pay-regardless commitments and finance leases from "up to" or short-notice-cancelable
+      amounts and from amounts not yet fixed, and say the totals depend on that scope. They say a
+      total with no payment dates cannot be discounted without a stated assumption, and name the
+      payment schedule as the missing item. They make no forecast about the company and no buy,
+      sell or hold call. The Learner needs no figures; the idea that the debt-like total is lower
+      than the undiscounted total is enough.

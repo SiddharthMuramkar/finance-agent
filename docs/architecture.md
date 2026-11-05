@@ -4621,3 +4621,11 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A Learner sees a raised blue "Check" button and a flat "In progress" tag. Only the button looks pressable, and only the button has a pointer. A developer who writes `<button>` in a new screen gets a lint error that names the primitives.
 
 **Trade-off.** The 9 Widget files and 12 `src/app` files that still hold raw buttons stay on the allowlist until the A3b sweep (`src/app`) and E2a/E5 (Widgets) migrate them, so for now those screens keep their old flat buttons next to the new raised ones. The `Button` anatomy uses a 3px lip, so a row of buttons needs a little more height than before.
+
+## Analyse Topics rewritten to story and lingo questions, batch D2j (`course/topics/ana-who-pays-whom.yaml`, `ana-commitments-debt`, `ana-india-transfer`, `ana-decide-between`, `ana-anthropic-s1`)
+
+**What it does.** The five Analyse Topics from "who pays whom" to the Anthropic S-1 no longer ask the Learner for a sum. Each old exam stem (a present value, a cost of equity, a gross NPA ratio, a P/E fall, an operating loss) is now a choice question about the story or the words ("Which headline gets it right?", "What do bankers call it?"), numbers stay only as story facts, and every wrong choice of a rewritten question carries a Known mistake with a one-line fix. Two conversation Checks now ask the Learner to say it in their own words. The five ids left `L10_NOT_YET_STORY`, and two of them (`ana-who-pays-whom`, `ana-commitments-debt`) also left the typed-formula list because their stems and explanations no longer hold a typed formula.
+
+*Scenario.* A Learner meets "a tenant owes 200 a year for three years" and is asked what "present value" means here, not for the figure. Tapping "the payments added up as they stand" shows "Money due later is worth less than money in hand now, so later payments are discounted."
+
+*Trade-off.* The Learner no longer practises the arithmetic in these Topics; the worked numbers live only in explanations after the tap. The Case texts (story, reveal) are untouched by rule, so they still show the workings the Tutor may quote.

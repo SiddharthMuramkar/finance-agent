@@ -70,7 +70,7 @@ concept: >
   statement. A fact can be checked against a named source at a stated date (an index level, a
   reported profit). A definition says which measure is meant: 'earnings' may be reported, adjusted or
   pro forma, 'up 40%' depends on the start date, and a 'times earnings' figure depends on both
-  the price date and the earnings used, so the first job is to recompute it with a stated
+  the price date and the earnings used, so the first job is to check it against a stated
   definition. A forecast says what will happen; it cannot be checked today, so judge its reasoning,
   whether it gives a size and a time, and whether the writer says what would prove them wrong. Framing is
   the choice of which true facts to show and how: the starting point of a percentage change, a
@@ -86,14 +86,14 @@ concept: >
 
 principle: >
   Before choosing between two writers, sort every claim into fact, definition, forecast and
-  framing. Recompute the numbers with a stated definition, judge forecasts by their reasoning,
+  framing. Check the numbers against a stated definition, judge forecasts by their reasoning,
   notice what each writer gains from the view, and let the outcome grade the forecasts afterwards,
   not the writer.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
   - "Sort a writer's claims into fact, definition, forecast and framing."
-  - "Recompute disputed numbers with a stated definition."
+  - "Check a disputed number against a stated definition."
   - "Compare arguments rather than reputations, and notice what each writer gains from a view."
 
 # Claude-written quiz questions; each answer was checked against the cited source (see docs/architecture.md).
@@ -128,15 +128,15 @@ questions:
 
   - id: adb-q-pe-arithmetic
     prompt: >
-      A share sells for $60. The company earned $0.50 per share over the last four quarters. What is the price-to-earnings ratio on those trailing earnings?
+      A share sells for $60. The company earned $0.50 per share over the last four quarters. Traders set the price against those four quarters of earnings and quote one figure. What do they call it?
     choices:
-      - { id: a, text: "30 times" }
-      - { id: b, text: "120 times" }
-      - { id: c, text: "12 times" }
-      - { id: d, text: "0.008 times" }
+      - { id: a, text: "The dividend yield", mistake: { tag: wrong-ratio, fix: "Dividend yield sets the payout against the price, not the earnings." } }
+      - { id: b, text: "The trailing price-to-earnings ratio, or trailing P/E" }
+      - { id: c, text: "The forward price-to-earnings ratio", mistake: { tag: forward-vs-trailing, fix: "Forward P/E uses expected earnings; trailing uses the last four quarters." } }
+      - { id: d, text: "The book value per share", mistake: { tag: wrong-ratio, fix: "Book value is what the accounts say the owners hold, not price against earnings." } }
     answer: b
     explanation: >
-      P/E is the market price per share divided by earnings per share: 60 / 0.50 = 120.
+      Price per share set against earnings per share over the last four quarters is the trailing P/E. Here it works out at 120 times, the share price divided by $0.50.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios: https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
 
@@ -170,40 +170,40 @@ questions:
 
   - id: adb-q-multiple-fall
     prompt: >
-      A market index sells at 30 times earnings. If earnings stay the same and the multiple falls to 20 times, by what percentage does the index fall?
+      A market index sells at 30 times earnings. Earnings stay the same, but investors decide it deserves only 20 times. Which headline gets it right?
     choices:
-      - { id: a, text: "About 33%" }
-      - { id: b, text: "About 50%" }
-      - { id: c, text: "About 10%" }
-      - { id: d, text: "About 67%" }
+      - { id: a, text: "The index falls, because its level moves in step with the multiple" }
+      - { id: b, text: "The index stays put, because earnings did not change", mistake: { tag: ignores-multiple, fix: "The level is the multiple times earnings, so a lower multiple lowers it." } }
+      - { id: c, text: "The index rises, because a smaller multiple means cheaper shares", mistake: { tag: reverses-multiple, fix: "A lower multiple means investors pay less for the same earnings, so the level falls." } }
+      - { id: d, text: "The index cannot move unless earnings move first", mistake: { tag: earnings-only, fix: "Earnings are only one half of the level; the multiple is the other." } }
     answer: a
     explanation: >
-      The index level is the multiple times earnings. With earnings fixed, the level falls in proportion to the multiple: 20 / 30 = 0.667, a fall of 33.3%. The other choices come from subtracting 10 points of multiple from 30 points or from reading 20/30 as the fall itself.
+      The index level is the multiple times earnings. With earnings fixed, a smaller multiple means a lower level: from 30 times to 20 times is a fall of about a third.
     source: >
       Own arithmetic on price = P/E x earnings per share; definition of P/E from OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios: https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
 
   - id: adb-q-multiple-and-earnings
     prompt: >
-      An index sells at 30 times earnings. A writer argues that the multiple will return to 20 times and, at the same time, that earnings will be 25% lower. If both happen, by what percentage does the index fall?
+      An index sells at 30 times earnings. A writer argues that the multiple will return to 20 times and, at the same time, that earnings will be a quarter lower. If both happen, how do the two changes combine?
     choices:
-      - { id: a, text: "About 58%" }
-      - { id: b, text: "About 50%" }
-      - { id: c, text: "About 33%" }
-      - { id: d, text: "About 25%" }
-    answer: b
+      - { id: a, text: "They stack: the level falls by more than either change would cause alone" }
+      - { id: b, text: "Only the bigger change counts, and the smaller one is lost in it", mistake: { tag: ignores-second-change, fix: "Both changes act on the level, because it is the multiple times earnings." } }
+      - { id: c, text: "They cancel, because a lower multiple makes up for lower earnings", mistake: { tag: cancels, fix: "Both push the level down, so they add to each other and do not offset." } }
+      - { id: d, text: "Only the multiple counts, because earnings are already in the price", mistake: { tag: earnings-priced-in, fix: "The level is multiple times earnings, so lower earnings lower it as well." } }
+    answer: a
     explanation: >
-      The level is the multiple times earnings, so the two changes multiply: (20 / 30) x 0.75 = 0.667 x 0.75 = 0.50, a fall of 50%. Adding 33% and 25% to get 58% ignores that the second fall applies to a level that is already lower. The example uses round hypothetical numbers.
+      The level is the multiple times earnings, so the two changes multiply: both push the level down, and together they take it to about half of where it started. The example uses round hypothetical numbers.
     source: >
       Own arithmetic on price = P/E x earnings per share; definition of P/E from OpenStax, Principles of Finance (CC BY-NC-SA), 6.5 Market Value Ratios: https://openstax.org/books/principles-finance/pages/6-5-market-value-ratios
 
   - id: adb-q-starting-point
     prompt: >
-      A market index is up 40% over the last twelve months and down 20% from its highest level of the last two months. One writer says it is 'still up 40%' and another says it is 'down 20%'. What is the best description of their difference?
+      A market index is up 40% over the last twelve months and down 20% from its highest level of the last two months. One writer says it is 'still up 40%' and another says it is 'down 20%'. Which best describes how the two writers differ?
     choices:
-      - { id: a, text: "One of them is stating something false" }
+      - { id: a, text: "One of them is stating something false", mistake: { tag: both-true, fix: "Both figures are true; they just count from different starting dates." } }
       - { id: b, text: "Both are true and they choose different starting points, which is framing" }
-      - { id: c, text: "The 40% is a forecast and the 20% is a fact" }
-      - { id: d, text: "They must be using different indices" }
+      - { id: c, text: "The 40% is a forecast and the 20% is a fact", mistake: { tag: fact-vs-forecast, fix: "Both figures describe the past, so neither is a forecast." } }
+      - { id: d, text: "They must be using different indices", mistake: { tag: same-index, fix: "One index can show both numbers, depending on the start date." } }
     answer: b
     explanation: >
       A percentage change depends on its starting date. Twelve months back and the last peak give different, equally true numbers. A reader asks which start date was chosen and why before treating either as the whole picture.
@@ -245,19 +245,18 @@ checks:
     kind: conversation
     prompt: >
       Take the Forbes debate as it stood on 12 June 2000. Pick one claim from each writer that a
-      reader could check, and say where you would look and what you would calculate (for
-      Yahoo, use the numbers in the story and the calculator). Then name one claim that is a
+      reader could check, and say where you would look and what you would compare (for
+      Yahoo, the numbers in the story). Then name one claim that is a
       forecast and one that is framing, and say how you would treat each. Finally, say which
       writer's argument you find better supported on what was known that day, what you still
       could not know, and what would change your mind. Do not predict what happened next.
     passCriteria: >
       The Learner picks at least one checkable fact from each writer (for example the Nasdaq's 1999
       rise against its published year-end figures, Yahoo's earnings against its April release, or
-      the S&P 500's multiple) and says where it would be checked. They recompute Yahoo's multiple
-      from the story's numbers and see that it depends on the earnings used: about 225 times on
-      reported first-quarter earnings and about 277 times on pro forma earnings, both annualised at
-      $70 billion, neither equal to 340, so the gap needs a stated price date and definition before
-      it can be called an error. They name a forecast (such as the share of companies that disappear
+      the S&P 500's multiple) and says where it would be checked. They see from the story's numbers that
+      Yahoo's 'times earnings' figure depends on the earnings used (reported or pro forma
+      first-quarter earnings) and that neither matches the quoted 340, so the gap needs a stated
+      price date and definition before it can be called an error. They name a forecast (such as the share of companies that disappear
       or the size of a fall) and judge it by its reasoning, size, time and stated limits, not as a
       fact. They name a framing device (a starting point for a percentage, the sum of a sector shown
       without its parts, benchmark pressure or the writer's own incentives). They prefer an argument

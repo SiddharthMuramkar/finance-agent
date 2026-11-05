@@ -87,8 +87,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "jud-filing-vs-claim",
   "jud-rating-conflict",
   "ana-build-valuation",
-  "ana-who-pays-whom",
-  "ana-commitments-debt",
   "ana-india-transfer",
   "ana-decide-between",
   "ana-anthropic-s1",

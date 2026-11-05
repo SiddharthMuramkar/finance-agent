@@ -168,18 +168,18 @@ questions:
     prompt: >
       A hypothetical company reports, for a year: revenue $100m; total operating expenses $110m;
       a $500m non-operating loss from revaluing its investments; and interest expense of $40m.
-      What is its operating loss for the year?
+      Which headline describes its operating result correctly?
     choices:
-      - { id: a, text: "$10m" }
-      - { id: b, text: "$40m" }
-      - { id: c, text: "$550m" }
-      - { id: d, text: "$510m" }
+      - { id: a, text: "A small operating loss: revenue fell short of operating expenses, and the revaluation and interest sit below that line" }
+      - { id: b, text: "An operating loss that includes the interest expense, since interest is a cost of running the business", mistake: { tag: interest-above-line, fix: "Interest is financing and sits below the operating line." } }
+      - { id: c, text: "An operating loss of over half a billion, because the revaluation loss counts", mistake: { tag: net-for-operating, fix: "A non-operating revaluation loss belongs to net income, not operating income." } }
+      - { id: d, text: "An operating profit, because revenue is the biggest number on the statement", mistake: { tag: revenue-as-profit, fix: "Operating result is revenue less operating expenses, not revenue alone." } }
     answer: a
     explanation: >
-      Operating income is revenue less operating expenses: 100 - 110 = -10, a $10m operating loss.
+      Operating income is revenue less operating expenses: here revenue ($100m) falls short of operating expenses ($110m), a $10m operating loss.
       The revaluation loss and the interest expense sit below the operating line and are deducted
-      only on the way to net income (a $550m net loss before tax). Any figure that includes them
-      is a net-income measure, whatever it is called.
+      only on the way to net income. Any figure that includes them is a net-income measure,
+      whatever it is called.
     source: >
       OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 18.1 The Importance of Forecasting,
       income statement analysis ("operating expenses are deducted to reflect operating income ...
@@ -269,17 +269,17 @@ questions:
   - id: s1r-q-period
     prompt: >
       A hypothetical filing gives revenue of $5bn for the first quarter and $12bn for the second.
-      A writer compares a $48bn annualised figure with "quarterly revenue of $12bn" and says the
-      annualised figure is four times as large. What is the main problem?
+      A writer sets an annualised revenue figure beside "quarterly revenue of $12bn" as if the two
+      were the same kind of number. What is the main problem with that comparison?
     choices:
-      - { id: a, text: "Nothing: four times is correct and the comparison is fair" }
-      - { id: b, text: "It compares a yearly rate with one quarter; on a like-for-like basis, $12bn a quarter is $48bn a year" }
-      - { id: c, text: "Quarterly revenue should be divided by four first" }
-      - { id: d, text: "Annualised figures can never be compared with reported revenue" }
+      - { id: a, text: "Nothing: a bigger number is simply a bigger business", mistake: { tag: ignores-period, fix: "A yearly rate and one quarter cover different periods, so they are not comparable." } }
+      - { id: b, text: "It sets a yearly rate beside a single quarter; both should be put on the same period first" }
+      - { id: c, text: "Quarterly revenue should always be cut to a quarter of itself first", mistake: { tag: wrong-direction, fix: "Put them on the same period; shrinking the quarter does not do that." } }
+      - { id: d, text: "Annualised figures can never be compared with reported revenue", mistake: { tag: never-compare, fix: "They can be compared once both are on the same period." } }
     answer: b
     explanation: >
-      Put both figures on the same period before comparing: a quarter times four gives a yearly
-      rate. $12bn x 4 = $48bn, so the two are about equal, not four to one.
+      Put both figures on the same period before comparing: a quarter's revenue scaled to a year
+      is a yearly rate. Set side by side on one period, the two figures are about equal.
     source: >
       OpenStax, Principles of Finance 2e (CC BY-NC-SA 4.0), 5.1 The Income Statement (an income
       statement reports results over a stated period):
