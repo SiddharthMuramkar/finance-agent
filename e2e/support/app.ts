@@ -32,11 +32,19 @@ export async function script(page: Page, name: Script) {
 /** Sends `text` in the Study Workspace with the scripted Tutor set to `name`, and waits for the reply to finish. */
 export async function say(page: Page, name: Script, text: string) {
   await script(page, name);
+  // The Study Workspace may still be playing the Topic's opener: wait until no reply is being written.
+  await settled(page);
   const before = await page.getByTestId("assistant-message").count();
-  const box = page.getByRole("textbox", { name: "Message" });
-  await box.fill(text);
-  await box.press("Enter");
+  await page.getByRole("textbox", { name: "Message" }).fill(text);
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(page.getByTestId("assistant-message")).toHaveCount(before + 1, { timeout: 30_000 });
+  await settled(page);
+}
+
+/** Waits until the page is quiet: no request in flight and no reply being written. */
+export async function settled(page: Page) {
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByTestId("stop-reply")).toHaveCount(0, { timeout: 30_000 });
   await expect(page.getByTestId("writing-indicator")).toHaveCount(0, { timeout: 30_000 });
 }
 
