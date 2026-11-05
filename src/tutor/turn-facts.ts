@@ -77,11 +77,11 @@ export function replyKindOf(learnerText?: string): ReplyKind | undefined {
   return undefined;
 }
 
-/** This turn's facts, for the Learner's place (null once every Topic is passed) and the words that started the turn. */
-export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place: Place | null, turn?: { learnerText?: string }): Promise<TurnFacts> {
+/** This turn's facts, for the Learner's place (null once every Topic is passed), the words that started the turn and the turn's own clock (so a parked Skill is judged at the turn's time, not the wall clock). */
+export async function turnFacts(db: Db, map: CourseMap, learnerId: number, place: Place | null, turn?: { learnerText?: string; now?: Date }): Promise<TurnFacts> {
   const step: StepKind = place?.step ?? "none";
   // The repair ladder (ticket #245): the Reply kind and method code chose, the frustration count, Skill state and parking.
-  const ladder = await ladderFacts(db, map, learnerId, place, turn?.learnerText);
+  const ladder = await ladderFacts(db, map, learnerId, place, turn?.learnerText, turn?.now);
   const replyKind = replyKindOf(turn?.learnerText) ?? ladder.replyKind;
   const check = place?.step === "check" && place.check?.kind === "quiz" ? place.check : null;
   const quizOpen = check !== null && !(await quizUnavailable(db, map, check));
