@@ -1,0 +1,646 @@
+[
+ {
+  "name": "person",
+  "folder": "Person"
+ },
+ {
+  "name": "man",
+  "folder": "Man"
+ },
+ {
+  "name": "woman",
+  "folder": "Woman"
+ },
+ {
+  "name": "older-person",
+  "folder": "Older person"
+ },
+ {
+  "name": "old-man",
+  "folder": "Old man"
+ },
+ {
+  "name": "old-woman",
+  "folder": "Old woman"
+ },
+ {
+  "name": "office-worker",
+  "folder": "Office worker"
+ },
+ {
+  "name": "man-office-worker",
+  "folder": "Man office worker"
+ },
+ {
+  "name": "woman-office-worker",
+  "folder": "Woman office worker"
+ },
+ {
+  "name": "technologist",
+  "folder": "Technologist"
+ },
+ {
+  "name": "judge",
+  "folder": "Judge"
+ },
+ {
+  "name": "police-officer",
+  "folder": "Police officer"
+ },
+ {
+  "name": "detective",
+  "folder": "Detective"
+ },
+ {
+  "name": "guard",
+  "folder": "Guard"
+ },
+ {
+  "name": "farmer",
+  "folder": "Farmer"
+ },
+ {
+  "name": "cook",
+  "folder": "Cook"
+ },
+ {
+  "name": "factory-worker",
+  "folder": "Factory worker"
+ },
+ {
+  "name": "construction-worker",
+  "folder": "Construction worker"
+ },
+ {
+  "name": "scientist",
+  "folder": "Scientist"
+ },
+ {
+  "name": "teacher",
+  "folder": "Teacher"
+ },
+ {
+  "name": "student",
+  "folder": "Student"
+ },
+ {
+  "name": "person-raising-hand",
+  "folder": "Person raising hand"
+ },
+ {
+  "name": "person-shrugging",
+  "folder": "Person shrugging"
+ },
+ {
+  "name": "person-facepalming",
+  "folder": "Person facepalming"
+ },
+ {
+  "name": "grinning-face",
+  "folder": "Grinning face"
+ },
+ {
+  "name": "slightly-smiling-face",
+  "folder": "Slightly smiling face"
+ },
+ {
+  "name": "smiling-face-with-sunglasses",
+  "folder": "Smiling face with sunglasses"
+ },
+ {
+  "name": "thinking-face",
+  "folder": "Thinking face"
+ },
+ {
+  "name": "face-with-monocle",
+  "folder": "Face with monocle"
+ },
+ {
+  "name": "nerd-face",
+  "folder": "Nerd face"
+ },
+ {
+  "name": "star-struck",
+  "folder": "Star-struck"
+ },
+ {
+  "name": "money-mouth-face",
+  "folder": "Money-mouth face"
+ },
+ {
+  "name": "partying-face",
+  "folder": "Partying face"
+ },
+ {
+  "name": "exploding-head",
+  "folder": "Exploding head"
+ },
+ {
+  "name": "face-screaming-in-fear",
+  "folder": "Face screaming in fear"
+ },
+ {
+  "name": "anxious-face-with-sweat",
+  "folder": "Anxious face with sweat"
+ },
+ {
+  "name": "worried-face",
+  "folder": "Worried face"
+ },
+ {
+  "name": "astonished-face",
+  "folder": "Astonished face"
+ },
+ {
+  "name": "hushed-face",
+  "folder": "Hushed face"
+ },
+ {
+  "name": "face-with-rolling-eyes",
+  "folder": "Face with rolling eyes"
+ },
+ {
+  "name": "shushing-face",
+  "folder": "Shushing face"
+ },
+ {
+  "name": "zipper-mouth-face",
+  "folder": "Zipper-mouth face"
+ },
+ {
+  "name": "neutral-face",
+  "folder": "Neutral face"
+ },
+ {
+  "name": "yawning-face",
+  "folder": "Yawning face"
+ },
+ {
+  "name": "ox",
+  "folder": "Ox"
+ },
+ {
+  "name": "bear",
+  "folder": "Bear"
+ },
+ {
+  "name": "turtle",
+  "folder": "Turtle"
+ },
+ {
+  "name": "snail",
+  "folder": "Snail"
+ },
+ {
+  "name": "rabbit-face",
+  "folder": "Rabbit face"
+ },
+ {
+  "name": "shark",
+  "folder": "Shark"
+ },
+ {
+  "name": "owl",
+  "folder": "Owl"
+ },
+ {
+  "name": "unicorn",
+  "folder": "Unicorn"
+ },
+ {
+  "name": "money-bag",
+  "folder": "Money bag"
+ },
+ {
+  "name": "coin",
+  "folder": "Coin"
+ },
+ {
+  "name": "dollar-banknote",
+  "folder": "Dollar banknote"
+ },
+ {
+  "name": "euro-banknote",
+  "folder": "Euro banknote"
+ },
+ {
+  "name": "pound-banknote",
+  "folder": "Pound banknote"
+ },
+ {
+  "name": "yen-banknote",
+  "folder": "Yen banknote"
+ },
+ {
+  "name": "money-with-wings",
+  "folder": "Money with wings"
+ },
+ {
+  "name": "credit-card",
+  "folder": "Credit card"
+ },
+ {
+  "name": "receipt",
+  "folder": "Receipt"
+ },
+ {
+  "name": "bank",
+  "folder": "Bank"
+ },
+ {
+  "name": "chart-increasing",
+  "folder": "Chart increasing"
+ },
+ {
+  "name": "chart-decreasing",
+  "folder": "Chart decreasing"
+ },
+ {
+  "name": "chart-increasing-with-yen",
+  "folder": "Chart increasing with yen"
+ },
+ {
+  "name": "bar-chart",
+  "folder": "Bar chart"
+ },
+ {
+  "name": "ledger",
+  "folder": "Ledger"
+ },
+ {
+  "name": "notebook",
+  "folder": "Notebook"
+ },
+ {
+  "name": "scroll",
+  "folder": "Scroll"
+ },
+ {
+  "name": "gem-stone",
+  "folder": "Gem stone"
+ },
+ {
+  "name": "balance-scale",
+  "folder": "Balance scale"
+ },
+ {
+  "name": "briefcase",
+  "folder": "Briefcase"
+ },
+ {
+  "name": "identification-card",
+  "folder": "Identification card"
+ },
+ {
+  "name": "label",
+  "folder": "Label"
+ },
+ {
+  "name": "classical-building",
+  "folder": "Classical building"
+ },
+ {
+  "name": "office-building",
+  "folder": "Office building"
+ },
+ {
+  "name": "house",
+  "folder": "House"
+ },
+ {
+  "name": "houses",
+  "folder": "Houses"
+ },
+ {
+  "name": "derelict-house",
+  "folder": "Derelict house"
+ },
+ {
+  "name": "factory",
+  "folder": "Factory"
+ },
+ {
+  "name": "department-store",
+  "folder": "Department store"
+ },
+ {
+  "name": "convenience-store",
+  "folder": "Convenience store"
+ },
+ {
+  "name": "building-construction",
+  "folder": "Building construction"
+ },
+ {
+  "name": "stadium",
+  "folder": "Stadium"
+ },
+ {
+  "name": "cityscape",
+  "folder": "Cityscape"
+ },
+ {
+  "name": "globe-showing-americas",
+  "folder": "Globe showing americas"
+ },
+ {
+  "name": "globe-showing-asia-australia",
+  "folder": "Globe showing asia-australia"
+ },
+ {
+  "name": "globe-showing-europe-africa",
+  "folder": "Globe showing europe-africa"
+ },
+ {
+  "name": "world-map",
+  "folder": "World map"
+ },
+ {
+  "name": "newspaper",
+  "folder": "Newspaper"
+ },
+ {
+  "name": "rolled-up-newspaper",
+  "folder": "Rolled-up newspaper"
+ },
+ {
+  "name": "megaphone",
+  "folder": "Megaphone"
+ },
+ {
+  "name": "loudspeaker",
+  "folder": "Loudspeaker"
+ },
+ {
+  "name": "telephone-receiver",
+  "folder": "Telephone receiver"
+ },
+ {
+  "name": "mobile-phone",
+  "folder": "Mobile phone"
+ },
+ {
+  "name": "laptop",
+  "folder": "Laptop"
+ },
+ {
+  "name": "envelope",
+  "folder": "Envelope"
+ },
+ {
+  "name": "memo",
+  "folder": "Memo"
+ },
+ {
+  "name": "clipboard",
+  "folder": "Clipboard"
+ },
+ {
+  "name": "calendar",
+  "folder": "Calendar"
+ },
+ {
+  "name": "spiral-calendar",
+  "folder": "Spiral calendar"
+ },
+ {
+  "name": "tear-off-calendar",
+  "folder": "Tear-off calendar"
+ },
+ {
+  "name": "hourglass-done",
+  "folder": "Hourglass done"
+ },
+ {
+  "name": "hourglass-not-done",
+  "folder": "Hourglass not done"
+ },
+ {
+  "name": "alarm-clock",
+  "folder": "Alarm clock"
+ },
+ {
+  "name": "stopwatch",
+  "folder": "Stopwatch"
+ },
+ {
+  "name": "key",
+  "folder": "Key"
+ },
+ {
+  "name": "old-key",
+  "folder": "Old key"
+ },
+ {
+  "name": "locked",
+  "folder": "Locked"
+ },
+ {
+  "name": "unlocked",
+  "folder": "Unlocked"
+ },
+ {
+  "name": "package",
+  "folder": "Package"
+ },
+ {
+  "name": "delivery-truck",
+  "folder": "Delivery truck"
+ },
+ {
+  "name": "shopping-cart",
+  "folder": "Shopping cart"
+ },
+ {
+  "name": "shopping-bags",
+  "folder": "Shopping bags"
+ },
+ {
+  "name": "ticket",
+  "folder": "Ticket"
+ },
+ {
+  "name": "light-bulb",
+  "folder": "Light bulb"
+ },
+ {
+  "name": "magnifying-glass-tilted-left",
+  "folder": "Magnifying glass tilted left"
+ },
+ {
+  "name": "eyes",
+  "folder": "Eyes"
+ },
+ {
+  "name": "direct-hit",
+  "folder": "Bullseye"
+ },
+ {
+  "name": "game-die",
+  "folder": "Game die"
+ },
+ {
+  "name": "slot-machine",
+  "folder": "Slot machine"
+ },
+ {
+  "name": "trophy",
+  "folder": "Trophy"
+ },
+ {
+  "name": "party-popper",
+  "folder": "Party popper"
+ },
+ {
+  "name": "wrapped-gift",
+  "folder": "Wrapped gift"
+ },
+ {
+  "name": "rocket",
+  "folder": "Rocket"
+ },
+ {
+  "name": "airplane",
+  "folder": "Airplane"
+ },
+ {
+  "name": "ship",
+  "folder": "Ship"
+ },
+ {
+  "name": "fuel-pump",
+  "folder": "Fuel pump"
+ },
+ {
+  "name": "oil-drum",
+  "folder": "Oil drum"
+ },
+ {
+  "name": "hammer-and-wrench",
+  "folder": "Hammer and wrench"
+ },
+ {
+  "name": "gear",
+  "folder": "Gear"
+ },
+ {
+  "name": "battery",
+  "folder": "Battery"
+ },
+ {
+  "name": "low-battery",
+  "folder": "Low battery"
+ },
+ {
+  "name": "link",
+  "folder": "Link"
+ },
+ {
+  "name": "chains",
+  "folder": "Chains"
+ },
+ {
+  "name": "puzzle-piece",
+  "folder": "Puzzle piece"
+ },
+ {
+  "name": "bomb",
+  "folder": "Bomb"
+ },
+ {
+  "name": "fire",
+  "folder": "Fire"
+ },
+ {
+  "name": "hot-beverage",
+  "folder": "Hot beverage"
+ },
+ {
+  "name": "droplet",
+  "folder": "Droplet"
+ },
+ {
+  "name": "snowflake",
+  "folder": "Snowflake"
+ },
+ {
+  "name": "umbrella-with-rain-drops",
+  "folder": "Umbrella with rain drops"
+ },
+ {
+  "name": "cloud-with-lightning",
+  "folder": "Cloud with lightning"
+ },
+ {
+  "name": "tornado",
+  "folder": "Tornado"
+ },
+ {
+  "name": "sun",
+  "folder": "Sun"
+ },
+ {
+  "name": "rainbow",
+  "folder": "Rainbow"
+ },
+ {
+  "name": "seedling",
+  "folder": "Seedling"
+ },
+ {
+  "name": "deciduous-tree",
+  "folder": "Deciduous tree"
+ },
+ {
+  "name": "hatching-chick",
+  "folder": "Hatching chick"
+ },
+ {
+  "name": "warning",
+  "folder": "Warning"
+ },
+ {
+  "name": "no-entry",
+  "folder": "No entry"
+ },
+ {
+  "name": "stop-sign",
+  "folder": "Stop sign"
+ },
+ {
+  "name": "check-mark-button",
+  "folder": "Check mark button"
+ },
+ {
+  "name": "cross-mark",
+  "folder": "Cross mark"
+ },
+ {
+  "name": "red-question-mark",
+  "folder": "Red question mark"
+ },
+ {
+  "name": "red-exclamation-mark",
+  "folder": "Red exclamation mark"
+ },
+ {
+  "name": "high-voltage",
+  "folder": "High voltage"
+ },
+ {
+  "name": "sparkles",
+  "folder": "Sparkles"
+ },
+ {
+  "name": "speech-balloon",
+  "folder": "Speech balloon"
+ },
+ {
+  "name": "thought-balloon",
+  "folder": "Thought balloon"
+ },
+ {
+  "name": "crown",
+  "folder": "Crown"
+ }
+]
