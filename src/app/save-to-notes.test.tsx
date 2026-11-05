@@ -57,7 +57,8 @@ describe("after Save to notes", () => {
     const idle = renderToStaticMarkup(<SaveToNotesView state={{ status: "idle" }} what="Widget" onSave={noop} onUndo={noop} />);
     expect(idle).toMatch(/<button[^>]*aria-label="Save this Widget to notes"[^>]*>(<svg.*<\/svg>)?Save to notes<\/button>/);
     expect(idle).not.toContain("Undo");
-    expect(idle).toMatch(/<button[^>]*class="[^"]*\bpressable\b[^"]*"[^>]*aria-label="Save this Widget to notes"|<button[^>]*aria-label="Save this Widget to notes"[^>]*class="[^"]*\bpressable\b/);
+    expect(idle).toMatch(/<button[^>]*data-affordance="button"[^>]*aria-label="Save this Widget to notes"/);
+    expect(idle).toMatch(/class="[^"]*\bbtn\b[^"]*\bbtn-secondary\b/);
   });
 });
 
