@@ -42,7 +42,8 @@ export async function startOver(db: Db, learnerId: number, now = new Date()): Pr
       .where(and(eq(learners.id, learnerId), isNull(learners.archivedAt)))
       .returning();
     if (!archived) return null;
-    const [fresh] = await tx.insert(learners).values({ name: archived.name }).returning();
+    // A Google-linked Learner's fresh copy keeps the link; the archived one keeps it too, but no longer counts.
+    const [fresh] = await tx.insert(learners).values({ name: archived.name, authUserId: archived.authUserId }).returning();
     return fresh;
   });
 }

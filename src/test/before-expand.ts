@@ -21,13 +21,18 @@ export async function closeBeforeExpand(): Promise<void> {
 
 /** A Postgres migrated up to just before the expand migration (spec #119): the database as production had it then. */
 export async function databaseBeforeExpand(): Promise<{ client: PGlite; db: Db }> {
+  return databaseBefore(EXPAND);
+}
+
+/** A Postgres migrated up to just before the migration whose tag ends with `tagEnd` (tags, not numbers: numbers move on rebase). */
+export async function databaseBefore(tagEnd: string): Promise<{ client: PGlite; db: Db }> {
   const dir = await mkdtemp(join(tmpdir(), "finance-agent-before-expand-"));
   temp.push(dir);
   await cp("drizzle", dir, { recursive: true });
   const journalFile = join(dir, "meta", "_journal.json");
   const journal = JSON.parse(await readFile(journalFile, "utf8")) as { entries: { tag: string }[] };
-  const at = journal.entries.findIndex((e) => e.tag.endsWith(EXPAND));
-  if (at <= 0) throw new Error("The expand migration is not in the journal.");
+  const at = journal.entries.findIndex((e) => e.tag.endsWith(tagEnd));
+  if (at <= 0) throw new Error(`The ${tagEnd} migration is not in the journal.`);
   journal.entries = journal.entries.slice(0, at);
   await writeFile(journalFile, JSON.stringify(journal));
   const client = new PGlite({ extensions: { vector } });

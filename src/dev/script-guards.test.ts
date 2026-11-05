@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertLocalBase, assertTestDatabase, assertToolsLearner, textOf } from "../../scripts/script-guards.mjs";
+import { assertLocalBase, assertNamedDatabase, assertTestDatabase, assertToolsLearner, textOf } from "../../scripts/script-guards.mjs";
 
 describe("textOf", () => {
   it("reads a string content", () => expect(textOf({ content: "hi" })).toBe("hi"));
@@ -30,6 +30,19 @@ describe("assertTestDatabase", () => {
   });
   it("refuses the production host even with EVAL_DB_OK", () =>
     expect(() => assertTestDatabase(url, { EVAL_DB_OK: "branch", PROD_DB_HOST: "ep-test-branch.neon.tech" }, quiet)).toThrow(/production/));
+});
+
+describe("assertNamedDatabase", () => {
+  const url = "postgres://u@db.example/x";
+  const quiet = () => {};
+  it("invites guard", () => {
+    expect(() => assertNamedDatabase(url, {}, quiet)).toThrow(/INVITES_DB_OK=db\.example/);
+    expect(() => assertNamedDatabase(url, { INVITES_DB_OK: "db.example" }, quiet)).not.toThrow();
+    expect(() => assertNamedDatabase(url, { INVITES_DB_OK: "other.example" }, quiet)).toThrow(/other\.example/);
+    const lines: string[] = [];
+    assertNamedDatabase(url, { INVITES_DB_OK: "db.example" }, (l) => lines.push(l));
+    expect(lines.join("\n")).toContain("db.example");
+  });
 });
 
 describe("assertToolsLearner", () => {
