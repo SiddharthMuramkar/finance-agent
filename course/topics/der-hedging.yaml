@@ -77,12 +77,12 @@ questions:
 
   - id: hr-q-leverage
     prompt: >
-      An investment pool has $100 million of deposits. It borrows another $100 million and holds $200 million of bonds with a duration of 4 years. Yields rise by 1 percentage point. By roughly what percentage of the depositors' $100 million does the pool lose?
+      An investment pool borrowed as much as its depositors put in, to double its bond holdings. Then bond yields rise. What does the borrowing do to the depositors' loss?
     choices:
-      - { id: a, text: "About 8%" }
-      - { id: b, text: "About 4%" }
-      - { id: c, text: "About 1%" }
-      - { id: d, text: "About 16%" }
+      - { id: a, text: "It makes the loss twice as large as it would have been without the borrowing" }
+      - { id: b, text: "It halves the loss, because the lender shares it", mistake: { tag: lender_shares, fix: "The lender must be repaid in full, so the depositors bear the whole loss." } }
+      - { id: c, text: "It makes no difference, because yields only change the coupons", mistake: { tag: yields_ignored, fix: "A rise in yields cuts the market value of the bonds, and borrowing magnifies that loss." } }
+      - { id: d, text: "It cancels the loss, because borrowing acts as a hedge", mistake: { tag: borrowing_is_hedge, fix: "Borrowing to buy more bonds adds to the exposure to yields; it does not offset it." } }
     answer: a
     explanation: >
       The bonds lose about duration x yield change = 4 x 1% = 4% of $200 million = $8 million. The $100 million of borrowing must be repaid in full, so the whole loss falls on the deposits: $8 million out of $100 million is 8%, twice the loss without leverage.
@@ -119,15 +119,15 @@ questions:
 
   - id: hr-q-hedge-ratio
     prompt: >
-      The correlation between a firm's exposure and the hedge instrument is 0.9. The exposure's volatility is 12% and the hedge instrument's is 10%. What is the minimum-variance hedge ratio?
+      What is the minimum-variance hedge ratio meant to do?
     choices:
-      - { id: a, text: "1.08" }
-      - { id: b, text: "0.75" }
-      - { id: c, text: "0.90" }
-      - { id: d, text: "1.33" }
+      - { id: a, text: "Pick the size of hedge that leaves the least leftover swing in the hedged position" }
+      - { id: b, text: "Match the hedge one-for-one to the exposure", mistake: { tag: one_for_one, fix: "Hedging one-for-one ignores how the two prices differ in size of swing and in how closely they move." } }
+      - { id: c, text: "Remove the exposure's risk completely", mistake: { tag: removes_all_risk, fix: "A hedge on a different instrument leaves some risk behind; the ratio only makes it as small as possible." } }
+      - { id: d, text: "Make the hedge cost nothing to hold", mistake: { tag: cost_not_risk, fix: "The ratio is about leaving the least risk, not about the cost of the hedge." } }
     answer: a
     explanation: >
-      h = rho x (sigma of exposure / sigma of hedge) = 0.9 x (12 / 10) = 1.08. Hedging one-for-one (1.0) leaves a little risk unhedged because the exposure is more volatile than the hedge instrument.
+      The hedge ratio h = rho x (sigma of exposure / sigma of hedge) sets the hedge that leaves the least risk. For example 0.9 x (12 / 10) = 1.08: hedging one-for-one (1.0) leaves a little risk unhedged because the exposure is more volatile than the hedge instrument.
     source: >
       Hull, Options, Futures, and Other Derivatives (Pearson), minimum variance hedge ratio h* = rho x sigma_S / sigma_F; figures calculated
 

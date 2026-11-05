@@ -66,15 +66,15 @@ youllLearn:
 questions:
   - id: rx-q-cip
     prompt: >
-      The spot rate is Rs 60 per dollar. One-year interest rates are 8% in rupees and 3% in dollars. According to covered interest parity, what is the one-year forward rate (rupees per dollar)?
+      The spot rate is Rs 60 per dollar, and one-year interest rates are higher in rupees than in dollars. According to covered interest parity, how does the one-year forward rate compare with today's spot rate?
     choices:
-      - { id: a, text: "About Rs 62.91" }
-      - { id: b, text: "Rs 60.00" }
-      - { id: c, text: "About Rs 57.22" }
-      - { id: d, text: "Rs 65.00" }
+      - { id: a, text: "It is higher: the rupee trades at a forward discount, so more rupees per dollar" }
+      - { id: b, text: "It is lower: the rupee trades at a forward premium, so fewer rupees per dollar", mistake: { tag: inverted_parity, fix: "The currency with the higher interest rate trades at a forward discount, not a premium." } }
+      - { id: c, text: "It is the same as spot, because the interest rates cancel out", mistake: { tag: rates_ignored, fix: "The gap in interest rates is exactly what the forward rate must make up." } }
+      - { id: d, text: "It cannot be fixed today, because the future spot rate is unknown", mistake: { tag: forward_unfixed, fix: "A forward contract fixes the rate today; interest parity says where it must sit." } }
     answer: a
     explanation: >
-      Forward = 60 x 1.08 / 1.03 = 62.91. The rupee, with the higher interest rate, trades at a forward discount: more rupees per dollar. Rs 57.22 inverts the ratio.
+      Forward = spot x (1 + rupee rate) / (1 + dollar rate) = 60 x 1.08 / 1.03 = 62.91. The rupee, with the higher interest rate, trades at a forward discount: more rupees per dollar. Rs 57.22 inverts the ratio.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (forward contracts for currency): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; forward rate calculated from covered interest parity
 
@@ -94,12 +94,12 @@ questions:
 
   - id: rx-q-net-payment
     prompt: >
-      A swap has a notional amount of Rs 100 crore. One side pays a fixed 7% and receives a floating rate that is 6% for the year. What is the net payment for the year, and who makes it?
+      A swap has a notional amount of Rs 100 crore. One side pays a fixed rate of 7% and receives a floating rate that turns out to be 6% for the year. What changes hands at the end of the year?
     choices:
-      - { id: a, text: "Rs 1 crore, paid by the fixed-rate payer" }
-      - { id: b, text: "Rs 7 crore, paid by the fixed-rate payer" }
-      - { id: c, text: "Rs 1 crore, paid by the floating-rate payer" }
-      - { id: d, text: "Rs 100 crore, paid by the fixed-rate payer" }
+      - { id: a, text: "Only the gap between the two rates, applied to the notional, paid by the fixed-rate payer" }
+      - { id: b, text: "The whole fixed interest, paid by the fixed-rate payer", mistake: { tag: gross_not_net, fix: "Swaps settle net: only the difference between the two payments changes hands." } }
+      - { id: c, text: "Only the gap, but paid by the floating-rate payer", mistake: { tag: wrong_direction, fix: "Fixed is the higher rate here, so the fixed-rate payer owes the difference." } }
+      - { id: d, text: "The notional amount itself, paid by the fixed-rate payer", mistake: { tag: swapped_principal, fix: "In an interest-rate swap the notional is never exchanged; it only sizes the payments." } }
     answer: a
     explanation: >
       Only the difference changes hands: 7% fixed minus 6% floating is 1% of Rs 100 crore = Rs 1 crore, paid by the fixed-rate payer. The notional is never exchanged in an interest-rate swap.

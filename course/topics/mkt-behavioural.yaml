@@ -77,15 +77,15 @@ questions:
 
   - id: bf-q-first-day
     prompt: >
-      A new share issue is priced at $20 and closes its first day of trading at $28. What is the first-day return?
+      A new share issue is priced at $20 and closes its first day of trading at $28. What is it called when a new share closes its first day well above its issue price?
     choices:
-      - { id: a, text: "40%" }
-      - { id: b, text: "28.6%" }
-      - { id: c, text: "8%" }
-      - { id: d, text: "140%" }
+      - { id: a, text: "Underpricing, often called a first-day pop" }
+      - { id: b, text: "Overpricing", mistake: { tag: reversed_term, fix: "Overpricing would be a first-day close below the issue price, the opposite of this." } }
+      - { id: c, text: "A stock split", mistake: { tag: mixed_up_terms, fix: "A stock split divides shares into more shares; it says nothing about a first-day rise." } }
+      - { id: d, text: "A lock-in", mistake: { tag: mixed_up_terms, fix: "A lock-in stops insiders selling for a while; it is not the first-day price move." } }
     answer: a
     explanation: >
-      The first-day return is 28 / 20 - 1 = 0.40, or 40%. Dividing the gain by the closing price (8 / 28 = 28.6%) measures it from the wrong base.
+      The first-day return of an issue priced at $20 that closes at $28 is 28 / 20 - 1 = 40%. Issues that close their first day well above their issue price are said to be underpriced. Dividing the gain by the closing price (8 / 28 = 28.6%) measures it from the wrong base.
     source: >
       Jay R. Ritter, IPO data and underpricing, University of Florida: https://site.warrington.ufl.edu/ritter/ipo-data/ ; the arithmetic is own.
 
