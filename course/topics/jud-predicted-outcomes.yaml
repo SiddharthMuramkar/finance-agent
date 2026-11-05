@@ -76,9 +76,9 @@ cases:
       said on 9 June 2025 that its annualised revenue run rate had reached $10 billion, excluding
       Microsoft licensing revenue and large one-time deals, and The Information reported on 30 July
       that it had reached $12 billion annualised, about $1 billion a month, with a 2025 cash burn
-      projection of $8 billion. The Learner takes the claim back to these figures. Is $5.26 billion
-      so far, against $12.7 billion for the year, a sensible reason to doubt the target? Does the
-      pace the rest of the year would need look like a stretch against the latest monthly pace?
+      projection of $8 billion. The Learner takes the claim back to these figures. What do analysts
+      call the monthly revenue the rest of the year would need, and why would a sceptic set it
+      beside the latest monthly pace?
       Say which words in the claim ("revenue", "so far", "lose") need a precise
       measure before the claim can be scored.
     reveal: >
@@ -132,7 +132,7 @@ questions:
       the full year is $9 billion. A writer says it must now book "$1.0 billion a month" for the
       five months left. Which description of that figure is right?
     choices:
-      - { id: a, text: "The required pace: the $5 billion still to book, spread over the five months left" }
+      - { id: a, text: "The required pace: what is still to book, spread over the five months left" }
       - { id: b, text: "The pace so far: what is already booked, spread over the seven months gone", mistake: { tag: used_pace_so_far, fix: "That is the pace so far. The required pace looks forward, at what is still to book." } }
       - { id: c, text: "The whole $9 billion target spread over the five months left", mistake: { tag: ignored_booked_revenue, fix: "That ignores the $4 billion already booked. Only the gap to the target is left." } }
       - { id: d, text: "A run rate: the latest period, scaled up to a year", mistake: { tag: mixed_pace_and_run_rate, fix: "A run rate scales the latest period. A required pace is the gap over the months left." } }
@@ -211,7 +211,7 @@ questions:
     prompt: >
       A private company's valuation goes from one funding round to the next, and a headline says it "rose 250%" when the new value is 2.5 times the old one. What is the slip?
     choices:
-      - { id: a, text: "A multiple read as a percent rise: 2.5 times the old value is a rise of 150%" }
+      - { id: a, text: "A multiple read as a percent rise: \"times\" counts the whole new value, while a percent rise counts only the extra" }
       - { id: b, text: "Nothing: \"times\" and \"percent rise\" always match", mistake: { tag: nothing_times_and_percent_ri, fix: "They do not. A multiple counts the whole new value; a percent rise counts only the extra." } }
       - { id: c, text: "A valuation can only be quoted in dollars, never in percent", mistake: { tag: a_valuation_can_only_be_quot, fix: "Valuations can be compared in percent. The slip is in which percent." } }
       - { id: d, text: "The headline should have used basis points", mistake: { tag: the_headline_should_have_use, fix: "Basis points suit small rate moves, not a change in a company's value." } }
@@ -237,22 +237,14 @@ checks:
   - id: jud-po-judge-claims
     kind: conversation
     prompt: >
-      Open the pasted piece at the section on Cursor and on OpenAI's revenue. Pick three claims and,
-      for each, quote the writer's words and say what kind it is: a fact about the date, a number
-      the writer used, a forecast, or a fork that cannot lose. Say which record would settle each
-      and which words need a precise measure. Then say in your own words why the writer doubted OpenAI would reach its target, and
-      what the "required pace" for the rest of 2025 is being compared with. Do not use anything
-      that happened after 6 August 2025.
+      Pick three claims from the pasted piece about Cursor or OpenAI. Quote each one and say what
+      kind it is: a fact, a number, a forecast, or a fork that cannot lose. Then, in your own words:
+      why did the writer doubt OpenAI would hit its target? Stick to what was known on 6 August 2025.
     passCriteria: >
-      The Learner quotes the writer's actual words from their pasted text and sorts at least four
-      claims into the right kinds: a fact about the date, a number the writer used, a forecast, or a
-      fork with no way to lose. For each they name a specific kind of record, such as a funding
-      announcement, a company statement, an audited statement or an acquisition filing, and say
-      what result would count as right or wrong. They point out at least two words that need a
-      precise measure (for example revenue versus an annualised run rate, an operating loss
-      versus a cash burn, or what counts as an exit), and note that a claim with no date or number
-      cannot be scored sharply. They explain in their own words that the writer's doubt rests on a
-      required pace (what is still to book, spread over the months left) set against the latest
-      monthly pace from the figures given. They keep to what was known on 6 August 2025, treat the reasoning
-      separately from any later result, and make no forecast and no recommendation to buy, sell or
-      hold.
+      The Learner quotes the writer's actual words from their pasted text and sorts three claims
+      into the right kinds: a fact about the date, a number the writer used, a forecast, or a fork
+      with no way to lose. For at least one they say, in words, what record would settle it (for
+      example a funding announcement or an audited statement). They explain in their own words
+      that the doubt rests on a required pace (what is still to book, spread over the months left)
+      set against the latest monthly pace; no arithmetic is asked or needed. They keep to what was
+      known on 6 August 2025, and make no forecast and no recommendation to buy, sell or hold.

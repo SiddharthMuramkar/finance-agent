@@ -147,15 +147,15 @@ youllLearn:
 questions:
   - id: abv-q-revenue
     prompt: >
-      A young firm has revenue of $1,000 million. An analyst assumes it grows 100% in year 1, 50% in year 2 and 20% in year 3, and writes "$3,600 million in year 3". Which statement about that line is right?
+      An analyst gives a young firm three years of fast growth, a little slower each year. How does the second and third year's growth work?
     choices:
-      - { id: a, text: "Right: each year's growth builds on the year before, so the growth compounds" }
-      - { id: b, text: "Wrong: the three growth rates should be added into one, 170%, and applied to the first year", mistake: { tag: added_growth_rates, fix: "Each year grows from a bigger base, so growth compounds. Adding the rates undercounts." } }
-      - { id: c, text: "Wrong: only the last year's 20% matters for year 3", mistake: { tag: used_last_growth_only, fix: "Year 3 starts where year 2 ended, so all three years of growth count." } }
-      - { id: d, text: "Wrong: revenue cannot come from growth rates; the margin has to be set first", mistake: { tag: margin_before_revenue, fix: "Revenue comes first. The growth path builds it, and the margin is applied to it." } }
+      - { id: a, text: "Each year grows from where the year before ended, so the growth compounds" }
+      - { id: b, text: "The three growth rates are added into one and applied to the starting revenue", mistake: { tag: added_growth_rates, fix: "Each year grows from a bigger base, so growth compounds. Adding the rates undercounts." } }
+      - { id: c, text: "Only the last year's growth matters for year 3", mistake: { tag: used_last_growth_only, fix: "Year 3 starts where year 2 ended, so all three years of growth count." } }
+      - { id: d, text: "Growth cannot be set until the margin is chosen", mistake: { tag: margin_before_revenue, fix: "Revenue comes first. The growth path builds it, and the margin is applied to it." } }
     answer: a
     explanation: >
-      Growth compounds: 1,000 x 2.00 x 1.50 x 1.20 = 3,600. Adding the growth rates (170%) would give 2,700, which is wrong.
+      Growth compounds: each year starts from the bigger revenue the year before left behind. Adding the rates up and applying them to the start would undercount the path.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems (compound growth): https://openstax.org/books/principles-finance/pages/7-3-methods-for-solving-time-value-of-money-problems
 
@@ -200,15 +200,15 @@ questions:
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), pages 31-34 (the bridge from operating value to value per share, with options subtracted): https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
   - id: abv-q-stable-growth
     prompt: >
-      The Treasury bond yield is 6.5%. Which stable growth rate after year 10 is hardest to defend?
+      An analyst lets a young firm grow for ever after year 10 at a "stable" rate above the Treasury bond yield. Why do valuers push back?
     choices:
-      - { id: a, text: "9%, because the firm would outgrow the whole economy for ever" }
-      - { id: b, text: "6%" }
-      - { id: c, text: "4%" }
-      - { id: d, text: "2%" }
+      - { id: a, text: "Growing faster than the economy for ever, the firm would one day be bigger than the economy" }
+      - { id: b, text: "Growth after year 10 never changes the value", mistake: { tag: late_growth_irrelevant, fix: "Most of a young firm's value sits after year 10, so that growth matters a lot." } }
+      - { id: c, text: "No firm is allowed to grow after year 10", mistake: { tag: no_growth_after_year_ten, fix: "Firms can keep growing. The limit is on growing faster than the economy for ever." } }
+      - { id: d, text: "The Treasury yield caps the firm's profit margin, not its growth", mistake: { tag: yield_caps_margin, fix: "The yield is a rough ceiling for the economy's growth, not for any margin." } }
     answer: a
     explanation: >
-      The risk-free rate is a rough ceiling for the long-run nominal growth of the economy, so a stable growth rate above it implies the firm eventually becomes larger than the economy. 
+      The risk-free rate is a rough ceiling for the long-run nominal growth of the economy, so a stable growth rate above it implies the firm eventually becomes larger than the economy.
     source: >
       Damodaran, valuation paper on young high-growth firms (HighGrow.pdf), where stable growth is capped by the Treasury bond yield: https://pages.stern.nyu.edu/~adamodar/pdfiles/papers/HighGrow.pdf
 
@@ -227,38 +227,28 @@ checks:
   - id: abv-build-explain
     kind: conversation
     prompt: >
-      Using the Amazon figures from February 2000, tell the story of your own valuation: where you
-      think revenue goes, how profitable the business gets, how risky it is, and which of those
-      beliefs moves your value most (the dcf calculator is there for a quick version). Then say how your value
-      sits beside the $84 price.
+      It is February 2000 and Amazon trades at $84. Tell your story in a few lines: how big does it
+      get, how profitable, how risky? Which belief matters most? (The dcf calculator does the sums
+      if you want a number.)
     passCriteria: >
-      The Learner writes their inputs down before giving a result: a revenue path that fades,
-      an operating margin that improves towards a level justified by mature firms, a discount
-      rate and a stable growth rate no higher than the risk-free rate. They explain in their own words how free cash
-      flow becomes a value per share through a terminal value, cash, debt and the options. They name
-      the input that drives the value (usually the long-run margin, the discount rate or
-      terminal growth) and test it with a different value. They treat the gap with the price as a
-      question, not proof that the price is wrong, and make no forecast of the share price and no
-      buy, sell or hold call.
+      The Learner tells a story in words before any number: growth that fades, a margin that
+      improves towards what mature firms earn, and a view of risk. They name the belief that moves
+      the value most (usually the long-run margin or the risk) and say what would change if it
+      were different. Any number comes from the dcf calculator; no arithmetic is asked of the
+      Learner. They treat the gap with the price as a question, not proof that the price is wrong,
+      and make no forecast of the share price and no buy, sell or hold call.
   - id: abv-build-webvan
     kind: conversation
     prompt: >
-      Using the Webvan figures from 4 November 1999, tell the story of your own valuation: when the distribution
-      centres open, how full they get, how profitable the business becomes
-      and how risky it is (the dcf calculator is there for a quick version), and which belief moves your value
-      most. Then say how your value sits beside the $15 offer price and what you would have to
-      believe for $15 to be fair.
+      It is 4 November 1999 and Webvan has priced its shares at $15. Tell your story in a few lines:
+      how fast do its distribution centres fill up, and does it earn like a supermarket or better? What would you have
+      to believe for $15 to be fair?
     passCriteria: >
-      The Learner writes their inputs down before giving a result: the number and timing of
-      centres (no faster than the plan in the story unless they say why), how full each centre gets
-      and how fast, starting from under 20% and not from full capacity, the average order and what
-      a full centre sells, an operating margin that they set against both the company's 12% and a
-      supermarket's 4%, the cost of building each centre ($25 million to $35 million) as
-      reinvestment, a discount rate above the Treasury yield and a stable growth rate no higher
-      than the Treasury yield. They explain in their own words how free cash flow becomes a value per share through a terminal
-      value, the cash (counting the offering), the loans and the options (which cover about a fifth
-      as many shares as are outstanding, so leaving them out is a clear error). They name the input
-      that drives the value (usually how full the centres get, the long-run margin or the discount
-      rate) and test it with a different value. They treat the gap with the $15 offer price as a
-      question, not proof that the price is wrong, and make no forecast of the share price and no
-      buy, sell or hold call.
+      The Learner tells a story in words before any number: how quickly the distribution centres
+      open and fill (starting well below full, not at full capacity), and whether the margin looks
+      more like a supermarket's 4% or the company's hoped-for 12%. They name the belief that moves
+      the value most (usually how full the centres get or the long-run margin) and say what you
+      would have to believe for $15 to be fair. They note in words that the employee options are a
+      claim on shareholders. Any number comes from the dcf calculator; no arithmetic is asked of
+      the Learner. They treat the gap with the offer price as a question, not proof that the price
+      is wrong, and make no forecast of the share price and no buy, sell or hold call.

@@ -47,7 +47,7 @@ cases:
       judges these statements, not the post's valuation or its view of the future. The S-1's figures
       are in the Case Data and its wording is in the Library (search with the source filter "Anthropic
       PBC, Form S-1" and words from the passage). The Learner reads the post in the Library, goes to
-      the filing for each statement, recomputes it, and says what kind of finding it is: it ties out,
+      the filing for each statement, sets it beside the line it rests on, and says what kind of finding it is: it ties out,
       or it is a mislabel, a period or unit mismatch, or more than the text says.
     reveal: >
       Checked against the S-1 on 2 November 2026. Three statements tie out. Operating income was a
@@ -99,7 +99,7 @@ cases:
       judge, and the Tutor works only from what is pasted. The S-1's figures are in the Case Data and
       its wording is in the Library (search with the source filter "Anthropic PBC, Form S-1" and
       words from the passage). The Learner finds the S-1 sentence each statement rests on, sets the
-      writer's version beside it, recomputes where there is a sum, and says what kind of finding it
+      writer's version beside it, notes where a figure adds lines together, and says what kind of finding it
       is: it ties out, or it is a mislabel, a period or unit mismatch, or more than the text says.
     reveal: >
       Checked against the S-1 on 2 November 2026. The sum is right and its label is wrong. Revenue
@@ -266,7 +266,7 @@ questions:
 
   - id: jfc-q-ratio-vs-change
     prompt: >
-      A quarterly filing shows revenue of 200 one year and 700 the next. A writer says revenue "grew 350%". What do you find?
+      A filing shows annual revenue of 200 one year and 700 the next. A writer says revenue "grew 350%". What do you find?
     choices:
       - { id: a, text: "A slip: 350% is the ratio of the two amounts, while growth counts only the extra on top, which is less" }
       - { id: b, text: "It ties out: a ratio and a growth rate are the same thing", mistake: { tag: it_ties_out_a_ratio_and_a_gr, fix: "They are not. The ratio is the whole new figure; growth is only the extra." } }
@@ -296,14 +296,13 @@ checks:
   - id: jfc-judge-claims
     kind: conversation
     prompt: >
-      Choose two statements from the pieces you read, one you expect to hold and one you doubt.
-      For each, say which line of the filing you went to and what you found: it ties out, a
-      mislabel, a period or unit mismatch, or more than the text says. Then say what that changes
-      about the writer's point, and what you could not check.
+      Pick two statements from the pieces you read: one you trust, one you doubt. Which line of the
+      filing did each rest on, and what did you find: ties out, wrong label, wrong period or unit,
+      or more than the text says? Does it change the writer's point?
     passCriteria: >
       For both statements the Learner names the filing line or sentence it rests on, with its label
-      and period, and uses figures from the Case Data or from Library passages, not from memory or
-      from the writer. They match each statement to its Case Data figure and read it correctly. They sort each finding correctly
+      and period, and works from the Case Data or Library passages, not from memory or from the
+      writer. No arithmetic is asked or needed. They sort each finding correctly
       into ties out, mislabel, period or unit mismatch, or more than the text says, and they can
       say why, in their own words. They separate what the filing says from what the writer adds, and
       they do not call something an error unless they have shown it. They say what the finding does

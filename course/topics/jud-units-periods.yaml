@@ -63,8 +63,8 @@ cases:
       comparable US Treasury a bond yields, and he adds a short statement of what one basis
       point is. He also explains that a bond's price and its yield move in opposite directions.
       The Case Data shows the daily 10-year Treasury yield through the month. The Learner pastes
-      the piece, checks each statement in the sidenote and the yield he quotes, and recomputes
-      any figure a basis point is used for.
+      the piece, checks each statement in the sidenote and the yield he quotes, and says in
+      plain words what traders mean by a basis point.
     reveal: >
       A basis point is one hundredth of a percentage point: 0.01%, or 0.0001 as a fraction (the
       SEC's Investor.gov glossary and the European Central Bank both say so). The sidenote gave
@@ -255,39 +255,29 @@ checks:
   - id: ju-recompute-run-rate
     kind: conversation
     prompt: >
-      Take the two claims in the pasted piece about the run rate: how much bigger the
-      run rate is said to be than the second quarter's revenue, and the gap said to be left by both
-      companies' first-half revenue. Using only the figures the piece itself gives, say in your own
-      words what each claim measures, and whether a yearly pace and one quarter's revenue are fair to put side by side. Then say what, if anything, that changes about the writer's
-      wider point.
+      The pasted piece sets a yearly run rate beside one quarter's revenue, and beside half a
+      year's. In your own words: why is that an uneven match, and what fairer match would you
+      pick? Does the writer's main point, that a run rate is not revenue, still stand?
     passCriteria: >
-      The Learner works from the piece's own figures rather than from memory or a guess. In their
-      own words they say that "percent more" means the amount above the base, not the ratio stated
-      as a percentage, and that the gap claim sets the first-half total against a yearly pace; they
-      compare each claim with what the piece states, naming how large any difference looks. They
-      explain that a run rate is a yearly pace while the quarter covers three months, so a
-      like-for-like comparison scales the quarter to a year first. They separate a slip in the arithmetic from the writer's wider point, that a
-      run rate is not revenue already earned, and say which survives. The Tutor supplies no
-      figure of its own: every number comes from the Case or from a source the Learner retrieves.
+      In their own words the Learner says that a run rate is a yearly pace while a quarter covers
+      three months and a half-year six, so the two sides measure different periods, and that a fair
+      match puts both on the same period (for example the quarter scaled to a year). They say that
+      "percent more" counts only the extra above the base, not the whole figure. They keep the
+      period slip apart from the writer's wider point, that a run rate is a pace and not revenue
+      already earned, and say that point survives. No arithmetic is asked or needed; the Tutor
+      supplies no figure of its own.
   - id: ju-recompute-units-labels
     kind: conversation
     prompt: >
-      Two statements in the other pasted pieces use a unit or a label. In one, a basis point is
-      given as a number; in the other, SOFR is described in a parenthesis. For the first, use the
-      Case Data to read the 10-year Treasury yield on 22 and 29 September 2026, and say what
-      traders would call that move and why they use that unit. For the
-      second, check the description against how the New York Fed describes SOFR. Say, for each
-      statement, whether it holds, how large any error looks, and whether it changes the writer's
-      conclusion.
+      One pasted piece defines a basis point; another calls SOFR borrowing from the Fed. Look each
+      up where it is published (the Tutor can help you find it in the Library). In your own words:
+      what does each really mean, and does the slip change the writer's point?
     passCriteria: >
-      For the yield move the Learner reads both dates from the Case Data, names the move in
-      percentage points, says in words how that reads in basis points (a basis point is a hundredth
-      of a point) and as a fraction, explaining the unit change rather than only stating it; they
-      then apply the same definition to test the sidenote's basis-point statement and say whether it
-      holds and by what factor any error is out. For SOFR the Learner retrieves the New York Fed's
-      description (the Tutor may help them find it in the Library) and compares the wording with the
-      piece's parenthesis, naming any difference in what the rate measures and how it arises.
-      For both statements they say whether the slip is one of a unit or a label, how much it
-      changes, and that neither alters the pricing arithmetic or the writer's conclusion by itself.
-      They make no forecast and no buy, sell or hold judgement. The Tutor supplies no figure of its
-      own.
+      The Learner looks up the publisher's definition of a basis point (a hundredth of a percentage
+      point, as the SEC's glossary or the ECB says) and says in words that the sidenote's version is
+      too big, and why traders use the unit for small moves. For SOFR they retrieve the New York
+      Fed's description (the Tutor may help them find it in the Library) and say in their own words
+      that it is a market rate for overnight borrowing backed by Treasuries, not borrowing from the
+      Fed. For both they say the slip is one of a unit or a label and that neither changes the
+      writer's conclusion by itself. No arithmetic is asked or needed. They make no forecast and no
+      buy, sell or hold judgement. The Tutor supplies no figure of its own.

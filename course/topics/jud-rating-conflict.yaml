@@ -201,7 +201,7 @@ questions:
       A report says an agency assigned a company a rating in March. In late July a writer calls it
       "the current rating". With nothing else known, what is the careful statement?
     choices:
-      - { id: a, text: "It is the rating as of June; whether it still stands in July depends on later agency actions, which need checking" }
+      - { id: a, text: "It is the rating as of March; whether it still stands in July depends on later agency actions, which need checking" }
       - { id: b, text: "Ratings never change, so it is current" }
       - { id: c, text: "It must have been withdrawn, since it is four months old" }
       - { id: d, text: "The month does not matter for a rating" }
@@ -262,15 +262,14 @@ checks:
   - id: jrc-judge-two-statements
     kind: conversation
     prompt: >
-      One writer says labs like this would likely be rated between B and CCC+ if their earnings stay
-      negative and nobody guarantees their debt. Another says the company has a bond rating of BB+.
-      Do these two statements contradict each other? Put each on the rating ladder and go back to
-      what each writer and the filing actually say. Tell me what you can confirm and what you
-      could not check.
+      One writer says labs like this would likely be rated between B and CCC+ if earnings stay
+      negative and nobody guarantees their debt. Another says the company's bond rating is BB+. Do
+      they really clash? Say which side of the investment-grade line each sits on, and what you
+      would need to know before calling it a contradiction.
     passCriteria: >
-      The Learner puts the statements in the right places on the ladder (BB+ is one notch below
-      the last investment-grade notch; B is four notches and CCC+ six notches below BB+) and notes
-      that both statements are on the speculative side of the line. They go back to the sources and
+      The Learner says in words where each statement sits: BB+ is just below the investment-grade
+      line, B and CCC+ are further down the speculative side, so both are on the speculative side
+      of the line; no counting of notches is asked. They go back to the sources and
       supply no figure of their own: the first writer's section is conditional (negative margin, no
       guarantee), borrows its margin from another company's results, and has a heading and body that
       differ by a notch; the second writer's sentence names no agency, no date and no instrument, and
