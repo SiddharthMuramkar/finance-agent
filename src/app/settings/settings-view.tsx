@@ -18,8 +18,8 @@ export function SettingsView({ profile, developerDetails, theme = DEFAULT_PREF }
         <h2 id="about-you-heading" className={heading}>
           About you
         </h2>
-        <p className="mb-2 text-sm leading-5">Share a little about your life so the Tutor can show how an idea applies to you when you ask. Every answer is optional.</p>
-        <p className="mb-4 text-xs leading-4 text-[var(--muted)]">{PROFILE_PRIVACY}</p>
+        <p className="measure mb-2 text-sm leading-5">Share a little about your life so the Tutor can show how an idea applies to you when you ask. Every answer is optional.</p>
+        <p className="measure mb-4 text-xs leading-4 text-[var(--muted)]">{PROFILE_PRIVACY}</p>
         <ProfileForm mode="page" initial={profile} />
       </section>
       <section id="appearance" aria-labelledby="appearance-heading" className={section}>
@@ -38,7 +38,7 @@ export function SettingsView({ profile, developerDetails, theme = DEFAULT_PREF }
         <h2 id="start-over-heading" className={heading}>
           Start over
         </h2>
-        <p className="mb-3 text-sm leading-5">Begin again as a new learner, from the Welcome. Your current progress, Notes and Sessions are kept, not deleted.</p>
+        <p className="measure mb-3 text-sm leading-5">Begin again as a new learner, from the Welcome. Your current progress, Notes and Sessions are kept, not deleted.</p>
         <StartOverButton confirmValue={START_OVER_CONFIRM} />
       </section>
       <p className="text-xs leading-4 text-[var(--muted)]" data-testid="emoji-credit">

@@ -20,7 +20,7 @@ const inputClass =
 /** The four optional questions, each limited to 200 characters. Pure markup, so it renders the same on the server. */
 export function ProfileFields({ values, onChange, idPrefix = "profile" }: { values: ProfileValues; onChange?: (key: ProfileField, value: string) => void; idPrefix?: string }) {
   return (
-    <div className="space-y-3">
+    <div className="measure space-y-3">
       {PROFILE_FIELDS.map((f) => (
         <div key={f.key}>
           <label htmlFor={`${idPrefix}-${f.key}`} className="text-sm font-medium leading-5">
