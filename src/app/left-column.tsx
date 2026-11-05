@@ -67,7 +67,7 @@ export function LeftColumn({
   // The passed Topic's conversation ends at its Topic complete card, which offers where to go next.
   const carded = messages.some((m) => m.role === "item" && m.kind === TOPIC_COMPLETE);
   return (
-    <ThreadPrimitive.Root className="flex h-full min-h-0 min-w-0 flex-col">
+    <ThreadPrimitive.Root data-testid="chat-column" className="flex h-full min-h-0 min-w-0 flex-col">
       <ThreadPrimitive.Viewport data-testid="thread-viewport" className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain pb-6 [scrollbar-gutter:stable]">
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />

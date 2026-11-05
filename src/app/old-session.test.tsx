@@ -138,10 +138,11 @@ describe("the read-only layout", () => {
 });
 
 describe("the old Session page on an iPad", () => {
-  it("keeps the conversation and the Widget panel side by side from the narrowest width", () => {
+  it("read view uses the same frame as the workspace, side by side from the narrowest width", () => {
     const html = renderToStaticMarkup(<OldSession lines={[{ role: "assistant", text: "Hi" }]} />);
     const grid = html.match(/<div[^>]*data-testid="old-session"[^>]*>/)![0];
-    expect(grid).toMatch(/\bgrid-cols-2\b/);
+    expect(grid).toContain("grid-cols-[minmax(360px,2fr)_minmax(0,3fr)]");
+    expect(grid).toContain("gap-[var(--gap)]");
     expect(grid).not.toMatch(/\bgrid-cols-1\b/);
   });
 });

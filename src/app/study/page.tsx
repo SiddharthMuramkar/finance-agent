@@ -33,7 +33,7 @@ async function WorkspaceShell({ children }: { children: ReactNode }) {
   return (
     <SignedInFrame>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
-      <main data-route="study" className="mx-auto flex h-dvh max-w-6xl flex-col overflow-hidden px-4 pb-3 pt-4 lg:px-6 lg:pt-6">
+      <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3 pt-3">
         <AppHeader current="workspace" theme={await readTheme()} className="mb-6" />
         {children}
       </main>
