@@ -44,4 +44,17 @@ describe("learnerForAuthUser", () => {
     expect(after).toEqual(before);
     expect(await db.select().from(learners)).toHaveLength(1);
   });
+
+  it("a second Google account cannot take the owner's Learner", async () => {
+    const db = await testDb();
+    await addInvite(db, "o@x.com", { learnerName: "owner" });
+    await addInvite(db, "p@x.com", { learnerName: "owner" });
+    const owner = await googleUser(db, { id: "u1", email: "o@x.com", name: "Siddharth" });
+    expect((await learnerForAuthUser(db, owner))?.id).toBe(1);
+    const other = await googleUser(db, { id: "u2", email: "p@x.com", name: "Priya" });
+    expect(await learnerForAuthUser(db, other)).toBeNull();
+    const [one] = await db.select().from(learners).where(eq(learners.id, 1));
+    expect(one.authUserId).toBe("u1");
+    expect(await db.select().from(learners)).toHaveLength(1);
+  });
 });

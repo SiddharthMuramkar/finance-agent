@@ -29,9 +29,21 @@ export async function learnerForAuthUser(db: Db, user: AuthUser): Promise<Learne
     const [named] = await db
       .update(learners)
       .set({ authUserId: user.id })
-      .where(and(eq(learners.name, invite.learnerName), isNull(learners.archivedAt)))
+      .where(and(eq(learners.name, invite.learnerName), isNull(learners.archivedAt), isNull(learners.authUserId)))
       .returning();
     if (named) return named;
+    // Linked meanwhile by this same user's other first request: theirs. Linked to someone else: refused.
+    const raced = await linkedLearner(db, user.id);
+    if (raced) return raced;
+    const [taken] = await db
+      .select({ id: learners.id })
+      .from(learners)
+      .where(and(eq(learners.name, invite.learnerName), isNull(learners.archivedAt)))
+      .limit(1);
+    if (taken) {
+      console.warn(`invite_taken: the invite for ${invite.email} names Learner ${taken.id}, already linked to another Google account`);
+      return null;
+    }
   }
   const [made] = await db.insert(learners).values({ name: user.name, authUserId: user.id }).returning();
   return made;
