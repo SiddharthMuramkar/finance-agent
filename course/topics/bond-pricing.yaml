@@ -69,12 +69,12 @@ questions:
 
   - id: bp-q-par
     prompt: >
-      A bond with a $1,000 face value pays a 6% coupon. Investors now demand a 6% yield on bonds like it. What is the bond's price?
+      Ravi holds a bond paying 6% a year on its $1,000 face value. Today buyers want exactly 6% from bonds like it, no more and no less. He wants to sell. Which price is fair, and why?
     choices:
-      - { id: a, text: "$1,000, its face value" }
-      - { id: b, text: "$1,060" }
-      - { id: c, text: "$940" }
-      - { id: d, text: "$600" }
+      - { id: a, text: "$1,000, its face value: the coupon is just what buyers want, so no discount and no premium" }
+      - { id: b, text: "More than $1,000, because the bond pays a coupon on top", mistake: { tag: coupon_as_premium, fix: "Every bond pays a coupon. A premium appears only when the coupon beats what buyers demand." } }
+      - { id: c, text: "Less than $1,000, because buyers always want a bargain", mistake: { tag: discount_by_default, fix: "A discount appears only when buyers want more than the coupon pays. Here the two match." } }
+      - { id: d, text: "It depends only on how long until the bond matures", mistake: { tag: maturity_alone, fix: "When the coupon matches what buyers demand, the bond sells at face value whatever its maturity." } }
     answer: a
     explanation: >
       When the coupon rate equals the market yield, the present value of the payments equals the face value, so the bond sells at par.
@@ -96,7 +96,7 @@ questions:
 
   - id: bp-q-five-year
     prompt: >
-      A five-year bond pays a 6% coupon. The market yield is 5%. Which headline gets the bond's price right?
+      Your bond pays a 6% coupon and has five years left. New bonds like it now pay only 5%. Someone wants to buy yours. Should you ask for more or less than $1,000?
     choices:
       - { id: a, text: "It sells at a premium, above $1,000, because its coupon beats the market yield" }
       - { id: b, text: "It sells at par, $1,000, because the face value is repaid in full", mistake: { tag: confused_face_with_price, fix: "Face value is only what is repaid. A coupon above the market yield pushes the price up." } }

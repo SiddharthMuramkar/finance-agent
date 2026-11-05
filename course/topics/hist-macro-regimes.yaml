@@ -63,12 +63,12 @@ youllLearn:
 questions:
   - id: hmr-q-real-rate
     prompt: >
-      A one-year loan carries a nominal interest rate of 8% while inflation runs at 12% a year. Which headline gets the lender's real return right?
+      You lend a friend money for a year at 8% interest. That year, prices rise 12%. When your friend pays you back, with interest, what has the loan really done for you?
     choices:
-      - { id: a, text: "Positive: the lender gets 8% more money back, so is better off", mistake: { tag: ignored_inflation, fix: "Money paid back buys less when inflation is 12%. Interest of 8% does not cover that." } }
-      - { id: b, text: "Negative: the lender is repaid in money that buys less than what was lent" }
-      - { id: c, text: "Even bigger: inflation adds to the interest, so the return is about 20%", mistake: { tag: added_not_subtracted, fix: "Inflation eats into the interest. It takes away from the real return, it does not add." } }
-      - { id: d, text: "The same 8%, the nominal rate itself", mistake: { tag: nominal_as_real, fix: "8% is the nominal rate. The real rate takes inflation off it." } }
+      - { id: a, text: "Made you richer: you got 8% more money back", mistake: { tag: ignored_inflation, fix: "Money paid back buys less when inflation is 12%. Interest of 8% does not cover that." } }
+      - { id: b, text: "Made you poorer: the money you get back buys less than what you lent" }
+      - { id: c, text: "Made you much richer: inflation adds to the interest, about 20% in all", mistake: { tag: added_not_subtracted, fix: "Inflation eats into the interest. It takes away from the real return, it does not add." } }
+      - { id: d, text: "Earned you exactly 8%, the rate on the loan", mistake: { tag: nominal_as_real, fix: "8% is the nominal rate. The real rate takes inflation off it." } }
     answer: b
     explanation: >
       The real rate is the nominal rate less inflation, roughly. Here inflation outruns the interest, so the real rate is negative, about minus 4%. The lender is repaid in money that buys less.

@@ -74,7 +74,7 @@ questions:
 
   - id: bd-q-rule
     prompt: >
-      A bond has a modified duration of 7.4. Market yields rise by one percentage point. Which headline fits what happens to its price?
+      Your bond has a modified duration of 7.4. Overnight, market yields rise by one percentage point. What does the duration tell you about your bond's price this morning?
     choices:
       - { id: a, text: "It falls by about 7.4%: duration is the percentage change in price for each point of yield" }
       - { id: b, text: "It rises by about 7.4%", mistake: { tag: wrong_direction, fix: "Prices move opposite to yields. A rise in yield means a fall in price." } }
@@ -88,7 +88,7 @@ questions:
 
   - id: bd-q-svb
     prompt: >
-      SVB's held-to-maturity portfolio had a duration of 6.2 years. The 10-year Treasury yield rose about 2.4 percentage points in 2022. Which headline gets the portfolio's market value right, if its yields moved with the 10-year?
+      Silicon Valley Bank held a big pile of bonds it meant to keep to maturity, with a duration of 6.2 years. Then, through 2022, the 10-year Treasury yield rose about 2.4 percentage points. If its bonds' yields moved with the 10-year, what happened to what that pile would sell for?
     choices:
       - { id: a, text: "It fell by far more than 2.4%: a duration of 6.2 years magnified the rise" }
       - { id: b, text: "It barely moved, because the bonds were safe from default", mistake: { tag: credit_vs_rate_risk, fix: "Safe from default is not safe from rates. Duration measures rate risk, not credit risk." } }
@@ -102,15 +102,15 @@ questions:
 
   - id: bd-q-convexity
     prompt: >
-      A 10-year 6% bond is priced at a 6% yield. Compare a one point fall in yield with a one point rise. Which is true?
+      Meera holds a plain 10-year bond. Tomorrow, yields might fall one point, or rise one point. Bond people say her bond has convexity. What does that mean for her?
     choices:
-      - { id: a, text: "The price rises by more (about 7.8%) than it falls (about 7.1%)" }
-      - { id: b, text: "The price rises and falls by exactly the same amount" }
-      - { id: c, text: "The price falls by more than it rises" }
-      - { id: d, text: "The price does not change for such small moves" }
+      - { id: a, text: "Her gain if yields fall is bigger than her loss if they rise: the price curve bends her way" }
+      - { id: b, text: "The gain and the loss are exactly the same size", mistake: { tag: linear_price, fix: "Duration's straight line says so, but the real price curve bends, so the two differ." } }
+      - { id: c, text: "Her loss if yields rise is bigger than her gain if they fall", mistake: { tag: convexity_backwards, fix: "Convexity works for the holder: for equal yield moves, the price rises more than it falls." } }
+      - { id: d, text: "Nothing: the price barely moves for one point", mistake: { tag: small_moves_ignored, fix: "One point of yield moves a 10-year bond's price by several percent." } }
     answer: a
     explanation: >
-      Price is a curved function of yield. At 5% the bond is worth about $1,078; at 7% about $929. Duration's straight line (7.4%) sits between the two. This curvature is convexity, and it works in the holder's favour.
+      Price is a curved function of yield. For a 10-year 6% bond priced at a 6% yield, a one-point fall lifts the price about 7.8%, while a one-point rise cuts it about 7.1%. Duration's straight line (7.4%) sits between the two. This curvature is convexity, and it works in the holder's favour.
     source: >
       Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 

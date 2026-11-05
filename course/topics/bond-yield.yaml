@@ -100,15 +100,15 @@ questions:
 
   - id: by-q-sell-early
     prompt: >
-      You buy a 10-year bond at par with a 6% coupon, paid yearly. A year later you must sell it because you need cash, and the market yield on 9-year bonds is now 7%. The bond now sells for less than the $1,000 you paid, by roughly the size of the coupon you received. Which description of your year is right?
+      Asha buys a 10-year bond paying 6% a year, planning to hold it to the end. One year in, she needs the cash and has to sell. Interest rates have gone up since she bought. Did her 6% a year come true?
     choices:
-      - { id: a, text: "About nothing gained: the price drop cancelled the coupon, so the 6% yield to maturity was not earned" }
-      - { id: b, text: "A 6% return, the yield to maturity you paid for", mistake: { tag: ytm_without_holding, fix: "Yield to maturity is earned only if you hold to the end. You sold early." } }
-      - { id: c, text: "A 7% return, the new market yield", mistake: { tag: new_yield_as_return, fix: "The new market yield is what new buyers earn, not what you earned over the year." } }
-      - { id: d, text: "A big loss, from the price drop alone", mistake: { tag: ignored_coupon, fix: "You also kept the coupon, which cancels most of the price loss." } }
+      - { id: a, text: "Not this year: with rates up, her bond sold for less than she paid, and that ate into the coupon she collected" }
+      - { id: b, text: "Yes: the 6% was locked in the day she bought", mistake: { tag: ytm_without_holding, fix: "The 6% is earned only by holding to the end. Selling early exposes her to the price." } }
+      - { id: c, text: "Better than 6%: she now earns the higher market rate", mistake: { tag: new_yield_as_return, fix: "Higher rates help new buyers. Her bond keeps its old coupon, so its price falls." } }
+      - { id: d, text: "Yes: a bond's price cannot change before it matures", mistake: { tag: price_fixed_before_maturity, fix: "Bond prices move every day. When rates rise, older bonds with lower coupons sell for less." } }
     answer: a
     explanation: >
-      The coupon you collected was roughly cancelled by the fall in the bond's price, so you end the year about where you started. A yield to maturity of 6% is earned only if you hold to maturity. Selling early after yields rose crystallises the price loss.
+      A yield to maturity is a promise only to someone who holds the bond to the end. Once rates rose, buyers would pay less for Asha's 6% bond, because new bonds paid more. Selling early locked in that lower price, which cancelled much of the coupon she had collected.
     source: >
       Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 

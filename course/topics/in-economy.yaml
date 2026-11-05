@@ -70,12 +70,12 @@ youllLearn:
 questions:
   - id: ie-q-depreciation
     prompt: >
-      The exchange rate moves from Rs 20 to Rs 25 per US dollar. Which headline gets it right?
+      Last year a US dollar cost Rs 20. Now it costs Rs 25. A newspaper says the rupee fell. Is it right?
     choices:
-      - { id: a, text: "The rupee weakened: each rupee now buys fewer dollars" }
-      - { id: b, text: "The rupee strengthened, because the number went up", mistake: { tag: number_up_means_strong, fix: "A higher rupee price per dollar means each rupee buys fewer dollars, so the rupee is weaker." } }
-      - { id: c, text: "The dollar weakened, because it now costs more rupees", mistake: { tag: dollar_dearer_not_weaker, fix: "More rupees per dollar means the dollar got dearer in rupees, so the rupee got weaker." } }
-      - { id: d, text: "Nothing changed in value, only how it is quoted", mistake: { tag: quote_only, fix: "A dollar now costs more rupees. That is a real fall in the rupee's value." } }
+      - { id: a, text: "Yes: the rupee weakened, because each rupee now buys fewer dollars" }
+      - { id: b, text: "No: the rupee strengthened, because the number went up", mistake: { tag: number_up_means_strong, fix: "A higher rupee price per dollar means each rupee buys fewer dollars, so the rupee is weaker." } }
+      - { id: c, text: "No: it was the dollar that weakened, since it now costs more rupees", mistake: { tag: dollar_dearer_not_weaker, fix: "More rupees per dollar means the dollar got dearer in rupees, so the rupee got weaker." } }
+      - { id: d, text: "No: nothing changed in value, only how it is quoted", mistake: { tag: quote_only, fix: "A dollar now costs more rupees. That is a real fall in the rupee's value." } }
     answer: a
     explanation: >
       A dollar now costs more rupees, so each rupee buys fewer dollars: the rupee has lost value. Economists call this depreciation. The dollar became dearer in rupees, and the rupee lost about a fifth of its dollar value.
