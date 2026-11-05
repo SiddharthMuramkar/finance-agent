@@ -74,8 +74,9 @@ checks:
     kind: conversation
     prompt: >
       Reliance Jio is entering an Indian mobile market of a few large networks with free voice and data
-      at about Rs 50 a gigabyte. Explain what gives Airtel and Idea their pricing power today,
-      how an entrant like Jio could threaten it, and what would have to be true for a price war to stop.
+      at about Rs 50 a gigabyte. Picture yourself as an Airtel manager. In your own words, what gives Airtel
+      and Idea their pricing power today, how could an entrant like Jio threaten it, and what would have
+      to be true for a price war to stop?
     passCriteria: >
       The Learner names the earlier structure as an oligopoly of a few large networks whose pricing
       power rested on limited competition and high entry barriers (spectrum, network cost). They

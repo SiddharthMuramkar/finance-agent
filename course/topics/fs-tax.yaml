@@ -78,18 +78,17 @@ questions:
 
   - id: tx-q-effective-rate
     prompt: >
-      Indian corporate tax can carry a surcharge and a cess, both charged on the tax itself rather than on profit.
-      So why does the effective rate land only a little above the base rate (say 20%)?
+      In September 2019 India's headline base corporate tax rate was 30%, yet for larger companies the tax bill came to about 35% of profit. Which headline explains the gap?
     choices:
-      - { id: a, text: "Because each extra charge is a small percentage of the tax bill, so it lifts the base rate only a little" }
-      - { id: b, text: "Because the extra charges are simply added to the base rate as points", mistake: { tag: added_the_points, fix: "They are percentages of the tax, not of profit, so they scale the tax rather than adding points." } }
-      - { id: c, text: "Because the surcharge and cess replace the base rate", mistake: { tag: replaced_the_base, fix: "They sit on top of the base tax; they do not take its place." } }
-      - { id: d, text: "Because the company gets the surcharge and cess refunded", mistake: { tag: assumed_a_refund, fix: "They are paid, and they are why the effective rate is above the base rate." } }
+      - { id: a, text: "'Surcharge and cess ride on top of the tax bill, so big firms pay more than the base rate'" }
+      - { id: b, text: "'Big firms round their tax up to look like good citizens'", mistake: { tag: blamed_rounding, fix: "The gap is real: extra charges sit on the tax bill." } }
+      - { id: c, text: "'Surcharge and cess replace the base rate for big firms'", mistake: { tag: replaced_the_base, fix: "They sit on top of the base tax; they do not take its place." } }
+      - { id: d, text: "'Big firms get the surcharge and cess refunded at year end'", mistake: { tag: assumed_a_refund, fix: "They are paid, and they are why the effective rate is above the base rate." } }
     answer: a
     explanation: >
-      The surcharge and cess are charged on the tax, so they scale the bill up by a modest factor instead of adding whole percentage points of profit. The effective rate therefore sits only a little above the base rate.
+      A surcharge and a cess are extra charges levied on the tax itself. They push the bill a company actually pays, its effective rate, above the headline base rate: in 2019 about 34.94% against a base of 30% for larger companies.
     source: >
-      A made-up example of how Indian surcharge and cess work on the tax bill.
+      The 30% base and 34.94% effective rate are from this Topic's Case, India cuts corporate tax to 22% (asOf 2019-09-19).
   - id: tx-q-shield
     prompt: >
       A company records Rs 40 crore of depreciation, which involves no cash leaving the company. Why do analysts still say depreciation gives a 'tax shield'?
@@ -106,15 +105,15 @@ questions:
 
   - id: tx-q-ocf
     prompt: >
-      A project's revenue less its cash costs leaves Rs 200 crore, and it also records Rs 50 crore of depreciation. When an analyst builds its after-tax operating cash flow, what happens to the depreciation?
+      Meera runs a small factory. Her accounts show a modest profit for the year, yet her bank balance grew by more than that. Her accountant points at one line: depreciation on her machines. Why did the cash beat the profit?
     choices:
-      - { id: a, text: "It is deducted to find taxable profit, then added back because no cash went out" }
-      - { id: b, text: "It is ignored completely", mistake: { tag: ignored_depreciation, fix: "Ignoring it overstates the tax bill; depreciation lowers taxable profit." } }
-      - { id: c, text: "It is deducted twice, once for tax and once for cash", mistake: { tag: deducted_twice, fix: "No cash left the company, so it is deducted once for tax and then added back." } }
-      - { id: d, text: "It is paid to the tax office as cash", mistake: { tag: thought_depreciation_is_paid, fix: "Depreciation is an accounting cost, not a payment." } }
+      - { id: a, text: "Depreciation lowered profit and her tax on paper, but no cash left for it, so the bank balance came out ahead" }
+      - { id: b, text: "Depreciation is paid to the machine makers each year, so it should have made the cash smaller", mistake: { tag: thought_depreciation_is_paid, fix: "Depreciation is an accounting cost; no cash goes out for it." } }
+      - { id: c, text: "The tax office refunds depreciation in cash at year end", mistake: { tag: assumed_a_refund, fix: "There is no refund; depreciation simply lowers the tax she owes." } }
+      - { id: d, text: "Profit and cash always match, so the bank must have made a mistake", mistake: { tag: profit_equals_cash, fix: "Profit counts costs like depreciation that never leave the bank account." } }
     answer: a
     explanation: >
-      Depreciation reduces profit before tax, so it cuts the tax bill. But the company never paid it in cash, so after tax is worked out it is added back. Cash flow is therefore better than the after-tax profit by the depreciation amount.
+      Depreciation spreads the cost of Meera's machines over the years. It reduces her profit before tax, so it cuts her tax bill, but no cash leaves her account for it. That is why analysts add depreciation back when they turn after-tax profit into operating cash flow.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement ; worked from the formula in the Topic.
 
