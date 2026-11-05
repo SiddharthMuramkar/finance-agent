@@ -31,6 +31,20 @@ export function assertTestDatabase(url, env = process.env, log = console.log) {
   }
 }
 
+/**
+ * Throws unless the owner has named the database this run writes to. Unlike the eval scripts, the invites
+ * script is meant for production too, so it doesn't refuse a host: it prints the target host and requires
+ * INVITES_DB_OK to be exactly that host (the owner's statement of which database they mean).
+ */
+export function assertNamedDatabase(url, env = process.env, log = console.log) {
+  const host = new URL(url).hostname;
+  log(`Database target: ${host}`);
+  if (env.INVITES_DB_OK !== host) {
+    const said = env.INVITES_DB_OK ? `INVITES_DB_OK names ${env.INVITES_DB_OK}, not ${host}` : "INVITES_DB_OK is not set";
+    throw new Error(`Refusing to run against ${host}: ${said}. Set INVITES_DB_OK=${host} to confirm this is the database you mean.`);
+  }
+}
+
 /** Throws unless `learnerId` is the tools Learner (the only Learner these scripts may write to or read from). */
 export async function assertToolsLearner(client, learnerId) {
   const { rows } = await client.query("select name, archived_at from learners where id = $1", [learnerId]);
