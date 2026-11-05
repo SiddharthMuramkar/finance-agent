@@ -76,6 +76,10 @@ test("[A1] chat lines are readable", async ({ page }, info) => {
   test.skip(!band, "measured at 1024, 1280, 1512 and 1920");
   await study(page);
   await say(page, "story-reply", "Tell me a story about rates.");
+  // Pin a font with the same metrics on Mac (Arial) and on the CI image (Liberation Sans), so the count does not
+  // depend on which system font each machine falls back to.
+  await page.addStyleTag({ content: 'body, body * { font-family: Arial, "Liberation Sans", sans-serif !important; }' });
+  await page.evaluate(() => document.fonts.ready);
   const m = await measureLayout(page);
   expect(m.charsPerLine).not.toBeNull();
   expect(m.charsPerLine).toBeGreaterThanOrEqual(band![0]);
