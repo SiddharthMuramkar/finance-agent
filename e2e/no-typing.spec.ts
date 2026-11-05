@@ -25,7 +25,9 @@ test("the Learner at Percent's Your turn taps a wrong choice and sees its fix", 
   await study(page, "your-turn");
   const card = page.getByTestId("quick-try");
   await expect(card).toContainText("A rate goes from 3% to 3.5%. How many points did it move?");
-  await expect(card.getByTestId("quick-try-choice")).toHaveText(["0.5 points", "50 points"], { useInnerText: true });
+  // The order is the seed's choice (it differs between Sessions), so compare the set.
+  await expect(card.getByTestId("quick-try-choice")).toHaveCount(2);
+  expect((await card.getByTestId("quick-try-choice").allInnerTexts()).sort()).toEqual(["0.5 points", "50 points"]);
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
   await expect(page.getByTestId("quick-try-input")).toHaveCount(0);
 
