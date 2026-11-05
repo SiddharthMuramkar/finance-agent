@@ -4533,3 +4533,11 @@ at 12% now gets the "100 divided by the rate" fix line, because the stored mista
 
 **Trade-off.** A rounded mistake can now equal the answer after rounding; such a draw is thrown away and redrawn, which
 costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is kept as they wrote it.
+
+## Critics (`docs/critics/*.md`, `src/dev/critics.test.ts`, spec 2026-11-05 ticket T-01)
+
+**What it does.** Nine prompt files, one per critic of spec section 8 (affordance, space, colour-liveliness, beginner-persona, math-police, historian, security, final-review, widget-fit), plus a README. Each has Inputs, Rubric, Output (one JSON example), Pass bar and Tier. A Workflow agent reads the file, gets the inputs as paths (screenshots, course files, a diff), and answers with JSON only. A test checks the headings, that the JSON parses, and that the folder holds exactly these files.
+
+**Scenario.** A3b's PR runs `affordance.md` on nine screenshots and gets a JSON list of buttons that look like text. A second agent then tries to refute each finding before it becomes a fix.
+
+**Trade-off.** A critic is a model's judgement, so every finding is verified before it becomes a fix (three votes when it is high-stakes). The cost is extra agent runs; the gain is that the same critic judges the same way on every ticket.
