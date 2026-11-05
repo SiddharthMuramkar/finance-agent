@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { learners } from "@/db/schema";
 import type { Db } from "@/db/types";
-import { inviteFor } from "./invites";
+import { inviteFor, signupOpen } from "./invites";
 import type { Learner } from "./learners";
 
 /** The fields of a Better Auth `user` this module reads. */
@@ -24,8 +24,8 @@ export async function learnerForAuthUser(db: Db, user: AuthUser): Promise<Learne
   const linked = await linkedLearner(db, user.id);
   if (linked) return linked;
   const invite = await inviteFor(db, user.email);
-  if (!invite) return null;
-  if (invite.learnerName) {
+  if (!invite && !(await signupOpen(db))) return null;
+  if (invite?.learnerName) {
     const [named] = await db
       .update(learners)
       .set({ authUserId: user.id })

@@ -66,6 +66,13 @@ describe("learnerForAuthUser", () => {
     expect(await learnerForAuthUser(db, u)).toBeNull();
     expect(await learnerCount(db)).toBe(before);
   });
+
+  it("open lets anyone in", async () => {
+    const db = await testDb();
+    await setSignupOpen(db, true);
+    const u = await googleUser(db, { id: "u9", email: "stranger@x.com", name: "Stranger" });
+    expect(await learnerForAuthUser(db, u)).toMatchObject({ name: "Stranger", authUserId: "u9" });
+  });
 });
 
 async function learnerCount(db: Db): Promise<number> {
