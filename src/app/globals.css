@@ -46,6 +46,10 @@
    chart labels use the -ink variants, which pass 4.5:1. Surfaces are a cool off-white, never pure grey. */
 :root {
   color-scheme: light;
+  /* Page frame (A1): the gutter beside the page, the gap between columns, and the widest the page grows. */
+  --gutter: clamp(12px, 1.6vw, 32px);
+  --gap: clamp(16px, 1.6vw, 28px);
+  --page-max: 2200px;
   /* Surfaces and text */
   --bg: #f6f8ff;            /* page */
   --field: #ffffff;         /* inputs, cards, popovers (one step up) */
@@ -354,6 +358,18 @@ body {
 /* Pressable: a press moves the control 1px down and in, and takes the pressed colour, within 90ms. It uses :active, not
    :hover, so a finger on a touch screen gets it too. A control names its pressed colour with --pressed-bg (the primary
    button sets --brand-pressed); without one the press goes to the quiet --hairline. */
+/* A readable line of chat text: 34em is about 71 characters at the chat font (follows the font size, in em). */
+@utility measure {
+  max-width: 34em;
+}
+
+/* Cards that fill the page: as many 340px-or-wider columns as fit. */
+@utility card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--gap);
+}
+
 @utility pressable {
   transition:
     transform var(--dur-press) var(--ease-out),

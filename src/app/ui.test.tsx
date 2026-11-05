@@ -6,7 +6,7 @@ import { AppHeader, PHONE_NOTE, ReadingPage, SignedInFrame, Tag } from "./ui";
 const LIGHT: ThemePref = { mode: "single", theme: "light" };
 
 describe("ReadingPage", () => {
-  it("puts the header in the same wide box on every reading page and narrows only the content", () => {
+  it("reading pages use the full box: one wide main for header and content, no narrow column", () => {
     const pages = (["course", "progress", "sessions", "notes", "settings", undefined] as const).map((current) =>
       renderToStaticMarkup(
         <ReadingPage current={current} theme={LIGHT}>
@@ -15,7 +15,9 @@ describe("ReadingPage", () => {
       ),
     );
     for (const html of pages) {
-      expect(html).toMatch(/<main[^>]*max-w-6xl/);
+      expect(html).toMatch(/<main[^>]*max-w-\[var\(--page-max\)\]/);
+      expect(html).not.toMatch(/<main[^>]*max-w-6xl/);
+      expect(html.match(/<div[^>]*data-testid="reading-column"[^>]*>/)![0]).not.toMatch(/max-w-2xl/);
       expect(html.indexOf("<header")).toBeLessThan(html.indexOf('data-testid="reading-column"'));
       expect(html).toContain("Study Workspace");
     }

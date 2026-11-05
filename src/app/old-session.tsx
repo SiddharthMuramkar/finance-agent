@@ -57,7 +57,7 @@ export function OldSession({
   };
   return (
     <CaseDataProvider revealed={revealed} referenceClip={referenceClip}>
-      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(0,1fr)] items-start gap-6 lg:gap-8" data-testid="old-session">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(360px,2fr)_minmax(0,3fr)] grid-rows-[minmax(0,1fr)] items-start gap-[var(--gap)]" data-testid="old-session">
         <div className="flex min-h-0 min-w-0 flex-col gap-4">
           {explore && <PinnedExplore item={exploreItem(explore.code, sessionId, explore.id)} />}
           <div className="relative min-h-0 flex-1 overflow-y-auto">
