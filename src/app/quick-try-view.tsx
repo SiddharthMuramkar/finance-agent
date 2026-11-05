@@ -106,7 +106,7 @@ export function QuickTryView({ data }: { data: QuickTryData }) {
               aria-pressed={picked === c.id}
               disabled={disabled}
               onClick={() => void send(c.id)}
-              className="pressable min-h-9 rounded-md border border-[var(--border)] border-b-[3px] bg-[var(--bg)] px-3 py-1 font-medium enabled:hover:bg-[var(--hairline)] disabled:opacity-60 aria-pressed:border-[var(--brand)] aria-pressed:bg-[var(--brand-tint)]"
+              className="pressable min-h-9 rounded-md border border-[var(--border)] border-b-[3px] bg-[var(--bg)] px-3 py-1 font-medium enabled:hover:bg-[var(--hairline)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] disabled:opacity-60 aria-pressed:border-[var(--brand)] aria-pressed:bg-[var(--brand-tint)] aria-pressed:font-semibold aria-pressed:opacity-100 aria-pressed:before:content-['✓_']"
             >
               {c.text}
             </button>
