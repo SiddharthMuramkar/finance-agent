@@ -1,0 +1,2 @@
+root = Widget("Two savers, two choices", [paths])
+paths = TwoPaths("What happens to two people who chose differently?", {emoji: "woman", name: "Asha", choice: "Kept her bonds", outcome: ["chart-decreasing", "worried-face"], outcomeLine: "Her bonds lost value for a while."}, {emoji: "man", name: "Ravi", choice: "Waited with cash", outcome: ["money-bag", "smiling-face"], outcomeLine: "He bought later at better prices."})

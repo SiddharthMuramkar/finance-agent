@@ -1,0 +1,2 @@
+root = Widget("A word traders use", [card])
+card = LingoCard("Yield", "A bond's yield is the income it pays each year.", "The income you get for lending your money, compared with what you paid.", "Rent on a flat, compared with the price of the flat.", "house", "In the story, bond prices fell, so the yield rose.")

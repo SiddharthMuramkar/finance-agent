@@ -4,7 +4,7 @@ import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from
 import { HELP_CHIPS, JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
-import { Button, Chevron } from "./ui";
+import { Button, Chevron, Chip, Tag } from "./ui";
 
 // Small presentational pieces of the workspace's left column (issue #44).
 
@@ -37,28 +37,27 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
     const target = finished(s) ? targetOf(s, marked) : null;
     if (strip?.current === s.number - 1) {
       return (
-        <span aria-current="step" data-step-number={s.number} title={s.label} className="rounded bg-[var(--brand-tint)] px-1.5 font-semibold text-[var(--brand)]">
-          {STEP_NAMES[s.step]}
+        <span aria-current="step" data-step-number={s.number} title={s.label} className="font-semibold">
+          <Tag tone="brand">{STEP_NAMES[s.step]}</Tag>
         </span>
       );
     }
     if (target) {
       return (
-        <button
-          type="button"
+        <Chip
           data-step-number={s.number}
           data-scroll-to={target}
           title={`Back to ${s.label}`}
           onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          className="pressable inline-block rounded px-1 underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--brand)]"
+          className="!px-2"
         >
           {STEP_NAMES[s.step]}
-        </button>
+        </Chip>
       );
     }
     return (
-      <span data-step-number={s.number} title={s.label} className={finished(s) ? "px-1" : "px-1 text-[var(--muted)]"}>
-        {STEP_NAMES[s.step]}
+      <span data-step-number={s.number} title={s.label}>
+        <Tag>{STEP_NAMES[s.step]}</Tag>
       </span>
     );
   };

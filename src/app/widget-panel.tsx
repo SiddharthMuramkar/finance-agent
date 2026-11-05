@@ -453,7 +453,7 @@ export function WidgetChip({ item, active, onPick }: { item: WidgetItem; active:
   if (guard.timedOut) return <DrawingFailed retry={guard.retry} compact />;
   const look =
     state === "showing"
-      ? "border-[var(--brand)]! bg-[var(--brand)]! text-[var(--brand-ink)]! hover:bg-[var(--brand-hover)]!"
+      ? "border-[var(--brand-deep)]! bg-[var(--brand-main)]! text-[var(--brand-ink)]! hover:bg-[var(--brand-hover)]!"
       : state === "drawing"
         ? "skeleton text-[var(--muted)]!"
         : "";

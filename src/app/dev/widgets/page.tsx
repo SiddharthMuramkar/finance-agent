@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fixtureList, loadCases, parseState, readFixture, resolveFixture } from "./fixtures";
+import { ButtonSheet } from "./button-sheet";
 import { WidgetHarness } from "./harness";
 import { HARNESS_WIDTHS, type HarnessWidth } from "./widths";
 
@@ -18,7 +19,7 @@ export default async function WidgetsDevPage({ searchParams }: { searchParams: P
 
   if (!fixture) {
     return (
-      <main className="mx-auto max-w-3xl p-6 text-[var(--ink)]">
+      <main className="mx-auto max-w-5xl p-6 text-[var(--ink)]">
         <h1 className="text-xl font-semibold leading-7">Widget harness</h1>
         <p className="mt-1 text-sm leading-5 text-[var(--muted)]">Each fixture drawn by the real renderer, at the panel widths of the Study page.</p>
         <ul className="mt-4 divide-y divide-[var(--border)]" data-testid="fixture-index">
@@ -33,6 +34,7 @@ export default async function WidgetsDevPage({ searchParams }: { searchParams: P
             </li>
           ))}
         </ul>
+        <ButtonSheet />
       </main>
     );
   }

@@ -14,9 +14,20 @@ export async function signIn(page: Page) {
   expect(response.status(), "POST /api/login").toBe(303);
 }
 
+/**
+ * Keeps the OpenUI kit from mounting its own "Inspect" button on the development server (it is not part of the app, and a
+ * production build has none), so audits of the page see only the app. Applies to every page the browser opens from now on.
+ */
+export async function quietDevtools(page: Page) {
+  await page.addInitScript(() => {
+    (globalThis as Record<symbol, unknown>)[Symbol.for("openui.devtools.autoMount")] = true;
+  });
+}
+
 /** Starts the tools Learner over and builds the named state on the fresh Learner; this browser is signed in as it. */
 export async function seed(page: Page, state: State) {
   // An earlier test's seed started the tools Learner over, which signs the saved cookie out: sign in as the active one.
+  await quietDevtools(page);
   await signIn(page);
   const response = await page.request.post("/api/dev-e2e", { data: { state } });
   expect(response.status(), `seed("${state}"): ${await response.text()}`).toBe(200);
@@ -52,6 +63,15 @@ export async function settled(page: Page) {
   await page.waitForLoadState("networkidle");
   await expect(page.getByTestId("stop-reply")).toHaveCount(0, { timeout: 30_000 });
   await expect(page.getByTestId("writing-indicator")).toHaveCount(0, { timeout: 30_000 });
+}
+
+/**
+ * Waits until the page has hydrated. The kit's accordion triggers are named for the audit in the browser (GenuiTheme), not
+ * in the server's HTML, so a page that has one is ready once none is left bare.
+ */
+export async function hydrated(page: Page) {
+  await page.waitForLoadState("networkidle");
+  await page.waitForFunction(() => document.querySelector(".openui-accordion-trigger:not([data-affordance])") === null);
 }
 
 /** Picks a theme through the app's own theme menu, by the start of its name ("Light", "Dark", …). */

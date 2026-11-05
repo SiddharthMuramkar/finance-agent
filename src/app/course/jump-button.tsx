@@ -119,7 +119,7 @@ export function TopicRow({
       {lead}
       <div className="min-w-0 flex-1">
         <h3 className="font-medium leading-5">
-          <a ref={trigger} href={href} data-row-link={topicId} onClick={onClick} className={`${STRETCHED} hover:underline`}>
+          <a ref={trigger} href={href} data-affordance="link" data-row-link={topicId} onClick={onClick} className={`link !text-[var(--ink)] ${STRETCHED}`}>
             {title}
           </a>
         </h3>
@@ -144,6 +144,7 @@ export function DoFirstLink({ topicId, title, label }: { topicId: string; title:
     <>
       <a
         href="/study"
+        data-affordance="link"
         data-jump={topicId}
         aria-busy={busy || undefined}
         onClick={async (e: MouseEvent<HTMLAnchorElement>) => {
@@ -154,7 +155,7 @@ export function DoFirstLink({ topicId, title, label }: { topicId: string; title:
           setError(failed);
           if (failed) setBusy(false);
         }}
-        className={`relative z-10 text-[var(--brand)] underline ${busy ? "opacity-60" : ""}`}
+        className={`link relative z-10 ${busy ? "opacity-60" : ""}`}
       >
         {busy ? "Opening…" : (label ?? title)}
       </a>

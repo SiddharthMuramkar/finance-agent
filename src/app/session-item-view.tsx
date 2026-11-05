@@ -25,6 +25,7 @@ import { TopicCompleteCard } from "./topic-complete-card";
 import { TopicStartCard } from "./topic-start-card";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
 import { stepAnchor } from "./workspace-parts";
+import { LinkButton } from "./ui";
 
 /**
  * How the thread draws a Session item (src/tutor/session-items.ts), by its kind. Items are display-only: they
@@ -79,14 +80,9 @@ function OffTopicBlock({ data }: { data: OffTopicData }) {
   return (
     <div data-testid="off-topic-block" className="flex flex-wrap items-center gap-x-3 border-l-2 border-[var(--border)] pl-3 text-xs leading-5 text-[var(--muted)]">
       <span>Off-Topic answer</span>
-      <button
-        type="button"
-        data-testid="off-topic-back"
-        onClick={(e) => scrollBackToTopic(target, e.currentTarget)}
-        className="rounded underline decoration-[var(--border)] underline-offset-2 hover:text-[var(--ink)]"
-      >
+      <LinkButton data-testid="off-topic-back" onClick={(e) => scrollBackToTopic(target, e.currentTarget)}>
         ↩ Back to {data.title}
-      </button>
+      </LinkButton>
     </div>
   );
 }

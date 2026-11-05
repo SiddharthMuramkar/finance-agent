@@ -224,23 +224,15 @@ export function QuizPanel({
                     <label
                       key={c.id}
                       data-selected={on || undefined}
-                      className={`pressable flex min-h-11 cursor-pointer items-center gap-3 rounded border px-3 py-2 text-sm leading-5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--ring)] ${on ? "border-[var(--brand)] bg-[var(--brand-tint)]" : "border-[var(--border)] hover:bg-[var(--hairline)]"}`}
+                      data-allow-pointer
+                      className={`pressable flex min-h-11 cursor-pointer items-center gap-3 rounded border px-3 py-2 text-sm leading-5 ${on ? "border-[var(--brand)] bg-[var(--brand-tint)]" : "border-[var(--border)] hover:bg-[var(--hairline)]"}`}
                     >
                       <input
                         type="radio"
-                        className="peer sr-only"
                         name={`${active.attemptId}-${q.id}`}
                         checked={on}
                         onChange={() => setPicked({ ...picked, [q.id]: c.id })}
                       />
-                      <span
-                        aria-hidden="true"
-                        className={`grid size-4 shrink-0 place-items-center rounded-full border ${on ? "border-[var(--brand)] bg-[var(--brand)]" : "border-[var(--border)]"}`}
-                      >
-                        {on && (
-                          <span className="size-1.5 rounded-full bg-[var(--brand-ink)]" />
-                        )}
-                      </span>
                       <span className="min-w-0 flex-1">{c.text}</span>
                     </label>
                   );
