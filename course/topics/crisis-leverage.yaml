@@ -81,21 +81,21 @@ youllLearn:
 questions:
   - id: cl-q-leverage-ratio
     prompt: >
-      A fund has $200 million of assets and $8 million of its own capital; the rest is borrowed. Traders would say it is "leveraged 25 to 1". What does that phrase tell you?
+      On 31 August 1998 LTCM's books showed more than $125 billion of assets against starting capital of $4.8 billion. Traders would say a fund like that is "leveraged more than 25 to 1". What does that phrase tell you?
     choices:
       - { id: a, text: "It holds $25 of assets for every $1 of its own capital" }
       - { id: b, text: "It owes $25 of debt for every $1 of its own capital", mistake: { tag: debt_for_assets, fix: "The 25 counts all assets per $1 of capital. Debt per $1 is one less." } }
       - { id: c, text: "It earns 25 per cent a year on its own capital", mistake: { tag: leverage_is_return, fix: "Leverage describes how much is borrowed, not what the fund earns." } }
-      - { id: d, text: "It can lose 25 per cent of its assets before it fails", mistake: { tag: multiple_is_a_loss, fix: "A 25 to 1 fund fails after a fall of about 4 per cent, not 25." } }
+      - { id: d, text: "It can lose 25 per cent of its assets before it fails", mistake: { tag: multiple_is_a_loss, fix: "It is the other way round: the more it borrows, the smaller the fall that wipes it out." } }
     answer: a
     explanation: >
-      Balance-sheet leverage compares total assets with the fund's own capital, here $200 million against $8 million, which traders call 25 to 1. The fund has $192 million of borrowing, so 24 to 1 would be its debt per dollar of capital, not the ratio of assets to capital.
+      Balance-sheet leverage compares total assets with the fund's own capital: 25 to 1 means $25 of assets for each $1 of the fund's own money. Most of that $25 is borrowed, so the debt per dollar of capital is a little under 25; the phrase counts assets, not debt.
     source: >
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), which states the balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
 
   - id: cl-q-wipeout
     prompt: >
-      A fund has borrowed almost all the money it invests, so only a thin slice of its assets is its own capital. The price of its assets starts to slide. Which description of its danger is right?
+      Like LTCM, a fund has borrowed almost all the money it invests, so only a thin slice of its assets is its own capital. Then the prices of its assets start to slide. What does that do to the thin slice?
     choices:
       - { id: a, text: "Its debts stay the same, so a small fall in its assets can use up all of its own capital" }
       - { id: b, text: "Its debts shrink along with its assets, so the lenders share the loss", mistake: { tag: debts_shrink, fix: "Lenders are owed the same sum whatever the assets are worth. The owner takes losses first." } }
@@ -108,7 +108,7 @@ questions:
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), balance-sheet leverage ratio as assets against equity capital: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
   - id: cl-q-gain-and-loss
     prompt: >
-      A fund holds assets many times the size of its own capital, and borrowing costs are ignored. Its assets rise a little in a year. Which headline gets it right?
+      Each of LTCM's trades earned little, so it borrowed to make the profit worth having. Picture a good year in which its assets rise a little, and ignore what the borrowing costs. Which headline tells that year's story?
     choices:
       - { id: a, text: "\"Fund's own capital up by much more than its assets: borrowing magnified the gain\"" }
       - { id: b, text: "\"Fund's own capital up by the same as its assets\"", mistake: { tag: ignored_leverage, fix: "Borrowing means the gain lands on a much smaller base of the fund's own money." } }
@@ -121,7 +121,7 @@ questions:
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999): https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
   - id: cl-q-haircut
     prompt: >
-      A fund borrows against a bond. The lender allows a haircut, the slice of the bond's value it keeps back from the loan. Later the lender raises the haircut on the same bond, whose price is unchanged. What does the fund have to do?
+      LTCM borrowed by repo: it sold a bond to a bank with a promise to buy it back, and the bank lent less than the bond was worth. That gap is the haircut. Now a nervous bank raises the haircut, while the bond's price stays the same. What does the fund have to do?
     choices:
       - { id: a, text: "Find more cash or sell some bond, even though the bond's price has not moved" }
       - { id: b, text: "Nothing, because the bond's price has not changed", mistake: { tag: price_only, fix: "A bigger haircut means a smaller loan on the same bond, so the fund must repay." } }
@@ -134,7 +134,7 @@ questions:
       President's Working Group on Financial Markets, Hedge Funds, Leverage, and the Lessons of Long-Term Capital Management (April 1999), on repo and reverse repo as the funding of the fund's positions: https://www.cftc.gov/sites/default/files/tm/tmhedgefundreport.htm ; the arithmetic is our own.
   - id: cl-q-spiral
     prompt: >
-      Many leveraged funds hold the same asset. Lenders ask for more collateral, and the funds all sell the asset to raise cash. What is the most likely effect on the asset's price, and on the other funds?
+      In 1998 many firms held trades like LTCM's. Picture their lenders all asking for more collateral at once, and every borrower selling the same asset to raise cash. What happens to the asset's price, and to the funds that held on?
     choices:
       - { id: a, text: "The price falls, which cuts the other funds' collateral values and can force them to sell as well" }
       - { id: b, text: "The price rises, because selling shows the asset is valuable" }
@@ -148,7 +148,7 @@ questions:
 
   - id: cl-q-systemic
     prompt: >
-      Which description best fits systemic risk?
+      When the Fed called LTCM's lenders together, its worry was bigger than one fund's losses. People call that worry "systemic risk". What does the phrase mean?
     choices:
       - { id: a, text: "The risk that one firm's investment loses money" }
       - { id: b, text: "The risk that trouble at one firm or in one market spreads through links such as lending, shared positions and common funding to many other firms" }
@@ -183,8 +183,10 @@ checks:
       matter to firms that never dealt with the fund, and what a lender should ask before
       lending to a fund like this.
     passCriteria: >
-      The Learner explains that at about 25 to 1 a fall of roughly 4 per cent in asset values
-      would remove all the capital, so even a small drop is a large loss on capital. They
+      The Learner explains that with so little capital under so many assets, a small fall in
+      asset values can wipe out the thin slice of capital, so even a small drop is a large loss
+      on capital (naming a figure, such as about 4 per cent at 25 to 1, is welcome but not
+      needed). They
       explain that repo and collateral calls (or higher haircuts) require cash when prices
       fall, and that selling to raise it pushes prices down further, hitting the fund again
       (a liquidity spiral). They explain that because other firms hold the same assets or lend

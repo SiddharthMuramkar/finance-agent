@@ -69,7 +69,7 @@ youllLearn:
 questions:
   - id: ft-q-compounding
     prompt: >
-      A carmaker has revenue of $10 billion and plans to grow it 40% a year for five years. Analysts argue over whether that is believable. What does compounding do to its revenue?
+      Damodaran warns his Tesla readers that compounding is hard to feel. Picture a Tesla fan who expects revenue to grow 40% a year for five years running. What happens to revenue as those years pass?
     choices:
       - { id: a, text: "Each year adds the same dollars, 40% of today's revenue, so the climb is a straight line", mistake: { tag: simple_not_compound, fix: "Growth also grows: each year's 40% applies to a bigger base, so a straight line understates." } }
       - { id: b, text: "Each year's growth builds on the year before, so the climb steepens and ends far above a straight line" }
@@ -81,7 +81,7 @@ questions:
     source: Compound growth, (1 + g)^n; checked with the calculate tool's future value formula.
   - id: ft-q-reinvestment
     prompt: >
-      A company expects its revenue to rise a lot over the next five years. Damodaran asks for its sales-to-capital ratio, and here it is 3. What does that ratio say about the investment the company must make to grow?
+      In Damodaran's own Tesla story, each dollar Tesla invests in its first five years brings in $3 of revenue, a sales-to-capital ratio of 3. What does that say about how much Tesla must invest to grow?
     choices:
       - { id: a, text: "It must invest far more than the revenue it adds, because capital is the bigger number", mistake: { tag: ratio_upside_down, fix: "A ratio of 3 means capital is the smaller number, not the bigger." } }
       - { id: b, text: "It must invest less than the revenue it adds, because each dollar of new capital supports several dollars of sales" }
@@ -93,7 +93,7 @@ questions:
     source: Sales-to-capital reinvestment, as set out in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", Musings on Markets, 6 February 2020.
   - id: ft-q-failure
     prompt: >
-      A company is worth much more per share if it survives than if it fails and its assets are sold. Damodaran puts the chance of failure at 10%. How should that chance enter the valuation?
+      Damodaran's story gives Tesla a 10% chance of failing. If it fails, its assets are sold for far less than the going business is worth. How does he let that chance into his value?
     choices:
       - { id: a, text: "Weigh both outcomes by their chances, so a small chance of failure trims the value a little" }
       - { id: b, text: "Treat failure as worth nothing, since a failed company has no value", mistake: { tag: failure_worth_nothing, fix: "If it fails a share still fetches something from the assets. That has to be counted." } }
@@ -105,11 +105,11 @@ questions:
     source: Expected value of two outcomes; the failure-probability adjustment is the second risk input in Damodaran, "A Do-it-yourself (DIY) Valuation of Tesla", 6 February 2020.
   - id: ft-q-rd
     prompt: >
-      A company expenses all its research and development (R&D) at once, which lowers its reported operating income. Treated as an investment, R&D is written off over several years instead, so only part of it is charged this year. How does that treatment change the picture of the company?
+      Tesla spends heavily on research and development (R&D), and its accounts charge all of it against this year's income. Damodaran treats R&D as an investment instead, written off over several years. What does that do to the operating income in his story?
     choices:
       - { id: a, text: "Operating income looks higher, because most of this year's R&D is no longer charged at once" }
-      - { id: b, text: "Operating income looks higher by the whole R&D amount, because the R&D is ignored", mistake: { tag: ignored_writeoff, fix: "The R&D is written off over time. It comes back, then only the write-off is charged." } }
-      - { id: c, text: "Operating income looks lower, because the write-off is a new charge on top", mistake: { tag: subtracted_only, fix: "The full expense comes back first, then only the smaller write-off is charged." } }
+      - { id: b, text: "Operating income looks higher by the whole R&D amount, because the R&D is ignored", mistake: { tag: ignored_writeoff, fix: "Nothing is ignored: the R&D still gets charged, just a piece each year." } }
+      - { id: c, text: "Operating income looks lower, because the write-off is a new charge on top", mistake: { tag: subtracted_only, fix: "Think of it as swapping a big charge this year for a smaller one, not adding a charge." } }
       - { id: d, text: "Operating income looks the same, because the cost is only relabelled", mistake: { tag: relabel_only, fix: "Spreading the cost changes how much is charged this year, so income changes." } }
     answer: a
     explanation: >

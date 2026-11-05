@@ -65,7 +65,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "struct-securitisation",
   "private-credit",
   "funds-passive",
-  "ins-risk-transfer",
   "real-assets",
   "hist-macro-regimes",
   "fol-sov-ratings",

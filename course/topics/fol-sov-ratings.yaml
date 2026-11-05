@@ -63,7 +63,7 @@ youllLearn:
 questions:
   - id: fsv-q-riskfree
     prompt: >
-      A government's 10-year bond yields 5.00% in its own currency, and an analyst estimates that part of that yield is a default spread, the extra the market charges for default risk. Following the approach of taking the default spread out, which choice for the riskfree rate is right?
+      After the Moody's cut, Damodaran asks whether a government bond's yield is still all riskfree. Part of it may be a default spread, the extra the market charges in case the government fails to pay. An analyst agrees and needs a riskfree rate for her valuations. What should she do with the yield?
     choices:
       - { id: a, text: "Take the default spread off the yield: what is left is the riskfree rate" }
       - { id: b, text: "Use the yield as quoted, because a government bond is riskfree", mistake: { tag: yield_as_riskfree, fix: "Part of the yield pays for default risk, so the quoted yield is not riskfree." } }
@@ -77,7 +77,7 @@ questions:
       Musings on Markets, 2 June 2025 (riskfree rate = government bond rate minus default spread).
   - id: fsv-q-erp
     prompt: >
-      Stocks are expected to return 8% a year. An analyst first uses a riskfree rate of 4%, then decides part of the government bond yield is default spread and lowers the riskfree rate a little. What happens to the equity risk premium and to the stock market's expected return?
+      After the Moody's cut, an analyst lowers her riskfree rate a little, because she takes the default spread out of the Treasury yield. Stock prices stay where they are. What happens to the equity risk premium she measures, and to the stock market's expected return?
     choices:
       - { id: a, text: "The premium widens; the expected return stays put, since prices set it" }
       - { id: b, text: "The premium narrows, because the riskfree rate fell", mistake: { tag: premium_narrows, fix: "The premium is the expected return minus the riskfree rate. A lower riskfree rate widens it." } }
@@ -91,7 +91,7 @@ questions:
       Musings on Markets, 2 June 2025 (premium measured against the adjusted riskfree rate).
   - id: fsv-q-grade-line
     prompt: >
-      On Moody's long-term rating scale, which is the lowest grade still counted as investment grade?
+      Moody's moved the United States from Aaa to Aa1, still far inside "investment grade". Where on Moody's long-term scale does investment grade end?
     choices:
       - { id: a, text: "Baa3" }
       - { id: b, text: "Baa1" }
@@ -107,9 +107,9 @@ questions:
       Moody's global scale reference card (https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf).
   - id: fsv-q-surprise
     prompt: >
-      An agency puts a borrower on "negative outlook" and, eight months later, lowers its rating by
-      one grade. Other things equal, why is the price reaction to the downgrade likely to be smaller
-      than if the same cut had come with no earlier warning?
+      Damodaran points out that Moody's warns before it cuts, by putting a borrower on "negative
+      outlook". Suppose a one-grade cut comes some months after such a warning. Why is the price
+      reaction likely to be smaller than if the same cut had come out of the blue?
     choices:
       - { id: a, text: "Investors had already priced in a likely cut when the outlook turned negative" }
       - { id: b, text: "A one-grade cut never changes default risk" }
