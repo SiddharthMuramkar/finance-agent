@@ -4,8 +4,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { WidgetView } from "@/app/widget-view";
 
-// The narrow Slider shows its value as a button that turns into a typed-value box. Enter or Escape in the box
-// must hand focus back to the button; leaving the box by blur must not pull it back.
+// The Slider has no box to type a value in, at any width (ADR 0009). Its value is a reading, not a button that turns
+// into a box, and the −/+ buttons keep focus while the Learner steps, so the arrow-key and tap paths reach every step.
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -23,43 +23,22 @@ afterEach(() => {
   host.remove();
 });
 
-const valueButton = () => host.querySelector<HTMLButtonElement>('button[title="Tap to type a value"]')!;
-const box = () => host.querySelector<HTMLInputElement>('input[aria-label="Old rate, type a value"]')!;
-
-async function startTyping() {
-  await act(async () => root.render(<WidgetView code={code} complete />));
-  await act(async () => valueButton().click());
-  const input = box();
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
-  await act(async () => {
-    setter.call(input, "5");
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-  return input;
-}
-
-describe("the narrow Slider's typed-value box", () => {
-  it("returns focus to the value button after Enter", async () => {
-    const input = await startTyping();
-    await act(async () => void input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
-    expect(box()).toBeNull();
-    expect(document.activeElement).toBe(valueButton());
+describe("the Slider has no typed-value box", () => {
+  it("has no exact-value box and no tap-to-type value button", async () => {
+    await act(async () => root.render(<WidgetView code={code} complete />));
+    expect(host.querySelector('input[aria-label$="exact value"]')).toBeNull();
+    expect(host.querySelector('input[aria-label$="type a value"]')).toBeNull();
+    expect(host.querySelector('button[title="Tap to type a value"]')).toBeNull();
+    expect(host.querySelectorAll('input:not([type="range"])')).toHaveLength(0);
+    expect(host.querySelector("output")?.textContent).toBe("4%");
   });
 
-  it("returns focus to the value button after Escape", async () => {
-    const input = await startTyping();
-    await act(async () => void input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
-    expect(box()).toBeNull();
-    expect(document.activeElement).toBe(valueButton());
-  });
-
-  it("does not pull focus back on blur", async () => {
-    const input = await startTyping();
-    const other = document.createElement("button");
-    host.append(other);
-    await act(async () => other.focus());
-    expect(box()).toBeNull();
-    expect(input.isConnected).toBe(false);
-    expect(document.activeElement).toBe(other);
+  it("steps with +, and the + button keeps focus", async () => {
+    await act(async () => root.render(<WidgetView code={code} complete />));
+    const plus = host.querySelector<HTMLButtonElement>('button[aria-label="Increase Old rate by one step"]')!;
+    await act(async () => plus.focus());
+    await act(async () => plus.click());
+    expect(host.querySelector("output")?.textContent).toBe("4.01%");
+    expect(document.activeElement).toBe(plus);
   });
 });

@@ -73,7 +73,7 @@ A Topic whose file lists Skills, and with them a Concept card for each Check, Qu
 _Avoid_: New-style Topic, carded Topic
 
 **Lesson lint**:
-The course check's rules for a Converted Topic's teaching: a Check tests only Skills a card at or before it teaches (L1), enough Quick tries and questions (L2), short cards (L3), valid Widget presets (L4), the Topic's currency (L5), no negative stems (L6), Check questions whose numbers differ from the worked examples (L7), every Quick try on a Skill its own Check tests (L8), template draws that never repeat a fixed question or Quick try of the same Check (L9), and, for every Topic, emoji names that all exist in the emoji registry (L11).
+The course check's rules for a Converted Topic's teaching: a Check tests only Skills a card at or before it teaches (L1), enough Quick tries and questions (L2), short cards (L3), valid Widget presets (L4), the Topic's currency (L5), no negative stems (L6), Check questions whose numbers differ from the worked examples (L7), every Quick try on a Skill its own Check tests (L8), template draws that never repeat a fixed question or Quick try of the same Check (L9), and, for every Topic, no Quick try that asks for a typed number, no stem that asks for a sum and a choice set of at least two on every template draw (L10, with a list of Topics not yet rewritten that can only shrink), and emoji names that all exist in the emoji registry (L11).
 _Avoid_: Content lint, card check
 
 **Widget preset**:
@@ -220,7 +220,7 @@ A Widget design written in code, such as grow_money or history_case. The Tutor n
 _Avoid_: template, preset Widget
 
 **Rate-move Widget**:
-The one Widget for a rate change, drawn from the rate_move recipe with its own part, RateMove: an arrow on a number line from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the lines stay hidden until the Learner types the move in basis points and code marks it exactly, then the lines follow, with sliders for play.
+The one Widget for a rate change, drawn from the rate_move recipe with its own part, RateMove: an arrow on a number line from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the lines stay hidden until the Learner picks the right reading of the move (three buttons: the right reading, the times-10 slip and the percent mix-up) and code marks the tap, then the lines follow, with sliders for play. Nothing is typed.
 _Avoid_: rate calculator, Illustration
 
 **Free-form Widget**:

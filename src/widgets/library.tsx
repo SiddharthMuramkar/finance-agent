@@ -26,7 +26,7 @@ import { FormulaFigure, type CardValue } from "./formula-card-view";
 import { useCaseLoad } from "./case-data-provider";
 import { advanceReached, savedReached, walkNodes } from "./guided-tasks";
 import { SavedTicksContext } from "./saved-ticks";
-import { readingValue, settledValue, sliderStep, snappedValue, steppedValue, typedValue, type SliderRange } from "./slider-steps";
+import { readingValue, settledValue, sliderStep, snappedValue, steppedValue, type SliderRange } from "./slider-steps";
 import { GuidedTasksFigure } from "./guided-tasks-view";
 import { AreaChartPlot, BarChartPlot, LineChartPlot, type ChartProps } from "./plot/charts";
 import { PlotResetContext } from "./plot/domain";
@@ -101,35 +101,14 @@ function useHold(act: () => boolean) {
 }
 
 /**
- * A slider with a number box and −/+ buttons, so the Learner can set an exact value. The rules for what
- * values it takes live in slider-steps.ts. The number box keeps what is being typed until Enter or leaving
- * the box, so typing 3.38 never passes through 3 and 3.3 (which could tick a Guided Task on the way).
- * It is a container-query component: the row is a grid that gives the range every pixel the buttons leave, and
- * below 22rem the number box is replaced by tapping the value in the header to type it.
+ * A slider with −/+ buttons, the arrow keys and quick chips, so the Learner can reach every step. There is no box to
+ * type a value in (ADR 0009: nothing is typed). The rules for what values it takes live in slider-steps.ts. It is a
+ * container-query component: the row is a grid that gives the range every pixel the buttons leave.
  */
 function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>) {
   const field = useStateField(props.name, props.value);
-  const [draft, setDraft] = useState<string | null>(null);
-  const [editing, setEditing] = useState(false);
-  // After Enter or Escape in the typed-value box the box goes away: hand focus to the value button (not after a blur).
-  const valueButton = useRef<HTMLButtonElement>(null);
-  const refocus = useRef(false);
-  useEffect(() => {
-    if (!editing && refocus.current) {
-      refocus.current = false;
-      valueButton.current?.focus();
-    }
-  }, [editing]);
   const value = Number(field.value ?? props.min);
   const set = (next: number) => field.setValue(settledValue(next, props));
-  const commit = () => {
-    if (draft !== null) {
-      const typed = typedValue(draft, props);
-      if (typed !== null) field.setValue(typed);
-    }
-    setDraft(null);
-    setEditing(false);
-  };
   // One step; false once the slider is at its end, which also ends a hold.
   const step = (dir: 1 | -1) => () => {
     const next = steppedValue(value, dir, props);
@@ -140,27 +119,6 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
   const down = useHold(step(-1));
   const up = useHold(step(1));
   const reading = formatUnit(readingValue(value), props.unit);
-  const typing = {
-    type: "number" as const,
-    inputMode: "decimal" as const,
-    min: props.min,
-    max: props.max,
-    step: "any",
-    value: draft ?? String(readingValue(value)),
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setDraft(e.target.value),
-    onBlur: commit,
-    onKeyDown: (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        refocus.current = true;
-        commit();
-      }
-      if (e.key === "Escape") {
-        refocus.current = true;
-        setDraft(null);
-        setEditing(false);
-      }
-    },
-  };
   return (
     <div className="@container min-w-0 py-2" data-testid="slider">
       <div className="flex items-baseline justify-between gap-3 text-sm">
@@ -168,29 +126,9 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
           <AssumptionTag />
           {props.label}
         </span>{" "}
-        {editing ? (
-          <input
-            {...typing}
-            autoFocus
-            aria-label={`${props.label}, type a value`}
-            className="w-24 shrink-0 rounded border border-[var(--border)] bg-[var(--field)] px-1.5 py-0.5 text-right text-sm tabular-nums @[22rem]:hidden"
-          />
-        ) : (
-          <>
-            <output className="hidden shrink-0 font-medium tabular-nums @[22rem]:inline">{reading}</output>
-            <button
-              ref={valueButton}
-              type="button"
-              title="Tap to type a value"
-              onClick={() => setEditing(true)}
-              className="min-h-6 shrink-0 rounded font-medium tabular-nums underline decoration-dotted underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] @[22rem]:hidden"
-            >
-              {reading}
-            </button>
-          </>
-        )}
+        <output className="shrink-0 font-medium tabular-nums">{reading}</output>
       </div>
-      <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 @[22rem]:grid-cols-[auto_minmax(0,1fr)_auto_5rem]">
+      <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
         <IconButton
           label={`Decrease ${props.label} by one step`}
           disabled={value <= props.min}
@@ -217,11 +155,6 @@ function SliderView({ props }: ComponentRenderProps<z.infer<typeof sliderProps>>
         >
           +
         </IconButton>
-        <input
-          {...typing}
-          aria-label={`${props.label}, exact value`}
-          className="hidden w-20 shrink-0 rounded border border-[var(--border)] bg-[var(--field)] px-1.5 py-0.5 text-right text-sm tabular-nums @[22rem]:block"
-        />
       </div>
       {!!props.quick?.length && (
         <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={`Quick values for ${props.label}`}>

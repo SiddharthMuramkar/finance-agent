@@ -15,17 +15,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function type(value: string) {
-  const input = byId(page!, "rate-move-answer")!.querySelector<HTMLInputElement>("input")!;
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+const choiceButtons = () => [...page!.host.querySelectorAll<HTMLButtonElement>('[data-testid="rate-move-choice"]')];
+const readings = () => choiceButtons().map((b) => b.textContent?.trim() ?? "");
+const tap = (name: string) =>
   act(() => {
-    setter.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-}
-const check = () =>
-  act(() => {
-    [...page!.host.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Check")!.click();
+    choiceButtons().find((b) => b.textContent?.trim() === name)!.click();
   });
 const status = () => byId(page!, "rate-move-answer")!.getAttribute("data-status");
 
@@ -91,55 +85,56 @@ describe("RateMove, show mode", () => {
 });
 
 describe("RateMove, practice mode", () => {
-  it("asks for the move in basis points and shows no worked line before an answer, with nothing to step past it", () => {
-    show(<RateMoveView oldRate={3} newRate={3.25} mode="practice" />);
-    expect(text()).toContain("The rate moves from 3% to 3.25%. By how many basis points?");
+  it("asks which reading is right, offers three buttons and shows no worked line before a tap", () => {
+    show(<RateMoveView oldRate={4} newRate={5} mode="practice" />);
+    expect(text()).toContain("The rate moves from 4% to 5%. Which reading is right?");
+    expect(readings().sort()).toEqual(["Up 1 point, or 100 bps", "Up 1%", "Up 10 bps"]);
+    for (const b of choiceButtons()) expect(b.tagName).toBe("BUTTON");
     expect(allById(page!, "rate-move-readout")).toHaveLength(0);
-    expect(text()).not.toContain("25 bp");
-    expect([...page!.host.querySelectorAll("button")].map((b) => b.textContent?.trim())).toEqual(["Check"]);
+    expect(page!.host.querySelectorAll("input")).toHaveLength(0);
     expect(page!.host.querySelectorAll('input[type="range"]')).toHaveLength(0);
     expect(status()).toBe("idle");
   });
 
-  it("does not mark, or reveal, what is not one number", () => {
-    show(<RateMoveView oldRate={3} newRate={3.25} mode="practice" />);
-    type("twenty five");
-    check();
-    expect(status()).toBe("unread");
-    expect(allById(page!, "rate-move-readout")).toHaveLength(0);
-    expect(text()).toContain("Type the move as a number of basis points");
+  it("offers the fall's readings: 7.5% to 7.2%", () => {
+    show(<RateMoveView oldRate={7.5} newRate={7.2} mode="practice" />);
+    expect(readings().sort()).toEqual(["Down 0.3 points, or 30 bps", "Down 0.3%", "Down 3 bps"]);
   });
 
-  it("marks a right answer exactly, then shows the three lines", () => {
+  it("marks the right reading, then shows the three lines and locks the choices", () => {
     show(<RateMoveView oldRate={2} newRate={4.5} mode="practice" />);
-    type("250 bp");
-    check();
+    tap("Up 2.5 points, or 250 bps");
     expect(status()).toBe("right");
     expect(text()).toContain("Right. The move is 250 bp.");
     expect(allById(page!, "rate-move-readout")).toHaveLength(3);
     expect(text()).toContain("2.5 points times 100 is 250 bp");
-    expect(page!.host.querySelector<HTMLInputElement>('[data-testid="rate-move-answer"] input')!.disabled).toBe(true);
+    for (const b of choiceButtons()) expect(b.disabled).toBe(true);
   });
 
-  it("marks a wrong answer, says the move, and shows the lines", () => {
+  it("marks a wrong reading, says the move and the fix, and shows the lines", () => {
     show(<RateMoveView oldRate={7.5} newRate={7.2} mode="practice" />);
-    type("0.3");
-    check();
+    tap("Down 0.3%");
     expect(status()).toBe("wrong");
     expect(text()).toContain("Not quite. The move is 30 bp (a fall).");
-    expect(text()).toContain("0.3 is the move in points");
+    expect(text()).toContain("That is a percent.");
     expect(text()).toContain("0.3 points times 100 is a fall of 30 bp");
+  });
+
+  it("marks the x10 slip with its own fix", () => {
+    show(<RateMoveView oldRate={4} newRate={5} mode="practice" />);
+    tap("Up 10 bps");
+    expect(status()).toBe("wrong");
+    expect(text()).toContain("multiply by 100, not 10");
   });
 
   it("after marking, offers sliders that move the lines but not the marked question", () => {
     show(<RateMoveView oldRate={5} newRate={5.2} mode="practice" />);
-    type("20");
-    check();
+    tap("Up 0.2 points, or 20 bps");
     const [oldSlider, newSlider] = [...page!.host.querySelectorAll<HTMLInputElement>('input[type="range"]')];
     expect([oldSlider.value, newSlider.value]).toEqual(["5", "5.2"]);
     setRange(newSlider, 6);
     expect(text()).toContain("6% minus 5% is 1 point");
-    expect(text()).toContain("The rate moves from 5% to 5.2%. By how many basis points?");
+    expect(text()).toContain("The rate moves from 5% to 5.2%. Which reading is right?");
     expect(text()).toContain("Right. The move is 20 bp.");
     expect(status()).toBe("right");
     expect(byId(page!, "rate-move-new")!.textContent).toBe("New 6%");

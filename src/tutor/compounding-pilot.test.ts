@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 import { formulaCheckErrors } from "@/course/formula-check";
 import { lessonLintErrors } from "@/course/lesson-lint";
+import { L10_NOT_YET_STORY } from "@/course/l10-allowlist";
 import { isConverted, loadCourseMap, parseCourseMap, testedSkills, type CourseMap, type QuickTry, type Topic } from "@/course/map";
 import { navigate } from "@/course/navigator";
 import { parseTemplateInstanceId, selectQuestions } from "@/course/quiz";
@@ -70,7 +71,7 @@ describe("Growth, compounding and logs, converted", () => {
   });
 
   it("passes the lesson lint and the typed-formula check, and keeps every old question id", () => {
-    expect(lessonLintErrors([topic], { notYet: [] })).toEqual([]);
+    expect(lessonLintErrors([topic], { notYet: [], l10NotYet: L10_NOT_YET_STORY.filter((id) => id === topic.id) })).toEqual([]);
     expect(formulaCheckErrors([topic], [])).toEqual([]);
     for (const id of ["cp-q-doubling-rate", "cp-q-down-up", "cp-q-rule-72", "cp-q-three-years", "cp-q-log-return", "cp-q-index-rate"]) {
       expect(topic.questions.some((q) => q.id === id), id).toBe(true);

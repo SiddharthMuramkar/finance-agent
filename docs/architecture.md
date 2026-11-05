@@ -609,8 +609,7 @@ OpenUI's free, open-source renderer from two sets of parts:
   invent links), code blocks and the kit's Markdown renderer (they would show typed formulas, which
   ADR 0002 rules out), forms, inputs, date pickers, buttons, modals and carousels.
 - **Our own parts**, each backed by tested code: `Widget` (the frame, with **Reset** when it has a
-  slider), `Slider` (one of the Learner's assumptions, with a number box and −/+ buttons for exact
-  values; it takes the kit slider's place under the same name, so the "Your assumption" tag and
+  slider), `Slider` (one of the Learner's assumptions, with −/+ buttons and quick chips, and no box to type in; it takes the kit slider's place under the same name, so the "Your assumption" tag and
   saved slider settings keep working; see "Exact slider values" below), `AnnuityChart` (yearly payments and what
   each is worth today), `HistoryChart` (one Case Data dataset over its dates), `Calculator`,
   `FormulaCard` and Guided Tasks.
@@ -1015,11 +1014,13 @@ part calls the tested `rateMoveLines` in the browser, so the words on screen are
 
 In **show** mode (the default) the recipe binds the part to two sliders, `$new` in view and `$old` under "More settings",
 so the arrow and the lines follow the Learner's play, with two Guided Tasks. In **practice** mode the recipe gives the
-part the two numbers and no sliders. The part asks "By how many basis points?" in one typed box. The lines are not on
-the page at all until an answer is marked: there is no Next or any other way past the question. `markMove` marks the
-answer with T02's exact arithmetic (`parseAnswer`, and `matchesAnswer`, which uses `exactEquals`), in whole basis points
-for a move of any size: "20", "20bp" and "20 bp" are read the same, and a fall may be typed as its size, with a minus
-sign or as "a fall of 30". Text that is not one number is not marked. Once marked (right or wrong, with the right
+part the two numbers and no sliders. The part asks "Which reading is right?" and offers three buttons, built by the
+choice engine (`choicesFor`, ADR 0009) in `moveReadings`: the right reading ("Up 1 point, or 100 bps"), the times-10
+slip, a Known mistake `used_x10` ("Up 10 bps"), and the percent mix-up, `mixed_percent_points` ("Up 1%"). A fall says
+"Down 0.3 points, or 30 bps", "Down 3 bps", "Down 0.3%". Nothing is typed, and the same question always gives the
+same order. The lines are not on the page at all until a reading is tapped: there is no Next or any other way past the
+question. `markReading` marks the tap by the reading's id, not its place, so no floating point or typed text decides
+the mark, and a Known mistake shows its one-line fix. Once marked (right or wrong, with the
 answer said), the three lines show, and two sliders appear for play. They are the part's own, so they move the arrow and
 the lines but never the marked question or its mark. The numbers are inputs, not `facts`, so the Widget is never an
 Illustration.
@@ -1027,14 +1028,16 @@ Illustration.
 **Scenario.** At Percent's Concept step the Tutor calls `show_widget` with `rate_move`, `old: 4`, `new: 5`. The panel
 shows the arrow from 4% to 5% and "5% minus 4% is 1 point", "1 point times 100 is 100 bp" and "1 divided by the old
 4%, times 100, is 25%". The Learner drags the new rate to 3.5%: the arrow turns round and the lines say "a fall of 0.5
-points", with no model call. Later the Tutor opens the recipe at 2% to 4.5% with `mode: "practice"`. The Learner types
-"2.5", sees "Not quite. The move is 250 bp. 2.5 is the move in points; times 100 gives basis points.", and the three
-lines appear under it.
+points", with no model call. Later the Tutor opens the recipe at 2% to 4.5% with `mode: "practice"`. The Learner taps
+"Up 25 bps", sees "Not quite. The move is 250 bp. One point is 100 basis points, so multiply by 100, not 10.", and the
+three lines appear under it.
 
 **Trade-off.** A part of its own costs a line in the Widget instructions (about 240 characters, allowed for in the
 instructions' size test) and a frozen-library update, but it closes what the first build, made from StepThrough and a
-LineChart, left open: a real arrow, a reveal that waits for an answer, and exact marks for big moves. Practice gives
-one try: a wrong answer shows the lines rather than inviting guesses. The play sliders are part state, not Widget state,
+LineChart, left open: a real arrow, a reveal that waits for an answer, and marks for big moves. Practice gives
+one try: a wrong tap shows the lines rather than inviting guesses. A tap is easier to guess than a typed number (the
+same trade-off as Quick tries, D1c), so the Learner can land on the right reading by luck; the lines then show, and the
+Tutor's follow-up decides whether it is understood. The play sliders are part state, not Widget state,
 so they are not saved with the Session and a Guided Task cannot read them. Code reading a shown `rate_move` (the
 readouts sent to the Tutor) is T14's; the state names stay exported as `RATE_MOVE_STATE`.
 
@@ -1200,8 +1203,8 @@ being spoken only when the slider moves onto it.
 ### Widgets that fit the panel (`SliderView`, `StackView`, `WidgetFrame`, chart overrides in `src/widgets/library.tsx`, `formatInrDisplay` in `src/finance/indian-format.ts`, UX audit lane "widget-fixes")
 
 **What it does.** The Widget library now repairs what the model writes, so a Widget fits the panel and shows the truth.
-The Slider is a container-query component: below 22rem it drops the number box and the value in its header becomes a
-tap-to-type field; the range takes every pixel the 32 px ± buttons leave. Holding a ± button repeats the step (after
+The Slider is a container-query component: its value is a reading in the header (D1c removed the number box and the
+tap-to-type field, see "Exact slider values"); the range takes every pixel the 32 px ± buttons leave. Holding a ± button repeats the step (after
 400 ms, every 80 ms). The Stack is overridden: a row whose every child is a Slider is drawn as a column, and any other
 row wraps with each child at least `min(100%, 15rem)` wide. The kit's AreaChart, LineChart and BarChart are replaced by
 the plot kit's charts with the same positional arguments plus optional `unit`, `yMin` and `yMax` (AreaChart also takes
@@ -2099,7 +2102,7 @@ explore Widget's key ("explore") is not carried over to the annuity Widget's id:
 
 **What it does.** Present value has one annuity Widget, "What the annuity is worth today" (the owner's Part 5). It
 replaced the old explore Widget: code shows it at explore and the Tutor reopens it later with `open_widget`. The
-Learner sets a 0–10% rate in 0.01 steps (starting at 5%, Reset back to 5%, a number box, −/+ and a **0%** quick
+Learner sets a 0–10% rate in 0.01 steps (starting at 5%, Reset back to 5%, −/+ and a **0%** quick
 button; quick buttons are a new optional list on `Slider`). The chart draws the 30 payments by year, 2018 to 2047,
 labelled every 5 years on a $ millions axis (`AnnuityChart`'s new optional `firstYear`), and a hover or tap reads a
 bar as "Payment in 2029: $X paid → worth $Y today". Under it: Sum of payments; worth today in teal (the Learner's
@@ -3865,11 +3868,11 @@ backfill reload places the corrected readings.
 
 ## Exact slider values (`SliderView` and `WidgetFrame` in `src/widgets/library.tsx`, `src/widgets/slider-steps.ts`, issue #143)
 
-**What it does.** Every slider in every Widget has a number box beside it that takes any value from its minimum to its maximum, and − and + buttons that move it by exactly one step and stop at the ends. A percent slider always moves in 0.01 steps, whatever step the Tutor or a Topic file wrote. Every value set is rounded to the step's decimals (so typed percents keep two decimals), and a value outside the range is clamped; text that is no number is ignored. The number box keeps what is being typed until Enter or leaving the box, so typing 3.38 never passes through 3 and 3.3 on the way. When a finished Widget first sets a slider, its declared starting value is moved onto the nearest step; a value restored from Widget state is left as the Learner typed it. The readout prints a value at its own precision (3.38 on a 0.25 slider), without float noise, and a space separates label and value, so it reads "Old rate 4%", never "Old rate4%". Any Widget with a slider shows **Reset** beside its title, which puts every slider back to its starting value. The rules live in one small module, `slider-steps.ts`; the frame finds the sliders at any depth (including a tab not showing) and remembers each one's start.
+**What it does.** Every slider in every Widget has − and + buttons that move it by exactly one step and stop at the ends, the range itself (and its arrow keys), and quick chips when the Widget has them. There is no box to type a value in (D1c, ADR 0009: a Learner never types a number): the exact-value box and the tap-to-type value are gone, and the value is a plain reading in the header. A percent slider always moves in 0.01 steps, whatever step the Tutor or a Topic file wrote. Every value set is rounded to the step's decimals and a value outside the range is clamped. When a finished Widget first sets a slider, its declared starting value is moved onto the nearest step; a value restored from Widget state is left as it was saved. The readout prints a value at its own precision (3.38 on a 0.25 slider), without float noise, and a space separates label and value, so it reads "Old rate 4%", never "Old rate4%". Any Widget with a slider shows **Reset** beside its title, which puts every slider back to its starting value. The rules live in one small module, `slider-steps.ts` (`typedValue` went with the box); the frame finds the sliders at any depth (including a tab not showing) and remembers each one's start.
 
-**Scenario.** A Widget is written with `Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")` starting at `$rate = 5`, and a Guided Task `$rate == 3.38`. The Learner types 3.3812 in the number box and presses Enter: the value becomes 3.38, the readout says "Discount rate 3.38%", and the task ticks. They press + twice (3.40%), drag the slider about, then press Reset: the rate is back at 5%.
+**Scenario.** A Widget is written with `Slider("rate", "Discount rate", 0, 10, 0.25, $rate, "percent")` starting at `$rate = 5`, and a Guided Task `$rate == 3.38`. The Learner drags the range until it reads 3.38%, or taps the 3.33% quick chip and then + five times: the readout says "Discount rate 3.38%" and the task ticks. They press + twice more (3.40%), drag the slider about, then press Reset: the rate is back at 5%.
 
-**Trade-offs.** Rounding to the step's decimals rather than snapping typed values to the step lets a Learner type 3.38 on a 0.25 slider, which an equality task can then match; the price is that a typed value can sit between two positions of the slider's track. Committing typed text only on Enter or leaving the box costs one extra key press but stops half-typed numbers from ticking tasks. Slider positions are saved with the Session (see "Widget state"), and Reset goes back to the code's starting value, not the saved one. The course check for Guided Tasks still tries the written steps, so it can only be stricter than the page.
+**Trade-offs.** Rounding to the step's decimals rather than snapping to the step lets a quick chip or a stepped value sit between two positions of the 0.25 track, which an equality task can then match. Without a box, an exact value takes more taps (the range is 0.01 fine for a percent, and the chips carry the values a Topic cares about), but a Learner never faces a blank number field. Slider positions are saved with the Session (see "Widget state"), and Reset goes back to the code's starting value, not the saved one. The course check for Guided Tasks still tries the written steps, so it can only be stricter than the page.
 
 ## Weekly refresh of Damodaran's posts (`src/library/refresh.ts`, `src/app/api/cron/library-refresh/route.ts`, `library_refresh_runs`, `vercel.json` crons, IL 16, #73)
 
@@ -3920,6 +3923,14 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 *Scenario.* At Percent's Your turn the Learner reads "A rate goes from 3% to 3.5%. How many points did it move?" and taps "50 points". At once the line under the try reads "That is basis points. Points are the new rate minus the old rate.", and the next try comes. Had she tapped "0.5 points", it would say "Right.".
 
 *Trade-off.* Every wrong choice of a number item is a named mix-up, because a choice exists only if the file predicted it. So "wrong with no mix-up to name" now happens only on a written choice item with a plain wrong option, and a number item needs at least one Known mistake to be shown. The gain is a fix on every wrong tap; the cost is that Topic files must predict their slips, which the lesson lint (D1b) will check.
+
+### Lesson lint L10: no typed number and no sum (`lintL10` in `src/course/lesson-lint.ts`, `src/course/l10-allowlist.ts`, `src/teaching/no-sums.ts`, ADR 0009)
+
+**What it does.** L10 runs on every Topic file, converted or not, and fails three things: a Quick try with `kind: number` (the Learner never types a number), a question template whose 20 seeded draws do not each give at least two distinct choices (code builds the choices from the answer and each Known mistake, so a template with no Known mistake that gives another value shows nothing), and any question prompt, Quick-try ask, template ask, conversation Check prompt or conversation Check passCriteria that `sumAsk` matches (it also catches a question for a figure in a stem that gives numbers, "how many notches", and a recompute ask). `sumAsk` is the one shared detector, also used by reply check V8 and the story-recipe checks. `L10_NOT_YET_STORY` lists the Topics still to be rewritten. It only shrinks, with the same three `List:` errors as the not-yet-converted list: an id that is not a Topic, a listed Topic that is now clean ("remove it"), and an unlisted Topic with a hit. One id per line, sorted, so the D2 and E6 batches that delete their ids merge cleanly. `scripts/check-course.mjs` runs it inside the lesson lint, so `npm run check` fails on a new hit.
+
+*Scenario.* An editor adds a Quick try "A rate goes from 3% to 3.5%. How many points did it move?" to a Topic that is not on the list. The course check fails with `L10: Quick try "pb-try-a1" asks for a sum ("How many")` and, if the try is `kind: number`, `... is typed (kind: number): make it kind: choice (ADR 0009)`. The editor rewrites it as a tap, such as "The RBI cut 0.25 points. Traders call that…" with 25 bps as one choice.
+
+*Trade-off.* The lint reads only the Topic files. Question Bank items live in the database, so it cannot see them, and `sumAsk` is a set of patterns, so a sum phrased in an unusual way slips through; the Math police critic samples Topics the list leaves out to catch those, and each miss becomes a new pattern. The gain is that "no typed numbers, no sums" holds for every future edit without anyone re-reading 95 Topics.
 
 ## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
 
@@ -4081,7 +4092,7 @@ library-v2 does). `DrawTheLine` shows a dataset's history up to its as-of date a
 came next, then press "Show me what happened". `PriceTag` and `ShrinkingNote` show inflation twice: a price tag that ticks up,
 and a note whose printed value stays put while its buying power shrinks inside it. `TimeTravel` drags one coin from today to
 year 30 (or, with payments, brings a row of coins to today where they stack up). `StepThrough` is a worked example with Back and
-Next, whose child `Step` can ask the Learner to type a number that code checks. `Rank` puts items in order by drag or keyboard,
+Next, whose child `Step` can hold back a number: its Show the number button (D1c, ADR 0009) reveals it, and nothing is typed. `Rank` puts items in order by drag or keyboard,
 then checks and shows a reason for each. `Waterfall` takes revenue, then each cost, then adds up what is left. An eighth part,
 `RateMove`, came later with the `rate_move` recipe (spec #229): see "The rate-move recipe and the RateMove part". Every figure is
 worked out by code: the tested present value and inflation formulas, or the Case Data the server sends.

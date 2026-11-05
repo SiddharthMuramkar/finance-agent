@@ -1,33 +1,63 @@
 import { describe, expect, it } from "vitest";
-import { markMove } from "./rate-move-marking";
+import { moveReadings, markReading } from "./rate-move-marking";
 
-describe("marking a typed rate move in basis points", () => {
-  it("is exact at 20 bp, with or without the unit", () => {
-    for (const typed of ["20", "20bp", "20 bp", " 20 BP ", "20 basis points"]) expect(markMove(typed, 5, 5.2).status, typed).toBe("right");
-    for (const typed of ["19", "21", "20.4", "0.2"]) expect(markMove(typed, 5, 5.2).status, typed).toBe("wrong");
-    expect(markMove("20", 5, 5.2).expected).toBe("20 bp");
+const byText = (set: ReturnType<typeof moveReadings>) => Object.fromEntries(set.choices.map((c) => [c.text, c.mistake?.tag ?? "right"]));
+
+describe("the readings offered for a rate move (ADR 0009: a tap, never a typed number)", () => {
+  it("4% to 5% offers the right reading, the x10 slip and the percent mix-up", () => {
+    const set = moveReadings(4, 5, "s1");
+    expect(byText(set)).toEqual({ "Up 1 point, or 100 bps": "right", "Up 10 bps": "used_x10", "Up 1%": "mixed_percent_points" });
   });
 
-  it("is exact in whole basis points for a big move: 250 bp, and 1,999 bp across nearly the whole range", () => {
-    expect(markMove("250", 2, 4.5).status).toBe("right");
-    expect(markMove("249", 2, 4.5).status).toBe("wrong");
-    expect(markMove("251 bp", 2, 4.5).status).toBe("wrong");
-    expect(markMove("1,999", 0.01, 20).status).toBe("right");
-    expect(markMove("2000", 0.01, 20).status).toBe("wrong");
+  it("7.5% to 7.2% offers a fall in the same three ways", () => {
+    const set = moveReadings(7.5, 7.2, "s1");
+    expect(byText(set)).toEqual({ "Down 0.3 points, or 30 bps": "right", "Down 3 bps": "used_x10", "Down 0.3%": "mixed_percent_points" });
   });
 
-  it("takes a fall as its size, with a minus sign, or in words, but never a fall for a rise", () => {
-    for (const typed of ["30", "-30", "−30 bp", "a fall of 30", "down 30 bp"]) expect(markMove(typed, 7.5, 7.2).status, typed).toBe("right");
-    expect(markMove("-20", 5, 5.2).status).toBe("wrong");
-    expect(markMove("30", 7.5, 7.2).expected).toBe("30 bp (a fall)");
+  it("keeps the same order for the same seed", () => {
+    expect(moveReadings(4, 5, "a").choices.map((c) => c.id)).toEqual(moveReadings(4, 5, "a").choices.map((c) => c.id));
   });
 
-  it("names the move in points when that is what was typed", () => {
-    expect(markMove("0.2", 5, 5.2).inPoints).toBe(true);
-    expect(markMove("19", 5, 5.2).inPoints).toBe(false);
+  it("still offers two or more readings when the rate does not move", () => {
+    const set = moveReadings(4, 4, "s1");
+    expect(set.choices.length).toBeGreaterThanOrEqual(2);
+    expect(set.choices.filter((c) => c.id === set.answer)).toHaveLength(1);
+    expect(set.choices.find((c) => c.id === set.answer)!.text).toBe("No change, 0 bps");
+  });
+});
+
+describe("every wrong reading names a Known mistake with a fix", () => {
+  it.each([[4, 4], [5, 5.05], [4, 5], [7.5, 7.2]])("%s to %s", (a, b) => {
+    const set = moveReadings(a, b, "s1");
+    for (const c of set.choices.filter((x) => x.id !== set.answer)) {
+      expect(c.mistake?.tag).toBeTruthy();
+      expect(c.mistake?.fix).toBeTruthy();
+    }
   });
 
-  it("does not mark what is not one number", () => {
-    for (const typed of ["", "twenty", "20 or 30", "abc"]) expect(markMove(typed, 5, 5.2).status, typed).toBe("unread");
+  it("a 5 bp move never reads as a fraction of a basis point", () => {
+    expect(moveReadings(5, 5.05, "s1").choices.some((c) => /0\.5 bps/.test(c.text))).toBe(false);
+  });
+});
+
+describe("marking a tapped reading", () => {
+  it("marks the right reading right, by id, whatever the order", () => {
+    const set = moveReadings(5, 5.2, "s1");
+    expect(markReading(set, set.answer)).toEqual({ status: "right", fix: null });
+  });
+
+  it("marks the x10 slip a Known mistake with its one-line fix", () => {
+    const set = moveReadings(5, 5.2, "s1");
+    const slip = set.choices.find((c) => c.mistake?.tag === "used_x10")!;
+    const mark = markReading(set, slip.id);
+    expect(mark.status).toBe("wrong");
+    expect(mark.fix).toMatch(/multiply by 100, not 10/);
+  });
+
+  it("marks the percent mix-up a Known mistake", () => {
+    const set = moveReadings(5, 5.2, "s1");
+    const mix = set.choices.find((c) => c.mistake?.tag === "mixed_percent_points")!;
+    expect(markReading(set, mix.id).status).toBe("wrong");
+    expect(markReading(set, mix.id).fix).toMatch(/percent/i);
   });
 });

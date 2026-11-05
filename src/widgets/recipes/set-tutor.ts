@@ -5,15 +5,15 @@ import { defineRecipe, num, program, reachableTarget, sliderStatements, str, typ
 /**
  * Recipe set of the tutor run (spec #229): the one rate Widget, rate_move. Kept apart from sets A and B so its lane
  * never edits theirs. Both modes draw the RateMove part (src/widgets/primitives/wave2/rate-move.tsx), which writes the
- * three worked lines with the tested rateMoveLines and, in practice mode, marks the typed answer exactly.
+ * three worked lines with the tested rateMoveLines and, in practice mode, marks the tapped reading of the move (nothing is typed).
  */
 
 /** The highest rate the Widget takes, in percent. */
 const MAX_RATE = RATE_MOVE_MAX;
 
 /**
- * The biggest move practice mode takes, in basis points: any move the Widget can draw (0% to 20%), since RateMove marks
- * whole basis points exactly. Kept for importers; it no longer limits anything.
+ * The biggest move practice mode takes, in basis points: any move the Widget can draw (0% to 20%), since RateMove builds
+ * the readings in whole basis points. Kept for importers; it no longer limits anything.
  */
 export const PRACTICE_MAX_BP = MAX_RATE * 100;
 
@@ -30,13 +30,13 @@ export const rateMove = defineRecipe({
   id: "rate_move",
   archetype: "Convert",
   summary:
-    "One rate moving from old to new (in percent, 0 to 20, steps of 0.01): an arrow on a number line, with three worked lines code writes, points (new minus old), basis points (points times 100) and percent of the old rate. mode show (default) shows the lines and keeps sliders for play; mode practice hides the lines until the Learner types the move in basis points, marks it exactly, then reveals them. The one rate Widget: use it for any rate change, never a free-form one.",
+    "One rate moving from old to new (in percent, 0 to 20, steps of 0.01): an arrow on a number line, with three worked lines code writes, points (new minus old), basis points (points times 100) and percent of the old rate. mode show (default) shows the lines and keeps sliders for play; mode practice hides the lines until the Learner taps the right reading of the move (the right one, the times-10 slip or the percent mix-up), marks the tap, then reveals them. The one rate Widget: use it for any rate change, never a free-form one.",
   params: {
     inputs: z
       .object({
         old: rate.describe("The old rate, in percent"),
         new: rate.describe("The new rate, in percent"),
-        mode: z.enum(["show", "practice"]).default("show").describe("show: the three lines at once. practice: the Learner types the basis points first"),
+        mode: z.enum(["show", "practice"]).default("show").describe("show: the three lines at once. practice: the Learner taps the right reading of the move first"),
       })
       .strict(),
     refs: z.object({}).strict(),

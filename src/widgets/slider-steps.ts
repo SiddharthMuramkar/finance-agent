@@ -28,13 +28,6 @@ export function settledValue(value: number, range: SliderRange): number {
   return round(clamp(value, range), decimalsOf(sliderStep(range)));
 }
 
-/** What the number box takes from typed text: the settled value, or null when the text is no number. */
-export function typedValue(text: string, range: SliderRange): number | null {
-  const trimmed = text.trim();
-  const value = trimmed === "" ? NaN : Number(trimmed);
-  return Number.isFinite(value) ? settledValue(value, range) : null;
-}
-
 /** One step down (−1) or up (+1), stopping at min and max. */
 export function steppedValue(value: number, direction: -1 | 1, range: SliderRange): number {
   return settledValue(value + direction * sliderStep(range), range);

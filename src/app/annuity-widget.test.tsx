@@ -103,19 +103,18 @@ const card = () => host.querySelector('[data-testid="widget-card"]')!;
 const shown = () => card().textContent ?? "";
 const button = (name: string) => [...card().querySelectorAll("button")].find((b) => b.textContent === name);
 const ticks = () => [...card().querySelectorAll("[data-state]")].map((li) => li.getAttribute("data-state"));
-const box = () => card().querySelector<HTMLInputElement>('input[type="number"][aria-label="Interest rate (discount rate), exact value"]')!;
+const box = () => card().querySelector<HTMLInputElement>('input[type="range"][aria-label="Interest rate (discount rate)"]')!;
 
 async function click(target: HTMLElement) {
   await act(async () => target.click());
 }
 
-/** Types an exact rate into the number box and presses Enter, as a Learner does. */
+/** Moves the rate's range to an exact value, as a Learner does with the range or the quick chips. */
 async function typeRate(value: number) {
   await act(async () => {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(box(), String(value));
     box().dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await act(async () => box().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
 }
 
 const VERDICT = /the annuity is worth \$[\d.]+M (more|less) than the cash/;

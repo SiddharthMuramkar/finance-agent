@@ -7,7 +7,7 @@
  */
 
 const NUMBER = String.raw`[₹$€£]?\d[\d,]*(?:\.\d+)?%?`;
-const UNIT_WORD = /\b(?:basis points?|bps?|points?|percent|rupees|dollars|lakh|crore)\b|[₹$€£]|\d/i;
+const UNIT_WORD = /\b(?:basis points?|bps?|points?|percent|rupees|dollars|lakh|crore|notch(?:es)?|steps?|years?|months?|days?)\b|[₹$€£]|\d/i;
 
 /** Compute is a sum-verb, but not in the AI-compute nouns ("compute costs", "compute capacity"). */
 const COMPUTE = String.raw`compute(?!\s+(?:costs?|capacity|power|spend|agreements?|commitments?|deals?|budget))`;
@@ -23,6 +23,8 @@ const ANYWHERE: RegExp[] = [
   // 1. Calculate verbs (and "add 50 bp", the same ask in plain words).
   new RegExp(String.raw`\b(?:calculate|${COMPUTE}|${WORK_OUT}|figure\s+out|add\s+up|multiply|divide|subtract)\b`, "i"),
   new RegExp(String.raw`\b(?:add|take away)\s+${NUMBER}`, "i"),
+  // 9. Recompute asks, in a Check prompt or in what a pass demands ("redo the arithmetic", "correct notch counts").
+  /\b(?:re-?comput\w*|redo the (?:arithmetic|sums?|maths?|calculations?)|do the (?:arithmetic|sums?|maths?)|(?:correct|right) notch counts?)\b/i,
   // 3. "what's ... worth", within 60 characters.
   /\bwhat(?:['’]s|\s+is|\s+was|\s+would|\s+will)\b[^.?!]{0,60}?\bworth\b/i,
   // 4. Arithmetic between numbers (a bare x needs a space on both sides). One unit word may sit after the first number.
@@ -34,6 +36,17 @@ const ANYWHERE: RegExp[] = [
   // 7. Change asks.
   /\b(?:percent change|growth rate|return|ratio|margin)\b[^.?!]*\bfrom\b[^.?!]*\d[^.?!]*\bto\b[^.?!]*\d/i,
 ];
+
+/**
+ * "What is its operating margin?", "What is the present value of $5,000 ...?", "What was its revenue for the twelve
+ * months ...?": a question for a figure that has to be worked out. Only a sum when the text also carries a number, so
+ * "What is the present value of a payment?" (a words question) is left alone.
+ */
+const QUANTITY_ASK = new RegExp(
+  String.raw`\bwhat(?:['’]s|\s+is|\s+was|\s+are|\s+were|\s+would\s+be|\s+will\s+be)\s+(?:the\s+|its\s+|their\s+|that\s+|this\s+)?(?:[\w$%.,/-]+\s+){0,5}?(?:present value|future value|margin|ratio|premium|cost of (?:equity|debt|capital)|revenue|difference|npa|rate|yield|total|average|payment|price|value|return|profit|loss|growth|spread|duration)\b`,
+  "i",
+);
+const HAS_NUMBER = /\d/;
 
 const HOW_MANY = /\bhow\s+(?:much|many)\b/i;
 
@@ -47,6 +60,14 @@ export function sumAsk(text: string): string | null {
   for (const sentence of text.split(/(?<=[.?!])\s+/)) {
     const hit = HOW_MANY.exec(sentence);
     if (hit && UNIT_WORD.test(sentence)) return hit[0];
+  }
+  // 8. A question for a figure ("What is its operating margin?") in text that gives numbers to work it out from.
+  if (HAS_NUMBER.test(text)) {
+    for (const sentence of text.split(/(?<=[.?!])\s+/)) {
+      if (!sentence.includes("?")) continue;
+      const hit = QUANTITY_ASK.exec(sentence);
+      if (hit) return hit[0];
+    }
   }
   return null;
 }

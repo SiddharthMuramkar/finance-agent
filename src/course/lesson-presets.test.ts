@@ -20,7 +20,7 @@ const fullPresetOk: PresetCheck = (preset, topic) => {
   return problems.length ? problems.join("; ") : null;
 };
 
-const lint = (t: Topic) => lessonLintErrors([t], { notYet: [], presetOk: fullPresetOk });
+const lint = (t: Topic) => lessonLintErrors([t], { notYet: [], l10NotYet: [t.id], presetOk: fullPresetOk }).filter((e) => !e.includes("L10_NOT_YET_STORY"));
 
 describe("Widget presets on Concept cards (L4, recipes built)", () => {
   it("builds every preset in the real Course Map", () => {
