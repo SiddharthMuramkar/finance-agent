@@ -1,3 +1,4 @@
+// Superseded by `npm run ui:test` (the browser test bed, spec 2026-11-05 T-00); F1 decides whether to delete it.
 // Real-browser layout check of the Widgets and the Study Workspace (UX audit, REPORT.md §13). Not part of CI: it
 // needs a running local server and Chromium, and it is expected to FAIL wherever the app still has an audit bug.
 //

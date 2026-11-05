@@ -1,3 +1,4 @@
+// Superseded by `npm run ui:test` (the browser test bed, spec 2026-11-05 T-00); F1 decides whether to delete it.
 // Headless-browser check of the Study Workspace, run as the tools Learner (spec #119, "Owner tooling › Test tools").
 //
 // It signs in to a LOCAL server that runs against a Neon TEST BRANCH, always as the tools Learner (never the owner or

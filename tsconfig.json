@@ -17,6 +17,6 @@
     "plugins": [{ "name": "next" }],
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
-  "exclude": ["node_modules", ".claude/worktrees"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts", ".next-e2e/types/**/*.ts", ".next-e2e/dev/types/**/*.ts"],
+  "exclude": ["node_modules", ".claude/worktrees", ".next-e2e", "playwright-report", "test-results"]
 }

@@ -41,3 +41,29 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # The browser test bed (PGlite, the scripted Tutor) must never reach a production build.
+      - run: node scripts/check-no-e2e-in-build.mjs
+
+  # The browser test bed (spec 2026-11-05, T-00): the whole app in Chromium on an in-memory PGlite with a scripted
+  # Tutor. Not a required check until the owner adds it to the ruleset after three green runs on main (H1).
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # No browser cache: Playwright's own guidance is that restoring it takes about as long as downloading.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run ui:test
+      - uses: actions/upload-artifact@v5
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

@@ -23,3 +23,8 @@ next-env.d.ts
 
 # Live Tutor test, sweep and replay reports (can hold Learner messages)
 evidence/tutor-eval/
+
+# Browser test bed (spec 2026-11-05, T-00): its build folder and reports
+.next-e2e/
+playwright-report/
+test-results/
