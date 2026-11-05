@@ -244,12 +244,9 @@ checks:
   - id: adb-writers-sorted
     kind: conversation
     prompt: >
-      Take the Forbes debate as it stood on 12 June 2000. Pick one claim from each writer that a
-      reader could check, and say where you would look and what you would compare (for
-      Yahoo, the numbers in the story). Then name one claim that is a
-      forecast and one that is framing, and say how you would treat each. Finally, say which
-      writer's argument you find better supported on what was known that day, what you still
-      could not know, and what would change your mind. Do not predict what happened next.
+      Take the Forbes debate as it stood on 12 June 2000. Pick one claim a reader could check,
+      say where you would look, and say which writer is better supported on what was known that
+      day. Do not predict what happened next.
     passCriteria: >
       The Learner picks at least one checkable fact from each writer (for example the Nasdaq's 1999
       rise against its published year-end figures, Yahoo's earnings against its April release, or

@@ -166,8 +166,8 @@ youllLearn:
 questions:
   - id: s1r-q-operating-vs-net
     prompt: >
-      A hypothetical company reports, for a year: revenue $100m; total operating expenses $110m;
-      a $500m non-operating loss from revaluing its investments; and interest expense of $40m.
+      A hypothetical company spends a little more running its business than it earns from customers,
+      and separately books a huge loss from revaluing its investments and pays interest on its debt.
       Which headline describes its operating result correctly?
     choices:
       - { id: a, text: "A small operating loss: revenue fell short of operating expenses, and the revaluation and interest sit below that line" }

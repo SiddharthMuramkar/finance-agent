@@ -29,10 +29,11 @@ cases:
       either party may cancel on 90 days' notice after initial non-cancelable periods end in
       January and March 2027. At 30 June 2026 the company held cash and cash equivalents of
       $112.4 billion and short-term investments of $19.3 billion. No one has yet said what the
-      commitments are worth in today's money. Using the 31 December 2025 schedule, work out the
-      present value of the commitments at a rate you choose and state, and say how you would
-      decide which of the contracts above belong in a debt-like total, and what the filing
-      would need to show for you to do the same for the later, larger figures.
+      commitments are worth in today's money. Using the 31 December 2025 schedule, why would
+      a payment due in 2030 count for less than one due this year, and why does the rate
+      you pick matter? Say how you would decide which of the contracts above belong in a
+      debt-like total, and what the filing would need to show for you to do the same for the
+      later, larger figures.
     reveal: >
       Treating each year's payment as made at year end, and spreading the 11,808 "thereafter"
       evenly over 2031 to 2035 (the filing does not give the split, so this is an assumption),
@@ -186,11 +187,8 @@ checks:
     kind: conversation
     prompt: >
       Looking at the schedule in the filing as of 31 December 2025, say in your own words how a
-      list of fixed yearly payments becomes a debt-like total, and which kind of interest rate
-      you would use to shrink the later payments, and why. Then say which of the named contracts
-      (Microsoft, Google, Amazon, Broadcom, SpaceXAI) you would count in a debt-like total and
-      which you would leave out or keep separate, and what you would still want from the filing
-      for the larger later figure.
+      list of fixed yearly payments becomes a debt-like total, and which contract you would
+      leave out of it or keep separate, and why.
     passCriteria: >
       The Learner explains in words that each year's payment is shrunk to what it is worth today,
       or that a stated assumed split of the "thereafter" amount is needed first, so the debt-like

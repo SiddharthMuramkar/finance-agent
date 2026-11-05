@@ -56,11 +56,11 @@ cases:
       crore next year, growing at the rupee inflation rate for ever. For this exercise take rupee
       inflation as 8% a year, dollar inflation as 2%, a dollar cost of equity for this company of 10%
       (already including any country risk premium), and a round exchange rate of Rs 65 to the
-      dollar (not the day's actual rate). First value the company in rupees, converting the dollar
-      cost of equity with the inflation differential. Then value it in dollars, converting each
-      rupee cash flow at an exchange rate that moves with the inflation differential, and convert
-      the answer back at Rs 65. Do the two values agree? Then consider the other reading, in which
-      the investor discounts the rupee cash flows at the 10% dollar rate: what error is that?
+      dollar (not the day's actual rate). Why must the rupee cash flows be discounted at a rupee rate, built from the dollar
+      cost of equity and the inflation gap, and not at the 10% dollar rate? Would valuing the
+      company in dollars, with the exchange rate drifting by the same inflation gap, and
+      converting back at Rs 65, tell the same story? What mistake is it to discount the rupee
+      cash flows at the dollar rate?
       Finally, does the 17% fall already seen tell you what the rupee will do next, and what
       would you need to know before using it?
     reveal: >
@@ -152,7 +152,7 @@ questions:
 
   - id: ana-india-q-cost-of-equity
     prompt: >
-      A company's cost of equity is built as the risk-free rate plus beta times the sum of the mature-market equity premium and a country risk premium. The company has a beta of 1.2 and is exposed to country risk in line with its beta. Which sentence describes how the country risk premium enters?
+      An Indian company is more sensitive to markets than average (its beta is 1.2), and it carries the extra risk of its country. When investors set the return they demand, which sentence describes how that country risk is treated?
     choices:
       - { id: a, text: "It sits inside the bracket, so beta scales it together with the mature-market premium" }
       - { id: b, text: "It is added once at the end, the same for every company whatever its beta", mistake: { tag: unscaled-premium, fix: "In this method the country premium sits in the bracket and is scaled by beta too." } }

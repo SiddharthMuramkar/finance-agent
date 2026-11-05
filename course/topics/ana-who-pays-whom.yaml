@@ -156,9 +156,8 @@ checks:
     prompt: >
       Using only what the S-1 showed on 14 August 2019 (half-year revenue of $1.54 billion, a
       loss of about $905 million, $47.2 billion of undiscounted lease payments, member contracts
-      of about 15 months, and SoftBank's payments into WeWork), draw the chain of who pays whom.
-      Say which payment is the weakest link and why, and which facts you would still want
-      before judging it. Do not predict what will happen.
+      of about 15 months, and SoftBank's payments into WeWork), draw the chain of who pays whom
+      and say which payment is the weakest link and why. Do not predict what will happen.
     passCriteria: >
       The Learner draws the chain correctly: members pay WeWork (revenue), WeWork pays landlords
       (lease payments) and others, and the shortfall is covered by investors, mainly SoftBank,
