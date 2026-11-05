@@ -9,7 +9,7 @@ A person the Tutor teaches, signed in with their own passcode. Each Learner's Le
 _Avoid_: User, student, account
 
 **Invite list**:
-The emails allowed to sign in with Google while the Sign-up switch is off. An invite may name an existing Learner (the owner's email names `owner`, so the owner keeps their progress); otherwise signing in makes a new Learner. Taking an email off the list stops new sign-ups only: a Learner already in keeps access until archived.
+The emails allowed to sign in with Google while the Sign-up switch is off. An invite may name an existing Learner (the owner's email names `owner`, so the owner keeps their progress); otherwise signing in makes a new Learner. Taking an email off the list stops new sign-ups only: a Learner already in keeps access until archived (remove the invite first, then archive; archiving alone lets them back in while the invite is listed or sign-up is open).
 _Avoid_: Whitelist, allowlist, waitlist
 
 **Sign-up switch**:

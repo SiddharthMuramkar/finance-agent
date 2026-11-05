@@ -59,7 +59,7 @@ async function makeLearner(db: Db, user: AuthUser, reserved: Set<string>): Promi
  * Null when it is linked to another Google account ("invite_taken"); undefined when no active Learner
  * has that name (the caller makes one).
  */
-async function linkNamed(db: Db, user: AuthUser, learnerName: string, email: string): Promise<Learner | null | undefined> {
+async function linkNamed(db: Db, user: AuthUser, learnerName: string): Promise<Learner | null | undefined> {
   try {
     const [named] = await db
       .update(learners)
@@ -78,7 +78,8 @@ async function linkNamed(db: Db, user: AuthUser, learnerName: string, email: str
     .where(and(eq(learners.name, learnerName), isNull(learners.archivedAt)))
     .limit(1);
   if (!taken) return undefined;
-  console.warn(`invite_taken: the invite for ${email} names Learner ${taken.id}, already linked to another Google account`);
+  // No email in the log: it is personal data. The Learner id is enough to find the invite.
+  console.warn(`invite_taken: an invite names Learner ${taken.id}, already linked to another Google account`);
   return null;
 }
 
@@ -96,7 +97,7 @@ export async function learnerForAuthUser(db: Db, user: AuthUser, reserved: Set<s
   const invite = await inviteFor(db, user.email);
   if (!invite && !(await signupOpen(db))) return null;
   if (invite?.learnerName) {
-    const named = await linkNamed(db, user, invite.learnerName, invite.email);
+    const named = await linkNamed(db, user, invite.learnerName);
     if (named !== undefined) return named;
     const [made] = await db.insert(learners).values({ name: invite.learnerName, authUserId: user.id }).onConflictDoNothing().returning();
     return made ?? (await linkedLearner(db, user.id));

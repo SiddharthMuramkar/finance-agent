@@ -1,11 +1,11 @@
 import { eq, sql } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { learners, topicProgress, user as authUser } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
 import { learnerForAuthUser } from "./google-learner";
-import { addInvite, setSignupOpen } from "./invites";
+import { addInvite, removeInvite, setSignupOpen } from "./invites";
 import { signInAs, startOver } from "./learners";
 
 type GoogleUser = { id: string; email: string; name: string };
@@ -112,6 +112,33 @@ describe("learnerForAuthUser", () => {
     expect((await learnerForAuthUser(db, u))?.id).toBe(fresh.id);
 
     await expect(db.insert(learners).values({ name: "Someone else", authUserId: "u1" })).rejects.toThrow();
+  });
+
+  it("lock-out: remove the invite, then archive, and the next request is signed out", async () => {
+    const db = await testDb();
+    await addInvite(db, "a@x.com");
+    const u = await googleUser(db, { id: "u1", email: "a@x.com", name: "Asha" });
+    const first = (await learnerForAuthUser(db, u))!;
+    await removeInvite(db, "a@x.com");
+    expect((await learnerForAuthUser(db, u))?.id).toBe(first.id);
+    await db.update(learners).set({ archivedAt: new Date() }).where(eq(learners.id, first.id));
+    expect(await learnerForAuthUser(db, u)).toBeNull();
+  });
+
+  it("invite_taken never logs the invited email", async () => {
+    const db = await testDb();
+    await addInvite(db, "o@x.com", { learnerName: "owner" });
+    await addInvite(db, "p@x.com", { learnerName: "owner" });
+    await learnerForAuthUser(db, await googleUser(db, { id: "u1", email: "o@x.com", name: "Siddharth" }));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      expect(await learnerForAuthUser(db, await googleUser(db, { id: "u2", email: "p@x.com", name: "Priya" }))).toBeNull();
+      const logged = warn.mock.calls.flat().join(" ");
+      expect(logged).toContain("invite_taken");
+      expect(logged).not.toMatch(/@x\.com/);
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it("two first requests at once make one Learner", async () => {

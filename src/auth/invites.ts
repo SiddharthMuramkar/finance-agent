@@ -47,7 +47,7 @@ export async function isInvited(db: Db, email: string): Promise<boolean> {
 export const INVITES_USAGE = [
   "Usage: npm run invites -- <command>",
   '  add <email> [--learner <name>] [--note "..."]   invite an email; --learner links an existing Learner (the owner: --learner owner)',
-  "  remove <email>                                   take an email off the list (someone already signed up keeps access)",
+  "  remove <email>                                   take an email off the list (to lock someone out: remove first, then archive their Learner)",
   "  list                                             the invite list, oldest first, and the Sign-up switch",
   "  open | close                                     turn the Sign-up switch on (anyone with Google) or off (invites only)",
 ].join("\n");
@@ -91,7 +91,7 @@ export async function runInvites(db: Db, argv: string[], log: (line: string) => 
   if (command === "remove") {
     if (!args[0]) throw new Error(`remove needs an email.\n${INVITES_USAGE}`);
     const gone = await removeInvite(db, args[0]);
-    log(gone ? `Removed ${inviteEmail(args[0])}. If they already signed up they keep access; archive their Learner to lock them out.` : `${inviteEmail(args[0])} was not on the list.`);
+    log(gone ? `Removed ${inviteEmail(args[0])}. If they already signed up they keep access; to lock them out, now archive their Learner (with sign-up closed).` : `${inviteEmail(args[0])} was not on the list.`);
     return;
   }
   if (command === "list") {
@@ -108,7 +108,9 @@ export async function runInvites(db: Db, argv: string[], log: (line: string) => 
   throw new Error(INVITES_USAGE);
 }
 
-/** Takes an email off the list. A Learner who already signed up keeps access (archive them to lock them out). */
+/** Takes an email off the list. A Learner who already signed up keeps access. To lock one out,
+ * remove the invite first and then archive the Learner, with sign-up closed: archiving alone lets the next request
+ * make a fresh Learner while the invite is listed or sign-up is open (ADR 0011). */
 export async function removeInvite(db: Db, email: string): Promise<boolean> {
   const gone = await db.delete(invites).where(eq(invites.email, inviteEmail(email))).returning();
   return gone.length > 0;
