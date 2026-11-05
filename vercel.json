@@ -5,7 +5,7 @@
   "crons": [{ "path": "/api/cron/library-refresh", "schedule": "30 21 * * 1" }],
   "git": {
     "deploymentEnabled": {
-      "main": true,
+      "main": false,
       "*": false
     }
   }
