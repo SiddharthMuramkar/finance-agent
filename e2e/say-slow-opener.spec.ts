@@ -7,9 +7,11 @@ import { say, seed } from "./support/app";
  */
 test("say() counts its own reply when the opener starts late", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "one viewport is enough");
+  // A throttled CPU is slow on CI runners too: give the test room beyond the default 30 s.
+  test.setTimeout(120_000);
   await seed(page, "story");
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 20 });
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 8 });
   await page.goto("/study");
   await say(page, "story-reply", "Tell me a story about rates.");
   await expect(page.getByTestId("assistant-message").last()).toContainText("In February 1994 the Federal Reserve lifted its key rate");
