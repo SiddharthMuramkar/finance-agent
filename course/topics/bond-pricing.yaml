@@ -96,15 +96,15 @@ questions:
 
   - id: bp-q-five-year
     prompt: >
-      A $1,000 five-year bond pays a 6% coupon in two half-yearly payments. The market yield is 5%. What is its price, to the nearest cent?
+      A $1,000 five-year bond pays a 6% coupon in two half-yearly payments. The market yield is 5%. Which headline gets the bond's price right?
     choices:
-      - { id: a, text: "$1,043.76" }
-      - { id: b, text: "$1,000.00" }
-      - { id: c, text: "$956.24" }
-      - { id: d, text: "$1,154.54" }
+      - { id: a, text: "It sells at a premium, above $1,000, because its coupon beats the market yield" }
+      - { id: b, text: "It sells at par, $1,000, because the face value is repaid in full", mistake: { tag: confused_face_with_price, fix: "Face value is only what is repaid. A coupon above the market yield pushes the price up." } }
+      - { id: c, text: "It sells at a discount, below $1,000, because the market yield is lower", mistake: { tag: flipped_yield_effect, fix: "A lower market yield makes the fixed coupon more attractive, so the price rises, not falls." } }
+      - { id: d, text: "It sells at a big premium, like a 30-year bond with the same coupon", mistake: { tag: ignored_maturity, fix: "Five years of extra coupon is a short wait, so the premium is smaller than a 30-year bond's." } }
     answer: a
     explanation: >
-      Discounting ten payments of $30 and the $1,000 at 2.5% per half year gives $1,043.76. The coupon is above the market yield, so the bond sells at a premium. $1,154.54 is the price of the 30-year bond with the same coupon at the same yield.
+      The coupon is above the market yield, so buyers pay more than face value: a premium. OpenStax's worked example puts the price near $1,044. A 30-year bond with the same coupon carries a much bigger premium, near $1,155.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk (worked example: 6% coupon, 5-year bond $1,043.76 at 5%): https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
 
@@ -123,15 +123,15 @@ questions:
 
   - id: bp-q-1994
     prompt: >
-      You buy a 10-year bond at par with a 5% coupon, paid half-yearly. Later the market yield on 10-year bonds is 7%. About what is the bond worth per $1,000 of face value, ignoring the time that has passed?
+      You buy a 10-year bond at par with a 5% coupon, paid half-yearly. Later the market yield on 10-year bonds rises to 7%. Which statement about your bond's price now is right, ignoring the time that has passed?
     choices:
-      - { id: a, text: "About $858" }
-      - { id: b, text: "About $1,000" }
-      - { id: c, text: "About $925" }
-      - { id: d, text: "About $1,172" }
+      - { id: a, text: "It is worth less than you paid: new bonds pay 7%, so buyers offer less for your 5%" }
+      - { id: b, text: "It is still worth what you paid, because the coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, but the price is not. It adjusts when market yields move." } }
+      - { id: c, text: "It is worth more than you paid, because yields are higher", mistake: { tag: yield_up_price_up, fix: "Higher yields push bond prices down, because buyers can get 7% elsewhere." } }
+      - { id: d, text: "It is worth what you paid plus the two extra points a year", mistake: { tag: added_yield_gap, fix: "Yield and price move in opposite directions. The yield gap is not added to the price." } }
     answer: a
     explanation: >
-      Discount 20 half-yearly payments of $25 and the $1,000 at 3.5% per half year: the sum is about $858, a fall of about 14%. A rise of 2 points in the yield cost the holder roughly 14% of the price.
+      New bonds pay 7%, so buyers will pay less than face value for your 5% coupon. Per $1,000 of face value the bond is worth about $858, roughly a seventh below par. A rise of two points in the yield cost the holder that much.
     source: >
       Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 

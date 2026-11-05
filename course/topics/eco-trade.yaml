@@ -75,15 +75,15 @@ questions:
 
   - id: et-q-opportunity
     prompt: >
-      Country A can make 100 bushels of corn or 50 barrels of oil with its resources. What is A's opportunity cost of one barrel of oil?
+      Country A's resources can make either 100 bushels of corn or 50 barrels of oil. Which statement describes A's opportunity cost of making oil?
     choices:
-      - { id: a, text: "2 bushels of corn" }
-      - { id: b, text: "0.5 bushels of corn" }
-      - { id: c, text: "50 bushels of corn" }
-      - { id: d, text: "100 bushels of corn" }
+      - { id: a, text: "The corn it gives up: resources used for oil cannot make corn" }
+      - { id: b, text: "The money A pays for the oil's inputs", mistake: { tag: money_not_opportunity, fix: "Opportunity cost is the next best use given up, not the money spent." } }
+      - { id: c, text: "Nothing, because the resources are already owned", mistake: { tag: free_resources, fix: "Resources used for oil cannot make corn, so something is always given up." } }
+      - { id: d, text: "The oil A could have made instead of corn", mistake: { tag: flipped_goods, fix: "Here the cost of making oil is the corn given up, not the oil." } }
     answer: a
     explanation: >
-      Making 50 barrels means giving up 100 bushels, so each barrel costs 100 / 50 = 2 bushels of corn.
+      Resources used for oil cannot make corn. Choosing 50 barrels of oil means giving up 100 bushels of corn, so about 2 bushels of corn per barrel. That lost corn is the opportunity cost of the oil.
     source: >
       OpenStax, Principles of Economics 3e (CC BY-NC-SA), 33.1 Absolute and Comparative Advantage (United States and Saudi Arabia example): https://openstax.org/books/principles-economics-3e/pages/33-1-absolute-and-comparative-advantage
 

@@ -74,29 +74,29 @@ questions:
 
   - id: bd-q-rule
     prompt: >
-      A bond has a modified duration of 7.4. Market yields rise by one percentage point. By roughly how much does its price change?
+      A bond has a modified duration of 7.4. Market yields rise by one percentage point. Which headline fits what happens to its price?
     choices:
-      - { id: a, text: "It falls by about 7.4%" }
-      - { id: b, text: "It rises by about 7.4%" }
-      - { id: c, text: "It falls by about 0.74%" }
-      - { id: d, text: "It falls by about 74%" }
+      - { id: a, text: "It falls by about 7.4%: duration is the percentage change in price for each point of yield" }
+      - { id: b, text: "It rises by about 7.4%", mistake: { tag: wrong_direction, fix: "Prices move opposite to yields. A rise in yield means a fall in price." } }
+      - { id: c, text: "It falls by about 0.74%", mistake: { tag: slipped_decimal, fix: "A duration of 7.4 means about 7.4% per point, not a tenth of that." } }
+      - { id: d, text: "It falls by about 74%", mistake: { tag: slipped_decimal_up, fix: "A duration of 7.4 means about 7.4% per point, not ten times that." } }
     answer: a
     explanation: >
-      Price change is approximately minus modified duration times the change in yield: -7.4 x 1% = -7.4%. A 10-year 6% bond at a 6% yield has a modified duration of 7.44; when its yield rises one point the price actually falls 7.1%, because of convexity.
+      Duration is the rule of thumb for the percentage a price changes for each one-point move in yield, in the opposite direction. So a one-point rise cuts this bond's price by about 7.4%. A 10-year 6% bond at a 6% yield has a modified duration of 7.44; when its yield rises one point the price actually falls 7.1%, because of convexity.
     source: >
       Calculated with the bond price formula of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: bd-q-svb
     prompt: >
-      SVB's held-to-maturity portfolio had a duration of 6.2 years. The 10-year Treasury yield rose about 2.4 percentage points in 2022. Roughly how much did the market value of the portfolio fall, if its yields moved with the 10-year?
+      SVB's held-to-maturity portfolio had a duration of 6.2 years. The 10-year Treasury yield rose about 2.4 percentage points in 2022. Which headline gets the portfolio's market value right, if its yields moved with the 10-year?
     choices:
-      - { id: a, text: "About 15%" }
-      - { id: b, text: "About 2.6%" }
-      - { id: c, text: "About 6.2%" }
-      - { id: d, text: "About 2.4%" }
+      - { id: a, text: "It fell by far more than 2.4%: a duration of 6.2 years magnified the rise, to roughly 15%" }
+      - { id: b, text: "It barely moved, because the bonds were safe from default", mistake: { tag: credit_vs_rate_risk, fix: "Safe from default is not safe from rates. Duration measures rate risk, not credit risk." } }
+      - { id: c, text: "It rose, because higher yields mean the bonds pay more", mistake: { tag: yield_up_price_up, fix: "Bonds already held keep their old coupons, so higher yields push their prices down." } }
+      - { id: d, text: "It fell by about 2.4%, one-for-one with the yield", mistake: { tag: ignored_duration, fix: "Duration multiplies the move: each point of yield costs about 6% of the price here." } }
     answer: a
     explanation: >
-      6.2 x 2.4 = about 14.9%. Duration times the yield change gives the percentage fall in price. It is an estimate, because duration is a first approximation and the actual securities' yields differ from the 10-year Treasury's.
+      Duration is the rule of thumb for how far a price falls for each point of yield rise. At 6.2 years, a rise of about 2.4 points cuts the value by roughly 15%. It is an estimate, because the actual securities' yields differ from the 10-year Treasury's.
     source: >
       Duration rule applied to the Federal Reserve's figure for SVBFG's HTM duration (6.2 years): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; 10-year yield from US Department of the Treasury, Daily Treasury Par Yield Curve Rates, 2021 and 2022: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2022/all?type=daily_treasury_yield_curve&field_tdr_date_value=2022&page&_format=csv
 

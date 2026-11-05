@@ -96,12 +96,12 @@ questions:
 
   - id: gs-q-coupon
     prompt: >
-      A dated G-sec of Rs 100 face value has an 8% coupon. What does it pay?
+      A dated G-sec of Rs 100 face value carries an 8% coupon. How does it pay the investor?
     choices:
-      - { id: a, text: "Rs 4 every six months, and Rs 100 at maturity" }
-      - { id: b, text: "Rs 8 once, at maturity" }
-      - { id: c, text: "Rs 8 every month" }
-      - { id: d, text: "Rs 100 at maturity only" }
+      - { id: a, text: "Coupons every six months, and the Rs 100 face value back at maturity" }
+      - { id: b, text: "All the coupons in one go, at maturity, with the face value", mistake: { tag: coupon_at_end_only, fix: "Dated G-secs pay coupons along the way, every six months, not all at the end." } }
+      - { id: c, text: "A coupon every month", mistake: { tag: paid_monthly, fix: "Dated G-secs pay their coupon half-yearly, not monthly." } }
+      - { id: d, text: "Only the Rs 100 at maturity, with no coupons", mistake: { tag: forgot_coupon, fix: "The 8% coupon is paid on top of the face value, half-yearly." } }
     answer: a
     explanation: >
       Dated G-secs pay a coupon on the face value on a half-yearly basis: 8% of Rs 100 is Rs 8 a year, paid as Rs 4 twice a year, with the face value repaid at maturity.
