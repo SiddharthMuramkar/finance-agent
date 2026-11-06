@@ -269,7 +269,7 @@ questions:
 
   - id: s1r-q-period
     prompt: >
-      Damodaran and Zitron quoted Anthropic's revenue over different periods. Take a made-up
+      Revenue can be quoted over different periods. Take a made-up
       filing with revenue of $5bn in the first quarter and $12bn in the second. A writer sets a
       yearly-rate ('annualised') figure beside "quarterly revenue of $12bn" as if the two were the
       same kind of number. What is the main problem with that comparison?

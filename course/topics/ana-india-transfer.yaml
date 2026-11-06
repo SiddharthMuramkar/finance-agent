@@ -180,7 +180,7 @@ questions:
 
   - id: ana-india-q-gross-npa
     prompt: >
-      When Yes Bank reported in February 2020, readers went first to one figure: bad loans as a share of all loans lent, before any money set aside for losses is taken off. Picture a bank with Rs 5,000 crore of bad loans out of Rs 80,000 crore lent. What do bankers call that figure?
+      When a bank reports its results, readers go first to one figure: bad loans as a share of all loans lent, before any money set aside for losses is taken off. Picture a bank with Rs 5,000 crore of bad loans out of Rs 80,000 crore lent. What do bankers call that figure?
     choices:
       - { id: a, text: "The gross NPA ratio" }
       - { id: b, text: "The net NPA ratio", mistake: { tag: gross-vs-net, fix: "Net NPA takes provisions off first; gross NPA does not." } }
