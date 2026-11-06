@@ -123,28 +123,34 @@ export function Chips({
     else onNext(offer.kind === "complete" ? "complete" : offer.step);
   };
   return (
-    <div className="measure mt-3 flex flex-wrap gap-2" data-testid="choices">
+    // The Next chip is the main move, so it gets its own row at full size; the Choices are smaller, grouped below it.
+    <div className="measure mt-3 flex flex-col items-start gap-2" data-testid="choices">
       {offer && (
         <Button variant="secondary" data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →
         </Button>
       )}
-      {choices.map((choice, index) => (
-        <Button
-          variant="secondary"
-          key={choice.says}
-          data-testid="choice"
-          loading={pressed === choice.says}
-          disabled={pressed !== null}
-          onClick={() => {
-            setPressed(choice.says);
-            onChoice(index);
-          }}
-        >
-          {isEmojiName(choice.emoji) && pressed !== choice.says && <Emoji name={choice.emoji} size={20} />}
-          {choice.label}
-        </Button>
-      ))}
+      {choices.length > 0 && (
+        <div role="group" aria-label="Choices" className="flex flex-wrap gap-2">
+          {choices.map((choice, index) => (
+            <Button
+              variant="secondary"
+              size="sm"
+              key={choice.says}
+              data-testid="choice"
+              loading={pressed === choice.says}
+              disabled={pressed !== null}
+              onClick={() => {
+                setPressed(choice.says);
+                onChoice(index);
+              }}
+            >
+              {isEmojiName(choice.emoji) && pressed !== choice.says && <Emoji name={choice.emoji} size={16} />}
+              {choice.label}
+            </Button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

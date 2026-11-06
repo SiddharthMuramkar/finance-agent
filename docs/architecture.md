@@ -2567,8 +2567,11 @@ step a refusal names) or a message, and never Continue.
 ## Choices under every reply, and which messages count as Insight attempts (`src/tutor/choices.ts`, `reply-choices.ts`, `chips.ts`, `Chips` in `workspace-parts.tsx`, `left-column.tsx`, `turn-stream.ts`, `turn-status.ts`, `suggest_choice` and `record_insight_attempt` in `tools.ts`; spec #119, ticket #135; Go deeper from spec #229, ticket #233; Choices from spec 2026-11-05, ticket D3a #340, ADR 0010)
 
 **What it does.**
-- **Two or three Choices** sit beside Next under the latest Tutor reply or card: raised secondary buttons, each with
-  a decorative emoji (`<Emoji alt="">`) before its words. They replaced the two help chips (Go deeper and Show me in
+- **Two or three Choices** sit under Next below the latest Tutor reply or card: small raised secondary buttons
+  (`size="sm"`) in a group labelled "Choices", each with a decorative emoji (`<Emoji alt="">`) before its words. Next
+  keeps its own row above them at full size, so it reads as the main move and the Choices as other ways in (the
+  affordance critic's AFF-1: one shared style and one wrapping row made them look like peers). Pressing any of them
+  spins that one, keeps its words, and holds the rest disabled until the turn takes them away. They replaced the two help chips (Go deeper and Show me in
   a widget). They follow the Next chip's rules for where they stand (never under an older reply or the Learner's own
   message, not during a turn, a refresh, with Retry on offer, or on a passed Topic), with one difference: while a quiz
   or conversation Check is open Next is hidden but the Choices stay, so a Learner who is stuck can always ask in

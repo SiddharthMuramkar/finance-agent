@@ -48,6 +48,30 @@ describe("the Next chip and the Choices", () => {
     expect(first.getAttribute("aria-busy")).toBe("true");
   });
 
+  it("set the Next chip apart as the main move: its own row first, full size, with the smaller Choices grouped below (critic AFF-1)", () => {
+    act(() => root.render(<Chips offer={{ kind: "next", step: "concept", label: "Next: Concept", advances: true }} choices={STORY} onNext={() => {}} onChoice={() => {}} />));
+    const wrap = host.querySelector('[data-testid="choices"]')!;
+    const [first, second] = [...wrap.children];
+    expect(first.getAttribute("data-testid")).toBe("next-chip");
+    expect(first.className).not.toContain("btn-sm");
+    expect(second.getAttribute("role")).toBe("group");
+    expect(second.getAttribute("aria-label")).toBe("Choices");
+    const choices = [...second.querySelectorAll<HTMLButtonElement>('[data-testid="choice"]')];
+    expect(choices.length).toBe(STORY.length);
+    for (const c of choices) expect(c.className).toContain("btn-sm");
+  });
+
+  it("keep a pressed Choice's label beside its spinner, and the others visibly held (critic AFF-3)", () => {
+    act(() => root.render(<Chips offer={{ kind: "next", step: "concept", label: "Next: Concept", advances: true }} choices={STORY} onNext={() => {}} onChoice={() => {}} />));
+    const [first, ...rest] = host.querySelectorAll<HTMLButtonElement>('[data-testid="choice"]');
+    act(() => first.click());
+    expect(first.querySelector('[data-testid="spinner"]')).not.toBeNull();
+    expect(first.textContent?.trim()).toBe(STORY[0].label);
+    expect(first.disabled).toBe(true);
+    for (const c of rest) expect(c.disabled).toBe(true);
+    expect(host.querySelector<HTMLButtonElement>('[data-testid="next-chip"]')!.disabled).toBe(true);
+  });
+
   it("draws two or three raised Choice buttons, each with a decorative picture before its label, and no Show me in a widget", () => {
     for (const choices of [STORY, choicesFor("concept", null, "show")]) {
       act(() => root.render(<Chips offer={null} choices={choices} onNext={() => {}} onChoice={() => {}} />));
