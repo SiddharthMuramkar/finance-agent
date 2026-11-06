@@ -3,7 +3,6 @@
 // Topic off it with a hit fails. One id per line, sorted, so batch PRs merge cleanly. Never add an id.
 export const L10_NOT_YET_STORY: readonly string[] = [
   "ana-anthropic-s1",
-  "ana-build-valuation",
   "ana-commitments-debt",
   "ana-decide-between",
   "ana-india-transfer",
@@ -29,13 +28,9 @@ export const L10_NOT_YET_STORY: readonly string[] = [
   "fs-revenue-runrate",
   "ins-risk-transfer",
   "jud-assumptions",
-  "jud-filing-vs-claim",
   "jud-ipo-forecast",
   "jud-narrative-numbers",
-  "jud-predicted-outcomes",
   "jud-rating-boundary",
-  "jud-rating-conflict",
-  "jud-units-periods",
   "num-compounding",
   "num-percent-bps",
   "num-probability",
