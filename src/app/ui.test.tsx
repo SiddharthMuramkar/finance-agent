@@ -7,7 +7,7 @@ const LIGHT: ThemePref = { mode: "single", theme: "light" };
 
 describe("ReadingPage", () => {
   it("reading pages use the full box: one wide main for header and content, no narrow column", () => {
-    const pages = (["course", "progress", "sessions", "notes", "settings", undefined] as const).map((current) =>
+    const pages = (["course", "notebook", "settings", undefined] as const).map((current) =>
       renderToStaticMarkup(
         <ReadingPage current={current} theme={LIGHT}>
           <p>content</p>
@@ -19,7 +19,7 @@ describe("ReadingPage", () => {
       expect(html).not.toMatch(/<main[^>]*max-w-6xl/);
       expect(html.match(/<div[^>]*data-testid="reading-column"[^>]*>/)![0]).not.toMatch(/max-w-2xl/);
       expect(html.indexOf("<header")).toBeLessThan(html.indexOf('data-testid="reading-column"'));
-      expect(html).toContain("Study Workspace");
+      expect(html).toContain(">Study<");
     }
     expect(new Set(pages.map((h) => h.match(/<main[^>]*>/)![0])).size).toBe(1);
   });
@@ -46,83 +46,97 @@ describe("AppHeader density (A2)", () => {
 });
 
 describe("AppHeader", () => {
-  const pages = [
-    ["workspace", "/study", "Study Workspace"],
+  const account = { name: "Asha" };
+  const header = (current?: "workspace" | "course" | "notebook" | "settings") =>
+    renderToStaticMarkup(<AppHeader current={current} theme={LIGHT} account={account} />);
+  const navPages = [
+    ["workspace", "/study", "Study"],
     ["course", "/course", "Course Map"],
-    ["progress", "/progress", "Progress"],
-    ["sessions", "/sessions", "Past Sessions"],
-    ["notes", "/notes", "Notes"],
-    ["settings", "/settings", "Settings"],
+    ["notebook", "/notebook", "Notebook"],
   ] as const;
+  const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+
+  it("header: brand, three pages, three icons", () => {
+    const html = header("workspace");
+    const nav = html.match(/<nav [^>]*aria-label="Pages"[^>]*>([\s\S]*?)<\/nav>/)![1];
+    const links = [...nav.matchAll(/<a [^>]*href="([^"]+)"[^>]*>([^<]+)/g)].map((m) => [m[2], m[1]]);
+    expect(links).toEqual([
+      ["Study", "/study"],
+      ["Course Map", "/course"],
+      ["Notebook", "/notebook"],
+    ]);
+    expect(html).toMatch(/<a title="Home"[^>]*href="\//);
+    expect(html.match(/aria-label="Settings"/g)).toHaveLength(1);
+    expect(html).toMatch(/<a[^>]*aria-label="Settings"[^>]*href="\/settings"/);
+    expect(html.match(/aria-label="Account menu"/g)).toHaveLength(1);
+    const visible = text(html);
+    for (const word of ["Sign out", "Past Sessions", "Notes", "Progress", "Settings"]) expect(visible, word).not.toContain(word);
+  });
 
   it("puts Finance Agent at the left as the heading, leading to Home", () => {
-    const html = renderToStaticMarkup(<AppHeader current="progress" theme={LIGHT} />);
+    const html = header("course");
     expect(html).toMatch(/<h1[^>]*><a[^>]*href="\/"[^>]*>(<svg.*<\/svg>)?Finance Agent<\/a><\/h1>/);
     expect(html.indexOf("Finance Agent")).toBeLessThan(html.indexOf("<nav"));
   });
 
-  it("lists the pages in order, Settings last, then the theme toggle and Sign out", () => {
-    const html = renderToStaticMarkup(<AppHeader current="progress" theme={LIGHT} />);
+  it("orders the header: brand, the three pages, theme, Settings gear, account", () => {
+    const html = header("course");
     const at = (pattern: RegExp) => html.search(pattern);
     const order = [
-      at(/href="\/study"[^>]*>Study Workspace</),
+      at(/href="\/study"[^>]*>Study</),
       at(/href="\/course"[^>]*>Course Map</),
-      at(/href="\/progress"[^>]*>Progress</),
-      at(/href="\/sessions"[^>]*>Past Sessions</),
-      at(/href="\/notes"[^>]*>Notes</),
-      at(/href="\/settings"[^>]*>Settings</),
+      at(/href="\/notebook"[^>]*>Notebook</),
       at(/aria-label="Theme: Light"/),
-      at(/Sign out/),
+      at(/aria-label="Settings"/),
+      at(/aria-label="Account menu"/),
     ];
     expect(order.every((i) => i > 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 
-  it("marks exactly the current page on every page, the Study Workspace included", () => {
-    for (const [page, href, label] of pages) {
-      const html = renderToStaticMarkup(<AppHeader current={page} theme={LIGHT} />);
+  it("marks exactly the current page: a nav pill, or the gear on Settings", () => {
+    for (const [page, href, label] of navPages) {
+      const html = header(page);
       expect(html.match(/aria-current="page"/g), page).toHaveLength(1);
       expect(html, page).toMatch(new RegExp(`<a [^>]*aria-current="page"[^>]*href="${href}"[^>]*>${label}<`));
     }
+    const settings = header("settings");
+    expect(settings.match(/aria-current="page"/g)).toHaveLength(1);
+    expect(settings).toMatch(/<a[^>]*aria-current="page"[^>]*aria-label="Settings"|<a[^>]*aria-label="Settings"[^>]*aria-current="page"/);
+    expect(settings).toMatch(/href="\/settings"/);
   });
 
   it("points no link but Finance Agent at Home", () => {
-    for (const [page] of pages) {
-      const html = renderToStaticMarkup(<AppHeader current={page} theme={LIGHT} />);
-      expect(html.match(/href="\/"/g), page).toHaveLength(1);
+    for (const [page] of navPages) {
+      expect(header(page).match(/href="\/"/g), page).toHaveLength(1);
     }
-  });
-
-  it("signs out through a plain form that posts to the sign-out route", () => {
-    const html = renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />);
-    expect(html).toMatch(/<form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
+    expect(header("settings").match(/href="\/"/g)).toHaveLength(1);
   });
 
   it("has a Home brand link drawn as a raised nav pill, with the title Home", () => {
-    const html = renderToStaticMarkup(<AppHeader current="workspace" theme={LIGHT} />);
-    expect(html).toMatch(/<a title="Home" data-affordance="nav" class="chip[^"]*" href="\/"/);
+    expect(header("workspace")).toMatch(/<a title="Home" data-affordance="nav" class="chip[^"]*" href="\/"/);
   });
 
   it("draws the page links as raised chips, the current one marked, each with a pending dot", () => {
-    const html = renderToStaticMarkup(<AppHeader current="notes" theme={LIGHT} />);
-    expect(html.match(/data-affordance="nav" class="chip /g)).toHaveLength(7);
-    expect(html.match(/data-\[link-pending=true\]/g)).toHaveLength(6);
-    expect(html).toMatch(/aria-current="page"[^>]*href="\/notes"/);
+    const html = header("notebook");
+    expect(html.match(/data-affordance="nav" class="chip /g)).toHaveLength(4);
+    expect(html.match(/data-\[link-pending=true\]/g)).toHaveLength(3);
+    expect(html).toMatch(/aria-current="page"[^>]*href="\/notebook"/);
     expect(html).not.toContain("underline");
   });
 
   it("makes the theme control an icon button named for the current theme, which opens a menu", () => {
-    const dark = renderToStaticMarkup(<AppHeader current="workspace" theme={{ mode: "single", theme: "dark" }} />);
+    const dark = renderToStaticMarkup(<AppHeader current="workspace" theme={{ mode: "single", theme: "dark" }} account={account} />);
     expect(dark).toMatch(/<button[^>]*aria-label="Theme: Dark"[^>]*aria-haspopup="menu"[^>]*aria-expanded="false"/);
     expect(dark).not.toContain("aria-pressed");
   });
 
   it("names the theme control just Theme on the server while the Learner follows the computer, whose mode it cannot know", () => {
-    expect(renderToStaticMarkup(<AppHeader current="workspace" theme={DEFAULT_PREF} />)).toContain('aria-label="Theme"');
+    expect(renderToStaticMarkup(<AppHeader current="workspace" theme={DEFAULT_PREF} account={account} />)).toContain('aria-label="Theme"');
   });
 
-  it("styles Sign out as a small raised secondary button", () => {
-    expect(renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />)).toMatch(/<button type="submit" data-affordance="button" class="btn btn-secondary btn-sm[^"]*">Sign out/);
+  it("draws no account menu when no Learner is named (the loading skeleton and the 404 page)", () => {
+    expect(renderToStaticMarkup(<AppHeader current="course" theme={LIGHT} />)).not.toContain('aria-label="Account menu"');
   });
 });
 
