@@ -5,6 +5,7 @@ import { ButtonLink, Card, Eyebrow, PrimaryButton, Tag, TextLink } from "../ui";
 import { FilledPart } from "./filled-part";
 import { OwnLines } from "./own-lines";
 import { SavedItems } from "./saved-items";
+import { ScrollToRow } from "./scroll-to-row";
 import { UndoProvider } from "./undo";
 
 const STAGE: Record<NotebookRow["stage"], string> = { foundation: "Foundation", follow: "Follow", judge: "Judge", analyse: "Analyse" };
@@ -105,6 +106,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
               <Row key={row.topicId} row={row} />
             ))}
           </div>
+          {notebook.rows.length > 0 && <ScrollToRow />}
           {notebook.older.length > 0 && (
             <section aria-labelledby="older-sessions" className="mt-8 flex flex-col gap-3">
               <h2 id="older-sessions" className="text-sm font-semibold leading-5 text-[var(--muted)]">
