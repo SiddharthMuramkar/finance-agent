@@ -66,7 +66,7 @@ questions:
 
   - id: yc-q-spread
     prompt: >
-      Picture a bond desk on 3 February 1994. Lending to the US government for 2 years paid 4.28% a year, and lending for 10 years paid 5.81%. A trader sketches a line between those two points and calls out its shape across the room. What does she call it?
+      On 3 February 1994, lending to the US government for 2 years paid 4.28% a year, and lending for 10 years paid 5.81%. A trader draws a line between those two points. What does she call its shape?
     choices:
       - { id: a, text: "Normal: it slopes up, longer pays more" }
       - { id: b, text: "Inverted: the 2-year paid more", mistake: { tag: slope_backwards, fix: "The 10-year yield was higher, so the curve sloped up, not down." } }

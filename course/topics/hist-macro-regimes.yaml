@@ -77,7 +77,7 @@ questions:
 
   - id: hmr-q-tight-or-easy
     prompt: >
-      At dinner your uncle says, "Both central banks hold the same policy rate, so they are equally strict." In country A prices barely move; in country B they race ahead of that rate. A trader at the table counts inflation first. Which bank does she call tight, and which easy?
+      Two central banks hold the same policy rate. In country A prices barely move; in country B they race ahead of that rate. Traders count inflation before judging each stance. Which bank are they calling tight, and which easy?
     choices:
       - { id: a, text: "A is tight, B is easy" }
       - { id: b, text: "B is tight: prices racing ahead means money is dear", mistake: { tag: inflation_as_tightness, fix: "When inflation outruns the policy rate, borrowers repay in cheaper money. That is easy money, not tight." } }

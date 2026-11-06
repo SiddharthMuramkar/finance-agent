@@ -112,7 +112,7 @@ questions:
 
   - id: ie-q-dual-rate
     prompt: >
-      Anita exports shirts. Under a dual exchange rate she must sell half her dollars at the official rate, and the rest at the market rate, where a dollar fetches more rupees. Her accountant calls what she ends up with a blended rate. What does Anita get per dollar overall?
+      Under a dual exchange rate, an exporter must sell half her dollars at the official rate. She sells the rest at the market rate, where a dollar fetches more rupees. What does she get per dollar overall?
     choices:
       - { id: a, text: "Somewhere between the two rates" }
       - { id: b, text: "The official rate on every dollar", mistake: { tag: official_on_all, fix: "Only the surrendered half goes at the official rate. The rest sells at the market rate." } }
