@@ -81,10 +81,11 @@ describe("the rules tuned against the live tests", () => {
     expect(tool.description).toContain("whenever they state a correct rule in their own words. Call it before you write your reply, and let code check the rest");
   });
 
-  it("the repeat-miss example sets fill-in boxes on new numbers, with Box 2 a choice of two readings as its ask", () => {
-    const boxes = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
-    expect(boxes.reply).not.toContain("7.5%");
-    expect(boxes.reply.split("\n").at(-1)).toBe("Box 2: in basis points, is that 4 bp or 40 bp?");
+  it("the repeat-miss example, at the half-done choice, names the slip in one sentence and leaves the ask to code's half-done try (F2-C1)", () => {
+    const halfDone = TUTOR_EXAMPLES.find((e) => e.replyKind === "reteach")!;
+    expect(halfDone.situation).toContain("method a half-done choice;");
+    expect(halfDone.reply).not.toContain("7.5%");
+    expect(halfDone.reply).toBe("0.3 is the move in points; basis points need one more step, times 100.");
   });
 
   it("the start-from-the-beginning example says what a savings rate is, inside its one worked example", () => {
