@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { dirname, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { cellsOfProject, MATRIX_DIR, matrixThresholds, type MatrixCell } from "../src/dev/preview-matrix";
-import { quietDevtools, seed, settled } from "./support/app";
+import { hydrated, quietDevtools, seed, settled } from "./support/app";
 import { accentFamilies, auditAffordances, measureLayout, type Affordances, type Layout } from "./support/measure";
 
 /**
@@ -138,7 +138,15 @@ async function visit(page: Page, cell: MatrixCell): Promise<Result> {
     await page.goto(p.path);
     if (p.kind === "study") {
       await expect(page.getByTestId("workspace-frame")).toBeVisible();
+      // An empty live Session starts its opener only once the page hydrates, which can come after the page looks quiet.
+      // Wait for hydration and for the opener to land (as say() does), so the screenshot, the audit and the Tab walk
+      // never run before or during the opener's stream.
+      await hydrated(page);
       await settled(page);
+      if ((await page.getByTestId("assistant-message").count()) === 0) {
+        await expect(page.getByTestId("assistant-message")).not.toHaveCount(0, { timeout: 30_000 }).catch(() => {});
+        await settled(page);
+      }
     } else if (p.kind === "reading" && p.path !== "/") {
       await expect(page.getByTestId("reading-column")).toBeVisible();
       await page.waitForLoadState("networkidle");
