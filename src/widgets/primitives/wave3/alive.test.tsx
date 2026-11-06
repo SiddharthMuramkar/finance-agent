@@ -100,9 +100,11 @@ describe("TimelineStrip at rest", () => {
 
   it("gives every open marker a sunflower ring and the pressed one a sunflower face in the stylesheet", () => {
     show(<TimelineStripView beats={beats} hideAfter="1994-02-03" />);
-    const html = page!.host.innerHTML;
-    expect(html).toContain("border-[var(--sun)]");
-    expect(html).not.toMatch(/var\(--(mint|coral|violet)/);
+    // Each open marker's own className, not the whole section: the label card and its emoji circle are sunflower too.
+    const open = allById(page!, "timeline-marker").filter((m) => m.dataset.locked === "false");
+    expect(open.length).toBeGreaterThan(0);
+    for (const m of open) expect(m.className.split(/\s+/)).toContain("border-[var(--sun)]");
+    expect(page!.host.innerHTML).not.toMatch(/var\(--(mint|coral|violet)/);
     expect(allById(page!, "timeline-marker")[0].className).toContain("timeline-marker");
     expect(CSS).toMatch(/\.timeline-marker\[aria-pressed="true"\]\s*\{[^}]*--face:\s*var\(--sun-tag\)/);
   });
