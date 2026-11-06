@@ -16,6 +16,8 @@ export type Layout = {
   chatFontPx: number | null;
   charsPerLine: number | null;
   horizontalScroll: boolean;
+  /** Only with `{ prose }`: how many of the matched elements had a full line to count (0 means nothing was measured). */
+  proseMeasured?: number;
 };
 
 export type Affordances = {
@@ -26,9 +28,14 @@ export type Affordances = {
   counts: { interactive?: number; tags?: number };
 };
 
-/** Appendix C.2: gutters, column shares, header height, chat font and line length of the page as it is now. */
-export function measureLayout(page: Page): Promise<Layout> {
-  return page.evaluate(() => {
+/**
+ * Appendix C.2: gutters, column shares, header height, chat font and line length of the page as it is now.
+ * With no options, `charsPerLine` is Appendix C's: the longest Tutor paragraph. `{ prose }` (F1, reading pages) measures
+ * every visible element the selector matches instead (not flex or grid rows): the full lines (all but each element's last) of all of them,
+ * median, and `proseMeasured` says how many elements had a full line. Nothing else changes.
+ */
+export function measureLayout(page: Page, opts: { prose?: string } = {}): Promise<Layout> {
+  return page.evaluate((prose) => {
     const doc = document.documentElement;
     const vw = doc.clientWidth, vh = window.innerHeight;
     const box = (sel: string) => { const el = document.querySelector(sel); return el ? el.getBoundingClientRect() : null; };
@@ -41,8 +48,7 @@ export function measureLayout(page: Page): Promise<Layout> {
     const para = [...document.querySelectorAll('[data-testid="assistant-message"] p:not([data-testid="tutor-label"])')].sort((x, y) => (y.textContent || "").length - (x.textContent || "").length)[0] ?? null;
     const input = document.querySelector("textarea");
     const fontOf = (el: Element | null) => (el ? parseFloat(getComputedStyle(el).fontSize) : null);
-    const perLine = (el: Element | null) => {                       // median characters on the full lines of a paragraph (needs 3+ lines)
-      if (!el) return null;
+    const linesOf = (el: Element) => {                               // characters on each line of an element, top to bottom
       const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), lines = new Map<number, number>();
       for (let n = walker.nextNode() as Text | null; n; n = walker.nextNode() as Text | null) {
         const range = document.createRange();
@@ -52,12 +58,33 @@ export function measureLayout(page: Page): Promise<Layout> {
           if (b.width) lines.set(Math.round(b.top), (lines.get(Math.round(b.top)) || 0) + 1);
         }
       }
-      const counts = [...lines.entries()].sort((a, b) => a[0] - b[0]).map((e) => e[1]);
+      return [...lines.entries()].sort((a, b) => a[0] - b[0]).map((e) => e[1]);
+    };
+    const perLine = (el: Element | null) => {                       // median characters on the full lines of a paragraph (needs 3+ lines)
+      if (!el) return null;
+      const counts = linesOf(el);
       if (counts.length < 3) return null;
       counts.pop();                                  // the last line is short
       counts.sort((a, b) => a - b);
       return counts[Math.floor(counts.length / 2)];
     };
+    let proseLine: number | null = null, proseMeasured: number | undefined;
+    if (prose) {                                    // F1: the running prose of a reading page, every matched element
+      const full: number[] = [];
+      proseMeasured = 0;
+      for (const el of document.querySelectorAll(prose)) {
+        const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+        if (!r.width || !r.height || s.visibility === "hidden" || s.display === "none") continue;
+        if (/flex|grid/.test(s.display)) continue;  // a row of tags or links laid out side by side is not running prose
+        const counts = linesOf(el);
+        if (counts.length < 2) continue;            // one line says nothing about the measure
+        counts.pop();                                // the last line is short
+        full.push(...counts);
+        proseMeasured++;
+      }
+      full.sort((a, b) => a - b);
+      proseLine = full.length ? full[Math.floor(full.length / 2)] : null;
+    }
     return {
       viewport: { width: vw, height: vh },
       gutterLeft: frame ? Math.round(frame.left * 10) / 10 : null,
@@ -66,10 +93,11 @@ export function measureLayout(page: Page): Promise<Layout> {
       panelWidthPct: pct(panel),                     // of the viewport width; target 55 or more
       headerHeight: header ? Math.round(header.height * 10) / 10 : null,   // target 56 or less
       chatFontPx: fontOf(para) ?? fontOf(input),     // target 15
-      charsPerLine: perLine(para),                   // target 60 to 75 from 1280 px up
+      charsPerLine: prose ? proseLine : perLine(para), // target 60 to 75 from 1280 px up
       horizontalScroll: doc.scrollWidth > doc.clientWidth + 1,
+      ...(prose ? { proseMeasured } : {}),
     };
-  });
+  }, opts.prose ?? null);
 }
 
 /** Appendix C.3: what can be pressed looks pressable, and what cannot does not. A clean page returns four empty lists. */
