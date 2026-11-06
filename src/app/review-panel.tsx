@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { ReviewAnswer, ReviewState } from "@/learner/review";
 import { MarkedText } from "@/widgets/marked-text";
 import { PrimaryButton } from "./ui";
-import { FoldedRow } from "./workspace-parts";
+import { FoldedRow, useClaimPrimary } from "./workspace-parts";
 
 type Answered = Extract<ReviewAnswer, { ok: true }>;
 
@@ -73,6 +73,9 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
   const [continued, setContinued] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Submit answer (once a choice is picked) and the marked review's Next review or Done are the view's one primary
+  // while they show, so the Next chip steps back (Appendix B.7, #478).
+  useClaimPrimary(!!result || (!!review.question && !!picked));
 
   async function submit() {
     if (!review.question || !picked) return;
