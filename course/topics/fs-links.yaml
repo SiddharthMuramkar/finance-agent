@@ -6,7 +6,7 @@ title: How the three statements link (accrual accounting)
 
 cases:
   - id: satyam-links-2008
-    title: Satyam's reported profit and cash (December 2008)
+    title: Satyam's reported profit and cash (as of December 2008)
     data: [q2-revenue-reported, q2-operating-profit-reported, q2-revenue-actual, q2-operating-profit-actual]
     asOf: 2008-12-31
     story: >
@@ -83,6 +83,7 @@ terms:
     example: "Your marks, attendance and fee receipt must all tell one story about you."
     emoji: notebook
     inStory: The analyst asks where Satyam's profit would show up on all three statements.
+  # Source (checked 6 Nov 2026): US SEC, Beginners' Guide to Financial Statements, "Operating Margin = Income from Operations / Net Revenues": https://www.sec.gov/about/reports-publications/beginners-guide-financial-statements
   - term: operating margin
     means: Operating profit as a share of revenue, showing how much of each rupee of sales is left after running costs.
     pro: Analysts compare operating margins across companies.
@@ -100,7 +101,7 @@ scenes:
   - id: fl-s-story
     step: story
     recipe: story_scene
-    title: "Satyam's profit, December 2008"
+    title: "Satyam's profit, as of December 2008"
     inputs:
       cast:
         - { id: satyam, emoji: office-building, name: Satyam, role: software services company in Hyderabad }
@@ -276,7 +277,7 @@ questions:
     explanation: >
       Operating margin is operating profit as a share of revenue: how much of each rupee of sales is left after running costs. A profit reported on the income statement should also show up on the balance sheet and the cash flow statement.
     source: >
-      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+      US SEC, Beginners' Guide to Financial Statements, Financial Statement Ratios and Calculations ("Operating Margin = Income from Operations / Net Revenues"): https://www.sec.gov/about/reports-publications/beginners-guide-financial-statements
 
 checks:
   - id: fl-quiz-links

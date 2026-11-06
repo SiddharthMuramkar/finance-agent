@@ -117,7 +117,7 @@ topics:
     subject: "Financial statements"
     prerequisites: [fs-cashflow]
     cases:
-      - title: "Satyam's reported profit and cash (December 2008)"
+      - title: "Satyam's reported profit and cash (as of December 2008)"
         asOf: 2008-12-31
         outcome: "On 7 Jan 2009 Raju wrote that for the September 2008 quarter Satyam had reported revenue of Rs 2,700 crore and operating profit of Rs 649 crore (24%) against actual revenue of Rs 2,112 crore and operating profit of Rs 61 crore (3%); the Rs 588 crore difference showed up as 'artificial cash and bank balances'. The SEC later said managers created more than 6,000 phony invoices and bogus bank statements, giving more than $1bn of fictitious cash, about half of total assets; Satyam paid a $10m penalty to settle. The false profit had to appear in the general ledger and the financial statements."
         sources:
