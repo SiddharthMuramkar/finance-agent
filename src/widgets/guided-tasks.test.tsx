@@ -70,15 +70,23 @@ describe("the stepper", () => {
     expect(item(1)).toContain('data-state="done"');
     expect(item(2)).toContain('data-state="current"');
     expect(item(3)).toContain('data-state="todo"');
-    expect(item(1)).toContain("Done");
-    expect(item(2)).toContain("Current task");
-    expect(item(3)).toContain("To do");
   });
 
-  it("marks only the current task as the current step, and says it is practice only", () => {
+  // #533: a light list of things to try, not homework: no status words, no numbered steps.
+  it("is a light list called Things to try, with soft words and no homework framing", () => {
+    expect(html).toContain("Things to try");
+    expect(html).not.toMatch(/Current task|To do|practice only|Try this/);
+    expect(item(1)).toContain("Tried");
+    expect(item(2)).toContain("Try next");
+    expect(item(3)).toContain("Later");
+    expect(html).not.toContain("<ol");
+    expect(item(1)).toContain("✓");
+    for (const n of [1, 2, 3]) expect(item(n)).not.toMatch(/>\s*[0-9]\s*</);
+  });
+
+  it("marks only the current task as the current step", () => {
     expect(html.match(/aria-current="step"/g)).toHaveLength(1);
     expect(item(2)).toContain('aria-current="step"');
-    expect(html).toContain("practice only");
   });
 
   it("uses the design tokens only", () => {
