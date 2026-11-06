@@ -269,8 +269,13 @@ const median = (v: number[]) => {
 };
 const pctOf = (n: number, of: number) => `${Math.round((n / of) * 1000) / 10} %`;
 
-/** The Appendix D.3 bars over the prompts, each with its number. A bar with no data says so (pass null), never passes. */
-export function computeBars(results: PromptResult[], total = results.length): Bar[] {
+/**
+ * The Appendix D.3 bars over the prompts, each with its number. A judged bar never passes without every prompt's
+ * judgement. `judgeRan` says whether --judge ran: without it the judged bars read "not judged" (pass null); with it, a
+ * bar whose judge answered for no prompt at all (every call refused, or the cap ran out first) fails like a partial one.
+ * It defaults to true, so a caller that forgets it fails closed.
+ */
+export function computeBars(results: PromptResult[], total = results.length, judgeRan = true): Bar[] {
   const widgets = results.filter((r) => r.widgetSource && r.widgetSource !== "none").length;
   const choices = results.filter((r) => r.choicesCount !== null && r.choicesCount >= 2 && r.choicesCount <= 3).length;
   const personas = results.map((r) => r.persona).filter((p): p is PersonaJudgement => !!p);
@@ -282,7 +287,8 @@ export function computeBars(results: PromptResult[], total = results.length): Ba
   const chartOnly = fits.filter((f) => f.kind === "chart_only").length;
   const sums = maths.reduce((s, m) => s + m.count, 0);
   const judged = (list: unknown[], pass: (n: number) => boolean, actual: string): Pick<Bar, "actual" | "pass"> => {
-    if (list.length === 0) return { actual: "not judged", pass: null };
+    if (!judgeRan) return { actual: "not judged", pass: null };
+    if (list.length === 0) return { actual: `not judged (0 of ${total} judged)`, pass: false };
     if (list.length < total) return { actual: `${actual} (${list.length} of ${total} judged)`, pass: false };
     return { actual, pass: pass(list.length) };
   };

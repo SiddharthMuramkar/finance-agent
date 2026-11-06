@@ -45,6 +45,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { openAtStep, openStudy, waitForOpener } from "./delight-study.mjs";
 import { readDelight, readLane, tutorSteps } from "./eval-reads.mjs";
 import { assertLocalBase, assertTestDatabase, assertToolsLearner } from "./script-guards.mjs";
 
@@ -448,25 +449,6 @@ async function overflowAt480(page) {
 }
 
 /**
- * Delight set: puts the tools Learner (and only it) in the prompt's Topic at the prompt's Teaching Step, before the Study
- * Workspace opens: the Topic is its chosen one, in progress, standing at that step with the reveal shown from the reveal on.
- */
-async function openAtStep(pool, learnerId, p) {
-  await assertToolsLearner(pool, learnerId);
-  const revealShown = p.step === "reveal" || p.step === "principle";
-  await pool.query(
-    `insert into topic_progress (topic_id, learner_id, step, reveal_shown, status) values ($1, $2, $3, $4, 'in_progress')
-     on conflict (learner_id, topic_id) do update set step = excluded.step, reveal_shown = excluded.reveal_shown, status = 'in_progress', updated_at = now()`,
-    [p.topic, learnerId, p.step, revealShown],
-  );
-  await pool.query(
-    `insert into learner_state (id, learner_id, current_topic_id) values ($2, $2, $1)
-     on conflict (id) do update set current_topic_id = excluded.current_topic_id, updated_at = now()`,
-    [p.topic, learnerId],
-  );
-}
-
-/**
  * Starts the tools Learner over, signs in by the page and starts the first Topic; resolves when the opening turn is done.
  * `seen.learnerId` is set as soon as the fresh Learner exists, so the Delight budget can charge a try that fails later.
  */
@@ -482,17 +464,14 @@ async function reachStudy(browser, pool, p, seen) {
   await page.getByRole("link", { name: "Skip", exact: true }).click();
   if (DELIGHT) {
     await openAtStep(pool, learnerId, p);
-    await page.goto(`${BASE}/study`, { waitUntil: "networkidle" });
+    await openStudy(page, BASE);
   } else {
     const start = page.getByRole("button", { name: "Start this Topic", exact: true });
     await start.waitFor({ timeout: 15_000 });
     await start.click();
     await page.waitForURL(/\/study/, { timeout: 30_000 });
   }
-  // The opening turn: a Tutor message appears, then the Stop button goes away and Send comes back.
-  await page.locator('[data-testid="assistant-message"]').first().waitFor({ timeout: 120_000 });
-  await page.getByRole("button", { name: "Send", exact: true }).waitFor({ timeout: TURN_TIMEOUT_MS });
-  await page.waitForTimeout(1_500);
+  await waitForOpener(page, TURN_TIMEOUT_MS);
   return { context, page, learnerId };
 }
 
@@ -587,7 +566,7 @@ async function finishDelight(rows, spend, problems) {
   }
   const results = rows.map((r) => ({ id: r.id, widgetSource: r.delight?.widgetSource ?? null, choicesCount: r.delight?.choicesCount ?? null, persona: r.judgements?.persona, math: r.judgements?.math, fit: r.judgements?.fit, historian: r.judgements?.historian }));
   const total = rows.length;
-  const bars = computeBars(results, total);
+  const bars = computeBars(results, total, judge);
   const also = alsoReported(results);
   const usd = (x) => Math.round(x * 100) / 100;
   const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: usd(spend.spent), tutorSpendUsd: usd(spend.tutor.usd), judgeSpendUsd: usd(spend.judges.usd), capUsd: spend.cap, bars, alsoReported: also, problems, prompts: rows };

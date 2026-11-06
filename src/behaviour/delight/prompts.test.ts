@@ -81,6 +81,8 @@ const fit = (id: string, kind: "story" | "chart_only" = "story", match = 5) => (
 const passing = (): PromptResult[] =>
   prompts.map((p) => ({ id: p.id, widgetSource: "scene", choicesCount: 3, persona: persona(p.id, 4, 4), math: { id: p.id, sums: [], count: 0 }, fit: fit(p.id), historian: { id: p.id, claims: [], wrong: 0, after_as_of: 0, unsupported: 0 } }));
 
+const JUDGED_BARS = ["No sum asked", "Fun (median)", "Lingo learned", "Felt like an exam", "No chart-only Widget"];
+
 describe("[S3] the report lists every Appendix D.3 bar with its number", () => {
   it("passes all seven bars on a clean round", () => {
     const bars = computeBars(passing());
@@ -110,6 +112,17 @@ describe("[S3] the report lists every Appendix D.3 bar with its number", () => {
     expect(computeBars(r).find((b) => b.name === "Lingo learned")).toMatchObject({ pass: true, actual: "80 % (16 of 20)" });
     r[10].persona = undefined;
     expect(computeBars(r).find((b) => b.name === "Fun (median)")).toMatchObject({ pass: false });
+  });
+  it("fails every judged bar when --judge ran but no judge answered for any prompt (all 401 or 429, or the cap ran out first)", () => {
+    const r = passing().map((x) => ({ ...x, persona: undefined, math: undefined, fit: undefined, historian: undefined }));
+    const bars = computeBars(r, r.length, true);
+    for (const name of JUDGED_BARS) expect(bars.find((b) => b.name === name)).toMatchObject({ pass: false, actual: "not judged (0 of 20 judged)" });
+    expect(bars.find((b) => b.name === "A Widget with every reply")).toMatchObject({ pass: true });
+  });
+  it("reads the judged bars as not judged (pass null) only when --judge did not run", () => {
+    const r = passing().map((x) => ({ ...x, persona: undefined, math: undefined, fit: undefined, historian: undefined }));
+    const bars = computeBars(r, r.length, false);
+    for (const name of JUDGED_BARS) expect(bars.find((b) => b.name === name)).toMatchObject({ pass: null, actual: "not judged" });
   });
   it("reports the also-reported rows", () => {
     const r = passing();
