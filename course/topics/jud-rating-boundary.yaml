@@ -70,13 +70,13 @@ youllLearn:
 questions:
   - id: jrb-q-mislabel
     prompt: >
-      A made-up story, May 2025: Priya's pension fund may hold only investment-grade bonds. A new
-      analyst's note calls "BBB- and below" junk, though Fitch counts BBB- as investment grade. If
-      Priya trusts the note, what happens?
+      May 2025, a made-up story: Priya's pension fund may hold only investment-grade bonds. On
+      Fitch's ladder, BBB- is the last investment-grade step and BB+ the first junk step. A new note
+      calls BBB- junk. If Priya trusts it, what happens?
     choices:
-      - { id: a, text: "Nothing changes: BBB- is the weakest of the top group anyway", mistake: { tag: weakest_moved_down, fix: "Fitch's own scale keeps BBB- inside investment grade, so the label changes what the fund holds." } }
-      - { id: b, text: "She dumps BBB- bonds she may keep: the line sits one notch high" }
-      - { id: c, text: "She keeps BB+ bonds she must sell: the line sits one notch low", mistake: { tag: line_wrong_way, fix: "The note moved the line up, so BBB- wrongly looks like junk; BB+ was junk already." } }
+      - { id: a, text: "Nothing: BBB- is the weakest of the top group anyway", mistake: { tag: weakest_moved_down, fix: "Fitch keeps BBB- inside investment grade, so calling it junk changes what the fund holds." } }
+      - { id: b, text: "She sells BBB- bonds her fund is allowed to keep" }
+      - { id: c, text: "She keeps BB+ bonds her fund should have sold", mistake: { tag: line_wrong_way, fix: "BB+ is junk on Fitch's ladder and in the note, so she sells it either way." } }
       - { id: d, text: "Nobody can say: each analyst draws the line where they like", mistake: { tag: scale_ignored, fix: "The agency publishes its scale, and that is what decides where the line falls." } }
     answer: b
     explanation: >

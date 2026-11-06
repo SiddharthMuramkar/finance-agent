@@ -218,21 +218,22 @@ questions:
       Weighted-average beta as used in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-basis
     prompt: >
-      A made-up story: in 2014 Meera bets her brother dinner that a young app will reach a 30%
-      operating margin, counting research spending as an investment. Five years on, its report shows
-      18%, with research counted as a cost. Who pays for dinner?
+      5 October 2013, a made-up story: Meera bet her brother dinner that an app would earn a 25%
+      margin. She spread its research spending over three years, like a machine; the app's report
+      charges it all to one year and shows 15%. Who pays?
     choices:
-      - { id: a, text: "Meera pays: 18% is well short of the 30% she bet on", mistake: { tag: basis_ignored, fix: "The two margins treat research differently, so part of that gap is just accounting." } }
-      - { id: b, text: "Nobody yet: first put both margins on the same footing" }
-      - { id: c, text: "Her brother pays: a later report is a different document", mistake: { tag: report_dismissed, fix: "The report is the evidence; restate it on her basis, do not set it aside." } }
+      - { id: a, text: "Meera pays: 15% is well short of the 25% she bet on", mistake: { tag: basis_ignored, fix: "The two margins treat research differently, so part of that gap is just accounting." } }
+      - { id: b, text: "Nobody yet: first measure both margins the same way" }
+      - { id: c, text: "Her brother pays: the app's report is a different document", mistake: { tag: report_dismissed, fix: "The report is the evidence; restate it her way, do not set it aside." } }
       - { id: d, text: "Meera pays: her forecast sums must have been off", mistake: { tag: arithmetic_blamed, fix: "Nothing shows a slip in her sums; the two margins follow different rules." } }
     answer: b
     explanation: >
-      The two margins count research spending differently, so the gap mixes a real shortfall with an
-      accounting one. Restate one margin on the other's basis (for example, treat the report's
-      research spending as an investment), and only then settle the bet.
+      Meera's 25% spreads research spending over three years, the way a firm spreads the cost of a
+      machine it will use for years; the report's 15% charges the whole year's research at once. So
+      the gap mixes a real shortfall with an accounting one. Restate one margin the other way (for
+      example, spread the report's research spending over three years), and only then settle the bet.
     source: >
-      Made-up story; the basis question follows Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life), against Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
+      Made-up story (Meera, her brother and the app are invented); the basis question follows Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life), against Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
   - id: jip-q-arithmetic-story
     prompt: >
       Every number in a blogger's valuation ties out to the inputs he states. What does that prove?
