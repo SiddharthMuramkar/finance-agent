@@ -65,7 +65,7 @@ export function OldSession({
               <ReadOnlyThread lines={lines} slot={slot} />
             </DeveloperDetails>
           </div>
-          <Link href="/study" className={`${primaryButtonClass} self-start`}>
+          <Link href="/study" data-affordance="button" className={`${primaryButtonClass} self-start`}>
             Back to the workspace
           </Link>
         </div>

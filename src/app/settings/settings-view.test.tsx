@@ -9,10 +9,10 @@ const view = (props: Partial<Parameters<typeof SettingsView>[0]> = {}) =>
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the Settings page", () => {
-  it("five cards in order: Account, Appearance, About you, Developer details, Start over (B3b inserts Your Topics)", () => {
+  it("six cards in order: Account, Appearance, About you, Your Topics, Developer details, Start over", () => {
     const html = view();
     const ids = [...html.matchAll(/<section[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
-    expect(ids).toEqual(["account", "appearance", "about-you", "developer-details", "start-over"]);
+    expect(ids).toEqual(["account", "appearance", "about-you", "your-topics", "developer-details", "start-over"]);
     const t = text(html);
     expect(t.indexOf("Settings")).toBeGreaterThanOrEqual(0);
     expect(t).not.toMatch(/Dark mode/);
@@ -22,12 +22,35 @@ describe("the Settings page", () => {
     expect(html).toMatch(/<section[^>]*class="[^"]*col-span-full[^"]*"[^>]*id="start-over"|<section[^>]*id="start-over"[^>]*class="[^"]*col-span-full/);
   });
 
-  it("leaves the empty Your Topics slot (id=\"your-topics\") between About you and Developer details for B3b", () => {
+  it("Your Topics lists only the Topics given (those with progress), in that order, each with a Start over Button", () => {
+    const html = view({
+      topics: [
+        { id: "percent", title: "Percent", status: "passed" },
+        { id: "present-value", title: "Present value", status: "in_progress" },
+      ],
+    });
+    const card = html.slice(html.indexOf('id="your-topics"'), html.indexOf('id="developer-details"'));
+    const t = text(card);
+    expect(t).toContain("Your Topics");
+    expect(t.indexOf("Percent")).toBeLessThan(t.indexOf("Present value"));
+    expect([...card.matchAll(/class="btn btn-secondary[^"]*"[^>]*>Start over</g)]).toHaveLength(2);
+    expect(t).not.toContain("Topics you start will appear here.");
+  });
+
+  it("Your Topics says Topics you start will appear here. when none has progress", () => {
     const html = view();
-    const slot = html.match(/<(\w+)[^>]*\bid="your-topics"[^>]*>(.*?)<\/\1>/);
+    const card = html.slice(html.indexOf('id="your-topics"'), html.indexOf('id="developer-details"'));
+    expect(text(card)).toContain("Topics you start will appear here.");
+    expect(card).not.toContain(">Start over<");
+  });
+
+  it("fills A5's Your Topics slot (id=\"your-topics\") with B3b's Card, between About you and Developer details, and leaves no empty slot", () => {
+    const html = view();
+    const slot = html.match(/<(\w+)[^>]*\bid="your-topics"[^>]*>/);
     expect(slot).not.toBeNull();
-    expect(slot![1]).not.toBe("section"); // a slot, not a card: still five cards until B3b fills it
-    expect(slot![2]).toBe("");
+    expect(slot![1]).toBe("section"); // B3b's Card, not A5's empty <div class="contents">
+    expect(html.match(/\bid="your-topics"/g)).toHaveLength(1);
+    expect(html).not.toMatch(/<div[^>]*id="your-topics"[^>]*><\/div>/);
     expect(html.indexOf('id="your-topics"')).toBeGreaterThan(html.indexOf('id="about-you"'));
     expect(html.indexOf('id="your-topics"')).toBeLessThan(html.indexOf('id="developer-details"'));
   });

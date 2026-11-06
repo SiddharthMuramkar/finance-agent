@@ -5,13 +5,14 @@ import { Emoji } from "@/emoji/emoji";
 import { isEmojiName } from "@/emoji/registry";
 import { JUST_TELL_ME } from "@/tutor/chips";
 import type { NextName } from "@/tutor/next";
+import { TopicOptions } from "./topic-options";
 import { TOPIC_START_ANCHOR } from "./topic-start-card";
 import { Button, Chevron, Chip, Tag } from "./ui";
 
 // Small presentational pieces of the workspace's left column (issue #44).
 
 /** Where the Learner is on the Course Map: their current Topic and its Stage. Null before any Topic. */
-export type Place = { stage: Topic["stage"]; title: string; /** The Topic's one-line goal, if it has one. */ goal?: string } | null;
+export type Place = { stage: Topic["stage"]; title: string; /** The Topic's id: the ⋯ menu's Start this Topic over posts it. */ topicId?: string; /** The Topic's one-line goal, if it has one. */ goal?: string } | null;
 
 /**
  * A Topic passed in a turn, whose Session stays on screen until the Learner chooses where to go: its title,
@@ -33,7 +34,7 @@ function targetOf(step: StepPosition, marked: ReadonlySet<number>): string | nul
  * Course Navigator's step sequence. Steps are grouped by Check, the current one highlighted; a finished step
  * scrolls the chat back to where it began (`marked`: the step numbers whose divider is in the thread).
  */
-export function TopicBar({ title, goal, strip, marked }: { title: string; goal?: string; strip: StepSequence | null; marked: ReadonlySet<number> }) {
+export function TopicBar({ topicId, title, goal, strip, marked }: { topicId?: string; title: string; goal?: string; strip: StepSequence | null; marked: ReadonlySet<number> }) {
   const finished = (s: StepPosition) => strip !== null && (strip.current === null || s.number - 1 < strip.current);
   const step = (s: StepPosition) => {
     const target = finished(s) ? targetOf(s, marked) : null;
@@ -65,7 +66,10 @@ export function TopicBar({ title, goal, strip, marked }: { title: string; goal?:
   };
   return (
     <nav aria-label="Topic progress" data-testid="topic-bar" className="rounded-lg border border-[var(--border)] px-3 py-2">
-      <p className="truncate text-sm font-semibold leading-5">{title}</p>
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold leading-5">{title}</p>
+        {topicId && <TopicOptions topicId={topicId} />}
+      </div>
       {goal && (
         <p data-testid="topic-goal" className="mt-0.5 text-xs leading-4 text-[var(--muted)]">
           {goal}

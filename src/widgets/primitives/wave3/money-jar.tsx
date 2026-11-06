@@ -9,6 +9,8 @@ import { motionFlag, Pic } from "./shared";
 
 // MoneyJar: a jar that fills or drains one object at a time, with its size said in words ("about twice as full").
 // Mint when it fills (gains), coral when it drains (losses). The only numerals the part may show are inside `each`.
+// A still frame tells the change too (ticket R-E2a): the jar has a neck, the objects that came in wear a mint ring, and the
+// places the drained objects left stay as dashed coral outlines.
 
 export const moneyJarProps = z.object({
   label: z.string().describe('What the jar holds, e.g. "Asha\'s savings"'),
@@ -50,29 +52,48 @@ export function MoneyJarView({ label, start, end, unit, each, words }: Props) {
   return (
     <section data-testid="money-jar" data-motion={motionFlag(reduced)} aria-label={label} className="@container py-1">
       <p className="mb-1 text-base font-semibold leading-6 text-[var(--ink)]">{label}</p>
-      <div
-        key={round}
-        data-testid="jar"
-        data-tone={tone}
-        className={`flex min-h-24 flex-wrap-reverse content-start justify-center gap-1 rounded-b-3xl rounded-t-md border-2 border-t-0 p-2 ${
-          draining ? "border-[var(--coral)] bg-[var(--coral-tint)]" : "border-[var(--mint)] bg-[var(--mint-tint)]"
-        }`}
-      >
-        {Array.from({ length: drawn }, (_, i) => {
-          const entering = !reduced && to > from && i >= from;
-          const leaving = !reduced && draining && i >= to;
-          const delay = entering ? (i - from) * step : leaving ? (i - to) * step : 0;
-          return (
-            <span
-              key={i}
-              data-leaving={leaving ? "true" : undefined}
-              className={entering ? "jar-in" : leaving ? "jar-out" : ""}
-              style={{ ...(entering || leaving ? { animationDelay: `${delay}ms` } : null), rotate: `${TILTS[i % TILTS.length]}deg` }}
-            >
-              <Pic name={unit} size={32} />
-            </span>
-          );
-        })}
+      <div key={round} className="mx-auto flex w-full max-w-56 flex-col items-center @min-[480px]:max-w-64">
+        <span
+          aria-hidden="true"
+          data-testid="jar-neck"
+          className={`h-3 w-2/3 max-w-60 rounded-full border-2 ${draining ? "border-[var(--coral)] bg-[var(--coral-tag)]" : "border-[var(--mint)] bg-[var(--mint-tag)]"}`}
+        />
+        <div
+          data-testid="jar"
+          data-tone={tone}
+          className={`flex min-h-40 w-full flex-wrap-reverse content-start justify-center gap-1 rounded-b-[2.5rem] rounded-t-2xl border-2 px-3 pb-4 pt-2 shadow-[inset_0_-10px_18px_-12px_var(--shadow)] ${
+            draining ? "border-[var(--coral)] bg-[var(--coral-tint)]" : "border-[var(--mint)] bg-[var(--mint-tint)]"
+          }`}
+        >
+          {Array.from({ length: drawn }, (_, i) => {
+            const entering = !reduced && to > from && i >= from;
+            const leaving = !reduced && draining && i >= to;
+            const delay = entering ? (i - from) * step : leaving ? (i - to) * step : 0;
+            const fresh = to > from && i >= from;
+            const gone = draining && i >= to;
+            return (
+              <span
+                key={i}
+                data-new={fresh ? "true" : undefined}
+                data-testid={gone ? "jar-gap" : undefined}
+                className={`grid place-items-center rounded-full border-2 [&_img]:size-8 @min-[480px]:[&_img]:size-12 ${fresh ? "border-[var(--mint)] bg-[var(--mint-tag)]" : gone ? "border-dashed border-[var(--coral)]" : "border-transparent"}`}
+              >
+                <span
+                  data-leaving={leaving ? "true" : undefined}
+                  className={entering ? "jar-in" : leaving ? "jar-out" : ""}
+                  style={{ ...(entering || leaving ? { animationDelay: `${delay}ms` } : null), rotate: `${TILTS[i % TILTS.length]}deg` }}
+                >
+                  <Pic name={unit} size={48} />
+                </span>
+              </span>
+            );
+          })}
+          {reduced &&
+            draining &&
+            Array.from({ length: from - to }, (_, i) => (
+              <span key={`gap-${i}`} data-testid="jar-gap" aria-hidden="true" className="size-9 rounded-full border-2 border-dashed border-[var(--coral)] @min-[480px]:size-[52px]" />
+            ))}
+        </div>
       </div>
       <p className="mt-2 text-base font-medium leading-6 text-[var(--ink)]">{words}</p>
       {each && (
