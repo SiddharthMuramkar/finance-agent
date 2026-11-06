@@ -325,21 +325,21 @@ questions:
   - id: cp-q-doubling-rate
     skill: cagr
     prompt: >
-      After two years of the same yearly growth, a savings pot ends exactly four times where it started. Which description of that yearly growth fits?
+      March 1992. Asha's savings pot ended two years at exactly four times where it started, growing the same each year. Before she picks where to save next, she asks two friends to describe that growth. Dev says it doubled every year. Tara says it grew 150% a year, the 300% gain split across the two years. Whose description would an analyst back?
     choices:
-      - { id: a, text: "It doubled every year" }
+      - { id: a, text: "Dev's: it doubled every year, and two doublings make four times" }
       - id: b
-        text: "It grew by half every year"
-        mistake: { fix: "Growing by half twice makes the pot about two and a quarter times bigger, not four.", tag: too_small }
+        text: "Tara's: the 300% gain split evenly, 150% a year"
+        mistake: { fix: "Splitting the gain evenly ignores growth on growth, so it overstates the steady yearly rate.", tag: averaged_gain }
       - id: c
-        text: "It grew by 150% a year, the 300% gain split across two years"
-        mistake: { fix: "That splits the gain evenly across the years, which ignores growth on growth.", tag: averaged_gain }
+        text: "Neither: the yearly rate is the whole 300% gain"
+        mistake: { fix: "300% is the whole two-year rise. A yearly rate describes just one year.", tag: mixed_up_terms }
       - id: d
-        text: "It tripled every year"
-        mistake: { fix: "Tripling twice would make the pot nine times bigger, not four.", tag: too_big }
+        text: "Both: any fair split of the gain gives the same yearly rate"
+        mistake: { fix: "Only growth earned on growth gives the honest steady rate; an even split does not.", tag: averaged_gain }
     answer: a
     explanation: >
-      Doubling twice does it, since two times two is four, and doubling is a gain of 100% a year. Splitting the 300% gain across two years says 150%, the common mistake.
+      Doubling every year means each year's growth is earned on the new, bigger total, and two doublings make four times. That is a steady 100% a year. Tara's even split ignores growth on growth, the common mistake.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance
 
@@ -921,17 +921,18 @@ checks:
     kind: conversation
     skills: [steady-pace, cagr]
     prompt: >
-      The Sensex went from 100 to 4,285 in about 13 years. A friend splits the gain evenly and says
-      it rose about 322% a year. Explain what is wrong with that, and what kind of yearly rate
-      would honestly describe the climb. Then use the July 1990 level of about 1,000 to say
-      whether the pace looks steady over those 13 years.
+      Bombay, 31 March 1992. Rohan wants to put his savings into shares. His friend points at the
+      Sensex, now 4,285 from its base of 100, splits the gain evenly over the 13 years, and says it
+      rose about 322% a year at one steady pace. Rohan recalls the index took about 11 years to
+      first close above 1,000, in July 1990, then more than quadrupled in under two years. In your
+      own words, what would you tell Rohan: is the friend's rate honest, and was the climb steady?
     passCriteria: >
       The Learner explains, in their own words, that growth compounds, so the total gain cannot be
-      spread evenly over the years, and that the honest yearly rate is one steady compound rate (a
-      CAGR), far lower than the friend's 322%. They note that going from about 1,000 (July 1990) to
-      4,285 (March 1992) is more than a four-fold rise in under two years, far faster than the
-      long-run pace, so the pace was not steady and the early years must have been slower. The
-      Learner does not need to give any rate as a number; the idea is what passes.
+      split evenly over the years, and that the honest yearly rate is one steady compound rate (a
+      CAGR), far lower than the friend's 322%. They say the climb was not steady: about 11 years to
+      reach 1,000, then more than four times that in under two years, so the last stretch was far
+      faster than the early years. The Learner does not need to give or work out any number; the
+      idea is what passes.
     card:
       title: "Is the pace steady?"
       lines:
