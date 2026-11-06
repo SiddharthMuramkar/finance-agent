@@ -97,7 +97,7 @@ export function StorySceneView({ cast, beats, caption, date }: Props) {
           </div>
         </div>
       </div>
-      {/* Secondaries: the view's one primary is the Next chip or Send, beside this Widget (Appendix B.7, #478). */}
+      {/* Secondaries: the view's one primary is the Next chip or Send, beside this Widget (Appendix B.7, issue 478). */}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <Button variant="secondary" size="sm" onClick={back} disabled={at === 0} data-testid="story-back">
           ‹ Back
