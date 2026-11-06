@@ -18,6 +18,16 @@
 //             in (each marked modelScored: true) and the summary means are computed from it. With no --only and no
 //             --scores, the run reuses nothing: scores stay null.
 //   --name    base name of the two files written into the folder (default "eval-report"): <name>.json and <name>.md
+//   --set     "delight" runs the 20-prompt Delight eval of spec Appendix D (src/behaviour/delight/prompts.json) in place of
+//             the built-in set: each prompt opens its own Topic at its own Teaching Step, and the report is the G2 bars
+//             (delight-report.json and .md by default). npm run delight:eval wraps this.
+//   --judge   with --set delight: runs the four Appendix D.2 judges (scripts/delight-judge.mjs, Opus) over each prompt.
+//             This is PAID (about 22 Tutor turns plus 80 judge calls). DELIGHT_BUDGET_USD (default 13) caps the whole round:
+//             each prompt's Tutor turns are charged from the usage rows the app records, a prompt that would pass the cap
+//             is not started, and the judges get what is left. Without --judge the Tutor turns are still capped.
+//             A try that timed out or threw is charged once its usage settles (its turn may still be running on the
+//             server), or with a reserve after 240 s. Every planned prompt has a row, so the bars always count all 20.
+//             It needs ANTHROPIC_API_KEY in the environment; it is never run in CI.
 //   --rescore re-reads <folder>/<name>.json, merges --scores and rewrites both files without running anything
 //
 // Environment (the orchestrator sets these):
@@ -35,29 +45,45 @@
 // "Expected archetype" column onto those names (Grow, Compare, History, Formula, Predict, Check, Rank, Chain, Convert).
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { assertLocalBase, assertTestDatabase, assertToolsLearner, textOf } from "./script-guards.mjs";
+import { openAtStep, openStudy, waitForOpener } from "./delight-study.mjs";
+import { openTurns, readDelight, readLane, tutorSteps } from "./eval-reads.mjs";
+import { assertLocalBase, assertTestDatabase, assertToolsLearner } from "./script-guards.mjs";
 
 const args = process.argv.slice(2);
 const flag = (name) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const out = args[0];
-if (!out || out.startsWith("--")) {
-  console.error("Usage: node --env-file=.env scripts/widget-eval.mjs <output-folder> [--only 3,11,19] [--scores scores.json] [--name eval-report] [--rescore]");
-  process.exit(2);
-}
 const only = flag("--only") ? new Set(flag("--only").split(",").map((n) => Number(n.trim()))) : null;
 const scoresFile = flag("--scores");
-const reportName = flag("--name") ?? "eval-report";
 const rescore = args.includes("--rescore");
+const setName = flag("--set");
+const judge = args.includes("--judge");
+if (setName !== undefined && setName !== "delight") {
+  console.error(`Unknown --set "${setName}": the only named set is "delight".`);
+  process.exit(2);
+}
+if (judge && setName !== "delight") {
+  console.error("--judge belongs to --set delight.");
+  process.exit(2);
+}
+const DELIGHT = setName === "delight";
+const reportName = flag("--name") ?? (DELIGHT ? "delight-report" : "eval-report");
+// The output folder is the first argument; the Delight set may leave it out (DELIGHT_OUT, or a fresh folder in the temp directory).
+const out = args[0] && !args[0].startsWith("--") ? args[0] : DELIGHT ? (process.env.DELIGHT_OUT ?? join(tmpdir(), `delight-eval-${new Date().toISOString().replace(/[:.]/g, "-")}`)) : undefined;
+if (!out) {
+  console.error("Usage: node --env-file=.env scripts/widget-eval.mjs <output-folder> [--only 3,11,19] [--scores scores.json] [--name eval-report] [--rescore]\n       node --env-file=.env scripts/widget-eval.mjs --set delight [--judge] [--only 1,5]   (npm run delight:eval)");
+  process.exit(2);
+}
+if (DELIGHT) console.log(`Delight eval output: ${out}`);
 mkdirSync(out, { recursive: true });
 
 // ---------- the eval set (REPORT.md §13.3) ----------
 
 /** @type {{ n: number, slug: string, prompt: string, expected: string, expectedSet: string[] }[]} */
-const PROMPTS = [
+const BUILTIN_PROMPTS = [
   [1, "time-value", "why is 100 rupees today worth more than 100 rupees next year? show me", "Grow (TimeTravel) or Duel", ["Grow", "Compare"]],
   [2, "cash-vs-annuity", "at what interest rate does the cash option beat the annuity? let me find it", "Duel + Breakeven", ["Compare"]],
   [3, "sip", "if i put 1000 rupees every month in a SIP, how much after 20 years", "Grow (MoneyStack)", ["Grow"]],
@@ -79,6 +105,12 @@ const PROMPTS = [
   [19, "net-worth", "what's the formula for net worth", "Formula + Stat", ["Formula", "Grow"]],
   [20, "rupee-fall", "if the rupee falls from 83 to 90 per dollar, what happens to my US trip budget", "Pictogram (note-usd) or Versus", ["Convert", "Compare"]],
 ].map(([n, slug, prompt, expected, expectedSet]) => ({ n, slug, prompt, expected, expectedSet }));
+
+/** The Delight set (spec Appendix D.1): the same row shape, plus the Topic and Teaching Step each prompt opens at. */
+const DELIGHT_PROMPTS = JSON.parse(readFileSync(new URL("../src/behaviour/delight/prompts.json", import.meta.url), "utf8")).map((p, i) => ({
+  n: i + 1, slug: p.id.toLowerCase(), id: p.id, prompt: p.message, topic: p.topic, step: p.step, expected: "a Widget with every reply", expectedSet: [],
+}));
+const PROMPTS = DELIGHT ? DELIGHT_PROMPTS : BUILTIN_PROMPTS;
 
 // ---------- numbers and summaries ----------
 
@@ -268,27 +300,6 @@ async function maxSeq(pool, learnerId) {
   return rows[0].seq;
 }
 
-/** Which lane served the Widget, and its code, from the Session's rows after the prompt. */
-async function readLane(pool, learnerId, promptSeq) {
-  const sessions = (await pool.query(`select id from sessions where learner_id = $1 order by id desc limit 1`, [learnerId])).rows;
-  if (!sessions.length) return { lane: "none", note: "no Session" };
-  const sessionId = sessions[0].id;
-  const messages = (await pool.query(`select seq, role, content from messages where session_id = $1 order by seq`, [sessionId])).rows;
-  const after = messages.filter((m) => m.seq > promptSeq);
-  const toolsUsed = after.flatMap((m) => (Array.isArray(m.content) ? m.content.filter((b) => b.type === "tool_use").map((b) => b.name) : []));
-  const items = (await pool.query(`select kind, data, after_seq from session_items where session_id = $1 and kind = 'widget_shown' and after_seq >= $2 order by id`, [sessionId, promptSeq])).rows;
-  const turn = (await pool.query(`select status, stop_reason, error from turns where session_id = $1 order by id desc limit 1`, [sessionId])).rows[0] ?? null;
-  const base = { sessionId, toolsUsed, turn };
-  if (items.length) {
-    const d = items[items.length - 1].data;
-    const source = typeof d.source === "string" ? d.source : "recipe";
-    return { ...base, lane: source === "compose" || source === "fallback" ? source : "recipe", code: d.code, title: d.title, recipe: d.recipe || null, params: d.params ?? null, widgetsShown: items.length };
-  }
-  const fences = after.filter((m) => m.role === "assistant").flatMap((m) => [...textOf(m).matchAll(/```openui-lang\n([\s\S]*?)\n```/g)].map((x) => x[1]));
-  if (fences.length) return { ...base, lane: "fence", code: fences[fences.length - 1], widgetsShown: fences.length };
-  return { ...base, lane: "none" };
-}
-
 /**
  * Production-equivalent timings, from the database timeline (docs: run/latency-analysis.md). A local server sits far from
  * the database, so every round trip adds time that production (Vercel next to Neon) does not have. Instead of the wall
@@ -439,9 +450,13 @@ async function overflowAt480(page) {
   });
 }
 
-/** Starts the tools Learner over, signs in by the page and starts the first Topic; resolves when the opening turn is done. */
-async function reachStudy(browser) {
+/**
+ * Starts the tools Learner over, signs in by the page and starts the first Topic; resolves when the opening turn is done.
+ * `seen.learnerId` is set as soon as the fresh Learner exists, so the Delight budget can charge a try that fails later.
+ */
+async function reachStudy(browser, pool, p, seen) {
   const { learnerId } = await signInAsToolsLearner(BASE);
+  seen.learnerId = learnerId;
   const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
   const page = await context.newPage();
   await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
@@ -449,25 +464,27 @@ async function reachStudy(browser) {
   await page.getByRole("button", { name: "Enter", exact: true }).click();
   await page.waitForURL(/\/welcome/, { timeout: 30_000 });
   await page.getByRole("link", { name: "Skip", exact: true }).click();
-  const start = page.getByRole("button", { name: "Start this Topic", exact: true });
-  await start.waitFor({ timeout: 15_000 });
-  await start.click();
-  await page.waitForURL(/\/study/, { timeout: 30_000 });
-  // The opening turn: a Tutor message appears, then the Stop button goes away and Send comes back.
-  await page.locator('[data-testid="assistant-message"]').first().waitFor({ timeout: 120_000 });
-  await page.getByRole("button", { name: "Send", exact: true }).waitFor({ timeout: TURN_TIMEOUT_MS });
-  await page.waitForTimeout(1_500);
+  if (DELIGHT) {
+    await openAtStep(pool, learnerId, p);
+    await openStudy(page, BASE);
+  } else {
+    const start = page.getByRole("button", { name: "Start this Topic", exact: true });
+    await start.waitFor({ timeout: 15_000 });
+    await start.click();
+    await page.waitForURL(/\/study/, { timeout: 30_000 });
+  }
+  await waitForOpener(page, TURN_TIMEOUT_MS);
   return { context, page, learnerId };
 }
 
-async function evalPrompt(browser, pool, p) {
+async function evalPrompt(browser, pool, p, seen = { learnerId: null }) {
   const row = {
-    n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet,
+    n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}),
     lane: "none", recipe: null, params: null, title: null, archetype: null, code: null,
     firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stuckMs: 0, stopped: null, error: null,
     toolsUsed: [], checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null,
   };
-  const { context, page, learnerId } = await reachStudy(browser);
+  const { context, page, learnerId } = await reachStudy(browser, pool, p, seen);
   try {
     await assertToolsLearner(pool, learnerId);
     const promptSeq = await maxSeq(pool, learnerId);
@@ -482,7 +499,11 @@ async function evalPrompt(browser, pool, p) {
       if (state.doneMs != null || Date.now() > until) break;
       await page.waitForTimeout(500);
     }
-    if (state.doneMs == null) row.error = `the turn did not finish in ${TURN_TIMEOUT_MS / 1000}s`;
+    if (state.doneMs == null) {
+      row.error = `the turn did not finish in ${TURN_TIMEOUT_MS / 1000}s`;
+      // The server keeps running the turn after the page closes: its usage is charged once it settles (E4b-C2).
+      row.turnUnfinished = true;
+    }
     // A last moment for the Widget to settle before it is measured and photographed.
     await page.waitForTimeout(800);
     state = await page.evaluate(() => window.__eval);
@@ -494,10 +515,15 @@ async function evalPrompt(browser, pool, p) {
     row.prodEq = await prodEquivalent(pool, lane.sessionId, row);
     if (lane.turn?.error && !row.error) row.error = lane.turn.error;
     if (lane.turn?.status && lane.turn.status !== "done" && lane.turn.status !== "finished") row.turnStatus = lane.turn.status;
+    if (lane.turn?.status === "running") row.turnUnfinished = true;
     if (lane.lane !== "none" && row.firstPixelMs == null) row.firstPixelNote = "the Widget on screen did not change, so no arrival was seen (the Tutor showed the one already open again)";
     const { archetype, checks } = codeChecks(lane.lane, lane.code, lane.title, p.expectedSet);
     row.archetype = archetype;
     row.checks = checks;
+    if (DELIGHT) {
+      Object.assign(row, { id: p.id, topic: p.topic, step: p.step });
+      row.delight = await readDelight(pool, lane.sessionId, promptSeq, lane.lane);
+    }
 
     if (page.locator('[data-testid="widget-card"]').first && (await page.locator('[data-testid="widget-card"]').count())) {
       const file = join(out, `${pad(p.n)}-${p.slug}.png`);
@@ -519,30 +545,113 @@ async function evalPrompt(browser, pool, p) {
 
 const round = (x) => (typeof x === "number" ? Math.round(x) : null);
 
+/**
+ * Delight set: judges (with --judge), the Appendix D.3 bars, and the two report files. `spend` already holds the round's
+ * Tutor turns, so the judges get what is left of the one cap, and `problems` already names any prompt the cap stopped.
+ */
+async function finishDelight(rows, spend, problems) {
+  const { caseOf, computeBars, alsoReported } = await import("../src/behaviour/delight/judges.ts");
+  const { readOutlineText } = await import("../src/course/map.ts");
+  if (judge) {
+    const { judgePrompt, realClient } = await import("./delight-judge.mjs");
+    const client = await realClient();
+    const outline = readOutlineText();
+    for (const row of rows) {
+      if (!row.delight) continue;
+      const { title, caseText } = caseOf(outline, row.topic);
+      const evidence = { prompt: { id: row.id, topic: row.topic, step: row.step, message: row.prompt }, topicTitle: title, reply: row.delight.reply, choices: row.delight.choices, widgetCode: row.code, widgetSource: row.delight.widgetSource, caseText };
+      try {
+        const r = await judgePrompt({ client, spend, evidence, screenshot: row.screenshot });
+        row.judgements = r.judgements;
+        for (const e of r.errors) problems.push(`${row.id} ${e}`);
+        if (r.skipped.length) problems.push(`${row.id}: not judged by ${r.skipped.join(", ")} (${spend.uncounted ? "the round's spend is no longer known" : `the $${spend.cap} cap`})`);
+      } catch (e) {
+        problems.push(`${row.id}: judging failed: ${String(e?.message ?? e).split("\n")[0]}`);
+      }
+      console.log(`${row.id} judged; spent $${spend.spent.toFixed(2)} of $${spend.cap}`);
+    }
+  }
+  const results = rows.map((r) => ({ id: r.id, widgetSource: r.delight?.widgetSource ?? null, choicesCount: r.delight?.choicesCount ?? null, persona: r.judgements?.persona, math: r.judgements?.math, fit: r.judgements?.fit, historian: r.judgements?.historian }));
+  // One row per planned prompt (E4b-B1): a prompt that never ran is a failed row, so the bars count all of them.
+  const total = rows.length;
+  const bars = computeBars(results, total, judge);
+  const also = alsoReported(results);
+  const usd = (x) => Math.round(x * 100) / 100;
+  // "floor-with-reserve": a try's turns never settled, so a reserve stands in for what was not read (E4b-C2).
+  const spendIs = spend.uncounted ? "floor" : spend.reserve.usd > 0 ? "floor-with-reserve" : "exact";
+  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: usd(spend.spent), tutorSpendUsd: usd(spend.tutor.usd), judgeSpendUsd: usd(spend.judges.usd), capUsd: spend.cap, spendIs, reserveUsd: usd(spend.reserve.usd), reserveWhy: spend.reserve.why, spendUncounted: spend.uncounted, bars, alsoReported: also, problems, prompts: rows };
+  writeFileSync(join(out, `${reportName}.json`), JSON.stringify(report, null, 2));
+  const md = [`# Delight eval: ${total} prompt${total === 1 ? "" : "s"}`, "", `Run ${report.ranAt} against ${BASE}. Spend $${report.spendUsd.toFixed(2)} of the $${spend.cap} cap: $${report.tutorSpendUsd.toFixed(2)} of Tutor turns and $${report.judgeSpendUsd.toFixed(2)} of judges. ${judge ? "Judged by Opus." : "Not judged (no --judge): the judged bars read \"not judged\"."}`, ""];
+  if (spend.uncounted) md.push(`**The spend above is a floor, not the total:** ${spend.uncounted}. Nothing more was started after that.`, "");
+  else if (spend.reserve.usd > 0) md.push(`**The spend above is a floor-with-reserve:** it includes $${report.reserveUsd.toFixed(2)} reserved for ${spend.reserve.why.length} tr${spend.reserve.why.length === 1 ? "y" : "ies"} whose Tutor turns never settled (${spend.reserve.why.join("; ")}).`, "");
+  md.push("## Bars (spec Appendix D.3)", "", "| Bar | Target | Actual | Result |", "|---|---|---|---|");
+  for (const b of bars) md.push(`| ${b.name} | ${b.target} | ${b.actual} | ${b.pass == null ? "n/a" : b.pass ? "pass" : "FAIL"} |`);
+  md.push("", "## Also reported", "");
+  for (const a of also) md.push(`- ${a.name}: ${a.ids.length ? a.ids.join(", ") : "none"} (${a.note})`);
+  md.push("", "## Prompts", "", "| Id | Topic / step | Message | Widget source | Choices | Fun | Lingo | Exam | Sums | Fit kind | Screenshot |", "|---|---|---|---|---|---|---|---|---|---|---|");
+  for (const r of rows) {
+    const j = r.judgements ?? {};
+    md.push(`| ${r.id} | ${r.topic} / ${r.step} | ${r.prompt} | ${r.delight?.widgetSource ?? "-"} | ${r.delight?.choicesCount ?? "-"} | ${j.persona?.fun ?? "-"} | ${j.persona?.lingo.score ?? "-"} | ${j.persona ? (j.persona.exam ? "yes" : "no") : "-"} | ${j.math?.count ?? "-"} | ${j.fit?.kind ?? "-"} | ${r.screenshot ?? "-"} |`);
+  }
+  const notes = rows.filter((r) => r.error || r.delight?.widgetSourceFrom !== "reply_checks");
+  if (notes.length || problems.length) {
+    md.push("", "## Notes", "");
+    for (const r of notes) md.push(`- **${r.id}**: ${[r.error && `error: ${r.error}`, r.delight && r.delight.widgetSourceFrom !== "reply_checks" && `widget source from ${r.delight.widgetSourceFrom}`].filter(Boolean).join("; ")}`);
+    for (const p of problems) md.push(`- ${p}`);
+  }
+  writeFileSync(join(out, `${reportName}.md`), md.join("\n") + "\n");
+  console.log(`Wrote ${join(out, reportName)}.json and .md. Bars passed: ${bars.filter((b) => b.pass === true).length} of ${bars.length}. Spend $${report.spendUsd.toFixed(2)}.`);
+}
+
 const pool = new Pool({ connectionString: DATABASE_URL });
 const browser = await chromium.launch();
 const rows = [];
+// The Delight round's one budget (spec D.3): the Tutor's turns are charged here as each prompt runs, the judges after.
+const { delightBudget, everyPlanned, runUnderCap, Spend } = await import("../src/behaviour/delight/judges.ts");
+const spend = DELIGHT ? new Spend(delightBudget(process.env)) : null;
+const problems = [];
+const failedRow = (p, error) => ({ n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}), lane: "none", archetype: null, firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stopped: null, error, checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null, toolsUsed: [] });
+const firstLine = (e) => String(e?.message ?? e).split("\n")[0];
+const planned = PROMPTS.filter((p) => !only || only.has(p.n));
+let stoppedBy = null;
 try {
-  for (const p of PROMPTS) {
-    if (only && !only.has(p.n)) continue;
+  for (const p of planned) {
+    // Only an infrastructure failure (server down, sign-in failed) is retried, once. A slow or poor answer never is.
+    const r = await runUnderCap({
+      spend,
+      attempt: (seen) => evalPrompt(browser, pool, p, seen),
+      usageOf: (learnerId) => tutorSteps(pool, learnerId),
+      // A try that timed out or threw may leave its turn running: it is charged once its usage settles (E4b-C2).
+      finished: (row) => !row.turnUnfinished,
+      openTurns: (learnerId) => openTurns(pool, learnerId),
+      onRetry: (e) => console.error(`prompt ${p.n}: ${firstLine(e)}; retrying once`),
+    });
     let row;
-    try {
-      row = await evalPrompt(browser, pool, p);
-    } catch (e) {
-      // Only an infrastructure failure (server down, sign-in failed) is retried, once. A slow or poor answer never is.
-      console.error(`prompt ${p.n}: ${String(e?.message ?? e).split("\n")[0]}; retrying once`);
-      try {
-        row = await evalPrompt(browser, pool, p);
-      } catch (e2) {
-        row = { n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, lane: "none", archetype: null, firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stopped: null, error: `run failed: ${String(e2?.message ?? e2).split("\n")[0]}`, checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null, toolsUsed: [] };
-      }
-    }
+    if ("row" in r) row = r.row;
+    else if ("refused" in r) {
+      const why = spend.uncounted
+        ? `not run: the round's spend is no longer known (${spend.uncounted}), so no more paid turns start`
+        : `not run: its Tutor turns (about $${spend.nextPrompt().toFixed(2)}) would pass the $${spend.cap} cap, $${spend.spent.toFixed(2)} spent`;
+      row = failedRow(p, r.error ? `run failed: ${firstLine(r.error)}; ${why}` : why);
+      problems.push(`${p.id ?? p.n}: ${why}`);
+    } else row = failedRow(p, `run failed: ${firstLine(r.error)}`);
     rows.push(row);
-    console.log(`${pad(p.n)} ${row.lane.padEnd(8)} ${String(row.recipe ?? "").padEnd(18)} px ${sec(row.firstPixelMs)} int ${sec(row.interactiveMs)} done ${sec(row.doneMs)} ${row.archetype ?? "-"}${row.error ? `  ERROR ${row.error}` : ""}`);
+    console.log(`${pad(p.n)} ${row.lane.padEnd(8)} ${String(row.recipe ?? "").padEnd(18)} px ${sec(row.firstPixelMs)} int ${sec(row.interactiveMs)} done ${sec(row.doneMs)} ${row.archetype ?? "-"}${row.error ? `  ERROR ${row.error}` : ""}${spend ? `  spent $${spend.spent.toFixed(2)} of $${spend.cap}` : ""}`);
   }
+} catch (e) {
+  // The Delight round has already paid for the prompts in `rows`: stop here but still write their report (E4b-C1).
+  if (!DELIGHT) throw e;
+  stoppedBy = firstLine(e);
+  problems.push(`round stopped after ${rows.length} prompt${rows.length === 1 ? "" : "s"}: ${stoppedBy}`);
 } finally {
   await browser.close();
   await pool.end();
+}
+if (DELIGHT) {
+  // Every planned prompt gets a row (E4b-B1): one the loop never reached is a failed row with its reason.
+  const all = everyPlanned(planned, rows, (p) => failedRow(p, `not run: the round stopped after ${rows.length} prompt${rows.length === 1 ? "" : "s"} (${stoppedBy ?? "unknown reason"})`));
+  await finishDelight(all, spend, problems);
+  process.exit(0);
 }
 if (scoresFile) mergeScores(rows, readJson(scoresFile));
 const report = writeReport(rows, { ranAt: new Date().toISOString(), base: BASE, viewport: VIEWPORT, only: only ? [...only] : null });
