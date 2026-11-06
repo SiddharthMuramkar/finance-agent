@@ -114,7 +114,7 @@ questions:
         text: "Take away both the debt and the cash"
         mistake: { tag: cash_removed, fix: "Cash belongs to the owners, so it is added, not removed." }
       - id: d
-        text: "Keep the 1,000 as it is: operations are all that matter"
+        text: "Keep the business value as it is: operations are all that matter"
         mistake: { tag: no_bridge, fix: "Owners get what is left after lenders, so debt and cash change the answer." }
     answer: a
     explanation: >
