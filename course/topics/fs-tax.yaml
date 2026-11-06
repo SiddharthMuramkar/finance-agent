@@ -117,6 +117,22 @@ questions:
       Depreciation spreads the cost of Meera's machines over the years. It reduces her profit before tax, so it cuts her tax bill, but no cash leaves her account for it. That is why analysts add depreciation back when they turn after-tax profit into operating cash flow.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement ; worked from the formula in the Topic.
+  - id: tx-q-deferred
+    prompt: >
+      September 2019. Kavya, an analyst, is studying a factory owner. In its published accounts it spreads
+      a new machine's cost evenly over the years, but on its tax return it claims the cost faster, so this
+      year it pays less tax than its accounts' tax charge. Her report on the company is due tomorrow. What
+      should she expect to find on the balance sheet?
+    choices:
+      - { id: a, text: "A deferred tax liability: the tax put off now falls due in later years, when the tax deductions run out" }
+      - { id: b, text: "A deferred tax asset, because the company paid less tax this year", mistake: { tag: flipped_dta_dtl, fix: "Paying less now means paying more later, which is a liability, not an asset." } }
+      - { id: c, text: "Nothing: the tax saved is a permanent gain", mistake: { tag: thought_saving_is_permanent, fix: "Faster tax depreciation only moves deductions earlier; the total deducted over the machine's life is the same." } }
+      - { id: d, text: "Lower profit in the published accounts, because tax depreciation is higher", mistake: { tag: mixed_book_and_tax, fix: "The accounts keep their own even depreciation; the tax return's faster schedule leaves book profit alone." } }
+    answer: a
+    explanation: >
+      Claiming the machine's cost faster for tax moves deductions earlier but not their total. Later, the tax deductions shrink and the tax bill rises, so the tax put off now is a debt to the government: a deferred tax liability. The accounts' tax charge stays in line with book profit.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ACC-FA-0039, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/financial-accounting.json ; the scenario is made up.
 
 checks:
   - id: tx-quiz-after-tax
@@ -127,7 +143,7 @@ checks:
       - tx-q-effective-rate
       - tx-q-shield
       - tx-q-ocf
-      - bank:eab:MBA-ACC-FA-0039
+      - tx-q-deferred
     perAttempt: 4
     passRule:
       correct: 3
