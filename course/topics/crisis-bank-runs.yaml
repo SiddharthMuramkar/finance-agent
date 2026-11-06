@@ -67,43 +67,43 @@ youllLearn:
 questions:
   - id: bk-q-net-worth
     prompt: >
-      A bank has assets of $120 million and deposits of $110 million. The market value of its assets then falls 10%. What is its net worth after the fall?
+      A bank's assets are worth only a little more than it owes its depositors, so its cushion of net worth is thin. Then the market value of its assets drops by more than that whole cushion. What happens to the bank?
     choices:
-      - { id: a, text: "-$2 million (negative)" }
-      - { id: b, text: "$10 million" }
-      - { id: c, text: "$12 million" }
-      - { id: d, text: "-$12 million" }
+      - { id: a, text: "It is now insolvent: its assets are worth less than it owes its depositors" }
+      - { id: b, text: "It is fine, because its deposits fell by the same amount", mistake: { tag: deposits_fall_too, fix: "Deposits are fixed sums owed. They do not fall when asset values do." } }
+      - { id: c, text: "It is fine, because the drop is small next to the size of its deposits", mistake: { tag: compared_to_deposits, fix: "What matters is the thin cushion. A drop bigger than the cushion wipes it out." } }
+      - { id: d, text: "Its net worth doubles, because assets are cheaper to buy", mistake: { tag: net_worth_rises, fix: "A fall in asset value cuts net worth. It never raises it." } }
     answer: a
     explanation: >
-      Assets fall to 120 x 0.90 = $108 million. Net worth = assets - liabilities = 108 - 110 = -$2 million. A fall of less than 8.3% would have left the bank solvent.
+      Net worth is what the bank owns less what it owes. The deposits stay the same when asset prices fall, so the whole drop comes out of the cushion. Once the drop is bigger than the cushion, the bank owns less than it owes: it is insolvent.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 27.3 The Role of Banks (balance sheet and net worth): https://openstax.org/books/principles-economics-3e/pages/27-3-the-role-of-banks ; figures are hypothetical
 
   - id: bk-q-sell-loss
     prompt: >
-      A bank holds $50 billion of bonds carried at their cost. Their market value is $42 billion. Deposit withdrawals force it to sell half the bonds. What loss does it realise?
+      A bank bought long-term bonds when interest rates were low. Rates have since risen, so the market now values the bonds below what the bank paid. While it keeps them, the loss is only on paper. Then deposit withdrawals force it to sell half of them. What does selling do?
     choices:
-      - { id: a, text: "$4 billion" }
-      - { id: b, text: "$8 billion" }
-      - { id: c, text: "$0, because the bonds are held to maturity" }
-      - { id: d, text: "$2 billion" }
+      - { id: a, text: "It turns a loss on paper into a real loss that hits the bank's capital" }
+      - { id: b, text: "Nothing, because bonds held to maturity cannot lose money", mistake: { tag: held_to_maturity_safe, fix: "Holding to maturity hid the loss on paper. Selling makes it real." } }
+      - { id: c, text: "It locks in a gain, because the bank receives cash", mistake: { tag: cash_is_gain, fix: "The cash raised is below cost, so selling locks in a loss, not a gain." } }
+      - { id: d, text: "It cancels the loss on the half the bank keeps", mistake: { tag: cancels_other_half, fix: "The unsold half still carries its own unrealised loss." } }
     answer: a
     explanation: >
-      Half the bonds cost $25 billion and sell for $21 billion, a $4 billion loss. Holding to maturity hid the loss on paper, but selling makes it real. The other half still carries an unrealised loss of $4 billion.
+      Selling at the lower market price turns the paper loss on that half into a real one, and it comes straight out of the bank's capital. The half it keeps still carries its own paper loss.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 27.3 The Role of Banks (banks lose when asset values fall): https://openstax.org/books/principles-economics-3e/pages/27-3-the-role-of-banks ; figures are hypothetical
 
   - id: bk-q-insured
     prompt: >
-      A company keeps $2 million in one US bank account. Deposit insurance covers up to $250,000 per depositor. How much of the balance is uninsured?
+      A company keeps $2 million in one US bank account, and deposit insurance covers up to $250,000 per depositor. A rumour spreads that the bank is in trouble. What is this company likely to do, and why?
     choices:
-      - { id: a, text: "$1.75 million" }
-      - { id: b, text: "$250,000" }
-      - { id: c, text: "$2 million" }
-      - { id: d, text: "None; the whole balance is covered" }
+      - { id: a, text: "Rush to withdraw, because most of its balance is uninsured and it could lose it" }
+      - { id: b, text: "Stay calm, because deposit insurance covers every balance", mistake: { tag: full_cover, fix: "Cover stops at $250,000 per depositor. The rest is at risk." } }
+      - { id: c, text: "Stay calm, because a balance that big is too large to lose", mistake: { tag: big_is_safe, fix: "Size gives no protection. A large uninsured balance is a reason to leave first." } }
+      - { id: d, text: "Wait, because the last to leave gets the most", mistake: { tag: last_gets_most, fix: "The last to leave may be left with the least, so each depositor wants to be first." } }
     answer: a
     explanation: >
-      $2,000,000 - $250,000 = $1,750,000 is uninsured. Depositors with large uninsured balances have the most reason to withdraw at the first sign of trouble.
+      Of the $2 million, $1.75 million is uninsured. Depositors with large uninsured balances have the most reason to withdraw at the first sign of trouble.
     source: >
       OpenStax, Principles of Economics 3e (CC BY), 28.2 Bank Regulation (FDIC guarantees deposits up to $250,000): https://openstax.org/books/principles-economics-3e/pages/28-2-bank-regulation
 
@@ -111,10 +111,10 @@ questions:
     prompt: >
       Why can a rumour cause even a healthy bank to fail?
     choices:
-      - { id: a, text: "Banks hold only a fraction of deposits in liquid form, so if many depositors withdraw at once the bank cannot pay without selling assets at a loss" }
-      - { id: b, text: "Healthy banks cannot fail" }
-      - { id: c, text: "Rumours change the interest rate the bank pays" }
-      - { id: d, text: "Banks keep all deposits as cash, so a rumour makes them lose it" }
+      - { id: a, text: "It keeps only a little in cash, so a rush of withdrawals forces fire sales" }
+      - { id: b, text: "Healthy banks cannot fail", mistake: { tag: healthy_cannot_fail, fix: "Even a healthy bank has lent most deposits out, so a rush of withdrawals can sink it." } }
+      - { id: c, text: "Rumours change the interest rate the bank pays", mistake: { tag: rumour_moves_rates, fix: "A rumour does not change rates. It triggers withdrawals." } }
+      - { id: d, text: "Banks keep all deposits as cash, so a rumour makes them lose it", mistake: { tag: all_deposits_in_cash, fix: "Banks lend out most deposits. They do not keep them all as cash." } }
     answer: a
     explanation: >
       A bank lends most of its deposits out. If enough depositors fear failure and withdraw together, the fear fulfils itself. This is why runs are described as self-fulfilling prophecies.
@@ -126,9 +126,9 @@ questions:
       A bank has funded 30-year fixed-rate loans with deposits. Market interest rates then rise by 3 percentage points. Which problem does the bank face?
     choices:
       - { id: a, text: "It earns the old low rate on its loans but must pay higher rates to keep its deposits" }
-      - { id: b, text: "Its loans become more valuable" }
-      - { id: c, text: "Nothing, because deposits are insured" }
-      - { id: d, text: "It earns the new high rate on its old loans" }
+      - { id: b, text: "Its loans become more valuable", mistake: { tag: loans_gain_value, fix: "Fixed-rate loans lose value when market rates rise, because new loans pay more." } }
+      - { id: c, text: "Nothing, because deposits are insured", mistake: { tag: insured_so_safe, fix: "Insurance protects depositors, not the gap between what the bank earns and pays." } }
+      - { id: d, text: "It earns the new high rate on its old loans", mistake: { tag: loans_reprice, fix: "Old fixed-rate loans keep their old rate. They do not reprice." } }
     answer: a
     explanation: >
       This is an asset-liability time mismatch. The fixed-rate loans keep paying the old rate and lose market value, while the bank has to pay depositors more or lose them.
@@ -140,9 +140,9 @@ questions:
       What does a central bank do when it acts as lender of last resort?
     choices:
       - { id: a, text: "It makes short-term loans to banks during a severe panic, against collateral" }
-      - { id: b, text: "It pays every depositor in full whatever the bank's condition" }
-      - { id: c, text: "It sets the bank's capital ratio" }
-      - { id: d, text: "It buys the bank's shares" }
+      - { id: b, text: "It pays every depositor in full whatever the bank's condition", mistake: { tag: pays_depositors, fix: "It lends to the bank against collateral. It does not pay depositors in full." } }
+      - { id: c, text: "It sets the bank's capital ratio", mistake: { tag: sets_capital, fix: "Capital rules are set by regulators. A last-resort loan is short-term cash." } }
+      - { id: d, text: "It buys the bank's shares", mistake: { tag: buys_shares, fix: "Lending short-term cash against collateral is not buying the bank's shares." } }
     answer: a
     explanation: >
       The central bank supplies short-term cash against collateral when private lenders will not. It can only lend to a bank that has eligible collateral and the operational arrangements in place.
