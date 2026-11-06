@@ -17,9 +17,9 @@ cases:
       shows net sales of 178.5 million dollars and a net loss of 453.3 million dollars. The cash flow statement shows net cash used in operating activities
       of 263.1 million dollars, and 259.8 million dollars spent on property, equipment and
       leasehold improvements, mostly warehouses and vehicles. At 31 December 2000 it holds 40.3
-      million dollars in cash and 171.6 million dollars in marketable securities. As of this date, the question is
-      how long that cash will last and what the three sections of the statement say about the
-      business.
+      million dollars in cash and 171.6 million dollars in marketable securities. As of this date, investors are
+      asking what the three sections of the statement say about the business, and whether that
+      cash can carry it much further.
     reveal: >
       On 9 July 2001 Webvan shut down all seven of its markets, which served about 750,000
       customers, and said it would file for bankruptcy protection; it filed for Chapter 11 on 13
@@ -51,15 +51,138 @@ youllLearn:
   - "Compare reported profit with the cash the business really produces."
   - "Work out how long a company's cash will last."
 
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+exampleCurrency: INR
+runningExample:
+  text: "A chai stall spends ₹10,000 more cash than it takes in each month."
+  numbers: [10000]
+  scene:
+    cast:
+      - { id: meena, emoji: cook, name: Meena, role: chai stall owner }
+    beats:
+      - { who: narrator, says: "Meena's chai stall takes in less cash than it spends each month.", emoji: hot-beverage }
+      - { who: narrator, says: "She pays the gap from the ₹60,000 she saved before opening.", emoji: money-bag }
+      - { who: meena, says: "The longer the gap lasts, the sooner my savings run out.", emoji: hourglass-not-done }
+
+terms:
+  - term: cash burn
+    means: How fast a company uses up its cash because it spends more than it takes in.
+    pro: The company is burning cash every month.
+    example: "You spend ₹12,000 a month and earn ₹7,000: your savings shrink."
+    emoji: fire
+    inStory: Webvan used 263.1 million dollars of cash in its operations in 2000.
+  - term: runway
+    means: How long a company's cash will last if it keeps spending at the same pace.
+    pro: Analysts ask how much runway is left.
+    example: "Your ₹60,000 of savings lasts only until it runs out at a steady monthly spend."
+    emoji: airplane
+    inStory: At 31 December 2000 Webvan held 40.3 million dollars in cash and 171.6 million in securities.
+  - term: operating cash flow
+    means: Cash a company really gets from, or spends on, running the business, whatever profit says.
+    pro: Analysts look at operating cash flow, not just net income.
+    example: "Cash in your tea stall's till this month, not what customers promised."
+    emoji: coin
+    inStory: Webvan's statement showed net cash used in operating activities, not cash earned.
+  - term: free cash flow
+    means: Cash from operations left after paying for the equipment and long-term assets the business needs.
+    pro: Free cash flow is operating cash flow after capital spending.
+    example: "Tea sales cash, less the ₹40,000 you spent on a new stove."
+    emoji: money-with-wings
+    inStory: Webvan also spent 259.8 million dollars on warehouses and vehicles, on top of its operations.
+  - term: financing activities
+    means: "Cash raised from, or paid to, owners and lenders: selling shares, borrowing, paying dividends."
+    pro: Analysts check who is financing the burn.
+    example: "Your parents lending you ₹50,000 to open the stall."
+    emoji: bank
+    inStory: Webvan went public in 1999, raising about 402.6 million dollars after costs.
+
+scenes:
+  - id: fc-s-story
+    step: story
+    recipe: story_scene
+    title: "Webvan files its annual report"
+    inputs:
+      cast:
+        - { id: webvan, emoji: delivery-truck, name: Webvan, role: online grocer }
+        - { id: investor, emoji: man-office-worker, name: An investor, role: reads the annual report }
+      beats:
+        - { who: narrator, says: "2 April 2001: Webvan, an online grocer, files its annual report for 2000.", emoji: calendar }
+        - { who: webvan, says: "Sales: 178.5 million dollars. Net loss: 453.3 million dollars.", emoji: bar-chart }
+        - { who: narrator, says: "Cash used in operations: 263.1 million dollars. Warehouses and vehicles: 259.8 million.", emoji: building-construction }
+        - { who: investor, says: "How long can that cash last? What do the three sections say?", emoji: hourglass-not-done }
+      caption: Cash is going out fast
+      date: "2001-04-02"
+  - id: fc-s-sections
+    step: concept
+    check: fc-quiz-cash
+    recipe: who_pays_whom
+    title: "Three kinds of cash movement"
+    inputs:
+      actors:
+        - { id: investors, emoji: man-office-worker, name: Investors }
+        - { id: company, emoji: delivery-truck, name: Webvan }
+        - { id: builders, emoji: construction-worker, name: Warehouse builders }
+        - { id: shoppers, emoji: woman, name: Shoppers }
+      flows:
+        - { from: shoppers, to: company, what: payment for groceries, emoji: shopping-cart }
+        - { from: company, to: builders, what: warehouses and vehicles, emoji: building-construction }
+        - { from: investors, to: company, what: money for shares, emoji: money-bag }
+  - id: fc-s-cash
+    step: concept
+    check: fc-webvan-cash
+    recipe: myth_or_fact
+    title: "Cash and profit: myth or fact"
+    inputs:
+      cards:
+        - claim: A company with a net loss always uses exactly that much cash.
+          isFact: false
+          why: Non-cash costs such as depreciation make the loss and the cash used differ.
+          emoji: chart-decreasing
+        - claim: Money raised from investors counts as operating cash flow.
+          isFact: false
+          why: It is financing. Operating cash flow comes from running the business.
+          emoji: money-bag
+        - claim: Cash on hand and the pace of cash use show how long cash lasts.
+          isFact: true
+          why: Cash on hand against the monthly cash use is the runway.
+          emoji: hourglass-not-done
+  - id: fc-s-reveal
+    step: reveal
+    recipe: timeline
+    title: "How the cash ran out"
+    inputs:
+      beats:
+        - { date: "2001-04-02", label: Webvan files its annual report for 2000, emoji: scroll }
+        - { date: "2001-07-09", label: Webvan shuts all seven of its markets, emoji: no-entry }
+        - { date: "2001-07-13", label: Webvan files for Chapter 11, emoji: warning }
+  - id: fc-s-principle
+    step: principle
+    recipe: two_paths
+    title: "Two readers, one loss"
+    inputs:
+      question: Two readers see the same loss. How does each judge the company?
+      left:
+        emoji: man-office-worker
+        name: Reader A
+        choice: Looks only at net profit
+        outcome: [chart-decreasing, thinking-face]
+        outcomeLine: Knows there is a loss, but not how long the cash lasts.
+      right:
+        emoji: woman-office-worker
+        name: Reader B
+        choice: Follows the cash
+        outcome: [magnifying-glass-tilted-left, hourglass-not-done]
+        outcomeLine: Sees where the cash came from and when it runs out.
+
 questions:
   - id: fc-q-loss-vs-cash
     prompt: >
-      A company has a net loss of 453 million but uses only 263 million of cash in operations. What most likely explains the gap?
+      Webvan's net loss for 2000 was bigger than the cash it used in operations. What most likely explains the gap?
     choices:
       - { id: a, text: "Non-cash expenses, such as depreciation and share-based pay, reduced profit but not cash" }
-      - { id: b, text: "The company earned 190 million in interest" }
-      - { id: c, text: "The company raised 190 million from investors, which counts as operating cash flow" }
-      - { id: d, text: "The cash flow statement is always lower than the income statement" }
+      - { id: b, text: "The company earned extra interest that year", mistake: { tag: interest_explains_gap, fix: "Interest earned is small here. The big gap comes from costs that took no cash." } }
+      - { id: c, text: "Money raised from investors counts as operating cash flow", mistake: { tag: financing_in_operating, fix: "Money raised from investors is financing, not operating." } }
+      - { id: d, text: "The cash flow statement is always lower than the income statement", mistake: { tag: always_lower, fix: "There is no such rule. It depends on non-cash costs and on changes in receivables, inventory and payables." } }
     answer: a
     explanation: >
       Starting from net income, the operating section adds back expenses that cost no cash, such as depreciation (94 million in Webvan's 2000 statement) and share-based pay. Money raised from investors is financing, not operating.
@@ -71,9 +194,9 @@ questions:
       Where do these three cash flows appear on the statement: (1) cash received from customers, (2) cash spent on a new warehouse, (3) cash received from selling new shares?
     choices:
       - { id: a, text: "(1) operating, (2) investing, (3) financing" }
-      - { id: b, text: "(1) operating, (2) financing, (3) investing" }
-      - { id: c, text: "(1) investing, (2) operating, (3) financing" }
-      - { id: d, text: "(1) financing, (2) investing, (3) operating" }
+      - { id: b, text: "(1) operating, (2) financing, (3) investing", mistake: { tag: swapped_investing_financing, fix: "Buying a warehouse is investing. Selling shares to owners is financing." } }
+      - { id: c, text: "(1) investing, (2) operating, (3) financing", mistake: { tag: swapped_operating_investing, fix: "Customer receipts come from running the business, so they are operating." } }
+      - { id: d, text: "(1) financing, (2) investing, (3) operating", mistake: { tag: reversed_order, fix: "Customer receipts are operating and share money is financing." } }
     answer: a
     explanation: >
       Customer receipts come from running the business (operating). Buying a long-term asset is investing. Selling shares raises money from owners, which is financing.
@@ -82,45 +205,73 @@ questions:
 
   - id: fc-q-free-cash-flow
     prompt: >
-      A company's operating cash flow is minus 263.1 million and its capital spending is 259.8 million. What is its free cash flow (operating cash flow minus capital spending)?
+      What do analysts call the cash left from operations after paying for equipment and other long-term assets?
     choices:
-      - { id: a, text: "About minus 3.3 million" }
-      - { id: b, text: "About minus 523 million" }
-      - { id: c, text: "About plus 3.3 million" }
-      - { id: d, text: "About plus 523 million" }
-    answer: b
+      - { id: a, text: "Free cash flow" }
+      - { id: b, text: "Net income", mistake: { tag: net_income_for_fcf, fix: "Net income is profit by accounting rules, not cash left after equipment." } }
+      - { id: c, text: "Retained earnings", mistake: { tag: retained_for_fcf, fix: "Retained earnings is kept profit on the balance sheet, not a cash flow." } }
+      - { id: d, text: "Financing cash flow", mistake: { tag: financing_for_fcf, fix: "Financing is cash from owners and lenders, not cash left after equipment." } }
+    answer: a
     explanation: >
-      -263.1 - 259.8 = -522.9, about minus 523 million. Adding the two numbers with opposite signs (the common slip) would give minus 3.3 million.
+      Free cash flow is operating cash flow after capital spending. For Webvan in 2000 both sides were outflows, so it was deeply negative.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.6 Operating Cash Flow and Free Cash Flow to the Firm: https://openstax.org/books/principles-finance-2e/pages/5-6-operating-cash-flow-and-free-cash-flow-to-the-firm-fcff ; the figures are Webvan's 2000 annual report.
 
   - id: fc-q-months
     prompt: >
-      A company holds 212 million in cash and securities and uses 264 million of cash in operations over a year, at an even pace, before any equipment spending. About how many months do the 212 million cover?
+      Analysts ask how long a company's cash will last at its current pace of spending. What do they call that?
     choices:
-      - { id: a, text: "About 4 months" }
-      - { id: b, text: "About 10 months" }
-      - { id: c, text: "About 15 months" }
-      - { id: d, text: "About 20 months" }
-    answer: b
+      - { id: a, text: "The runway" }
+      - { id: b, text: "Free cash flow", mistake: { tag: fcf_for_runway, fix: "Free cash flow is cash left after equipment. The runway is how long the cash lasts." } }
+      - { id: c, text: "The run rate", mistake: { tag: run_rate_for_runway, fix: "A run rate scales the latest period up to a year. The runway counts how long cash lasts." } }
+      - { id: d, text: "The accumulated deficit", mistake: { tag: deficit_for_runway, fix: "That is total losses to date, not how long the cash lasts." } }
+    answer: a
     explanation: >
-      264 / 12 = 22 million a month. 212 / 22 = 9.6, about 10 months, even before counting any equipment spending.
+      The runway is cash on hand set against the pace of cash use. Webvan's cash and securities were less than one year of its 2000 operating cash use, before any equipment spending.
     source: >
-      Webvan Group, Form 10-K for 2000 (cash 40.3 million, marketable securities 171.6 million, operating cash use 263.1 million); the months calculation is own arithmetic.
+      Webvan Group, Form 10-K for 2000 (cash 40.3 million, marketable securities 171.6 million, operating cash use 263.1 million).
 
   - id: fc-q-profit-no-cash
     prompt: >
       A company reports a profit, but its receivables (money owed by customers) rose sharply during the year. What does that tend to do to its operating cash flow compared with net income?
     choices:
       - { id: a, text: "Operating cash flow is lower than net income, because sales were recorded but not yet collected" }
-      - { id: b, text: "Operating cash flow is higher than net income" }
-      - { id: c, text: "Operating cash flow is the same as net income" }
-      - { id: d, text: "Receivables only affect the balance sheet and never the cash flow statement" }
+      - { id: b, text: "Operating cash flow is higher than net income", mistake: { tag: receivables_raise_cash, fix: "Unpaid sales have not produced cash, so cash flow is lower, not higher." } }
+      - { id: c, text: "Operating cash flow is the same as net income", mistake: { tag: cash_equals_profit, fix: "They differ whenever sales are made on credit. Profit counts the sale, cash waits for payment." } }
+      - { id: d, text: "Receivables only affect the balance sheet and never the cash flow statement", mistake: { tag: receivables_balance_only, fix: "A rise in receivables is subtracted from net income in operating cash flow." } }
     answer: a
     explanation: >
       On the indirect method an increase in receivables is subtracted from net income, because those sales have not yet produced cash.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows, operating activities: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
+
+  - id: fc-q-burn
+    prompt: >
+      A newspaper says Webvan was "burning cash". What does that mean?
+    choices:
+      - { id: a, text: "It was spending more cash than it took in" }
+      - { id: b, text: "A fire had damaged one of its warehouses", mistake: { tag: burn_is_fire, fix: "Cash burn is a money term. It has nothing to do with real fires." } }
+      - { id: c, text: "It was paying out a large dividend", mistake: { tag: burn_is_dividend, fix: "Burn means cash going out faster than it comes in, whatever the reason." } }
+      - { id: d, text: "It had no customers at all", mistake: { tag: burn_is_no_customers, fix: "A company with many customers can still burn cash if its costs are bigger than the cash coming in." } }
+    answer: a
+    explanation: >
+      Cash burn is how fast a company uses up its cash because it spends more than it takes in. Webvan used 263.1 million dollars in operations in 2000.
+    source: >
+      Webvan Group, Form 10-K for 2000 (SEC accession 0001012870-01-001485); the plain meaning of cash burn.
+
+  - id: fc-q-financing
+    prompt: >
+      Cash that a company raises by selling new shares is reported under what name on the cash flow statement?
+    choices:
+      - { id: a, text: "Financing activities" }
+      - { id: b, text: "Operating activities", mistake: { tag: shares_in_operating, fix: "Operating is cash from running the business. Selling shares raises money from owners." } }
+      - { id: c, text: "Investing activities", mistake: { tag: shares_in_investing, fix: "Investing is cash spent on or received from long-term assets." } }
+      - { id: d, text: "Free cash flow", mistake: { tag: shares_in_fcf, fix: "Free cash flow is operating cash after equipment. It is not a section of the statement." } }
+    answer: a
+    explanation: >
+      Cash from owners and lenders is financing. Webvan went public in 1999, and that money paid for its warehouses and its losses.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.5 The Statement of Cash Flows: https://openstax.org/books/principles-finance-2e/pages/5-5-the-statement-of-cash-flows
 
 checks:
   - id: fc-quiz-cash
@@ -131,6 +282,8 @@ checks:
       - fc-q-free-cash-flow
       - fc-q-months
       - fc-q-profit-no-cash
+      - fc-q-burn
+      - fc-q-financing
       - bank:eab:MBA-ACC-FA-0046
     perAttempt: 3
     passRule:
@@ -140,15 +293,15 @@ checks:
     prompt: >
       Webvan's 2000 annual report shows a net loss of 453.3 million dollars, net cash used in
       operations of 263.1 million, equipment spending of 259.8 million, and 212 million in cash and
-      securities at the year end. Explain why the net loss and the operating cash use differ,
-      how Webvan was paying for its equipment, and roughly how long its cash would last if the
-      2000 pace of operating cash use continued. What would you want to know about 2001?
+      securities at the year end. In words: why do the net loss and the cash used differ, how was
+      Webvan paying for its equipment, and would you call its runway long or short? What would
+      you want to know about 2001?
     passCriteria: >
       The Learner explains that the gap between the loss and the operating cash use is mostly
       non-cash expenses added back (depreciation, share-based pay, restructuring charges). They
       say the equipment was bought with money raised from investors in earlier years (the 1999
       share sale among it) and from selling securities, not from operating cash.
-      They calculate about 10 months of operating cash use (212 / (263 / 12)), noting it is
-      shorter if equipment spending continues, and say they would ask whether equipment spending
-      would fall, whether sales were rising fast enough to cut the operating cash use,
-      and whether new financing was available.
+      They call the runway short: the cash and securities were less than one year of operating cash use,
+      even before more equipment spending (they need not give a number; accept roughly ten months if they do),
+      and say they would ask whether equipment spending would fall, whether sales were rising fast enough to cut
+      the operating cash use, and whether new financing was available.

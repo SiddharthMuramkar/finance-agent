@@ -62,61 +62,61 @@ youllLearn:
 questions:
   - id: cs-q-tax-shield
     prompt: >
-      A firm borrows for good and pays interest every year. Interest is taken off profit before tax, and tax is 25%. Which headline about the tax saving gets it right?
+      Rahul's company takes a long-term loan and pays interest every year. Interest comes off profit before tax, and tax is 25%. What does the tax saving look like?
     choices:
-      - { id: a, text: "The tax saving is a quarter of the interest paid, a gain for owners that grows as the firm borrows more" }
+      - { id: a, text: "A quarter of the interest, growing as debt grows" }
       - id: b
-        text: "The tax saving is all of the interest paid, so debt is free"
+        text: "All of the interest, so borrowing ends up costing nothing"
         mistake: { tag: debt_is_free, fix: "Only the tax on the interest is saved, a quarter of it here, so debt is not free." }
       - id: c
-        text: "The tax saving is a quarter of the debt itself"
-        mistake: { tag: saving_on_debt, fix: "The saving comes from the interest, not the debt amount." }
+        text: "One quarter of the whole loan, each year"
+        mistake: { tag: saving_on_debt, fix: "The saving comes from the interest, not the loan amount." }
       - id: d
-        text: "There is no saving, because tax is charged on earnings before interest"
+        text: "Nothing at all, since tax is worked out before interest"
         mistake: { tag: interest_after_tax, fix: "Interest is deducted before tax, which is why the tax bill falls." }
     answer: a
     explanation: >
-      Interest is deducted before tax, so the tax bill falls by a quarter of the interest. For example, debt of 1,000 at 8% costs 80 of interest a year and saves 20 of tax.
+      Interest is deducted before tax, so the tax bill falls by a quarter of the interest. For example, Rs 1,000 crore of debt at 8% costs Rs 80 crore of interest a year and saves Rs 20 crore of tax.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
 
   - id: cs-q-roe
     prompt: >
-      You buy a shop partly with a loan. The shop earns more each year than the loan's interest costs. Which headline about your return gets it right?
+      Tara buys a cafe partly with a bank loan. Each year the cafe earns more than the loan's interest costs. What happens to the return on Tara's own money?
     choices:
-      - { id: a, text: "It rises above what the assets earn: leverage is working in the owners' favour" }
+      - { id: a, text: "It climbs above what the cafe earns: leverage helps her" }
       - id: b
-        text: "It stays the same: borrowing changes nothing for owners"
-        mistake: { tag: borrowing_neutral, fix: "The assets earn more than the debt costs, so the gap goes to the owners." }
+        text: "Nothing changes; borrowing makes no difference to owners"
+        mistake: { tag: borrowing_neutral, fix: "The cafe earns more than the loan costs, so the gap goes to Tara." }
       - id: c
-        text: "It falls: interest eats into the owners' return"
-        mistake: { tag: interest_always_hurts, fix: "Interest is less than the assets earn, so owners keep the gap." }
+        text: "It shrinks, since interest always eats into returns"
+        mistake: { tag: interest_always_hurts, fix: "Interest is less than the cafe earns, so Tara keeps the gap." }
       - id: d
-        text: "It becomes the lender's rate: owners earn what the lender earns"
+        text: "She ends up earning the bank's interest rate"
         mistake: { tag: owners_get_loan_rate, fix: "Owners keep what the assets earn after interest, not the lender's rate." }
     answer: a
     explanation: >
-      Borrowing at less than the assets earn lifts the owners' return, and would lower it if the assets earned less than the interest. For example, assets earning 10 on 100, with 40 borrowed at 6%, leave owners 7.6 on their 60, about 12.7%.
+      Borrowing at less than the assets earn lifts the owners' return, and would lower it if the assets earned less than the interest. For example, a Rs 100 lakh cafe earning Rs 10 lakh a year, with Rs 40 lakh borrowed at 6%, leaves Tara Rs 7.6 lakh on her Rs 60 lakh, about 12.7%.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.1 The Concept of Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-1-the-concept-of-capital-structure
 
   - id: cs-q-cover
     prompt: >
-      A firm's yearly earnings are only twice its interest bill. Lenders watch the gap between the two closely. Which headline gets it right?
+      Your uncle Raj lends to a firm whose yearly earnings are only twice its interest bill. One weak year could leave the interest unpaid. What should Raj make of that?
     choices:
-      - { id: a, text: "Interest cover, and a low figure signals a thin margin of safety" }
+      - { id: a, text: "Worry a little: its interest cover is thin" }
       - id: b
-        text: "Interest cover, and a low figure signals that the firm is very safe"
+        text: "Relax, since a low cover means the firm is very safe"
         mistake: { tag: low_cover_safe, fix: "A low cover means little room for earnings to fall before interest goes unpaid." }
       - id: c
-        text: "Debt to equity, and a low figure signals a thin margin of safety"
-        mistake: { tag: cover_as_gearing, fix: "Debt to equity compares funding sources. Earnings against interest is interest cover." }
+        text: "Check debt to equity instead; this gap tells him nothing"
+        mistake: { tag: cover_as_gearing, fix: "Debt to equity compares funding sources. Earnings against interest is interest cover, and it matters." }
       - id: d
-        text: "Return on equity, and a low figure signals a thin margin of safety"
+        text: "Cheer, as owners clearly earn a high return on equity"
         mistake: { tag: cover_as_roe, fix: "Return on equity is what owners earn. Earnings against interest is interest cover." }
     answer: a
     explanation: >
-      Interest cover sets earnings before interest and tax against the interest bill, here 2 times. A fall of half in earnings would leave nothing for shareholders, so a low cover is a thin margin of safety.
+      Interest cover sets earnings before interest and tax against the interest bill, here 2 times. If earnings halved, they would only just pay the interest, with nothing left for shareholders, so a low cover is a thin margin of safety.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.5 Optimal Capital Structure: https://openstax.org/books/principles-finance-2e/pages/17-5-optimal-capital-structure
 
