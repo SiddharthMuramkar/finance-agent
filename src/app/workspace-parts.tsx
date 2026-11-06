@@ -84,16 +84,19 @@ export function TopicBar({ topicId, title, goal, strip, marked }: { topicId?: st
   );
 }
 
-/** Whether a box around `el` (up to the page) can still scroll vertically in the wheel's direction. */
-function ancestorCanScroll(el: HTMLElement, deltaY: number): boolean {
+/**
+ * The nearest box around `el` (up to the page) that can still scroll vertically by `deltaY`, or null. A wheel over the
+ * strip goes to that box first (T313-T1).
+ */
+function scrollableAncestor(el: HTMLElement, deltaY: number): Element | null {
   const can = (box: Element) =>
     deltaY > 0 ? box.scrollTop + box.clientHeight < box.scrollHeight - 1 : box.scrollTop > 0;
   for (let box = el.parentElement; box; box = box.parentElement) {
     const { overflowY } = getComputedStyle(box);
-    if ((overflowY === "auto" || overflowY === "scroll") && box.scrollHeight > box.clientHeight && can(box)) return true;
+    if ((overflowY === "auto" || overflowY === "scroll") && box.scrollHeight > box.clientHeight && can(box)) return box;
   }
   const page = document.scrollingElement;
-  return !!page && page.scrollHeight > page.clientHeight && can(page);
+  return page && page.scrollHeight > page.clientHeight && can(page) ? page : null;
 }
 
 /**
@@ -127,12 +130,20 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
     if (!ol) return;
     const onWheel = (e: WheelEvent) => {
       if (e.shiftKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      // Line or page wheels (Firefox) report deltaY in lines or pages, not px.
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * ol.clientHeight : e.deltaY;
       // A box around the strip that can still scroll that way (the capped above-widgets box, the page) gets the wheel
-      // first; the strip turns it sideways only when none can (T313-T1).
-      if (ancestorCanScroll(ol, e.deltaY)) return;
+      // first, scrolled here so every platform agrees (Chromium on Windows and Linux would otherwise turn a vertical
+      // wheel over this sideways-only strip into a sideways scroll); the strip moves only when no box can (T313-T1).
+      const box = scrollableAncestor(ol, dy);
+      if (box) {
+        e.preventDefault();
+        box.scrollTop += dy;
+        return;
+      }
       const max = ol.scrollWidth - ol.clientWidth;
       if (max <= 0) return;
-      const next = Math.min(max, Math.max(0, ol.scrollLeft + e.deltaY));
+      const next = Math.min(max, Math.max(0, ol.scrollLeft + dy));
       if (next === ol.scrollLeft) return;
       e.preventDefault();
       ol.scrollLeft = next;
