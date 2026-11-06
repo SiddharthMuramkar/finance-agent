@@ -5,7 +5,8 @@ import type { CaseData } from "@/case-data/case-data";
 import { fetchCaseData, splitReference, type CaseLoad } from "@/widgets/case-data-client";
 import { useCaseLoad } from "@/widgets/case-data-provider";
 import { Credit, SourcedTag } from "@/widgets/case-data-view";
-import { widgetParts, widgetProblems } from "@/widgets/check";
+import { isEmojiName, type EmojiName } from "@/emoji/registry";
+import { archetypeOf, widgetParts, widgetProblems } from "@/widgets/check";
 import { SavedTicksContext, type SavedTicks } from "@/widgets/saved-ticks";
 import { widgetKey } from "@/widgets/widget-state";
 import { allTasksTicked } from "@/widgets/widget-reading";
@@ -405,6 +406,31 @@ function eyebrowFor(item: WidgetItem, topicTitle: string | undefined): string {
   return widgetConcept(item.code, topicTitle);
 }
 
+/** Each archetype's lead emoji, for a Widget whose own params name none (E5's filmstrip thumbnails). */
+const ARCHETYPE_EMOJI: Record<string, EmojiName> = {
+  Grow: "seedling",
+  Compare: "balance-scale",
+  History: "scroll",
+  Formula: "ledger",
+  Predict: "direct-hit",
+  Check: "check-mark-button",
+  Rank: "trophy",
+  Chain: "link",
+  Convert: "coin",
+};
+
+/**
+ * A Widget's lead emoji (E5): the first emoji name in its params (the first quoted word of its code that is in
+ * the emoji registry, as a story part's cast or a Lingo card writes it), else its archetype's emoji, else sparkles.
+ */
+export function leadEmojiOf(code: string): EmojiName {
+  for (const m of code.matchAll(/"([^"]+)"/g)) {
+    if (isEmojiName(m[1])) return m[1];
+  }
+  const archetype = archetypeOf(code);
+  return (archetype && ARCHETYPE_EMOJI[archetype]) || "sparkles";
+}
+
 /**
  * Which Widget the panel shows: the one picked, else the newest (`newest` names it by key when it is not last,
  * as when it updated an earlier tab in place). Picking sets `flashing` for 600ms, the length of the ring pulse the
@@ -423,7 +449,9 @@ export function useWidgetPicker(widgets: WidgetItem[], newest?: string) {
     timer.current = setTimeout(() => setFlashing(false), 600);
   };
   const shown = widgets.find((w) => holdsKey(w, picked)) ?? widgets.find((w) => holdsKey(w, newest)) ?? widgets.at(-1);
-  return { shown, picked, pick, flashing, clear: () => setPicked(undefined) };
+  /** The key "Back to latest" returns to: the newest Widget's own tab, which may be an earlier tab it updated in place. */
+  const newestKey = widgets.find((w) => holdsKey(w, newest))?.key ?? widgets.at(-1)?.key;
+  return { shown, picked, pick, flashing, newestKey, clear: () => setPicked(undefined) };
 }
 
 /** What a Widget is called on its tab and chip: "Explore" for the explore Widget, else its title, never a number. */
@@ -488,6 +516,7 @@ export function WidgetPanel({
   topicTitle,
   check,
   messageNumbers,
+  latestKey,
 }: {
   widgets: WidgetItem[];
   shown: WidgetItem | undefined;
@@ -496,8 +525,10 @@ export function WidgetPanel({
   onPick: (key: string) => void;
   topicTitle?: string;
   check?: CheckTab;
-  /** The number of the conversation message each Widget (by key) came from, for the "from message N" in the All menu. */
+  /** The number of the conversation message each Widget (by key) came from, kept for callers that still pass it. */
   messageNumbers?: Readonly<Record<string, number>>;
+  /** The newest Widget's key, for "Back to latest" (E5); defaults to the last Widget's. */
+  latestKey?: string;
 }) {
   const laptop = useLaptopWidth();
   const checkShown = !!check && (check.selected || !shown);
@@ -541,7 +572,7 @@ export function WidgetPanel({
   const elsewhere = shown?.explore && !laptop;
   const entries: PagerEntry[] = [
     ...(check ? [{ key: CHECK_ENTRY, title: check.name, eyebrow: "Quiz", check: true as const }] : []),
-    ...widgets.map((w) => ({ key: w.key, title: widgetName(w), eyebrow: eyebrowFor(w, topicTitle), from: messageNumbers?.[w.key], ...(w.explore && { explore: true as const }) })),
+    ...widgets.map((w) => ({ key: w.key, title: widgetName(w), eyebrow: eyebrowFor(w, topicTitle), emoji: leadEmojiOf(w.code), from: messageNumbers?.[w.key], ...(w.explore && { explore: true as const }) })),
   ];
   const paged = laptop ? entries : entries.filter((e) => !e.explore);
   const select = (key: string) => (key === CHECK_ENTRY ? check?.onPick() : onPick(key));
@@ -556,7 +587,7 @@ export function WidgetPanel({
   };
   return (
     <div ref={root} className="contents" onKeyDown={onKeyDown}>
-      {(check || widgets.length >= 2 || widgets.some((w) => w.explore)) && <WidgetPager entries={entries} paged={paged} current={view} onSelect={select} />}
+      {(check || widgets.length >= 2 || widgets.some((w) => w.explore)) && <WidgetPager entries={entries} paged={paged} current={view} latest={latestKey ?? widgets.at(-1)?.key} onSelect={select} />}
       {check && (
         <section aria-label={check.name} data-testid="check-card" hidden={!checkShown} className="rounded-lg border border-[var(--border)] p-3">
           {check.body}
