@@ -155,3 +155,31 @@ describe("Attach a passage", () => {
     expect(text(html)).toContain("(Pasted passage, 8 words:");
   });
 });
+
+describe("the message row at narrow widths (#317)", () => {
+  const tag = (html: string, re: RegExp) => html.match(re)?.[0] ?? "";
+
+  it("keeps the Attach button named, on one line, and icon-only below the lg breakpoint", () => {
+    for (const [passage, name] of [[null, "Attach a passage"], ["", "Remove passage"]] as const) {
+      const html = column({ passage });
+      const button = tag(html, new RegExp(`<button[^>]*aria-label="${name}"[^>]*>`));
+      expect(button).toContain("whitespace-nowrap");
+      expect(button).toContain("shrink-0");
+      expect(button).toContain(`title="${name}"`);
+      expect(html).toMatch(new RegExp(`<span class="hidden lg:inline">${name}</span>`));
+    }
+  });
+
+  it("keeps Send and Stop on one line and unshrunk", () => {
+    const send = tag(column(), /<button[^>]*>Send<\/button>/);
+    expect(send).toContain("whitespace-nowrap");
+    expect(send).toContain("shrink-0");
+    const stop = tag(column({ running: true }), /<button[^>]*data-testid="stop-reply"[^>]*>/);
+    expect(stop).toContain("whitespace-nowrap");
+    expect(stop).toContain("shrink-0");
+  });
+
+  it("lets the message box shrink instead of pushing the buttons", () => {
+    expect(tag(column(), /<textarea[^>]*aria-label="Message"[^>]*>/)).toContain("min-w-0");
+  });
+});
