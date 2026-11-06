@@ -49,8 +49,12 @@ test("restart from the Topic bar and from Settings", async ({ page }) => {
   await confirmRestart(page);
   await expect(page).toHaveURL(/\/study$/, { timeout: 60_000 });
 
+  // P's progress is cleared. The restart route lands on /study with P current, and its opener may already have begun the
+  // fresh attempt at the Story step, so P reads Not started or (just begun) In progress, never Passed, with no Check passed.
   await page.goto("/course");
-  await expect(page.locator(`li[data-topic="${P}"]`)).toHaveAttribute("data-status", "not_started");
+  const p = page.locator(`li[data-topic="${P}"]`);
+  await expect(p).toHaveAttribute("data-status", /^(not_started|in_progress)$/);
+  await expect(p).toContainText(/0 of \d+$/);
 
   // Its earlier attempt opens read-only with the old messages and no composer.
   await page.goto("/notebook");
@@ -67,6 +71,16 @@ test("restart from the Topic bar and from Settings", async ({ page }) => {
 
 test("nothing else moved", async ({ page }) => {
   test.setTimeout(240_000);
+  // Both restarts: Q from its Topic bar, then P from Settings.
+  await page.goto("/study");
+  await hydrated(page);
+  await page.getByTestId("topic-bar").getByRole("button", { name: "Topic options" }).click();
+  await page.getByRole("menuitem", { name: "Start this Topic over…" }).click();
+  await confirmRestart(page);
+  await expect(page).toHaveURL(/\/study$/, { timeout: 60_000 });
+  await hydrated(page);
+  await settled(page);
+
   await page.goto("/settings");
   await hydrated(page);
   await page.locator(`#your-topics [data-your-topic="${P}"]`).getByRole("button", { name: "Start over" }).click();
