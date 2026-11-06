@@ -127,6 +127,8 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain("Never state the number or answer your ask is after");
         // Targeted run t6: T4 said "1 percentage point. That is how far the rate moved." while that question was still open.
         expect(text).toContain("While a question you asked is still open, work the running example only up to its last step");
+        // Targeted run t7: T4 still wrote "5% minus 4% is 1 percentage point" under the open "how far the rate moved?".
+        expect(text).toContain('and never give its answer, not even as the worked line ("5% minus 4% is 1 point" answers "how far did it move?")');
       });
     });
   }
