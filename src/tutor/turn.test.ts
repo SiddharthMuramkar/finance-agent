@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { parse, stringify } from "yaml";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
 import { importCaseData } from "@/case-data/import";
@@ -22,6 +22,10 @@ import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { ensureTopicStarted, loadCheckResults, saveCheckResult, saveFinishedStep, saveJump, saveReturnToDefaultPath, learnerSummary } from "@/learner/memory";
 import { profileInput, saveProfile } from "@/learner/profile";
 import frozenWidgets from "@/widgets/frozen.generated.json";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];

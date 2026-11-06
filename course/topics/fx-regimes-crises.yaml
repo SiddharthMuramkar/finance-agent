@@ -68,9 +68,9 @@ questions:
       What distinguishes a hard peg from a soft peg or a floating rate?
     choices:
       - { id: a, text: "The central bank sets a fixed, unchanging value for the exchange rate" }
-      - { id: b, text: "The central bank never intervenes in the foreign exchange market" }
-      - { id: c, text: "The exchange rate is set by the market most of the time, with occasional intervention" }
-      - { id: d, text: "The country uses another country's currency as its own" }
+      - { id: b, text: "The central bank never intervenes in the foreign exchange market", mistake: { tag: peg_needs_no_defence, fix: "A hard peg has to be defended, so the central bank does intervene." } }
+      - { id: c, text: "The exchange rate is set by the market most of the time, with occasional intervention", mistake: { tag: soft_peg_for_hard, fix: "Market-set with occasional help is a soft peg or managed float, not a hard peg." } }
+      - { id: d, text: "The country uses another country's currency as its own", mistake: { tag: merged_for_peg, fix: "Using another country's currency is a merged currency, not a peg." } }
     answer: a
     explanation: >
       With a hard peg the central bank sets a fixed value and has to defend it. The third description is a soft peg or managed float, and the last is a merged currency.
@@ -82,9 +82,9 @@ questions:
       A central bank has pegged its currency at a rate above what the market would set, so that more of the currency is offered for sale than demanded at the pegged rate. To hold the peg, what must it do?
     choices:
       - { id: a, text: "Buy its own currency, paying with foreign exchange reserves" }
-      - { id: b, text: "Sell more of its own currency to the market" }
-      - { id: c, text: "Nothing; the peg holds itself" }
-      - { id: d, text: "Cut interest rates to make the currency more attractive" }
+      - { id: b, text: "Sell more of its own currency to the market", mistake: { tag: sells_own_currency, fix: "Selling more adds to the glut and pushes the price down; it must buy instead." } }
+      - { id: c, text: "Nothing; the peg holds itself", mistake: { tag: peg_holds_itself, fix: "With more offered than wanted, someone must buy the extra, or the rate falls." } }
+      - { id: d, text: "Cut interest rates to make the currency more attractive", mistake: { tag: cut_to_attract, fix: "A rate cut makes the currency less attractive; defending a peg means raising rates." } }
     answer: a
     explanation: >
       The excess supply of the currency has to be bought by someone. The central bank does it with reserves, which are limited, or it raises interest rates to raise demand for the currency.
@@ -96,9 +96,9 @@ questions:
       Which combination makes a pegged exchange rate most vulnerable to a currency crisis?
     choices:
       - { id: a, text: "A large current account deficit financed by short-term foreign borrowing, with small reserves" }
-      - { id: b, text: "A current account surplus, large reserves and little foreign debt" }
-      - { id: c, text: "A balanced budget and a floating rate" }
-      - { id: d, text: "Long-term direct investment and ample reserves" }
+      - { id: b, text: "A current account surplus, large reserves and little foreign debt", mistake: { tag: strength_as_weakness, fix: "A surplus, big reserves and little debt make a peg strong, not fragile." } }
+      - { id: c, text: "A balanced budget and a floating rate", mistake: { tag: float_has_no_peg, fix: "A floating rate has no peg to break, and a balanced budget is a strength." } }
+      - { id: d, text: "Long-term direct investment and ample reserves", mistake: { tag: sticky_money_fragile, fix: "Long-term direct investment cannot flee fast, and ample reserves defend the rate." } }
     answer: a
     explanation: >
       A big deficit means the country needs continuing inflows; short-term borrowing can leave quickly; small reserves mean the central bank cannot hold the rate for long. The other combinations are strong.
@@ -124,9 +124,9 @@ questions:
       A central bank describes its regime as a managed float. What does that mean?
     choices:
       - { id: a, text: "The market sets the baht's value, and the central bank steps in only when it judges it necessary" }
-      - { id: b, text: "The baht is fixed to a basket of currencies" }
-      - { id: c, text: "The baht is pegged to the US dollar" }
-      - { id: d, text: "The central bank sets the exchange rate every day" }
+      - { id: b, text: "The baht is fixed to a basket of currencies", mistake: { tag: basket_peg, fix: "A basket peg fixes the value; a managed float lets the market set it." } }
+      - { id: c, text: "The baht is pegged to the US dollar", mistake: { tag: dollar_peg, fix: "A dollar peg fixes the rate; a managed float lets it move with help now and then." } }
+      - { id: d, text: "The central bank sets the exchange rate every day", mistake: { tag: daily_fix, fix: "Setting the rate daily is a fix; in a managed float the market sets it." } }
     answer: a
     explanation: >
       In a managed float the value is determined by demand and supply in the foreign exchange market, with intervention only when needed to prevent excessive volatility.
@@ -138,9 +138,9 @@ questions:
       A central bank facing selling pressure on a pegged currency raises its policy interest rate sharply. What is the main benefit, and the main cost?
     choices:
       - { id: a, text: "Benefit: the currency becomes more attractive to hold. Cost: borrowers and banks, and the economy, suffer from higher interest rates" }
-      - { id: b, text: "Benefit: reserves rise without limit. Cost: none" }
-      - { id: c, text: "Benefit: imports become cheaper. Cost: exports collapse at once" }
-      - { id: d, text: "Benefit: the peg is no longer needed. Cost: the central bank loses its reserves" }
+      - { id: b, text: "Benefit: reserves rise without limit. Cost: none", mistake: { tag: reserves_unlimited, fix: "Reserves are limited, and higher rates hurt borrowers, so there is a real cost." } }
+      - { id: c, text: "Benefit: imports become cheaper. Cost: exports collapse at once", mistake: { tag: imports_cheaper, fix: "The point of a hike is a currency worth holding, not cheaper imports." } }
+      - { id: d, text: "Benefit: the peg is no longer needed. Cost: the central bank loses its reserves", mistake: { tag: hike_ends_peg, fix: "A hike defends the peg; it does not make the peg unnecessary." } }
     answer: a
     explanation: >
       Higher rates raise the return on holding the currency and can ease the selling. They also raise borrowing costs, squeeze companies and banks, and slow the economy, which is why a central bank may not be able to keep them up.

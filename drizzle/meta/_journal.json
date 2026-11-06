@@ -239,6 +239,13 @@
       "when": 1793897824831,
       "tag": "0033_absurd_lord_hawal",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793953421661,
+      "tag": "0034_strange_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

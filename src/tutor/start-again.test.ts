@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CONVERTED_TOPIC_DATA, topicFileOf } from "@/course/lesson-fixture";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { navigate } from "@/course/navigator";
@@ -13,6 +13,10 @@ import { CONCEPT_CARD, QUICK_TRY } from "./session-item-kinds";
 import { START_AGAIN_REFUSAL } from "./tools";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /** Seam: the Tutor Turn with the start_again tool (spec #229, ticket #245). */
 

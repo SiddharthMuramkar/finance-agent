@@ -68,9 +68,9 @@ questions:
       and no cash saved up. Where must the missing 30 a year come from?
     choices:
       - { id: a, text: "From financing: new shares, borrowing or cash raised earlier" }
-      - { id: b, text: "From the landlord, who is bound to forgive the shortfall" }
-      - { id: c, text: "From customers, automatically" }
-      - { id: d, text: "It does not need to come from anywhere" }
+      - { id: b, text: "From the landlord, who is bound to forgive the shortfall", mistake: { tag: landlord_forgives, fix: "Rent is owed whatever customers pay; the landlord is bound to nothing." } }
+      - { id: c, text: "From customers, automatically", mistake: { tag: customers_cover, fix: "Customers pay only what they owe; the gap needs owners or lenders." } }
+      - { id: d, text: "It does not need to come from anywhere", mistake: { tag: gap_vanishes, fix: "Paying out more than comes in must be financed from somewhere." } }
     answer: a
     explanation: >
       Rent is owed whatever the customers pay. If operating cash inflows fall short of payments out, the difference must be financed by owners putting in money, lenders, or cash raised earlier. That is what the financing section of the cash flow statement records.
@@ -83,9 +83,9 @@ questions:
       January 2019 and $1.0 billion in April 2019. Who paid whom, and for what?
     choices:
       - { id: a, text: "SoftBank entities paid WeWork, in exchange for shares of WeWork" }
-      - { id: b, text: "WeWork paid SoftBank, in exchange for shares of SoftBank" }
-      - { id: c, text: "WeWork paid SoftBank interest on a loan" }
-      - { id: d, text: "SoftBank paid WeWork's landlords directly, in exchange for a share of the rent" }
+      - { id: b, text: "WeWork paid SoftBank, in exchange for shares of SoftBank", mistake: { tag: arrow_reversed, fix: "The money went into WeWork, and SoftBank got WeWork shares back." } }
+      - { id: c, text: "WeWork paid SoftBank interest on a loan", mistake: { tag: warrant_as_loan, fix: "A warrant buys shares; this was an owner paying in, not loan interest." } }
+      - { id: d, text: "SoftBank paid WeWork's landlords directly, in exchange for a share of the rent", mistake: { tag: paid_landlords, fix: "The S-1 shows SoftBank paying WeWork itself, for WeWork shares." } }
     answer: a
     explanation: >
       The S-1 shows the money going into WeWork: SoftBank drew down the warrant with payments of $1.5 billion and $1.0 billion and received shares of WeWork in exchange. This is an owner paying the company, a financing inflow, not repayment of a loan.
@@ -98,9 +98,9 @@ questions:
       paid in cash. Which of these can explain it?
     choices:
       - { id: a, text: "The lease gave free-rent months and rent steps, and accounting spreads the total evenly over the lease" }
-      - { id: b, text: "The company paid its rent twice" }
-      - { id: c, text: "Rent is never an expense" }
-      - { id: d, text: "Accounting expense always equals cash paid" }
+      - { id: b, text: "The company paid its rent twice", mistake: { tag: paid_twice, fix: "Paying twice would raise cash paid too; the gap comes from spreading the cost evenly." } }
+      - { id: c, text: "Rent is never an expense", mistake: { tag: rent_not_expense, fix: "Rent is an expense; the question is why it differs from cash." } }
+      - { id: d, text: "Accounting expense always equals cash paid", mistake: { tag: expense_is_cash, fix: "Accounting expense often differs from cash; straight-line leases are a classic case." } }
     answer: a
     explanation: >
       Under lease accounting the total cost of the lease is spread evenly (straight-line) over its life, so early years with free rent or low rent show an expense above the cash paid. WeWork's S-1 itself separates a non-cash GAAP straight-line lease cost of about $198 million for the half year from the lease cost contractually paid or payable.
@@ -130,9 +130,9 @@ questions:
       the rent?
     choices:
       - { id: a, text: "The company that signed the lease" }
-      - { id: b, text: "The departed customers" }
-      - { id: c, text: "Nobody, because the lease ends when the customers leave" }
-      - { id: d, text: "The company's bank, automatically" }
+      - { id: b, text: "The departed customers", mistake: { tag: customers_owe_landlord, fix: "The customers signed with the company, not the landlord." } }
+      - { id: c, text: "Nobody, because the lease ends when the customers leave", mistake: { tag: lease_ends_early, fix: "The 15-year lease runs on whatever the customers do." } }
+      - { id: d, text: "The company's bank, automatically", mistake: { tag: bank_pays, fix: "A bank owes nothing unless it signed a guarantee." } }
     answer: a
     explanation: >
       A lease is a contract between the landlord and the lessee. Under the lessee accounting model the lessee recognises a liability for the present value of its lease payments, whatever happens to its own customers. The customers' contracts are a separate arrow in the chain.

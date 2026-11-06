@@ -82,9 +82,9 @@ questions:
       Which statement correctly separates a futures contract from a forward contract?
     choices:
       - { id: a, text: "A futures contract is standardised and traded on an exchange, with margin posted and daily settlement; a forward is a private agreement settled at the end" }
-      - { id: b, text: "A forward contract is traded on an exchange and a futures contract is private" }
-      - { id: c, text: "A futures contract cannot be used to hedge" }
-      - { id: d, text: "A forward contract requires daily cash settlement of gains and losses" }
+      - { id: b, text: "A forward contract is traded on an exchange and a futures contract is private", mistake: { tag: swapped_venues, fix: "That swaps them: futures trade on exchanges, forwards are private deals." } }
+      - { id: c, text: "A futures contract cannot be used to hedge", mistake: { tag: futures_no_hedge, fix: "Futures are one of the most common hedging tools." } }
+      - { id: d, text: "A forward contract requires daily cash settlement of gains and losses", mistake: { tag: forward_daily, fix: "Daily settlement is the futures way; a forward settles once at the end." } }
     answer: a
     explanation: >
       Standard terms, an exchange and daily marking to market are the marks of futures. Forwards are tailored private deals where nothing is paid until the delivery date, which adds credit risk but no daily cash calls.
@@ -110,8 +110,8 @@ questions:
       A farmer will harvest corn in three months and wants to lock in today's price. Which position hedges the price risk?
     choices:
       - { id: a, text: "Sell corn futures for delivery in three months" }
-      - { id: b, text: "Buy corn futures for delivery in three months" }
-      - { id: c, text: "Do nothing; a fall in the price helps farmers" }
+      - { id: b, text: "Buy corn futures for delivery in three months", mistake: { tag: long_hedge_for_seller, fix: "The farmer already owns the crop; buying futures doubles the bet on price." } }
+      - { id: c, text: "Do nothing; a fall in the price helps farmers", mistake: { tag: fall_helps, fix: "A falling price hurts the farmer who sells the crop." } }
     answer: a
     explanation: >
       The farmer is long corn (will have the crop) and loses if the price falls. Selling futures gains when the price falls, offsetting the loss on the crop. Buying futures would double the exposure.
@@ -123,9 +123,9 @@ questions:
       A futures market is in contango. What does that mean?
     choices:
       - { id: a, text: "Contracts for later delivery are priced above contracts for nearer delivery" }
-      - { id: b, text: "Contracts for later delivery are priced below contracts for nearer delivery" }
-      - { id: c, text: "The futures price equals the spot price at every maturity" }
-      - { id: d, text: "No contracts are being traded" }
+      - { id: b, text: "Contracts for later delivery are priced below contracts for nearer delivery", mistake: { tag: backwardation_for_contango, fix: "Later contracts priced below nearer ones is backwardation, the opposite." } }
+      - { id: c, text: "The futures price equals the spot price at every maturity", mistake: { tag: flat_curve, fix: "Contango is an upward futures curve, not one equal to spot." } }
+      - { id: d, text: "No contracts are being traded", mistake: { tag: no_trading, fix: "Contango describes prices across maturities, not whether anyone trades." } }
     answer: a
     explanation: >
       Contango is an upward-sloping futures curve: later maturities cost more. Backwardation is the opposite. Anyone who holds a long position and rolls it into the next contract each month buys at the higher price in contango and at the lower price in backwardation.

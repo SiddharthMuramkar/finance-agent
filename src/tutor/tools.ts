@@ -37,7 +37,7 @@ import { searchLibrary, searchResultBlocks, type QueryEmbedder } from "@/library
 import { stepContext, topicCompleteContext } from "./context";
 import { verdictCard } from "./check-results";
 import { pasteSummary } from "./pasted";
-import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type ReplyText, type SessionItem, type StoredItem } from "./session-items";
+import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, turnItems, type ReplyText, type SessionItem, type StoredItem } from "./session-items";
 import { enterStepItems, startAgainItems } from "./practice";
 import { openWidgetsForTurn } from "./widget-context";
 import { textOf } from "./transcript";
@@ -48,6 +48,15 @@ import { isCodeWritten, OLD_CONTINUE_TEXT, turnKind } from "./turn-status";
 import { isChoicePress } from "./reply-choices";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
+
+/**
+ * The keys of the Widgets a turn's update_widget calls moved: each counts as that reply's Widget (the one-Widget check
+ * below, and the Companion gate in turn.ts), just as one it showed or opened.
+ */
+export async function widgetsUpdatedInTurn(db: Db, turnId: number): Promise<Set<string>> {
+  const updates = await db.select({ result: toolCalls.result }).from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.name, "update_widget"), eq(toolCalls.isError, false)));
+  return new Set(updates.flatMap((u) => u.result.match(/^Updated by code: "(.*)" now shows/)?.[1] ?? []));
+}
 
 /** The text of each of a Session's replies (its assistant rows), with its seq, for drawnWidgets. */
 export function replyTexts(rows: readonly { seq: number; role: string; content?: unknown }[]): ReplyText[] {
@@ -347,9 +356,7 @@ export function toolCode(
   async function replyWidgets(tx: Db, scope: ReplyScope): Promise<{ slots: number; keys: Set<string> }> {
     const keys = new Set<string>();
     let slots = 0;
-    for (const i of scope.items) {
-      const mine = i.afterSeq >= scope.turnSeq || (scope.next && i.afterSeq === scope.turnSeq - 1);
-      if (!mine) continue;
+    for (const i of turnItems(scope.items, scope.rows, scope.turnSeq, scope.next)) {
       if (i.kind === WIDGET_OPENED && typeof i.data.id === "string") {
         keys.add(i.data.id);
         slots++;
@@ -365,9 +372,7 @@ export function toolCode(
       slots++;
     }
     // update_widget on a Widget this reply did not open or show is the reply's Widget too.
-    const updates = await tx.select({ result: toolCalls.result }).from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.name, "update_widget"), eq(toolCalls.isError, false)));
-    const moved = new Set(updates.flatMap((u) => u.result.match(/^Updated by code: "(.*)" now shows/)?.[1] ?? []));
-    for (const key of moved) {
+    for (const key of await widgetsUpdatedInTurn(tx, turnId)) {
       if (!keys.has(key)) slots++;
       keys.add(key);
     }
@@ -735,6 +740,7 @@ export function toolCode(
           // A front page is written ahead (E3): the Tutor names a headline scene of this Topic and code
           // swaps in the scene's own text, so the stored Widget and every later check see that text.
           let showParams: unknown = params;
+          let scene: string | undefined;
           if (id === "headline") {
             const where = await replyScope(tx);
             const topicId = where?.topicId ?? navigate(map, await loadProgress(tx, learnerId))?.topic.id;
@@ -742,6 +748,7 @@ export function toolCode(
             const resolved = headlineParamsForScene(topic?.scenes ?? [], params);
             if (!resolved.ok) return { ok: false, text: `Not shown: ${resolved.error}` };
             showParams = resolved.params;
+            scene = resolved.scene;
           }
           const built = recipe.build(showParams);
           if (!built.ok) return { ok: false, text: `Not shown: these params do not fit the ${id} recipe. ${built.error}. Call show_widget again with params that fit, or teach this in words.` };
@@ -772,7 +779,7 @@ export function toolCode(
           // An open quiz keeps its numbers: the recipe's inputs may not use them.
           const blocked = await openQuizProblems(tx, { kind: "recipe", id, params: built.params });
           if (blocked.length) return { ok: false, text: `Not shown: ${blocked.join(" ")}` };
-          const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe" };
+          const data: ShownWidget = { id: context!.toolUse.id, recipe: id, params: built.params, title: built.title, code: built.code, source: "recipe", ...(scene && { scene }) };
           // A practice-mode Widget asks its own question and marks the typed answer, so the reply only asks it (ticket #248, T5).
           const practice = (built.params as { inputs?: { mode?: unknown } } | undefined)?.inputs?.mode === "practice";
           const talk = practice ? `${TALK_ABOUT_IT} ${PRACTICE_ASK}` : TALK_ABOUT_IT;

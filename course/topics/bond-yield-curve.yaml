@@ -55,9 +55,9 @@ questions:
       Long-term yields are below short-term yields. What is this shape of the yield curve called?
     choices:
       - { id: a, text: "Inverted" }
-      - { id: b, text: "Normal (upward sloping)" }
-      - { id: c, text: "Flat" }
-      - { id: d, text: "Steep" }
+      - { id: b, text: "Normal (upward sloping)", mistake: { tag: normal_for_inverted, fix: "A normal curve has long yields above short ones; this one is the other way round." } }
+      - { id: c, text: "Flat", mistake: { tag: flat_for_inverted, fix: "Flat means long and short yields are about equal; here long ones are below." } }
+      - { id: d, text: "Steep", mistake: { tag: steep_for_inverted, fix: "Steep means long yields far above short ones; long below short is inverted." } }
     answer: a
     explanation: >
       A curve that slopes downward, with long-term rates lower than short-term rates, is called inverted. It is considered unusual.
@@ -96,9 +96,9 @@ questions:
       Why is an inverted yield curve often read as a warning of an economic slowdown?
     choices:
       - { id: a, text: "Investors expect the central bank to cut rates later, as it usually does when the economy weakens, so long yields fall below short ones" }
-      - { id: b, text: "Long-term borrowing is always more expensive in a recession" }
-      - { id: c, text: "Governments stop issuing short-term bills when a recession is near" }
-      - { id: d, text: "An inverted curve causes banks to stop lending" }
+      - { id: b, text: "Long-term borrowing is always more expensive in a recession", mistake: { tag: recession_dear_long, fix: "Long yields are below short ones here, so long borrowing is cheaper, not dearer." } }
+      - { id: c, text: "Governments stop issuing short-term bills when a recession is near", mistake: { tag: bills_stop, fix: "Governments keep issuing bills; the shape comes from expected rate cuts." } }
+      - { id: d, text: "An inverted curve causes banks to stop lending", mistake: { tag: signal_as_cause, fix: "The inversion is a signal of expected cuts, not a cause of banks stopping lending." } }
     answer: a
     explanation: >
       Central banks often lower rates to stimulate a stagnant economy. If investors expect that, long yields, which average expected future short rates, fall below today's short rates. It is a signal, not a cause.
@@ -110,9 +110,9 @@ questions:
       Which part of the yield curve tracks the central bank's policy rate most closely?
     choices:
       - { id: a, text: "The short end, such as 3-month and 2-year yields" }
-      - { id: b, text: "The long end, such as 30-year yields" }
-      - { id: c, text: "Only the middle of the curve" }
-      - { id: d, text: "No part of it: central banks do not affect yields" }
+      - { id: b, text: "The long end, such as 30-year yields", mistake: { tag: long_end_for_policy, fix: "Long yields average many years of expectations; the short end follows the policy rate." } }
+      - { id: c, text: "Only the middle of the curve", mistake: { tag: middle_only, fix: "The short end, not the middle, tracks the policy rate most closely." } }
+      - { id: d, text: "No part of it: central banks do not affect yields", mistake: { tag: no_policy_effect, fix: "Central banks set short rates, so the short end follows them closely." } }
     answer: a
     explanation: >
       Short-term yields are set largely by what the central bank is doing and is expected to do in the next few years. Long yields depend on expectations over many years.

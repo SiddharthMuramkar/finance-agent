@@ -90,8 +90,8 @@ questions:
       bank deposits in the economy, before the borrower spends anything?
     choices:
       - { id: a, text: "It rises by Rs 5 lakh, because the loan created a new deposit" }
-      - { id: b, text: "It is unchanged, because the bank only moved money from its own pocket" }
-      - { id: c, text: "It falls by Rs 5 lakh, because the bank has less to lend" }
+      - { id: b, text: "It is unchanged, because the bank only moved money from its own pocket", mistake: { tag: loan_from_pocket, fix: "The bank does not hand over existing money; crediting the account makes a brand-new deposit." } }
+      - { id: c, text: "It falls by Rs 5 lakh, because the bank has less to lend", mistake: { tag: loan_shrinks_deposits, fix: "Lending adds to deposits; the new loan sits in the borrower's account." } }
     answer: a
     explanation: >
       Because banks keep only a fraction of deposits as reserves, a loan credited to an account adds a
@@ -106,8 +106,8 @@ questions:
       the borrowing bank. What was the receipt supposed to show?
     choices:
       - { id: a, text: "That the borrowing bank held government securities on the lender's behalf as security for the loan" }
-      - { id: b, text: "That the lender had received a share certificate in the broker's company" }
-      - { id: c, text: "That the loan was guaranteed by the Reserve Bank" }
+      - { id: b, text: "That the lender had received a share certificate in the broker's company", mistake: { tag: share_for_bond, fix: "A BR stood for government securities held for the lender, not shares in a broker's firm." } }
+      - { id: c, text: "That the loan was guaranteed by the Reserve Bank", mistake: { tag: rbi_guarantee, fix: "The Reserve Bank guaranteed nothing; the receipt was only the borrowing bank's promise." } }
     answer: a
     explanation: >
       A BR stood in for the securities that secured the roughly 15-day loan: the lender relied on the

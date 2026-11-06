@@ -77,9 +77,9 @@ questions:
       The price of one Mexican peso rises from $0.0625 to $0.0800. What has happened to the peso?
     choices:
       - { id: a, text: "It has appreciated" }
-      - { id: b, text: "It has depreciated" }
-      - { id: c, text: "It has been devalued by its government" }
-      - { id: d, text: "Nothing: only the dollar has moved" }
+      - { id: b, text: "It has depreciated", mistake: { tag: direction_flipped, fix: "A peso now costs more dollars, so it has risen in value, not fallen." } }
+      - { id: c, text: "It has been devalued by its government", mistake: { tag: devalue_for_float, fix: "Devaluation is a government cutting a fixed rate; here the peso's price went up." } }
+      - { id: d, text: "Nothing: only the dollar has moved", mistake: { tag: one_side_only, fix: "A rate is two currencies at once: if the dollar fell against it, the peso rose." } }
     answer: a
     explanation: >
       It now costs more dollars to buy a peso, so the price of the peso has risen: it has appreciated, and the dollar has depreciated against it. Devaluation applies only when a government deliberately lowers a fixed rate.

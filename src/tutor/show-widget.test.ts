@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { OWNER_LEARNER_ID, sessions, settings } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { engineOff } from "@/test/engine-off";
@@ -11,6 +11,10 @@ import { fingerprint, frozenNow, readSettings } from "./session-log";
 import { loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 // Seam 1, the Tutor Turn (ADR 0005): with the widget engine on, the Tutor calls show_widget with a recipe and params;
 // code compiles and checks the Widget, stores it as a Session item and streams it. Off, nothing changes.

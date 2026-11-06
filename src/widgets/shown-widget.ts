@@ -11,11 +11,17 @@ export const WIDGET_SHOWN = "widget_shown";
 
 /**
  * Where a shown Widget's code came from: a recipe (show_widget), a free-form program the compose model wrote
- * (compose_widget), or a recipe code showed because the free-form one timed out or failed (compose_widget's fallback).
+ * (compose_widget), a recipe code showed because the free-form one timed out or failed (compose_widget's fallback),
+ * or a Companion Widget code added to a reply that had none (E4a, src/tutor/companion.ts).
  */
-export type ShownWidgetSource = "recipe" | "compose" | "fallback";
+export type ShownWidgetSource = "recipe" | "compose" | "fallback" | "companion";
 
-const SOURCES: readonly ShownWidgetSource[] = ["recipe", "compose", "fallback"];
+const SOURCES: readonly ShownWidgetSource[] = ["recipe", "compose", "fallback", "companion"];
+
+/** The rule a Companion Widget came from (src/tutor/companion.ts), in the order code tries them. */
+export type CompanionRule = "scene" | "lingo" | "running_example" | "case";
+
+const COMPANION_RULES: readonly CompanionRule[] = ["scene", "lingo", "running_example", "case"];
 
 /** compose_widget's server timings, kept with the Widget so the eval and the panel can read them. */
 export type ComposeTimings = {
@@ -40,6 +46,12 @@ export type ShownWidget = {
   source: ShownWidgetSource;
   /** compose_widget only: its timings and whether it fell back. */
   timings?: ComposeTimings;
+  /** A Companion Widget only (source "companion"): the rule that picked it. */
+  companion?: CompanionRule;
+  /** A Companion Widget only: what it shows, the scene id or the term, so a Session shows each once. */
+  companionKey?: string;
+  /** The Topic scene it shows, by id, when the Tutor showed a written-ahead headline scene, so a Session shows each scene once. */
+  scene?: string;
 };
 
 /** The item's data as a ShownWidget, or null when it is not one (an older or broken row). */
@@ -53,6 +65,9 @@ export function shownWidgetOf(data: Record<string, unknown> | undefined): ShownW
     code: data.code,
     source: SOURCES.includes(data.source as ShownWidgetSource) ? (data.source as ShownWidgetSource) : "recipe",
     ...(data.timings && typeof data.timings === "object" ? { timings: data.timings as ComposeTimings } : {}),
+    ...(COMPANION_RULES.includes(data.companion as CompanionRule) ? { companion: data.companion as CompanionRule } : {}),
+    ...(typeof data.companionKey === "string" ? { companionKey: data.companionKey } : {}),
+    ...(typeof data.scene === "string" ? { scene: data.scene } : {}),
   };
 }
 

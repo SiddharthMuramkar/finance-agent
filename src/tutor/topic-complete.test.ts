@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { stringify } from "yaml";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import type { TeachingStep } from "@/course/navigator";
@@ -14,6 +14,10 @@ import { passedTopicShown, shownInWorkspace } from "./session-log";
 import { loadThread, type ThreadEntry } from "./transcript";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * Seam 1, Tutor Turn: a passed Topic stops at its Topic complete card. The card is a display-only Session item

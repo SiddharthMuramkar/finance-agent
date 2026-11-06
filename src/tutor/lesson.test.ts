@@ -1,5 +1,5 @@
 import { stringify } from "yaml";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -15,6 +15,10 @@ import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { stepContext } from "./context";
 import { navigate } from "@/course/navigator";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * The lesson additions on a real (in-memory) database: a step opens its Widget by itself when it begins, a step

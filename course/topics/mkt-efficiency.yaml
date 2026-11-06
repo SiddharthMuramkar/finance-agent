@@ -68,10 +68,10 @@ questions:
     prompt: >
       In a market where prices reflect all publicly available information, such as accounts and news announcements, but leave out private information, which form of efficiency holds?
     choices:
-      - { id: a, text: "Weak form only" }
+      - { id: a, text: "Weak form only", mistake: { tag: weak_for_semi, fix: "Weak form covers only past prices; public accounts and news make it semi-strong." } }
       - { id: b, text: "Semi-strong form" }
-      - { id: c, text: "Strong form" }
-      - { id: d, text: "None: prices always reflect information" }
+      - { id: c, text: "Strong form", mistake: { tag: strong_for_semi, fix: "Strong form would include private information too, which this market leaves out." } }
+      - { id: d, text: "None: prices always reflect information", mistake: { tag: none_for_semi, fix: "Prices that reflect all public news are semi-strong efficient." } }
     answer: b
     explanation: >
       Semi-strong form efficiency means prices reflect all public information. Weak form covers only past prices and volume. Strong form would include private information too.
@@ -83,12 +83,12 @@ questions:
       If a market is weak-form efficient, which strategy cannot consistently earn more than the market's risk-adjusted return?
     choices:
       - { id: a, text: "Choosing stocks by studying past price patterns on charts" }
-      - { id: b, text: "Trading on confidential information about a coming takeover" }
-      - { id: c, text: "Holding a diversified index fund" }
-      - { id: d, text: "Buying shares after reading the company's published accounts" }
+      - { id: b, text: "Trading on confidential information about a coming takeover", mistake: { tag: inside_info_weak, fix: "Weak form covers past prices only; inside information can still beat it." } }
+      - { id: c, text: "Trading the moment a company publishes surprise news", mistake: { tag: news_weak, fix: "Public news is a semi-strong question; weak form rules out only past-price patterns." } }
+      - { id: d, text: "Buying shares after reading the company's published accounts", mistake: { tag: accounts_weak, fix: "Published accounts are public news, a semi-strong question; weak form covers past prices only." } }
     answer: a
     explanation: >
-      Weak form efficiency says past prices and volumes are already in today's price, so technical analysis of them gives no consistent edge. Strategies based on public accounts need semi-strong inefficiency, and use of confidential information needs the strong form to fail.
+      Weak form efficiency says past prices and volumes are already in today's price, so technical analysis of them gives no consistent edge. Strategies based on public accounts or news need semi-strong inefficiency, and use of confidential information needs the strong form to fail.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
 
@@ -111,9 +111,9 @@ questions:
       A company announces earnings that are far better than analysts expected. In a semi-strong efficient market, what is the most likely pattern of its share price?
     choices:
       - { id: a, text: "It jumps almost immediately and then follows no predictable drift" }
-      - { id: b, text: "It rises slowly over the following months" }
-      - { id: c, text: "It does not move, because earnings are public" }
-      - { id: d, text: "It falls first and then recovers" }
+      - { id: b, text: "It rises slowly over the following months", mistake: { tag: slow_drift, fix: "A slow drift would be the market missing public news; semi-strong prices react at once." } }
+      - { id: c, text: "It does not move, because earnings are public", mistake: { tag: public_means_priced, fix: "The news is new when it comes out, so the price moves on the day." } }
+      - { id: d, text: "It falls first and then recovers", mistake: { tag: dip_then_rise, fix: "Good news gives no reason for a fall first; efficient prices jump to the new value." } }
     answer: a
     explanation: >
       If prices reflect public information, new information is absorbed quickly. A slow drift in the same direction after an announcement would be an anomaly, a pattern known as post-earnings drift.
@@ -125,9 +125,9 @@ questions:
       A manager believes the market's price level is too high, yet keeps buying the stocks that make up the index their clients use as a benchmark. Which reason from the Blodget and Grantham debate best explains this?
     choices:
       - { id: a, text: "A manager who is far from the benchmark risks losing clients if the market keeps rising, so being right later may come too late" }
-      - { id: b, text: "Index stocks cannot be mispriced" }
-      - { id: c, text: "Regulations forbid holding cash" }
-      - { id: d, text: "Benchmark stocks always have the lowest risk" }
+      - { id: b, text: "Index stocks cannot be mispriced", mistake: { tag: index_never_wrong, fix: "Index stocks can be mispriced too; the manager fears lagging the benchmark, not a law of prices." } }
+      - { id: c, text: "Regulations forbid holding cash", mistake: { tag: cash_banned, fix: "No rule forbids cash; the fear is losing clients while the index keeps rising." } }
+      - { id: d, text: "Benchmark stocks always have the lowest risk", mistake: { tag: benchmark_safest, fix: "Benchmark stocks are not the safest; staying close to them only protects the manager's job." } }
     answer: a
     explanation: >
       Both men in the Forbes debate describe benchmark risk: being underweight a rising index can end a career before a mispricing is corrected. This is one reason arbitrage is limited, so prices can stay out of line for longer than expected.

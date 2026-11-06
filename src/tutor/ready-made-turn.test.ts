@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { OWNER_LEARNER_ID, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -16,6 +16,10 @@ import { fingerprint, frozenNow, readSettings, refreezeIfChanged } from "./sessi
 import { toolCode } from "./tools";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 // Seam 1, the Tutor Turn (spec #229, ticket #242, ADR 0007): ready-made Widgets only, opened already set, one a reply.
 // present-value's annuity-worth-today Widget has a $rate slider (0 to 10, in 0.01 steps) and a $years-less program.

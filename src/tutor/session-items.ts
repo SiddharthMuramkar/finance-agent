@@ -63,6 +63,32 @@ export function drawnWidgets(replies: readonly ReplyText[], items: readonly Stor
   return openWidgetsIn(texts);
 }
 
+/** A stored message row, as much of it as turnItems reads. */
+type LogRow = { seq: number; role: string; content?: unknown };
+
+/** A row the turn itself can add before its first message: a cut-off's tool results, or a refreeze's summary. */
+const addedBeforeTurn = (r: LogRow) =>
+  Array.isArray(r.content) &&
+  r.content.length > 0 &&
+  (r.role === "user" ? r.content.every((b) => b?.type === "tool_result") : r.content.some((b) => b?.type === "compaction"));
+
+/**
+ * The items of the turn whose first message has seq `turnSeq`: those stored after it, and on a Next also those code
+ * stored with the Next just before it (takeLearnersNext: the step's divider, then the Widget the step opens or the
+ * Concept card and its preset). Those sit after the previous reply's last message, which may no longer be the row just
+ * before `turnSeq`: the turn can add a cut-off's tool results and a refreeze's summary in between (runLockedTurn), so
+ * the items after those rows count too. Only the ones from the Next's divider on count: the previous reply's own
+ * Widget and Choices stay its own. One rule for the one-Widget check (tools.ts) and the Companion gate (turn.ts).
+ */
+export function turnItems(items: readonly StoredItem[], rows: readonly LogRow[], turnSeq: number, next: boolean): StoredItem[] {
+  let from = turnSeq - 1;
+  const bySeq = new Map(rows.map((r) => [r.seq, r]));
+  for (let row = bySeq.get(from); row && addedBeforeTurn(row) && from > 0; row = bySeq.get(from)) from--;
+  const before = next ? items.filter((i) => i.afterSeq >= from && i.afterSeq < turnSeq) : [];
+  const divider = before.findLastIndex((i) => i.kind === STEP_DIVIDER);
+  return [...(divider < 0 ? [] : before.slice(divider)), ...items.filter((i) => i.afterSeq >= turnSeq)];
+}
+
 /** The Learner's items in one of their Sessions, in order; another Learner's Session has none. */
 export async function loadSessionItems(db: Db, sessionId: number, learnerId: number): Promise<StoredItem[]> {
   return db

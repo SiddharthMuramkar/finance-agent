@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { WIDGET_OPENED } from "@/course/written-ahead";
 import { saveFinishedStep } from "@/learner/memory";
 import { oldPercentOnly } from "@/test/old-percent-map";
@@ -11,6 +11,10 @@ import { loadSession, loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 // Seam 1, the Tutor Turn (spec #119, "Widgets › Written-ahead Widgets"): the Tutor opens a written-ahead Widget by id
 // with open_widget; the opening is stored in the Session as an item, so the Widget comes back after a reload. In Percent

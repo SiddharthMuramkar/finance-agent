@@ -12,11 +12,11 @@ import { markQuizReported, pendingQuizNote } from "@/learner/quiz";
 import type { QueryEmbedder } from "@/library/library";
 import { newReplyWidgetProblems } from "@/widgets/check";
 import { exploreHeldBack } from "@/course/explore-widget";
-import { coveredParts, writtenAheadWidgets } from "@/course/written-ahead";
+import { coveredParts, WIDGET_OPENED, writtenAheadWidgets } from "@/course/written-ahead";
 import { endedAtCheckWithoutVerdict, lastContextSent, noVerdictContext, openerNote, openWidgetsNote, standsAlreadySent, standsBlock, stepContext, writtenAheadNote } from "./context";
 import { CitationMarks, type Citation } from "./citations";
 import { replyFold, sourceContext } from "./sources";
-import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, type SessionItem } from "./session-items";
+import { drawnWidgets, loadSessionItems, saveItemAfterLatest, stepDivider, turnItems, type SessionItem } from "./session-items";
 import { STEP_DIVIDER, STOPPED } from "./session-item-kinds";
 import { afterReteachItems, drillIsDue, enterStepItems, methodInNote, pendingQuickTryNote, quickTryFollowUpNote, quizLadderNote } from "./practice";
 import { hasMarkers, markerProblems } from "@/finance/formula-markers";
@@ -46,7 +46,7 @@ import {
   type Shown,
   usesWidgetEngine,
 } from "./session-log";
-import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
+import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, DRILL_NOTE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
@@ -58,7 +58,9 @@ import { fixReply } from "./reply-checks";
 import { savedRuleOf } from "./own-rule-item";
 import { NO_MISSED_QUIZ, quizFollowUpNote } from "./check-results";
 import { openWidgetsForTurn, readOpenWidgets, replyTexts, widgetNotes, widgetReportNote } from "./widget-context";
-import { WIDGET_SHOWN } from "@/widgets/shown-widget";
+import { WIDGET_SHOWN, type ShownWidget } from "@/widgets/shown-widget";
+import { recipeById } from "@/widgets/recipes";
+import { pickCompanion } from "./companion";
 import { widgetsBlock } from "@/widgets/widget-reading";
 import type { WidgetStates } from "@/widgets/widget-state";
 import { pressedChoiceWords, storeReplyChoices } from "./reply-choices";
@@ -947,6 +949,55 @@ async function* runLockedTurn(
     return out;
   };
 
+  /**
+   * The turn's Widget and where it came from: the step's (code stored one: a card preset, the reveal or explore Widget,
+   * a re-teach's practice Widget), the Tutor's (its own show_widget, compose_widget, open_widget or update_widget), or a
+   * Companion Widget code stores now. Called once, after every Widget code stores in the turn (the end of runLockedTurn).
+   */
+  const companionWidget = async (): Promise<{ source: string; item?: SessionItem }> => {
+    const items = await loadSessionItems(db, session.id, learnerId);
+    // A Next's own items (the step's Widget, the Concept card's preset) sit just before the turn's message (turnItems).
+    const widgets = turnItems(items, log.rows, turnSeq, turnKind(turn) === "next").filter((i) => i.kind === WIDGET_SHOWN || i.kind === WIDGET_OPENED);
+    // More Widgets than the Tutor's own calls stored: code stored one for the step, and step wins.
+    if (widgets.length) return { source: widgets.length > toolWidgets(log.rows, turnSeq, items).length ? "step" : "tutor" };
+    // An open Widget the Tutor moved with update_widget is the reply's one Widget too (replyWidgets in tools.ts).
+    if ((await widgetsUpdatedInTurn(db, turn.id)).size) return { source: "tutor" };
+    if (stoppedNow() || !covering) return { source: "none" };
+    const at = [placeNow, placeAtStart].find((p) => p?.topic.id === covering.id);
+    const shown = items.flatMap((i) => (i.kind === WIDGET_SHOWN ? [i.data as ShownWidget] : []));
+    const lingoTerm = (w: ShownWidget) => w.companionKey ?? String((w.params.inputs as { term?: unknown } | undefined)?.term ?? "");
+    const picked = pickCompanion({
+      topic: covering,
+      place: { step: at?.step ?? "principle", check: at?.check?.id ?? null },
+      replyText: await shownText(),
+      shownThisSession: {
+        // A scene counts once shown, whoever showed it: a Companion scene, or a headline scene the Tutor named.
+        scenes: shown.flatMap((w) => (w.scene ? [w.scene] : w.companion === "scene" && w.companionKey ? [w.companionKey] : [])),
+        terms: shown.flatMap((w) => (w.recipe === "lingo_card" ? [lingoTerm(w)] : [])),
+      },
+      blocked: gateFacts.blockedNumbers,
+    });
+    const built = picked ? recipeById(picked.recipe)?.build(picked.params) : undefined;
+    if (!picked) return { source: "none" };
+    if (!built?.ok) {
+      console.error(`Companion Widget "${picked.kind}" of Topic "${covering.id}" does not build${built && !built.ok ? `: ${built.error}` : ""}.`);
+      return { source: "none" };
+    }
+    const data: ShownWidget = {
+      id: `companion-${turnSeq}`,
+      recipe: picked.recipe,
+      params: built.params,
+      title: built.title,
+      code: built.code,
+      source: "companion",
+      companion: picked.kind,
+      companionKey: picked.key,
+    };
+    const item: SessionItem = { kind: WIDGET_SHOWN, data };
+    await saveItemAfterLatest(db, learnerId, session.id, item, now());
+    return { source: picked.kind, item };
+  };
+
   const nonText = (held: TurnEvent[]) => held.filter((e) => e.type !== "text");
   const shownText = () => turnText(log.rows, turnSeq, { db, map, learnerId }, rejected);
   // What the browser gets once the checks are done: the held items and Widget states in their order, with the checked reply.
@@ -1015,7 +1066,9 @@ async function* runLockedTurn(
       toSend = [...nonText(draftHeld), ...items, ...(await replyEvent())];
     }
   }
-  yield* toSend;
+  // What follows the reply, in order: its Choices, a refusal, cut-off or Stop notice, a Quick-try follow-up's items and
+  // the Topic complete card. Code stores each before anything is released, so the Companion gate below sees them all.
+  const after: TurnEvent[] = [];
 
   // Two or three Choices under every checked reply (ADR 0010), stored after it. None once the Topic is passed (in an
   // earlier turn or this one: its Topic complete card offers what comes next), or after a Stop (the page then shows
@@ -1027,8 +1080,53 @@ async function* runLockedTurn(
       : null;
   if (stored) {
     droppedChoice = stored.dropped;
-    yield { type: "item", item: stored.item };
+    after.push({ type: "item", item: stored.item });
   }
+
+  if (stopReason === "refusal") {
+    // Loop steps before the declined one are stored, and so are their tool calls' effects.
+    const saves = await db
+      .select({ id: toolCalls.toolCallId })
+      .from(toolCalls)
+      .where(and(eq(toolCalls.turnId, turn.id), eq(toolCalls.isError, false)));
+    after.push({ type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: await shownText() });
+  } else if (stopReason === "max_tokens") {
+    // Kept as checked; Finish this reply asks the Tutor to go on.
+    after.push({ type: "cut_short", message: CUT_SHORT_MESSAGE });
+  } else if (stopReason === "stopped") {
+    // A reload shows where the reply was stopped. A Next the Learner already took stays taken.
+    await saveItemAfterLatest(db, learnerId, session.id, { kind: STOPPED, data: { label: "Stopped" } }, now());
+    after.push({ type: "stopped" });
+  }
+  // After a Quick-try follow-up (the slip named), code posts a fresh try under the reply. After a re-teach, code does
+  // its method's part: a half-done try, the Widget in practice mode, or the first of a drill of five. Stop drops only
+  // the reply text, so these still follow a stopped follow-up: Your turn is never left with no open try.
+  if (turnKind(turn) === "quick_try_follow_up") {
+    const method = methodInNote(turn.input);
+    const items = method ? await afterReteachItems(db, map, learnerId, session.id, method, now()) : await enterStepItems(db, map, learnerId, session.id, now());
+    for (const item of items) after.push({ type: "item", item });
+  }
+
+  // A Widget with every reply (spec 2026-11-05, E4a, ADR 0010): when neither the Tutor nor code opened one in this
+  // turn, code adds a Companion Widget. It is picked last, once every Widget code stores in the turn is stored (a Next's
+  // step Widget, start_again's or a step's items, a re-teach's practice Widget), so the gate sees them all and a turn
+  // never gets two. Only the Topic complete card, never a Widget, comes after it: the turn still ends at that card.
+  // Only in Sessions frozen with the widget engine on, and never after a Stop. The browser gets it before the reply's text.
+  let widgetSource: string | null = null;
+  if (engine) {
+    const companion = await companionWidget();
+    widgetSource = companion.source;
+    if (companion.item) {
+      const at = toSend.findIndex((e) => e.type === "text");
+      toSend.splice(at < 0 ? toSend.length : at, 0, { type: "item", item: companion.item });
+    }
+  }
+  // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
+  const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());
+  if (passedCard) after.push({ type: "item", item: passedCard });
+
+  yield* toSend;
+  yield* after;
 
   // The record of the checks: what failed and why, the retry, the fallback, and the rows the Learner never saw.
   const seen = replyTextAfter(withoutRejected(log.rows, rejected), turnSeq);
@@ -1047,35 +1145,9 @@ async function* runLockedTurn(
     shownText: stopReason === "stopped" ? "" : await shownText(),
     // The Reply kind code chose; a Learner's own typed message with none is an answer to their own question (spec #229).
     replyKind: gateFacts.replyKind ?? (turnKind(turn) === "message" ? "answer_question" : null),
+    widgetSource,
   };
   await saveReplyCheck(db, record);
-
-  if (stopReason === "refusal") {
-    // Loop steps before the declined one are stored, and so are their tool calls' effects.
-    const saves = await db
-      .select({ id: toolCalls.toolCallId })
-      .from(toolCalls)
-      .where(and(eq(toolCalls.turnId, turn.id), eq(toolCalls.isError, false)));
-    yield { type: "refusal", message: saves.length ? REFUSAL_AFTER_SAVES_MESSAGE : REFUSAL_MESSAGE, text: await shownText() };
-  } else if (stopReason === "max_tokens") {
-    // Kept as checked; Finish this reply asks the Tutor to go on.
-    yield { type: "cut_short", message: CUT_SHORT_MESSAGE };
-  } else if (stopReason === "stopped") {
-    // A reload shows where the reply was stopped. A Next the Learner already took stays taken.
-    await saveItemAfterLatest(db, learnerId, session.id, { kind: STOPPED, data: { label: "Stopped" } }, now());
-    yield { type: "stopped" };
-  }
-  // After a Quick-try follow-up (the slip named), code posts a fresh try under the reply. After a re-teach, code does
-  // its method's part: a half-done try, the Widget in practice mode, or the first of a drill of five. Stop drops only
-  // the reply text, so these still follow a stopped follow-up: Your turn is never left with no open try.
-  if (turnKind(turn) === "quick_try_follow_up") {
-    const method = methodInNote(turn.input);
-    const after = method ? await afterReteachItems(db, map, learnerId, session.id, method, now()) : await enterStepItems(db, map, learnerId, session.id, now());
-    for (const item of after) yield { type: "item", item };
-  }
-  // A turn that passed its Topic ends at the Topic complete card, after the closing reply; nothing more is started.
-  const passedCard = await storeTopicComplete(db, map, learnerId, session.id, now());
-  if (passedCard) yield { type: "item", item: passedCard };
   const total = await saveTurnTotal(db, session.id, turnSeq, session.model, Math.round(performance.now() - runStart), now(), summaryOf(record));
   // A suggest_choice label code dropped (too long, an emoji, a sum, a copy of a set label) is recorded with the turn.
   const usage = droppedChoice === null ? total : { ...total, droppedChoice };

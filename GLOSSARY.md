@@ -77,7 +77,7 @@ A Topic whose file lists Skills, and with them a Concept card for each Check, Qu
 _Avoid_: New-style Topic, carded Topic
 
 **Lesson lint**:
-The course check's rules for a Converted Topic's teaching: a Check tests only Skills a card at or before it teaches (L1), enough Quick tries and questions (L2), short cards (L3), valid Widget presets (L4), the Topic's currency (L5), no negative stems (L6), Check questions whose numbers differ from the worked examples (L7), every Quick try on a Skill its own Check tests (L8), template draws that never repeat a fixed question or Quick try of the same Check (L9), and, for every Topic, no Quick try that asks for a typed number, no stem that asks for a sum and a choice set of at least two on every template draw (L10, with a list of Topics not yet rewritten that can only shrink), and emoji names that all exist in the emoji registry (L11).
+The course check's rules for a Converted Topic's teaching: a Check tests only Skills a card at or before it teaches (L1), enough Quick tries and questions (L2), short cards (L3), valid Widget presets (L4), the Topic's currency (L5), no negative stems (L6), Check questions whose numbers differ from the worked examples (L7), every Quick try on a Skill its own Check tests (L8), template draws that never repeat a fixed question or Quick try of the same Check (L9), and, for every Topic, no Quick try that asks for a typed number, no stem that asks for a sum and a choice set of at least two on every template draw (L10, with a list of Topics not yet rewritten that can only shrink), emoji names that all exist in the emoji registry (L11), and, for every Topic, a mix-up fix on every wrong choice of a question or choice Quick try (L12).
 _Avoid_: Content lint, card check
 
 **Widget preset**:
@@ -217,7 +217,12 @@ _Avoid_: Certificate, completion screen
 
 **Widget**:
 An interactive picture beside the conversation, either written ahead for a Topic or drawn by code from a Widget recipe the Tutor chooses, and opened already set to the numbers being discussed: charts, tables, sliders and calculators whose numbers come from code, or a labelled Illustration. The Tutor never draws one of its own during the chat. A Widget in the Study Workspace belongs to one Topic's Session. With each message, chip and Next the Tutor is told what the open Widgets show (their slider values, ticked Guided Tasks and readouts worked out by code), and once all of a Widget's Guided Tasks are ticked the Learner can press Tell the Tutor what I found, which posts a message code writes (a widget report).
+One comes with every Tutor reply (ADR 0010): the Tutor's own, the step's, or a Companion Widget code adds.
 _Avoid_: artifact, card (on its own)
+
+**Companion Widget**:
+The Widget code adds to a Tutor reply that came with none (ADR 0010, `src/tutor/companion.ts`). Code takes the first that fits: the step's Story scene, a Lingo card for the first Topic term in the reply, the Running example's scene, and last, so every Topic has one, a timeline of the Case's date and title. It never shows an open quiz's Blocked numbers.
+_Avoid_: default Widget, filler Widget
 
 **Written-ahead Widget**:
 A Widget written in a Topic's file, such as present value's "What the annuity is worth today" (`annuity-worth-today`). The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.

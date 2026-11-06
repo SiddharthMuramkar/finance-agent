@@ -3,12 +3,8 @@ import { boolean, integer, jsonb, pgTable, serial, text, timestamp } from "drizz
 import { replyChecks } from "@/db/schema";
 import type { Db } from "@/db/types";
 
-/**
- * reply_checks as migration 0030 made it, with no reply_kind column. Drizzle names every column of a table in an insert,
- * so a database without migration 0031 is written through this. Not in schema.ts, so drizzle-kit never sees it.
- * Delete it once 0031 is applied in production.
- */
-const replyChecksBefore0031 = pgTable("reply_checks", {
+/** reply_checks' columns as migration 0030 made them (fresh builders for each table). */
+const columns0030 = () => ({
   id: serial("id").primaryKey(),
   sessionId: integer("session_id").notNull(),
   turnSeq: integer("turn_seq").notNull(),
@@ -24,6 +20,19 @@ const replyChecksBefore0031 = pgTable("reply_checks", {
   shownText: text("shown_text").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * reply_checks as migration 0030 made it, with no reply_kind column. Drizzle names every column of a table in an insert,
+ * so a database without migration 0031 is written through this. Not in schema.ts, so drizzle-kit never sees it.
+ * Delete it once 0031 is applied in production.
+ */
+const replyChecksBefore0031 = pgTable("reply_checks", columns0030());
+
+/**
+ * reply_checks before migration 0034 (E4a), with reply_kind and no widget_source: a database without 0034 still
+ * records the Reply kind. Delete it once 0034 is applied in production.
+ */
+const replyChecksBefore0034 = pgTable("reply_checks", { ...columns0030(), replyKind: text("reply_kind") });
 
 /**
  * The reply checks' records (spec #229, ticket #239): one `reply_checks` row per checked Tutor turn. Every read and
@@ -46,6 +55,11 @@ export type ReplyCheckRecord = {
   shownText: string;
   /** The Reply kind code chose for the turn, or null. Saved only once migration 0031 adds its column. */
   replyKind?: string | null;
+  /**
+   * Where the turn's Widget came from (E4a): tutor | step | scene | lingo | running_example | case | none; null in an
+   * engine-off Session. Saved only once migration 0034 adds its column.
+   */
+  widgetSource?: string | null;
 };
 
 /** What the Under the hood line shows of a turn's checks. */
@@ -84,34 +98,55 @@ function isMissingColumn(error: unknown): boolean {
 
 let warnedColumn = false;
 
+let warnedWidgetColumn = false;
+
 /**
- * Saves a turn's record; a second save for the same turn (a resumed turn) replaces it. Until migration 0031 adds the
- * reply_kind column, the record is saved without its Reply kind.
+ * Saves a turn's record; a second save for the same turn (a resumed turn) replaces it. Until migration 0034 adds the
+ * widget_source column, the record is saved without it (its Reply kind kept); until migration 0031 adds reply_kind, it
+ * is saved without either.
  */
 export async function saveReplyCheck(db: Db, r: ReplyCheckRecord): Promise<void> {
-  const save = async (on: Db, row: ReplyCheckRecord) => {
-    await on
-      .insert(replyChecks)
-      .values({ ...row, createdAt: new Date() })
-      .onConflictDoUpdate({ target: [replyChecks.sessionId, replyChecks.turnSeq], set: { ...row } });
-  };
+  // Each try is its own transaction (a savepoint inside a caller's), so a failed insert leaves nothing aborted for the next.
+  const attempt = (work: (on: Db) => Promise<unknown>) => db.transaction(async (tx) => void (await work(tx as unknown as Db)));
+  const { widgetSource, ...before0034 } = r;
+  void widgetSource;
+  const { replyKind, ...before0031 } = before0034;
+  void replyKind;
   await failSoft(async () => {
     try {
-      // Its own transaction (a savepoint inside a caller's), so a failed insert leaves nothing aborted for the retry.
-      await db.transaction(async (tx) => save(tx as unknown as Db, r));
+      await attempt((on) =>
+        on
+          .insert(replyChecks)
+          .values({ ...r, createdAt: new Date() })
+          .onConflictDoUpdate({ target: [replyChecks.sessionId, replyChecks.turnSeq], set: { ...r } }),
+      );
+      return;
     } catch (error) {
       if (!isMissingColumn(error)) throw error;
-      if (!warnedColumn) {
-        warnedColumn = true;
-        console.warn("reply_checks.reply_kind is missing (migration 0031 not applied yet): Reply kinds are not recorded.");
-      }
-      const { replyKind, ...rest } = r;
-      void replyKind;
-      await db
-        .insert(replyChecksBefore0031)
-        .values({ ...rest, createdAt: new Date() })
-        .onConflictDoUpdate({ target: [replyChecksBefore0031.sessionId, replyChecksBefore0031.turnSeq], set: { ...rest } });
     }
+    try {
+      await attempt((on) =>
+        on
+          .insert(replyChecksBefore0034)
+          .values({ ...before0034, createdAt: new Date() })
+          .onConflictDoUpdate({ target: [replyChecksBefore0034.sessionId, replyChecksBefore0034.turnSeq], set: { ...before0034 } }),
+      );
+      if (!warnedWidgetColumn) {
+        warnedWidgetColumn = true;
+        console.warn("reply_checks.widget_source is missing (migration 0034 not applied yet): Widget sources are not recorded.");
+      }
+      return;
+    } catch (error) {
+      if (!isMissingColumn(error)) throw error;
+    }
+    if (!warnedColumn) {
+      warnedColumn = true;
+      console.warn("reply_checks.reply_kind is missing (migration 0031 not applied yet): Reply kinds are not recorded.");
+    }
+    await db
+      .insert(replyChecksBefore0031)
+      .values({ ...before0031, createdAt: new Date() })
+      .onConflictDoUpdate({ target: [replyChecksBefore0031.sessionId, replyChecksBefore0031.turnSeq], set: { ...before0031 } });
   }, undefined);
 }
 

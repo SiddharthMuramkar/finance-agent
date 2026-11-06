@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Db } from "@/db/types";
 import { loadProgress, saveFinishedStep } from "@/learner/memory";
 import { checkTabNow, retryQuiz, type OpenQuiz } from "@/learner/quiz";
@@ -12,6 +12,10 @@ import { loadThread, type ThreadEntry } from "./transcript";
 import { latestTurn, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { turnKind } from "./turn-status";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * Seam 1, Tutor Turn: Check results in the conversation. Submitting a quiz stores a result card (a Session item

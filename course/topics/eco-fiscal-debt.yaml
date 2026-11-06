@@ -58,8 +58,8 @@ questions:
       What is the difference between a government's budget deficit and its national debt?
     choices:
       - { id: a, text: "The deficit is what the government borrows in one year; the debt is the total borrowed over time" }
-      - { id: b, text: "The deficit is the total borrowed over time; the debt is what it borrows in one year" }
-      - { id: c, text: "They are the same thing measured in different currencies" }
+      - { id: b, text: "The deficit is the total borrowed over time; the debt is what it borrows in one year", mistake: { tag: flow_stock_swapped, fix: "That swaps them: the deficit is one year's borrowing, the debt is the pile built up." } }
+      - { id: c, text: "They are the same thing measured in different currencies", mistake: { tag: same_thing, fix: "One is a single year's gap, the other the total owed; currency has nothing to do with it." } }
     answer: a
     explanation: >
       A deficit is a flow in one year, while the debt is the stock built up by past deficits (less surpluses).

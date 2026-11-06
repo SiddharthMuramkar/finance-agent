@@ -136,7 +136,7 @@ scenes:
       cards:
         - claim: Every number on a balance sheet comes with proof attached.
           isFact: false
-          why: It is a claim. Outside evidence, such as a bank's own confirmation, backs it up.
+          why: It is a claim. Outside evidence, such as an auditor's checks, backs it up.
           emoji: magnifying-glass-tilted-left
         - claim: Assets always equal liabilities plus equity.
           isFact: true
@@ -226,29 +226,29 @@ questions:
 
   - id: fb-q-overstated-receivables
     prompt: >
-      A company overstates the money owed to it by customers, and its liabilities are right. What else on the balance sheet must be overstated?
+      A shop counts some boxes of unsold stock twice by mistake, so its inventory is too high, and its liabilities are right. What else on the balance sheet must be too high?
     choices:
-      - { id: a, text: "Nothing: assets can be overstated on their own", mistake: { tag: assets_stand_alone, fix: "The balance sheet must balance, so an overstated asset needs a matching overstatement elsewhere." } }
+      - { id: a, text: "Nothing: assets can be too high on their own", mistake: { tag: assets_stand_alone, fix: "The balance sheet must balance, so an asset that is too high needs a matching error elsewhere." } }
       - { id: b, text: "Equity" }
       - { id: c, text: "Liabilities", mistake: { tag: liabilities_move_with_assets, fix: "The prompt says liabilities are right. The difference falls on equity." } }
-      - { id: d, text: "Cash", mistake: { tag: cash_moves_with_debtors, fix: "Cash is counted separately. The equation forces the other side, equity, to carry the difference." } }
+      - { id: d, text: "Cash", mistake: { tag: cash_moves_with_stock, fix: "Cash is counted separately. The equation forces the other side, equity, to carry the difference." } }
     answer: b
     explanation: >
-      The balance sheet must balance. With liabilities correct, overstated assets mean equity is overstated by the same amount.
+      The balance sheet must balance. With liabilities correct, inventory that is too high means equity is too high by the same amount, until the count is corrected.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet (assets = liabilities + equity): https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 
   - id: fb-q-missing-assets
     prompt: >
-      Suppose some of a company's reported assets turn out to be missing when checked, and its liabilities are correct. What is true of its real equity?
+      An uninsured fire destroys some of a warehouse company's stock, and the company writes the stock down. Its liabilities stay the same. What is true of its equity after the write-down?
     choices:
-      - { id: a, text: "It equals the reported equity", mistake: { tag: equity_unaffected, fix: "Equity is assets less liabilities. Remove assets that are not there and equity falls too." } }
-      - { id: b, text: "It is lower than the reported equity" }
-      - { id: c, text: "It is higher than the reported equity", mistake: { tag: equity_goes_up, fix: "Fewer real assets and the same liabilities leave less for the owners, not more." } }
-      - { id: d, text: "It cannot be known from the balance sheet", mistake: { tag: unknowable, fix: "The equation settles it: equity is what remains of real assets after liabilities." } }
+      - { id: a, text: "It equals the equity before the fire", mistake: { tag: equity_unaffected, fix: "Equity is assets less liabilities. Write assets down and equity falls too." } }
+      - { id: b, text: "It is lower than the equity before the fire" }
+      - { id: c, text: "It is higher than the equity before the fire", mistake: { tag: equity_goes_up, fix: "Fewer assets and the same liabilities leave less for the owners, not more." } }
+      - { id: d, text: "It cannot be known from the balance sheet", mistake: { tag: unknowable, fix: "The equation settles it: equity is what remains of the assets after liabilities." } }
     answer: b
     explanation: >
-      Reported equity is reported assets less liabilities. Take away assets that do not exist and the same liabilities leave less for the owners.
+      Equity is assets less liabilities. Write the destroyed stock down and the same liabilities leave less for the owners.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 

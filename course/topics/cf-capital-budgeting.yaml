@@ -88,9 +88,9 @@ questions:
       What is the internal rate of return (IRR) of a project?
     choices:
       - { id: a, text: "The discount rate at which the project's net present value is zero" }
-      - { id: b, text: "The average accounting profit divided by the investment" }
-      - { id: c, text: "The firm's cost of capital" }
-      - { id: d, text: "The rate at which the payback period equals one year" }
+      - { id: b, text: "The average accounting profit divided by the investment", mistake: { tag: accounting_return, fix: "Average accounting profit over investment is the accounting return, not the IRR." } }
+      - { id: c, text: "The firm's cost of capital", mistake: { tag: irr_as_hurdle, fix: "The cost of capital is the hurdle you compare the IRR with, not the IRR itself." } }
+      - { id: d, text: "The rate at which the payback period equals one year", mistake: { tag: irr_as_payback, fix: "Payback counts years to recover cost; the IRR is the rate that makes NPV zero." } }
     answer: a
     explanation: >
       The IRR sets the present value of the inflows equal to the present value of the outflows. Accept the project if the IRR is above the required return.
@@ -102,9 +102,9 @@ questions:
       Which is a weakness of the payback period rule?
     choices:
       - { id: a, text: "It ignores the time value of money and cash flows after the payback date" }
-      - { id: b, text: "It cannot be calculated for a project with positive cash flows" }
-      - { id: c, text: "It always favours the largest project" }
-      - { id: d, text: "It requires the cost of capital to be known exactly" }
+      - { id: b, text: "It cannot be calculated for a project with positive cash flows", mistake: { tag: payback_impossible, fix: "Payback works fine with positive cash flows; its flaw is ignoring timing and later cash." } }
+      - { id: c, text: "It always favours the largest project", mistake: { tag: size_bias, fix: "Payback favours quick recovery, not size; a small fast project can beat a big one." } }
+      - { id: d, text: "It requires the cost of capital to be known exactly", mistake: { tag: needs_cost_of_capital, fix: "Payback uses no discount rate at all, which is part of its weakness." } }
     answer: a
     explanation: >
       Payback counts years to recover the cost. A project that pays back quickly but earns nothing afterwards can look better than one that pays back slower but earns much more, and a dollar recovered in year three counts the same as one recovered in year one.
@@ -116,9 +116,9 @@ questions:
       A firm paid $50,000 last year for a feasibility study of a new plant. It can still choose whether to build. How should the $50,000 enter the decision?
     choices:
       - { id: a, text: "Not at all: it is a sunk cost that is the same whether or not the plant is built" }
-      - { id: b, text: "As a cost at time zero" }
-      - { id: c, text: "As a benefit, because the study reduced uncertainty" }
-      - { id: d, text: "Spread over the plant's life as depreciation in the cash flows" }
+      - { id: b, text: "As a cost at time zero", mistake: { tag: sunk_as_cost, fix: "The study is paid whatever happens, so it cannot change the build decision." } }
+      - { id: c, text: "As a benefit, because the study reduced uncertainty", mistake: { tag: sunk_as_benefit, fix: "Its value is already in what the firm knows; the spent money is still sunk." } }
+      - { id: d, text: "Spread over the plant's life as depreciation in the cash flows", mistake: { tag: sunk_as_depreciation, fix: "Spreading a past payment over the plant's life still counts a cost that cannot change." } }
     answer: a
     explanation: >
       Only cash flows that change with the decision count. The study has been paid for and cannot be recovered, so it should not be counted in the plant's NPV.

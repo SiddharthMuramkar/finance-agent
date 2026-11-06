@@ -128,6 +128,37 @@ describe("[S3] the Widget the prompt's own turn showed (bar 1, A Widget with eve
     expect(lane.code).toBe("root = Chart()");
   });
 
+  it("never counts a Companion Widget as the Tutor's lane: a reply with only code's Companion has lane none", async () => {
+    const { db, pool, sessionId, promptSeq } = await opened();
+    await db.insert(messages).values([
+      { sessionId, seq: 3, role: "user", content: "what even is a basis point lol" },
+      { sessionId, seq: 4, role: "assistant", content: text("A basis point is a hundredth of a point.") },
+    ]);
+    const lingo = { code: "root = Lingo()", title: "Basis point", recipe: "lingo_card", source: "companion", companion: "lingo", companionKey: "basis point" };
+    await db.insert(sessionItems).values({ learnerId: me, sessionId, afterSeq: 4, kind: "widget_shown", data: lingo });
+    const lane = await readLane(pool, me, promptSeq);
+    expect(lane.lane).toBe("none");
+    expect(lane.code).toBeUndefined();
+    // The Delight judges still see the Widget the Learner saw.
+    expect(lane.companion).toEqual({ kind: "lingo", code: "root = Lingo()", title: "Basis point", recipe: "lingo_card" });
+  });
+
+  it("reads the Tutor's own Widget as the lane even when a Companion was stored after it", async () => {
+    const { db, pool, sessionId, promptSeq } = await opened();
+    await db.insert(messages).values([
+      { sessionId, seq: 3, role: "user", content: "draw it" },
+      { sessionId, seq: 4, role: "assistant", content: text("Here it is.") },
+    ]);
+    await db.insert(sessionItems).values([
+      { learnerId: me, sessionId, afterSeq: 3, kind: "widget_shown", data: { code: "root = Ruler()", title: "Basis point ruler", recipe: "lingo", source: "recipe" } },
+      { learnerId: me, sessionId, afterSeq: 4, kind: "widget_shown", data: { code: "root = Case()", title: "Case", recipe: "case_card", source: "companion", companion: "case" } },
+    ]);
+    const lane = await readLane(pool, me, promptSeq);
+    expect(lane.lane).toBe("recipe");
+    expect(lane.code).toBe("root = Ruler()");
+    expect(lane.widgetsShown).toBe(1);
+  });
+
   it("gives the lane as the Widget source when reply_checks has no widget_source column, and says so", async () => {
     const { db, pool, sessionId, promptSeq } = await opened();
     await db.insert(messages).values([

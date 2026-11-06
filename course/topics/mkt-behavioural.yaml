@@ -66,9 +66,9 @@ questions:
       Investors buy a stock mainly because many others are buying it, rather than because of their own analysis. What is this behaviour called?
     choices:
       - { id: a, text: "Herding" }
-      - { id: b, text: "Diversification" }
-      - { id: c, text: "Arbitrage" }
-      - { id: d, text: "Hedging" }
+      - { id: b, text: "Diversification", mistake: { tag: diversify_for_herd, fix: "Diversifying spreads money across many holdings; copying the crowd into one stock is herding." } }
+      - { id: c, text: "Arbitrage", mistake: { tag: arbitrage_for_herd, fix: "Arbitrage profits from a price gap; buying because others buy is herding." } }
+      - { id: d, text: "Hedging", mistake: { tag: hedge_for_herd, fix: "Hedging cuts a risk you already hold; following the crowd is herding." } }
     answer: a
     explanation: >
       Herding is copying the actions of the crowd. It can push prices well above or below the value of the underlying cash flows.
@@ -94,9 +94,9 @@ questions:
       A stock rose 60% last year while its earnings forecasts stayed the same. Many investors buy it expecting another 60%. Which bias best describes this?
     choices:
       - { id: a, text: "Extrapolating recent returns" }
-      - { id: b, text: "Loss aversion" }
-      - { id: c, text: "Home bias" }
-      - { id: d, text: "Mean-variance optimisation" }
+      - { id: b, text: "Loss aversion", mistake: { tag: loss_aversion_for_trend, fix: "Loss aversion is hating losses; expecting last year's rise again is extrapolation." } }
+      - { id: c, text: "Home bias", mistake: { tag: home_bias_for_trend, fix: "Home bias is favouring local shares; betting a rise repeats is extrapolation." } }
+      - { id: d, text: "Mean-variance optimisation", mistake: { tag: optimisation_for_bias, fix: "Mean-variance optimisation is a portfolio method, not a bias about recent returns." } }
     answer: a
     explanation: >
       Extrapolation assumes recent performance will continue, even though nothing about the business has changed. Prices that rise only because they have risen are a feature of bubbles.
@@ -108,9 +108,9 @@ questions:
       An investor quickly sells shares that have gained in value but keeps shares that have lost value, hoping to 'get back to even'. What is this pattern called?
     choices:
       - { id: a, text: "The disposition effect" }
-      - { id: b, text: "The efficient-markets effect" }
-      - { id: c, text: "Dollar-cost averaging" }
-      - { id: d, text: "Rebalancing" }
+      - { id: b, text: "The efficient-markets effect", mistake: { tag: efficiency_for_bias, fix: "Efficient markets are about prices, not an investor clinging to losers." } }
+      - { id: c, text: "Dollar-cost averaging", mistake: { tag: averaging_for_bias, fix: "Dollar-cost averaging is buying a fixed sum regularly, not selling winners early." } }
+      - { id: d, text: "Rebalancing", mistake: { tag: rebalance_for_bias, fix: "Rebalancing restores target weights by plan; holding losers to get even is the disposition effect." } }
     answer: a
     explanation: >
       People dislike realising a loss more than they enjoy an equal gain (loss aversion), so they tend to sell winners too soon and hold losers too long.
@@ -122,9 +122,9 @@ questions:
       Which description best fits a bubble?
     choices:
       - { id: a, text: "Prices far above what expected cash flows justify, kept up by the expectation of further rises" }
-      - { id: b, text: "Any period in which prices rise for a year" }
-      - { id: c, text: "A market in which trading volume is low" }
-      - { id: d, text: "Prices that match the present value of expected cash flows" }
+      - { id: b, text: "Any period in which prices rise for a year", mistake: { tag: any_rise_is_bubble, fix: "A year of rises may be justified by better prospects; a bubble outruns the cash flows." } }
+      - { id: c, text: "A market in which trading volume is low", mistake: { tag: thin_trading, fix: "Low volume says little; bubbles often come with frantic trading and prices far above value." } }
+      - { id: d, text: "Prices that match the present value of expected cash flows", mistake: { tag: fair_value_as_bubble, fix: "Prices matching expected cash flows are fair value, the opposite of a bubble." } }
     answer: a
     explanation: >
       A rise alone is not a bubble: it may be justified by better prospects. The mark of a bubble is a price that needs the next buyer to pay even more in order to earn a fair return.

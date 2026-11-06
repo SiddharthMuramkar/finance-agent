@@ -87,9 +87,9 @@ questions:
       Which of these is a structural reform rather than a short-term stabilisation measure?
     choices:
       - { id: a, text: "Abolishing industrial licensing for most industries" }
-      - { id: b, text: "Asking the IMF for an emergency loan" }
-      - { id: c, text: "Raising the cash deposit importers must make" }
-      - { id: d, text: "Selling gold with an option to buy it back" }
+      - { id: b, text: "Asking the IMF for an emergency loan", mistake: { tag: loan_as_reform, fix: "An IMF emergency loan pays the bills now; it does not change how firms compete." } }
+      - { id: c, text: "Raising the cash deposit importers must make", mistake: { tag: import_curb_as_reform, fix: "A deposit on imports squeezes them in the short run; it is not a lasting reform." } }
+      - { id: d, text: "Selling gold with an option to buy it back", mistake: { tag: gold_as_reform, fix: "Selling gold raises cash in a crisis; it changes nothing about how the economy works." } }
     answer: a
     explanation: >
       Ending licensing changes how firms are allowed to set up and compete for years to come. The others are emergency steps to finance or compress imports in the short run.
@@ -129,9 +129,9 @@ questions:
       A government limits imports of a good to a fixed quantity by issuing import licences. What is the usual effect on the domestic price compared with the world price?
     choices:
       - { id: a, text: "The domestic price is higher, and the holders of the licences gain" }
-      - { id: b, text: "The domestic price is lower, because supply is controlled" }
-      - { id: c, text: "The domestic price equals the world price" }
-      - { id: d, text: "The domestic price is higher, and consumers gain" }
+      - { id: b, text: "The domestic price is lower, because supply is controlled", mistake: { tag: quota_lowers_price, fix: "Fewer imports means less supply at home, which pushes the price up, not down." } }
+      - { id: c, text: "The domestic price equals the world price", mistake: { tag: quota_no_gap, fix: "The limit stops cheap imports closing the gap, so the home price stays above the world price." } }
+      - { id: d, text: "The domestic price is higher, and consumers gain", mistake: { tag: consumers_gain, fix: "Consumers pay the higher price and lose; the licence holders gain." } }
     answer: a
     explanation: >
       Limiting the quantity of imports raises the domestic price above the world price. Consumers lose; domestic producers and those who hold the licences, who can import at the world price and sell at the higher domestic price, gain.

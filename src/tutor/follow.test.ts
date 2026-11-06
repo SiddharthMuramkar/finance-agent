@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { parseCourseMap, type CourseMap } from "@/course/map";
 import { importLibrary, type LibraryFile } from "@/library/ingest";
 import { scriptedClient, type ScriptedRequest } from "@/test/scripted-client";
@@ -8,6 +8,10 @@ import { listSessions, loadSession } from "./transcript";
 import { TUTOR_INSTRUCTIONS } from "./instructions";
 import { runTutorTurn, type TurnEvent } from "./turn";
 import { OWNER_LEARNER_ID } from "@/db/schema";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 async function collect(events: AsyncIterable<TurnEvent>) {
   const out: TurnEvent[] = [];
