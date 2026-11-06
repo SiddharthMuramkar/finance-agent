@@ -271,6 +271,17 @@ describe("Cookies at the gate (Google sign-in, C1b)", () => {
     expect(new URL(evil.headers.get("location")!).pathname).toBe("/study");
   });
 
+  it("shows the login form when a Google session with no Learner sits beside a valid fa_access (no loop)", async () => {
+    // currentLearner() lets the Google session decide, even when it maps to no Learner (session.test.ts),
+    // so the page sends this request to /login; the login page must then show its form, not bounce back.
+    const [tools] = await db.insert(learners).values({ name: "tools" }).returning();
+    await db.insert(user).values({ id: "g2", name: "Stranger", email: "s@x.com", emailVerified: true });
+    ba.user = { id: "g2", email: "s@x.com", name: "Stranger" };
+    const cookie = `${ACCESS_COOKIE}=${await learnerToken(tools.id, SECRET)}; ${googleCookie}`;
+    expect(allowed(await proxy(request("/login", { headers: { cookie } })))).toBe(true);
+    expect(allowed(await proxy(request("/login?next=%2Fstudy", { headers: { cookie } })))).toBe(true);
+  });
+
   it("recognises the production __Secure- cookie name on an https request", async () => {
     const headers = { cookie: "__Secure-better-auth.session_token=tok.sig" };
     expect(allowed(await proxy(request("/study", { headers })))).toBe(true);

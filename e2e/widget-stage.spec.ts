@@ -45,4 +45,22 @@ test("Widget panel width, filmstrip and reduced motion: the stage fills the pane
   await page.getByTestId("back-to-latest").click();
   await expect(page.getByTestId("pager-position")).toContainText(TITLES[3]);
   await expect(page.getByTestId("widget-card")).toContainText(TITLES[3]);
+
+  // F2-PM-1: ← moves focus without selecting, so the focused thumbnail and the showing one must look different.
+  // Focus is the 2px --ring outline; the showing thumbnail is the brand-tint face with a brand rim, and no outline.
+  await thumbs.nth(3).focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(thumbs.nth(2)).toBeFocused();
+  await expect(thumbs.nth(3)).toHaveAttribute("aria-current", "true");
+  const look = (i: number) =>
+    thumbs.nth(i).evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { outline: s.outlineStyle, face: s.backgroundColor, rim: s.borderTopColor };
+    });
+  const focused = await look(2);
+  const showing = await look(3);
+  expect(focused.outline, "the focused thumbnail carries the focus outline").toBe("solid");
+  expect(showing.outline, "the showing thumbnail carries no outline when it lacks focus").toBe("none");
+  expect(showing.face, "the showing thumbnail has its own face").not.toBe(focused.face);
+  expect(showing.rim, "the showing thumbnail has its own rim").not.toBe(focused.rim);
 });
