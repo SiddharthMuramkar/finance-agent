@@ -99,6 +99,45 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
     const b = here.getBoundingClientRect();
     ol.scrollLeft += b.left - a.left - (a.width - b.width) / 2;
   }, [current]);
+  // The scrollbar is hidden (a thin one still takes height on classic-scrollbar platforms), so the strip shows steps out
+  // of view with a fade on that edge (data-more-left / data-more-right), and a plain mouse wheel scrolls it sideways
+  // while it can still move that way; at an end the wheel is the page's again.
+  const [more, setMore] = useState({ left: false, right: false });
+  useEffect(() => {
+    const ol = list.current;
+    if (!ol) return;
+    const measure = () => {
+      const left = ol.scrollLeft > 1;
+      const right = ol.scrollLeft + ol.clientWidth < ol.scrollWidth - 1;
+      setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (e.shiftKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const max = ol.scrollWidth - ol.clientWidth;
+      if (max <= 0) return;
+      const next = Math.min(max, Math.max(0, ol.scrollLeft + e.deltaY));
+      if (next === ol.scrollLeft) return;
+      e.preventDefault();
+      ol.scrollLeft = next;
+    };
+    measure();
+    ol.addEventListener("scroll", measure, { passive: true });
+    ol.addEventListener("wheel", onWheel, { passive: false });
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    ro?.observe(ol);
+    return () => {
+      ol.removeEventListener("scroll", measure);
+      ol.removeEventListener("wheel", onWheel);
+      ro?.disconnect();
+    };
+  }, []);
+  const fade = more.left && more.right
+    ? "[mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]"
+    : more.left
+      ? "[mask-image:linear-gradient(to_right,transparent,black_24px)]"
+      : more.right
+        ? "[mask-image:linear-gradient(to_left,transparent,black_24px)]"
+        : "";
   // A scroll box clips what sticks out of it, so the strip keeps room inside itself for a scroll-back Chip's focus ring
   // (4 px all round) and its lip and shadow (12 px below), reaching into the bar's padding so the bar barely grows;
   // and it never scrolls up and down (a pressed Chip drops 2 px).
@@ -106,7 +145,9 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
     <ol
       ref={list}
       aria-label="Steps in this Topic"
-      className="-mx-2 -mb-2 flex flex-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden items-center gap-x-3 overflow-x-auto overflow-y-hidden whitespace-nowrap px-2 pt-1 pb-3 text-xs leading-5"
+      data-more-left={more.left || undefined}
+      data-more-right={more.right || undefined}
+      className={`-mx-2 -mb-2 flex flex-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden items-center gap-x-3 overflow-x-auto overflow-y-hidden whitespace-nowrap px-2 pt-1 pb-3 text-xs leading-5 ${fade}`}
     >
       {/* Steps outside any Check (Story, Reveal, Principle) stand alone: "Story · Check 1: Concept, Your turn, Check · … · Reveal · Principle". */}
       {strip.groups.flatMap((g) => (g.check ? [g] : g.steps.map((s) => ({ check: null, steps: [s] })))).map((g) => (

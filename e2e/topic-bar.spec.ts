@@ -132,3 +132,27 @@ test("[#313] the strip hides its scrollbar, so a classic scrollbar never adds he
   expect(s.overflows, "four Checks overflow the strip at 768, so its scrollbar would show").toBe(true);
   expect(s.width).toBe("none");
 });
+
+test("[#313] a strip with steps out of view shows it with a fade, and a plain mouse wheel scrolls it sideways", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "sizes its own viewport");
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await seed(page, "your-turn");
+  await page.goto("/study");
+  const strip = page.getByTestId("topic-bar").locator('ol[aria-label="Steps in this Topic"]');
+  await expect(strip).toBeVisible();
+  // Scroll to the start, so the hidden steps are all on the right.
+  await strip.evaluate((ol) => { ol.scrollLeft = 0; ol.dispatchEvent(new Event("scroll")); });
+  await expect(strip).toHaveAttribute("data-more-right", "true");
+  await expect(strip).not.toHaveAttribute("data-more-left", "true");
+  expect(await strip.evaluate((ol) => getComputedStyle(ol).maskImage), "the right edge fades").toContain("linear-gradient");
+  // A plain wheel (no Shift) over the strip moves it sideways, not the page.
+  const box = (await strip.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const before = await strip.evaluate((ol) => ol.scrollLeft);
+  await page.mouse.wheel(0, 200);
+  await expect.poll(() => strip.evaluate((ol) => ol.scrollLeft)).toBeGreaterThan(before);
+  await expect(strip).toHaveAttribute("data-more-left", "true");
+  // At the far end the wheel is the page's again.
+  await strip.evaluate((ol) => { ol.scrollLeft = ol.scrollWidth; ol.dispatchEvent(new Event("scroll")); });
+  await expect(strip).not.toHaveAttribute("data-more-right", "true");
+});
