@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { parseCourseMap } from "@/course/map";
-import { learners, messages, noteItems, OWNER_LEARNER_ID, sessions, topicProgress, widgetState } from "@/db/schema";
+import { checkResults, learners, messages, noteItems, OWNER_LEARNER_ID, sessions, topicProgress, widgetState } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
+import { restartTopic } from "./restart";
 import { addLine } from "./notes";
 import { loadNotebook } from "./notebook";
 import { saveToNotes } from "./saved";
@@ -110,5 +111,32 @@ describe("the Notebook", () => {
     expect(theirs.rows[0].note.saved).toEqual([]);
     expect(theirs.older).toEqual([]);
     expect(await db.select().from(noteItems)).toHaveLength(3);
+  });
+
+  it("an earlier attempt is listed as one, under its Topic's Earlier attempts and not under Older sessions", async () => {
+    const { db, a, older } = await seed();
+    await db.insert(checkResults).values({ learnerId: OWNER_LEARNER_ID, topicId: "a", checkId: "a-check", passed: true });
+    expect(await restartTopic(db, map, OWNER_LEARNER_ID, "a", new Date("2026-11-04T10:00:00Z"))).toMatchObject({ restarted: true, oldSessionId: a });
+    const nb = await loadNotebook(db, map, OWNER_LEARNER_ID, { all: false });
+    expect(nb.older.map((o) => o.id)).toEqual([older]);
+    const ra = nb.rows.find((r) => r.topicId === "a")!;
+    expect(ra).toMatchObject({ status: "not_started", action: null, sessionId: null });
+    expect(ra.earlier).toEqual([
+      { sessionId: a, attemptNo: 1, date: new Date("2026-11-04T10:00:00Z"), status: "passed", checksPassed: 1, checksTotal: 1, found: ["You moved the first slider.", "You moved the second slider."] },
+    ]);
+    expect(nb.rows.find((r) => r.topicId === "b")!.earlier).toEqual([]);
+  });
+
+  it("a Topic with only an earlier attempt still has a row, newest attempt first", async () => {
+    const db = await testDb();
+    await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: "d", step: "concept", status: "in_progress" });
+    const first = await session(db, "d", OWNER_LEARNER_ID);
+    await restartTopic(db, map, OWNER_LEARNER_ID, "d", new Date("2026-11-02T10:00:00Z"));
+    await db.insert(topicProgress).values({ learnerId: OWNER_LEARNER_ID, topicId: "d", step: "concept", status: "in_progress" });
+    const second = await session(db, "d", OWNER_LEARNER_ID);
+    await restartTopic(db, map, OWNER_LEARNER_ID, "d", new Date("2026-11-04T10:00:00Z"));
+    const nb = await loadNotebook(db, map, OWNER_LEARNER_ID, { all: false });
+    const rd = nb.rows.find((r) => r.topicId === "d")!;
+    expect(rd.earlier.map((e) => [e.sessionId, e.attemptNo, e.status])).toEqual([[second, 2, "not_finished"], [first, 1, "not_finished"]]);
   });
 });
