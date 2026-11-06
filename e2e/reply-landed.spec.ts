@@ -61,6 +61,10 @@ async function lateOpener(page: Page, guard: (page: Page) => Promise<void>) {
   await Promise.race([before, page.waitForTimeout(1_000)]);
   letTurnThrough();
   const chipsBefore = await before;
+  // The opener's stream has ended (Stop gives way to Send only then) before the reply's script is picked: the scripted
+  // Tutor reads the script when the turn calls it, so picking quiz-open earlier could make the opener play it.
+  await expect(page.getByTestId("stop-reply")).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.getByTestId("assistant-message").first()).toContainText("On 4 February 1994 the Fed moved by a quarter point");
 
   await say(page, "quiz-open", "Which question first?");
   const left = [...chipsBefore];
