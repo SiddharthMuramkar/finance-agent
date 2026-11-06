@@ -28,3 +28,6 @@ evidence/tutor-eval/
 .next-e2e/
 playwright-report/
 test-results/
+
+# F1 preview matrix: screenshots and numbers (scripts/preview-matrix.mjs)
+evidence/preview-matrix/

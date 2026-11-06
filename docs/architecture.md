@@ -4710,3 +4710,11 @@ A headline is never written by the Tutor. Its recipe takes the front page's text
 **Scenario.** The Learner opens the Course Map and sees "3 of 7" under Bond prices, with three filled segments, without opening another page. An old bookmark to `/progress` lands on the same map.
 
 **Trade-off.** One page holds both the choosing and the progress, so it is longer than either was. Collapsible Subject groups (open only where the Learner's place is) keep it short, at the price of one click to see a closed Subject's cards.
+
+## The preview matrix (`scripts/preview-matrix.mjs`, `e2e/matrix.spec.ts`, `src/dev/preview-matrix.ts`, spec 2026-11-05, ticket F1)
+
+**What it does.** One command, `node scripts/preview-matrix.mjs [--project mbp14,...] [--port N]`, shoots the finished app at 4 viewports (1512x982, 1280x800, 1920x1080, 1024x768) in Light and Dark. Each project visits 9 pages and states (Home, `/study` as story, concept with a Widget, quiz with a Check open, Topic complete, Course Map, Notebook, Settings, login) plus `/login?error=not_invited`: 80 cells in all, listed once in `src/dev/preview-matrix.ts`. `e2e/matrix.spec.ts` writes a full-page screenshot to `evidence/preview-matrix/<project>/<page>.png` and the numbers (`measureLayout`, `auditAffordances`, characters per line, horizontal scroll, whether Tab shows a focus ring) to `cells.json` beside it; both are git-ignored. It collects every failing cell before it fails, so one run lists every difference from the spec's targets. It runs only with `UI_MATRIX=1` (the script sets it), so the ordinary `ui` job never runs it.
+
+**Scenario.** After the last ticket merges, the owner's agent runs the script once. The report says `w1024/study-concept-widget: tooSmall ["button ... 30x30"]`, and that line, with its screenshot, becomes a `needs-triage` issue.
+
+**Trade-off.** It is slow (about 20 seconds a project, 3 minutes for all 8) and its numbers depend on the machine's fonts, so it is a report to read, not a merge gate. Pages that other tickets were still changing are found by route and role, never by markup, so it keeps working as they land.
