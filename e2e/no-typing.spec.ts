@@ -9,6 +9,9 @@ import { seed, settled, type State } from "./support/app";
 
 // The OpenUI devtools overlay (dev server only) has a disabled "Chunk seed" number box; it is not the Learner's UI.
 const TYPED_NUMBER = ':is(input[inputmode="decimal"], input[type="number"], input[inputmode="numeric"]):not([aria-label="Chunk seed"])';
+// Any box to type in, outside that overlay. Its panel (with the Chunk seed box) mounts lazily under
+// [data-openui-devtools-root], about 2 s after load: a bare `input` count passed or failed by which came first.
+const LEARNER_INPUT = "input:not([data-openui-devtools-root] *)";
 
 async function study(page: Page, state: State) {
   await seed(page, state);
@@ -73,7 +76,7 @@ test("rate-move practice offers three readings to tap and nothing to type, and a
   const choices = page.getByTestId("rate-move-choice");
   await expect(choices).toHaveCount(3);
   expect((await choices.allInnerTexts()).sort()).toEqual(["Up 1 point, or 100 bps", "Up 1%", "Up 10 bps"]);
-  await expect(page.locator("input")).toHaveCount(0);
+  await expect(page.locator(LEARNER_INPUT)).toHaveCount(0);
   await choices.filter({ hasText: "Up 10 bps" }).click();
   await expect(page.getByTestId("rate-move-answer")).toHaveAttribute("data-status", "wrong");
   await expect(page.getByTestId("rate-move-result")).toContainText("multiply by 100, not 10");

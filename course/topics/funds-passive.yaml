@@ -72,15 +72,21 @@ youllLearn:
 questions:
   - id: fp-q-nav
     prompt: >
-      A mutual fund has assets of Rs 520 crore and liabilities of Rs 20 crore. It has 10 crore units outstanding. What is its NAV per unit?
+      You hold units of a mutual fund. The fund owns shares and bonds, and it also owes some bills. What does its NAV per unit measure?
     choices:
-      - { id: a, text: "Rs 52" }
-      - { id: b, text: "Rs 50" }
-      - { id: c, text: "Rs 5" }
-      - { id: d, text: "Rs 54" }
+      - id: a
+        text: "It is the value of the assets alone, shared among the units"
+        mistake: { tag: liabilities_ignored, fix: "The liabilities must come off first, because the fund owes them." }
+      - { id: b, text: "It is the assets less the liabilities, shared among the units" }
+      - id: c
+        text: "It is the liabilities shared among the units"
+        mistake: { tag: nav_as_debt, fix: "The liabilities are what the fund owes. NAV is what is left for unit-holders." }
+      - id: d
+        text: "It is the assets plus the liabilities, shared among the units"
+        mistake: { tag: liabilities_added, fix: "Liabilities are owed, so they are taken away, never added." }
     answer: b
     explanation: >
-      NAV per unit is (assets minus liabilities) divided by units: (520 - 20) / 10 = Rs 50. Rs 52 forgets to deduct the liabilities.
+      NAV per unit is what is left after the fund pays what it owes, shared among the units. For example, Rs 520 crore of assets less Rs 20 crore owed leaves Rs 500 crore for 10 crore units, about Rs 50 a unit.
     source: >
       Investor.gov (US SEC), Updated Investor Bulletin: Exchange-Traded Funds (NAV per share is the value of all assets minus all liabilities, divided by the number of shares): https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24
 
@@ -100,57 +106,82 @@ questions:
 
   - id: fp-q-sharpe
     prompt: >
-      Suppose the market's return is 8% a year before costs. Index funds earn it and charge 0.1% a year. Active funds, taken together, hold the rest of the market and charge 1.5% a year. What do passive and active investors earn after costs?
+      Index funds simply own the whole market and charge a tiny fee. Active funds, taken together, own the rest of the market and charge a much bigger fee. Before fees the two groups earn the same. What follows after fees?
     choices:
-      - { id: a, text: "Passive 7.9%; active investors as a group 6.5%" }
-      - { id: b, text: "Passive 7.9%; active investors as a group 8%" }
-      - { id: c, text: "Passive 8%; active investors as a group 9.5%" }
-      - { id: d, text: "Both earn 8%, because costs do not matter" }
+      - id: a
+        text: "Active investors as a group earn less than passive investors, by the difference in fees"
+      - id: b
+        text: "Active investors as a group earn more, because they are paid to pick winners"
+        mistake: { tag: active_beats_market, fix: "Together they hold the rest of the market, so before fees they earn the market return, no more." }
+      - id: c
+        text: "Both earn the same, because costs do not matter"
+        mistake: { tag: costs_ignored, fix: "Costs come straight out of what each group earns." }
+      - id: d
+        text: "Passive investors earn less, because they do no research"
+        mistake: { tag: research_pays, fix: "Passive investors keep more, since their fee is far smaller." }
     answer: a
     explanation: >
-      Before costs, the active investors in aggregate hold what the passive investors do not, so together they earn the market return of 8%. Costs then come out: 8 - 0.1 = 7.9% for passive and 8 - 1.5 = 6.5% for the active group. Some active investors beat the index; others fall short by more.
+      Before costs, the active investors in aggregate hold what the passive investors do not, so together they earn the market return. Costs then come out, and the active group's bigger fee leaves it with less. Some active investors beat the index; others fall short by more.
     source: >
       Damodaran, "Active Investing: Rest in Peace or Resurgent Force?" (Musings on Markets, December 2016): https://aswathdamodaran.blogspot.com/2016/12/active-investing-rest-in-peace-or.html
 
   - id: fp-q-fund-of-funds
     prompt: >
-      An investor owns a fund of funds. Each underlying hedge fund charges 2% of assets a year, and the fund of funds charges another 1% a year. Ignoring any performance fee, what do the fixed fees take from each Rs 100 invested, per year?
+      An investor owns a fund of funds. Each hedge fund inside it charges a yearly fee, and the fund of funds charges another on top. Ignoring any performance fee, how do these fixed fees behave?
     choices:
-      - { id: a, text: "Rs 1" }
-      - { id: b, text: "Rs 2" }
-      - { id: c, text: "Rs 3" }
-      - { id: d, text: "Rs 20" }
+      - id: a
+        text: "Only the outer fund's fee counts, because the inner funds are hidden"
+        mistake: { tag: inner_fees_hidden, fix: "The inner funds' fees come out of the same assets, so the investor bears them too." }
+      - id: b
+        text: "Only the inner funds' fees count, because the outer fund just picks them"
+        mistake: { tag: outer_fee_ignored, fix: "The outer fund charges its own fee on top of the inner ones." }
+      - { id: c, text: "The two layers of fees stack up, and they are paid every year whether or not the funds make money" }
+      - id: d
+        text: "They are paid only in years when the funds make a profit"
+        mistake: { tag: fees_on_profit_only, fix: "Fixed fees are taken from assets every year. Only performance fees depend on profit." }
     answer: c
     explanation: >
-      The two layers of fixed fees add: 2% + 1% = 3%, or Rs 3 for each Rs 100, every year, whether or not the funds make money.
+      The two layers of fixed fees stack: a 2% fee inside and a 1% fee outside take about 3% of the assets every year, whether or not the funds make money.
     source: >
       Arithmetic from the stated figures (two layers of fees, as described in the Long Bets terms and Berkshire's 2017 letter): https://www.berkshirehathaway.com/letters/2017ltr.pdf
 
   - id: fp-q-compounding-cost
     prompt: >
-      Rs 1,00,000 is invested for 20 years. In one fund it grows at 7.9% a year after costs; in another at 6.5% a year after costs. About how much more does the first investor have at the end?
+      You and a friend each put the same money into a different fund for 20 years. Yours charges a little less each year, so it grows a little faster. Which headline gets it right?
     choices:
-      - { id: a, text: "About Rs 28,000, which is 1.4% for each of 20 years" }
-      - { id: b, text: "About Rs 1,05,000" }
-      - { id: c, text: "About Rs 1,40,000" }
-      - { id: d, text: "About Rs 2,10,000" }
+      - id: a
+        text: "A small yearly gap stays small, so the two end up close"
+        mistake: { tag: gap_stays_small, fix: "A small yearly gap compounds over 20 years into a large difference." }
+      - { id: b, text: "The small yearly gap compounds, so the cheaper fund ends up far further ahead than the yearly gap suggests" }
+      - id: c
+        text: "The cheaper fund always ends up with double the other"
+        mistake: { tag: fixed_multiple, fix: "It ends well ahead but not by a fixed multiple. The gap depends on the rates and the years." }
+      - id: d
+        text: "The two end up the same, because both funds charge costs"
+        mistake: { tag: costs_cancel, fix: "Both funds charge costs, but the lower-cost fund compounds faster and ends well ahead." }
     answer: b
     explanation: >
-      At 7.9%, Rs 1,00,000 grows to 1,00,000 x 1.079^20, about Rs 4,57,500. At 6.5% it grows to 1,00,000 x 1.065^20, about Rs 3,52,400. The gap is about Rs 1,05,000, far more than 1.4% x 20 because the difference compounds.
+      Growth builds on earlier growth, so a small yearly gap widens every year. For example, Rs 1,00,000 growing at 7.9% a year for 20 years reaches about Rs 4,57,500, against about Rs 3,52,400 at 6.5%.
     source: >
       Compound growth: OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance-2e/pages/7-3-methods-for-solving-time-value-of-money-problems
 
   - id: fp-q-zero-return
     prompt: >
-      A zero-coupon bond pays Rs 5,00,000 in ten years and costs Rs 3,18,250 today. About what annual return does a buyer who holds it to maturity earn?
+      You buy a zero-coupon bond well below its face value and hold it for ten years. It pays no interest along the way, only the face value at the end. How should you think of your yearly return?
     choices:
-      - { id: a, text: "About 3.1%" }
-      - { id: b, text: "About 4.6%" }
-      - { id: c, text: "About 5.7%" }
-      - { id: d, text: "About 57%" }
+      - id: a
+        text: "It earns nothing, because a zero-coupon bond pays no interest"
+        mistake: { tag: no_coupon_no_return, fix: "The return comes from buying at a discount and getting the full face value back." }
+      - { id: b, text: "It earns a modest yearly return, found by compounding the discount over the ten years" }
+      - id: c
+        text: "It earns the whole gain divided by ten, a simple average each year"
+        mistake: { tag: simple_average, fix: "Dividing the gain by ten ignores compounding and overstates the yearly return." }
+      - id: d
+        text: "It earns the whole gain in one go, so the yearly return is the total gain"
+        mistake: { tag: total_as_yearly, fix: "The total gain is spread over ten years. The yearly return is much smaller." }
     answer: b
     explanation: >
-      The price grows by 5,00,000 / 3,18,250 = 1.571 over ten years, so the annual return is 1.571^(1/10) - 1, about 4.6%. The total gain is 57%; dividing it by ten gives 5.7%, which ignores compounding.
+      For example, a bond bought for Rs 3,18,250 that pays Rs 5,00,000 in ten years grows by about 1.57 times, a yearly return of about 4.6%. The total gain is 57%, but dividing it by ten gives 5.7%, which ignores compounding.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.3 Methods for Solving Time Value of Money Problems: https://openstax.org/books/principles-finance-2e/pages/7-3-methods-for-solving-time-value-of-money-problems
 

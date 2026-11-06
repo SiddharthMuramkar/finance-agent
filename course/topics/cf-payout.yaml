@@ -60,29 +60,41 @@ youllLearn:
 questions:
   - id: po-q-ex-div
     prompt: >
-      In a frictionless market a share trades at $60. The company pays a one-off special dividend of $2 a share. About what should the share price be on the first day it trades without the dividend?
+      In a frictionless market a share trades at $60. The company pays a one-off special dividend of $2 a share. What should happen to the price on the first day it trades without the dividend?
     choices:
-      - { id: a, text: "$58" }
-      - { id: b, text: "$60" }
-      - { id: c, text: "$62" }
-      - { id: d, text: "$2" }
+      - { id: a, text: "It should drop by about the dividend, because that cash has left the company" }
+      - id: b
+        text: "It should stay at $60, because the dividend is a gift"
+        mistake: { tag: dividend_as_gift, fix: "The company has $2 a share less cash, so each share is worth less." }
+      - id: c
+        text: "It should rise by about the dividend, because investors like dividends"
+        mistake: { tag: payout_creates_value, fix: "A payout moves cash out of the company. It does not create value." }
+      - id: d
+        text: "It should fall to the size of the dividend"
+        mistake: { tag: price_to_dividend, fix: "The share keeps almost all its value. Only the paid-out cash leaves it." }
     answer: a
     explanation: >
-      The company has $2 a share less cash, so each share is worth $2 less: $58. Shareholders have $58 in shares plus $2 in cash, the same $60 as before.
+      The company has $2 a share less cash, so each share is worth about $2 less, near $58. Shareholders hold $58 in shares plus $2 in cash, the same $60 as before.
     source: >
       Miller and Modigliani, 'Dividend Policy, Growth, and the Valuation of Shares', Journal of Business 34 (1961): https://doi.org/10.1086/294442
 
   - id: po-q-eps
     prompt: >
-      A company's net income is unchanged. It buys back 10% of its shares. By what factor does earnings per share rise, ignoring the lost interest on the cash used?
+      A company uses spare cash to buy back a tenth of its shares. Its profit stays the same. Which headline gets it right?
     choices:
-      - { id: a, text: "About 1.11 (up 11%)" }
-      - { id: b, text: "1.10 (up 10%)" }
-      - { id: c, text: "0.90 (down 10%)" }
-      - { id: d, text: "It does not change" }
+      - { id: a, text: "Earnings per share rise, since fewer shares split the same profit, but holders are no richer: the cash has left the company" }
+      - id: b
+        text: "Earnings per share rise, so every holder is richer by the same amount"
+        mistake: { tag: eps_as_wealth, fix: "The cash spent has left the company, so a higher figure per share does not make holders richer." }
+      - id: c
+        text: "Earnings per share fall, because the company has spent cash"
+        mistake: { tag: cash_spent_cuts_eps, fix: "The profit is unchanged and spread over fewer shares, so earnings per share rise." }
+      - id: d
+        text: "Earnings per share stay the same, because profit is the same"
+        mistake: { tag: share_count_ignored, fix: "Profit is the same, but fewer shares share it, so earnings per share rise." }
     answer: a
     explanation: >
-      With 90% of the shares left, EPS = E / 0.9 shares = 1.11 times its previous value. That does not mean shareholders are better off: the cash that paid for the shares has left the company.
+      With 90% of the shares left, earnings per share rise to about 1.11 times their old level. Shareholders are no better off, because the cash that paid for the shares has left the company.
     source: >
       Miller and Modigliani, 'Dividend Policy, Growth, and the Valuation of Shares', Journal of Business 34 (1961): https://doi.org/10.1086/294442
 

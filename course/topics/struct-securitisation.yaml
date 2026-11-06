@@ -70,68 +70,68 @@ youllLearn:
 questions:
   - id: ss-q-first-loss
     prompt: >
-      A pool of $1,000 million is financed by tranches: $770 million AAA, $150 million A, $50 million BBB and $30 million residual. The pool loses 2% ($20 million) from defaults. Which tranche takes the loss?
+      A pool of home loans is sliced into four tranches, stacked from top to bottom: a big AAA tranche, then A, then BBB, and a thin residual tranche at the bottom. A few borrowers default, a loss smaller than the residual tranche. Which tranche takes the loss?
     choices:
-      - { id: a, text: "Only the $30 million residual tranche" }
-      - { id: b, text: "All tranches, in proportion to their size" }
-      - { id: c, text: "The AAA tranche, because it is the largest" }
-      - { id: d, text: "The BBB tranche" }
+      - { id: a, text: "Only the residual tranche at the bottom" }
+      - { id: b, text: "All tranches, in proportion to their size", mistake: { tag: shared_pro_rata, fix: "Losses are not shared evenly. They hit the bottom tranche first." } }
+      - { id: c, text: "The AAA tranche, because it is the largest", mistake: { tag: largest_takes_loss, fix: "Size does not decide the order. Losses start at the bottom." } }
+      - { id: d, text: "The BBB tranche", mistake: { tag: wrong_tranche, fix: "BBB sits above the residual, so it is hit only after the residual is used up." } }
     answer: a
     explanation: >
-      Losses are absorbed from the bottom. The residual tranche of $30 million is the first to take them and can absorb up to 3% of the pool, so a 2% loss ($20 million) leaves every other tranche whole.
+      Losses are absorbed from the bottom up, like water filling a tank. The residual tranche is first in line, so a loss smaller than it stays there and every tranche above it is left whole.
     source: >
-      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R, section I (senior/subordinated structure): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf ; example figures are hypothetical
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R, section I (senior/subordinated structure): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
 
   - id: ss-q-partial-loss
     prompt: >
-      In the same pool, losses reach 10% of the pool ($100 million). What fraction of the $150 million A tranche is lost?
+      A pool of home loans is sliced into four tranches, stacked from top to bottom: a big AAA tranche, then A, then BBB, and a thin residual at the bottom. Bad loans keep piling up. They wipe out the two lowest tranches and then run a little further, but nowhere near enough to threaten the top. Which tranches are hurt, and which is left untouched?
     choices:
-      - { id: a, text: "About 13%" }
-      - { id: b, text: "10%" }
-      - { id: c, text: "100%" }
-      - { id: d, text: "None" }
+      - { id: a, text: "The residual and BBB tranches are wiped out, A loses a slice, and AAA is untouched" }
+      - { id: b, text: "All four tranches lose 10% each", mistake: { tag: even_losses, fix: "Losses go from the bottom up, not evenly across the tranches." } }
+      - { id: c, text: "The residual, BBB and A tranches are all wiped out", mistake: { tag: a_wiped_out, fix: "The loss only runs a little past the two lowest tranches, so A loses a slice, not all." } }
+      - { id: d, text: "Only the residual tranche is hurt", mistake: { tag: residual_only, fix: "The residual is the smallest tranche. After it, BBB and then A take the loss." } }
     answer: a
     explanation: >
-      The residual ($30 million) and BBB ($50 million) tranches absorb the first $80 million. The remaining $20 million falls on the A tranche: 20 / 150 = 13.3%. The AAA tranche is untouched.
+      Losses climb the stack from the bottom. The residual goes first, then BBB. What runs past them lands on the A tranche, which loses a slice. The AAA tranche, at the top, is untouched.
     source: >
-      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R (waterfall and subordination): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf ; losses calculated on hypothetical figures
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R (waterfall and subordination): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
 
   - id: ss-q-subordination
     prompt: >
-      In the same pool, what is the subordination of the $770 million AAA tranche?
+      A pool of home loans is sliced into tranches, with a big AAA tranche on top and smaller tranches beneath it. The tranches beneath form a cushion, called the AAA tranche's subordination. What does that cushion tell you?
     choices:
-      - { id: a, text: "23%" }
-      - { id: b, text: "77%" }
-      - { id: c, text: "3%" }
-      - { id: d, text: "100%" }
+      - { id: a, text: "How much of the pool can be lost before the AAA tranche loses anything" }
+      - { id: b, text: "How much the AAA tranche would fetch if it were sold", mistake: { tag: subordination_is_price, fix: "Subordination is the loss cushion beneath the tranche, not a market price." } }
+      - { id: c, text: "How many investors hold the AAA tranche", mistake: { tag: subordination_is_holders, fix: "It counts the tranches beneath, not the investors who hold it." } }
+      - { id: d, text: "The interest rate the AAA tranche pays", mistake: { tag: subordination_is_rate, fix: "The rate is a separate thing. Subordination measures the loss cushion." } }
     answer: a
     explanation: >
-      Subordination is the share of the pool beneath the tranche: 150 + 50 + 30 = 230 out of 1,000, or 23%. Pool losses can reach 23% before the AAA tranche loses anything.
+      Subordination is the share of the pool that sits beneath a tranche. Every loss must eat through that cushion first, so the thicker it is, the bigger the losses the AAA tranche can survive untouched.
     source: >
       Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R, section II ("Subordination is a summary measure of how high collateral losses need to be before the bonds suffer losses"): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
 
   - id: ss-q-wipe-bbb
     prompt: >
-      In the same pool, at what level of losses on the pool is the $50 million BBB tranche completely wiped out?
+      A pool of home loans is sliced into four tranches, stacked from top to bottom: a big AAA tranche, then A, then BBB, and a thin residual at the bottom. The BBB tranche sits just above the residual. Which statement about it is right?
     choices:
-      - { id: a, text: "8%" }
-      - { id: b, text: "5%" }
-      - { id: c, text: "3%" }
-      - { id: d, text: "23%" }
+      - { id: a, text: "It starts losing money only once the residual is gone, and is wiped out soon after if losses keep coming" }
+      - { id: b, text: "It takes the first loss, before the residual", mistake: { tag: bbb_first, fix: "BBB sits above the residual, so the residual takes the first loss." } }
+      - { id: c, text: "It cannot be wiped out, because it is rated", mistake: { tag: rating_protects, fix: "Ratings do not stop losses. Enough losses below can wipe out any tranche." } }
+      - { id: d, text: "It is wiped out at the same moment as the AAA tranche", mistake: { tag: same_as_aaa, fix: "AAA sits far higher with many tranches beneath it, so BBB goes much earlier." } }
     answer: a
     explanation: >
-      The BBB tranche has the $30 million residual (3%) beneath it. The first $30 million of loss goes to the residual, and the next $50 million wipes out BBB, so total losses of $80 million, 8% of the pool, remove the BBB tranche entirely. It takes its first loss at 3%.
+      Only the thin residual sits beneath the BBB tranche. Once the residual is used up, the next losses land on BBB, and because BBB is itself thin, a modest further run of defaults wipes it out.
     source: >
-      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R (subordination levels): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf ; calculated on hypothetical figures
+      Cordell, Huang and Williams, Collateral Damage: Sizing and Assessing the Subprime CDO Crisis, Philadelphia Fed Working Paper 11-30/R (subordination levels): https://www.philadelphiafed.org/-/media/frbp/assets/working-papers/2011/wp11-30R.pdf
 
   - id: ss-q-correlation
     prompt: >
       Two CDOs each hold 100 BBB tranches. In CDO X the tranches come from pools in the same regions and on the same kinds of loan, so they depend on the same house-price movements. In CDO Y they come from very different kinds of asset. Which CDO's top layer is more exposed to losing value?
     choices:
       - { id: a, text: "CDO X, because its tranches are likely to lose value at the same time" }
-      - { id: b, text: "CDO Y, because it holds different assets" }
-      - { id: c, text: "Both equally; the number of tranches is what matters" }
-      - { id: d, text: "Neither; a AAA rating removes the risk" }
+      - { id: b, text: "CDO Y, because it holds different assets", mistake: { tag: diversified_is_riskier, fix: "Different assets spread the risk. It is CDO X whose tranches fall together." } }
+      - { id: c, text: "Both equally; the number of tranches is what matters", mistake: { tag: count_only, fix: "The count matters less than whether the tranches tend to fall together." } }
+      - { id: d, text: "Neither; a AAA rating removes the risk", mistake: { tag: rating_removes_risk, fix: "A AAA that assumes low correlation can be wrong when the tranches share one risk." } }
     answer: a
     explanation: >
       A top layer is safe if losses in the collateral tend to be spread out and smaller than its cushion. When all the tranches depend on the same factor, they tend to fail together, so diversification across 100 bonds is much less than it seems. Ratings that assumed low correlation therefore overstated the safety of the top layers.
