@@ -56,14 +56,15 @@ youllLearn:
 questions:
   - id: bp-q-inverse
     prompt: >
-      Market yields on similar bonds rise. What happens to the price of a bond you already hold, which has a fixed coupon?
+      31 January 1994. Kavya buys a 10-year US Treasury bond at par with a coupon of about 5.7%. Suppose yields on new 10-year bonds then rise. What happens to the price of her bond?
     choices:
-      - { id: a, text: "Its price falls" }
-      - { id: b, text: "Its price rises" }
-      - { id: c, text: "Its price does not change, because the coupon is fixed" }
+      - { id: a, text: "It falls, because new bonds now pay more than hers" }
+      - { id: b, text: "It rises, because higher yields make bonds worth more", mistake: { tag: yield_up_price_up, fix: "Price and yield move opposite ways. Her fixed coupon now looks worse, so buyers pay less." } }
+      - { id: c, text: "It stays put, because her coupon is fixed", mistake: { tag: fixed_coupon_fixed_price, fix: "The coupon is fixed, so the price is what adjusts when market yields move." } }
+      - { id: d, text: "It stays put, because the Treasury will surely pay", mistake: { tag: safe_means_stable_price, fix: "Safe payments do not protect the price. The risk here is rates, not default." } }
     answer: a
     explanation: >
-      The bond's fixed payments are now discounted at a higher rate, so their present value, which is the price, falls. The coupon stays the same; the price adjusts so that a buyer earns the new market yield.
+      Her bond's fixed payments are now discounted at a higher market yield, so their value today, which is the price, falls. The coupon stays the same; the price drops until a buyer would earn the new market yield.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
@@ -83,14 +84,14 @@ questions:
 
   - id: bp-q-discount
     prompt: >
-      A bond pays a 4% coupon, but similar new bonds yield 6%. How does the bond sell?
+      Dev holds an old bond with a 4% coupon. Suppose similar new bonds now pay 6%. He must sell it next Monday to pay for his sister's wedding. How will buyers price his bond?
     choices:
-      - { id: a, text: "At a discount, below its face value" }
-      - { id: b, text: "At a premium, above its face value" }
-      - { id: c, text: "At par" }
+      - { id: a, text: "Below face value, at a discount, since new bonds pay more" }
+      - { id: b, text: "Above face value, at a premium, since it is older", mistake: { tag: age_as_premium, fix: "Age earns no premium. A coupon below what new bonds pay means a discount." } }
+      - { id: c, text: "At face value, since that is what it repays", mistake: { tag: confused_face_with_price, fix: "Face value is what comes back at the end. Today's price follows what new bonds pay." } }
     answer: a
     explanation: >
-      A buyer can get 6% elsewhere, so will pay less than face value for a bond paying only 4%. The price falls until the bond's yield matches the market's.
+      A buyer can get 6% on a new bond, so will pay less than face value for one paying only 4%. The price falls until the bond's yield matches the market's. That is a discount.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
@@ -110,14 +111,15 @@ questions:
 
   - id: bp-q-longer
     prompt: >
-      Two bonds pay the same 6% coupon, one maturing in five years and one in 30 years. Market yields fall from 6% to 5%. Which bond's price rises more?
+      Anil and Zara each buy a 6% bond at par. Anil's matures in five years, Zara's in 30. Suppose market yields then fall to 5%. Whose bond jumps more in price, and why?
     choices:
-      - { id: a, text: "The 30-year bond, from $1,000 to about $1,155" }
-      - { id: b, text: "The five-year bond, from $1,000 to about $1,044" }
-      - { id: c, text: "Both rise by the same amount" }
+      - { id: a, text: "Zara's, because her better coupon lasts 30 years" }
+      - { id: b, text: "Anil's, because his money comes back sooner", mistake: { tag: short_moves_more, fix: "Money back sooner leaves less time for the rate change to bite, so the short bond moves less." } }
+      - { id: c, text: "Both the same, because they share one coupon", mistake: { tag: same_coupon_same_move, fix: "Same coupon, different lengths. The longer bond's payments sit further out, so its price moves more." } }
+      - { id: d, text: "Neither, because prices move only when yields rise", mistake: { tag: price_moves_one_way, fix: "Prices move both ways. Falling yields push the prices of existing bonds up." } }
     answer: a
     explanation: >
-      The 30-year bond's payments are spread further into the future, so a change in the discount rate compounds over more years. At a 5% yield its price is $1,154.54 against $1,043.76 for the five-year bond.
+      The 30-year bond's payments are spread further into the future, so a change in the discount rate compounds over more years. In OpenStax's worked example, at a 5% yield the 30-year bond is worth $1,154.54 against $1,043.76 for the five-year bond.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance-2e/pages/20-4-interest-rate-risk
 
