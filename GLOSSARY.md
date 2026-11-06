@@ -5,7 +5,7 @@ An AI tutor that teaches an adult learner finance and economics seriously, from 
 ## Language
 
 **Learner**:
-A person the Tutor teaches, signed in with their own passcode. Each Learner's Learner Profile, progress, Topic Notes and Sessions are theirs alone. Starting over archives a Learner and gives their passcode a fresh one; nothing is deleted. The owner's test tools play their own Learner, the tools Learner, started over before each run.
+A person the Tutor teaches, signed in with Google (or, for the test tools, a passcode). Each Learner's Learner Profile, progress, Notebook (Topic Notes and Sessions) are theirs alone. Starting over archives a Learner and gives the same sign-in a fresh one; nothing is deleted. The owner's test tools play their own Learner, the tools Learner, started over before each run.
 _Avoid_: User, student, account
 
 **Invite list**:
@@ -97,7 +97,7 @@ The Tutor's answer to a question that leaves the current Topic. It is marked by 
 _Avoid_: Detour, tangent, side quest
 
 **What the Learner found**:
-One line, worked out by code from the Learner's saved Widget state, saying what they found or guessed in a Topic ("You guessed 12%", "You found where the annuity is worth the same as the cash"). It is shown on Past Sessions and on the Topic complete card.
+One line, worked out by code from the Learner's saved Widget state, saying what they found or guessed in a Topic ("You guessed 12%", "You found where the annuity is worth the same as the cash"). It is shown in the Notebook and on the Topic complete card.
 _Avoid_: Score, result
 
 **Insight**:
@@ -108,8 +108,12 @@ _Avoid_: Aha, takeaway, novelty, X factor
 A written link from a Topic's idea to another idea or Topic, given when the Topic ends.
 _Avoid_: Related topic, see also
 
+**Notebook**:
+The page where a Learner finds, for each Topic, its Session, what they found and their Topic Note.
+_Avoid_: Notes page, Past Sessions
+
 **Topic Note**:
-The page kept for one Topic: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote, and any rule the Learner put more simply in their own words, which the Tutor saves for them.
+The page kept for one Topic, in the Notebook: what code fills in once it is passed (its Formula Cards, the Insight in the Learner's words, the principle, the Connections, the mistakes noticed) plus anything the Learner saved or wrote, and any rule the Learner put more simply in their own words, which the Tutor saves for them.
 _Avoid_: Summary, recap, cheat sheet
 
 **Own rule**:
@@ -220,8 +224,16 @@ A Widget written in a Topic's file, such as present value's "What the annuity is
 _Avoid_: template, preset Widget
 
 **Widget recipe**:
-A Widget design written in code, such as grow_money or history_case. The Tutor names a recipe and its params with show_widget, and code draws the Widget, checks it and keeps it in the Session (ADR 0005). Its params are inputs (sliders and calculator inputs), refs (Case Data) and facts (typed numbers, which make it an Illustration).
+A Widget design written in code, such as grow_money or history_case. The Tutor names a recipe and its params with show_widget, and code draws the Widget, checks it and keeps it in the Session (ADR 0005). Its params are inputs (sliders and calculator inputs), refs (Case Data) and facts (typed numbers, which make it an Illustration). The story set (story_scene, lingo_card, timeline and six more) opens the story Widgets, its text in inputs and checked before it shows; the headline recipe opens only a scene written ahead in the Topic's file, never text the Tutor writes.
 _Avoid_: template, preset Widget
+
+**Story scene**:
+A Widget that tells a small story one beat at a time, with a cast of a few 3D emoji characters and the story's date stamped on it. A Topic file may also write one ahead for a Teaching Step (a Scene), and a Topic's Running example may carry one.
+_Avoid_: Story card, comic, slideshow
+
+**Lingo card**:
+A Widget that shows one finance word, its plain meaning, how pros say it and an everyday example, in violet; turning it over shows the word in the Topic's story. A Topic's terms carry the making of one each.
+_Avoid_: Vocabulary card, flashcard, glossary card
 
 **Rate-move Widget**:
 The one Widget for a rate change, drawn from the rate_move recipe with its own part, RateMove: an arrow on a number line from an old rate to a new one, with three worked lines code writes in words (points, basis points, percent of the old rate). In show mode the lines are on screen and sliders stay for play; in practice mode the lines stay hidden until the Learner picks the right reading of the move (three buttons: the right reading, the times-10 slip and the percent mix-up) and code marks the tap, then the lines follow, with sliders for play. Nothing is typed.
@@ -236,7 +248,7 @@ A Learner's work on a Widget in a Session: the numbers on its sliders and the Gu
 _Avoid_: Widget data, saved Widget
 
 **Archetype**:
-The kind of idea a Widget teaches, named from the parts it uses: Grow, Compare, Convert, Chain, Predict, History, Rank, Check or Formula. Recipes carry one, and code works out a written Widget's with archetypeOf. The same kind may repeat: a Topic's running example keeps its one Widget.
+The kind of idea a Widget teaches, named from the parts it uses: Grow, Compare, Convert, Chain, Predict, History, Rank, Check, Formula, Story or Lingo. Recipes carry one, and code works out a written Widget's with archetypeOf. The same kind may repeat: a Topic's running example keeps its one Widget.
 _Avoid_: Widget type, layout
 
 **Widget notes**:

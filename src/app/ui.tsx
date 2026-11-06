@@ -44,10 +44,10 @@ export type { ButtonProps, ChipState } from "./primitives";
 
 export { NavLink };
 
-/** Bordered section (spec §5.1): 1px border, radius 8, padding 16. className adds layout. */
+/** Bordered section (spec §5.1): 1px border, radius 8, padding 12. className adds layout. */
 export function Card({ children, className = "", ...props }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLElement>) {
   return (
-    <section className={`rounded-lg border border-[var(--border)] p-4 ${className}`} {...props}>
+    <section className={`rounded-lg border border-[var(--border)] p-3 ${className}`} {...props}>
       {children}
     </section>
   );
@@ -144,7 +144,7 @@ function BrandMark() {
  */
 export function AppHeader({ current, theme, className = "" }: { current?: HeaderPage; theme: ThemePref; className?: string }) {
   return (
-    <header className={`flex items-center justify-between gap-2 lg:gap-4 ${className}`}>
+    <header className={`flex h-[var(--header-h)] shrink-0 items-center justify-between gap-2 border-b border-[var(--hairline)] lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
         <Link href="/" title="Home" data-affordance="nav" className="chip gap-1.5 px-3 text-base font-semibold">
           <BrandMark />
@@ -167,15 +167,15 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
 }
 
 /**
- * Page shell for the reading pages (Course Map, Progress, Past Sessions, Notes, Settings, Passage): the header and the
+ * Page shell for the reading pages (Course Map, Notebook, Settings, Passage): the header and the
  * content share the workspace's one box (the page's gutters, up to --page-max), so the title and nav stay put between
  * pages and the content uses the whole window. Running paragraphs inside cards cap themselves with `measure`.
  */
 export function ReadingPage({ current, theme, children }: { current?: HeaderPage; theme: ThemePref; children: ReactNode }) {
   return (
     <main className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] pb-12 pt-3">
-      <AppHeader current={current} theme={theme} className="mb-6" />
-      <div data-testid="reading-column" className="w-full">
+      <AppHeader current={current} theme={theme} />
+      <div data-testid="reading-column" className="w-full pt-3">
         {children}
       </div>
     </main>
