@@ -951,14 +951,14 @@ checks:
     quickTries:
       - id: cp-try-pace-half
         skill: steady-pace
-        ask: "An index grew about 25% a year over 10 years. Its last 2 years took it from 300 to 900. Next to the long-run rate, the last 2 years grew:"
+        ask: "An index grew about 3 times over its first 10 years. Then it more than tripled in just the next 2 years. Next to that long-run pace, those 2 years grew:"
         kind: choice
         answer: a
         choices:
           - { id: a, text: "Far faster than the long-run rate" }
-          - { id: b, text: "About the same as the long-run rate", mistake: { tag: averaged_gain, fix: "Tripling in 2 years is a far faster pace than 25% a year." } }
-          - { id: c, text: "More slowly than the long-run rate", mistake: { tag: too_small, fix: "Tripling in only 2 years is much quicker than the long-run pace." } }
-        halfDone: "First step, done for you: in those 2 years the index grew 3 times, so each year grew by a lot more than a quarter."
+          - { id: b, text: "About the same as the long-run rate", mistake: { tag: averaged_gain, fix: "A bigger multiple in fewer years is a faster pace: more than tripling in 2 years beats tripling in 10." } }
+          - { id: c, text: "More slowly than the long-run rate", mistake: { tag: too_small, fix: "It more than tripled in 2 years, after taking 10 years to triple. That is much quicker." } }
+        halfDone: "First step, done for you: the last 2 years grew at least as much as the first 10, in far less time."
       - id: cp-try-pace-truth
         skill: steady-pace
         ask: "An index grew about 25% a year over 10 years, but 73% a year in its last 2. True or false: its pace was steady."
@@ -968,14 +968,14 @@ checks:
           - { answer: true, fix: "The last stretch grew far faster than the long-run rate, so the pace was uneven." }
       - id: cp-try-pace-stretch
         skill: steady-pace
-        ask: "A share went from ₹400 to ₹800 in 4 years, then to ₹1,800 in the next 2 years. Which stretch grew faster each year?"
+        ask: "A share doubled in its first 4 years, then more than doubled again in just the next 2 years. Which stretch grew faster each year?"
         kind: choice
         answer: a
         choices:
           - { id: a, text: "The last 2 years" }
-          - { id: b, text: "The first 4 years", mistake: { tag: averaged_gain, fix: "The first stretch doubled in 4 years. The last stretch grew 2.25 times in only 2 years, which is faster." } }
+          - { id: b, text: "The first 4 years", mistake: { tag: averaged_gain, fix: "The first stretch doubled in 4 years. The last stretch more than doubled in only 2 years, which is faster." } }
           - { id: c, text: "Both grew at the same speed", mistake: { tag: mixed_up_terms, fix: "The last stretch grew a bigger multiple in half the time." } }
-        halfDone: "First step, done for you: ₹1,800 over ₹800 is 2.25 times, in half as many years as the first stretch."
+        halfDone: "First step, done for you: the last stretch grew a bigger multiple than the first, in half as many years."
       - id: cp-try-pace-long-run
         skill: steady-pace
         ask: "True or false: a 10-year CAGR of 12% means every one of those years grew 12%."
