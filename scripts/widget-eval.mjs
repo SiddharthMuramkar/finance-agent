@@ -18,6 +18,12 @@
 //             in (each marked modelScored: true) and the summary means are computed from it. With no --only and no
 //             --scores, the run reuses nothing: scores stay null.
 //   --name    base name of the two files written into the folder (default "eval-report"): <name>.json and <name>.md
+//   --set     "delight" runs the 20-prompt Delight eval of spec Appendix D (src/behaviour/delight/prompts.json) in place of
+//             the built-in set: each prompt opens its own Topic at its own Teaching Step, and the report is the G2 bars
+//             (delight-report.json and .md by default). npm run delight:eval wraps this.
+//   --judge   with --set delight: runs the four Appendix D.2 judges (scripts/delight-judge.mjs, Opus) over each prompt.
+//             This is PAID (about 22 Tutor turns plus 80 judge calls) and capped by DELIGHT_BUDGET_USD (default 13).
+//             It needs ANTHROPIC_API_KEY in the environment; it is never run in CI.
 //   --rescore re-reads <folder>/<name>.json, merges --scores and rewrites both files without running anything
 //
 // Environment (the orchestrator sets these):
@@ -35,6 +41,7 @@
 // "Expected archetype" column onto those names (Grow, Compare, History, Formula, Predict, Check, Rank, Chain, Convert).
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { assertLocalBase, assertTestDatabase, assertToolsLearner, textOf } from "./script-guards.mjs";
 
@@ -43,21 +50,34 @@ const flag = (name) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const out = args[0];
-if (!out || out.startsWith("--")) {
-  console.error("Usage: node --env-file=.env scripts/widget-eval.mjs <output-folder> [--only 3,11,19] [--scores scores.json] [--name eval-report] [--rescore]");
-  process.exit(2);
-}
 const only = flag("--only") ? new Set(flag("--only").split(",").map((n) => Number(n.trim()))) : null;
 const scoresFile = flag("--scores");
-const reportName = flag("--name") ?? "eval-report";
 const rescore = args.includes("--rescore");
+const setName = flag("--set");
+const judge = args.includes("--judge");
+if (setName !== undefined && setName !== "delight") {
+  console.error(`Unknown --set "${setName}": the only named set is "delight".`);
+  process.exit(2);
+}
+if (judge && setName !== "delight") {
+  console.error("--judge belongs to --set delight.");
+  process.exit(2);
+}
+const DELIGHT = setName === "delight";
+const reportName = flag("--name") ?? (DELIGHT ? "delight-report" : "eval-report");
+// The output folder is the first argument; the Delight set may leave it out (DELIGHT_OUT, or a fresh folder in the temp directory).
+const out = args[0] && !args[0].startsWith("--") ? args[0] : DELIGHT ? (process.env.DELIGHT_OUT ?? join(tmpdir(), `delight-eval-${new Date().toISOString().replace(/[:.]/g, "-")}`)) : undefined;
+if (!out) {
+  console.error("Usage: node --env-file=.env scripts/widget-eval.mjs <output-folder> [--only 3,11,19] [--scores scores.json] [--name eval-report] [--rescore]\n       node --env-file=.env scripts/widget-eval.mjs --set delight [--judge] [--only 1,5]   (npm run delight:eval)");
+  process.exit(2);
+}
+if (DELIGHT) console.log(`Delight eval output: ${out}`);
 mkdirSync(out, { recursive: true });
 
 // ---------- the eval set (REPORT.md §13.3) ----------
 
 /** @type {{ n: number, slug: string, prompt: string, expected: string, expectedSet: string[] }[]} */
-const PROMPTS = [
+const BUILTIN_PROMPTS = [
   [1, "time-value", "why is 100 rupees today worth more than 100 rupees next year? show me", "Grow (TimeTravel) or Duel", ["Grow", "Compare"]],
   [2, "cash-vs-annuity", "at what interest rate does the cash option beat the annuity? let me find it", "Duel + Breakeven", ["Compare"]],
   [3, "sip", "if i put 1000 rupees every month in a SIP, how much after 20 years", "Grow (MoneyStack)", ["Grow"]],
@@ -79,6 +99,12 @@ const PROMPTS = [
   [19, "net-worth", "what's the formula for net worth", "Formula + Stat", ["Formula", "Grow"]],
   [20, "rupee-fall", "if the rupee falls from 83 to 90 per dollar, what happens to my US trip budget", "Pictogram (note-usd) or Versus", ["Convert", "Compare"]],
 ].map(([n, slug, prompt, expected, expectedSet]) => ({ n, slug, prompt, expected, expectedSet }));
+
+/** The Delight set (spec Appendix D.1): the same row shape, plus the Topic and Teaching Step each prompt opens at. */
+const DELIGHT_PROMPTS = JSON.parse(readFileSync(new URL("../src/behaviour/delight/prompts.json", import.meta.url), "utf8")).map((p, i) => ({
+  n: i + 1, slug: p.id.toLowerCase(), id: p.id, prompt: p.message, topic: p.topic, step: p.step, expected: "a Widget with every reply", expectedSet: [],
+}));
+const PROMPTS = DELIGHT ? DELIGHT_PROMPTS : BUILTIN_PROMPTS;
 
 // ---------- numbers and summaries ----------
 
@@ -439,8 +465,51 @@ async function overflowAt480(page) {
   });
 }
 
+/**
+ * Delight set: puts the tools Learner (and only it) in the prompt's Topic at the prompt's Teaching Step, before the Study
+ * Workspace opens: the Topic is its chosen one, in progress, standing at that step with the reveal shown from the reveal on.
+ */
+async function openAtStep(pool, learnerId, p) {
+  await assertToolsLearner(pool, learnerId);
+  const revealShown = p.step === "reveal" || p.step === "principle";
+  await pool.query(
+    `insert into topic_progress (topic_id, learner_id, step, reveal_shown, status) values ($1, $2, $3, $4, 'in_progress')
+     on conflict (learner_id, topic_id) do update set step = excluded.step, reveal_shown = excluded.reveal_shown, status = 'in_progress', updated_at = now()`,
+    [p.topic, learnerId, p.step, revealShown],
+  );
+  await pool.query(
+    `insert into learner_state (id, learner_id, current_topic_id) values ($2, $2, $1)
+     on conflict (id) do update set current_topic_id = excluded.current_topic_id, updated_at = now()`,
+    [p.topic, learnerId],
+  );
+}
+
+/**
+ * Delight set: what one prompt's judges and bars read. The reply is the Tutor's text after the prompt; the Choices are the
+ * latest reply_choices item (spec E4a); widget_source is reply_checks.widget_source for the turn, and when that column is
+ * not there yet (a branch before E4a's migration) it falls back to the lane, marked so the report can say so.
+ */
+async function readDelight(pool, sessionId, promptSeq, lane) {
+  if (!sessionId) return { reply: "", choices: null, choicesCount: null, widgetSource: null, widgetSourceFrom: "none" };
+  const messages = (await pool.query(`select role, content from messages where session_id = $1 and seq > $2 order by seq`, [sessionId, promptSeq])).rows;
+  const reply = messages.filter((m) => m.role === "assistant").map((m) => textOf(m).trim()).filter(Boolean).join("\n\n");
+  const item = (await pool.query(`select data from session_items where session_id = $1 and kind = 'reply_choices' and after_seq >= $2 order by id desc limit 1`, [sessionId, promptSeq])).rows[0];
+  const choices = Array.isArray(item?.data?.choices) ? item.data.choices : null;
+  let widgetSource = null;
+  let widgetSourceFrom = "reply_checks";
+  try {
+    const r = (await pool.query(`select widget_source from reply_checks where session_id = $1 and turn_seq > $2 order by turn_seq limit 1`, [sessionId, promptSeq])).rows[0];
+    widgetSource = r ? (r.widget_source ?? null) : null;
+    if (!r) widgetSourceFrom = "no reply_checks row";
+  } catch {
+    widgetSource = lane === "none" ? "none" : lane;
+    widgetSourceFrom = "lane (reply_checks.widget_source is not in this database)";
+  }
+  return { reply, choices, choicesCount: choices ? choices.length : null, widgetSource, widgetSourceFrom };
+}
+
 /** Starts the tools Learner over, signs in by the page and starts the first Topic; resolves when the opening turn is done. */
-async function reachStudy(browser) {
+async function reachStudy(browser, pool, p) {
   const { learnerId } = await signInAsToolsLearner(BASE);
   const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
   const page = await context.newPage();
@@ -449,10 +518,15 @@ async function reachStudy(browser) {
   await page.getByRole("button", { name: "Enter", exact: true }).click();
   await page.waitForURL(/\/welcome/, { timeout: 30_000 });
   await page.getByRole("link", { name: "Skip", exact: true }).click();
-  const start = page.getByRole("button", { name: "Start this Topic", exact: true });
-  await start.waitFor({ timeout: 15_000 });
-  await start.click();
-  await page.waitForURL(/\/study/, { timeout: 30_000 });
+  if (DELIGHT) {
+    await openAtStep(pool, learnerId, p);
+    await page.goto(`${BASE}/study`, { waitUntil: "networkidle" });
+  } else {
+    const start = page.getByRole("button", { name: "Start this Topic", exact: true });
+    await start.waitFor({ timeout: 15_000 });
+    await start.click();
+    await page.waitForURL(/\/study/, { timeout: 30_000 });
+  }
   // The opening turn: a Tutor message appears, then the Stop button goes away and Send comes back.
   await page.locator('[data-testid="assistant-message"]').first().waitFor({ timeout: 120_000 });
   await page.getByRole("button", { name: "Send", exact: true }).waitFor({ timeout: TURN_TIMEOUT_MS });
@@ -462,12 +536,12 @@ async function reachStudy(browser) {
 
 async function evalPrompt(browser, pool, p) {
   const row = {
-    n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet,
+    n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}),
     lane: "none", recipe: null, params: null, title: null, archetype: null, code: null,
     firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stuckMs: 0, stopped: null, error: null,
     toolsUsed: [], checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null,
   };
-  const { context, page, learnerId } = await reachStudy(browser);
+  const { context, page, learnerId } = await reachStudy(browser, pool, p);
   try {
     await assertToolsLearner(pool, learnerId);
     const promptSeq = await maxSeq(pool, learnerId);
@@ -498,6 +572,10 @@ async function evalPrompt(browser, pool, p) {
     const { archetype, checks } = codeChecks(lane.lane, lane.code, lane.title, p.expectedSet);
     row.archetype = archetype;
     row.checks = checks;
+    if (DELIGHT) {
+      Object.assign(row, { id: p.id, topic: p.topic, step: p.step });
+      row.delight = await readDelight(pool, lane.sessionId, promptSeq, lane.lane);
+    }
 
     if (page.locator('[data-testid="widget-card"]').first && (await page.locator('[data-testid="widget-card"]').count())) {
       const file = join(out, `${pad(p.n)}-${p.slug}.png`);
@@ -519,6 +597,58 @@ async function evalPrompt(browser, pool, p) {
 
 const round = (x) => (typeof x === "number" ? Math.round(x) : null);
 
+/** Delight set: judges (with --judge), the Appendix D.3 bars, and the two report files. */
+async function finishDelight(rows) {
+  const { caseOf, computeBars, alsoReported, delightBudget, Spend } = await import("../src/behaviour/delight/judges.ts");
+  const { readOutlineText } = await import("../src/course/map.ts");
+  const spend = new Spend(delightBudget(process.env));
+  const problems = [];
+  if (judge) {
+    const { judgePrompt, realClient } = await import("./delight-judge.mjs");
+    const client = await realClient();
+    const calls = { count: 0 };
+    const outline = readOutlineText();
+    for (const row of rows) {
+      if (!row.delight) continue;
+      const { title, caseText } = caseOf(outline, row.topic);
+      const evidence = { prompt: { id: row.id, topic: row.topic, step: row.step, message: row.prompt }, topicTitle: title, reply: row.delight.reply, choices: row.delight.choices, widgetCode: row.code, widgetSource: row.delight.widgetSource, caseText };
+      try {
+        const r = await judgePrompt({ client, spend, evidence, screenshot: row.screenshot, calls });
+        row.judgements = r.judgements;
+        for (const e of r.errors) problems.push(`${row.id} ${e}`);
+        if (r.skipped.length) problems.push(`${row.id}: not judged by ${r.skipped.join(", ")} (the $${spend.cap} cap)`);
+      } catch (e) {
+        problems.push(`${row.id}: judging failed: ${String(e?.message ?? e).split("\n")[0]}`);
+      }
+      console.log(`${row.id} judged; spent $${spend.spent.toFixed(2)} of $${spend.cap}`);
+    }
+  }
+  const results = rows.map((r) => ({ id: r.id, widgetSource: r.delight?.widgetSource ?? null, choicesCount: r.delight?.choicesCount ?? null, persona: r.judgements?.persona, math: r.judgements?.math, fit: r.judgements?.fit, historian: r.judgements?.historian }));
+  const total = rows.length;
+  const bars = computeBars(results, total);
+  const also = alsoReported(results);
+  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: Math.round(spend.spent * 100) / 100, capUsd: spend.cap, bars, alsoReported: also, problems, prompts: rows };
+  writeFileSync(join(out, `${reportName}.json`), JSON.stringify(report, null, 2));
+  const md = [`# Delight eval: ${total} prompt${total === 1 ? "" : "s"}`, "", `Run ${report.ranAt} against ${BASE}. ${judge ? `Judged by Opus. Spend $${report.spendUsd.toFixed(2)} of the $${spend.cap} cap.` : "Not judged (no --judge): the judged bars read \"not judged\"."}`, ""];
+  md.push("## Bars (spec Appendix D.3)", "", "| Bar | Target | Actual | Result |", "|---|---|---|---|");
+  for (const b of bars) md.push(`| ${b.name} | ${b.target} | ${b.actual} | ${b.pass == null ? "n/a" : b.pass ? "pass" : "FAIL"} |`);
+  md.push("", "## Also reported", "");
+  for (const a of also) md.push(`- ${a.name}: ${a.ids.length ? a.ids.join(", ") : "none"} (${a.note})`);
+  md.push("", "## Prompts", "", "| Id | Topic / step | Message | Widget source | Choices | Fun | Lingo | Exam | Sums | Fit kind | Screenshot |", "|---|---|---|---|---|---|---|---|---|---|---|");
+  for (const r of rows) {
+    const j = r.judgements ?? {};
+    md.push(`| ${r.id} | ${r.topic} / ${r.step} | ${r.prompt} | ${r.delight?.widgetSource ?? "-"} | ${r.delight?.choicesCount ?? "-"} | ${j.persona?.fun ?? "-"} | ${j.persona?.lingo.score ?? "-"} | ${j.persona ? (j.persona.exam ? "yes" : "no") : "-"} | ${j.math?.count ?? "-"} | ${j.fit?.kind ?? "-"} | ${r.screenshot ?? "-"} |`);
+  }
+  const notes = rows.filter((r) => r.error || r.delight?.widgetSourceFrom !== "reply_checks");
+  if (notes.length || problems.length) {
+    md.push("", "## Notes", "");
+    for (const r of notes) md.push(`- **${r.id}**: ${[r.error && `error: ${r.error}`, r.delight && r.delight.widgetSourceFrom !== "reply_checks" && `widget source from ${r.delight.widgetSourceFrom}`].filter(Boolean).join("; ")}`);
+    for (const p of problems) md.push(`- ${p}`);
+  }
+  writeFileSync(join(out, `${reportName}.md`), md.join("\n") + "\n");
+  console.log(`Wrote ${join(out, reportName)}.json and .md. Bars passed: ${bars.filter((b) => b.pass === true).length} of ${bars.length}. Spend $${report.spendUsd.toFixed(2)}.`);
+}
+
 const pool = new Pool({ connectionString: DATABASE_URL });
 const browser = await chromium.launch();
 const rows = [];
@@ -534,7 +664,7 @@ try {
       try {
         row = await evalPrompt(browser, pool, p);
       } catch (e2) {
-        row = { n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, lane: "none", archetype: null, firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stopped: null, error: `run failed: ${String(e2?.message ?? e2).split("\n")[0]}`, checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null, toolsUsed: [] };
+        row = { n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}), lane: "none", archetype: null, firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stopped: null, error: `run failed: ${String(e2?.message ?? e2).split("\n")[0]}`, checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null, toolsUsed: [] };
       }
     }
     rows.push(row);
@@ -543,6 +673,10 @@ try {
 } finally {
   await browser.close();
   await pool.end();
+}
+if (DELIGHT) {
+  await finishDelight(rows);
+  process.exit(0);
 }
 if (scoresFile) mergeScores(rows, readJson(scoresFile));
 const report = writeReport(rows, { ranAt: new Date().toISOString(), base: BASE, viewport: VIEWPORT, only: only ? [...only] : null });
