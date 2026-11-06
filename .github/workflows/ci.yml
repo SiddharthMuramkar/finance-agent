@@ -46,9 +46,18 @@ jobs:
 
   # The browser test bed (spec 2026-11-05, T-00): the whole app in Chromium on an in-memory PGlite with a scripted
   # Tutor. Not a required check until the owner adds it to the ruleset after three green runs on main (H1).
-  ui:
+  # One run took 10-12 min (#458), so it is split into 4 shards on 4 runners. Each shard starts its own test server
+  # and PGlite and still runs its tests one at a time (workers: 1). Playwright splits by test file per project, in
+  # config order, so shard 1 gets most of mbp14 (the project with the fewest skipped tests); measured from run
+  # 42193713458 the shards hold about 220, 146, 99 and 135 s of tests.
+  ui-shard:
+    name: ui shard ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -58,12 +67,27 @@ jobs:
       - run: npm ci
       # No browser cache: Playwright's own guidance is that restoring it takes about as long as downloading.
       - run: npx playwright install --with-deps chromium
-      - run: npm run ui:test
+      - run: npm run ui:test -- --shard=${{ matrix.shard }}/4
       - uses: actions/upload-artifact@v5
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-shard-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
           retention-days: 14
+
+  # The one check named "ui" (the orchestrator, the docs and later the ruleset use this name). Green only when every
+  # shard passed; it runs even when a shard failed or was cancelled, so a red shard turns it red instead of skipping it.
+  ui:
+    needs: ui-shard
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every shard passed
+        env:
+          SHARDS: ${{ needs.ui-shard.result }}
+        run: |
+          echo "ui shards: $SHARDS"
+          test "$SHARDS" = success
