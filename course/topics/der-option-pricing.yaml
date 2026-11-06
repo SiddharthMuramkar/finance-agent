@@ -64,17 +64,17 @@ youllLearn:
 questions:
   - id: ox-q-binomial-value
     prompt: >
-      A client asks Lucia to sell her a call option at a fair price. Lucia skips guessing the odds. Instead she builds the very same payoff from shares and a loan. What should she charge for the call?
+      A client asks Lucia to price a call option fairly. She skips guessing whether the share will rise and copies the call's payoff with shares and a loan: replication. What should she charge?
     choices:
-      - { id: a, text: "Its best-case payoff", mistake: { tag: ignored_the_down_case, fix: "The best case may not happen, so the value today is lower than that." } }
-      - { id: b, text: "Its payoff at the trader's own odds", mistake: { tag: used_own_odds, fix: "Pricing uses the cost of copying the payoff, not a guess at the odds." } }
-      - { id: c, text: "Nothing, because the share might fall", mistake: { tag: might_pay_nothing, fix: "The call pays off if the share rises, so it has value today even though it may pay nothing." } }
-      - { id: d, text: "What the shares-and-loan copy costs" }
+      - { id: a, text: "What the call would pay if the share does its best", mistake: { tag: ignored_the_down_case, fix: "The best case may not happen, so the value today is lower than that." } }
+      - { id: b, text: "The payoff weighted by her own guess at the odds", mistake: { tag: used_own_odds, fix: "Pricing uses the cost of copying the payoff, not a guess at the odds." } }
+      - { id: c, text: "Nothing, since the share might fall and leave it worthless", mistake: { tag: might_pay_nothing, fix: "The call pays off if the share rises, so it has value today even though it may pay nothing." } }
+      - { id: d, text: "Whatever it costs her today to build the copy" }
     answer: d
     explanation: >
-      Two things with the same payoff must cost the same, or traders could profit risk-free. For a $100 share that goes to $120 or $80, a $100 call is copied by half a share less $38.10 of borrowing, so it is worth $11.90.
+      Two things with the same payoff must cost the same, or traders could profit risk-free. So the call is worth what its shares-and-loan copy costs today, with no guess at the odds needed.
     source: >
-      Cox, Ross and Rubinstein, "Option pricing: a simplified approach", Journal of Financial Economics 7 (1979), 229-263: https://doi.org/10.1016/0304-405X(79)90015-1 ; figures calculated and cross-checked by replication (0.5 shares less $38.10 of borrowing = $11.90)
+      Cox, Ross and Rubinstein, "Option pricing: a simplified approach", Journal of Financial Economics 7 (1979), 229-263: https://doi.org/10.1016/0304-405X(79)90015-1
 
   - id: ox-q-delta-shares
     prompt: >
@@ -92,17 +92,17 @@ questions:
 
   - id: ox-q-hedge-count
     prompt: >
-      Omar owns a block of shares and sells calls on the same company to cushion a fall. His screen shows the calls' delta at 0.6. A colleague says one call per share will do. What does Omar really need, compared with his shares?
+      Omar owns shares and sells calls on them to cushion a fall. Each call moves about 60 cents per dollar the share moves: traders call that its delta. Will one call per share do?
     choices:
-      - { id: a, text: "Fewer calls than shares, because a delta below one means each call covers more than a share", mistake: { tag: calls_stronger_than_shares, fix: "A delta below one means each call moves less than the share, so one call covers less than one share." } }
-      - { id: b, text: "One call per share, because each call is written on one share", mistake: { tag: one_for_one, fix: "One-for-one works only if a call moves dollar for dollar, a delta of one. Here it does not." } }
-      - { id: c, text: "More calls than shares, because a delta below one means each call covers only part of a share" }
-      - { id: d, text: "Fewer calls than shares, because selling calls already caps his upside", mistake: { tag: shares_self_hedge, fix: "Capping the upside is not the hedge. The count depends on how far each call moves against the share: its delta." } }
-    answer: c
+      - { id: a, text: "No: each call covers just part of a share, so he needs more" }
+      - { id: b, text: "Yes: each call is written on exactly one share", mistake: { tag: one_for_one, fix: "A call written on one share still moves less than it. Count how far it moves, not the label." } }
+      - { id: c, text: "No: selling calls already caps his gains, so fewer will do", mistake: { tag: shares_self_hedge, fix: "Capping gains is not the hedge. The count depends on how far each call moves: its delta." } }
+      - { id: d, text: "Yes: delta matters to the call's buyer, not its seller", mistake: { tag: delta_buyer_only, fix: "Delta matters to anyone hedging. The seller uses it to count how many calls cover a share." } }
+    answer: a
     explanation: >
-      Each sold call offsets only part of a share's move, so it takes more calls than shares to cancel the risk. If a call moves 60 cents per dollar, 1,000 shares need about 1,667 calls. The count has to be adjusted as the share price and time change.
+      A call that moves 60 cents for each dollar the share moves offsets only part of a share's swing. So it takes more calls than shares to cancel the risk, and Omar must keep adjusting as delta changes.
     source: >
-      Nobel Prize press release, Economic Sciences 1997, the hedged option-share portfolio: https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/ ; number of calls calculated
+      Nobel Prize press release, Economic Sciences 1997, the hedged option-share portfolio: https://www.nobelprize.org/prizes/economic-sciences/1997/press-release/
 
   - id: ox-q-vol-rises
     prompt: >
