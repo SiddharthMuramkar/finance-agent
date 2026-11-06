@@ -1,10 +1,14 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Learner, signInAs } from "@/auth/learners";
-import { learners, noteItems, reviewCards, sessions } from "@/db/schema";
+import { learners, noteItems, reviewCards, sessionItems, sessions } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { loadProgress } from "@/learner/memory";
 import { testDb } from "@/test/pglite";
+import { loadCourseMap } from "@/course/map";
+import { liveSession, shownInWorkspace } from "@/tutor/session-log";
+import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
+import { WIDGET_SHOWN } from "@/widgets/shown-widget";
 
 // The request's database and signed-in Learner; only those are swapped in. The route itself is real.
 const as = vi.hoisted(() => ({ db: undefined as unknown as Db, learner: null as Learner | null }));
@@ -94,5 +98,52 @@ describe("the fixture route", () => {
     expect(topics.filter(([, t]) => t.status === "in_progress")).toHaveLength(1);
     expect(await as.db.select().from(noteItems).where(eq(noteItems.learnerId, restart.learnerId))).toHaveLength(2);
     expect(await as.db.select().from(reviewCards).where(eq(reviewCards.learnerId, restart.learnerId))).not.toHaveLength(0);
+  });
+
+  // The seeded states the F1 preview matrix shoots, built as the real app builds them (#479, #481).
+  describe("the matrix states", () => {
+    const seed = async (state: string) => {
+      vi.stubEnv("E2E", "1");
+      vi.stubEnv("SESSION_SECRET", "e2e-secret-e2e-secret-e2e-secret!!");
+      globalThis.__faE2eIsPglite = true;
+      const res = await post({ state });
+      expect({ state, status: res.status }).toEqual({ state, status: 200 });
+      const { learnerId } = (await res.json()) as { learnerId: number };
+      const session = await liveSession(as.db, learnerId, "num-percent-bps");
+      const items = session ? await as.db.select().from(sessionItems).where(eq(sessionItems.sessionId, session.id)).orderBy(sessionItems.afterSeq, sessionItems.id) : [];
+      return { learnerId, session, items };
+    };
+
+    // #479: a real pass (src/tutor/check-results.ts) stores the Topic complete card and keeps the passed Topic's Session
+    // on screen; the fixture does the same, so /study shows Percent's own Session ending in its card.
+    it("topic-complete shows the passed Topic's Session, ending in its Topic complete card", async () => {
+      const { learnerId, session, items } = await seed("topic-complete");
+      expect(session).toBeDefined();
+      expect(await shownInWorkspace(as.db, loadCourseMap(), learnerId)).toEqual({ sessionId: session!.id });
+      expect(items.at(-1)?.kind).toBe(TOPIC_COMPLETE);
+    });
+
+    // #481, spec §8.3: "reply with Story scene, Lingo card, Choices, Course Map, Notebook, a wrong-choice mix-up fix".
+    const widgets = (items: { kind: string; data: Record<string, unknown> }[]) => items.filter((i) => i.kind === WIDGET_SHOWN).map((i) => i.data);
+
+    it("story-scene: a Story reply with the step's written-ahead scene", async () => {
+      const { learnerId, items } = await seed("story-scene");
+      expect((await loadProgress(as.db, learnerId)).topics["num-percent-bps"]?.step).toBe("story");
+      expect(widgets(items).map((w) => [w.recipe, w.companion, w.companionKey])).toEqual([["story_scene", "scene", "fed-opening"]]);
+    });
+
+    it("lingo: a Concept reply with the Lingo card for percent change last", async () => {
+      const { learnerId, items } = await seed("lingo");
+      expect((await loadProgress(as.db, learnerId)).topics["num-percent-bps"]?.step).toBe("concept");
+      const last = widgets(items).at(-1);
+      expect([last?.recipe, last?.companion, last?.title]).toEqual(["lingo_card", "lingo", "Lingo: percent change"]);
+    });
+
+    it("mix-up: Your turn with a wrong Quick try choice marked, showing its mix-up fix", async () => {
+      const { learnerId, items } = await seed("mix-up");
+      expect((await loadProgress(as.db, learnerId)).topics["num-percent-bps"]?.step).toBe("your_turn");
+      const result = items.find((i) => i.kind === "quick_try_result")?.data;
+      expect(result).toEqual(expect.objectContaining({ verdict: "known_mistake", line: "That is basis points. Points are the new rate minus the old rate." }));
+    });
   });
 });
