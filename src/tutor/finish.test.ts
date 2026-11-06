@@ -1,5 +1,5 @@
 import { APIError } from "@anthropic-ai/sdk";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { CourseMap } from "@/course/map";
 import { messages, OWNER_LEARNER_ID, turns } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -14,6 +14,10 @@ import { stepContext } from "./context";
 import { navigate } from "@/course/navigator";
 import { loadProgress, ensureTopicStarted, saveFinishedStep } from "@/learner/memory";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * Seam 1, Tutor Turn: no "Continue" anywhere. A cut-off reply offers Finish this reply, which runs a Tutor turn

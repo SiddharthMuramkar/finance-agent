@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { saveFinishedStep } from "@/learner/memory";
@@ -11,6 +11,10 @@ import { CONCEPT_CARD, QUICK_TRY, STEP_DIVIDER, type QuickTryData } from "./sess
 import { loadSessionItems } from "./session-items";
 import { NO_QUICK_TRY_FOLLOW_UP, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
 import { withoutChoices } from "@/test/choices";
+
+// The Companion Widget code adds to a reply with none (E4a) is off here: this file tests other behaviour, and
+// src/tutor/companion-turn.test.ts tests the companion.
+vi.mock("./companion", () => ({ pickCompanion: () => null }));
 
 /**
  * Seam 1, Tutor Turn, in a converted Topic (spec #229, ticket #243): code shows the Concept card, its Widget and the

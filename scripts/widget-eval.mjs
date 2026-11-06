@@ -322,7 +322,8 @@ async function prodEquivalent(pool, sessionId, row) {
   const timeline = steps.map((s) => ({ step: s.step, durationMs: s.duration_ms, tools: s.tools, endedAfterTurnStartMs: +new Date(s.created_at) - startedAt }));
   const out = { timeline, firstModelCallAfterTurnStartMs: timeline[0].endedAfterTurnStartMs - timeline[0].durationMs, modelMs, doneMs: modelMs + OVERHEAD_MS };
   if (row.lane === "none") return out;
-  const item = (await pool.query(`select created_at from session_items where session_id = $1 and kind = 'widget_shown' and created_at >= $2 order by id desc limit 1`, [sessionId, turn.started_at])).rows[0];
+  // The Tutor's Widget, not a Companion code stored after the reply (readLane).
+  const item = (await pool.query(`select created_at from session_items where session_id = $1 and kind = 'widget_shown' and coalesce(data->>'source', '') <> 'companion' and created_at >= $2 order by id desc limit 1`, [sessionId, turn.started_at])).rows[0];
   const at = steps.findIndex((s) => (s.tools ?? []).some((t) => /widget/.test(t)));
   if (!item || at < 0 || row.firstPixelMs == null) return out;
   const itemAt = +new Date(item.created_at) - startedAt;
@@ -511,7 +512,7 @@ async function evalPrompt(browser, pool, p, seen = { learnerId: null }) {
     Object.assign(row, { firstPixelApprox: approx || undefined, firstPixelMs: round(state.firstPixelMs ?? state.approxFirstPixelMs), interactiveMs: round(state.interactiveMs ?? state.approxInteractiveMs), doneMs: round(state.doneMs), stuckMs: round(state.stuckMs), stuck: state.stuckMs > 12_000, stopped: state.stopped });
 
     const lane = await readLane(pool, learnerId, promptSeq);
-    Object.assign(row, { lane: lane.lane, recipe: lane.recipe ?? null, params: lane.params ?? null, title: lane.title ?? null, code: lane.code ?? null, toolsUsed: lane.toolsUsed ?? [], widgetsShown: lane.widgetsShown ?? 0, sessionId: lane.sessionId ?? null });
+    Object.assign(row, { lane: lane.lane, recipe: lane.recipe ?? null, params: lane.params ?? null, title: lane.title ?? null, code: lane.code ?? null, toolsUsed: lane.toolsUsed ?? [], widgetsShown: lane.widgetsShown ?? 0, sessionId: lane.sessionId ?? null, companion: lane.companion ?? null });
     row.prodEq = await prodEquivalent(pool, lane.sessionId, row);
     if (lane.turn?.error && !row.error) row.error = lane.turn.error;
     if (lane.turn?.status && lane.turn.status !== "done" && lane.turn.status !== "finished") row.turnStatus = lane.turn.status;
@@ -559,7 +560,7 @@ async function finishDelight(rows, spend, problems) {
     for (const row of rows) {
       if (!row.delight) continue;
       const { title, caseText } = caseOf(outline, row.topic);
-      const evidence = { prompt: { id: row.id, topic: row.topic, step: row.step, message: row.prompt }, topicTitle: title, reply: row.delight.reply, choices: row.delight.choices, widgetCode: row.code, widgetSource: row.delight.widgetSource, caseText };
+      const evidence = { prompt: { id: row.id, topic: row.topic, step: row.step, message: row.prompt }, topicTitle: title, reply: row.delight.reply, choices: row.delight.choices, widgetCode: row.code ?? row.companion?.code ?? null, widgetSource: row.delight.widgetSource, caseText };
       try {
         const r = await judgePrompt({ client, spend, evidence, screenshot: row.screenshot });
         row.judgements = r.judgements;

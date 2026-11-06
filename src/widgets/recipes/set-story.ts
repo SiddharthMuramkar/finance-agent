@@ -203,7 +203,8 @@ export const timeline = defineRecipe({
       .object({
         beats: z
           .array(z.object({ date: isoDate, label: capped(8, 80), emoji: short(40) }).strict())
-          .min(2)
+          // One beat is the Companion Widget's Case card (E4a): the Case's date and title, nothing invented.
+          .min(1)
           .max(7),
         hideAfter: isoDate.optional(),
       })
@@ -421,11 +422,14 @@ export function parseHeadlineRef(raw: unknown): { ok: true; scene: string } | { 
 /** A Topic scene as far as the headline door needs it: its id, recipe, optional title and the inputs written ahead. */
 export type HeadlineSceneLike = { id: string; recipe: string; title?: string; inputs: Record<string, unknown> };
 
-/** Params for the headline recipe, from a Tutor scene reference and the Topic's scenes: the scene's own text, never the Tutor's. */
+/**
+ * Params for the headline recipe, from a Tutor scene reference and the Topic's scenes: the scene's own text, never the
+ * Tutor's. Also the scene's id, kept on the shown Widget so a Session shows each scene once (E4a's Companion rule 1).
+ */
 export function headlineParamsForScene(
   scenes: readonly HeadlineSceneLike[],
   raw: unknown,
-): { ok: true; params: { title: string; inputs: Record<string, unknown>; refs: Record<string, unknown>; facts: Record<string, unknown> } } | { ok: false; error: string } {
+): { ok: true; scene: string; params: { title: string; inputs: Record<string, unknown>; refs: Record<string, unknown>; facts: Record<string, unknown> } } | { ok: false; error: string } {
   const ref = parseHeadlineRef(raw);
   if (!ref.ok) return ref;
   const headlines = scenes.filter((s) => s.recipe === "headline");
@@ -437,6 +441,7 @@ export function headlineParamsForScene(
   const title = typeof given.title === "string" && given.title.trim() ? given.title : (scene.title ?? "From the front page");
   return {
     ok: true,
+    scene: scene.id,
     params: { title, inputs: scene.inputs, refs: isRecord(given.refs) ? given.refs : {}, facts: isRecord(given.facts) ? given.facts : {} },
   };
 }
