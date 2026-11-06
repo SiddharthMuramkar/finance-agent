@@ -217,7 +217,12 @@ _Avoid_: Certificate, completion screen
 
 **Widget**:
 An interactive picture beside the conversation, either written ahead for a Topic or drawn by code from a Widget recipe the Tutor chooses, and opened already set to the numbers being discussed: charts, tables, sliders and calculators whose numbers come from code, or a labelled Illustration. The Tutor never draws one of its own during the chat. A Widget in the Study Workspace belongs to one Topic's Session. With each message, chip and Next the Tutor is told what the open Widgets show (their slider values, ticked Guided Tasks and readouts worked out by code), and once all of a Widget's Guided Tasks are ticked the Learner can press Tell the Tutor what I found, which posts a message code writes (a widget report).
+One comes with every Tutor reply (ADR 0010): the Tutor's own, the step's, or a Companion Widget code adds.
 _Avoid_: artifact, card (on its own)
+
+**Companion Widget**:
+The Widget code adds to a Tutor reply that came with none (ADR 0010, `src/tutor/companion.ts`). Code takes the first that fits: the step's Story scene, a Lingo card for the first Topic term in the reply, the Running example's scene, and last, so every Topic has one, a timeline of the Case's date and title. It never shows an open quiz's Blocked numbers.
+_Avoid_: default Widget, filler Widget
 
 **Written-ahead Widget**:
 A Widget written in a Topic's file, such as present value's "What the annuity is worth today" (`annuity-worth-today`). The Tutor opens it by its id and never draws its own version; it is listed under You'll use on the Topic Start card.
