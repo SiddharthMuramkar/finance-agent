@@ -139,7 +139,6 @@ checks:
       - op-q-max-loss
       - op-q-protective-put
       - op-q-replicate-put
-      - bank:eab:MBA-FIN-VAL-0048
     perAttempt: 3
     passRule:
       correct: 2
