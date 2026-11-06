@@ -157,6 +157,14 @@ describe("Home, signed in", () => {
     expect(inHtml).toMatch(/<a[^>]*href="\/study"[^>]*>Study Workspace<\/a>/);
   });
 
+  // #469: Home's top bar is 52 px like AppHeader: a fixed --header-h, not padding around its content (57 px).
+  it("gives the top bar's inner box the app header's fixed height, with no vertical padding", () => {
+    const topBar = inHtml.slice(inHtml.indexOf("<header"), inHtml.indexOf("</header>"));
+    const inner = topBar.match(/<header[^>]*><div class="([^"]*)"/)![1].split(/\s+/);
+    expect(inner).toContain("h-[var(--header-h)]");
+    expect(inner.filter((c) => /^(sm:)?py-/.test(c))).toEqual([]);
+  });
+
   it("offers Sign out beside Study Workspace in the top bar, as a form posting to the sign-out route", () => {
     const topBar = inHtml.slice(inHtml.indexOf("<header"), inHtml.indexOf("</header>"));
     expect(topBar).toMatch(/href="\/study"[^>]*>Study Workspace<\/a><form[^>]*action="\/api\/logout"[^>]*method="post"[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);

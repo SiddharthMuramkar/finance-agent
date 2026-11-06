@@ -39,6 +39,28 @@ describe("RateMove, show mode", () => {
     expect(to).toBeGreaterThan(from);
   });
 
+  // #471: the Widget paints accents by meaning (spec accent meanings): mint for a rise (a gain), coral for a fall,
+  // sunflower for the Old rate (history), violet ink for the readout terms (lingo).
+  it("paints a rise mint, the Old rate in sun-ink and the readout labels in violet-ink", () => {
+    show(<RateMoveView oldRate={4} newRate={5} />);
+    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--mint)");
+    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--mint)");
+    expect(byId(page!, "rate-move-old")!.getAttribute("fill")).toBe("var(--sun-ink)");
+    expect(byId(page!, "rate-move-old-tick")!.getAttribute("stroke")).toBe("var(--sun-ink)");
+    const labels = allById(page!, "rate-move-readout").map((r) => r.firstElementChild!.getAttribute("class") ?? "");
+    expect(labels).toHaveLength(3);
+    for (const c of labels) {
+      expect(c).toContain("text-[var(--violet-ink)]");
+      expect(c).not.toContain("--muted");
+    }
+  });
+
+  it("paints a fall coral", () => {
+    show(<RateMoveView oldRate={5} newRate={4} />);
+    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--coral)");
+    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--coral)");
+  });
+
   it("shows the three worked lines at once: 1 point, 100 bp and 25%", () => {
     show(<RateMoveView oldRate={4} newRate={5} />);
     expect(allById(page!, "rate-move-readout").map((r) => r.textContent)).toEqual([
