@@ -128,7 +128,7 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
-  /** E4a: a Concept reply about percent change and its base, no Widget: code adds the Lingo card for "percent change". */
+  /** E4a: a Concept reply about percent change and its base, no Widget: once the step's scene was shown, code adds the Lingo card for "percent change". */
   "concept-percent-change": {
     step: "concept",
     replies: [
@@ -143,31 +143,77 @@ export const E2E_SCRIPTS = {
       },
     ],
   },
-  /** E4a: a Your turn reply that points at the open Quick try and names the base, no Widget. */
+  /** E4a: a Your turn reply about the open Quick try's idea (the reporter's plain gap, in percentage points), no Widget. */
   "your-turn-reply": {
     step: "your_turn",
     replies: [
       {
         content: [
           text(
-            "Before you tap, find the base: the rate the move started from. Everything in a percent change is measured against it.\n\n" +
+            "Think like the reporter in the story. She writes the plain gap between the old rate and the new one in percentage points. " +
+              "That gap is not a percent change, so you do not need the base here.\n\n" +
               "Have a go at the Quick try below.",
           ),
         ],
       },
     ],
   },
-  /** E4a: a Reveal reply that tells what the Fed did and how traders said it, no Widget. */
+  /** E4a: a Reveal reply about the size of the Fed's move (a quarter point), no Widget. */
   "reveal-reply": {
     step: "reveal",
     replies: [
       {
         content: [
           text(
-            "On 4 February 1994 the Fed tightened, and the federal funds rate went from about 3% to 3.25%. " +
-              "No number was announced. Traders still read the move in basis points straight away, and bond prices fell over the following weeks " +
-              "as borrowed money rushed out of long bonds. That spring became known as the great bond massacre.\n\n" +
+            "On 4 February 1994 the Fed moved by a quarter point. No number was announced, but traders read the federal funds rate going from about 3% to 3.25%. " +
+              "A quarter point looks small on paper. Bond prices still fell over the following weeks as borrowed money rushed out of long bonds, " +
+              "and that spring became known as the great bond massacre.\n\n" +
               "Why do you think such a small move shook the bond market so hard?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** E4a: a Story reply about the bond trader, who speaks in basis points, no Widget. */
+  "story-trader": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "The bond trader in this story speaks in basis points. A basis point is one hundredth of a percentage point, so he can name even a tiny move exactly. " +
+              "Tomorrow, whatever the Fed does, he will say it in basis points before anyone else.\n\n" +
+              "Why might a trader want such a small unit?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** E4a: a Story reply about what the Fed is deciding (a rate hike or not), no Widget. */
+  "story-hike": {
+    step: "story",
+    replies: [
+      {
+        content: [
+          text(
+            "The Fed is deciding whether to make a rate hike: to lift the rate it sets, so that borrowing costs more. " +
+              "Its rate has sat still for more than a year, and many traders have borrowed cheaply to hold long-term bonds. A hike would make that borrowing dearer.\n\n" +
+              "What do you think a hike would do to those traders?",
+          ),
+        ],
+      },
+    ],
+  },
+  /** E4a: a Concept reply about one move with two names (the trader's and the reporter's), no Widget. */
+  "concept-two-ways": {
+    step: "concept",
+    replies: [
+      {
+        content: [
+          text(
+            "It is one move with two names. The trader says it in basis points, because the unit is small and exact. " +
+              "The reporter says it in points, because readers find that easier. Neither is wrong: both describe the very same move.\n\n" +
+              "Which name would you use on the phone to a trader?",
           ),
         ],
       },

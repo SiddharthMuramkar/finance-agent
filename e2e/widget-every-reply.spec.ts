@@ -43,20 +43,22 @@ async function reply(page: Page, script: string, text: string): Promise<string[]
 const numbersIn = (text: string) => new Set((text.match(/\d+(?:\.\d+)?/g) ?? []).map((n) => String(Number(n))));
 
 test("Widget on 100 % of replies (scripted): 6 replies across story, concept, your turn and reveal give 6 Widgets, one per reply", async ({ page }) => {
-  const plan: { state?: State | "reveal"; script: string; text: string }[] = [
-    { state: "story", script: "story-reply", text: "Tell me the story." },
-    { script: "plain-reply", text: "What is a basis point?" },
-    { state: "concept-widget", script: "concept-percent-change", text: "What is a percent change?" },
-    { script: "plain-reply", text: "And a basis point again?" },
-    { state: "your-turn", script: "your-turn-reply", text: "How do I start?" },
-    { state: "reveal", script: "reveal-reply", text: "What did the Fed do?" },
+  // Each reply is about one idea, and the Widget code adds shows it (Widget fit, spec §8.9): the step's scene, else the
+  // Lingo card for the term the reply is about. Each Session's opener took the step's scene, unless code opened the step's card.
+  const plan: { state?: State | "reveal"; script: string; text: string; widget: string }[] = [
+    { state: "story", script: "story-trader", text: "Who is the bond trader?", widget: "Lingo: basis point" },
+    { script: "story-hike", text: "What is the Fed deciding?", widget: "Lingo: rate hike" },
+    { state: "concept-widget", script: "concept-two-ways", text: "Why do they say it differently?", widget: "One move, two ways to say it" },
+    { script: "concept-percent-change", text: "What is a percent change?", widget: "Lingo: percent change" },
+    { state: "your-turn", script: "your-turn-reply", text: "How do I start?", widget: "Lingo: percentage point" },
+    { state: "reveal", script: "reveal-reply", text: "What did the Fed do?", widget: "Lingo: quarter point" },
   ];
   const perReply: string[][] = [];
   for (const step of plan) {
     if (step.state) await study(page, step.state);
     perReply.push(await reply(page, step.script, step.text));
   }
-  expect(perReply.map((names) => names.length)).toEqual([1, 1, 1, 1, 1, 1]);
+  expect(perReply).toEqual(plan.map((step) => [step.widget]));
 });
 
 /** The panel's own counters ("3 of 3" in the pager, "1 of 3" under a story's beats) are not the Widget's numbers. */
