@@ -1,6 +1,6 @@
 # Code checks every Tutor reply before the Learner sees it
 
-Status: accepted, 2026-11-04 (spec #229, "Teach simply").
+Status: accepted, 2026-11-04 (spec #229, "Teach simply"). Amended by ADR 0009 (new check V8: no question or ask that has the Learner work out a sum) and ADR 0010 (V4: every reply shows exactly one Widget, code adding a companion when the Tutor opens none).
 
 The turn holds the Tutor's whole reply, across every loop step, until code has checked it. The checks are:
 
