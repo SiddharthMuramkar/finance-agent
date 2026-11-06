@@ -76,21 +76,21 @@ questions:
 
   - id: wc-q-capm
     prompt: >
-      Your friend Dev owns a stock that swings about one and a half times as much as the market (a beta of 1.5). How does the CAPM build the return he should expect?
+      March 2006: Dev is putting his bonus into one of two shares. One is steady; the other swings 1.5 times as much as the market. Why should the jumpy one promise more?
     choices:
-      - { id: a, text: "Start safe, then add the market premium scaled up by beta" }
+      - { id: a, text: "More swing means more risk, so investors demand a bigger reward" }
       - id: b
-        text: "A flat premium on top of the risk-free rate, beta aside"
-        mistake: { tag: beta_ignored, fix: "Beta scales the premium. A beta above 1 means more risk, so a larger premium." }
+        text: "It is sure to earn more, so Dev cannot lose"
+        mistake: { tag: reward_guaranteed, fix: "The bigger return is expected, not promised. A jumpy share can fall hard in a bad year." }
       - id: c
-        text: "An average of the risk-free rate and the premium"
-        mistake: { tag: averaged_premium, fix: "The premium is added on top of the risk-free rate, not averaged with it." }
+        text: "Swings even out over time, so it shouldn't promise more"
+        mistake: { tag: risk_unpaid, fix: "Nobody carries extra risk for free, so the riskier share must offer a bigger expected return." }
       - id: d
-        text: "The risk-free rate times beta, with no premium"
-        mistake: { tag: beta_on_riskfree, fix: "The premium is the reward for market risk. Beta scales that premium, not the risk-free rate." }
+        text: "Its price per share is lower, and cheap shares grow faster"
+        mistake: { tag: price_not_risk, fix: "A share's price tag does not set its return. How much it swings with the market does." }
     answer: a
     explanation: >
-      The CAPM starts from the risk-free rate, the safe return, and adds beta times the market's risk premium. With a 4% risk-free rate and a 5% premium: 4% + 1.5 x 5% = 11.5%.
+      This is the idea behind the CAPM, the model finance uses for the return shareholders expect. Start from the risk-free rate, what a safe government bond pays. Add the market premium, the extra reward for holding shares at all. Beta, how much a share swings with the market, scales that premium: Dev's jumpy share has a beta of 1.5, so it carries one and a half times the premium.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 17.2 The Costs of Debt and Equity Capital: https://openstax.org/books/principles-finance-2e/pages/17-2-the-costs-of-debt-and-equity-capital
 
