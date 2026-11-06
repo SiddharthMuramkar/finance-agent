@@ -89,6 +89,59 @@ questions:
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread ; the scenario is hypothetical.
 
+  - id: st-q-queues
+    prompt: >
+      June 1987: across a chain's 80 grocery stores, checkout queue time and shopper satisfaction show a correlation of -0.85. Meera's boss says the minus sign means a weak link. Which headline gets it right?
+    choices:
+      - { id: a, text: "Strong link: stores with longer queues tend to have less happy shoppers" }
+      - { id: b, text: "Weak link, because the correlation is negative", mistake: { tag: sign_read_as_strength, fix: "The sign gives the direction; a figure close to -1 means a strong link." } }
+      - { id: c, text: "Proof that long queues cause unhappy shoppers", mistake: { tag: correlation_as_cause, fix: "Correlation shows two things moving together; it cannot prove one causes the other." } }
+      - { id: d, text: "Each extra minute of queueing cuts satisfaction by 0.85 points", mistake: { tag: correlation_as_slope, fix: "Correlation says how tightly the points hug a line, not how steep the line is." } }
+    answer: a
+    explanation: >
+      A correlation runs from -1 to +1. The sign gives the direction (more queueing goes with less satisfaction) and closeness to -1 or +1 gives the strength, so -0.85 is a strong negative link. It still says nothing about cause, and it is not the slope of a line.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0030, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: st-q-ads
+    prompt: >
+      September 1987. For three years, Rohan's shop chain has seen sales rise in the same months its newspaper ad spending rises. He wants to double the ad budget before the holidays. Which would you pick as the best reason to pause?
+    choices:
+      - { id: a, text: "The holidays may lift both, or ad budgets rise when sales already look strong" }
+      - { id: b, text: "Three years of data is too long a stretch to study", mistake: { tag: blamed_the_period, fix: "More history is fine; the risk is a hidden cause moving ads and sales together." } }
+      - { id: c, text: "A correlation can never be bigger than 1", mistake: { tag: true_but_irrelevant, fix: "True, but that rule says nothing about whether the ads cause the extra sales." } }
+      - { id: d, text: "Adverts never change what shoppers buy", mistake: { tag: ads_never_work, fix: "Ads can work; the trouble is that moving together alone cannot prove they do." } }
+    answer: a
+    explanation: >
+      Ad spending and sales can climb together because something else drives both, such as the holiday rush (a confounder), or because the cause runs backwards: shops spend more on ads when they already expect strong sales. To know whether ads lift sales, you need a test, such as running ads in some towns and holding them back in others.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0029, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: st-q-std-error
+    prompt: >
+      July 1987. Ananya asks 64 random customers of a coffee chain what they spend each week, then reports their average. Her boss asks how far that average might sit from the true one. What do statisticians call that typical gap?
+    choices:
+      - { id: a, text: "The standard error, which shrinks as the sample gets bigger" }
+      - { id: b, text: "The standard deviation, the spread from one customer to the next", mistake: { tag: confused_with_sd, fix: "That spread describes single customers; the standard error describes how much the sample's average wobbles." } }
+      - { id: c, text: "The correlation between customers and their spending", mistake: { tag: confused_with_correlation, fix: "Correlation links two different measures; here there is only one, weekly spending." } }
+      - { id: d, text: "The standard error, which grows as the sample gets bigger", mistake: { tag: flipped_sample_size, fix: "More customers average out the luck, so a bigger sample makes the standard error smaller." } }
+    answer: a
+    explanation: >
+      The standard error is the typical distance between a sample's average and the true average of everyone. It depends on how spread out single customers are (the standard deviation) and shrinks as the sample grows, because luck in who you happened to ask averages out.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-STAT-0015, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/business-statistics-and-analytics.json ; the scenario is made up.
+  - id: st-q-two-funds
+    prompt: >
+      January 1987. Kavya, a company treasurer, splits spare cash between two funds whose returns only loosely move together. A colleague says the mix will be exactly as bumpy as the two funds' average bumpiness. Which headline gets it right?
+    choices:
+      - { id: a, text: "The mix is calmer than that average, because the funds' dips partly cancel" }
+      - { id: b, text: "The mix is exactly as bumpy as the two funds' average", mistake: { tag: ignored_correlation, fix: "That only holds when the funds move in perfect step; loose links smooth the ride." } }
+      - { id: c, text: "The mix is bumpier than even the bumpier fund", mistake: { tag: mix_wilder_than_parts, fix: "A mix cannot swing more than its wildest part, and loose links calm it further." } }
+      - { id: d, text: "Only each fund's own swings matter, never how they move together", mistake: { tag: correlation_irrelevant, fix: "How funds move together matters: when one dips and the other holds, the mix dips less." } }
+    answer: a
+    explanation: >
+      This is diversification. A mix is exactly as bumpy as the average of its parts only when they move in perfect step. When their correlation is below 1, some ups of one fund offset downs of the other, so the mix is calmer than the average of its parts.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-FIN-VAL-0045, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/valuation-and-capital-markets.json ; the scenario is made up.
+
 checks:
   - id: st-quiz-statistics
     kind: quiz
@@ -96,10 +149,10 @@ checks:
       - st-q-sd
       - st-q-sigma
       - st-q-tails
-      - bank:eab:MBA-STAT-0030
-      - bank:eab:MBA-STAT-0029
-      - bank:eab:MBA-STAT-0015
-      - bank:eab:MBA-FIN-VAL-0045
+      - st-q-queues
+      - st-q-ads
+      - st-q-std-error
+      - st-q-two-funds
     perAttempt: 4
     passRule:
       correct: 3
