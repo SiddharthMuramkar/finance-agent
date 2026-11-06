@@ -10,6 +10,7 @@ import { ENGINE_INSTRUCTIONS, TUTOR_INSTRUCTIONS, TUTOR_TOOLS } from "./instruct
 import { fingerprint, frozenNow, readSettings } from "./session-log";
 import { loadThread } from "./transcript";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { withoutChoices } from "@/test/choices";
 
 // Seam 1, the Tutor Turn (ADR 0005): with the widget engine on, the Tutor calls show_widget with a recipe and params;
 // code compiles and checks the Widget, stores it as a Session item and streams it. Off, nothing changes.
@@ -79,7 +80,7 @@ describe("show_widget and the widget engine", () => {
 
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;
     const thread = await loadThread(db, done.ref.sessionId, undefined, OWNER_LEARNER_ID);
-    expect(thread.map((e) => (e.role === "item" ? e.kind : e.role))).toEqual(["user", WIDGET_SHOWN, "assistant"]);
+    expect(withoutChoices(thread).map((e) => (e.role === "item" ? e.kind : e.role))).toEqual(["user", WIDGET_SHOWN, "assistant"]);
 
     // The next turn's Tutor is told it is open, by title, and what its slider shows, keyed by its title.
     const next = scriptedClient([{ content: [text("You chose 25 years.")] }]);
@@ -127,7 +128,7 @@ describe("show_widget and the widget engine", () => {
     const second = toolResults(requests[2]).at(-1)!;
     expect(second.is_error).toBe(true);
     expect(String(second.content)).toMatch(/nowhere\/nothing is not in the Case Data/);
-    expect(events.some((e) => e.type === "item")).toBe(false);
+    expect(withoutChoices(events).some((e) => e.type === "item")).toBe(false);
     expect(events.some((e) => e.type === "correction")).toBe(false);
   });
 

@@ -11,6 +11,7 @@ import { parseCourseMap, type CourseMap } from "@/course/map";
 import { OWNER_LEARNER_ID } from "@/db/schema";
 import { navigate } from "@/course/navigator";
 import { ensureTopicStarted, loadProgress, saveCheckResult, saveFinishedStep } from "@/learner/memory";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn: coming back after a break. The "Picking up where you left off" divider is worked out
@@ -32,8 +33,9 @@ async function turn(db: Db, input: TurnInput, when: Date, replies: ScriptedReply
 }
 
 /** What the Learner sees, without the usage and save data that have their own tests. */
-const seen = (entries: ThreadEntry[]) => entries.map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
-const items = (entries: ThreadEntry[]) => entries.filter((e) => e.role === "item");
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const seen = (entries: ThreadEntry[]) => withoutChoices(entries).map((e) => (e.role === "item" ? e : { role: e.role, text: e.text }));
+const items = (entries: ThreadEntry[]) => withoutChoices(entries).filter((e) => e.role === "item");
 
 const pickingUp = (label: string) => ({ role: "item", kind: "picking_up", data: expect.objectContaining({ label }) });
 

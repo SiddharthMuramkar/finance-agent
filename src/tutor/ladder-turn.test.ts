@@ -15,6 +15,7 @@ import { answerTyped } from "@/test/answer-typed";
 import { QUICK_TRY, QUICK_TRY_RESULT, type QuickTryData, type SessionItem } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam: the Tutor Turn and the Quick-try handler with Skill state in Learner Memory (spec #229, ticket #245). The repair
@@ -34,7 +35,7 @@ async function turn(db: Db, input: TurnInput, text = "Here is one slip and its f
   const { client, requests } = scriptedClient([reply(text)]);
   const events: TurnEvent[] = [];
   for await (const e of runTutorTurn({ db, client, map, learnerId: me, now: () => at }, input)) events.push(e);
-  return { events, requests, items: events.flatMap((e) => (e.type === "item" ? [e.item] : [])) };
+  return { events, requests, items: withoutChoices(events).flatMap((e) => (e.type === "item" ? [e.item] : [])) };
 }
 
 /** The Learner at Your turn of the first Check, with its first try shown. */

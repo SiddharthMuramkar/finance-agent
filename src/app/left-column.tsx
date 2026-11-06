@@ -14,9 +14,21 @@ import type { NextOffer } from "@/course/navigator";
 import type { NextName } from "@/tutor/next";
 import { TOPIC_START } from "@/course/topic-start";
 import { TOPIC_COMPLETE } from "@/tutor/topic-complete-card";
+import { choicesFor } from "@/tutor/choices";
+import { REPLY_CHOICES, type ReplyChoicesData } from "@/tutor/session-item-kinds";
+import type { ThreadLine } from "./thread";
+
+/** The Choices to draw under the latest reply: stored ones when no reply came after them, else code's set. */
+function latestChoices(messages: readonly ThreadLine[], quizOpen: boolean): { list: ReplyChoicesData["choices"]; stored: boolean } {
+  const at = messages.findLastIndex((m) => m.role === "item" && m.kind === REPLY_CHOICES);
+  const replyAfter = at >= 0 && messages.slice(at + 1).some((m) => m.role === "assistant" || m.role === "user");
+  const stored = at >= 0 && !replyAfter ? ((messages[at] as { data?: Partial<ReplyChoicesData> }).data?.choices ?? []) : [];
+  if (stored.length >= 2) return { list: stored, stored: true };
+  return { list: choicesFor(quizOpen ? "check" : "concept", null, null), stored: false };
+}
 
 /**
- * The Study Workspace's left column, top to bottom: the thread with the Next and help chips under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
+ * The Study Workspace's left column, top to bottom: the thread with the Next chip and the reply's Choices under its latest reply, the turn's notices, error and Retry, the quiz note while a quiz is open (the quiz
  * itself is in the right panel's Check tab), and the message box with the writing indicator and Attach a passage.
  * A Topic passed in a turn stays on screen with no message box: What comes next and the Course Map instead.
  * The Topic bar, the pinned explore Widget and the folded review stand at the top of the right column instead (TopicHeader).
@@ -59,11 +71,14 @@ export function LeftColumn({
   // The chips stand only under the latest Tutor reply or card: never under the Learner's own message, before the page
   // has re-read the Learner's place after a turn, with Retry on offer, or on a passed Topic; and during a turn only
   // while it is the one a Next started.
-  // While a Check is open there is no Next, and the two help chips stay. Under the Topic Start card alone there
+  // While a Check is open there is no Next, and the Choices stay. Under the Topic Start card alone there
   // are none: the Tutor's opener starts by itself.
   const latest = messages.at(-1);
   const opening = latest?.role === "item" && latest.kind === TOPIC_START;
   const chips = !passed && latest && latest.role !== "user" && !opening && !canRetry && ((!running && !refreshing) || nextTurn);
+  // The latest reply's Choices (D3a): the reply_choices item code stored after it, or, under a reply or card with none
+  // stored (an older Session, a card on its own), code's own set for where the Learner is.
+  const choices = latestChoices(messages, quizOpen);
   // The passed Topic's conversation ends at its Topic complete card, which offers where to go next.
   const carded = messages.some((m) => m.role === "item" && m.kind === TOPIC_COMPLETE);
   return (
@@ -72,7 +87,20 @@ export function LeftColumn({
         <div className="flex flex-col gap-4">
           <ThreadMessages lines={messages} slot={slot} />
         </div>
-        {chips && <Chips key={generation} offer={next} onNext={takeNext} onSay={(words) => void send({ message: words }, words)} />}
+        {chips && (
+          <Chips
+            key={generation}
+            offer={next}
+            choices={choices.list}
+            onNext={takeNext}
+            onSay={(words) => void send({ message: words }, words)}
+            onChoice={(index) => {
+              const says = choices.list[index].says;
+              // A stored Choice is resolved on the server from its index; code's own set (no stored Choices) posts its chip words.
+              void send(choices.stored ? { choice: index } : { message: says }, says);
+            }}
+          />
+        )}
         {fixing && <p className="mt-2 text-xs leading-4 text-[var(--muted)]">Fixing the widget…</p>}
         {notice && (
           <p className="my-3 text-sm leading-5 text-[var(--muted)]" data-testid="turn-notice">
