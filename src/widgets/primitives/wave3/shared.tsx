@@ -12,10 +12,13 @@ export function resolveEmoji(name: unknown): EmojiName | null {
   return isEmojiName(asked) ? asked : emojiFor(asked);
 }
 
-/** One picture from the emoji registry, or nothing when the name matches none. Decorative: the words beside it carry the meaning. */
-export function Pic({ name, size }: { name: unknown; size: EmojiSize }) {
+/**
+ * One picture from the emoji registry, or nothing when the name matches none. Decorative by default: the words beside it
+ * carry the meaning. Give `label` when the picture names someone the words do not (RateMove's speakers, issue 480).
+ */
+export function Pic({ name, size, label }: { name: unknown; size: EmojiSize; label?: string }) {
   const resolved = resolveEmoji(name);
-  return resolved ? <Emoji name={resolved} size={size} /> : null;
+  return resolved ? <Emoji name={resolved} size={size} label={label} /> : null;
 }
 
 /** The value of `data-motion`: "off" when the Learner asked for reduced motion, else "on". */

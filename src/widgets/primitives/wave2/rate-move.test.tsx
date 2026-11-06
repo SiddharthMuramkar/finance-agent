@@ -48,7 +48,7 @@ describe("RateMove, show mode", () => {
     expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--brand)");
     expect(byId(page!, "rate-move-old")!.getAttribute("fill")).toBe("var(--sun-ink)");
     expect(byId(page!, "rate-move-old-tick")!.getAttribute("stroke")).toBe("var(--sun-ink)");
-    const labels = allById(page!, "rate-move-readout").map((r) => r.firstElementChild!.getAttribute("class") ?? "");
+    const labels = allById(page!, "rate-move-readout").map((r) => r.querySelector("[data-testid=\"rate-move-label\"]")!.getAttribute("class") ?? "");
     expect(labels).toHaveLength(3);
     for (const c of labels) {
       expect(c).toContain("text-[var(--violet-ink)]");
@@ -164,6 +164,42 @@ describe("RateMove, practice mode", () => {
     expect(text()).toContain("Right. The move is 20 bp.");
     expect(status()).toBe("right");
     expect(byId(page!, "rate-move-new")!.textContent).toBe("New 6%");
+  });
+});
+
+// #480: a speaker emoji on each worked line and a direction emoji by the arrow, in show and practice mode; the words
+// and the arithmetic stay the same (ADR 0002).
+describe("RateMove's characters (#480)", () => {
+  const speakers = [
+    ["/emoji/1f469.webp", "reporter"],
+    ["/emoji/1f468-200d-1f4bc.webp", "trader"],
+    ["/emoji/1f4f0.webp", "headline"],
+  ];
+  const lineImgs = () =>
+    allById(page!, "rate-move-readout").map((li) => [...li.querySelectorAll("img")].map((i) => [i.getAttribute("src"), i.getAttribute("alt")]));
+  const direction = () => byId(page!, "rate-move-direction");
+
+  it("show mode: one speaker per line and a rising chart by the arrow, with the words unchanged", () => {
+    show(<RateMoveView oldRate={4} newRate={5} />);
+    expect(lineImgs()).toEqual(speakers.map((s) => [s]));
+    expect(direction()!.getAttribute("data-emoji")).toBe("chart-increasing");
+    expect(direction()!.querySelector("img")!.getAttribute("src")).toBe("/emoji/1f4c8.webp");
+    expect(text()).toContain("Points: new minus old");
+    expect(text()).toContain("Percent of the old rate");
+  });
+
+  it("practice mode: a falling chart before the tap, and one speaker per line after it", () => {
+    show(<RateMoveView oldRate={9} newRate={8.75} mode="practice" />);
+    expect(direction()!.getAttribute("data-emoji")).toBe("chart-decreasing");
+    expect(direction()!.querySelector("img")!.getAttribute("src")).toBe("/emoji/1f4c9.webp");
+    tap("Down 0.25 points, or 25 bps");
+    expect(status()).toBe("right");
+    expect(lineImgs()).toEqual(speakers.map((s) => [s]));
+  });
+
+  it("an unmoved rate gets a bar chart, neither a rise nor a fall", () => {
+    show(<RateMoveView oldRate={5} newRate={5} />);
+    expect(direction()!.getAttribute("data-emoji")).toBe("bar-chart");
   });
 });
 
