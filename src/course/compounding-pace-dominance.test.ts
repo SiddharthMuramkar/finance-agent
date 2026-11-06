@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { loadCourseMap, type QuickTry } from "./map";
+import { loadCourseMap, type FixedQuickTry } from "./map";
 
 // The steady-pace Quick tries that compare two stretches (#484, pre-merge MP-1) must be answered by dominance alone:
 // the faster stretch grows at least as big a multiple in fewer years, so no factoring or division is needed. Their
 // halfDone and fix lines may only restate the ask's own multiples, never factor them ("9 times is tripling twice").
 
 const topic = loadCourseMap().topic("num-compounding")!;
-const tryById = (id: string) => topic.checks.flatMap((c) => c.quickTries).find((q): q is QuickTry => "id" in q && q.id === id)!;
+const tryById = (id: string) => topic.checks.flatMap((c) => c.quickTries).find((q): q is FixedQuickTry => "id" in q && q.id === id)!;
 
 const WORD_MULTIPLE: Record<string, number> = { doubled: 2, doubling: 2, tripled: 3, tripling: 3, quadrupled: 4 };
 
