@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { applyTheme, isTheme } from "../../theme";
 import { WidgetView } from "../../widget-view";
@@ -9,12 +9,14 @@ import { Eyebrow } from "../../ui";
 /** One drawn piece of the scenes page: a scene, a term's Lingo card, or the Running-example scene. */
 export type ScenePiece = { key: string; eyebrow: string; title: string; code?: string; error?: string };
 
-function Piece({ piece, testId, recipe, step }: { piece: ScenePiece; testId: string; recipe?: string; step?: string }) {
+function Piece({ piece, testId, recipe, step, mounted }: { piece: ScenePiece; testId: string; recipe?: string; step?: string; mounted: boolean }) {
   return (
     <section data-testid={testId} data-recipe={recipe} data-step={step} className="rounded-lg border border-[var(--border)] p-4">
       <Eyebrow className="mb-1">{piece.eyebrow}</Eyebrow>
       <h2 className="mb-2 text-base font-semibold leading-6">{piece.title}</h2>
-      {piece.code ? (
+      {!mounted ? (
+        <p className="text-sm leading-5 text-[var(--muted)]">Drawing…</p>
+      ) : piece.code ? (
         <CaseDataProvider cases={[]}>
           <WidgetView code={piece.code} complete bare />
         </CaseDataProvider>
@@ -45,6 +47,10 @@ export function SceneList({
   terms: ScenePiece[];
   running: ScenePiece | null;
 }) {
+  // Widgets draw only after mount: their parts read matchMedia on first render, so a server draw would
+  // hydrate against a different reduced-motion answer and log a mismatch instead of drawing the scene.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   useEffect(() => {
     const before = document.documentElement.dataset.theme;
     applyTheme(theme);
@@ -63,13 +69,13 @@ export function SceneList({
           </p>
         ) : null}
         {scenes.map((piece) => (
-          <Piece key={piece.key} piece={piece} testId="dev-scene" recipe={piece.recipe} step={piece.step} />
+          <Piece key={piece.key} piece={piece} testId="dev-scene" recipe={piece.recipe} step={piece.step} mounted={mounted} />
         ))}
-        {running ? <Piece piece={running} testId="dev-running-scene" /> : null}
+        {running ? <Piece piece={running} testId="dev-running-scene" mounted={mounted} /> : null}
         {terms.length > 0 ? (
           <section data-testid="dev-terms" className="flex flex-col gap-4">
             {terms.map((piece) => (
-              <Piece key={piece.key} piece={piece} testId="dev-term" />
+              <Piece key={piece.key} piece={piece} testId="dev-term" mounted={mounted} />
             ))}
           </section>
         ) : null}
