@@ -247,7 +247,7 @@ checks:
   - id: fr-coffee-roe
     kind: conversation
     prompt: >
-      It is 13 October 2015. Coffee Day Enterprises is about to sell its shares to the public. Its prospectus shows revenue of Rs 2,479 crore and a net loss of Rs 87 crore for 2014-15, with total assets of Rs 6,014 crore and shareholders' funds of Rs 532 crore. In your own words, tell me whether the owners are earning a return or losing one, how much of the business rests on borrowing, and what that combination would worry you about at the IPO.
+      It is 13 October 2015. Coffee Day Enterprises is about to sell its shares to the public. Its prospectus shows revenue of Rs 2,479 crore and a net loss of Rs 87 crore for 2014-15, with total assets of Rs 6,014 crore and shareholders' funds of Rs 532 crore. In your own words, tell me whether the owners are earning a return or losing one, whether most of the business rests on borrowing or on the owners' money, and what that combination would worry you about at the IPO.
     passCriteria: >
       The Learner says that the company lost money on its sales (a net loss, so a negative margin) and that the owners' return is therefore negative. They say that the owners' own money is a thin slice under a large load of assets, with borrowings far larger than shareholders' funds, and that the assets make only modest sales. They connect the parts: leverage turns a small loss into a large negative return on thin equity, so the company looks fragile at the IPO and lenders matter. No figure needs to be worked out; naming the three DuPont parts and what each shows is enough.
 
