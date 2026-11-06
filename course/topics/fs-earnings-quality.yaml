@@ -63,7 +63,7 @@ questions:
       - { id: d, text: "Nothing, because bank confirmations are not evidence", mistake: { tag: ignored_outside_evidence, fix: "Confirmations come from outside the company, which makes them the stronger evidence." } }
     answer: a
     explanation: >
-      Cash is one of the few things a company cannot fake to an outside party. When the banks confirm only a sliver of what the books claim, the likeliest reading is that the balance was inflated, and the analyst should demand an explanation.
+      Cash is harder to fake and easier to check: a bank can confirm it from outside the company. When the banks confirm only a sliver of what the books claim, the likeliest reading is that the balance was inflated, and the analyst should demand an explanation.
     source: >
       A made-up example in the pattern of the Satyam case; the figures are invented for the question.
   - id: eq-q-margin
@@ -96,17 +96,15 @@ questions:
 
   - id: eq-q-maytas
     prompt: >
-      A company with Rs 5,361 crore of reported cash proposes to spend $1.6 billion on two construction
-      businesses owned partly by its chairman's family, in a line of business unrelated to its own.
-      Which concern is most relevant to earnings quality and governance?
+      December 2008: Satyam, a software firm, plans to buy two builders part-owned by its own chairman. What should worry you most?
     choices:
-      - { id: a, text: "A related-party deal that does not fit the business and needs independent scrutiny" }
-      - { id: b, text: "Construction is always a worse business than software" }
-      - { id: c, text: "Companies should never use their cash" }
-      - { id: d, text: "A large deal is proof of a strong balance sheet" }
+      - { id: a, text: "Insiders sit on both sides of a deal far from the core business" }
+      - { id: b, text: "Building is always a worse business than software", mistake: { tag: judged_industry_not_deal, fix: "The worry is who gets paid and why, not which industry is better." } }
+      - { id: c, text: "Companies should never spend their cash", mistake: { tag: cash_must_never_be_spent, fix: "Spending cash is normal; spending it on insiders' firms is the warning sign." } }
+      - { id: d, text: "A big deal proves the company is strong", mistake: { tag: size_as_proof_of_strength, fix: "A big deal proves nothing; investors cut the share price that day." } }
     answer: a
     explanation: >
-      Dealings with insiders and spending far from the core business are classic warning signs, and the purchase would have moved cash to the chairman's family firms.
+      A deal with insiders is a related-party deal. When it also sits far from the core business, it is a classic warning sign: the purchase would have moved Satyam's cash to firms its chairman and other insiders part-owned.
     source: >
       Reuters, Satyam abandons plan to buy builders, 16 December 2008: https://www.reuters.com/article/marketsNews/idINN1628370020081216/
 

@@ -84,9 +84,9 @@ questions:
       A country that exports onions bans exports while its home price is rising. What is the immediate effect the ban aims at, and what happens in the countries that import from it?
     choices:
       - { id: a, text: "More onions stayed in the home market, lowering the domestic price; prices rose in countries that import Indian onions" }
-      - { id: b, text: "Domestic demand fell; prices fell abroad" }
-      - { id: c, text: "Domestic supply fell; prices rose at home and abroad" }
-      - { id: d, text: "No effect on either, since exports were a small share of production" }
+      - { id: b, text: "Domestic demand fell; prices fell abroad", mistake: { tag: ban_moves_supply_not_demand, fix: "A ban changes where onions go, so it moves supply, not how much people want them." } }
+      - { id: c, text: "Domestic supply fell; prices rose at home and abroad", mistake: { tag: ban_direction_reversed, fix: "Onions that cannot leave stay at home, so home supply rises, not falls." } }
+      - { id: d, text: "No effect on either, since exports were a small share of production", mistake: { tag: ignored_supply_shift, fix: "Any onions kept at home add to home supply and leave importers short, so prices move." } }
     answer: a
     explanation: >
       Keeping exports at home raises supply to domestic buyers (aiming to lower the price there) and removes supply from importing countries, where prices tend to rise.

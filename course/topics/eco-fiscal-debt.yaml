@@ -113,10 +113,10 @@ checks:
   - id: eco-fiscal-gilt-reasoning
     kind: conversation
     prompt: >
-      The UK government announces about 45 billion pounds of tax cuts without matching spending cuts or an
-      independent forecast, while the Bank of England is raising rates and many pension funds hold leveraged
-      gilt positions. Predict what could happen to gilt prices and yields, who could be hurt, and how the
-      damage might spread.
+      You run a UK pension fund that holds leveraged gilt positions, and the Bank of England is raising
+      rates. Your phone lights up: the government has announced about 45 billion pounds of tax cuts without
+      matching spending cuts or an independent forecast. What do you fear happens to gilt prices and yields,
+      to funds like yours, and to everyone else as the trouble spreads?
     passCriteria: >
       The Learner links the unfunded tax cuts (and no independent forecast) to investors possibly demanding
       higher yields on gilts, so bond prices would fall. They reason that leveraged holders such as pension
