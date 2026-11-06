@@ -68,21 +68,21 @@ youllLearn:
 questions:
   - id: br-q-cet1
     prompt: >
-      Regulators ask a bank to hold a minimum of its own strongest capital (called CET1), plus a conservation buffer on top. This bank holds comfortably more than the minimum and the buffer together. What is the right reading?
+      December 2022. Nina runs the money at a start-up that keeps all its cash at Silicon Valley Bank (SVB). She checks SVB's strongest capital, called CET1: it sits comfortably above the regulators' minimum plus the buffer on top. Her co-founder asks if that means their payroll is safe. What can Nina fairly say?
     choices:
-      - { id: a, text: "It has a cushion: it clears the minimum even with the buffer added" }
+      - { id: a, text: "SVB has a cushion: it clears the minimum even with the buffer added" }
       - { id: b, text: "It only just meets the minimum, with no cushion", mistake: { tag: no_cushion, fix: "Minimum plus buffer is the full requirement, and the bank is well above it." } }
       - { id: c, text: "It falls short, because the buffer is added on top of its own ratio", mistake: { tag: buffer_on_top_of_bank, fix: "The buffer is added to the minimum requirement. It is not added to the bank's own ratio." } }
-      - { id: d, text: "Nobody can say without its total assets", mistake: { tag: needs_total_assets, fix: "This ratio uses risk-weighted assets, not total assets. Total assets belong to the leverage ratio." } }
+      - { id: d, text: "Yes: a bank above its capital rules cannot fail", mistake: { tag: ratio_is_guarantee, fix: "A capital ratio measures one cushion. It is no promise that a bank cannot fail." } }
     answer: a
     explanation: >
-      The full requirement is the minimum with the buffer added on top. A bank that holds comfortably more than both together has room to absorb losses before it breaks the rules.
+      The full requirement is the minimum with the buffer added on top. SVB held comfortably more than both together, so it had room to absorb losses before breaking the rules. That cushion is one measure, not a promise that the bank cannot fail.
     source: >
       Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023), capital section (minimum CET1 4.5%, conservation buffer 2.5%): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf
 
   - id: br-q-aoci
     prompt: >
-      A bank holds plenty of CET1 capital, its strongest kind. It also has a smaller loss on paper on securities whose prices fell, and the rules let it leave that loss out of capital. If the rules required the loss to be counted, what would happen to its CET1 ratio?
+      December 2022. Nina reads that the bonds SVB can sell (its available-for-sale securities) have fallen in price, leaving a loss on paper far smaller than its capital. The rules SVB follows let it leave that loss out of its CET1 capital. If the rules made SVB count the loss, what would happen to its CET1 ratio?
     choices:
       - { id: a, text: "It would be lower, because the loss would reduce its capital" }
       - { id: b, text: "It would be higher, because losses lower the risk-weighted assets", mistake: { tag: losses_cut_assets, fix: "Counting the loss cuts capital. Risk-weighted assets stay as they are." } }
@@ -96,12 +96,12 @@ questions:
 
   - id: br-q-lcr
     prompt: >
-      A bank holds a big pile of high-quality liquid assets, such as cash and government bonds it can sell fast. The regulator's 30-day stress test says it could lose less cash than that pile. The liquidity coverage ratio rule says the pile must at least cover those outflows. What is the right reading?
+      December 2022. Nina weighs moving some cash from SVB to a second bank. That bank shows her its liquidity coverage ratio test: its pile of cash and government bonds it can sell fast is bigger than the cash it could lose in a 30-day stress. The rule says the pile must at least cover those outflows. What should Nina read from it?
     choices:
-      - { id: a, text: "It passes: its liquid assets cover the stress outflows with room to spare" }
-      - { id: b, text: "It fails: the outflows are bigger than its liquid assets", mistake: { tag: outflows_bigger, fix: "Its liquid assets are bigger than the stress outflows, not smaller." } }
+      - { id: a, text: "The bank passes: its liquid assets cover the stress outflows with room to spare" }
+      - { id: b, text: "The bank fails: the outflows are bigger than its liquid assets", mistake: { tag: outflows_bigger, fix: "Its liquid assets are bigger than the stress outflows, not smaller." } }
       - { id: c, text: "Nobody can say until the outflows really happen", mistake: { tag: waits_for_outflows, fix: "The test is forward-looking. It uses the regulator's stress outflows, not real ones." } }
-      - { id: d, text: "It passes only if all the assets are cash", mistake: { tag: cash_only, fix: "Government bonds and other high-quality liquid assets count too, not cash alone." } }
+      - { id: d, text: "The bank passes only if all the assets are cash", mistake: { tag: cash_only, fix: "Government bonds and other high-quality liquid assets count too, not cash alone." } }
     answer: a
     explanation: >
       The liquidity coverage ratio asks one question: could the bank's high-quality liquid assets pay for 30 days of stress outflows? Here the pile is bigger than the outflows, so it passes with room to spare.
@@ -110,26 +110,26 @@ questions:
 
   - id: br-q-leverage
     prompt: >
-      A bank is judged on two capital ratios. The risk-based ratio gives safe-looking assets a low weight. The leverage ratio counts every asset the same. Why do supervisors look at both?
+      December 2022. Nina's investor says SVB's risk-based capital ratio looks strong because the bank holds piles of government-backed bonds, which get low risk weights. A second ratio, the leverage ratio, counts every asset the same. Nina wonders why supervisors bother with both. What is the reason?
     choices:
       - { id: a, text: "Leverage ignores risk weights, so it backstops weights that flatter" }
       - { id: b, text: "The leverage ratio counts only the risky assets, so it is stricter", mistake: { tag: leverage_counts_risky_only, fix: "It does the opposite: it counts all assets, with no risk weights." } }
       - { id: c, text: "The two ratios always give the same answer", mistake: { tag: ratios_always_agree, fix: "They differ whenever risk weights differ from 100%, which is why both are used." } }
-      - { id: d, text: "It replaces the risk-based ratio, which is no longer used", mistake: { tag: replaces_risk_based, fix: "Both apply. The leverage ratio backs up the risk-based one and does not replace it." } }
+      - { id: d, text: "The leverage ratio replaces the risk-based one, which is no longer used", mistake: { tag: replaces_risk_based, fix: "Both apply. The leverage ratio backs up the risk-based one and does not replace it." } }
     answer: a
     explanation: >
-      The risk-based ratio divides by risk-weighted assets: 10 / 100 = 10%. The leverage ratio divides by total assets with no risk weights: 10 / 200 = 5%. The leverage ratio acts as a backstop when risk weights make assets look safe.
+      The risk-based ratio measures capital against assets weighted by how risky they look, so a bank full of low-weight bonds can look strong. The leverage ratio measures capital against all assets with no weights, so it acts as a backstop when risk weights make assets look safe.
     source: >
       Federal Reserve Board, Review of the Federal Reserve's Supervision and Regulation of Silicon Valley Bank (28 Apr 2023), capital section (risk-based and leverage ratios defined): https://www.federalreserve.gov/publications/files/svb-review-20230428.pdf ; ratios calculated
 
   - id: br-q-deposit-insurance
     prompt: >
-      What is the main purpose of deposit insurance?
+      December 2022. Nina's start-up keeps millions at SVB, far above the deposit insurance limit; most of SVB's deposits are uninsured, like hers. Her co-founder asks what deposit insurance is for, then. What should Nina say?
     choices:
       - { id: a, text: "To protect depositors up to a limit even if the bank has negative net worth, so they have less reason to run" }
       - { id: b, text: "To guarantee that a bank will never lose money", mistake: { tag: insurance_stops_losses, fix: "Insurance protects depositors, not the bank's profits or survival." } }
       - { id: c, text: "To set the interest rate a bank pays on deposits", mistake: { tag: insurance_sets_rates, fix: "Insurance does not set interest rates. Banks and markets do." } }
-      - { id: d, text: "To cover every deposit of any size in full", mistake: { tag: full_cover, fix: "Cover stops at a limit. Balances above it stay at risk." } }
+      - { id: d, text: "To cover every deposit of any size in full", mistake: { tag: full_cover, fix: "Cover stops at a limit. Nina's balance above it stays at risk." } }
     answer: a
     explanation: >
       Insurance up to a limit makes small depositors safe whatever happens to the bank, removing the reason to rush for the door. It does not protect the bank's shareholders, and balances above the limit stay at risk.

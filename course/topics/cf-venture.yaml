@@ -72,7 +72,7 @@ youllLearn:
 questions:
   - id: cv-q-ownership
     prompt: >
-      An investor puts $5 million into a company at a pre-money valuation of $20 million. Against which value is the investor's new stake measured?
+      8 January 2019. Dan, a business reporter, reads that most of SoftBank's recent investment in WeWork went in at a post-money valuation of $47 billion. His editor wants the story right before it runs: which value is SoftBank's new stake measured against?
     choices:
       - { id: a, text: "Against the post-money value: the pre-money value plus the new cash" }
       - { id: b, text: "Against the pre-money value alone", mistake: { tag: used_pre_money, fix: "Pre-money is the value before the cash arrives. The stake is measured against the value after it." } }
@@ -80,21 +80,21 @@ questions:
       - { id: d, text: "Against the cash the company holds in the bank", mistake: { tag: used_cash, fix: "Cash alone is not the company's value. Use the post-money valuation." } }
     answer: a
     explanation: >
-      Post-money value is the pre-money $20 million plus the $5 million of new cash, $25 million. The investor's stake is the new money over that, 5 / 25, which is 20 percent. Measuring against the pre-money value (25 percent) is the usual mistake.
+      Post-money value is the pre-money value plus the new cash. A new investor's stake is its new money as a share of that post-money value. Measuring it against the pre-money value makes the stake look bigger than it is, and that is the usual mistake.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library), the venture capital approach, pre-money and post-money value: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
   - id: cv-q-pre-money
     prompt: >
-      A company announces a post-money valuation of $50 million after investors put in $10 million of new money. Which line about its pre-money valuation is right?
+      January 2019. Lena works at WeWork and holds some of its shares. She sees the headline "$47 billion post-money" and her flatmate says the $47 billion is what WeWork was worth before SoftBank's new cash came in. Lena wants to know what her shares really sit on. Which line about the pre-money value is right?
     choices:
-      - { id: a, text: "Pre-money includes the new cash, so it is higher than the $50 million headline", mistake: { tag: swapped_pre_post, fix: "Post-money includes the new cash. Pre-money is the value before it." } }
-      - { id: b, text: "Post-money includes the new cash, so the pre-money value is lower than the $50 million headline" }
+      - { id: a, text: "Pre-money includes the new cash, so it is higher than the $47 billion headline", mistake: { tag: swapped_pre_post, fix: "Post-money includes the new cash. Pre-money is the value before it." } }
+      - { id: b, text: "Post-money includes the new cash, so the pre-money value is lower than the $47 billion headline" }
       - { id: c, text: "The two are the same figure", mistake: { tag: same_figure, fix: "Post-money includes the new cash; pre-money does not." } }
       - { id: d, text: "Pre-money is the cash the investors put in", mistake: { tag: pre_money_is_cash, fix: "Pre-money is the company's value before the round, not the cash put in." } }
     answer: b
     explanation: >
-      Post-money = pre-money + new money, so the pre-money value here is $40 million, below the $50 million headline. The new investors own 10 / 50 = 20 percent.
+      Post-money is the pre-money value with the new money added. So the value before SoftBank's cash sits below the $47 billion headline, and Lena's flatmate has the two swapped.
     source: >
       Damodaran, Valuing Young, Start-up and Growth Companies (Library): https://www.stern.nyu.edu/~adamodar/pdfiles/papers/younggrowth.pdf
 
@@ -128,7 +128,7 @@ questions:
 
   - id: cv-q-vc-method
     prompt: >
-      A venture investor puts money into a young start-up with little profit yet. The investor wants the stake to be worth many times the money at exit, when the company is sold or lists. In the venture capital method, how does the investor reason?
+      January 2019. Arjun runs a small venture fund and has just read about WeWork's $47 billion round. A young start-up with little profit yet asks him for money. He wants his stake to be worth many times his cheque at exit, when the company is sold or lists. How should he work out what share to ask for?
     choices:
       - { id: a, text: "Forward from today's profits, as for a share on the stock market", mistake: { tag: forward_from_profits, fix: "A start-up has little profit yet. The method works back from the exit." } }
       - { id: b, text: "From the founders' wish for a high valuation", mistake: { tag: founders_ask, fix: "The investor's target return sets the stake, not the founders' wish." } }
@@ -149,17 +149,15 @@ checks:
       - cv-q-price
       - cv-q-headline
       - cv-q-vc-method
-      - bank:eab:MBA-ENT-0014
-      - bank:eab:MBA-FIN-VAL-0036
     perAttempt: 3
     passRule:
       correct: 2
   - id: cv-wework-round
     kind: conversation
     prompt: >
-      On 8 January 2019 WeWork announced a $2 billion investment from SoftBank, with most of it
-      at a post-money valuation of $47 billion and $1 billion of it at a pre-money valuation of
-      $20 billion. Say in your own words what pre-money and post-money mean, why $1 billion buys a
+      On 8 January 2019 WeWork announced a $2 billion investment from SoftBank. CNBC reported that
+      most of SoftBank's recent investment was at a post-money valuation of $47 billion, but that
+      $1 billion of it was at a lower, pre-money valuation of $20 billion. Say in your own words what pre-money and post-money mean, why $1 billion buys a
       different slice of the company at a $20 billion pre-money valuation than at a $47 billion
       post-money one, and why a $47 billion headline is not the same as a $47 billion cash price
       for the company.

@@ -35,7 +35,6 @@ export const NOT_YET_CONVERTED: readonly string[] = [
   "der-option-pricing",
   "der-rates-fx",
   "der-hedging",
-  "bank-regulation",
   "struct-securitisation",
   "real-assets",
   "hist-macro-regimes",

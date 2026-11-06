@@ -74,7 +74,7 @@ youllLearn:
 questions:
   - id: vi-q-consistency
     prompt: >
-      You forecast a company's cash flows in rupees, with prices rising at the rate you expect in India. Which discount rate is consistent with those cash flows?
+      22 October 2015. Priya, at the Mumbai fund, forecasts Coffee Day's cash flows in rupees, with prices rising at the rate she expects in India. A colleague says to discount them at a rate built on the US Treasury yield, because it is lower and makes the shares look worth more. A bad choice means the fund overpays. Which rate fits her cash flows?
     choices:
       - { id: a, text: "A rupee rate, built on the rupee riskfree rate, which includes expected Indian inflation" }
       - { id: b, text: "A dollar rate, built on the US Treasury yield", mistake: { tag: wrong_currency, fix: "A dollar rate carries US inflation, which does not match rupee cash flows." } }
@@ -102,7 +102,7 @@ questions:
 
   - id: vi-q-crp
     prompt: >
-      An analyst values an Indian stock in rupees. Besides the rupee riskfree rate (what a safe government bond pays), she has the usual premium for owning shares in a mature market and an extra premium for India's country risk. How do the two premiums enter the cost of equity?
+      22 October 2015. Priya is setting the return her Mumbai fund should demand on Coffee Day shares, its cost of equity. She starts from the rupee riskfree rate, what a safe Indian government bond pays. On top she has the usual premium for owning shares in a mature market, and an extra premium for India's country risk. Where does the country premium go?
     choices:
       - { id: a, text: "The country premium replaces the mature one", mistake: { tag: replaced_premium, fix: "The country premium is an extra layer on top of the mature one, not a replacement." } }
       - { id: b, text: "Both sit on top of the riskfree rate, so country risk raises the cost of equity" }
@@ -110,7 +110,7 @@ questions:
       - { id: d, text: "Neither: the riskfree rate alone is the cost of equity", mistake: { tag: riskfree_only, fix: "The riskfree rate is only the floor. Premiums add the reward for risk." } }
     answer: b
     explanation: >
-      Cost of equity = riskfree rate + beta x (mature premium + country risk premium). With a beta of 1 that is 7.5% + 5.5% + 3.0% = 16.0 percent: country risk is added on top, in one place only.
+      The cost of equity starts at the riskfree rate, and both premiums sit on top of it, scaled by how risky the shares are. Country risk is added on top, in one place only, so it raises the return Priya's fund should demand.
     source: >
       Damodaran, Country Risk (Library), the country risk premium approach: https://www.stern.nyu.edu/~adamodar/pdfiles/papers/CountryRisk.pdf
 
@@ -130,12 +130,12 @@ questions:
 
   - id: vi-q-consistent
     prompt: >
-      An analyst converts rupee cash flows into dollars using the exchange rates implied by the two currencies' riskfree rates, then discounts them at a dollar rate. Compared with discounting the rupee cash flows at a rupee rate, the value should be:
+      22 October 2015. Ravi, at the New York fund, values Coffee Day in dollars. He turns its rupee cash flows into dollars at exchange rates that assume the rupee weakens by about the gap between the two countries' bond yields, then discounts at a dollar rate. Priya, in Mumbai, discounts the rupee cash flows at a rupee rate. Ravi's boss asks whose value comes out higher. What should he say?
     choices:
-      - { id: a, text: "About the same, if both are done consistently" }
-      - { id: b, text: "Much higher, because dollar rates are lower", mistake: { tag: ignored_conversion, fix: "The lower dollar rate is offset by cash flows that shrink as the rupee is expected to fall." } }
-      - { id: c, text: "Much lower, because the rupee is expected to fall", mistake: { tag: double_counted_fall, fix: "The expected fall is already offset by the lower dollar rate. Count it once." } }
-      - { id: d, text: "Impossible to compare", mistake: { tag: cannot_compare, fix: "Both routes can be compared, and consistent ones agree." } }
+      - { id: a, text: "About the same, if both of them work consistently" }
+      - { id: b, text: "Ravi's, much higher, because dollar rates are lower", mistake: { tag: ignored_conversion, fix: "The lower dollar rate is offset by cash flows that shrink as the rupee is expected to fall." } }
+      - { id: c, text: "Ravi's, much lower, because the rupee is expected to fall", mistake: { tag: double_counted_fall, fix: "The expected fall is already offset by the lower dollar rate. Count it once." } }
+      - { id: d, text: "There is no way to compare the two", mistake: { tag: cannot_compare, fix: "Both routes can be compared, and consistent ones agree." } }
     answer: a
     explanation: >
       The lower dollar rate is offset by the lower value of the converted cash flows as the rupee is expected to fall, in proportion to the difference between the two riskfree rates. Both routes give the same value; mixing the routes is the mistake.
