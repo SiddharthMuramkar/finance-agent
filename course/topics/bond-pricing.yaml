@@ -1,6 +1,6 @@
 # Bond basics and pricing: a foundation Topic taught through the 1994 bond sell-off.
 # Case Data (the Treasury yield history) lives in the database; see docs/architecture.md.
-# Case sources (checked): US Treasury Daily Par Yield Curve Rates 1993-94 (Case Data); Fortune, The Great Bond Massacre (Oct 1994): https://fortune.com/article/the-great-bond-massacre-fortune-1994 ; FRED GS10 monthly averages cross-checked
+# Case sources (checked): US Treasury Daily Par Yield Curve Rates 1993-94 (Case Data); Fortune, The Great Bond Massacre (Oct 1994): https://fortune.com/article/the-great-bond-massacre-fortune-1994 ; FRED GS10 monthly averages cross-checked; Federal Reserve, FOMC statement of 4 February 1994: https://www.federalreserve.gov/fomc/19940204default.htm
 id: bond-pricing
 title: Bond basics and pricing
 
