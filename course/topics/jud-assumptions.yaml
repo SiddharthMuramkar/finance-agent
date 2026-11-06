@@ -67,8 +67,8 @@ cases:
       low price to book) each rest on an assumption worth naming.
 
 concept: >
-  Judging a claim means going back to its inputs and recomputing, then asking which assumption
-  carries the result. Return on equity is net income over book equity, an accounting number; the
+  Judging a claim means going back to its inputs, saying in words whether the result follows from
+  them, then asking which assumption carries the result. Return on equity is net income over book equity, an accounting number; the
   earnings yield is net income over market value, a market number; the two differ unless price
   equals book. In the simplest case (earnings constant forever, no growth, a fair price), value is
   net income divided by the cost of equity, so the earnings yield equals the cost of equity. Once
@@ -113,9 +113,10 @@ questions:
       of Price to Book Ratios: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/pbvdeterminants.htm
   - id: ja-q-mislabel
     prompt: >
-      A commenter says a company's "return on equity" is low. But he divided its profit by what the
-      stock market says the company is worth, instead of by the money its owners put in. What is his number
-      really called?
+      February 2025, a made-up story: on a LinkedIn thread, a commenter tells Sameer to sell his
+      shares in a cement maker because its "return on equity" is low. But the commenter divided its
+      profit by what the stock market says it is worth, instead of by the money its owners put in. What is
+      his number really called?
     choices:
       - { id: a, text: "The earnings yield: profit against market price" }
       - { id: b, text: "Return on equity, since the market price is the owners' true stake", mistake: { tag: roe_on_market_value, fix: "Return on equity divides net income by book equity, not by market value." } }
@@ -131,35 +132,38 @@ questions:
       on Markets, 18 February 2025.
   - id: ja-q-period
     prompt: >
-      A blogger compares two firms. Firm P earned 30% on its owners' money in an ordinary year. Firm
-      Q shows -20%, but that was its first year, when it booked a one-off Rs 40 crore research bill.
-      The blogger calls P "the far better business". What should you say about that comparison?
+      February 2025, a made-up story: Leela is choosing one of two startups for her first angel
+      cheque. Pixel Foods earned 30% on its owners' money in an ordinary year. Quill Labs shows -20%,
+      but that was its first year, when it booked a one-off Rs 40 crore research bill. A blogger calls
+      Pixel "the far better business". What should Leela make of that comparison?
     choices:
-      - { id: a, text: "Different kinds of year: Q's has a one-off bill that P's lacks" }
+      - { id: a, text: "Different kinds of year: Quill's has a one-off bill that Pixel's lacks" }
       - { id: b, text: "Nothing: both are return on equity, so they compare directly as they are", mistake: { tag: same_label_same_basis, fix: "Same name, different years: one carries a one-off charge, so they are not alike." } }
       - { id: c, text: "Q's figure must be a typo: a negative return is impossible", mistake: { tag: negative_impossible, fix: "Return on equity goes negative whenever a firm makes a loss." } }
-      - { id: d, text: "Only P's figure needs restating at market value", mistake: { tag: market_value_restate, fix: "Market value is not the issue; the years being unlike is." } }
+      - { id: d, text: "Only Pixel's figure needs restating at market value", mistake: { tag: market_value_restate, fix: "Market value is not the issue; the years being unlike is." } }
     answer: a
     explanation: >
-      One figure carries a one-off expense and the other does not, so they describe different
-      situations. A fair comparison uses a normal year for both, or adjusts for the one-off. Return on
-      equity can be negative when a firm makes a loss.
+      Accountants call a charge like that bill one-off, or non-recurring. One figure carries it and
+      the other does not, so they describe different situations. A fair comparison uses a normal year
+      for both, or adjusts for the one-off. Return on equity can be negative when a firm makes a loss.
     source: >
       Damodaran, "Return on Equity, Earnings Yield and Market Efficiency: Back to Basics!", Musings
       on Markets, 18 February 2025 (the effect of expensed research spending on reported returns).
   - id: ja-q-beyond-text
     prompt: >
-      A passage shows that for a firm whose profit never changes, priced fairly, the earnings yield
-      equals the cost of equity. A reader concludes: "So any stock whose earnings yield beats its
-      cost of equity is a bargain." How should you judge that step?
+      February 2025, a made-up story: Dev reads a passage showing that for a firm whose profit never
+      changes, priced fairly, the earnings yield equals the cost of equity. He decides to put his
+      savings into every stock whose earnings yield beats its cost of equity, calling them all
+      bargains. What do you tell him about his rule?
     choices:
-      - { id: a, text: "It goes beyond the text: the passage assumed steady profit and a fair price" }
-      - { id: b, text: "Nothing: the same logic fits every stock", mistake: { tag: rule_overextended, fix: "The equality was shown only under stated assumptions, not for every stock." } }
-      - { id: c, text: "A yield and a cost of equity can never be compared, whatever the passage says", mistake: { tag: yield_cost_incomparable, fix: "The passage compares them itself; the slip is dropping its assumptions." } }
-      - { id: d, text: "It holds only for shares listed in India", mistake: { tag: market_assumed, fix: "Nothing in the passage is about where shares are listed." } }
+      - { id: a, text: "It overreaches: the passage assumed steady profit and a fair price" }
+      - { id: b, text: "It is sound: the same logic fits every stock", mistake: { tag: rule_overextended, fix: "The equality was shown only under stated assumptions, not for every stock." } }
+      - { id: c, text: "It is meaningless: a yield and a cost of equity never compare", mistake: { tag: yield_cost_incomparable, fix: "The passage compares them itself; the slip is dropping its assumptions." } }
+      - { id: d, text: "It works, but only for shares listed in India", mistake: { tag: market_assumed, fix: "Nothing in the passage is about where shares are listed." } }
     answer: a
     explanation: >
-      The equality was derived under stated assumptions. Outside them, an earnings yield above the cost
+      Judges call a conclusion the text never drew an overreach, or an inference beyond the text. The
+      equality was derived under stated assumptions. Outside them, an earnings yield above the cost
       of equity can reflect shrinking earnings or risk the cost of equity does not capture, so it does
       not by itself show that a price is wrong.
     source: >

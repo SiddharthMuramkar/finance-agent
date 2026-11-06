@@ -51,8 +51,8 @@ concept: >
   the ladder: investment grade above it, speculative grade (also called non-investment grade or high
   yield, and colloquially junk) below it. Each agency uses its own symbols for the same idea. The line matters because rules and mandates are written around it, and each
   agency publishes where it falls on its own scale. Judging a
-  writer's claim means going back to the named source, reading what it actually says, recomputing
-  any arithmetic, and sorting the mistakes: a mislabel (the right number under the wrong name), a
+  writer's claim means going back to the named source, reading what it actually says, setting each
+  figure beside the source's own, and sorting the mistakes: a mislabel (the right number under the wrong name), a
   period or unit mismatch (figures that do not cover the same thing), or an inference beyond the text
   (the writer says more than the source does). A mislabel in a sentence does not by itself make its
   figures wrong; it means they cannot be trusted until the grouping behind them is checked.
@@ -105,8 +105,9 @@ questions:
       Moody's long-term rating symbols in order, from Moody's Rating Scale card: https://www.moodys.com/sites/products/ProductAttachments/contact%20card_gsr%20scale.pdf ; the 16 May 2025 move from Aaa to Aa1 as reported in Damodaran, "Sovereign Ratings, Default Risk and Markets: The Moody's Downgrade Aftermath!", Musings on Markets, 2 June 2025; your dad and his Treasuries are a made-up story.
   - id: jrb-q-ratio
     prompt: >
-      A blogger says a study found 24% of one group of bonds defaulted against 1.8% of another, and
-      calls the first group "about 13 times as likely to default". What is the careful reading?
+      June 2025, a made-up story: Neha looks after her family's savings. A blogger says a study found
+      24% of one group of bonds defaulted against 1.8% of another, and calls the first group "about 13
+      times as likely to default". Before Neha moves any money on that line, what should she take from it?
     choices:
       - { id: a, text: "One group defaulted far more, but check how each group was drawn" }
       - { id: b, text: "The big gap proves the first group's rating is the riskier one of the two", mistake: { tag: ratio_proves_all, fix: "A ratio only compares the two quoted rates; it cannot check how the groups were drawn." } }
@@ -119,8 +120,9 @@ questions:
     source: The two figures as the writer quotes them; no outside data is used.
   - id: jrb-q-inference
     prompt: >
-      A rating agency says debt in one class "may possess certain weaker characteristics". A blogger
-      writes that the agency "defines this class as weak". What slip did the blogger make?
+      June 2025, a made-up story: Farah, an intern on a bond desk, reads an agency line that debt in
+      one class "may possess certain weaker characteristics". A blogger writes that the agency
+      "defines this class as weak", and her boss wants to dump those bonds. What slip did the blogger make?
     choices:
       - { id: a, text: "Mixed up two units of measure", mistake: { tag: unit_blamed, fix: "No units are involved; the blogger changed what the sentence claims." } }
       - { id: b, text: "Set two different years side by side", mistake: { tag: period_blamed, fix: "No years are compared; the slip is in the wording." } }
@@ -129,15 +131,16 @@ questions:
     answer: c
     explanation: >
       The source says debt "may possess" the characteristic; the writer says it is defined as having
-      it. Dropping a hedge turns a possibility into a statement. The check is to put the source's
-      sentence next to the writer's and compare word by word.
+      it. Writers call a softening word like "may" a hedge, and dropping it turns a possibility into
+      a statement. The check is to put the source's sentence next to the writer's, word by word.
     source: >
       Method of comparing a claim with the source's wording; the quoted definition is hypothetical. The style of Moody's definitions is at https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
   - id: jrb-q-period
     prompt: >
-      A blogger reads two studies. One says 6% of bonds in a rating group defaulted within five
-      years. The other says 2% of bonds in another group defaulted within one year. The blogger calls
-      the first group "three times as risky". What is the main problem?
+      June 2025, a made-up story: Omar is choosing a bond fund for his daughter's college money. A
+      blogger he follows reads two studies: 6% of bonds in one rating group defaulted within five
+      years, 2% in another within one year. He calls the first group "three times as risky". Before
+      Omar picks, what is the main problem?
     choices:
       - { id: a, text: "The figures are rounded, so the comparison between them is off", mistake: { tag: rounding_blamed, fix: "Rounding is minor; the real issue is a five-year window against a one-year window." } }
       - { id: b, text: "The two cover different windows: five years against one" }
@@ -146,24 +149,26 @@ questions:
     answer: b
     explanation: >
       A five-year figure piles up defaults over five years; a one-year figure covers a single year.
-      They are not measured over the same window, so setting one against the other misleads. Always
-      check what window each number covers first.
+      Analysts call the first a cumulative rate: it adds up over its whole window. The two are not
+      measured over the same window, so setting one against the other misleads.
     source: >
       Method of matching the period of compared figures; numbers are hypothetical. Default-study definitions of cumulative and annual rates: Moody's Ratings, Understanding credit ratings, https://www.moodys.com/web/en/us/solutions/ratings/understanding-ratings.html
   - id: jrb-q-what-survives
     prompt: >
-      A blogger draws the grade line one notch off, then quotes two default rates from an agency
-      study you have yet to read. What is the most careful verdict?
+      June 2025, a made-up story: Ananya edits a money newsletter and wants to quote a blogger tonight.
+      He draws the junk line one notch off, then quotes two default rates from an agency study she
+      has yet to read. What should her note to readers say?
     choices:
       - { id: a, text: "Both rates are wrong, because the label is wrong", mistake: { tag: one_slip_all_wrong, fix: "A wrong label does not make the quoted rates wrong; they are unchecked." } }
       - { id: b, text: "Both rates are right, since the agency itself wrote the study they come from", mistake: { tag: source_as_proof, fix: "A good source still has to be read; the rates' grouping is unseen." } }
-      - { id: c, text: "The label is wrong; the rates stay unchecked until you see the study" }
+      - { id: c, text: "The label is wrong; the rates stay \"unverified\" until she reads the study" }
       - { id: d, text: "The label does not matter if the maths adds up", mistake: { tag: label_unimportant, fix: "A mislabelled group changes what the figures describe, whatever the maths." } }
     answer: c
     explanation: >
-      A judge separates what has been shown wrong (the label, against the scale), what has been shown
-      right, and what has not been checked (the rates, until the study's grouping is seen). Neither
-      "all wrong" nor "all fine" follows from one slip.
+      Fact-checkers call a figure nobody has yet checked against its source "unverified". A careful
+      note separates what has been shown wrong (the label, against the scale), what has been shown
+      right, and what is unverified (the rates, until the study's grouping is seen). Neither "all
+      wrong" nor "all fine" follows from one slip.
     source: >
       Method of separating a verified slip from unchecked figures; the scenario is generic and uses no outside data.
 

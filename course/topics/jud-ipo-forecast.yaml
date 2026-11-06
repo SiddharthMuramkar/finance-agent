@@ -88,21 +88,21 @@ cases:
       Check the claim for what it claimed.
 
 concept: >
-  To judge a claim, go back to the source it names and recompute it. Sort every difference into one
+  To judge a claim, go back to the source it names and set each figure beside the source's own. Sort every difference into one
   of four kinds: an arithmetic slip (the sum or ratio is wrong), a mislabel (the right number under
   the wrong name), a period or basis
   mismatch (two figures that do not cover the same time or are not measured the same way, such as a
   margin that treats research spending as an investment against one that expenses it), or an inference
-  beyond the text (the writer says more than the source does). Then ask how big the effect is: put
-  the corrected number back into the result. A prospectus gives share counts at several stages. The
+  beyond the text (the writer says more than the source does). Then ask how big the effect is: would
+  fixing the slip move the result a little or a lot? A prospectus gives share counts at several stages. The
   count "pro forma" assumes the preferred stock has converted into common stock; the count "pro forma
   as adjusted" also adds the shares sold in the offering and the money raised. A per-share value divides a value by every share that shares in it, so the numerator and the share count must describe the same moment.
-  Arithmetic that recomputes exactly shows that the sums are right; it does not show that the story
+  Arithmetic that ties out shows that the sums are right; it does not show that the story
   behind the inputs is right. Later events are tested against the story, and only against what the
   writer actually claimed.
 
 principle: >
-  Judge a claim in two steps. First recompute it from the source and sort the differences by kind
+  Judge a claim in two steps. First take it back to the source and sort the differences by kind
   and size, so that small slips are not mistaken for large ones. Then compare the story with what
   followed, and only on what the writer claimed to know, never with hindsight on what he did not.
 
@@ -133,9 +133,10 @@ questions:
       Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-new-shares
     prompt: >
-      A company with 100 million shares sells 20 million new ones when it lists, and keeps the cash.
-      A blogger adds the cash to the company's value but still shares it out over the old 100
-      million, and cheers that each share is now worth more. What did the blogger leave out?
+      October 2013, a made-up story: Aditi is deciding whether to buy into an app company's listing.
+      It has 100 million shares and sells 20 million new ones, keeping the cash. A blog she reads adds
+      the cash to the value but still shares it out over the old 100 million, and cheers that each
+      share is now worth more. What did the blog leave out?
     choices:
       - { id: a, text: "The new shares: the value is spread over more of them" }
       - { id: b, text: "The cash: a listing raises no money at all for the company itself", mistake: { tag: cash_ignored, fix: "The listing did raise cash; the slip is in the share count." } }
@@ -143,8 +144,9 @@ questions:
       - { id: d, text: "Nothing: new cash always lifts each share", mistake: { tag: cash_always_lifts, fix: "New shares share the cash too, so the value per share rises far less." } }
     answer: a
     explanation: >
-      The cash raised belongs to all 120 million shares, old and new. Counting the cash but not the
-      shares sold to raise it makes each share look worth more than it is.
+      The cash raised belongs to all 120 million shares, old and new. Spreading a value over extra
+      new shares is called dilution. Counting the cash but not the shares sold to raise it makes each
+      share look worth more than it is.
     source: >
       The pro forma and pro forma as adjusted share counts are the two columns of the
       capitalization table in Twitter, Inc., Form S-1 (3 October 2013).
@@ -186,15 +188,17 @@ questions:
       CFA Institute, Time Value of Money in Finance (refresher reading, 2024): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2024/time-value-money
   - id: jip-q-share-of-total
     prompt: >
-      A filing shows that one revenue line is 12.0% of total revenue. A blogger writes "12.8%". What
-      should a careful judge do?
+      October 2013, a made-up story: Priya, a junior reporter, checks a blog against a company's
+      filing. The filing puts one revenue line at 12.0% of the total; the blog says 12.8%. Her editor
+      wants the headline "Blogger botches the numbers". What should she tell him?
     choices:
-      - { id: a, text: "Note the small slip, then check whether the value depends on it" }
-      - { id: b, text: "Throw out the whole valuation", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
-      - { id: c, text: "Ignore it: within a point is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
-      - { id: d, text: "Assume the blogger used another base, and move on without checking", mistake: { tag: base_assumed, fix: "Do not guess a base; check it against the filing." } }
+      - { id: a, text: "A small slip: it is only \"material\" if the value depends on it" }
+      - { id: b, text: "Run it: one slip sinks the whole valuation", mistake: { tag: one_slip_all_wrong, fix: "One small slip does not make everything wrong; check whether the value rests on it." } }
+      - { id: c, text: "Drop it: within a point is close enough", mistake: { tag: close_enough, fix: "A small gap can still matter if the value depends on it; check first." } }
+      - { id: d, text: "Drop it: the blogger surely used another base", mistake: { tag: base_assumed, fix: "Do not guess a base; check it against the filing." } }
     answer: a
     explanation: >
+      Editors and auditors call an error "material" when it is big enough to change the conclusion.
       The gap is real but small, so the next step is to ask whether the figure feeds anything that
       matters. Guessing that the blogger used a different base is not a check; the filing is.
     source: >
@@ -236,15 +240,18 @@ questions:
       Made-up story (Meera, her brother and the app are invented); the basis question follows Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013 (research spending treated as capital, three-year life), against Twitter, Inc., Form S-1 (3 October 2013), statement of operations (research and development within costs and expenses).
   - id: jip-q-arithmetic-story
     prompt: >
-      Every number in a blogger's valuation ties out to the inputs he states. What does that prove?
+      A made-up story: Sana checks every number in a blog's valuation of an app company, and each one
+      ties out to the inputs the blogger states. She tells her study group "the maths is perfect, so
+      the value is right". What has she actually shown?
     choices:
       - { id: a, text: "That his inputs must be right too", mistake: { tag: inputs_from_ties, fix: "Numbers that tie out show the calculation, not that the inputs are right." } }
-      - { id: b, text: "His arithmetic is right; his inputs and story are a separate question" }
+      - { id: b, text: "The sums are right; the inputs and the story are a separate question" }
       - { id: c, text: "That the market price must equal his value, since the sums are so clean", mistake: { tag: value_equals_price, fix: "His value is his estimate; the market price is set by buyers and sellers." } }
       - { id: d, text: "That he made a mislabel somewhere", mistake: { tag: ties_means_mislabel, fix: "Numbers that tie out say nothing about a mislabel." } }
     answer: b
     explanation: >
-      Numbers that tie out check the calculation from inputs to value. The inputs (growth, margin,
+      Analysts say numbers "tie out" when each step follows from the inputs, so they check the
+      calculation from inputs to value. The inputs (growth, margin,
       risk) are judgements, and they can only be tested against the filing and, later, against what the
       company does.
     source: >
