@@ -101,6 +101,65 @@ describe("[S3] the Delight eval reads only the prompt's own turn", () => {
   });
 });
 
+describe("[S3] the Widget the prompt's own turn showed (bar 1, A Widget with every reply)", () => {
+  it("finds the Widget the prompt's turn stored after its reply, not the opener's", async () => {
+    const { db, pool, sessionId, promptSeq } = await opened();
+    await db.insert(messages).values([
+      { sessionId, seq: 3, role: "user", content: "what even is a basis point lol" },
+      { sessionId, seq: 4, role: "assistant", content: text("Here is a basis point on a ruler.") },
+    ]);
+    await db.insert(sessionItems).values({ learnerId: me, sessionId, afterSeq: 3, kind: "widget_shown", data: { code: "root = Ruler()", title: "Basis point ruler", recipe: "lingo" } });
+    const lane = await readLane(pool, me, promptSeq);
+    expect(lane.lane).toBe("recipe");
+    expect(lane.code).toBe("root = Ruler()");
+    expect(lane.title).toBe("Basis point ruler");
+    expect(lane.widgetsShown).toBe(1);
+  });
+
+  it("names a composed Widget's lane from its source", async () => {
+    const { db, pool, sessionId, promptSeq } = await opened();
+    await db.insert(messages).values([
+      { sessionId, seq: 3, role: "user", content: "draw it" },
+      { sessionId, seq: 4, role: "assistant", content: text("Here it is.") },
+    ]);
+    await db.insert(sessionItems).values({ learnerId: me, sessionId, afterSeq: 4, kind: "widget_shown", data: { code: "root = Chart()", title: "Composed", source: "compose" } });
+    const lane = await readLane(pool, me, promptSeq);
+    expect(lane.lane).toBe("compose");
+    expect(lane.code).toBe("root = Chart()");
+  });
+
+  it("gives the lane as the Widget source when reply_checks has no widget_source column, and says so", async () => {
+    const { db, pool, sessionId, promptSeq } = await opened();
+    await db.insert(messages).values([
+      { sessionId, seq: 3, role: "user", content: "what even is a basis point lol" },
+      { sessionId, seq: 4, role: "assistant", content: text("Here is a basis point on a ruler.") },
+    ]);
+    await db.insert(sessionItems).values({ learnerId: me, sessionId, afterSeq: 3, kind: "widget_shown", data: { code: "root = Ruler()", title: "Basis point ruler", recipe: "lingo" } });
+    const lane = await readLane(pool, me, promptSeq);
+    const d = await readDelight(pool, sessionId, promptSeq, lane.lane);
+    expect(d.widgetSource).toBe("recipe");
+    expect(d.widgetSourceFrom).toMatch(/^lane /);
+    const none = await readDelight(pool, sessionId, promptSeq, "none");
+    expect(none.widgetSource).toBe("none");
+  });
+
+  it("reads reply_checks.widget_source for the prompt's turn once the column exists", async () => {
+    const { db, pool, sessionId, promptSeq } = await opened();
+    await db.insert(messages).values([
+      { sessionId, seq: 3, role: "user", content: "what even is a basis point lol" },
+      { sessionId, seq: 4, role: "assistant", content: text("A basis point is a hundredth of a point.") },
+    ]);
+    await pool.exec("alter table reply_checks add column if not exists widget_source text");
+    await db.insert(replyChecks).values({ sessionId, turnSeq: 1, words: 6, cap: 120, shownText: "Picture a bank quoting a rate." });
+    await db.insert(replyChecks).values({ sessionId, turnSeq: 3, words: 9, cap: 120, shownText: "A basis point is a hundredth of a point." });
+    await pool.query("update reply_checks set widget_source = $1 where session_id = $2 and turn_seq = $3", ["story", sessionId, 1]);
+    await pool.query("update reply_checks set widget_source = $1 where session_id = $2 and turn_seq = $3", ["lingo", sessionId, 3]);
+    const d = await readDelight(pool, sessionId, promptSeq, "none");
+    expect(d.widgetSource).toBe("lingo");
+    expect(d.widgetSourceFrom).toBe("reply_checks");
+  });
+});
+
 describe("[S3] the Delight eval reads what a prompt's Tutor turns cost", () => {
   it("returns every step the app recorded for the Learner's Sessions, and no turn totals or other Learner's steps", async () => {
     const { db, pool, sessionId } = await opened();
