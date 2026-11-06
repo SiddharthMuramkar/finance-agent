@@ -3933,6 +3933,14 @@ Apart from L6, the rules run only on Topics off `LESSON_NOT_YET_CONVERTED`, whic
 
 *Trade-off.* The lint reads only the Topic files. Question Bank items live in the database, so it cannot see them, and `sumAsk` is a set of patterns, so a sum phrased in an unusual way slips through; the Math police critic samples Topics the list leaves out to catch those, and each miss becomes a new pattern. The gain is that "no typed numbers, no sums" holds for every future edit without anyone re-reading 95 Topics.
 
+### Foundation Topics, D2b batch: ten Topics rewritten to story and lingo questions (issue #345, ADR 0009)
+
+**What it does.** `in-rbi-policy`, `eco-trade`, `in-economy`, `hist-macro-regimes`, `bond-pricing`, `bond-yield`, `bond-yield-curve`, `bond-duration`, `bond-credit-spreads` and `in-gsec` no longer ask the Learner for a sum. Their ten ids are gone from `L10_NOT_YET_STORY`, and the six that also lost their typed worked sums are gone from the not-yet-converted list in `src/course/formula-check.ts`. Every stem that asked "how much", "what is the price" or "by what percentage" is now "which headline gets it right?" or "what do traders call it?". Numbers stay only as facts in the story or as labels the Learner recognises, and every wrong choice of a rewritten question carries a Known mistake with a one-line fix.
+
+**Scenario.** The old question gave a 6% loan, 12% inflation and asked for the real rate. Now it asks which headline describes the lender's real return, and the wrong "even bigger, about 20%" choice answers a Learner who added inflation instead of taking it off, with the fix "Inflation eats into the interest. It takes away from the real return."
+
+**Trade-off.** A choice question tests that the Learner knows the idea, not that they can do the working. That is the point of ADR 0009, but it means a Learner who guesses can pass, so each wrong choice is a named mix-up and the fix is shown.
+
 > Since spec 2026-11-05 B2a the Notes page is the Notebook (see "Notebook"); the notes below are its rows.
 
 ## Topic Notes and the Notes page (`src/learner/notes.ts`, `src/app/notes/`, `src/app/api/notes/route.ts`, table `note_items`, issue #69)
@@ -4616,6 +4624,14 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 **Scenario.** A Learner guessed through Percent, passed two Checks by luck and now feels lost. They start Percent over: the Study Workspace opens on a clean Story step with an empty chat, the Topic bar shows no Checks passed, and the first attempt is a `topic_restarts` row (attempt 1) pointing at the old Session, which stays readable. Their saved notes and due review cards are untouched.
 
 **Trade-off.** The snapshot repeats data that already exists in the old Session, accepted because it makes "nothing is lost" true (the live tables can then be cleared, so their keys and unique indexes never clash with the new attempt) and keeps the live tables simple. A turn that starts in the instant between the route's running-turn check and the restart would write to the Session being closed; the Learner's one-turn lock makes that a double-tap case only.
+
+## Foundation Topics, story-first questions batch D2c (`course/topics/`, issue #346)
+
+**What it does.** Eight Foundation Topics (`credit-analysis`, `fx-basics`, `fx-bop`, `fx-regimes-crises`, `sov-default-country-risk`, `der-forwards`, `der-options`, `der-option-pricing`) now ask about the story and the words, never for a sum (ADR 0009, spec "Shared rules for the D2 batches"). Each sum-stem quiz question keeps its `id` and its Check but becomes a lingo or "which headline gets it right?" choice question: the numbers stay as story facts, and every wrong choice carries a `mistake: {tag, fix}` of 20 words or fewer. `fx-devaluation-explain` asks the Learner to say it in their own words. The five ids that L10 flagged (`fx-basics`, `fx-bop`, `sov-default-country-risk`, `der-forwards`, `der-options`) leave `L10_NOT_YET_STORY`, and `credit-analysis`, which no longer types a formula, leaves the ADR 0002 list in `formula-check.ts`.
+
+**Scenario.** A Learner meets "A bank quotes one Mexican peso at $0.0625; the next desk reads it as 16 pesos to the dollar. What do traders call that?" They tap "the inverse quote", or tap "a devaluation" and see "A devaluation is a government cutting a fixed rate. Reading a quote the other way moves nothing." Code marks the tap, and no arithmetic is needed to tell the choices apart.
+
+**Trade-off.** A choice question is easier to guess than a typed number. Skill state still needs two right in a row and a Check still has its pass rule, so one lucky tap passes nothing, and the owner prefers the lingo to the arithmetic.
 
 ## Foundation Topics, story-first questions, batch D2a (`course/topics/`, spec 2026-11-05, ticket D2a)
 
