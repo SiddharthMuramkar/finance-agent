@@ -43,6 +43,8 @@ export type TurnUsage = {
   steps: StepUsage[];
   /** What code's reply checks found (reply_checks): the words shown, the checks the reply failed, the retry and the fallback. */
   replyCheck?: ReplyCheckSummary;
+  /** A suggest_choice label code dropped this turn (over six words, an emoji, a sum or a copy of a set label; D3a). */
+  droppedChoice?: string;
 };
 
 /** Turns one finished message's usage report into a step record. */

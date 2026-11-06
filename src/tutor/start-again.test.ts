@@ -12,6 +12,7 @@ import { scriptedClient } from "@/test/scripted-client";
 import { CONCEPT_CARD, QUICK_TRY } from "./session-item-kinds";
 import { START_AGAIN_REFUSAL } from "./tools";
 import { runTutorTurn, type TurnEvent } from "./turn";
+import { withoutChoices } from "@/test/choices";
 
 /** Seam: the Tutor Turn with the start_again tool (spec #229, ticket #245). */
 
@@ -43,7 +44,7 @@ async function turn(db: Db, map: CourseMap, text: string, toolCall = false) {
   const { client, requests } = scriptedClient(replies);
   const events: TurnEvent[] = [];
   for await (const e of runTutorTurn({ db, client, map, learnerId: me }, text)) events.push(e);
-  return { events, requests, items: events.flatMap((e) => (e.type === "item" ? [e.item] : [])) };
+  return { events, requests, items: withoutChoices(events).flatMap((e) => (e.type === "item" ? [e.item] : [])) };
 }
 
 const toolResults = (requests: { messages: unknown }[]) => JSON.stringify(requests[requests.length - 1].messages);

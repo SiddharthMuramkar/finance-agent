@@ -44,6 +44,10 @@ _Avoid_: Objective, competency, sub-skill
 One of the seven parts every Topic follows: story, concept, explore, your turn, Check, reveal and principle. Concept, your turn and Check repeat for each of the Topic's Checks; explore comes once, after the concept of the Check that tests the Topic's Insight.
 _Avoid_: Phase, stage
 
+**Choice**:
+One of the two or three tap-to-answer buttons code puts under every Tutor reply, each with an emoji before its words, such as "What happened next?", "What does that word mean?" or "Quiz me". Code picks them for the Teaching Step and may put one the Tutor suggested first. Pressing one sends its words as the Learner's message, which never counts as an Insight attempt. Typing stays open.
+_Avoid_: Help chip, suggestion, quick reply, menu
+
 **Concept card**:
 A short explanation of one idea, written ahead in the Topic's file and shown by code at the concept step: at most five plain lines with one worked example. The Tutor adds feedback and one question around it, and never writes its own version.
 _Avoid_: Lesson card, explainer, card (on its own)

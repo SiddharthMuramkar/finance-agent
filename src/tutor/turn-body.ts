@@ -31,6 +31,8 @@ const kinds = [
   // The drill the page starts when the Learner opens a Topic whose parked Skill is due (spec #229, "Parking").
   kind({ drill: z.literal(true) }),
   // A resume of the last turn (Retry, or after a cut-off).
+  // A press of one of the Choices under the latest reply, by its index (D3a): the server posts its stored words.
+  kind({ choice: z.number().int().min(0).max(2) }),
   kind({ resume: z.literal(true) }),
   // Stop: the Learner's running turn ends at its next check (within about half a second) and keeps what it wrote.
   // The route answers it on its own, before any turn runs; it never starts a turn.
@@ -55,6 +57,7 @@ export function turnInputOf(body: z.output<typeof turnBody>): TurnInput | undefi
   if ("quizFollowUp" in body) return { quizFollowUp: true };
   if ("quickTryFollowUp" in body) return { quickTryFollowUp: true };
   if ("drill" in body) return { drill: true };
+  if ("choice" in body) return { choice: body.choice };
   if ("finish" in body || "continue" in body) return { finish: true };
   const paste = body.paste?.trim();
   const message = body.message?.trim() || (paste ? PASTE_MESSAGE : undefined);

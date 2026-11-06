@@ -10,6 +10,7 @@ import { plainWrongMap, PLAIN_WRONG } from "@/test/plain-wrong-map";
 import { CONCEPT_CARD, QUICK_TRY, STEP_DIVIDER, type QuickTryData } from "./session-item-kinds";
 import { loadSessionItems } from "./session-items";
 import { NO_QUICK_TRY_FOLLOW_UP, runTutorTurn, type TurnEvent, type TurnInput } from "./turn";
+import { withoutChoices } from "@/test/choices";
 
 /**
  * Seam 1, Tutor Turn, in a converted Topic (spec #229, ticket #243): code shows the Concept card, its Widget and the
@@ -26,7 +27,8 @@ async function turn(db: Db, input: TurnInput, text = "Okay.") {
   return { events, requests, sent: requests.map((r) => JSON.stringify(r.messages)).join("\n") };
 }
 
-const itemKinds = (events: TurnEvent[]) => events.flatMap((e) => (e.type === "item" ? [e.item.kind] : []));
+// The reply's Choices (D3a) have their own tests (choices-turn.test.ts): this file reads its items without them.
+const itemKinds = (events: TurnEvent[]) => withoutChoices(events).flatMap((e) => (e.type === "item" ? [e.item.kind] : []));
 
 describe("a converted Concept step", () => {
   it("Next shows the card and its Widget with no model call, and the Tutor is told to add one sentence and one ask", async () => {
