@@ -78,15 +78,15 @@ questions:
 
   - id: ox-q-delta-shares
     prompt: >
-      Nina sells a call to a client and buys shares to cover it. Her screen says the call's delta is one half. A new hire asks what that number is telling them. What does it mean?
+      Nina sells a call to a client and buys some shares to cover it. Her screen shows a number called delta, 0.5, and she buys only half a share for each call she sold. A new hire asks why half is enough. What is delta telling her?
     choices:
-      - { id: a, text: "The call has a 50% chance of paying off", mistake: { tag: delta_as_probability, fix: "Delta is a share count, not the chance of the call paying off." } }
-      - { id: b, text: "The call moves about half as much as the share" }
-      - { id: c, text: "The call is worth half the share price", mistake: { tag: delta_as_value, fix: "Delta says how the value moves, not what it is worth." } }
-      - { id: d, text: "The call can only be sold at half its value", mistake: { tag: delta_as_discount, fix: "Delta is a number of shares, not a price discount." } }
+      - { id: a, text: "The call has a 50% chance of paying off", mistake: { tag: delta_as_probability, fix: "Delta is not the chance of paying off. It compares how far the call and the share move." } }
+      - { id: b, text: "When the share moves, the call moves about half as far" }
+      - { id: c, text: "The call is worth half the share price", mistake: { tag: delta_as_value, fix: "Delta compares moves, not worth. The call is not priced at half the share." } }
+      - { id: d, text: "The call can only be sold at half its value", mistake: { tag: delta_as_discount, fix: "Delta is not a discount. It compares how far the call and the share move." } }
     answer: b
     explanation: >
-      The call's payoff swings by $20 while the share swings by $40, so delta is one half. The 0.625 that appears in the pricing is a weighting used in the calculation, not a number of shares.
+      When the share swings by $40, the call's payoff swings by $20, so the call moves half as far: delta is one half. That is why half a share per call cancels the call's swings.
     source: >
       Cox, Ross and Rubinstein, "Option pricing: a simplified approach", Journal of Financial Economics 7 (1979), 229-263: https://doi.org/10.1016/0304-405X(79)90015-1 ; delta calculated from the formula
 

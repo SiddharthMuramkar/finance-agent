@@ -89,12 +89,12 @@ questions:
 
   - id: fx-q-exporter
     prompt: >
-      A Mexican potter sells goods to a buyer in Texas for $20,000. Then the peso slides from MXN 16 = USD 1 to MXN 20 = USD 1, and a local paper runs a story on the potter's luck. What does the story say?
+      A Mexican potter sells goods to a buyer in Texas for $20,000. Then the peso slides from MXN 16 = USD 1 to MXN 20 = USD 1. When the potter changes the dollars into pesos, what does she find?
     choices:
-      - { id: a, text: "The peso strengthened, so the potter gains in pesos", mistake: { tag: read_the_rate_backwards, fix: "More pesos per dollar means each peso buys fewer dollars. The peso weakened." } }
-      - { id: b, text: "The peso weakened, so the potter earns fewer pesos", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more in pesos." } }
-      - { id: c, text: "The peso weakened, so the same dollars now buy more pesos and the potter gains in pesos" }
-      - { id: d, text: "Nothing changes for the potter, because the dollar price is the same", mistake: { tag: ignored_conversion, fix: "The dollars are the same, but converting them now gives a different number of pesos." } }
+      - { id: a, text: "The peso strengthened, so the potter ends up with more pesos", mistake: { tag: read_the_rate_backwards, fix: "More pesos per dollar means each peso buys fewer dollars. The peso weakened." } }
+      - { id: b, text: "The peso weakened, so the potter ends up with fewer pesos", mistake: { tag: weak_currency_hurts_exporter, fix: "A weaker peso means each dollar fetches more pesos. The exporter earns more in pesos." } }
+      - { id: c, text: "The peso weakened, so the potter ends up with more pesos" }
+      - { id: d, text: "Nothing changes, because the dollar price is the same", mistake: { tag: ignored_conversion, fix: "The dollars are the same, but converting them now gives a different number of pesos." } }
     answer: c
     explanation: >
       At 16 per dollar $20,000 buys 320,000 pesos; at 20 per dollar it buys 400,000. More pesos per dollar means each peso is worth fewer dollars: the peso depreciated, and the exporter earns more in pesos.
@@ -122,7 +122,7 @@ questions:
       - { id: a, text: "Exactly the two cuts added", mistake: { tag: added_the_cuts, fix: "The second cut is a share of an already smaller value, so the cuts do not simply add." } }
       - { id: b, text: "A little less than the two cuts added" }
       - { id: c, text: "More than the two cuts added", mistake: { tag: compounding_goes_up, fix: "The second cut applies to a smaller base, so it takes away less of the original." } }
-      - { id: d, text: "Nobody can tell", mistake: { tag: needs_the_rate, fix: "The second cut always bites a smaller value, so the total is a little below the two added." } }
+      - { id: d, text: "It depends on which cut came first", mistake: { tag: order_matters, fix: "The order does not matter. The second cut always bites a smaller value, so the total is a little below the two added." } }
     answer: b
     explanation: >
       The second cut bites a currency that is already worth less, so it takes away less of the original value. A 10% cut followed by a 10% cut of the new value leaves a total fall of 19%, not 20%.

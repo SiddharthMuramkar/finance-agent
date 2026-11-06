@@ -96,15 +96,15 @@ questions:
 
   - id: sd-q-haircut
     prompt: >
-      Carlos's grandmother held bonds from a government that defaulted. A letter arrives: she can swap them for new bonds worth 40 cents for every dollar she was owed. Carlos's banker friend winces: "That is a deep one." What is he talking about?
+      Carlos's grandmother held bonds from a government that defaulted. A letter arrives: she can swap them for new bonds worth 40 cents for every dollar she was owed. Carlos's banker friend winces: "That is a deep one." What has she been asked to accept?
     choices:
-      - { id: a, text: "A coupon", mistake: { tag: haircut_is_coupon, fix: "A coupon is a bond's interest payment, not the loss taken in a restructuring." } }
-      - { id: b, text: "A spread", mistake: { tag: haircut_is_spread, fix: "A spread is the extra yield before a default. The loss taken in the swap is the haircut." } }
-      - { id: c, text: "A haircut" }
-      - { id: d, text: "A peg", mistake: { tag: haircut_is_peg, fix: "A peg fixes an exchange rate. It has nothing to do with writing down debt." } }
+      - { id: a, text: "The loss of the interest payments the old bonds used to pay (a coupon)", mistake: { tag: haircut_is_coupon, fix: "A coupon is a bond's interest payment, not the loss taken in a restructuring." } }
+      - { id: b, text: "A fall in the extra yield investors asked for before the default (a spread)", mistake: { tag: haircut_is_spread, fix: "A spread is the extra yield before a default. The loss taken in the swap is the haircut." } }
+      - { id: c, text: "A cut in what she is owed, taken to settle the debt (a haircut)" }
+      - { id: d, text: "A promise to keep the exchange rate fixed (a peg)", mistake: { tag: haircut_is_peg, fix: "A peg fixes an exchange rate. It has nothing to do with writing down debt." } }
     answer: c
     explanation: >
-      An investor holding old bonds with a face value of $50,000 gets new bonds worth 0.40 x 50,000 = $20,000, giving up 60% of face value. That 60% is the haircut.
+      An investor holding old bonds with a face value of $50,000 gets new bonds worth 0.40 x 50,000 = $20,000, giving up 60% of face value. That 60% is the haircut: the part of the debt that the creditor gives up.
     source: >
       US State Department, 2006 Investment Climate Statement, Argentina (restructuring offer measured in cents per dollar of face value of old debt): https://2001-2009.state.gov/e/eeb/ifd/2006/61959.htm
 

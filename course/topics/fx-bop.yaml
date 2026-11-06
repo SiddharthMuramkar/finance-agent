@@ -121,7 +121,7 @@ questions:
     choices:
       - { id: a, text: "GDP is the pot the deficit has to be repaid from in one year", mistake: { tag: gdp_is_repayment_pot, fix: "GDP is a yardstick for size. It is not a repayment rule." } }
       - { id: b, text: "Dollar amounts cannot be compared between countries", mistake: { tag: dollars_cannot_compare, fix: "Dollars can be compared. A share also lets a small and a large economy be compared by size." } }
-      - { id: c, text: "The IMF refuses figures in dollars", mistake: { tag: imf_rule, fix: "Nothing forbids dollar figures. The share is used because it adjusts for the economy's size." } }
+      - { id: c, text: "It shows how fast the deficit is growing", mistake: { tag: share_is_growth, fix: "A share shows the deficit against the economy's size. It says nothing about growth." } }
       - { id: d, text: "It shows the gap relative to the size of the economy" }
     answer: d
     explanation: >

@@ -93,15 +93,15 @@ questions:
 
   - id: fw-q-mark-to-market
     prompt: >
-      A grain merchant is long 5,000 bushels of wheat futures. The futures price falls by 40 cents a bushel today. What happens at the end of the day?
+      Maya trades grain. This morning she signed up to buy 5,000 bushels of wheat later at a price fixed today (a futures contract), so she wins if wheat rises and loses if it falls. By afternoon the wheat price has dropped 40 cents a bushel. When the exchange closes tonight, what happens to Maya?
     choices:
-      - { id: a, text: "Nothing is paid until the contract expires", mistake: { tag: forward_not_futures, fix: "That describes a forward. Futures are marked to market and settled in cash every day." } }
-      - { id: b, text: "The merchant receives cash for the fall", mistake: { tag: long_gains_on_a_fall, fix: "A long position loses when the price falls, so cash goes out, not in." } }
-      - { id: c, text: "The loss is paid in cash that day, into the margin account" }
-      - { id: d, text: "The exchange cancels the contract", mistake: { tag: cancel_on_loss, fix: "The exchange asks for more margin. It does not cancel a contract over a price move." } }
+      - { id: a, text: "Nothing is paid until the contract runs out", mistake: { tag: forward_not_futures, fix: "That describes a forward. Futures are marked to market and settled in cash every day." } }
+      - { id: b, text: "Maya receives cash for the fall", mistake: { tag: long_gains_on_a_fall, fix: "A long position loses when the price falls, so cash goes out, not in." } }
+      - { id: c, text: "Her loss is taken from her margin account in cash that day" }
+      - { id: d, text: "The exchange cancels her contract", mistake: { tag: cancel_on_loss, fix: "The exchange asks for more margin. It does not cancel a contract over a price move." } }
     answer: c
     explanation: >
-      Futures are marked to market daily. A long position loses when the price falls: the loss is settled in cash that day (a variation margin payment). A forward contract would show the same paper loss but no cash call.
+      Futures are marked to market daily. A long position (Maya's promise to buy) loses when the price falls: the loss is settled in cash that day, taken from her margin account (a variation margin payment). A forward contract would show the same paper loss but no cash call.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.2 Commodity Price Risk (futures, margin and marking to market): https://openstax.org/books/principles-finance/pages/20-2-commodity-price-risk
 

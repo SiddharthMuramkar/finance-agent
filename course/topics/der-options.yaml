@@ -108,7 +108,7 @@ questions:
     choices:
       - { id: a, text: "It removes every loss: you cannot lose money", mistake: { tag: insurance_is_free, fix: "You still lose the premium and the drop down to the strike." } }
       - { id: b, text: "It gains when the share rises", mistake: { tag: put_gains_on_a_rise, fix: "A put gains when the share falls, not when it rises." } }
-      - { id: c, text: "It only works if you also sell the share", mistake: { tag: must_sell_share, fix: "The put works as insurance while you keep the share." } }
+      - { id: c, text: "It fixes the share at today's price, so he can no longer gain", mistake: { tag: fixes_the_price, fix: "The put sets a floor but leaves the upside. If the share rises he still gains." } }
       - { id: d, text: "It puts a floor under your loss: the worst case is capped" }
     answer: d
     explanation: >
