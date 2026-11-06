@@ -143,7 +143,7 @@ questions:
       - { id: a, text: "The early cash flows are small or negative, so the value depends on what the business earns once it matures" }
       - { id: b, text: "Terminal values are always accurate", mistake: { tag: terminal_accurate, fix: "Terminal values are uncertain; they dominate because early cash is negative." } }
       - { id: c, text: "Young companies have no discount rate", mistake: { tag: no_discount_rate, fix: "Young companies have a discount rate, often a high one." } }
-      - { id: d, text: "Taxes are zero after year 10", mistake: { tag: zero_tax, fix: "Taxes do not stop after year 10; value sits late because early cash is negative." } }
+      - { id: d, text: "Because later cash flows are discounted less", mistake: { tag: later_discounted_less, fix: "Later cash flows are discounted more, not less; value sits late because early cash is negative." } }
     answer: a
     explanation: >
       When early free cash flows are negative, the positive value comes from later years and the perpetuity beyond the forecast, so the assumptions about margins, growth and the discount rate dominate.

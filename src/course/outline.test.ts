@@ -191,4 +191,12 @@ describe("the real outline", () => {
     const indian = foundation.filter((t) => /india|rbi|sebi|coffee day|satyam|sensex|yes bank|rupee|paytm|il&fs|jio|rs \d/i.test(JSON.stringify(t)));
     expect(indian.length).toBeGreaterThanOrEqual(25);
   });
+
+  // Issue #498: the fs-links story says investors forced the Maytas call-off in December 2008, so its sources must hold
+  // a dated December 2008 report of that, not only the Raju letter and the SEC release.
+  it("cites a dated December 2008 Maytas source for the fs-links Case", () => {
+    const sources = outline!.topics.find((t) => t.id === "fs-links")?.cases.flatMap((c) => c.sources) ?? [];
+    expect(sources).toContain("https://www.indiatoday.in/latest-headlines/story/satyam-calls-off-16-bn-maytas-deal-35355-2008-12-17");
+    expect(sources).toContain("https://www.reuters.com/article/marketsNews/idINN1628370020081216/");
+  });
 });
