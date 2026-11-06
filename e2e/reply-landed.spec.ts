@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { replyLanded, say, script, seed, settled } from "./support/app";
+import { replyLanded, say, script, seed, settled, type Script } from "./support/app";
 
 /**
  * The race behind main CI run 42251293052 (widget-every-reply.spec.ts, beside an open quiz: "Received: 2"), made
@@ -37,7 +37,7 @@ const chipNames = async (page: Page) => page.getByTestId("widget-chip").evaluate
 async function lateOpener(page: Page, guard: (page: Page) => Promise<void>) {
   await seed(page, "quiz-open");
   // The script CI's opener played there (the previous test's): its Widget is a Lingo card.
-  await script(page, "reveal-reply");
+  await script(page, "reveal-reply" as Script);
   await page.addInitScript(() => {
     const w = window as Held;
     w.__faE2eHoldOpener = new Promise<void>((resolve) => (w.__faE2eStartOpener = resolve));
