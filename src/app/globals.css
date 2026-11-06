@@ -626,7 +626,8 @@ body {
 /* Tutor replies rendered from Markdown (src/app/reply-markdown.tsx). Calm and plain: spacing and weight.
    Step headings take the button navy (--brand, lighter in dark mode); bold key terms and paragraphs stay --ink. */
 .md {
-  @apply leading-relaxed break-words;
+  @apply break-words;
+  line-height: var(--lh-chat);
 }
 .md > * + * {
   @apply mt-3;

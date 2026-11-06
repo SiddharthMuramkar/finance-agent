@@ -4679,6 +4679,12 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 
 **Trade-off.** On screens wider than 2200 px the page is centred with empty sides. At 1024 px the chat keeps a 360 px minimum, so the Widget panel gets what is left. Chat text stays at its readable line length even in a wide column, so the chat column can have empty room to the right of its text; that is by design (long lines are harder to read).
 
+**Type scale (ticket A2).** The app is compact (tokens in `:root`: `--text-chat`, `--lh-chat`, `--text-ui`, `--text-small`, `--header-h`).
+- Chat: 15 px on 24 px lines, for the Tutor reply, the Learner bubble and the composer (the Tutor label stays 12 px).
+- UI text: 13 px (nav, tags, helper lines) or 14 px (buttons, card body); page `h1` is `text-lg` (18/26), the eyebrow 11 px.
+- Header: `h-[var(--header-h)]` (52 px) with a 1 px hairline underneath and no bottom margin; the page content below starts at `pt-3`.
+- Cards: `p-3`. Widget chips `min-h-8` (32 px), pager items `min-h-9` (36 px); nothing clickable is under 28 px high.
+
 ### Story parts (wave 3) (`src/widgets/primitives/wave3/`, `WAVE3_PARTS`, group "Story" in `WIDGET_COMPONENT_GROUPS`, `e2e/story-parts.spec.ts`, spec 2026-11-05, ticket E2a)
 
 **What it does.** Five Widget parts that tell the idea as a story, with pictures and words instead of a slider or a sum. `StoryScene` is a stage with up to four characters and a speech bubble that tells one beat at a time (Next beat, a tap on the stage, or the arrow keys; Replay at the end), stamped with the story's date. `LingoCard` teaches one piece of lingo: the word, "say it like a pro", the plain meaning and an everyday example, with a flip to how the word showed up in the story. `TimelineStrip` puts emoji moments on a line, oldest first, and draws any moment after the story's date as a locked "?" so the future is not given away. `TwoPaths` shows two characters who chose differently and, on a press, reveals each outcome as a row of objects, never numbers. `MoneyJar` fills or drains a jar one object at a time and says how full it is in words. All pictures come through `<Emoji>`, colours through theme tokens and the four accents (sunflower for stories and history, violet for lingo, mint for gains, coral for losses), and motion is `transform` and `opacity` only, under 400 ms. Under reduced motion nothing moves and each part says `data-motion="off"`. The props of each part are in a fixed order forever; `npm run widgets:freeze` added them to the frozen catalogue.
