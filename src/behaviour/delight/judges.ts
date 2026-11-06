@@ -151,19 +151,101 @@ export function delightBudget(env: Record<string, string | undefined>): number {
   return cap;
 }
 
-/** Counts the round's spend against the cap. `charge` adds a call's real cost; `allows` says whether another call of about `next` dollars still fits. */
+/** What one judge call is expected to cost until a real one is known: a screenshot, the reply and the rubric on Opus. */
+export const FIRST_JUDGE_CALL_USD = 0.15;
+/**
+ * What one prompt's Tutor turns are expected to cost until a real prompt is known. A prompt is two paid turns (the
+ * Topic's opener and the reply to the prompt), each a few Opus steps; $0.60 is well above what one costs.
+ */
+export const FIRST_PROMPT_TURNS_USD = 0.6;
+
+export type TokenUse = { inputTokens: number; outputTokens: number; cacheReadTokens?: number; cacheWriteTokens?: number };
+/** One model call the app recorded for a Tutor turn (a `usage` step row). */
+export type TurnStep = TokenUse & { model: string };
+
+function priceOf(model: string, usage: TokenUse): number {
+  const cost = costUsd(model, { cacheReadTokens: 0, cacheWriteTokens: 0, ...usage });
+  if (cost === null) throw new Error(`The model "${model}" has no price in src/tutor/pricing.ts, so its spend cannot be capped.`);
+  return cost;
+}
+
+/**
+ * Counts the round's spend, Tutor turns and judges together, against the one cap (spec D.3: "<= $13 a round, about 22
+ * turns plus 80 judge calls"). `allows` says whether something of about `next` dollars still fits; `chargeTurns` adds
+ * a prompt's turns and `chargeJudge` a judge call, each at its real token use; `nextPrompt` and `nextJudgeCall` are
+ * the estimates the runner checks before starting either.
+ */
 export class Spend {
   spent = 0;
+  /** The Tutor turns' part of `spent`, and the most one prompt's turns have cost. */
+  readonly tutor = { usd: 0, prompts: 0, costliest: 0 };
+  /** The judges' part of `spent`, and the calls that made it. */
+  readonly judges = { usd: 0, calls: 0 };
   constructor(readonly cap: number) {}
   allows(next: number): boolean {
     return this.spent + next <= this.cap;
   }
-  charge(model: string, usage: { inputTokens: number; outputTokens: number; cacheReadTokens?: number; cacheWriteTokens?: number }): number {
-    const cost = costUsd(model, { cacheReadTokens: 0, cacheWriteTokens: 0, ...usage });
-    if (cost === null) throw new Error(`The model "${model}" has no price in src/tutor/pricing.ts, so its spend cannot be capped.`);
+  charge(model: string, usage: TokenUse): number {
+    const cost = priceOf(model, usage);
     this.spent += cost;
     return cost;
   }
+  /** Charges one prompt's Tutor turns (every step the app recorded for them) and returns what they cost. */
+  chargeTurns(steps: readonly TurnStep[]): number {
+    const cost = steps.reduce((sum, st) => sum + priceOf(st.model, st), 0);
+    this.spent += cost;
+    this.tutor.usd += cost;
+    this.tutor.prompts += 1;
+    this.tutor.costliest = Math.max(this.tutor.costliest, cost);
+    return cost;
+  }
+  /** Charges one judge call and returns what it cost. */
+  chargeJudge(model: string, usage: TokenUse): number {
+    const cost = this.charge(model, usage);
+    this.judges.usd += cost;
+    this.judges.calls += 1;
+    return cost;
+  }
+  /** What the next prompt's turns are expected to cost: the costliest prompt so far, or FIRST_PROMPT_TURNS_USD before one is known. */
+  nextPrompt(): number {
+    return this.tutor.costliest > 0 ? this.tutor.costliest : FIRST_PROMPT_TURNS_USD;
+  }
+  /** What the next judge call is expected to cost: the judges' own average so far (never the Tutor's), or FIRST_JUDGE_CALL_USD. */
+  nextJudgeCall(): number {
+    return this.judges.calls ? this.judges.usd / this.judges.calls : FIRST_JUDGE_CALL_USD;
+  }
+}
+
+/** One try at a prompt. It sets `seen.learnerId` as soon as it knows the Learner it runs as, so a failed try is charged too. */
+export type PromptTry<R> = (seen: { learnerId: number | null }) => Promise<R>;
+
+/**
+ * Runs one prompt under the round's cap, tried at most twice (only an infrastructure failure is retried; the caller's
+ * try throws for that alone). Before each try it refuses to start when the prompt's turns would pass the cap
+ * (`refused`, with the last error if a try failed first); after each try, a failed one too, it charges the steps the
+ * app recorded for the Learner the try ran as. With no Spend (the built-in Widget eval) it runs uncapped and reads
+ * nothing.
+ */
+export async function runUnderCap<R>(o: {
+  spend: Spend | null;
+  attempt: PromptTry<R>;
+  usageOf: (learnerId: number) => Promise<TurnStep[]>;
+  onRetry?: (error: unknown) => void;
+}): Promise<{ row: R } | { error: unknown } | { refused: true; error?: unknown }> {
+  let failed: { error: unknown } | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (o.spend && !o.spend.allows(o.spend.nextPrompt())) return failed ? { refused: true, error: failed.error } : { refused: true };
+    if (failed) o.onRetry?.(failed.error);
+    const seen: { learnerId: number | null } = { learnerId: null };
+    try {
+      return { row: await o.attempt(seen) };
+    } catch (error) {
+      failed = { error };
+    } finally {
+      if (o.spend && seen.learnerId !== null) o.spend.chargeTurns(await o.usageOf(seen.learnerId));
+    }
+  }
+  return failed!;
 }
 
 /** Everything the bars read, one entry per prompt (a judge that failed twice is missing). */

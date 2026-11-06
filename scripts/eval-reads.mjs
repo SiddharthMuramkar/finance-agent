@@ -57,3 +57,18 @@ export async function readDelight(pool, sessionId, promptSeq, lane) {
   }
   return { reply, choices, choicesCount: choices ? choices.length : null, widgetSource, widgetSourceFrom };
 }
+
+/**
+ * Delight set: every model call the app recorded for a Learner's Tutor turns (the `usage` step rows of all its
+ * Sessions), in the shape Spend.chargeTurns takes. The eval starts a fresh Learner for each try, so one Learner's steps
+ * are one try's turns: the Topic's opener and the reply to the prompt. Step rows, not turn totals, so a turn that broke
+ * off before its total was written is still counted.
+ */
+export async function tutorSteps(pool, learnerId) {
+  const { rows } = await pool.query(
+    `select u.model, u.input_tokens, u.output_tokens, u.cache_read_tokens, u.cache_write_tokens from usage u join sessions s on s.id = u.session_id
+     where s.learner_id = $1 and u.kind = 'step' order by u.id`,
+    [learnerId],
+  );
+  return rows.map((r) => ({ model: r.model, inputTokens: r.input_tokens, outputTokens: r.output_tokens, cacheReadTokens: r.cache_read_tokens, cacheWriteTokens: r.cache_write_tokens }));
+}

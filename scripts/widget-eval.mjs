@@ -22,7 +22,9 @@
 //             the built-in set: each prompt opens its own Topic at its own Teaching Step, and the report is the G2 bars
 //             (delight-report.json and .md by default). npm run delight:eval wraps this.
 //   --judge   with --set delight: runs the four Appendix D.2 judges (scripts/delight-judge.mjs, Opus) over each prompt.
-//             This is PAID (about 22 Tutor turns plus 80 judge calls) and capped by DELIGHT_BUDGET_USD (default 13).
+//             This is PAID (about 22 Tutor turns plus 80 judge calls). DELIGHT_BUDGET_USD (default 13) caps the whole round:
+//             each prompt's Tutor turns are charged from the usage rows the app records, a prompt that would pass the cap
+//             is not started, and the judges get what is left. Without --judge the Tutor turns are still capped.
 //             It needs ANTHROPIC_API_KEY in the environment; it is never run in CI.
 //   --rescore re-reads <folder>/<name>.json, merges --scores and rewrites both files without running anything
 //
@@ -43,7 +45,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { readDelight, readLane } from "./eval-reads.mjs";
+import { readDelight, readLane, tutorSteps } from "./eval-reads.mjs";
 import { assertLocalBase, assertTestDatabase, assertToolsLearner } from "./script-guards.mjs";
 
 const args = process.argv.slice(2);
@@ -464,9 +466,13 @@ async function openAtStep(pool, learnerId, p) {
   );
 }
 
-/** Starts the tools Learner over, signs in by the page and starts the first Topic; resolves when the opening turn is done. */
-async function reachStudy(browser, pool, p) {
+/**
+ * Starts the tools Learner over, signs in by the page and starts the first Topic; resolves when the opening turn is done.
+ * `seen.learnerId` is set as soon as the fresh Learner exists, so the Delight budget can charge a try that fails later.
+ */
+async function reachStudy(browser, pool, p, seen) {
   const { learnerId } = await signInAsToolsLearner(BASE);
+  seen.learnerId = learnerId;
   const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
   const page = await context.newPage();
   await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
@@ -490,14 +496,14 @@ async function reachStudy(browser, pool, p) {
   return { context, page, learnerId };
 }
 
-async function evalPrompt(browser, pool, p) {
+async function evalPrompt(browser, pool, p, seen = { learnerId: null }) {
   const row = {
     n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}),
     lane: "none", recipe: null, params: null, title: null, archetype: null, code: null,
     firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stuckMs: 0, stopped: null, error: null,
     toolsUsed: [], checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null,
   };
-  const { context, page, learnerId } = await reachStudy(browser, pool, p);
+  const { context, page, learnerId } = await reachStudy(browser, pool, p, seen);
   try {
     await assertToolsLearner(pool, learnerId);
     const promptSeq = await maxSeq(pool, learnerId);
@@ -553,23 +559,23 @@ async function evalPrompt(browser, pool, p) {
 
 const round = (x) => (typeof x === "number" ? Math.round(x) : null);
 
-/** Delight set: judges (with --judge), the Appendix D.3 bars, and the two report files. */
-async function finishDelight(rows) {
-  const { caseOf, computeBars, alsoReported, delightBudget, Spend } = await import("../src/behaviour/delight/judges.ts");
+/**
+ * Delight set: judges (with --judge), the Appendix D.3 bars, and the two report files. `spend` already holds the round's
+ * Tutor turns, so the judges get what is left of the one cap, and `problems` already names any prompt the cap stopped.
+ */
+async function finishDelight(rows, spend, problems) {
+  const { caseOf, computeBars, alsoReported } = await import("../src/behaviour/delight/judges.ts");
   const { readOutlineText } = await import("../src/course/map.ts");
-  const spend = new Spend(delightBudget(process.env));
-  const problems = [];
   if (judge) {
     const { judgePrompt, realClient } = await import("./delight-judge.mjs");
     const client = await realClient();
-    const calls = { count: 0 };
     const outline = readOutlineText();
     for (const row of rows) {
       if (!row.delight) continue;
       const { title, caseText } = caseOf(outline, row.topic);
       const evidence = { prompt: { id: row.id, topic: row.topic, step: row.step, message: row.prompt }, topicTitle: title, reply: row.delight.reply, choices: row.delight.choices, widgetCode: row.code, widgetSource: row.delight.widgetSource, caseText };
       try {
-        const r = await judgePrompt({ client, spend, evidence, screenshot: row.screenshot, calls });
+        const r = await judgePrompt({ client, spend, evidence, screenshot: row.screenshot });
         row.judgements = r.judgements;
         for (const e of r.errors) problems.push(`${row.id} ${e}`);
         if (r.skipped.length) problems.push(`${row.id}: not judged by ${r.skipped.join(", ")} (the $${spend.cap} cap)`);
@@ -583,9 +589,10 @@ async function finishDelight(rows) {
   const total = rows.length;
   const bars = computeBars(results, total);
   const also = alsoReported(results);
-  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: Math.round(spend.spent * 100) / 100, capUsd: spend.cap, bars, alsoReported: also, problems, prompts: rows };
+  const usd = (x) => Math.round(x * 100) / 100;
+  const report = { ranAt: new Date().toISOString(), base: BASE, judged: judge, spendUsd: usd(spend.spent), tutorSpendUsd: usd(spend.tutor.usd), judgeSpendUsd: usd(spend.judges.usd), capUsd: spend.cap, bars, alsoReported: also, problems, prompts: rows };
   writeFileSync(join(out, `${reportName}.json`), JSON.stringify(report, null, 2));
-  const md = [`# Delight eval: ${total} prompt${total === 1 ? "" : "s"}`, "", `Run ${report.ranAt} against ${BASE}. ${judge ? `Judged by Opus. Spend $${report.spendUsd.toFixed(2)} of the $${spend.cap} cap.` : "Not judged (no --judge): the judged bars read \"not judged\"."}`, ""];
+  const md = [`# Delight eval: ${total} prompt${total === 1 ? "" : "s"}`, "", `Run ${report.ranAt} against ${BASE}. Spend $${report.spendUsd.toFixed(2)} of the $${spend.cap} cap: $${report.tutorSpendUsd.toFixed(2)} of Tutor turns and $${report.judgeSpendUsd.toFixed(2)} of judges. ${judge ? "Judged by Opus." : "Not judged (no --judge): the judged bars read \"not judged\"."}`, ""];
   md.push("## Bars (spec Appendix D.3)", "", "| Bar | Target | Actual | Result |", "|---|---|---|---|");
   for (const b of bars) md.push(`| ${b.name} | ${b.target} | ${b.actual} | ${b.pass == null ? "n/a" : b.pass ? "pass" : "FAIL"} |`);
   md.push("", "## Also reported", "");
@@ -608,30 +615,38 @@ async function finishDelight(rows) {
 const pool = new Pool({ connectionString: DATABASE_URL });
 const browser = await chromium.launch();
 const rows = [];
+// The Delight round's one budget (spec D.3): the Tutor's turns are charged here as each prompt runs, the judges after.
+const { delightBudget, runUnderCap, Spend } = await import("../src/behaviour/delight/judges.ts");
+const spend = DELIGHT ? new Spend(delightBudget(process.env)) : null;
+const problems = [];
+const failedRow = (p, error) => ({ n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}), lane: "none", archetype: null, firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stopped: null, error, checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null, toolsUsed: [] });
+const firstLine = (e) => String(e?.message ?? e).split("\n")[0];
 try {
   for (const p of PROMPTS) {
     if (only && !only.has(p.n)) continue;
+    // Only an infrastructure failure (server down, sign-in failed) is retried, once. A slow or poor answer never is.
+    const r = await runUnderCap({
+      spend,
+      attempt: (seen) => evalPrompt(browser, pool, p, seen),
+      usageOf: (learnerId) => tutorSteps(pool, learnerId),
+      onRetry: (e) => console.error(`prompt ${p.n}: ${firstLine(e)}; retrying once`),
+    });
     let row;
-    try {
-      row = await evalPrompt(browser, pool, p);
-    } catch (e) {
-      // Only an infrastructure failure (server down, sign-in failed) is retried, once. A slow or poor answer never is.
-      console.error(`prompt ${p.n}: ${String(e?.message ?? e).split("\n")[0]}; retrying once`);
-      try {
-        row = await evalPrompt(browser, pool, p);
-      } catch (e2) {
-        row = { n: p.n, slug: p.slug, prompt: p.prompt, expected: p.expected, expectedSet: p.expectedSet, ...(DELIGHT ? { id: p.id, topic: p.topic, step: p.step } : {}), lane: "none", archetype: null, firstPixelMs: null, interactiveMs: null, doneMs: null, stuck: false, stopped: null, error: `run failed: ${String(e2?.message ?? e2).split("\n")[0]}`, checks: codeChecks("none", null, null, p.expectedSet).checks, screenshot: null, scores: null, toolsUsed: [] };
-      }
-    }
+    if ("row" in r) row = r.row;
+    else if ("refused" in r) {
+      const why = `not run: its Tutor turns (about $${spend.nextPrompt().toFixed(2)}) would pass the $${spend.cap} cap, $${spend.spent.toFixed(2)} spent`;
+      row = failedRow(p, r.error ? `run failed: ${firstLine(r.error)}; ${why}` : why);
+      problems.push(`${p.id ?? p.n}: ${why}`);
+    } else row = failedRow(p, `run failed: ${firstLine(r.error)}`);
     rows.push(row);
-    console.log(`${pad(p.n)} ${row.lane.padEnd(8)} ${String(row.recipe ?? "").padEnd(18)} px ${sec(row.firstPixelMs)} int ${sec(row.interactiveMs)} done ${sec(row.doneMs)} ${row.archetype ?? "-"}${row.error ? `  ERROR ${row.error}` : ""}`);
+    console.log(`${pad(p.n)} ${row.lane.padEnd(8)} ${String(row.recipe ?? "").padEnd(18)} px ${sec(row.firstPixelMs)} int ${sec(row.interactiveMs)} done ${sec(row.doneMs)} ${row.archetype ?? "-"}${row.error ? `  ERROR ${row.error}` : ""}${spend ? `  spent $${spend.spent.toFixed(2)} of $${spend.cap}` : ""}`);
   }
 } finally {
   await browser.close();
   await pool.end();
 }
 if (DELIGHT) {
-  await finishDelight(rows);
+  await finishDelight(rows, spend, problems);
   process.exit(0);
 }
 if (scoresFile) mergeScores(rows, readJson(scoresFile));

@@ -1,8 +1,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error the eval's reads are a plain .mjs script with no types
-import { readDelight, readLane } from "../../../scripts/eval-reads.mjs";
-import { messages, OWNER_LEARNER_ID, replyChecks, sessionItems, sessions } from "@/db/schema";
+import { readDelight, readLane, tutorSteps } from "../../../scripts/eval-reads.mjs";
+import { learners, messages, OWNER_LEARNER_ID, replyChecks, sessionItems, sessions, usageRows } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { testDb } from "@/test/pglite";
 
@@ -98,5 +98,24 @@ describe("[S3] the Delight eval reads only the prompt's own turn", () => {
     ]);
     const d = await readDelight(pool, sessionId, promptSeq, "none");
     expect(d.reply).toBe("A basis point is a hundredth of a point.");
+  });
+});
+
+describe("[S3] the Delight eval reads what a prompt's Tutor turns cost", () => {
+  it("returns every step the app recorded for the Learner's Sessions, and no turn totals or other Learner's steps", async () => {
+    const { db, pool, sessionId } = await opened();
+    const [other] = await db.insert(learners).values({ name: "someone else" }).returning({ id: learners.id });
+    const [theirs] = await db.insert(sessions).values({ learnerId: other.id, instructions: "i", tools: [], model: "claude-opus-5-5", effort: "low", fingerprint: "f" }).returning({ id: sessions.id });
+    const row = (sid: number, turnSeq: number, kind: "step" | "turn", step: number | null, inputTokens: number) => ({ sessionId: sid, turnSeq, kind, step, model: "claude-opus-5-5", inputTokens, outputTokens: 100, cacheReadTokens: 50, cacheWriteTokens: 25, tools: [], durationMs: 1 });
+    await db.insert(usageRows).values([
+      row(sessionId, 1, "step", 1, 1000),
+      row(sessionId, 1, "step", 2, 2000),
+      row(sessionId, 1, "turn", null, 3000),
+      row(sessionId, 3, "step", 1, 4000),
+      row(theirs.id, 1, "step", 1, 9999),
+    ]);
+    const steps = await tutorSteps(pool, me);
+    expect(steps.map((s: { inputTokens: number }) => s.inputTokens).sort((a: number, b: number) => a - b)).toEqual([1000, 2000, 4000]);
+    expect(steps[0]).toEqual({ model: "claude-opus-5-5", inputTokens: expect.any(Number), outputTokens: 100, cacheReadTokens: 50, cacheWriteTokens: 25 });
   });
 });

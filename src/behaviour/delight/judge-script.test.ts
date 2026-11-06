@@ -27,7 +27,7 @@ function fake(replies: string[], usage = { input_tokens: 2000, output_tokens: 20
 describe("[S3] the judge runner", () => {
   it("makes one call per judge and parses each answer", async () => {
     const client = fake([persona, math, fit, historian]);
-    const r = await judgePrompt({ client, spend: new Spend(13), evidence, screenshot: null, calls: { count: 0 } });
+    const r = await judgePrompt({ client, spend: new Spend(13), evidence, screenshot: null });
     expect(client.calls).toHaveLength(4);
     expect(Object.keys(r.judgements)).toEqual(["persona", "math", "fit", "historian"]);
     expect(r.errors).toEqual([]);
@@ -35,7 +35,7 @@ describe("[S3] the judge runner", () => {
 
   it("re-asks once when a judge answers prose, and reports a judge that fails twice", async () => {
     const client = fake(["I think it was fun!", persona, "no", "still no", fit, historian]);
-    const r = await judgePrompt({ client, spend: new Spend(13), evidence, screenshot: null, calls: { count: 0 } });
+    const r = await judgePrompt({ client, spend: new Spend(13), evidence, screenshot: null });
     expect(client.calls).toHaveLength(6);
     expect(r.judgements.persona.fun).toBe(4);
     expect(r.judgements.math).toBeUndefined();
@@ -43,12 +43,34 @@ describe("[S3] the judge runner", () => {
     expect(r.errors[0]).toMatch(/^math: .*not JSON/);
   });
 
-  it("stops starting judges once the next call would pass the cap, and counts the spend", async () => {
+  it("estimates the first call at $0.15, then at the judges' running average, and stops before the call that would pass the cap", async () => {
+    // $0.06 a call; the first is estimated at $0.15 (fits $0.20), then at the $0.06 average: 0.06, 0.12, 0.18, and a fourth would make 0.24.
+    const client = fake([persona, math, fit, historian], { input_tokens: 10_000, output_tokens: 1000 });
+    const spend = new Spend(0.2);
+    const r = await judgePrompt({ client, spend, evidence, screenshot: null });
+    expect(client.calls).toHaveLength(3);
+    expect(Object.keys(r.judgements)).toEqual(["persona", "math", "fit"]);
+    expect(r.skipped).toEqual(["historian"]);
+    expect(spend.spent).toBeCloseTo(0.18, 6);
+    expect(spend.judges.calls).toBe(3);
+  });
+
+  it("starts no judge when even the first call's estimate would pass the cap", async () => {
     const client = fake([persona, math, fit, historian], { input_tokens: 10_000, output_tokens: 1000 });
     const spend = new Spend(0.1);
-    const r = await judgePrompt({ client, spend, evidence, screenshot: null, calls: { count: 0 } });
-    expect(client.calls.length).toBeLessThan(4);
-    expect(r.skipped.length).toBeGreaterThan(0);
-    expect(spend.spent).toBeCloseTo(0.06 * client.calls.length, 5);
+    const r = await judgePrompt({ client, spend, evidence, screenshot: null });
+    expect(client.calls).toHaveLength(0);
+    expect(r.skipped).toEqual(["persona", "math", "fit", "historian"]);
+    expect(spend.spent).toBe(0);
+  });
+
+  it("shares the cap with the Tutor's turns without letting their spend inflate a judge call's estimate", async () => {
+    const client = fake([persona, math, fit, historian], { input_tokens: 10_000, output_tokens: 1000 });
+    const spend = new Spend(5.2);
+    spend.chargeTurns([{ model: "claude-opus-5-5", inputTokens: 1_000_000, outputTokens: 50_000 }]); // $5.00 of Tutor turns
+    const r = await judgePrompt({ client, spend, evidence, screenshot: null });
+    expect(client.calls).toHaveLength(3);
+    expect(r.skipped).toEqual(["historian"]);
+    expect(spend.spent).toBeCloseTo(5.18, 6);
   });
 });
