@@ -51,6 +51,54 @@ youllLearn:
   - "Tell recorded revenue from an annualised run rate, and gross from net."
   - "Ask what each unit of revenue cost to earn."
 
+
+exampleCurrency: INR
+runningExample:
+  text: An umbrella seller sells ₹1 lakh of umbrellas in the rainy month of July.
+  numbers: [1, 12]
+  scene:
+    cast:
+      - { id: ravi, emoji: man, name: Ravi, role: sells umbrellas }
+      - { id: neha, emoji: woman, name: Neha, role: thinks of investing }
+    beats:
+      - { who: narrator, says: "Ravi sells umbrellas. In rainy July he sells ₹1 lakh of them.", emoji: umbrella-with-rain-drops }
+      - { who: ravi, says: "At this pace I will earn ₹12 lakh a year!", emoji: star-struck }
+      - { who: neha, says: "But will the dry months sell as well?", emoji: thinking-face }
+      - { who: narrator, says: "A pace is a hope about the future, not money already earned." }
+    caption: July's pace is not the whole year
+
+terms:
+  - term: run rate
+    means: A recent month's revenue scaled up to a full year's pace.
+    pro: Run-rate revenue is the last month's revenue times twelve.
+    example: A shop that sold ₹1 lakh this month pretends every month will match it.
+    emoji: calendar
+    inStory: WeWork boasted a run rate of $3.3 billion at 30 June 2019.
+  - term: gross vs net revenue
+    means: Gross counts the full price of a sale. Net counts only the share the company keeps.
+    pro: Report revenue gross if you were the principal, net if you were an agent.
+    example: A delivery app takes a ₹500 dinner order and keeps ₹75. Net revenue is ₹75.
+    emoji: shopping-bags
+    inStory: An analyst reading WeWork's S-1 would ask whether its revenue was gross or net.
+  - term: revenue recognition
+    means: The rule for when a company may count a sale as earned revenue.
+    pro: "Auditors test revenue recognition: has the customer received what was promised?"
+    example: A gym takes a ₹12,000 yearly fee but earns it a month at a time.
+    emoji: clipboard
+    inStory: The S-1's $1.54 billion is what WeWork had recorded as earned in six months.
+  - term: backlog
+    means: Signed future business the company has not yet delivered or earned.
+    pro: Backlog tells you how much signed business is waiting to be delivered.
+    example: A tailor holding ₹2 lakh of wedding orders that are still to be stitched.
+    emoji: package
+    inStory: A run rate is a pace; backlog is signed business still to come.
+  - term: S-1
+    means: The form a company files with US regulators before selling shares to the public.
+    pro: Analysts mine a company's S-1 for the real numbers before an IPO.
+    example: Like the detailed brochure a builder must file before selling flats.
+    emoji: scroll
+    inStory: WeWork's S-1 appeared on 14 August 2019 with its run-rate boast.
+
 questions:
   - id: rr-q-recorded
     prompt: >
@@ -59,8 +107,8 @@ questions:
       had actually recorded in the first half?
     choices:
       - { id: a, text: "The $1.54 billion" }
-      - { id: b, text: "The $3 billion" }
-      - { id: c, text: "Both; a run-rate is recorded revenue" }
+      - { id: b, text: "The $3 billion", mistake: { tag: took_run_rate_as_recorded, fix: "A run rate scales a recent month up to a year. It describes a pace, not revenue already recorded." } }
+      - { id: c, text: "Both; a run-rate is recorded revenue", mistake: { tag: blurred_the_two, fix: "They are different things. Recorded revenue is earned; a run rate is a pace of a recent period scaled up." } }
     answer: a
     explanation: >
       Reported revenue is what has been earned and recorded in the period. A run-rate scales a
@@ -70,70 +118,101 @@ questions:
 
   - id: rr-q-annualise
     prompt: >
-      A company earned $1.54 billion in revenue in the first six months of a year. Doubling that
-      to a yearly pace gives a run-rate of about what?
+      A company takes its best recent month and scales it up to a full year's pace. Analysts call that figure its what?
     choices:
-      - { id: a, text: "$3.08 billion" }
-      - { id: b, text: "$1.54 billion" }
-      - { id: c, text: "$6.16 billion" }
-      - { id: d, text: "$0.77 billion" }
+      - { id: a, text: "Run-rate revenue" }
+      - { id: b, text: "Recorded revenue", mistake: { tag: called_it_recorded, fix: "Recorded revenue is what has actually been earned. A scaled-up month is only a pace." } }
+      - { id: c, text: "Net revenue", mistake: { tag: called_it_net, fix: "Net revenue is about keeping only a commission. Scaling a month up to a year is a run rate." } }
+      - { id: d, text: "Backlog", mistake: { tag: called_it_backlog, fix: "Backlog is signed business not yet delivered. A scaled-up month is a run rate." } }
     answer: a
     explanation: >
-      Six months is half a year, so the yearly pace is 2 x 1.54 = 3.08. It assumes the next six
-      months look like the last six, which is a forecast.
+      A run rate takes a recent period and scales it to a year. It is a forecast-style number, not recorded revenue, and it assumes the recent pace repeats.
     source: >
-      Revenue figure from CNBC, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html ; the arithmetic is a doubling.
+      WeWork S-1, definition of run-rate revenue (the revenue recognised in the last month of a period, multiplied by twelve): https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
 
   - id: rr-q-loss-per-dollar
     prompt: >
-      In the first half of 2019 WeWork reported revenue of $1.54 billion and a net loss of about
-      $905 million. About how much did it lose per dollar of revenue?
+      Asha reads that WeWork lost about $905 million on $1.54 billion of revenue in six months. How would an analyst sum up that business?
     choices:
-      - { id: a, text: "About 59 cents" }
-      - { id: b, text: "About 17 cents" }
-      - { id: c, text: "About $1.70" }
-      - { id: d, text: "About 91 cents" }
+      - { id: a, text: "Fast growth, but not yet a business: it lost money on each dollar of revenue" }
+      - { id: b, text: "A profit machine, because its revenue doubled", mistake: { tag: growth_means_profit, fix: "Doubling revenue is growth. A net loss says the costs were even bigger." } }
+      - { id: c, text: "Roughly break-even, because revenue is large", mistake: { tag: large_means_break_even, fix: "A loss of this size is far from break-even. Large revenue does not cancel it." } }
+      - { id: d, text: "Impossible to judge without the run rate", mistake: { tag: needed_run_rate, fix: "Recorded revenue and the net loss already tell the story. A run rate adds only a pace." } }
     answer: a
     explanation: >
-      905 / 1,540 = 0.588, so roughly 59 cents lost for each dollar of revenue.
+      The loss was more than half the size of the revenue, roughly 59 cents lost for each dollar of revenue. Growth is not the same as profit.
     source: >
       Forbes, WeWork Files IPO Plan, Showing First-Half Losses Grew 25%, 14 August 2019: https://www.forbes.com/sites/samanthasharf/2019/08/14/wework-ipo-sec-s1/
 
   - id: rr-q-agent-net
     prompt: >
-      An online marketplace lets outside sellers list goods, set their own prices and ship to
-      buyers. It collects payment and keeps a 15% commission on $400 million of goods sold
-      through it. What revenue should it report, and why?
+      An online marketplace lets outside sellers list goods, set their own prices and ship to buyers. The marketplace only arranges the sale and keeps a commission. How does accounting treat its revenue?
     choices:
-      - { id: a, text: "$400 million, because the cash passes through its accounts" }
-      - { id: b, text: "$60 million, because it is an agent and does not control the goods before transfer" }
-      - { id: c, text: "$340 million, the amount it pays to sellers" }
-      - { id: d, text: "Either figure is acceptable if disclosed" }
-    answer: b
+      - { id: a, text: "It is an agent, so it reports only its commission, as net revenue" }
+      - { id: b, text: "It is a principal, so it reports the full price of every sale", mistake: { tag: took_principal_view, fix: "Only a seller that controls the goods before they reach the buyer reports the full price. This one just arranges the sale." } }
+      - { id: c, text: "It reports no revenue, because the sellers own the goods", mistake: { tag: reported_nothing, fix: "The commission is the marketplace's own earnings, so it is revenue." } }
+      - { id: d, text: "It may choose either view, whichever looks bigger", mistake: { tag: thought_it_was_a_choice, fix: "The rules decide by who controls the goods, not by what looks best." } }
+    answer: a
     explanation: >
-      An entity that arranges for another party to provide goods, without controlling them before
-      they reach the customer, is an agent and reports only its fee or commission: 15% of 400 is 60.
-      Reporting 400 would inflate revenue almost sevenfold without changing profit.
+      An entity that arranges for another party to provide goods, without controlling them before they reach the customer, is an agent and reports only its fee or commission. Reporting the full price would make revenue look far bigger without changing profit.
     source: >
       IFRS 15 Revenue from Contracts with Customers, paragraphs B34 to B38 (principal versus agent): https://www.ifrs.org/content/dam/ifrs/supporting-implementation/agenda-decisions/2022/principal-versus-agent-software-reseller-may-2022.pdf
 
   - id: rr-q-over-time
     prompt: >
-      A contractor signs a $9 million contract to build a plant on the customer's land. The customer
-      controls the work as it is built. By year-end the contractor has spent $2.4 million of an
-      expected $6.0 million total cost. Measuring progress by cost, how much revenue is recognised
-      this year?
+      A contractor builds a plant on the customer's own land, and the customer controls the work as it goes up. When does the contractor record its revenue?
     choices:
-      - { id: a, text: "Nothing until the plant is finished" }
-      - { id: b, text: "$3.6 million" }
-      - { id: c, text: "$2.4 million" }
-      - { id: d, text: "$9 million" }
-    answer: b
+      - { id: a, text: "Gradually, as the work is done (over time)" }
+      - { id: b, text: "Only when the plant is finished", mistake: { tag: waited_for_the_end, fix: "When the customer controls the work as it is built, revenue is recorded as the work goes on, not only at the end." } }
+      - { id: c, text: "The day the contract is signed", mistake: { tag: counted_at_signing, fix: "Signing only creates a promise. Revenue follows the work, not the signature." } }
+      - { id: d, text: "When the customer pays the cash", mistake: { tag: followed_the_cash, fix: "Revenue follows the passing of control, not the cash. Payment can come before or after." } }
+    answer: a
     explanation: >
-      Control passes as the work is done, so revenue is recognised over time. Progress is
-      2.4 / 6.0 = 40%, and 40% of $9 million is $3.6 million.
+      Control passes as the work is done, so revenue is recognised over time, in step with progress. Measuring progress by cost is one common way to do that.
     source: >
-      IFRS 15, paragraphs 35 to 37 and B14 to B19 (performance obligations satisfied over time, cost-to-cost progress): https://ifrs.org/content/dam/ifrs/publications/pdf-standards/english/2021/issued/part-a/ifrs-15-revenue-from-contracts-with-customers.pdf
+      IFRS 15, paragraphs 35 to 37 and B14 to B19 (performance obligations satisfied over time): https://ifrs.org/content/dam/ifrs/publications/pdf-standards/english/2021/issued/part-a/ifrs-15-revenue-from-contracts-with-customers.pdf
+
+  - id: rr-q-lingo-run-rate
+    prompt: >
+      WeWork's S-1 quoted "run-rate revenue" of $3.3 billion at 30 June 2019. Which is the best translation of "run-rate"?
+    choices:
+      - { id: a, text: "The last month's revenue scaled up to a full year's pace" }
+      - { id: b, text: "Cash collected over the past twelve months", mistake: { tag: read_as_cash_collected, fix: "Cash collected is something already received. A run rate is a pace, not a record." } }
+      - { id: c, text: "Revenue the company has signed up but not yet delivered", mistake: { tag: mixed_with_backlog, fix: "That is backlog. A run rate scales up a recent month." } }
+      - { id: d, text: "Revenue left over after all costs", mistake: { tag: read_as_profit, fix: "Revenue left after costs is profit. A run rate says nothing about cost." } }
+    answer: a
+    explanation: >
+      The S-1 defined run-rate revenue as the revenue recognised in the last month of a period multiplied by twelve. It is a pace, not revenue already earned.
+    source: >
+      WeWork S-1 (14 August 2019): https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
+
+  - id: rr-q-lingo-backlog
+    prompt: >
+      A company tells investors it has a "big backlog". What does that mean?
+    choices:
+      - { id: a, text: "It holds signed business that it has not yet delivered" }
+      - { id: b, text: "It has already recorded those sales as revenue", mistake: { tag: called_earned_backlog, fix: "Backlog is business still to be delivered, not revenue already recorded." } }
+      - { id: c, text: "It has bills it has not yet paid", mistake: { tag: mixed_with_payables, fix: "Unpaid bills are what the company owes. Backlog is what customers have signed up for." } }
+      - { id: d, text: "Customers have started to leave", mistake: { tag: read_as_churn, fix: "Backlog is signed business waiting to be delivered, the opposite of customers leaving." } }
+    answer: a
+    explanation: >
+      Backlog is signed future business not yet delivered or earned. It can support a run rate or a forecast, but it is not recorded revenue.
+    source: >
+      WeWork S-1 (14 August 2019), "committed revenue backlog": https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
+
+  - id: rr-q-lingo-recognition
+    prompt: >
+      Auditors ask when a company may "recognise" revenue. What are they checking?
+    choices:
+      - { id: a, text: "Whether the customer has received what was promised, so the sale counts as earned" }
+      - { id: b, text: "Whether the cash has reached the bank", mistake: { tag: followed_the_cash, fix: "Cash can arrive before or after the sale is earned. Recognition follows what was delivered." } }
+      - { id: c, text: "Whether the share price has risen", mistake: { tag: mixed_with_share_price, fix: "Share prices are the market's view. Recognition is an accounting rule about delivery." } }
+      - { id: d, text: "Whether the price was high enough", mistake: { tag: mixed_with_price, fix: "The price does not decide when revenue counts. Delivery of what was promised does." } }
+    answer: a
+    explanation: >
+      Revenue is recognised when control of what was promised passes to the customer, at one moment or gradually over time as the work is done.
+    source: >
+      IFRS 15 Revenue from Contracts with Customers, the five-step model: https://ifrs.org/content/dam/ifrs/publications/pdf-standards/english/2021/issued/part-a/ifrs-15-revenue-from-contracts-with-customers.pdf
 
 checks:
   - id: rr-quiz-recognition
@@ -144,6 +223,9 @@ checks:
       - rr-q-loss-per-dollar
       - rr-q-agent-net
       - rr-q-over-time
+      - rr-q-lingo-run-rate
+      - rr-q-lingo-backlog
+      - rr-q-lingo-recognition
       - bank:eab:MBA-ACC-FA-0029
       - bank:eab:MBA-ACC-FA-0028
       - bank:eab:MBA-ACC-FA-0026
@@ -155,13 +237,83 @@ checks:
     prompt: >
       You are an investor reading WeWork's S-1 on 14 August 2019. The filing boasts of
       $3 billion of run-rate revenue; first-half revenue was $1.54 billion with a net loss of
-      about $905 million. Explain what the run-rate figure does and does not tell you, and name
+      about $905 million. Say in your own words what the run-rate figure does and does not tell you, and name
       two questions you would put to the company before trusting it.
     passCriteria: >
-      The Learner explains that run-rate scales a recent period to a year (the S-1 used the last
-      month's revenue times 12), so it is a pace and an assumption, not recorded revenue; for
-      comparison, simply doubling the six months' revenue gives about $3.1 billion.
-      They note it says nothing about costs or profit (the loss was about 59 cents per dollar of
-      revenue). They raise at least two sensible questions, for example how the run-rate is
+      The Learner explains that a run rate scales a recent period to a year (the S-1 used the last
+      month's revenue times twelve), so it is a pace and an assumption, not recorded revenue, and that recorded
+      first-half revenue is the smaller, firmer figure.
+      They note it says nothing about costs or profit: the company was losing more than half a dollar on every dollar of
+      revenue. They raise at least two sensible questions, for example how the run rate is
       defined, how much revenue is recurring, how long customers commit, whether revenue is gross
       or net, or what the path to profit is.
+
+scenes:
+  - id: runrate-story
+    step: story
+    recipe: story_scene
+    title: The boast in the share-sale papers
+    inputs:
+      cast:
+        - { id: wework, emoji: office-building, name: WeWork, role: rents desks to members }
+        - { id: asha, emoji: woman, name: Asha, role: weighs the share sale }
+      beats:
+        - { who: narrator, says: "14 August 2019. WeWork publishes its plan to sell shares to the public.", emoji: scroll }
+        - { who: wework, says: "We reached $3 billion of run-rate revenue in just six months!", emoji: rocket }
+        - { who: asha, says: "Nice. But the revenue actually recorded this half-year is $1.54 billion.", emoji: thinking-face }
+        - { who: asha, says: "And the net loss? About $905 million." }
+        - { who: narrator, says: "Asha must decide what a run rate tells her about earned revenue." }
+      caption: A big boast, and a bigger loss
+      date: "2019-08-14"
+  - id: gross-net-flow
+    step: concept
+    check: rr-quiz-recognition
+    recipe: who_pays_whom
+    title: Who pays whom in a marketplace
+    inputs:
+      actors:
+        - { id: buyer, emoji: woman, name: The buyer }
+        - { id: market, emoji: shopping-bags, name: The marketplace }
+        - { id: seller, emoji: man, name: The seller }
+      flows:
+        - { from: buyer, to: market, what: pays the full price, emoji: credit-card }
+        - { from: market, to: seller, what: passes on the rest, emoji: money-bag }
+  - id: run-rate-jar
+    step: concept
+    check: rr-run-rate-view
+    recipe: money_jar
+    title: A pace is not a jar already full
+    inputs:
+      label: Ravi's umbrella sales
+      start: 1
+      end: 12
+      unit: coin
+      each: each coin is one month
+      words: twelve times fuller than what he has earned
+  - id: wework-timeline
+    step: reveal
+    recipe: timeline
+    title: What came next
+    inputs:
+      beats:
+        - { date: "2019-08-14", label: WeWork publishes its S-1, emoji: scroll }
+        - { date: "2019-09-24", label: Its co-founder steps down as chief executive, emoji: briefcase }
+        - { date: "2019-09-30", label: WeWork files to withdraw its IPO, emoji: stop-sign }
+  - id: read-the-boast
+    step: principle
+    recipe: two_paths
+    title: Reading a revenue boast
+    inputs:
+      question: Two investors read the same revenue boast. Who asks the better questions?
+      left:
+        emoji: woman
+        name: Asha
+        choice: Took the run rate at face value
+        outcome: [chart-increasing, worried-face]
+        outcomeLine: She missed how much money was being lost.
+      right:
+        emoji: man
+        name: Ravi
+        choice: Asked what it cost to earn
+        outcome: [magnifying-glass-tilted-left, check-mark-button]
+        outcomeLine: He saw growth was not yet a business.
