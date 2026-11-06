@@ -1,0 +1,2 @@
+root = Widget("The day the bond market panicked", [scene])
+scene = StoryScene([{id: "fed", emoji: "bank", name: "The central bank", role: "sets the rate"}, {id: "saver", emoji: "woman", name: "Asha", role: "owns bonds"}], [{who: "narrator", says: "It is February, and everyone expects calm.", emoji: "calendar"}, {who: "fed", says: "We are raising the rate, a little."}, {who: "saver", says: "My old bonds just got less attractive!", emoji: "worried-face"}], "A small rate move, a big surprise", "1994-02-03")

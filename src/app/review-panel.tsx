@@ -126,11 +126,11 @@ export function ReviewPanel({ review }: { review: ReviewState }) {
           {q.choices.map((c) => (
             <label
               key={c.id}
+              data-allow-pointer
               className="flex items-center gap-2 py-1 text-sm leading-5"
             >
               <input
                 type="radio"
-                className="accent-[var(--brand)]"
                 name={`review-${q.id}`}
                 checked={picked === c.id}
                 onChange={() => setPicked(c.id)}

@@ -1,7 +1,7 @@
 "use client";
 
 import { createTheme, defaultLightTheme, ThemeProvider, type Theme } from "@openuidev/react-ui";
-import { useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { THEME_KIND, isTheme, type ThemeId } from "@/app/theme";
 
 // OpenUI's component kit (charts, tables, tabs) drawn in our design tokens. Its colours read our CSS
@@ -152,8 +152,20 @@ export function useHtmlTheme(): ThemeId {
 export function GenuiTheme({ children }: { children: ReactNode }) {
   const theme = useHtmlTheme();
   const kitTheme = GENUI_THEMES[theme];
+  const root = useRef<HTMLDivElement>(null);
+  // The kit's accordion trigger is a button we do not render, so we name it for the affordance audit ourselves; globals.css gives it the raised edge.
+  // A layout effect, so the trigger is named before the first paint and an audit never sees it bare.
+  useLayoutEffect(() => {
+    const host = root.current;
+    if (!host) return;
+    const tag = () => host.querySelectorAll(".openui-accordion-trigger:not([data-affordance])").forEach((el) => el.setAttribute("data-affordance", "button"));
+    tag();
+    const watch = new MutationObserver(tag);
+    watch.observe(host, { childList: true, subtree: true });
+    return () => watch.disconnect();
+  }, []);
   return (
-    <div className="genui" style={COLOUR_STYLE}>
+    <div ref={root} className="genui" style={COLOUR_STYLE}>
       <ThemeProvider mode={THEME_KIND[theme]} cssSelector=".genui" lightTheme={kitTheme} darkTheme={kitTheme}>
         {children}
       </ThemeProvider>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { createContext, useContext, useState } from "react";
+import { SecondaryButton } from "./ui";
 import { ONE_MORE_BUTTON, PARK_BUTTON, type ParkedData, type ParkOfferData } from "@/tutor/park-items";
 
 /**
@@ -14,9 +15,6 @@ export type ParkChoice = { park: string } | { oneMore: string };
 /** `act` posts the choice and says whether it was taken; `busy` is true while a Tutor turn runs. */
 export type ParkActions = { act(choice: ParkChoice): Promise<boolean>; busy: boolean };
 export const ParkActionsContext = createContext<ParkActions | null>(null);
-
-const button =
-  "rounded-md border border-[var(--border)] px-3 py-1.5 text-sm leading-5 hover:border-[var(--ink)] disabled:cursor-default disabled:opacity-60 disabled:hover:border-[var(--border)]";
 
 export function ParkOfferView({ data }: { data: ParkOfferData & { chosen?: "park" | "one_more" } }) {
   const actions = useContext(ParkActionsContext);
@@ -34,12 +32,12 @@ export function ParkOfferView({ data }: { data: ParkOfferData & { chosen?: "park
     <div data-testid="park-offer" className="self-start rounded-lg border border-[var(--border)] px-3 py-2 text-sm leading-5">
       <p>{data.line}</p>
       <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" data-testid="park-it" disabled={locked} aria-pressed={chosen === "park"} onClick={() => void choose("park")} className={button}>
+        <SecondaryButton size="sm" data-testid="park-it" disabled={locked} pressed={chosen === "park"} onClick={() => void choose("park")}>
           {PARK_BUTTON}
-        </button>
-        <button type="button" data-testid="one-more-try" disabled={locked} aria-pressed={chosen === "one_more"} onClick={() => void choose("one_more")} className={button}>
+        </SecondaryButton>
+        <SecondaryButton size="sm" data-testid="one-more-try" disabled={locked} pressed={chosen === "one_more"} onClick={() => void choose("one_more")}>
           {ONE_MORE_BUTTON}
-        </button>
+        </SecondaryButton>
       </div>
     </div>
   );

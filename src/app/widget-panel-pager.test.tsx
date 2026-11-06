@@ -213,7 +213,7 @@ describe("the chat chip", () => {
     const html = chip(item(1), true);
     expect(html).toContain("Showing");
     expect(html).toContain('data-state="showing"');
-    expect(html).toContain("bg-[var(--brand)]!");
+    expect(html).toContain("bg-[var(--brand-main)]!");
   });
 
   it("is Drawing… with a shimmer while its fence is open", () => {

@@ -1,10 +1,9 @@
-import Link from "next/link";
 import type { TopicNote } from "@/learner/notes";
 import { formulaById } from "@/finance/formulas";
 import { CaseDataProvider } from "@/widgets/case-data-provider";
 import { FormulaFigure, type CardValue } from "@/widgets/formula-card-view";
 import { MarkedText } from "@/widgets/marked-text";
-import { Card, Eyebrow } from "../ui";
+import { Card, Eyebrow, TextLink } from "../ui";
 import { OwnLines } from "./own-lines";
 import { SavedItems } from "./saved-items";
 import { UndoProvider } from "./undo";
@@ -91,9 +90,9 @@ export function NotesView({ notes, showAll = false }: { notes: TopicNote[]; show
         <div>
           <div className="mb-2 flex items-baseline justify-between gap-4">
             <h1 className="text-xl font-semibold leading-7">Notes</h1>
-            <Link href={showAll ? "/notes" : "/notes?all=1"} data-show-all={showAll} className="text-sm leading-5 text-[var(--muted)] underline underline-offset-2 hover:text-[var(--ink)] print:hidden">
+            <TextLink href={showAll ? "/notes" : "/notes?all=1"} data-show-all={showAll} className="text-sm leading-5 print:hidden">
               {showAll ? "Show only Topics with notes" : "Show all Topics"}
-            </Link>
+            </TextLink>
           </div>
           <p className="measure mb-6 text-sm leading-5 text-[var(--muted)] print:hidden">
             A note fills in when you pass a Topic. Add lines of your own to any Topic. Print this page for a paper copy.

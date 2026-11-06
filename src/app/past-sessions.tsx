@@ -1,7 +1,6 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PastSessionHeader, PastSessions } from "@/tutor/past-sessions";
-import { Eyebrow, Pill, primaryButtonClass } from "./ui";
+import { Eyebrow, PrimaryButton, Pill, TextLink } from "./ui";
 
 /**
  * Past Sessions (spec #119, "Pages › Past Sessions"): the list, one row per Topic Session newest first and
@@ -18,7 +17,9 @@ export function shortDate(d: Date): string {
   return `${Number(parts.day)} ${MONTHS[Number(parts.month) - 1]} ${parts.year}`;
 }
 
-const ROW = "flex flex-col gap-2 rounded-lg border border-[var(--border)] p-4 transition-colors duration-200 hover:border-[var(--brand-line)] hover:bg-[var(--brand-tint)]";
+// A row is a card whose title is the link, stretched over the whole card, so the underlined title says "link" and the card follows it.
+const ROW = "relative flex flex-col gap-2 rounded-lg border border-[var(--border)] p-4 transition-colors duration-200 hover:border-[var(--brand-line)] hover:bg-[var(--brand-tint)]";
+const STRETCH = "after:absolute after:inset-0 after:content-['']";
 
 function TopicPills({ topics }: { topics: string[] }) {
   return (
@@ -44,16 +45,16 @@ export function PastSessionsList({ past }: { past: PastSessions }) {
       {past.topics.length > 0 && (
         <ul className="flex flex-col gap-3">
           {past.topics.map((s) => (
-            <li key={s.id}>
-              <Link href={`/sessions/${s.id}`} className={ROW}>
-                <span className="text-base font-medium leading-6 text-[var(--ink)]">{s.title}</span>
-                <span className="text-sm leading-5 text-[var(--muted)]">Last worked on {shortDate(s.lastActive)}</span>
-                {s.found && s.found.length > 0 && (
-                  <span data-testid="session-found" className="text-sm leading-5">
-                    {s.found.join(" ")}
-                  </span>
-                )}
-              </Link>
+            <li key={s.id} className={ROW}>
+              <TextLink href={`/sessions/${s.id}`} className={`self-start text-base font-medium leading-6 !text-[var(--ink)] ${STRETCH}`}>
+                {s.title}
+              </TextLink>
+              <span className="text-sm leading-5 text-[var(--muted)]">Last worked on {shortDate(s.lastActive)}</span>
+              {s.found && s.found.length > 0 && (
+                <span data-testid="session-found" className="text-sm leading-5">
+                  {s.found.join(" ")}
+                </span>
+              )}
             </li>
           ))}
         </ul>
@@ -65,11 +66,11 @@ export function PastSessionsList({ past }: { past: PastSessions }) {
           </h2>
           <ul className="flex flex-col gap-3">
             {past.older.map((s) => (
-              <li key={s.id}>
-                <Link href={`/sessions/${s.id}`} className={ROW}>
-                  <Eyebrow>Older session · {shortDate(s.date).toUpperCase()}</Eyebrow>
-                  <TopicPills topics={s.topics} />
-                </Link>
+              <li key={s.id} className={ROW}>
+                <TextLink href={`/sessions/${s.id}`} className={`self-start text-xs font-semibold uppercase leading-4 tracking-[0.08em] ${STRETCH}`}>
+                  Older session · {shortDate(s.date).toUpperCase()}
+                </TextLink>
+                <TopicPills topics={s.topics} />
               </li>
             ))}
           </ul>
@@ -82,9 +83,9 @@ export function PastSessionsList({ past }: { past: PastSessions }) {
 function Header({ children }: { children: ReactNode }) {
   return (
     <header className="mb-4 flex flex-col gap-2">
-      <Link href="/sessions" className="self-start text-sm leading-5 text-[var(--brand)] hover:underline">
+      <TextLink href="/sessions" className="self-start text-sm leading-5">
         ← Past Sessions
-      </Link>
+      </TextLink>
       {children}
     </header>
   );
@@ -122,9 +123,7 @@ export function PastSessionHeaderView({ header }: { header: PastSessionHeader })
         ) : (
           <form method="post" action="/api/open">
             {header.topicId && <input type="hidden" name="topic" value={header.topicId} />}
-            <button type="submit" className={primaryButtonClass}>
-              {header.topicId ? "Resume this Topic" : "Resume"}
-            </button>
+            <PrimaryButton type="submit">{header.topicId ? "Resume this Topic" : "Resume"}</PrimaryButton>
           </form>
         )}
       </div>

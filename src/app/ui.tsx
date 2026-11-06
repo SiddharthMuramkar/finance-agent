@@ -9,7 +9,6 @@ import { Button, Tag } from "./primitives";
 import type { ThemePref } from "./theme";
 import { ThemeMenu } from "./theme-menu";
 
-const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]";
 
 /** Small uppercase label above a block (spec §2), e.g. "SPACED REVIEW". className adds spacing. */
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -28,13 +27,16 @@ export function Chevron({ className = "" }: { className?: string }) {
 // The look pieces live in src/app/primitives (ticket A3a); the old names keep working from here.
 export {
   Button,
+  ButtonLink,
   Chip,
   IconButton,
+  LinkButton,
   Pill,
   PrimaryButton,
   SecondaryButton,
   Spinner,
   Tag,
+  TextLink,
   primaryButtonClass,
   secondaryButtonClass,
 } from "./primitives";
@@ -106,9 +108,10 @@ const HEADER_LINKS: { page: HeaderPage; href: string; label: string }[] = [
   { page: "settings", href: "/settings", label: "Settings" },
 ];
 
-const headerLink = `pressable inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-1 text-[13px] leading-5 lg:px-3 lg:text-sm ${focusRing}`;
-const idleLink = `${headerLink} text-[var(--muted)] hover:bg-[var(--hairline)] hover:text-[var(--ink)]`;
-const currentLink = `${headerLink} bg-[var(--brand-tint)] font-medium text-[var(--brand)]`;
+// The page links are chips (NavLink adds the raised look); here only their size changes with the window.
+const headerLink = "whitespace-nowrap px-2 text-[13px] leading-5 lg:px-3 lg:text-sm";
+const idleLink = headerLink;
+const currentLink = headerLink;
 
 /**
  * Sign out: a plain form posting to /api/logout (its 303 reloads the page), never a link (a GET could be
@@ -143,7 +146,7 @@ export function AppHeader({ current, theme, className = "" }: { current?: Header
   return (
     <header className={`flex items-center justify-between gap-2 lg:gap-4 ${className}`}>
       <h1 className="whitespace-nowrap text-lg font-semibold leading-7">
-        <Link href="/" title="Home" className={`-ml-2 inline-flex items-center gap-1.5 rounded px-2 py-1 transition-colors hover:bg-[var(--hairline)] hover:text-[var(--brand)] ${focusRing}`}>
+        <Link href="/" title="Home" data-affordance="nav" className="chip gap-1.5 px-3 text-base font-semibold">
           <BrandMark />
           Finance Agent
         </Link>

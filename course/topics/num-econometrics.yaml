@@ -77,8 +77,9 @@ checks:
     kind: conversation
     prompt: >
       Reinhart and Rogoff report that average growth was about -0.1 per cent in countries with debt above 90
-      per cent of GDP, using a spreadsheet they have not published. List the checks you would make on this
-      analysis, and explain whether the result, even if correct, would show that high debt causes slow growth.
+      per cent of GDP, using a spreadsheet they have not published. Picture a finance minister quoting it to
+      argue for spending cuts. In your own words, what would make you trust the finding, and does it show
+      that high debt causes slow growth, or could the story run the other way?
     passCriteria: >
       The Learner names at least two sensible checks, such as reproducing the numbers from the raw data,
       whether all countries and years were included, how the averages are weighted, and whether results hold
