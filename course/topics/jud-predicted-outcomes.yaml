@@ -146,29 +146,25 @@ questions:
       Arithmetic on the numbers in the question (target less amount booked, divided by months left).
   - id: jud-po-q-run-rate
     prompt: >
-      A start-up's best month so far brought in $0.9 billion of revenue, and it says its "annualised revenue" is $10.8 billion. A writer then says it "has made $10.8 billion this year". Which statement about the writer's sentence is true?
+      Wednesday 2 September 2026, 5 pm; Dev, a made-up business reporter, files at 6. A start-up's best month so far brought in $0.9 billion, and it calls that month, scaled to a year, its "annualised revenue" of $10.8 billion. A rival's draft says it "has made $10.8 billion this year". Which headline gets it right?
     choices:
-      - { id: a, text: "$10.8 billion is the best month times twelve, a rate; revenue booked this year is lower" }
-      - { id: b, text: "Annualised revenue is always smaller than revenue booked this year" }
-      - { id: c, text: "The sentence is fine: annualised revenue is the same as revenue for the year" }
-      - { id: d, text: "A monthly figure is annualised by multiplying it by 52" }
+      - { id: a, text: "\"Start-up's revenue runs at a $10.8 billion yearly pace\"" }
+      - { id: b, text: "\"Start-up has made $10.8 billion this year\"", mistake: { tag: run_rate_read_as_revenue, fix: "Annualised revenue is one month's pace. Revenue booked this year is only the months actually earned." } }
+      - { id: c, text: "\"Start-up will make $10.8 billion this year\"", mistake: { tag: run_rate_read_as_forecast, fix: "A run rate is not a forecast. It only says what a year would bring if that month repeated." } }
+      - { id: d, text: "\"Start-up has made $0.9 billion this year\"", mistake: { tag: one_month_read_as_year, fix: "$0.9 billion is the best month alone, not everything booked so far this year." } }
     answer: a
     explanation: >
-      An annualised figure here is 0.9 x 12 = 10.8: a month turned into a yearly rate. It says what
-      the year would bring if that month repeated. Revenue already booked this year is the sum of
-      the months so far, which is lower unless every month was as good as the best one.
+      Annualised revenue takes one month and carries it across a year: what the year would bring if that month repeated. It is neither revenue already booked nor a forecast, so the safe headline calls it a pace.
     source: >
-      Arithmetic on the numbers in the question; definition of a run rate as a recent period scaled to
-      a year, as in the Revenue and run rate Topic of this Course Map.
+      Definition of a run rate as a recent period scaled to a year, as in the Revenue and run rate Topic of this Course Map; Dev, the start-up and the rival are made up.
   - id: jud-po-q-fork
     prompt: >
-      A writer says that a company "will have to be sold or shut down". No date is given. Why is this
-      claim hard to judge later?
+      Monday 12 October 2026; Lena, a made-up analyst, keeps a public scorecard of pundits' calls. One writes that a company "will have to be sold or shut down", and gives no date. Why will Lena find this call hard to score?
     choices:
       - { id: a, text: "Any future sale or closure confirms it, and with no date it can only lose if the company lasts for ever" }
-      - { id: b, text: "It is a statement of fact about the past, so it cannot be tested" }
-      - { id: c, text: "It is easy to judge: it is wrong whenever the company raises money" }
-      - { id: d, text: "It can only be judged by the writer" }
+      - { id: b, text: "It is a statement about the past, so it cannot be tested", mistake: { tag: forecast_read_as_past, fix: "\"Will have to\" looks forward. It is a forecast, just one with no deadline." } }
+      - { id: c, text: "It is easy to score: it is wrong the moment the company raises money", mistake: { tag: one_event_taken_as_verdict, fix: "Raising money does not end it. With no date, a sale or closure can still come later." } }
+      - { id: d, text: "Only the writer can say whether it came true", mistake: { tag: writer_taken_as_judge, fix: "Anyone can score a call once it names a date and a measure. Ask for both." } }
     answer: a
     explanation: >
       With two exits named and no deadline, nearly every future ends in one of them, so the claim
@@ -176,7 +172,7 @@ questions:
       separately from the result.
     source: >
       Reasoning about falsifiable forecasts (a claim must say what would count against it, and by
-      when), applied to the numbers in the question; no outside figure is used.
+      when); Lena, the pundit and the company are made up, and no outside figure is used.
   - id: jud-po-q-all-stock
     prompt: >
       A buyer agrees to pay for a target with a fixed number of its own shares. Between the announcement and the closing, the buyer's share price falls. What happens to the deal's headline price in dollars, other things equal?

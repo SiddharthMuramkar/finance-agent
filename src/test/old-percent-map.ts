@@ -52,6 +52,7 @@ export function oldPercentOnly(real: CourseMap = loadCourseMap()): CourseMap {
     skills: [],
     templates: [],
     terms: [],
+    scenes: [],
     questions: t.questions.map((q) => ({ ...q, skill: undefined, choices: q.choices.map(({ id, text }) => ({ id, text })) })),
     checks: [
       { id: "pb-quiz-language", kind: "quiz", questions: t.questions.map((q) => q.id), perAttempt: 3, passRule: { correct: 2 } },

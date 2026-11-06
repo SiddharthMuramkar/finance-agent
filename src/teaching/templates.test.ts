@@ -132,6 +132,14 @@ describe("checking a template", () => {
     expect(problems).toMatch(/range d/);
   });
 
+  it("refuses a choice label with no {value} slot, and carries a mistake's own label onto the draw", () => {
+    const unlabelled = { ...BP_FROM_MOVE, mistakes: [{ ...BP_FROM_MOVE.mistakes[0], label: "the move left in points" }] };
+    expect(templateProblems(unlabelled).join("\n")).toMatch(/label.*\{value\}/);
+    const labelled = { ...BP_FROM_MOVE, mistakes: [{ ...BP_FROM_MOVE.mistakes[0], label: "{value}: the move left in points" }] };
+    expect(templateProblems(labelled)).toEqual([]);
+    expect(drawTemplate(labelled, "s").mistakes[0].label).toBe("{value}: the move left in points");
+  });
+
   it("refuses a template whose decimals cannot hold its exact answer", () => {
     const tooFew = { ...POINTS_FROM_BP, decimals: 0 };
     expect(templateProblems(tooFew).join("\n")).toMatch(/decimals/);

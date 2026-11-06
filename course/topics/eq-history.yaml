@@ -57,15 +57,15 @@ youllLearn:
 questions:
   - id: eh-q-cagr
     prompt: >
-      Riya's index fund went from 500 to 2,000 in two years. Her friend says it grew "150% a year on average". Riya says that overstates the pace, because each year's growth builds on the year before. What does she want to use instead?
+      At dinner on 31 March 1992, Riya's uncle brags his shares "grew 40% a year on average". Riya wants the one steady yearly pace that, repeated, links his start to today. What do investors call it?
     choices:
-      - { id: a, text: "The compound annual growth rate: the one steady yearly rate that, repeated, links the start to the end" }
-      - { id: b, text: "The simple average of the two years' changes", mistake: { tag: averaged_changes, fix: "A plain average ignores that each year's growth builds on the last; that is what her friend did." } }
-      - { id: c, text: "The real return", mistake: { tag: mixed_up_terms, fix: "Real return allows for rising prices; it is not the steady rate that links start and end." } }
+      - { id: a, text: "The compound annual growth rate, or CAGR" }
+      - { id: b, text: "The simple average of each year's change", mistake: { tag: averaged_changes, fix: "A plain average ignores that each year builds on the last; that is the uncle's shortcut." } }
+      - { id: c, text: "The real return", mistake: { tag: mixed_up_terms, fix: "Real return allows for rising prices; it is not the steady rate linking start and end." } }
       - { id: d, text: "The standard deviation", mistake: { tag: mixed_up_terms, fix: "Standard deviation measures how much returns swing, not the steady pace of growth." } }
     answer: a
     explanation: >
-      The index grows fourfold in two years. Compounding means each year's growth builds on the last, so the steady yearly rate is the compound annual growth rate. Spreading the total rise evenly over the years is the arithmetic shortcut and overstates the compounded rate.
+      The CAGR is the one steady yearly rate that, compounded, links the start value to the end value. When returns swing, a simple average of the yearly changes overstates what an investor actually earned, which is why long-run records quote compound rates.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 13.1 Measures of Center (geometric mean for growth rates): https://openstax.org/books/principles-finance-2e/pages/13-1-measures-of-center
 
@@ -113,15 +113,15 @@ questions:
 
   - id: eh-q-risk-return
     prompt: >
-      In the long US record, how did large-company stocks compare with Treasury bills?
+      On 31 March 1992, as the Sensex soars, Isha's grandfather warns that shares beat safe Treasury bills over the long run "but you pay for it in sleepless nights". Over the long US record, which headline gets it right?
     choices:
-      - { id: a, text: "Higher average return and a higher standard deviation" }
-      - { id: b, text: "Higher average return and a lower standard deviation" }
-      - { id: c, text: "Lower average return and a higher standard deviation" }
-      - { id: d, text: "The same average return and standard deviation" }
+      - { id: a, text: "Shares earned more on average, and swung far more year to year" }
+      - { id: b, text: "Shares earned more and swung less", mistake: { tag: no_free_lunch, fix: "Higher average returns came with bigger swings, never smaller ones." } }
+      - { id: c, text: "Bills earned more, while shares swung more", mistake: { tag: reversed_reward, fix: "Over long US records shares out-earned bills; the swings were the price of that." } }
+      - { id: d, text: "Both earned and swung about the same", mistake: { tag: no_difference, fix: "The long record shows a clear gap: more return for shares, and more swing." } }
     answer: a
     explanation: >
-      Over 1981-2020 stocks averaged 12.64% with a standard deviation of 16.06%, against 3.94% and 3.39% for bills. More return came with more risk.
+      In the long US record, large-company stocks earned well above Treasury bills on average, with much wider swings from year to year (a bigger standard deviation). More return came with more risk: that extra reward is the equity risk premium.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 12.4 Historical Picture of Returns to Stocks: https://openstax.org/books/principles-finance-2e/pages/12-4-historical-picture-of-returns-to-stocks
 
@@ -140,12 +140,12 @@ checks:
   - id: eh-judge-boom
     kind: conversation
     prompt: >
-      An index has more than quadrupled in fifteen months. In your own words, say whether that looks like
-      a normal yearly pace for shares, how it compares with what shares earn over many years, and what
-      you would check before deciding whether it is a lasting re-rating or a bubble.
+      The index has more than quadrupled in fifteen months, and your cousin wants to put his wedding
+      savings in tomorrow. In your own words, what is the one thing you would check first, and why?
     passCriteria: >
-      The Learner says that a rise of more than four times in fifteen months is a yearly pace far above
-      the long-run average return of shares (about 12.6 percent a year for US shares over 1981-2020), and that such a
-      run cannot be a normal rate. They name checks such as
-      earnings and valuation, where the money is coming from (borrowing, leverage), how broad the
-      buying is, and the risk of a large fall, and note that a fall needs a bigger rise to recover.
+      The Learner names one check and says why it matters: earnings and valuation (what buyers now pay
+      for the profits), where the money for the buying comes from (borrowing, leverage), how broad the
+      buying is, or how big a fall could be. They recognise that more than quadrupling in fifteen months
+      is a pace far above what shares earn over many years, so the run is no guide to a normal year.
+      They may add that a fall needs a bigger rise to recover, or that a lasting re-rating needs profits
+      to grow into the price.

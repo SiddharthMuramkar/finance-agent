@@ -46,9 +46,23 @@ jobs:
 
   # The browser test bed (spec 2026-11-05, T-00): the whole app in Chromium on an in-memory PGlite with a scripted
   # Tutor. Not a required check until the owner adds it to the ruleset after three green runs on main (H1).
-  ui:
+  # One run took 10-12 min (#458), so it is split into 6 shards on 6 runners. Each shard starts its own test server
+  # and PGlite and still runs its tests one at a time (workers: 1). Playwright splits by test file per project, in
+  # config order, and balances by test count, not time. mbp14 comes first and skips almost nothing, so equal shards
+  # gave shard 1 about 6 min and the rest about 2.5 (PR #462's first run). PWTEST_SHARD_WEIGHTS (Playwright 1.64's
+  # shard weights, read from the env) gives the first shards fewer tests. Tuned on PR #462's second run, each shard
+  # holds 2.7 to 3.1 min of tests. Wrong weights only unbalance the shards; every test still runs in exactly one
+  # shard. The number of weights must equal the number of shards (Playwright fails loudly otherwise).
+  ui-shard:
+    name: ui shard ${{ matrix.shard }}/6
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    env:
+      PWTEST_SHARD_WEIGHTS: "2:3:5:5:5:5"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -57,13 +71,31 @@ jobs:
           cache: npm
       - run: npm ci
       # No browser cache: Playwright's own guidance is that restoring it takes about as long as downloading.
-      - run: npx playwright install --with-deps chromium
-      - run: npm run ui:test
+      # No --with-deps: the runner image already has every library Chromium needs, and the only packages it added were
+      # nine extra font packages (CJK, Thai, unifont) fetched from Ubuntu's apt mirror, which ran at 16-37 kB/s on
+      # PR #462 and held two shards for 10+ minutes. A missing library makes Chromium fail to start, loudly.
+      - run: npx playwright install chromium
+      - run: npm run ui:test -- --shard=${{ matrix.shard }}/6
       - uses: actions/upload-artifact@v5
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-shard-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
           retention-days: 14
+
+  # The one check named "ui" (the orchestrator, the docs and later the ruleset use this name). Green only when every
+  # shard passed; it runs even when a shard failed or was cancelled, so a red shard turns it red instead of skipping it.
+  ui:
+    needs: ui-shard
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every shard passed
+        env:
+          SHARDS: ${{ needs.ui-shard.result }}
+        run: |
+          echo "ui shards: $SHARDS"
+          test "$SHARDS" = success

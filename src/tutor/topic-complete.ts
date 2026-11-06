@@ -13,7 +13,7 @@ export { TOPIC_COMPLETE, type TopicCompleteData } from "./topic-complete-card";
 /**
  * The Topic complete card: a display-only Session item stored at the end of a Topic's conversation when the
  * Topic is passed (its Principle finished, or its last Due Check passed). It shows the principle in a line or
- * two, "Saved to your Notes ✓", What comes next and the Course Map; the model never sees it. It is stored by
+ * two, "Saved to your Notebook ✓", What comes next and the Course Map; the model never sees it. It is stored by
  * the turn that passed the Topic, after its closing reply, or with a quiz result that passed the last Due Check.
  */
 

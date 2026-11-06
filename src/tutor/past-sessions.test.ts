@@ -5,6 +5,7 @@ import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
 import { learners, messages, OWNER_LEARNER_ID, sessions, topicProgress } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { saveJump } from "@/learner/memory";
+import { restartTopic } from "@/learner/restart";
 import { presentValueOnly } from "@/test/present-value-map";
 import { testDb } from "@/test/pglite";
 import { scriptedClient } from "@/test/scripted-client";
@@ -29,6 +30,7 @@ function withBonds(): CourseMap {
     prerequisites: [],
     cases: pv.cases.map((c) => ({ ...c, id: "bonds-case" })),
     widgets: undefined,
+    scenes: undefined,
     found: undefined,
     checks: [{ id: "bonds-check", kind: "conversation", prompt: "Why do prices fall?", passCriteria: "Discounting." }],
     questions: undefined,
@@ -86,7 +88,24 @@ describe("the Past Sessions list", () => {
     await turn(db, "Tell me about the lottery.", "Picture October 2018.");
     await olderSession(db, new Date("2026-09-05T08:00:00Z"), [{ role: "user", content: "Hi" }]);
     const [second] = await db.insert(learners).values({ name: "second" }).returning();
-    expect(await loadPastSessions(db, map, second.id)).toEqual({ topics: [], older: [] });
+    expect(await loadPastSessions(db, map, second.id)).toEqual({ topics: [], older: [], earlier: [] });
+  });
+});
+
+describe("an earlier attempt (a Topic started over)", () => {
+  it("is listed as one, not as an Older session, and its header is kind earlier", async () => {
+    const db = await testDb();
+    await saveJump(db, map, "bonds", new Date(), OWNER_LEARNER_ID);
+    await turn(db, "And bonds?", "Prices fall when rates rise.");
+    const [row] = (await loadPastSessions(db, map, OWNER_LEARNER_ID)).topics;
+    const at = new Date("2026-11-04T10:00:00Z");
+    expect(await restartTopic(db, map, OWNER_LEARNER_ID, "bonds", at)).toMatchObject({ restarted: true, oldSessionId: row.id });
+
+    const past = await loadPastSessions(db, map, OWNER_LEARNER_ID);
+    expect(past.topics).toEqual([]);
+    expect(past.older).toEqual([]);
+    expect(past.earlier).toEqual([{ sessionId: row.id, topicId: "bonds", attemptNo: 1, date: at, status: "not_finished", checksPassed: 0, checksTotal: 1, found: [] }]);
+    expect(await loadPastSession(db, map, row.id, OWNER_LEARNER_ID)).toEqual({ kind: "earlier", topicId: "bonds", title: "Bond prices", date: at, attemptNo: 1 });
   });
 });
 

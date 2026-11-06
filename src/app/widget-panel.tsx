@@ -225,7 +225,7 @@ export function SourcedStrip({ datasets, cases }: { datasets: readonly string[];
 /**
  * How a Widget tells the Tutor what the Learner found (spec #119, "Tell the Tutor what I found"): `tell` runs a
  * widget report turn for the Widget key, and `busy` is true while a turn runs. Only the Study Workspace gives it;
- * elsewhere (Notes, Older sessions, Home) no Widget offers the button.
+ * elsewhere (Notebook, Older sessions, Home) no Widget offers the button.
  */
 export type WidgetReport = { tell: (key: string) => void; busy: boolean };
 
@@ -236,13 +236,13 @@ export const TELL_THE_TUTOR = "Tell the Tutor what I found →";
 
 /**
  * A Widget with the Sourced strip for the Case Data it draws through Query("case_data"), and its quiet "Save to
- * notes" beneath it. Each Case it reads comes from the page's shared Case Data cache, for its Queries, its charts
+ * Notebook" beneath it. Each Case it reads comes from the page's shared Case Data cache, for its Queries, its charts
  * and its strip together. Mount it with a key per Widget: its sliders start afresh then.
  *
  * In the Study Workspace its slider values and ticked Guided Tasks are saved with the Session under its Widget key
  * (Widget state, see widget-states.tsx), so it draws as the Learner left it after a reload or a tab switch, and
- * Save to notes keeps the same values under the same key. Elsewhere (Home, for one) they are kept only while it is
- * on screen, and with no `save` there is no Save to notes. It reads only these fields of the conversation's item.
+ * Save to Notebook keeps the same values under the same key. Elsewhere (Home, for one) they are kept only while it is
+ * on screen, and with no `save` there is no Save to Notebook. It reads only these fields of the conversation's item.
  */
 export function WidgetWithSave({
   item,

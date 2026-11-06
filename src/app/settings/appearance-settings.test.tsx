@@ -1,10 +1,12 @@
 // @vitest-environment happy-dom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_PREF, THEME_SWATCH } from "../theme";
 import { ThemeMenu } from "../theme-menu";
 import { AppearanceSettings } from "./settings-controls";
+import { SettingsView } from "./settings-view";
 
 // The Appearance section on the Settings page, with the header's Theme menu on screen too: both read the one store,
 // so a pick in either shows in the other at once.
@@ -92,5 +94,17 @@ describe("Settings > Appearance", () => {
     const tile = host.querySelector<HTMLElement>('[data-testid="tile-dark"]')!;
     expect(tile.style.backgroundColor).not.toBe("");
     expect(THEME_SWATCH.dark.bg).toBe("#141a33");
+  });
+});
+
+describe("Appearance on the Settings page (A5)", () => {
+  it("renders inside the appearance card", () => {
+    const html = renderToStaticMarkup(
+      <SettingsView profile={{ work: "", location: "", loan: "", savingFor: "" }} developerDetails={false} account={{ name: "Asha" }} />,
+    );
+    const card = html.slice(html.indexOf('id="appearance"'), html.indexOf('id="about-you"'));
+    expect(card).toContain('data-testid="tile-dark"');
+    expect(card.match(/type="radio"/g)).toHaveLength(3);
+    expect(card).toContain("Match my Mac");
   });
 });

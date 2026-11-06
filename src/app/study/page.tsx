@@ -23,18 +23,19 @@ import { loadWrittenAhead } from "@/tutor/written-ahead";
 import { latestTurn } from "@/tutor/turn-status";
 import { Conversation, type Line, type PendingTurn } from "../conversation";
 import { readTheme } from "../theme-cookie";
-import { AppHeader, SignedInFrame } from "../ui";
+import { accountFor } from "../account";
+import { AppHeader, type HeaderAccount, SignedInFrame } from "../ui";
 
 // The Study Workspace, at /study. Reads saved progress and the latest Session on every visit. Opening the page makes no model call.
 export const dynamic = "force-dynamic";
 
 // The Study Workspace's frame, box and header, around its two columns.
-async function WorkspaceShell({ children }: { children: ReactNode }) {
+async function WorkspaceShell({ account, children }: { account: HeaderAccount; children: ReactNode }) {
   return (
     <SignedInFrame>
       {/* Exactly the viewport tall: the columns scroll inside themselves, so the page itself never scrolls or grows. */}
       <main data-route="study" className="mx-auto flex h-dvh w-full max-w-[var(--page-max)] px-[var(--gutter)] flex-col overflow-hidden pb-3 pt-3">
-        <AppHeader current="workspace" theme={await readTheme()} />
+        <AppHeader current="workspace" theme={await readTheme()} account={account} />
         {children}
       </main>
     </SignedInFrame>
@@ -82,7 +83,7 @@ export default async function WorkspacePage() {
   ]);
   // The shown Topic: a passed Topic still on screen, else the current Topic.
   const current = passedTopic ?? courseOverview(map, progress).find((t) => t.current);
-  const place = current ? { stage: current.stage, title: current.title, goal: map.topic(current.id)?.goal } : null;
+  const place = current ? { stage: current.stage, topicId: current.id, title: current.title, goal: map.topic(current.id)?.goal } : null;
   // The Topic Start card opens the Topic's conversation: worked out from course data now, never stored.
   const start = current ? topicStart(map, progress, current.id) : null;
   // The shown Topic's written-ahead Widgets, as the Learner sees them now: those the Tutor opened are drawn from these.
@@ -105,7 +106,7 @@ export default async function WorkspacePage() {
   const here = turn && (turn.status === "running" || turn.sessionId === null || ("sessionId" in shown && turn.sessionId === shown.sessionId));
   const pending: PendingTurn = turn && here && turn.status !== "finished" ? { status: turn.status, error: turn.error } : null;
   return (
-    <WorkspaceShell>
+    <WorkspaceShell account={await accountFor(db, learner)}>
       <Conversation
         initial={initial}
         // The Topic bar's strip: the shown Topic's steps, grouped by Check, with the Learner's place.

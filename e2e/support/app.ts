@@ -5,7 +5,7 @@ import { expect, type Page } from "@playwright/test";
  * (global-setup.ts); `seed` then starts it over and builds a named state through POST /api/dev-e2e.
  */
 
-export type State = "fresh" | "story" | "concept-widget" | "quiz-open" | "your-turn" | "review-due" | "topic-complete" | "many-topics" | "notebook-older";
+export type State = "fresh" | "story" | "concept-widget" | "quiz-open" | "your-turn" | "review-due" | "topic-complete" | "many-topics" | "notebook-older" | "notebook-long" | "restart-topics";
 export type Script = "story-reply" | "concept-reply-widget" | "plain-reply" | "quiz-open" | "stage-reply-2" | "stage-reply-3" | "stage-reply-4";
 
 /** Signs the tools Learner in through the login form (the saved cookie usually makes this unneeded). */

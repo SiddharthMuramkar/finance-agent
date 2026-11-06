@@ -117,7 +117,7 @@ The page kept for one Topic, in the Notebook: what code fills in once it is pass
 _Avoid_: Summary, recap, cheat sheet
 
 **Own rule**:
-A rule the Learner says in their own words, correctly and more simply than the Tutor did, which code saves word for word to that Topic's Note. The Learner sees "Saved to your notes" with Undo, and the Tutor uses their words from then on. At most one per turn, and one per Skill in a Topic with Skills.
+A rule the Learner says in their own words, correctly and more simply than the Tutor did, which code saves word for word to that Topic's Note. The Learner sees "Saved to your Notebook" with Undo, and the Tutor uses their words from then on. At most one per turn, and one per Skill in a Topic with Skills.
 _Avoid_: Custom rule, user note
 
 **Case**:
@@ -137,7 +137,7 @@ The whole conversation between one Learner and the Tutor about one Topic. Leavin
 _Avoid_: Login, thread, chat
 
 **Older session**:
-A Session from before each Topic had one Session of its own. Older sessions are kept and can be read, listed apart from the Topic Sessions, but are never continued.
+A Session from before each Topic had one Session of its own. Older sessions are kept and can be read, listed apart from the Topic Sessions, but are never continued. A Session the Learner restarted (see Earlier attempt) is not an Older session: the Notebook shows it as an Earlier attempt of its Topic.
 _Avoid_: Legacy session, archived session
 
 **Start a Topic over**:
@@ -212,7 +212,7 @@ The first item of a Topic's conversation: what the Learner will learn, what to s
 _Avoid_: Intro card, syllabus, overview
 
 **Topic complete card**:
-The card at the end of a passed Topic's Session: the Topic's principle in a line or two, a note that it is saved to the Learner's Notes, and What comes next.
+The card at the end of a passed Topic's Session: the Topic's principle in a line or two, a note that it is saved to the Learner's Notebook, and What comes next.
 _Avoid_: Certificate, completion screen
 
 **Widget**:

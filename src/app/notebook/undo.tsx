@@ -11,10 +11,10 @@ export type UndoOffer = { message: string; undo: () => Promise<boolean> };
 
 const OfferUndo = createContext<(offer: UndoOffer) => void>(() => {});
 
-/** Called by a part of the Notes page right after it removed something, so the Learner can take it back. */
+/** Called by a part of the Notebook right after it removed something, so the Learner can take it back. */
 export const useOfferUndo = () => useContext(OfferUndo);
 
-/** The toast after a removal on Notes: what went, and Undo. Fixed at the bottom of the screen; never printed. */
+/** The toast after a removal in the Notebook: what went, and Undo. Fixed at the bottom of the screen; never printed. */
 export function UndoToast({ message, failed = false, onUndo }: { message: string; failed?: boolean; onUndo: () => void }) {
   return (
     <div
@@ -30,7 +30,7 @@ export function UndoToast({ message, failed = false, onUndo }: { message: string
 }
 
 /**
- * Holds the one Undo toast of the Notes page. A new removal replaces the toast before it (that one can no longer be
+ * Holds the one Undo toast of the Notebook. A new removal replaces the toast before it (that one can no longer be
  * undone); the toast goes after UNDO_MS, or once Undo has put the item back.
  */
 export function UndoProvider({ children }: { children: ReactNode }) {

@@ -10,6 +10,8 @@ import { dayLabel, isAfter, motionFlag, Pic, yearOf } from "./shared";
 // TimelineStrip: emoji markers on a line, oldest on the left. Tapping a marker (or arriving on it with the arrow keys)
 // opens its label. A beat dated after `hideAfter` is drawn as a locked "?" marker and never shows its words, so a story
 // can stop at its own date. The strip is one tab stop; the arrow keys, Home and End move along it.
+// At rest it is already a story moment (ticket R-E2a): the oldest beat starts open, its marker raised on a sunflower face,
+// and its card shows the beat's picture and day. The line is solid sunflower up to the story's date and dashed after it.
 
 export const timelineStripProps = z.object({
   beats: z
@@ -25,9 +27,12 @@ const LOCKED_NOTE = "After the story's date";
 /** Every open marker's ring: sunflower, the accent of history and stories (Appendix A). Mint and coral mean gain and loss, so they never decorate a date. */
 const RING = "border-[var(--sun)]";
 
+/** Markers pop in one after another: 30 ms apart, so seven still finish inside 400 ms with the 200 ms pop. */
+const STAGGER_MS = 30;
+
 export function TimelineStripView({ beats, hideAfter }: Props) {
   const reduced = usePrefersReducedMotion();
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(0);
   const [roving, setRoving] = useState(0);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -52,13 +57,36 @@ export function TimelineStripView({ beats, hideAfter }: Props) {
     move(to);
   };
 
+  // The line runs between the first and last marker centres (each marker sits in the middle of an equal column).
+  // The story's part is solid sunflower; past the last open beat it turns into a dashed, muted line.
+  const n = marks.length;
+  const lastStory = marks.reduce((at, m, i) => (m.locked ? at : i), 0);
+  const centre = (i: number) => `${((i + 0.5) / n) * 100}%`;
+  const span = (from: number, to: number) => `${((to - from) / n) * 100}%`;
   const shown = open === null ? null : marks[open];
   return (
     <section data-testid="timeline-strip" data-motion={motionFlag(reduced)} aria-label="Timeline" className="@container py-1">
-      <div role="group" aria-label="Moments in order, oldest first" onKeyDown={onKeyDown} className="relative flex items-start justify-between gap-1 px-1">
-        <span aria-hidden="true" className="absolute inset-x-4 top-[22px] h-1 rounded-full bg-[var(--sun)]" />
+      <div role="group" aria-label="Moments in order, oldest first" onKeyDown={onKeyDown} className="relative flex items-start">
+        <span
+          aria-hidden="true"
+          data-testid="timeline-line-story"
+          className="absolute top-[19px] h-1.5 rounded-full bg-[var(--sun)] @min-[480px]:top-[25px]"
+          style={{ left: centre(0), width: span(0, lastStory) }}
+        />
+        {lastStory < n - 1 && (
+          <span
+            aria-hidden="true"
+            data-testid="timeline-line-after"
+            className="absolute top-[20px] h-0 border-t-4 border-dashed border-[var(--edge)] @min-[480px]:top-[26px]"
+            style={{ left: centre(lastStory), width: span(lastStory, n - 1) }}
+          />
+        )}
         {marks.map((m, i) => (
-          <div key={`${m.date}-${m.order}`} className="relative flex min-w-0 flex-1 flex-col items-center gap-1">
+          <div
+            key={`${m.date}-${m.order}`}
+            className={`relative flex min-w-0 flex-1 flex-col items-center gap-1.5 ${reduced ? "" : "story-pop"}`}
+            style={reduced ? undefined : { animationDelay: `${i * STAGGER_MS}ms` }}
+          >
             <Button
               ref={(el: HTMLButtonElement | null) => {
                 refs.current[i] = el;
@@ -74,32 +102,38 @@ export function TimelineStripView({ beats, hideAfter }: Props) {
                 setOpen(i);
                 setRoving(i);
               }}
-              className={`size-11 min-h-11 shrink-0 rounded-full border-2 p-0! ${m.locked ? "" : RING}`}
+              className={`timeline-marker size-11 min-h-11 shrink-0 rounded-full border-2 p-0! @min-[480px]:size-14 @min-[480px]:min-h-14 ${m.locked ? "border-dashed" : RING}`}
             >
-              {m.locked ? <span aria-hidden="true" className="text-lg font-bold text-[var(--muted)]">?</span> : <Pic name={m.emoji} size={24} />}
+              {m.locked ? <span aria-hidden="true" className="text-xl font-bold text-[var(--muted)]">?</span> : <Pic name={m.emoji} size={32} />}
             </Button>
-            <span className="text-xs leading-4 text-[var(--sun-ink)]">{m.locked ? "" : yearOf(m.date)}</span>
+            <span className={`text-xs leading-4 ${open === i ? "font-bold text-[var(--sun-ink)]" : "text-[var(--sun-ink)]"}`}>{m.locked ? "" : yearOf(m.date)}</span>
           </div>
         ))}
       </div>
-      <p
+      <div
         role="status"
         aria-live="polite"
         data-testid="timeline-label"
-        className="mt-2 min-h-12 rounded-lg border border-[var(--sun)] bg-[var(--sun-tint)] px-3 py-2 text-sm leading-5 text-[var(--ink)]"
+        className="mt-3 min-h-16 rounded-xl border border-[var(--sun)] bg-[var(--sun-tint)] px-3 py-2 text-[var(--ink)]"
       >
         {shown === null ? (
-          <span className="text-[var(--muted)]">Tap a picture to see what happened.</span>
-        ) : shown.locked ? (
-          <span className="font-medium">{LOCKED_NOTE}</span>
+          <p className="text-sm leading-5 text-[var(--muted)]">Tap a picture to see what happened.</p>
         ) : (
-          <>
-            <span className="font-semibold text-[var(--sun-ink)]">{dayLabel(shown.date) ?? shown.date}</span>
-            {": "}
-            {shown.label}
-          </>
+          <div key={open} className={`flex items-center gap-3 ${reduced ? "" : "story-bubble-in"}`}>
+            <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-full border-2 border-[var(--sun)] bg-[var(--field)]">
+              {shown.locked ? <span className="text-xl font-bold text-[var(--muted)]">?</span> : <Pic name={shown.emoji} size={32} />}
+            </span>
+            {shown.locked ? (
+              <p className="text-base font-medium leading-6">{LOCKED_NOTE}</p>
+            ) : (
+              <p className="min-w-0">
+                <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--sun-ink)]">{dayLabel(shown.date) ?? shown.date}</span>
+                <span className="block text-base font-medium leading-6">{shown.label}</span>
+              </p>
+            )}
+          </div>
         )}
-      </p>
+      </div>
     </section>
   );
 }

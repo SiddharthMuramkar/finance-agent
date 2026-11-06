@@ -47,62 +47,220 @@ youllLearn:
   - "See why a good average can still hide a ruinous outcome."
   - "Ask how borrowing changes what the worst case does to you."
 
+exampleCurrency: INR
+runningExample:
+  text: A ₹50 raffle ticket pays ₹300 one time in four.
+  numbers: [50, 300, 4]
+  scene:
+    cast:
+      - { id: asha, emoji: woman, name: Asha }
+      - { id: seller, emoji: man, name: The ticket seller }
+    beats:
+      - { who: narrator, says: "Asha pays ₹50 for a raffle ticket.", emoji: ticket }
+      - { who: seller, says: "It pays ₹300 one time in four.", emoji: money-bag }
+      - { who: asha, says: "Most days I lose my ₹50. Some days I win big.", emoji: game-die }
+      - { who: narrator, says: "The average over many tickets is what finance calls expected value." }
+
+terms:
+  - term: probability
+    means: How likely something is, written as a number from 0 (never) to 1 (certain).
+    pro: What is the probability that this trade loses money?
+    example: One ticket among 100 in a ₹10 raffle gives you a 1 in 100 chance.
+    emoji: game-die
+    inStory: In the story, the analyst asks how likely a large loss is.
+  - term: expected value
+    means: The average result of a bet if you could repeat it many times.
+    pro: The trade has positive expected value.
+    example: A ₹100 ticket that pays ₹300 one time in four averages ₹75 a go.
+    emoji: balance-scale
+    inStory: In the story, the fund's trades look like small wins on average.
+  - term: leverage
+    means: Borrowing to hold bigger positions, so gains and losses both grow.
+    pro: The fund runs thirty-to-one leverage.
+    example: Buying a ₹50 lakh flat with ₹5 lakh of your own and a loan.
+    emoji: high-voltage
+    inStory: In the story, LTCM holds about 30 dollars of debt per dollar of its own.
+  - term: hedge fund
+    means: A private fund for wealthy investors that trades actively and often borrows heavily.
+    pro: He runs a hedge fund that bets on bond price gaps.
+    example: A private club of rich investors pooling crores with one star manager.
+    emoji: briefcase
+    inStory: In the story, LTCM is a hedge fund founded in February 1994.
+  - term: tail risk
+    means: A rare, very large loss, far out at the edge of the odds.
+    pro: We buy cheap protection against tail risk.
+    example: A once-in-fifty-years flood that could sink a shop worth ₹2 crore.
+    emoji: cloud-with-lightning
+    inStory: In the story, the analyst weighs the unlikely, large loss.
+
+scenes:
+  - id: ltcm-opening
+    step: story
+    recipe: story_scene
+    title: A fund of small, likely gains
+    inputs:
+      cast:
+        - { id: fund, emoji: briefcase, name: The fund, role: a hedge fund }
+        - { id: lender, emoji: bank, name: A lender, role: lends to the fund }
+        - { id: analyst, emoji: thinking-face, name: An analyst, role: weighs the risk }
+      beats:
+        - { who: narrator, says: "It is 1 August 1998. A hedge fund called LTCM makes many small, likely gains.", emoji: chart-increasing }
+        - { who: fund, says: "Each trade earns little, so I borrow heavily to earn more.", emoji: briefcase }
+        - { who: lender, says: "About 30 dollars of debt for every dollar of its own money.", emoji: bank }
+        - { who: analyst, says: "The small gains look safe. What does one big loss do?", emoji: thinking-face }
+      caption: Nobody yet knows what comes next
+      date: "1998-08-01"
+  - id: expected-value-myths
+    step: concept
+    check: pr-quiz-expected-value
+    recipe: myth_or_fact
+    title: Expected value, myth or fact
+    inputs:
+      cards:
+        - claim: A bet that wins most of the time is a safe bet.
+          isFact: false
+          why: One rare, huge loss can outweigh many small wins.
+          emoji: warning
+        - claim: Expected value is the average result if you repeat a bet many times.
+          isFact: true
+          why: Repeat it often enough and the average settles there.
+          emoji: balance-scale
+        - claim: A good average means you cannot be wiped out.
+          isFact: false
+          why: A loss that ends the game stops you collecting the average.
+          emoji: cross-mark
+  - id: borrowing-jar
+    step: concept
+    check: pr-ltcm-ev
+    recipe: money_jar
+    title: What borrowing does to a loss
+    inputs:
+      label: "A made-up fund: 1 coin of its own, 30 borrowed"
+      start: 1
+      end: 0
+      unit: coin
+      each: one coin of its own
+      words: "a fall of a few percent would empty it"
+  - id: ltcm-front-page
+    step: reveal
+    recipe: headline
+    title: The week the banks stepped in
+    inputs:
+      paper: The morning paper
+      date: "1998-09-23"
+      headline: Fourteen firms put in 3.625 billion dollars to rescue LTCM
+      deck: An imagined front page. The Federal Reserve helped arrange it but lent none of its own money.
+      source: https://www.federalreservehistory.org/essays/ltcm-near-failure
+  - id: average-is-not-safe
+    step: principle
+    recipe: lingo_card
+    title: Tail risk
+    inputs:
+      term: Tail risk
+      pro: We buy cheap protection against tail risk.
+      means: A rare, very large loss, far out at the edge of the odds.
+      example: A once-in-fifty-years flood that could sink a shop worth ₹2 crore.
+      emoji: cloud-with-lightning
+      inStory: A good average does not make the fund safe from one huge loss.
+
 questions:
   - id: pr-q-expected-value
     prompt: >
-      A bet pays Rs 300 with probability 0.4 and loses Rs 100 with probability 0.6. What is its expected value?
+      A bet wins ₹300 four times in ten and loses ₹100 six times in ten. A trader calls it a bet with "positive expected value". What does she mean?
     choices:
-      - { id: a, text: "Rs +60" }
-      - { id: b, text: "Rs +100" }
-      - { id: c, text: "Rs +200" }
-      - { id: d, text: "Rs -60" }
+      - { id: a, text: "Repeated many times, it makes money on average" }
+      - { id: b, text: "It wins more often than it loses", mistake: { tag: ignored_sizes, fix: "It wins only four times in ten. Expected value also weighs how big each win and loss is." } }
+      - { id: c, text: "It never loses money", mistake: { tag: sure_thing, fix: "It loses ₹100 six times in ten. Expected value is an average, not a promise." } }
+      - { id: d, text: "It makes money on every single try", mistake: { tag: sure_thing, fix: "Single tries still lose. The average only shows up over many repeats." } }
     answer: a
     explanation: >
-      0.4 x 300 + 0.6 x (-100) = 120 - 60 = Rs +60. It is positive, but 60% of the time you lose.
+      Expected value weighs each result by how likely it is. Here the rare big wins outweigh the common small losses, so the average is a gain of ₹60 a try, even though six tries in ten lose.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 13.5 Probability Distributions, calculating expected values: https://openstax.org/books/principles-finance-2e/pages/13-5-probability-distributions
 
   - id: pr-q-at-least-once
     prompt: >
-      Each of ten independent trades has a 5% chance of a large loss. What is the chance that at least one of the ten has a large loss?
+      A fund makes ten independent trades. Each has a small chance of a large loss. As the fund adds more trades, what happens to the chance that at least one of them blows up?
     choices:
-      - { id: a, text: "5%" }
-      - { id: b, text: "About 40%" }
-      - { id: c, text: "50%" }
-      - { id: d, text: "95%" }
-    answer: b
+      - { id: a, text: "It grows, and can be much bigger than one trade's chance" }
+      - { id: b, text: "It stays the same as one trade's chance", mistake: { tag: risks_do_not_add, fix: "Each extra trade is another chance for a loss, so the chance of at least one grows." } }
+      - { id: c, text: "It shrinks, because trades cancel each other out", mistake: { tag: diversified_away, fix: "Independent trades do not cancel a loss. Each one can blow up on its own." } }
+      - { id: d, text: "It is zero, because each trade is small", mistake: { tag: small_means_safe, fix: "Small chances add up. Many small chances make a real chance of at least one loss." } }
+    answer: a
     explanation: >
-      P(no large loss in any trade) = 0.95^10 = 0.60, so P(at least one) = 1 - 0.60 = about 0.40. Small risks add up when you take many of them.
+      The chance that none of the trades goes wrong shrinks with every trade added, so the chance that at least one does grows. For ten trades at 5 percent each it is about 40 percent. Small risks add up when you take many of them.
     source: >
       CFA Institute, Probability Trees and Conditional Expectations (refresher reading, 2026): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/probability-trees-and-conditional-expectations ; the complement rule is the same one used in the Question Bank item MBA-STAT-0006.
 
   - id: pr-q-leverage-wipeout
     prompt: >
-      A fund holds 30 dollars of debt for every 1 dollar of its own capital, so its assets are 31 dollars per 1 dollar of capital. About how far must the value of its assets fall to wipe out its capital?
+      A fund holds about 30 dollars of debt for every dollar of its own money. What does that borrowing do to a fall in the value of its assets?
     choices:
-      - { id: a, text: "About 30%" }
-      - { id: b, text: "About 10%" }
-      - { id: c, text: "About 3%" }
-      - { id: d, text: "About 0.3%" }
-    answer: c
+      - { id: a, text: "A small fall can wipe out all of its own money" }
+      - { id: b, text: "Lenders share the fall, so the fund's money is safe", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The fund's own money takes the loss first." } }
+      - { id: c, text: "Borrowing shrinks the fall", mistake: { tag: borrowing_shrinks_loss, fix: "Borrowing makes a fall hurt more, not less, because the fund's own money is a thin slice of its assets." } }
+      - { id: d, text: "Only a fall of half the assets can hurt it", mistake: { tag: needs_big_fall, fix: "With so little of its own money, a fall of only a few percent is enough." } }
+    answer: a
     explanation: >
-      Capital is 1 of 31 in assets. A fall of 1 / 31 = 3.2% in the assets' value removes that dollar, and the debt must still be repaid in full.
+      Its own money is 1 of 31 in assets. A fall of 1 in 31, about 3 percent, removes that dollar, and the debt must still be repaid in full.
     source: >
-      Federal Reserve History, Near Failure of Long-Term Capital Management (about 30 dollars of debt for every dollar of capital at the end of 1997): https://www.federalreservehistory.org/essays/ltcm-near-failure ; the 1/31 is own arithmetic.
+      Federal Reserve History, Near Failure of Long-Term Capital Management (about 30 dollars of debt for every dollar of capital at the end of 1997): https://www.federalreservehistory.org/essays/ltcm-near-failure ; the 1 in 31 is own arithmetic.
 
   - id: pr-q-lose-everything
     prompt: >
       A strategy earns a small gain 95 times out of 100 and loses all of its capital the other 5 times. Why is its average gain per trade a poor guide to whether you should use it with all your money?
     choices:
       - { id: a, text: "Because a total loss ends the game: you cannot earn the later gains the average assumes" }
-      - { id: b, text: "Because averages are always wrong" }
-      - { id: c, text: "Because 95% is not a high enough probability to count" }
-      - { id: d, text: "Because gains and losses cannot be multiplied by probabilities" }
+      - { id: b, text: "Because averages are always wrong", mistake: { tag: averages_useless, fix: "Averages are useful. This one just hides a loss that ends the game." } }
+      - { id: c, text: "Because 95% is not a high enough probability to count", mistake: { tag: small_means_safe, fix: "A 5 percent chance of losing everything is large when the loss cannot be recovered." } }
+      - { id: d, text: "Because gains and losses cannot be multiplied by probabilities", mistake: { tag: wrong_method, fix: "Weighing each result by its probability is exactly how expected value works." } }
     answer: a
     explanation: >
       Expected value is a long-run average over many repeats. If one outcome wipes out your capital, you cannot repeat the bet afterwards, so the average is never collected.
     source: >
       Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure ; OpenStax, Principles of Finance, 13.5 Probability Distributions: https://openstax.org/books/principles-finance-2e/pages/13-5-probability-distributions
+
+  - id: pr-q-lingo-tail-risk
+    prompt: >
+      What do risk managers call a rare, very large loss that sits far out at the edge of the odds?
+    choices:
+      - { id: a, text: "Tail risk" }
+      - { id: b, text: "A hedge", mistake: { tag: mixed_up_terms, fix: "A hedge is protection against a loss, not the loss itself." } }
+      - { id: c, text: "Leverage", mistake: { tag: mixed_up_terms, fix: "Leverage is borrowing. It makes a rare loss bigger, but it is not the loss." } }
+      - { id: d, text: "Expected value", mistake: { tag: mixed_up_terms, fix: "Expected value is the average result, which can hide a rare big loss." } }
+    answer: a
+    explanation: >
+      The unlikely outcomes sit in the "tail" of the odds, far from the usual results. Tail risk is the chance of one of them.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure ; CFA Institute, Probability Trees and Conditional Expectations (refresher reading, 2026): https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/probability-trees-and-conditional-expectations
+
+  - id: pr-q-lingo-leverage
+    prompt: >
+      What do analysts call using borrowed money to hold bigger positions, so that gains and losses both grow?
+    choices:
+      - { id: a, text: "Leverage" }
+      - { id: b, text: "Diversification", mistake: { tag: mixed_up_terms, fix: "Diversification spreads money over many bets. It does not use borrowed money." } }
+      - { id: c, text: "A probability", mistake: { tag: mixed_up_terms, fix: "A probability is how likely something is, a number from 0 to 1." } }
+      - { id: d, text: "Expected value", mistake: { tag: mixed_up_terms, fix: "Expected value is the average result of a bet, not borrowing." } }
+    answer: a
+    explanation: >
+      Leverage means holding more than your own money buys, by borrowing. It makes gains bigger, and it makes losses bigger too.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure
+
+  - id: pr-q-lingo-hedge-fund
+    prompt: >
+      LTCM looked for small price gaps between similar securities and borrowed heavily to earn more from them. What do finance people call a private fund like that?
+    choices:
+      - { id: a, text: "A hedge fund" }
+      - { id: b, text: "A savings account", mistake: { tag: mixed_up_terms, fix: "A savings account is a bank deposit. A hedge fund is a private fund that trades actively." } }
+      - { id: c, text: "A central bank", mistake: { tag: mixed_up_terms, fix: "A central bank steers interest rates. LTCM was a private fund." } }
+      - { id: d, text: "A lottery", mistake: { tag: mixed_up_terms, fix: "A lottery pays by chance. A hedge fund trades on purpose, using borrowed money." } }
+    answer: a
+    explanation: >
+      A hedge fund is a private investment fund for wealthy investors that trades actively and often borrows. LTCM was one, founded in February 1994.
+    source: >
+      Federal Reserve History, Near Failure of Long-Term Capital Management: https://www.federalreservehistory.org/essays/ltcm-near-failure
 
 checks:
   - id: pr-quiz-expected-value
@@ -112,9 +270,9 @@ checks:
       - pr-q-at-least-once
       - pr-q-leverage-wipeout
       - pr-q-lose-everything
-      - bank:eab:MBA-STAT-0005
-      - bank:eab:MBA-STAT-0006
-      - bank:eab:MBA-STAT-0042
+      - pr-q-lingo-tail-risk
+      - pr-q-lingo-leverage
+      - pr-q-lingo-hedge-fund
     perAttempt: 3
     passRule:
       correct: 2
@@ -129,7 +287,8 @@ checks:
       The Learner explains that expected value is a probability-weighted long-run average that
       hides the size of the rare bad outcome, and that a loss big enough to wipe out the capital
       ends the game so the average is never collected. They use leverage: with about 30 to 1
-      debt a fall in asset values of only about 3% (1/31) removes all of the fund's capital.
+      debt, even a small fall in the value of what it holds can wipe out all of the fund's own
+      money. The Learner does not need to give any percentage or work out a number; the idea is what passes.
       They say they would want to know how large and how likely the bad outcomes are, how
       correlated the trades are (the small risks may not be independent), and how much
       borrowing sits behind them. They do not need to cite the fund's actual outcome.

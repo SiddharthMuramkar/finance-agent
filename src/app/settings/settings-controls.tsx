@@ -4,7 +4,7 @@ import { useState } from "react";
 import { send } from "../profile/profile-form";
 import { THEMES, THEME_LABEL, THEME_SWATCH, type ThemeId, type ThemePref } from "../theme";
 import { followSystem, pinTheme, useThemeState } from "../theme-store";
-import { PrimaryButton, SecondaryButton } from "../ui";
+import { Button, SecondaryButton } from "../ui";
 
 /** The Show developer details switch: saved at once, for this Learner on every device. */
 export function DeveloperDetailsSwitch({ initial }: { initial: boolean }) {
@@ -48,24 +48,31 @@ export function DeveloperDetailsSwitch({ initial }: { initial: boolean }) {
 }
 
 /**
- * Start over as a new learner: a button that first asks for confirmation, then posts a plain form to
- * /api/start-over, whose 303 opens the Welcome as the fresh Learner.
+ * Start over as a new learner: a danger button (the Settings danger zone) that first asks for confirmation, then
+ * posts a plain form to /api/start-over, whose 303 opens the Welcome as the fresh Learner.
  */
 export function StartOverButton({ confirmValue }: { confirmValue: string }) {
   const [asking, setAsking] = useState(false);
-  if (!asking) return <SecondaryButton onClick={() => setAsking(true)}>Start over as a new learner</SecondaryButton>;
+  if (!asking)
+    return (
+      <Button variant="danger" onClick={() => setAsking(true)}>
+        Start over as a new learner
+      </Button>
+    );
   return (
     <div role="alertdialog" aria-labelledby="start-over-question" className="rounded-lg border border-[var(--border)] p-4 text-sm">
       <p id="start-over-question" className="font-medium leading-5">
         Start over as a new learner?
       </p>
       <p className="mt-1 leading-5 text-[var(--muted)]">
-        You begin again at the Welcome with no progress, Notes or Sessions. Nothing is deleted: your current progress is kept, but you won&rsquo;t see it here again.
+        You begin again at the Welcome with no progress, Notebook or Sessions. Nothing is deleted: your current progress is kept, but you won&rsquo;t see it here again.
         Any other device signed in as you is signed out.
       </p>
       <form action="/api/start-over" method="post" className="mt-3 flex items-center gap-2">
         <input type="hidden" name="confirm" value={confirmValue} />
-        <PrimaryButton type="submit">Yes, start over</PrimaryButton>
+        <Button variant="danger" type="submit">
+          Yes, start over
+        </Button>
         <SecondaryButton onClick={() => setAsking(false)}>Cancel</SecondaryButton>
       </form>
     </div>

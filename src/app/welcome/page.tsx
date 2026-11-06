@@ -3,6 +3,7 @@ import { signedInLearner } from "@/auth/session";
 import { loadCourseMap } from "@/course/map";
 import { getDb } from "@/db/client";
 import { showsWelcome } from "@/learner/welcome";
+import { accountFor } from "../account";
 import { readTheme } from "../theme-cookie";
 import { ReadingPage, SignedInFrame } from "../ui";
 import { WelcomeView, welcomePanel } from "./welcome-view";
@@ -20,7 +21,7 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   const firstTopic = loadCourseMap().topics[0];
   return (
     <SignedInFrame>
-      <ReadingPage theme={await readTheme()}>
+      <ReadingPage theme={await readTheme()} account={await accountFor(getDb(), learner)}>
         <WelcomeView panel={welcomePanel((await searchParams).panel)} firstTopic={firstTopic} />
       </ReadingPage>
     </SignedInFrame>
