@@ -106,6 +106,23 @@ questions:
       A rent ceiling set below the equilibrium rent is binding. At the lower rent more people want flats and landlords offer fewer, so there is a shortage. The flats go by queues, contacts or side payments instead of price, and Arjun may have to search for a long time.
     source: >
       Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0034, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; and OpenStax, Principles of Microeconomics 3e, 3.4 Price Ceilings and Price Floors: https://openstax.org/books/principles-microeconomics-3e/pages/3-4-price-ceilings-and-price-floors ; the scenario is made up.
+  - id: sd-q-recession
+    prompt: >
+      October 2008. Meera plans next quarter's orders for a supermarket chain, and forecasters expect a
+      recession to cut household incomes. Her shoppers treat premium craft beer as a treat, buy fresh milk
+      every week whatever they earn, and turn to store-brand pasta when money is tight. A bad order and
+      she is left with unsold stock or empty shelves. How should she change her orders?
+    choices:
+      - { id: a, text: "Cut craft beer the most, trim milk a little, and order more store-brand pasta" }
+      - { id: b, text: "Cut all three by the same share, since every household has less to spend", mistake: { tag: same_cut_for_all, fix: "Falling income hits goods differently: treats fall most, staples barely, cheap swaps rise." } }
+      - { id: c, text: "Cut milk the most, since shoppers buy it most often", mistake: { tag: staple_falls_most, fix: "Necessities hold up when incomes fall; shoppers keep buying milk." } }
+      - { id: d, text: "Order more craft beer, since people treat themselves in hard times", mistake: { tag: luxury_rises, fix: "Demand for a luxury moves with income, so it falls most in a recession." } }
+      - { id: e, text: "Cut store-brand pasta too, since lower incomes lower demand for everything", mistake: { tag: inferior_falls, fix: "Demand for a cheap swap like store-brand pasta rises when incomes fall." } }
+    answer: a
+    explanation: >
+      How demand responds to income depends on the good. A luxury like craft beer falls by more than income does, a necessity like milk barely moves, and an inferior good like store-brand pasta gains as shoppers trade down. So Meera cuts beer hardest, trims milk slightly and stocks more pasta.
+    source: >
+      Adapted from the Executive Assessment Bank (geoffsdesk), MBA-ECON-0037, CC-BY-4.0: https://github.com/geoffsdesk/executive-assessment-bank/blob/main/bank/02-mba-core/economics.json ; and OpenStax, Principles of Microeconomics 3e, 5.4 Elasticity in Areas Other Than Price: https://openstax.org/books/principles-microeconomics-3e/pages/5-4-elasticity-in-areas-other-than-price ; the scenario is made up.
 
 checks:
   - id: sd-quiz-prices
@@ -117,7 +134,7 @@ checks:
       - bank:eab:MBA-ECON-0001
       - bank:eab:MBA-ECON-0002
       - sd-q-rent-cap
-      - bank:eab:MBA-ECON-0037
+      - sd-q-recession
     perAttempt: 4
     passRule:
       correct: 3
