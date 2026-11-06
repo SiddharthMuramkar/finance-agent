@@ -149,11 +149,13 @@ checks:
   - id: em-regulator-powers
     kind: conversation
     prompt: >
-      Explain what an exchange, a broker, a clearing corporation and a market regulator each do, and
-      which of these matter most when a market suddenly falls 10% in a day.
+      Your aunt bought shares through her broker this week, and the market has just fallen 10% in a day.
+      She asks who keeps her trade and her money safe: the exchange, her broker, the clearing corporation
+      or the market regulator. Which would you point her to first, and why, in your own words?
     passCriteria: >
-      The Learner says an exchange provides the market and rules for trading, a broker brings buyers and
-      sellers together and acts for clients, a clearing corporation settles trades and guarantees
-      them as central counterparty, and a regulator protects investors, makes rules, registers
-      intermediaries and enforces them. They identify settlement safety and the regulator's powers to
-      investigate and direct as the key supports in a sudden fall, with reasons.
+      The Learner picks one of the four and gives a reason grounded in what it does: the clearing
+      corporation settles trades and guarantees them as central counterparty; the regulator protects
+      investors, makes rules, registers intermediaries and can investigate and direct; the exchange
+      provides the market and its trading rules; the broker acts for the client. A strong answer names
+      settlement safety (the clearing corporation) or the regulator's powers to investigate and direct as
+      what matters most in a sudden fall, and says in a phrase what at least one other player does.

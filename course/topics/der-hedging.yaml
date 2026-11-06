@@ -147,15 +147,15 @@ checks:
   - id: hr-pool-hedge-or-bet
     kind: conversation
     prompt: >
-      An investment pool for local governments borrows to double its holdings and buys notes whose
-      payments fall when rates rise. Judge it: is it hedged against interest rates or not, what
-      single risk drives the whole portfolio, and what would a hedge look like?
+      Your town keeps its cash in a county pool. The pool borrows to double what it owns and buys
+      bonds that pay less when interest rates rise, and its manager says the money is safe. Rates have
+      been rising for months. Would you call the pool hedged or a bet? Say why in your own words.
     passCriteria: >
-      The Learner says the position is not a hedge because every part of it loses when rates rise:
-      the bonds lose value through duration, the inverse floaters lose more, and the borrowing
-      magnifies the effect on the depositors' money. They identify the one risk as a rise in
-      interest rates, and the leverage as a multiplier on it. They describe a hedge as a position
-      that gains when rates rise (for example selling bond futures, paying fixed in a swap, or holding
-      shorter-duration assets) or simply reducing the leverage. Bonus: they point out that depositors
+      The Learner calls it a bet, not a hedge, because every part of it loses when rates rise: the
+      bonds fall in value, the ones that pay less when rates rise lose more, and the borrowing
+      magnifies the effect on the depositors' money. They name the one risk as a rise in interest
+      rates, with the borrowing as a multiplier on it. They may say what a hedge would look like, in
+      plain words or with the terms: a position that gains when rates rise (for example selling bond
+      futures, paying fixed in a swap, or holding bonds that mature sooner) or simply borrowing less. Bonus: they point out that depositors
       were told that principal was safe, or that hold-to-maturity accounting hides the risk without
       removing it.

@@ -16,9 +16,8 @@ cases:
       January 1992 it crossed 2,000 and on 29 February, after the next budget, it closed at 3,018, up 9.4% in
       a day. In March alone it rose 42% and today it closed at 4,285, more than four times its level of fifteen
       months ago. You are asked what the market might do from here.
-      Before you answer, think about how fast a yearly pace the last fifteen months represent, and compare it with
-      what you would reasonably expect shares to earn over many years. What would you want to know to tell a lasting
-      re-rating from a bubble?
+      Before you answer, ask yourself whether a run like this looks like what shares usually do over many years, or
+      something far out of the ordinary. What would you want to know to tell a lasting re-rating from a bubble?
     reveal: >
       The Sensex reached its high close of 4,467 in April 1992 (Forbes India puts the rise from April 1991 at 274%, from 1,194 to 4,467). On
       28 April it fell 12.77% in a day, as the securities scam came to light; it fell 5% over April and 23% in May.
@@ -71,11 +70,11 @@ questions:
 
   - id: eh-q-up-down
     prompt: >
-      A portfolio gains 50% in one year and loses 50% the next. The plain average of those two years is zero. Which statement gets it right?
+      Kunal is saving for his daughter's college fees. An agent shows him a fund that gained 50% one year and lost 50% the next, and says, "Average the two years and you lost nothing." Which statement gets it right?
     choices:
-      - { id: a, text: "The investor ended below the start, because the loss applied to a bigger amount" }
-      - { id: b, text: "The investor broke even, because the gain and the loss cancel", mistake: { tag: averaged_returns, fix: "Gains and losses of the same size do not cancel; the loss falls on a bigger base." } }
-      - { id: c, text: "The investor ended above the start, because the gain came first", mistake: { tag: order_myth, fix: "The order does not rescue the investor; the second-year loss is taken on the bigger amount." } }
+      - { id: a, text: "Kunal would have ended below the start, because the loss applied to a bigger amount" }
+      - { id: b, text: "He would have broken even, because the gain and the loss cancel", mistake: { tag: averaged_returns, fix: "Gains and losses of the same size do not cancel; the loss falls on a bigger base." } }
+      - { id: c, text: "He would have ended above the start, because the gain came first", mistake: { tag: order_myth, fix: "The order does not rescue the investor; the second-year loss is taken on the bigger amount." } }
       - { id: d, text: "No one can say without knowing the amounts in rupees", mistake: { tag: needs_rupees, fix: "The answer does not depend on the starting amount; the same pattern leaves any investor behind." } }
     answer: a
     explanation: >

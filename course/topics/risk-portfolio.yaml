@@ -141,7 +141,6 @@ checks:
       - rp-q-correlation
       - rp-q-market-fall
       - rp-q-insurance
-      - bank:eab:MBA-FIN-VAL-0045
       - bank:eab:MBA-STAT-0030
     perAttempt: 3
     passRule:
@@ -149,9 +148,9 @@ checks:
   - id: rp-diversify-limits
     kind: conversation
     prompt: >
-      A pension fund holds 500 shares and has also bought portfolio insurance. Explain what risk its
-      diversification has removed, what risk remains, and what could go wrong with portfolio
-      insurance if many funds use it at once.
+      Your parents' pension fund holds 500 shares and has also bought portfolio insurance, and the whole
+      market has started to fall. In your own words, what can owning 500 shares not protect them from, and
+      why could the insurance let them down if many funds rely on it at once?
     passCriteria: >
       The Learner says diversification removes firm-specific risk but not systematic (market-wide) risk.
       They explain that portfolio insurance sells futures or shares as the market falls to limit losses,
