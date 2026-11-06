@@ -54,34 +54,32 @@ youllLearn:
 questions:
   - id: eq-q-cash-share
     prompt: >
-      A company's books show cash and bank balances of Rs 5,000 crore. Confirmations from the banks
-      support only Rs 300 crore of it. About what share of the reported cash is unsupported?
+      A company's books show cash and bank balances of Rs 5,000 crore, but confirmations from the banks
+      support only Rs 300 crore of it. What should an analyst conclude?
     choices:
-      - { id: a, text: "About 94%" }
-      - { id: b, text: "About 6%" }
-      - { id: c, text: "About 50%" }
-      - { id: d, text: "About 15%" }
+      - { id: a, text: "Most of the reported cash may not exist, so the accounts need a hard explanation" }
+      - { id: b, text: "It is a normal timing gap, since banks only ever confirm a small part", mistake: { tag: shrugged_off_the_gap, fix: "Timing gaps are small; a gap this large is a warning sign, not routine." } }
+      - { id: c, text: "The company is being cautious and has understated its cash", mistake: { tag: assumed_understated, fix: "The books show more cash than the banks confirm, so the risk is overstatement." } }
+      - { id: d, text: "Nothing, because bank confirmations are not evidence", mistake: { tag: ignored_outside_evidence, fix: "Confirmations come from outside the company, which makes them the stronger evidence." } }
     answer: a
     explanation: >
-      (5,000 - 300) / 5,000 = 0.94, so about 94% of the reported cash is unsupported. The 6% figure is the share that is supported.
+      Cash is one of the few things a company cannot fake to an outside party. When the banks confirm only a sliver of what the books claim, the likeliest reading is that the balance was inflated, and the analyst should demand an explanation.
     source: >
-      A made-up example; the arithmetic is a share of a total.
-
+      A made-up example in the pattern of the Satyam case; the figures are invented for the question.
   - id: eq-q-margin
     prompt: >
-      A software company reports quarterly revenue of Rs 2,700 crore and an operating margin
-      (operating profit) of Rs 649 crore. About what operating margin percentage is that?
+      A software company reports quarterly revenue of Rs 2,700 crore and an operating profit of Rs 649 crore, a 24% margin
+      that an analyst finds unusually rich. What is the sensible first reaction for an analyst?
     choices:
-      - { id: a, text: "About 24%" }
-      - { id: b, text: "About 4%" }
-      - { id: c, text: "About 30%" }
-      - { id: d, text: "About 2.4%" }
+      - { id: a, text: "Treat it as a claim to test against cash flow and outside evidence" }
+      - { id: b, text: "Take it as proof that the company is the best run in its industry", mistake: { tag: took_margin_as_proof, fix: "A margin is only the company's own claim; unusually high ones are the ones to test." } }
+      - { id: c, text: "Ignore it, because margins say nothing about quality", mistake: { tag: dismissed_the_margin, fix: "Margins matter; the point is to check that they are backed by cash." } }
+      - { id: d, text: "Assume the revenue must be understated", mistake: { tag: guessed_the_direction, fix: "Nothing points to understated revenue; a result this good is the thing to verify." } }
     answer: a
     explanation: >
-      649 / 2,700 = 0.240, about 24%. A margin is profit divided by revenue; dividing the other way (2,700 / 649 = 4.2) gives a ratio, not a margin. A margin far above peers is itself something to test.
+      An unusually rich margin is itself something to test. Profit rests on accounting judgement, so the next step is to see whether it turns into operating cash flow and whether outsiders can confirm the balances behind it.
     source: >
       Reported figures from Satyam's published results for the quarter to 30 September 2008, as restated in B. Ramalinga Raju's letter of 7 January 2009 (SEC Exhibit 99.2): https://www.sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
-
   - id: eq-q-cash-test
     prompt: >
       Which single check is hardest for a company to fake and most useful for testing reported profit?
@@ -134,7 +132,7 @@ checks:
     passCriteria: >
       The Learner explains that profit rests on accruals and judgement while cash can be checked
       outside the company. They propose concrete checks: compare profit with operating cash flow
-      over several years, confirm bank balances with the banks, check how much interest the cash
-      earns, look at receivables against sales, compare the margin with peers, and examine the
+      over several years, confirm bank balances with the banks, check whether the cash
+      earns a sensible rate of interest (idle cash is a warning), look at receivables against sales, compare the margin with peers, and examine the
       related-party nature of the Maytas deal. They conclude that profit and cash diverging, or cash
       sitting idle while the company spends elsewhere, calls for scepticism.

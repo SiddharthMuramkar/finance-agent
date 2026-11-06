@@ -54,18 +54,17 @@ youllLearn:
 questions:
   - id: sd-q-retail-rise
     prompt: >
-      The all-India average retail price of onions was Rs 21.60 a kilogram in August 2018 and Rs 24.82 in August 2019. About what percentage rise is that?
+      The all-India average retail price of onions was higher in August 2019 than a year earlier. If demand stayed the same, which change would push the price up like that?
     choices:
-      - { id: a, text: "About 15%" }
-      - { id: b, text: "About 13%" }
-      - { id: c, text: "About 3%" }
-      - { id: d, text: "About 115%" }
+      - { id: a, text: "Less supply reaching the market, for example when growers send less to market" }
+      - { id: b, text: "More supply reaching the market", mistake: { tag: flipped_supply, fix: "More supply pushes the price down, not up." } }
+      - { id: c, text: "Fewer buyers wanting onions", mistake: { tag: flipped_demand, fix: "Weaker demand also lowers the price." } }
+      - { id: d, text: "A price ceiling set below the market price", mistake: { tag: mixed_up_ceiling, fix: "A ceiling holds the price down, and it would not lift it." } }
     answer: a
     explanation: >
-      (24.82 - 21.60) / 21.60 = 3.22 / 21.60 = 0.149, so about 15%. The rupee rise of 3.22 is not the percentage rise, and dividing by the newer price (3.22 / 24.82 = 13%) uses the wrong base.
+      With demand steady, a higher price points to less supply arriving, as when growers send less to market. More supply, fewer buyers or a price ceiling would all hold the price down.
     source: >
       Ministry of Consumer Affairs data, in PIB, Rise in Prices of Onions, 6 December 2019: https://pib.gov.in/Pressreleaseshare.aspx?PRID=1595294&lang=2&reg=48
-
   - id: sd-q-flood
     prompt: >
       A drought destroys part of a staple vegetable crop and delays the next harvest, while demand for the vegetable stays the same. What happens to the equilibrium price and quantity sold?
@@ -82,12 +81,12 @@ questions:
 
   - id: sd-q-ban
     prompt: >
-      A country that exports a staple vegetable bans exports while its home price is rising. What is the immediate effect the ban aims at, and what happens in the countries that import from it?
+      A country that exports onions bans exports while its home price is rising. What is the immediate effect the ban aims at, and what happens in the countries that import from it?
     choices:
-      - { id: a, text: "More onions stayed in the home market, lowering the domestic price; prices rose in countries that import Indian onions" }
-      - { id: b, text: "Domestic demand fell; prices fell abroad" }
-      - { id: c, text: "Domestic supply fell; prices rose at home and abroad" }
-      - { id: d, text: "No effect on either, since exports were a small share of production" }
+      - { id: a, text: "More onions stayed in the home market, lowering the domestic price; prices rose in the countries that import them" }
+      - { id: b, text: "Domestic demand fell; prices fell abroad", mistake: { tag: ban_cuts_demand, fix: "A ban keeps supply at home; it does not cut demand." } }
+      - { id: c, text: "Domestic supply fell; prices rose at home and abroad", mistake: { tag: ban_cuts_home_supply, fix: "Onions stay home, so home supply rises and the home price tends to fall." } }
+      - { id: d, text: "No effect on either, since exports were a small share of production", mistake: { tag: ban_no_effect, fix: "Taking supply out of importers' markets lifts their prices, however small the share." } }
     answer: a
     explanation: >
       Keeping exports at home raises supply to domestic buyers (aiming to lower the price there) and removes supply from importing countries, where prices tend to rise.
@@ -112,7 +111,7 @@ checks:
     kind: conversation
     prompt: >
       It is 1 September 2019 and onion prices are rising while the new crop is still weeks away.
-      Using supply and demand, explain what could push the price up from here, why the size of the
+      Picture yourself as a trader watching the market: what could push the price up from here, why the size of the
       move depends on how buyers react to price, and what options the government has to ease
       prices and what each would do to prices at home and abroad.
     passCriteria: >

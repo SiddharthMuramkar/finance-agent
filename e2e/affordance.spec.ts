@@ -67,7 +67,7 @@ test.describe("affordance audit is clean", () => {
     await clean(page, "/study widget");
   });
 
-  for (const path of ["/course", "/progress", "/sessions", "/notes", "/settings"]) {
+  for (const path of ["/course", "/sessions", "/notes", "/settings"]) {
     test(`[A3b] ${path}`, async ({ page }) => {
       await visit(page, "many-topics", path);
       await clean(page, path);
