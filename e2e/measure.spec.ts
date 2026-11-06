@@ -76,6 +76,23 @@ const LIVELY = `
     <section data-testid="widget-pane" style="flex:1"><div style="background:var(--violet-tint);padding:8px"><p>Lingo card</p></div></section>
   </main>`;
 
+// Shaped like /study: an h-dvh overflow-hidden frame whose chat and Widget panes scroll inside it. Every accent is on the
+// page and painted, but clipped away from the screenshot: scrolled out of the chat, inside a collapsed overflow-hidden
+// box, past the frame's bottom edge, off the page's left edge. Scrolling the chat to its end brings its coral into view.
+const CLIPPED = `
+  <main data-route="study" style="height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:12px">
+    <header style="height:48px;flex:none;background:var(--field)"><a style="color:var(--brand)">Course Map</a></header>
+    <div style="flex:none;height:700px;display:flex;gap:16px">
+      <section data-testid="chat" style="flex:1;overflow-y:auto;background:var(--field)">
+        <p style="height:3000px;margin:0;color:var(--muted)">The Tutor says hello.</p>
+        <p style="background:var(--coral-tint);color:var(--coral-ink);margin:0">A loss of 20 %.</p></section>
+      <section data-testid="widget-pane" style="flex:1;overflow:auto">
+        <div style="height:0;overflow:hidden"><p style="background:var(--violet-tint);color:var(--violet-ink)">collapsed Lingo card</p></div>
+        <span style="position:absolute;left:-400px;top:80px;width:120px;background:var(--mint);color:var(--mint-ink)">off the page</span></section>
+    </div>
+    <div style="flex:none;height:400px;margin-top:2000px;background:var(--sun-tag);color:var(--sun)">below the frame</div>
+  </main>`;
+
 for (const theme of ["light", "dark"] as const) {
   test(`[F1] accents: a page of neutrals and hidden accents paints no accent family (${theme})`, async ({ page }) => {
     await themed(page, theme, NEUTRAL);
@@ -85,5 +102,12 @@ for (const theme of ["light", "dark"] as const) {
   test(`[F1] accents: every accent family on the page counts, ink, tint and tag included (${theme})`, async ({ page }) => {
     await themed(page, theme, LIVELY);
     expect((await accentFamilies(page)).families).toEqual(["mint", "coral", "sun", "violet"]);
+  });
+
+  test(`[F1] accents: accents clipped away from the screenshot do not count, scrolled into view they do (${theme})`, async ({ page }) => {
+    await themed(page, theme, CLIPPED);
+    expect((await accentFamilies(page)).families).toEqual([]);
+    await page.getByTestId("chat").evaluate((el) => { el.scrollTop = el.scrollHeight; });
+    expect((await accentFamilies(page)).families).toEqual(["coral"]);
   });
 }

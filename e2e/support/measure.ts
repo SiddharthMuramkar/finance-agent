@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { accentFamiliesPainted, paintsOf, type AccentCount, type AccentTokens } from "../../src/dev/accent-families";
+import { accentFamiliesPainted, paintsOf, visibleBoxes, type AccentCount, type AccentTokens, type LaidOutNode } from "../../src/dev/accent-families";
 
 /**
  * The one measuring module of the browser test bed (spec 2026-11-05, Appendix C.2 and C.3, ticket T-00). Each function
@@ -166,11 +166,13 @@ export function auditAffordances(page: Page): Promise<Affordances> {
  * resolved in the current theme from getComputedStyle(document.documentElement), and each element's background,
  * gradients, borders, SVG fill and stroke, and the colour of its own text. src/dev/accent-families.ts composites each
  * translucent paint and variant over its backdrop and decides (tested there with the Light and Dark token tables).
- * Visible means a box of some size that checkVisibility() passes with opacity and visibility, so a hidden, see-through
- * or 0x0 accent does not count.
+ * Visible means on the screenshot: a box that checkVisibility() passes with opacity and visibility and that keeps some
+ * size after its overflow-clipping ancestors and the page (the viewport, for a fixed box) cut it (`visibleBoxes`), so a
+ * hidden, see-through or 0x0 accent, one scrolled out of a scroller, inside a collapsed overflow-hidden box, below
+ * /study's h-dvh overflow-hidden frame or off the page does not count.
  */
 export async function accentFamilies(page: Page): Promise<AccentCount & { tokens: AccentTokens }> {
-  const { tokens, nodes } = await page.evaluate(() => {
+  const { tokens, nodes, area } = await page.evaluate(() => {
     const FAMILY = /^--(mint|coral|sun|violet)(-[a-z0-9-]+)?$/;
     const names = new Set<string>();
     const scan = (rules: CSSRuleList) => {
@@ -197,8 +199,26 @@ export async function accentFamilies(page: Page): Promise<AccentCount & { tokens
     type On = { color: string; kind: "border" | "fill" | "stroke" | "text" };
     const els = [document.documentElement, ...Array.from(document.documentElement.querySelectorAll("*"))];
     const index = new Map<Element, number>(els.map((el, i) => [el, i]));
+    // Elements whose overflow can clip: a CSS box (an HTML element, or an outermost <svg>) that is not inline and not
+    // display: contents. The root and body are the page itself (their overflow belongs to the viewport).
+    const CLIPS = /^(hidden|clip|scroll|auto)$/;
+    const TRANSFORMED = (s: CSSStyleDeclaration) =>
+      s.transform !== "none" || s.filter !== "none" || s.perspective !== "none" || /paint|strict|content|layout/.test(s.contain);
     const nodes = els.map((el) => {
       const s = getComputedStyle(el), r = el.getBoundingClientRect();
+      const isBox = (el instanceof HTMLElement || (el instanceof SVGSVGElement && !el.ownerSVGElement))
+        && el !== document.documentElement && el !== document.body && s.display !== "inline" && s.display !== "contents";
+      const paintContained = /paint|strict|content/.test(s.contain);
+      const padX: [number, number] = [r.left + el.clientLeft, r.left + el.clientLeft + el.clientWidth];
+      const padY: [number, number] = [r.top + el.clientTop, r.top + el.clientTop + el.clientHeight];
+      const layout = {
+        rect: { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
+        position: s.position === "fixed" ? "fixed" : s.position === "absolute" ? "absolute" : "flow",
+        positioned: s.position !== "static",
+        containsFixed: TRANSFORMED(s),
+        clipX: isBox && (paintContained || CLIPS.test(s.overflowX)) ? padX : null,
+        clipY: isBox && (paintContained || CLIPS.test(s.overflowY)) ? padY : null,
+      };
       const shown = typeof el.checkVisibility === "function"
         ? el.checkVisibility({ opacityProperty: true, visibilityProperty: true })
         : s.display !== "none" && s.visibility !== "hidden" && s.opacity !== "0";
@@ -213,13 +233,20 @@ export async function accentFamilies(page: Page): Promise<AccentCount & { tokens
       if (Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) on.push({ color: s.color, kind: "text" });
       return {
         parent: el.parentElement ? index.get(el.parentElement) ?? -1 : -1,
-        visible: r.width > 0 && r.height > 0 && shown,
+        shown,
+        ...layout,
         background: s.backgroundColor,
         gradients: s.backgroundImage !== "none" ? [s.backgroundImage] : [],
         on,
       };
     });
-    return { tokens, nodes };
+    const d = document.documentElement;
+    const area = {
+      page: { left: -scrollX, top: -scrollY, right: d.scrollWidth - scrollX, bottom: d.scrollHeight - scrollY },
+      viewport: { left: 0, top: 0, right: d.clientWidth, bottom: d.clientHeight },
+    };
+    return { tokens, nodes, area };
   });
-  return { ...accentFamiliesPainted(tokens, paintsOf(nodes)), tokens };
+  const seen = visibleBoxes(nodes as LaidOutNode[], area.page, area.viewport);
+  return { ...accentFamiliesPainted(tokens, paintsOf(nodes.map((n, i) => ({ ...n, visible: seen[i] })))), tokens };
 }

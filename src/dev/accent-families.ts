@@ -27,6 +27,56 @@ export type PaintedNode = { parent: number; visible: boolean; background: string
 /** The families seen, in ACCENT_FAMILIES order, and for each the first variant that matched ("--sun-tag as background"). */
 export type AccentCount = { families: AccentFamily[]; via: Partial<Record<AccentFamily, string>> };
 
+/** A rectangle in viewport coordinates (CSS px), as getBoundingClientRect reports it. */
+export type Box = { left: number; top: number; right: number; bottom: number };
+/**
+ * One element's layout as the page computed it, in document order (`parent` as in PaintedNode). `rect` is its border
+ * box; `shown` is checkVisibility() with opacity and visibility. `position` is how it is placed: "fixed", "absolute",
+ * or "flow" (static, relative, sticky). `positioned` (position not static) makes it the containing block of absolute
+ * descendants; `containsFixed` (a transform, filter, perspective or paint containment) makes it the containing block of
+ * fixed ones too. `clipX` / `clipY` are its padding box's left-right / top-bottom edges when its overflow-x / overflow-y
+ * (or paint containment) clips its descendants, else null.
+ */
+export type LaidOutNode = {
+  parent: number;
+  rect: Box;
+  shown: boolean;
+  position: "flow" | "absolute" | "fixed";
+  positioned: boolean;
+  containsFixed: boolean;
+  clipX: [number, number] | null;
+  clipY: [number, number] | null;
+};
+
+/**
+ * Which nodes the screenshot shows: a box that checkVisibility() passes and that keeps some width and height after
+ * every clipping ancestor and the captured area cut it. `page` is the whole page's box (what a full-page shot
+ * captures; on /study, h-dvh, it is the viewport), `viewport` the window's, which is where a fixed box is cut instead.
+ * An ancestor clips a box only when CSS says it does: every ancestor clips an in-flow box; an absolute box skips
+ * ancestors until its containing block (positioned or transformed), a fixed box until a transformed one, and from the
+ * containing block up its own placement rules apply. A box scrolled out of a scroller, inside a collapsed
+ * overflow-hidden box, or below /study's overflow-hidden frame is therefore not seen.
+ */
+export function visibleBoxes(nodes: LaidOutNode[], page: Box, viewport: Box): boolean[] {
+  return nodes.map((n) => {
+    if (!n.shown) return false;
+    let { left, top, right, bottom } = n.rect;
+    let mode = n.position;
+    for (let a = n.parent, guard = 0; a >= 0 && a < nodes.length && guard < nodes.length; a = nodes[a].parent, guard++) {
+      const an = nodes[a];
+      const applies = mode === "flow" || (mode === "absolute" && (an.positioned || an.containsFixed)) || (mode === "fixed" && an.containsFixed);
+      if (!applies) continue;
+      if (an.clipX) { left = Math.max(left, an.clipX[0]); right = Math.min(right, an.clipX[1]); }
+      if (an.clipY) { top = Math.max(top, an.clipY[0]); bottom = Math.min(bottom, an.clipY[1]); }
+      mode = an.position;
+    }
+    const area = mode === "fixed" ? viewport : page;
+    left = Math.max(left, area.left); right = Math.min(right, area.right);
+    top = Math.max(top, area.top); bottom = Math.min(bottom, area.bottom);
+    return right - left > 0 && bottom - top > 0;
+  });
+}
+
 /** Channel distance (0-255) under which two composited colours are the same paint, and over which a paint is seen. */
 const SAME = 2;
 const WHITE: Rgba = [255, 255, 255, 1];

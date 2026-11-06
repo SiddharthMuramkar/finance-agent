@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ACCENT_FAMILIES, accentFamiliesPainted, familyOf, over, paintsOf, parseColors, type AccentTokens, type Paint, type PaintKind } from "./accent-families";
+import { ACCENT_FAMILIES, accentFamiliesPainted, familyOf, over, paintsOf, parseColors, visibleBoxes, type AccentTokens, type Box, type LaidOutNode, type Paint, type PaintKind } from "./accent-families";
 
 /**
  * F1's accent count (spec 2026-11-05 §3 row 7: "≥ 3 distinct accent colours visible on /study with a Widget"). The token
@@ -144,5 +144,94 @@ describe("accent families [S1]", () => {
   it("an empty page counts nothing", () => {
     expect(accentFamiliesPainted(accentsOf(THEMES.light), []).families).toEqual([]);
     expect(accentFamiliesPainted({}, [paint(THEMES.light["--mint"], THEMES.light["--bg"])]).families).toEqual([]);
+  });
+});
+
+/**
+ * Seen means on the screenshot: a box of some size that survives every overflow-clipping ancestor (a collapsed
+ * overflow-hidden box, a scroller scrolled away from it, /study's h-dvh overflow-hidden frame) and the page itself
+ * (a fixed box: the viewport). Clipping follows CSS: an absolute box escapes clipping ancestors below its containing
+ * block (the nearest positioned or transformed ancestor), a fixed box escapes all but a transformed one.
+ */
+describe("accent families: only what the screenshot shows counts [S1]", () => {
+  const box = (left: number, top: number, right: number, bottom: number): Box => ({ left, top, right, bottom });
+  const PAGE = box(0, 0, 1512, 982);
+  const node = (parent: number, rect: Box, more: Partial<LaidOutNode> = {}): LaidOutNode =>
+    ({ parent, rect, shown: true, position: "flow", positioned: false, containsFixed: false, clipX: null, clipY: null, ...more });
+  const clips = (r: Box) => ({ clipX: [r.left, r.right] as [number, number], clipY: [r.top, r.bottom] as [number, number] });
+  const seen = (nodes: LaidOutNode[], page = PAGE, viewport = PAGE) => visibleBoxes(nodes, page, viewport);
+
+  it("a box inside a collapsed overflow-hidden box is not seen; one outside it is", () => {
+    const collapsed = box(16, 100, 400, 100);
+    expect(seen([node(-1, PAGE), node(0, collapsed, clips(collapsed)), node(1, box(16, 100, 400, 140)), node(0, box(16, 200, 400, 240))]))
+      .toEqual([true, false, false, true]);
+  });
+
+  it("a box scrolled out of a scroller is not seen; its sibling in view is, even half in view", () => {
+    const chat = box(16, 60, 700, 900);
+    expect(seen([node(-1, PAGE), node(0, chat, clips(chat)), node(1, box(16, 1200, 700, 1300)), node(1, box(16, -400, 700, -300)), node(1, box(16, 880, 700, 940))]))
+      .toEqual([true, true, false, false, true]);
+  });
+
+  it("only one axis clips when only overflow-x or overflow-y does", () => {
+    const strip = box(0, 100, 300, 140);
+    expect(seen([node(-1, PAGE), node(0, strip, { clipX: [0, 300] }), node(1, box(320, 100, 400, 140)), node(1, box(100, 160, 200, 200))]))
+      .toEqual([true, true, false, true]);
+  });
+
+  it("/study's h-dvh overflow-hidden frame hides what overflows below the fold, and the page hides what is off it", () => {
+    const frame = box(0, 0, 1512, 982);
+    expect(seen([node(-1, PAGE), node(0, frame, clips(frame)), node(1, box(0, 990, 400, 1100)), node(0, box(-500, 10, -400, 40)), node(0, box(10, 1000, 100, 1040))]))
+      .toEqual([true, true, false, false, false]);
+  });
+
+  it("a full-page screenshot shows a box below the viewport when the page itself is that tall", () => {
+    expect(seen([node(-1, box(0, 0, 1512, 2000)), node(0, box(0, 1500, 400, 1600))], box(0, 0, 1512, 2000))).toEqual([true, true]);
+  });
+
+  it("an absolute box escapes clipping ancestors below its containing block, not its containing block", () => {
+    const hidden = box(16, 100, 400, 100);
+    const nodes = [
+      node(-1, PAGE),
+      node(0, box(0, 0, 1512, 600), { positioned: true }),
+      node(1, hidden, clips(hidden)),
+      node(2, box(16, 100, 200, 140), { position: "absolute" }),
+      node(0, box(0, 0, 1512, 100), { positioned: true, ...clips(box(0, 0, 1512, 100)) }),
+      node(4, box(16, 100, 200, 140), { position: "absolute" }),
+    ];
+    expect(seen(nodes)).toEqual([true, true, false, true, true, false]);
+  });
+
+  it("a fixed box escapes every clipping ancestor but a transformed one, and is clipped to the viewport, not the page", () => {
+    const hidden = box(16, 100, 400, 100);
+    const page = box(0, 0, 1512, 3000), viewport = box(0, 0, 1512, 982);
+    const nodes = [
+      node(-1, page),
+      node(0, hidden, { positioned: true, ...clips(hidden) }),
+      node(1, box(16, 900, 200, 940), { position: "fixed" }),
+      node(1, box(16, 1500, 200, 1540), { position: "fixed" }),
+      node(0, hidden, { containsFixed: true, positioned: true, ...clips(hidden) }),
+      node(4, box(16, 900, 200, 940), { position: "fixed" }),
+    ];
+    expect(seen(nodes, page, viewport)).toEqual([true, false, true, false, false, false]);
+  });
+
+  it("a hidden box or a 0x0 box is not seen", () => {
+    expect(seen([node(-1, PAGE), node(0, box(0, 0, 100, 100), { shown: false }), node(0, box(10, 10, 10, 10))])).toEqual([true, false, false]);
+  });
+
+  it("an accent clipped away does not count: Light and Dark, the matcher sees only the seen nodes", () => {
+    for (const t of [THEMES.light, THEMES.dark]) {
+      const chat = box(16, 60, 700, 900);
+      const laid = [node(-1, PAGE), node(0, chat, clips(chat)), node(1, box(16, 1200, 700, 1300)), node(1, box(16, 100, 700, 140))];
+      const visible = seen(laid);
+      const painted = [
+        { parent: -1, visible: visible[0], background: t["--bg"], gradients: [], on: [] },
+        { parent: 0, visible: visible[1], background: t["--field"], gradients: [], on: [] },
+        { parent: 1, visible: visible[2], background: t["--coral-tint"], gradients: [], on: [{ color: t["--violet-ink"] ?? t["--violet"], kind: "text" as const }] },
+        { parent: 1, visible: visible[3], background: t["--sun-tag"], gradients: [], on: [] },
+      ];
+      expect(accentFamiliesPainted(accentsOf(t), paintsOf(painted)).families).toEqual(["sun"]);
+    }
   });
 });
