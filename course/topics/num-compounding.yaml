@@ -440,11 +440,11 @@ questions:
         text: "About 4,285% a year"
         mistake: { fix: "That is close to the whole rise over 13 years, not one year's rate.", tag: too_big }
       - id: d
-        text: "About 13% a year"
-        mistake: { fix: "That is the number of years, not the rate.", tag: mixed_up_terms }
+        text: "The same amount added every year"
+        mistake: { fix: "That is simple growth; an index compounds on its gains.", tag: simple_growth }
     answer: a
     explanation: >
-      The index ended 42.85 times where it started. The steady yearly rate is the one that, grown 13 times over, multiplies the start by 42.85: about 33% a year. Splitting the gain across the years ignores compounding.
+      The best summary is the index's CAGR: the one steady yearly rate that, compounded year after year, carries it from its start to its end. Splitting the total gain across the years, or adding the same amount each year, ignores growth on growth.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 7.4 Applications of TVM in Finance: https://openstax.org/books/principles-finance-2e/pages/7-4-applications-of-tvm-in-finance ; Sensex values: BSE, SENSEX@40 white paper (January 2026), https://bseindia.com/downloads1/SENSEX@40-White-Paper.pdf
 
