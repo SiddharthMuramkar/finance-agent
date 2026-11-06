@@ -144,8 +144,9 @@ checks:
   - id: bd-svb-explain
     kind: conversation
     prompt: >
-      SVB's securities were safe from default. With a duration of 6.2 years and a 2.36-point rise
-      in the 10-year yield over 2022, duration puts the fall in their market value at about 15%.
+      SVB's held-to-maturity securities were safe from default. With their duration of 6.2 years and
+      a 2.36-point rise in the 10-year yield over 2022, duration puts the fall in their market value
+      at about 15%.
       Using duration, explain why rising rates hurt
       the bank, and whether classifying the securities as held-to-maturity would protect it if
       depositors wanted their money back.
