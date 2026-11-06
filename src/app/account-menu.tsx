@@ -9,30 +9,30 @@ import { IconButton, MenuItem, MenuLink, useMenu } from "./primitives";
  * The keyboard works like the Theme menu's, through useMenu in primitives.
  */
 export function AccountMenu({ name, email }: { name: string; email?: string }) {
-  const menu = useMenu();
+  const { open, setOpen, toggleRef, rootRef, menuRef, menuId, onMenuKeyDown, onToggleKeyDown } = useMenu();
   const initial = (name.trim().charAt(0) || "?").toUpperCase();
   return (
-    <div ref={menu.rootRef} className="relative inline-flex">
+    <div ref={rootRef} className="relative inline-flex">
       <IconButton
-        ref={menu.toggleRef}
+        ref={toggleRef}
         label="Account menu"
         aria-haspopup="menu"
-        aria-expanded={menu.open}
-        aria-controls={menu.open ? menu.menuId : undefined}
-        onClick={() => menu.setOpen((o) => !o)}
-        onKeyDown={menu.onToggleKeyDown}
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={onToggleKeyDown}
         data-testid="account-menu-button"
         className="[--face:var(--brand-soft)] [--label:var(--brand-deep)] [--rim:var(--brand-deep)] [--lip-colour:var(--brand-deep)] text-sm"
       >
         <span aria-hidden="true">{initial}</span>
       </IconButton>
-      {menu.open && (
+      {open && (
         <div
-          ref={menu.menuRef}
-          id={menu.menuId}
+          ref={menuRef}
+          id={menuId}
           role="menu"
           aria-label="Account"
-          onKeyDown={menu.onMenuKeyDown}
+          onKeyDown={onMenuKeyDown}
           data-testid="account-menu"
           className="absolute top-full right-0 z-20 mt-1 flex w-60 flex-col gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
         >

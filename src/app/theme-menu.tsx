@@ -40,24 +40,23 @@ function Item({ checked, swatch, onPick, children }: { checked: boolean; swatch:
  */
 export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; className?: string }) {
   const { pref, osDark, theme } = useThemeState(initial);
-  const menu = useMenu("[role=menuitemradio]");
-  const { open } = menu;
+  const { open, setOpen, toggleRef, rootRef, menuRef, menuId, close, onMenuKeyDown, onToggleKeyDown } = useMenu("[role=menuitemradio]");
 
   const pick = (apply: () => void) => {
     apply();
-    menu.close();
+    close();
   };
 
   return (
-    <div ref={menu.rootRef} className="relative inline-flex">
+    <div ref={rootRef} className="relative inline-flex">
       <IconButton
-        ref={menu.toggleRef}
+        ref={toggleRef}
         label={theme ? `Theme: ${THEME_LABEL[theme]}` : "Theme"}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? menu.menuId : undefined}
-        onClick={() => menu.setOpen((o) => !o)}
-        onKeyDown={menu.onToggleKeyDown}
+        aria-controls={open ? menuId : undefined}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={onToggleKeyDown}
         data-testid="theme-menu-button"
         className={className}
       >
@@ -79,11 +78,11 @@ export function ThemeMenu({ initial, className = "" }: { initial: ThemePref; cla
       </IconButton>
       {open && (
         <div
-          ref={menu.menuRef}
-          id={menu.menuId}
+          ref={menuRef}
+          id={menuId}
           role="menu"
           aria-label="Theme"
-          onKeyDown={menu.onMenuKeyDown}
+          onKeyDown={onMenuKeyDown}
           data-testid="theme-menu"
           className="absolute top-full right-0 z-20 mt-1 flex w-56 flex-col gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-1"
         >
