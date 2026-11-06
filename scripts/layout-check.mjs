@@ -4,7 +4,7 @@
 //
 //   node scripts/layout-check.mjs <output-folder> [--harness-only] [--skip-live]
 //
-// Part 1, the Widget harness (/dev/widgets, no database): every fixture fits at 360, 480 and 560 px, the Sensex
+// Part 1, the Widget harness (/dev/widgets, no database): every fixture fits at 360, 480, 560, 720 and 860 px, the Sensex
 // milestones are spaced by time, the y-axis ticks stay put while a slider moves, the SIP chart's top tick is at most
 // 8 lakh, and the harness's controls look and measure as clickable.
 // Part 2, /study as the tools Learner on a Neon TEST BRANCH (skipped with --harness-only): the page never scrolls,
@@ -61,7 +61,7 @@ mkdirSync(out, { recursive: true });
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_CORE ? resolve(process.env.PLAYWRIGHT_CORE) : "playwright-core");
 
-const WIDTHS = [360, 480, 560];
+const WIDTHS = [360, 480, 560, 720, 860];
 const report = [];
 const step = async (name, fn) => {
   try {
