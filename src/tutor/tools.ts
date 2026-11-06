@@ -49,6 +49,15 @@ import { isChoicePress } from "./reply-choices";
 
 export type ToolCode = Pick<BetaRunnableTool, "run" | "parse">;
 
+/**
+ * The keys of the Widgets a turn's update_widget calls moved: each counts as that reply's Widget (the one-Widget check
+ * below, and the Companion gate in turn.ts), just as one it showed or opened.
+ */
+export async function widgetsUpdatedInTurn(db: Db, turnId: number): Promise<Set<string>> {
+  const updates = await db.select({ result: toolCalls.result }).from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.name, "update_widget"), eq(toolCalls.isError, false)));
+  return new Set(updates.flatMap((u) => u.result.match(/^Updated by code: "(.*)" now shows/)?.[1] ?? []));
+}
+
 /** The text of each of a Session's replies (its assistant rows), with its seq, for drawnWidgets. */
 export function replyTexts(rows: readonly { seq: number; role: string; content?: unknown }[]): ReplyText[] {
   return rows.filter((r) => r.role === "assistant").map((r) => ({ seq: r.seq, text: textOf(r.content) }));
@@ -347,7 +356,7 @@ export function toolCode(
   async function replyWidgets(tx: Db, scope: ReplyScope): Promise<{ slots: number; keys: Set<string> }> {
     const keys = new Set<string>();
     let slots = 0;
-    for (const i of turnItems(scope.items, scope.turnSeq, scope.next)) {
+    for (const i of turnItems(scope.items, scope.rows, scope.turnSeq, scope.next)) {
       if (i.kind === WIDGET_OPENED && typeof i.data.id === "string") {
         keys.add(i.data.id);
         slots++;
@@ -363,9 +372,7 @@ export function toolCode(
       slots++;
     }
     // update_widget on a Widget this reply did not open or show is the reply's Widget too.
-    const updates = await tx.select({ result: toolCalls.result }).from(toolCalls).where(and(eq(toolCalls.turnId, turnId), eq(toolCalls.name, "update_widget"), eq(toolCalls.isError, false)));
-    const moved = new Set(updates.flatMap((u) => u.result.match(/^Updated by code: "(.*)" now shows/)?.[1] ?? []));
-    for (const key of moved) {
+    for (const key of await widgetsUpdatedInTurn(tx, turnId)) {
       if (!keys.has(key)) slots++;
       keys.add(key);
     }

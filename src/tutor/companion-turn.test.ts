@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { stringify } from "yaml";
 import { describe, expect, it } from "vitest";
 import { loadCourseMap, parseCourseMap, type CourseMap } from "@/course/map";
-import { OWNER_LEARNER_ID } from "@/db/schema";
+import { OWNER_LEARNER_ID, sessions as sessionsTable } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { engineOff } from "@/test/engine-off";
 import { testDb } from "@/test/pglite";
@@ -163,6 +163,19 @@ describe("a Widget with every reply", () => {
     expect((await sources(db)).at(-1)).toBe("step");
   });
 
+  it("adds none on the first Next after a deploy refreezes the Session: the fold's summary row does not hide the step's Widget", async () => {
+    const db = await testDb();
+    await turn(db, { opener: true }, [say("Picture February 1994. Bond traders are waiting for news.")]);
+    // As if the Session was frozen by an earlier build: the Next's turn folds the history first, a row after the Next's items.
+    await db.update(sessionsTable).set({ fingerprint: "an-earlier-build", instructions: "Old instructions." });
+    const next = await turn(db, { next: "concept" }, [{ content: [{ type: "compaction", content: "Summary of the story so far." }] }, say(CONCEPT)]);
+    const widgets = widgetEvents(next.events);
+    expect(widgets).toHaveLength(1);
+    expect(widgets[0].data).not.toMatchObject({ source: "companion" });
+    expect(await widgetsOfTurn(db, next.sessionId, next.turnSeq)).toEqual([]);
+    expect((await sources(db)).at(-1)).toBe("step");
+  });
+
   it("adds none on a Next into a step that opens its Widget by itself, and widget_source is step", async () => {
     const db = await testDb();
     const opens = percentOpensAtConcept();
@@ -170,6 +183,17 @@ describe("a Widget with every reply", () => {
     const next = await turn(db, { next: "concept" }, [say("The concept.")], opens);
     expect(widgetEvents(next.events)).toEqual([{ kind: WIDGET_OPENED, data: { id: STEP_WIDGET, title: "One rate change, said three ways" } }]);
     expect((await sources(db)).at(-1)).toBe("step");
+  });
+
+  it("adds none when the reply's Widget is an update_widget on an open Widget, and widget_source is tutor", async () => {
+    const db = await testDb();
+    await atConcept(db);
+    await turn(db, "Show me", [tool("toolu_show", "show_widget", RATE_MOVE), say(CONCEPT)]);
+    const moved = await turn(db, "Make the new rate 6%", [tool("toolu_move", "update_widget", { key: RATE_MOVE.params.title, values: { $new: 6 } }), say(CONCEPT)]);
+    expect(moved.events.some((e) => e.type === "widget_state")).toBe(true);
+    expect(await widgetsOfTurn(db, moved.sessionId, moved.turnSeq)).toEqual([]);
+    expect(widgetEvents(moved.events)).toEqual([]);
+    expect((await sources(db)).at(-1)).toBe("tutor");
   });
 
   it("never re-shows a written-ahead scene the Tutor already showed with show_widget headline in this Session", async () => {

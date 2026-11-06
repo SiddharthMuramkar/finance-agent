@@ -46,7 +46,7 @@ import {
   type Shown,
   usesWidgetEngine,
 } from "./session-log";
-import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
+import { bindTools, caseDataFor, rerunToolCalls, SAVE_FAILED_MESSAGE, toolCode, unansweredToolCalls, widgetsUpdatedInTurn, type Composer, type ProgressEvent, type ToolCode, type ToolEffects } from "./tools";
 import { PARAGRAPH, textOf, turnText } from "./transcript";
 import { BUSY_MESSAGE, DRILL_NOTE, dropTurn, FINISH_NOTE, latestTurn, NEXT_PREFIX, OLD_CONTINUE_TEXT, QUICK_TRY_FOLLOW_UP_PREFIX, QUIZ_FOLLOW_UP_PREFIX, resumeTurn, startTurn, stopRequested, turnKind, updateTurn, type Turn } from "./turn-status";
 import { takeLearnersNext, type NextName } from "./next";
@@ -956,9 +956,11 @@ async function* runLockedTurn(
   const companionWidget = async (): Promise<{ source: string; item?: SessionItem }> => {
     const items = await loadSessionItems(db, session.id, learnerId);
     // A Next's own items (the step's Widget, the Concept card's preset) sit just before the turn's message (turnItems).
-    if (turnItems(items, turnSeq, turnKind(turn) === "next").some((i) => i.kind === WIDGET_SHOWN || i.kind === WIDGET_OPENED)) {
+    if (turnItems(items, log.rows, turnSeq, turnKind(turn) === "next").some((i) => i.kind === WIDGET_SHOWN || i.kind === WIDGET_OPENED)) {
       return { source: toolWidgets(log.rows, turnSeq, items).length ? "tutor" : "step" };
     }
+    // An open Widget the Tutor moved with update_widget is the reply's one Widget too (replyWidgets in tools.ts).
+    if ((await widgetsUpdatedInTurn(db, turn.id)).size) return { source: "tutor" };
     if (stoppedNow() || !covering) return { source: "none" };
     const at = [placeNow, placeAtStart].find((p) => p?.topic.id === covering.id);
     const shown = items.flatMap((i) => (i.kind === WIDGET_SHOWN ? [i.data as ShownWidget] : []));
