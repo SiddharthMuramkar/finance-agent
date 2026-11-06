@@ -80,8 +80,15 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain('"Explain like I\'m 5" gets one tiny everyday picture in words');
       });
 
-      it("tie a maths-worry reply to the story's people (T15)", () => {
-        expect(text).toContain("say what the people in the story call it");
+      // Run 7: story ties in every reply left "the Fed" and "our story" unexplained (T1, T6, T15), and T12 printed its reply twice around suggest_choice.
+      it("tie only a why, what-for or life question to the story, with each name explained, and never at a Check, hint or maths worry (T1, T6, T15)", () => {
+        expect(text).toContain("when the Learner asks why, what it is for or how it touches their life, tie the answer to the Case's people");
+        expect(text).toContain("Leave the story out of a reply at a Check, a hint, a confirmed rule, a maths worry or a simpler reply.");
+        expect(text).toContain("in 60 words or fewer, say what it means for someone in the Case");
+      });
+
+      it("write the reply once, after any tool calls (T12)", () => {
+        expect(text).toContain("Call suggest_choice before you write, and write the reply once, after your tool calls.");
       });
 
       it("answer a word question with the word only, within 70 words (T16)", () => {
