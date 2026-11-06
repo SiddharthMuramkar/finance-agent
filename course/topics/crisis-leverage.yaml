@@ -81,7 +81,7 @@ youllLearn:
 questions:
   - id: cl-q-leverage-ratio
     prompt: >
-      31 August 1998: LTCM's books show more than $125 billion of assets on $4.8 billion of its own capital. Traders say it is "leveraged more than 25 to 1". What does that phrase mean?
+      31 August 1998: LTCM's books show more than $125 billion of assets against its starting capital of $4.8 billion. Traders say it is "leveraged more than 25 to 1". What does that phrase mean?
     choices:
       - { id: a, text: "It holds $25 of assets for every $1 of its own money" }
       - { id: b, text: "It owes $25 of debt for every $1 of its own money", mistake: { tag: debt_for_assets, fix: "The 25 counts all assets per $1 of capital, not just the borrowed part." } }

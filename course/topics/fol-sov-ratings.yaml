@@ -91,12 +91,12 @@ questions:
       Musings on Markets, 2 June 2025 (premium measured against the adjusted riskfree rate).
   - id: fsv-q-grade-line
     prompt: >
-      16 May 2025: Moody's cuts the US from Aaa to Aa1. Your uncle panics at dinner: "Is America junk now?" Where on Moody's scale does investment grade end?
+      16 May 2025: Moody's cuts the US from Aaa to Aa1. Your uncle panics at dinner: "Is America junk now?" What do you tell him?
     choices:
-      - { id: a, text: "Baa3" }
-      - { id: b, text: "Baa1", mistake: { tag: line_too_high, fix: "Baa1 and Baa2 are still investment grade. The line sits at Baa3." } }
-      - { id: c, text: "Ba1", mistake: { tag: first_junk_grade, fix: "Ba1 is the first speculative, or junk, grade, just below the line." } }
-      - { id: d, text: "A3", mistake: { tag: line_at_a, fix: "A3 is well inside investment grade. The Baa grades still come below it." } }
+      - { id: a, text: "No: Aa1 is the second-best grade; junk starts below Baa3" }
+      - { id: b, text: "Yes: losing the top grade makes it junk", mistake: { tag: top_or_junk, fix: "Junk starts only below Baa3. Aa1 is still the second-best grade." } }
+      - { id: c, text: "Almost: Aa1 is the last grade before junk", mistake: { tag: aa1_last_investment, fix: "The A and Baa grades all sit below Aa1. Junk starts at Ba1." } }
+      - { id: d, text: "No, because a government can never be rated junk", mistake: { tag: sovereigns_never_junk, fix: "Agencies do rate some governments junk. America is just far above that line." } }
     answer: a
     explanation: >
       Moody's investment grades run from Aaa down to Baa3. Ba1 is the first speculative (non-investment, or junk) grade. Aa1 is the second-highest grade, so America is nowhere near junk.
