@@ -66,71 +66,71 @@ youllLearn:
 questions:
   - id: rx-q-cip
     prompt: >
-      Anil imports laptops and must pay his supplier in dollars next year. A dollar costs Rs 60 today, and rupee deposits pay more than dollar deposits. His bank offers to fix his dollar price now. Will it ask for more or fewer rupees per dollar than today?
+      Anil imports laptops for next Diwali and must pay in dollars then. Rupee deposits pay more interest than dollar ones. On Monday his bank offers to fix his dollar price now. More rupees per dollar than today, or fewer?
     choices:
-      - { id: a, text: "More rupees per dollar, because the fixed price makes up for the higher rupee interest" }
-      - { id: b, text: "Fewer rupees per dollar, because rupees earn more interest", mistake: { tag: inverted_parity, fix: "The higher rupee interest is cancelled by a fixed price that asks for more rupees per dollar, not fewer." } }
-      - { id: c, text: "The same Rs 60, because the two interest rates cancel out", mistake: { tag: rates_ignored, fix: "The gap in interest rates is exactly what the fixed price must make up." } }
-      - { id: d, text: "No bank can fix it today, because nobody knows next year's rate", mistake: { tag: forward_unfixed, fix: "A forward contract fixes the price today; the interest-rate gap says where it must sit." } }
+      - { id: a, text: "More, because the fixed price cancels out the higher rupee interest" }
+      - { id: b, text: "Fewer, because rupees earn more interest", mistake: { tag: inverted_parity, fix: "The higher rupee interest is cancelled by a fixed price that asks for more rupees per dollar, not fewer." } }
+      - { id: c, text: "The same as today, since the two rates cancel out", mistake: { tag: rates_ignored, fix: "The gap in interest rates is exactly what the fixed price must make up, so it moves." } }
+      - { id: d, text: "Neither: no bank can fix next year's price today", mistake: { tag: forward_unfixed, fix: "A forward contract fixes the price today; the interest-rate gap says where it must sit." } }
     answer: a
     explanation: >
-      The fixed price is a forward rate, and covered interest parity sets it. If it stayed at Rs 60, anyone could borrow dollars at 3 percent, change them into rupees, earn 8 percent and lock in a sure profit. To close that gap the forward asks for more rupees per dollar: with, say, 8 percent on rupees and 3 percent on dollars it would sit near Rs 62.91. Traders say the rupee is at a forward discount.
+      The fixed price is a forward rate, and covered interest parity sets it. If it stayed at today's rate, anyone could borrow cheap dollars, change them into rupees, earn the higher rupee interest and lock in a free profit. To close that gap the forward asks for more rupees per dollar. Traders say the rupee is at a forward discount.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (forward contracts for currency): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk ; forward rate calculated from covered interest parity
 
   - id: rx-q-fixed-payer
     prompt: >
-      A company has a floating-rate loan and wants the certainty of a fixed rate. Which interest-rate swap gives it that?
+      Meena's furniture firm has a loan whose rate floats with the market. Her wedding-season orders need steady costs, so on Friday she asks her banker to make the rate fixed. Which interest-rate swap does he set up?
     choices:
-      - { id: a, text: "Pay fixed and receive floating on the loan's notional amount" }
-      - { id: b, text: "Pay floating and receive fixed" }
-      - { id: c, text: "Swap the principal of the loan with the bank" }
-      - { id: d, text: "A swap cannot change the loan's cost" }
+      - { id: a, text: "Pay fixed and receive floating, on the loan's amount" }
+      - { id: b, text: "Pay floating and receive fixed", mistake: { tag: direction_flip, fix: "That doubles her floating exposure; she must receive floating to cancel the loan's floating rate." } }
+      - { id: c, text: "Hand the loan itself over to the bank", mistake: { tag: swapped_principal, fix: "The loan stays put; a swap only trades interest payments on an agreed amount." } }
+      - { id: d, text: "None: a swap cannot change what a loan costs", mistake: { tag: swap_powerless, fix: "Reshaping a loan's cost without touching the loan is exactly what a swap is for." } }
     answer: a
     explanation: >
-      The floating payments received from the swap pay the floating interest on the loan, leaving the company paying the swap's fixed rate. It has turned a floating-rate loan into a fixed one without touching the loan.
+      The floating payments Meena receives from the swap pay the floating interest on her loan, leaving her paying the swap's fixed rate. She has turned a floating-rate loan into a fixed one without touching the loan.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk (swaps): https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk
 
   - id: rx-q-net-payment
     prompt: >
-      Dev's firm swaps a Rs 100 crore loan's payments: it pays a fixed 7% and receives a floating rate that ends the year at 6%. When the year closes, what actually moves between Dev's firm and the bank?
+      Dev's firm and its bank sign an interest-rate swap on Rs 100 crore: Dev pays a fixed 7%, the bank pays a floating rate. By December the floating rate has slipped to 6%. Who pays whom at year end?
     choices:
-      - { id: a, text: "Only the gap between the two rates, applied to the notional, paid by the fixed-rate payer" }
-      - { id: b, text: "The whole fixed interest, paid by the fixed-rate payer", mistake: { tag: gross_not_net, fix: "Swaps settle net: only the difference between the two payments changes hands." } }
-      - { id: c, text: "Only the gap, but paid by the floating-rate payer", mistake: { tag: wrong_direction, fix: "Fixed is the higher rate here, so the fixed-rate payer owes the difference." } }
-      - { id: d, text: "The notional amount itself, paid by the fixed-rate payer", mistake: { tag: swapped_principal, fix: "In an interest-rate swap the notional is never exchanged; it only sizes the payments." } }
+      - { id: a, text: "Dev pays the bank just the gap between the two rates" }
+      - { id: b, text: "Dev pays all the fixed interest, and the bank pays all the floating", mistake: { tag: gross_not_net, fix: "Swaps settle net: only the difference between the two payments changes hands." } }
+      - { id: c, text: "The bank pays Dev the gap", mistake: { tag: wrong_direction, fix: "Dev's fixed rate is the higher one, so Dev owes the difference." } }
+      - { id: d, text: "Dev hands over the Rs 100 crore itself", mistake: { tag: swapped_principal, fix: "In an interest-rate swap the Rs 100 crore never moves; it only sizes the payments." } }
     answer: a
     explanation: >
-      Only the difference changes hands: 7% fixed minus 6% floating is 1% of Rs 100 crore = Rs 1 crore, paid by the fixed-rate payer. The notional is never exchanged in an interest-rate swap.
+      Swaps settle net. Dev owes 7% and is owed 6%, so only the one-point gap on the Rs 100 crore moves, from Dev to the bank. The Rs 100 crore itself, the notional, never changes hands.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk (swaps exchange payment streams): https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk ; payment calculated
 
   - id: rx-q-who-bears
     prompt: >
-      A bank sells dollars to a central bank today and agrees to buy them back in three years at a price fixed today. If the rupee turns out to be much weaker in three years than the fixed price assumed, who gains?
+      Bankers ask the RBI for a promise: in three years it will sell them dollars back at a cheap price fixed today. Say the rupee ends up far weaker than that price assumed. Who comes out ahead?
     choices:
-      - { id: a, text: "The bank, which buys its dollars at the lower fixed price" }
-      - { id: b, text: "The central bank, which sold at the lower fixed price" }
-      - { id: c, text: "Neither; a swap cannot gain or lose" }
-      - { id: d, text: "The depositor, whose dollars are repaid in rupees" }
+      - { id: a, text: "The banks, which get their dollars back at the cheap fixed price" }
+      - { id: b, text: "The RBI, because it set the price", mistake: { tag: wrong_side, fix: "The RBI must hand over dollars at the old cheap price when they cost more, so it loses." } }
+      - { id: c, text: "Nobody, because a swap can never gain or lose", mistake: { tag: swap_neutral, fix: "A fixed price wins for one side and loses for the other once the market moves." } }
+      - { id: d, text: "The depositors, whose dollars come back as rupees", mistake: { tag: depositor_rupees, fix: "FCNR(B) depositors are owed dollars; the swap decides who carries the currency risk." } }
     answer: a
     explanation: >
-      The bank has locked in the price of its dollars, so it is protected if the rupee falls. The central bank must supply dollars at the fixed price when they cost more in the market, so it loses. If the rupee were stronger, the positions would reverse.
+      The banks have locked in the price of their dollars, so a weaker rupee cannot hurt them. The RBI must supply dollars at that fixed price when the market charges more, so it carries the loss. If the rupee were stronger, the positions would flip.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.3 Exchange Rates and Risk (forward contracts fix an exchange rate): https://openstax.org/books/principles-finance/pages/20-3-exchange-rates-and-risk
 
   - id: rx-q-currency-swap
     prompt: >
-      What distinguishes a currency swap from an interest-rate swap?
+      Farhan's company swaps a dollar loan into rupees with its bank. His cousin's firm swaps a floating rate for a fixed one on a rupee loan. What sets Farhan's currency swap apart?
     choices:
-      - { id: a, text: "A currency swap exchanges the two currencies at the start and swaps them back at the end; an interest-rate swap exchanges only the net interest" }
-      - { id: b, text: "A currency swap involves no exchange of money at all" }
-      - { id: c, text: "An interest-rate swap exchanges the principal in two currencies" }
-      - { id: d, text: "There is no difference" }
+      - { id: a, text: "The two currencies change hands at the start and swap back at the end" }
+      - { id: b, text: "No money moves at all, ever", mistake: { tag: nothing_moves, fix: "Both swaps move money; in a currency swap even the two loan amounts change hands." } }
+      - { id: c, text: "Only the net interest moves, just like his cousin's", mistake: { tag: rate_swap_confusion, fix: "Net interest only is the interest-rate swap; a currency swap also exchanges the loan amounts." } }
+      - { id: d, text: "Nothing; the two swaps are the same deal", mistake: { tag: no_difference, fix: "Two currencies make the loan amounts real money to exchange, unlike a one-currency swap." } }
     answer: a
     explanation: >
-      Because the two currencies are different, the principal amounts are real money, exchanged at the start and returned at the end at an agreed rate. In an interest-rate swap both sides use one currency and the same notional, so the principal never moves.
+      Because the two currencies differ, the loan amounts are real money: they are exchanged at the start and returned at the end at an agreed rate. In an interest-rate swap both sides use one currency and the same notional, so the principal never moves.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk (swaps): https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk
 

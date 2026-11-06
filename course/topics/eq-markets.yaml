@@ -66,40 +66,40 @@ youllLearn:
 questions:
   - id: em-q-primary
     prompt: >
-      A company sells new shares to the public for the first time. An investor then sells those shares to another investor a week later. Which market is each trade in?
+      Nisha's family firm sells new shares to the public for the first time, and the cash pays for a new factory. A week later one buyer sells his shares to his neighbour. Which market is each trade in?
     choices:
-      - { id: a, text: "The first sale is in the primary market, the second in the secondary market" }
-      - { id: b, text: "Both are in the primary market" }
-      - { id: c, text: "The first sale is in the secondary market, the second in the primary market" }
-      - { id: d, text: "Both are in the secondary market" }
+      - { id: a, text: "First the primary market, then the secondary market" }
+      - { id: b, text: "Both are primary-market trades", mistake: { tag: both_primary, fix: "Only the firm's own sale of new shares is primary; investors swapping shares is secondary." } }
+      - { id: c, text: "First the secondary market, then the primary", mistake: { tag: markets_reversed, fix: "Primary means new shares from the company; it comes first, and the swapping comes after." } }
+      - { id: d, text: "Both are secondary-market trades", mistake: { tag: both_secondary, fix: "The first sale brought cash to the company itself, which makes it primary." } }
     answer: a
     explanation: >
-      New securities sold by the issuer are a primary market trade, and the cash goes to the company. Later trades between investors are secondary market trades; the company receives nothing.
+      New shares sold by the company are a primary market trade, and the cash goes to the company. Later trades between investors are secondary market trades; the company receives nothing.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 1.5 Markets and Participants (Primary and Secondary Markets): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
 
   - id: em-q-broker-dealer
     prompt: >
-      What is the main difference between a broker and a dealer?
+      On Dalal Street, Mr Kapoor matches his clients' orders and takes a small fee on each. His rival buys shares for her own book and sells them on a little higher. What do traders call each of them?
     choices:
-      - { id: a, text: "A broker brings buyers and sellers together for a commission; a dealer trades from its own portfolio and earns the bid-ask spread" }
-      - { id: b, text: "A broker trades from its own portfolio; a dealer earns a commission" }
-      - { id: c, text: "A broker issues shares; a dealer buys them" }
-      - { id: d, text: "There is no difference; both earn commissions only" }
+      - { id: a, text: "Kapoor is a broker, earning commission; his rival is a dealer, earning the spread" }
+      - { id: b, text: "Kapoor is a dealer; his rival is a broker", mistake: { tag: roles_flipped, fix: "Matching clients for a fee is broking; trading from your own book is dealing." } }
+      - { id: c, text: "Both are issuers selling their own shares", mistake: { tag: issuer_confusion, fix: "Issuers are companies raising money; these two only trade shares others issued." } }
+      - { id: d, text: "Both are brokers, since both earn only fees", mistake: { tag: fees_only, fix: "The rival earns the gap between her buying and selling prices, which makes her a dealer." } }
     answer: a
     explanation: >
-      Brokers act as facilitators and receive commission. Dealers own the securities they trade and make money from the spread between their bid and ask prices.
+      Brokers bring buyers and sellers together and earn a commission. Dealers own the shares they trade and make money from the spread between the price at which they buy and the price at which they sell.
     source: >
       OpenStax, Principles of Finance 2e (CC BY 4.0), 1.5 Markets and Participants (Key Market Players): https://openstax.org/books/principles-finance-2e/pages/1-5-markets-and-participants
 
   - id: em-q-limit
     prompt: >
-      A share is quoted at Rs 52. You place a buy limit order at Rs 50. What happens?
+      Shalini wants shares of a tea company quoted at Rs 52, but she will pay Rs 50 at most. On Monday she tells her broker, "Buy at Rs 50 or better." What happens to her order?
     choices:
-      - { id: a, text: "It executes only if the price falls to Rs 50 or lower" }
-      - { id: b, text: "It executes immediately at Rs 52" }
-      - { id: c, text: "It executes immediately at Rs 50" }
-      - { id: d, text: "It is cancelled, because the limit is below the market" }
+      - { id: a, text: "It waits, and fills only if the price drops to Rs 50 or lower" }
+      - { id: b, text: "It fills at once at Rs 52", mistake: { tag: market_order, fix: "Paying the going price is a market order; her limit order waits for Rs 50." } }
+      - { id: c, text: "It fills at once at Rs 50", mistake: { tag: instant_fill, fix: "Sellers are asking Rs 52 right now, so an order at Rs 50 has to wait." } }
+      - { id: d, text: "It is cancelled, because her price is below the market", mistake: { tag: limit_cancelled, fix: "A limit below the market simply waits in line; it is not thrown out." } }
     answer: a
     explanation: >
       A limit order names the worst price you will accept. A buy limit at Rs 50 waits until shares are available at Rs 50 or lower. A market order would have bought at the current price.
@@ -108,29 +108,29 @@ questions:
 
   - id: em-q-sebi-duty
     prompt: >
-      According to its preamble, what are SEBI's basic functions?
+      It is April 1992, and the SEBI Act has just given the market regulator legal force. Raju's father, a stockbroker, asks what job the Act actually gives SEBI. Which headline gets it right?
     choices:
-      - { id: a, text: "To protect the interests of investors in securities, to promote the development of the securities market and to regulate it" }
-      - { id: b, text: "To set interest rates and manage the exchange rate" }
-      - { id: c, text: "To issue shares to the public and to trade them for profit" }
-      - { id: d, text: "To supervise banks and cooperative societies" }
+      - { id: a, text: "SEBI to protect investors, develop the market and regulate it" }
+      - { id: b, text: "SEBI to set interest rates and the exchange rate", mistake: { tag: rbi_job, fix: "Interest rates and the rupee are the Reserve Bank's field, not SEBI's." } }
+      - { id: c, text: "SEBI to issue shares and trade them for profit", mistake: { tag: regulator_trades, fix: "SEBI watches over the market; it does not issue or trade shares itself." } }
+      - { id: d, text: "SEBI to supervise banks and cooperative societies", mistake: { tag: bank_supervisor, fix: "Banks answer to the Reserve Bank; SEBI's field is the securities market." } }
     answer: a
     explanation: >
-      The preamble gives SEBI three duties: protect investors, promote the development of the securities market, and regulate it. Interest rates and banks are the Reserve Bank's field.
+      The preamble gives SEBI three duties: protect the interests of investors in securities, promote the development of the securities market, and regulate it. Interest rates and banks are the Reserve Bank's field.
     source: >
       SEBI, About SEBI (Preamble): https://www.sebi.gov.in/about-sebi.html
 
   - id: em-q-ccp
     prompt: >
-      In a market where a clearing corporation acts as the central counterparty to every trade, a buyer fails to pay for shares it has bought. What happens to the seller?
+      Arun sells shares on an exchange where a clearing corporation stands in the middle of every trade. On settlement day his buyer goes bust and pays nothing. What happens to Arun?
     choices:
-      - { id: a, text: "The clearing corporation guarantees settlement, so the seller is still paid" }
-      - { id: b, text: "The seller must chase the buyer in court" }
-      - { id: c, text: "The seller loses the shares and the money" }
-      - { id: d, text: "The exchange cancels all trades of the day" }
+      - { id: a, text: "He is still paid, because the clearing corporation guarantees the trade" }
+      - { id: b, text: "He must chase the buyer in court", mistake: { tag: chase_buyer, fix: "The clearing corporation is his counterparty, so it pays him and does the chasing." } }
+      - { id: c, text: "He loses both the shares and the money", mistake: { tag: total_loss, fix: "A central counterparty guarantees valid trades, so the seller is protected." } }
+      - { id: d, text: "The exchange cancels every trade that day", mistake: { tag: cancel_all, fix: "One failed buyer does not undo the market; the clearing corporation covers that trade." } }
     answer: a
     explanation: >
-      A central counterparty becomes the buyer to every seller and the seller to every buyer, guaranteeing settlement of valid trades. Sellers need not worry about the creditworthiness of each buyer.
+      A central counterparty becomes the buyer to every seller and the seller to every buyer, guaranteeing settlement of valid trades. Sellers need not worry about whether each buyer can pay.
     source: >
       BSE, Company overview (BSE Clearing Limited acts as central counterparty to all trades with full novation, guaranteeing settlement): https://beta.bseindia.com/static/about/Company_Overview.html
 
