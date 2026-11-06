@@ -18,6 +18,7 @@ export default async function SettingsPage() {
           profile={{ work: p.work ?? "", location: p.location ?? "", loan: p.loan ?? "", savingFor: p.savingFor ?? "" }}
           developerDetails={learner.showDeveloperDetails}
           theme={theme}
+          account={{ name: learner.name }}
         />
       </ReadingPage>
     </SignedInFrame>
