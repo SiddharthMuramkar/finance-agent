@@ -82,7 +82,7 @@ questions:
 
   - id: gs-q-sdl
     prompt: >
-      Arjun's bank offers him a State Development Loan paying a fixed coupon for ten years. Before he locks in his wedding savings, he wants to know who he is really lending to. Who issues it?
+      Today, Arjun's bank offers him a State Development Loan paying a fixed coupon for ten years. Before he locks in his wedding savings, he wants to know who he is really lending to. Who issues it?
     choices:
       - { id: a, text: "A state government, through an auction the RBI runs" }
       - { id: b, text: "The central government, as a Treasury bill", mistake: { tag: sdl_as_tbill, fix: "T-bills are the centre's short-term loans. SDLs are dated loans that states borrow." } }
@@ -90,7 +90,7 @@ questions:
       - { id: d, text: "The RBI, lending out its own money", mistake: { tag: rbi_as_issuer, fix: "The RBI runs the auction, but the state government is the borrower." } }
     answer: a
     explanation: >
-      State governments issue only dated securities, called State Development Loans (SDLs), through auctions the RBI runs, much like the central government's. SDLs, like central G-secs, count towards the SLR.
+      Today, state governments issue only dated securities, called State Development Loans (SDLs), through auctions the RBI runs, much like the central government's. SDLs, like central G-secs, count towards the SLR.
     source: >
       Reserve Bank of India, Government Securities Market in India - A Primer, 1.2 and 1.7: https://www.rbi.org.in/commonman/english/scripts/FAQs.aspx?Id=711
 

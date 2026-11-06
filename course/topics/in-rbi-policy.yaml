@@ -86,7 +86,7 @@ questions:
 
   - id: rbi-q-target
     prompt: >
-      Asha's aunt, a banker, says that today the RBI works to a goal for consumer inflation that it agreed with the government. Asha asks what the RBI must aim for. What should her aunt say?
+      Asha's aunt, a banker, explains how the RBI steers prices today: it works to a goal for consumer inflation, agreed with the government. Asha asks what that goal is. What should her aunt say?
     choices:
       - { id: a, text: "4 per cent, with room of 2 points either side" }
       - { id: b, text: "2 per cent, with room of 4 points either side", mistake: { tag: target_band_swapped, fix: "Swapped: 4 per cent is the target, and 2 points is the room on either side." } }
@@ -94,13 +94,13 @@ questions:
       - { id: d, text: "Whatever keeps the rupee steady", mistake: { tag: target_as_currency, fix: "The agreement targets consumer inflation. The rupee is handled with other tools, such as swaps." } }
     answer: a
     explanation: >
-      The Monetary Policy Framework Agreement of February 2015 sets the RBI a medium-term target of 4 per cent consumer inflation, with a band of 2 percentage points on either side.
+      The Monetary Policy Framework Agreement between the government and the RBI sets a medium-term target of 4 per cent consumer inflation, with a band of 2 percentage points on either side.
     source: >
       Reserve Bank of India, press release of 4 March 2015 on the Monetary Policy Framework Agreement: http://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/IEPR1847POLF040315.pdf
 
   - id: rbi-q-swap
     prompt: >
-      Vikram's bank takes three-year dollar deposits and must repay them in dollars, while its own money is in rupees, which keep sliding. Suppose a central bank swaps those dollars at a rate fixed today. Which risk leaves his bank?
+      Vikram's bank takes three-year dollar deposits and must repay them in dollars, while its own money is in rupees, which keep sliding. Suppose someone agrees to swap those dollars at a rate fixed today. Which risk leaves his bank?
     choices:
       - { id: a, text: "The rupee weakening before the dollars must be repaid" }
       - { id: b, text: "Depositors pulling their money out early", mistake: { tag: withdrawal_risk, fix: "The swap fixes the exchange rate for repayment. It does nothing about depositors leaving." } }
@@ -108,7 +108,7 @@ questions:
       - { id: d, text: "Paying interest to the depositors", mistake: { tag: swap_removes_interest, fix: "The bank still pays its depositors. The swap only fixes the rupee price of the dollars." } }
     answer: a
     explanation: >
-      With the rate fixed today, the bank knows in advance the rupee price at which it can get the dollars back to repay its depositors after three years. If the rupee falls further, the central bank, not the bank, carries that loss.
+      With the rate fixed today, the bank knows in advance the rupee price at which it can get the dollars back to repay its depositors after three years. If the rupee falls further, whoever took the other side of the swap carries that loss.
     source: >
       Reserve Bank of India circular RBI/2013-14/234, 6 September 2013, Swap Window for Attracting FCNR(B) Dollar Funds: https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=8388&Mode=0 ; Raghuram Rajan, "The independence of the central bank", 3 September 2016 (BIS): https://bis.org/review/r160905b.htm
 
