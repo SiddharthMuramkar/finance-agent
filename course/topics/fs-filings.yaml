@@ -55,9 +55,9 @@ questions:
       A US company preparing its first sale of shares to the public files which document with the SEC?
     choices:
       - { id: a, text: "A registration statement on Form S-1" }
-      - { id: b, text: "An annual report on Form 10-K" }
-      - { id: c, text: "A quarterly report on Form 10-Q" }
-      - { id: d, text: "A current report on Form 8-K" }
+      - { id: b, text: "An annual report on Form 10-K", mistake: { tag: periodic_for_ipo, fix: "A 10-K is the yearly report of a company already listed, not the filing for a first sale." } }
+      - { id: c, text: "A quarterly report on Form 10-Q", mistake: { tag: periodic_for_ipo, fix: "A 10-Q is a quarterly report for a company already listed; a first sale needs a registration statement." } }
+      - { id: d, text: "A current report on Form 8-K", mistake: { tag: event_for_ipo, fix: "An 8-K reports sudden events at a listed company; a first sale of shares needs an S-1." } }
     answer: a
     explanation: >
       Form S-1 is the basic registration statement. Its first part is the prospectus. Forms 10-K, 10-Q and 8-K are periodic and event reports for companies that already have registered securities.
@@ -69,9 +69,9 @@ questions:
       In a US annual report on Form 10-K, where do you find the company's audited financial statements?
     choices:
       - { id: a, text: "Item 8, Financial Statements and Supplementary Data" }
-      - { id: b, text: "Item 1B, Unresolved Staff Comments" }
-      - { id: c, text: "Item 7, Management's Discussion and Analysis" }
-      - { id: d, text: "Item 15, Exhibits only" }
+      - { id: b, text: "Item 1B, Unresolved Staff Comments", mistake: { tag: wrong_item, fix: "Item 1B lists SEC comments still open; the audited statements sit in Item 8." } }
+      - { id: c, text: "Item 7, Management's Discussion and Analysis", mistake: { tag: mdna_for_statements, fix: "Item 7 is management's own story of the results, not the audited statements." } }
+      - { id: d, text: "Item 15, Exhibits only", mistake: { tag: exhibits_for_statements, fix: "Item 15 lists exhibits and schedules; the audited statements themselves are in Item 8." } }
     answer: a
     explanation: >
       Item 8 requires the audited financial statements. Item 7 is management's own discussion of the results.
@@ -83,9 +83,9 @@ questions:
       In India, which document does a company file with SEBI and the stock exchanges before a main-board IPO?
     choices:
       - { id: a, text: "A Draft Red Herring Prospectus (DRHP)" }
-      - { id: b, text: "A Form S-1" }
-      - { id: c, text: "A Form 10-K" }
-      - { id: d, text: "An Ind AS conversion statement" }
+      - { id: b, text: "A Form S-1", mistake: { tag: us_form_in_india, fix: "The S-1 is a US filing with the SEC; an Indian IPO files a DRHP with SEBI." } }
+      - { id: c, text: "A Form 10-K", mistake: { tag: periodic_for_ipo, fix: "A 10-K is a US yearly report for listed companies, not an Indian IPO document." } }
+      - { id: d, text: "An Ind AS conversion statement", mistake: { tag: invented_document, fix: "There is no such IPO filing; SEBI and the exchanges get the Draft Red Herring Prospectus." } }
     answer: a
     explanation: >
       The issuer, through its lead manager, files a DRHP with SEBI and the exchanges. After SEBI's observations come the Red Herring Prospectus and the final prospectus.
@@ -98,9 +98,9 @@ questions:
       interest. Which kind of disclosure is this?
     choices:
       - { id: a, text: "A related-party transaction" }
-      - { id: b, text: "A segment disclosure" }
-      - { id: c, text: "A going-concern note" }
-      - { id: d, text: "A non-GAAP reconciliation" }
+      - { id: b, text: "A segment disclosure", mistake: { tag: segment_for_insider, fix: "Segment notes split results by business line; deals with the chief executive are related-party ones." } }
+      - { id: c, text: "A going-concern note", mistake: { tag: going_concern_for_insider, fix: "A going-concern note doubts survival; leases from the boss are a related-party deal." } }
+      - { id: d, text: "A non-GAAP reconciliation", mistake: { tag: non_gaap_for_insider, fix: "A non-GAAP reconciliation explains adjusted profit, not deals with insiders." } }
     answer: a
     explanation: >
       Dealings between a company and its insiders (directors, executives, large holders and their relatives) are related-party transactions, which US rules (Regulation S-K Item 404) require registrants to disclose.

@@ -127,9 +127,9 @@ questions:
       If all the inputs of a DCF stay the same but the discount rate rises, what happens to the estimated value?
     choices:
       - { id: a, text: "It falls, and distant cash flows and the terminal value fall most" }
-      - { id: b, text: "It rises" }
-      - { id: c, text: "It does not change" }
-      - { id: d, text: "Only the first year's cash flow changes" }
+      - { id: b, text: "It rises", mistake: { tag: rate_raises_value, fix: "A higher discount rate shrinks every present value, so the value falls." } }
+      - { id: c, text: "It does not change", mistake: { tag: rate_irrelevant, fix: "The discount rate is an input; raising it lowers what future cash is worth today." } }
+      - { id: d, text: "Only the first year's cash flow changes", mistake: { tag: first_year_only, fix: "The rate touches every year, and the far years shrink most." } }
     answer: a
     explanation: >
       A higher rate shrinks every present value, and the cash flows furthest away shrink most.
@@ -141,9 +141,9 @@ questions:
       Why does most of the value of a young, fast-growing company with negative cash flows usually come from its terminal value?
     choices:
       - { id: a, text: "The early cash flows are small or negative, so the value depends on what the business earns once it matures" }
-      - { id: b, text: "Terminal values are always accurate" }
-      - { id: c, text: "Young companies have no discount rate" }
-      - { id: d, text: "Taxes are zero after year 10" }
+      - { id: b, text: "Terminal values are always accurate", mistake: { tag: terminal_accurate, fix: "Terminal values are uncertain; they dominate because early cash is negative." } }
+      - { id: c, text: "Young companies have no discount rate", mistake: { tag: no_discount_rate, fix: "Young companies have a discount rate, often a high one." } }
+      - { id: d, text: "Taxes are zero after year 10", mistake: { tag: zero_tax, fix: "Taxes do not stop after year 10; value sits late because early cash is negative." } }
     answer: a
     explanation: >
       When early free cash flows are negative, the positive value comes from later years and the perpetuity beyond the forecast, so the assumptions about margins, growth and the discount rate dominate.

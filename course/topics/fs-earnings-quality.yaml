@@ -86,9 +86,9 @@ questions:
       Which single check is hardest for a company to fake and most useful for testing reported profit?
     choices:
       - { id: a, text: "Compare profit with operating cash flow and confirm cash balances with the bank" }
-      - { id: b, text: "Read the chairman's letter in the annual report" }
-      - { id: c, text: "Compare the company's margin with its own earlier margins only" }
-      - { id: d, text: "Count the number of pages of notes" }
+      - { id: b, text: "Read the chairman's letter in the annual report", mistake: { tag: trusts_own_words, fix: "The chairman's letter is the company's own words, the easiest part to dress up." } }
+      - { id: c, text: "Compare the company's margin with its own earlier margins only", mistake: { tag: self_comparison, fix: "Its own past margins come from the same books, so a fake can repeat there too." } }
+      - { id: d, text: "Count the number of pages of notes", mistake: { tag: length_as_quality, fix: "Page count says nothing about whether profit turns into cash." } }
     answer: a
     explanation: >
       Cash and bank balances can be confirmed with outside parties, and profit that does not turn into operating cash flow over time needs an explanation. The other checks rely on the company's own words.
@@ -102,9 +102,9 @@ questions:
       Which concern is most relevant to earnings quality and governance?
     choices:
       - { id: a, text: "A related-party deal that does not fit the business and needs independent scrutiny" }
-      - { id: b, text: "Construction is always a worse business than software" }
-      - { id: c, text: "Companies should never use their cash" }
-      - { id: d, text: "A large deal is proof of a strong balance sheet" }
+      - { id: b, text: "Construction is always a worse business than software", mistake: { tag: sector_snobbery, fix: "The worry is who gains from the deal, not which industry is better." } }
+      - { id: c, text: "Companies should never use their cash", mistake: { tag: never_spend, fix: "Using cash is fine; the red flag is spending it on the chairman's family firms." } }
+      - { id: d, text: "A large deal is proof of a strong balance sheet", mistake: { tag: size_as_strength, fix: "A big deal proves nothing; one with insiders far from the core business needs scrutiny." } }
     answer: a
     explanation: >
       Dealings with insiders and spending far from the core business are classic warning signs, and the purchase would have moved cash to the chairman's family firms.

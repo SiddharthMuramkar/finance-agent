@@ -107,9 +107,9 @@ questions:
       Before October 1979 the Federal Reserve conducted policy mainly by doing which of the following?
     choices:
       - { id: a, text: "Setting growth targets for the money supply and keeping the federal funds rate within a narrow range" }
-      - { id: b, text: "Fixing the dollar's price in gold" }
-      - { id: c, text: "Setting limits on the price of every good" }
-      - { id: d, text: "Letting the federal funds rate move freely with no target at all" }
+      - { id: b, text: "Fixing the dollar's price in gold", mistake: { tag: gold_for_money, fix: "Before 1979 the Fed targeted money growth with a narrow funds-rate band, not a gold price." } }
+      - { id: c, text: "Setting limits on the price of every good", mistake: { tag: price_controls, fix: "Price limits were a government tool, not how the Fed ran policy." } }
+      - { id: d, text: "Letting the federal funds rate move freely with no target at all", mistake: { tag: free_rate, fix: "Before 1979 the Fed held the funds rate in a narrow band; freer swings came after." } }
     answer: a
     explanation: >
       The Fed's history of the episode says it targeted money-supply growth while keeping the funds rate in a narrow range believed consistent with those targets. The October 1979 change moved the focus to bank reserves.
@@ -120,9 +120,9 @@ questions:
     prompt: >
       Suppose a central bank holds the volume of bank reserves fixed instead of defending a target for the overnight interest rate. Demand for borrowing from banks then rises sharply. What happens to the overnight rate?
     choices:
-      - { id: a, text: "It falls, because banks have more business" }
+      - { id: a, text: "It falls, because banks have more business", mistake: { tag: more_business_lower, fix: "With fixed reserves, more demand bids the overnight rate up, not down." } }
       - { id: b, text: "It rises, because the same reserves are shared among more demand for them" }
-      - { id: c, text: "It stays the same, because the central bank did not move" }
+      - { id: c, text: "It stays the same, because the central bank did not move", mistake: { tag: still_rate, fix: "Holding reserves fixed lets the rate move: the price clears the market." } }
     answer: b
     explanation: >
       With the quantity of reserves fixed, the price clears the market: more demand for reserves means a higher overnight rate. That is why a switch from targeting the rate to targeting reserves lets the rate move much more.
@@ -134,8 +134,8 @@ questions:
       An economy has inflation of 9% and a rising unemployment rate. A central bank wants to lower inflation by raising interest rates. What is the difficulty?
     choices:
       - { id: a, text: "Higher rates tend to slow demand and so can push unemployment up further in the short run" }
-      - { id: b, text: "Higher rates always raise inflation at once" }
-      - { id: c, text: "Higher rates have no effect on borrowing" }
+      - { id: b, text: "Higher rates always raise inflation at once", mistake: { tag: hike_raises_inflation, fix: "Higher rates slow demand and ease prices; the cost is jobs, not more inflation." } }
+      - { id: c, text: "Higher rates have no effect on borrowing", mistake: { tag: rates_no_effect, fix: "Higher rates do cut borrowing; that is how they slow demand and jobs too." } }
     answer: a
     explanation: >
       Raising rates cuts borrowing and spending, which lowers price pressure but also output and jobs for a time. With inflation and unemployment both high, the remedy for one worsens the other: that is the stagflation dilemma.

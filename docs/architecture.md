@@ -4878,6 +4878,14 @@ Playwright splits by test file within each project, in config order, and balance
 
 **Trade-off.** Six runners do the setup six times and each test server compiles its pages cold, so the total runner time grows while the wait shrinks. There is no merged HTML report: you open the artifact of the shard that failed. The weights are tuned to today's test files; when a long file is added, one shard gets slower, and the fix is new weights (wrong weights never drop a test, and a count that does not match the shards fails the run loudly). `PWTEST_SHARD_WEIGHTS` is not in Playwright's documentation; if an upgrade drops it, the shards fall back to equal counts, slower but complete. The `WebServer` log lines `uncaughtException: Error: aborted` (`ECONNRESET`) are left as they are: they come from Next.js's own proxy handling when the browser drops a request as a test ends (vercel/next.js#49587, #99278), the server keeps serving, and no test fails on them.
 
+## Lesson lint L12: every wrong choice carries a mix-up fix (`lintL12` in `src/course/lesson-lint.ts`, issue #485)
+
+**What it does.** Spec §3.3 says each wrong choice carries a mix-up fix: one line naming the slip, which the marking shows after a wrong tap. The D2 batches gave fixes only to the questions they rewrote, so 265 wrong choices in 92 untouched questions across 37 Topics showed nothing on a wrong tap. Each now has `mistake: { tag, fix }` (20 words or fewer; ids, stems, Cases and sources unchanged), and L12 keeps it that way: it fails any question in a Topic file, and any fixed `kind: choice` Quick try, whose wrong choice has no `mistake.fix`. Like L6 and L11 it runs on every Topic, converted or not, and `course:check` runs it.
+
+*Scenario.* An editor adds a question to `bond-duration.yaml` with three bare wrong choices. The course check fails with `L12: question "bd-q-new" wrong choice "b" has no mix-up fix; give it mistake: { tag, fix } with one line naming the slip (spec §3.3) (Topic "bond-duration")`, once per bare choice.
+
+**Trade-off.** L12 checks that a fix exists, not that it is good: the math-police and historian critics still judge the words. It has no allowlist, because every Topic passes today.
+
 ## Warming the test server before the first test (`e2e/support/global-setup.ts` `warmUp`, main fix for #317)
 
 **What it does.** `next dev` compiles each route the first time it is asked for, and every shard's test server starts with no `.next-e2e/` cache. Before any test runs, Playwright's global setup now opens one real browser, seeds `story`, opens `/study` until the Topic's opener has finished (so the page, its client chunks and `/api/turn` are compiled) and opens `/course`; then it starts the tools Learner over to a fresh one and signs in as before. It logs `Test server warmed (...) in N s.` A step that fails only logs a warning: the tests then fail on whatever is broken, each with its own message.

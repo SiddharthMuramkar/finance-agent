@@ -304,6 +304,27 @@ describe("the lesson lint", () => {
     expect(lessonLintErrors([t], { notYet: [t.id] }).filter((e) => e.startsWith("L11"))).toHaveLength(1);
   });
 
+  it("L12: fails a wrong choice with no mix-up fix, in a question and in a choice Quick try, on any Topic (#485)", () => {
+    const bare = topicWith((x) => {
+      x.questions[0].choices.push({ id: "bare", text: "It should say up 2%." });
+      const tryQ = { id: "pct-demo-try-tap", skill: "wording", kind: "choice", ask: "Which word fits?", answer: "a", choices: [{ id: "a", text: "Rise" }, { id: "b", text: "Fall" }] };
+      (x.checks[1].quickTries as unknown[]).push(tryQ);
+    });
+    const l12 = (t: Topic, notYet: string[] = []) => lessonLintErrors([t], { notYet, l10NotYet: ["pct-demo"] }).filter((e) => e.startsWith("L12"));
+    const expected = [
+      `L12: question "pct-demo-headline" wrong choice "bare" has no mix-up fix; give it mistake: { tag, fix } with one line naming the slip (spec §3.3)${ON_TOPIC}`,
+      `L12: Check "pct-demo-check-2" Quick try "pct-demo-try-tap" wrong choice "b" has no mix-up fix; give it mistake: { tag, fix } with one line naming the slip (spec §3.3)${ON_TOPIC}`,
+    ];
+    expect(l12(bare)).toEqual(expected);
+    // Like L11 it covers a Topic that is not converted too.
+    expect(l12(bare, ["pct-demo"])).toEqual(expected);
+    expect(l12(lintReadyTopic())).toEqual([]);
+  });
+
+  it("L12: the real course has no wrong choice without a mix-up fix", () => {
+    expect(lessonLintErrors(loadCourseMap().topics).filter((e) => e.startsWith("L12"))).toEqual([]);
+  });
+
   it("fails a content-only restructure that makes a Check required, which would raise a Due Check", () => {
     const t = topicWith((x) => {
       x.restructure = "content-only";

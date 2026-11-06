@@ -103,9 +103,9 @@ questions:
       In a country where dividends are taxed immediately at a higher rate than capital gains, which payout method usually suits long-term holders better, other things equal?
     choices:
       - { id: a, text: "A share buyback, because holders realise gains and the tax when they choose" }
-      - { id: b, text: "A cash dividend, because it is always tax-free" }
-      - { id: c, text: "Neither: tax never affects payout choice" }
-      - { id: d, text: "A share split" }
+      - { id: b, text: "A cash dividend, because it is always tax-free", mistake: { tag: dividends_tax_free, fix: "The stem says dividends are taxed now at the higher rate, so they are not tax-free." } }
+      - { id: c, text: "Neither: tax never affects payout choice", mistake: { tag: tax_irrelevant, fix: "Tax is one real reason payout choice matters; a buyback lets holders defer it." } }
+      - { id: d, text: "A share split", mistake: { tag: split_as_payout, fix: "A split hands out no cash; it only cuts each share into more pieces." } }
     answer: a
     explanation: >
       Dividends are taxed in the year paid. In a buyback, only the holders who sell realise a gain, so others can defer tax. Tax is one of the real-world reasons payout policy is not irrelevant.
@@ -117,9 +117,9 @@ questions:
       A firm has a project that earns well above its cost of capital and also holds spare cash. What does value-maximising payout policy say it should do first?
     choices:
       - { id: a, text: "Fund the project, and pay out only the cash left over" }
-      - { id: b, text: "Pay out all the cash and borrow for the project" }
-      - { id: c, text: "Hold the cash indefinitely" }
-      - { id: d, text: "Buy back shares to raise earnings per share" }
+      - { id: b, text: "Pay out all the cash and borrow for the project", mistake: { tag: payout_before_project, fix: "Paying out and then borrowing adds cost; a good project comes before payouts." } }
+      - { id: c, text: "Hold the cash indefinitely", mistake: { tag: hoard_cash, fix: "Idle cash earns less than its cost; fund the project and return the rest." } }
+      - { id: d, text: "Buy back shares to raise earnings per share", mistake: { tag: eps_as_value, fix: "A buyback that lifts earnings per share adds no value if a good project goes unfunded." } }
     answer: a
     explanation: >
       Positive-NPV projects add value, so they come before payouts. Cash with no use that earns more than its cost of capital should go back to shareholders.

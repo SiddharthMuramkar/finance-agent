@@ -114,9 +114,9 @@ questions:
     prompt: >
       A dollar-based analyst projects an Indian company's free cash flows in rupees. In which currency should the discount rate be estimated?
     choices:
-      - { id: a, text: "Dollars, because the analyst reports in dollars" }
+      - { id: a, text: "Dollars, because the analyst reports in dollars", mistake: { tag: report_currency, fix: "The rate must match the cash flows' currency, not the analyst's." } }
       - { id: b, text: "Rupees, the currency of the cash flows" }
-      - { id: c, text: "Either, because the currency never matters" }
+      - { id: c, text: "Either, because the currency never matters", mistake: { tag: currency_never_matters, fix: "Mixing a dollar rate with rupee cash flows ignores the inflation gap." } }
     answer: b
     explanation: >
       The currency of the cash flows and of the discount rate must match. Mixing a dollar rate with rupee cash flows ignores the inflation difference between the two currencies.
@@ -141,8 +141,8 @@ questions:
     prompt: >
       An analyst values the same Indian project twice, once in rupees and once in dollars, with inflation handled consistently in both cash flows and discount rates. What should happen?
     choices:
-      - { id: a, text: "The rupee value is always higher" }
-      - { id: b, text: "The dollar value is always higher" }
+      - { id: a, text: "The rupee value is always higher", mistake: { tag: rupee_higher, fix: "Done consistently, the currency cannot change the value." } }
+      - { id: b, text: "The dollar value is always higher", mistake: { tag: dollar_higher, fix: "Done consistently, the two values agree; a gap points to an inflation mismatch." } }
       - { id: c, text: "The two values should agree once converted at the same exchange rate" }
     answer: c
     explanation: >

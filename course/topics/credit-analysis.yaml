@@ -94,9 +94,9 @@ questions:
       A holding company's own accounts show modest debt, but its subsidiaries have borrowed heavily and the parent has guaranteed some of it. Which figures best show the group's total leverage?
     choices:
       - { id: a, text: "Consolidated accounts, with the guarantees" }
-      - { id: b, text: "The parent's own accounts alone" }
-      - { id: c, text: "Only the credit rating" }
-      - { id: d, text: "The dividend yield" }
+      - { id: b, text: "The parent's own accounts alone", mistake: { tag: parent_only, fix: "Parent-only accounts leave out the subsidiaries' debt, which the guarantees can pull back." } }
+      - { id: c, text: "Only the credit rating", mistake: { tag: rating_for_figures, fix: "A rating is an opinion; consolidated accounts show the actual group debt." } }
+      - { id: d, text: "The dividend yield", mistake: { tag: yield_for_leverage, fix: "Dividend yield says nothing about how much the group has borrowed." } }
     answer: a
     explanation: >
       Consolidated figures add the subsidiaries' debts. Parent-only figures can look safe while the group is highly leveraged, and guarantees can bring a subsidiary's debt back to the parent.
@@ -108,9 +108,9 @@ questions:
       A firm reports healthy profits, but about half of its revenue is receivables that customers have left unpaid for years. Why should a lender worry?
     choices:
       - { id: a, text: "Profit that stays uncollected cannot pay interest and principal" }
-      - { id: b, text: "Receivables are always collected in full" }
-      - { id: c, text: "Profit is irrelevant to lenders" }
-      - { id: d, text: "Receivables lower the tax bill" }
+      - { id: b, text: "Receivables are always collected in full", mistake: { tag: receivables_safe, fix: "Receivables left unpaid for years may never come in at all." } }
+      - { id: c, text: "Profit is irrelevant to lenders", mistake: { tag: profit_irrelevant, fix: "Lenders care about profit, but only profit that turns into cash can repay them." } }
+      - { id: d, text: "Receivables lower the tax bill", mistake: { tag: receivables_cut_tax, fix: "Uncollected sales do not cut tax; they leave no cash to pay debt." } }
     answer: a
     explanation: >
       Lenders are repaid in cash. Cash flow from operations, not accounting profit, is what pays debt, so receivables that are stuck are a warning sign.
@@ -122,9 +122,9 @@ questions:
       A lender funds 20-year road projects with debt that must be repaid or refinanced every 90 days. What is the main risk?
     choices:
       - { id: a, text: "If lenders refuse to roll over the debt, it cannot be repaid from the project's slow cash flows" }
-      - { id: b, text: "The interest rate must be fixed for twenty years" }
-      - { id: c, text: "Roads cannot be financed with debt" }
-      - { id: d, text: "The tax rate rises" }
+      - { id: b, text: "The interest rate must be fixed for twenty years", mistake: { tag: fixed_rate_risk, fix: "The danger is lenders refusing to roll the 90-day debt, not a fixed rate." } }
+      - { id: c, text: "Roads cannot be financed with debt", mistake: { tag: roads_unfinanceable, fix: "Roads can carry debt; the trouble is short debt funding slow cash." } }
+      - { id: d, text: "The tax rate rises", mistake: { tag: tax_risk, fix: "Taxes are not the issue; short debt for 20-year assets needs constant refinancing." } }
     answer: a
     explanation: >
       Assets that earn cash slowly, funded by short-term debt, depend on continued refinancing. A lenders' strike can cause a default even if the projects are sound.
@@ -136,9 +136,9 @@ questions:
       Which statement about a credit rating is correct?
     choices:
       - { id: a, text: "It is an opinion on the likelihood of default, based largely on information the company provides, and it can change" }
-      - { id: b, text: "It guarantees repayment" }
-      - { id: c, text: "It measures the company's share price" }
-      - { id: d, text: "It is set by the government" }
+      - { id: b, text: "It guarantees repayment", mistake: { tag: rating_as_guarantee, fix: "A rating is an opinion that can be wrong; it guarantees nothing." } }
+      - { id: c, text: "It measures the company's share price", mistake: { tag: rating_as_share_price, fix: "A credit rating is about default risk on debt, not the share price." } }
+      - { id: d, text: "It is set by the government", mistake: { tag: rating_by_state, fix: "Ratings come from private agencies, not the government." } }
     answer: a
     explanation: >
       Agencies rate the chance of default from the borrower's information and their methods. Ratings can lag events and are not guarantees.

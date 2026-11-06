@@ -106,9 +106,9 @@ questions:
       Which part of the balance of payments records money sent home by workers employed abroad?
     choices:
       - { id: a, text: "The current account (as a transfer, within net invisibles)" }
-      - { id: b, text: "The capital account only" }
-      - { id: c, text: "The merchandise trade balance" }
-      - { id: d, text: "Reserves" }
+      - { id: b, text: "The capital account only", mistake: { tag: transfer_as_capital, fix: "Remittances are transfers in the current account, not financing in the capital account." } }
+      - { id: c, text: "The merchandise trade balance", mistake: { tag: transfer_as_goods, fix: "Merchandise trade counts goods; money sent home is a transfer among the invisibles." } }
+      - { id: d, text: "Reserves", mistake: { tag: transfer_as_reserves, fix: "Reserves are the central bank's holdings; workers' money home is a current account transfer." } }
     answer: a
     explanation: >
       Remittances are transfers, which belong to the current account's invisibles. They are not imports or exports of goods, and they are not a financing flow in the capital account.
@@ -148,9 +148,9 @@ questions:
       Two countries have the same current account deficit. Country A finances it with long-term foreign direct investment; Country B with deposits that holders can withdraw at short notice. Which is more exposed if investors lose confidence?
     choices:
       - { id: a, text: "Country B, because the money can leave quickly" }
-      - { id: b, text: "Country A, because direct investment can be withdrawn overnight" }
-      - { id: c, text: "Both equally, because the deficit is the same size" }
-      - { id: d, text: "Neither, because the deficit is financed" }
+      - { id: b, text: "Country A, because direct investment can be withdrawn overnight", mistake: { tag: fdi_is_hot, fix: "Direct investment is factories and plant, which cannot leave overnight; short deposits can." } }
+      - { id: c, text: "Both equally, because the deficit is the same size", mistake: { tag: size_only, fix: "Size is the same, but money that can leave quickly makes B more exposed." } }
+      - { id: d, text: "Neither, because the deficit is financed", mistake: { tag: financed_is_safe, fix: "Financing can reverse: short-notice deposits can leave and drain reserves." } }
     answer: a
     explanation: >
       How a deficit is financed matters as much as its size. Money that can be withdrawn at short notice can reverse quickly and leave reserves to cover the gap; long-term investment in plant and equipment cannot leave at once.

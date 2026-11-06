@@ -93,9 +93,9 @@ questions:
       What is the most that the buyer of a call option can lose, and the most that the seller (writer) of an uncovered call can lose?
     choices:
       - { id: a, text: "Buyer: the premium paid. Seller: unlimited, since the share price has no ceiling" }
-      - { id: b, text: "Buyer: unlimited. Seller: the premium received" }
-      - { id: c, text: "Both can lose only the premium" }
-      - { id: d, text: "Buyer: the strike price. Seller: the strike price" }
+      - { id: b, text: "Buyer: unlimited. Seller: the premium received", mistake: { tag: roles_swapped, fix: "That swaps them: the buyer risks only the premium, the uncovered writer has no limit." } }
+      - { id: c, text: "Both can lose only the premium", mistake: { tag: writer_capped, fix: "The writer must sell at the strike however high the share goes, so the loss has no cap." } }
+      - { id: d, text: "Buyer: the strike price. Seller: the strike price", mistake: { tag: strike_as_loss, fix: "The buyer can walk away and lose only the premium; the strike is not the loss." } }
     answer: a
     explanation: >
       The buyer can walk away, so the loss stops at the premium. The seller must sell at the strike however high the share has risen, so the loss grows without limit. Options are a zero-sum game between buyer and seller.
@@ -121,9 +121,9 @@ questions:
       An investor wants to copy a put on a share portfolio by trading rather than by buying a put. As the market falls, what does the strategy tell the investor to do?
     choices:
       - { id: a, text: "Sell shares (or index futures), reducing exposure as prices fall" }
-      - { id: b, text: "Buy more shares as prices fall" }
-      - { id: c, text: "Hold the same position, since a put needs no trading" }
-      - { id: d, text: "Buy a call option on the portfolio" }
+      - { id: b, text: "Buy more shares as prices fall", mistake: { tag: buy_the_dip, fix: "A put gains as prices fall, so the copy sells into the fall instead of buying." } }
+      - { id: c, text: "Hold the same position, since a put needs no trading", mistake: { tag: static_copy, fix: "A put's exposure changes as prices move, so copying it needs trading all the way." } }
+      - { id: d, text: "Buy a call option on the portfolio", mistake: { tag: call_for_put, fix: "A call gains when prices rise; protection against a fall is a put." } }
     answer: a
     explanation: >
       A put gains as the market falls, so its value behaves like a short position that grows as prices drop. The copy cuts shares as prices fall and buys them back as prices rise. This is the reverse of the "buy the dip" instinct.

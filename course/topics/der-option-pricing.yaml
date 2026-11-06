@@ -109,9 +109,9 @@ questions:
       All else equal, what happens to the value of a call option when the volatility of the share rises?
     choices:
       - { id: a, text: "It rises" }
-      - { id: b, text: "It falls" }
-      - { id: c, text: "It does not change" }
-      - { id: d, text: "It rises for puts only" }
+      - { id: b, text: "It falls", mistake: { tag: vol_hurts_holder, fix: "The loss stops at the premium while the gain is open, so wider swings help the holder." } }
+      - { id: c, text: "It does not change", mistake: { tag: vol_irrelevant, fix: "Volatility is a key input; more of it makes a call worth more." } }
+      - { id: d, text: "It rises for puts only", mistake: { tag: puts_only, fix: "Higher volatility lifts calls and puts alike, since both have capped losses." } }
     answer: a
     explanation: >
       The buyer's loss is capped at the premium while the gain is not, so a wider spread of possible share prices adds to the value. The Black-Scholes formula gives a higher option value the higher the volatility. The same holds for puts.
@@ -123,9 +123,9 @@ questions:
       Which of these is an assumption behind the Black-Scholes formula?
     choices:
       - { id: a, text: "The share's volatility is constant and the option can be hedged by trading continuously at the market price" }
-      - { id: b, text: "The share's expected return must be known" }
-      - { id: c, text: "Investors must be risk-seeking" }
-      - { id: d, text: "The share price can never fall" }
+      - { id: b, text: "The share's expected return must be known", mistake: { tag: needs_expected_return, fix: "The formula needs no expected return: that was the striking result." } }
+      - { id: c, text: "Investors must be risk-seeking", mistake: { tag: risk_seeking, fix: "The formula needs no view on risk taste; hedging removes the risk." } }
+      - { id: d, text: "The share price can never fall", mistake: { tag: price_never_falls, fix: "The share can fall in the model; volatility means it moves both ways." } }
     answer: a
     explanation: >
       The formula needs constant volatility and frictionless continuous trading. It does not need the share's expected return, which is a result the Nobel committee stressed: no risk premium is needed to value an option.

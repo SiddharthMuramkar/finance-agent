@@ -24,7 +24,7 @@ const planned = parseOutline(readOutlineText());
 if (!planned.outline) fail("Course Map outline is invalid", planned.errors);
 const { map, errors } = parseCourseMap(readTopicFiles(), planned.outline);
 if (!map) fail("Course Map is invalid", errors);
-// The lesson lint (L1 to L11, including L10 with its allowlist src/course/l10-allowlist.ts), with written-ahead presets only: recipe presets need the recipes, which plain Node cannot load, so
+// The lesson lint (L1 to L12, including L10 with its allowlist src/course/l10-allowlist.ts), with written-ahead presets only: recipe presets need the recipes, which plain Node cannot load, so
 // src/course/lesson-presets.test.ts checks those under vitest (part of npm run check).
 const lesson = lessonLintErrors(map.topics);
 if (lesson.length) fail("Lesson lint for converted Topics (spec #229, ADR 0006)", lesson);

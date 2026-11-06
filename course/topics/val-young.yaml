@@ -142,9 +142,9 @@ questions:
       An investor says "this company will expand from taxis into delivery and freight". Which input in a young-company valuation does that story mainly change?
     choices:
       - { id: a, text: "The size of the market it can serve" }
-      - { id: b, text: "The tax rate" }
-      - { id: c, text: "The risk-free rate" }
-      - { id: d, text: "The number of shares in a stock split" }
+      - { id: b, text: "The tax rate", mistake: { tag: story_as_tax, fix: "New lines of business widen the market; the tax rate is a separate input." } }
+      - { id: c, text: "The risk-free rate", mistake: { tag: story_as_riskfree, fix: "The risk-free rate comes from government bonds, not the company's story." } }
+      - { id: d, text: "The number of shares in a stock split", mistake: { tag: story_as_split, fix: "A stock split changes share count, not what the business can sell." } }
     answer: a
     explanation: >
       Adding delivery and freight widens the market the company could win, so potential revenue rises. Whether the extra revenue is profitable, and whether the company can win it, are separate parts of the story.
