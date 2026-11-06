@@ -1,4 +1,4 @@
-import { expect, test, type Response } from "@playwright/test";
+import { expect, test, type Request } from "@playwright/test";
 import { say, seed } from "./support/app";
 
 /** B2a (spec 2026-11-05): one Notebook for notes and past Sessions; the old addresses redirect to it. */
@@ -28,27 +28,23 @@ test("a Session still opens read-only, with Resume and a way back", async ({ pag
   test.setTimeout(180_000);
   // Seeded Sessions hold no messages (their page is a 404 by design), so talk once to give one a message.
   await seed(page, "story");
-  // The Notebook has no link to an unfinished Topic's Session, so read its id off the turn itself: each /api/turn
-  // stream ends with a `done` event whose `ref` names the Session the reply was saved to. (Probing /sessions/1…N for
-  // the one that answers 200 fired hundreds of page renders at the dev server as ids grew, and it reset connections.)
-  // Read each body as it arrives: the page may navigate before the test gets to it, and then the body is gone.
-  const turns: Promise<string>[] = [];
-  const onResponse = (r: Response) => {
-    if (r.request().method() === "POST" && new URL(r.url()).pathname === "/api/turn") turns.push(r.text().catch(() => ""));
+  // The Notebook has no link to an unfinished Topic's Session, so read its id off our own turn request: the page sends
+  // `shown: { sessionId }` with every turn (set from the opener's `done`), and the reply is saved to that Session.
+  // (Probing /sessions/1…N for the one that answers 200 fired hundreds of page renders at the dev server as ids grew,
+  // and it reset connections. Reading the streamed /api/turn body back through Playwright came back empty in 1 of 20
+  // runs.) A request's body is read synchronously, as it is sent, so nothing can be missed.
+  const sent: number[] = [];
+  const onRequest = (r: Request) => {
+    if (r.method() !== "POST" || new URL(r.url()).pathname !== "/api/turn") return;
+    const body = r.postDataJSON() as { message?: string; shown?: { sessionId?: number } } | null;
+    if (body?.message === "Tell me more." && body.shown?.sessionId) sent.push(body.shown.sessionId);
   };
-  page.on("response", onResponse);
+  page.on("request", onRequest);
   await page.goto("/study");
   await say(page, "plain-reply", "Tell me more.");
-  page.off("response", onResponse);
-  const ids: number[] = [];
-  for (const body of await Promise.all(turns)) {
-    for (const line of body.split("\n").filter((l) => l.trim())) {
-      const event = JSON.parse(line) as { type?: string; ref?: { sessionId?: number } };
-      if (event.type === "done" && event.ref?.sessionId) ids.push(event.ref.sessionId);
-    }
-  }
-  const id = ids.at(-1) ?? 0;
-  expect(id, "the Session our reply was saved to").toBeGreaterThan(0);
+  page.off("request", onRequest);
+  expect(sent, "one message sent, from a shown Session").toHaveLength(1);
+  const id = sent[0];
   await page.goto("/notebook");
   await expect(page.locator("[data-notebook-row]").getByRole("button", { name: "Resume" }).first()).toBeVisible();
   expect((await page.request.get(`/sessions/${id}`, { maxRedirects: 0 })).status(), "a Session page that answers 200").toBe(200);
@@ -60,6 +56,9 @@ test("a Session still opens read-only, with Resume and a way back", async ({ pag
 });
 
 const firstLine = async (page: import("@playwright/test").Page) => {
+  // The page streams in behind loading.tsx: until the swap, its rows sit in a hidden holder with every box at 0 (all
+  // "in the first line"). Measure only once the last row has a box of its own.
+  await expect(page.locator("[data-notebook-row]").last()).toBeVisible();
   const tops = await page.locator("[data-notebook-row]").evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
   return tops.filter((t) => t === tops[0]).length;
 };
