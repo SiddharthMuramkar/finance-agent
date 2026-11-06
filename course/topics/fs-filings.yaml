@@ -52,7 +52,7 @@ youllLearn:
 questions:
   - id: fl-q-s1
     prompt: >
-      A US company preparing its first sale of shares to the public files which document with the SEC?
+      A US start-up is about to sell its shares to the public for the first time. Before the bell rings, which document does it hand the SEC to register that sale?
     choices:
       - { id: a, text: "A registration statement on Form S-1" }
       - { id: b, text: "An annual report on Form 10-K" }
@@ -66,7 +66,7 @@ questions:
 
   - id: fl-q-item8
     prompt: >
-      In a US annual report on Form 10-K, where do you find the company's audited financial statements?
+      You open a US company's annual report (Form 10-K) and want the audited financial statements, the numbers an outside auditor has signed off. Which section holds them?
     choices:
       - { id: a, text: "Item 8, Financial Statements and Supplementary Data" }
       - { id: b, text: "Item 1B, Unresolved Staff Comments" }
