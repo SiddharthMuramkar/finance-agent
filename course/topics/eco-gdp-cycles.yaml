@@ -75,7 +75,7 @@ questions:
     choices:
       - { id: a, text: "Two consecutive quarters of declining real GDP" }
       - { id: b, text: "Any year in which prices fall", mistake: { tag: prices_for_output, fix: "Falling prices is deflation; a recession is about falling output." } }
-      - { id: c, text: "Unemployment above 10%", mistake: { tag: jobs_threshold, fix: "There was never a 10% jobless line; the old rule was two quarters of falling real GDP." } }
+      - { id: c, text: "Unemployment above 10%", mistake: { tag: jobs_threshold, fix: "A recession is a fall in real output, not a set unemployment level." } }
     answer: a
     explanation: >
       Historically a recession was two consecutive quarters of declining GDP. Today the NBER declares one

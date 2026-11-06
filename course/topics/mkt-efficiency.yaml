@@ -83,12 +83,12 @@ questions:
       If a market is weak-form efficient, which strategy cannot consistently earn more than the market's risk-adjusted return?
     choices:
       - { id: a, text: "Choosing stocks by studying past price patterns on charts" }
-      - { id: b, text: "Trading on confidential information about a coming takeover", mistake: { tag: inside_info_weak, fix: "Weak form says nothing about private tips; inside information beats only a strong-form failure." } }
-      - { id: c, text: "Holding a diversified index fund", mistake: { tag: index_as_edge, fix: "An index fund aims for the market return, not to beat it." } }
+      - { id: b, text: "Trading on confidential information about a coming takeover", mistake: { tag: inside_info_weak, fix: "Weak form covers past prices only; inside information can still beat it." } }
+      - { id: c, text: "Trading the moment a company publishes surprise news", mistake: { tag: news_weak, fix: "Public news is a semi-strong question; weak form rules out only past-price patterns." } }
       - { id: d, text: "Buying shares after reading the company's published accounts", mistake: { tag: accounts_weak, fix: "Published accounts are public news, a semi-strong question; weak form covers past prices only." } }
     answer: a
     explanation: >
-      Weak form efficiency says past prices and volumes are already in today's price, so technical analysis of them gives no consistent edge. Strategies based on public accounts need semi-strong inefficiency, and use of confidential information needs the strong form to fail.
+      Weak form efficiency says past prices and volumes are already in today's price, so technical analysis of them gives no consistent edge. Strategies based on public accounts or news need semi-strong inefficiency, and use of confidential information needs the strong form to fail.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 11.5 Efficient Markets: https://openstax.org/books/principles-finance-2e/pages/11-5-efficient-markets
 

@@ -107,7 +107,7 @@ questions:
       Before October 1979 the Federal Reserve conducted policy mainly by doing which of the following?
     choices:
       - { id: a, text: "Setting growth targets for the money supply and keeping the federal funds rate within a narrow range" }
-      - { id: b, text: "Fixing the dollar's price in gold", mistake: { tag: gold_for_money, fix: "The gold price link was earlier; before 1979 the Fed aimed at money growth with a funds-rate band." } }
+      - { id: b, text: "Fixing the dollar's price in gold", mistake: { tag: gold_for_money, fix: "Before 1979 the Fed targeted money growth with a narrow funds-rate band, not a gold price." } }
       - { id: c, text: "Setting limits on the price of every good", mistake: { tag: price_controls, fix: "Price limits were a government tool, not how the Fed ran policy." } }
       - { id: d, text: "Letting the federal funds rate move freely with no target at all", mistake: { tag: free_rate, fix: "Before 1979 the Fed held the funds rate in a narrow band; freer swings came after." } }
     answer: a

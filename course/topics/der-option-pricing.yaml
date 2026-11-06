@@ -124,7 +124,7 @@ questions:
     choices:
       - { id: a, text: "The share's volatility is constant and the option can be hedged by trading continuously at the market price" }
       - { id: b, text: "The share's expected return must be known", mistake: { tag: needs_expected_return, fix: "The formula needs no expected return: that was the striking result." } }
-      - { id: c, text: "Investors must be risk-seeking", mistake: { tag: risk_seeking, fix: "The formula assumes no taste for risk; hedging removes it." } }
+      - { id: c, text: "Investors must be risk-seeking", mistake: { tag: risk_seeking, fix: "The formula needs no view on risk taste; hedging removes the risk." } }
       - { id: d, text: "The share price can never fall", mistake: { tag: price_never_falls, fix: "The share can fall in the model; volatility means it moves both ways." } }
     answer: a
     explanation: >
