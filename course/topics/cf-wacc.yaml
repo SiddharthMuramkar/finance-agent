@@ -144,8 +144,8 @@ checks:
   - id: wc-tunnel-explain
     kind: conversation
     prompt: >
-      Eurotunnel's interest bill was about 330 million pounds a year on revenue of 541 million
-      pounds. Explain what the weighted average cost of capital is, why such a heavy debt load
+      Eurotunnel's interest bill was about 330 million pounds a year, some 61% of its revenue of
+      541 million pounds. Explain what the weighted average cost of capital is, why such a heavy debt load
       makes it hard for a business to earn it, and how cutting the debt would change who bears the
       risk.
     passCriteria: >
@@ -154,4 +154,4 @@ checks:
       them. They say interest of about 61% of revenue leaves little to cover operating costs and
       reward shareholders, so the assets cannot earn the required return, and that cutting debt
       moves risk to lenders who take equity, or to the remaining shareholders, instead of leaving
-      it as a fixed claim.
+      it as a fixed claim. The prompt gives the 61%, so no figure needs to be worked out.
