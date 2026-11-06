@@ -116,7 +116,7 @@ questions:
 
   - id: vi-q-crp-method
     prompt: >
-      22 October 2015: Priya's Mumbai fund decides this week on Coffee Day shares. Go too light on India's risk and it overpays. Her clue: the extra yield lenders charge Baa3-rated India. Which would you pick?
+      22 October 2015: Priya's Mumbai fund is pricing Coffee Day shares. Her clue to India's risk: the extra yield lenders charge Baa3-rated India. Underplay it and the fund overpays. What should she do with it?
     choices:
       - { id: a, text: "Use that extra yield as it is: bonds already show India's risk", mistake: { tag: unscaled_spread, fix: "Shares swing more than India's bonds, so the bond spread is scaled up for them." } }
       - { id: b, text: "Shrink it, because shares are safer than government bonds", mistake: { tag: scaled_down, fix: "Shares are riskier than government bonds, so the spread is scaled up, not down." } }
