@@ -9,8 +9,8 @@ const math = JSON.stringify({ id: "D01", sums: [], count: 0 });
 const fit = JSON.stringify({ id: "D01", match: 5, lively: 4, emoji: { meaningful: [], decorative: [] }, alone: true, kind: "lingo", source: "lingo", why: "w" });
 const historian = JSON.stringify({ id: "D01", claims: [], wrong: 0, after_as_of: 0, unsupported: 0 });
 
-/** A client that answers each call from a queue and records the requests. */
-function fake(replies: string[], usage = { input_tokens: 2000, output_tokens: 200 }) {
+/** A client that answers each call from a queue and records the requests. An Error in the queue is thrown, as the SDK throws a 429 or an overload. */
+function fake(replies: (string | Error)[], usage = { input_tokens: 2000, output_tokens: 200 }) {
   const calls: { system: string; messages: unknown[] }[] = [];
   return {
     calls,
@@ -18,7 +18,9 @@ function fake(replies: string[], usage = { input_tokens: 2000, output_tokens: 20
       create: async (req: { system: string; messages: unknown[]; model: string }) => {
         expect(req.model).toBe("claude-opus-5-5");
         calls.push({ system: req.system, messages: [...req.messages] });
-        return { content: [{ type: "text", text: replies.shift() ?? "" }], usage };
+        const next = replies.shift() ?? "";
+        if (next instanceof Error) throw next;
+        return { content: [{ type: "text", text: next }], usage };
       },
     },
   };
@@ -72,5 +74,28 @@ describe("[S3] the judge runner", () => {
     expect(client.calls).toHaveLength(3);
     expect(r.skipped).toEqual(["historian"]);
     expect(spend.spent).toBeCloseTo(5.18, 6);
+  });
+
+  it("keeps the other judges' answers when one call hits an API error, and asks that judge once more", async () => {
+    const overloaded = Object.assign(new Error("529 Overloaded"), { status: 529 });
+    const client = fake([persona, math, fit, overloaded, historian]);
+    const spend = new Spend(13);
+    const r = await judgePrompt({ client, spend, evidence, screenshot: null, retryDelayMs: 0 });
+    expect(client.calls).toHaveLength(5);
+    expect(Object.keys(r.judgements)).toEqual(["persona", "math", "fit", "historian"]);
+    expect(r.errors).toEqual([]);
+    // The retry is the same request, not a "that was not valid" re-ask.
+    expect(client.calls[4].messages).toHaveLength(1);
+    expect(spend.judges.calls).toBe(4);
+  });
+
+  it("reports a judge whose call fails twice as missing and still returns every judgement already made", async () => {
+    const rateLimited = Object.assign(new Error("429 rate_limit_error\nretry later"), { status: 429 });
+    const client = fake([rateLimited, rateLimited, math, fit, historian]);
+    const r = await judgePrompt({ client, spend: new Spend(13), evidence, screenshot: null, retryDelayMs: 0 });
+    expect(client.calls).toHaveLength(5);
+    expect(r.judgements.persona).toBeUndefined();
+    expect(Object.keys(r.judgements)).toEqual(["math", "fit", "historian"]);
+    expect(r.errors).toEqual(["persona: API error: 429 rate_limit_error"]);
   });
 });

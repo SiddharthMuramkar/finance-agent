@@ -25,10 +25,11 @@ function content(judge, evidence, screenshot) {
 /**
  * Runs the four judges for one prompt. Returns { judgements, errors, skipped }: a judgement per judge that answered
  * valid JSON (re-asked once when it did not), an error line per judge that failed twice, and the judges not started
- * because the cap was reached. Each call is estimated at the judges' own average so far (spend.nextJudgeCall), so the
+ * because the cap was reached. An API error on one call (429, overloaded, network) never throws out of here: that call
+ * is tried once more after `retryDelayMs`, then reported in `errors`, and the judgements already made are kept. Each call is estimated at the judges' own average so far (spend.nextJudgeCall), so the
  * Tutor's spend in the same total never makes a judge call look dearer than it is.
  */
-export async function judgePrompt({ client, spend, evidence, screenshot }) {
+export async function judgePrompt({ client, spend, evidence, screenshot, retryDelayMs = 5000 }) {
   const judgements = {};
   const errors = [];
   const skipped = [];
@@ -41,7 +42,16 @@ export async function judgePrompt({ client, spend, evidence, screenshot }) {
         done = true;
         break;
       }
-      const res = await client.messages.create({ model: JUDGE_MODEL, max_tokens: MAX_TOKENS, system: JUDGE_SYSTEM[judge], messages });
+      let res;
+      try {
+        res = await client.messages.create({ model: JUDGE_MODEL, max_tokens: MAX_TOKENS, system: JUDGE_SYSTEM[judge], messages });
+      } catch (e) {
+        // A 429, an overload or a dropped connection is a missed call, not the end of the prompt: ask the same request
+        // once more after a pause, and if that fails too, report this judge as missing and go on to the next.
+        if (attempt === 1) errors.push(`${judge}: API error: ${String(e?.message ?? e).split("\n")[0]}`);
+        else if (retryDelayMs > 0) await new Promise((r) => setTimeout(r, retryDelayMs));
+        continue;
+      }
       spend.chargeJudge(JUDGE_MODEL, {
         inputTokens: res.usage?.input_tokens ?? 0,
         outputTokens: res.usage?.output_tokens ?? 0,
