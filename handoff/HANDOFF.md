@@ -1,69 +1,61 @@
-# Handoff: story-first build, paused 6 Nov 2026 ~09:00 IST
+# Handoff: story-first build, stopped 6 Nov 2026 12:36 IST (Muse run)
 
-The build was paused on the owner's order, because the second account was about to hit its usage limit.
-**GitHub is the source of truth**: a closed spec issue (#324–#368) means its ticket is merged. This branch is `origin/main` at pause time plus this `handoff/` folder.
-The folder holds the run state, the scripts, the plans and the resume steps. No code changes are in it.
+Stopped on the owner's order after a ~1.8h Muse orchestrator run (10:50–12:36 IST).
+**Next session: paste `handoff/NEXT-SESSION-PROMPT.md` (streamlined v2, lessons baked in).**
+**GitHub is the source of truth**: a closed spec issue (#324–#368) means its ticket is merged.
+Full tick log: `handoff/run/RUN-STATE.md` (synced this commit) and live copy at
+`~/Downloads/finance-agent-story-run/RUN-STATE.md`. Critic inputs/verdicts: `~/Downloads/finance-agent-story-run/critics/<ID>/`.
 
-## State at pause
-- **Merged, 18 of 40:** T-00 T-01 A1 A3a A3b A4 B1 B3a C1a D1a D1b D1c D2a D2b D3a E1 E2a E2b.
-- **Merge style:** every PR landed as a real merge commit with two parents, never squash or rebase.
-  Check with `git log origin/main --first-parent --format='%h %P %s'`.
-- **Main CI:** was running on the #391 merge at pause. Previous red was a one-test flake (`no-typing.spec` rate-move, mbp14 only), and its failed job was re-run.
-- **Workflows:** stopped (P2d run `wf_a507a13d-f83`). The watchdog cron is deleted.
-- **Open ticket work, all pushed to `story/<ID>`:**
+## State at stop (live-verified 12:35 IST)
+- **Merged, 22 of 40:** T-00 T-01 A1 A2 A3a A3b A4 B1 B2a B3a C1a D1a D1b D1c D2a D2b D2c D3a E1 E2a E2b E3.
+  This run merged 4: D2c #388, A2 #415, B2a #413, E3 #418 — all real merge commits.
+- **Main:** tip `8008ba6` (E3 merge). Latest main CI SUCCESS (#418 run 42175457520).
+  #413's main run failed 1 ui test (`notebook.spec`, w1024 only) then #418 run green → flake-suspect, watch it.
+  Known flake: `no-typing.spec` rate-move, single viewport/theme → rerun failed ui job once (worked 3× this run).
+  `tutor-eval` CI is NOT a required check (fails T2/T4/T5/T11 = D3b territory; ~$0.75/run).
+- **Paid ledger: $1.96 / $55** (D3b eval run2). Secrets present in run folder.
+- **No lanes running. No auto-merge armed on any PR** (C1b's was disabled at stop — see below).
+- Watchdog cron deleted. All lane work pushed; nothing local-only.
 
-| Ticket | Issue | PR | Where it stopped |
+## Open ticket work (all pushed to `story/<ID>`)
+
+| Ticket | Issue | PR / head | Where it stopped — next exact step |
 |---|---|---|---|
-| D2c | #346 | #388 (ready) | Passed math-police and historian; was landing (ui re-run). Persona follow-up #414 |
-| B2a | #336 | #413 | Critics done; fix round 1 pushed 592a499 (Notebook columns, Older session cards) |
-| A2 | #333 | none yet | Implementer and fix round pushed (2307926) |
-| D3b | #354 | none yet | 4 commits + WIP commit pushed (new branch). Paid tutor-eval run 1 results in `run/evals/d3b-run1/` |
-| D2d | #347 | #385 (draft) | Fix round in progress; WIP commit pushed |
-| D2e–D2j | #348–#353 | #392 #397 #399 #401 #402 #398 | Older fix-round-2 trees; need a fresh critic round under the new gate |
-| A5 B2b B3b C1b E3 E4a E4b E5 E6a–c | | | Not started (dependencies) |
-| F1 F2 | #365 #366 | | Story-proof phase (P4), after the build |
-| C2 C3 H1 | #367 #357 #368 | | Owner-only, not part of the run |
+| C1b | #337 | #419, `5874ff4` | Critics PASSED on `f4a4e76` (security 3 lows, affordance pass). Then merged main (B2a) → `5874ff4`; repair cancelled before reporting. **Verify:** conflict files; if auth/proxy/login semantics changed → re-run security critic; full gates; then land. Auto-merge OFF — re-enable only after verify. |
+| E5 | #356 | #420, `95cb2f1` | Critics done: space FAIL (high: no measureLayout JSON / 1512-only shots; med: RateMove end-labels clipped; med: StoryScene evidence not on stage), colour PASS 4.0 (2 medium notes, refuters never ran), affordance PASS. Next: refuter-batch → fixer → re-critics (space+colour) → land. |
+| A5 | #342 | none, `4c5dee9` (WIP) | 8 commits (header, account menu, Settings, e2e, docs); implementer cancelled → **gates unverified**, no PR. Next: merge main, full gates, critic inputs, PR, critics. Owns header rename → Notebook. |
+| D3b | #354 | none, `74b3a71` | Offline gates green; paid eval run2 8/16 (`run/evals/d3b-run2/`). All fails need `src/tutor/instructions.ts` — free now (E3 merged). Fixes listed in NEXT-SESSION-PROMPT. Eval run3 **pre-granted** (lane cap $15 more). Unblocks E4a/E4b. |
+| B2b | #343 | none, `978bc68` | Done except strings in held files: `src/tutor/tools.ts` (free now), `widget-panel.tsx`+`globals.css` comments (after E5 merges), `ui.tsx`+settings (after A5 merges). Steps: `critics/B2b/RESUME.md`. |
+| D2d–D2j | #347–#353 | #385 #392 #397 #399 #401 #402 #398 | Unchanged this run. Old fix-round trees → merge main, regen inputs, fresh critics under content gate. |
+| B3b E4a E4b E6a–c | #358 #361 #360 #362–364 | — | Not started. B3b←A5; E4a/E4b←D3b; E6a–c deps met. Empty E6a worktree exists at main tip. |
+| F1 F2 | #365 #366 | | Story-proof phase, after build. |
+| C2 C3 H1 | #367 #357 #368 | | Owner-only. |
 
-- **needs-triage open:** #313 #315 #317 #318 #383 #386 #389 #390 #394 #396 #400 #409 #411 #414 #416 #417.
-  Triage sweep pass 1 already closed or fixed 9. These wait for pass 2, after the build (plan P4.5).
+Worktrees alive (all clean, pushed): `~/Desktop/finance-agent-wt-{A5,C1b,D3b,E5,B2b,E6a}`.
+Removed this run: merged A2/B2a/E3 lane worktrees + 4 stale `.claude/worktrees/wf_*` holding lane branches (verified clean + pushed first).
 
-## Decisions made on the owner's order ("do whats best")
-- **beginner-persona is advisory for content batches (D2*, E6*).**
-  - The gate is math-police plus historian.
-  - Persona gets one fix round. Whatever it still flags goes to a needs-triage follow-up issue.
-  - Reason: its verdict flipped between runs on the same text, and persona-only fix rounds made D2a and D2b worse.
-  - The code is in `run/story-build-p2d.js` (`hardFails`, `followUp`, `LAND_ONLY`).
-- **Triage sweep:** fix what touches no locked file and merge it; defer the rest to pass 2.
+## Needs the owner
+- Nothing blocking. FYI only:
+  - C1b security lows (critic pass, non-blocking): `trustedProviders=["google"]` implicit account linking skips emailVerified gate (`src/auth/better-auth.ts:58`); `http://localhost:3000` in TRUSTED_ORIGINS in prod (`:19`); `fa_access` HMAC has no expiry (`src/auth/passcode.ts:80`, pre-existing).
+  - E5 colour mediums + space findings await refuter/fixer (above).
+  - needs-triage issues unchanged this run; sweep pass 2 still queued post-build. D2c persona follow-up #414 pre-exists.
+  - Claude-settings `gh pr merge` allow rules (for the old runner) can stay until final P5; Muse landers/orchestrator merged fine without them.
 
-## Resume (from either account)
-1. **The run folder.** It lives at `~/Downloads/finance-agent-story-run/`, and the scripts use that absolute path.
-   - If it's missing, copy `handoff/run/` back there.
-   - Also recreate the 3 secret files (`anthropic.env`, `prod-db-host.txt`, `spec-worktree.env.bak`), which are deliberately not in git.
-2. **Session directory.** Start the session in `~/Desktop/finance-agent`, the git checkout. Never run a bare `cd` into a non-git folder while a workflow runs: new worktree agents then fail with "not in a git repository".
-3. **Edit the launch state** at the top of `story-build-p2d.js`.
-   - MERGED = the closed issues.
-   - SCOPE = everything else except C2, C3, H1, F1 and F2.
-   - LAND_ONLY = {} unless a content PR already passed math-police and historian on its current head (D2c #388 if it hasn't merged).
-   - Implementers continue from `origin/story/<ID>`.
-4. **Launch** with `Workflow({scriptPath: '<run>/story-build-p2d.js'})`.
-   - Write the new journal path to `run/journal-path.txt`.
-   - Recreate the watchdog cron (`7,22,37,52 * * * *`; the tick prompt is in the original plan's Watchdog section). Crons are session-only.
-5. **After the build:**
-   - P3 G2 (needs E4a, E4b and E6a; a Neon test branch, never production).
-   - P4 story-proof (F1, F2).
-   - P4.5 triage sweep pass 2 (`scripts/triage-sweep.js`, empty `lockedPaths`).
-   - P5 handback (see `plans/original-plan.md` and `plans/takeover-plan.md`).
-6. **Permissions.** The 3 allow rules `Bash(gh pr merge|ready|comment *)` in `~/.claude/settings.json` let landers merge. Keep them until P5, then remove them.
+## Decisions this run (orchestrator, within brief)
+- D2c landed LAND_ONLY: head `9e2a49c` proved = judged head `473d3b2` + main-merge only (first-parent check), CI check/build/ui green.
+- B2a layout deviation fixed to spec card-grid (critic F1 high, confirmed by refuter against spec line ~877).
+- E3 examples rewritten asOf-true (historian H1/H2/H4/H6 confirmed; H3/H5 refuted); story examples excluded from Tutor fallbacks.
+- B2a persona "three names" medium refuted for B2a: header rename belongs to A5 (code comment says so).
+- D3b eval run3 granted past the brief's 2-run cap (spend $1.96 of $55).
+- Efficiency lessons → NEXT-SESSION-PROMPT v2 (refuter-batch, preflight overlap matrix, serialized landings, evidence checklists, gates-once + CI overlap). This run: 45 subagents → 4 merges; v2 targets ≤6 subagents/ticket.
 
 ## Safety rules (unchanged)
-- No production DB, migrations, invites or `vercel` commands.
-- No npm or tests in `~/Desktop/finance-agent` or the spec worktree (production `.env`).
-- No force push, `reset --hard` or push to main.
-- Paid spend ≤ $55 (ledger at $0 so far, plus the D3b eval run).
+- No production DB/migrations/invites/`vercel`/Neon; no `.env` reads except `$RUN/anthropic.env` for granted paid evals.
+- No npm/tests in `~/Desktop/finance-agent` or `-wt-spec` (production `.env`). Lane worktrees only.
+- No force-push, push-to-main, `--admin`, `reset --hard`, rebase of story branches; `vitest --maxWorkers=4`.
+- Paid ≤ $55 total across runs (ledger $1.96).
 
 ## Files
-- `run/RUN-STATE.md`: full tick-by-tick log, the most detailed record.
-- `run/story-build-p2d.js`, `run/lane-brief.md`, `run/land.sh`, `run/status.sh`, `run/issues.tsv`, `run/critics-prompts/`, `run/tmp/gen-persona-input.mjs`: the build machinery.
-- `scripts/triage-sweep.js`: the needs-triage sweep workflow.
-- `plans/`: the approved plan and the takeover plan.
-- Not pushed (stale and superseded): local worktrees from the 01:00–02:10 runs under `~/Desktop/finance-agent/.claude/worktrees/` (wf_3d08d3d4-208-914, wf_3ee72a9e-e57-80/81, wf_6696a07d-fd3-266..272). Their tickets either merged since or carry newer pushed work.
+- `handoff/NEXT-SESSION-PROMPT.md`: **paste this to resume.**
+- `handoff/run/RUN-STATE.md`: full log incl. this run's ticks (live copy in `~/Downloads/finance-agent-story-run/`).
+- Rest of `handoff/run|scripts|plans` unchanged from previous handoff. Run folder on disk is canonical for scripts/secrets/critics.

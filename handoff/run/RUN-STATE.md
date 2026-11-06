@@ -110,3 +110,21 @@ Paid: $0 of $55.
 - 08:37 tick (status clock): relaunch healthy, 10 events, 0 errors, no breaker. A2, B2a, D3b implementing; D2b/D2c landers -> repairs (D2c ui red). main CI running on #408. caffeinate on, load 19.
 - 08:42 tick: main ui red after #408 merge: 1/229 failed, no-typing.spec rate-move practice in mbp14 only (passed in mbp14-dark) -> looks flaky like 23:30; reran failed job of run 42153390016. If the rerun fails too: main-red rule (the lanes' landers flag mainRed -> main-fix lane). Relaunch healthy: 40 events, 0 errors; B2a fix r1, D2b/D2c landing, A2/D3b implementing. caffeinate on.
 - 09:00 PAUSED on the owner's order (usage limit near): P2d (w0nh9irrg) stopped, watchdog cron 727a1aa7 deleted. 18 merged (D2b #391 landed before the stop). Salvaged: story/D3b pushed (new branch, 5 commits incl. WIP), story/D2d WIP pushed. Branch 'handoff' = origin/main + handoff/ (HANDOFF.md resume steps, run files, scripts, plans; no secrets). Every merge on main is a real merge commit (2 parents).
+
+## Muse run 2026-11-06 (orchestrator resume)
+- Merged at start: 18/40 (T-00 T-01 A1 A3a A3b A4 B1 B3a C1a D1a D1b D1c D2a D2b D3a E1 E2a E2b), verified live via GitHub issue states #324-368.
+- Open in-scope (22): A2 B2a C1b A5 B2b D2c D2d D2e-j D3b E5 B3b E3 E4b E4a E6a-c. Excluded: C2 C3 H1 F1 F2.
+- Main CI green at start. Secrets present (anthropic.env, prod-db-host.txt) → paid evals allowed, ledger $0/$55.
+- D2c #388: head 9e2a49c = judged head 473d3b2 (math+historian pass) + main-merge only → LAND_ONLY. tutor-eval fail = non-required (T2/T4/T5/T11, D3b territory).
+- Lane plan: W1 D2c(land) A2(3201) B2a(3202) E3(3203) → W2 D3b C1b E5, A5/B2b/B3b on deps → W3 D2d-j E6a-c E4a E4b on deps. ≤4 lanes, own worktrees ~/Desktop/finance-agent-wt-<ID>.
+- Stale worktrees wf_3d08d3d4-208-94 (D2c), wf_a507a13d-f83-1 (A2), wf_eff8f18d-418-121 (B2a): clean, HEADs ancestors of origin → removed to free branches.
+- 10:51 tick: D2c #388 MERGED (19/40), issue #346 closed. Lanes: A2 impl, B2a impl, E3 impl, D3b starting. main CI pending on #388 merge.
+- 10:57 tick: 19/40. A2/B2a/E3/D3b implementers running (gates in progress). main CI on #388 merge running.
+- 11:08 tick: 19/40. Main CI red on #388 merge: 1 failed = no-typing.spec rate-move mbp14-dark only (known flake, same as 23:30/08:42 ticks) -> reran failed ui job once, watching. Lanes: A2 lander running (critics pass), B2a refuters x5 running (space/affordance fails), E3 impl running, D3b parked needs_hot_file src/tutor/instructions.ts (paid .96, ledger updated). Load ~16, mem OK.
+- 11:13 tick: A2 #415 MERGED (20/40), #333 closed. B2a gate FAIL: F1/F2/F3/F5 confirmed (F4 refuted) -> fixer r1. C1b lane starting (slot from A2). E3 impl running. Main: ui rerun in_progress, CI on #415 pending.
+- 11:24 tick: 20/40. Main green (#388 rerun success; #415 CI running). Lanes: E3 impl (12 commits, gates), B2a fixer r1 (gates/evidence), C1b impl (2 commits), E5 impl (early). D3b parked on E3 hot file. Load ~7-12, mem OK. Elapsed 0:34, stop-new-lanes 13:20.
+- 11:38 tick: 20/40, main green. B2a lander running (gate pass r2). E3 fixer r1 running (H1/H2/H4/H6). C1b critics (security+affordance) running on PR #419. E5 impl running. D3b parked. Elapsed 0:48.
+- 11:50 tick: B2a #413 MERGED (21/40), #336 closed (ui flake rerun green). C1b lander running. A5+B2b lanes starting. E3 fixer + E5 impl running. Security lows on C1b recorded for handback (trustedProviders linking, localhost trusted origin, fa_access no expiry — all low, critic pass).
+- 12:00 tick: 21/40, main CI running on #413 merge. E3 lander running (critics r2 clean). C1b repair mid-merge (PR went CONFLICTING after B2a landed). E5 impl 9 commits, A5/B2b impl running. Load ~20, mem OK. Elapsed 1:10; stop-new-lanes 13:20.
+- 12:10 tick: E3 #418 MERGED (22/40), #359 closed. D3b resuming (instructions.ts free; eval run3 GRANTED, ledger .96/5). E6a starting. B2b parked (needs E5 merge + A5 for held strings). E5 critics running, C1b repair running, A5 impl running.
+- 12:36 STOP (owner order): run halted. 22/40 merged (this run: D2c A2 B2a E3). A5/C1b subagents cancelled; WIP pushed (A5 4c5dee9 new branch, C1b 5874ff4, auto-merge on #419 DISABLED pending verify). Handback: handoff/HANDOFF.md rewritten + handoff/NEXT-SESSION-PROMPT.md (v2 streamlined) pushed to handoff branch.
