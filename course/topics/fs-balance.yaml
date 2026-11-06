@@ -46,46 +46,167 @@ youllLearn:
   - "Use the accounting equation to see where a false number must be hiding."
   - "Ask what outside evidence backs the biggest items."
 
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+exampleCurrency: INR
+runningExample:
+  text: "A family owns a flat and savings worth ₹50 lakh and owes ₹30 lakh on a home loan."
+  numbers: [50, 30]
+  scene:
+    cast:
+      - { id: asha, emoji: woman, name: Asha }
+      - { id: bank, emoji: bank, name: The bank }
+    beats:
+      - { who: narrator, says: "Asha's family owns a flat and savings worth ₹50 lakh.", emoji: house }
+      - { who: bank, says: "They still owe us ₹30 lakh on the home loan.", emoji: receipt }
+      - { who: asha, says: "What is left after the loan is the share that is really ours.", emoji: thinking-face }
+
+terms:
+  - term: assets
+    means: Everything a company owns that has value, such as cash, money customers owe it and buildings.
+    pro: Analysts start a balance sheet with its assets.
+    example: "Your scooter, your savings and the ₹2,000 a friend owes you."
+    emoji: money-bag
+    inStory: Satyam's books listed cash and bank balances of Rs 5,361 crore as an asset.
+  - term: liabilities
+    means: Everything a company owes, such as loans, unpaid bills and money due to others.
+    pro: Liabilities are the claims of outsiders on the company.
+    example: "The ₹3 lakh education loan you still owe the bank."
+    emoji: credit-card
+    inStory: A balance sheet sets what Satyam owns against what it owes and what is left for owners.
+  - term: equity
+    means: What is left for the owners once everything owed is taken off everything owned.
+    pro: Equity, or shareholders' funds, is the owners' stake.
+    example: "Your scooter is worth ₹60,000 and ₹20,000 of the loan is unpaid. Your own share is the rest."
+    emoji: gem-stone
+    inStory: In Satyam's balance sheet, equity is what remains for the owners after liabilities.
+  - term: cash and bank balances
+    means: Money the company holds in hand and in its bank accounts, ready to spend.
+    pro: Analysts call it cash and bank balances, or just cash.
+    example: "The ₹10,000 in your wallet plus your savings account."
+    emoji: bank
+    inStory: Satyam's balance sheet showed cash and bank balances of Rs 5,361 crore.
+  - term: auditor
+    means: An outside accountant who checks a company's accounts and tells investors if they look fair.
+    pro: The auditor signs off the accounts.
+    example: "Like an examiner who rechecks your marks before the result is published."
+    emoji: magnifying-glass-tilted-left
+    inStory: An analyst wants to check Satyam's reported figures before trusting them.
+
+scenes:
+  - id: fb-s-story
+    step: story
+    recipe: story_scene
+    title: "Satyam's half year ends"
+    inputs:
+      cast:
+        - { id: satyam, emoji: office-building, name: Satyam, role: software services company in Hyderabad }
+        - { id: analyst, emoji: woman-office-worker, name: An analyst, role: reads the balance sheet }
+      beats:
+        - { who: narrator, says: "30 September 2008: Satyam's half year ends and the balance sheet is out.", emoji: calendar }
+        - { who: satyam, says: "Cash and bank balances: Rs 5,361 crore. Debtors: Rs 2,651 crore.", emoji: ledger }
+        - { who: narrator, says: "A balance sheet lists what a company owns and what it owes, at one date." }
+        - { who: analyst, says: "Big numbers. Which ones would I want to check before trusting them?", emoji: magnifying-glass-tilted-left }
+      caption: An analyst decides what to check first
+      date: "2008-09-30"
+  - id: fb-s-equation
+    step: concept
+    check: fb-quiz-equation
+    recipe: two_paths
+    title: "Same flat, different owners"
+    inputs:
+      question: Two owners hold the same flat. How is their position different?
+      left:
+        emoji: woman
+        name: Asha
+        choice: Paid for the flat in full
+        outcome: [house, crown]
+        outcomeLine: The whole flat belongs to her.
+      right:
+        emoji: man
+        name: Ravi
+        choice: Borrowed most of the price
+        outcome: [house, chains]
+        outcomeLine: The bank has a big claim, so his own share is small.
+  - id: fb-s-cash
+    step: concept
+    check: fb-satyam-cash
+    recipe: myth_or_fact
+    title: "Reading a balance sheet: myth or fact"
+    inputs:
+      cards:
+        - claim: Every number on a balance sheet comes with proof attached.
+          isFact: false
+          why: It is a claim. Outside evidence, such as a bank's own confirmation, backs it up.
+          emoji: magnifying-glass-tilted-left
+        - claim: Assets always equal liabilities plus equity.
+          isFact: true
+          why: "That is the accounting equation: what is owned equals what is owed plus what is left."
+          emoji: balance-scale
+        - claim: A balance sheet covers a whole year of trading.
+          isFact: false
+          why: It is a snapshot at one date. The income statement covers a period.
+          emoji: calendar
+  - id: fb-s-reveal
+    step: reveal
+    recipe: timeline
+    title: "From the balance sheet to the letter"
+    inputs:
+      beats:
+        - { date: "2008-09-30", label: "Books show cash of Rs 5,361 crore", emoji: bank }
+        - { date: "2009-01-07", label: Chairman Raju writes to the board, emoji: envelope }
+        - { date: "2009-01-07", label: "Rs 5,040 crore of it did not exist", emoji: warning }
+  - id: fb-s-principle
+    step: principle
+    recipe: lingo_card
+    title: "The accounting equation"
+    inputs:
+      term: accounting equation
+      pro: Assets equal liabilities plus equity, always.
+      means: A false number on one side always needs a matching false number on the other.
+      example: "Your savings app shows more than your bank does: something else must be wrong too."
+      emoji: balance-scale
+      inStory: Cash that never existed means equity that never existed.
+
 questions:
   - id: fb-q-equation
     prompt: >
-      A company has total assets of 500 and total liabilities of 320. What is its equity?
+      What do accountants call what is left for the owners once everything owed is taken off everything owned?
     choices:
-      - { id: a, text: "820" }
-      - { id: b, text: "180" }
-      - { id: c, text: "320" }
-      - { id: d, text: "500" }
-    answer: b
+      - { id: a, text: "Equity" }
+      - { id: b, text: "Liabilities", mistake: { tag: liabilities_for_equity, fix: "Liabilities are what the company owes. Equity is what is left for the owners." } }
+      - { id: c, text: "Revenue", mistake: { tag: revenue_for_equity, fix: "Revenue is sales over a period and sits on the income statement." } }
+      - { id: d, text: "Debtors", mistake: { tag: debtors_for_equity, fix: "Debtors are customers who owe the company. They are an asset." } }
+    answer: a
     explanation: >
-      Assets = liabilities + equity, so equity = 500 - 320 = 180.
+      Assets = liabilities + equity, so equity is what remains of the assets after the liabilities are met.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet, the accounting equation: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 
   - id: fb-q-borrow
     prompt: >
-      A company borrows 100 in cash from a bank. What happens to its balance sheet?
+      A company borrows cash from a bank. What happens to its balance sheet?
     choices:
-      - { id: a, text: "Assets rise by 100 and liabilities rise by 100; equity does not change" }
-      - { id: b, text: "Assets rise by 100 and equity rises by 100" }
-      - { id: c, text: "Liabilities rise by 100 and assets fall by 100" }
-      - { id: d, text: "Nothing changes, because borrowing is not an asset" }
+      - { id: a, text: "Assets and liabilities both rise; equity does not change" }
+      - { id: b, text: "Assets and equity both rise", mistake: { tag: loan_is_equity, fix: "A loan is a debt, not owners' money. Equity rises only with kept profit or new share money." } }
+      - { id: c, text: "Liabilities rise and assets fall", mistake: { tag: loan_cash_not_asset, fix: "The cash received is an asset, so assets rise too." } }
+      - { id: d, text: "Nothing changes, because borrowing is not an asset", mistake: { tag: borrowing_invisible, fix: "The cash is an asset and the loan is a liability. Both show up." } }
     answer: a
     explanation: >
-      Cash, an asset, rises by 100, and a loan, a liability, rises by 100. The equation still balances and equity is unchanged.
+      Cash, an asset, rises, and the loan, a liability, rises by the same amount. The equation still balances and equity is unchanged.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 
   - id: fb-q-retained-earnings
     prompt: >
-      A company starts the year with retained earnings of 400, earns a net profit of 150, and pays dividends of 50. What are its retained earnings at the end of the year?
+      What do analysts call the profit a company keeps in the business instead of paying it out?
     choices:
-      - { id: a, text: "500" }
-      - { id: b, text: "600" }
-      - { id: c, text: "550" }
-      - { id: d, text: "200" }
+      - { id: a, text: "Retained earnings" }
+      - { id: b, text: "Dividends", mistake: { tag: dividends_for_retained, fix: "Dividends are the part of profit paid out to owners. Retained earnings is the part kept." } }
+      - { id: c, text: "Liabilities", mistake: { tag: liabilities_for_retained, fix: "Liabilities are what the company owes. Kept profit belongs to the owners." } }
+      - { id: d, text: "Revenue", mistake: { tag: revenue_for_retained, fix: "Revenue is the sales earned. Profit is what is left after costs." } }
     answer: a
     explanation: >
-      Ending retained earnings = opening + net income - dividends = 400 + 150 - 50 = 500.
+      Retained earnings are profit kept in the business. They grow with profit and shrink with dividends, and sit in equity on the balance sheet.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.4 The Statement of Owner's Equity: https://openstax.org/books/principles-finance-2e/pages/5-4-the-statement-of-owners-equity
 
@@ -94,9 +215,9 @@ questions:
       Which of these is a current asset?
     choices:
       - { id: a, text: "Money owed by customers, due within 30 days" }
-      - { id: b, text: "A factory building" }
-      - { id: c, text: "A five-year bank loan" }
-      - { id: d, text: "The owners' share capital" }
+      - { id: b, text: "A factory building", mistake: { tag: building_is_current, fix: "A building lasts for years, so it is a long-term asset." } }
+      - { id: c, text: "A five-year bank loan", mistake: { tag: loan_is_asset, fix: "A loan is owed by the company, so it is a liability." } }
+      - { id: d, text: "The owners' share capital", mistake: { tag: capital_is_asset, fix: "Share capital is the owners' money, so it sits in equity." } }
     answer: a
     explanation: >
       Money owed by customers is a receivable expected in cash within a year, so it is a current asset. A building is a long-term asset; a loan is a liability; share capital is equity.
@@ -105,29 +226,71 @@ questions:
 
   - id: fb-q-overstated-receivables
     prompt: >
-      A company overstates the money owed to it by customers by Rs 200 crore, and its liabilities are right. What else on the balance sheet must be overstated?
+      A company overstates the money owed to it by customers, and its liabilities are right. What else on the balance sheet must be overstated?
     choices:
-      - { id: a, text: "Nothing: assets can be overstated on their own" }
-      - { id: b, text: "Equity, by Rs 200 crore" }
-      - { id: c, text: "Liabilities, by Rs 200 crore" }
-      - { id: d, text: "Cash, by Rs 200 crore" }
+      - { id: a, text: "Nothing: assets can be overstated on their own", mistake: { tag: assets_stand_alone, fix: "The balance sheet must balance, so an overstated asset needs a matching overstatement elsewhere." } }
+      - { id: b, text: "Equity" }
+      - { id: c, text: "Liabilities", mistake: { tag: liabilities_move_with_assets, fix: "The prompt says liabilities are right. The difference falls on equity." } }
+      - { id: d, text: "Cash", mistake: { tag: cash_moves_with_debtors, fix: "Cash is counted separately. The equation forces the other side, equity, to carry the difference." } }
     answer: b
     explanation: >
-      The balance sheet must balance. With liabilities correct, assets overstated by 200 means equity is overstated by 200.
+      The balance sheet must balance. With liabilities correct, overstated assets mean equity is overstated by the same amount.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet (assets = liabilities + equity): https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 
   - id: fb-q-missing-assets
     prompt: >
-      A company reports assets of 8,000 and liabilities of 3,500. It then turns out that 900 of the assets turn out to be fictitious, and the liabilities are correct. What is its true equity?
+      Suppose some of a company's reported assets turn out to be missing when checked, and its liabilities are correct. What is true of its real equity?
     choices:
-      - { id: a, text: "4,500" }
-      - { id: b, text: "3,600" }
-      - { id: c, text: "5,700" }
-      - { id: d, text: "900" }
+      - { id: a, text: "It equals the reported equity", mistake: { tag: equity_unaffected, fix: "Equity is assets less liabilities. Remove assets that are not there and equity falls too." } }
+      - { id: b, text: "It is lower than the reported equity" }
+      - { id: c, text: "It is higher than the reported equity", mistake: { tag: equity_goes_up, fix: "Fewer real assets and the same liabilities leave less for the owners, not more." } }
+      - { id: d, text: "It cannot be known from the balance sheet", mistake: { tag: unknowable, fix: "The equation settles it: equity is what remains of real assets after liabilities." } }
     answer: b
     explanation: >
-      Reported equity is 8,000 - 3,500 = 4,500. Remove the 900 that does not exist: true assets 7,100, so true equity = 7,100 - 3,500 = 3,600.
+      Reported equity is reported assets less liabilities. Take away assets that do not exist and the same liabilities leave less for the owners.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+  - id: fb-q-cash-bank
+    prompt: >
+      What do analysts call money a company holds in hand and in its bank accounts, ready to spend?
+    choices:
+      - { id: a, text: "Cash and bank balances" }
+      - { id: b, text: "Debtors", mistake: { tag: debtors_for_cash, fix: "Debtors are customers who owe the company. The money is not in hand yet." } }
+      - { id: c, text: "Retained earnings", mistake: { tag: retained_for_cash, fix: "Retained earnings is profit kept in the business. It can be spent on things other than cash." } }
+      - { id: d, text: "Equity", mistake: { tag: equity_for_cash, fix: "Equity is what is left for the owners. It is not a pile of cash." } }
+    answer: a
+    explanation: >
+      Cash and bank balances are the most liquid asset: money in hand and in bank accounts. Satyam's books showed Rs 5,361 crore of it at 30 September 2008.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
+
+  - id: fb-q-auditor
+    prompt: >
+      What do you call the outside accountant who checks a company's accounts for investors?
+    choices:
+      - { id: a, text: "An auditor" }
+      - { id: b, text: "A debtor", mistake: { tag: debtor_for_auditor, fix: "A debtor is someone who owes the company money." } }
+      - { id: c, text: "An analyst", mistake: { tag: analyst_for_auditor, fix: "An analyst reads and judges the figures. An auditor checks the books." } }
+      - { id: d, text: "A shareholder", mistake: { tag: shareholder_for_auditor, fix: "A shareholder owns part of the company. The auditor is hired to check the books." } }
+    answer: a
+    explanation: >
+      An auditor is an independent accountant who examines a company's accounts and reports whether they give a fair picture.
+    source: >
+      Plain definition of an external auditor; the Satyam context is in the US SEC Litigation Release LR-21915: https://www.sec.gov/enforcement-litigation/litigation-releases/lr-21915
+
+  - id: fb-q-debtors
+    prompt: >
+      On Satyam's balance sheet, debtors were customers who owed it money. What kind of item is that?
+    choices:
+      - { id: a, text: "An asset" }
+      - { id: b, text: "A liability", mistake: { tag: debtors_are_liabilities, fix: "A liability is money the company owes. Debtors owe the company." } }
+      - { id: c, text: "Equity", mistake: { tag: debtors_are_equity, fix: "Equity is what is left for the owners, not money owed by customers." } }
+      - { id: d, text: "Revenue", mistake: { tag: debtors_are_revenue, fix: "Revenue is the sale itself, on the income statement. The unpaid amount is an asset." } }
+    answer: a
+    explanation: >
+      Money customers owe is a receivable, which is a current asset: the company expects to collect it in cash within a year.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.2 The Balance Sheet: https://openstax.org/books/principles-finance-2e/pages/5-2-the-balance-sheet
 
@@ -141,6 +304,9 @@ checks:
       - fb-q-current-asset
       - fb-q-overstated-receivables
       - fb-q-missing-assets
+      - fb-q-cash-bank
+      - fb-q-auditor
+      - fb-q-debtors
     perAttempt: 3
     passRule:
       correct: 2
@@ -148,15 +314,14 @@ checks:
     kind: conversation
     prompt: >
       Satyam's balance sheet at 30 September 2008 shows cash and bank balances of Rs 5,361 crore,
-      against revenue of Rs 2,700 crore for the quarter. Which line would you want to test first,
+      and its revenue for the quarter was Rs 2,700 crore. Which line would you want to test first,
       and how? Say what evidence would convince you that the figure exists, and what you would
       expect to see elsewhere in the company's accounts if that much cash were really there.
     passCriteria: >
-      The Learner picks the cash and bank balances (large relative to revenue, about twice a
-      quarter's sales) and says the strongest evidence is independent: a confirmation obtained
-      directly from the bank, not a statement handed over by the company. They say that a cash
-      pile that large should earn interest income of a corresponding size (for example, at 5% a
-      year, about Rs 268 crore) and that the company should have little reason to borrow, so they
-      would compare the interest income and the borrowings with the balance. They may also say
-      that, because the equation must balance, overstated cash would mean overstated equity or
-      understated liabilities.
+      The Learner picks the cash and bank balances (very large next to a quarter's revenue) and
+      says the strongest evidence is independent: a confirmation obtained directly from the bank,
+      not a statement handed over by the company. They say that a cash pile that large should
+      earn a noticeable amount of interest income and that the company should have little reason
+      to borrow, so they would compare the interest income and the borrowings with the balance.
+      They may also say that, because the equation must balance, overstated cash would mean
+      overstated equity or understated liabilities.
