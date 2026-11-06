@@ -63,71 +63,71 @@ youllLearn:
 questions:
   - id: hr-q-hedge-defn
     prompt: >
-      Which of these is a hedge?
+      Captain Rao's small airline must buy a mountain of jet fuel next winter, and a price jump could sink it. On Monday three people trade fuel futures. Which one is hedging?
     choices:
-      - { id: a, text: "An airline buys fuel futures to fix the price of fuel it will need next year" }
-      - { id: b, text: "A fund buys fuel futures expecting the price to rise, with no use for fuel" }
-      - { id: c, text: "A trader sells shares she does not own, hoping to buy them back cheaper" }
-      - { id: d, text: "A firm borrows more to buy more of the asset it already holds" }
+      - { id: a, text: "Rao's airline, buying futures to fix the price of fuel it must buy" }
+      - { id: b, text: "A fund buying the same futures, betting fuel gets dearer", mistake: { tag: bet_not_hedge, fix: "The fund has no fuel to buy, so its futures add risk instead of offsetting any." } }
+      - { id: c, text: "A trader selling futures, hoping prices fall, with no fuel at all", mistake: { tag: no_exposure, fix: "With nothing to protect, selling futures is a bet that prices fall, not a hedge." } }
+      - { id: d, text: "A rival airline borrowing to buy more planes before winter", mistake: { tag: leverage_is_hedge, fix: "Borrowing to grow adds exposure; it does nothing to offset a rise in fuel prices." } }
     answer: a
     explanation: >
-      The airline already loses when fuel gets dearer, and the futures gain in that case, so the combined risk shrinks. The other three add to or create risk. The same contract can be a hedge or a speculation depending on the position it is combined with.
+      Rao already loses if fuel gets dearer, and his futures gain in exactly that case, so together they leave less risk. The same contract in the fund's hands is a bet, because the fund has nothing to protect. Judge the whole position, not the instrument.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), Chapter 20 Review Questions (hedging versus speculating with a derivative): https://openstax.org/books/principles-finance/pages/20-review-questions ; Chapter 20 Key Terms (hedging): https://openstax.org/books/principles-finance/pages/20-key-terms
 
   - id: hr-q-leverage
     prompt: >
-      An investment pool borrowed as much as its depositors put in, to double its bond holdings. Then bond yields rise. What does the borrowing do to the depositors' loss?
+      Mohan runs a savings pool for three towns. To earn more, he borrows as much again as the towns put in and buys twice the bonds. On Friday bond yields jump. Who takes the hit, and how hard?
     choices:
-      - { id: a, text: "It makes the loss twice as large as it would have been without the borrowing" }
-      - { id: b, text: "It halves the loss, because the lender shares it", mistake: { tag: lender_shares, fix: "The lender must be repaid in full, so the depositors bear the whole loss." } }
-      - { id: c, text: "It makes no difference, because yields only change the coupons", mistake: { tag: yields_ignored, fix: "A rise in yields cuts the market value of the bonds, and borrowing magnifies that loss." } }
-      - { id: d, text: "It cancels the loss, because borrowing acts as a hedge", mistake: { tag: borrowing_is_hedge, fix: "Borrowing to buy more bonds adds to the exposure to yields; it does not offset it." } }
+      - { id: a, text: "The towns, about twice as hard, because the loan must be repaid in full" }
+      - { id: b, text: "The lender and the towns share it, half each", mistake: { tag: lender_shares, fix: "The lender is owed every rupee back, so the whole loss lands on the towns' money." } }
+      - { id: c, text: "Nobody yet, because yields only change the interest paid", mistake: { tag: yields_ignored, fix: "When yields rise, bonds already held drop in market value at once." } }
+      - { id: d, text: "Nobody, because the borrowing works like a hedge", mistake: { tag: borrowing_is_hedge, fix: "Borrowing to buy more of the same bonds adds to the bet on yields; it offsets nothing." } }
     answer: a
     explanation: >
-      The bonds lose about duration x yield change = 4 x 1% = 4% of $200 million = $8 million. The $100 million of borrowing must be repaid in full, so the whole loss falls on the deposits: $8 million out of $100 million is 8%, twice the loss without leverage.
+      Rising yields cut the market value of bonds. Mohan's pool owns twice the bonds, so it loses about twice as much, and the lender still wants every rupee back. The whole, doubled loss falls on the towns' money. That is leverage; Orange County's pool used the same trick, at about 2 to 1.
     source: >
       Duration rule from OpenStax, Principles of Finance (CC BY-NC-SA), 20.4 Interest Rate Risk: https://openstax.org/books/principles-finance/pages/20-4-interest-rate-risk ; leveraged loss calculated
 
   - id: hr-q-inverse-floater
     prompt: >
-      An inverse floater pays a coupon that falls when short-term interest rates rise. What generally happens to its market price when interest rates rise?
+      Sunita's banker sells her an "inverse floater", a bond whose interest shrinks when short-term rates rise. On Tuesday the central bank raises rates. What happens to the price she could sell it for?
     choices:
-      - { id: a, text: "It falls, by more than a fixed-rate bond of the same maturity" }
-      - { id: b, text: "It rises, because its coupon is adjusted" }
-      - { id: c, text: "It does not change" }
-      - { id: d, text: "It rises, but only at maturity" }
+      - { id: a, text: "It falls, harder than an ordinary bond, since its interest shrinks too" }
+      - { id: b, text: "It rises, because its interest adjusts to the new rate", mistake: { tag: adjusts_up, fix: "Its interest adjusts down when rates rise, so the payments shrink instead of growing." } }
+      - { id: c, text: "It stays put, because she plans to hold it to the end", mistake: { tag: hold_hides_loss, fix: "Holding to the end hides the drop on paper; the price anyone would pay still falls." } }
+      - { id: d, text: "It rises, but only once the bond matures", mistake: { tag: maturity_gain, fix: "A rate rise cuts its price now; nothing turns that into a gain at maturity." } }
     answer: a
     explanation: >
-      Higher market rates cut the value of the remaining payments, and the lower coupon cuts the payments themselves, so the price falls and the instrument is more sensitive to rates than an ordinary bond. The SEC describes such securities as "negatively affected by a rise in interest rates".
+      Higher rates make every future payment worth less, and this bond's payments also get smaller, so its price drops more than an ordinary bond's. The SEC describes such securities as "negatively affected by a rise in interest rates".
     source: >
       US SEC, order against the County of Orange (inverse floaters "that are negatively affected by a rise in interest rates"): https://sec.gov/files/litigation/admin/3436761.txt
 
   - id: hr-q-basis-risk
     prompt: >
-      A company hedges its jet-fuel purchases with crude-oil futures because no jet-fuel contract is liquid. The two prices sometimes move differently. What is the risk left over called?
+      Kiran's cargo airline hedges jet fuel with crude-oil futures, because no jet-fuel contract trades much. One March, jet fuel jumps while crude barely moves, and her hedge falls short. What do traders call that risk?
     choices:
-      - { id: a, text: "Basis risk" }
-      - { id: b, text: "Credit risk" }
-      - { id: c, text: "Translation risk" }
-      - { id: d, text: "Inflation risk" }
+      - { id: a, text: "Basis risk: the hedge and the thing hedged moved apart" }
+      - { id: b, text: "Credit risk: the other side of the deal failing to pay", mistake: { tag: credit_vs_basis, fix: "Nobody failed to pay here; the two prices simply moved differently." } }
+      - { id: c, text: "Translation risk: losses from turning foreign accounts into rupees", mistake: { tag: translation_vs_basis, fix: "Translation risk is about converting accounts between currencies, not two prices drifting apart." } }
+      - { id: d, text: "Inflation risk: money buying less as all prices rise", mistake: { tag: inflation_vs_basis, fix: "Only jet fuel jumped; the leftover risk came from the hedge drifting away from the fuel." } }
     answer: a
     explanation: >
-      Basis risk is the risk that the hedge instrument and the exposure do not move together. A cross-hedge like this removes most of the price risk but never all of it.
+      Basis risk is what is left when the hedge instrument and the exposure stop moving together. A cross-hedge like crude for jet fuel removes most of the price risk but never all of it.
     source: >
       Hull, Options, Futures, and Other Derivatives (Pearson), chapter on hedging strategies using futures (basis risk and cross hedging)
 
   - id: hr-q-hedge-ratio
     prompt: >
-      Priya makes mango jam and fears mango prices will jump. Nobody trades mango futures, so she hedges with orange-juice futures, which move roughly in step. Her colleague says to size the hedge by how big each price's swings are and how closely they move together. What is that sizing trying to do?
+      Priya's jam business lives or dies on May's mango prices. She hedges with orange-juice futures, which roughly follow mangoes. Her adviser sizes the hedge by how much each price swings and how closely they move. What is he aiming for?
     choices:
-      - { id: a, text: "Leave Priya with the smallest leftover swing in her costs" }
-      - { id: b, text: "Match the hedge one-for-one to her mangoes", mistake: { tag: one_for_one, fix: "One-for-one ignores how the two prices differ in size of swing and in how closely they move." } }
-      - { id: c, text: "Remove her mango-price risk completely", mistake: { tag: removes_all_risk, fix: "A hedge on a different instrument leaves some risk behind; the ratio only makes it as small as possible." } }
-      - { id: d, text: "Make the hedge cost her nothing to hold", mistake: { tag: cost_not_risk, fix: "The ratio is about leaving the least risk, not about the cost of the hedge." } }
+      - { id: a, text: "The smallest leftover wobble in Priya's mango costs" }
+      - { id: b, text: "Exactly one orange-juice contract per load of mangoes", mistake: { tag: one_for_one, fix: "One-for-one ignores that the two prices swing by different amounts and only roughly together." } }
+      - { id: c, text: "Wiping out her mango risk completely", mistake: { tag: removes_all_risk, fix: "A hedge on a different fruit always leaves some risk; sizing only makes it smallest." } }
+      - { id: d, text: "Making the hedge free to hold", mistake: { tag: cost_not_risk, fix: "The sizing is about leaving the least risk, not about what the hedge costs." } }
     answer: a
     explanation: >
-      Textbooks call the colleague's way the minimum-variance hedge ratio: how closely the two prices move together, times how big the mango swings are compared with the orange-juice swings. If they move together closely (0.9) and mangoes swing a little more (12 against 10), the best size is a bit more than one-for-one (1.08), so the adviser's plain match leaves some mango risk uncovered.
+      Traders call this the minimum-variance hedge ratio: it uses how closely the two prices move together and how big each one's swings are. If mangoes swing a bit more than orange juice, Priya needs a bit more than one-for-one. Some risk, the basis risk, always stays.
     source: >
       Hull, Options, Futures, and Other Derivatives (Pearson), minimum variance hedge ratio h* = rho x sigma_S / sigma_F; figures calculated
 
