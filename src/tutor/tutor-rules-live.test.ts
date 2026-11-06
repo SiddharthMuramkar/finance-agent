@@ -40,7 +40,7 @@ describe("the rules tuned against the live tests", () => {
       it("simpler means the first idea only, with nothing new, and an open question asked again rather than answered", () => {
         expect(text).toContain("Simpler means less: the first idea only");
         expect(text).toContain("no analogy, not even the Topic's, and no new example");
-        expect(text).toContain("Do not answer a question you left open: ask it again, in plainer words and on new numbers, so the reply never gives its answer.");
+        expect(text).toContain("Do not answer a question you left open: ask it again in plainer words, on the running example's own numbers (never switch to new ones), and never give its answer.");
       });
 
       it("a quiz-me ask gets one choice question in words, in 40 words or fewer, with nothing after it", () => {
@@ -56,7 +56,7 @@ describe("the rules tuned against the live tests", () => {
 
       it("asked for the answer to one open question, the Tutor teaches only the idea that question tests", () => {
         expect(text).toContain(
-          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): a few words that keep the answer back, the rule and one worked example on other numbers in two short sentences, with no definitions (its terms are taught), then one ask on that idea.",
+          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): a few words that keep the answer back, the rule and one worked example on other numbers in two short sentences, with no definitions (its terms are taught), then one ask on that idea, in 50 words or fewer in all.",
         );
       });
     });
@@ -65,7 +65,7 @@ describe("the rules tuned against the live tests", () => {
   it("with the engine, a quiz-me ask that also asks for a Widget gets the rate Widget in practice mode", () => {
     expect(ENGINE_INSTRUCTIONS).toContain("When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers");
     expect(ENGINE_INSTRUCTIONS).toContain("it asks the Learner to pick the right reading, so write only a short acknowledgement and that one question, and stop there");
-    expect(ENGINE_INSTRUCTIONS).toContain("For a quiz-me ask, point to the next Quick try, or ask one story or lingo question as a choice in words;");
+    expect(ENGINE_INSTRUCTIONS).toContain("For a quiz-me ask, point to the next Quick try, or show choice_cards with one story or lingo question;");
     expect(ENGINE_INSTRUCTIONS).not.toContain("own answer box");
     expect(TUTOR_INSTRUCTIONS).not.toContain("show rate_move in practice mode");
   });
