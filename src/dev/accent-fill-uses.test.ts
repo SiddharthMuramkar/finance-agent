@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { CHART_SERIES, CHART_SURFACES } from "@/widgets/genui-theme";
 
 // Issue #457, spec 2026-11-05 §4 rule 4, §6.2 and Appendix A.3 (WCAG 2.2 SC 1.4.11), seam S7. An accent fill needs 3:1
 // against its surface only when colour alone carries its meaning; a decorative fill, or one always paired with a text label
@@ -9,7 +10,8 @@ import { describe, expect, it } from "vitest";
 // mint and sunflower fills under their older names. This inventory holds every place src/ paints one, with its verdict. A
 // new use changes its file's count, so this test fails until someone decides: decorative, paired, or colour-only. A
 // colour-only use should gain a label or an icon; if it cannot, its [fill, surface] goes into COLOUR_ONLY in
-// scripts/check-theme-contrast.mjs, which then checks it at 3:1 in both themes.
+// scripts/check-theme-contrast.mjs, which then checks it at 3:1 in both themes. The kit's chart series are colour-only
+// (review C1): their tokens, CHART_SERIES in src/widgets/genui-theme.tsx, are listed there on each chart surface.
 
 type Verdict = "decorative" | "paired" | "colour-only";
 type Use = { uses: number; verdict: Verdict; why: string; pairs?: [string, string][] };
@@ -33,8 +35,9 @@ const INVENTORY: Record<string, Use> = {
   },
   "src/widgets/genui-theme.tsx": {
     uses: 3,
-    verdict: "paired",
-    why: "OpenUI's success, alert and danger borders: only danger paints, on labelled destructive buttons, an input error (whose own border is coral-ink, 5.5:1) and a tool error (icon and text). The hex chart palette feeds the kit's charts, which all show a legend by default",
+    verdict: "colour-only",
+    why: "The three counted uses are OpenUI's success, alert and danger borders, which are paired: only danger paints, on labelled destructive buttons, an input error (whose own border is coral-ink, 5.5:1) and a tool error (icon and text). The kit's chart series are colour-only: a series mark is needed to read the chart and a legend does not exempt it, so every CHART_SERIES token is checked at 3:1 on each chart surface (review C1)",
+    pairs: CHART_SERIES.flatMap((series) => CHART_SURFACES.map((surface): [string, string] => [series, surface])),
   },
   "src/widgets/primitives/wave1/breakeven.tsx": { uses: 1, verdict: "paired", why: "Swatch before the sourced marker's label, which names it in words" },
   "src/widgets/primitives/wave1/quick-check.tsx": { uses: 1, verdict: "paired", why: "Border of the right option, with a check icon and the feedback line; a wrong pick gets a cross" },
@@ -113,12 +116,13 @@ describe("accent fills and the 3:1 rule", () => {
     for (const [file, use] of Object.entries(INVENTORY)) expect(use.why.length, file).toBeGreaterThan(20);
   });
 
-  it("has the contrast script check exactly the colour-only fills at 3:1 (none today)", () => {
+  it("has the contrast script check exactly the colour-only fills at 3:1 (the kit's chart series today)", () => {
     const pairs = Object.values(INVENTORY).flatMap((use) => (use.verdict === "colour-only" ? (use.pairs ?? []) : []));
     for (const [file, use] of Object.entries(INVENTORY)) if (use.verdict === "colour-only") expect(use.pairs?.length, file).toBeGreaterThan(0);
     const done = spawnSync(process.execPath, [join(process.cwd(), "scripts/check-theme-contrast.mjs")], { encoding: "utf8" });
-    const listed = /Accent fills that carry meaning by colour alone: (.*)/.exec(done.stdout)?.[1] ?? "";
-    if (pairs.length) expect(listed).toBe(pairs.map(([f, b]) => `--${f} on --${b}`).join(", "));
-    else expect(listed).toMatch(/^none /);
+    const listed = /Fills that carry meaning by colour alone: (.*)/.exec(done.stdout)?.[1] ?? "";
+    expect(pairs.length).toBeGreaterThan(0);
+    expect(listed).toBe(pairs.map(([f, b]) => `--${f} on --${b}`).join(", "));
+    expect(done.status).toBe(0);
   });
 });

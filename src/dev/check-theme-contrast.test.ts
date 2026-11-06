@@ -63,18 +63,29 @@ describe("the contrast guard", () => {
     }
   });
 
-  // Issue #457, WCAG 2.2 SC 1.4.11: an accent fill needs 3:1 against its surface only when colour alone carries its meaning.
-  // Every use today is paired with a text label or an icon, so the list is empty; Light sunflower on the page is 1.5:1
-  // (issue #457, ADR 0012) and Dark sunflower equals Dark --sun-ink, 9.8:1 on the page (Appendix A.2).
-  it("checks an accent fill at 3:1 only when it is listed as carrying meaning by colour alone", () => {
+  // Issue #457, WCAG 2.2 SC 1.4.11: a fill needs 3:1 against its surface only when colour alone carries its meaning. The
+  // accent fills are all paired with a text label or an icon, so none is listed; Light sunflower on the page is 1.5:1
+  // (issue #457, ADR 0012) and Dark sunflower equals Dark --sun-ink, 9.8:1 on the page (Appendix A.2). The kit's chart
+  // series are colour-only (review C1), so each series token is listed on each chart surface.
+  it("checks a fill at 3:1 only when it is listed as carrying meaning by colour alone: today the chart series", () => {
     const real = run(REAL);
     expect(real.status).toBe(0);
-    expect(real.output).toContain("Accent fills that carry meaning by colour alone: none");
+    expect(real.output).toContain("Fills that carry meaning by colour alone: --brand-main on --bg, --brand-main on --field, --mint-ink on --bg");
+    for (const theme of ["light", "dark"]) {
+      for (const series of ["brand-main", "mint-ink", "sun-ink", "violet", "coral-ink", "edge"]) {
+        for (const surface of ["bg", "field"]) expect(real.output).toMatch(new RegExp(`ok +${theme}: --${series} on --${surface} \\d+\\.\\d\\d:1 \\(min 3, colour alone carries the meaning\\)`));
+      }
+    }
     expect(real.output).not.toContain("--sun on --bg");
 
     const listed = run(REAL, [["sun", "bg"]]);
     expect(listed.status).toBe(1);
     expect(listed.output).toMatch(/FAIL light: --sun on --bg 1\.5\d:1 \(min 3, colour alone carries the meaning\)/);
     expect(listed.output).toMatch(/ok +dark: --sun on --bg 9\.\d\d:1 \(min 3, colour alone carries the meaning\)/);
+
+    // A chart series too faint for its card fails: Dark violet dimmed to 2.2:1 on --field.
+    const faint = run(change(REAL, "dark", "violet", "#5a4f8a"));
+    expect(faint.status).toBe(1);
+    expect(faint.output).toMatch(/FAIL dark: --violet on --field \d\.\d\d:1 \(min 3, colour alone carries the meaning\)/);
   });
 });
