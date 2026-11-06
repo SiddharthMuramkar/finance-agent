@@ -66,6 +66,8 @@ const GROUPS_FOR: Record<Archetype, string[]> = {
   Rank: ["### Guess, check, compare, order"],
   Chain: ["### Things to count", "### Data display"],
   Convert: ["### Things to count"],
+  Story: ["### Story"],
+  Lingo: ["### Story"],
 };
 
 /** Cuts a "## " or "### " section, up to the next heading of its level or above. */
