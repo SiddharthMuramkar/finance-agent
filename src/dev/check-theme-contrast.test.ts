@@ -10,10 +10,18 @@ import { describe, expect, it } from "vitest";
 const REAL = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 const SCRIPT = join(process.cwd(), "scripts/check-theme-contrast.mjs");
 
-function run(css: string) {
-  const file = join(mkdtempSync(join(tmpdir(), "contrast-")), "globals.css");
+/** Runs the script on `css`; `colourOnly` replaces its list of accent fills that carry meaning by colour alone. */
+function run(css: string, colourOnly?: [string, string][]) {
+  const dir = mkdtempSync(join(tmpdir(), "contrast-"));
+  const file = join(dir, "globals.css");
   writeFileSync(file, css);
-  const done = spawnSync(process.execPath, [SCRIPT, file], { encoding: "utf8" });
+  const args = [SCRIPT, file];
+  if (colourOnly) {
+    const list = join(dir, "colour-only.json");
+    writeFileSync(list, JSON.stringify(colourOnly));
+    args.push(list);
+  }
+  const done = spawnSync(process.execPath, args, { encoding: "utf8" });
   return { status: done.status, output: `${done.stdout}${done.stderr}` };
 }
 
@@ -53,5 +61,20 @@ describe("the contrast guard", () => {
         expect(output, `${theme}: ${pair}`).toContain(`${theme}: ${pair} `);
       }
     }
+  });
+
+  // Issue #457, WCAG 2.2 SC 1.4.11: an accent fill needs 3:1 against its surface only when colour alone carries its meaning.
+  // Every use today is paired with a text label or an icon, so the list is empty; Light sunflower on the page is 1.5:1
+  // (issue #457, ADR 0012) and Dark sunflower equals Dark --sun-ink, 9.8:1 on the page (Appendix A.2).
+  it("checks an accent fill at 3:1 only when it is listed as carrying meaning by colour alone", () => {
+    const real = run(REAL);
+    expect(real.status).toBe(0);
+    expect(real.output).toContain("Accent fills that carry meaning by colour alone: none");
+    expect(real.output).not.toContain("--sun on --bg");
+
+    const listed = run(REAL, [["sun", "bg"]]);
+    expect(listed.status).toBe(1);
+    expect(listed.output).toMatch(/FAIL light: --sun on --bg 1\.5\d:1 \(min 3, colour alone carries the meaning\)/);
+    expect(listed.output).toMatch(/ok +dark: --sun on --bg 9\.\d\d:1 \(min 3, colour alone carries the meaning\)/);
   });
 });
