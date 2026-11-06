@@ -173,9 +173,9 @@ describe("notebook rows", () => {
     expect(html).toContain("5 SEP 2026");
   });
 
-  it("flows rows down columns so short cards leave no gap, and keeps each card whole", () => {
-    expect(html).toMatch(/class="[^"]*columns-\[/);
-    expect(html).not.toContain("items-start\"><section");
+  it("lays rows out in the card-grid at minmax(420px, 1fr), not CSS columns", () => {
+    expect(html).toMatch(/class="[^"]*card-grid[^"]*minmax\(min\(420px,100%\),1fr\)/);
+    expect(html).not.toMatch(/columns-\[/);
     expect(html).toMatch(/<section class="[^"]*break-inside-avoid[^"]*" id="note-pv"/);
   });
 

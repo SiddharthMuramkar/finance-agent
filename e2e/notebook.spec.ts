@@ -48,15 +48,33 @@ test("a Session still opens read-only, with Resume and a way back", async ({ pag
   await expect(page).toHaveURL(/\/notebook#note-/);
 });
 
+const firstLine = async (page: import("@playwright/test").Page) => {
+  const tops = await page.locator("[data-notebook-row]").evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
+  return tops.filter((t) => t === tops[0]).length;
+};
+
 test("notebook is wide", async ({ page }, info) => {
   test.skip(info.project.name !== "mbp14", "measured at 1512×982");
+  // Default view (the seeded Topics only): card-grid minmax(420px, 1fr) is three across at 1512, four at 1920, with no stranded area.
+  await page.goto("/notebook");
+  expect(await firstLine(page), "rows in the first line at 1512").toBe(3);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.waitForTimeout(300);
+  expect(await firstLine(page), "rows in the first line at 1920").toBe(4);
   await page.goto("/notebook?all=1");
-  const tops = await page.locator("[data-notebook-row]").evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
-  expect(tops.filter((t) => t === tops[0]).length, "rows in the first line").toBeGreaterThanOrEqual(3);
+  expect(await firstLine(page), "rows in the first line, all Topics at 1920").toBe(4);
   const gutters = await page.evaluate(() => {
     const r = document.querySelector('[data-testid="reading-column"]')!.getBoundingClientRect();
     return { left: r.left, right: document.documentElement.clientWidth - r.right };
   });
   expect(gutters.left).toBeLessThanOrEqual(32);
   expect(gutters.right).toBeLessThanOrEqual(32);
+});
+
+test("older sessions are listed below the rows", async ({ page }, info) => {
+  test.skip(info.project.name !== "mbp14", "measured at 1512×982");
+  await seed(page, "notebook-older");
+  await page.goto("/notebook");
+  await expect(page.getByRole("heading", { level: 2, name: "Older sessions" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Older session ·/ }).first()).toBeVisible();
 });

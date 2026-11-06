@@ -41,7 +41,7 @@ function Row({ row }: { row: NotebookRow }) {
       id={`note-${row.topicId}`}
       data-notebook-row={row.topicId}
       data-passed={note.passed}
-      className={`mb-[var(--gap)] flex break-inside-avoid flex-col ${note.passed ? "scroll-mt-4" : "scroll-mt-4 print:[&:not(:has([data-line],[data-saved]))]:hidden"}`}
+      className={`flex break-inside-avoid flex-col ${note.passed ? "scroll-mt-4" : "scroll-mt-4 print:[&:not(:has([data-line],[data-saved]))]:hidden"}`}
     >
       <Eyebrow>{STAGE[row.stage]}</Eyebrow>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -76,7 +76,8 @@ function Row({ row }: { row: NotebookRow }) {
 /**
  * The Notebook: one row per Topic in course order, each with its status, the Session (Resume or Read), what the Learner
  * found and the Topic Note. By default only Topics with a Session or a note; "Show all Topics" lists every one, so a line
- * can be added to a Topic not reached yet. Rows flow down columns (CSS columns) so a short card leaves no gap beside a tall one. Older sessions follow the rows. The page prints: controls are hidden, and a
+ * can be added to a Topic not reached yet. Rows sit in the card-grid at minmax(420px, 1fr) (three across at 1512, four at 1920), so
+ * every column of the page is used. Older sessions follow the rows. The page prints: controls are hidden, and a
  * Topic with nothing on it is left out of the paper copy.
  */
 export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAll: boolean }) {
@@ -99,7 +100,7 @@ export function NotebookView({ notebook, showAll }: { notebook: Notebook; showAl
               Nothing here yet. Study a Topic, or save a reply while you study, and it shows here. Show all Topics to add a line of your own.
             </p>
           )}
-          <div className="columns-[420px] gap-[var(--gap)]">
+          <div className="card-grid [grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr))]">
             {notebook.rows.map((row) => (
               <Row key={row.topicId} row={row} />
             ))}
