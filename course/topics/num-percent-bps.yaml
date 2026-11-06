@@ -324,14 +324,16 @@ questions:
 
   # Round 7 (critic MP-R6-5): the move is a story fact, so the unit word tells the choices apart, not 8.50 minus 8.00.
   # Round 9 (critic C1): the fact is in points, so the right headline (in basis points) is no echo of the stem.
+  # Round 10 (historian H1): the Fed's rate stood at 3% on 3 February 1994, so an 8% "central bank" rate on that date was
+  # false. The stem is now plainly hypothetical: a lender's rate, with no date and no central bank.
   - id: pb-q-wrong-description
     skill: wording
     prompt: >
-      3 February 1994, New York. An editor checks headlines for readers whose loans follow the central bank's rate.
-      If the bank lifted its rate from 8% to 8.5%, a rise of half a percentage point, which headline is clear and true?
+      An editor checks headlines for readers whose loans follow a lender's rate.
+      If the lender lifted its rate from 8% to 8.5%, a rise of half a percentage point, which headline is clear and true?
     choices:
       - { id: a, text: "Rate up 50 percent", mistake: { tag: mixed_percent_points, fix: "Percent compares the move with the old 8%. The 50 is basis points, the gap itself." } }
-      - { id: b, text: "Rate up 50 percentage points", mistake: { tag: forgot_to_convert, fix: "That keeps the 50 but changes the unit. Basis points are hundredths of a point." } }
+      - { id: b, text: "Rate up 50 percentage points", mistake: { tag: wrong_unit, fix: "Half a point is 50 basis points, not 50 points. Basis points are hundredths of a point." } }
       - { id: c, text: "Rate up 50 basis points" }
       - { id: d, text: "Rate up half a percent", mistake: { tag: mixed_percent_points, fix: "Half a percent reads as a share of the old 8%. The gap itself is 50 basis points." } }
     answer: c
@@ -381,7 +383,7 @@ questions:
     choices:
       - { id: a, text: "30 basis points" }
       - { id: b, text: "30 percent of the old rate", mistake: { tag: mixed_percent_points, fix: "A percent compares the cut with the old rate. Traders count the gap in basis points." } }
-      - { id: c, text: "30 percentage points", mistake: { tag: forgot_to_convert, fix: "30 points would be a huge cut. The 30 counts hundredths of a point." } }
+      - { id: c, text: "30 percentage points", mistake: { tag: wrong_unit, fix: "0.3 of a point is 30 basis points, not 30 points. The 30 counts hundredths of a point." } }
     answer: a
     explanation: >
       0.3 points times 100 is 30 basis points.
@@ -506,7 +508,7 @@ checks:
         choices:
           - { id: a, text: "Up 50 basis points" }
           - { id: b, text: "Up 50 percent", mistake: { tag: mixed_percent_points, fix: "Percent compares the rise with the old 3%. Traders count the gap in basis points." } }
-          - { id: c, text: "Up 50 percentage points", mistake: { tag: forgot_to_convert, fix: "That keeps the 50 but says points. Basis points are hundredths of a point." } }
+          - { id: c, text: "Up 50 percentage points", mistake: { tag: wrong_unit, fix: "Half a point is 50 basis points, not 50 points. Basis points are hundredths of a point." } }
         halfDone: "First step, done for you: traders count a move in hundredths of a point."
       - id: pb-try-a3
         skill: pts-to-bp
@@ -520,7 +522,8 @@ checks:
       - id: pb-try-a4
         skill: bp-to-pts
         # Round 9 (#496): the choices differ by the idea (points, or percent of the old rate), not by 1.2, 12 or 0.12.
-        ask: "3 February 1994, New York. A trader tells a reporter that a loan rate is up 120 basis points. Her newspaper, read by borrowers, would say it is up:"
+        # Round 10 (historian H2): no source dates a 120 bp rise to 3 February 1994, so the try is plainly hypothetical: no date.
+        ask: "A trader tells a reporter that a loan rate is up 120 basis points. Her newspaper, read by borrowers, would say it is up:"
         kind: choice
         answer: a
         choices:

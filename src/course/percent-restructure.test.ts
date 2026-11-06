@@ -115,7 +115,6 @@ describe("Percent's content-only restructure", () => {
     it.each([
       ["pb-try-pts-2", /\bsavers\b/],
       ["pb-try-pts-3", /\bhome loans\b/],
-      ["pb-q-wrong-description", /\bloans\b/],
     ])("%s tells the move as a story fact (a person, a date, the stakes), with choices told apart by the word and a short fix on each slip", (id, stakes) => {
       const item = items.find((i) => i.id === id)!;
       expect(item.stem).toContain("3 February 1994");
@@ -243,6 +242,74 @@ describe("Percent's content-only restructure", () => {
           expect({ id: i.id, choice: w.text, tag: !!w.mistake?.tag }).toEqual({ id: i.id, choice: w.text, tag: true });
           expect({ id: i.id, choice: w.text, short: w.mistake!.fix.split(/\s+/).length <= 20 }).toEqual({ id: i.id, choice: w.text, short: true });
         }
+    });
+  });
+
+  // Round 10 (historian H1, H2): pb-q-wrong-description dated "3 February 1994, New York" a central bank's rate of 8% to
+  // 8.5%, while the Case gives the Fed funds rate at 3% that day; pb-try-a4 dated a loan rate "up 120 basis points" to that
+  // day with no source. A dated item uses only the Case's figures; otherwise it carries no date and no central bank or Fed,
+  // so it reads as plainly hypothetical.
+  describe("dated items use only sourced figures (H1, H2)", () => {
+    const stems = {
+      "pb-q-wrong-description": percent.questions.find((q) => q.id === "pb-q-wrong-description")!.prompt,
+      "pb-try-a4": (() => {
+        const q = percent.checks[0].quickTries.find((t) => "id" in t && t.id === "pb-try-a4") as FixedQuickTry;
+        return `${q.ask} ${q.halfDone ?? ""}`;
+      })(),
+    };
+    /** The Case's own figures for 3 and 4 February 1994: the funds rate at 3%, then 3.25%, a move of 25 basis points. */
+    const CASE_FIGURES = ["3", "3.25", "25", "0.25"];
+    const DATE = /\b(?:1[89]|20)\d\d\b|\b\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December)\b/;
+
+    it.each(Object.entries(stems))("%s carries no date, or only the Case's own figures", (_id, stem) => {
+      if (DATE.test(stem)) {
+        const figures = stem.replace(new RegExp(DATE.source, "g"), "").match(/\d+(?:\.\d+)?/g) ?? [];
+        for (const f of figures) expect(CASE_FIGURES).toContain(f);
+      } else {
+        expect(stem).not.toMatch(/\bcentral bank\b|\bFed\b|\bFederal Reserve\b|\bNew York\b/);
+      }
+    });
+
+    it("keeps pb-q-wrong-description's story: an editor, readers with loans, the move said in points, the answer in basis points", () => {
+      const stem = stems["pb-q-wrong-description"];
+      expect(stem).toMatch(/\beditor\b/);
+      expect(stem).toMatch(/\bloans\b/);
+      expect(stem).toContain("a rise of half a percentage point");
+      const q = percent.questions.find((x) => x.id === "pb-q-wrong-description")!;
+      expect(q.answer).toBe("c");
+      expect(q.choices.find((c) => c.id === "c")!.text).toBe("Rate up 50 basis points");
+    });
+  });
+
+  // Round 10 (critic MP-R9-lows): three mix-up fixes said "keeps the 50" when the stem has no 50, and tagged a number
+  // already converted to basis points but called points as forgot_to_convert. Each is now a wrong_unit, said plainly.
+  describe("mix-up fixes name the real slip (MP-R9-lows)", () => {
+    const fixed = [
+      { id: "pb-try-a2", choice: "c", stem: (percent.checks[0].quickTries.find((t) => "id" in t && t.id === "pb-try-a2") as FixedQuickTry).ask, choices: (percent.checks[0].quickTries.find((t) => "id" in t && t.id === "pb-try-a2") as FixedQuickTry).choices! },
+      { id: "pb-q-wrong-description", choice: "b", stem: percent.questions.find((q) => q.id === "pb-q-wrong-description")!.prompt, choices: percent.questions.find((q) => q.id === "pb-q-wrong-description")!.choices },
+      { id: "pb-q-mortgage-rate", choice: "c", stem: percent.questions.find((q) => q.id === "pb-q-mortgage-rate")!.prompt, choices: percent.questions.find((q) => q.id === "pb-q-mortgage-rate")!.choices },
+    ];
+
+    it.each(fixed.map((f) => [f.id, f] as const))("%s: a points label on a basis-point number is a wrong_unit, and its fix names only numbers the Learner has seen", (_id, f) => {
+      const c = f.choices.find((x) => x.id === f.choice)!;
+      expect(c.mistake?.tag).toBe("wrong_unit");
+      const kept = c.mistake!.fix.match(/keeps the (\d+(?:\.\d+)?)/);
+      if (kept) expect(f.stem).toContain(kept[1]);
+      expect(c.mistake!.fix.split(/\s+/).length).toBeLessThanOrEqual(20);
+    });
+
+    it("no fix in the Topic says it keeps a number its stem does not show", () => {
+      const all = [
+        ...percent.checks.flatMap((c) => c.quickTries.filter((q): q is FixedQuickTry => "id" in q).map((q) => ({ id: q.id, stem: `${q.ask} ${q.halfDone ?? ""}`, choices: q.choices ?? [] }))),
+        ...percent.questions.map((q) => ({ id: q.id, stem: q.prompt, choices: q.choices })),
+      ];
+      const bad = all.flatMap((i) =>
+        i.choices.flatMap((c) => {
+          const kept = c.mistake?.fix.match(/keeps the (\d+(?:\.\d+)?)/);
+          return kept && !i.stem.includes(kept[1]) ? [`${i.id} ${c.id}: "${c.mistake!.fix}"`] : [];
+        }),
+      );
+      expect(bad).toEqual([]);
     });
   });
 
