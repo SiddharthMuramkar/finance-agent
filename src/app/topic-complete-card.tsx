@@ -26,7 +26,7 @@ export function TopicCompleteCard({ card }: { card: TopicCompleteData }) {
       <p className="mt-2 text-xs leading-4 text-[var(--you)]">Saved to your Notebook ✓</p>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {card.next && <WhatComesNextButton label={card.next} />}
-        <a href="/course" className={secondaryButtonClass}>
+        <a href="/course" data-affordance="button" className={secondaryButtonClass}>
           Course Map
         </a>
       </div>

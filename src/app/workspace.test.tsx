@@ -347,6 +347,11 @@ describe("the Topic complete card", () => {
     expect(card).toMatch(/<p[^>]*text-\[var\(--mint-ink\)\][^>]*>Topic complete ✓<\/p>/);
   });
 
+  // F1's affordance audit, once the matrix's topic-complete cell showed the card (#479): a link drawn as a button says so.
+  it("draws Course Map as a button the affordance audit knows", () => {
+    expect(cardOf(workspace({ initial: [...closing, complete(null)] }))).toMatch(/<a[^>]*href="\/course"[^>]*data-affordance="button"[^>]*>Course Map<\/a>|<a[^>]*data-affordance="button"[^>]*href="\/course"[^>]*>Course Map<\/a>/);
+  });
+
   it("with every Topic passed, offers only the Course Map", () => {
     const card = cardOf(workspace({ initial: [...closing, complete(null)] }));
     expect(card).not.toContain("data-what-comes-next");
