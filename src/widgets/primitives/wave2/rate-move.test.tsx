@@ -39,6 +39,32 @@ describe("RateMove, show mode", () => {
     expect(to).toBeGreaterThan(from);
   });
 
+  // #471: the Widget paints accents by meaning (spec accent meanings): sunflower for the Old rate (history), violet ink
+  // for the readout terms (lingo). A rate move has no money in it, so its direction is neither a gain (mint also means
+  // "you") nor a loss (coral): the arrow keeps the direction-neutral brand colour.
+  it("paints the Old rate in sun-ink and the readout labels in violet-ink, and the arrow in brand", () => {
+    show(<RateMoveView oldRate={4} newRate={5} />);
+    expect(byId(page!, "rate-move-arrow")!.getAttribute("stroke")).toBe("var(--brand)");
+    expect(byId(page!, "rate-move-head")!.getAttribute("fill")).toBe("var(--brand)");
+    expect(byId(page!, "rate-move-old")!.getAttribute("fill")).toBe("var(--sun-ink)");
+    expect(byId(page!, "rate-move-old-tick")!.getAttribute("stroke")).toBe("var(--sun-ink)");
+    const labels = allById(page!, "rate-move-readout").map((r) => r.firstElementChild!.getAttribute("class") ?? "");
+    expect(labels).toHaveLength(3);
+    for (const c of labels) {
+      expect(c).toContain("text-[var(--violet-ink)]");
+      expect(c).not.toContain("--muted");
+    }
+  });
+
+  it("never paints a rate's direction as a gain or a loss: a rise and a fall keep the brand arrow", () => {
+    for (const [oldRate, newRate] of [[4, 5], [5, 4]] as const) {
+      show(<RateMoveView oldRate={oldRate} newRate={newRate} />);
+      const paints = [byId(page!, "rate-move-arrow")!.getAttribute("stroke"), byId(page!, "rate-move-head")!.getAttribute("fill")];
+      expect(paints).toEqual(["var(--brand)", "var(--brand)"]);
+      expect(page!.host.innerHTML).not.toMatch(/--(mint|coral)/);
+    }
+  });
+
   it("shows the three worked lines at once: 1 point, 100 bp and 25%", () => {
     show(<RateMoveView oldRate={4} newRate={5} />);
     expect(allById(page!, "rate-move-readout").map((r) => r.textContent)).toEqual([

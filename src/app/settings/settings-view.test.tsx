@@ -22,6 +22,11 @@ describe("the Settings page", () => {
     expect(html).toMatch(/<section[^>]*class="[^"]*col-span-full[^"]*"[^>]*id="start-over"|<section[^>]*id="start-over"[^>]*class="[^"]*col-span-full/);
   });
 
+  // #470: a 420 px column minimum (as Notebook) so card paragraphs run 60-75 characters at 1512 and 1920, not 54.
+  it("lays the cards out in the card-grid at minmax(420px, 1fr)", () => {
+    expect(view()).toMatch(/<div class="[^"]*card-grid[^"]*\[grid-template-columns:repeat\(auto-fill,minmax\(min\(420px,100%\),1fr\)\)\]/);
+  });
+
   it("Your Topics lists only the Topics given (those with progress), in that order, each with a Start over Button", () => {
     const html = view({
       topics: [

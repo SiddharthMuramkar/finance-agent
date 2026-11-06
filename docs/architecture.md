@@ -1041,6 +1041,15 @@ Tutor's follow-up decides whether it is understood. The play sliders are part st
 so they are not saved with the Session and a Guided Task cannot read them. Code reading a shown `rate_move` (the
 readouts sent to the Tutor) is T14's; the state names stay exported as `RATE_MOVE_STATE`.
 
+**Accents by meaning (issue #471).** The part paints accent families only where they mean something: the Old tick
+and its "Old 4%" label are `--sun-ink` (the earlier rate, history), and the three readout labels ("Points", "Basis
+points", "Percent of the old rate") are `--violet-ink` (lingo), the text-safe violet. The arrow and its head keep the
+direction-neutral `--brand`: a rate move has no money in it, so a rise is not a gain and a fall is not a loss (mint
+also means "you", coral a loss), and painting the Fed's 1994 hike as a mint gain would misteach. Scenario: the
+concept-widget cell of the F1 matrix shows `rate_move` 4% to 5% and paints sun and violet; with the mint already on the
+page (a `--mint-tag` Tag) the cell shows three families, so "/study with a Widget shows ≥ 3 accents" holds
+without a staged seed. Trade-off: the readout labels lose their muted, quiet look.
+
 ### Widget state (`src/learner/widget-state.ts`, `/api/widget-state`, `src/app/widget-states.tsx`, `WidgetWithSave` in `widget-panel.tsx`, `SavedTicksContext` in `src/widgets/saved-ticks.tsx`, table `widget_state`, spec #119, ticket #147)
 
 **What it does.** A Learner's work on a Widget is saved with the Session: the numbers on its sliders and the
@@ -4718,6 +4727,8 @@ costs nothing the Learner sees. A Learner's rule with a "$" in a rupee Topic is 
 - Chat: 15 px on 24 px lines, for the Tutor reply, the Learner bubble and the composer (the Tutor label stays 12 px).
 - UI text: 13 px (nav, tags, helper lines) or 14 px (buttons, card body); page `h1` is `text-lg` (18/26), the eyebrow 11 px.
 - Header: `h-[var(--header-h)]` (52 px) with a 1 px hairline underneath and no bottom margin; the page content below starts at `pt-3`.
+- Home's own top bar (`_landing/landing.tsx`, not `AppHeader`) uses the same fixed `h-[var(--header-h)]` on its `<header>` (hairline inside, border-box, as AppHeader), with an `h-full` inner box and no `py-3` (issue #469), so Home's header is 52 px like every other page instead of 57 px from padding around its Sign out button; Home keeps its `max-w-6xl` box.
+- Settings' card-grid sets its own column minimum, `minmax(min(420px,100%),1fr)` as Notebook does (issue #470), so at 1512 and 1920 px its cards are 3 to 4 across and their `measure` paragraphs run 60–75 characters, not 54; the shared `card-grid` (340 px, used by Course Map) is unchanged.
 - Cards: `p-3`. Widget chips `min-h-8` (32 px), pager items `min-h-9` (36 px); nothing clickable is under 28 px high.
 
 ### Story parts (wave 3) (`src/widgets/primitives/wave3/`, `WAVE3_PARTS`, group "Story" in `WIDGET_COMPONENT_GROUPS`, `e2e/story-parts.spec.ts`, spec 2026-11-05, ticket E2a)
