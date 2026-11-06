@@ -8,7 +8,10 @@ import { stepContext } from "./context";
  * Tutor at every step, so they must hold only what was known on the as-of date: no word of the fraud before the reveal.
  */
 
-const OUTCOME_WORDS = /forg|phony|fraud|fak|cook|fictitious|falsif|bogus/i;
+const OUTCOME_WORDS = /forg|phony|fraud|fak|cook|fictitious|falsif|bogus|confession|restat/i;
+// fs-earnings-quality teaches fraud by name, so before its reveal only the Case's own outcome is checked (issue #500):
+// no confession, no restatement, no word of Raju's letter of 7 January 2009.
+const CASE_OUTCOME_WORDS = /confession|confess|restat|7 January 2009|resign/i;
 const BEFORE_REVEAL = TEACHING_STEPS.slice(0, TEACHING_STEPS.indexOf("reveal"));
 
 function placeAt(topicId: string, step: Place["step"], checkIndex: number): Place {
@@ -34,6 +37,16 @@ describe("the Satyam Topics' context before the reveal", () => {
           expect(text.split("\n").filter((l) => OUTCOME_WORDS.test(l))).toEqual([]);
         });
       }
+    }
+  }
+
+  for (const step of BEFORE_REVEAL) {
+    for (const checkIndex of [0, 1]) {
+      it(`fs-earnings-quality at ${step} (Check ${checkIndex + 1}) carries no word of the confession`, () => {
+        const text = stepContext(placeAt("fs-earnings-quality", step, checkIndex));
+        expect(text).not.toContain("Reveal (what happened)");
+        expect(text.split("\n").filter((l) => CASE_OUTCOME_WORDS.test(l))).toEqual([]);
+      });
     }
   }
 

@@ -33,4 +33,15 @@ describe("the Satyam Topics before the reveal", () => {
       expect(before.filter((s) => HINTS.test(JSON.stringify(s))).map((s) => s.id)).toEqual([]);
     });
   }
+
+  // Issue #500: fs-earnings-quality teaches fraud by name, so its quiz questions are checked only for the Case's own
+  // outcome. Source lines count: a question's source must not point at the confession letter before the reveal.
+  it("fs-earnings-quality: quiz questions and their sources carry no word of the confession", () => {
+    const topic = map.topics.find((t) => t.id === "fs-earnings-quality");
+    const quizIds = new Set((topic?.checks ?? []).flatMap((c) => (c.kind === "quiz" ? c.questions : [])));
+    const questions = (topic?.questions ?? []).filter((q) => quizIds.has(q.id));
+    expect(questions.length).toBeGreaterThan(0);
+    const words = (q: (typeof questions)[number]) => JSON.stringify({ ...q, id: undefined });
+    expect(questions.filter((q) => /confession|confess|restat|7 January 2009|resign/i.test(words(q))).map((q) => q.id)).toEqual([]);
+  });
 });

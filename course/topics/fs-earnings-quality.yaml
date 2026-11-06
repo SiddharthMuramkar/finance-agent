@@ -5,7 +5,7 @@ title: Earnings quality and accounting fraud
 
 cases:
   - id: satyam-2009
-    title: Satyam, the day before the confession
+    title: Satyam in early January 2009
     asOf: 2009-01-06
     story: >
       Satyam Computer Services, based in Hyderabad, was India's fourth-largest software services
@@ -80,7 +80,7 @@ questions:
     explanation: >
       An unusually rich margin is itself something to test. Profit rests on accounting judgement, so the next step is to see whether it turns into operating cash flow and whether outsiders can confirm the balances behind it.
     source: >
-      Reported figures from Satyam's published results for the quarter to 30 September 2008, as restated in B. Ramalinga Raju's letter of 7 January 2009 (SEC Exhibit 99.2): https://www.sec.gov/Archives/edgar/data/1106056/000114554909000025/u00107exv99w2.htm
+      Satyam's published standalone results for the quarter to 30 September 2008, released on 17 October 2008 and furnished to the SEC on Form 6-K (Exhibit 99.4): https://www.sec.gov/Archives/edgar/data/1106056/000114554908001838/u93365exv99w4.htm
   - id: eq-q-cash-test
     prompt: >
       Which single check is hardest for a company to fake and most useful for testing reported profit?
@@ -88,7 +88,7 @@ questions:
       - { id: a, text: "Compare profit with operating cash flow and confirm cash balances with the bank" }
       - { id: b, text: "Read the chairman's letter in the annual report", mistake: { tag: trusts_own_words, fix: "The chairman's letter is the company's own words, the easiest part to dress up." } }
       - { id: c, text: "Compare the company's margin with its own earlier margins only", mistake: { tag: self_comparison, fix: "Its own past margins come from the same books, so a fake can repeat there too." } }
-      - { id: d, text: "Count the number of pages of notes", mistake: { tag: length_as_quality, fix: "Page count says nothing about whether profit turns into cash." } }
+      - { id: d, text: "Check that reported profit grew every year", mistake: { tag: growth_as_proof, fix: "Steady profit growth comes from the same books; only cash and outside confirmation test it." } }
     answer: a
     explanation: >
       Cash and bank balances can be confirmed with outside parties, and profit that does not turn into operating cash flow over time needs an explanation. The other checks rely on the company's own words.

@@ -291,7 +291,6 @@ checks:
       - fl-q-accrual
       - fl-q-receivables
       - fl-q-cooked
-      - bank:eab:MBA-ACC-FA-0024
     perAttempt: 3
     passRule:
       correct: 2
