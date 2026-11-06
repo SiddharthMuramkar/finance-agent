@@ -58,15 +58,15 @@ youllLearn:
 questions:
   - id: by-q-current-yield
     prompt: >
-      A 10-year bond with an 8% annual coupon on $1,000 face value trades at $900. What is its current yield, to one decimal place?
+      Meera buys a bond with an 8% coupon, but she pays less than its face value for it. Her broker says the yearly coupon looks bigger against what she paid, and he has a name for that. What is it called, and what does it measure?
     choices:
-      - { id: a, text: "8.9%" }
-      - { id: b, text: "8.0%" }
-      - { id: c, text: "9.6%" }
-      - { id: d, text: "11.1%" }
+      - { id: a, text: "Current yield: the yearly coupon against what she paid" }
+      - { id: b, text: "Coupon rate: the yearly coupon against face value", mistake: { tag: coupon_is_current_yield, fix: "Coupon rate divides by face value. Current yield divides by the price you actually pay." } }
+      - { id: c, text: "Yield to maturity: the coupon plus the gain at maturity", mistake: { tag: mixed_up_ytm, fix: "Yield to maturity includes the gain at maturity. Current yield counts only the coupon." } }
+      - { id: d, text: "Current yield, but smaller than 8% because she paid less", mistake: { tag: price_down_yield_down, fix: "A lower price makes each coupon a bigger share of what you paid, so the yield is higher." } }
     answer: a
     explanation: >
-      Current yield is the annual coupon divided by the price: $80 / $900 = 8.9%. It ignores the $100 gain the holder gets as the price returns to par at maturity, which is why the yield to maturity (about 9.6% with half-yearly coupons) is higher.
+      Current yield is the yearly coupon over the price you pay. Paying less than face value makes it come out above the 8% coupon rate. It ignores the gain as the price returns to par at maturity, which is why the yield to maturity is higher still.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation (yield and coupon definitions): https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
@@ -100,29 +100,29 @@ questions:
 
   - id: by-q-sell-early
     prompt: >
-      You buy a 10-year bond at par with a 6% coupon, paid yearly. A year later you must sell it because you need cash, and the market yield on 9-year bonds is now 7%. The bond sells for about $935, and you have received the $60 coupon. Roughly what was your return over the year?
+      Asha buys a 10-year bond paying 6% a year, planning to hold it to the end. One year in, she needs the cash and has to sell. Interest rates have gone up since she bought. Did her 6% a year come true?
     choices:
-      - { id: a, text: "About -0.5%: the yield to maturity of 6% was not earned" }
-      - { id: b, text: "6%, the yield to maturity you paid for" }
-      - { id: c, text: "About 7%, the new market yield" }
-      - { id: d, text: "About -6.5%" }
+      - { id: a, text: "No: rates rose, so she sold at a loss" }
+      - { id: b, text: "Yes: the 6% was locked in on day one", mistake: { tag: ytm_without_holding, fix: "The 6% is earned only by holding to the end. Selling early exposes her to the price." } }
+      - { id: c, text: "Better: she now earns the higher market rate", mistake: { tag: new_yield_as_return, fix: "Higher rates help new buyers. Her bond keeps its old coupon, so its price falls." } }
+      - { id: d, text: "Yes: a bond's price is fixed until it matures", mistake: { tag: price_fixed_before_maturity, fix: "Bond prices move every day. When rates rise, older bonds with lower coupons sell for less." } }
     answer: a
     explanation: >
-      You end the year with $935 of bond plus $60 of coupon, $995 against the $1,000 you paid: about -0.5%. A yield to maturity of 6% is earned only if you hold to maturity. Selling early after yields rose crystallises the price loss.
+      A yield to maturity is a promise only to someone who holds the bond to the end. Once rates rose, buyers would pay less for Asha's 6% bond, because new bonds paid more. Selling early locked in that lower price, which cancelled part of the coupon she had collected.
     source: >
       Worked with the present value method of OpenStax, Principles of Finance (CC BY 4.0), 10.2 Bond Valuation: https://openstax.org/books/principles-finance-2e/pages/10-2-bond-valuation
 
   - id: by-q-leverage
     prompt: >
-      A pool has $100 of depositors' money and borrows another $100 through repurchase agreements, then buys $200 of bonds. Bond prices fall 5%. By what percentage does the depositors' $100 fall, before any interest?
+      A county pool borrows heavily to buy far more bonds than its depositors' money alone could. Traders call this a leveraged pool. Bond prices dip a little. Who feels it, and how hard?
     choices:
-      - { id: a, text: "10%, because the loss on $200 of bonds is $10 and the borrowing must still be repaid in full" }
-      - { id: b, text: "5%" }
-      - { id: c, text: "2.5%" }
-      - { id: d, text: "0%, because the bonds are held to maturity" }
+      - { id: a, text: "The depositors, harder than the bonds fell" }
+      - { id: b, text: "The depositors, by the same share as the bonds", mistake: { tag: ignored_leverage, fix: "The depositors' money carries the whole loss, so the percentage is magnified, not matched." } }
+      - { id: c, text: "Both sides, so the depositors lose less than the bonds", mistake: { tag: lenders_share_loss, fix: "Lenders must be repaid in full. The whole loss lands on the depositors' money." } }
+      - { id: d, text: "Nobody: the bonds are held to maturity", mistake: { tag: held_to_maturity_safe, fix: "Lenders can demand collateral or repayment sooner, so holding to maturity may not be possible." } }
     answer: a
     explanation: >
-      $200 of bonds fall by 5%, a loss of $10. The $100 of borrowing is still owed, so the whole loss falls on the depositors' $100, which is now worth $90. Leverage of two to one doubles the percentage loss, just as it doubles the extra yield. Holding to maturity does not erase a loss when the lenders can demand collateral or repayment sooner.
+      A 5% fall on $200 of bonds is a loss of $10. The $100 of borrowing is still owed, so the whole loss falls on the depositors' $100, which is now worth $90. Leverage of two to one doubles the percentage loss, just as it doubles the extra yield. Holding to maturity does not erase a loss when the lenders can demand collateral or repayment sooner.
     source: >
       Arithmetic of leverage; the effect described in SEC, Report of Investigation in the Matter of County of Orange, California, Exchange Act Release No. 36761 (24 January 1996): https://sec.gov/files/litigation/admin/3436761.txt
 
