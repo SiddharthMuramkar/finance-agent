@@ -67,11 +67,15 @@ describe("the Companion Widget picker", () => {
     expect(beats).toEqual([{ date: "2010-05-01", label: "Reinhart and Rogoff's 90% debt threshold", emoji: "spiral-calendar" }]);
   });
 
-  it("skips a scene that shows an open quiz's blocked numbers (3, 3.5, 50) and goes on to the next rule", () => {
+  it("skips a scene whose beat text shows an open quiz's blocked numbers (3.5, 50) and goes on to the next rule", () => {
+    // The blocked numbers are none of the scene date's parts (1994, 2, 3), so only the injected beat can skip it.
+    const blocked = [3.5, 50];
+    const before = pickCompanion(input(fixture, { replyText: "The yield is what the bond pays.", blocked }));
+    expect(before).toMatchObject({ kind: "scene", recipe: "story_scene", key: "opening-story" });
     const withNumbers: Topic = structuredClone(fixture);
     const opening = withNumbers.scenes.find((s) => s.id === "opening-story")!;
     (opening.inputs.beats as { who: string; says: string }[])[1] = { who: "narrator", says: "Tomorrow the rate may go to 3.5%." };
-    const picked = pickCompanion(input(withNumbers, { replyText: "The yield is what the bond pays.", blocked: [3, 3.5, 50] }));
+    const picked = pickCompanion(input(withNumbers, { replyText: "The yield is what the bond pays.", blocked }));
     expect(picked?.kind).toBe("lingo");
     expect(termOf(picked)).toBe("yield");
   });
