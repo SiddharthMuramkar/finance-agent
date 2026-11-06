@@ -20,8 +20,8 @@ cases:
       price do not appear on the balance sheet, though they must be disclosed. Meanwhile the
       10-year Treasury par yield had risen from 1.52% on 31 December 2021 to 3.88% on 30
       December 2022. And 94% of the bank's deposits were uninsured, against 41% at comparable
-      banks. Using duration, what had happened to the market value of that portfolio over the
-      year, and who gets hurt if depositors ask for their money back?
+      banks. Using duration, why had the market value of that portfolio fallen over the year,
+      and who gets hurt if depositors ask for their money back?
     reveal: >
       In early 2023 deposit outflows quickened as clients used up cash. On 8 March 2023 SVBFG
       announced a restructuring of its balance sheet: it had sold $21 billion of
@@ -144,13 +144,18 @@ checks:
   - id: bd-svb-explain
     kind: conversation
     prompt: >
-      SVB's securities were safe from default. Using duration, explain why rising rates hurt
+      SVB's held-to-maturity securities were safe from default. With their duration of 6.2 years and
+      a 2.36-point rise in the 10-year yield over 2022, duration puts the fall in their market value
+      at about 15%.
+      Using duration, explain why rising rates hurt
       the bank, and whether classifying the securities as held-to-maturity would protect it if
       depositors wanted their money back.
     passCriteria: >
       The Learner says a duration of about six years means a rise of a few points in yields cuts
-      the securities' market value by a double-digit percentage, whatever the credit quality.
+      the securities' market value sharply (about 15%, as the prompt gives), whatever the credit
+      quality.
       They explain that held-to-maturity accounting hides the fall on the balance sheet but not
       in reality, and that deposits which can leave at once force the bank to sell at market
       prices, turning the hidden loss into a real one. Mentioning that most deposits were
-      uninsured and short-term strengthens the answer.
+      uninsured and short-term strengthens the answer. The prompt gives the fall, so no figure
+      needs to be worked out.

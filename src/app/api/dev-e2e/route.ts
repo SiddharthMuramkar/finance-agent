@@ -21,8 +21,10 @@ import { openQuiz, submitQuiz } from "@/learner/quiz";
 import { reviewState } from "@/learner/review";
 import { saveToNotes } from "@/learner/saved";
 import { scriptedClient, type ScriptedReply } from "@/test/scripted-client";
-import { enterStepItems } from "@/tutor/practice";
-import { sessionForTurn } from "@/tutor/session-log";
+import { answerQuickTry, enterStepItems } from "@/tutor/practice";
+import { QUICK_TRY, type QuickTryData } from "@/tutor/session-item-kinds";
+import { liveSession, saveShownSession, sessionForTurn } from "@/tutor/session-log";
+import { storeTopicComplete } from "@/tutor/topic-complete";
 import { runTutorTurn } from "@/tutor/turn";
 
 export const runtime = "nodejs";
@@ -130,10 +132,49 @@ const STATES: Record<string, Build> = {
     await db.update(reviewCards).set({ due: new Date(now.getTime() - 86_400_000) }).where(eq(reviewCards.learnerId, learnerId));
     if (!(await reviewState(db, map, now, learnerId)).question) throw new Error(`${TOPIC}'s quiz enrolled no question for Review.`);
   },
-  /** The Topic passed; the next Topic is recommended. */
+  /**
+   * The Topic passed; the next Topic is recommended. As a real pass does (src/tutor/check-results.ts), the passed Topic's
+   * Session gets its Topic complete card and stays on screen until the Learner chooses where to go (#479). It holds the
+   * Reveal reply first, so the card ends a real conversation.
+   */
   "topic-complete": async (db, map, learnerId, now) => {
     await story(db, map, learnerId, now);
+    await walk(db, map, learnerId, now, TOPIC, (step) => step === "reveal");
+    await turn(db, map, learnerId, "reveal-reply", "What did the Fed do?");
     await walk(db, map, learnerId, now, TOPIC, () => false);
+    const session = await liveSession(db, learnerId, TOPIC);
+    if (!session) throw new Error(`${TOPIC} has no live Session.`);
+    if (!(await storeTopicComplete(db, map, learnerId, session.id, now))) throw new Error(`${TOPIC} stored no Topic complete card.`);
+    await saveShownSession(db, learnerId, session.id);
+  },
+  /** F1 matrix (#481, §8.3 "reply with Story scene"): a Story reply that code gives the step's written-ahead scene. */
+  "story-scene": async (db, map, learnerId, now) => {
+    await story(db, map, learnerId, now);
+    await turn(db, map, learnerId, "story-reply", "What happened?");
+  },
+  /**
+   * F1 matrix (#481, §8.3 "Lingo card"): at Concept, a reply that takes the step's scene, then one about percent change,
+   * which code gives the Lingo card for "percent change" (as e2e/widget-every-reply.spec.ts plays them).
+   */
+  lingo: async (db, map, learnerId, now) => {
+    await STATES["concept-widget"](db, map, learnerId, now);
+    await turn(db, map, learnerId, "concept-two-ways", "Why do they say it differently?");
+    await turn(db, map, learnerId, "concept-percent-change", "What is a percent change?");
+  },
+  /**
+   * F1 matrix (#481, §8.3 "a wrong-choice mix-up fix"): Your turn's first Quick try with its Known mistake tapped. As in a
+   * real Session, the try follows a Tutor reply (the Concept turn of concept-widget): a Session of items only would make
+   * the page start its opener, which would stream a reply below the answered try.
+   */
+  "mix-up": async (db, map, learnerId, now) => {
+    await STATES["concept-widget"](db, map, learnerId, now);
+    await walk(db, map, learnerId, now, TOPIC, (step) => step === "your_turn");
+    const session = await sessionForTurn(db, now, learnerId, TOPIC);
+    const tries = (await enterStepItems(db, map, learnerId, session.id, now)).filter((i) => i.kind === QUICK_TRY).map((i) => i.data as QuickTryData);
+    const wrong = tries[0]?.choices?.find((c) => c.text === "50 percentage points");
+    if (!wrong) throw new Error(`${TOPIC}'s first Quick try has no "50 percentage points" choice.`);
+    const answered = await answerQuickTry(db, map, learnerId, tries[0].key, wrong.id, now);
+    if (!answered.ok) throw new Error(`The test bed could not answer ${TOPIC}'s Quick try: ${answered.error}`);
   },
   /** Three Topics passed and two in progress, for the Course Map, Notebook and Settings. */
   "many-topics": async (db, map, learnerId, now) => {

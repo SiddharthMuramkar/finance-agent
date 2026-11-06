@@ -245,16 +245,18 @@ checks:
     kind: conversation
     prompt: >
       On 12 June 2000, which writer looked better supported to you, and which one claim would you
-      check first?
+      check first? At $70 billion, Yahoo's first-quarter earnings (released 5 April), annualised, give
+      about 225 times reported earnings and about 277 times pro forma earnings, against the quoted 340.
     passCriteria: >
       The Learner picks at least one checkable fact from each writer (for example the Nasdaq's 1999
       rise against its published year-end figures, Yahoo's earnings against its April release, or
-      the S&P 500's multiple) and says where it would be checked. They see from the story's numbers that
-      Yahoo's 'times earnings' figure depends on the earnings used (reported or pro forma
-      first-quarter earnings) and that neither matches the quoted 340, so the gap needs a stated
+      the S&P 500's multiple) and says where it would be checked. They see that Yahoo's 'times earnings'
+      figure depends on the first-quarter earnings used (about 225 times reported or about 277 times
+      pro forma, as the prompt gives) and that neither matches the quoted 340, so the gap needs a stated
       price date and definition before it can be called an error. They name a forecast (such as the share of companies that disappear
       or the size of a fall) and judge it by its reasoning, size, time and stated limits, not as a
       fact. They name a framing device (a starting point for a percentage, the sum of a sector shown
       without its parts, benchmark pressure or the writer's own incentives). They prefer an argument
       rather than a person, say what remains unknown, and name evidence that would change their mind.
-      They make no forecast of their own and no buy, sell or hold call.
+      They make no forecast of their own and no buy, sell or hold call. The prompt gives both
+      multiples, so no figure needs to be worked out.

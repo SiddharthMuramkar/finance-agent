@@ -1,5 +1,5 @@
 /**
- * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 2 themes x 9 pages, plus one
+ * The cell list of F1's preview matrix (spec 2026-11-05, ticket F1): 4 viewports x 2 themes x 12 pages, plus one
  * `/login?error=not_invited` shot per project. Pure data, no browser: e2e/matrix.spec.ts and scripts/preview-matrix.mjs
  * both read it, and src/dev/preview-matrix.test.ts checks its shape.
  */
@@ -13,7 +13,7 @@ export const MATRIX_VIEWPORTS = [
 
 export const MATRIX_THEMES = ["light", "dark"] as const;
 
-export type MatrixSeed = "story" | "concept-widget" | "quiz-open" | "topic-complete" | "many-topics";
+export type MatrixSeed = "story" | "story-scene" | "lingo" | "concept-widget" | "quiz-open" | "mix-up" | "topic-complete" | "many-topics";
 export type MatrixKind = "study" | "reading" | "login";
 
 /**
@@ -29,12 +29,17 @@ export type MatrixPage = {
   cardsAsColumns?: true;
 };
 
-/** The nine pages and states of the spec, in the order they are shot. Login pages run last (they sign the Learner out). */
+/** The twelve pages and states of the spec, in the order they are shot. Login pages run last (they sign the Learner out). */
 export const MATRIX_PAGES: readonly MatrixPage[] = [
   { id: "home", path: "/", seed: "story", kind: "reading", signedOut: false },
   { id: "study-story", path: "/study", seed: "story", kind: "study", signedOut: false },
+  // §8.3's colour-liveliness states (#481): a reply with its Story scene (sunflower), a Lingo card (violet) and a wrong
+  // choice's mix-up fix (coral "not quite"), each a seeded state, so the shot needs no action in the browser.
+  { id: "study-story-scene", path: "/study", seed: "story-scene", kind: "study", signedOut: false },
+  { id: "study-lingo", path: "/study", seed: "lingo", kind: "study", signedOut: false },
   { id: "study-concept-widget", path: "/study", seed: "concept-widget", kind: "study", signedOut: false },
   { id: "study-quiz-open", path: "/study", seed: "quiz-open", kind: "study", signedOut: false },
+  { id: "study-mixup-fix", path: "/study", seed: "mix-up", kind: "study", signedOut: false },
   { id: "study-topic-complete", path: "/study", seed: "topic-complete", kind: "study", signedOut: false },
   { id: "course-map", path: "/course", seed: "many-topics", kind: "reading", signedOut: false, prose: "if-any" },
   { id: "notebook", path: "/notebook", seed: "story", kind: "reading", signedOut: false, prose: "required" },
@@ -60,7 +65,7 @@ export const MATRIX_DIR = "evidence/preview-matrix";
 
 export const projectName = (viewportId: string, theme: string) => (theme === "dark" ? `${viewportId}-dark` : viewportId);
 
-/** Every cell: 4 viewports x 2 themes x (9 pages + the not_invited login) = 80. */
+/** Every cell: 4 viewports x 2 themes x (12 pages + the not_invited login) = 104. */
 export function matrixCells(): MatrixCell[] {
   const cells: MatrixCell[] = [];
   for (const viewport of MATRIX_VIEWPORTS) {
