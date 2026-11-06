@@ -102,11 +102,12 @@ questions:
 
   - id: mb-q-bank-receipt
     prompt: >
-      1992: one bank lends another cash for a couple of weeks, secured on government bonds. The lender gets no bonds, only a slip of paper called a bank receipt (BR). What was that slip meant to prove?
+      In a 1992 ready forward deal, the lending bank handed over cash and received a bank receipt (BR) from
+      the borrowing bank. What was the receipt supposed to show?
     choices:
-      - { id: a, text: "That the borrower held the bonds for the lender, as security" }
-      - { id: b, text: "That the lender now owned shares in a broker's firm", mistake: { tag: receipt_seen_as_shares, fix: "A BR stood for the bonds behind the loan, not for shares in anyone's firm." } }
-      - { id: c, text: "That the Reserve Bank guaranteed the loan", mistake: { tag: receipt_seen_as_rbi_guarantee, fix: "The BR came from the borrowing bank; no central-bank promise stood behind it." } }
+      - { id: a, text: "That the borrowing bank held government securities on the lender's behalf as security for the loan" }
+      - { id: b, text: "That the lender had received a share certificate in the broker's company" }
+      - { id: c, text: "That the loan was guaranteed by the Reserve Bank" }
     answer: a
     explanation: >
       A BR stood in for the securities that secured the roughly 15-day loan: the lender relied on the

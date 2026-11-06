@@ -49,9 +49,9 @@ youllLearn:
 questions:
   - id: tx-q-after-tax-profit
     prompt: >
-      A company's year ends with a profit. It hands its tax bill to the government, and the rest
-      stays home for its shareholders. Picture the accountant at the bottom of the income statement,
-      ready to write a name beside that last, leftover number. Which name goes there?
+      A company's year ends with a profit. It pays its tax bill to the government, and whatever is left
+      belongs to its shareholders. Picture the accountant writing the last line of the income statement:
+      what do they call that leftover?
     choices:
       - { id: a, text: "Operating profit", mistake: { tag: called_it_operating_profit, fix: "Operating profit comes before interest and tax; what is left after tax is profit after tax." } }
       - { id: b, text: "Profit after tax" }
@@ -134,10 +134,10 @@ checks:
   - id: tx-tax-view
     kind: conversation
     prompt: >
-      It is 19 September 2019 and you sit in a company's finance team, weighing a new Rs 500 crore
-      factory that would earn a pre-tax operating profit of Rs 100 crore a year. Rumour says the
-      government may cut the corporate tax rate. Your boss asks why the team would cheer. What do you
-      tell her about where tax bites into the factory's cash, and what a cut would change?
+      It is 19 September 2019 and a company is weighing a new Rs 500 crore factory that would earn
+      a pre-tax operating profit of Rs 100 crore a year. Explain how the corporate tax rate enters
+      the project's after-tax cash flows and what a cut of five percentage points in the effective
+      rate (say from 35% to 30%) would do to them.
     passCriteria: >
       The Learner explains that tax is charged on profit, so after-tax cash flow is profit x (1 - tax
       rate) plus any depreciation add-back. They say in their own words that a cut in the rate

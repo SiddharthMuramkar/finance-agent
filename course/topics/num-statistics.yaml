@@ -63,12 +63,12 @@ questions:
       OpenStax, Principles of Finance (CC BY 4.0), 13.2 Measures of Spread: https://openstax.org/books/principles-finance-2e/pages/13-2-measures-of-spread
   - id: st-q-sigma
     prompt: >
-      A stock usually moves a little each day; that typical swing is its standard deviation. One morning it crashes far past its usual swings. What does a bell-curve (normal) model say about that day?
+      A stock's daily returns usually stray only a little from their average; that typical stray is its standard deviation. One morning the stock crashes, far beyond anything its usual swings suggest. What does a normal-curve model say about a day like that?
     choices:
-      - { id: a, text: "It should almost never happen" }
-      - { id: b, text: "It is a routine day", mistake: { tag: took_it_for_routine, fix: "Routine days stay near the typical swing; this crash went far past it." } }
-      - { id: c, text: "It is a small move, being just one day", mistake: { tag: flipped_big_and_small, fix: "A day's move is judged against the typical swing, and this one dwarfs it." } }
-      - { id: d, text: "It comes along every year or two", mistake: { tag: understated_the_move, fix: "That fits a merely unusual day; this crash sits far beyond even those." } }
+      - { id: a, text: "It is so far beyond what the model allows that the model treats it as effectively impossible" }
+      - { id: b, text: "It is a routine day, the kind that comes along every week", mistake: { tag: took_it_for_routine, fix: "Routine days stay near the typical stray; this crash went far past it." } }
+      - { id: c, text: "It is a smaller move than usual, because it happened in a single day", mistake: { tag: flipped_big_and_small, fix: "A day's move is judged against the typical stray, and this one dwarfs it." } }
+      - { id: d, text: "It is rare but expected, the kind of day that comes along every year or two", mistake: { tag: understated_the_move, fix: "That describes a merely unusual day; this crash sits far beyond even those." } }
     answer: a
     explanation: >
       A normal model lets big days happen now and then, but a move far beyond the usual swings gets so little room in its tails that the model all but rules it out. Real markets do have such crashes, which is the warning in the next question.
@@ -108,9 +108,8 @@ checks:
     prompt: >
       It is the evening of 16 October 1987, and the S&P 500 has fallen more than 9% this week. A risk
       manager says "our model, fitted to the past five calm years, says a daily fall of 10% or
-      more has essentially zero probability, so we are safe". You sit at the next desk and you are
-      not so sure. What would you tell them before Monday's open, and why might five calm years
-      fool their model?
+      more has essentially zero probability, so we are safe". Picture yourself as a sceptical colleague:
+      what is wrong with that reasoning, in terms of the average, the spread and the shape of the curve?
     passCriteria: >
       The Learner explains that the model's mean and standard deviation come from a calm sample, so a
       normal curve built on them puts almost no probability on extreme moves; a fall that large

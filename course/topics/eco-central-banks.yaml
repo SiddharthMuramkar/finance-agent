@@ -58,11 +58,13 @@ youllLearn:
 questions:
   - id: cb-q-guidance
     prompt: >
-      Two central banks each nudge their rate up. Bank A warned for months; Bank B surprised everyone. Whose long-term bond yields are likelier to jump?
+      Two central banks each raise their policy rate by 25 basis points. Bank A has said for months that
+      rates will rise at a measured pace; Bank B has given no guidance and the move comes as a surprise. In
+      which case are long-term bond yields more likely to jump well beyond the first step, and why?
     choices:
-      - { id: a, text: "Bank B's: investors must rethink every rate still to come" }
-      - { id: b, text: "Bank A's: a warning in advance unsettles markets", mistake: { tag: guidance_seen_as_shock, fix: "A move people saw coming is already in prices, so it shakes them less." } }
-      - { id: c, text: "Neither: long-term yields ignore future central-bank rates", mistake: { tag: long_rates_ignore_policy, fix: "Long-term yields build in the rates people expect over the years ahead." } }
+      - { id: a, text: "Bank B, because without guidance investors must re-estimate the whole expected path of short rates and may expect more increases" }
+      - { id: b, text: "Bank A, because announcing a plan in advance always unsettles bond markets" }
+      - { id: c, text: "Neither, because long-term yields do not depend on expected policy rates" }
     answer: a
     explanation: >
       Long-term rates reflect the expected path of short-term rates. A move that investors saw coming is

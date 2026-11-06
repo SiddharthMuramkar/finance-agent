@@ -52,12 +52,12 @@ youllLearn:
 questions:
   - id: fl-q-s1
     prompt: >
-      August 2019: WeWork wants to sell shares to the public for the first time, and readers soon find Adam Neumann all over the document it hands the SEC. What is that first public document called?
+      A US company preparing its first sale of shares to the public files which document with the SEC?
     choices:
       - { id: a, text: "A registration statement on Form S-1" }
-      - { id: b, text: "An annual report on Form 10-K", mistake: { tag: confused_annual_with_ipo_filing, fix: "A 10-K is the yearly report of a company that is already listed; WeWork was not listed yet." } }
-      - { id: c, text: "A quarterly report on Form 10-Q", mistake: { tag: confused_quarterly_with_ipo_filing, fix: "A 10-Q is the quarterly update of a listed company, not the first sale to the public." } }
-      - { id: d, text: "A current report on Form 8-K", mistake: { tag: confused_event_report_with_ipo_filing, fix: "An 8-K tells listed-company investors about a big event; it does not register a first sale." } }
+      - { id: b, text: "An annual report on Form 10-K" }
+      - { id: c, text: "A quarterly report on Form 10-Q" }
+      - { id: d, text: "A current report on Form 8-K" }
     answer: a
     explanation: >
       Form S-1 is the basic registration statement. Its first part is the prospectus. Forms 10-K, 10-Q and 8-K are periodic and event reports for companies that already have registered securities.
@@ -66,12 +66,12 @@ questions:
 
   - id: fl-q-item8
     prompt: >
-      A friend tells you a listed company's bosses sound cheerful about the year. You want the numbers an outside auditor has signed off rather than the bosses' story. Where in its 10-K do you look?
+      In a US annual report on Form 10-K, where do you find the company's audited financial statements?
     choices:
-      - { id: a, text: "Item 8, the audited financial statements" }
-      - { id: b, text: "Item 1B, open questions from SEC staff", mistake: { tag: confused_staff_comments_with_accounts, fix: "Item 1B lists SEC staff comments still open; it holds no audited accounts." } }
-      - { id: c, text: "Item 7, management's discussion", mistake: { tag: confused_mdna_with_audited, fix: "Item 7 is the bosses' own story of the year, the part you wanted to check." } }
-      - { id: d, text: "Item 15, the list of exhibits", mistake: { tag: confused_exhibits_with_accounts, fix: "Item 15 lists attached documents; the audited statements sit in Item 8." } }
+      - { id: a, text: "Item 8, Financial Statements and Supplementary Data" }
+      - { id: b, text: "Item 1B, Unresolved Staff Comments" }
+      - { id: c, text: "Item 7, Management's Discussion and Analysis" }
+      - { id: d, text: "Item 15, Exhibits only" }
     answer: a
     explanation: >
       Item 8 requires the audited financial statements. Item 7 is management's own discussion of the results.
@@ -109,7 +109,7 @@ questions:
 
   - id: fl-q-votes
     prompt: >
-      Each Class C share of The We Company carried 20 votes, which helped Adam Neumann hold more than half the voting power. What do investors call a setup where some share classes carry far more votes than others?
+      Each Class C share of The We Company carried 20 votes, while a Class A share carried one. What do investors call a setup where some shares carry far more votes than others?
     choices:
       - { id: a, text: "Dual-class shares" }
       - { id: b, text: "A rights issue", mistake: { tag: confused_with_rights_issue, fix: "A rights issue offers holders new shares; it does not change votes per share." } }
@@ -119,7 +119,7 @@ questions:
     explanation: >
       Dual-class (or multi-class) shares give some holders more votes per share, so insiders can hold control with a small share of the economic ownership. At We Company, Class C shares carried 20 votes each.
     source: >
-      CNBC, WeWork releases S-1 filing for IPO, 14 August 2019: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html ; Fortune, Due to an Unusual Clause, WeWork Founder Could Make Millions If the Company Hits a Market Cap of $90 Billion, 15 August 2019: https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann
+      WeWork (The We Company) Form S-1, 14 August 2019, on Class A and Class C votes: https://www.cnbc.com/2019/08/14/wework-releases-s-1-filing-for-ipo.html ; Fortune, Due to an Unusual Clause, WeWork Founder Could Make Millions If the Company Hits a Market Cap of $90 Billion, 15 August 2019: https://fortune.com/2019/08/15/wework-ipo-stock-valuation-softbank-ge-rebekah-neumann
 
 checks:
   - id: fl-quiz-filings
