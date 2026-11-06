@@ -245,8 +245,8 @@ checks:
     kind: conversation
     prompt: >
       On 12 June 2000, which writer looked better supported to you, and which one claim would you
-      check first? Yahoo's April release puts its multiple at about 225 times reported earnings and about
-      277 times pro forma earnings, annualised, at $70 billion, against the quoted 340.
+      check first? At $70 billion, Yahoo's April earnings, annualised, give about 225 times reported
+      earnings and about 277 times pro forma earnings, against the quoted 340.
     passCriteria: >
       The Learner picks at least one checkable fact from each writer (for example the Nasdaq's 1999
       rise against its published year-end figures, Yahoo's earnings against its April release, or
