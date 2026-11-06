@@ -44,6 +44,15 @@ describe("the Topic bar's ⋯ menu", () => {
     expect(renderToStaticMarkup(<TopicBar title="Percent" strip={null} marked={new Set()} />)).not.toContain("Topic options");
   });
 
+  it("opens with Enter (A5's shared menu keyboard) and focuses Start this Topic over…", async () => {
+    await mount();
+    await press(options(), "Enter");
+    expect(options().getAttribute("aria-expanded")).toBe("true");
+    const row = host.querySelector<HTMLElement>('[role="menu"] [role="menuitem"]')!;
+    expect(row.textContent).toBe("Start this Topic over…");
+    expect(document.activeElement).toBe(row);
+  });
+
   it("opens with the arrow key and shows Start this Topic over…", async () => {
     await mount();
     await press(options(), "ArrowDown");

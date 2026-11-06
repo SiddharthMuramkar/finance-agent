@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { YourTopic } from "@/learner/your-topics";
 import { RestartConfirm } from "../restart-confirm";
-import { Button, Tag } from "../ui";
+import { Button, Card, Tag } from "../ui";
 
 const STATUS: Record<YourTopic["status"], string> = { in_progress: "In progress", passed: "Passed" };
 
@@ -27,11 +27,12 @@ function TopicRow({ topic }: { topic: YourTopic }) {
 
 /**
  * Settings → Your Topics (B3b): the Topics that have progress, in course order, each with its status and a Start over
- * Button that opens the same inline confirm as the Topic bar's ⋯ menu. `topics` comes from loadYourTopics.
+ * Button that opens the same inline confirm as the Topic bar's ⋯ menu. One of the Settings card-grid's Cards (A5's
+ * your-topics slot, after About you). `topics` comes from loadYourTopics.
  */
 export function YourTopicsSection({ topics }: { topics: readonly YourTopic[] }) {
   return (
-    <section id="your-topics" aria-labelledby="your-topics-heading" className="border-t border-[var(--hairline)] pt-6">
+    <Card id="your-topics" aria-labelledby="your-topics-heading">
       <h2 id="your-topics-heading" className="mb-2 text-base font-semibold leading-6">
         Your Topics
       </h2>
@@ -47,6 +48,6 @@ export function YourTopicsSection({ topics }: { topics: readonly YourTopic[] }) 
           </ul>
         </>
       )}
-    </section>
+    </Card>
   );
 }

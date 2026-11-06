@@ -29,7 +29,7 @@ afterEach(async () => {
 describe("Your Topics", () => {
   it("is the your-topics section with its heading", () => {
     const html = renderToStaticMarkup(<YourTopicsSection topics={topics} />);
-    expect(html).toMatch(/<section id="your-topics"[^>]*aria-labelledby="your-topics-heading"/);
+    expect(html).toMatch(/<section[^>]*id="your-topics"[^>]*aria-labelledby="your-topics-heading"/);
     expect(html).toMatch(/<h2[^>]*id="your-topics-heading"[^>]*>Your Topics<\/h2>/);
   });
 

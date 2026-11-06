@@ -9,10 +9,10 @@ const view = (props: Partial<Parameters<typeof SettingsView>[0]> = {}) =>
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("the Settings page", () => {
-  it("five cards in order: Account, Appearance, About you, Developer details, Start over (B3b inserts Your Topics)", () => {
+  it("six cards in order: Account, Appearance, About you, Your Topics, Developer details, Start over", () => {
     const html = view();
     const ids = [...html.matchAll(/<section[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
-    expect(ids).toEqual(["account", "appearance", "about-you", "developer-details", "start-over"]);
+    expect(ids).toEqual(["account", "appearance", "about-you", "your-topics", "developer-details", "start-over"]);
     const t = text(html);
     expect(t.indexOf("Settings")).toBeGreaterThanOrEqual(0);
     expect(t).not.toMatch(/Dark mode/);
@@ -20,6 +20,28 @@ describe("the Settings page", () => {
     expect(html).toMatch(/<h2[^>]*id="start-over-heading"[^>]*>Start over<\/h2>/);
     expect(html).toMatch(/<button[^>]*class="btn btn-danger[^"]*"[^>]*>Start over as a new learner/);
     expect(html).toMatch(/<section[^>]*class="[^"]*col-span-full[^"]*"[^>]*id="start-over"|<section[^>]*id="start-over"[^>]*class="[^"]*col-span-full/);
+  });
+
+  it("Your Topics lists only the Topics given (those with progress), in that order, each with a Start over Button", () => {
+    const html = view({
+      topics: [
+        { id: "percent", title: "Percent", status: "passed" },
+        { id: "present-value", title: "Present value", status: "in_progress" },
+      ],
+    });
+    const card = html.slice(html.indexOf('id="your-topics"'), html.indexOf('id="developer-details"'));
+    const t = text(card);
+    expect(t).toContain("Your Topics");
+    expect(t.indexOf("Percent")).toBeLessThan(t.indexOf("Present value"));
+    expect([...card.matchAll(/class="btn btn-secondary[^"]*"[^>]*>Start over</g)]).toHaveLength(2);
+    expect(t).not.toContain("Topics you start will appear here.");
+  });
+
+  it("Your Topics says Topics you start will appear here. when none has progress", () => {
+    const html = view();
+    const card = html.slice(html.indexOf('id="your-topics"'), html.indexOf('id="developer-details"'));
+    expect(text(card)).toContain("Topics you start will appear here.");
+    expect(card).not.toContain(">Start over<");
   });
 
   it("Account names the Learner, says Signed in with a passcode until an email exists, and signs out by form post", () => {
