@@ -106,39 +106,39 @@ terms:
 questions:
   - id: cx-q-straight-line
     prompt: >
-      A company buys a warehouse that will serve it for many years. In its accounts, how is the cost of the warehouse treated?
+      In April, Dev the baker pays ₹6 lakh for an oven that should bake for six years. Tomorrow he shows his books to the bank. "This year's profit is ruined!" What does his accountant tell him?
     choices:
-      - { id: a, text: "Spread across the years it is used, as depreciation" }
-      - { id: b, text: "Charged to profit in full in the year it is bought", mistake: { tag: expensed_it_all_at_once, fix: "A lasting asset is recorded on the balance sheet and its cost is spread over its life." } }
-      - { id: c, text: "Left out of the accounts until the warehouse is sold", mistake: { tag: left_it_off_the_books, fix: "The warehouse is recorded as an asset the day it is bought." } }
-      - { id: d, text: "Counted only when customers pay for the goods in it", mistake: { tag: tied_it_to_sales, fix: "Cost is spread over the asset's useful life, not tied to each sale." } }
+      - { id: a, text: "Relax: the oven's cost is spread over its years, as depreciation" }
+      - { id: b, text: "True: the whole oven comes off this year's profit", mistake: { tag: expensed_it_all_at_once, fix: "A lasting asset goes on the balance sheet, and its cost is spread over its life." } }
+      - { id: c, text: "The oven stays off the books until Dev sells it", mistake: { tag: left_it_off_the_books, fix: "The oven is recorded as an asset the day Dev buys it." } }
+      - { id: d, text: "The oven counts only when customers buy his bread", mistake: { tag: tied_it_to_sales, fix: "The cost follows the oven's useful life, not each loaf sold." } }
     answer: a
     explanation: >
-      Straight-line depreciation divides the cost, less any residual value, over the life in years. Cash leaves in the year of purchase, but the profit and loss account bears only a slice each year.
+      Depreciation spreads the cost of a lasting asset over the years it is used. The cash left Dev's bank on day one, but each year's profit bears only a slice.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-ebitda-blind-spot
     prompt: >
-      EBITDA adds back depreciation and amortisation. What does that mean for a company that spends heavily on equipment?
+      5 November 1999. Asha must decide today on Webvan's shares, and Webvan plans about a billion dollars of warehouses. Suppose a banker tells her, "Forget the loss, look at EBITDA." What could EBITDA hide?
     choices:
-      - { id: a, text: "EBITDA leaves out the cost of the equipment, so it can look healthy while cash is going out on capex" }
-      - { id: b, text: "EBITDA includes the full purchase price in the year the equipment is bought", mistake: { tag: thought_ebitda_counts_the_purchase, fix: "It does the opposite: depreciation is added back, so the cost of the equipment drops out." } }
-      - { id: c, text: "EBITDA is lower than operating profit", mistake: { tag: swapped_the_direction, fix: "Adding costs back makes EBITDA higher than operating profit, not lower." } }
-      - { id: d, text: "Heavy spending on equipment has no effect on cash", mistake: { tag: ignored_the_cash, fix: "The cash leaves when the equipment is bought, whatever the yearly charge says." } }
+      - { id: a, text: "The yearly cost of the warehouses, because depreciation is added back" }
+      - { id: b, text: "Nothing: EBITDA counts each warehouse's full price", mistake: { tag: thought_ebitda_counts_the_purchase, fix: "EBITDA adds depreciation back, so the cost of the warehouses drops out." } }
+      - { id: c, text: "That Webvan's operating profit is higher than EBITDA", mistake: { tag: swapped_the_direction, fix: "Adding costs back makes EBITDA higher than operating profit, not lower." } }
+      - { id: d, text: "Nothing, because building warehouses takes no cash", mistake: { tag: ignored_the_cash, fix: "Cash leaves when the warehouses are built, whatever the yearly charge says." } }
     answer: a
     explanation: >
-      EBITDA is profit before depreciation, interest and tax. Because depreciation is added back, the cost of the assets does not appear in it, so it must be read next to capex.
+      EBITDA is profit before interest, tax, depreciation and amortisation. With depreciation added back, the cost of the warehouses never shows up in it, so Asha should read it next to capex.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-bechtel
     prompt: >
-      In 1999 Webvan agreed with Bechtel to build up to 26 distribution centres for about $1 billion. What do analysts call this kind of spending on buildings that last for years?
+      July 1999. Webvan agrees with Bechtel to build up to 26 more automated warehouses, about $1 billion in all. Asha wants the word analysts use for spending on buildings that last. Which is it?
     choices:
       - { id: a, text: "Capital expenditure, or capex" }
-      - { id: b, text: "An operating expense", mistake: { tag: called_it_operating_expense, fix: "Operating expenses are everyday running costs. Spending on lasting buildings is capex." } }
-      - { id: c, text: "Amortisation", mistake: { tag: called_it_amortisation, fix: "Amortisation spreads the cost of things you cannot touch, and it is a yearly charge, not the spending itself." } }
+      - { id: b, text: "An operating expense, like wages", mistake: { tag: called_it_operating_expense, fix: "Operating expenses are everyday running costs. Spending on lasting buildings is capex." } }
+      - { id: c, text: "Amortisation", mistake: { tag: called_it_amortisation, fix: "Amortisation is a yearly charge for things you cannot touch, not the spending itself." } }
       - { id: d, text: "Working capital", mistake: { tag: called_it_working_capital, fix: "Working capital is the day-to-day float of stock and bills. Buildings are fixed assets." } }
     answer: a
     explanation: >
@@ -148,35 +148,35 @@ questions:
 
   - id: cx-q-lingo-amortisation
     prompt: >
-      A firm pays up front for a software licence that lasts five years. What do accountants call spreading its cost over those years?
+      Dev pays up front for five years of billing software for his bakery. At the bank meeting he must name how that cost is spread over the five years. Which word should he use?
     choices:
       - { id: a, text: "Amortisation" }
-      - { id: b, text: "Depreciation", mistake: { tag: used_depreciation_for_intangibles, fix: "Depreciation is the word for physical things such as warehouses and trucks. A licence is spread by amortisation." } }
+      - { id: b, text: "Depreciation", mistake: { tag: used_depreciation_for_intangibles, fix: "Depreciation is for physical things like ovens. Software and licences are spread by amortisation." } }
       - { id: c, text: "Capex", mistake: { tag: called_the_spread_capex, fix: "Capex is the spending itself. The spreading over the years has its own name." } }
       - { id: d, text: "EBITDA", mistake: { tag: called_the_spread_ebitda, fix: "EBITDA is a profit measure that adds the spreading back." } }
     answer: a
     explanation: >
-      Amortisation spreads the cost of an intangible, such as software or a licence, over its useful life. Depreciation does the same for physical assets.
+      Amortisation spreads the cost of something you cannot touch, such as software or a licence, over its useful life. Depreciation does the same for physical things like Dev's oven.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: cx-q-lingo-fixed-assets
     prompt: >
-      Which of these would an analyst list among Webvan's fixed assets?
+      November 1999. Before she decides on the share sale, Asha lists the things Webvan owns and will use for years. Which belongs on her list of fixed assets?
     choices:
       - { id: a, text: "Its automated distribution centre in Oakland" }
-      - { id: b, text: "The groceries on the shelf, sold within days", mistake: { tag: counted_stock_as_fixed, fix: "Stock is sold within days. Fixed assets are things used for years." } }
-      - { id: c, text: "The cash raised from the share sale", mistake: { tag: counted_cash_as_fixed, fix: "Cash is money in hand. Fixed assets are the lasting things it buys." } }
-      - { id: d, text: "Its customers' goodwill", mistake: { tag: counted_goodwill_as_fixed, fix: "Goodwill cannot be touched or counted as a building or truck." } }
+      - { id: b, text: "The groceries on its shelves, sold within days", mistake: { tag: counted_stock_as_fixed, fix: "Stock is sold within days. Fixed assets are things used for years." } }
+      - { id: c, text: "The cash it raises from the share sale", mistake: { tag: counted_cash_as_fixed, fix: "Cash is money in hand. Fixed assets are the lasting things it buys." } }
+      - { id: d, text: "The goodwill of its Bay Area customers", mistake: { tag: counted_goodwill_as_fixed, fix: "Goodwill cannot be touched. Fixed assets are buildings, trucks and machines." } }
     answer: a
     explanation: >
-      Fixed assets are the lasting things a company owns and uses, like buildings, trucks and machines. The Oakland centre alone covered 336,000 square feet.
+      Fixed assets are the lasting things a company owns and uses, like buildings, trucks and machines. Webvan's Oakland centre alone covered 336,000 square feet.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement; the Oakland centre is from the Webvan prospectus summarised in this Topic's Case.
 
   - id: cx-q-lingo-ebitda
     prompt: >
-      A banker tells Webvan's investors to "look at EBITDA". Which expansion of the letters is true?
+      Dev's uncle wants ₹5 lakh from Dev for his trucking firm and boasts that its EBITDA is huge. Before he hands over a rupee, Dev asks what the letters stand for. Which answer is right?
     choices:
       - { id: a, text: "Earnings before interest, taxes, depreciation and amortisation" }
       - { id: b, text: "Earnings before income, tax, debt and assets", mistake: { tag: scrambled_the_letters, fix: "The letters are interest, taxes, depreciation and amortisation." } }
@@ -184,7 +184,7 @@ questions:
       - { id: d, text: "Estimated balance of income, taxes and dividends", mistake: { tag: invented_a_meaning, fix: "EBITDA is not an estimate. It is earnings with four things added back." } }
     answer: a
     explanation: >
-      EBITDA stands for earnings before interest, taxes, depreciation and amortisation. Adding back depreciation and amortisation hides the cost of the assets the business must keep buying.
+      EBITDA is earnings before interest, taxes, depreciation and amortisation. For a trucking firm, adding depreciation back leaves out the cost of the trucks it must keep buying.
     source: >
       OpenStax, Principles of Finance (CC BY 4.0), 5.1 The Income Statement: EBITDA: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
@@ -207,9 +207,11 @@ checks:
   - id: cx-ebitda-view
     kind: conversation
     prompt: >
-      It is 5 November 1999. Webvan has agreed to build distribution centres costing about
-      $1 billion and has revenue of $395,000 for the half year. A banker says "look at EBITDA, not net loss". Say in your own words what depreciation and EBITDA would show for this plan over the next few years, and what you would
-      look at instead to judge whether the build-out can pay for itself.
+      It is 5 November 1999, the day Webvan's shares start trading, and Asha must decide today.
+      Webvan has agreed to build warehouses costing about $1 billion, and its sales for the half
+      year were $395,000. A banker tells her "look at EBITDA, not the net loss". In your own words,
+      tell Asha what EBITDA would leave out for this plan, and what you would look at instead
+      before she decides.
     passCriteria: >
       The Learner explains that the $1 billion is capex: cash goes out up front, appears on the
       balance sheet as an asset, and is expensed gradually through depreciation. EBITDA adds
