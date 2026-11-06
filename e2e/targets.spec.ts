@@ -41,8 +41,6 @@ test("[A1] Widget panel width at 1512 is 55 % of the viewport or more", async ({
 });
 
 test("[A2] header height is 56 px or less and the chat body font is 15 px", async ({ page }) => {
-  // The header alone already measures 36 px today, so the font (A2's other metric, §1.1 row 9) keeps this target red.
-  test.fail(true, "[A2] denser workspace");
   await study(page);
   const m = await measureLayout(page);
   expect(m.headerHeight).toBeLessThanOrEqual(56);

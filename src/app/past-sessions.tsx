@@ -101,7 +101,7 @@ export function PastSessionHeaderView({ header }: { header: PastSessionHeader })
     return (
       <Header>
         <Eyebrow>Older session · read-only</Eyebrow>
-        <h1 className="text-xl font-semibold leading-7 text-[var(--ink)]">{shortDate(header.date)}</h1>
+        <h1 className="text-lg font-semibold leading-[26px] text-[var(--ink)]">{shortDate(header.date)}</h1>
         <TopicPills topics={header.topics} />
       </Header>
     );
@@ -110,7 +110,7 @@ export function PastSessionHeaderView({ header }: { header: PastSessionHeader })
     <Header>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold leading-7 text-[var(--ink)]">{header.title}</h1>
+          <h1 className="text-lg font-semibold leading-[26px] text-[var(--ink)]">{header.title}</h1>
           <p className="text-sm leading-5 text-[var(--muted)]">Last worked on {shortDate(header.lastActive)}</p>
           {header.found && header.found.length > 0 && (
             <p data-testid="session-found" className="mt-1 text-sm leading-5">
