@@ -28,26 +28,33 @@ export function rateChange(oldPercent: number, newPercent: number): RateChange {
 const rateText = (percent: number) => String(Math.round(percent * 100) / 100);
 
 /**
- * The rate_move Widget's three worked lines, in words (ADR 0002: sums are said, never typed as formulas):
- * "5.2% minus 5% is 0.2 points", "0.2 points times 100 is 20 bp", "0.2 divided by the old 5%, times 100, is 4%".
- * A fall says "a fall of", and a move from 0% says the percent change has no value. The arithmetic runs in whole
- * basis points. The RateMove Widget calls this function directly (the OpenUI expressions that once repeated the
- * arithmetic in src/widgets/recipes/set-tutor.ts are gone), so the Widget and the Tutor's words cannot differ.
+ * The rate_move Widget's three lines (#530): one move said the way a reporter, a trader and a headline say it, as
+ * story and lingo quotes, never as a worked sum (ADR 0009: numbers appear only as facts in a story). 5% to 5.2% reads
+ * "The rate climbs from 5% to 5.2%: up 0.2 points", "Traders call that 20 bp", "Up 4% on the old rate". A fall says
+ * "drops", "down" and "a fall of"; a move from 0% says there is no percent change; no move says so. The arithmetic
+ * runs here, in whole basis points, and no line says "minus", "times" or "divided". The RateMove Widget calls this
+ * function directly, so the Widget and the Tutor's words cannot differ.
  */
 export function rateMoveLines(oldPercent: number, newPercent: number): [string, string, string] {
   const bp = Math.round((newPercent - oldPercent) * 100);
   const size = Math.abs(bp);
   const points = size / 100;
   const pointWord = size === 100 ? "point" : "points";
-  const fall = bp < 0 ? "a fall of " : "";
   const oldBp = Math.round(oldPercent * 100);
-  return [
-    `${rateText(newPercent)}% minus ${rateText(oldPercent)}% is ${fall}${points} ${pointWord}`,
-    `${points} ${pointWord} times 100 is ${fall}${size} bp`,
+  const percent = oldBp === 0 ? 0 : Math.round(((size * 100) / oldBp) * 100) / 100;
+  const [from, to] = [rateText(oldPercent), rateText(newPercent)];
+  const reporter =
+    bp === 0
+      ? `The rate stays at ${to}%: 0 points`
+      : `The rate ${bp > 0 ? "climbs" : "drops"} from ${from}% to ${to}%: ${bp > 0 ? "up" : "down"} ${points} ${pointWord}`;
+  const trader = `Traders call that ${bp < 0 ? "a fall of " : ""}${size} bp`;
+  const headline =
     oldBp === 0
-      ? "The old rate is 0%, so the percent change has no value"
-      : `${points} divided by the old ${rateText(oldPercent)}%, times 100, is ${fall}${Math.round(((size * 100) / oldBp) * 100) / 100}%`,
-  ];
+      ? "No percent change from 0%: there is no old rate to compare with"
+      : percent === 0
+        ? "No change on the old rate"
+        : `${bp > 0 ? "Up" : "Down"} ${percent}% on the old rate`;
+  return [reporter, trader, headline];
 }
 
 /** The readouts as Percent's Widget words them: "In percentage points: 0.4 points", and so on. */
