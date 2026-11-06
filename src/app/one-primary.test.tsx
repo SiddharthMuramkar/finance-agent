@@ -2,11 +2,14 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { OpenQuiz } from "@/learner/quiz";
+import type { ReviewState } from "@/learner/review";
 import { Conversation } from "./conversation";
 
 // Appendix B.7: primary is used once per view, for the one thing to do next (#478). The real /study view, drawn whole:
 // at the Story step with a StoryScene Widget in the panel and the Next chip under the reply, and again once the
-// Learner has typed in the message box. At every moment at most one enabled primary button shows.
+// Learner has typed in the message box; with a Check marked in the panel; and with a Spaced review picked and marked
+// in the Topic header. At every moment at most one enabled primary button shows.
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -23,10 +26,37 @@ const SCENE = [
 let root: Root;
 let host: HTMLElement;
 
+const QUIZ: OpenQuiz = {
+  attemptId: 1,
+  checkId: "c",
+  checkNumber: 1,
+  checkCount: 2,
+  attemptNo: 0,
+  questions: [{ id: "q1", prompt: "What is revenue?", choices: [{ id: "a", text: "Money from sales" }, { id: "b", text: "Money left over" }] }],
+};
+const PASSED = {
+  correctCount: 1,
+  shown: 1,
+  needed: 1,
+  passed: true,
+  attemptNo: 0,
+  questions: [{ id: "q1", prompt: "What is revenue?", kind: "choice", chosen: "a", answer: "a", correct: true, explanation: "Revenue is money from sales.", choices: QUIZ.questions[0].choices, verified: true }],
+};
+const DUE: ReviewState = {
+  question: { id: "r1", prompt: "What is profit?", choices: [{ id: "a", text: "Revenue minus costs" }, { id: "b", text: "All the cash in" }] },
+  dueCount: 2,
+  done: 0,
+  cap: 5,
+};
+const MARKED = { ok: true, correct: true, answer: "a", explanation: "Profit is what is left.", choices: DUE.question!.choices, chosen: "a", nextDue: new Date().toISOString(), verified: true };
+
 beforeEach(() => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}) })),
+    vi.fn(async (url: string) => {
+      const body = url === "/api/quiz" ? PASSED : url === "/api/review" ? MARKED : {};
+      return { ok: true, status: 200, json: async () => body };
+    }),
   );
   host = document.createElement("div");
   document.body.append(host);
@@ -45,14 +75,14 @@ const pause = () => act(async () => void (await new Promise((r) => setTimeout(r,
 const enabledPrimaries = () =>
   [...host.querySelectorAll<HTMLButtonElement>("button.btn-primary")].filter((b) => !b.disabled).map((b) => b.textContent?.trim());
 
-async function openStoryStep() {
+async function openStoryStep({ quiz = null, review = noReview, scene = true }: { quiz?: OpenQuiz | null; review?: ReviewState; scene?: boolean } = {}) {
   await act(async () => {
     root.render(
       <Conversation
-        initial={[{ role: "assistant", text: `Meena runs a chai stall.\n\n${SCENE}\n\nWhat do you think happened that month?` }]}
-        quiz={null}
+        initial={[{ role: "assistant", text: scene ? `Meena runs a chai stall.\n\n${SCENE}\n\nWhat do you think happened that month?` : "Meena runs a chai stall. What do you think happened that month?" }]}
+        quiz={quiz}
         pending={null}
-        review={noReview}
+        review={review}
         next={NEXT}
         place={{ stage: "foundation", title: "Income statement" }}
       />,
@@ -60,6 +90,10 @@ async function openStoryStep() {
   });
   await pause();
 }
+
+const click = (el: HTMLElement) => act(async () => el.click());
+const button = (label: string) => [...host.querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent?.trim() === label)!;
+const nextChipIsSecondary = () => host.querySelector('[data-testid="next-chip"]')!.classList.contains("btn-secondary");
 
 async function type(words: string) {
   const box = host.querySelector<HTMLTextAreaElement>("textarea[aria-label='Message']")!;
@@ -96,5 +130,32 @@ describe("one primary on /study (Appendix B.7, #478)", () => {
     // Emptied again: the Next chip is the main move once more.
     await type("");
     expect(enabledPrimaries()).toEqual(["Next: Concept →"]);
+  });
+
+  it("with a Check's answers picked, Submit is the one enabled primary; once it is passed, the Next chip is (Done steps back)", async () => {
+    await openStoryStep({ quiz: QUIZ, scene: false });
+    await click(host.querySelector<HTMLInputElement>('[data-testid="quiz"] input[type="radio"]')!);
+    expect(enabledPrimaries()).toEqual(["Submit answers"]);
+    expect(nextChipIsSecondary()).toBe(true);
+
+    await click(button("Submit answers"));
+    await pause();
+    expect(button("Done"), "the passed Check's Done still shows").toBeDefined();
+    expect(enabledPrimaries()).toEqual(["Next: Concept →"]);
+  });
+
+  it("with a Spaced review picked, Submit answer is the one enabled primary; once it is marked, Next review is", async () => {
+    await openStoryStep({ review: DUE, scene: false });
+    expect(enabledPrimaries()).toEqual(["Next: Concept →"]);
+
+    await click(host.querySelector<HTMLInputElement>('[data-testid="review"] input[type="radio"]')!);
+    expect(enabledPrimaries()).toEqual(["Submit answer"]);
+    expect(nextChipIsSecondary()).toBe(true);
+
+    await click(button("Submit answer"));
+    await pause();
+    expect(host.querySelector('[data-testid="review-result"]')).not.toBeNull();
+    expect(enabledPrimaries()).toEqual(["Next review"]);
+    expect(nextChipIsSecondary()).toBe(true);
   });
 });
