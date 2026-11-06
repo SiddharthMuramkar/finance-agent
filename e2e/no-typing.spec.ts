@@ -80,6 +80,26 @@ test("rate-move practice offers three readings to tap and nothing to type, and a
   await expect(page.locator(TYPED_NUMBER)).toHaveCount(0);
 });
 
+// #394: at 1512 the number line's end labels clipped ("4.75%" showed ".75%"). Each end label must sit inside the SVG.
+test("rate-move number line end labels like 3.75% and 4.75% sit inside the drawing, not clipped", async ({ page }) => {
+  await page.goto("/dev/widgets?fixture=rate-move");
+  const line = page.getByTestId("rate-move-line");
+  await expect(line).toBeVisible();
+  // The slider's new rate: 5 gives ends 3.75% and 5.25%; 4.5 gives 3.75% and 4.75%.
+  for (const [rate, ends] of [["5", ["3.75%", "5.25%"]], ["4.5", ["3.75%", "4.75%"]]] as const) {
+    await page.getByRole("slider").first().fill(rate);
+    const labels = line.locator(":scope > text");
+    await expect(labels.first()).toHaveText(ends[0]);
+    await expect(labels.nth(1)).toHaveText(ends[1]);
+    const svg = (await line.boundingBox())!;
+    for (const i of [0, 1]) {
+      const box = (await labels.nth(i).boundingBox())!;
+      expect(box.x, `${ends[i]} left edge inside the SVG`).toBeGreaterThanOrEqual(svg.x);
+      expect(box.x + box.width, `${ends[i]} right edge inside the SVG`).toBeLessThanOrEqual(svg.x + svg.width);
+    }
+  }
+});
+
 test("StepThrough's faded step has a Show the number button, never Your number", async ({ page }) => {
   await page.goto("/dev/widgets?fixture=step-through");
   await page.getByRole("button", { name: "Next", exact: true }).click();
