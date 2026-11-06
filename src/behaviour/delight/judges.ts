@@ -83,7 +83,14 @@ export function parseJudge<J extends JudgeName>(judge: J, text: string): Judgeme
     const co = obj(judge, c);
     return { claim: str(judge, co, "claim"), verdict: oneOf(judge, co, "verdict", ["supported", "unsupported", "wrong", "after_as_of"] as const), source: str(judge, co, "source") };
   });
-  return { id, claims, wrong: int(judge, o, "wrong", 0, 1000), after_as_of: int(judge, o, "after_as_of", 0, 1000), unsupported: int(judge, o, "unsupported", 0, 1000) } as JudgementOf[J];
+  // Like Math police's count, each Historian count must match the claims it lists, so a claim marked after_as_of or
+  // wrong can never hide behind a 0 and skip the also-reported list (code, not the model, decides).
+  const counts = { wrong: int(judge, o, "wrong", 0, 1000), after_as_of: int(judge, o, "after_as_of", 0, 1000), unsupported: int(judge, o, "unsupported", 0, 1000) };
+  for (const k of ["wrong", "after_as_of", "unsupported"] as const) {
+    const listed = claims.filter((c) => c.verdict === k).length;
+    if (counts[k] !== listed) fail(judge, `"${k}" is ${counts[k]} but ${listed} claims are marked ${k}`);
+  }
+  return { id, claims, ...counts } as JudgementOf[J];
 }
 
 const ONLY_JSON = "Return only the JSON object shown, with no other text.";

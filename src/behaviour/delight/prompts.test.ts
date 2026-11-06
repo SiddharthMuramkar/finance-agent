@@ -74,6 +74,16 @@ describe("[S3] every judge's JSON example parses into the runner's schema", () =
     expect(() => parseJudge("fit", JSON.stringify({ ...fit, match: 6 }))).toThrow(/match/);
     expect(() => parseJudge("math", JSON.stringify({ id: "D05", sums: [], count: 2 }))).toThrow(/count/);
   });
+  it("refuses a Historian whose counts disagree with its own claims (code, not the model, decides)", () => {
+    const claim = (verdict: string) => ({ claim: "LTCM lost $4.6bn in Aug 1998", verdict, source: "<url>" });
+    const h = (claims: object[], wrong: number, after_as_of: number, unsupported: number) =>
+      JSON.stringify({ id: "D11", claims, wrong, after_as_of, unsupported });
+    expect(() => parseJudge("historian", h([claim("after_as_of")], 0, 0, 0))).toThrow(/after_as_of/);
+    expect(() => parseJudge("historian", h([claim("wrong")], 0, 0, 0))).toThrow(/wrong/);
+    expect(() => parseJudge("historian", h([claim("unsupported")], 0, 0, 0))).toThrow(/unsupported/);
+    expect(() => parseJudge("historian", h([claim("supported")], 1, 0, 0))).toThrow(/wrong/);
+    expect(parseJudge("historian", h([claim("after_as_of"), claim("wrong"), claim("supported")], 1, 1, 0))).toMatchObject({ wrong: 1, after_as_of: 1, unsupported: 0 });
+  });
 });
 
 const persona = (id: string, fun: number, lingo: number, exam = false) => ({ id, fun, clarity: 4, lingo: { score: lingo, terms: [] }, exam, back: true, best_line: "", worst_line: "", why: "" });
