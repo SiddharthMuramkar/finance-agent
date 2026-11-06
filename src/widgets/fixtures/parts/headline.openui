@@ -1,0 +1,2 @@
+root = Widget("The day the bond market fell", [paper])
+paper = Headline("The Daily Ledger", "1994-02-04", "Central bank lifts rates for the first time in five years", "Bond traders were caught off guard by the move.", "https://www.federalreserve.gov/monetarypolicy/fomchronology.htm")

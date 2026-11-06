@@ -16,8 +16,8 @@ describe("pressed toggle", () => {
 });
 
 describe("wave 3 sources", () => {
-  it("has the five parts' files", () => {
-    expect(sources).toEqual(expect.arrayContaining(["story-scene.tsx", "lingo-card.tsx", "timeline-strip.tsx", "two-paths.tsx", "money-jar.tsx", "index.ts"]));
+  it("has the nine parts' files", () => {
+    expect(sources).toEqual(expect.arrayContaining(["story-scene.tsx", "lingo-card.tsx", "timeline-strip.tsx", "two-paths.tsx", "money-jar.tsx", "who-pays-whom.tsx", "myth-or-fact.tsx", "headline.tsx", "choice-cards.tsx", "index.ts"]));
   });
 
   for (const file of sources) {
