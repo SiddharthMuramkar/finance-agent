@@ -69,17 +69,17 @@ youllLearn:
 questions:
   - id: ra-q-rent-value
     prompt: >
-      You are offered an office block that pays steady rent, and buyers of blocks like it want a set yield on what they pay. How does the rent-based method turn that rent into a price?
+      Your uncle Vikram is offered an office block with steady rent. Buyers of blocks like it want a set yield on what they pay. How does he turn that rent into a price?
     choices:
       - id: a
-        text: "Price is rent times the yield, so a higher yield means a higher price"
+        text: "Multiply the rent by the yield: higher yield, higher price"
         mistake: { tag: yield_times_rent, fix: "A higher required yield means buyers pay less for the same rent." }
-      - { id: b, text: "Price is rent divided by the yield, treating the rent as a payment that goes on for ever" }
+      - { id: b, text: "Divide the rent by the yield, as if rent runs for ever" }
       - id: c
-        text: "Price is the rent times five years, whatever the yield"
-        mistake: { tag: fixed_years_rule, fix: "The yield sets the multiple. Five years is not a rule." }
+        text: "Take five years of rent, whatever the yield"
+        mistake: { tag: fixed_years_rule, fix: "The yield sets the multiple. Five years is no rule." }
       - id: d
-        text: "Price is the rent alone, since the yield only describes the buyer's mood"
+        text: "Use the rent alone; the yield is just buyers' mood"
         mistake: { tag: yield_ignored, fix: "The required yield is what turns a rent into a price." }
     answer: b
     explanation: >
@@ -89,17 +89,17 @@ questions:
 
   - id: ra-q-yield-falls
     prompt: >
-      You own a flat. House prices in the city shoot up and your flat's price rises by half, but the tenant still pays the same rent. What happens to your rent yield?
+      Last spring the city's house prices boomed and Neha's flat rose in price by half. Her tenant still pays the same rent. What has happened to her rent yield?
     choices:
       - id: a
-        text: "It rises, since the flat is now worth more"
+        text: "Up, because the flat is now worth so much more"
         mistake: { tag: yield_follows_price, fix: "The rent is unchanged but the price is higher, so each rupee paid earns less rent." }
       - id: b
-        text: "It stays the same, since the rent has not changed"
+        text: "Unchanged, since the rent is the same"
         mistake: { tag: yield_is_rent, fix: "Yield compares rent with price. A higher price lowers it." }
-      - { id: c, text: "It falls, so the buyer leans more on the price rising than on the rent" }
+      - { id: c, text: "Down: buyers now lean on price rises, less on rent" }
       - id: d
-        text: "It falls to nothing, since rent does not count"
+        text: "Gone to zero, since only the price counts now"
         mistake: { tag: rent_ignored, fix: "Rent still counts. The yield falls but does not vanish." }
     answer: c
     explanation: >
@@ -109,17 +109,17 @@ questions:
 
   - id: ra-q-leverage-ratio
     prompt: >
-      You put down a tiny deposit on a house and the bank lends you all the rest. What do traders call controlling a big asset with a small slice of your own money?
+      Rohan puts down a tiny deposit on a house and the bank lends him all the rest. What do traders call controlling a big asset with a small slice of your own money?
     choices:
       - id: a
-        text: "Unleveraged: the buyer controls only what the deposit pays for"
+        text: "Unleveraged: he controls only what his deposit pays for"
         mistake: { tag: deposit_only, fix: "Borrowing most of the price is leverage. The buyer controls the whole house." }
-      - { id: b, text: "Leverage: each rupee of the buyer's own money controls many rupees of house" }
+      - { id: b, text: "Leverage: each rupee of his own controls many rupees of house" }
       - id: c
-        text: "Hedged: the loan protects the buyer when prices fall"
+        text: "Hedged: the loan protects him if prices fall"
         mistake: { tag: loan_as_hedge, fix: "Borrowing does not protect. It magnifies gains and losses." }
       - id: d
-        text: "Diversified: the buyer's money is spread over many houses"
+        text: "Diversified: his money is spread across many houses"
         mistake: { tag: leverage_as_spread, fix: "One house is one bet. Leverage is about borrowed money, not many assets." }
     answer: b
     explanation: >
@@ -129,41 +129,41 @@ questions:
 
   - id: ra-q-leverage-gain
     prompt: >
-      You buy a flat mostly with a bank loan, putting in only a small slice of your own money. The flat's price rises a little. What happens to the return on your own money?
+      Priya buys a flat with a small deposit and a big home loan. A year later the flat's price is up a little. What has happened to the return on her own money?
     choices:
       - id: a
-        text: "It rises by the same small percentage as the flat's price"
-        mistake: { tag: leverage_ignored, fix: "Your own money is only a small slice of the flat, so the same rise is a bigger share of it." }
-      - { id: b, text: "It rises by many times the flat's percentage: leverage multiplies the gain" }
+        text: "The same small rise as the flat's price"
+        mistake: { tag: leverage_ignored, fix: "Her money is a small slice of the flat, so the same rise is a bigger share of it." }
+      - { id: b, text: "Many times the flat's rise: leverage multiplies the gain" }
       - id: c
-        text: "It does not rise, because the lender takes the profit"
-        mistake: { tag: lender_takes_gain, fix: "The lender is repaid the loan and interest. The whole price rise stays with you." }
+        text: "Nothing, because the bank pockets the rise"
+        mistake: { tag: lender_takes_gain, fix: "The bank gets its loan and interest back. The whole price rise stays with her." }
       - id: d
-        text: "It rises less than the flat's percentage, because the loan shares the profit"
+        text: "A smaller rise, since the loan shares the profit"
         mistake: { tag: loan_shares_gain, fix: "The loan is a fixed amount owed. It does not share the gain." }
     answer: b
     explanation: >
-      The whole price rise belongs to you after the loan is repaid, but it is earned on only your small slice. So the return on your own money is a multiple of the flat's rise. Leverage multiplies a loss in the same way.
+      The whole price rise belongs to her after the loan is repaid, but it is earned on only her small slice. So the return on her own money is a multiple of the flat's rise. Leverage multiplies a loss in the same way.
     source: >
       The multiplying effect of leverage is the point of Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
 
   - id: ra-q-leverage-loss
     prompt: >
-      You buy a flat mostly with a bank loan, putting in only a small slice of your own money. The flat's price then falls by more than your slice is worth. What happens to your own money?
+      Sam buys a beach flat with a small deposit and a big loan. Then prices fall by more than his deposit was worth. Where does that leave him?
     choices:
       - id: a
-        text: "You lose a little, in line with the flat's small fall"
-        mistake: { tag: leverage_ignored, fix: "Your slice is small, so a small fall in the flat can wipe out all of it." }
-      - { id: b, text: "It is wiped out, and a debt can remain: leverage multiplies a loss as it does a gain" }
+        text: "Down a little, in line with the flat's small fall"
+        mistake: { tag: leverage_ignored, fix: "His slice is small, so a small fall in the flat can wipe out all of it." }
+      - { id: b, text: "Wiped out, and he may still owe the bank" }
       - id: c
-        text: "It is safe, because the loan was fixed in advance"
-        mistake: { tag: fixed_loan_safe, fix: "The loan is fixed, but that is why the fall lands entirely on your slice." }
+        text: "Safe, because his loan was fixed in advance"
+        mistake: { tag: fixed_loan_safe, fix: "The loan is fixed, which is why the fall lands entirely on his slice." }
       - id: d
-        text: "The lender takes the whole loss"
-        mistake: { tag: lender_loses_first, fix: "You lose first. The lender is exposed only if the fall is bigger than your slice." }
+        text: "Fine: the bank takes the whole loss"
+        mistake: { tag: lender_loses_first, fix: "He loses first. The bank is exposed only if the fall is bigger than his slice." }
     answer: b
     explanation: >
-      The loan stays the same size whatever the flat sells for. A fall in the price bigger than your small slice wipes out your money and may leave a shortfall, which is the lender's risk. A fall of 10 per cent can take away 100 per cent of a 5 per cent deposit.
+      The loan stays the same size whatever the flat sells for. A fall in the price bigger than his small slice wipes out his money and may leave a shortfall, which is the lender's risk. A fall of 10 per cent can take away 100 per cent of a 5 per cent deposit.
     source: >
       Leverage as in Yale ECON 251 (Shiller), Lecture 1: https://oyc.yale.edu/economics/econ-251/lecture-1
 

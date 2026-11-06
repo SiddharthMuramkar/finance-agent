@@ -52,60 +52,184 @@ youllLearn:
   - "Judge whether a company is moving toward profit as it grows."
   - "Keep run rates and adjusted figures apart from audited profit."
 
+# Written for the story-first spec (E6b): terms, a Running example and scenes, and questions that ask about the story and the words (ADR 0009).
+exampleCurrency: INR
+runningExample:
+  text: "A chai stall takes in ₹30,000 in a month and spends ₹35,000."
+  numbers: [30000, 35000]
+  scene:
+    cast:
+      - { id: meena, emoji: cook, name: Meena, role: chai stall owner }
+    beats:
+      - { who: narrator, says: "Meena runs a chai stall. This month customers paid her ₹30,000.", emoji: hot-beverage }
+      - { who: narrator, says: "Milk, rent and helpers cost her ₹35,000 in the same month.", emoji: receipt }
+      - { who: meena, says: "So the month ended in a loss. Sales alone do not tell the story.", emoji: worried-face }
+
+terms:
+  - term: revenue (top line)
+    means: The money a company earns from selling its product or service, before any cost comes off.
+    pro: Analysts call revenue the top line.
+    example: "A chai stall takes ₹30,000 in a month, before paying for milk or rent."
+    emoji: money-bag
+    inStory: WeWork's filing showed revenue of 1.54 billion dollars for the first six months of 2019.
+  - term: net loss (bottom line)
+    means: What is left after all costs, interest and tax, when those costs are bigger than revenue.
+    pro: The bottom line shows a net loss for the period.
+    example: "A stall takes ₹30,000 and spends ₹35,000: that month it made a loss."
+    emoji: chart-decreasing
+    inStory: WeWork's net loss was more than 900 million dollars in the first six months of 2019.
+  - term: operating expenses
+    means: The everyday costs of running the business, such as pay, rent and marketing.
+    pro: Analysts compare operating expenses with revenue.
+    example: "Rent, salaries and electricity at a coaching centre, month after month."
+    emoji: receipt
+    inStory: WeWork's costs were bigger than its sales, which is why its bottom line was a net loss.
+  - term: EBITDA
+    means: Profit before interest, tax, and the slow write-off of big purchases (depreciation and amortisation).
+    pro: Analysts quote EBITDA, but it is not an audited profit.
+    example: "A shop counts its month's profit before loan interest, tax and fridge wear."
+    emoji: bar-chart
+    inStory: The S-1 shows the bottom line; EBITDA is a different, adjusted measure.
+  - term: S-1
+    means: The form a company files with the US regulator before it first sells shares to the public.
+    pro: Bankers call the filing the S-1, or the prospectus.
+    example: "Like a school prospectus with fees and results, but filed with the stock-market regulator."
+    emoji: scroll
+    inStory: On 14 August 2019 WeWork's parent made its S-1 public.
+
+scenes:
+  - id: fi-s-story
+    step: story
+    recipe: story_scene
+    title: "The day the S-1 went public"
+    inputs:
+      cast:
+        - { id: wework, emoji: office-building, name: WeWork, role: office-sharing company }
+        - { id: investor, emoji: man-office-worker, name: An investor, role: reads the filing }
+      beats:
+        - { who: narrator, says: "14 August 2019: The We Company, WeWork's parent, makes its S-1 public.", emoji: calendar }
+        - { who: wework, says: "We want to sell shares to the public. Here are our numbers.", emoji: scroll }
+        - { who: narrator, says: "First six months of 2019: revenue 1.54 billion dollars, net loss over 900 million.", emoji: bar-chart }
+        - { who: investor, says: "Revenue is growing fast. But what does the income statement really say?", emoji: thinking-face }
+      caption: Nobody yet knows if the share sale will go ahead
+      date: "2019-08-14"
+  - id: fi-s-statement
+    step: concept
+    check: fi-quiz-statement
+    recipe: who_pays_whom
+    title: "Where an income statement's lines come from"
+    inputs:
+      actors:
+        - { id: customers, emoji: person, name: Customers }
+        - { id: company, emoji: office-building, name: The company }
+        - { id: staff, emoji: office-worker, name: Staff and landlords }
+        - { id: lender, emoji: bank, name: The lender }
+      flows:
+        - { from: customers, to: company, what: sales (revenue), emoji: money-bag }
+        - { from: company, to: staff, what: "pay, rent and other costs", emoji: receipt }
+        - { from: company, to: lender, what: interest on loans, emoji: coin }
+  - id: fi-s-read
+    step: concept
+    check: fi-wework-read
+    recipe: myth_or_fact
+    title: "Reading an income statement: myth or fact"
+    inputs:
+      cards:
+        - claim: If revenue grows fast, a company is getting close to profit.
+          isFact: false
+          why: Profit depends on whether costs grow slower than revenue, not on revenue alone.
+          emoji: chart-increasing
+        - claim: The bottom line of an income statement is net income, or a net loss.
+          isFact: true
+          why: It is what is left after costs, interest and tax come off revenue.
+          emoji: ledger
+        - claim: An income statement shows the cash a company holds today.
+          isFact: false
+          why: It covers a period of time. Cash on hand sits on the balance sheet.
+          emoji: hourglass-done
+  - id: fi-s-reveal
+    step: reveal
+    recipe: timeline
+    title: "How the S-1 story ended"
+    inputs:
+      beats:
+        - { date: "2019-08-14", label: "WeWork's S-1 becomes public", emoji: scroll }
+        - { date: "2019-09-24", label: Adam Neumann steps down as chief executive, emoji: man }
+        - { date: "2019-09-30", label: WeWork asks to withdraw its prospectus, emoji: cross-mark }
+        - { date: "2023-11-06", label: WeWork files for Chapter 11 bankruptcy, emoji: warning }
+  - id: fi-s-principle
+    step: principle
+    recipe: two_paths
+    title: "Two investors, one filing"
+    inputs:
+      question: Two investors read the same filing. What does each take away?
+      left:
+        emoji: man-office-worker
+        name: Investor A
+        choice: Reads only the top line
+        outcome: [chart-increasing, star-struck]
+        outcomeLine: Sees fast growth and feels good about the company.
+      right:
+        emoji: woman-office-worker
+        name: Investor B
+        choice: Reads down to the bottom line
+        outcome: [magnifying-glass-tilted-left, thinking-face]
+        outcomeLine: Sees the loss keeping pace with growth.
+
 questions:
   - id: fi-q-net-result
     prompt: >
-      A company reports revenue of 1,500 and total expenses of 2,400 (in millions) for the period. What is its net result?
+      WeWork's filing showed revenue of 1.54 billion dollars and a net loss of more than 900 million dollars for six months. What does a net loss tell you?
     choices:
-      - { id: a, text: "A profit of 900" }
-      - { id: b, text: "A loss of 900" }
-      - { id: c, text: "A loss of 2,400" }
-      - { id: d, text: "A profit of 1,500" }
-    answer: b
+      - { id: a, text: "Costs, interest and tax together were bigger than revenue" }
+      - { id: b, text: "Revenue was lower than the year before", mistake: { tag: loss_means_falling_sales, fix: "A net loss says nothing about last year. It means costs beat revenue in this period." } }
+      - { id: c, text: "The company has run out of cash", mistake: { tag: loss_means_no_cash, fix: "Cash sits on the balance sheet and cash flow statement. A net loss only says costs beat revenue." } }
+      - { id: d, text: "The company paid no tax", mistake: { tag: tax_is_not_a_cost, fix: "Tax is one of the costs. A loss means everything taken off was bigger than revenue." } }
+    answer: a
     explanation: >
-      Net income = revenue - expenses = 1,500 - 2,400 = -900, a net loss of 900 million.
+      Net income is revenue less costs, interest and tax. When those together are bigger than revenue, the bottom line is a net loss.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: fi-q-net-margin
     prompt: >
-      A company has revenue of 1,500 and a net loss of 900 (in millions). What is its net profit margin?
+      What do analysts call the share of each sale that a company keeps as profit?
     choices:
-      - { id: a, text: "Minus 60%" }
-      - { id: b, text: "Plus 60%" }
-      - { id: c, text: "Minus 167%" }
-      - { id: d, text: "Minus 6%" }
+      - { id: a, text: "The net margin" }
+      - { id: b, text: "Revenue growth", mistake: { tag: growth_is_not_margin, fix: "Revenue growth is how fast sales rise. It does not say how much of each sale is kept." } }
+      - { id: c, text: "The run rate", mistake: { tag: run_rate_is_not_profit, fix: "A run rate scales the latest period's revenue up to a year. It is not a profit measure." } }
+      - { id: d, text: "Operating expenses", mistake: { tag: costs_are_not_margin, fix: "Operating expenses are the costs of running the business, not the share of sales kept." } }
     answer: a
     explanation: >
-      Net margin = net income / revenue = -900 / 1,500 = -0.60, or minus 60%. The company loses 60 cents on every unit of sales.
+      The net margin is net income set against revenue. For WeWork's first half of 2019 it was negative, about minus 59 per cent: it lost money on every dollar of sales.
     source: >
-      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method (profit margin = net income / net sales): https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
+      OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method (profit margin): https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
   - id: fi-q-operating-to-net
     prompt: >
-      A company has operating income of 200, interest expense of 120 and income tax of 20. What is its net income?
+      On an income statement, which two costs come off between operating profit and the bottom line?
     choices:
-      - { id: a, text: "60" }
-      - { id: b, text: "80" }
-      - { id: c, text: "200" }
-      - { id: d, text: "340" }
+      - { id: a, text: "Interest and tax" }
+      - { id: b, text: "Revenue and sales", mistake: { tag: revenue_is_the_top, fix: "Revenue is the top line, where the statement starts. It does not come off at the end." } }
+      - { id: c, text: "Cash on hand and debtors", mistake: { tag: balance_sheet_items, fix: "Those are balance sheet items. The income statement holds revenue, costs and profit." } }
+      - { id: d, text: "Dividends and share capital", mistake: { tag: owner_payouts, fix: "Dividends are paid from profit afterwards, and share capital is owners' money. Neither is a cost here." } }
     answer: a
     explanation: >
-      Net income = operating income - interest - tax = 200 - 120 - 20 = 60.
+      An income statement runs from revenue down through the costs of earning it to operating profit, then interest and tax come off to reach net income.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
 
   - id: fi-q-both-doubled
     prompt: >
-      One year a company has revenue of 900 and a net loss of 950. The next year its revenue and its net loss both double, to 1,800 and 1,900. What happened to its net margin?
+      Reports put WeWork's revenue and net loss for 2018 each at about double the year before. Was it getting closer to profit?
     choices:
-      - { id: a, text: "It improved, because revenue doubled" }
-      - { id: b, text: "It stayed about the same, at roughly minus 106%" }
-      - { id: c, text: "It worsened, because the loss doubled" }
-      - { id: d, text: "It cannot be worked out without the balance sheet" }
-    answer: b
+      - { id: a, text: "No: the loss grew as fast as sales, so it was no nearer profit" }
+      - { id: b, text: "Yes: doubling revenue always moves a company toward profit", mistake: { tag: growth_means_profit, fix: "Revenue growth helps only if costs grow slower. Here the loss doubled too." } }
+      - { id: c, text: "Yes: a bigger loss shows the company is investing well", mistake: { tag: loss_means_investing, fix: "A bigger loss is a bigger gap between costs and revenue. It does not show the money was used well." } }
+      - { id: d, text: "Nobody can say without the cash flow statement", mistake: { tag: needs_other_statement, fix: "The income statement alone shows whether the loss kept pace with revenue." } }
+    answer: a
     explanation: >
-      The margin is -950 / 900 = -105.6% the first year and -1,900 / 1,800 = -105.6% the second. Both sides doubled, so the ratio did not change: growth alone did not move the company toward profit.
+      When revenue and the loss both double, the loss per unit of sales stays about the same. Growth alone did not move the company toward profit.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 6.6 Profitability Ratios and the DuPont Method: https://openstax.org/books/principles-finance-2e/pages/6-6-profitability-ratios-and-the-dupont-method
 
@@ -113,10 +237,10 @@ questions:
     prompt: >
       Which statement about where these items are reported is true?
     choices:
-      - { id: a, text: "Revenue for the half-year belongs on the balance sheet" }
-      - { id: b, text: "Interest expense for the half-year belongs on the balance sheet" }
+      - { id: a, text: "Revenue for the half-year belongs on the balance sheet", mistake: { tag: revenue_on_balance_sheet, fix: "Revenue covers a period, so it is on the income statement. The balance sheet holds balances at a date." } }
+      - { id: b, text: "Interest expense for the half-year belongs on the balance sheet", mistake: { tag: expense_on_balance_sheet, fix: "Interest expense is a cost of the period, so it is on the income statement." } }
       - { id: c, text: "Cash on hand at the end of the half-year belongs on the balance sheet" }
-      - { id: d, text: "Income tax for the half-year belongs on the balance sheet" }
+      - { id: d, text: "Income tax for the half-year belongs on the balance sheet", mistake: { tag: tax_on_balance_sheet, fix: "Tax for the period is a cost on the income statement." } }
     answer: c
     explanation: >
       The income statement covers a period and holds revenue, expenses and profit. A balance at a date, such as cash on hand, belongs on the balance sheet.
@@ -127,15 +251,57 @@ questions:
     prompt: >
       A company signs a contract in December but delivers the service in the following March. When does accrual accounting recognise the revenue?
     choices:
-      - { id: a, text: "In December, when the contract is signed" }
+      - { id: a, text: "In December, when the contract is signed", mistake: { tag: revenue_at_signing, fix: "Signing is a promise. Revenue is recognised when it is earned, on delivery." } }
       - { id: b, text: "In March, when the service is delivered and the revenue is earned" }
-      - { id: c, text: "Whenever the customer's cash arrives, whatever the date" }
-      - { id: d, text: "Evenly over the year" }
+      - { id: c, text: "Whenever the customer's cash arrives, whatever the date", mistake: { tag: revenue_at_cash, fix: "That is cash accounting. Accrual accounting counts revenue when it is earned." } }
+      - { id: d, text: "Evenly over the year", mistake: { tag: revenue_spread_evenly, fix: "Revenue follows the delivery of the service, not an even spread." } }
     answer: b
     explanation: >
       Under accrual accounting, revenue is recognised when it is earned, which here is on delivery, not when a contract is signed or cash is received.
     source: >
       OpenStax, Principles of Finance (CC BY-NC-SA), 4.3 How Does a Company Recognize a Sale and an Expense: https://openstax.org/books/principles-finance-2e/pages/4-3-how-does-a-company-recognize-a-sale-and-an-expense
+
+  - id: fi-q-top-line
+    prompt: >
+      What do analysts call a company's revenue?
+    choices:
+      - { id: a, text: "The top line" }
+      - { id: b, text: "The bottom line", mistake: { tag: top_for_bottom, fix: "The bottom line is net income or net loss, at the end of the statement." } }
+      - { id: c, text: "The run rate", mistake: { tag: run_rate_is_not_revenue, fix: "A run rate scales the latest period up to a year. It is not revenue earned." } }
+      - { id: d, text: "The cash pile", mistake: { tag: cash_for_revenue, fix: "Cash on hand is on the balance sheet. Revenue is the sales earned in a period." } }
+    answer: a
+    explanation: >
+      Revenue sits at the top of the income statement, so analysts call it the top line. The bottom line is what is left at the end.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+
+  - id: fi-q-bottom-line
+    prompt: >
+      A friend says WeWork's "bottom line" was a loss. What does the friend mean?
+    choices:
+      - { id: a, text: "Net income came out negative: the last line, after all costs, was a net loss" }
+      - { id: b, text: "Its cheapest product lost money", mistake: { tag: bottom_means_cheapest, fix: "The bottom line is the last line of the statement, not a product." } }
+      - { id: c, text: "Its lowest month of revenue was weak", mistake: { tag: bottom_means_worst_month, fix: "The bottom line is the result after all costs, not a single weak month." } }
+      - { id: d, text: "Its smallest cost was too big", mistake: { tag: bottom_means_smallest_cost, fix: "The bottom line is the final result, after every cost has come off." } }
+    answer: a
+    explanation: >
+      The bottom line is net income, the last line of the income statement. When costs beat revenue it reads as a net loss.
+    source: >
+      OpenStax, Principles of Finance (CC BY-NC-SA), 5.1 The Income Statement: https://openstax.org/books/principles-finance-2e/pages/5-1-the-income-statement
+
+  - id: fi-q-s1
+    prompt: >
+      What do bankers call the form a company files with the US regulator before it first sells shares to the public?
+    choices:
+      - { id: a, text: "An S-1" }
+      - { id: b, text: "A balance sheet", mistake: { tag: statement_for_filing, fix: "A balance sheet is one statement inside such a filing, not the filing itself." } }
+      - { id: c, text: "A dividend", mistake: { tag: dividend_for_filing, fix: "A dividend is a payout to shareholders, not a document." } }
+      - { id: d, text: "A run rate", mistake: { tag: run_rate_for_filing, fix: "A run rate is a way of scaling revenue up to a year, not a filing." } }
+    answer: a
+    explanation: >
+      The S-1 is the registration form, or prospectus, filed with the US Securities and Exchange Commission ahead of a first share sale to the public. WeWork's parent made its public on 14 August 2019.
+    source: >
+      WeWork (The We Company), Form S-1 filed with the US SEC, August 2019: https://www.sec.gov/Archives/edgar/data/1533523/000119312519220499/d781982ds1.htm
 
 checks:
   - id: fi-quiz-statement
@@ -147,6 +313,9 @@ checks:
       - fi-q-both-doubled
       - fi-q-not-on-statement
       - fi-q-earned
+      - fi-q-top-line
+      - fi-q-bottom-line
+      - fi-q-s1
     perAttempt: 3
     passRule:
       correct: 2
@@ -154,14 +323,13 @@ checks:
     kind: conversation
     prompt: >
       WeWork's filing shows revenue of 1.54 billion dollars and a net loss of more than 900
-      million dollars for the first six months of 2019. Read that income statement in your own
-      words: what is the net margin, what does it say about whether faster revenue growth is
-      bringing the company closer to profit, and what can an income statement not tell you
-      about whether the company can keep going?
+      million dollars for the first six months of 2019. In your own words, using the terms top
+      line and bottom line: is faster revenue growth bringing the company closer to profit, and
+      what can an income statement not tell you about whether the company can keep going?
     passCriteria: >
-      The Learner works out a net margin of about minus 59% (accept minus 58% to minus 60%) (loss divided by revenue,
-      roughly minus 0.6), explains that the company spends more than a dollar for every dollar
-      of revenue, and that growth in revenue (for example, revenue and loss both about doubling
-      in 2018) has not narrowed the loss. They note that an income statement covers a period and
+      The Learner says the company spent more than it earned: the bottom line is a net loss of more
+      than half of the top line, a net margin of about minus 59% (they need not give a number; in words, it
+      loses roughly 60 cents on every dollar of revenue). They explain that growth in revenue (for example,
+      revenue and loss both about doubling in 2018) has not narrowed the loss. They note that an income statement covers a period and
       does not show cash on hand, borrowings, or lease commitments, which sit on the balance
       sheet and cash flow statement and decide how long the company can keep losing money.
