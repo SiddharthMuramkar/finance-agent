@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Topic } from "@/course/map";
 import { STEP_NAMES, type NextOffer, type StepPosition, type StepSequence } from "@/course/navigator";
 import { Emoji } from "@/emoji/emoji";
@@ -200,6 +200,33 @@ function StepStrip({ strip, step }: { strip: StepSequence; step: (s: StepPositio
   );
 }
 
+// Appendix B.7: primary is used once per view (#478). A panel that shows an enabled primary of its own (a Check's
+// Submit or Try again, a Spaced review's Submit answer once a choice is picked, its Next review or Done once marked)
+// claims the view's primary while it shows, and the Next chip steps back to secondary until no claim stands.
+const ClaimPrimaryContext = createContext<((delta: 1 | -1) => void) | null>(null);
+const PrimaryClaimedContext = createContext(false);
+
+/** Holds the panels' claims on the view's one primary: the Study Workspace wraps its columns in it. */
+export function PrimaryClaims({ children }: { children: ReactNode }) {
+  const [claims, setClaims] = useState(0);
+  const claim = useCallback((delta: 1 | -1) => setClaims((n) => n + delta), []);
+  return (
+    <ClaimPrimaryContext.Provider value={claim}>
+      <PrimaryClaimedContext.Provider value={claims > 0}>{children}</PrimaryClaimedContext.Provider>
+    </ClaimPrimaryContext.Provider>
+  );
+}
+
+/** While `active`, this panel's own enabled primary is the view's one: the Next chip steps back to secondary. */
+export function useClaimPrimary(active: boolean) {
+  const claim = useContext(ClaimPrimaryContext);
+  useEffect(() => {
+    if (!active || !claim) return;
+    claim(1);
+    return () => claim(-1);
+  }, [active, claim]);
+}
+
 /** One Choice as the Study Workspace draws it: the stored item's entry (reply_choices) or code's set. */
 export type ChoiceButton = { label: string; says: string; emoji: string };
 
@@ -230,6 +257,8 @@ export function Chips({
   // The chip pressed shows a spinner at once and the others wait, until the turn takes the chips away (or, if the turn
   // could not start, they come back fresh).
   const [pressed, setPressed] = useState<string | null>(null);
+  // A panel's own primary (a Check, a Spaced review) is the main move while it shows.
+  const claimed = useContext(PrimaryClaimedContext);
   const press = (offer: NextOffer) => {
     setPressed("next");
     if (offer.kind === "just_tell_me") onSay?.(JUST_TELL_ME);
@@ -237,10 +266,11 @@ export function Chips({
   };
   return (
     // The Next chip is the main move, so it is the view's one primary, on its own row at full size, until the Learner
-    // types (then Send is); the Choices are smaller secondaries, grouped below it (#478, Appendix B.7).
+    // types (then Send is) or a panel claims the primary (useClaimPrimary); the Choices are smaller secondaries,
+    // grouped below it (#478, Appendix B.7).
     <div className="measure mt-3 flex flex-col items-start gap-2" data-testid="choices">
       {offer && (
-        <Button variant={composing ? "secondary" : "primary"} data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
+        <Button variant={composing || claimed ? "secondary" : "primary"} data-testid="next-chip" loading={pressed === "next"} disabled={pressed !== null} onClick={() => press(offer)}>
           {offer.label} →
         </Button>
       )}

@@ -2488,6 +2488,15 @@ is skipped. The old Session page draws the divider between the parts too.
   a transition, and its pending flag hides the chip), while Retry is offered, and on a passed Topic kept
   on screen. The old status card and its Continue button are gone (the Topic bar stands there now), and so
   is the cut-off reply's Continue (see "Finish this reply, and old Continue as a divider").
+- **One primary per view (#478, Appendix B.7).** The Next chip is the view's one raised primary, with two
+  exceptions where the Learner's next move is elsewhere: while words are in the message box (Send is the
+  primary), and while a panel shows an enabled primary of its own. A Check's Submit or Try again, and a Spaced
+  review's Submit answer (once a choice is picked) or its Next review / Done (once marked), claim the primary
+  through `useClaimPrimary` (`PrimaryClaims` in `workspace-parts.tsx` wraps the workspace), and the Next chip
+  steps back to secondary until no claim stands. A passed Check's Done is secondary: its note already says
+  "Press Next in the conversation to carry on". Scenario: the Learner picks a review answer at the top; Submit
+  answer turns primary and the Next chip under the reply goes plain until they move on. Trade-off: a claim is
+  per panel state, not per pixel, so a marked review folded shut by hand still keeps the chip secondary.
 - **Pressing Next** sends `{ next: <step> }` (or `"complete"`) and no Learner message. The Tutor Turn
   takes the Learner's lock first, then in one transaction (`takeLearnersNext`): checks the press is the
   Next on offer (`takeNext`: never past a Check without a saved pass, never past an unsettled Explore,

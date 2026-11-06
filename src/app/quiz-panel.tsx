@@ -6,7 +6,8 @@ import type { Marking } from "@/course/quiz";
 import type { MissedQuiz, OpenQuiz } from "@/learner/quiz";
 import { MarkedText } from "@/widgets/marked-text";
 import type { SessionItemData } from "./session-item-view";
-import { PrimaryButton } from "./ui";
+import { PrimaryButton, SecondaryButton } from "./ui";
+import { useClaimPrimary } from "./workspace-parts";
 
 /** A marking on screen, with the Check's number for Try Check <k> again. */
 type Result = Marking & { attemptNo: number; checkNumber: number };
@@ -128,6 +129,11 @@ export function QuizPanel({
     router.refresh();
   }
 
+  const complete = !!active && active.questions.every((q) => picked[q.id]?.trim());
+  // Submit (once every answer is picked) and Try again are the view's one primary while they show, so the Next chip
+  // steps back. A passed Check's Done is secondary: Next in the conversation is the main move then (Appendix B.7, #478).
+  useClaimPrimary(result ? !result.passed : complete);
+
   if (result) {
     return (
       <section aria-label="Quiz result" data-testid="quiz-result">
@@ -183,9 +189,9 @@ export function QuizPanel({
           <p className="mt-2 text-sm leading-5 text-[var(--danger)]">{error}</p>
         )}
         {result.passed ? (
-          <PrimaryButton onClick={dismiss} className="mt-3">
+          <SecondaryButton onClick={dismiss} className="mt-3">
             Done
-          </PrimaryButton>
+          </SecondaryButton>
         ) : (
           <PrimaryButton
             onClick={() => void retry()}
@@ -204,7 +210,6 @@ export function QuizPanel({
     );
   }
   if (!active) return null;
-  const complete = active.questions.every((q) => picked[q.id]?.trim());
   return (
     <section aria-label="Quiz" data-testid="quiz">
       {active.attemptNo > 0 && (

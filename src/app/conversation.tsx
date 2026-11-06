@@ -22,7 +22,7 @@ import { useWidgetHost, WidgetHost } from "./widget-host";
 import { WidgetReportContext, type WidgetReport } from "./widget-panel";
 import { useWidgetStates, WidgetStatesProvider } from "./widget-states";
 import { WorkspaceFrame } from "./workspace-frame";
-import type { PassedTopic, Place } from "./workspace-parts";
+import { PrimaryClaims, type PassedTopic, type Place } from "./workspace-parts";
 
 export type { Line, PendingTurn };
 
@@ -174,11 +174,14 @@ export function Conversation({
             <ParkActionsContext.Provider value={passed ? null : park}>
               {/* A passed Topic's page sends nothing, so its Quick tries draw read-only. */}
               <QuickTryContext.Provider value={passed ? null : quickTries}>
+              {/* A Check's or a Spaced review's own primary claims the view's one primary from the Next chip (#478). */}
+              <PrimaryClaims>
               <WorkspaceFrame
                 left={<LeftColumn turn={turn} slot={host.slot} quizOpen={!!quiz} passed={passed} next={next} openQuestion={insightSettled ? null : openQuestion} />}
                 top={<TopicHeader turn={turn} strip={strip} place={place} review={review} explore={explore} />}
                 right={<WidgetHost host={host} topicTitle={place?.title} />}
               />
+              </PrimaryClaims>
               </QuickTryContext.Provider>
             </ParkActionsContext.Provider>
             </WidgetReportContext.Provider>
