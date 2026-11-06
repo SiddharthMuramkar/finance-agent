@@ -973,8 +973,9 @@ async function* runLockedTurn(
       blocked: gateFacts.blockedNumbers,
     });
     const built = picked ? recipeById(picked.recipe)?.build(picked.params) : undefined;
-    if (!picked || !built?.ok) {
-      if (picked) console.error(`Companion Widget "${picked.kind}" of Topic "${covering.id}" does not build${built ? `: ${built.error}` : ""}.`);
+    if (!picked) return { source: "none" };
+    if (!built?.ok) {
+      console.error(`Companion Widget "${picked.kind}" of Topic "${covering.id}" does not build${built && !built.ok ? `: ${built.error}` : ""}.`);
       return { source: "none" };
     }
     const data: ShownWidget = {
