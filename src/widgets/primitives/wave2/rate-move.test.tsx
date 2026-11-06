@@ -140,3 +140,33 @@ describe("RateMove, practice mode", () => {
     expect(byId(page!, "rate-move-new")!.textContent).toBe("New 6%");
   });
 });
+
+describe("RateMove, number line end labels (#417, #394, #318)", () => {
+  // The svg viewBox is 0..320 and clips anything outside it. Estimate text width as 0.6 * fontSize * characters.
+  const VIEW_WIDTH = 320;
+  const endLabels = () => {
+    const texts = [...byId(page!, "rate-move-line")!.querySelectorAll("text")].filter((t) => !t.getAttribute("data-testid"));
+    return texts.map((t) => {
+      const x = Number(t.getAttribute("x"));
+      const width = 0.6 * Number(t.getAttribute("font-size")) * (t.textContent ?? "").length;
+      const anchor = t.getAttribute("text-anchor");
+      return { text: t.textContent, left: anchor === "end" ? x - width : x, right: anchor === "end" ? x : x + width };
+    });
+  };
+
+  it.each([
+    [4, 5],
+    [4.5, 4.75],
+    [3.75, 5.25],
+    [10, 10.5],
+    [10, 10.25],
+  ])("keeps both axis end labels inside the box for old %s, new %s", (oldRate, newRate) => {
+    show(<RateMoveView oldRate={oldRate} newRate={newRate} />);
+    const labels = endLabels();
+    expect(labels).toHaveLength(2);
+    for (const l of labels) {
+      expect(l.left, `${l.text} left edge`).toBeGreaterThanOrEqual(0);
+      expect(l.right, `${l.text} right edge`).toBeLessThanOrEqual(VIEW_WIDTH);
+    }
+  });
+});

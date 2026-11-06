@@ -26,7 +26,7 @@ const rateText = (percent: number) => String(Math.round(percent * 100) / 100);
 
 // The number line's drawing box: the axis runs between the margins, which leave room for the end labels.
 const WIDTH = 320;
-const MARGIN = 44;
+const MARGIN = 56;
 const AXIS_Y = 38;
 const HEAD = 8;
 
