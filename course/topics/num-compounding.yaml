@@ -19,8 +19,7 @@ cases:
       year, after the government's liberalising reforms. On 29 February 1992, Union Budget day,
       it rose 9.37% to 3,017.68, its first close above 3,000. In March 1992 it closed above
       4,000 for the first time and ended the month at 4,285. As of 31 March 1992 the index has
-      risen more than fortyfold in 13 years, and commentators are calling it the start of a new
-      era. Nobody knows what comes next.
+      risen more than fortyfold in 13 years. Nobody knows what comes next.
     reveal: >
       The Sensex peaked with a close of 4,467 in April 1992. On 28 April 1992, as the Harshad
       Mehta securities scam came to light, it fell 12.77 per cent in a day, the largest one-day
@@ -94,7 +93,7 @@ terms:
     pro: The market is on a bull run.
     example: "Your ₹10,000 of shares rising for months while everyone cheers."
     emoji: ox
-    inStory: In the story, commentators call the Sensex's climb the start of a new era.
+    inStory: In the story, the Sensex keeps climbing from 1991 into 1992, past 3,000 and then 4,000.
   - term: rule of 72
     means: A shortcut that gives about the years money takes to double at a yearly rate.
     pro: At eight percent, the rule of 72 says about nine years.

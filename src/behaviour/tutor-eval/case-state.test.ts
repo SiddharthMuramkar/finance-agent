@@ -157,7 +157,7 @@ describe("T3: the Quick try code shows is the one the earlier turn talks about",
     const sent = JSON.stringify(requests[0]);
     expect(sent).toMatch(/missed a Quick try on the same idea twice in a row/);
     expect(sent).toMatch(/A rate falls from 7\.5% to 7\.2%\./);
-    expect(sent).toMatch(/The Learner gave \\"0\.3 bp\\": a Known mistake/);
+    expect(sent).toMatch(/The Learner gave \\"0\.3 bp: the fall left in points\\": a Known mistake/);
 
     // The next Quick try code posts below the reply is part of what the Learner sees, and the grader is told of it.
     const done = events.at(-1) as Extract<TurnEvent, { type: "done" }>;

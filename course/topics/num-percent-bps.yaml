@@ -234,7 +234,7 @@ templates:
   - id: pb-t-bp-from-move
     skill: pts-to-bp
     ask: The central bank takes its rate from {a}% to {b}%. A bond trader would call that move…
-    label: "{value}"
+    label: "{value}: the move counted in hundredths of a point"
     params:
       a: { min: 1, max: 9, step: 0.25 }
       d: { min: -1.2, max: 1.2, step: 0.05 }
@@ -244,8 +244,8 @@ templates:
     decimals: 0
     sign: magnitude
     mistakes:
-      - { tag: stopped_at_points, fix: That is the move in points. Times 100 gives basis points. }
-      - { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." }
+      - { tag: stopped_at_points, fix: "That is the move in points. Times 100 gives basis points.", label: "{value}: the move left in points" }
+      - { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10.", label: "{value}: the move counted in tenths of a point" }
     halfDone: { shows: "First step, done for you: the move is {points} points.", asks: bp_from_points }
     avoid: [4, 5, 1, 100, 25, 3, 3.25, 3.5, 7.2, 7.5, 6.25, 6.75, 8, 8.5, 9, 9.4, 6.5, 5.9]
   - id: pb-t-points-from-bp
@@ -498,13 +498,13 @@ checks:
         halfDone: "First step, done for you: the move is 0.5 points."
       - id: pb-try-a3
         skill: pts-to-bp
-        ask: "A rate falls from 7.5% to 7.2%. A trader would call that a fall of:"
+        ask: "A rate falls from 7.5% to 7.2%. That is a fall of 0.3 points. A trader would quote the same fall as:"
         kind: choice
         answer: a
         choices:
-          - { id: a, text: "30 bp" }
-          - { id: b, text: "3 bp", mistake: { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." } }
-          - { id: c, text: "0.3 bp", mistake: { tag: stopped_at_points, fix: "That is the fall in points. Times 100 gives basis points." } }
+          - { id: a, text: "30 bp: the fall counted in hundredths of a point" }
+          - { id: b, text: "3 bp: the fall counted in tenths of a point", mistake: { tag: used_x10, fix: "One point is 100 basis points, so multiply by 100, not 10." } }
+          - { id: c, text: "0.3 bp: the fall left in points", mistake: { tag: stopped_at_points, fix: "That is the fall in points. Times 100 gives basis points." } }
       - id: pb-try-a4
         skill: bp-to-pts
         ask: "A trader says a yield is up 120 bp. A newspaper would say it is up:"
