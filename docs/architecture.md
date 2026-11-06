@@ -4764,3 +4764,10 @@ A headline is never written by the Tutor. Its recipe takes the front page's text
 **Scenario.** A Learner starting the balance sheet meets Satyam on 30 September 2008 as an analyst asking which big number to check, taps through "Two owners hold the same flat" to feel what equity is, and later taps "Auditor" for "the outside accountant who checks the accounts", never typing a figure.
 
 **Trade-off.** A tap is easier to guess than a worked figure, so the Checks lean on their pass rule rather than on arithmetic. In return a Learner who dislikes numbers reads the same Cases and still learns the words analysts use. The WeWork, Satyam and Webvan casts are kept the same across the Topics that share a Case, so E6c can reuse them.
+## Foundation Topics, story-first batch E6c (`course/topics/`, issue #364)
+
+**What it does.** `fs-ratios`, `fs-revenue-runrate`, `fs-capex-dep` and `fs-leases-debt` now open with a story, teach the lingo and quiz with taps. Each file gains five written-ahead scenes (a story, two concept scenes, a reveal and a principle), five Lingo-card terms, a Running example with a rupee Story scene, three new lingo choice questions and a mix-up fix on every wrong choice. Every sum-stem question became a story or lingo choice, the conversation Checks no longer ask the Learner to work a ratio out, and the four ids leave `L10_NOT_YET_STORY` (and three leave the ADR 0002 list in `formula-check.ts`).
+
+**Scenario.** A Learner opens Revenue recognition and run rates. The story scene shows WeWork's boast of $3 billion of run-rate revenue beside the $1.54 billion actually recorded; the quiz asks what "run-rate" means, not what twice $1.54 billion is; and the reveal is a timeline from the S-1 to the withdrawn IPO.
+
+**Trade-off.** Ratios were taught by working them, and a tap quiz cannot check that the Learner can. We accept that: the idea (which part of the return is borrowed, what a run rate leaves out) is what the course keeps, and the numbers stay as story facts.
