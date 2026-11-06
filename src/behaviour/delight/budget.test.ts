@@ -187,10 +187,11 @@ describe("[S3] an unfinished try is charged once its usage settles (E4b-C2)", ()
     expect(s.reserve.usd).toBeCloseTo(ceiling, 6);
     expect(s.reserve.why[0]).toMatch(/Learner 7/);
     expect(s.uncounted).toBeNull();
-    // $0.90 is spent with the reserve: the next prompt, now estimated at $0.78, no longer fits under $1.05.
-    expect(s.nextPrompt()).toBeCloseTo(0.06 + ceiling, 6);
-    expect(s.allows(s.nextPrompt())).toBe(false);
-    expect(s.allows(0.12)).toBe(true);
+    // $0.90 is spent with the reserve. The reserve is counted once, in `spent`, and never again in the next prompt's
+    // estimate (E4b-C3): that stays the costliest prompt actually read ($0.12), so one timeout does not refuse the rest.
+    expect(s.nextPrompt()).toBeCloseTo(0.12, 6);
+    expect(s.allows(s.nextPrompt())).toBe(true);
+    expect(s.allows(0.2)).toBe(false);
   });
 
   it("reserves at least the first-prompt estimate at max output when no prompt is known yet", async () => {

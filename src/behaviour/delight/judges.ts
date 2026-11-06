@@ -242,7 +242,8 @@ export class Spend {
     this.spent += cost;
     this.tutor.usd += cost;
     this.tutor.prompts += 1;
-    this.tutor.costliest = Math.max(this.tutor.costliest, cost);
+    // The estimate for later prompts uses only what was read: a reserve is already in `spent` once (E4b-C3).
+    this.tutor.costliest = Math.max(this.tutor.costliest, read);
     return cost;
   }
   /** Charges one judge call and returns what it cost. */
