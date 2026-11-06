@@ -69,7 +69,7 @@ export interface DrawnItem {
   rounded?: boolean;
   /** Every parameter and derived value, as plain decimals, so the draw can be stored and shown again. */
   params: Record<string, string>;
-  mistakes: { value: Exact; tag: MistakeFnId; fix: string }[];
+  mistakes: { value: Exact; tag: MistakeFnId; fix: string; label?: string }[];
   /** The template's label pattern, if it has one. */
   label?: string;
 }
@@ -218,6 +218,7 @@ function attempt(t: QuestionTemplate, random: () => number, halfDone: boolean, s
     value: size(normalize(rounded ? roundTo(mistakeValue(m.tag, fn, values, Math.max(t.decimals, 2)), t.decimals) : mistakeValue(m.tag, fn, values, Math.max(t.decimals, 2)))),
     tag: m.tag,
     fix: fill(m.fix, fixSlots, `mistake ${m.tag}`),
+    ...(m.label && { label: m.label }),
   }));
   const clashes = (value: Exact) =>
     exactEquals(absolute(value), absolute(answer), Math.max(t.decimals, normalize(value).scale, answer.scale)) ||
@@ -268,6 +269,7 @@ export function templateProblems(t: QuestionTemplate): string[] {
   }
   for (const m of t.mistakes) {
     if (!mistakeFns.includes(m.tag)) problems.push(`mistake "${m.tag}" is not one of ${MISTAKE_FNS.join(", ")}`);
+    if (m.label !== undefined && !m.label.includes("{value}")) problems.push(`mistake ${m.tag} label: "${m.label}" has no {value} slot`);
   }
   if (!Number.isInteger(t.decimals) || t.decimals < 0) problems.push(`decimals ${t.decimals} must be a whole number from 0`);
   for (const [name, range] of Object.entries(t.params)) {

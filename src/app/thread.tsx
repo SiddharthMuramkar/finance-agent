@@ -23,9 +23,9 @@ export type MessageLine = {
   role: "user" | "assistant";
   text: string;
   usage?: TurnUsage;
-  /** Where a finished reply sits in its Session; it is what "Save to notes" keys on. */
+  /** Where a finished reply sits in its Session; it is what "Save to Notebook" keys on. */
   ref?: TurnRef;
-  /** The reply goes on after a Session item, in the next reply line: Save to notes and the Widget count carry on there. */
+  /** The reply goes on after a Session item, in the next reply line: Save to Notebook and the Widget count carry on there. */
   more?: true;
 };
 /** A display-only Session item between messages (a step divider), drawn by its kind; never a message. */
@@ -56,7 +56,7 @@ function presetOfItem(raw: unknown): Record<string, number> | undefined {
 }
 
 /**
- * The Save to notes target of the Widget show_widget drew at `messages[at]`: its turn's reply (the nearest finished Tutor
+ * The Save to Notebook target of the Widget show_widget drew at `messages[at]`: its turn's reply (the nearest finished Tutor
  * reply between the Learner's messages around it) and its number in that reply, which is after the reply's own fences and
  * counts the turn's shown Widgets in order, as the server numbers them. None while the reply is still being written.
  */
@@ -75,7 +75,7 @@ function shownSaveTarget(messages: ThreadLine[], at: number): (SaveTarget & { ki
 
 export function widgetsIn(messages: ThreadLine[], running = false, writtenAhead: readonly WrittenAhead[] = []): WidgetItem[] {
   const out: WidgetItem[] = [];
-  // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them for Save to notes.
+  // A reply cut by a Session item counts its Widgets on across its parts, as the saved reply numbers them for Save to Notebook.
   let inReply = 0;
   let continues = false;
   messages.forEach((m, i) => {
@@ -186,7 +186,7 @@ const MESSAGE_COMPONENTS = { UserMessage, AssistantMessage, SystemMessage: ItemM
  */
 export function ThreadMessages({ lines, slot }: { lines: ThreadLine[]; slot: WidgetSlot }) {
   const usages = new Map(lines.flatMap((m) => (m.role !== "item" && m.usage ? [[m.id, m.usage] as const] : [])));
-  // Save to notes saves a whole reply, so a reply cut by an item offers it once, after its last part.
+  // Save to Notebook saves a whole reply, so a reply cut by an item offers it once, after its last part.
   const refs = new Map(lines.flatMap((m) => (m.role === "assistant" && m.ref && !m.more ? [[m.id, m.ref] as const] : [])));
   const items = new Map(lines.flatMap((m) => (m.role === "item" ? [[m.id, { kind: m.kind, data: m.data }] as const] : [])));
   return (

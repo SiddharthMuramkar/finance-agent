@@ -14,15 +14,15 @@ export type SaveTarget =
   | { kind: "widget"; sessionId?: number; turnSeq?: number; widgetIndex: number; widgetKey?: string };
 
 /**
- * Where the control is: not saved, saving, saved as item `id` on Topic `topicId` (`settled`: the "Saved ✓" moment is over and
- * the control is back to offering Save to notes, with a quiet Saved badge), or a failed save or Undo.
+ * Where the control is: not saved, saving, saved as item `id` on Topic `topicId` (`settled`: the "Saved to Notebook ✓" moment is over and
+ * the control is back to offering Save to Notebook, with a quiet Saved badge), or a failed save or Undo.
  */
 export type SaveState =
   | { status: "idle" | "saving" }
   | { status: "saved"; id: number; topicId: string; settled?: boolean; error?: string }
   | { status: "failed"; message: string };
 
-/** How long "Saved ✓" stays before the control settles back. */
+/** How long "Saved to Notebook ✓" stays before the control settles back. */
 export const SAVED_HOLD_MS = 1600;
 
 function Bookmark() {
@@ -34,9 +34,9 @@ function Bookmark() {
 }
 
 /**
- * What the Save to notes control shows (it announces nothing itself: the app announcer does). Idle: a ghost button with a
- * bookmark. Saving: the same button with a spinner and "Saving…". Just saved: "Saved ✓ · Undo · Open notes". A moment
- * later (`settled`): the button again, with a quiet "Saved" badge, Undo and Open notes; the server keeps one saved
+ * What the Save to Notebook control shows (it announces nothing itself: the app announcer does). Idle: a ghost button with a
+ * bookmark. Saving: the same button with a spinner and "Saving…". Just saved: "Saved to Notebook ✓ · Undo · Open Notebook". A moment
+ * later (`settled`): the button again, with a quiet "Saved" badge, Undo and Open Notebook; the server keeps one saved
  * item per reply or Widget, so pressing it again saves nothing twice. Failed: a visible alert and Retry.
  */
 export function SaveToNotesView({
@@ -50,12 +50,12 @@ export function SaveToNotesView({
   what: "reply" | "Widget" | "rule";
   onSave: () => void;
   onUndo: () => void;
-  /** Words for the just-saved moment in place of "Saved ✓" (the Learner's own rule: "Saved to your notes"). */
+  /** Words for the just-saved moment in place of "Saved to Notebook ✓" (the Learner's own rule: "Saved to your Notebook"). */
   label?: string;
 }) {
   const saved = state.status === "saved";
   const justSaved = saved && !state.settled;
-  const label = `Save this ${what} to notes`;
+  const label = `Save this ${what} to Notebook`;
   // The control swaps one element for another as it changes; a keyboard Learner who pressed it keeps their place.
   const root = useRef<HTMLSpanElement>(null);
   const acted = useRef(false);
@@ -72,7 +72,7 @@ export function SaveToNotesView({
     <span ref={root} className="relative inline-flex flex-wrap items-center gap-x-2 text-xs leading-4 text-[var(--muted)] print:hidden" data-testid="save-to-notes" data-save-state={state.status}>
       {justSaved ? (
         <span tabIndex={-1} data-focus-target className="outline-none">
-          {savedLabel ?? "Saved ✓"}
+          {savedLabel ?? "Saved to Notebook ✓"}
         </span>
       ) : state.status === "failed" ? (
         <>
@@ -86,7 +86,7 @@ export function SaveToNotesView({
       ) : (
         <Button variant="secondary" size="sm" onClick={press(onSave)} loading={state.status === "saving"} aria-label={label} data-focus-target>
           {state.status !== "saving" && <Bookmark />}
-          {state.status === "saving" ? "Saving…" : "Save to notes"}
+          {state.status === "saving" ? "Saving…" : "Save to Notebook"}
         </Button>
       )}
       {saved && (
@@ -102,12 +102,12 @@ export function SaveToNotesView({
             </span>
           )}
           <span aria-hidden>·</span>
-          <Button variant="secondary" size="sm" data-undo-save onClick={press(onUndo)} aria-label={`Undo: take this ${what} off your notes`} className="-my-2">
+          <Button variant="secondary" size="sm" data-undo-save onClick={press(onUndo)} aria-label={`Undo: take this ${what} off your Notebook`} className="-my-2">
             Undo
           </Button>
           <span aria-hidden>·</span>
-          <Link href={`/notes#note-${state.topicId}`} className="-my-2 py-2 underline underline-offset-2 hover:text-[var(--ink)]">
-            Open notes
+          <Link href={`/notebook#note-${state.topicId}`} className="-my-2 py-2 underline underline-offset-2 hover:text-[var(--ink)]">
+            Open Notebook
           </Link>
         </>
       )}
@@ -116,7 +116,7 @@ export function SaveToNotesView({
 }
 
 /**
- * The quiet "Save to notes" action under a Tutor reply or a Widget. The server finds the Topic and takes
+ * The quiet "Save to Notebook" action under a Tutor reply or a Widget. The server finds the Topic and takes
  * the Widget's code from the stored reply or the Topic file: only the place and the slider numbers
  * are sent. `getSettings` is read when the button is pressed, so it sends the numbers the Learner has now.
  * The server keeps one saved item per reply or Widget, so even two tabs cannot save a duplicate.
@@ -135,7 +135,7 @@ export function SaveToNotes({ target, getSettings, what }: { target: SaveTarget;
       if (res.ok && typeof data?.id === "number" && typeof data.topicId === "string") {
         const { id, topicId } = data;
         setState({ status: "saved", id, topicId });
-        announce("Saved to notes");
+        announce("Saved to Notebook");
         if (hold.current) clearTimeout(hold.current);
         hold.current = setTimeout(() => setState((now) => (now.status === "saved" ? { ...now, settled: true } : now)), SAVED_HOLD_MS);
       } else setState({ status: "failed", message: "Could not save. Try again." });
@@ -149,14 +149,14 @@ export function SaveToNotes({ target, getSettings, what }: { target: SaveTarget;
     if (hold.current) clearTimeout(hold.current);
     setState({ status: "saving" });
     const res = await fetch("/api/notes/saved", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: kept.id }) }).catch(() => null);
-    // Already gone (removed on Notes in another tab) counts as undone.
+    // Already gone (removed in the Notebook in another tab) counts as undone.
     if (res && (res.ok || res.status === 404)) {
       setState({ status: "idle" });
-      announce("Removed from notes");
+      announce("Removed from your Notebook");
     } else {
       // The note is still saved: back to the settled control (Undo works again), with a short reason.
       setState({ ...kept, settled: true, error: "Could not undo. Try again." });
-      announce("Could not remove it from notes");
+      announce("Could not remove it from your Notebook");
     }
   };
   return <SaveToNotesView state={state} what={what} onSave={() => void save()} onUndo={() => void undo()} />;

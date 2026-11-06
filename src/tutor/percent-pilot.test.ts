@@ -75,6 +75,8 @@ function answerFor(t: QuickTryData, how: "right" | "known" | "wrong"): string | 
   if (how === "wrong") return t.kind === "truth" ? null : "7777";
   if (how === "right") return "templateId" in item ? plainExact(item.answer) : String(item.answer);
   if ("templateId" in item) return item.mistakes.length ? plainExact(item.mistakes[0].value) : null;
+  // A written choice Quick try (E6a): the first wrong choice that names a mix-up.
+  if (item.kind === "choice") return item.choices?.find((c) => c.mistake)?.id ?? null;
   const m = item.mistakes?.[0];
   return m ? String(m.answer) : null;
 }

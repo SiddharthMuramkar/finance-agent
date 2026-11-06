@@ -74,6 +74,17 @@ describe("choicesFor", () => {
     expect(set.choices.map((c) => c.text).sort()).toEqual(["Up 0.5 points", "Up 50 points"]);
   });
 
+  it("labels a template mistake with its own idea pattern, so the idea and not the sum tells the choices apart", () => {
+    const set = choicesFor(
+      drawn({
+        label: "{value}: the move times 100",
+        mistakes: [{ value: exactFrom(0.5), tag: "stopped_at_points", fix: "x", label: "{value}: the move left in points" }, { value: exactFrom(5), tag: "used_x10", fix: "y" }],
+      }),
+      "s",
+    )!;
+    expect(set.choices.map((c) => c.text).sort()).toEqual(["0.5 bp: the move left in points", "5 bp: the move times 100", "50 bp: the move times 100"]);
+  });
+
   it("serves a kind: choice item as written, and a truth item as True and False", () => {
     const written: FixedItem = {
       id: "c1",

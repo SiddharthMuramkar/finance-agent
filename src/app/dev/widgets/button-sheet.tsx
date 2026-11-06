@@ -47,7 +47,7 @@ export function ButtonSheet() {
         <Row variant="primary" label="Primary" draw={(s) => <Button disabled={s === "disabled"} {...force(s)}>Check</Button>} />
         <Row variant="secondary" label="Secondary" draw={(s) => <Button variant="secondary" disabled={s === "disabled"} {...force(s)}>Skip</Button>} />
         <Row variant="danger" label="Danger" draw={(s) => <Button variant="danger" disabled={s === "disabled"} {...force(s)}>Yes, start over</Button>} />
-        <Row variant="small" label="Small" draw={(s) => <Button variant="secondary" size="sm" disabled={s === "disabled"} {...force(s)}>Save to notes</Button>} />
+        <Row variant="small" label="Small" draw={(s) => <Button variant="secondary" size="sm" disabled={s === "disabled"} {...force(s)}>Save to Notebook</Button>} />
         <Row variant="icon" label="Icon" draw={(s) => <IconButton label="Show passcode" disabled={s === "disabled"} {...force(s)}>{eye}</IconButton>} />
         <Row variant="chip" label="Chip" draw={(s) => <Chip disabled={s === "disabled"} {...force(s)}>Explain it again</Chip>} />
         <Row variant="link" label="Link (underlined)" draw={(s) => <TextLink href="#buttons" {...(s === "rest" || s === "disabled" ? {} : { "data-force": s })}>Show all Topics</TextLink>} />

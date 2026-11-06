@@ -158,6 +158,20 @@ const STATES: Record<string, Build> = {
     ]);
   },
   /**
+   * many-topics plus twelve more Topics with a Session, so the Notebook runs well below the fold at 1512×982 and the
+   * current Topic (the last one opened) has its row near the bottom (B2b: following "Open Notebook" scrolls to that row).
+   */
+  "notebook-long": async (db, map, learnerId, now) => {
+    await STATES["many-topics"](db, map, learnerId, now);
+    const path = map.topics.map((t) => t.id).filter((id) => id !== TOPIC);
+    for (const id of path.slice(4, 16)) {
+      await saveJump(db, map, id, now, learnerId);
+      await ensureTopicStarted(db, map, now, learnerId);
+      await sessionForTurn(db, now, learnerId, id);
+    }
+    await openCurrentTopic(db, learnerId);
+  },
+  /**
    * Restart (B3b): Percent passed with one message, a saved reply, an Own rule and a due Review card; the next Topic in
    * progress with a live Session. The two Topics a Learner starts over from the Topic bar and from Settings.
    */

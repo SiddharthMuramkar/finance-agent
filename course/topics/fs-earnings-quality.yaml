@@ -54,18 +54,19 @@ youllLearn:
 questions:
   - id: eq-q-cash-share
     prompt: >
-      A company's books show cash and bank balances of Rs 5,000 crore, but confirmations from the banks
-      support only Rs 300 crore of it. What should an analyst conclude?
+      December 2008. Priya, a junior auditor, is checking a client's year-end cash. The client's finance team
+      hands her neat printed bank statements, but her manager insists she write to each bank herself and
+      have the replies sent straight back to her. Her sign-off on the accounts depends on it. Why does he insist?
     choices:
-      - { id: a, text: "Most of the reported cash may not exist, so the accounts need a hard explanation" }
-      - { id: b, text: "It is a normal timing gap, since banks only ever confirm a small part", mistake: { tag: shrugged_off_the_gap, fix: "Timing gaps are small; a gap this large is a warning sign, not routine." } }
-      - { id: c, text: "The company is being cautious and has understated its cash", mistake: { tag: assumed_understated, fix: "The books show more cash than the banks confirm, so the risk is overstatement." } }
-      - { id: d, text: "Nothing, because bank confirmations are not evidence", mistake: { tag: ignored_outside_evidence, fix: "Confirmations come from outside the company, which makes them the stronger evidence." } }
+      - { id: a, text: "A reply sent straight from the bank is far harder for the client to fake than papers it hands over" }
+      - { id: b, text: "Printed statements are always wrong, so they are worthless", mistake: { tag: dismissed_all_documents, fix: "Statements are useful, but the client controls them; a direct reply bypasses the client." } }
+      - { id: c, text: "It is a courtesy to the banks, not a test of the cash", mistake: { tag: missed_the_test, fix: "The letter tests the balance: the bank says what it holds, not the client." } }
+      - { id: d, text: "Letting the client forward the replies is just as good", mistake: { tag: let_client_handle_it, fix: "If the client handles the reply, it can alter it; it must come straight back." } }
     answer: a
     explanation: >
-      Cash is one of the few things a company cannot fake to an outside party. When the banks confirm only a sliver of what the books claim, the likeliest reading is that the balance was inflated, and the analyst should demand an explanation.
+      Evidence from outside the company, sent straight to the auditor, is the hardest kind to forge. Papers the client produces, or replies the client passes on, could have been altered on the way, so the auditor keeps control of the request and the reply.
     source: >
-      A made-up example in the pattern of the Satyam case; the figures are invented for the question.
+      A made-up example; the principle is from PCAOB, AS 2310 The Auditor's Use of Confirmation (the auditor keeps control of confirmation requests and replies): https://pcaobus.org/oversight/standards/auditing-standards/details/AS2310
   - id: eq-q-margin
     prompt: >
       A software company reports quarterly revenue of Rs 2,700 crore and an operating profit of Rs 649 crore, a 24% margin

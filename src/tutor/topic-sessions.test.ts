@@ -40,6 +40,7 @@ function withBonds({ quiz = false } = {}): CourseMap {
         prerequisites: [],
         cases: pv.cases.map((c) => ({ ...c, id: "bonds-case" })),
         widgets: undefined,
+        scenes: undefined,
         found: undefined,
         checks: [{ id: "bonds-check", kind: "conversation", prompt: "Why do prices fall?", passCriteria: "Discounting." }],
         questions: undefined,
