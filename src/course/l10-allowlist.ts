@@ -2,7 +2,6 @@
 // rewrite them and delete their ids. The list can only shrink: a Topic on it with no L10 hit must come off, and a
 // Topic off it with a hit fails. One id per line, sorted, so batch PRs merge cleanly. Never add an id.
 export const L10_NOT_YET_STORY: readonly string[] = [
-  "ana-build-valuation",
   "bank-regulation",
   "cf-capital-budgeting",
   "cf-capital-structure",
@@ -27,13 +26,9 @@ export const L10_NOT_YET_STORY: readonly string[] = [
   "fs-revenue-runrate",
   "ins-risk-transfer",
   "jud-assumptions",
-  "jud-filing-vs-claim",
   "jud-ipo-forecast",
   "jud-narrative-numbers",
-  "jud-predicted-outcomes",
   "jud-rating-boundary",
-  "jud-rating-conflict",
-  "jud-units-periods",
   "mkt-behavioural",
   "mkt-efficiency",
   "num-compounding",
