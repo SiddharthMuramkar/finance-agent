@@ -117,6 +117,15 @@ describe("the Tutor's frozen instructions", () => {
       it("keep the running example's numbers when asked for something simpler (T4)", () => {
         expect(text).toContain("on the running example's own numbers (never switch to new ones)");
       });
+
+      // Run 10: T16 glossed a basis point with an unexplained "percentage point", and T4 said "1 percentage point" right before asking how far the rate moved.
+      it("gloss a term in everyday words only, and never state the answer its ask is after (T4, T16)", () => {
+        expect(text).toContain("in everyday words only, never with another finance word");
+        expect(text).toContain('a basis point is "a hundredth of one percent", never "a hundredth of a percentage point"');
+        expect(text).toContain("Traders measure such moves in basis points: a hundredth of one percent.");
+        expect(text).not.toContain("Traders measure such moves in basis points: one hundredth");
+        expect(text).toContain("Never state the number or answer your ask is after");
+      });
     });
   }
 });
