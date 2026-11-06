@@ -55,9 +55,10 @@ describe("the Tutor's frozen instructions", () => {
 
       // Run 3 (critic BP-4): T13 held back the answer with "a nudge rather than the answer" and asked "bigger or smaller" again and again.
       it("keep an answer back playfully, and never ask the same question twice in a Session (T13)", () => {
-        expect(text).toContain("one light, playful line of five words or fewer that keeps the answer back as the Learner's to win");
-        // Run 5: T11 failed 0 of 3, each reply 2 to 5 words over its cap, after a longer hold-back line.
-        expect(text).toContain("A good reply:\nThat one's yours to win. Basis points are points times 100.");
+        // Run 13 (critic BP-2): "this one's yours to win" read as a flat refusal; the hold-back now hands over the same move done in full.
+        expect(text).toContain("never refuse flatly: one warm line of ten words or fewer saying the last tap is theirs");
+        expect(text).toContain("A good reply:\nHappy to get you there; the last tap stays yours. Basis points are points times 100, so");
+        expect(text).not.toContain("A good reply:\nThat one's yours to win.");
         expect(text).toContain("Never put the same question to the Learner twice in a Session");
         // Run 4: a new ask turned into "how many basis points is that?", a sum.
         expect(text).toContain('never a conversion ("how many basis points is that?" is a sum)');
@@ -110,8 +111,19 @@ describe("the Tutor's frozen instructions", () => {
         expect(text).toContain('Write "basis points" in full in each reply before you shorten it to bp');
       });
 
+      // Run 13 (critic BP-2, BP-3): T13 ended all 20 replies on a quiz question, refused "just tell me the answer" flatly,
+      // and twice pointed to a Quick try "just below" that was not on screen.
+      it("end on a quiz question only when the step asks for one, hand over the same move when asked for the answer, and name only what is on screen (T13)", () => {
+        expect(text).toContain("That last line is a quiz question, a choice with a right answer, only when the step asks for one");
+        expect(text).toContain("it is an invitation with no wrong answer");
+        expect(text).toContain("never end two replies in a row on a quiz question");
+        expect(text).toContain("the very same move done in full on other numbers, ending in its result, so one tap is all that is left");
+        expect(text).toContain("When the Learner asks for the answer to anything still open");
+        expect(text).toContain('Mention a Quick try, a Widget or anything "below" only when this turn\'s Course Navigator message or a tool result says code shows it now');
+      });
+
       it("keep a hint within 50 words (T11)", () => {
-        expect(text).toContain("then one ask on that idea, in 50 words or fewer in all");
+        expect(text).toContain("not a new question, in 50 words or fewer in all");
       });
 
       // Run 11: with a quiz open on "which would you use to tell a friend how far the rate moved", T4's simpler reply said "Points tell you how far the rate moved".

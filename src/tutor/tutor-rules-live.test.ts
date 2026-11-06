@@ -56,7 +56,7 @@ describe("the rules tuned against the live tests", () => {
 
       it("asked for the answer to one open question, the Tutor teaches only the idea that question tests", () => {
         expect(text).toContain(
-          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): one light, playful line of five words or fewer that keeps the answer back as the Learner's to win (\"That one's yours to win.\"; never \"a nudge rather than the answer\"), the rule and one worked example on other numbers in two short sentences, with no definitions (its terms are taught), then one ask on that idea, in 50 words or fewer in all.",
+          "Asked for the answer to one question, teach only the idea that question tests (the Course Navigator message names it): never refuse flatly: one warm line of ten words or fewer saying the last tap is theirs (\"Happy to get you there; the last tap stays yours.\"; never a bare \"That one's yours to win\" or \"a nudge rather than the answer\"), then the rule and the very same move done in full on other numbers, ending in its result, so one tap is all that is left, in two short sentences with no definitions (its terms are taught); then one short line that hands the tap back (\"Now pick your answer to question 1.\"), not a new question, in 50 words or fewer in all.",
         );
       });
     });
@@ -65,7 +65,7 @@ describe("the rules tuned against the live tests", () => {
   it("with the engine, a quiz-me ask that also asks for a Widget gets the rate Widget in practice mode", () => {
     expect(ENGINE_INSTRUCTIONS).toContain("When the Learner also asks for a Widget and the idea is a rate move, show rate_move in practice mode on new numbers");
     expect(ENGINE_INSTRUCTIONS).toContain("it asks the Learner to pick the right reading, so write only a short acknowledgement and that one question, and stop there");
-    expect(ENGINE_INSTRUCTIONS).toContain("For a quiz-me ask, point to the next Quick try, or show choice_cards with one story or lingo question;");
+    expect(ENGINE_INSTRUCTIONS).toContain("For a quiz-me ask, point to the next Quick try only when this turn's context says code shows one now; otherwise show choice_cards with one story or lingo question;");
     // Runs 8 and the D3b finish runs: T5 asked "Which reading gives that move?" with no readings in the reply, and the grader said a beginner could not follow it.
     expect(ENGINE_INSTRUCTIONS).toContain('never write "which reading": the readings are on the card, so ask how a trader would say the move');
     expect(ENGINE_INSTRUCTIONS).not.toContain("own answer box");
