@@ -33,8 +33,8 @@ cases:
       an efficient market. And buying low price-to-book shares, "a lazy variant of value investing",
       would lead to holding bad businesses rather than undervalued ones. The Learner's job is not
       to follow the post but to judge it: take each statement back to the inputs the post gives,
-      recompute it, and say what each result rests on. Nobody is asked what any share or index
-      will do.
+      say in words whether it follows from them, and name what each result rests on. Nobody is
+      asked to redo a sum or to say what any share or index will do.
     reveal: >
       Recomputed from the post's own inputs (Damodaran, Musings on Markets, 18 Feb 2025), the
       toy case ties out. A: 15/60 = 25%, value 15/0.10 = $150 million, price to book 150/60 = 2.5,
@@ -79,14 +79,14 @@ concept: >
   (a conclusion the stated assumptions do not support) catches most errors before the arithmetic does.
 
 principle: >
-  Recompute the writer's figure from the inputs the writer gives, name the numerator and the
+  Take the writer's figure back to the inputs the writer gives, name the numerator and the
   denominator of every ratio, check that the periods match, and write down every assumption you
   had to add. A result that holds only under an assumption (no growth, constant earnings, a fair
   price) should be cited with that assumption attached.
 
 # You'll learn: shown on the Topic Start card and the Welcome. Drafted from the concept and principle only, for the owner to review.
 youllLearn:
-  - "Recompute a claim from the writer's own inputs."
+  - "Take a claim back to the writer's own inputs and say whether it follows."
   - "Name the numerator and the denominator of every ratio and check the periods match."
   - "Find the assumption a result rests on and cite the two together."
 

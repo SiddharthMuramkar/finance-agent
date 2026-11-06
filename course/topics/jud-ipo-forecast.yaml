@@ -24,8 +24,8 @@ cases:
       Aswath Damodaran, a valuation professor at NYU Stern, published a post that valued the company
       from that filing. He says the value of its equity is $9.97 billion and the value per share is
       $17.36. The Learner's job is to judge the claims in that post, not to value Twitter again: take
-      each figure back to the filing, recompute it, and say whether it ties, and if not, what sort of
-      slip it is and whether it matters. What the post says, in short: revenue for the twelve months
+      each figure back to the filing, set it beside the filing's own figure, and say whether it ties,
+      and if not, what sort of slip it is and whether it matters. What the post says, in short: revenue for the twelve months
       to 30 June 2013 was $448 million; first-half revenue was more than 100% higher than a year
       earlier; 12.6% of first-half revenue came from selling access to Twitter's data; the company
       has more than 215 million monthly users; the share count he uses is 574.44 million, the sum of
@@ -115,19 +115,19 @@ youllLearn:
 questions:
   - id: jip-q-ttm
     prompt: >
-      You are checking a tech company's 2013 listing. Its filing gives revenue for all of 2012, for
-      January to June 2012, and for January to June 2013. How do analysts build the "trailing twelve
-      months" to 30 June 2013?
+      October 2013, a made-up story: Priya, a junior reporter, reads a blog on Twitter's listing.
+      It quotes revenue for "the trailing twelve months to 30 June 2013". Her editor asks what
+      stretch of time that covers. What does "trailing twelve months" mean here?
     choices:
-      - { id: a, text: "Take 2012, add the first half of 2013, take away the first half of 2012" }
-      - { id: b, text: "Add all three figures together to get the full twelve-month total", mistake: { tag: counted_twice, fix: "That counts the first half of 2012 twice." } }
-      - { id: c, text: "Double the first half of 2013, since a year is two halves of six months", mistake: { tag: doubled_half, fix: "Doubling six months assumes the pace holds; that is a run rate, not twelve months earned." } }
-      - { id: d, text: "Use 2012 on its own", mistake: { tag: old_year_only, fix: "The 2012 year leaves out the half-year already earned in 2013." } }
+      - { id: a, text: "The latest twelve months already earned, July 2012 to June 2013" }
+      - { id: b, text: "Calendar 2012, the last full year in the filing", mistake: { tag: old_year_only, fix: "Trailing twelve months ends at the latest date reported, here 30 June 2013, not December 2012." } }
+      - { id: c, text: "The next twelve months, as the company forecasts them", mistake: { tag: trailing_as_forecast, fix: "Trailing means looking back: months already earned, not a forecast." } }
+      - { id: d, text: "The first half of 2013 stretched out to a full year", mistake: { tag: doubled_half, fix: "Stretching six months to a year assumes the pace holds; that is a run rate, not twelve months earned." } }
     answer: a
     explanation: >
-      The trailing twelve months roll the last full year forward: start with the year 2012, add the
-      new part-year and take away the same part-year a year earlier. Adding all three counts the
-      first half of 2012 twice.
+      "Trailing" means looking back. The trailing twelve months are the latest full year of results
+      that have already happened, here July 2012 to June 2013, so a fast-growing company is judged
+      on its newest year rather than an old calendar year or a guess about the next one.
     source: >
       Trailing twelve months as built from the revenue table of Twitter, Inc., Form S-1 (3 October 2013) in
       Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
@@ -201,19 +201,19 @@ questions:
       The revenue table of Twitter, Inc., Form S-1 (3 October 2013) (a line as a share of total revenue).
   - id: jip-q-weighted
     prompt: >
-      A company runs two businesses. Most of its revenue (80%) comes from a jumpy one with a beta (how
-      hard it swings with the market) of 1.30; the rest (20%) from a calmer one at 0.90. How should a
-      blogger give the whole company one beta?
+      Your cousin Arjun reads a blog about a company with two businesses. Most of its revenue (80%)
+      comes from a jumpy one that swings hard with the market; the rest comes from a calm one.
+      Which headline gets the whole company's beta (how hard it swings with the market) right?
     choices:
-      - { id: a, text: "Weight each by its share of revenue, landing nearer 1.30" }
-      - { id: b, text: "Take the plain average of the two", mistake: { tag: simple_average, fix: "A simple average ignores the weights; the bigger business should count for more." } }
-      - { id: c, text: "Use the higher one, to be safe", mistake: { tag: higher_beta_only, fix: "The higher beta ignores that part of the company is less risky." } }
-      - { id: d, text: "Use the lower one, since that business is the steadier of the two", mistake: { tag: lower_beta_only, fix: "The lower beta belongs to the smaller business, so it should count for less." } }
+      - { id: a, text: "Mostly jumpy: the big business sets the tone, the calm one softens it a little" }
+      - { id: b, text: "Exactly halfway between jumpy and calm", mistake: { tag: simple_average, fix: "Halfway treats the small business like the big one; the bigger business should count for more." } }
+      - { id: c, text: "As jumpy as its jumpiest business", mistake: { tag: higher_beta_only, fix: "That leaves out the calm business, which makes the whole company a little steadier." } }
+      - { id: d, text: "As calm as its calmest business, since that one is steadier", mistake: { tag: lower_beta_only, fix: "The calm business is the small one, so it should count for less, not decide it." } }
     answer: a
     explanation: >
-      A company's beta is the weighted average of its businesses' betas, with revenue shares as the
-      weights, so the bigger business counts for more and the result sits much closer to 1.30 than a
-      plain average would.
+      Analysts blend the betas of a company's businesses, letting each count by its share of
+      revenue. A company that is mostly a jumpy business is mostly jumpy; the small calm part only
+      softens it a little.
     source: >
       Weighted-average beta as used in Damodaran, "Twitter announces IPO: The Valuation", Musings on Markets, 5 October 2013.
   - id: jip-q-basis
