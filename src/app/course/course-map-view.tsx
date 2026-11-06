@@ -46,7 +46,7 @@ function Row({ t, sessionId, title }: { t: TopicOverview; sessionId: number | un
       title={t.title}
       mode={mode}
       status={t.status}
-      href={mode === "passed" ? (sessionId ? `/sessions/${sessionId}` : "/sessions") : "/study"}
+      href={mode === "passed" ? (sessionId ? `/sessions/${sessionId}` : "/notebook") : "/study"}
       unmet={t.unmetPrerequisites.map((id) => ({ id, title: title(id) }))}
       lead={<Dot topic={t} />}
     >

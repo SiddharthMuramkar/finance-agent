@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { TopicNote } from "@/learner/notes";
 import { applySettings } from "@/widgets/settings";
-import { NotesView } from "./notes-view";
+import type { Notebook, NotebookRow } from "@/learner/notebook";
+import { NotebookView } from "./notebook-view";
 import { UndoToast } from "./undo";
 
 const now = new Date("2026-11-03T00:00:00Z");
@@ -26,6 +27,21 @@ const notes: TopicNote[] = [
   { topicId: "bonds", title: "Bond prices", stage: "follow", passed: false, lines: [], saved: [] },
 ];
 
+/** A Notebook row for a note: status from the note, a Session when asked. */
+const rowOf = (note: TopicNote, over: Partial<NotebookRow> = {}): NotebookRow => ({
+  topicId: note.topicId,
+  title: note.title,
+  stage: note.stage,
+  status: note.passed ? "passed" : "not_started",
+  sessionId: null,
+  lastActive: null,
+  action: null,
+  found: [],
+  note,
+  ...over,
+});
+const book = (list: TopicNote[], older: Notebook["older"] = []): Notebook => ({ rows: list.map((n) => rowOf(n)), older });
+
 const PLAY = `root = Widget("Cash now or later", [rate])
 $rate = 5
 rate = Slider("rate", "Interest rate", 0, 10, 0.25, $rate, "percent")`;
@@ -35,7 +51,7 @@ describe("saved replies and Widgets on a Topic Note", () => {
     { id: 1, kind: "reply", text: "Discounting is **the price of waiting**.\n\n```sources\n[{\"n\":1,\"title\":\"Library passage (hidden until the reveal)\",\"href\":\"/passages/9\",\"credit\":null}]\n```", savedAt: now, again: { kind: "reply", sessionId: 3, turnSeq: 0 } },
     { id: 2, kind: "widget", code: applySettings(PLAY, { $rate: 8 }), title: "Cash now or later", savedAt: now, again: { kind: "widget", widgetIndex: -1, settings: { $rate: 8 } } },
   ];
-  const html = renderToStaticMarkup(<NotesView notes={[{ ...notes[1], saved }]} />);
+  const html = renderToStaticMarkup(<NotebookView notebook={book([{ ...notes[1], saved }])} showAll />);
 
   it("shows them on a Topic that is not passed yet, a reply drawn like an old Session with its sources folded", () => {
     expect(html).toContain('data-saved-item="reply"');
@@ -63,11 +79,11 @@ describe("saved replies and Widgets on a Topic Note", () => {
   });
 });
 
-describe("the Notes page", () => {
-  const html = renderToStaticMarkup(<NotesView notes={notes} showAll />);
+describe("a Notebook row's Topic Note", () => {
+  const html = renderToStaticMarkup(<NotebookView notebook={book(notes)} showAll />);
 
   it("lists Topics in the order given, one note each", () => {
-    expect([...html.matchAll(/data-note="([^"]+)"/g)].map((m) => m[1])).toEqual(["pv", "bonds"]);
+    expect([...html.matchAll(/data-notebook-row="([^"]+)"/g)].map((m) => m[1])).toEqual(["pv", "bonds"]);
   });
 
   it("draws a passed Topic's filled-in part: Formula Card with numbers, both Insight versions, principle, Connections, mistakes", () => {
@@ -89,7 +105,7 @@ describe("the Notes page", () => {
 
   it("leaves out only the written Insight when the Learner found it themselves", () => {
     const found = renderToStaticMarkup(
-      <NotesView notes={[{ ...notes[0], filled: { ...notes[0].filled!, insight: { ownWords: "Later money is worth less" } } }]} />,
+      <NotebookView notebook={book([{ ...notes[0], filled: { ...notes[0].filled!, insight: { ownWords: "Later money is worth less" } } }])} showAll={false} />,
     );
     expect(found).toContain("Later money is worth less");
     expect(found).not.toContain("data-written-insight");
@@ -97,45 +113,82 @@ describe("the Notes page", () => {
 
   it("prints cleanly: controls and empty Topics are hidden on paper, and the print block sets a light page", () => {
     expect(html).toMatch(/<form[^>]*print:hidden/);
-    expect(html).toMatch(/data-note="bonds"[^>]*print:\[&amp;:not\(:has|print:\[&amp;:not\(:has[^>]*data-note="bonds"/);
-    expect(html).not.toMatch(/data-note="pv"[^>]*print:/);
+    expect(html).toMatch(/data-notebook-row="bonds"[^>]*print:\[&amp;:not\(:has|print:\[&amp;:not\(:has[^>]*data-notebook-row="bonds"/);
+    expect(html).not.toMatch(/data-notebook-row="pv"[^>]*print:/);
     const css = readFileSync(new URL("../globals.css", import.meta.url), "utf8");
     expect(css).toMatch(/@media print/);
   });
 });
 
-describe("the Notes filter", () => {
+describe("notebook rows", () => {
   const empty = (topicId: string, title: string): TopicNote => ({ topicId, title, stage: "follow", passed: false, lines: [], saved: [] });
-  const withLine: TopicNote = { ...empty("rates", "Interest rates"), lines: [{ id: 9, text: "Rates move prices", createdAt: now, updatedAt: now }] };
-  const all = [notes[0], empty("bonds", "Bond prices"), withLine, empty("fx", "Currencies")];
-  const shown = (html: string) => [...html.matchAll(/data-note="([^"]+)"/g)].map((m) => m[1]);
+  const rows = [
+    rowOf(notes[0], { sessionId: 12, lastActive: now, action: "read", found: ["You found the rate."] }),
+    rowOf(empty("bonds", "Bond prices"), { status: "in_progress", sessionId: 13, lastActive: now, action: "resume" }),
+    rowOf(empty("fx", "Currencies")),
+  ];
+  const older = [{ id: 5, date: new Date("2026-09-05T08:00:00Z"), topics: ["Present value"] }];
+  const html = renderToStaticMarkup(<NotebookView notebook={{ rows, older }} showAll={false} />);
+  const ids = (h: string) => [...h.matchAll(/data-notebook-row="([^"]+)"/g)].map((m) => m[1]);
 
-  it("has a visible page title", () => {
-    expect(renderToStaticMarkup(<NotesView notes={all} />)).toMatch(/<h1[^>]*>Notes<\/h1>/);
-  });
-
-  it("lists only Topics with a note by default (passed, own lines or saved items), and offers Show all Topics", () => {
-    const html = renderToStaticMarkup(<NotesView notes={all} />);
-    expect(shown(html)).toEqual(["pv", "rates"]);
-    expect(html).toMatch(/<a[^>]*href="\/notes\?all=1"[^>]*>Show all Topics<\/a>/);
-  });
-
-  it("shows every Topic with Show all Topics on, and turning it off goes back to the Topics with notes", () => {
-    const html = renderToStaticMarkup(<NotesView notes={all} showAll />);
-    expect(shown(html)).toEqual(["pv", "bonds", "rates", "fx"]);
-    expect(html).toMatch(/<a[^>]*href="\/notes"[^>]*>Show only Topics with notes<\/a>/);
-  });
-
-  it("gives a Learner with no notes a short line instead of empty cards", () => {
-    const html = renderToStaticMarkup(<NotesView notes={[empty("bonds", "Bond prices"), empty("fx", "Currencies")]} />);
-    expect(shown(html)).toEqual([]);
-    expect(html).toContain("data-notes-empty");
-    expect(html).toContain("No notes yet.");
+  it("has the page title Notebook, and never says Past Sessions or lesson", () => {
+    expect(html).toMatch(/<h1[^>]*>Notebook<\/h1>/);
+    expect(html).not.toContain("Past Sessions");
     expect(html.toLowerCase()).not.toContain("lesson");
   });
 
-  it("gives each note an anchor, so Open notes lands on its Topic", () => {
-    expect(renderToStaticMarkup(<NotesView notes={all} />)).toContain('id="note-rates"');
+  it("has one row per Topic in the order given, each with the anchor note-<topicId> and its status Tag", () => {
+    expect(ids(html)).toEqual(["pv", "bonds", "fx"]);
+    expect(html).toContain('id="note-bonds"');
+    expect(html).toMatch(/data-affordance="tag"[^>]*>Passed</);
+    expect(html).toMatch(/data-affordance="tag"[^>]*>In progress</);
+    expect(html).toMatch(/data-affordance="tag"[^>]*>Not started</);
+    expect(html).toContain("Last worked on 3 Nov 2026");
+  });
+
+  it("gives an in-progress row a Resume form posting its Topic to /api/open", () => {
+    const row = html.slice(html.indexOf('data-notebook-row="bonds"'), html.indexOf('data-notebook-row="fx"'));
+    expect(row).toMatch(/<form[^>]*action="\/api\/open"/);
+    expect(row).toMatch(/name="topic" value="bonds"/);
+    expect(row).toContain("Resume");
+  });
+
+  it("gives a passed row a Read link to its Session, and says what the Learner found", () => {
+    const row = html.slice(html.indexOf('data-notebook-row="pv"'), html.indexOf('data-notebook-row="bonds"'));
+    expect(row).toMatch(/<a[^>]*href="\/sessions\/12"[^>]*>Read<\/a>/);
+    expect(row).toContain("What you found");
+    expect(row).toContain("You found the rate.");
+    expect(row).not.toContain("/api/open");
+  });
+
+  it("leaves a row with no action without a Resume or Read", () => {
+    const row = html.slice(html.indexOf('data-notebook-row="fx"'));
+    expect(row).not.toContain("Resume");
+    expect(row).not.toMatch(/>Read</);
+  });
+
+  it("lists Older sessions under their own heading, each linking to its Session", () => {
+    expect(html).toMatch(/<h2[^>]*>Older sessions<\/h2>/);
+    expect(html.indexOf('href="/sessions/5"')).toBeGreaterThan(html.indexOf("Older sessions"));
+    expect(html).toContain("5 SEP 2026");
+  });
+
+  it("offers Show all Topics, and turning it off goes back", () => {
+    expect(html).toMatch(/<a[^>]*href="\/notebook\?all=1"[^>]*>Show all Topics<\/a>/);
+    const all = renderToStaticMarkup(<NotebookView notebook={{ rows, older: [] }} showAll />);
+    expect(all).toMatch(/<a[^>]*href="\/notebook"[^>]*>Show only Topics with something in them<\/a>/);
+    expect(all).not.toContain("Older sessions");
+  });
+
+  it("gives a Learner with nothing yet a short line instead of empty cards", () => {
+    const none = renderToStaticMarkup(<NotebookView notebook={{ rows: [], older: [] }} showAll={false} />);
+    expect(ids(none)).toEqual([]);
+    expect(none).toContain("data-notebook-empty");
+    expect(none).toContain("Nothing here yet.");
+  });
+
+  it("leaves a slot for Earlier attempts, empty until a Topic is started over", () => {
+    expect(html).toContain("data-earlier-attempts");
   });
 });
 
@@ -154,6 +207,6 @@ describe("Undo after a removal", () => {
   });
 
   it("has no toast on the page until something is removed", () => {
-    expect(renderToStaticMarkup(<NotesView notes={notes} />)).not.toContain("data-undo-remove");
+    expect(renderToStaticMarkup(<NotebookView notebook={book(notes)} showAll={false} />)).not.toContain("data-undo-remove");
   });
 });
