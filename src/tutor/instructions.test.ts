@@ -44,6 +44,8 @@ describe("the Tutor's frozen instructions", () => {
       // Run 3 (critics BP-2, EV-2): "bad at maths" got "mostly subtraction", a worked sum and a Quick try that asks for a number.
       it("keep a reply to a maths worry all words: no sum, not even said as a fact, and no Quick try (T15)", () => {
         expect(text).toContain("When the worry is maths, keep that reply all words");
+        // Run 4: an ask about basis points competed with the Quick try on points.
+        expect(text).toContain("one choice ask about the word the step teaches (the one the Quick try on screen uses, if there is one)");
         expect(text).toContain("with no sum in it, not even said as a fact, and no pointer to a Quick try");
         expect(text).toContain('The Learner writes: "ugh I\'m terrible with numbers".');
       });
@@ -52,6 +54,8 @@ describe("the Tutor's frozen instructions", () => {
       it("keep an answer back playfully, and never ask the same question twice in a Session (T13)", () => {
         expect(text).toContain("one light, playful line that keeps the answer back as the Learner's to win");
         expect(text).toContain("Never put the same question to the Learner twice in a Session");
+        // Run 4: a new ask turned into "how many basis points is that?", a sum.
+        expect(text).toContain('never a conversion ("how many basis points is that?" is a sum)');
       });
 
       it("answer a word question with the word only, within 70 words (T16)", () => {
