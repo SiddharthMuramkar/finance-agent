@@ -319,6 +319,18 @@ describe("Breakeven", () => {
     expect(byId(page!, "breakeven-marker-label")!.textContent).toContain("30-year US bond yield that week: 3.37%");
   });
 
+  // Issue #457, review C1 (round 2): markerLabel is optional and the amber tick is only 1.5:1 in Light, so the tick must
+  // never show without words. With no label, or a blank one, the line below the track still names it.
+  it("names the sourced tick in words even when no markerLabel is given", () => {
+    for (const markerLabel of [undefined, "", "   "]) {
+      show(view(3.5, { marker: 3.37, markerLabel }));
+      expect(byId(page!, "breakeven-marker")!.getAttribute("title")).toBe("Sourced");
+      expect(byId(page!, "breakeven-marker-label")!.textContent).toBe("Sourced: 3.37%");
+      page!.cleanup();
+      page = null;
+    }
+  });
+
   it("says so when there is no break-even in the range", () => {
     show(view(3, { target: 5000 }));
     expect(byId(page!, "breakeven-none")!.textContent).toBe("No break-even between 0% and 10%.");
