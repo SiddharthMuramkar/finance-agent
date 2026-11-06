@@ -138,9 +138,9 @@ describe("the suite's own cases", () => {
     expect(state("T3")?.skills?.[0]).toMatchObject({ skill: "pts-to-bp", methodsUsed: ["restate", "worked"] });
   });
 
-  it("rewrite T3 for Choices: the Learner picks the label 0.3 bp, and the new method is a half-done choice (D3b)", () => {
+  it("rewrite T3 for Choices: the Learner picks the 0.3 bp choice by its number, and the new method is a half-done choice (D3b)", () => {
     const t3 = cases.find((c) => c.id === "T3")!;
-    expect(t3.kind === "live" && t3.message).toBe("0.3 bp");
+    expect(t3.kind === "live" && t3.message).toBe("0.3");
     expect(t3.kind === "live" && t3.graderChecks?.join(" ")).toMatch(/a half-done choice/);
     expect(JSON.stringify(t3)).not.toMatch(/fill-in boxes/);
   });

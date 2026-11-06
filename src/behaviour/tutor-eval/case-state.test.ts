@@ -142,7 +142,7 @@ describe("T3: the Quick try code shows is the one the earlier turn talks about",
     const result = items.findLast((i) => i.kind === QUICK_TRY_RESULT)?.data as unknown as QuickTryResultData;
     expect(result).toMatchObject({ key: tries.at(-1)!.key, verdict: "known_mistake" });
     expect(p.stateNote).toMatch(/Quick try "A rate falls from 7\.5% to 7\.2%\./);
-    expect(p.stateNote).toMatch(/"0\.3 bp" as a Known mistake/);
+    expect(p.stateNote).toMatch(/"0\.3" as a Known mistake/);
   });
 
   it("gives the follow-up turn that same try, with the Known mistake and the next method", async () => {
