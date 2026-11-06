@@ -96,8 +96,8 @@ describe("a read-only Topic Session's Widgets, updated in place", () => {
   const rates = (start: number) => ["```openui-lang", 'root = Widget("Rates", [rate])', `$rate = ${start}`, 'rate = Slider("rate", "Rate", 0, 10, 0.25, $rate, "percent")', "```"].join("\n");
   const ANNUITY = 'root = Widget("What the annuity is worth today", [rate])\n$rate = 5\nrate = Slider("rate", "Rate", 0, 10, 0.01, $rate, "percent")';
   const tabs = (html: string) => {
-    const at = html.indexOf('aria-label="Widgets in this Session"');
-    return at === -1 ? 0 : (html.slice(at, html.indexOf("</div>", at)).match(/role="option"/g) ?? []).length;
+    const at = html.indexOf('data-testid="widget-filmstrip"');
+    return at === -1 ? 0 : (html.slice(at, html.indexOf('data-testid="widget-card"', at)).match(/data-thumb-key=/g) ?? []).length;
   };
 
   it("draws a Widget the Tutor drew again under the same title in one tab", () => {
